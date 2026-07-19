@@ -37,6 +37,13 @@ export const createProductInputSchema = z.object({
 
 export type CreateProductInput = z.infer<typeof createProductInputSchema>;
 
+export const updateProductInputSchema = createProductInputSchema.extend({
+  primaryImageUrl: z.string().trim().url().max(2000).optional(),
+  collectionIds: z.array(z.string().uuid()).max(50).default([]),
+});
+
+export type UpdateProductInput = z.infer<typeof updateProductInputSchema>;
+
 /**
  * A Product never has a price of its own — see `@paon/domain`
  * `catalog/product.ts` "Product" — so creating one always creates its
@@ -57,4 +64,13 @@ export const createProductVariantInputSchema = z.object({
 
 export type CreateProductVariantInput = z.infer<
   typeof createProductVariantInputSchema
+>;
+
+export const updateProductVariantInputSchema =
+  createProductVariantInputSchema.extend({
+    id: z.string().uuid(),
+  });
+
+export type UpdateProductVariantInput = z.infer<
+  typeof updateProductVariantInputSchema
 >;

@@ -79,4 +79,19 @@ describe("ProductVariantRepository", () => {
       }),
     ).rejects.toBeInstanceOf(VariantSkuAlreadyExistsError);
   });
+
+  it("updates variant merchandising and inventory fields", async () => {
+    const repo = new ProductVariantRepository(
+      clientReturning({ data: { ...row, inventory_quantity: 8 }, error: null }),
+    );
+    const updated = await repo.update(row.id as never, {
+      sku: row.sku,
+      size: "44",
+      color: "Navy",
+      price: { amountMinorUnits: 475000, currency: "USD" },
+      inventoryQuantity: 8,
+      leadTimeDays: 14,
+    });
+    expect(updated.inventoryQuantity).toBe(8);
+  });
 });

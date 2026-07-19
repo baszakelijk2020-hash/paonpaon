@@ -651,3 +651,14 @@ through a narrow database function before protected Admin routes are available.
 but that alone is not completed onboarding. Explicit acceptance closes the dead
 invite-link gap and prevents partially onboarded platform operators from
 browsing privileged cross-retailer tooling.
+
+## ADR-023: Product merchandising and collections update atomically
+
+**Decision.** A manager updates product metadata, publication status and full
+collection membership through one database transaction that re-derives the
+retailer and validates every collection. Variant price, inventory and lead-time
+changes remain individually permission-gated records.
+
+**Why.** Replacing collection membership with separate browser requests could
+leave a published product partially merchandised. The transactional boundary
+also prevents a crafted request from attaching another retailer's collection.

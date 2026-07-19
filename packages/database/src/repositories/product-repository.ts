@@ -56,6 +56,17 @@ export interface CreateProductParams {
   isAlterable: boolean;
 }
 
+export interface UpdateProductParams {
+  name: string;
+  slug: string;
+  description: string;
+  status: ProductStatus;
+  isMadeToOrder: boolean;
+  isAlterable: boolean;
+  primaryImageUrl?: string;
+  collectionIds: readonly CollectionId[];
+}
+
 /**
  * `collectionIds` (required, never optional, on the `Product` domain
  * type) is populated from `product_collections` here — a separate join
@@ -173,5 +184,27 @@ export class ProductRepository {
     }
 
     return toDomain(data, []);
+  }
+
+  async update(id: ProductId, params: UpdateProductParams): Promise<Product> {
+    const { error } = await this.client.rpc("update_product_catalogue", {
+      p_product_id: id,
+      p_name: params.name,
+      p_slug: params.slug,
+      p_description: params.description,
+      p_status: params.status,
+      p_is_made_to_order: params.isMadeToOrder,
+      p_is_alterable: params.isAlterable,
+      p_primary_image_url: params.primaryImageUrl ?? "",
+      p_collection_ids: [...params.collectionIds],
+    });
+    if (error) {
+      if (isUniqueViolation(error))
+        throw new ProductSlugAlreadyExistsError(params.slug);
+      throw error;
+    }
+    const updated = await this.findById(id);
+    if (!updated) throw new Error("Updated product could not be reloaded");
+    return updated;
   }
 }

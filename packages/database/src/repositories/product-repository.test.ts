@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
@@ -110,5 +110,43 @@ describe("ProductRepository", () => {
         isAlterable: true,
       }),
     ).rejects.toBeInstanceOf(ProductSlugAlreadyExistsError);
+  });
+
+  it("updates product metadata and collection membership transactionally", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: row.id, error: null });
+    const client = {
+      rpc,
+      from: (table: string) =>
+        fakeQueryBuilder(
+          (table === "products"
+            ? { data: { ...row, status: "active" }, error: null }
+            : {
+                data: [
+                  {
+                    product_id: row.id,
+                    collection_id: "55555555-5555-5555-5555-555555555555",
+                  },
+                ],
+                error: null,
+              }) as never,
+        ),
+    } as unknown as PaonSupabaseClient;
+    const product = await new ProductRepository(client).update(
+      row.id as never,
+      {
+        name: row.name,
+        slug: row.slug,
+        description: "Updated",
+        status: "active",
+        isMadeToOrder: true,
+        isAlterable: true,
+        collectionIds: ["55555555-5555-5555-5555-555555555555" as never],
+      },
+    );
+    expect(rpc).toHaveBeenCalledWith(
+      "update_product_catalogue",
+      expect.objectContaining({ p_product_id: row.id, p_status: "active" }),
+    );
+    expect(product.collectionIds).toHaveLength(1);
   });
 });

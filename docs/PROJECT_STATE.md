@@ -168,14 +168,11 @@ definer` RPC re-deriving its own authority, same shape as ADR-012 —
   price field, matching `shared/money.ts`'s "never a float" value
   object shape exactly — `ProductVariantRepository` is the only place
   that (de)composes it.
-- **Deliberately not built yet**: editing a product/variant after
-  creation (only create + list + detail so far); assigning a product to
-  a collection (the join table and its RLS exist; no UI writes to it
-  yet — `product_collections` is currently read-only from the app's
-  perspective); image upload (`primaryImageUrl` is a plain URL column,
-  no Supabase Storage wiring). Pick these up if they become the next
-  highest-value slice — likely once storefront browsing (next) makes
-  them visibly necessary rather than adding them speculatively now.
+- Product and variant editing is complete from `/products/[id]`, including
+  publishing status, merchandising flags, hosted image URL, price, inventory,
+  lead time and collection assignment. Product metadata and collection
+  membership update in one tenant-revalidating transaction. Direct image upload
+  remains deferred; the hosted URL field is validated until Storage is added.
 
 ### Shipped: Commerce foundation
 

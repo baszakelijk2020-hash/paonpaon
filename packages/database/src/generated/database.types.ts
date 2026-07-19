@@ -3612,6 +3612,20 @@ export type Database = {
         };
         Returns: undefined;
       };
+      update_product_catalogue: {
+        Args: {
+          p_collection_ids?: string[];
+          p_description: string;
+          p_is_alterable: boolean;
+          p_is_made_to_order: boolean;
+          p_name: string;
+          p_primary_image_url: string;
+          p_product_id: string;
+          p_slug: string;
+          p_status: Database["public"]["Enums"]["product_status"];
+        };
+        Returns: string;
+      };
       update_workshop_assignment: {
         Args: {
           p_alteration_id: string;

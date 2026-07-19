@@ -132,4 +132,33 @@ export class ProductVariantRepository {
 
     return toDomain(data);
   }
+
+  async update(
+    id: ProductVariantId,
+    params: Omit<CreateProductVariantParams, "productId">,
+  ): Promise<ProductVariant> {
+    const { data, error } = await this.client
+      .from("product_variants")
+      .update({
+        sku: params.sku,
+        size: params.size ?? null,
+        color: params.color ?? null,
+        price_amount_minor_units: params.price.amountMinorUnits,
+        price_currency: params.price.currency,
+        compare_at_price_amount_minor_units:
+          params.compareAtPrice?.amountMinorUnits ?? null,
+        compare_at_price_currency: params.compareAtPrice?.currency ?? null,
+        inventory_quantity: params.inventoryQuantity,
+        lead_time_days: params.leadTimeDays ?? null,
+      })
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error) {
+      if (isUniqueViolation(error))
+        throw new VariantSkuAlreadyExistsError(params.sku);
+      throw error;
+    }
+    return toDomain(data);
+  }
 }
