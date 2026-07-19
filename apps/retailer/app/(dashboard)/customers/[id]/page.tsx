@@ -13,6 +13,7 @@ import { formatDate } from "@paon/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { startConversation } from "../../messages/actions";
 import { LifecycleBadge } from "../lifecycle-badge";
 
 import { createClientelingNote } from "./actions";
@@ -64,12 +65,23 @@ export default async function CustomerDetailPage({
           </p>
         </div>
         {canManage ? (
-          <Link
-            href={`/alterations/new?customerId=${customer.id}`}
-            className={buttonVariants({ variant: "secondary" })}
-          >
-            New alteration
-          </Link>
+          <div className="flex gap-2">
+            <form action={startConversation}>
+              <input type="hidden" name="customerId" value={customer.id} />
+              <button
+                type="submit"
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Message
+              </button>
+            </form>
+            <Link
+              href={`/alterations/new?customerId=${customer.id}`}
+              className={buttonVariants({ variant: "secondary" })}
+            >
+              New alteration
+            </Link>
+          </div>
         ) : null}
       </div>
 

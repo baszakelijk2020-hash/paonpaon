@@ -54,6 +54,18 @@ export default async function DashboardLayout({
               >
                 Events
               </Link>
+              <Link
+                href="/messages"
+                className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+              >
+                Messages
+              </Link>
+              <Link
+                href="/notifications"
+                className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+              >
+                Updates
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">

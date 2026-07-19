@@ -371,6 +371,19 @@ and factory execution.
   garments into one reverse-chronological relationship timeline while keeping
   manufacturing fit data outside PAON.
 
+### Shipped: Messaging and in-app notifications (Phase 5)
+
+- One private conversation exists per retailer-customer relationship. Customers
+  and accepted sales staff exchange messages through narrow security-definer
+  functions that derive their authority rather than accepting sender identity.
+- Retailer staff share an inbox while workshop roles are excluded. Customers
+  see only their own retailer conversations. Read receipts are maintained per
+  audience.
+- Every message generates an in-app notification for the other side. Recipients
+  can only mark notifications read; a database trigger prevents changing their
+  title, body, recipient or routing. Email, SMS and push remain future delivery
+  adapters requiring provider credentials.
+
 ## Local database verification
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration

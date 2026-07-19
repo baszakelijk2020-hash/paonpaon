@@ -66,6 +66,18 @@ export default async function DashboardLayout({
                   >
                     Appointments
                   </Link>
+                  <Link
+                    href="/messages"
+                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                  >
+                    Messages
+                  </Link>
+                  <Link
+                    href="/notifications"
+                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                  >
+                    Updates
+                  </Link>
                   {canManageCatalog ? (
                     <Link
                       href="/loyalty"

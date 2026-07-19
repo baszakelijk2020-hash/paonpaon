@@ -14,6 +14,7 @@ export type NotificationCategory =
   | "alteration_update"
   | "appointment_reminder"
   | "loyalty_update"
+  | "message"
   | "marketing"
   | "system";
 
@@ -26,6 +27,7 @@ export interface Notification extends Timestamps {
   readonly category: NotificationCategory;
   readonly title: string;
   readonly body: string;
+  readonly actionHref?: string;
   readonly readAt?: string;
   readonly sentAt?: string;
 }

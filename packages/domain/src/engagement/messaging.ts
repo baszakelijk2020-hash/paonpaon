@@ -22,6 +22,7 @@ export interface Message extends Timestamps {
   readonly conversationId: ConversationId;
   readonly senderType: MessageSenderType;
   readonly senderStaffId?: StaffId;
+  readonly senderUserId?: string;
   readonly body: string;
   readonly readByCustomerAt?: string;
   readonly readByStaffAt?: string;

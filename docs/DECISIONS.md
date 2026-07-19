@@ -613,3 +613,16 @@ garments into a timeline without duplicating those source records.
 **Why.** Luxury clienteling needs durable team memory, but private advisor
 context must not be confused with customer-editable preferences or supplier fit
 profiles. A projection preserves one source of truth for each activity.
+
+## ADR-020: One shared retailer conversation per customer relationship
+
+**Decision.** A customer has one conversation per retailer relationship; staff
+rotate inside the retailer side rather than owning personal threads. Only
+customer and accepted non-workshop staff participants can read it. Sending and
+marking read use narrow database functions that re-derive identity and create
+in-app notifications transactionally.
+
+**Why.** The relationship belongs to the retailer, not an individual advisor,
+so history survives staff changes. Server-side identity and notification writes
+prevent sender impersonation and lost notifications. External email/SMS/push
+delivery is deferred until credentials exist; in-app delivery is real now.

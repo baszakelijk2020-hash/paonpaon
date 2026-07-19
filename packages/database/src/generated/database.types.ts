@@ -1291,6 +1291,51 @@ export type Database = {
           },
         ];
       };
+      conversations: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          id: string;
+          last_message_at: string | null;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          id?: string;
+          last_message_at?: string | null;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          id?: string;
+          last_message_at?: string | null;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "conversations_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customer_account_links: {
         Row: {
           customer_id: string;
@@ -1884,6 +1929,129 @@ export type Database = {
             foreignKeyName: "loyalty_programs_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: true;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      messages: {
+        Row: {
+          body: string;
+          conversation_id: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          read_by_customer_at: string | null;
+          read_by_staff_at: string | null;
+          sender_staff_id: string | null;
+          sender_type: Database["public"]["Enums"]["message_sender_type"];
+          sender_user_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          body: string;
+          conversation_id: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          read_by_customer_at?: string | null;
+          read_by_staff_at?: string | null;
+          sender_staff_id?: string | null;
+          sender_type: Database["public"]["Enums"]["message_sender_type"];
+          sender_user_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          body?: string;
+          conversation_id?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          read_by_customer_at?: string | null;
+          read_by_staff_at?: string | null;
+          sender_staff_id?: string | null;
+          sender_type?: Database["public"]["Enums"]["message_sender_type"];
+          sender_user_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "messages_sender_staff_id_fkey";
+            columns: ["sender_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      notifications: {
+        Row: {
+          action_href: string | null;
+          body: string;
+          category: Database["public"]["Enums"]["notification_category"];
+          channel: Database["public"]["Enums"]["notification_channel"];
+          created_at: string;
+          customer_id: string | null;
+          deleted_at: string | null;
+          id: string;
+          read_at: string | null;
+          recipient_user_id: string;
+          retailer_id: string;
+          sent_at: string | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          action_href?: string | null;
+          body: string;
+          category: Database["public"]["Enums"]["notification_category"];
+          channel?: Database["public"]["Enums"]["notification_channel"];
+          created_at?: string;
+          customer_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          read_at?: string | null;
+          recipient_user_id: string;
+          retailer_id: string;
+          sent_at?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          action_href?: string | null;
+          body?: string;
+          category?: Database["public"]["Enums"]["notification_category"];
+          channel?: Database["public"]["Enums"]["notification_channel"];
+          created_at?: string;
+          customer_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          read_at?: string | null;
+          recipient_user_id?: string;
+          retailer_id?: string;
+          sent_at?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
             referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
@@ -3276,6 +3444,14 @@ export type Database = {
         Args: { p_retailer_id: string };
         Returns: string;
       };
+      get_or_create_my_conversation: {
+        Args: { p_retailer_id: string };
+        Returns: string;
+      };
+      get_or_create_staff_conversation: {
+        Args: { p_customer_id: string };
+        Returns: string;
+      };
       is_alterations_advisor: { Args: never; Returns: boolean };
       is_alterations_management: { Args: never; Returns: boolean };
       is_my_event_invitation: {
@@ -3291,6 +3467,10 @@ export type Database = {
         Returns: boolean;
       };
       link_my_customer_accounts: { Args: never; Returns: undefined };
+      mark_conversation_read: {
+        Args: { p_conversation_id: string };
+        Returns: undefined;
+      };
       next_alteration_work_order_number: { Args: never; Returns: string };
       next_order_number: { Args: never; Returns: string };
       place_order: {
@@ -3328,6 +3508,10 @@ export type Database = {
           p_status: Database["public"]["Enums"]["event_rsvp_status"];
         };
         Returns: undefined;
+      };
+      send_conversation_message: {
+        Args: { p_body: string; p_conversation_id: string };
+        Returns: string;
       };
       set_alteration_operation_price: {
         Args: {
@@ -3433,6 +3617,17 @@ export type Database = {
         | "adjustment_expiry"
         | "adjustment_manual";
       loyalty_tier: "member" | "silver" | "gold" | "platinum";
+      message_sender_type: "customer" | "staff" | "ai_assistant";
+      notification_category:
+        | "order_update"
+        | "production_update"
+        | "alteration_update"
+        | "appointment_reminder"
+        | "loyalty_update"
+        | "message"
+        | "marketing"
+        | "system";
+      notification_channel: "email" | "sms" | "push" | "in_app";
       order_channel: "online" | "in_store" | "clienteling" | "phone";
       order_status:
         | "draft"
@@ -3693,6 +3888,18 @@ export const Constants = {
         "adjustment_manual",
       ],
       loyalty_tier: ["member", "silver", "gold", "platinum"],
+      message_sender_type: ["customer", "staff", "ai_assistant"],
+      notification_category: [
+        "order_update",
+        "production_update",
+        "alteration_update",
+        "appointment_reminder",
+        "loyalty_update",
+        "message",
+        "marketing",
+        "system",
+      ],
+      notification_channel: ["email", "sms", "push", "in_app"],
       order_channel: ["online", "in_store", "clienteling", "phone"],
       order_status: [
         "draft",

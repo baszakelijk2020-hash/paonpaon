@@ -126,8 +126,10 @@ platforms — see [VISION.md](./VISION.md).
 
 ## Phase 5 — Engagement and Personalisation
 
-- `Conversation` / `Message` between customer and staff.
-- `Notification` delivery across channels (email/SMS/push/in-app).
+- ✅ `Conversation` / `Message` between customer and retailer staff, with
+  participant-only access and shared retailer inbox.
+- ✅ In-app `Notification` delivery and read state. Email/SMS/push transports
+  remain credential-dependent adapters rather than mocked delivery.
 - ✅ Private `ClientelingNote` staff tooling and a unified relationship timeline
   on the retailer customer record.
 - AI personalisation built on `BehavioralEvent` — recommendations,
