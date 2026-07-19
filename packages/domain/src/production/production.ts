@@ -1,19 +1,37 @@
+import type { RetailerRole } from "../identity/role";
+import type { Address } from "../shared/address";
 import type {
+  AlterationAttachmentId,
+  AlterationCategoryId,
   AlterationId,
-  AlterationUpdateId,
+  AlterationOperationId,
+  AlterationPriceListId,
+  AlterationStatusHistoryId,
+  AlterationTaskId,
+  AlterationTaskNoteId,
   AppointmentId,
+  ChainOfCustodyEventId,
+  CompletionReviewId,
   CustomerId,
+  FittingObservationId,
+  FittingSessionId,
+  FulfillmentEventId,
   OrderLineId,
+  PhysicalGarmentId,
+  PriceChangeProposalId,
   ProductionOrderId,
   RetailerId,
   StaffId,
+  WorkshopId,
+  WorkOrderAssignmentId,
 } from "../shared/branded-id";
+import type { Money } from "../shared/money";
 import type { Timestamps } from "../shared/timestamps";
 
 export type ProductionStage =
   "queued" | "cutting" | "sewing" | "finishing" | "quality_check" | "complete";
 
-/** Tracks manufacturing of one made-to-order OrderLine. */
+/** GoCreate remains authoritative for manufacturing; this is connector-facing status only. */
 export interface ProductionOrder extends Timestamps {
   readonly id: ProductionOrderId;
   readonly retailerId: RetailerId;
@@ -24,47 +42,371 @@ export interface ProductionOrder extends Timestamps {
   readonly actualCompletionDate?: string;
 }
 
-export type AlterationStatus =
-  | "requested"
-  | "measured"
-  | "in_progress"
-  | "ready_for_fitting"
-  | "ready_for_pickup"
-  | "complete";
+export const GARMENT_CATEGORIES = [
+  "suit",
+  "jacket",
+  "trousers",
+  "waistcoat",
+  "shirt",
+  "overcoat",
+  "coat",
+  "formalwear",
+  "denim",
+  "knitwear",
+  "leather",
+  "accessories",
+  "other",
+] as const;
 
-/**
- * Tracks a fit alteration, either on a new OrderLine or a past purchase.
- * `customerId` is required (not derived transitively through
- * `orderLineId`) because an alteration on a past purchase may exist with
- * no `orderLineId` at all (see docs/DOMAIN_MODEL.md "Order vs.
- * Production vs. Alteration") — there must always be a direct way to
- * know whose alteration this is.
- */
+export type GarmentCategoryCode = (typeof GARMENT_CATEGORIES)[number];
+export type GarmentSourceKind = "external" | "finished_mtm";
+export type WorkClassification = "work_now" | "future_order_note";
+
+export interface PhysicalGarment extends Timestamps {
+  readonly id: PhysicalGarmentId;
+  readonly retailerId: RetailerId;
+  readonly customerId: CustomerId;
+  readonly sourceKind: GarmentSourceKind;
+  readonly categoryCode: GarmentCategoryCode;
+  readonly garmentType: string;
+  readonly brand?: string;
+  readonly description: string;
+  readonly identifyingPhotoUrl?: string;
+  readonly labelMetadata: Record<string, string>;
+  readonly intakeCondition: string;
+  readonly externalReference?: string;
+  readonly orderLineId?: OrderLineId;
+  readonly supplierOrderReference?: string;
+  readonly identificationState: "verified" | "needs_verification";
+}
+
+export interface FittingSession extends Timestamps {
+  readonly id: FittingSessionId;
+  readonly retailerId: RetailerId;
+  readonly customerId: CustomerId;
+  readonly appointmentId?: AppointmentId;
+  readonly fittedByStaffId?: StaffId;
+  readonly occurredAt: string;
+  readonly notes?: string;
+}
+
+export interface FittingObservation {
+  readonly id: FittingObservationId;
+  readonly retailerId: RetailerId;
+  readonly fittingSessionId: FittingSessionId;
+  readonly physicalGarmentId: PhysicalGarmentId;
+  readonly classification: WorkClassification;
+  readonly area: string;
+  readonly observation: string;
+  readonly recordedByStaffId?: StaffId;
+  readonly createdAt: string;
+}
+
+export interface AlterationCatalogueCategory {
+  readonly id: AlterationCategoryId;
+  readonly code: GarmentCategoryCode;
+  readonly name: string;
+  readonly description: string;
+  readonly displayOrder: number;
+  readonly enabled: boolean;
+}
+
+export interface AlterationOperation {
+  readonly id: AlterationOperationId;
+  readonly categoryId: AlterationCategoryId;
+  readonly code: string;
+  readonly name: string;
+  readonly description: string;
+  readonly defaultDurationMinutes?: number;
+  readonly enabled: boolean;
+  readonly effectivePrice?: Money;
+}
+
+export type AlterationPriceListKind = "retailer" | "workshop";
+
+export interface AlterationPriceList extends Timestamps {
+  readonly id: AlterationPriceListId;
+  readonly retailerId: RetailerId;
+  readonly workshopId?: WorkshopId;
+  readonly kind: AlterationPriceListKind;
+  readonly name: string;
+  readonly currency: string;
+  readonly effectiveFrom: string;
+  readonly effectiveUntil?: string;
+  readonly active: boolean;
+}
+
+export interface Workshop extends Timestamps {
+  readonly id: WorkshopId;
+  readonly retailerId: RetailerId;
+  readonly name: string;
+  readonly status: "active" | "inactive";
+  readonly email?: string;
+  readonly phone?: string;
+  readonly address?: Address;
+}
+
+export type AlterationStatus =
+  | "intake"
+  | "quoted"
+  | "awaiting_approval"
+  | "approved"
+  | "assigned"
+  | "in_progress"
+  | "completion_review"
+  | "ready_for_pickup"
+  | "out_for_delivery"
+  | "completed"
+  | "canceled";
+
+export type AlterationTaskStatus =
+  | "proposed"
+  | "approved"
+  | "assigned"
+  | "in_progress"
+  | "review_ready"
+  | "completed"
+  | "canceled";
+
 export interface Alteration extends Timestamps {
   readonly id: AlterationId;
   readonly retailerId: RetailerId;
   readonly customerId: CustomerId;
-  readonly orderLineId?: OrderLineId;
+  readonly physicalGarmentId: PhysicalGarmentId;
+  readonly fittingSessionId?: FittingSessionId;
+  readonly workOrderNumber: string;
   readonly status: AlterationStatus;
-  readonly tailorReference?: string;
-  readonly instructions: string;
-  readonly appointmentIdForFitting?: AppointmentId;
+  readonly originalQuote: Money;
+  readonly agreedTotal?: Money;
   readonly dueDate?: string;
+  readonly customerNotificationReadyAt?: string;
+  readonly customerNotifiedAt?: string;
+  readonly canceledAt?: string;
+  readonly cancellationReason?: string;
 }
 
-/**
- * An append-only note/status entry on an Alteration — how a customer
- * "sees updates" (docs/PRODUCT.md "Customer Portal" > Alteration
- * tracking) and how retailer staff record what happened at each step,
- * without needing a separate revision-history mechanism bolted onto
- * `Alteration` itself.
- */
-export interface AlterationUpdate {
-  readonly id: AlterationUpdateId;
+/** Least-privilege work-order projection exposed to an assigned worker. */
+export interface WorkerAlterationWorkOrder {
+  readonly id: AlterationId;
+  readonly retailerId: RetailerId;
+  readonly physicalGarmentId: PhysicalGarmentId;
+  readonly workOrderNumber: string;
+  readonly status: AlterationStatus;
+  readonly garmentCategoryCode: GarmentCategoryCode;
+  readonly garmentType: string;
+  readonly brand?: string;
+  readonly garmentDescription: string;
+  readonly intakeCondition: string;
+  readonly dueDate?: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface CustomerAlterationSummary {
+  readonly id: AlterationId;
+  readonly retailerId: RetailerId;
+  readonly customerId: CustomerId;
+  readonly workOrderNumber: string;
+  readonly status: AlterationStatus;
+  readonly garmentCategoryCode: GarmentCategoryCode;
+  readonly garmentType: string;
+  readonly brand?: string;
+  readonly garmentDescription: string;
+  readonly agreedTotal?: Money;
+  readonly dueDate?: string;
+  readonly customerNotificationReadyAt?: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface AlterationTask extends Timestamps {
+  readonly id: AlterationTaskId;
   readonly alterationId: AlterationId;
   readonly retailerId: RetailerId;
-  readonly status: AlterationStatus;
-  readonly note?: string;
-  readonly staffId?: StaffId;
+  readonly operationId?: AlterationOperationId;
+  readonly title: string;
+  readonly instructions?: string;
+  readonly classification: WorkClassification;
+  readonly status: AlterationTaskStatus;
+  readonly originalQuote: Money;
+  readonly agreedPrice?: Money;
+  readonly assignedWorkerId?: StaffId;
+}
+
+/** Assigned task projection with customer and pricing data removed. */
+export interface WorkerAlterationTask {
+  readonly id: AlterationTaskId;
+  readonly alterationId: AlterationId;
+  readonly retailerId: RetailerId;
+  readonly operationId?: AlterationOperationId;
+  readonly title: string;
+  readonly instructions?: string;
+  readonly classification: "work_now";
+  readonly status: AlterationTaskStatus;
+  readonly assignedWorkerId: StaffId;
   readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface AlterationTaskNote {
+  readonly id: AlterationTaskNoteId;
+  readonly alterationId: AlterationId;
+  readonly taskId: AlterationTaskId;
+  readonly retailerId: RetailerId;
+  readonly note: string;
+  readonly actorStaffId?: StaffId;
+  readonly createdAt: string;
+}
+
+export interface AlterationStatusHistory {
+  readonly id: AlterationStatusHistoryId;
+  readonly alterationId: AlterationId;
+  readonly retailerId: RetailerId;
+  readonly fromStatus?: AlterationStatus;
+  readonly toStatus: AlterationStatus;
+  readonly note?: string;
+  readonly actorStaffId?: StaffId;
+  readonly actorUserId?: string;
+  readonly customerVisible: boolean;
+  readonly createdAt: string;
+}
+
+/** Compatibility name for status-timeline consumers from the foundation slice. */
+export type AlterationUpdate = AlterationStatusHistory;
+
+export interface WorkOrderAssignment extends Timestamps {
+  readonly id: WorkOrderAssignmentId;
+  readonly alterationId: AlterationId;
+  readonly retailerId: RetailerId;
+  readonly workshopId: WorkshopId;
+  readonly assignedWorkerId?: StaffId;
+  readonly assignedByStaffId: StaffId;
+  readonly targetCompletionDate?: string;
+  readonly active: boolean;
+}
+
+export interface PriceChangeProposal extends Timestamps {
+  readonly id: PriceChangeProposalId;
+  readonly alterationId: AlterationId;
+  readonly taskId?: AlterationTaskId;
+  readonly retailerId: RetailerId;
+  readonly originalAmount: Money;
+  readonly proposedAmount: Money;
+  readonly explanation: string;
+  readonly evidenceAttachmentId?: AlterationAttachmentId;
+  readonly status: "pending" | "approved" | "rejected" | "withdrawn";
+  readonly proposedByStaffId: StaffId;
+  readonly decidedByStaffId?: StaffId;
+  readonly decidedAt?: string;
+  readonly decisionReason?: string;
+}
+
+export interface AlterationAttachment {
+  readonly id: AlterationAttachmentId;
+  readonly retailerId: RetailerId;
+  readonly alterationId?: AlterationId;
+  readonly taskId?: AlterationTaskId;
+  readonly observationId?: FittingObservationId;
+  readonly proposalId?: PriceChangeProposalId;
+  readonly physicalGarmentId?: PhysicalGarmentId;
+  readonly kind: "intake" | "label" | "evidence" | "progress" | "completion";
+  readonly storageBucket: string;
+  readonly storagePath: string;
+  readonly fileName: string;
+  readonly mimeType: string;
+  readonly sizeBytes: number;
+  readonly uploadedByStaffId?: StaffId;
+  readonly createdAt: string;
+}
+
+export interface ChainOfCustodyEvent {
+  readonly id: ChainOfCustodyEventId;
+  readonly alterationId: AlterationId;
+  readonly retailerId: RetailerId;
+  readonly eventType:
+    | "received"
+    | "handed_to_workshop"
+    | "returned_to_retailer"
+    | "released_to_customer"
+    | "delivery_dispatch"
+    | "delivery_complete";
+  readonly fromParty?: string;
+  readonly toParty?: string;
+  readonly conditionNote?: string;
+  readonly actorStaffId?: StaffId;
+  readonly occurredAt: string;
+}
+
+export interface CompletionReview extends Timestamps {
+  readonly id: CompletionReviewId;
+  readonly alterationId: AlterationId;
+  readonly retailerId: RetailerId;
+  readonly status: "pending" | "approved" | "changes_requested";
+  readonly notes?: string;
+  readonly reviewedByStaffId?: StaffId;
+  readonly reviewedAt?: string;
+}
+
+export interface FulfillmentEvent extends Timestamps {
+  readonly id: FulfillmentEventId;
+  readonly alterationId: AlterationId;
+  readonly retailerId: RetailerId;
+  readonly method: "pickup" | "delivery";
+  readonly status:
+    "scheduled" | "ready" | "dispatched" | "completed" | "canceled";
+  readonly scheduledAt?: string;
+  readonly completedAt?: string;
+  readonly deliveryAddress?: Address;
+  readonly releasedToName?: string;
+  readonly verificationNote?: string;
+}
+
+export const ALTERATION_STATUS_TRANSITIONS: Readonly<
+  Record<AlterationStatus, readonly AlterationStatus[]>
+> = {
+  intake: ["quoted", "canceled"],
+  quoted: ["awaiting_approval", "approved", "canceled"],
+  awaiting_approval: ["approved", "canceled"],
+  approved: ["assigned", "canceled"],
+  assigned: ["in_progress", "canceled"],
+  in_progress: ["completion_review", "canceled"],
+  completion_review: [
+    "in_progress",
+    "ready_for_pickup",
+    "out_for_delivery",
+    "canceled",
+  ],
+  ready_for_pickup: ["completed", "canceled"],
+  out_for_delivery: ["completed", "canceled"],
+  completed: [],
+  canceled: [],
+};
+
+export function canTransitionAlteration(
+  from: AlterationStatus,
+  to: AlterationStatus,
+): boolean {
+  return ALTERATION_STATUS_TRANSITIONS[from].includes(to);
+}
+
+export function canRetailerRoleTransitionAlteration(
+  role: RetailerRole,
+  from: AlterationStatus,
+  to: AlterationStatus,
+): boolean {
+  if (!canTransitionAlteration(from, to)) return false;
+  if (["owner", "admin", "manager"].includes(role)) return true;
+  if (role === "production_staff") {
+    return to !== "approved" && to !== "assigned";
+  }
+  if (role === "sales_associate") {
+    return (
+      ["intake", "quoted", "awaiting_approval"].includes(from) &&
+      ["quoted", "awaiting_approval", "canceled"].includes(to)
+    );
+  }
+  if (role === "workshop_manager" || role === "worker") {
+    return to === "in_progress" || to === "completion_review";
+  }
+  return false;
 }

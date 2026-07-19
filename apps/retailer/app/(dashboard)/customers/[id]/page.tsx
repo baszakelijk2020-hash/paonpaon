@@ -1,7 +1,4 @@
-import {
-  CustomerFitProfileRepository,
-  CustomerRepository,
-} from "@paon/database";
+import { CustomerRepository, PhysicalGarmentRepository } from "@paon/database";
 import { asId, retailerRoleAtLeast } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
@@ -11,8 +8,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { LifecycleBadge } from "../lifecycle-badge";
-
-import { FitProfileForm } from "./fit-profile-form";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -34,9 +29,9 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  const fitProfileHistory = await new CustomerFitProfileRepository(
-    supabase,
-  ).findHistory(customer.id);
+  const garments = await new PhysicalGarmentRepository(supabase).findByCustomer(
+    customer.id,
+  );
   const canManage = retailerRoleAtLeast(
     session.retailerRole,
     "sales_associate",
@@ -96,39 +91,33 @@ export default async function CustomerDetailPage({
 
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
-          Fit profile
+          Garments & fitting history
         </h2>
-        {fitProfileHistory.length === 0 ? (
+        {garments.length === 0 ? (
           <p className="mb-4 text-sm text-[var(--color-stone-500)]">
-            No fit profile recorded yet.
+            No physical garments have been recorded yet. Fit observations are
+            captured during garment intake, never as generic customer
+            measurements.
           </p>
         ) : (
           <Card className="mb-4 divide-y divide-[var(--color-stone-100)] p-0">
-            {fitProfileHistory.map((entry) => (
-              <div key={entry.id} className="px-6 py-4">
+            {garments.map((garment) => (
+              <div key={garment.id} className="px-6 py-4">
                 <p className="text-xs text-[var(--color-stone-500)]">
-                  {formatDate(entry.recordedAt, "en-US")}
+                  {formatDate(garment.createdAt, "en-US")} ·{" "}
+                  {garment.categoryCode}
                 </p>
-                <p className="text-sm text-[var(--color-stone-900)]">
-                  {Object.entries(entry.measurements)
-                    .map(([key, value]) => `${key}: ${value}`)
-                    .join(" · ") || "No measurements"}
+                <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                  {garment.brand ? `${garment.brand} ` : ""}
+                  {garment.garmentType}
                 </p>
-                {entry.fitPreferences ? (
-                  <p className="text-sm text-[var(--color-stone-700)]">
-                    {entry.fitPreferences}
-                  </p>
-                ) : null}
-                {entry.styleNotes ? (
-                  <p className="text-sm text-[var(--color-stone-700)]">
-                    {entry.styleNotes}
-                  </p>
-                ) : null}
+                <p className="text-sm text-[var(--color-stone-700)]">
+                  {garment.description}
+                </p>
               </div>
             ))}
           </Card>
         )}
-        {canManage ? <FitProfileForm customerId={customer.id} /> : null}
       </div>
     </div>
   );

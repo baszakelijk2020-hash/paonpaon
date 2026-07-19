@@ -1,10 +1,10 @@
 import {
   AppointmentRepository,
-  CustomerFitProfileRepository,
   CustomerRepository,
   RetailerStaffRepository,
 } from "@paon/database";
 import { asId, retailerRoleAtLeast } from "@paon/domain";
+import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
@@ -33,11 +33,8 @@ export default async function AppointmentDetailPage({
     notFound();
   }
 
-  const [customer, fitProfile, staff] = await Promise.all([
+  const [customer, staff] = await Promise.all([
     new CustomerRepository(supabase).findById(appointment.customerId),
-    new CustomerFitProfileRepository(supabase).findCurrent(
-      appointment.customerId,
-    ),
     new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
   ]);
 
@@ -78,33 +75,27 @@ export default async function AppointmentDetailPage({
                 {customer.phone ? ` · ${customer.phone}` : ""} ·{" "}
                 <span className="capitalize">{customer.lifecycleStage}</span>
               </p>
-              {fitProfile ? (
-                <div>
-                  <p className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
-                    Fit profile on file
-                  </p>
-                  <p className="text-sm text-[var(--color-stone-700)]">
-                    {Object.entries(fitProfile.measurements)
-                      .map(([key, value]) => `${key}: ${value}`)
-                      .join(" · ") || "No measurements on file"}
-                  </p>
-                  {fitProfile.fitPreferences ? (
-                    <p className="text-sm text-[var(--color-stone-700)]">
-                      {fitProfile.fitPreferences}
-                    </p>
-                  ) : null}
-                </div>
-              ) : (
-                <p className="text-sm text-[var(--color-stone-500)]">
-                  No fit profile on file yet.
-                </p>
-              )}
+              <p className="text-sm text-[var(--color-stone-500)]">
+                Fit observations are recorded against the physical garment
+                during alteration intake.
+              </p>
               <Link
                 href={`/customers/${customer.id}`}
                 className="text-sm underline"
               >
                 View full customer record
               </Link>
+              {canManage ? (
+                <Link
+                  href={`/alterations/new?customerId=${customer.id}&appointmentId=${appointment.id}`}
+                  className={buttonVariants({
+                    variant: "secondary",
+                    size: "sm",
+                  })}
+                >
+                  Start garment intake
+                </Link>
+              ) : null}
             </>
           ) : (
             <p className="text-sm text-[var(--color-stone-500)]">

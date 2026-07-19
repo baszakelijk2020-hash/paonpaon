@@ -1,7 +1,7 @@
 import { RetailerRepository, RetailerStaffRepository } from "@paon/database";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { RetailerStatusBadge } from "../status-badge";
 
@@ -10,6 +10,9 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function DashboardPage() {
   const session = await requireSession();
+  if (["workshop_manager", "worker"].includes(session.retailerRole)) {
+    redirect("/alterations");
+  }
   const supabase = await getSupabaseServerClient();
 
   const retailer = await new RetailerRepository(supabase).findById(

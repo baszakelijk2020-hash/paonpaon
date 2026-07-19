@@ -5,7 +5,11 @@ import {
   RetailerStaffRepository,
   StaffEmailAlreadyInvitedError,
 } from "@paon/database";
-import { inviteRetailerStaffInputSchema, type UserId } from "@paon/domain";
+import {
+  asId,
+  inviteRetailerStaffInputSchema,
+  type UserId,
+} from "@paon/domain";
 import { redirect } from "next/navigation";
 
 import { env } from "@/lib/env";
@@ -36,6 +40,7 @@ export async function inviteStaff(
     fullName: raw["fullName"],
     email: raw["email"],
     role: raw["role"],
+    workshopId: raw["workshopId"] || undefined,
   });
 
   if (!parsed.success) {
@@ -71,6 +76,9 @@ export async function inviteStaff(
       fullName: parsed.data.fullName,
       email: parsed.data.email,
       role: parsed.data.role,
+      ...(parsed.data.workshopId
+        ? { workshopId: asId<"WorkshopId">(parsed.data.workshopId) }
+        : {}),
     });
   } catch (error) {
     if (error instanceof StaffEmailAlreadyInvitedError) {

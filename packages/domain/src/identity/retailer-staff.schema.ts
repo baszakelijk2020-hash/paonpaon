@@ -5,6 +5,8 @@ import type { RetailerRole } from "./role";
 export const RETAILER_ROLES = [
   "read_only",
   "production_staff",
+  "workshop_manager",
+  "worker",
   "sales_associate",
   "manager",
   "admin",
@@ -34,11 +36,31 @@ export const invitableRetailerRoleSchema = z.enum(
 );
 
 /** Provisioning the first owner is folded into retailer creation — see retailer.schema.ts. */
-export const inviteRetailerStaffInputSchema = z.object({
-  fullName: z.string().trim().min(2).max(120),
-  email: z.string().trim().toLowerCase().email(),
-  role: invitableRetailerRoleSchema,
-});
+export const inviteRetailerStaffInputSchema = z
+  .object({
+    fullName: z.string().trim().min(2).max(120),
+    email: z.string().trim().toLowerCase().email(),
+    role: invitableRetailerRoleSchema,
+    workshopId: z.string().uuid().optional(),
+  })
+  .superRefine((value, context) => {
+    const workshopRole =
+      value.role === "workshop_manager" || value.role === "worker";
+    if (workshopRole && !value.workshopId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["workshopId"],
+        message: "Choose a workshop for workshop staff.",
+      });
+    }
+    if (!workshopRole && value.workshopId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["workshopId"],
+        message: "Only workshop staff may be linked to a workshop.",
+      });
+    }
+  });
 
 export type InviteRetailerStaffInput = z.infer<
   typeof inviteRetailerStaffInputSchema

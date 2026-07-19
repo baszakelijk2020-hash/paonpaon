@@ -29,18 +29,18 @@ correct and this document is stale and should be fixed.
 
 ## Bounded contexts
 
-| Context      | Path            | Owns                                                                                            |
-| ------------ | --------------- | ----------------------------------------------------------------------------------------------- |
-| Identity     | `identity/`     | `User`, `PlatformStaffMember`, `RetailerStaffMember`, role hierarchies                          |
-| Retailer     | `retailer/`     | `Retailer` (the tenant root), `RetailerSubscription`, `SubscriptionPlan`, `FeatureFlagOverride` |
-| Customer     | `customer/`     | `Customer`, `CustomerAccountLink`, `CustomerPreferences`, `CustomerFitProfileEntry`, `Wishlist` |
-| Catalog      | `catalog/`      | `Product`, `ProductVariant`, `Collection`                                                       |
-| Commerce     | `commerce/`     | `Order`, `OrderLine`, `Payment`                                                                 |
-| Production   | `production/`   | `ProductionOrder`, `Alteration`, `AlterationUpdate`                                             |
-| Appointments | `appointments/` | `Appointment`, `AvailabilityWindow`                                                             |
-| Loyalty      | `loyalty/`      | `LoyaltyAccount`, `LoyaltyLedgerEntry`, `Reward`, `Referral`                                    |
-| Engagement   | `engagement/`   | `Notification`, `Conversation` / `Message`, `RetailerEvent` / `EventRsvp`, `ClientelingNote`    |
-| Analytics    | `analytics/`    | `AuditLogEntry`, `BehavioralEvent`                                                              |
+| Context      | Path            | Owns                                                                                                                 |
+| ------------ | --------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Identity     | `identity/`     | `User`, `PlatformStaffMember`, `RetailerStaffMember`, role hierarchies                                               |
+| Retailer     | `retailer/`     | `Retailer` (the tenant root), `RetailerSubscription`, `SubscriptionPlan`, `FeatureFlagOverride`                      |
+| Customer     | `customer/`     | `Customer`, `CustomerAccountLink`, `CustomerPreferences`, `Wishlist`                                                 |
+| Catalog      | `catalog/`      | `Product`, `ProductVariant`, `Collection`                                                                            |
+| Commerce     | `commerce/`     | `Order`, `OrderLine`, `Payment`                                                                                      |
+| Production   | `production/`   | Physical garments, fittings/observations, alteration work orders/tasks, workshops, pricing, handoffs and fulfillment |
+| Appointments | `appointments/` | `Appointment`, `AvailabilityWindow`                                                                                  |
+| Loyalty      | `loyalty/`      | `LoyaltyAccount`, `LoyaltyLedgerEntry`, `Reward`, `Referral`                                                         |
+| Engagement   | `engagement/`   | `Notification`, `Conversation` / `Message`, `RetailerEvent` / `EventRsvp`, `ClientelingNote`                         |
+| Analytics    | `analytics/`    | `AuditLogEntry`, `BehavioralEvent`                                                                                   |
 
 ## Key relationships
 
@@ -50,19 +50,23 @@ Retailer 1───* Customer ──0..1 User (via CustomerAccountLink, many-to-
 Retailer 1───* Product 1───* ProductVariant
 Customer 1───* Order 1───* OrderLine ──1 ProductVariant
 OrderLine 0..1─── ProductionOrder
-Customer 1───* Alteration 0..1─── OrderLine   (Alteration.customerId is direct and required — see below)
-Alteration 1───* AlterationUpdate              (append-only; Alteration.status is derived from the latest one)
+Customer 1───* PhysicalGarment 0..1─── OrderLine
+PhysicalGarment 1───* FittingObservation *───1 FittingSession
+PhysicalGarment 1───* Alteration 1───* AlterationTask
+Alteration 1───* AlterationStatusHistory       (append-only; validated transitions only)
+Alteration 0..1───1 WorkOrderAssignment ──1 Workshop
+Alteration 1───* PriceChangeProposal / AlterationPricingHistory
+Alteration 1───* ChainOfCustodyEvent / CompletionReview / FulfillmentEvent
 Customer 1───1 LoyaltyAccount 1───* LoyaltyLedgerEntry
 Customer 1───* Appointment ──0..1 RetailerStaffMember
 RetailerStaffMember 1───* AvailabilityWindow
-Customer 1───* CustomerFitProfileEntry         (append-only; "current" = most recent entry)
 Customer 1───1 Conversation 1───* Message
 ```
 
 ## Why a Customer is scoped to one Retailer
 
 A `Customer` record — purchase history, loyalty balance, clienteling
-notes, size profile — belongs entirely to one retailer relationship. A
+notes and relationship preferences — belongs entirely to one retailer relationship. A
 shopper who buys from two PAON retailers has two independent `Customer`
 rows, each invisible to the other retailer. What is shared is the
 **login**: one `User` in the Customer Portal, linked to each per-retailer
@@ -86,6 +90,24 @@ Alteration". Because `orderLineId` is genuinely optional on
 `Alteration` (a standalone alteration on a past purchase has none),
 `Alteration.customerId` is a separate, required field, not derived
 transitively through the order line — see docs/DECISIONS.md ADR-015.
+
+An alteration always identifies a `PhysicalGarment`. Fitting data belongs to
+that garment through a `FittingObservation`; PAON has no generic customer
+measurement or manufacturing fit-profile aggregate. The older
+`CustomerFitProfileEntry` foundation is archived by an additive migration and
+removed from the active domain (ADR-016). `work_now` tasks can be quoted,
+assigned and completed. `future_order_note` tasks remain visible history for
+manual future entry into GoCreate and cannot be assigned as current work.
+
+`Alteration` is the work-order aggregate root. Its original quote is immutable;
+approved workshop increases/decreases are separate proposal and pricing-history
+records. Status history, task notes, pricing history and custody events are
+append-only. Customer Portal reads purpose-built safe projections rather than
+the base aggregate, so internal notes, evidence and unapproved prices are not
+part of the customer security surface. Assigned workers likewise read
+worker-specific work-order/task projections with customer and pricing fields
+removed; private images are reached only through short-lived signed URLs backed
+by assignment-aware Storage policies.
 
 ## Extending the model
 

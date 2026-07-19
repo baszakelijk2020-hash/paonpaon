@@ -6,49 +6,32 @@ import type { Database } from "../generated/database.types";
 import { AlterationUpdateRepository } from "./alteration-update-repository";
 import { fakeQueryBuilder } from "./test-helpers/fake-query-builder";
 
-type AlterationUpdateRow =
-  Database["public"]["Tables"]["alteration_updates"]["Row"];
+type HistoryRow =
+  Database["public"]["Tables"]["alteration_status_history"]["Row"];
 
-const row: AlterationUpdateRow = {
+const row: HistoryRow = {
   id: "11112222-1111-1111-1111-111111111111",
   alteration_id: "ffffffff-ffff-ffff-ffff-ffffffffffff",
   retailer_id: "11111111-1111-1111-1111-111111111111",
-  status: "in_progress",
-  note: "Started taking in the waist.",
-  staff_id: null,
+  from_status: "assigned",
+  to_status: "in_progress",
+  note: "Work started.",
+  actor_staff_id: null,
+  actor_user_id: null,
+  customer_visible: false,
   created_at: "2026-01-01T00:00:00.000Z",
 };
 
-function clientReturning(result: {
-  data: unknown;
-  error: unknown;
-}): PaonSupabaseClient {
-  return {
-    from: () => fakeQueryBuilder(result as never),
-  } as unknown as PaonSupabaseClient;
-}
-
 describe("AlterationUpdateRepository", () => {
-  it("maps a list of rows in findByAlteration()", async () => {
-    const repo = new AlterationUpdateRepository(
-      clientReturning({ data: [row], error: null }),
-    );
-    const updates = await repo.findByAlteration(row.alteration_id as never);
-    expect(updates).toHaveLength(1);
-    expect(updates[0]?.status).toBe("in_progress");
-    expect(updates[0]?.note).toBe("Started taking in the waist.");
-  });
-
-  it("add() maps the inserted row back to a domain AlterationUpdate", async () => {
-    const repo = new AlterationUpdateRepository(
-      clientReturning({ data: row, error: null }),
-    );
-    const update = await repo.add({
-      alterationId: row.alteration_id as never,
-      retailerId: row.retailer_id as never,
-      status: "in_progress",
-      note: "Started taking in the waist.",
-    });
-    expect(update.status).toBe("in_progress");
+  it("maps append-only transition history", async () => {
+    const client = {
+      from: () => fakeQueryBuilder({ data: [row], error: null }),
+    } as unknown as PaonSupabaseClient;
+    const updates = await new AlterationUpdateRepository(
+      client,
+    ).findByAlteration(row.alteration_id as never);
+    expect(updates[0]?.fromStatus).toBe("assigned");
+    expect(updates[0]?.toStatus).toBe("in_progress");
+    expect(updates[0]?.customerVisible).toBe(false);
   });
 });

@@ -99,6 +99,16 @@ specifically to make it a compile error to pass the wrong tenant-scoped
 ID into the wrong function, catching an entire class of cross-tenant bug
 before RLS is ever asked to catch it at runtime.
 
+Authorization is capability-based where a workflow crosses organizational
+boundaries. In Alterations, in-house retailer roles retain their established
+hierarchy, while `workshop_manager` and `worker` are explicit capabilities
+scoped through `Workshop`/`WorkOrderAssignment`; they never inherit a broad
+"production staff and above" tenant read. Customer-facing alteration data uses
+safe database projections because RLS limits rows, not columns. See ADR-016 and
+[DATABASE.md](./DATABASE.md). Assigned workers also use dedicated projections
+that remove customer and pricing columns, while private evidence-object access
+reuses the same work-order assignment boundary.
+
 ## Design system — `@paon/ui`
 
 One set of design tokens (`packages/ui/src/styles/globals.css`) and one

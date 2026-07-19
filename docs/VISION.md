@@ -31,7 +31,7 @@ Referral → Repeat.
 It is delivered as three purpose-built applications
 ([PRODUCT.md](./PRODUCT.md)) sharing one domain model
 ([DOMAIN_MODEL.md](./DOMAIN_MODEL.md)), so that a fact recorded once —
-a customer's measurements, an order's production stage, a loyalty
+a physical garment's fitting observations, an order's production stage, a loyalty
 balance — is true everywhere it is shown, instantly, without sync jobs.
 
 ## Who it serves

@@ -1,5 +1,5 @@
 import {
-  AlterationRepository,
+  CustomerAlterationRepository,
   CustomerRepository,
   RetailerRepository,
 } from "@paon/database";
@@ -19,7 +19,7 @@ export default async function AlterationsPage() {
   const customers = await new CustomerRepository(supabase).findByUserId(
     session.userId,
   );
-  const alterationRepo = new AlterationRepository(supabase);
+  const alterationRepo = new CustomerAlterationRepository(supabase);
   const retailerRepo = new RetailerRepository(supabase);
 
   const alterationsByCustomer = await Promise.all(

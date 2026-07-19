@@ -1,9 +1,11 @@
 import { requireRetailerRole } from "@paon/auth";
+import { WorkshopRepository } from "@paon/database";
 import { redirect } from "next/navigation";
 
 import { StaffForm } from "./staff-form";
 
 import { requireSession } from "@/lib/session";
+import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function NewStaffPage() {
   const session = await requireSession();
@@ -13,6 +15,9 @@ export default async function NewStaffPage() {
     redirect("/dashboard");
   }
 
+  const workshops = await new WorkshopRepository(
+    await getSupabaseServerClient(),
+  ).findByRetailer(session.retailerId);
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -24,7 +29,7 @@ export default async function NewStaffPage() {
           the Retailer Portal.
         </p>
       </div>
-      <StaffForm />
+      <StaffForm workshops={workshops} />
     </div>
   );
 }

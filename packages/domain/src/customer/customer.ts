@@ -1,6 +1,5 @@
 import type { Address } from "../shared/address";
 import type {
-  CustomerFitProfileEntryId,
   CustomerId,
   RetailerId,
   StaffId,
@@ -48,31 +47,6 @@ export interface CustomerPreferences {
   readonly communicationChannels: readonly (
     "email" | "sms" | "push" | "in_app"
   )[];
-  readonly sizeProfile?: Record<string, string>;
   readonly styleNotes?: string;
   readonly marketingOptIn: boolean;
-}
-
-/**
- * One snapshot of a customer's measurements/fit/style, recorded by
- * retailer staff after a consultation or fitting. Deliberately an
- * append-only log, not a single mutable row: "sizing history" is a
- * first-class requirement (a body changes over years, and knowing what
- * changed and when matters for tailoring), so "current" is simply the
- * most recent entry rather than a separate value kept in sync with a
- * history table. `measurements` stays a free-form map (not fixed
- * fields) because different garment categories need different
- * measurements — a jacket and a trouser share almost none — and fixing
- * the field set now would be exactly the kind of speculative
- * specificity `docs/PRINCIPLES.md` warns against.
- */
-export interface CustomerFitProfileEntry {
-  readonly id: CustomerFitProfileEntryId;
-  readonly customerId: CustomerId;
-  readonly retailerId: RetailerId;
-  readonly measurements: Record<string, string>;
-  readonly fitPreferences?: string;
-  readonly styleNotes?: string;
-  readonly recordedByStaffId?: StaffId;
-  readonly recordedAt: string;
 }

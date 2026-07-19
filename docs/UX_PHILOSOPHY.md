@@ -25,7 +25,7 @@ apps should feel to use, independent of any one screen.
    language and visual state, never as an internal enum a customer has
    to interpret.
 2. **Never make the customer re-explain themselves.** If a preference,
-   measurement or note was captured once (`CustomerPreferences`,
+   garment-specific fitting observation or note was captured once (`CustomerPreferences`,
    `ClientelingNote`), every surface that could use it does, without
    the customer or staff member re-entering it.
 3. **Performance is a UX requirement, not an engineering nice-to-have.**

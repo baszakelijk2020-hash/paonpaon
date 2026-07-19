@@ -13,9 +13,9 @@ Customer core): done. Phase 2 (Catalog and Commerce): catalog, storefront
 and order placement/management shipped — payment integration is the
 one thing left, blocked on a provider decision + external credentials,
 not on anything technical. Phase 3 (Production, Alteration,
-Appointments): Appointments and Alteration foundations + Customer Fit
-Profile shipped — `ProductionOrder` tracking and any supplier/
-manufacturing connector are not started.** All three apps have real
+Appointments): Appointments plus the production-ready garment-first
+Alterations vertical slice shipped — connector-facing `ProductionOrder`
+tracking and supplier/manufacturing connectors are not started.** All three apps have real
 auth; retailer onboarding is complete end to end; Customer identity is
 in place; Retailer Portal can author a full catalog, manage orders,
 run an appointment calendar, and track alterations; Customer Portal has
@@ -248,13 +248,13 @@ ADR-014; this section covers only what got built as a result.
    reached rather than guessing a provider or faking a working
    integration. This is the one piece of Phase 2 not shipped.
 
-### Shipped: Appointments, Fit Profile and Alteration foundations (Phase 3)
+### Shipped: Appointments and garment-first Alterations (Phase 3)
 
-Full reasoning in `docs/DECISIONS.md` ADR-015; this section covers what
-got built. PAON stays retailer-first/customer-first per
-`docs/NORTH_STAR.md` — none of this reaches toward owning
-manufacturing; that stays a future connector's job (GoCreate or
-similar), never PAON's core model.
+Appointment reasoning remains in ADR-015. ADR-016 records the founder
+clarification and the complete Alterations ownership correction: PAON owns the
+in-store physical-garment journey; GoCreate/suppliers own MTM measurements,
+manufacturing fit profiles, specifications, production ordering, construction
+and factory execution.
 
 - **`availability_windows`, `appointments` tables + `request_appointment`
   RPC** (`20260719000014_*`–`20260719000015_*`). A staff member manages
@@ -267,9 +267,8 @@ similar), never PAON's core model.
   staff resolve overlaps when confirming.
 - **Retailer Portal `/appointments`, `/appointments/[id]`,
   `/appointments/new`, `/appointments/availability`**: any staff role
-  reads; `sales_associate`+ books/manages/assigns. The detail page
-  surfaces the customer's current fit profile before the appointment
-  (`docs/PRODUCT.md`'s "view customer profile before appointment").
+  reads; `sales_associate`+ books/manages/assigns. Fit observations are
+  captured later against the identified garment, not against the customer.
 - **Customer Portal `/r/[slug]/appointments`** (public — browsing/
   requesting needs no sign-in until submission, same pattern as
   checkout's "Sign in to purchase") and `(dashboard)/appointments`,
@@ -281,67 +280,83 @@ similar), never PAON's core model.
   privacy-safe read surface this slice didn't need to build (see
   ADR-015 point 7 for the exact reasoning and what building it later
   looks like).
-- **`customer_fit_profile_entries` table** (`20260719000016_*`),
-  `CustomerFitProfileRepository`. Append-only — "current" is the most
-  recent row per customer, no separate mutable "profile" row to drift
-  out of sync. `sales_associate`+ record entries (same gate as CRM data
-  entry); any staff role reads; a customer reads their own. Surfaced on
-  the Retailer Portal customer detail page (`/customers/[id]`, new "Fit
-  profile" section) and on the appointment detail page.
-- **`alterations`, `alteration_updates` tables** (`20260719000017_*`–
-  `20260719000018_*`), `AlterationRepository`, `AlterationUpdateRepository`.
-  `alterations.status` is denormalized from the append-only
-  `alteration_updates` log by a trigger
-  (`sync_alteration_status_on_update_insert`) — a second trigger
-  (`enforce_alteration_status_via_updates_only`) blocks any direct
-  client `UPDATE` of `status`, so the two can never drift apart no
-  matter what future code path writes an update. Creating/editing the
-  request itself is `sales_associate`+; adding status/progress updates
-  is `production_staff`+ (mirrors the orders fulfillment gate — this is
-  the actual alteration work, not CRM or booking).
-- **`AlterationStatus` gained `ready_for_pickup`** and
-  `Alteration.customerId` is now required (previously only reachable
-  transitively through an optional `orderLineId`, which a standalone
-  alteration on a past purchase might not have — see ADR-015 point 1).
-- **Retailer Portal `/alterations`, `/alterations/new`,
-  `/alterations/[id]`**; **Customer Portal `(dashboard)/alterations`,
-  `/alterations/[id]`** with a "ready for pickup" banner when that's the
-  current status.
-- **Deliberately not built yet**: `ProductionOrder` tracking (next, per
-  ROADMAP.md — reuse the alteration append-only-log shape, don't
-  redesign); attaching an alteration to a specific order line has no UI
-  picker (the field exists and works, just no cascading
-  customer→orders→order-lines selector yet — see ADR-015 point 9); a
-  `Location` entity (still deferred from Phase 1 — "select
-  retailer/location" means selecting the retailer here, via `/r/[slug]`
-  routing); any supplier/manufacturing connector (GoCreate or similar)
-  — not started, nothing to connect to yet.
+- **Ownership correction is additive and non-destructive.** The committed
+  customer fit-profile and thin alteration/update tables are renamed `legacy_*`,
+  stripped of tenant/customer grants and retained only for audit. Active domain,
+  repository and UI references are removed. Legacy alteration requests migrate
+  to new work orders with a physical garment explicitly marked
+  `needs_verification`; unattributable customer-level measurements are never
+  invented as garment observations.
+- **Garment-first intake:** `/alterations/new` transactionally creates a
+  `PhysicalGarment`, `FittingSession`, append-only garment observations,
+  one work order, tasks, original quote, initial status/pricing history and
+  receipt custody event. External/random garments capture category/type,
+  brand, description, photo/label metadata, condition and reference. Finished
+  MTM garments require a PAON order line or supplier/order reference.
+  Intake launched from an appointment retains that appointment on the fitting
+  session rather than creating an untraceable walk-in record.
+- **Catalogue/prices:** `20260719000102_*` seeds a comprehensive common
+  premium-menswear catalogue. `/alterations/catalogue` lets owner/admin/manager
+  roles enable/hide categories and operations and maintain the effective
+  retailer Money price list. Workshop managers maintain their workshop-scoped
+  effective cost list from the same catalogue screen without receiving retailer
+  configuration access.
+- **Workshop operations inside Retailer Portal:** `/alterations/workshops`
+  creates workshops; Staff invites support explicit `workshop_manager`/`worker`
+  roles scoped to one workshop; managers assign an approved work order;
+  workshop managers manage the assigned worker/date and submit explained
+  increase/decrease proposals; workers start assigned tasks, append work notes
+  upload private progress/completion photos and mark review-ready. Worker-safe
+  projections omit customer records and every pricing column. No fourth app was
+  introduced.
+- **Workflow/history:** one validated transition graph covers intake, quote,
+  approval, assignment, work, completion review, ready-for-pickup/delivery,
+  completion and cancellation. Original quote, proposals/decisions, actors,
+  timestamps and reasons are immutable. Private Storage-backed evidence,
+  append-only attachment metadata, chain of custody, completion reviews,
+  notification readiness, verified pickup/delivery and sensitive audit triggers
+  are first-class.
+- **Least privilege:** additive restrictive policies prevent workshop roles
+  from inheriting broad CRM/commerce/appointment/product access. Workshop
+  managers see only their assigned workshop's work; workers only directly
+  assigned jobs/tasks. Alteration access also requires an accepted, non-deleted
+  staff membership rather than trusting a pre-acceptance JWT role claim.
+  Customer Portal has no base work-order/task/pricing access and reads approved
+  status/agreed info/customer-visible timeline plus pickup/delivery through safe
+  security-barrier views. Existing platform oversight remains.
+- **Portals:** Retailer Portal provides mobile-first intake, work-order detail,
+  task/pricing/approval/handoff/pickup-delivery controls and catalogue/workshop
+  configuration. Customer Portal shows only the approved garment status and
+  pickup/delivery projection. Customer records now list physical garments, not
+  generic measurements.
+- **Deliberately not built:** GoCreate integration, any supplier connector,
+  MTM/specification/construction UI, notification delivery transport, payment
+  provider, push and deployment. `ProductionOrder` remains a future
+  connector-facing status projection.
 
 ## Environment constraints every session so far has hit
 
 - **No Docker daemon available in the sandbox any of this was built
   in.** `supabase start` could not be run locally, so:
-  - Every migration and RLS policy (19 files now, `20260719000000`–
-    `20260719000018`) was written and reviewed by hand, never executed
-    against a live Postgres instance.
+  - Every migration and RLS policy (23 files now, `20260719000000`–
+    `20260719000103`, including the enum-commit bridge
+    `20260719000100_add_workshop_roles.sql`) was written and reviewed by hand,
+    never executed against a live Postgres instance.
   - `packages/database/src/generated/database.types.ts` is hand-
     maintained (see its own header comment), not `supabase gen types`
     output. **Run `pnpm --filter @paon/database generate-types` against
     a real local instance and diff it against the hand-written version
     at the first opportunity** — still the single highest-value
     verification gap. Riskiest SQL in the schema, in order:
-    `place_order` (`20260719000012_*`) is the first `security definer`
+    `place_order` (`20260719000012_*`) and garment-first workflow RPCs
+    (`20260719000103_*`) are the highest-value SQL to execute against real
+    Postgres first. `create_alteration_intake` writes garment/fitting/
+    observations/work-order/tasks/history/custody transactionally; transition,
+    assignment and pricing functions enforce the sensitive invariants.
+    `place_order` is the first `security definer`
     function that writes to _two_ tables transactionally from a
     genuinely untrusted context (any signed-in customer) — verify the
     inventory-decrement and customer-linking logic first. Close behind:
-    the `enforce_alteration_status_via_updates_only` /
-    `sync_alteration_status_on_update_insert` trigger pair
-    (`20260719000017_*`–`20260719000018_*`) — two triggers on two
-    tables cooperating to keep one column in sync is the most elaborate
-    trigger interaction in the schema so far, and it's exactly the kind
-    of thing that's easy to get subtly wrong in ways only a real
-    Postgres instance would catch (e.g. trigger firing order, whether
-    `current_user <> session_user` actually holds the way reasoned).
   - The Playwright e2e specs across all three apps were written and
     typecheck but were never executed locally — they need a live
     Supabase instance (`e2e/global-setup.ts` per app). They run in CI
@@ -440,16 +455,14 @@ fieldErrors, formError }` shape (a `sent`/`success` flag added where a
   apps' `e2e/global-setup.ts`. Never do this for a table's RLS
   policies, only for a function whose own body re-derives everything it
   needs and doesn't blindly trust `auth.uid()` being present.
-- **A status that must only change through its own history log**: make
-  the log table append-only (insert-only policies, no update/delete for
-  any non-platform role) and add a trigger pair — one `after insert`
-  trigger on the log that updates the parent's denormalized `status`
-  column, one `before update` trigger on the parent that rejects any
-  direct client write to that column (same `current_user <>
-session_user` / `auth.role() = 'service_role'` check as
-  `enforce_retailer_staff_editable_columns`, ADR-012). See
-  `alterations`/`alteration_updates` (ADR-015) for the reference shape
-  — reuse it for `ProductionOrder` next, don't redesign.
+- **A status that must only change through its own history log**: keep
+  history append-only and expose one validated `security definer` transition
+  function that locks the aggregate, verifies the transition/actor, updates
+  the denormalized status and appends history transactionally. A `before
+update` trigger rejects direct status/agreed-price writes. See
+  `alteration_work_orders`/`alteration_status_history` and
+  `transition_alteration_work_order` (ADR-016). Future connector-facing
+  `ProductionOrder` status should reuse this invariant shape.
 - **"Self, or a more senior role" RLS**, when there's no JWT claim for
   "my own row id" (unlike `current_retailer_id()`): an `exists`
   subquery against the owning table (`retailer_staff_members` in this

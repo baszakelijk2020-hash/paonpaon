@@ -28,20 +28,3 @@ export const createCustomerInputSchema = z.object({
 });
 
 export type CreateCustomerInput = z.infer<typeof createCustomerInputSchema>;
-
-/**
- * `measurements` is validated as a flexible string-to-string map here —
- * the common-measurement-name inputs a form presents (chest, waist,
- * inseam, ...) are a UI convenience, assembled into this shape by the
- * Server Action before validation, not a fixed schema of named fields.
- * See `CustomerFitProfileEntry` for why.
- */
-export const addFitProfileEntryInputSchema = z.object({
-  measurements: z.record(z.string(), z.string().trim().min(1)),
-  fitPreferences: z.string().trim().max(1000).optional(),
-  styleNotes: z.string().trim().max(1000).optional(),
-});
-
-export type AddFitProfileEntryInput = z.infer<
-  typeof addFitProfileEntryInputSchema
->;

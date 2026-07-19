@@ -1,5 +1,9 @@
-import { requireRetailerRole } from "@paon/auth";
-import { CustomerRepository } from "@paon/database";
+import { requireAlterationsPermission } from "@paon/auth";
+import {
+  AlterationCatalogueRepository,
+  CustomerRepository,
+  OrderRepository,
+} from "@paon/database";
 import { redirect } from "next/navigation";
 
 import { AlterationForm } from "./alteration-form";
@@ -10,31 +14,48 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 export default async function NewAlterationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ customerId?: string }>;
+  searchParams: Promise<{ customerId?: string; appointmentId?: string }>;
 }) {
   const session = await requireSession();
   try {
-    requireRetailerRole(session.retailerRole, "sales_associate");
+    requireAlterationsPermission(session.retailerRole, "intake");
   } catch {
     redirect("/alterations");
   }
 
-  const { customerId } = await searchParams;
+  const { customerId, appointmentId } = await searchParams;
   const supabase = await getSupabaseServerClient();
-  const customers = await new CustomerRepository(supabase).findByRetailer(
-    session.retailerId,
+  const [customers, catalogue, orders] = await Promise.all([
+    new CustomerRepository(supabase).findByRetailer(session.retailerId),
+    new AlterationCatalogueRepository(supabase).findForRetailer(
+      session.retailerId,
+    ),
+    new OrderRepository(supabase).findByRetailer(session.retailerId),
+  ]);
+  const orderRepository = new OrderRepository(supabase);
+  const lines = await Promise.all(
+    orders.map(async (order) =>
+      (await orderRepository.findLinesByOrder(order.id)).map((line) => ({
+        order,
+        line,
+      })),
+    ),
   );
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
-          New alteration
+          New alteration intake
         </h1>
       </div>
       <AlterationForm
         customers={customers}
+        categories={catalogue.categories}
+        operations={catalogue.operations}
+        orderLines={lines.flat()}
         {...(customerId ? { defaultCustomerId: customerId } : {})}
+        {...(appointmentId ? { defaultAppointmentId: appointmentId } : {})}
       />
     </div>
   );

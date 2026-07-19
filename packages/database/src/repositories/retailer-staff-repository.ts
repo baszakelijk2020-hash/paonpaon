@@ -5,6 +5,7 @@ import {
   type RetailerStaffMember,
   type StaffId,
   type UserId,
+  type WorkshopId,
 } from "@paon/domain";
 import type { PostgrestError } from "@supabase/supabase-js";
 
@@ -35,6 +36,9 @@ function toDomain(row: RetailerStaffRow): RetailerStaffMember {
     fullName: row.full_name,
     email: row.email,
     role: row.role,
+    ...(row.workshop_id
+      ? { workshopId: asId<"WorkshopId">(row.workshop_id) }
+      : {}),
     invitedAt: row.invited_at,
     ...(row.accepted_at ? { acceptedAt: row.accepted_at } : {}),
     createdAt: row.created_at,
@@ -49,6 +53,7 @@ export interface CreateRetailerStaffParams {
   fullName: string;
   email: string;
   role: RetailerRole;
+  workshopId?: WorkshopId;
 }
 
 /**
@@ -103,6 +108,7 @@ export class RetailerStaffRepository {
         full_name: params.fullName,
         email: params.email,
         role: params.role,
+        workshop_id: params.workshopId ?? null,
       })
       .select("*")
       .single();

@@ -1,4 +1,7 @@
-import { retailerRoleAtLeast } from "@paon/domain";
+import {
+  retailerRoleAtLeast,
+  retailerRoleHasAlterationsPermission,
+} from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import Link from "next/link";
 
@@ -18,43 +21,79 @@ export default async function DashboardLayout({
     "sales_associate",
   );
   const canManageCatalog = retailerRoleAtLeast(session.retailerRole, "manager");
+  const canConfigureAlterations = retailerRoleHasAlterationsPermission(
+    session.retailerRole,
+    "configure",
+  );
+  const canManageWorkshop = retailerRoleHasAlterationsPermission(
+    session.retailerRole,
+    "manage_assigned_workshop",
+  );
+  const isWorkshopRole = ["workshop_manager", "worker"].includes(
+    session.retailerRole,
+  );
+  const homeHref = isWorkshopRole ? "/alterations" : "/dashboard";
 
   return (
     <div className="min-h-screen bg-[var(--color-stone-50)]">
       <header className="border-b border-[var(--color-stone-200)] bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-8">
+        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
             <Link
-              href="/dashboard"
+              href={homeHref}
               className="text-sm font-medium uppercase tracking-wide text-[var(--color-stone-900)]"
             >
               Retailer Portal
             </Link>
-            <nav className="flex items-center gap-6">
-              <Link
-                href="/dashboard"
-                className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/orders"
-                className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-              >
-                Orders
-              </Link>
-              <Link
-                href="/appointments"
-                className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-              >
-                Appointments
-              </Link>
+            <nav className="flex max-w-full items-center gap-4 overflow-x-auto pb-1 lg:gap-6">
+              {!isWorkshopRole ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/orders"
+                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                  >
+                    Orders
+                  </Link>
+                  <Link
+                    href="/appointments"
+                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                  >
+                    Appointments
+                  </Link>
+                </>
+              ) : null}
               <Link
                 href="/alterations"
                 className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
               >
                 Alterations
               </Link>
+              {canConfigureAlterations || canManageWorkshop ? (
+                <>
+                  <Link
+                    href="/alterations/catalogue"
+                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                  >
+                    {canManageWorkshop
+                      ? "Workshop prices"
+                      : "Alteration settings"}
+                  </Link>
+                  {canConfigureAlterations ? (
+                    <Link
+                      href="/alterations/workshops"
+                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                    >
+                      Workshops
+                    </Link>
+                  ) : null}
+                </>
+              ) : null}
               {canManageCustomers ? (
                 <Link
                   href="/customers"
@@ -89,7 +128,7 @@ export default async function DashboardLayout({
               ) : null}
             </nav>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-4 lg:justify-end">
             <span className="text-sm text-[var(--color-stone-500)]">
               {session.email}
             </span>
@@ -101,7 +140,9 @@ export default async function DashboardLayout({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-6 py-10">{children}</main>
+      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
+        {children}
+      </main>
     </div>
   );
 }

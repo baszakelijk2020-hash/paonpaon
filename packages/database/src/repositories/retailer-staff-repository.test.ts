@@ -19,6 +19,7 @@ const row: RetailerStaffRow = {
   full_name: "Owner Ownerson",
   email: "owner@atelier.com",
   role: "owner",
+  workshop_id: null,
   invited_at: "2026-01-01T00:00:00.000Z",
   accepted_at: null,
   created_at: "2026-01-01T00:00:00.000Z",

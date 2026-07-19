@@ -1,4 +1,9 @@
-import type { RetailerId, StaffId, UserId } from "../shared/branded-id";
+import type {
+  RetailerId,
+  StaffId,
+  UserId,
+  WorkshopId,
+} from "../shared/branded-id";
 import type { Timestamps } from "../shared/timestamps";
 
 import type { AccountType, PlatformRole, RetailerRole } from "./role";
@@ -40,6 +45,7 @@ export interface RetailerStaffMember extends Timestamps {
   readonly fullName: string;
   readonly email: string;
   readonly role: RetailerRole;
+  readonly workshopId?: WorkshopId;
   readonly invitedAt: string;
   readonly acceptedAt?: string;
 }

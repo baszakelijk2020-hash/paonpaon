@@ -1,66 +1,172 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  canRetailerRoleTransitionAlteration,
+  canTransitionAlteration,
+} from "./production";
+import {
   addAlterationUpdateInputSchema,
   createAlterationInputSchema,
+  proposePriceChangeInputSchema,
+  recordCustodyEventInputSchema,
+  recordFulfillmentInputSchema,
 } from "./production.schema";
 
+const baseIntake = {
+  customerId: "11111111-1111-1111-1111-111111111111",
+  sourceKind: "external",
+  categoryCode: "jacket",
+  garmentType: "Single-breasted jacket",
+  description: "Navy hopsack jacket with brass buttons.",
+  labelMetadata: { maker: "House label" },
+  intakeCondition: "Clean; light wear at cuffs; no visible damage.",
+  observations: [
+    {
+      area: "Right sleeve",
+      observation: "8 mm long at cuff",
+      classification: "work_now",
+    },
+  ],
+  tasks: [{ title: "Shorten right sleeve 8 mm", classification: "work_now" }],
+} as const;
+
 describe("createAlterationInputSchema", () => {
-  it("accepts a standalone alteration with no orderLineId", () => {
-    const result = createAlterationInputSchema.parse({
-      customerId: "11111111-1111-1111-1111-111111111111",
-      instructions: "Take in the waist by 1 inch.",
-    });
-    expect(result.orderLineId).toBeUndefined();
+  it("accepts a fully identified external garment intake", () => {
+    expect(createAlterationInputSchema.parse(baseIntake).sourceKind).toBe(
+      "external",
+    );
   });
 
-  it("accepts an alteration attached to an order line", () => {
-    const result = createAlterationInputSchema.parse({
-      customerId: "11111111-1111-1111-1111-111111111111",
-      orderLineId: "22222222-2222-2222-2222-222222222222",
-      instructions: "Hem the trousers.",
-      dueDate: "2026-08-01",
-    });
-    expect(result.orderLineId).toBe("22222222-2222-2222-2222-222222222222");
-  });
-
-  it("rejects empty instructions", () => {
+  it("requires an order reference for a finished MTM garment", () => {
     const result = createAlterationInputSchema.safeParse({
-      customerId: "11111111-1111-1111-1111-111111111111",
-      instructions: "",
+      ...baseIntake,
+      sourceKind: "finished_mtm",
     });
     expect(result.success).toBe(false);
   });
 
-  it("rejects a non-uuid customerId", () => {
+  it("accepts future-order observations while requiring current work", () => {
     const result = createAlterationInputSchema.safeParse({
-      customerId: "not-a-uuid",
-      instructions: "Hem the trousers.",
+      ...baseIntake,
+      tasks: [
+        ...baseIntake.tasks,
+        {
+          title: "Lower button stance next order",
+          classification: "future_order_note",
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a work order containing only future-order notes", () => {
+    const result = createAlterationInputSchema.safeParse({
+      ...baseIntake,
+      tasks: [{ title: "Future note", classification: "future_order_note" }],
     });
     expect(result.success).toBe(false);
   });
 });
 
-describe("addAlterationUpdateInputSchema", () => {
-  it("accepts a status change with no note", () => {
-    const result = addAlterationUpdateInputSchema.safeParse({
-      status: "in_progress",
-    });
-    expect(result.success).toBe(true);
+describe("alteration transitions", () => {
+  it("allows the operational happy path", () => {
+    expect(canTransitionAlteration("approved", "assigned")).toBe(true);
+    expect(canTransitionAlteration("in_progress", "completion_review")).toBe(
+      true,
+    );
+    expect(canTransitionAlteration("ready_for_pickup", "completed")).toBe(true);
   });
 
-  it("accepts a status change with a note", () => {
-    const result = addAlterationUpdateInputSchema.parse({
-      status: "ready_for_pickup",
-      note: "Ready at the front desk.",
-    });
-    expect(result.note).toBe("Ready at the front desk.");
+  it("rejects reopening terminal or skipping review states", () => {
+    expect(canTransitionAlteration("completed", "in_progress")).toBe(false);
+    expect(canTransitionAlteration("in_progress", "ready_for_pickup")).toBe(
+      false,
+    );
   });
 
-  it("rejects an unsupported status", () => {
-    const result = addAlterationUpdateInputSchema.safeParse({
-      status: "shipped",
-    });
-    expect(result.success).toBe(false);
+  it("limits workshop, advisor and pricing approval transitions by role", () => {
+    expect(
+      canRetailerRoleTransitionAlteration("worker", "assigned", "in_progress"),
+    ).toBe(true);
+    expect(
+      canRetailerRoleTransitionAlteration("worker", "assigned", "canceled"),
+    ).toBe(false);
+    expect(
+      canRetailerRoleTransitionAlteration(
+        "sales_associate",
+        "quoted",
+        "approved",
+      ),
+    ).toBe(false);
+    expect(
+      canRetailerRoleTransitionAlteration("manager", "quoted", "approved"),
+    ).toBe(true);
+  });
+});
+
+describe("pricing and update validation", () => {
+  it("requires a substantive workshop price explanation", () => {
+    expect(
+      proposePriceChangeInputSchema.safeParse({
+        proposedAmountMinorUnits: 12000,
+        explanation: "Too short",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("defaults customer visibility to false", () => {
+    expect(
+      addAlterationUpdateInputSchema.parse({ status: "quoted" })
+        .customerVisible,
+    ).toBe(false);
+  });
+});
+
+describe("release evidence validation", () => {
+  it("requires a named recipient for customer release", () => {
+    expect(
+      recordCustodyEventInputSchema.safeParse({
+        eventType: "released_to_customer",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("requires recipient and verification when fulfillment completes", () => {
+    expect(
+      recordFulfillmentInputSchema.safeParse({
+        method: "pickup",
+        status: "completed",
+        releasedToName: "Alex Customer",
+      }).success,
+    ).toBe(false);
+    expect(
+      recordFulfillmentInputSchema.safeParse({
+        method: "pickup",
+        status: "completed",
+        releasedToName: "Alex Customer",
+        verificationNote: "Photo ID checked by advisor.",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("requires an address for delivery fulfillment", () => {
+    expect(
+      recordFulfillmentInputSchema.safeParse({
+        method: "delivery",
+        status: "scheduled",
+      }).success,
+    ).toBe(false);
+    expect(
+      recordFulfillmentInputSchema.safeParse({
+        method: "delivery",
+        status: "scheduled",
+        deliveryAddress: {
+          line1: "1 Savile Row",
+          city: "London",
+          postalCode: "W1S 3PR",
+          countryCode: "gb",
+        },
+      }).success,
+    ).toBe(true);
   });
 });

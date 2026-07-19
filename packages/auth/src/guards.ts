@@ -1,4 +1,9 @@
-import { type RetailerRole, retailerRoleAtLeast } from "@paon/domain";
+import {
+  type AlterationsPermission,
+  type RetailerRole,
+  retailerRoleAtLeast,
+  retailerRoleHasAlterationsPermission,
+} from "@paon/domain";
 
 import type { AppSession } from "./session";
 
@@ -6,6 +11,18 @@ export class UnauthorizedError extends Error {
   constructor(message = "Unauthorized") {
     super(message);
     this.name = "UnauthorizedError";
+  }
+}
+
+export function requireAlterationsPermission(
+  role: RetailerRole | undefined,
+  permission: AlterationsPermission,
+): asserts role is RetailerRole {
+  if (!role) {
+    throw new UnauthorizedError();
+  }
+  if (!retailerRoleHasAlterationsPermission(role, permission)) {
+    throw new ForbiddenError(`Requires alterations permission "${permission}"`);
   }
 }
 

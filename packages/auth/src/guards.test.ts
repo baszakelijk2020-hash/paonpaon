@@ -4,6 +4,7 @@ import {
   ForbiddenError,
   UnauthorizedError,
   requireCustomerSession,
+  requireAlterationsPermission,
   requirePlatformOperator,
   requirePlatformSession,
   requireRetailerRole,
@@ -53,6 +54,29 @@ describe("requireRetailerRole", () => {
 
   it("throws ForbiddenError when role is below the minimum", () => {
     expect(() => requireRetailerRole("read_only", "manager")).toThrow(
+      ForbiddenError,
+    );
+  });
+});
+
+describe("requireAlterationsPermission", () => {
+  it("allows only the bounded workshop capability", () => {
+    expect(() =>
+      requireAlterationsPermission(
+        "workshop_manager",
+        "manage_assigned_workshop",
+      ),
+    ).not.toThrow();
+    expect(() =>
+      requireAlterationsPermission("workshop_manager", "configure"),
+    ).toThrow(ForbiddenError);
+  });
+
+  it("keeps workers out of intake and oversight", () => {
+    expect(() =>
+      requireAlterationsPermission("worker", "work_assigned_tasks"),
+    ).not.toThrow();
+    expect(() => requireAlterationsPermission("worker", "intake")).toThrow(
       ForbiddenError,
     );
   });

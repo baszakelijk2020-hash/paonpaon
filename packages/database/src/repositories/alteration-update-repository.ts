@@ -3,41 +3,31 @@ import {
   type AlterationId,
   type AlterationStatus,
   type AlterationUpdate,
-  type RetailerId,
-  type StaffId,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
-type AlterationUpdateRow =
-  Database["public"]["Tables"]["alteration_updates"]["Row"];
+type HistoryRow =
+  Database["public"]["Tables"]["alteration_status_history"]["Row"];
 
-function toDomain(row: AlterationUpdateRow): AlterationUpdate {
+function toDomain(row: HistoryRow): AlterationUpdate {
   return {
-    id: asId<"AlterationUpdateId">(row.id),
+    id: asId<"AlterationStatusHistoryId">(row.id),
     alterationId: asId<"AlterationId">(row.alteration_id),
     retailerId: asId<"RetailerId">(row.retailer_id),
-    status: row.status,
+    ...(row.from_status ? { fromStatus: row.from_status } : {}),
+    toStatus: row.to_status,
     ...(row.note ? { note: row.note } : {}),
-    ...(row.staff_id ? { staffId: asId<"StaffId">(row.staff_id) } : {}),
+    ...(row.actor_staff_id
+      ? { actorStaffId: asId<"StaffId">(row.actor_staff_id) }
+      : {}),
+    ...(row.actor_user_id ? { actorUserId: row.actor_user_id } : {}),
+    customerVisible: row.customer_visible,
     createdAt: row.created_at,
   };
 }
 
-export interface AddAlterationUpdateParams {
-  alterationId: AlterationId;
-  retailerId: RetailerId;
-  status: AlterationStatus;
-  note?: string;
-  staffId?: StaffId;
-}
-
-/**
- * The only way an `Alteration`'s status moves — `add()` inserting here
- * is what the `sync_alteration_status_on_update_insert` trigger uses to
- * keep `alterations.status` in sync. See docs/DECISIONS.md ADR-015.
- */
 export class AlterationUpdateRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
 
@@ -45,35 +35,29 @@ export class AlterationUpdateRepository {
     alterationId: AlterationId,
   ): Promise<AlterationUpdate[]> {
     const { data, error } = await this.client
-      .from("alteration_updates")
+      .from("alteration_status_history")
       .select("*")
       .eq("alteration_id", alterationId)
       .order("created_at", { ascending: true });
-
-    if (error) {
-      throw error;
-    }
-
+    if (error) throw error;
     return data.map(toDomain);
   }
 
-  async add(params: AddAlterationUpdateParams): Promise<AlterationUpdate> {
-    const { data, error } = await this.client
-      .from("alteration_updates")
-      .insert({
-        alteration_id: params.alterationId,
-        retailer_id: params.retailerId,
-        status: params.status,
-        note: params.note ?? null,
-        staff_id: params.staffId ?? null,
-      })
-      .select("*")
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    return toDomain(data);
+  async transition(params: {
+    alterationId: AlterationId;
+    toStatus: AlterationStatus;
+    note?: string;
+    customerVisible?: boolean;
+  }): Promise<void> {
+    const { error } = await this.client.rpc(
+      "transition_alteration_work_order",
+      {
+        p_alteration_id: params.alterationId,
+        p_to_status: params.toStatus,
+        p_note: params.note ?? null,
+        p_customer_visible: params.customerVisible ?? false,
+      },
+    );
+    if (error) throw error;
   }
 }

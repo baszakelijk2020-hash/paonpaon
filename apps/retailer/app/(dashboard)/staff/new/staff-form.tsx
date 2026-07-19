@@ -1,6 +1,7 @@
 "use client";
 
 import { INVITABLE_RETAILER_ROLES } from "@paon/domain";
+import type { Workshop } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { FormField } from "@paon/ui/components/FormField";
@@ -10,7 +11,7 @@ import { useActionState } from "react";
 
 import { initialInviteStaffFormState, inviteStaff } from "./actions";
 
-export function StaffForm() {
+export function StaffForm({ workshops }: { workshops: readonly Workshop[] }) {
   const [state, formAction, isPending] = useActionState(
     inviteStaff,
     initialInviteStaffFormState,
@@ -42,6 +43,25 @@ export function StaffForm() {
               invalid={!!state.fieldErrors["fullName"]}
               required
             />
+          </FormField>
+          <FormField
+            label="Workshop"
+            htmlFor="workshopId"
+            hint="Required for workshop manager and worker roles"
+            error={state.fieldErrors["workshopId"]}
+          >
+            <Select
+              id="workshopId"
+              name="workshopId"
+              defaultValue={v["workshopId"] ?? ""}
+            >
+              <option value="">No workshop</option>
+              {workshops.map((workshop) => (
+                <option key={workshop.id} value={workshop.id}>
+                  {workshop.name}
+                </option>
+              ))}
+            </Select>
           </FormField>
           <FormField
             label="Email"

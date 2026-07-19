@@ -18,12 +18,31 @@ export type OrderLineId = Brand<string, "OrderLineId">;
 export type ProductionOrderId = Brand<string, "ProductionOrderId">;
 export type AlterationId = Brand<string, "AlterationId">;
 export type AlterationUpdateId = Brand<string, "AlterationUpdateId">;
+export type PhysicalGarmentId = Brand<string, "PhysicalGarmentId">;
+export type FittingSessionId = Brand<string, "FittingSessionId">;
+export type FittingObservationId = Brand<string, "FittingObservationId">;
+export type AlterationTaskId = Brand<string, "AlterationTaskId">;
+export type AlterationTaskNoteId = Brand<string, "AlterationTaskNoteId">;
+export type AlterationStatusHistoryId = Brand<
+  string,
+  "AlterationStatusHistoryId"
+>;
+export type AlterationCategoryId = Brand<string, "AlterationCategoryId">;
+export type AlterationOperationId = Brand<string, "AlterationOperationId">;
+export type AlterationPriceListId = Brand<string, "AlterationPriceListId">;
+export type AlterationPriceListItemId = Brand<
+  string,
+  "AlterationPriceListItemId"
+>;
+export type WorkshopId = Brand<string, "WorkshopId">;
+export type WorkOrderAssignmentId = Brand<string, "WorkOrderAssignmentId">;
+export type PriceChangeProposalId = Brand<string, "PriceChangeProposalId">;
+export type AlterationAttachmentId = Brand<string, "AlterationAttachmentId">;
+export type ChainOfCustodyEventId = Brand<string, "ChainOfCustodyEventId">;
+export type CompletionReviewId = Brand<string, "CompletionReviewId">;
+export type FulfillmentEventId = Brand<string, "FulfillmentEventId">;
 export type AppointmentId = Brand<string, "AppointmentId">;
 export type AvailabilityWindowId = Brand<string, "AvailabilityWindowId">;
-export type CustomerFitProfileEntryId = Brand<
-  string,
-  "CustomerFitProfileEntryId"
->;
 export type LoyaltyAccountId = Brand<string, "LoyaltyAccountId">;
 export type RewardId = Brand<string, "RewardId">;
 export type ReferralId = Brand<string, "ReferralId">;

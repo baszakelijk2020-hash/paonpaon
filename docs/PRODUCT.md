@@ -36,8 +36,8 @@ Used by a retailer's own staff to run the business day to day.
 | Customers / CRM               | Customer records, clienteling notes, lifecycle stage       |
 | Products                      | Catalog authoring: products, variants, collections         |
 | Orders                        | Order lifecycle from placement to fulfillment              |
-| Production                    | Made-to-order manufacturing tracking                       |
-| Alterations                   | Fit alteration requests and status                         |
+| Production                    | Connector-facing supplier/manufacturing status             |
+| Alterations                   | Garment intake, fitting, work orders and handoffs          |
 | Loyalty / Rewards / Referrals | Configure programs, view customer balances                 |
 | Appointments                  | Booking, staff availability, calendar                      |
 | Inventory                     | Stock levels per variant                                   |
@@ -50,20 +50,20 @@ Used by a retailer's own staff to run the business day to day.
 
 Used by a retailer's customers.
 
-| Area                | Responsibility                                 |
-| ------------------- | ---------------------------------------------- |
-| Login               | Passwordless / OAuth authentication            |
-| Profile             | Personal details, size profile, preferences    |
-| Orders              | Purchase history and current orders            |
-| Production tracking | Real-time made-to-order status                 |
-| Alteration tracking | Real-time alteration status                    |
-| Loyalty / Rewards   | Points balance, tier, redeemable rewards       |
-| Referrals           | Invite friends, track referral status          |
-| Wishlist            | Saved products                                 |
-| Appointments        | Book and manage appointments with the retailer |
-| Notifications       | Cross-channel notification inbox               |
-| Messaging           | Direct conversation with retailer staff        |
-| Preferences         | Communication and privacy preferences          |
+| Area                | Responsibility                                  |
+| ------------------- | ----------------------------------------------- |
+| Login               | Passwordless / OAuth authentication             |
+| Profile             | Personal details and relationship preferences   |
+| Orders              | Purchase history and current orders             |
+| Production tracking | Approved supplier/manufacturing status          |
+| Alteration tracking | Approved status and pickup/delivery information |
+| Loyalty / Rewards   | Points balance, tier, redeemable rewards        |
+| Referrals           | Invite friends, track referral status           |
+| Wishlist            | Saved products                                  |
+| Appointments        | Book and manage appointments with the retailer  |
+| Notifications       | Cross-channel notification inbox                |
+| Messaging           | Direct conversation with retailer staff         |
+| Preferences         | Communication and privacy preferences           |
 
 A customer with relationships at multiple PAON retailers signs into one
 Customer Portal account and sees each retailer relationship separately
@@ -85,6 +85,23 @@ An order can be "delivered" while an alteration on one of its lines is
 still "in progress" — the UI must always be able to show these as
 related but independently-progressing timelines, never collapse them
 into a single status.
+
+## Alterations ownership boundary
+
+PAON does not replace GoCreate, a supplier manufacturing platform,
+factory ERP, MTM measurement/fit profiles, garment specifications,
+production ordering or construction systems. Those systems remain
+authoritative for manufacturing and PAON may connect to them later.
+
+PAON is authoritative for the in-store garment journey: identifying a
+specific physical garment; fitting sessions and observations; proposed
+operations classified as `work_now` or `future_order_note`; work orders,
+quotes, approvals and effective price lists; retailer/workshop assignment;
+evidence and chain of custody; completion review; customer-approved status;
+pickup/delivery; cancellation; and immutable audit history. A
+`future_order_note` is retained for manual staff entry into a future GoCreate
+order. PAON does not turn it into a manufacturing specification or production
+order.
 
 ## Phasing
 

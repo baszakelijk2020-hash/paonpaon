@@ -29,4 +29,22 @@ describe("inviteRetailerStaffInputSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("requires a workshop scope for workshop identities", () => {
+    expect(
+      inviteRetailerStaffInputSchema.safeParse({
+        fullName: "Tailor One",
+        email: "tailor@example.com",
+        role: "worker",
+      }).success,
+    ).toBe(false);
+    expect(
+      inviteRetailerStaffInputSchema.safeParse({
+        fullName: "Tailor One",
+        email: "tailor@example.com",
+        role: "worker",
+        workshopId: "11111111-1111-1111-1111-111111111111",
+      }).success,
+    ).toBe(true);
+  });
 });

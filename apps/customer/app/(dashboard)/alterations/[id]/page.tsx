@@ -1,6 +1,5 @@
 import {
-  AlterationRepository,
-  AlterationUpdateRepository,
+  CustomerAlterationRepository,
   RetailerRepository,
 } from "@paon/database";
 import { asId } from "@paon/domain";
@@ -22,17 +21,34 @@ export default async function AlterationDetailPage({
   const { id } = await params;
   const supabase = await getSupabaseServerClient();
 
-  const alteration = await new AlterationRepository(supabase).findById(
-    asId<"AlterationId">(id),
-  );
+  const alterationRepo = new CustomerAlterationRepository(supabase);
+  const alteration = await alterationRepo.findById(asId<"AlterationId">(id));
   if (!alteration) {
     notFound();
   }
 
-  const [retailer, updates] = await Promise.all([
+  const [retailer, updates, fulfillment] = await Promise.all([
     new RetailerRepository(supabase).findById(alteration.retailerId),
-    new AlterationUpdateRepository(supabase).findByAlteration(alteration.id),
+    alterationRepo.findTimeline(alteration.id),
+    alterationRepo.findFulfillment(alteration.id),
   ]);
+  const latestFulfillment = fulfillment[0];
+  const deliveryAddress =
+    latestFulfillment?.delivery_address &&
+    typeof latestFulfillment.delivery_address === "object" &&
+    !Array.isArray(latestFulfillment.delivery_address)
+      ? latestFulfillment.delivery_address
+      : null;
+  const deliveryAddressParts = deliveryAddress
+    ? [
+        deliveryAddress["line1"],
+        deliveryAddress["line2"],
+        deliveryAddress["city"],
+        deliveryAddress["region"],
+        deliveryAddress["postalCode"],
+        deliveryAddress["countryCode"],
+      ].filter((part): part is string => typeof part === "string" && !!part)
+    : [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,6 +64,10 @@ export default async function AlterationDetailPage({
             Due {formatDate(alteration.dueDate, "en-US")}
           </p>
         ) : null}
+        <p className="text-sm text-[var(--color-stone-700)]">
+          {alteration.brand ? `${alteration.brand} ` : ""}
+          {alteration.garmentType} · {alteration.workOrderNumber}
+        </p>
       </div>
 
       {alteration.status === "ready_for_pickup" ? (
@@ -74,9 +94,9 @@ export default async function AlterationDetailPage({
             updates.map((update) => (
               <div key={update.id} className="px-6 py-4">
                 <div className="flex items-center gap-2">
-                  <AlterationStatusBadge status={update.status} />
+                  <AlterationStatusBadge status={update.to_status} />
                   <span className="text-xs text-[var(--color-stone-500)]">
-                    {formatDate(update.createdAt, "en-US")}
+                    {formatDate(update.created_at, "en-US")}
                   </span>
                 </div>
                 {update.note ? (
@@ -89,6 +109,29 @@ export default async function AlterationDetailPage({
           )}
         </Card>
       </div>
+
+      {latestFulfillment ? (
+        <div>
+          <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
+            Pickup or delivery
+          </h2>
+          <Card>
+            <p className="capitalize text-[var(--color-stone-900)]">
+              {latestFulfillment.method} · {latestFulfillment.status}
+            </p>
+            {latestFulfillment.scheduled_at ? (
+              <p className="text-sm text-[var(--color-stone-500)]">
+                Scheduled {formatDate(latestFulfillment.scheduled_at, "en-US")}
+              </p>
+            ) : null}
+            {deliveryAddressParts.length > 0 ? (
+              <p className="text-sm text-[var(--color-stone-500)]">
+                {deliveryAddressParts.join(", ")}
+              </p>
+            ) : null}
+          </Card>
+        </div>
+      ) : null}
     </div>
   );
 }

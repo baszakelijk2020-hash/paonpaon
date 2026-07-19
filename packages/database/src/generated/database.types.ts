@@ -97,7 +97,10 @@ export interface Database {
             | "sales_associate"
             | "manager"
             | "admin"
-            | "owner";
+            | "owner"
+            | "workshop_manager"
+            | "worker";
+          workshop_id: string | null;
           invited_at: string;
           accepted_at: string | null;
           created_at: string;
@@ -116,7 +119,10 @@ export interface Database {
             | "sales_associate"
             | "manager"
             | "admin"
-            | "owner";
+            | "owner"
+            | "workshop_manager"
+            | "worker";
+          workshop_id?: string | null;
           invited_at?: string;
           accepted_at?: string | null;
           created_at?: string;
@@ -458,7 +464,7 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["appointments"]["Insert"]>;
         Relationships: [];
       };
-      customer_fit_profile_entries: {
+      legacy_customer_fit_profile_entries: {
         Row: {
           id: string;
           customer_id: string;
@@ -480,11 +486,11 @@ export interface Database {
           recorded_at?: string;
         };
         Update: Partial<
-          Database["public"]["Tables"]["customer_fit_profile_entries"]["Insert"]
+          Database["public"]["Tables"]["legacy_customer_fit_profile_entries"]["Insert"]
         >;
         Relationships: [];
       };
-      alterations: {
+      legacy_alterations: {
         Row: {
           id: string;
           retailer_id: string;
@@ -525,10 +531,12 @@ export interface Database {
           updated_at?: string;
           deleted_at?: string | null;
         };
-        Update: Partial<Database["public"]["Tables"]["alterations"]["Insert"]>;
+        Update: Partial<
+          Database["public"]["Tables"]["legacy_alterations"]["Insert"]
+        >;
         Relationships: [];
       };
-      alteration_updates: {
+      legacy_alteration_updates: {
         Row: {
           id: string;
           alteration_id: string;
@@ -560,12 +568,900 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<
-          Database["public"]["Tables"]["alteration_updates"]["Insert"]
+          Database["public"]["Tables"]["legacy_alteration_updates"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      workshops: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          name: string;
+          status: "active" | "inactive";
+          email: string | null;
+          phone: string | null;
+          address: Json | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          name: string;
+          status?: "active" | "inactive";
+          email?: string | null;
+          phone?: string | null;
+          address?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["workshops"]["Insert"]>;
+        Relationships: [];
+      };
+      alteration_catalogue_categories: {
+        Row: {
+          id: string;
+          code:
+            | "suit"
+            | "jacket"
+            | "trousers"
+            | "waistcoat"
+            | "shirt"
+            | "overcoat"
+            | "coat"
+            | "formalwear"
+            | "denim"
+            | "knitwear"
+            | "leather"
+            | "accessories"
+            | "other";
+          name: string;
+          description: string;
+          display_order: number;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          code: string;
+          name: string;
+          description?: string;
+          display_order?: number;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_catalogue_categories"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alteration_operations: {
+        Row: {
+          id: string;
+          category_id: string;
+          code: string;
+          name: string;
+          description: string;
+          default_duration_minutes: number | null;
+          display_order: number;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          category_id: string;
+          code: string;
+          name: string;
+          description?: string;
+          default_duration_minutes?: number | null;
+          display_order?: number;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_operations"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      retailer_alteration_category_settings: {
+        Row: {
+          retailer_id: string;
+          category_id: string;
+          enabled: boolean;
+          updated_by_staff_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          retailer_id: string;
+          category_id: string;
+          enabled?: boolean;
+          updated_by_staff_id?: string | null;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["retailer_alteration_category_settings"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      retailer_alteration_operation_settings: {
+        Row: {
+          retailer_id: string;
+          operation_id: string;
+          enabled: boolean;
+          updated_by_staff_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          retailer_id: string;
+          operation_id: string;
+          enabled?: boolean;
+          updated_by_staff_id?: string | null;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["retailer_alteration_operation_settings"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alteration_price_lists: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          workshop_id: string | null;
+          kind: "retailer" | "workshop";
+          name: string;
+          currency: string;
+          effective_from: string;
+          effective_until: string | null;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          workshop_id?: string | null;
+          kind: "retailer" | "workshop";
+          name: string;
+          currency: string;
+          effective_from?: string;
+          effective_until?: string | null;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_price_lists"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alteration_price_list_items: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          price_list_id: string;
+          operation_id: string;
+          amount_minor_units: number;
+          currency: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          price_list_id: string;
+          operation_id: string;
+          amount_minor_units: number;
+          currency: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_price_list_items"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      physical_garments: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          customer_id: string;
+          source_kind: "external" | "finished_mtm";
+          category_code:
+            | "suit"
+            | "jacket"
+            | "trousers"
+            | "waistcoat"
+            | "shirt"
+            | "overcoat"
+            | "coat"
+            | "formalwear"
+            | "denim"
+            | "knitwear"
+            | "leather"
+            | "accessories"
+            | "other";
+          garment_type: string;
+          brand: string | null;
+          description: string;
+          identifying_photo_url: string | null;
+          label_metadata: Json;
+          intake_condition: string;
+          external_reference: string | null;
+          order_line_id: string | null;
+          supplier_order_reference: string | null;
+          identification_state: "verified" | "needs_verification";
+          legacy_alteration_id: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          customer_id: string;
+          source_kind: "external" | "finished_mtm";
+          category_code: string;
+          garment_type: string;
+          brand?: string | null;
+          description: string;
+          identifying_photo_url?: string | null;
+          label_metadata?: Json;
+          intake_condition: string;
+          external_reference?: string | null;
+          order_line_id?: string | null;
+          supplier_order_reference?: string | null;
+          identification_state?: "verified" | "needs_verification";
+          legacy_alteration_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["physical_garments"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      fitting_sessions: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          customer_id: string;
+          appointment_id: string | null;
+          fitted_by_staff_id: string | null;
+          occurred_at: string;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          customer_id: string;
+          appointment_id?: string | null;
+          fitted_by_staff_id?: string | null;
+          occurred_at?: string;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["fitting_sessions"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      fitting_observations: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          fitting_session_id: string;
+          physical_garment_id: string;
+          classification: "work_now" | "future_order_note";
+          area: string;
+          observation: string;
+          recorded_by_staff_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          fitting_session_id: string;
+          physical_garment_id: string;
+          classification: "work_now" | "future_order_note";
+          area: string;
+          observation: string;
+          recorded_by_staff_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["fitting_observations"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alteration_work_orders: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          customer_id: string;
+          physical_garment_id: string;
+          fitting_session_id: string | null;
+          work_order_number: string;
+          status:
+            | "intake"
+            | "quoted"
+            | "awaiting_approval"
+            | "approved"
+            | "assigned"
+            | "in_progress"
+            | "completion_review"
+            | "ready_for_pickup"
+            | "out_for_delivery"
+            | "completed"
+            | "canceled";
+          original_quote_amount_minor_units: number;
+          original_quote_currency: string;
+          agreed_total_amount_minor_units: number | null;
+          agreed_total_currency: string | null;
+          due_date: string | null;
+          customer_notification_ready_at: string | null;
+          customer_notified_at: string | null;
+          canceled_at: string | null;
+          cancellation_reason: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          customer_id: string;
+          physical_garment_id: string;
+          fitting_session_id?: string | null;
+          work_order_number?: string;
+          status?:
+            | "intake"
+            | "quoted"
+            | "awaiting_approval"
+            | "approved"
+            | "assigned"
+            | "in_progress"
+            | "completion_review"
+            | "ready_for_pickup"
+            | "out_for_delivery"
+            | "completed"
+            | "canceled";
+          original_quote_amount_minor_units?: number;
+          original_quote_currency: string;
+          agreed_total_amount_minor_units?: number | null;
+          agreed_total_currency?: string | null;
+          due_date?: string | null;
+          customer_notification_ready_at?: string | null;
+          customer_notified_at?: string | null;
+          canceled_at?: string | null;
+          cancellation_reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_work_orders"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alteration_tasks: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          retailer_id: string;
+          operation_id: string | null;
+          title: string;
+          instructions: string | null;
+          classification: "work_now" | "future_order_note";
+          status:
+            | "proposed"
+            | "approved"
+            | "assigned"
+            | "in_progress"
+            | "review_ready"
+            | "completed"
+            | "canceled";
+          original_quote_amount_minor_units: number;
+          original_quote_currency: string;
+          agreed_price_amount_minor_units: number | null;
+          agreed_price_currency: string | null;
+          assigned_worker_id: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          alteration_id: string;
+          retailer_id: string;
+          operation_id?: string | null;
+          title: string;
+          instructions?: string | null;
+          classification: "work_now" | "future_order_note";
+          status?:
+            | "proposed"
+            | "approved"
+            | "assigned"
+            | "in_progress"
+            | "review_ready"
+            | "completed"
+            | "canceled";
+          original_quote_amount_minor_units?: number;
+          original_quote_currency: string;
+          agreed_price_amount_minor_units?: number | null;
+          agreed_price_currency?: string | null;
+          assigned_worker_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_tasks"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      work_order_assignments: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          retailer_id: string;
+          workshop_id: string;
+          assigned_worker_id: string | null;
+          assigned_by_staff_id: string;
+          target_completion_date: string | null;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          alteration_id: string;
+          retailer_id: string;
+          workshop_id: string;
+          assigned_worker_id?: string | null;
+          assigned_by_staff_id: string;
+          target_completion_date?: string | null;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["work_order_assignments"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alteration_task_notes: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          task_id: string;
+          retailer_id: string;
+          note: string;
+          actor_staff_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          alteration_id: string;
+          task_id: string;
+          retailer_id: string;
+          note: string;
+          actor_staff_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_task_notes"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alteration_status_history: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          retailer_id: string;
+          from_status:
+            Database["public"]["Enums"]["alteration_work_order_status"] | null;
+          to_status: Database["public"]["Enums"]["alteration_work_order_status"];
+          note: string | null;
+          actor_staff_id: string | null;
+          actor_user_id: string | null;
+          customer_visible: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          alteration_id: string;
+          retailer_id: string;
+          from_status?:
+            Database["public"]["Enums"]["alteration_work_order_status"] | null;
+          to_status: Database["public"]["Enums"]["alteration_work_order_status"];
+          note?: string | null;
+          actor_staff_id?: string | null;
+          actor_user_id?: string | null;
+          customer_visible?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_status_history"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alteration_pricing_history: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          task_id: string | null;
+          retailer_id: string;
+          event_type: string;
+          amount_minor_units: number;
+          currency: string;
+          reason: string | null;
+          actor_staff_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          alteration_id: string;
+          task_id?: string | null;
+          retailer_id: string;
+          event_type: string;
+          amount_minor_units: number;
+          currency: string;
+          reason?: string | null;
+          actor_staff_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_pricing_history"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      price_change_proposals: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          task_id: string | null;
+          retailer_id: string;
+          original_amount_minor_units: number;
+          proposed_amount_minor_units: number;
+          currency: string;
+          explanation: string;
+          status: "pending" | "approved" | "rejected" | "withdrawn";
+          proposed_by_staff_id: string;
+          decided_by_staff_id: string | null;
+          decided_at: string | null;
+          decision_reason: string | null;
+          evidence_attachment_id: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          alteration_id: string;
+          task_id?: string | null;
+          retailer_id: string;
+          original_amount_minor_units: number;
+          proposed_amount_minor_units: number;
+          currency: string;
+          explanation: string;
+          status?: "pending" | "approved" | "rejected" | "withdrawn";
+          proposed_by_staff_id: string;
+          decided_by_staff_id?: string | null;
+          decided_at?: string | null;
+          decision_reason?: string | null;
+          evidence_attachment_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["price_change_proposals"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      chain_of_custody_events: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          retailer_id: string;
+          event_type:
+            | "received"
+            | "handed_to_workshop"
+            | "returned_to_retailer"
+            | "released_to_customer"
+            | "delivery_dispatch"
+            | "delivery_complete";
+          from_party: string | null;
+          to_party: string | null;
+          condition_note: string | null;
+          actor_staff_id: string | null;
+          occurred_at: string;
+        };
+        Insert: {
+          id?: string;
+          alteration_id: string;
+          retailer_id: string;
+          event_type:
+            | "received"
+            | "handed_to_workshop"
+            | "returned_to_retailer"
+            | "released_to_customer"
+            | "delivery_dispatch"
+            | "delivery_complete";
+          from_party?: string | null;
+          to_party?: string | null;
+          condition_note?: string | null;
+          actor_staff_id?: string | null;
+          occurred_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["chain_of_custody_events"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      completion_reviews: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          retailer_id: string;
+          status: "pending" | "approved" | "changes_requested";
+          notes: string | null;
+          reviewed_by_staff_id: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          alteration_id: string;
+          retailer_id: string;
+          status?: "pending" | "approved" | "changes_requested";
+          notes?: string | null;
+          reviewed_by_staff_id?: string | null;
+          reviewed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["completion_reviews"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alteration_fulfillment_events: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          retailer_id: string;
+          method: "pickup" | "delivery";
+          status:
+            "scheduled" | "ready" | "dispatched" | "completed" | "canceled";
+          scheduled_at: string | null;
+          completed_at: string | null;
+          delivery_address: Json | null;
+          released_to_name: string | null;
+          verification_note: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          alteration_id: string;
+          retailer_id: string;
+          method: "pickup" | "delivery";
+          status:
+            "scheduled" | "ready" | "dispatched" | "completed" | "canceled";
+          scheduled_at?: string | null;
+          completed_at?: string | null;
+          delivery_address?: Json | null;
+          released_to_name?: string | null;
+          verification_note?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_fulfillment_events"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alteration_attachments: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          alteration_id: string | null;
+          task_id: string | null;
+          observation_id: string | null;
+          proposal_id: string | null;
+          physical_garment_id: string | null;
+          kind: "intake" | "label" | "evidence" | "progress" | "completion";
+          storage_bucket: string;
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          size_bytes: number;
+          uploaded_by_staff_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          alteration_id?: string | null;
+          task_id?: string | null;
+          observation_id?: string | null;
+          proposal_id?: string | null;
+          physical_garment_id?: string | null;
+          kind: "intake" | "label" | "evidence" | "progress" | "completion";
+          storage_bucket: string;
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          size_bytes: number;
+          uploaded_by_staff_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_attachments"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      audit_log_entries: {
+        Row: {
+          id: string;
+          retailer_id: string | null;
+          actor_user_id: string | null;
+          actor_staff_id: string | null;
+          action: string;
+          entity_type: string;
+          entity_id: string;
+          before_state: Json | null;
+          after_state: Json | null;
+          occurred_at: string;
+        };
+        Insert: {
+          id?: string;
+          retailer_id?: string | null;
+          actor_user_id?: string | null;
+          actor_staff_id?: string | null;
+          action: string;
+          entity_type: string;
+          entity_id: string;
+          before_state?: Json | null;
+          after_state?: Json | null;
+          occurred_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["audit_log_entries"]["Insert"]
         >;
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      worker_alteration_work_orders: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          physical_garment_id: string;
+          work_order_number: string;
+          status: Database["public"]["Enums"]["alteration_work_order_status"];
+          category_code:
+            | "suit"
+            | "jacket"
+            | "trousers"
+            | "waistcoat"
+            | "shirt"
+            | "overcoat"
+            | "coat"
+            | "formalwear"
+            | "denim"
+            | "knitwear"
+            | "leather"
+            | "accessories"
+            | "other";
+          garment_type: string;
+          brand: string | null;
+          description: string;
+          intake_condition: string;
+          due_date: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Relationships: [];
+      };
+      worker_alteration_tasks: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          retailer_id: string;
+          operation_id: string | null;
+          title: string;
+          instructions: string | null;
+          classification: "work_now";
+          status: Database["public"]["Enums"]["alteration_task_status"];
+          assigned_worker_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Relationships: [];
+      };
+      customer_alteration_work_orders: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          customer_id: string;
+          physical_garment_id: string;
+          work_order_number: string;
+          status: Database["public"]["Enums"]["alteration_work_order_status"];
+          due_date: string | null;
+          agreed_total_amount_minor_units: number | null;
+          agreed_total_currency: string | null;
+          customer_notification_ready_at: string | null;
+          category_code:
+            | "suit"
+            | "jacket"
+            | "trousers"
+            | "waistcoat"
+            | "shirt"
+            | "overcoat"
+            | "coat"
+            | "formalwear"
+            | "denim"
+            | "knitwear"
+            | "leather"
+            | "accessories"
+            | "other";
+          garment_type: string;
+          brand: string | null;
+          description: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Relationships: [];
+      };
+      customer_alteration_status_history: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          to_status: Database["public"]["Enums"]["alteration_work_order_status"];
+          note: string | null;
+          created_at: string;
+        };
+        Relationships: [];
+      };
+      customer_alteration_fulfillment: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          method: "pickup" | "delivery";
+          status:
+            "scheduled" | "ready" | "dispatched" | "completed" | "canceled";
+          scheduled_at: string | null;
+          completed_at: string | null;
+          delivery_address: Json | null;
+          released_to_name: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       current_platform_role: {
         Args: Record<string, never>;
@@ -582,6 +1478,45 @@ export interface Database {
       current_retailer_role: {
         Args: Record<string, never>;
         Returns: string | null;
+      };
+      current_staff_id: {
+        Args: Record<string, never>;
+        Returns: string | null;
+      };
+      current_workshop_id: {
+        Args: Record<string, never>;
+        Returns: string | null;
+      };
+      is_alterations_management: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      is_alterations_advisor: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      can_access_alteration_work_order: {
+        Args: { p_alteration_id: string };
+        Returns: boolean;
+      };
+      can_access_physical_garment: {
+        Args: { p_garment_id: string };
+        Returns: boolean;
+      };
+      can_access_alteration_storage_object: {
+        Args: { p_name: string };
+        Returns: boolean;
+      };
+      is_valid_alteration_transition: {
+        Args: {
+          p_from: Database["public"]["Enums"]["alteration_work_order_status"];
+          p_to: Database["public"]["Enums"]["alteration_work_order_status"];
+        };
+        Returns: boolean;
+      };
+      next_alteration_work_order_number: {
+        Args: Record<string, never>;
+        Returns: string;
       };
       accept_retailer_staff_invite: {
         Args: { p_staff_id: string };
@@ -618,6 +1553,93 @@ export interface Database {
         };
         Returns: string;
       };
+      create_alteration_intake: {
+        Args: {
+          p_customer_id: string;
+          p_appointment_id: string | null;
+          p_source_kind: "external" | "finished_mtm";
+          p_category_code: string;
+          p_garment_type: string;
+          p_brand: string | null;
+          p_description: string;
+          p_identifying_photo_url: string | null;
+          p_label_metadata: Json;
+          p_intake_condition: string;
+          p_external_reference: string | null;
+          p_order_line_id: string | null;
+          p_supplier_order_reference: string | null;
+          p_due_date: string | null;
+          p_observations: Json;
+          p_tasks: Json;
+        };
+        Returns: string;
+      };
+      transition_alteration_work_order: {
+        Args: {
+          p_alteration_id: string;
+          p_to_status: Database["public"]["Enums"]["alteration_work_order_status"];
+          p_note: string | null;
+          p_customer_visible?: boolean;
+        };
+        Returns: undefined;
+      };
+      set_alteration_operation_price: {
+        Args: {
+          p_operation_id: string;
+          p_amount_minor_units: number;
+          p_workshop_id?: string | null;
+        };
+        Returns: undefined;
+      };
+      propose_alteration_price_change: {
+        Args: {
+          p_alteration_id: string;
+          p_task_id: string | null;
+          p_proposed_amount_minor_units: number;
+          p_explanation: string;
+          p_evidence_attachment_id?: string | null;
+        };
+        Returns: string;
+      };
+      decide_alteration_price_change: {
+        Args: {
+          p_proposal_id: string;
+          p_decision: "approved" | "rejected" | "pending" | "withdrawn";
+          p_reason: string;
+        };
+        Returns: undefined;
+      };
+      assign_alteration_work_order: {
+        Args: {
+          p_alteration_id: string;
+          p_workshop_id: string;
+          p_target_completion_date: string | null;
+        };
+        Returns: undefined;
+      };
+      update_workshop_assignment: {
+        Args: {
+          p_alteration_id: string;
+          p_worker_id: string | null;
+          p_target_completion_date: string | null;
+        };
+        Returns: undefined;
+      };
+      update_alteration_task_status: {
+        Args: {
+          p_task_id: string;
+          p_status: Database["public"]["Enums"]["alteration_task_status"];
+          p_note?: string | null;
+        };
+        Returns: undefined;
+      };
+      add_alteration_task_note: {
+        Args: {
+          p_task_id: string;
+          p_note: string;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       retailer_status:
@@ -634,7 +1656,9 @@ export interface Database {
         | "sales_associate"
         | "manager"
         | "admin"
-        | "owner";
+        | "owner"
+        | "workshop_manager"
+        | "worker";
       customer_lifecycle_stage:
         "prospect" | "first_purchase" | "returning" | "vip" | "lapsed";
       product_status: "draft" | "active" | "archived";
@@ -670,6 +1694,33 @@ export interface Database {
         | "ready_for_fitting"
         | "ready_for_pickup"
         | "complete";
+      garment_source_kind: "external" | "finished_mtm";
+      garment_identification_state: "verified" | "needs_verification";
+      work_classification: "work_now" | "future_order_note";
+      workshop_status: "active" | "inactive";
+      alteration_price_list_kind: "retailer" | "workshop";
+      alteration_work_order_status:
+        | "intake"
+        | "quoted"
+        | "awaiting_approval"
+        | "approved"
+        | "assigned"
+        | "in_progress"
+        | "completion_review"
+        | "ready_for_pickup"
+        | "out_for_delivery"
+        | "completed"
+        | "canceled";
+      alteration_task_status:
+        | "proposed"
+        | "approved"
+        | "assigned"
+        | "in_progress"
+        | "review_ready"
+        | "completed"
+        | "canceled";
+      price_change_proposal_status:
+        "pending" | "approved" | "rejected" | "withdrawn";
     };
   };
 }

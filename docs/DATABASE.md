@@ -93,6 +93,20 @@ CHECK` never sees the pre-update row, so a column that must not
   _change_ (as opposed to a value that must never be _written_) needs a
   `before update` trigger instead — see
   `enforce_retailer_staff_editable_columns` on `retailers`.
+- Workshop identities use the same single-retailer session machinery but are
+  outside the retailer role hierarchy. Additive restrictive policies remove
+  inherited CRM, commerce, appointment and product access. A workshop manager
+  sees only orders assigned to their workshop; a worker sees only a directly
+  assigned order/task through projections that omit customer and pricing
+  columns. Alteration helper functions resolve only accepted, non-deleted staff
+  memberships, so an invitation's mirrored JWT claims do not grant pre-
+  acceptance access. Private evidence objects use the same assignment check;
+  registered attachment metadata makes their paths immutable. See
+  `20260719000103_secure_alterations_and_workflows.sql`.
+- Customer alteration access is column-minimized, not only row-minimized.
+  Customers have no base-table policy on work orders, tasks, pricing, evidence
+  or custody. Security-barrier views expose only approved work-order
+  status/agreed totals, customer-visible history, and pickup/delivery fields.
 
 ## Audit logging
 
@@ -103,6 +117,14 @@ Postgres trigger or a transactional insert alongside the mutation, not
 solely by application code, so a bypass of the application layer cannot
 also bypass the audit trail. Audit log rows are insert-only — no update
 or delete policy exists for them.
+
+The alterations slice implements this with `audit_log_entries` triggers on
+staff/workshop scope, catalogue settings, workshop assignments, work orders,
+tasks/task notes, attachment metadata, pricing proposals, custody, completion
+reviews and fulfillment. Price-list writes and alteration status/agreed-price
+changes go through audited, validated `security definer` functions.
+`alteration_status_history`, `alteration_pricing_history` and
+`chain_of_custody_events` are append-only.
 
 ## Soft delete
 

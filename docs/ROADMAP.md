@@ -91,21 +91,23 @@ commerce logic is built on top of it.
   `docs/DECISIONS.md` ADR-015 for why there's no live slot picker on
   the customer side yet (privacy: showing real-time availability would
   otherwise require exposing booking data to anonymous browsers).
-- ✅ Customer Fit Profile foundation: retailer staff (`sales_associate`+)
-  record measurements/fit preferences/style notes after a consultation;
-  append-only, so sizing history is the data model itself, not a
-  bolted-on log. Visible to staff before an appointment and on the
-  customer's own record.
-- ✅ Alteration foundation (not the full tailor/manufacturing workflow —
-  deliberately deferred, see ADR-015): retailer staff create a request
-  (`sales_associate`+) and add status/notes updates
-  (`production_staff`+, append-only, `status` denormalized from the
-  update log by trigger); customers see status, updates and pickup
-  readiness (`AlterationStatus` gained `ready_for_pickup`) in Customer
-  Portal.
-- ⬜ `ProductionOrder` tracking, staff-facing and customer-facing status
-  — not started. `Alteration`'s shape (append-only update log,
-  denormalized status) is the template to reuse, not redesign.
+- ✅ Production-ready Alterations vertical slice (ADR-016): external/random
+  and finished-MTM garment intake; physical-garment fitting observations;
+  `work_now` versus manual-future-GoCreate notes; configurable seeded
+  premium-menswear operations; effective retailer/workshop Money price lists;
+  immutable original quotes and workshop proposal/retailer approval history;
+  assignments, worker task notes/review-ready flow, validated append-only
+  status history, attachments metadata, chain of custody, completion review,
+  notification readiness, pickup/delivery and cancellation audit.
+- ✅ Explicit least-privilege alteration access: owner/manager configuration,
+  assignment, approval and oversight; advisor intake/fitting/handoffs;
+  workshop manager access limited to the assigned workshop; worker access
+  limited to directly assigned work; customers limited to safe approved-status
+  and pickup/delivery projections; platform oversight retained.
+- ⬜ Connector-facing `ProductionOrder` status, staff-facing and
+  customer-facing — not started. It must project status from an authoritative
+  supplier/manufacturing system, not absorb MTM/specification/construction
+  ownership into PAON.
 - ⬜ Supplier/manufacturing integrations (e.g. GoCreate) — connectors
   only, per `docs/NORTH_STAR.md`; PAON does not become a manufacturing
   system. Not started, and no connector exists to integrate yet.

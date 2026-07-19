@@ -509,3 +509,70 @@ availability (not just a request), building it means adding a narrow,
 non-leaking read surface (e.g. a `get_busy_windows(retailer_id, date)`
 RPC returning only start/end ranges, no identifying data) — not a
 blanket public policy on `appointments`.
+
+---
+
+## ADR-016: Alterations are garment-first; manufacturing ownership stays external
+
+**Context.** ADR-015 introduced `CustomerFitProfileEntry` and a thin
+`Alteration`/`AlterationUpdate` request tracker. Founder clarification made the
+ownership boundary more precise: GoCreate and supplier systems remain
+authoritative for manufacturing, MTM measurements and fit profiles, garment
+specifications, production ordering and construction. PAON is authoritative
+for the in-store fitting and alteration journey around one identifiable
+physical garment. Generic customer measurements would make PAON a second,
+divergent manufacturing source of truth and cannot be retained as the active
+model.
+
+**Decision.**
+
+1. `CustomerFitProfileEntry` is removed from `@paon/domain`, repositories and
+   UI. Its committed table is renamed `legacy_customer_fit_profile_entries` in
+   a forward migration, has tenant/customer grants revoked, and remains only as
+   a read-only archive. It is not silently attributed to a garment because the
+   old record contains no evidence identifying one.
+2. Every active fitting observation references both a `FittingSession` and a
+   `PhysicalGarment`. A physical garment records source (`external` or
+   `finished_mtm`), category/type, brand/description, photo/label metadata,
+   condition and either a PAON order line or external supplier/order reference
+   where applicable.
+3. `Alteration` is the branded work-order aggregate backed by
+   `alteration_work_orders`. Tasks and observations are explicitly
+   `work_now` or `future_order_note`; the latter is retained for manual future
+   GoCreate entry and cannot be assigned to a worker.
+4. Work-order state changes use one explicit transition graph and a
+   `security definer` transition function. Status history, task notes, pricing
+   history and custody events are append-only. Completion review is created on
+   entry to review and must be approved or returned for changes before release.
+5. Original quote values are immutable `Money`. Workshop managers on assigned
+   work may propose an increase or decrease with explanation and optional
+   evidence. Only retailer owner/admin/manager roles decide it; proposal,
+   decision, actors, timestamps, reasons and the original quote remain in
+   pricing/audit history.
+6. Workshop manager and worker are capability roles outside the existing
+   retailer hierarchy. Restrictive RLS policies remove inherited tenant access:
+   workshop managers see their workshop's assignments/workers/prices/dates and
+   workers see only directly assigned jobs/tasks/notes/private photos through
+   projections that omit customer records and pricing columns.
+7. Customers receive no base-table access. Security-barrier views expose only
+   approved work-order/agreed-price status, customer-visible timeline entries,
+   and pickup/delivery information for their own linked customer rows.
+8. The comprehensive premium-menswear operation catalogue is platform-seeded;
+   retailers enable/hide categories and operations and maintain effective
+   retailer price lists, while workshop price lists are scoped to a workshop.
+   Workshop managers maintain only their own effective cost list. No GoCreate
+   connector is implemented in this slice.
+9. Alteration images live in a private `alteration-evidence` Storage bucket.
+   Object paths are retailer/work-order scoped, registered attachment metadata
+   is append-only, and only unregistered objects may be removed as failed-upload
+   compensation.
+
+**Consequences.** ADR-015 point 3's customer-level fit-profile ownership and
+point 9's deferred order-line intake UI are superseded. Its appointment/privacy
+decisions remain authoritative. Legacy alteration requests are migrated
+forward into garment-backed work orders using an explicitly
+`needs_verification` garment rather than discarded; old update rows are
+preserved in the new timeline and the original foundation tables remain
+archived. Future production connectors may project supplier status into PAON,
+but they must not move manufacturing specifications or construction workflow
+into this aggregate.

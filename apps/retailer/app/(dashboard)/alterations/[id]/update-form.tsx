@@ -1,6 +1,11 @@
 "use client";
 
-import { ALTERATION_STATUSES } from "@paon/domain";
+import {
+  ALTERATION_STATUS_TRANSITIONS,
+  canRetailerRoleTransitionAlteration,
+  type AlterationStatus,
+  type RetailerRole,
+} from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
@@ -8,20 +13,22 @@ import { useActionState } from "react";
 
 import {
   addAlterationUpdate,
-  initialAddAlterationUpdateFormState,
+  type AddAlterationUpdateFormState,
 } from "./actions";
 
 export function UpdateForm({
   alterationId,
   currentStatus,
+  role,
 }: {
   alterationId: string;
-  currentStatus: string;
+  currentStatus: AlterationStatus;
+  role: RetailerRole;
 }) {
   const boundAction = addAlterationUpdate.bind(null, alterationId);
   const [state, formAction, isPending] = useActionState(
     boundAction,
-    initialAddAlterationUpdateFormState,
+    {} as AddAlterationUpdateFormState,
   );
 
   return (
@@ -34,13 +41,27 @@ export function UpdateForm({
           Status
         </label>
         <Select id="status" name="status" defaultValue={currentStatus}>
-          {ALTERATION_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {status.replaceAll("_", " ")}
-            </option>
-          ))}
+          {ALTERATION_STATUS_TRANSITIONS[currentStatus]
+            .filter(
+              (status) =>
+                status !== "assigned" &&
+                canRetailerRoleTransitionAlteration(
+                  role,
+                  currentStatus,
+                  status,
+                ),
+            )
+            .map((status) => (
+              <option key={status} value={status}>
+                {status.replaceAll("_", " ")}
+              </option>
+            ))}
         </Select>
       </div>
+      <label className="flex items-center gap-2 pb-2 text-sm text-[var(--color-stone-700)]">
+        <input type="checkbox" name="customerVisible" />
+        Customer-visible update
+      </label>
       <div className="min-w-[16rem] flex-1">
         <label
           htmlFor="note"

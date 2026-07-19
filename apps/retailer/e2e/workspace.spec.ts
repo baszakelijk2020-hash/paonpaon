@@ -172,29 +172,37 @@ test("owner adds their own availability window", async ({ page }) => {
   await expect(page.getByText("Tuesday · 09:00–17:00")).toBeVisible();
 });
 
-test("owner records a fit profile entry for a customer", async ({ page }) => {
-  await page.goto("/customers");
-  await page.locator('a[href^="/customers/"]').first().click();
-  await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+$/);
-
-  await page.getByLabel("Chest").fill("38in");
-  await page.getByLabel("Waist").fill("32in");
-  await page.getByRole("button", { name: "Save fit profile entry" }).click();
-
-  await expect(page.getByText(/chest: 38in/)).toBeVisible();
-});
-
-test("owner creates an alteration and adds an update", async ({ page }) => {
+test("owner creates a garment work order with current and future work", async ({
+  page,
+}) => {
   await page.goto("/alterations/new");
 
   await page.getByLabel("Customer").selectOption({ index: 1 });
-  await page.getByLabel("Instructions").fill("Take in the waist by 1 inch.");
-  await page.getByRole("button", { name: "Create alteration" }).click();
+  await page.getByLabel("Garment type").fill("Navy single-breasted jacket");
+  await page
+    .getByLabel("Description")
+    .fill("Customer-owned navy jacket with horn buttons.");
+  await page
+    .getByLabel("Intake condition")
+    .fill("Good condition; light wear at cuffs documented.");
+  await page.getByLabel("Observation area").fill("Right sleeve");
+  await page
+    .getByLabel("Observation", { exact: true })
+    .fill("Right sleeve is 8 mm longer at the wrist.");
+  await page.getByLabel("Work-now task").fill("Shorten right sleeve 8 mm");
+  await page
+    .getByLabel("Future order note")
+    .fill("Add 5 mm to the right sleeve on the next GoCreate order.");
+  await page.getByRole("button", { name: "Create work order" }).click();
 
   await expect(page).toHaveURL(/\/alterations\/[0-9a-f-]+$/);
-  await page.getByLabel("Status").selectOption("in_progress");
-  await page.getByLabel("Note").fill("Started work.");
+  await expect(page.getByText("Shorten right sleeve 8 mm")).toBeVisible();
+  await expect(page.getByText("Future order note")).toBeVisible();
+  await page.getByLabel("Status").selectOption("quoted");
+  await page.getByLabel("Note").fill("Scope and original quote prepared.");
   await page.getByRole("button", { name: "Add update" }).click();
 
-  await expect(page.getByText("Started work.")).toBeVisible();
+  await expect(
+    page.getByText("Scope and original quote prepared."),
+  ).toBeVisible();
 });
