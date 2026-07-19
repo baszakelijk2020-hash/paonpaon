@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/**
+ * PAON design tokens.
+ * Single source of truth for color, type and spacing across
+ * PAON Admin, Retailer Portal and Customer Portal.
+ * See /docs/DESIGN_SYSTEM.md for rationale.
+ */
+@theme {
+  /* Typography */
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Neutral scale — warm stone, not cold gray. Luxury retail leans warm. */
+  --color-stone-50: oklch(98.5% 0.002 90);
+  --color-stone-100: oklch(96% 0.003 90);
+  --color-stone-200: oklch(91% 0.004 90);
+  --color-stone-300: oklch(83% 0.006 90);
+  --color-stone-400: oklch(66% 0.007 90);
+  --color-stone-500: oklch(52% 0.007 90);
+  --color-stone-600: oklch(42% 0.006 90);
+  --color-stone-700: oklch(32% 0.005 90);
+  --color-stone-800: oklch(22% 0.004 90);
+  --color-stone-900: oklch(14% 0.003 90);
+  --color-stone-950: oklch(9% 0.002 90);
+
+  /* Brand — deep ink, used sparingly. Retailers layer their own accent via theming tokens. */
+  --color-ink-500: oklch(30% 0.03 265);
+  --color-ink-600: oklch(24% 0.03 265);
+  --color-ink-700: oklch(18% 0.03 265);
+
+  /* Semantic */
+  --color-success-500: oklch(58% 0.14 155);
+  --color-warning-500: oklch(72% 0.15 80);
+  --color-danger-500: oklch(55% 0.19 25);
+
+  /* Radius — restrained, editorial rather than app-like */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Motion */
+  --ease-out-quiet: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-stone-200);
+  }
+
+  body {
+    background-color: var(--color-stone-50);
+    color: var(--color-stone-900);
+    font-family: var(--font-sans);
+  }
+}

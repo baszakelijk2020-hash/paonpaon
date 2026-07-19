@@ -1,0 +1,19 @@
+import { type CookieMethodsServer, createServerClient } from "@supabase/ssr";
+
+import type { Database } from "../generated/database.types";
+
+/**
+ * Server-side Supabase client (Server Components, Route Handlers,
+ * Server Actions). Takes the cookie adapter as a parameter rather than
+ * reaching into `next/headers` itself, so this package stays usable
+ * from any server runtime, not just Next.js.
+ */
+export function createSupabaseServerClient(
+  supabaseUrl: string,
+  supabaseAnonKey: string,
+  cookies: CookieMethodsServer,
+) {
+  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookies,
+  });
+}
