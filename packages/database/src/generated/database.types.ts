@@ -1117,6 +1117,64 @@ export type Database = {
           },
         ];
       };
+      clienteling_notes: {
+        Row: {
+          author_staff_id: string;
+          body: string;
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          id: string;
+          pinned: boolean;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          author_staff_id: string;
+          body: string;
+          created_at?: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          id?: string;
+          pinned?: boolean;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          author_staff_id?: string;
+          body?: string;
+          created_at?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          id?: string;
+          pinned?: boolean;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clienteling_notes_author_staff_id_fkey";
+            columns: ["author_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_notes_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_notes_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       collections: {
         Row: {
           created_at: string;

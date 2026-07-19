@@ -602,3 +602,14 @@ upserts the response. A first-time public guest becomes a retailer prospect.
 **Why.** Visibility in the interface is not authorization, and capacity cannot
 be safely checked in browser code. The database transaction prevents two final
 places being sold simultaneously and keeps restricted guest lists private.
+
+## ADR-019: Clienteling notes are retailer-private relationship memory
+
+**Decision.** Clienteling notes are staff-authored, retailer-scoped and never
+customer-visible. Sales staff may create them; authors and managers may update
+them. The customer page projects existing orders, appointments and physical
+garments into a timeline without duplicating those source records.
+
+**Why.** Luxury clienteling needs durable team memory, but private advisor
+context must not be confused with customer-editable preferences or supplier fit
+profiles. A projection preserves one source of truth for each activity.

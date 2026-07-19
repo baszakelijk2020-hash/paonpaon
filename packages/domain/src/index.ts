@@ -36,6 +36,7 @@ export * from "./engagement/messaging";
 export * from "./engagement/event";
 export * from "./engagement/event.schema";
 export * from "./engagement/clienteling";
+export * from "./engagement/clienteling.schema";
 
 export * from "./analytics/audit-log";
 export * from "./analytics/behavioral-event";

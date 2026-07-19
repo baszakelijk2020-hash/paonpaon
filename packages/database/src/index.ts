@@ -25,4 +25,5 @@ export * from "./repositories/physical-garment-repository";
 export * from "./repositories/workshop-repository";
 export * from "./repositories/loyalty-repository";
 export * from "./repositories/event-repository";
+export * from "./repositories/clienteling-repository";
 export type { Database } from "./generated/database.types";

@@ -128,7 +128,8 @@ platforms — see [VISION.md](./VISION.md).
 
 - `Conversation` / `Message` between customer and staff.
 - `Notification` delivery across channels (email/SMS/push/in-app).
-- `ClientelingNote` staff tooling.
+- ✅ Private `ClientelingNote` staff tooling and a unified relationship timeline
+  on the retailer customer record.
 - AI personalisation built on `BehavioralEvent` — recommendations,
   next-best-action for staff, personalized customer communication —
   with AI monitoring surfaced in PAON Admin

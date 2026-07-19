@@ -1,4 +1,10 @@
-import { CustomerRepository, PhysicalGarmentRepository } from "@paon/database";
+import {
+  AppointmentRepository,
+  ClientelingRepository,
+  CustomerRepository,
+  OrderRepository,
+  PhysicalGarmentRepository,
+} from "@paon/database";
 import { asId, retailerRoleAtLeast } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
@@ -8,6 +14,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { LifecycleBadge } from "../lifecycle-badge";
+
+import { createClientelingNote } from "./actions";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -29,9 +37,12 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  const garments = await new PhysicalGarmentRepository(supabase).findByCustomer(
-    customer.id,
-  );
+  const [garments, notes, orders, appointments] = await Promise.all([
+    new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
+    new ClientelingRepository(supabase).findByCustomer(customer.id),
+    new OrderRepository(supabase).findByCustomer(customer.id),
+    new AppointmentRepository(supabase).findByCustomer(customer.id),
+  ]);
   const canManage = retailerRoleAtLeast(
     session.retailerRole,
     "sales_associate",
@@ -88,6 +99,84 @@ export default async function CustomerDetailPage({
           </p>
         </div>
       </Card>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <h2 className="mb-3 text-lg font-medium">Clienteling notes</h2>
+          {canManage ? (
+            <form
+              action={createClientelingNote}
+              className="mb-5 flex flex-col gap-3"
+            >
+              <input type="hidden" name="customerId" value={customer.id} />
+              <textarea
+                name="body"
+                required
+                maxLength={5000}
+                className="min-h-24 rounded border p-3 text-sm"
+                placeholder="Preferences, personal context, follow-up…"
+              />
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="pinned" />
+                Pin for the team
+              </label>
+              <button type="submit" className={buttonVariants({ size: "sm" })}>
+                Add private note
+              </button>
+            </form>
+          ) : null}
+          <div className="divide-y">
+            {notes.map((note) => (
+              <div key={note.id} className="py-3">
+                <p className="text-sm">{note.body}</p>
+                <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                  {note.pinned ? "Pinned · " : ""}
+                  {formatDate(note.createdAt, "en-US")}
+                </p>
+              </div>
+            ))}
+            {notes.length === 0 ? (
+              <p className="text-sm text-[var(--color-stone-500)]">
+                No private notes yet.
+              </p>
+            ) : null}
+          </div>
+        </Card>
+        <Card>
+          <h2 className="mb-3 text-lg font-medium">Relationship timeline</h2>
+          <div className="divide-y">
+            {[
+              ...orders.map((item) => ({
+                id: `order-${item.id}`,
+                at: item.createdAt,
+                title: `Order ${item.orderNumber}`,
+                detail: item.status.replaceAll("_", " "),
+              })),
+              ...appointments.map((item) => ({
+                id: `appointment-${item.id}`,
+                at: item.startsAt,
+                title: item.type.replaceAll("_", " "),
+                detail: item.status.replaceAll("_", " "),
+              })),
+              ...garments.map((item) => ({
+                id: `garment-${item.id}`,
+                at: item.createdAt,
+                title: `${item.brand ? `${item.brand} ` : ""}${item.garmentType}`,
+                detail: "Garment recorded",
+              })),
+            ]
+              .sort((a, b) => b.at.localeCompare(a.at))
+              .map((item) => (
+                <div key={item.id} className="py-3">
+                  <p className="font-medium capitalize">{item.title}</p>
+                  <p className="text-sm capitalize text-[var(--color-stone-500)]">
+                    {formatDate(item.at, "en-US")} · {item.detail}
+                  </p>
+                </div>
+              ))}
+          </div>
+        </Card>
+      </div>
 
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">

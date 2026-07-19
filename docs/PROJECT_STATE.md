@@ -362,6 +362,15 @@ and factory execution.
   RSVP records. Phase 4's core foundations are now complete; referral conversion
   automation remains a later enhancement rather than blocking Phase 5.
 
+### Shipped: Clienteling notes and relationship timeline (Phase 5)
+
+- Retail advisors add private, optionally pinned notes to a customer record.
+  Notes are never exposed to Customer Portal or workshop roles; authorship is
+  bound to the authenticated accepted staff membership by RLS.
+- The retailer customer record now combines orders, appointments and physical
+  garments into one reverse-chronological relationship timeline while keeping
+  manufacturing fit data outside PAON.
+
 ## Local database verification
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
