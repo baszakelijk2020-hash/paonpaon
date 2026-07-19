@@ -3511,6 +3511,7 @@ export type Database = {
         Args: { p_customer_id: string };
         Returns: string;
       };
+      get_platform_analytics: { Args: { p_since?: string }; Returns: Json };
       get_retailer_analytics: {
         Args: { p_retailer_id: string; p_since?: string };
         Returns: Json;

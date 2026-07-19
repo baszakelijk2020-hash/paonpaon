@@ -17,6 +17,20 @@ export interface RetailerAnalytics {
   behavioralEvents: number;
 }
 
+export interface PlatformAnalytics {
+  retailers: number;
+  activeRetailers: number;
+  newRetailers: number;
+  customers: number;
+  newCustomers: number;
+  orders: number;
+  grossMerchandiseValueByCurrency: Record<string, number>;
+  appointments: number;
+  openAlterations: number;
+  messages: number;
+  behavioralEvents: number;
+}
+
 const toDomain = (row: Row): BehavioralEvent => ({
   retailerId: asId<"RetailerId">(row.retailer_id),
   ...(row.customer_id
@@ -68,5 +82,13 @@ export class AnalyticsRepository {
     });
     if (error) throw error;
     return data as unknown as RetailerAnalytics;
+  }
+
+  async platformSummary(since: string): Promise<PlatformAnalytics> {
+    const { data, error } = await this.client.rpc("get_platform_analytics", {
+      p_since: since,
+    });
+    if (error) throw error;
+    return data as unknown as PlatformAnalytics;
   }
 }

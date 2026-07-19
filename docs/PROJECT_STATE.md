@@ -33,6 +33,9 @@ alteration status. See "Not yet built" below.
 - AI-generated recommendations remain deliberately unimplemented until a real
   model/provider is configured; analytics work does not pretend deterministic
   counts are AI.
+- PAON Admin `/analytics` provides cross-retailer adoption and operational
+  metrics behind platform-staff authorization. Cross-currency GMV is explicitly
+  directional until a currency conversion policy exists.
 
 ### Shipped: PAON Admin — platform auth + retailer onboarding
 

@@ -142,7 +142,7 @@ platforms — see [VISION.md](./VISION.md).
 
 ## Phase 6 — Platform maturity
 
-- ✅ Retailer-scoped analytics dashboard. Platform-scoped analytics remains.
+- ✅ Retailer- and platform-scoped analytics dashboards.
 - Subscription self-serve billing changes, usage-based feature gating.
 - Public API (see [API.md](./API.md), [NON_GOALS.md](./NON_GOALS.md) —
   only once a real integration partner exists).

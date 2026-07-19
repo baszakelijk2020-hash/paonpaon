@@ -58,4 +58,30 @@ describe("AnalyticsRepository", () => {
       p_since: "2026-06-20T00:00:00.000Z",
     });
   });
+
+  it("uses the platform-only analytics RPC", async () => {
+    const data = {
+      retailers: 3,
+      activeRetailers: 2,
+      newRetailers: 1,
+      customers: 20,
+      newCustomers: 4,
+      orders: 7,
+      grossMerchandiseValueByCurrency: { EUR: 120000 },
+      appointments: 6,
+      openAlterations: 2,
+      messages: 8,
+      behavioralEvents: 9,
+    };
+    const rpc = vi.fn().mockResolvedValue({ data, error: null });
+    const repository = new AnalyticsRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+    await expect(
+      repository.platformSummary("2026-06-20T00:00:00.000Z"),
+    ).resolves.toEqual(data);
+    expect(rpc).toHaveBeenCalledWith("get_platform_analytics", {
+      p_since: "2026-06-20T00:00:00.000Z",
+    });
+  });
 });
