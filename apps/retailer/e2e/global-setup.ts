@@ -5,6 +5,7 @@ import {
   RetailerRepository,
   RetailerStaffRepository,
   createSupabaseAdminClient,
+  createSupabaseDirectClient,
 } from "@paon/database";
 import type { UserId } from "@paon/domain";
 
@@ -28,11 +29,12 @@ import {
  */
 async function globalSetup(): Promise<void> {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const supabaseAnonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
 
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl || !supabaseAnonKey || !serviceRoleKey) {
     throw new Error(
-      "e2e global setup requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY — run `supabase start` and export its printed values first.",
+      "e2e global setup requires the local Supabase URL, anon key, and service-role key — run `supabase start` and export its printed values first.",
     );
   }
 
@@ -120,7 +122,16 @@ async function globalSetup(): Promise<void> {
   // path a real checkout does.
   const productRepo = new ProductRepository(admin);
   const variantRepo = new ProductVariantRepository(admin);
-  const orderRepo = new OrderRepository(admin);
+  const customerClient = createSupabaseDirectClient(
+    supabaseUrl,
+    supabaseAnonKey,
+  );
+  const { error: signInError } = await customerClient.auth.signInWithPassword({
+    email: TEST_OWNER_EMAIL,
+    password: TEST_OWNER_PASSWORD,
+  });
+  if (signInError) throw signInError;
+  const orderRepo = new OrderRepository(customerClient);
 
   let product = await productRepo.findBySlug(
     retailer.id,

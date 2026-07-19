@@ -11,8 +11,6 @@ export interface PlaceOrderFormState {
   formError?: string;
 }
 
-export const initialPlaceOrderFormState: PlaceOrderFormState = {};
-
 export async function placeOrder(
   slug: string,
   productSlug: string,

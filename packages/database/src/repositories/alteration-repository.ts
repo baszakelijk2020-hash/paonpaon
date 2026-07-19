@@ -5,6 +5,7 @@ import {
   type AlterationId,
   type CreateAlterationInput,
   type CurrencyCode,
+  type GarmentCategoryCode,
   type RetailerId,
   type WorkerAlterationWorkOrder,
 } from "@paon/domain";
@@ -60,19 +61,19 @@ function toDomain(row: WorkOrderRow): Alteration {
 
 function workerToDomain(row: WorkerWorkOrderRow): WorkerAlterationWorkOrder {
   return {
-    id: asId<"AlterationId">(row.id),
-    retailerId: asId<"RetailerId">(row.retailer_id),
-    physicalGarmentId: asId<"PhysicalGarmentId">(row.physical_garment_id),
-    workOrderNumber: row.work_order_number,
-    status: row.status,
-    garmentCategoryCode: row.category_code,
-    garmentType: row.garment_type,
+    id: asId<"AlterationId">(row.id!),
+    retailerId: asId<"RetailerId">(row.retailer_id!),
+    physicalGarmentId: asId<"PhysicalGarmentId">(row.physical_garment_id!),
+    workOrderNumber: row.work_order_number!,
+    status: row.status!,
+    garmentCategoryCode: row.category_code as GarmentCategoryCode,
+    garmentType: row.garment_type!,
     ...(row.brand ? { brand: row.brand } : {}),
-    garmentDescription: row.description,
-    intakeCondition: row.intake_condition,
+    garmentDescription: row.description!,
+    intakeCondition: row.intake_condition!,
     ...(row.due_date ? { dueDate: row.due_date } : {}),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: row.created_at!,
+    updatedAt: row.updated_at!,
   };
 }
 
@@ -126,19 +127,20 @@ export class AlterationRepository {
   async createIntake(input: CreateAlterationInput): Promise<AlterationId> {
     const { data, error } = await this.client.rpc("create_alteration_intake", {
       p_customer_id: input.customerId,
-      p_appointment_id: input.appointmentId ?? null,
+      p_appointment_id: (input.appointmentId ?? null) as never,
       p_source_kind: input.sourceKind,
       p_category_code: input.categoryCode,
       p_garment_type: input.garmentType,
-      p_brand: input.brand ?? null,
+      p_brand: (input.brand ?? null) as never,
       p_description: input.description,
-      p_identifying_photo_url: input.identifyingPhotoUrl ?? null,
+      p_identifying_photo_url: (input.identifyingPhotoUrl ?? null) as never,
       p_label_metadata: input.labelMetadata,
       p_intake_condition: input.intakeCondition,
-      p_external_reference: input.externalReference ?? null,
-      p_order_line_id: input.orderLineId ?? null,
-      p_supplier_order_reference: input.supplierOrderReference ?? null,
-      p_due_date: input.dueDate ?? null,
+      p_external_reference: (input.externalReference ?? null) as never,
+      p_order_line_id: (input.orderLineId ?? null) as never,
+      p_supplier_order_reference: (input.supplierOrderReference ??
+        null) as never,
+      p_due_date: (input.dueDate ?? null) as never,
       p_observations: input.observations,
       p_tasks: input.tasks,
     });

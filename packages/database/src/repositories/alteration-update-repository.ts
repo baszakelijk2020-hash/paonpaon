@@ -54,7 +54,7 @@ export class AlterationUpdateRepository {
       {
         p_alteration_id: params.alterationId,
         p_to_status: params.toStatus,
-        p_note: params.note ?? null,
+        p_note: (params.note ?? null) as never,
         p_customer_visible: params.customerVisible ?? false,
       },
     );

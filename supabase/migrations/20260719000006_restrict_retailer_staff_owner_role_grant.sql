@@ -17,8 +17,9 @@
 -- every other permission that policy grants untouched.
 
 create policy "retailer staff invites may not grant owner role"
+  on public.retailer_staff_members
   as restrictive
-  on public.retailer_staff_members for insert
+  for insert
   with check (
     public.is_platform_staff()
     or role <> 'owner'

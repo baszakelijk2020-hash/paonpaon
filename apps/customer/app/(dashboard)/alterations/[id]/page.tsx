@@ -94,9 +94,9 @@ export default async function AlterationDetailPage({
             updates.map((update) => (
               <div key={update.id} className="px-6 py-4">
                 <div className="flex items-center gap-2">
-                  <AlterationStatusBadge status={update.to_status} />
+                  <AlterationStatusBadge status={update.to_status!} />
                   <span className="text-xs text-[var(--color-stone-500)]">
-                    {formatDate(update.created_at, "en-US")}
+                    {formatDate(update.created_at!, "en-US")}
                   </span>
                 </div>
                 {update.note ? (

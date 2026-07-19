@@ -9,7 +9,12 @@ import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
 import { useActionState } from "react";
 
-import { initialInviteStaffFormState, inviteStaff } from "./actions";
+import { inviteStaff, type InviteStaffFormState } from "./actions";
+
+const initialInviteStaffFormState: InviteStaffFormState = {
+  values: {},
+  fieldErrors: {},
+};
 
 export function StaffForm({ workshops }: { workshops: readonly Workshop[] }) {
   const [state, formAction, isPending] = useActionState(

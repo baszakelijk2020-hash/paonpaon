@@ -4,6 +4,7 @@ import {
   type AlterationCatalogueCategory,
   type AlterationOperation,
   type AlterationOperationId,
+  type GarmentCategoryCode,
   type RetailerId,
   type StaffId,
   type WorkshopId,
@@ -110,7 +111,7 @@ export class AlterationCatalogueRepository {
     return {
       categories: (categoriesResult.data ?? []).map((row) => ({
         id: asId<"AlterationCategoryId">(row.id),
-        code: row.code,
+        code: row.code as GarmentCategoryCode,
         name: row.name,
         description: row.description,
         displayOrder: row.display_order,
@@ -185,7 +186,7 @@ export class AlterationCatalogueRepository {
     const { error } = await this.client.rpc("set_alteration_operation_price", {
       p_operation_id: params.operationId,
       p_amount_minor_units: params.amountMinorUnits,
-      p_workshop_id: params.workshopId ?? null,
+      ...(params.workshopId ? { p_workshop_id: params.workshopId } : {}),
     });
     if (error) throw error;
   }

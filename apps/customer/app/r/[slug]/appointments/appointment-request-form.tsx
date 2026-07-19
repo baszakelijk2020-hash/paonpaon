@@ -8,9 +8,14 @@ import { Select } from "@paon/ui/components/Select";
 import { useActionState } from "react";
 
 import {
-  initialRequestAppointmentFormState,
   requestAppointment,
+  type RequestAppointmentFormState,
 } from "./actions";
+
+const initialRequestAppointmentFormState: RequestAppointmentFormState = {
+  values: {},
+  fieldErrors: {},
+};
 
 export function AppointmentRequestForm({
   slug,

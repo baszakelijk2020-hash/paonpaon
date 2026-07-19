@@ -14,11 +14,6 @@ export interface CreateAppointmentFormState {
   formError?: string;
 }
 
-export const initialCreateAppointmentFormState: CreateAppointmentFormState = {
-  values: {},
-  fieldErrors: {},
-};
-
 /**
  * `datetime-local` inputs submit a value with no timezone offset
  * ("2026-08-01T14:00") — interpreted as UTC here, matching the same

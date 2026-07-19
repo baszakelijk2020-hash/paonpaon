@@ -1,6 +1,7 @@
 import {
   asId,
   type CustomerId,
+  type GarmentCategoryCode,
   type PhysicalGarment,
   type PhysicalGarmentId,
 } from "@paon/domain";
@@ -16,7 +17,7 @@ function toDomain(row: GarmentRow): PhysicalGarment {
     retailerId: asId<"RetailerId">(row.retailer_id),
     customerId: asId<"CustomerId">(row.customer_id),
     sourceKind: row.source_kind,
-    categoryCode: row.category_code,
+    categoryCode: row.category_code as GarmentCategoryCode,
     garmentType: row.garment_type,
     ...(row.brand ? { brand: row.brand } : {}),
     description: row.description,

@@ -5,6 +5,7 @@ import {
   type CustomerAlterationSummary,
   type CustomerId,
   type CurrencyCode,
+  type GarmentCategoryCode,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
@@ -15,15 +16,15 @@ type SummaryRow =
 
 function toDomain(row: SummaryRow): CustomerAlterationSummary {
   return {
-    id: asId<"AlterationId">(row.id),
-    retailerId: asId<"RetailerId">(row.retailer_id),
-    customerId: asId<"CustomerId">(row.customer_id),
-    workOrderNumber: row.work_order_number,
-    status: row.status,
-    garmentCategoryCode: row.category_code,
-    garmentType: row.garment_type,
+    id: asId<"AlterationId">(row.id!),
+    retailerId: asId<"RetailerId">(row.retailer_id!),
+    customerId: asId<"CustomerId">(row.customer_id!),
+    workOrderNumber: row.work_order_number!,
+    status: row.status!,
+    garmentCategoryCode: row.category_code as GarmentCategoryCode,
+    garmentType: row.garment_type!,
     ...(row.brand ? { brand: row.brand } : {}),
-    garmentDescription: row.description,
+    garmentDescription: row.description!,
     ...(row.agreed_total_amount_minor_units !== null &&
     row.agreed_total_currency
       ? {
@@ -37,8 +38,8 @@ function toDomain(row: SummaryRow): CustomerAlterationSummary {
     ...(row.customer_notification_ready_at
       ? { customerNotificationReadyAt: row.customer_notification_ready_at }
       : {}),
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: row.created_at!,
+    updatedAt: row.updated_at!,
   };
 }
 

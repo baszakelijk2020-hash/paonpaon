@@ -334,53 +334,31 @@ and factory execution.
   provider, push and deployment. `ProductionOrder` remains a future
   connector-facing status projection.
 
-## Environment constraints every session so far has hit
+## Local database verification
 
-- **No Docker daemon available in the sandbox any of this was built
-  in.** `supabase start` could not be run locally, so:
-  - Every migration and RLS policy (23 files now, `20260719000000`–
-    `20260719000103`, including the enum-commit bridge
-    `20260719000100_add_workshop_roles.sql`) was written and reviewed by hand,
-    never executed against a live Postgres instance.
-  - `packages/database/src/generated/database.types.ts` is hand-
-    maintained (see its own header comment), not `supabase gen types`
-    output. **Run `pnpm --filter @paon/database generate-types` against
-    a real local instance and diff it against the hand-written version
-    at the first opportunity** — still the single highest-value
-    verification gap. Riskiest SQL in the schema, in order:
-    `place_order` (`20260719000012_*`) and garment-first workflow RPCs
-    (`20260719000103_*`) are the highest-value SQL to execute against real
-    Postgres first. `create_alteration_intake` writes garment/fitting/
-    observations/work-order/tasks/history/custody transactionally; transition,
-    assignment and pricing functions enforce the sensitive invariants.
-    `place_order` is the first `security definer`
-    function that writes to _two_ tables transactionally from a
-    genuinely untrusted context (any signed-in customer) — verify the
-    inventory-decrement and customer-linking logic first. Close behind:
-  - The Playwright e2e specs across all three apps were written and
-    typecheck but were never executed locally — they need a live
-    Supabase instance (`e2e/global-setup.ts` per app). They run in CI
-    (`.github/workflows/ci.yml` `e2e` job, which has Docker) but have
-    not been observed passing yet. Treat the first CI run as the real
-    verification. Highest-risk SQL to check first if something fails:
-    (a) the `auth.role()`/`current_user <> session_user` trigger logic
-    in `20260719000005_*` (retailer settings self-service), (b) the
-    `link_my_customer_accounts` RPC's interaction with the new
-    `customers`/`customer_account_links` RLS policies (Customer Portal
-    login test), (c) `place_order`'s inventory decrement + the public
-    `anon`-visible policies in `20260719000013_*` (storefront browsing
-    test) — all hand-reasoned from documented Postgres/Supabase
-    semantics, not observed.
+- Docker and Supabase CLI are available. On 2026-07-20, the complete migration
+  chain (`20260719000000`–`20260719000103`) was executed twice from an empty
+  local PostgreSQL database with `supabase start` and `supabase db reset`.
+  `supabase db lint --level warning` reports no schema errors.
+- `packages/database/src/generated/database.types.ts` is real output from
+  `supabase gen types typescript --local`. Repository and application code were
+  updated to compile against the actual schema rather than the previous
+  hand-maintained approximation.
+- The real local Supabase stack now backs all browser journeys. Playwright is
+  green for PAON Admin (5 tests), Retailer Portal (14 tests), and Customer
+  Portal (7 tests). These cover onboarding, invitations, authentication, CRM,
+  catalogue, storefront ordering, appointments, alterations, and pickup
+  readiness. The tests exposed and drove fixes for missing API grants,
+  server-action initial-state runtime crashes, stale collection rendering, and
+  concurrent magic-link invalidation.
   - `apps/retailer/e2e/accept-invite.spec.ts` and
     `apps/customer/e2e/login.spec.ts` both exercise their real
     `/auth/confirm` route with a real token from
     `admin.auth.admin.generateLink` (not a workaround password, not
     reading Inbucket) — this is now the standard technique for
     e2e-testing any future email-link flow in this repo; reuse it.
-  - What _was_ verified locally, repeatedly, and is trustworthy:
-    `pnpm lint`, `pnpm typecheck`, `pnpm test` (unit), `pnpm build`,
-    `pnpm format:check` — all green across every package and app as of
-    this slice.
+  - The standard code checks are also green: `pnpm lint`, `pnpm typecheck`,
+    `pnpm test` (unit), `pnpm build`, and `pnpm format:check`.
 - **No live Supabase project.** `.env.local` was never created in any
   app. To actually run the apps: `supabase start`, copy its printed
   `API URL`/`anon key`/`service_role key` into each app's `.env.local`

@@ -77,19 +77,19 @@ export class AlterationTaskRepository {
       .order("created_at", { ascending: true });
     if (error) throw error;
     return data.map((row: WorkerTaskRow) => ({
-      id: asId<"AlterationTaskId">(row.id),
-      alterationId: asId<"AlterationId">(row.alteration_id),
-      retailerId: asId<"RetailerId">(row.retailer_id),
+      id: asId<"AlterationTaskId">(row.id!),
+      alterationId: asId<"AlterationId">(row.alteration_id!),
+      retailerId: asId<"RetailerId">(row.retailer_id!),
       ...(row.operation_id
         ? { operationId: asId<"AlterationOperationId">(row.operation_id) }
         : {}),
-      title: row.title,
+      title: row.title!,
       ...(row.instructions ? { instructions: row.instructions } : {}),
       classification: "work_now",
-      status: row.status,
-      assignedWorkerId: asId<"StaffId">(row.assigned_worker_id),
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      status: row.status!,
+      assignedWorkerId: asId<"StaffId">(row.assigned_worker_id!),
+      createdAt: row.created_at!,
+      updatedAt: row.updated_at!,
     }));
   }
 
@@ -101,7 +101,7 @@ export class AlterationTaskRepository {
     const { error } = await this.client.rpc("update_alteration_task_status", {
       p_task_id: taskId,
       p_status: status,
-      p_note: note ?? null,
+      p_note: (note ?? null) as never,
     });
     if (error) throw error;
   }

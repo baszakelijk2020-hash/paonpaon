@@ -85,5 +85,5 @@ test("an invited owner must set a password before reaching the workspace", async
   await expect(
     page.getByRole("heading", { name: retailer.displayName }),
   ).toBeVisible();
-  await expect(page.getByText("Active")).toBeVisible();
+  await expect(page.getByText("Active", { exact: true })).toBeVisible();
 });

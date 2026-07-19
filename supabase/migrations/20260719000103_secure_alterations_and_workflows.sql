@@ -1381,7 +1381,10 @@ declare
   v_currency text;
   v_list_currency text;
   v_list_id uuid;
-  v_kind public.alteration_price_list_kind := case when p_workshop_id is null then 'retailer' else 'workshop' end;
+  v_kind public.alteration_price_list_kind := case
+    when p_workshop_id is null then 'retailer'::public.alteration_price_list_kind
+    else 'workshop'::public.alteration_price_list_kind
+  end;
 begin
   if p_amount_minor_units not between 0 and 100000000 then
     raise exception 'Price must be between zero and 1,000,000 major currency units';

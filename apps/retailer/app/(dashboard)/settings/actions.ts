@@ -15,11 +15,6 @@ export interface UpdateSettingsFormState {
   success?: boolean;
 }
 
-export const initialUpdateSettingsFormState: UpdateSettingsFormState = {
-  values: {},
-  fieldErrors: {},
-};
-
 export async function updateRetailerProfile(
   _prevState: UpdateSettingsFormState,
   formData: FormData,

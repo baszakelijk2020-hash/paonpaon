@@ -156,7 +156,7 @@ export class AppointmentRepository {
       p_type: params.type,
       p_starts_at: params.startsAt,
       p_ends_at: params.endsAt,
-      p_notes: params.notes ?? null,
+      p_notes: (params.notes ?? null) as never,
     });
 
     if (error) {

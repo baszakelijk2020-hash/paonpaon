@@ -40,10 +40,10 @@ test("a signed-in shopper requests an appointment", async ({ page }) => {
   await page.getByRole("button", { name: "Request appointment" }).click();
 
   await expect(page).toHaveURL(/\/appointments\/[0-9a-f-]+$/);
-  await expect(page.getByText("requested")).toBeVisible();
+  await expect(page.getByText("requested", { exact: true })).toBeVisible();
 
   await page.goto("/appointments");
-  await expect(page.getByText("fitting")).toBeVisible();
+  await expect(page.getByText("fitting").first()).toBeVisible();
 });
 
 test("a shopper sees their alteration status and pickup readiness", async ({

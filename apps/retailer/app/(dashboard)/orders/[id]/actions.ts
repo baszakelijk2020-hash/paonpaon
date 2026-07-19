@@ -12,8 +12,6 @@ export interface UpdateOrderStatusFormState {
   formError?: string;
 }
 
-export const initialUpdateOrderStatusFormState: UpdateOrderStatusFormState = {};
-
 export async function updateOrderStatus(
   orderId: string,
   _prevState: UpdateOrderStatusFormState,

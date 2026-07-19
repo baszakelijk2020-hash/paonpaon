@@ -5,10 +5,9 @@ import { Button } from "@paon/ui/components/Button";
 import { Select } from "@paon/ui/components/Select";
 import { useActionState } from "react";
 
-import {
-  initialUpdateAppointmentFormState,
-  updateAppointment,
-} from "./actions";
+import { updateAppointment, type UpdateAppointmentFormState } from "./actions";
+
+const initialUpdateAppointmentFormState: UpdateAppointmentFormState = {};
 
 export function AppointmentActionsForm({
   appointmentId,

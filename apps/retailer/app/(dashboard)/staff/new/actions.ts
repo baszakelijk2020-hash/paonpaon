@@ -22,11 +22,6 @@ export interface InviteStaffFormState {
   formError?: string;
 }
 
-export const initialInviteStaffFormState: InviteStaffFormState = {
-  values: {},
-  fieldErrors: {},
-};
-
 export async function inviteStaff(
   _prevState: InviteStaffFormState,
   formData: FormData,

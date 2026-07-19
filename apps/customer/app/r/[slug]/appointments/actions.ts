@@ -13,11 +13,6 @@ export interface RequestAppointmentFormState {
   formError?: string;
 }
 
-export const initialRequestAppointmentFormState: RequestAppointmentFormState = {
-  values: {},
-  fieldErrors: {},
-};
-
 /**
  * `datetime-local` has no timezone offset — interpreted as UTC here,
  * the same deliberate simplification `computeAvailableSlots`

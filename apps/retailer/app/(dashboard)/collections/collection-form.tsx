@@ -5,7 +5,12 @@ import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 import { useActionState } from "react";
 
-import { createCollection, initialCreateCollectionFormState } from "./actions";
+import { createCollection, type CreateCollectionFormState } from "./actions";
+
+const initialCreateCollectionFormState: CreateCollectionFormState = {
+  values: {},
+  fieldErrors: {},
+};
 
 export function CollectionForm() {
   const [state, formAction, isPending] = useActionState(

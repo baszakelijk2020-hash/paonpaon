@@ -14,7 +14,9 @@ test.describe("Login", () => {
     await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
     await page.getByLabel("Password").fill("definitely-wrong-password");
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("alert")).toContainText("don't match");
+    await expect(
+      page.getByRole("alert").filter({ hasText: "don't match" }),
+    ).toBeVisible();
   });
 
   test("signs an accepted owner in and lands on the dashboard", async ({

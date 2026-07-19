@@ -16,11 +16,6 @@ export interface RequestMagicLinkFormState {
   sent: boolean;
 }
 
-export const initialRequestMagicLinkFormState: RequestMagicLinkFormState = {
-  fieldErrors: {},
-  sent: false,
-};
-
 export async function requestMagicLink(
   _prevState: RequestMagicLinkFormState,
   formData: FormData,

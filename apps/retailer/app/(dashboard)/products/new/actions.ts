@@ -22,11 +22,6 @@ export interface CreateProductFormState {
   formError?: string;
 }
 
-export const initialCreateProductFormState: CreateProductFormState = {
-  values: {},
-  fieldErrors: {},
-};
-
 export async function createProduct(
   _prevState: CreateProductFormState,
   formData: FormData,

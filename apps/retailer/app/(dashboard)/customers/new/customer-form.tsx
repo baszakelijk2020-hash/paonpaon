@@ -8,7 +8,12 @@ import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
 import { useActionState } from "react";
 
-import { createCustomer, initialCreateCustomerFormState } from "./actions";
+import { createCustomer, type CreateCustomerFormState } from "./actions";
+
+const initialCreateCustomerFormState: CreateCustomerFormState = {
+  values: {},
+  fieldErrors: {},
+};
 
 export function CustomerForm() {
   const [state, formAction, isPending] = useActionState(

@@ -6,7 +6,9 @@ import { Select } from "@paon/ui/components/Select";
 import { formatMoney } from "@paon/utils";
 import { useActionState } from "react";
 
-import { initialPlaceOrderFormState, placeOrder } from "./actions";
+import { placeOrder, type PlaceOrderFormState } from "./actions";
+
+const initialPlaceOrderFormState: PlaceOrderFormState = {};
 
 export function OrderForm({
   slug,

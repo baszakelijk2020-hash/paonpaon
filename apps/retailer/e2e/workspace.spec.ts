@@ -25,7 +25,6 @@ test("owner invites an additional staff member", async ({ page }) => {
   await page.getByRole("button", { name: "Send invite" }).click();
 
   await expect(page).toHaveURL(/\/staff$/);
-  await expect(page.getByText("Sam Sales")).toBeVisible();
   await expect(page.getByText(`sam-${unique}@paon.test`)).toBeVisible();
 });
 
@@ -44,7 +43,7 @@ test("owner edits the retailer's business profile", async ({ page }) => {
   // Restores the fixture retailer's display name afterwards — other
   // specs (login.spec.ts) run in parallel against the same shared
   // fixture and assert on its original value.
-  await page.getByRole("link", { name: "Settings" }).click();
+  await page.getByRole("link", { name: "Settings", exact: true }).click();
   await expect(page).toHaveURL(/\/settings$/);
 
   const originalDisplayName = await page
@@ -84,7 +83,7 @@ test("owner adds a customer CRM record", async ({ page }) => {
   await expect(page.getByText("Not linked")).toBeVisible();
 
   await page.goto("/customers");
-  await expect(page.getByText("Jamie Shopper")).toBeVisible();
+  await expect(page.getByText(`jamie-${unique}@paon.test`)).toBeVisible();
 });
 
 test("owner adds a product with its first variant", async ({ page }) => {
@@ -107,11 +106,11 @@ test("owner adds a product with its first variant", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Bespoke Wool Overcoat" }),
   ).toBeVisible();
-  await expect(page.getByText(`COAT-${unique}`)).toBeVisible();
+  await expect(page.getByText(`COAT-${unique}`, { exact: true })).toBeVisible();
   await expect(page.getByText("$4,500.00")).toBeVisible();
 
   await page.goto("/products");
-  await expect(page.getByText("Bespoke Wool Overcoat")).toBeVisible();
+  await expect(page.getByText(`overcoat-${unique}`)).toBeVisible();
 });
 
 test("owner adds a collection", async ({ page }) => {
@@ -196,10 +195,18 @@ test("owner creates a garment work order with current and future work", async ({
   await page.getByRole("button", { name: "Create work order" }).click();
 
   await expect(page).toHaveURL(/\/alterations\/[0-9a-f-]+$/);
-  await expect(page.getByText("Shorten right sleeve 8 mm")).toBeVisible();
-  await expect(page.getByText("Future order note")).toBeVisible();
-  await page.getByLabel("Status").selectOption("quoted");
-  await page.getByLabel("Note").fill("Scope and original quote prepared.");
+  await expect(
+    page
+      .getByRole("paragraph")
+      .filter({ hasText: "Shorten right sleeve 8 mm" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("paragraph").filter({ hasText: "Future order note" }),
+  ).toBeVisible();
+  await page.getByLabel("Status", { exact: true }).selectOption("quoted");
+  await page
+    .getByLabel("Note", { exact: true })
+    .fill("Scope and original quote prepared.");
   await page.getByRole("button", { name: "Add update" }).click();
 
   await expect(

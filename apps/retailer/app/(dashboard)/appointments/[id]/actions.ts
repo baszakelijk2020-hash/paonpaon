@@ -12,8 +12,6 @@ export interface UpdateAppointmentFormState {
   formError?: string;
 }
 
-export const initialUpdateAppointmentFormState: UpdateAppointmentFormState = {};
-
 export async function updateAppointment(
   appointmentId: string,
   _prevState: UpdateAppointmentFormState,

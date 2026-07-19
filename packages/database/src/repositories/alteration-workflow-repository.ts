@@ -78,10 +78,12 @@ export class AlterationWorkflowRepository {
       "propose_alteration_price_change",
       {
         p_alteration_id: params.alterationId,
-        p_task_id: params.taskId ?? null,
+        p_task_id: (params.taskId ?? null) as never,
         p_proposed_amount_minor_units: params.proposedAmountMinorUnits,
         p_explanation: params.explanation,
-        p_evidence_attachment_id: params.evidenceAttachmentId ?? null,
+        ...(params.evidenceAttachmentId
+          ? { p_evidence_attachment_id: params.evidenceAttachmentId }
+          : {}),
       },
     );
     if (error) throw error;
@@ -109,7 +111,7 @@ export class AlterationWorkflowRepository {
     const { error } = await this.client.rpc("assign_alteration_work_order", {
       p_alteration_id: params.alterationId,
       p_workshop_id: params.workshopId,
-      p_target_completion_date: params.targetCompletionDate ?? null,
+      p_target_completion_date: (params.targetCompletionDate ?? null) as never,
     });
     if (error) throw error;
   }
@@ -132,8 +134,8 @@ export class AlterationWorkflowRepository {
   }): Promise<void> {
     const { error } = await this.client.rpc("update_workshop_assignment", {
       p_alteration_id: params.alterationId,
-      p_worker_id: params.workerId ?? null,
-      p_target_completion_date: params.targetCompletionDate ?? null,
+      p_worker_id: (params.workerId ?? null) as never,
+      p_target_completion_date: (params.targetCompletionDate ?? null) as never,
     });
     if (error) throw error;
   }

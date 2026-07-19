@@ -5,10 +5,9 @@ import { Button } from "@paon/ui/components/Button";
 import { Select } from "@paon/ui/components/Select";
 import { useActionState } from "react";
 
-import {
-  initialUpdateOrderStatusFormState,
-  updateOrderStatus,
-} from "./actions";
+import { updateOrderStatus, type UpdateOrderStatusFormState } from "./actions";
+
+const initialUpdateOrderStatusFormState: UpdateOrderStatusFormState = {};
 
 export function StatusForm({
   orderId,

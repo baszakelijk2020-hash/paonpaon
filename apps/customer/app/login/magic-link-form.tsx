@@ -5,7 +5,12 @@ import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 import { useActionState } from "react";
 
-import { initialRequestMagicLinkFormState, requestMagicLink } from "./actions";
+import { requestMagicLink, type RequestMagicLinkFormState } from "./actions";
+
+const initialRequestMagicLinkFormState: RequestMagicLinkFormState = {
+  fieldErrors: {},
+  sent: false,
+};
 
 export function MagicLinkForm() {
   const [state, formAction, isPending] = useActionState(

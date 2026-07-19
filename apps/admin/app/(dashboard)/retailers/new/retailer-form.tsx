@@ -7,7 +7,12 @@ import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
 import { useActionState } from "react";
 
-import { createRetailer, initialCreateRetailerFormState } from "./actions";
+import { createRetailer, type CreateRetailerFormState } from "./actions";
+
+const initialCreateRetailerFormState: CreateRetailerFormState = {
+  values: {},
+  fieldErrors: {},
+};
 
 export function RetailerForm() {
   const [state, formAction, isPending] = useActionState(

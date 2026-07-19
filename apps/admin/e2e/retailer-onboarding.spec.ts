@@ -12,13 +12,14 @@ test.beforeEach(async ({ page }) => {
 
 test("onboards a new retailer and invites its owner", async ({ page }) => {
   const unique = Date.now();
+  const slug = `e2e-atelier-${unique}`;
 
   await page.getByRole("link", { name: "New retailer" }).click();
   await expect(page).toHaveURL(/\/retailers\/new$/);
 
   await page.getByLabel("Legal name").fill("E2E Atelier, Inc.");
   await page.getByLabel("Display name").fill("E2E Atelier");
-  await page.getByLabel("Slug").fill(`e2e-atelier-${unique}`);
+  await page.getByLabel("Slug").fill(slug);
   await page.getByLabel("Address line 1").fill("1 Test Street");
   await page.getByLabel("City").fill("Testville");
   await page.getByLabel("Postal code").fill("00000");
@@ -39,7 +40,7 @@ test("onboards a new retailer and invites its owner", async ({ page }) => {
   await expect(page.getByText("Invited")).toBeVisible();
 
   await page.goto("/retailers");
-  await expect(page.getByText("E2E Atelier")).toBeVisible();
+  await expect(page.getByText(slug)).toBeVisible();
 });
 
 test("rejects a duplicate slug with a field error", async ({ page }) => {

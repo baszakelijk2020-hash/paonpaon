@@ -57,5 +57,5 @@ test("a signed-in shopper places an order and sees it in their order history", a
   await expect(page.getByText("$9,000.00")).toBeVisible();
 
   await page.goto("/orders");
-  await expect(page.getByText(/ORD-\d+/)).toBeVisible();
+  await expect(page.getByText(/ORD-\d+/).first()).toBeVisible();
 });

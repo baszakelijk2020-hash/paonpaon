@@ -6,6 +6,7 @@ import {
   CollectionSlugAlreadyExistsError,
 } from "@paon/database";
 import { createCollectionInputSchema } from "@paon/domain";
+import { revalidatePath } from "next/cache";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -15,11 +16,6 @@ export interface CreateCollectionFormState {
   fieldErrors: Record<string, string>;
   formError?: string;
 }
-
-export const initialCreateCollectionFormState: CreateCollectionFormState = {
-  values: {},
-  fieldErrors: {},
-};
 
 export async function createCollection(
   _prevState: CreateCollectionFormState,
@@ -61,5 +57,6 @@ export async function createCollection(
     throw error;
   }
 
+  revalidatePath("/collections");
   return { values: {}, fieldErrors: {} };
 }

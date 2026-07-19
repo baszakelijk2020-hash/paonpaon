@@ -5,7 +5,11 @@ import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 import { useActionState } from "react";
 
-import { acceptInvite, initialAcceptInviteFormState } from "./actions";
+import { acceptInvite, type AcceptInviteFormState } from "./actions";
+
+const initialAcceptInviteFormState: AcceptInviteFormState = {
+  fieldErrors: {},
+};
 
 export function AcceptInviteForm({ staffId }: { staffId: string }) {
   const [state, formAction, isPending] = useActionState(

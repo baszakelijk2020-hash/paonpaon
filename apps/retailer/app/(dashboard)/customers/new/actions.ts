@@ -14,11 +14,6 @@ export interface CreateCustomerFormState {
   formError?: string;
 }
 
-export const initialCreateCustomerFormState: CreateCustomerFormState = {
-  values: {},
-  fieldErrors: {},
-};
-
 export async function createCustomer(
   _prevState: CreateCustomerFormState,
   formData: FormData,

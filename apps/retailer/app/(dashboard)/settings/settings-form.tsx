@@ -7,14 +7,11 @@ import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 import { useActionState } from "react";
 
-import {
-  initialUpdateSettingsFormState,
-  updateRetailerProfile,
-} from "./actions";
+import { updateRetailerProfile } from "./actions";
 
 export function SettingsForm({ retailer }: { retailer: Retailer }) {
   const [state, formAction, isPending] = useActionState(updateRetailerProfile, {
-    ...initialUpdateSettingsFormState,
+    fieldErrors: {},
     values: {
       legalName: retailer.legalName,
       displayName: retailer.displayName,

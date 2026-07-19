@@ -24,10 +24,6 @@ export interface AcceptInviteFormState {
   formError?: string;
 }
 
-export const initialAcceptInviteFormState: AcceptInviteFormState = {
-  fieldErrors: {},
-};
-
 export async function acceptInvite(
   _prevState: AcceptInviteFormState,
   formData: FormData,
