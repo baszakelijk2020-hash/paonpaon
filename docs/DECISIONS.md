@@ -626,3 +626,16 @@ in-app notifications transactionally.
 so history survives staff changes. Server-side identity and notification writes
 prevent sender impersonation and lost notifications. External email/SMS/push
 delivery is deferred until credentials exist; in-app delivery is real now.
+
+## ADR-021: Analytics derive from source records; behavioral events are signals
+
+**Decision.** Retailer analytics aggregate authoritative commerce, CRM,
+appointment, alteration, event and messaging records inside a permission-gated
+database function. `BehavioralEvent` is an immutable, retailer-scoped signal
+stream for interactions that are not already durable business records. It does
+not duplicate orders, appointments or other source entities.
+
+**Why.** Dashboards must remain explainable and cannot depend on an external AI
+provider. The signal stream prepares future personalisation while the first
+analytics view delivers real value now. Manager-level access and database-side
+tenant checks prevent cross-retailer reporting leaks.

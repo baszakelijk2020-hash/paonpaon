@@ -80,6 +80,14 @@ export default async function DashboardLayout({
                   </Link>
                   {canManageCatalog ? (
                     <Link
+                      href="/analytics"
+                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                    >
+                      Analytics
+                    </Link>
+                  ) : null}
+                  {canManageCatalog ? (
+                    <Link
                       href="/loyalty"
                       className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
                     >

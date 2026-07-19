@@ -136,10 +136,13 @@ platforms — see [VISION.md](./VISION.md).
   next-best-action for staff, personalized customer communication —
   with AI monitoring surfaced in PAON Admin
   ([PRODUCT.md](./PRODUCT.md)).
+- ✅ Immutable retailer-scoped `BehavioralEvent` capture and the first real
+  retailer analytics dashboard. AI-generated recommendations remain deferred
+  until a model/provider is configured; the event foundation does not fake AI.
 
 ## Phase 6 — Platform maturity
 
-- Retailer- and platform-scoped analytics dashboards.
+- ✅ Retailer-scoped analytics dashboard. Platform-scoped analytics remains.
 - Subscription self-serve billing changes, usage-based feature gating.
 - Public API (see [API.md](./API.md), [NON_GOALS.md](./NON_GOALS.md) —
   only once a real integration partner exists).

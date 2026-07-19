@@ -1045,6 +1045,54 @@ export type Database = {
           },
         ];
       };
+      behavioral_events: {
+        Row: {
+          created_at: string;
+          customer_id: string | null;
+          id: string;
+          name: string;
+          occurred_at: string;
+          properties: Json;
+          retailer_id: string;
+          source: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id?: string | null;
+          id?: string;
+          name: string;
+          occurred_at?: string;
+          properties?: Json;
+          retailer_id: string;
+          source: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string | null;
+          id?: string;
+          name?: string;
+          occurred_at?: string;
+          properties?: Json;
+          retailer_id?: string;
+          source?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "behavioral_events_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "behavioral_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       chain_of_custody_events: {
         Row: {
           actor_staff_id: string | null;
@@ -3402,6 +3450,17 @@ export type Database = {
         Args: { p_garment_id: string };
         Returns: boolean;
       };
+      capture_behavioral_event: {
+        Args: {
+          p_customer_id?: string;
+          p_name: string;
+          p_occurred_at?: string;
+          p_properties?: Json;
+          p_retailer_id: string;
+          p_source?: string;
+        };
+        Returns: string;
+      };
       create_alteration_intake: {
         Args: {
           p_appointment_id: string;
@@ -3451,6 +3510,10 @@ export type Database = {
       get_or_create_staff_conversation: {
         Args: { p_customer_id: string };
         Returns: string;
+      };
+      get_retailer_analytics: {
+        Args: { p_retailer_id: string; p_since?: string };
+        Returns: Json;
       };
       is_alterations_advisor: { Args: never; Returns: boolean };
       is_alterations_management: { Args: never; Returns: boolean };

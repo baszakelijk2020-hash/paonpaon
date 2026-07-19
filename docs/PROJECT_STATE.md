@@ -22,6 +22,18 @@ run an appointment calendar, and track alterations; Customer Portal has
 a public storefront/checkout and can request appointments and see
 alteration status. See "Not yet built" below.
 
+### Shipped: Behavioral analytics foundation
+
+- Immutable retailer-scoped `behavioral_events`, captured only through a narrow
+  identity-rederiving RPC and readable by manager-level staff or platform staff.
+- Retailer Portal `/analytics` shows real 30-day revenue, orders, customers,
+  appointments, alteration workload, event attendance, messages and captured
+  experience signals. Metrics aggregate authoritative source tables rather than
+  copying business records into an analytics shadow model (ADR-021).
+- AI-generated recommendations remain deliberately unimplemented until a real
+  model/provider is configured; analytics work does not pretend deterministic
+  counts are AI.
+
 ### Shipped: PAON Admin — platform auth + retailer onboarding
 
 A PAON platform operator signs in to PAON Admin (`/login`, email +
