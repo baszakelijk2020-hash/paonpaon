@@ -13,11 +13,31 @@ export const RETAILER_ROLES = [
 
 export const retailerRoleSchema = z.enum(RETAILER_ROLES);
 
+/**
+ * Every role an in-portal invite (Retailer Portal "Staff" page, or any
+ * future equivalent) may grant — deliberately excludes "owner".
+ * Provisioning the first (and only) owner is folded into retailer
+ * creation and is exclusively a PAON Admin action — see
+ * retailer.schema.ts and docs/DECISIONS.md ADR-009. Without this
+ * exclusion, an "admin"-level retailer staff member could grant
+ * themselves or anyone else "owner" through the same RLS policy that
+ * lets owners/admins manage staff at all
+ * (`retailer_staff_members` "retailer owners and admins can manage
+ * their retailer's staff").
+ */
+export const INVITABLE_RETAILER_ROLES = RETAILER_ROLES.filter(
+  (role) => role !== "owner",
+) as readonly Exclude<RetailerRole, "owner">[];
+
+export const invitableRetailerRoleSchema = z.enum(
+  INVITABLE_RETAILER_ROLES as [RetailerRole, ...RetailerRole[]],
+);
+
 /** Provisioning the first owner is folded into retailer creation — see retailer.schema.ts. */
 export const inviteRetailerStaffInputSchema = z.object({
   fullName: z.string().trim().min(2).max(120),
   email: z.string().trim().toLowerCase().email(),
-  role: retailerRoleSchema,
+  role: invitableRetailerRoleSchema,
 });
 
 export type InviteRetailerStaffInput = z.infer<

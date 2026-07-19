@@ -1,20 +1,5 @@
-import { Button } from "@paon/ui/components/Button";
+import { redirect } from "next/navigation";
 
-export default function RetailerHomePage() {
-  return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-start justify-center gap-4 px-6">
-      <p className="text-sm font-medium uppercase tracking-wide text-[var(--color-stone-500)]">
-        Retailer Portal
-      </p>
-      <h1 className="text-3xl font-medium text-[var(--color-stone-900)]">
-        Run the store, from CRM to production
-      </h1>
-      <p className="text-[var(--color-stone-600)]">
-        Customers, orders, production, alterations, loyalty and clienteling for
-        retailer staff. This app is scaffolding only — see{" "}
-        <code>/docs/PRODUCT.md</code> for the full feature roadmap.
-      </p>
-      <Button variant="primary">Get started</Button>
-    </main>
-  );
+export default function RootPage() {
+  redirect("/dashboard");
 }

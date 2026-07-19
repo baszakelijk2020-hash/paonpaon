@@ -17,9 +17,13 @@ export function fakeQueryBuilder<T>(result: FakeQueryResult<T>) {
   const chain = {
     select: () => chain,
     eq: () => chain,
+    in: () => chain,
     is: () => chain,
     order: () => chain,
+    limit: () => chain,
     insert: () => chain,
+    update: () => chain,
+    delete: () => chain,
     maybeSingle: () => Promise.resolve(result),
     single: () => Promise.resolve(result),
     then: (onFulfilled: (value: FakeQueryResult<T>) => unknown) =>

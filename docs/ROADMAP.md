@@ -12,47 +12,103 @@ application features. Done when: `pnpm build`, `pnpm lint`,
 `pnpm typecheck` and `pnpm test` are all green on a repository with
 three apps that boot and render a placeholder home page each. ✅ Done.
 
-## Phase 1 — Identity, Retailer, Customer core (in progress)
+## Phase 1 — Identity, Retailer, Customer core (done)
 
-Live status: see [PROJECT_STATE.md](./PROJECT_STATE.md).
+Live status: see [PROJECT_STATE.md](./PROJECT_STATE.md). ✅ Done — all
+three apps have real auth, the retailer onboarding journey is complete
+end to end, and Customer identity (CRM + Customer Portal login +
+account linking) is in place. Phase 2 (Catalog and Commerce) is next.
 
 - ✅ Supabase Auth wired into PAON Admin; `@paon/auth` session
   resolution implemented for real (`resolveAppSession`, role guards).
-  Retailer Portal and Customer Portal still need the same wiring.
+  Retailer Portal and Customer Portal now have the same wiring too —
+  all three apps have real auth.
 - ✅ `Retailer` create + list + detail in PAON Admin — the onboarding
   flow that creates a tenant and invites its first owner in one step.
-- ⬜ The retailer owner's side of onboarding: accept the invite, set a
-  password, land in Retailer Portal for the first time, retailer
-  status transitions `pending_onboarding` → `active`.
-- ⬜ Retailer setup (business details, locations) in Retailer Portal.
-- ⬜ `RetailerStaffMember` invitation and role management from inside
-  Retailer Portal itself (today, only PAON Admin can provision the
-  first owner — see `docs/DECISIONS.md` ADR-009).
-- ⬜ `Customer` CRUD and basic profile in Retailer Portal; Customer
-  Portal login and profile.
+- ✅ The retailer owner's side of onboarding: accept the invite
+  (`/auth/confirm` → `/accept-invite`), set a password, land in
+  Retailer Portal for the first time, retailer status transitions
+  `pending_onboarding` → `active` — see `docs/DECISIONS.md` ADR-012.
+- ✅ Retailer setup (business profile, billing address) in Retailer
+  Portal `/settings`, gated `owner`/`admin`. Locations as a distinct
+  entity (multi-store) is not modeled yet — deferred until a slice
+  actually needs more than one address per retailer, not built
+  speculatively now.
+- ✅ `RetailerStaffMember` invitation and role management from inside
+  Retailer Portal itself (`/staff`, `/staff/new`) — reuses the same
+  accept-invite RPC the first owner uses. Cannot grant `"owner"` — see
+  `docs/PROJECT_STATE.md`.
+- ✅ `Customer` CRUD in Retailer Portal (`/customers`, `/customers/new`,
+  `/customers/[id]`, gated `sales_associate`+); Customer Portal
+  passwordless login (`docs/PRODUCT.md` — no OAuth provider wired up
+  yet, that needs external credentials this session doesn't have) and
+  a dashboard listing the signed-in shopper's linked retailer
+  relationships. Linking a Customer Portal login to a per-retailer
+  `Customer` record is automatic (`link_my_customer_accounts`, by
+  matching email) — see `docs/DECISIONS.md` ADR-013. Wishlist and
+  `CustomerPreferences` stay domain types only — no table yet, deferred
+  until a slice actually needs them (a profile-editing UI, Phase 2's
+  storefront).
 - ✅ First real RLS policies and migrations landed in
   `supabase/migrations` (`retailers`, `platform_staff_members`,
-  `retailer_staff_members`, JWT claim-sync triggers, auth helper
-  functions).
+  `retailer_staff_members`, `customers`, `customer_account_links`, JWT
+  claim-sync triggers, auth helper functions).
 
 This phase proves the multi-tenant foundation end-to-end before any
 commerce logic is built on top of it.
 
-## Phase 2 — Catalog and Commerce
+## Phase 2 — Catalog and Commerce (in progress)
 
-- `Product` / `ProductVariant` / `Collection` authoring in Retailer
+- ✅ `Product` / `ProductVariant` / `Collection` authoring in Retailer
+  Portal (`/products`, `/products/new`, `/products/[id]`,
+  `/collections` — gated `manager`+, a stricter minimum than the
+  `sales_associate`+ CRM gate, since catalog authoring is a managerial
+  task). A product is created with its first variant in the same
+  submission — a product with no sellable variant is the same
+  "no useless intermediate state" reasoning as retailer
+  creation+owner-invite (`docs/DECISIONS.md` ADR-009-adjacent).
+- ✅ Storefront browsing (public, path-based — `/r/[slug]/products`) and
+  `Order` placement in Customer Portal. `Order` management (fulfillment
+  status) in Retailer Portal (`/orders`, gated `production_staff`+).
+  Both decided by the human operator rather than guessed — routing
+  scheme (path vs. subdomain vs. custom domain) and whether an order
+  may exist unpaid — see `docs/DECISIONS.md` ADR-014.
+- ⬜ `Payment` integration — the one piece of "Catalog and Commerce"
+  deliberately not built. Provider selection is an open decision
+  (needs its own ADR once made) and almost certainly needs external
+  credentials (a payment provider account) this environment doesn't
+  have — flag this explicitly when picked up, don't guess a provider or
+  fake a working integration.
+
+## Phase 3 — Production, Alteration, Appointments (in progress)
+
+- ✅ `Appointment` booking foundation: Customer Portal requests one from
+  a retailer's storefront (`/r/[slug]/appointments`, no sign-in needed
+  to browse, required to submit); Retailer Portal has a calendar-ish
+  list, detail, staff assignment, and status management
+  (`sales_associate`+), plus `AvailabilityWindow` management (a staff
+  member manages their own, `manager`+ manages anyone's). See
+  `docs/DECISIONS.md` ADR-015 for why there's no live slot picker on
+  the customer side yet (privacy: showing real-time availability would
+  otherwise require exposing booking data to anonymous browsers).
+- ✅ Customer Fit Profile foundation: retailer staff (`sales_associate`+)
+  record measurements/fit preferences/style notes after a consultation;
+  append-only, so sizing history is the data model itself, not a
+  bolted-on log. Visible to staff before an appointment and on the
+  customer's own record.
+- ✅ Alteration foundation (not the full tailor/manufacturing workflow —
+  deliberately deferred, see ADR-015): retailer staff create a request
+  (`sales_associate`+) and add status/notes updates
+  (`production_staff`+, append-only, `status` denormalized from the
+  update log by trigger); customers see status, updates and pickup
+  readiness (`AlterationStatus` gained `ready_for_pickup`) in Customer
   Portal.
-- Storefront browsing and `Order` placement in Customer Portal.
-- Order management in Retailer Portal.
-- `Payment` integration (provider selection tracked as its own
-  decision in [DECISIONS.md](./DECISIONS.md) once made).
-
-## Phase 3 — Production, Alteration, Appointments
-
-- `ProductionOrder` tracking, staff-facing and customer-facing status.
-- `Alteration` request and tracking flow.
-- `Appointment` booking (`AvailabilityWindow` management, customer
-  self-booking).
+- ⬜ `ProductionOrder` tracking, staff-facing and customer-facing status
+  — not started. `Alteration`'s shape (append-only update log,
+  denormalized status) is the template to reuse, not redesign.
+- ⬜ Supplier/manufacturing integrations (e.g. GoCreate) — connectors
+  only, per `docs/NORTH_STAR.md`; PAON does not become a manufacturing
+  system. Not started, and no connector exists to integrate yet.
 
 This is the phase that differentiates PAON from generic commerce
 platforms — see [VISION.md](./VISION.md).

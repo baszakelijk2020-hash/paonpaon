@@ -9,8 +9,18 @@ import type {
 import type { Money } from "../shared/money";
 import type { Timestamps } from "../shared/timestamps";
 
+/**
+ * "pending_payment" sits between "draft" and "placed": a customer has
+ * submitted the order (see `place_order`, docs/DECISIONS.md ADR-014)
+ * but no payment provider is integrated yet, so nothing has actually
+ * captured payment. "placed" means payment is confirmed — reachable
+ * only once a payment integration exists to drive that transition.
+ * "draft" is reserved for a future persisted-cart feature; nothing
+ * creates an Order in that status yet.
+ */
 export type OrderStatus =
   | "draft"
+  | "pending_payment"
   | "placed"
   | "in_production"
   | "ready_for_fulfillment"

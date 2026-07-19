@@ -128,6 +128,442 @@ export interface Database {
         >;
         Relationships: [];
       };
+      customers: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          user_id: string | null;
+          full_name: string;
+          email: string | null;
+          phone: string | null;
+          lifecycle_stage:
+            "prospect" | "first_purchase" | "returning" | "vip" | "lapsed";
+          assigned_staff_id: string | null;
+          shipping_addresses: Json;
+          acquisition_source: string | null;
+          tags: string[];
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          user_id?: string | null;
+          full_name: string;
+          email?: string | null;
+          phone?: string | null;
+          lifecycle_stage?:
+            "prospect" | "first_purchase" | "returning" | "vip" | "lapsed";
+          assigned_staff_id?: string | null;
+          shipping_addresses?: Json;
+          acquisition_source?: string | null;
+          tags?: string[];
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["customers"]["Insert"]>;
+        Relationships: [];
+      };
+      customer_account_links: {
+        Row: {
+          user_id: string;
+          customer_id: string;
+          retailer_id: string;
+          linked_at: string;
+        };
+        Insert: {
+          user_id: string;
+          customer_id: string;
+          retailer_id: string;
+          linked_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["customer_account_links"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      collections: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          name: string;
+          slug: string;
+          season: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          name: string;
+          slug: string;
+          season?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["collections"]["Insert"]>;
+        Relationships: [];
+      };
+      products: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          name: string;
+          slug: string;
+          description: string;
+          status: "draft" | "active" | "archived";
+          is_made_to_order: boolean;
+          is_alterable: boolean;
+          primary_image_url: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          name: string;
+          slug: string;
+          description?: string;
+          status?: "draft" | "active" | "archived";
+          is_made_to_order?: boolean;
+          is_alterable?: boolean;
+          primary_image_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["products"]["Insert"]>;
+        Relationships: [];
+      };
+      product_collections: {
+        Row: {
+          product_id: string;
+          collection_id: string;
+        };
+        Insert: {
+          product_id: string;
+          collection_id: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["product_collections"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      product_variants: {
+        Row: {
+          id: string;
+          product_id: string;
+          sku: string;
+          size: string | null;
+          color: string | null;
+          price_amount_minor_units: number;
+          price_currency: string;
+          compare_at_price_amount_minor_units: number | null;
+          compare_at_price_currency: string | null;
+          inventory_quantity: number;
+          lead_time_days: number | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          product_id: string;
+          sku: string;
+          size?: string | null;
+          color?: string | null;
+          price_amount_minor_units: number;
+          price_currency: string;
+          compare_at_price_amount_minor_units?: number | null;
+          compare_at_price_currency?: string | null;
+          inventory_quantity?: number;
+          lead_time_days?: number | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["product_variants"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      orders: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          customer_id: string;
+          order_number: string;
+          status:
+            | "draft"
+            | "pending_payment"
+            | "placed"
+            | "in_production"
+            | "ready_for_fulfillment"
+            | "shipped"
+            | "delivered"
+            | "completed"
+            | "canceled"
+            | "refunded";
+          channel: "online" | "in_store" | "clienteling" | "phone";
+          currency: string;
+          subtotal_amount_minor_units: number;
+          total_amount_minor_units: number;
+          shipping_address: Json | null;
+          placed_at: string | null;
+          staff_id: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          customer_id: string;
+          order_number: string;
+          status?:
+            | "draft"
+            | "pending_payment"
+            | "placed"
+            | "in_production"
+            | "ready_for_fulfillment"
+            | "shipped"
+            | "delivered"
+            | "completed"
+            | "canceled"
+            | "refunded";
+          channel?: "online" | "in_store" | "clienteling" | "phone";
+          currency: string;
+          subtotal_amount_minor_units: number;
+          total_amount_minor_units: number;
+          shipping_address?: Json | null;
+          placed_at?: string | null;
+          staff_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;
+        Relationships: [];
+      };
+      order_lines: {
+        Row: {
+          id: string;
+          order_id: string;
+          product_variant_id: string;
+          quantity: number;
+          unit_price_amount_minor_units: number;
+          unit_price_currency: string;
+          requires_production: boolean;
+          requires_alteration: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id: string;
+          product_variant_id: string;
+          quantity: number;
+          unit_price_amount_minor_units: number;
+          unit_price_currency: string;
+          requires_production?: boolean;
+          requires_alteration?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["order_lines"]["Insert"]>;
+        Relationships: [];
+      };
+      availability_windows: {
+        Row: {
+          id: string;
+          staff_id: string;
+          retailer_id: string;
+          day_of_week: number;
+          start_time: string;
+          end_time: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          staff_id: string;
+          retailer_id: string;
+          day_of_week: number;
+          start_time: string;
+          end_time: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["availability_windows"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      appointments: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          customer_id: string;
+          staff_id: string | null;
+          type:
+            | "styling_consultation"
+            | "fitting"
+            | "alteration_fitting"
+            | "personal_shopping"
+            | "event";
+          status:
+            | "requested"
+            | "confirmed"
+            | "checked_in"
+            | "completed"
+            | "canceled"
+            | "no_show";
+          starts_at: string;
+          ends_at: string;
+          location_id: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          customer_id: string;
+          staff_id?: string | null;
+          type:
+            | "styling_consultation"
+            | "fitting"
+            | "alteration_fitting"
+            | "personal_shopping"
+            | "event";
+          status?:
+            | "requested"
+            | "confirmed"
+            | "checked_in"
+            | "completed"
+            | "canceled"
+            | "no_show";
+          starts_at: string;
+          ends_at: string;
+          location_id?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["appointments"]["Insert"]>;
+        Relationships: [];
+      };
+      customer_fit_profile_entries: {
+        Row: {
+          id: string;
+          customer_id: string;
+          retailer_id: string;
+          measurements: Json;
+          fit_preferences: string | null;
+          style_notes: string | null;
+          recorded_by_staff_id: string | null;
+          recorded_at: string;
+        };
+        Insert: {
+          id?: string;
+          customer_id: string;
+          retailer_id: string;
+          measurements?: Json;
+          fit_preferences?: string | null;
+          style_notes?: string | null;
+          recorded_by_staff_id?: string | null;
+          recorded_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["customer_fit_profile_entries"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      alterations: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          customer_id: string;
+          order_line_id: string | null;
+          status:
+            | "requested"
+            | "measured"
+            | "in_progress"
+            | "ready_for_fitting"
+            | "ready_for_pickup"
+            | "complete";
+          tailor_reference: string | null;
+          instructions: string;
+          appointment_id_for_fitting: string | null;
+          due_date: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          customer_id: string;
+          order_line_id?: string | null;
+          status?:
+            | "requested"
+            | "measured"
+            | "in_progress"
+            | "ready_for_fitting"
+            | "ready_for_pickup"
+            | "complete";
+          tailor_reference?: string | null;
+          instructions: string;
+          appointment_id_for_fitting?: string | null;
+          due_date?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["alterations"]["Insert"]>;
+        Relationships: [];
+      };
+      alteration_updates: {
+        Row: {
+          id: string;
+          alteration_id: string;
+          retailer_id: string;
+          status:
+            | "requested"
+            | "measured"
+            | "in_progress"
+            | "ready_for_fitting"
+            | "ready_for_pickup"
+            | "complete";
+          note: string | null;
+          staff_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          alteration_id: string;
+          retailer_id: string;
+          status:
+            | "requested"
+            | "measured"
+            | "in_progress"
+            | "ready_for_fitting"
+            | "ready_for_pickup"
+            | "complete";
+          note?: string | null;
+          staff_id?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["alteration_updates"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -147,6 +583,41 @@ export interface Database {
         Args: Record<string, never>;
         Returns: string | null;
       };
+      accept_retailer_staff_invite: {
+        Args: { p_staff_id: string };
+        Returns: undefined;
+      };
+      link_my_customer_accounts: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
+      next_order_number: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
+      place_order: {
+        Args: {
+          p_retailer_id: string;
+          p_variant_id: string;
+          p_quantity: number;
+        };
+        Returns: string;
+      };
+      request_appointment: {
+        Args: {
+          p_retailer_id: string;
+          p_type:
+            | "styling_consultation"
+            | "fitting"
+            | "alteration_fitting"
+            | "personal_shopping"
+            | "event";
+          p_starts_at: string;
+          p_ends_at: string;
+          p_notes?: string | null;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       retailer_status:
@@ -164,6 +635,41 @@ export interface Database {
         | "manager"
         | "admin"
         | "owner";
+      customer_lifecycle_stage:
+        "prospect" | "first_purchase" | "returning" | "vip" | "lapsed";
+      product_status: "draft" | "active" | "archived";
+      order_status:
+        | "draft"
+        | "pending_payment"
+        | "placed"
+        | "in_production"
+        | "ready_for_fulfillment"
+        | "shipped"
+        | "delivered"
+        | "completed"
+        | "canceled"
+        | "refunded";
+      order_channel: "online" | "in_store" | "clienteling" | "phone";
+      appointment_type:
+        | "styling_consultation"
+        | "fitting"
+        | "alteration_fitting"
+        | "personal_shopping"
+        | "event";
+      appointment_status:
+        | "requested"
+        | "confirmed"
+        | "checked_in"
+        | "completed"
+        | "canceled"
+        | "no_show";
+      alteration_status:
+        | "requested"
+        | "measured"
+        | "in_progress"
+        | "ready_for_fitting"
+        | "ready_for_pickup"
+        | "complete";
     };
   };
 }

@@ -17,7 +17,13 @@ export type OrderId = Brand<string, "OrderId">;
 export type OrderLineId = Brand<string, "OrderLineId">;
 export type ProductionOrderId = Brand<string, "ProductionOrderId">;
 export type AlterationId = Brand<string, "AlterationId">;
+export type AlterationUpdateId = Brand<string, "AlterationUpdateId">;
 export type AppointmentId = Brand<string, "AppointmentId">;
+export type AvailabilityWindowId = Brand<string, "AvailabilityWindowId">;
+export type CustomerFitProfileEntryId = Brand<
+  string,
+  "CustomerFitProfileEntryId"
+>;
 export type LoyaltyAccountId = Brand<string, "LoyaltyAccountId">;
 export type RewardId = Brand<string, "RewardId">;
 export type ReferralId = Brand<string, "ReferralId">;

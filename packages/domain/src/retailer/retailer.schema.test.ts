@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { createRetailerInputSchema } from "./retailer.schema";
+import {
+  createRetailerInputSchema,
+  updateRetailerProfileInputSchema,
+} from "./retailer.schema";
 
 const validInput = {
   legalName: "Atelier Demo, Inc.",
@@ -56,5 +59,62 @@ describe("createRetailerInputSchema", () => {
       tier: "flagship",
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("updateRetailerProfileInputSchema", () => {
+  const validProfile = {
+    legalName: "Atelier Demo, Inc.",
+    displayName: "Atelier Demo",
+    defaultLocale: "en-US",
+    billingAddress: {
+      line1: "1 Rue de la Paix",
+      city: "Paris",
+      postalCode: "75002",
+      countryCode: "fr",
+    },
+  };
+
+  it("accepts a valid payload without primaryDomain", () => {
+    const result = updateRetailerProfileInputSchema.parse(validProfile);
+    expect(result.primaryDomain).toBeUndefined();
+  });
+
+  it("normalizes an empty primaryDomain to undefined", () => {
+    const result = updateRetailerProfileInputSchema.parse({
+      ...validProfile,
+      primaryDomain: "",
+    });
+    expect(result.primaryDomain).toBeUndefined();
+  });
+
+  it("accepts a provided primaryDomain", () => {
+    const result = updateRetailerProfileInputSchema.parse({
+      ...validProfile,
+      primaryDomain: "atelier-demo.com",
+    });
+    expect(result.primaryDomain).toBe("atelier-demo.com");
+  });
+
+  it("rejects a missing display name", () => {
+    const result = updateRetailerProfileInputSchema.safeParse({
+      ...validProfile,
+      displayName: "",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("does not accept slug, tier, status or defaultCurrency fields", () => {
+    const result = updateRetailerProfileInputSchema.parse({
+      ...validProfile,
+      slug: "hijacked-slug",
+      tier: "maison",
+      status: "active",
+      defaultCurrency: "EUR",
+    } as unknown as typeof validProfile);
+    expect(result).not.toHaveProperty("slug");
+    expect(result).not.toHaveProperty("tier");
+    expect(result).not.toHaveProperty("status");
+    expect(result).not.toHaveProperty("defaultCurrency");
   });
 });

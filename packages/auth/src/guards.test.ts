@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ForbiddenError,
   UnauthorizedError,
+  requireCustomerSession,
   requirePlatformOperator,
   requirePlatformSession,
   requireRetailerRole,
@@ -26,6 +27,14 @@ function retailerSession(role: AppSession["retailerRole"]): AppSession {
     accountType: "retailer_staff",
     retailerId: "retailer-1",
     retailerRole: role,
+  } as unknown as AppSession;
+}
+
+function customerSession(): AppSession {
+  return {
+    userId: "user-3",
+    email: "a@shopper.com",
+    accountType: "customer",
   } as unknown as AppSession;
 }
 
@@ -99,5 +108,27 @@ describe("requireRetailerSession", () => {
 
   it("throws UnauthorizedError for a null session", () => {
     expect(() => requireRetailerSession(null)).toThrow(UnauthorizedError);
+  });
+});
+
+describe("requireCustomerSession", () => {
+  it("passes for a customer session, even with no linked customer records", () => {
+    expect(() => requireCustomerSession(customerSession())).not.toThrow();
+  });
+
+  it("throws ForbiddenError for a retailer_staff session", () => {
+    expect(() => requireCustomerSession(retailerSession("owner"))).toThrow(
+      ForbiddenError,
+    );
+  });
+
+  it("throws ForbiddenError for a platform session", () => {
+    expect(() =>
+      requireCustomerSession(platformSession("platform_admin")),
+    ).toThrow(ForbiddenError);
+  });
+
+  it("throws UnauthorizedError for a null session", () => {
+    expect(() => requireCustomerSession(null)).toThrow(UnauthorizedError);
   });
 });

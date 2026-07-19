@@ -11,7 +11,8 @@ infrastructure one. See [DECISIONS.md](./DECISIONS.md) for why.
 supabase/
 ├── config.toml          — local dev stack configuration
 ├── migrations/           — timestamped, sequential SQL migrations (source of truth for schema)
-└── seed.sql              — local/dev seed data, never run against production
+├── seed.sql              — local/dev seed data, never run against production
+└── templates/            — auth email templates referenced from config.toml (e.g. templates/invite.html)
 ```
 
 ## Migrations
@@ -67,6 +68,31 @@ Conventions:
   (`retailerRoleAtLeast` in `@paon/domain`) implemented as a SQL
   condition against the JWT role claim — the application-layer guard in
   `@paon/auth` and the database policy must enforce the same rule.
+- A narrow state transition a tenant is allowed to trigger once (accept
+  an invite, activate a tenant) is a `security definer` RPC that
+  re-derives its own authority from `auth.uid()`/the row it's called
+  against — never a broadened `update` policy or column grant that
+  would let the client assert the transition directly. See
+  `accept_retailer_staff_invite` and docs/DECISIONS.md ADR-012.
+- An identity that can hold **many** simultaneous tenant relationships
+  (a Customer Portal login, linked to one `Customer` row per retailer —
+  see `docs/DOMAIN_MODEL.md` "Why a Customer is scoped to one
+  Retailer") cannot key its own-row RLS off a single mirrored JWT claim
+  the way retailer/platform staff do (`current_retailer_id()` assumes
+  exactly one tenant per session). Its own-row policies compare
+  `auth.uid()` directly against the row's `user_id` column instead —
+  see `customers`' "a customer can read their own linked record" policy
+  and docs/DECISIONS.md ADR-013.
+- When a permissive policy grants more than one field/role/value should
+  be able to reach through a single write (e.g. "manage staff" also
+  technically allowing a role-grant it shouldn't), narrow it with an
+  additional `as restrictive` policy scoped to the specific command
+  rather than rewriting the permissive one — see the
+  `retailer_staff_members` "may not grant owner role" policy. `WITH
+CHECK` never sees the pre-update row, so a column that must not
+  _change_ (as opposed to a value that must never be _written_) needs a
+  `before update` trigger instead — see
+  `enforce_retailer_staff_editable_columns` on `retailers`.
 
 ## Audit logging
 

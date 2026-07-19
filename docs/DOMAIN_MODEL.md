@@ -33,10 +33,10 @@ correct and this document is stale and should be fixed.
 | ------------ | --------------- | ----------------------------------------------------------------------------------------------- |
 | Identity     | `identity/`     | `User`, `PlatformStaffMember`, `RetailerStaffMember`, role hierarchies                          |
 | Retailer     | `retailer/`     | `Retailer` (the tenant root), `RetailerSubscription`, `SubscriptionPlan`, `FeatureFlagOverride` |
-| Customer     | `customer/`     | `Customer`, `CustomerAccountLink`, `CustomerPreferences`, `Wishlist`                            |
+| Customer     | `customer/`     | `Customer`, `CustomerAccountLink`, `CustomerPreferences`, `CustomerFitProfileEntry`, `Wishlist` |
 | Catalog      | `catalog/`      | `Product`, `ProductVariant`, `Collection`                                                       |
 | Commerce     | `commerce/`     | `Order`, `OrderLine`, `Payment`                                                                 |
-| Production   | `production/`   | `ProductionOrder`, `Alteration`                                                                 |
+| Production   | `production/`   | `ProductionOrder`, `Alteration`, `AlterationUpdate`                                             |
 | Appointments | `appointments/` | `Appointment`, `AvailabilityWindow`                                                             |
 | Loyalty      | `loyalty/`      | `LoyaltyAccount`, `LoyaltyLedgerEntry`, `Reward`, `Referral`                                    |
 | Engagement   | `engagement/`   | `Notification`, `Conversation` / `Message`, `RetailerEvent` / `EventRsvp`, `ClientelingNote`    |
@@ -50,9 +50,12 @@ Retailer 1───* Customer ──0..1 User (via CustomerAccountLink, many-to-
 Retailer 1───* Product 1───* ProductVariant
 Customer 1───* Order 1───* OrderLine ──1 ProductVariant
 OrderLine 0..1─── ProductionOrder
-OrderLine 0..1─── Alteration           (Alteration may instead reference a past purchase directly)
+Customer 1───* Alteration 0..1─── OrderLine   (Alteration.customerId is direct and required — see below)
+Alteration 1───* AlterationUpdate              (append-only; Alteration.status is derived from the latest one)
 Customer 1───1 LoyaltyAccount 1───* LoyaltyLedgerEntry
 Customer 1───* Appointment ──0..1 RetailerStaffMember
+RetailerStaffMember 1───* AvailabilityWindow
+Customer 1───* CustomerFitProfileEntry         (append-only; "current" = most recent entry)
 Customer 1───1 Conversation 1───* Message
 ```
 
@@ -79,7 +82,10 @@ and would make it impossible to alter a purchase made months earlier
 aggregates, linked by `orderLineId`, keeps each aggregate's invariants
 simple and lets an alteration exist entirely independently of a current
 order. See [PRODUCT.md](./PRODUCT.md) "Order vs. Production vs.
-Alteration".
+Alteration". Because `orderLineId` is genuinely optional on
+`Alteration` (a standalone alteration on a past purchase has none),
+`Alteration.customerId` is a separate, required field, not derived
+transitively through the order line — see docs/DECISIONS.md ADR-015.
 
 ## Extending the model
 

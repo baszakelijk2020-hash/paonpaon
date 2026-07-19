@@ -11,6 +11,7 @@ import { asId, createRetailerInputSchema, type UserId } from "@paon/domain";
 import { stripUndefined } from "@paon/utils";
 import { redirect } from "next/navigation";
 
+import { env } from "@/lib/env";
 import { getSession } from "@/lib/session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -89,6 +90,7 @@ export async function createRetailer(
   const { data: invited, error: inviteError } =
     await admin.auth.admin.inviteUserByEmail(parsed.data.ownerEmail, {
       data: { full_name: parsed.data.ownerFullName },
+      redirectTo: `${env.retailerAppUrl}/auth/confirm`,
     });
 
   if (inviteError || !invited.user) {

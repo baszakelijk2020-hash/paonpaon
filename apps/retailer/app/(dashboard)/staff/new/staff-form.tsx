@@ -1,0 +1,87 @@
+"use client";
+
+import { INVITABLE_RETAILER_ROLES } from "@paon/domain";
+import { Button } from "@paon/ui/components/Button";
+import { Card } from "@paon/ui/components/Card";
+import { FormField } from "@paon/ui/components/FormField";
+import { Input } from "@paon/ui/components/Input";
+import { Select } from "@paon/ui/components/Select";
+import { useActionState } from "react";
+
+import { initialInviteStaffFormState, inviteStaff } from "./actions";
+
+export function StaffForm() {
+  const [state, formAction, isPending] = useActionState(
+    inviteStaff,
+    initialInviteStaffFormState,
+  );
+  const v = state.values;
+
+  return (
+    <form action={formAction} className="flex flex-col gap-8">
+      {state.formError ? (
+        <p
+          role="alert"
+          className="bg-[var(--color-danger-500)]/10 rounded-[var(--radius-sm)] px-4 py-3 text-sm text-[var(--color-danger-500)]"
+        >
+          {state.formError}
+        </p>
+      ) : null}
+
+      <Card className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FormField
+            label="Full name"
+            htmlFor="fullName"
+            error={state.fieldErrors["fullName"]}
+          >
+            <Input
+              id="fullName"
+              name="fullName"
+              defaultValue={v["fullName"]}
+              invalid={!!state.fieldErrors["fullName"]}
+              required
+            />
+          </FormField>
+          <FormField
+            label="Email"
+            htmlFor="email"
+            error={state.fieldErrors["email"]}
+          >
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              defaultValue={v["email"]}
+              invalid={!!state.fieldErrors["email"]}
+              required
+            />
+          </FormField>
+          <FormField
+            label="Role"
+            htmlFor="role"
+            error={state.fieldErrors["role"]}
+          >
+            <Select
+              id="role"
+              name="role"
+              defaultValue={v["role"] ?? "read_only"}
+            >
+              {INVITABLE_RETAILER_ROLES.map((role) => (
+                <option key={role} value={role}>
+                  {role.replaceAll("_", " ")}
+                </option>
+              ))}
+            </Select>
+          </FormField>
+        </div>
+      </Card>
+
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Sending invite…" : "Send invite"}
+        </Button>
+      </div>
+    </form>
+  );
+}

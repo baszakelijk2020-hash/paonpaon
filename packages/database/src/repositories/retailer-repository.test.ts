@@ -97,4 +97,48 @@ describe("RetailerRepository", () => {
       }),
     ).rejects.toBeInstanceOf(SlugAlreadyExistsError);
   });
+
+  it("updateProfile maps the returned row back to a domain Retailer", async () => {
+    const updatedRow: RetailerRow = { ...row, display_name: "New Name" };
+    const repo = new RetailerRepository(
+      clientReturning({ data: updatedRow, error: null }),
+    );
+
+    const retailer = await repo.updateProfile(row.id as never, {
+      legalName: row.legal_name,
+      displayName: "New Name",
+      defaultLocale: row.default_locale,
+      billingAddress: {
+        line1: "1 Rue de la Paix",
+        city: "Paris",
+        postalCode: "75002",
+        countryCode: "FR",
+      },
+    });
+
+    expect(retailer.displayName).toBe("New Name");
+  });
+
+  it("updateProfile rejects when the underlying query errors", async () => {
+    const repo = new RetailerRepository(
+      clientReturning({
+        data: null,
+        error: { code: "42501", message: "permission denied" },
+      }),
+    );
+
+    await expect(
+      repo.updateProfile(row.id as never, {
+        legalName: row.legal_name,
+        displayName: "New Name",
+        defaultLocale: row.default_locale,
+        billingAddress: {
+          line1: "1 Rue de la Paix",
+          city: "Paris",
+          postalCode: "75002",
+          countryCode: "FR",
+        },
+      }),
+    ).rejects.toBeTruthy();
+  });
 });

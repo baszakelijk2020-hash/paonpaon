@@ -237,3 +237,275 @@ ad hoc per form.
 (`stripUndefined(parsed.data.someNestedObject)`) instead of each
 author rediscovering the exactOptionalPropertyTypes friction
 independently.
+
+---
+
+## ADR-012: Invite acceptance is a narrow `security definer` RPC, not a broadened RLS policy
+
+**Context.** An invited retailer staff member (owner or otherwise, per
+ADR-009) needs to do exactly two things the moment they set their
+password: mark their own `retailer_staff_members` row accepted, and —
+if they are the owner completing the retailer's first onboarding —
+flip `retailers.status` from `pending_onboarding` to `active`. Neither
+operation fits the existing RLS shape. Granting retailer staff a
+general `update` policy on `retailer_staff_members` (to let them set
+`accepted_at`) would also let them edit their own `role`, and no
+retailer-staff RLS policy on `retailers` should ever allow a
+tenant-controlled status transition to be driven by arbitrary
+client-supplied data.
+
+**Decision.** `accept_retailer_staff_invite(p_staff_id uuid)`
+(`supabase/migrations/20260719000004_accept_retailer_staff_invite.sql`)
+is a `security definer` function, callable only by `authenticated`,
+that re-derives everything it needs server-side (`auth.uid()` must
+match the staff row's `user_id`; the role and retailer come from the
+staff row itself, never from function arguments) rather than trusting
+any caller-supplied role or status. It is intentionally named for
+"accept an invite," not "complete owner onboarding" — the same
+function is reused when the Retailer Portal itself invites additional
+staff (`docs/PROJECT_STATE.md`), not just for the first owner PAON
+Admin provisions.
+
+Extending this pattern: retailer self-service profile edits (display
+name, address, locale) use a real RLS `update` policy plus a
+`before update` trigger that blocks changes to platform-controlled
+columns (`status`, `tier`, `slug`, `default_currency`) — see
+`20260719000005_add_retailer_self_service_profile_update.sql`. That
+trigger tells a privileged internal write (e.g. this RPC) apart from a
+direct retailer-staff `UPDATE` via `current_user <> session_user` —
+true only inside a `security definer` function, since `session_user`
+is fixed for the connection but `current_user` switches to the
+function owner for its duration. This is the general rule for any
+future narrow state transition: a `security definer` RPC that
+re-derives its own authority from `auth.uid()`, never a policy or
+column grant broad enough to let the client assert the transition
+directly.
+
+**Consequences.** Every future "accept," "activate," "approve"-shaped
+transition follows this same shape — a small RPC, not a widened
+policy — and the `current_user <> session_user` trigger check becomes
+the standard way to distinguish "the platform did this" from "the
+tenant did this" without a bespoke flag column or session variable per
+migration.
+
+---
+
+## ADR-013: Customer identity — direct `auth.uid()` RLS, not a JWT claim; linking by a security definer RPC, not an invite
+
+**Context.** Every other Portal session so far (platform staff,
+retailer staff) belongs to exactly one tenant, so mirroring
+`retailer_id`/`retailer_role` onto the JWT (`sync_retailer_staff_claim`,
+ADR pattern predating this one) is enough for RLS to key off a single
+claim. A Customer Portal login does not fit that shape:
+`docs/DOMAIN_MODEL.md` "Why a Customer is scoped to one Retailer" is
+explicit that one Customer Portal `User` links to **many** per-retailer
+`Customer` rows (a shopper with relationships at two PAON retailers has
+two independent `Customer` records). There is no single
+`customer_id`/`retailer_id` pair to mirror onto `app_metadata` the way
+`sync_retailer_staff_claim` does. Separately, a Customer Portal login is
+self-serve and passwordless (`docs/PRODUCT.md` "Customer Portal" >
+Login) — there is no PAON-Admin- or Retailer-Portal-issued invite email
+to accept the way ADR-009/ADR-012 assume; a `Customer` CRM record and a
+Customer Portal login are created independently and only need
+connecting if the same email shows up on both sides.
+
+**Decision.**
+
+1. **RLS reads `customers.user_id = auth.uid()` directly for a
+   customer's own read access** (`20260719000007_create_customers.sql`)
+   — no JWT claim, no `current_customer_id()` helper. This is
+   deliberately different from the `current_retailer_id()`/
+   `current_platform_role()` helpers every other table's policies use,
+   because those exist specifically to let RLS on _other_ tables key off
+   the caller's tenant; nothing else in the schema needs to filter by
+   "the caller's `customer_id`" the way dozens of future tables will
+   filter by "the caller's `retailer_id`."
+2. **Linking is `link_my_customer_accounts()`, a `security definer` RPC
+   the Customer Portal calls once per session** (`/auth/confirm`, right
+   after `verifyOtp` establishes the session), not an invite flow. It
+   re-derives everything from `auth.uid()`/`auth.jwt() ->> 'email'` —
+   the same "narrow RPC over broadened policy" shape as ADR-012 — and
+   is idempotent, so calling it on every sign-in is safe and requires no
+   "have I already linked?" state elsewhere.
+3. **Both `customers.user_id` (denormalized, what RLS/queries actually
+   filter on) and `customer_account_links` (the auditable link event,
+   `docs/DOMAIN_MODEL.md`'s `CustomerAccountLink`) are written together**,
+   in the same function, so they can never drift apart.
+
+**Consequences.** A Customer Portal user who has never engaged a
+specific retailer signs in successfully with zero linked `Customer`
+rows — the Customer Portal home page must render that as a real, valid
+state (no relationships yet), not an error; see
+`apps/customer/app/(dashboard)/dashboard/page.tsx`. Any future feature
+that needs "the current customer" for a _specific_ retailer (storefront
+checkout, Phase 2) must resolve it from `customer_account_links`/
+`customers` scoped to that retailer's context, never from a single
+session-wide claim — there isn't one, by design.
+
+---
+
+## ADR-014: Storefront routing is path-based; orders exist before payment does
+
+**Context.** Phase 2 commerce needed two decisions with real
+consequences neither the roadmap nor any existing ADR had made yet: (1)
+how a shopper reaches a specific retailer's storefront in Customer
+Portal — path (`/r/[slug]`), subdomain (`[slug].customer-app.com`), or
+`Retailer.primaryDomain` as a real custom domain — and (2) whether an
+`Order` may exist before any payment provider is integrated (none is —
+choosing and wiring one is its own future decision, and likely needs
+external provider credentials this environment doesn't have). Both were
+put to the human operator rather than decided silently, since routing
+scheme has real branding/SEO consequences and "can an order exist
+unpaid" is a product-policy call, not a technical one.
+
+**Decision.**
+
+1. **Path-based storefront routing**: `apps/customer/app/r/[slug]/...`.
+   One deployment, no wildcard DNS or Next.js host-based middleware
+   routing needed now. `Retailer.primaryDomain`/subdomain routing stays
+   a real, valid future direction — this doesn't foreclose it, it just
+   isn't built until there's a concrete reason to (NON_GOALS.md-style
+   deferral, not a rejection).
+2. **Orders exist now; payment capture doesn't.** `OrderStatus` gains
+   `"pending_payment"`, sitting between `"draft"` (reserved for a future
+   persisted-cart feature — nothing creates one yet) and `"placed"`
+   (payment confirmed — unreachable until a payment integration exists
+   to drive that transition). A storefront checkout creates a real
+   `Order`/`OrderLine` pair, decrements real inventory, and creates the
+   customer's `Customer` record on the spot if this is their first
+   purchase from that retailer — everything except taking payment.
+3. **`place_order(retailer_id, variant_id, quantity)`** is the only way
+   an `Order`/`OrderLine` is created — no client-facing insert policy on
+   either table. Same "narrow `security definer` RPC over a broadened
+   policy" shape as ADR-012/ADR-013: price, inventory availability, and
+   which `Customer` row the order belongs to are all re-derived
+   server-side from `p_variant_id`/`auth.uid()`, never trusted from the
+   client. This is also the first place in the schema two tables are
+   written transactionally from one client call — a `security definer`
+   PL/pgSQL function is how this repository gets a transaction at all,
+   since neither PostgREST nor supabase-js exposes multi-statement
+   transactions to application code.
+4. **Storefront browsing is public** (`retailers`/`products`/
+   `product_variants` gain a `select` policy with no `to` clause,
+   scoped to `status = 'active'` rows only) — the first policies in the
+   schema that apply to `anon`, not just `authenticated`. Checkout
+   itself still requires a signed-in session (`place_order` is granted
+   to `authenticated` only).
+
+**Consequences.** A product/variant/retailer's public visibility is
+exactly its `active` status — flipping status to `draft`/`archived`/
+`suspended` immediately removes it from anon read access with no
+separate "publish" step to remember. Retailer Portal order management
+(fulfillment status updates) is scoped to `production_staff`+, not
+`sales_associate`+ or `manager`+ like the other two write gates —
+fulfillment is its own operational concern, not CRM or catalog
+authoring. Payment integration, when built, changes exactly one thing
+at the data layer: what drives the `pending_payment` → `placed`
+transition — it does not change how `place_order` computes price,
+inventory, or customer linking.
+
+---
+
+## ADR-015: Phase 3 foundations — Appointments, Fit Profile, Alterations
+
+**Context.** Phase 3 (Production, Alteration, Appointments) is what
+`docs/VISION.md`/`docs/NORTH_STAR.md` call the differentiator versus a
+generic commerce platform — PAON stays a retailer-first and
+customer-first _operating_ platform, never a supplier/manufacturing
+system (GoCreate and similar stay external connectors, not something
+PAON's core model absorbs). This slice built the operational layer
+between "we have a customer relationship" and "we deliver a retail
+service": appointment booking, a staff-maintained fit/measurement
+record, and the customer/retailer-facing shell of alteration tracking
+— deliberately not a tailor/manufacturing workflow engine. Several
+small domain gaps surfaced while wiring these up for the first time,
+the same way ADR-009/013/014's predecessors did.
+
+**Decision.**
+
+1. **`Alteration.customerId` is now required.** It previously only
+   reached a customer transitively through an optional `orderLineId`,
+   but `docs/DOMAIN_MODEL.md` explicitly allows an alteration on a past
+   purchase with no order line at all — that case had no way to know
+   whose alteration it was. `Alteration.appointmentIdForFitting` is now
+   `AppointmentId`, not a bare `string` — the same "fix a loose type the
+   first time something actually implements the entity" reasoning as
+   `Customer.assignedStaffId` (Phase 2) and the retailer-role gap
+   (Phase 1).
+2. **`AlterationStatus` gained `ready_for_pickup`**, between
+   `ready_for_fitting` and `complete` — the requirements explicitly ask
+   for customer-visible "pickup readiness," which the previous five
+   statuses didn't distinguish from "picked up."
+3. **Sizing history and alteration progress are both append-only
+   logs**, not a mutable "current" row with a bolted-on audit trail.
+   `CustomerFitProfileEntry` (`customer/customer.ts`) and
+   `AlterationUpdate` (`production/production.ts`) are each just a
+   timestamped snapshot; "current" is simply the most recent row.
+   `alterations.status` is the one place this needed enforcement, not
+   just convention: a `before update` trigger
+   (`enforce_alteration_status_via_updates_only`,
+   `20260719000017_create_alterations.sql`) blocks any direct client
+   `UPDATE` of `status` — only the `sync_alteration_status_on_update_insert`
+   trigger (itself triggered by inserting into `alteration_updates`,
+   `20260719000018_*`) may change it, using the same `current_user <>
+session_user` / `auth.role() = 'service_role'` distinction as
+   `enforce_retailer_staff_editable_columns` (ADR-012).
+4. **Requesting an appointment reuses the `place_order` shape.**
+   `request_appointment(retailer_id, type, starts_at, ends_at, notes)`
+   (`20260719000015_*`) is a `security definer` RPC that creates the
+   caller's `Customer` row on the spot if this is their first
+   interaction with the retailer — a customer may request a
+   consultation before ever buying anything, so the same "customer
+   might not exist yet" problem `place_order` solved applies here too.
+   Unlike `place_order`, there is nothing to price or decrement, so no
+   inventory-style check — the only invariant enforced server-side is
+   that the retailer is `active` and `starts_at < ends_at`.
+5. **No slot-conflict prevention at request time.** An appointment
+   starts in `requested` status; multiple customers may request
+   overlapping times, and retailer staff resolve the conflict when
+   confirming (moving to `confirmed`). This is simpler than exposing
+   real-time availability to anonymous browsers would have required —
+   see point 7.
+6. **Availability windows have no `current_staff_id()` JWT claim to key
+   off**, unlike `current_retailer_id()`/`current_retailer_role()`
+   (every staff session already carries those). Managing "my own
+   schedule" is expressed as an `exists` subquery against
+   `retailer_staff_members` (`user_id = auth.uid()`) OR `manager`+,
+   directly in the RLS policy (`20260719000014_*`) — the same shape
+   ADR-013 uses for a customer's own-row access, applied here for staff.
+7. **Storefront appointment booking shows no live slot picker.**
+   Computing real availability for an anonymous browser would require
+   exposing either individual staff schedules or actual booked/busy
+   times — the latter leaks other customers' booking data if done
+   naively, and neither `availability_windows` nor `appointments` has
+   (or should gain) a public read policy the way `products` did in
+   ADR-014. The customer instead states a preferred date/time as a
+   request; `computeAvailableSlots` (`@paon/domain`) exists for the
+   Retailer Portal's own calendar (an authenticated staff session,
+   which already has full read access to both tables) and is not
+   (yet) exposed to Customer Portal.
+8. **Location stays deferred, again.** "Select retailer/location" in
+   the original brief means selecting the retailer — via the existing
+   `/r/[slug]` storefront routing (ADR-014) — not a new `Location`
+   entity. Multi-location was explicitly deferred in Phase 1 and
+   nothing in this slice's requirements forced revisiting that.
+9. **Attaching an alteration to a specific order line has no UI picker
+   yet**, though the schema/repository fully support it
+   (`orderLineId` optional on `createAlterationInputSchema`). Building
+   a customer→orders→order-lines cascading selector is real UI
+   complexity `docs/PRINCIPLES.md` doesn't justify speculatively;
+   revisit once evidence shows standalone alterations aren't enough.
+
+**Consequences.** Every future "this status may only change through
+its own append-only log" need (loyalty ledger balances, production
+stages) should reach for the same
+`enforce_<table>_status_via_updates_only` + `sync_<table>_status_from_update`
+trigger pair rather than re-deriving the pattern. Every future
+"a customer or staff member may request something before they formally
+exist in our system" need should reach for the `place_order`/
+`request_appointment` shape: a `security definer` RPC that creates the
+`Customer` row inline. The moment Customer Portal needs real
+availability (not just a request), building it means adding a narrow,
+non-leaking read surface (e.g. a `get_busy_windows(retailer_id, date)`
+RPC returning only start/end ranges, no identifying data) — not a
+blanket public policy on `appointments`.

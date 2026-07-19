@@ -49,6 +49,23 @@ enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
 
+# Uses {{ .RedirectTo }} (set per invite call, e.g.
+# `${retailerAppUrl}/auth/confirm`) rather than the fixed
+# {{ .SiteURL }} above, since an invite must land on whichever app
+# (Admin/Retailer/Customer) the invited role belongs to — see
+# docs/DECISIONS.md ADR-012 and apps/retailer/app/auth/confirm/route.ts.
+[auth.email.template.invite]
+subject = "You've been invited to PAON"
+content_path = "./templates/invite.html"
+
+# Customer Portal login is passwordless (docs/PRODUCT.md) — this is the
+# only sign-in path it has. Same {{ .RedirectTo }} reasoning as above;
+# set via signInWithOtp's emailRedirectTo
+# (apps/customer/app/login/actions.ts).
+[auth.email.template.magic_link]
+subject = "Sign in to PAON"
+content_path = "./templates/magic-link.html"
+
 [edge_runtime]
 enabled = true
 

@@ -1,0 +1,94 @@
+import {
+  AlterationRepository,
+  AlterationUpdateRepository,
+  RetailerRepository,
+} from "@paon/database";
+import { asId } from "@paon/domain";
+import { Card } from "@paon/ui/components/Card";
+import { formatDate } from "@paon/utils";
+import { notFound } from "next/navigation";
+
+import { AlterationStatusBadge } from "../status-badge";
+
+import { requireSession } from "@/lib/session";
+import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+export default async function AlterationDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  await requireSession();
+  const { id } = await params;
+  const supabase = await getSupabaseServerClient();
+
+  const alteration = await new AlterationRepository(supabase).findById(
+    asId<"AlterationId">(id),
+  );
+  if (!alteration) {
+    notFound();
+  }
+
+  const [retailer, updates] = await Promise.all([
+    new RetailerRepository(supabase).findById(alteration.retailerId),
+    new AlterationUpdateRepository(supabase).findByAlteration(alteration.id),
+  ]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
+            {retailer?.displayName ?? "Unknown retailer"}
+          </h1>
+          <AlterationStatusBadge status={alteration.status} />
+        </div>
+        {alteration.dueDate ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            Due {formatDate(alteration.dueDate, "en-US")}
+          </p>
+        ) : null}
+      </div>
+
+      {alteration.status === "ready_for_pickup" ? (
+        <div className="bg-[var(--color-success-500)]/10 rounded-[var(--radius-lg)] px-6 py-4">
+          <p className="font-medium text-[var(--color-success-500)]">
+            Ready for pickup
+          </p>
+          <p className="text-sm text-[var(--color-stone-700)]">
+            Visit the store whenever suits you to collect your item.
+          </p>
+        </div>
+      ) : null}
+
+      <div>
+        <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
+          Updates
+        </h2>
+        <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+          {updates.length === 0 ? (
+            <p className="p-6 text-sm text-[var(--color-stone-500)]">
+              No updates yet.
+            </p>
+          ) : (
+            updates.map((update) => (
+              <div key={update.id} className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <AlterationStatusBadge status={update.status} />
+                  <span className="text-xs text-[var(--color-stone-500)]">
+                    {formatDate(update.createdAt, "en-US")}
+                  </span>
+                </div>
+                {update.note ? (
+                  <p className="mt-1 text-sm text-[var(--color-stone-700)]">
+                    {update.note}
+                  </p>
+                ) : null}
+              </div>
+            ))
+          )}
+        </Card>
+      </div>
+    </div>
+  );
+}

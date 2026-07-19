@@ -1,0 +1,16 @@
+<h2>You've been invited to PAON</h2>
+
+<p>Follow this link to accept the invite and set up your account:</p>
+
+<p>
+  <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite"
+    >Accept the invite</a
+  >
+</p>
+
+<p>
+  This link uses the app-specific address the invite was sent for (PAON Admin,
+  Retailer Portal, or Customer Portal) rather than the project's default site
+  URL — see docs/DATABASE.md "Local development" and each app's `auth/confirm`
+  route handler.
+</p>

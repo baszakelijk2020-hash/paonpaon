@@ -56,3 +56,26 @@ export const createRetailerInputSchema = z.object({
 });
 
 export type CreateRetailerInput = z.infer<typeof createRetailerInputSchema>;
+
+/**
+ * Fields a retailer's own owner/admin may edit from Retailer Portal
+ * settings — deliberately excludes `slug`, `tier`, `status` and
+ * `defaultCurrency`, which stay platform-controlled. See
+ * docs/DECISIONS.md ADR-012 and the RLS trigger it documents.
+ */
+export const updateRetailerProfileInputSchema = z.object({
+  legalName: z.string().trim().min(2).max(200),
+  displayName: z.string().trim().min(2).max(120),
+  primaryDomain: z
+    .string()
+    .trim()
+    .max(255)
+    .optional()
+    .transform((value) => value || undefined),
+  defaultLocale: z.string().trim().min(2).max(10),
+  billingAddress: addressSchema,
+});
+
+export type UpdateRetailerProfileInput = z.infer<
+  typeof updateRetailerProfileInputSchema
+>;

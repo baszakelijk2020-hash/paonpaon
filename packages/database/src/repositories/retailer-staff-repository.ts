@@ -3,6 +3,7 @@ import {
   type RetailerId,
   type RetailerRole,
   type RetailerStaffMember,
+  type StaffId,
   type UserId,
 } from "@paon/domain";
 import type { PostgrestError } from "@supabase/supabase-js";
@@ -114,5 +115,21 @@ export class RetailerStaffRepository {
     }
 
     return toDomain(data);
+  }
+
+  /**
+   * Calls `accept_retailer_staff_invite` — see docs/DECISIONS.md
+   * ADR-012 for why this is a security definer RPC rather than a
+   * direct `update` this repository would otherwise expose. Never
+   * duplicate the accepted-at / retailer-activation logic here.
+   */
+  async acceptInvite(staffId: StaffId): Promise<void> {
+    const { error } = await this.client.rpc("accept_retailer_staff_invite", {
+      p_staff_id: staffId,
+    });
+
+    if (error) {
+      throw error;
+    }
   }
 }

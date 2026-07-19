@@ -18,4 +18,8 @@ export const env = {
   get supabaseServiceRoleKey() {
     return requireEnv("SUPABASE_SERVICE_ROLE_KEY");
   },
+  /** Retailer Portal's base URL — an invited owner's confirm link must land there, not on this app. */
+  get retailerAppUrl() {
+    return requireEnv("NEXT_PUBLIC_RETAILER_APP_URL");
+  },
 };

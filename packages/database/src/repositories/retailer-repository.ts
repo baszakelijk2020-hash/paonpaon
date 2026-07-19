@@ -56,6 +56,19 @@ export interface CreateRetailerParams {
 }
 
 /**
+ * Business-profile fields only — `slug`, `tier`, `status` and
+ * `defaultCurrency` stay platform-controlled and are never accepted
+ * here. See docs/DECISIONS.md ADR-012.
+ */
+export interface UpdateRetailerProfileParams {
+  legalName: string;
+  displayName: string;
+  primaryDomain?: string;
+  defaultLocale: string;
+  billingAddress: Address;
+}
+
+/**
  * Reference implementation of the repository pattern every domain
  * aggregate follows: one repository per aggregate root, constructed
  * with an already-authenticated Supabase client (never a bare URL/key),
@@ -128,6 +141,37 @@ export class RetailerRepository {
       if (isUniqueViolation(error)) {
         throw new SlugAlreadyExistsError(params.slug);
       }
+      throw error;
+    }
+
+    return toDomain(data);
+  }
+
+  /**
+   * Retailer-staff-facing update — the `retailers` table's `update`
+   * RLS policy plus `enforce_retailer_staff_editable_columns_on_update`
+   * trigger reject any attempt to reach `slug`/`tier`/`status`/
+   * `defaultCurrency` through this path even if a caller passed them,
+   * so this method's params shape is the only real guard needed here.
+   */
+  async updateProfile(
+    id: RetailerId,
+    params: UpdateRetailerProfileParams,
+  ): Promise<Retailer> {
+    const { data, error } = await this.client
+      .from("retailers")
+      .update({
+        legal_name: params.legalName,
+        display_name: params.displayName,
+        primary_domain: params.primaryDomain ?? null,
+        default_locale: params.defaultLocale,
+        billing_address: params.billingAddress as unknown as Json,
+      })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) {
       throw error;
     }
 

@@ -1,0 +1,77 @@
+import {
+  ProductRepository,
+  ProductVariantRepository,
+  RetailerRepository,
+} from "@paon/database";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { OrderForm } from "./order-form";
+
+import { getSession } from "@/lib/session";
+import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+export default async function StorefrontProductPage({
+  params,
+}: {
+  params: Promise<{ slug: string; productSlug: string }>;
+}) {
+  const { slug, productSlug } = await params;
+  const supabase = await getSupabaseServerClient();
+
+  const retailer = await new RetailerRepository(supabase).findBySlug(slug);
+  if (!retailer || retailer.status !== "active") {
+    notFound();
+  }
+
+  const product = await new ProductRepository(supabase).findBySlug(
+    retailer.id,
+    productSlug,
+  );
+  if (!product || product.status !== "active") {
+    notFound();
+  }
+
+  const variants = await new ProductVariantRepository(supabase).findByProduct(
+    product.id,
+  );
+  const session = await getSession();
+
+  return (
+    <main className="mx-auto max-w-2xl px-6 py-10">
+      <Link
+        href={`/r/${slug}/products`}
+        className="mb-6 inline-block text-sm text-[var(--color-stone-500)] hover:underline"
+      >
+        ← Back to {retailer.displayName}
+      </Link>
+      <h1 className="mb-2 text-2xl font-medium text-[var(--color-stone-900)]">
+        {product.name}
+      </h1>
+      {product.description ? (
+        <p className="mb-6 text-[var(--color-stone-700)]">
+          {product.description}
+        </p>
+      ) : null}
+      {product.isMadeToOrder ? (
+        <p className="mb-6 text-sm text-[var(--color-stone-500)]">
+          Made to order
+        </p>
+      ) : null}
+
+      {variants.length === 0 ? (
+        <p className="text-[var(--color-stone-600)]">
+          Not currently available.
+        </p>
+      ) : (
+        <OrderForm
+          slug={slug}
+          productSlug={productSlug}
+          retailerId={retailer.id}
+          variants={variants}
+          isSignedIn={!!session && session.accountType === "customer"}
+        />
+      )}
+    </main>
+  );
+}

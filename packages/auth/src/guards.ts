@@ -77,3 +77,23 @@ export function requireRetailerSession(
     throw new ForbiddenError("Requires a Retailer Portal session");
   }
 }
+
+/**
+ * Throws unless the session belongs to a Customer Portal user. Unlike
+ * `requireRetailerSession`/`requirePlatformSession`, there is no
+ * further claim to assert here — a customer session is valid the
+ * moment it's authenticated, even with zero linked `Customer` rows
+ * (see docs/DECISIONS.md ADR-013); which retailer relationships exist
+ * is resolved per-request from `CustomerRepository`, never from a
+ * session-wide claim.
+ */
+export function requireCustomerSession(
+  session: AppSession | null,
+): asserts session is AppSession & { accountType: "customer" } {
+  if (!session) {
+    throw new UnauthorizedError();
+  }
+  if (session.accountType !== "customer") {
+    throw new ForbiddenError("Requires a Customer Portal session");
+  }
+}

@@ -13,15 +13,20 @@ export * from "./retailer/retailer.schema";
 export * from "./retailer/subscription";
 
 export * from "./customer/customer";
+export * from "./customer/customer.schema";
 export * from "./customer/wishlist";
 
 export * from "./catalog/product";
+export * from "./catalog/product.schema";
 
 export * from "./commerce/order";
+export * from "./commerce/order.schema";
 
 export * from "./production/production";
+export * from "./production/production.schema";
 
 export * from "./appointments/appointment";
+export * from "./appointments/appointment.schema";
 
 export * from "./loyalty/loyalty";
 
