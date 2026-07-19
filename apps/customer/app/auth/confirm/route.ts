@@ -32,6 +32,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams, origin } = request.nextUrl;
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type");
+  const nextRaw = searchParams.get("next") ?? "/dashboard";
+  const next =
+    nextRaw.startsWith("/") && !nextRaw.startsWith("//")
+      ? nextRaw
+      : "/dashboard";
 
   if (!tokenHash || !isAllowedType(type)) {
     return NextResponse.redirect(`${origin}/login?error=invalid_invite`);
@@ -49,5 +54,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   await new CustomerRepository(supabase).linkMyAccounts();
 
-  return NextResponse.redirect(`${origin}/dashboard`);
+  return NextResponse.redirect(`${origin}${next}`);
 }

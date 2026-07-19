@@ -50,20 +50,21 @@ Used by a retailer's own staff to run the business day to day.
 
 Used by a retailer's customers.
 
-| Area                | Responsibility                                  |
-| ------------------- | ----------------------------------------------- |
-| Login               | Passwordless / OAuth authentication             |
-| Profile             | Personal details and relationship preferences   |
-| Orders              | Purchase history and current orders             |
-| Production tracking | Approved supplier/manufacturing status          |
-| Alteration tracking | Approved status and pickup/delivery information |
-| Loyalty / Rewards   | Points balance, tier, redeemable rewards        |
-| Referrals           | Invite friends, track referral status           |
-| Wishlist            | Saved products                                  |
-| Appointments        | Book and manage appointments with the retailer  |
-| Notifications       | Cross-channel notification inbox                |
-| Messaging           | Direct conversation with retailer staff         |
-| Preferences         | Communication and privacy preferences           |
+| Area                | Responsibility                                                             |
+| ------------------- | -------------------------------------------------------------------------- |
+| Login               | Passwordless / OAuth authentication                                        |
+| Profile             | Personal details and relationship preferences                              |
+| Cart                | Persisted multi-item cart, one per retailer relationship, through checkout |
+| Orders              | Purchase history and current orders                                        |
+| Production tracking | Approved supplier/manufacturing status                                     |
+| Alteration tracking | Approved status and pickup/delivery information                            |
+| Loyalty / Rewards   | Points balance, tier, redeemable rewards                                   |
+| Referrals           | Invite friends, track referral status                                      |
+| Wishlist            | Saved products                                                             |
+| Appointments        | Book and manage appointments with the retailer                             |
+| Notifications       | Cross-channel notification inbox                                           |
+| Messaging           | Direct conversation with retailer staff                                    |
+| Preferences         | Communication and privacy preferences                                      |
 
 A customer with relationships at multiple PAON retailers signs into one
 Customer Portal account and sees each retailer relationship separately

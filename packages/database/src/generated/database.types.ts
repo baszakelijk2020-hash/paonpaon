@@ -3440,6 +3440,14 @@ export type Database = {
         Args: { p_note: string; p_task_id: string };
         Returns: string;
       };
+      add_to_cart: {
+        Args: {
+          p_quantity: number;
+          p_retailer_id: string;
+          p_variant_id: string;
+        };
+        Returns: string;
+      };
       assign_alteration_work_order: {
         Args: {
           p_alteration_id: string;
@@ -3469,6 +3477,10 @@ export type Database = {
           p_retailer_id: string;
           p_source?: string;
         };
+        Returns: string;
+      };
+      checkout_cart: {
+        Args: { p_order_id: string; p_shipping_address: Json };
         Returns: string;
       };
       create_alteration_intake: {
@@ -3610,6 +3622,10 @@ export type Database = {
           p_status: Database["public"]["Enums"]["alteration_task_status"];
           p_task_id: string;
         };
+        Returns: undefined;
+      };
+      update_cart_line: {
+        Args: { p_line_id: string; p_quantity: number };
         Returns: undefined;
       };
       update_product_catalogue: {

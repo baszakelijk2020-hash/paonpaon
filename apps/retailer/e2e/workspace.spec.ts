@@ -106,8 +106,8 @@ test("owner adds a product with its first variant", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Bespoke Wool Overcoat" }),
   ).toBeVisible();
-  await expect(page.getByText(`COAT-${unique}`, { exact: true })).toBeVisible();
-  await expect(page.getByText("$4,500.00")).toBeVisible();
+  await expect(page.getByLabel("SKU")).toHaveValue(`COAT-${unique}`);
+  await expect(page.getByLabel(/Price/).first()).toHaveValue("450000");
 
   await page.goto("/products");
   await expect(page.getByText(`overcoat-${unique}`)).toBeVisible();

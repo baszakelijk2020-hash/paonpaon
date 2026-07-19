@@ -11,7 +11,7 @@ export interface PlaceOrderFormState {
   formError?: string;
 }
 
-export async function placeOrder(
+export async function addToCart(
   slug: string,
   productSlug: string,
   _prevState: PlaceOrderFormState,
@@ -34,9 +34,8 @@ export async function placeOrder(
 
   const supabase = await getSupabaseServerClient();
 
-  let orderId: string;
   try {
-    orderId = await new OrderRepository(supabase).placeOrder({
+    await new OrderRepository(supabase).addToCart({
       retailerId: parsed.data.retailerId as never,
       productVariantId: parsed.data.productVariantId,
       quantity: parsed.data.quantity,
@@ -48,5 +47,5 @@ export async function placeOrder(
 
   // Outside the try/catch — redirect() throws internally, and that
   // throw must not be caught and turned into a form error.
-  redirect(`/orders/${orderId}`);
+  redirect(`/r/${slug}/cart`);
 }

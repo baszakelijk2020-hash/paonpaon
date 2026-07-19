@@ -50,12 +50,25 @@ async function globalSetup(): Promise<void> {
 
   const staffRepo = new PlatformStaffRepository(admin);
   const existingStaff = await staffRepo.findByUserId(userId as UserId);
-  if (!existingStaff) {
-    await staffRepo.create({
+  const staff =
+    existingStaff ??
+    (await staffRepo.create({
       userId: userId as UserId,
       fullName: "E2E Admin",
       role: "platform_owner",
-    });
+    }));
+
+  // ADR-022: platform staff must explicitly accept before Admin routes
+  // are reachable. This fixture bypasses the real invite email (the
+  // user above is created pre-confirmed), so it must also bypass
+  // acceptance the same way — accept_platform_staff_invite() re-derives
+  // its authority from auth.uid() and can't be called from this
+  // service-role script.
+  if (!staff.acceptedAt) {
+    await admin
+      .from("platform_staff_members")
+      .update({ accepted_at: new Date().toISOString() })
+      .eq("id", staff.id);
   }
 }
 

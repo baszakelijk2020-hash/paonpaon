@@ -15,8 +15,9 @@ import type { Timestamps } from "../shared/timestamps";
  * but no payment provider is integrated yet, so nothing has actually
  * captured payment. "placed" means payment is confirmed — reachable
  * only once a payment integration exists to drive that transition.
- * "draft" is reserved for a future persisted-cart feature; nothing
- * creates an Order in that status yet.
+ * "draft" is a customer-owned persisted cart. Checkout revalidates
+ * products, current prices and inventory transactionally before moving
+ * the aggregate to "pending_payment".
  */
 export type OrderStatus =
   | "draft"

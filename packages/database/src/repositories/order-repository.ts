@@ -90,6 +90,7 @@ export class OrderRepository {
       .from("orders")
       .select("*")
       .eq("retailer_id", retailerId)
+      .neq("status", "draft")
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
@@ -105,6 +106,7 @@ export class OrderRepository {
       .from("orders")
       .select("*")
       .eq("customer_id", customerId)
+      .neq("status", "draft")
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
@@ -161,5 +163,56 @@ export class OrderRepository {
     }
 
     return toDomain(data);
+  }
+
+  async findCart(
+    retailerId: RetailerId,
+    customerId: CustomerId,
+  ): Promise<Order | null> {
+    const { data, error } = await this.client
+      .from("orders")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .eq("customer_id", customerId)
+      .eq("status", "draft")
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toDomain(data) : null;
+  }
+
+  async addToCart(params: {
+    retailerId: RetailerId;
+    productVariantId: string;
+    quantity: number;
+  }): Promise<OrderId> {
+    const { data, error } = await this.client.rpc("add_to_cart", {
+      p_retailer_id: params.retailerId,
+      p_variant_id: params.productVariantId,
+      p_quantity: params.quantity,
+    });
+    if (error) throw error;
+    return asId<"OrderId">(data);
+  }
+
+  async updateCartLine(lineId: string, quantity: number): Promise<void> {
+    const { error } = await this.client.rpc("update_cart_line", {
+      p_line_id: lineId,
+      p_quantity: quantity,
+    });
+    if (error) throw error;
+  }
+
+  async checkoutCart(
+    orderId: OrderId,
+    shippingAddress: Address,
+  ): Promise<OrderId> {
+    const { data, error } = await this.client.rpc("checkout_cart", {
+      p_order_id: orderId,
+      p_shipping_address:
+        shippingAddress as unknown as Database["public"]["Functions"]["checkout_cart"]["Args"]["p_shipping_address"],
+    });
+    if (error) throw error;
+    return asId<"OrderId">(data);
   }
 }

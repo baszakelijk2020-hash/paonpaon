@@ -6,7 +6,7 @@ import { Select } from "@paon/ui/components/Select";
 import { formatMoney } from "@paon/utils";
 import { useActionState } from "react";
 
-import { placeOrder, type PlaceOrderFormState } from "./actions";
+import { addToCart, type PlaceOrderFormState } from "./actions";
 
 const initialPlaceOrderFormState: PlaceOrderFormState = {};
 
@@ -23,7 +23,7 @@ export function OrderForm({
   variants: readonly ProductVariant[];
   isSignedIn: boolean;
 }) {
-  const boundAction = placeOrder.bind(null, slug, productSlug);
+  const boundAction = addToCart.bind(null, slug, productSlug);
   const [state, formAction, isPending] = useActionState(
     boundAction,
     initialPlaceOrderFormState,
@@ -85,10 +85,10 @@ export function OrderForm({
         </p>
       ) : null}
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Placing order…" : "Place order"}
+        {isPending ? "Adding…" : "Add to cart"}
       </Button>
       <p className="text-xs text-[var(--color-stone-500)]">
-        No payment is collected yet — orders are recorded as pending payment.
+        Review the full cart and shipping details before checkout.
       </p>
     </form>
   );

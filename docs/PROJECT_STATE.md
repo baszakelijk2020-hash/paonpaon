@@ -195,11 +195,10 @@ ADR-014; this section covers only what got built as a result.
   removes it from public visibility immediately, with no separate
   "unpublish" step.
 - **`OrderStatus` gained `"pending_payment"`** (`@paon/domain`
-  `commerce/order.ts`) — sits between `"draft"` (still reserved, for a
-  future persisted cart — nothing creates one) and `"placed"`
-  (unreachable until payment integration exists to drive it). Every
-  order created today starts and stays at `"pending_payment"` unless a
-  retailer manually moves it (see below).
+  `commerce/order.ts`) — sits between `"draft"` (now a real, customer-owned
+  persisted cart — see below) and `"placed"` (unreachable until payment
+  integration exists to drive it). Every order reaching `"pending_payment"`
+  stays there unless a retailer manually moves it (see below).
 - **`place_order(retailer_id, variant_id, quantity)`** (`20260719000012_*`,
   `OrderRepository.placeOrder`) is the only way an `Order`/`OrderLine`
   is created — no client-facing insert policy on either table, same
@@ -233,19 +232,58 @@ ADR-014; this section covers only what got built as a result.
   state-machine check (e.g. can't go `delivered` → `pending_payment`)
   if that turns out to matter before payment integration forces a
   proper state machine anyway.
-- **Deliberately not built yet**: shipping address collection (checkout
-  never asks for one — `Order.shippingAddress` stays unset); a
-  persisted multi-item cart (checkout is buy-now, one variant at a
-  time — `OrderStatus.draft` is reserved for exactly this, not built);
-  tax/shipping calculation (`subtotal` and `total` are currently
-  identical); assigning a product to a collection from the storefront
-  (browsing doesn't filter by collection); redirect-back-to-product
-  after signing in mid-checkout (the "Sign in to purchase" link goes to
-  `/login` with a `redirectTo` query param the login page doesn't
-  currently act on — a customer who signs in mid-checkout has to
-  navigate back to the product manually). None of these are silent gaps
-  — each is a real, scoped-out piece of "Commerce foundation," not an
+- **Deliberately not built yet**: tax/shipping calculation (`subtotal` and
+  `total` are currently identical); assigning a product to a collection from
+  the storefront (browsing doesn't filter by collection). Buy-now
+  (`place_order`) still exists unchanged alongside the cart (see below) —
+  nothing forces a caller through the cart. None of these are silent gaps —
+  each is a real, scoped-out piece of "Commerce foundation," not an
   oversight.
+
+### Shipped: Persisted multi-item cart and checkout
+
+Full reasoning in `docs/DECISIONS.md` ADR-024; this section covers only what
+got built.
+
+- **The cart is a `draft` `Order`** — no new entity. One draft order per
+  `(retailer_id, customer_id)`, enforced by a partial unique index, not
+  application code. `add_to_cart(retailer_id, variant_id, quantity)` creates
+  or reuses it and upserts a line (capped at 20, one row per variant via
+  another unique index); `update_cart_line(line_id, quantity)` adjusts a
+  line or deletes it at quantity 0; both are `security definer` RPCs that
+  recompute `subtotal`/`total` from `order_lines` server-side, same
+  narrow-RPC shape as `place_order`. `OrderRepository.addToCart` /
+  `.updateCartLine` / `.findCart` wrap them; `findCart` and
+  `findLinesByOrder` read through the existing customer-owns-this-order RLS
+  policies (never scoped to status, so no new policy was needed).
+- **`checkout_cart(order_id, shipping_address)`** is the only way a `draft`
+  order leaves that status. It re-validates every line against current
+  data — product still active, currency still matches, stock still
+  sufficient for non-made-to-order variants — re-snapshots price at commit
+  time (a line's price can have drifted since it was added), decrements
+  inventory, records `shipping_address`, and flips the order to
+  `"pending_payment"`. A cart that fails revalidation (an item went
+  inactive, stock ran out) surfaces that as a form error, not a partial
+  checkout.
+- **`OrderRepository.findByRetailer`/`.findByCustomer` now exclude
+  `"draft"`** — an in-progress cart is not yet a commercial record and must
+  never appear in retailer order management or a shopper's order history
+  next to real orders.
+- **Customer Portal `/r/[slug]/cart`**: lists the signed-in shopper's cart
+  for that retailer relationship, lets them adjust or remove a line inline,
+  and collects a shipping address to check out. The storefront's "Add to
+  cart" button (`/r/[slug]/products/[productSlug]`) replaces the old
+  buy-now submit — it now redirects to the cart instead of straight to
+  `/orders/[id]`.
+- **Sign-in mid-checkout now returns to where the shopper was.** Magic-link
+  requests carry an optional relative `redirectTo`/`next`
+  (`/login?redirectTo=...` → `emailRedirectTo`'s `?next=...` →
+  `/auth/confirm` honors it), validated same-origin-relative before use.
+  Closes the "Sign in to purchase" gap this document used to flag.
+- **Deliberately not built**: a UI affordance to abandon/clear a whole cart
+  in one action (removing every line one at a time works, there's just no
+  single "empty cart" button); a cart-item counter/badge elsewhere in the
+  storefront chrome.
 
 ### Not yet built (Phase 2 — Catalog and Commerce, continued)
 
@@ -395,26 +433,57 @@ and factory execution.
 ## Local database verification
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
-  chain (`20260719000000`–`20260719000103`) was executed twice from an empty
-  local PostgreSQL database with `supabase start` and `supabase db reset`.
-  `supabase db lint --level warning` reports no schema errors.
+  chain (`20260719000000`–`20260719000103`, then `20260720000000`–
+  `20260720000009` including the persisted-cart migration) was executed
+  twice from an empty local PostgreSQL database with `supabase start` and
+  `supabase db reset`. `supabase db lint --level warning` reports no schema
+  errors.
 - `packages/database/src/generated/database.types.ts` is real output from
-  `supabase gen types typescript --local`. Repository and application code were
-  updated to compile against the actual schema rather than the previous
-  hand-maintained approximation.
-- The real local Supabase stack now backs all browser journeys. Playwright is
+  `supabase gen types typescript --local`, reformatted with `pnpm format`
+  (the CLI's raw output omits semicolons; Prettier normalizes it back to the
+  repo's style — diffing the two confirms no schema drift beyond the
+  intended change). Repository and application code compile against the
+  actual schema, not a hand-maintained approximation.
+- The real local Supabase stack backs all browser journeys. Playwright is
   green for PAON Admin (5 tests), Retailer Portal (14 tests), and Customer
-  Portal (7 tests). These cover onboarding, invitations, authentication, CRM,
-  catalogue, storefront ordering, appointments, alterations, and pickup
-  readiness. The tests exposed and drove fixes for missing API grants,
-  server-action initial-state runtime crashes, stale collection rendering, and
-  concurrent magic-link invalidation.
+  Portal (7 tests) — re-verified 2026-07-20 against the persisted-cart
+  slice, each suite run twice back-to-back to confirm idempotency. These
+  cover onboarding, invitations, authentication, CRM, catalogue, storefront
+  ordering and cart/checkout, appointments, alterations, and pickup
+  readiness. This pass caught and fixed three real bugs, not just
+  environment drift:
+  - The cart's "Update" and "Place order" buttons
+    (`apps/customer/app/r/[slug]/cart/cart-client.tsx`) had no
+    `type="submit"` — `@paon/ui`'s `Button` defaults to `type="button"`
+    (most usages are outside forms), so neither button ever submitted its
+    form. The cart page rendered correctly and looked complete; nothing in
+    it actually worked. Always pass `type="submit"` explicitly on a
+    `Button` inside a form — the default is deliberately not submit.
+  - `apps/retailer/e2e/workspace.spec.ts`'s product-creation test asserted
+    SKU and price as plain text, but the product detail page renders both
+    as editable form fields (`getByLabel(...).toHaveValue(...)` is the
+    correct assertion) — stale since the catalogue-editing slice turned
+    that page into a full inline editor.
+  - `apps/admin/e2e/global-setup.ts` created its bootstrap platform-staff
+    row but never accepted it, so every admin e2e run landed on
+    `/accept-invite` instead of `/retailers` — stale since ADR-022 added
+    the acceptance gate. The fixture now sets `accepted_at` directly
+    (`accept_platform_staff_invite` can't be called from a service-role
+    script — it re-derives authority from `auth.uid()`), the same
+    "bypass the real flow, but bypass it completely" reasoning it already
+    applied to skipping the invite email.
   - `apps/retailer/e2e/accept-invite.spec.ts` and
     `apps/customer/e2e/login.spec.ts` both exercise their real
     `/auth/confirm` route with a real token from
     `admin.auth.admin.generateLink` (not a workaround password, not
     reading Inbucket) — this is now the standard technique for
     e2e-testing any future email-link flow in this repo; reuse it.
+  - A test that mutates its own persisted state (the cart) must clean up
+    that state at its own start, not just rely on fixtures being idempotent
+    — see `apps/customer/e2e/storefront.spec.ts`'s pre-test draft-cart
+    deletion. Global fixtures (`global-setup.ts`) provision shared read-only
+    data once; a test's own read-write side effects are its own
+    responsibility to reset.
   - The standard code checks are also green: `pnpm lint`, `pnpm typecheck`,
     `pnpm test` (unit), `pnpm build`, and `pnpm format:check`.
 - **No live Supabase project.** `.env.local` was never created in any

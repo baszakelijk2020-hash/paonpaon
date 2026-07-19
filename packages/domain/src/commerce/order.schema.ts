@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { addressSchema } from "../retailer/retailer.schema";
+
 import type { OrderStatus } from "./order";
 
 export const ORDER_STATUSES = [
@@ -38,3 +40,15 @@ export const placeOrderInputSchema = z.object({
 });
 
 export type PlaceOrderInput = z.infer<typeof placeOrderInputSchema>;
+
+export const addToCartInputSchema = placeOrderInputSchema;
+
+export const updateCartLineInputSchema = z.object({
+  lineId: z.string().uuid(),
+  quantity: z.coerce.number().int().min(0).max(20),
+});
+
+export const checkoutCartInputSchema = z.object({
+  orderId: z.string().uuid(),
+  shippingAddress: addressSchema,
+});

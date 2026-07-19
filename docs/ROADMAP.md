@@ -73,6 +73,10 @@ commerce logic is built on top of it.
   Both decided by the human operator rather than guessed — routing
   scheme (path vs. subdomain vs. custom domain) and whether an order
   may exist unpaid — see `docs/DECISIONS.md` ADR-014.
+- ✅ Persisted multi-item cart (`/r/[slug]/cart`) — `draft` `Order` per
+  retailer relationship, add/update/remove lines, checkout re-validates
+  price/stock/currency and collects a shipping address. Buy-now
+  (`place_order`) still exists alongside it. See ADR-024.
 - ⬜ `Payment` integration — the one piece of "Catalog and Commerce"
   deliberately not built. Provider selection is an open decision
   (needs its own ADR once made) and almost certainly needs external

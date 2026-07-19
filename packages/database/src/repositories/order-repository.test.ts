@@ -129,4 +129,42 @@ describe("OrderRepository", () => {
     const order = await repo.updateStatus(orderRow.id as never, "shipped");
     expect(order.status).toBe("shipped");
   });
+
+  it("adds items and checks out through protected cart RPCs", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: orderRow.id, error: null });
+    const repo = new OrderRepository({ rpc } as unknown as PaonSupabaseClient);
+    await expect(
+      repo.addToCart({
+        retailerId: orderRow.retailer_id as never,
+        productVariantId: orderLineRow.product_variant_id,
+        quantity: 2,
+      }),
+    ).resolves.toBe(orderRow.id);
+    await expect(
+      repo.checkoutCart(orderRow.id as never, {
+        line1: "1 Tailor Street",
+        city: "Amsterdam",
+        postalCode: "1011AA",
+        countryCode: "NL",
+      }),
+    ).resolves.toBe(orderRow.id);
+    expect(rpc).toHaveBeenCalledWith(
+      "add_to_cart",
+      expect.objectContaining({ p_quantity: 2 }),
+    );
+    expect(rpc).toHaveBeenCalledWith(
+      "checkout_cart",
+      expect.objectContaining({ p_order_id: orderRow.id }),
+    );
+  });
+
+  it("updates or removes a cart line through its protected RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const repo = new OrderRepository({ rpc } as unknown as PaonSupabaseClient);
+    await repo.updateCartLine(orderLineRow.id, 0);
+    expect(rpc).toHaveBeenCalledWith("update_cart_line", {
+      p_line_id: orderLineRow.id,
+      p_quantity: 0,
+    });
+  });
 });

@@ -17,6 +17,7 @@ export function fakeQueryBuilder<T>(result: FakeQueryResult<T>) {
   const chain = {
     select: () => chain,
     eq: () => chain,
+    neq: () => chain,
     lte: () => chain,
     or: () => chain,
     in: () => chain,

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  checkoutCartInputSchema,
   placeOrderInputSchema,
+  updateCartLineInputSchema,
   updateOrderStatusInputSchema,
 } from "./order.schema";
 
@@ -40,6 +42,43 @@ describe("placeOrderInputSchema", () => {
       quantity: "1",
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("cart schemas", () => {
+  it("accepts removal via quantity zero and rejects negative quantities", () => {
+    expect(
+      updateCartLineInputSchema.safeParse({
+        lineId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        quantity: "0",
+      }).success,
+    ).toBe(true);
+    expect(
+      updateCartLineInputSchema.safeParse({
+        lineId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        quantity: "-1",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("requires a complete checkout shipping address", () => {
+    expect(
+      checkoutCartInputSchema.safeParse({
+        orderId: "99999999-9999-9999-9999-999999999999",
+        shippingAddress: {
+          line1: "1 Tailor Street",
+          city: "Amsterdam",
+          postalCode: "1011AA",
+          countryCode: "NL",
+        },
+      }).success,
+    ).toBe(true);
+    expect(
+      checkoutCartInputSchema.safeParse({
+        orderId: "99999999-9999-9999-9999-999999999999",
+        shippingAddress: { city: "Amsterdam" },
+      }).success,
+    ).toBe(false);
   });
 });
 

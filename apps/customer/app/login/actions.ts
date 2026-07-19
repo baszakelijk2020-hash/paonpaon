@@ -23,6 +23,11 @@ export async function requestMagicLink(
   const parsed = requestMagicLinkInputSchema.safeParse({
     email: formData.get("email"),
   });
+  const redirectToRaw = String(formData.get("redirectTo") ?? "/dashboard");
+  const redirectTo =
+    redirectToRaw.startsWith("/") && !redirectToRaw.startsWith("//")
+      ? redirectToRaw
+      : "/dashboard";
 
   if (!parsed.success) {
     return {
@@ -34,7 +39,9 @@ export async function requestMagicLink(
   const supabase = await getSupabaseServerClient();
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
-    options: { emailRedirectTo: `${env.appUrl}/auth/confirm` },
+    options: {
+      emailRedirectTo: `${env.appUrl}/auth/confirm?next=${encodeURIComponent(redirectTo)}`,
+    },
   });
 
   if (error) {

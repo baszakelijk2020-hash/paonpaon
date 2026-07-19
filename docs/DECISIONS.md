@@ -662,3 +662,58 @@ changes remain individually permission-gated records.
 **Why.** Replacing collection membership with separate browser requests could
 leave a published product partially merchandised. The transactional boundary
 also prevents a crafted request from attaching another retailer's collection.
+
+## ADR-024: Persisted cart is a `draft` Order; checkout re-validates everything
+
+**Context.** ADR-014 deliberately reserved `OrderStatus.draft` for a future
+multi-item cart and shipped buy-now (`place_order`) instead. A cart needs to
+accumulate lines over multiple visits, let a shopper adjust quantity or remove
+a line, and then commit atomically — while still going through the same
+"never trust the client for price/inventory/tenant" boundary every other
+commerce write uses (ADR-014 point 3).
+
+**Decision.**
+
+1. **The cart _is_ the `Order` aggregate, at `status = 'draft'`.** No new
+   entity. One draft `Order` per `(retailer_id, customer_id)`, enforced by a
+   partial unique index (`one_draft_cart_per_retailer_customer_idx`) rather
+   than at the application layer — a client cannot create a second concurrent
+   cart even by racing two requests.
+2. **Three narrow `security definer` RPCs**, the same shape as
+   `place_order`/`request_appointment` (ADR-012/013/014/015): `add_to_cart`
+   (creates the draft and/or the caller's `Customer` row on first add, exactly
+   like `place_order`'s first-purchase case; upserts a line via
+   `one_variant_per_order_idx`, capped at 20), `update_cart_line` (set
+   quantity, or delete the line at quantity 0 — no separate "remove" RPC),
+   and `checkout_cart` (the only place a `draft` order leaves that status).
+3. **`checkout_cart` re-validates every line against current data**, not
+   whatever was cached when the line was added: product still `active`,
+   currency still matches the order, stock still sufficient for
+   non-made-to-order variants, and it re-snapshots price at the moment of
+   commit (a cart line's price can drift between add-to-cart and checkout;
+   the checkout snapshot is authoritative, matching `place_order`'s "never
+   trust a stale client value" rule). Only then does it decrement inventory,
+   set `shipping_address`, and flip `status` to `pending_payment`.
+4. **`findByRetailer`/`findByCustomer` (order history) now exclude `draft`.**
+   A cart is not yet a commercial record; retailer order management and a
+   shopper's order history should never show an abandoned, still-mutable
+   cart alongside real orders. `findCart`/`findLinesByOrder` (unchanged) are
+   the cart-specific reads, gated by the existing "a customer can read their
+   own orders/order lines" RLS policies — no new read policy was needed
+   because those policies were never scoped to a status.
+5. **Magic-link sign-in now honors an optional relative `next`/`redirectTo`
+   destination** (`/auth/confirm?next=...`, `/login?redirectTo=...`),
+   validated to be same-origin-relative (`startsWith("/")`, rejecting
+   `//`-prefixed values) before use. This closes the "Sign in to purchase"
+   gap ADR-014/PROJECT_STATE.md flagged: a shopper who has to sign in
+   mid-checkout now lands back on the product (or cart) page instead of
+   `/dashboard`.
+
+**Consequences.** Buy-now (`place_order`) is untouched and still exists —
+this slice does not migrate it to the cart. A future decision could retire
+`place_order` in favor of "add one line to a cart and check out immediately,"
+but that's a product call, not forced by this ADR. Any future multi-line
+mutation that needs the same "recompute the total after touching one line"
+shape should reuse `add_to_cart`/`update_cart_line`'s pattern (recompute
+`subtotal`/`total` from `order_lines` inside the same transaction) rather
+than trusting a client-supplied total.

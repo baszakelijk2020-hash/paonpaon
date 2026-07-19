@@ -12,7 +12,7 @@ const initialRequestMagicLinkFormState: RequestMagicLinkFormState = {
   sent: false,
 };
 
-export function MagicLinkForm() {
+export function MagicLinkForm({ redirectTo }: { redirectTo: string }) {
   const [state, formAction, isPending] = useActionState(
     requestMagicLink,
     initialRequestMagicLinkFormState,
@@ -29,6 +29,7 @@ export function MagicLinkForm() {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <input type="hidden" name="redirectTo" value={redirectTo} />
       <FormField
         label="Email"
         htmlFor="email"
