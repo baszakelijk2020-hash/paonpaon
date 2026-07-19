@@ -45,10 +45,10 @@ account linking) is in place. Phase 2 (Catalog and Commerce) is next.
   a dashboard listing the signed-in shopper's linked retailer
   relationships. Linking a Customer Portal login to a per-retailer
   `Customer` record is automatic (`link_my_customer_accounts`, by
-  matching email) — see `docs/DECISIONS.md` ADR-013. Wishlist and
-  `CustomerPreferences` stay domain types only — no table yet, deferred
-  until a slice actually needs them (a profile-editing UI, Phase 2's
-  storefront).
+  matching email) — see `docs/DECISIONS.md` ADR-013. `CustomerPreferences`
+  stays a domain type only — no table yet, deferred until a slice actually
+  needs it (a profile-editing UI). `Wishlist` shipped in Phase 2 alongside
+  the storefront — see ADR-026.
 - ✅ First real RLS policies and migrations landed in
   `supabase/migrations` (`retailers`, `platform_staff_members`,
   `retailer_staff_members`, `customers`, `customer_account_links`, JWT

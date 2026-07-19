@@ -15,6 +15,7 @@ export * from "./retailer/subscription";
 export * from "./customer/customer";
 export * from "./customer/customer.schema";
 export * from "./customer/wishlist";
+export * from "./customer/wishlist.schema";
 
 export * from "./catalog/product";
 export * from "./catalog/product.schema";

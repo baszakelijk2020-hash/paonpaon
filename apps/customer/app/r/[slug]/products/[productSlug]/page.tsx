@@ -1,12 +1,15 @@
 import {
+  CustomerRepository,
   ProductRepository,
   ProductVariantRepository,
   RetailerRepository,
+  WishlistRepository,
 } from "@paon/database";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { OrderForm } from "./order-form";
+import { WishlistToggle } from "./wishlist-toggle";
 
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -36,6 +39,26 @@ export default async function StorefrontProductPage({
     product.id,
   );
   const session = await getSession();
+  const isSignedIn = !!session && session.accountType === "customer";
+
+  let savedVariantIds: string[] = [];
+  if (isSignedIn) {
+    const relationships = await new CustomerRepository(supabase).findByUserId(
+      session.userId,
+    );
+    const customer = relationships.find(
+      (item) => item.retailerId === retailer.id,
+    );
+    if (customer) {
+      const wishlistRepo = new WishlistRepository(supabase);
+      const wishlist = await wishlistRepo.findByCustomer(customer.id);
+      if (wishlist) {
+        savedVariantIds = (await wishlistRepo.findItems(wishlist.id)).map(
+          (item) => item.productVariantId,
+        );
+      }
+    }
+  }
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
@@ -64,13 +87,24 @@ export default async function StorefrontProductPage({
           Not currently available.
         </p>
       ) : (
-        <OrderForm
-          slug={slug}
-          productSlug={productSlug}
-          retailerId={retailer.id}
-          variants={variants}
-          isSignedIn={!!session && session.accountType === "customer"}
-        />
+        <>
+          <OrderForm
+            slug={slug}
+            productSlug={productSlug}
+            retailerId={retailer.id}
+            variants={variants}
+            isSignedIn={isSignedIn}
+          />
+          {isSignedIn ? (
+            <WishlistToggle
+              slug={slug}
+              productSlug={productSlug}
+              retailerId={retailer.id}
+              variants={variants}
+              savedVariantIds={savedVariantIds}
+            />
+          ) : null}
+        </>
       )}
     </main>
   );

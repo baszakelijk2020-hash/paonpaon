@@ -43,6 +43,12 @@ export default async function DashboardLayout({
                 Alterations
               </Link>
               <Link
+                href="/wishlist"
+                className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+              >
+                Wishlist
+              </Link>
+              <Link
                 href="/loyalty"
                 className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
               >

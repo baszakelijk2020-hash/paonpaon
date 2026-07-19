@@ -771,3 +771,45 @@ loyalty-specific logic on top of what it already carries — a violation of
 `docs/PRINCIPLES.md` "maximum reuse, zero duplicated logic" in the other
 direction (duplicating a concern across every place that can cause it,
 instead of centralizing it at the one place that observes it).
+
+## ADR-026: Wishlist reuses the cart's "narrow RPC + inline Customer creation" shape; retailer staff can read it
+
+**Context.** `Wishlist`/`WishlistItem` (`docs/DOMAIN_MODEL.md` Customer
+bounded context) have existed as domain types with no table since Phase 1 —
+`docs/PROJECT_STATE.md` listed them as deliberately deferred. Saving a
+product is, like adding to cart, potentially a shopper's first-ever
+interaction with a retailer (browsing needs no sign-in; saving does, but
+nothing else about the relationship needs to exist yet).
+
+**Decision.**
+
+1. **One `security definer` RPC, `toggle_wishlist_item(retailer_id,
+variant_id)`**, does everything: creates the caller's `Customer` row
+   inline if this is their first interaction with the retailer (same
+   `place_order`/`add_to_cart`/`request_appointment` shape,
+   ADR-012/014/015/024 family), lazily creates the customer's one default
+   `Wishlist` (`one_default_wishlist_per_customer_idx`, a partial unique
+   index — the same "enforce cardinality in the schema, not application
+   code" shape as `one_draft_cart_per_retailer_customer_idx`), and flips
+   the `WishlistItem` row (insert if absent, delete if present) — a toggle,
+   not separate add/remove RPCs, since the client always knows which state
+   it's requesting from the button it clicked.
+2. **Retailer staff (`sales_associate`+) can read a customer's wishlist**,
+   the same gate as reading the rest of the `customers` CRM record
+   (`docs/DATABASE.md`). This is a deliberate, minimal extension beyond
+   what `docs/PRODUCT.md`'s Customer Portal feature table names — a
+   client's saved pieces are exactly the kind of clienteling signal
+   `docs/VISION.md` says differentiates PAON, and the read policy costs
+   nothing beyond the two lines it takes to add (no new UI shipped in
+   Retailer Portal this slice; the data is there for a future clienteling
+   view to surface, same as orders/appointments already are).
+3. **`Referral.rewardId`-style restraint**: `WishlistItem.note` exists on
+   the domain type (a customer's own note on a saved piece — "for
+   anniversary") but has no write path in this slice. Reserved, not
+   populated speculatively.
+
+**Consequences.** Any future "a shopper does X to a specific product
+before necessarily having any other relationship with the retailer" need
+(a size-alert subscription, a "notify when back in stock") should reach for
+this same RPC shape rather than requiring the customer relationship to
+already exist.

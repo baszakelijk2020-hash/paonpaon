@@ -3050,6 +3050,80 @@ export type Database = {
           },
         ];
       };
+      wishlist_items: {
+        Row: {
+          added_at: string;
+          note: string | null;
+          product_variant_id: string;
+          wishlist_id: string;
+        };
+        Insert: {
+          added_at?: string;
+          note?: string | null;
+          product_variant_id: string;
+          wishlist_id: string;
+        };
+        Update: {
+          added_at?: string;
+          note?: string | null;
+          product_variant_id?: string;
+          wishlist_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_product_variant_id_fkey";
+            columns: ["product_variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wishlist_items_wishlist_id_fkey";
+            columns: ["wishlist_id"];
+            isOneToOne: false;
+            referencedRelation: "wishlists";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wishlists: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          id: string;
+          is_default: boolean;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_default?: boolean;
+          name?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_default?: boolean;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wishlists_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       work_order_assignments: {
         Row: {
           active: boolean;
@@ -3606,6 +3680,10 @@ export type Database = {
           p_workshop_id?: string;
         };
         Returns: undefined;
+      };
+      toggle_wishlist_item: {
+        Args: { p_retailer_id: string; p_variant_id: string };
+        Returns: boolean;
       };
       transition_alteration_work_order: {
         Args: {

@@ -129,12 +129,32 @@ definer` RPC re-deriving its own authority, same shape as ADR-012 —
   migration). Zero relationships is a real, valid, designed-for state
   (empty-state copy, not an error) — there's no storefront yet to create
   one organically.
-- **Deliberately not built yet**: `Wishlist` and `CustomerPreferences`
-  persistence — domain types exist, no tables. No profile-editing UI in
-  Customer Portal. No OAuth provider (Google/Apple) — passwordless email
-  is the only login method; OAuth needs external provider credentials
-  this session doesn't have, so it's flagged, not silently skipped or
-  faked. Pick up when either becomes the next highest-value slice.
+- **Deliberately not built yet**: `CustomerPreferences` persistence —
+  domain type exists, no table. No profile-editing UI in Customer Portal.
+  No OAuth provider (Google/Apple) — passwordless email is the only login
+  method; OAuth needs external provider credentials this session doesn't
+  have, so it's flagged, not silently skipped or faked. Pick up when either
+  becomes the next highest-value slice. `Wishlist` (also listed here
+  previously) shipped — see below.
+
+### Shipped: Wishlist
+
+Full reasoning in `docs/DECISIONS.md` ADR-026.
+
+- One `security definer` RPC, `toggle_wishlist_item`, does the whole job:
+  creates the caller's `Customer` row inline on a first save (same pattern
+  as `add_to_cart`), lazily creates their one default `Wishlist`, and
+  flips the `WishlistItem` row. `WishlistRepository` wraps it plus the two
+  reads (`findByCustomer`, `findItems`).
+- Storefront `/r/[slug]/products/[productSlug]` has a "♡ Save to
+  wishlist"/"♥ Saved to wishlist" toggle next to the buy form (signed-in
+  shoppers only, same gate as purchasing). Customer Portal `/wishlist`
+  lists saved products across every retailer relationship, each linking
+  back to its storefront page, with a remove action.
+- Retailer staff (`sales_associate`+) can read a customer's wishlist
+  through RLS — no Retailer Portal UI surfaces it yet, but the read path
+  exists for a future clienteling view, the same way orders/appointments
+  already work.
 
 ### Shipped: Product Catalogue foundation
 
@@ -452,9 +472,9 @@ Full reasoning in `docs/DECISIONS.md` ADR-025.
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
   chain (`20260719000000`–`20260719000103`, then `20260720000000`–
-  `20260720000010` including the persisted-cart and referral-journey
-  migrations) was executed repeatedly from an empty local PostgreSQL
-  database with `supabase start` and `supabase db reset`.
+  `20260720000011` including the persisted-cart, referral-journey and
+  wishlist migrations) was executed repeatedly from an empty local
+  PostgreSQL database with `supabase start` and `supabase db reset`.
   `supabase db lint --level warning` reports no schema errors. The referral
   triggers were also verified directly against the local database with a
   throwaway script exercising the full invite → signup → delivered-order →
@@ -468,12 +488,13 @@ Full reasoning in `docs/DECISIONS.md` ADR-025.
   actual schema, not a hand-maintained approximation.
 - The real local Supabase stack backs all browser journeys. Playwright is
   green for PAON Admin (5 tests), Retailer Portal (14 tests), and Customer
-  Portal (8 tests) — re-verified 2026-07-20 against both the persisted-cart
-  and referral-journey slices, each suite run at least twice back-to-back to
-  confirm idempotency. These cover onboarding, invitations, authentication,
-  CRM, catalogue, storefront ordering and cart/checkout, appointments,
-  alterations, pickup readiness, and referral conversion. This pass caught
-  and fixed three real bugs, not just environment drift:
+  Portal (9 tests) — re-verified 2026-07-20 against the persisted-cart,
+  referral-journey and wishlist slices, each suite run at least twice
+  back-to-back to confirm idempotency. These cover onboarding, invitations,
+  authentication, CRM, catalogue, storefront ordering, cart/checkout,
+  wishlist, appointments, alterations, pickup readiness, and referral
+  conversion. This pass caught and fixed three real bugs, not just
+  environment drift:
   - The cart's "Update" and "Place order" buttons
     (`apps/customer/app/r/[slug]/cart/cart-client.tsx`) had no
     `type="submit"` — `@paon/ui`'s `Button` defaults to `type="button"`
