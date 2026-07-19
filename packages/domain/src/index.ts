@@ -5,8 +5,11 @@ export * from "./shared/timestamps";
 
 export * from "./identity/role";
 export * from "./identity/user";
+export * from "./identity/platform-staff.schema";
+export * from "./identity/retailer-staff.schema";
 
 export * from "./retailer/retailer";
+export * from "./retailer/retailer.schema";
 export * from "./retailer/subscription";
 
 export * from "./customer/customer";

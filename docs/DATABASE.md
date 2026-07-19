@@ -93,10 +93,27 @@ changes reflected live in the Customer Portal, and new messages in
 `Conversation`/`Message`. Realtime subscriptions still go through RLS —
 a client only receives change events for rows it could already `select`.
 
+## JWT claim sync
+
+RLS policies read the caller's role from `auth.jwt() -> 'app_metadata'`
+via the helper functions in `20260719000001_create_auth_helpers.sql`
+(`current_platform_role()`, `is_platform_staff()`,
+`current_retailer_id()`, `current_retailer_role()`) — never inline the
+raw JWT path expression in a new policy. Those claims are not set by
+application code directly; they're mirrored from a staff table by a
+`security definer` trigger (`sync_platform_role_claim`,
+`sync_retailer_staff_claim`) whenever a `platform_staff_members` /
+`retailer_staff_members` row is written or its `user_id` is unlinked.
+Any future staff-like table follows the same trigger shape.
+
 ## Local development
 
 `supabase start` runs the full local stack (Postgres, Auth, Storage,
-Realtime, Studio) via Docker. `supabase/seed.sql` provides enough data
-(a sample retailer, staff, customers) to develop against without a
-remote project. CI runs migrations against a fresh local stack before
-running any test that touches the database.
+Realtime, Studio) via Docker. `supabase/seed.sql` provides a sample
+retailer to develop against without a remote project; it cannot seed
+`auth.users` (Supabase Auth users aren't created by plain SQL inserts
+against `public` tables) — use
+`pnpm --filter @paon/database bootstrap:platform-admin` to create the
+first PAON Admin login, and PAON Admin's onboarding flow to create
+everything after that. CI runs migrations against a fresh local stack
+before running any test that touches the database.

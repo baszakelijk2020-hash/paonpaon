@@ -1,5 +1,6 @@
 import { type CookieMethodsServer, createServerClient } from "@supabase/ssr";
 
+import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
 /**
@@ -12,8 +13,8 @@ export function createSupabaseServerClient(
   supabaseUrl: string,
   supabaseAnonKey: string,
   cookies: CookieMethodsServer,
-) {
+): PaonSupabaseClient {
   return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies,
-  });
+  }) as unknown as PaonSupabaseClient;
 }

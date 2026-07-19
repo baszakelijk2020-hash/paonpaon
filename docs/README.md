@@ -16,6 +16,7 @@ full context; each document links forward to the ones that build on it.
 11. [DECISIONS.md](./DECISIONS.md) — architecture decision log (ADRs)
 12. [NON_GOALS.md](./NON_GOALS.md) — what we deliberately aren't building yet
 13. [ROADMAP.md](./ROADMAP.md) — build order, phase by phase
+14. [PROJECT_STATE.md](./PROJECT_STATE.md) — what's actually built right now, and what's next — read this first when resuming work
 
 The root [CLAUDE.md](../CLAUDE.md) is the operating charter for AI-assisted
 work in this repository and points back into this set.

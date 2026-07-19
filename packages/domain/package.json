@@ -15,6 +15,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
+  "dependencies": {
+    "zod": "^3.24.1"
+  },
   "devDependencies": {
     "@paon/eslint-config": "workspace:*",
     "@paon/typescript-config": "workspace:*",

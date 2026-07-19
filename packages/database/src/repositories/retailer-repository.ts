@@ -1,9 +1,30 @@
-import { asId, type Retailer, type RetailerId } from "@paon/domain";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  asId,
+  type Address,
+  type CurrencyCode,
+  type Retailer,
+  type RetailerId,
+  type RetailerTier,
+} from "@paon/domain";
+import type { PostgrestError } from "@supabase/supabase-js";
 
-import type { Database } from "../generated/database.types";
+import type { PaonSupabaseClient } from "../client-type";
+import type { Database, Json } from "../generated/database.types";
 
 type RetailerRow = Database["public"]["Tables"]["retailers"]["Row"];
+
+const UNIQUE_VIOLATION = "23505";
+
+export class SlugAlreadyExistsError extends Error {
+  constructor(public readonly slug: string) {
+    super(`A retailer with slug "${slug}" already exists.`);
+    this.name = "SlugAlreadyExistsError";
+  }
+}
+
+function isUniqueViolation(error: PostgrestError): boolean {
+  return error.code === UNIQUE_VIOLATION;
+}
 
 function toDomain(row: RetailerRow): Retailer {
   return {
@@ -14,8 +35,7 @@ function toDomain(row: RetailerRow): Retailer {
     status: row.status,
     tier: row.tier,
     ...(row.primary_domain ? { primaryDomain: row.primary_domain } : {}),
-    billingAddress:
-      row.billing_address as unknown as Retailer["billingAddress"],
+    billingAddress: row.billing_address as unknown as Address,
     defaultCurrency: row.default_currency,
     defaultLocale: row.default_locale,
     brandTheme: row.brand_theme as unknown as Retailer["brandTheme"],
@@ -23,6 +43,16 @@ function toDomain(row: RetailerRow): Retailer {
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
   };
+}
+
+export interface CreateRetailerParams {
+  legalName: string;
+  displayName: string;
+  slug: string;
+  tier: RetailerTier;
+  defaultCurrency: CurrencyCode;
+  defaultLocale: string;
+  billingAddress: Address;
 }
 
 /**
@@ -33,7 +63,7 @@ function toDomain(row: RetailerRow): Retailer {
  * `@paon/domain` entities. See ARCHITECTURE.md "Data Access Layer".
  */
 export class RetailerRepository {
-  constructor(private readonly client: SupabaseClient<Database>) {}
+  constructor(private readonly client: PaonSupabaseClient) {}
 
   async findById(id: RetailerId): Promise<Retailer | null> {
     const { data, error } = await this.client
@@ -63,5 +93,44 @@ export class RetailerRepository {
     }
 
     return data ? toDomain(data) : null;
+  }
+
+  async list(): Promise<Retailer[]> {
+    const { data, error } = await this.client
+      .from("retailers")
+      .select("*")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return data.map(toDomain);
+  }
+
+  async create(params: CreateRetailerParams): Promise<Retailer> {
+    const { data, error } = await this.client
+      .from("retailers")
+      .insert({
+        legal_name: params.legalName,
+        display_name: params.displayName,
+        slug: params.slug,
+        tier: params.tier,
+        default_currency: params.defaultCurrency,
+        default_locale: params.defaultLocale,
+        billing_address: params.billingAddress as unknown as Json,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      if (isUniqueViolation(error)) {
+        throw new SlugAlreadyExistsError(params.slug);
+      }
+      throw error;
+    }
+
+    return toDomain(data);
   }
 }

@@ -77,5 +77,14 @@ jobs:
       - name: Start local Supabase
         run: supabase start
 
+      - name: Export local Supabase credentials
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$(supabase status -o env | grep '^API_URL=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o env | grep '^ANON_KEY=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$(supabase status -o env | grep '^SERVICE_ROLE_KEY=' | cut -d= -f2- | tr -d '\"')" >> "$GITHUB_ENV"
+
+      - name: Build apps against the local Supabase stack
+        run: pnpm build
+
       - name: Run e2e tests
         run: pnpm test:e2e

@@ -3,25 +3,37 @@
 Phased by dependency order — each phase's data model and UI depend on
 the ones before it. Not date-committed; sequencing, not scheduling.
 
-## Phase 0 — Engineering foundation (this bootstrap)
+## Phase 0 — Engineering foundation (done)
 
 Monorepo, shared packages (`domain`, `database`, `auth`, `ui`, `utils`),
 full domain model, design tokens, linting/formatting/testing/CI,
 Supabase and Vercel scaffolding, and this documentation set. No
 application features. Done when: `pnpm build`, `pnpm lint`,
 `pnpm typecheck` and `pnpm test` are all green on a repository with
-three apps that boot and render a placeholder home page each.
+three apps that boot and render a placeholder home page each. ✅ Done.
 
-## Phase 1 — Identity, Retailer, Customer core
+## Phase 1 — Identity, Retailer, Customer core (in progress)
 
-- Supabase Auth wired into all three apps; `@paon/auth` session
-  resolution implemented for real (currently types only).
-- `Retailer` CRUD in PAON Admin (onboarding a tenant).
-- `RetailerStaffMember` invitation and role management in Retailer
-  Portal.
-- `Customer` CRUD and basic profile in Retailer Portal; Customer Portal
-  login and profile.
-- First real RLS policies and migrations landed in `supabase/migrations`.
+Live status: see [PROJECT_STATE.md](./PROJECT_STATE.md).
+
+- ✅ Supabase Auth wired into PAON Admin; `@paon/auth` session
+  resolution implemented for real (`resolveAppSession`, role guards).
+  Retailer Portal and Customer Portal still need the same wiring.
+- ✅ `Retailer` create + list + detail in PAON Admin — the onboarding
+  flow that creates a tenant and invites its first owner in one step.
+- ⬜ The retailer owner's side of onboarding: accept the invite, set a
+  password, land in Retailer Portal for the first time, retailer
+  status transitions `pending_onboarding` → `active`.
+- ⬜ Retailer setup (business details, locations) in Retailer Portal.
+- ⬜ `RetailerStaffMember` invitation and role management from inside
+  Retailer Portal itself (today, only PAON Admin can provision the
+  first owner — see `docs/DECISIONS.md` ADR-009).
+- ⬜ `Customer` CRUD and basic profile in Retailer Portal; Customer
+  Portal login and profile.
+- ✅ First real RLS policies and migrations landed in
+  `supabase/migrations` (`retailers`, `platform_staff_members`,
+  `retailer_staff_members`, JWT claim-sync triggers, auth helper
+  functions).
 
 This phase proves the multi-tenant foundation end-to-end before any
 commerce logic is built on top of it.

@@ -27,12 +27,18 @@ export interface PlatformStaffMember extends Timestamps {
   readonly role: PlatformRole;
 }
 
-/** A staff member's membership in one retailer's Retailer Portal. */
+/**
+ * A staff member's membership in one retailer's Retailer Portal.
+ * `userId` is optional: the record exists (and can be invited to,
+ * re-invited, or managed) before the person has an auth identity
+ * attached, and the link is cleared if that identity is ever deleted.
+ */
 export interface RetailerStaffMember extends Timestamps {
   readonly id: StaffId;
-  readonly userId: UserId;
+  readonly userId?: UserId;
   readonly retailerId: RetailerId;
   readonly fullName: string;
+  readonly email: string;
   readonly role: RetailerRole;
   readonly invitedAt: string;
   readonly acceptedAt?: string;

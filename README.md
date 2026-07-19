@@ -28,7 +28,8 @@ pnpm install
 cp apps/admin/.env.example apps/admin/.env.local
 cp apps/retailer/.env.example apps/retailer/.env.local
 cp apps/customer/.env.example apps/customer/.env.local
-supabase start          # local Postgres/Auth/Storage/Realtime
+supabase start          # local Postgres/Auth/Storage/Realtime — fill in .env.local from its output
+pnpm --filter @paon/database bootstrap:platform-admin   # create the first PAON Admin login (see its header comment)
 pnpm dev                 # all three apps
 ```
 

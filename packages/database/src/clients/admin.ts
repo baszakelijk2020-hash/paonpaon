@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
+import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
 /**
@@ -12,7 +13,7 @@ import type { Database } from "../generated/database.types";
 export function createSupabaseAdminClient(
   supabaseUrl: string,
   serviceRoleKey: string,
-) {
+): PaonSupabaseClient {
   return createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

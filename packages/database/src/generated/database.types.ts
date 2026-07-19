@@ -52,13 +52,118 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["retailers"]["Insert"]>;
         Relationships: [];
       };
+      platform_staff_members: {
+        Row: {
+          id: string;
+          user_id: string;
+          full_name: string;
+          role:
+            | "platform_owner"
+            | "platform_admin"
+            | "support_agent"
+            | "platform_analyst";
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          full_name: string;
+          role:
+            | "platform_owner"
+            | "platform_admin"
+            | "support_agent"
+            | "platform_analyst";
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["platform_staff_members"]["Insert"]
+        >;
+        Relationships: [];
+      };
+      retailer_staff_members: {
+        Row: {
+          id: string;
+          retailer_id: string;
+          user_id: string | null;
+          full_name: string;
+          email: string;
+          role:
+            | "read_only"
+            | "production_staff"
+            | "sales_associate"
+            | "manager"
+            | "admin"
+            | "owner";
+          invited_at: string;
+          accepted_at: string | null;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          retailer_id: string;
+          user_id?: string | null;
+          full_name: string;
+          email: string;
+          role?:
+            | "read_only"
+            | "production_staff"
+            | "sales_associate"
+            | "manager"
+            | "admin"
+            | "owner";
+          invited_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["retailer_staff_members"]["Insert"]
+        >;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      current_platform_role: {
+        Args: Record<string, never>;
+        Returns: string | null;
+      };
+      is_platform_staff: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      current_retailer_id: {
+        Args: Record<string, never>;
+        Returns: string | null;
+      };
+      current_retailer_role: {
+        Args: Record<string, never>;
+        Returns: string | null;
+      };
+    };
     Enums: {
       retailer_status:
         "pending_onboarding" | "active" | "suspended" | "churned";
       retailer_tier: "boutique" | "house" | "maison";
+      platform_role:
+        | "platform_owner"
+        | "platform_admin"
+        | "support_agent"
+        | "platform_analyst";
+      retailer_role:
+        | "read_only"
+        | "production_staff"
+        | "sales_associate"
+        | "manager"
+        | "admin"
+        | "owner";
     };
   };
 }
