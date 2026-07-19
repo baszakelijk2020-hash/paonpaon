@@ -1,4 +1,8 @@
-import { ProductRepository, RetailerRepository } from "@paon/database";
+import {
+  CollectionRepository,
+  ProductRepository,
+  RetailerRepository,
+} from "@paon/database";
 import { Card } from "@paon/ui/components/Card";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,10 +11,13 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function StorefrontProductsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ collection?: string }>;
 }) {
   const { slug } = await params;
+  const { collection: collectionSlug } = await searchParams;
   const supabase = await getSupabaseServerClient();
 
   const retailer = await new RetailerRepository(supabase).findBySlug(slug);
@@ -18,9 +25,21 @@ export default async function StorefrontProductsPage({
     notFound();
   }
 
-  const products = (
+  const collections = await new CollectionRepository(supabase).findByRetailer(
+    retailer.id,
+  );
+  const activeCollection = collectionSlug
+    ? collections.find((collection) => collection.slug === collectionSlug)
+    : undefined;
+
+  const allProducts = (
     await new ProductRepository(supabase).findByRetailer(retailer.id)
   ).filter((product) => product.status === "active");
+  const products = activeCollection
+    ? allProducts.filter((product) =>
+        product.collectionIds.includes(activeCollection.id),
+      )
+    : allProducts;
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -36,9 +55,39 @@ export default async function StorefrontProductsPage({
         </Link>
       </div>
 
+      {collections.length > 0 ? (
+        <nav className="mb-6 flex flex-wrap gap-2">
+          <Link
+            href={`/r/${slug}/products`}
+            className={`rounded-full border px-3 py-1 text-sm ${
+              activeCollection
+                ? "border-[var(--color-stone-300)] text-[var(--color-stone-600)]"
+                : "border-[var(--color-stone-900)] bg-[var(--color-stone-900)] text-white"
+            }`}
+          >
+            All
+          </Link>
+          {collections.map((collection) => (
+            <Link
+              key={collection.id}
+              href={`/r/${slug}/products?collection=${collection.slug}`}
+              className={`rounded-full border px-3 py-1 text-sm ${
+                activeCollection?.id === collection.id
+                  ? "border-[var(--color-stone-900)] bg-[var(--color-stone-900)] text-white"
+                  : "border-[var(--color-stone-300)] text-[var(--color-stone-600)]"
+              }`}
+            >
+              {collection.name}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
+
       {products.length === 0 ? (
         <p className="text-[var(--color-stone-600)]">
-          Nothing available yet — check back soon.
+          {activeCollection
+            ? "Nothing in this collection yet."
+            : "Nothing available yet — check back soon."}
         </p>
       ) : (
         <Card className="divide-y divide-[var(--color-stone-100)] p-0">

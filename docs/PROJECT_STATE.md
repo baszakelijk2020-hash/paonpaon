@@ -253,12 +253,19 @@ ADR-014; this section covers only what got built as a result.
   if that turns out to matter before payment integration forces a
   proper state machine anyway.
 - **Deliberately not built yet**: tax/shipping calculation (`subtotal` and
-  `total` are currently identical); assigning a product to a collection from
-  the storefront (browsing doesn't filter by collection). Buy-now
-  (`place_order`) still exists unchanged alongside the cart (see below) —
-  nothing forces a caller through the cart. None of these are silent gaps —
-  each is a real, scoped-out piece of "Commerce foundation," not an
-  oversight.
+  `total` are currently identical) — this needs a product decision on tax
+  provider/jurisdiction model before it can be built correctly, the same
+  "flag, don't guess" treatment as payment provider selection, not a
+  silent gap. Buy-now (`place_order`) still exists unchanged alongside the
+  cart (see below) — nothing forces a caller through the cart.
+  Storefront collection browsing shipped — see below.
+- **Storefront collection browsing** (`/r/[slug]/products?collection=<slug>`,
+  ADR-027): `collections`/`product_collections` gained `anon`-inclusive read
+  policies (the same shape ADR-014 gave `products`/`retailers`), closing a
+  latent gap — `Product.collectionIds` was always resolved by
+  `ProductRepository` but nothing using the anon client could actually read
+  the join table before this. Collection chips filter the product list;
+  filtering happens in the Server Component, not a new repository method.
 
 ### Shipped: Persisted multi-item cart and checkout
 
@@ -472,9 +479,9 @@ Full reasoning in `docs/DECISIONS.md` ADR-025.
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
   chain (`20260719000000`–`20260719000103`, then `20260720000000`–
-  `20260720000011` including the persisted-cart, referral-journey and
-  wishlist migrations) was executed repeatedly from an empty local
-  PostgreSQL database with `supabase start` and `supabase db reset`.
+  `20260720000012` including the persisted-cart, referral-journey, wishlist
+  and collection-browsing migrations) was executed repeatedly from an empty
+  local PostgreSQL database with `supabase start` and `supabase db reset`.
   `supabase db lint --level warning` reports no schema errors. The referral
   triggers were also verified directly against the local database with a
   throwaway script exercising the full invite → signup → delivered-order →
@@ -488,13 +495,13 @@ Full reasoning in `docs/DECISIONS.md` ADR-025.
   actual schema, not a hand-maintained approximation.
 - The real local Supabase stack backs all browser journeys. Playwright is
   green for PAON Admin (5 tests), Retailer Portal (14 tests), and Customer
-  Portal (9 tests) — re-verified 2026-07-20 against the persisted-cart,
-  referral-journey and wishlist slices, each suite run at least twice
-  back-to-back to confirm idempotency. These cover onboarding, invitations,
-  authentication, CRM, catalogue, storefront ordering, cart/checkout,
-  wishlist, appointments, alterations, pickup readiness, and referral
-  conversion. This pass caught and fixed three real bugs, not just
-  environment drift:
+  Portal (10 tests) — re-verified 2026-07-20 against the persisted-cart,
+  referral-journey, wishlist and collection-browsing slices, each suite run
+  at least twice back-to-back to confirm idempotency. These cover
+  onboarding, invitations, authentication, CRM, catalogue, storefront
+  ordering, cart/checkout, wishlist, collection browsing, appointments,
+  alterations, pickup readiness, and referral conversion. This pass caught
+  and fixed three real bugs, not just environment drift:
   - The cart's "Update" and "Place order" buttons
     (`apps/customer/app/r/[slug]/cart/cart-client.tsx`) had no
     `type="submit"` — `@paon/ui`'s `Button` defaults to `type="button"`

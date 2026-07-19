@@ -813,3 +813,26 @@ before necessarily having any other relationship with the retailer" need
 (a size-alert subscription, a "notify when back in stock") should reach for
 this same RPC shape rather than requiring the customer relationship to
 already exist.
+
+## ADR-027: Collections and their product links get the same public-read shape as products
+
+**Decision.** `collections` and `product_collections` gain `anon`-inclusive
+`select` policies scoped to active retailers (and, for the join table,
+active products) — the same "publicly showable subset, no `to` clause"
+shape ADR-014 established for `retailers`/`products`/`product_variants`.
+Storefront `/r/[slug]/products` reads the retailer's collections and
+`Product.collectionIds` (already resolved by `ProductRepository`) to
+render collection chips and filter by `?collection=<slug>`, filtered
+in the Server Component rather than a new repository query.
+
+**Why.** `Product.collectionIds` has been populated by
+`ProductRepository` since the catalogue foundation shipped, but nothing
+using the anon/customer client could actually read `product_collections`
+or `collections` — the storefront had never exercised that path, so the
+gap was latent rather than discovered. This closes
+`docs/PROJECT_STATE.md`'s "assigning a product to a collection from the
+storefront" gap and makes Retailer Portal's existing collection authoring
+(`/collections`) have real customer-facing effect. No new repository
+method: catalog sizes here are boutique-scale, and filtering a
+Server-Component-fetched list in place is simpler than a second query
+path — revisit only if evidence shows catalogs large enough to need it.
