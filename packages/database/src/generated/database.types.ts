@@ -1335,6 +1335,45 @@ export type Database = {
           },
         ];
       };
+      event_rsvps: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          event_id: string;
+          responded_at: string | null;
+          status: Database["public"]["Enums"]["event_rsvp_status"];
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          event_id: string;
+          responded_at?: string | null;
+          status?: Database["public"]["Enums"]["event_rsvp_status"];
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          event_id?: string;
+          responded_at?: string | null;
+          status?: Database["public"]["Enums"]["event_rsvp_status"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       fitting_observations: {
         Row: {
           area: string;
@@ -2466,6 +2505,65 @@ export type Database = {
           },
         ];
       };
+      retailer_events: {
+        Row: {
+          capacity: number | null;
+          created_at: string;
+          deleted_at: string | null;
+          description: string;
+          ends_at: string;
+          id: string;
+          name: string;
+          retailer_id: string;
+          starts_at: string;
+          status: Database["public"]["Enums"]["event_status"];
+          updated_at: string;
+          venue_address: string | null;
+          venue_name: string;
+          visibility: Database["public"]["Enums"]["event_visibility"];
+        };
+        Insert: {
+          capacity?: number | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          description: string;
+          ends_at: string;
+          id?: string;
+          name: string;
+          retailer_id: string;
+          starts_at: string;
+          status?: Database["public"]["Enums"]["event_status"];
+          updated_at?: string;
+          venue_address?: string | null;
+          venue_name: string;
+          visibility?: Database["public"]["Enums"]["event_visibility"];
+        };
+        Update: {
+          capacity?: number | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          description?: string;
+          ends_at?: string;
+          id?: string;
+          name?: string;
+          retailer_id?: string;
+          starts_at?: string;
+          status?: Database["public"]["Enums"]["event_status"];
+          updated_at?: string;
+          venue_address?: string | null;
+          venue_name?: string;
+          visibility?: Database["public"]["Enums"]["event_visibility"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailer_staff_members: {
         Row: {
           accepted_at: string | null;
@@ -3122,6 +3220,10 @@ export type Database = {
       };
       is_alterations_advisor: { Args: never; Returns: boolean };
       is_alterations_management: { Args: never; Returns: boolean };
+      is_my_event_invitation: {
+        Args: { p_event_id: string };
+        Returns: boolean;
+      };
       is_platform_staff: { Args: never; Returns: boolean };
       is_valid_alteration_transition: {
         Args: {
@@ -3161,6 +3263,13 @@ export type Database = {
           p_type: Database["public"]["Enums"]["appointment_type"];
         };
         Returns: string;
+      };
+      rsvp_to_event: {
+        Args: {
+          p_event_id: string;
+          p_status: Database["public"]["Enums"]["event_rsvp_status"];
+        };
+        Returns: undefined;
       };
       set_alteration_operation_price: {
         Args: {
@@ -3253,6 +3362,9 @@ export type Database = {
         | "delivery_complete";
       customer_lifecycle_stage:
         "prospect" | "first_purchase" | "returning" | "vip" | "lapsed";
+      event_rsvp_status: "invited" | "attending" | "declined" | "attended";
+      event_status: "draft" | "published" | "cancelled" | "completed";
+      event_visibility: "public" | "invite_only" | "vip_tier";
       garment_identification_state: "verified" | "needs_verification";
       garment_source_kind: "external" | "finished_mtm";
       loyalty_entry_type:
@@ -3509,6 +3621,9 @@ export const Constants = {
         "vip",
         "lapsed",
       ],
+      event_rsvp_status: ["invited", "attending", "declined", "attended"],
+      event_status: ["draft", "published", "cancelled", "completed"],
+      event_visibility: ["public", "invite_only", "vip_tier"],
       garment_identification_state: ["verified", "needs_verification"],
       garment_source_kind: ["external", "finished_mtm"],
       loyalty_entry_type: [

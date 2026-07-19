@@ -2,6 +2,7 @@ import type { CustomerId, EventId, RetailerId } from "../shared/branded-id";
 import type { Timestamps } from "../shared/timestamps";
 
 export type EventVisibility = "public" | "invite_only" | "vip_tier";
+export type EventStatus = "draft" | "published" | "cancelled" | "completed";
 
 /** A retailer-hosted event (trunk show, VIP evening, launch). */
 export interface RetailerEvent extends Timestamps {
@@ -11,8 +12,10 @@ export interface RetailerEvent extends Timestamps {
   readonly description: string;
   readonly startsAt: string;
   readonly endsAt: string;
-  readonly locationId?: string;
+  readonly venueName: string;
+  readonly venueAddress?: string;
   readonly visibility: EventVisibility;
+  readonly status: EventStatus;
   readonly capacity?: number;
 }
 
@@ -21,4 +24,5 @@ export interface EventRsvp {
   readonly customerId: CustomerId;
   readonly status: "invited" | "attending" | "declined" | "attended";
   readonly respondedAt?: string;
+  readonly createdAt: string;
 }

@@ -121,7 +121,8 @@ platforms — see [VISION.md](./VISION.md).
   order becomes delivered, with retailer-configurable earning rules.
 - ✅ Reward catalogue and transactional customer redemption.
 - ✅ Referral invite foundation with retailer-safe customer ownership.
-- `RetailerEvent` / `EventRsvp` for trunk shows and VIP events.
+- ✅ `RetailerEvent` / `EventRsvp` for public, invitation-only and VIP-tier
+  trunk shows and events, with capacity-safe customer responses.
 
 ## Phase 5 — Engagement and Personalisation
 

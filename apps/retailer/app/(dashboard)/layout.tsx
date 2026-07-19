@@ -74,6 +74,14 @@ export default async function DashboardLayout({
                       Loyalty
                     </Link>
                   ) : null}
+                  {canManageCatalog ? (
+                    <Link
+                      href="/events"
+                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                    >
+                      Events
+                    </Link>
+                  ) : null}
                 </>
               ) : null}
               <Link

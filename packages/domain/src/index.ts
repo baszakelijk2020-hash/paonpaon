@@ -34,6 +34,7 @@ export * from "./loyalty/loyalty.schema";
 export * from "./engagement/notification";
 export * from "./engagement/messaging";
 export * from "./engagement/event";
+export * from "./engagement/event.schema";
 export * from "./engagement/clienteling";
 
 export * from "./analytics/audit-log";

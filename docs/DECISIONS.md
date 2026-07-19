@@ -590,3 +590,15 @@ re-derived through `customers.user_id = auth.uid()`.
 balances must never blend. Payment is not integrated yet, so `delivered` is the
 first reliable qualifying lifecycle event. The ledger preserves an auditable
 history and prevents direct client-side balance arithmetic.
+
+## ADR-018: Event eligibility is enforced inside the RSVP transaction
+
+**Decision.** Events are retailer-owned and may be public, invitation-only, or
+restricted to gold/platinum loyalty members. Public browsing exposes only
+published public events. The RSVP RPC re-derives the customer relationship,
+checks visibility and membership, locks the event, enforces capacity, and then
+upserts the response. A first-time public guest becomes a retailer prospect.
+
+**Why.** Visibility in the interface is not authorization, and capacity cannot
+be safely checked in browser code. The database transaction prevents two final
+places being sold simultaneously and keeps restricted guest lists private.

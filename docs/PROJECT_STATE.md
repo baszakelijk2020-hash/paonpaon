@@ -346,8 +346,21 @@ and factory execution.
   redeem transactionally with an issued redemption code, and invite friends.
   RLS follows the existing multi-retailer customer identity model rather than
   trusting a single retailer claim.
-- Events remain the unbuilt part of Phase 4. Referral signup/purchase matching
-  and reward issuance will be completed with the referral acquisition journey.
+- Referral signup/purchase matching and reward issuance will be completed with
+  the referral acquisition journey.
+
+### Shipped: Retailer Events and customer RSVP journey (Phase 4)
+
+- Retailer managers create drafts, choose public/invite-only/VIP visibility,
+  set venues and capacity, publish events, and inspect guest responses.
+- Public events appear at `/r/[slug]/events`; authenticated customers can RSVP.
+  The transactional RSVP function creates a prospect relationship when a new
+  public-event guest first engages, enforces capacity under a row lock, and
+  enforces invitations or gold/platinum membership for restricted events.
+- Customers see their event responses across retailer relationships at
+  `/events`. RLS exposes only published eligible events and each customer's own
+  RSVP records. Phase 4's core foundations are now complete; referral conversion
+  automation remains a later enhancement rather than blocking Phase 5.
 
 ## Local database verification
 
