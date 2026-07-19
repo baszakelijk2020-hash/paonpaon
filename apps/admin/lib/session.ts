@@ -5,6 +5,7 @@ import {
   resolveAppSession,
   type AppSession,
 } from "@paon/auth";
+import { PlatformStaffRepository } from "@paon/database";
 import { redirect } from "next/navigation";
 
 import { getSupabaseServerClient } from "./supabase-server";
@@ -30,5 +31,10 @@ export async function requireSession(): Promise<
   } catch {
     redirect("/login");
   }
+  const supabase = await getSupabaseServerClient();
+  const staff = await new PlatformStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!staff?.acceptedAt) redirect("/accept-invite");
   return session;
 }

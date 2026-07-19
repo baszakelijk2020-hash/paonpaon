@@ -6,6 +6,7 @@
  *
  * Usage:
  *   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
+ *   ADMIN_APP_URL=http://localhost:3000 \
  *   BOOTSTRAP_EMAIL=you@paon.com BOOTSTRAP_FULL_NAME="Your Name" \
  *   pnpm --filter @paon/database bootstrap:platform-admin
  *
@@ -40,7 +41,10 @@ async function main() {
 
   const { data, error } = await admin.auth.admin.inviteUserByEmail(
     parsed.email,
-    { data: { full_name: parsed.fullName } },
+    {
+      data: { full_name: parsed.fullName },
+      redirectTo: requireEnv("ADMIN_APP_URL") + "/auth/confirm",
+    },
   );
 
   if (error || !data.user) {

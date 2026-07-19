@@ -48,15 +48,11 @@ Retailer Portal's `/auth/confirm` — see `docs/DECISIONS.md` ADR-009.
 badge. `middleware.ts` protects every route and rejects any signed-in
 user who isn't platform staff.
 
-**Known gap, not fixed, out of scope for every slice so far:** PAON
-Admin's own platform-staff invites (`bootstrap-platform-admin.ts`) have
-**no accept-invite landing page** — no `/auth/confirm` or
-`/accept-invite` route in `apps/admin`. A platform-staff invite email
-has nowhere correct to send the invitee. Fix by replicating the exact
-`/auth/confirm` + `/accept-invite` shape below (same pattern, no new
-design) plus an `accept_platform_staff_invite` RPC and a
-`PlatformStaffRepository.acceptInvite` method, **before** building any
-"invite another platform admin" UI in PAON Admin.
+PAON Admin platform-staff invitations now have the same complete acceptance
+journey as retailer staff: invite email → `/auth/confirm` → password setup at
+`/accept-invite` → accepted membership. Existing platform operators were
+forward-migrated as accepted; new operators cannot browse PAON Admin before
+finishing setup.
 
 ### Shipped: Retailer Portal — invite acceptance + operational workspace
 

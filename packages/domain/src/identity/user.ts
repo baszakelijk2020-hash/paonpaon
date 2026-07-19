@@ -30,6 +30,8 @@ export interface PlatformStaffMember extends Timestamps {
   readonly userId: UserId;
   readonly fullName: string;
   readonly role: PlatformRole;
+  readonly invitedAt: string;
+  readonly acceptedAt?: string;
 }
 
 /**

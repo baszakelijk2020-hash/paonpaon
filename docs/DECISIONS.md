@@ -639,3 +639,15 @@ not duplicate orders, appointments or other source entities.
 provider. The signal stream prepares future personalisation while the first
 analytics view delivers real value now. Manager-level access and database-side
 tenant checks prevent cross-retailer reporting leaks.
+
+## ADR-022: Platform staff invitations require explicit acceptance
+
+**Decision.** PAON Admin mirrors the proven retailer-staff invite confirmation
+flow. A platform membership records invitation and acceptance separately; the
+authenticated invitee sets a password and accepts only their own membership
+through a narrow database function before protected Admin routes are available.
+
+**Why.** An Auth session exists immediately after an invite link is verified,
+but that alone is not completed onboarding. Explicit acceptance closes the dead
+invite-link gap and prevents partially onboarded platform operators from
+browsing privileged cross-retailer tooling.

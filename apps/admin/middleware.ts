@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { env } from "./lib/env";
 
-const PUBLIC_PATHS = ["/login"];
+const PUBLIC_PATHS = ["/login", "/auth/confirm", "/accept-invite"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -51,7 +51,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isPublicPath) {
+  if (isPublicPath && request.nextUrl.pathname.startsWith("/login")) {
     return NextResponse.redirect(new URL("/retailers", request.url));
   }
 

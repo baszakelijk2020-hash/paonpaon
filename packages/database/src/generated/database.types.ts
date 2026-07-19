@@ -2322,28 +2322,34 @@ export type Database = {
       };
       platform_staff_members: {
         Row: {
+          accepted_at: string | null;
           created_at: string;
           deleted_at: string | null;
           full_name: string;
           id: string;
+          invited_at: string;
           role: Database["public"]["Enums"]["platform_role"];
           updated_at: string;
           user_id: string;
         };
         Insert: {
+          accepted_at?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           full_name: string;
           id?: string;
+          invited_at?: string;
           role: Database["public"]["Enums"]["platform_role"];
           updated_at?: string;
           user_id: string;
         };
         Update: {
+          accepted_at?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           full_name?: string;
           id?: string;
+          invited_at?: string;
           role?: Database["public"]["Enums"]["platform_role"];
           updated_at?: string;
           user_id?: string;
@@ -3422,6 +3428,10 @@ export type Database = {
       };
     };
     Functions: {
+      accept_platform_staff_invite: {
+        Args: { p_staff_id: string };
+        Returns: string;
+      };
       accept_retailer_staff_invite: {
         Args: { p_staff_id: string };
         Returns: undefined;

@@ -22,4 +22,7 @@ export const env = {
   get retailerAppUrl() {
     return requireEnv("NEXT_PUBLIC_RETAILER_APP_URL");
   },
+  get adminAppUrl() {
+    return requireEnv("NEXT_PUBLIC_ADMIN_APP_URL");
+  },
 };

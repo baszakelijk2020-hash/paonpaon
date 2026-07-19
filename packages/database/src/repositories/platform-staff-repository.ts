@@ -17,6 +17,8 @@ function toDomain(row: PlatformStaffRow): PlatformStaffMember {
     userId: asId<"UserId">(row.user_id),
     fullName: row.full_name,
     role: row.role,
+    invitedAt: row.invited_at,
+    ...(row.accepted_at ? { acceptedAt: row.accepted_at } : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -79,5 +81,14 @@ export class PlatformStaffRepository {
     }
 
     return toDomain(data);
+  }
+
+  async acceptInvite(id: string): Promise<string> {
+    const { data, error } = await this.client.rpc(
+      "accept_platform_staff_invite",
+      { p_staff_id: id },
+    );
+    if (error) throw error;
+    return data;
   }
 }
