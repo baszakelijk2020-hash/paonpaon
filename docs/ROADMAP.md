@@ -117,9 +117,10 @@ platforms — see [VISION.md](./VISION.md).
 
 ## Phase 4 — Loyalty, Rewards, Referrals, Events
 
-- `LoyaltyAccount` / `LoyaltyLedgerEntry` accrual on qualifying orders.
-- `Reward` redemption.
-- `Referral` flow, invite-to-reward.
+- ✅ `LoyaltyAccount` / append-only `LoyaltyLedgerEntry` accrual when an
+  order becomes delivered, with retailer-configurable earning rules.
+- ✅ Reward catalogue and transactional customer redemption.
+- ✅ Referral invite foundation with retailer-safe customer ownership.
 - `RetailerEvent` / `EventRsvp` for trunk shows and VIP events.
 
 ## Phase 5 — Engagement and Personalisation

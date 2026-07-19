@@ -23,4 +23,5 @@ export * from "./repositories/alteration-attachment-repository";
 export * from "./repositories/customer-alteration-repository";
 export * from "./repositories/physical-garment-repository";
 export * from "./repositories/workshop-repository";
+export * from "./repositories/loyalty-repository";
 export type { Database } from "./generated/database.types";

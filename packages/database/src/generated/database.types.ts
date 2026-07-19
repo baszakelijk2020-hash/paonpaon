@@ -1649,6 +1649,149 @@ export type Database = {
           },
         ];
       };
+      loyalty_accounts: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          id: string;
+          lifetime_points: number;
+          points_balance: number;
+          retailer_id: string;
+          tier: Database["public"]["Enums"]["loyalty_tier"];
+          tier_anniversary_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          id?: string;
+          lifetime_points?: number;
+          points_balance?: number;
+          retailer_id: string;
+          tier?: Database["public"]["Enums"]["loyalty_tier"];
+          tier_anniversary_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          id?: string;
+          lifetime_points?: number;
+          points_balance?: number;
+          retailer_id?: string;
+          tier?: Database["public"]["Enums"]["loyalty_tier"];
+          tier_anniversary_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_accounts_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loyalty_accounts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      loyalty_ledger_entries: {
+        Row: {
+          created_at: string;
+          id: string;
+          loyalty_account_id: string;
+          note: string | null;
+          points: number;
+          related_order_id: string | null;
+          type: Database["public"]["Enums"]["loyalty_entry_type"];
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          loyalty_account_id: string;
+          note?: string | null;
+          points: number;
+          related_order_id?: string | null;
+          type: Database["public"]["Enums"]["loyalty_entry_type"];
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          loyalty_account_id?: string;
+          note?: string | null;
+          points?: number;
+          related_order_id?: string | null;
+          type?: Database["public"]["Enums"]["loyalty_entry_type"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_ledger_entries_loyalty_account_id_fkey";
+            columns: ["loyalty_account_id"];
+            isOneToOne: false;
+            referencedRelation: "loyalty_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loyalty_ledger_entries_related_order_id_fkey";
+            columns: ["related_order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      loyalty_programs: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          enabled: boolean;
+          id: string;
+          name: string;
+          points_per_currency_unit: number;
+          referral_points: number;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          enabled?: boolean;
+          id?: string;
+          name?: string;
+          points_per_currency_unit?: number;
+          referral_points?: number;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          enabled?: boolean;
+          id?: string;
+          name?: string;
+          points_per_currency_unit?: number;
+          referral_points?: number;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_programs_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: true;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       order_lines: {
         Row: {
           created_at: string;
@@ -2160,6 +2303,77 @@ export type Database = {
           },
         ];
       };
+      referrals: {
+        Row: {
+          code: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          referred_customer_id: string | null;
+          referred_email: string;
+          referring_customer_id: string;
+          retailer_id: string;
+          reward_id: string | null;
+          status: Database["public"]["Enums"]["referral_status"];
+          updated_at: string;
+        };
+        Insert: {
+          code?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          referred_customer_id?: string | null;
+          referred_email: string;
+          referring_customer_id: string;
+          retailer_id: string;
+          reward_id?: string | null;
+          status?: Database["public"]["Enums"]["referral_status"];
+          updated_at?: string;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          referred_customer_id?: string | null;
+          referred_email?: string;
+          referring_customer_id?: string;
+          retailer_id?: string;
+          reward_id?: string | null;
+          status?: Database["public"]["Enums"]["referral_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_customer_id_fkey";
+            columns: ["referred_customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "referrals_referring_customer_id_fkey";
+            columns: ["referring_customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "referrals_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "referrals_reward_id_fkey";
+            columns: ["reward_id"];
+            isOneToOne: false;
+            referencedRelation: "rewards";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailer_alteration_category_settings: {
         Row: {
           category_id: string;
@@ -2362,6 +2576,101 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      reward_redemptions: {
+        Row: {
+          code: string;
+          created_at: string;
+          id: string;
+          loyalty_account_id: string;
+          points_spent: number;
+          reward_id: string;
+          status: Database["public"]["Enums"]["redemption_status"];
+          used_at: string | null;
+        };
+        Insert: {
+          code?: string;
+          created_at?: string;
+          id?: string;
+          loyalty_account_id: string;
+          points_spent: number;
+          reward_id: string;
+          status?: Database["public"]["Enums"]["redemption_status"];
+          used_at?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          id?: string;
+          loyalty_account_id?: string;
+          points_spent?: number;
+          reward_id?: string;
+          status?: Database["public"]["Enums"]["redemption_status"];
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reward_redemptions_loyalty_account_id_fkey";
+            columns: ["loyalty_account_id"];
+            isOneToOne: false;
+            referencedRelation: "loyalty_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reward_redemptions_reward_id_fkey";
+            columns: ["reward_id"];
+            isOneToOne: false;
+            referencedRelation: "rewards";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rewards: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          minimum_tier: Database["public"]["Enums"]["loyalty_tier"] | null;
+          name: string;
+          points_cost: number;
+          retailer_id: string;
+          type: Database["public"]["Enums"]["reward_type"];
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          minimum_tier?: Database["public"]["Enums"]["loyalty_tier"] | null;
+          name: string;
+          points_cost: number;
+          retailer_id: string;
+          type: Database["public"]["Enums"]["reward_type"];
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          minimum_tier?: Database["public"]["Enums"]["loyalty_tier"] | null;
+          name?: string;
+          points_cost?: number;
+          retailer_id?: string;
+          type?: Database["public"]["Enums"]["reward_type"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rewards_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       work_order_assignments: {
         Row: {
@@ -2790,6 +3099,10 @@ export type Database = {
         };
         Returns: string;
       };
+      create_my_referral: {
+        Args: { p_referred_email: string; p_retailer_id: string };
+        Returns: string;
+      };
       current_platform_role: { Args: never; Returns: string };
       current_retailer_id: { Args: never; Returns: string };
       current_retailer_role: { Args: never; Returns: string };
@@ -2802,6 +3115,10 @@ export type Database = {
           p_reason: string;
         };
         Returns: undefined;
+      };
+      ensure_my_loyalty_account: {
+        Args: { p_retailer_id: string };
+        Returns: string;
       };
       is_alterations_advisor: { Args: never; Returns: boolean };
       is_alterations_management: { Args: never; Returns: boolean };
@@ -2834,6 +3151,7 @@ export type Database = {
         };
         Returns: string;
       };
+      redeem_my_reward: { Args: { p_reward_id: string }; Returns: string };
       request_appointment: {
         Args: {
           p_ends_at: string;
@@ -2937,6 +3255,14 @@ export type Database = {
         "prospect" | "first_purchase" | "returning" | "vip" | "lapsed";
       garment_identification_state: "verified" | "needs_verification";
       garment_source_kind: "external" | "finished_mtm";
+      loyalty_entry_type:
+        | "earn_purchase"
+        | "earn_referral"
+        | "earn_bonus"
+        | "redeem_reward"
+        | "adjustment_expiry"
+        | "adjustment_manual";
+      loyalty_tier: "member" | "silver" | "gold" | "platinum";
       order_channel: "online" | "in_store" | "clienteling" | "phone";
       order_status:
         | "draft"
@@ -2957,6 +3283,9 @@ export type Database = {
       price_change_proposal_status:
         "pending" | "approved" | "rejected" | "withdrawn";
       product_status: "draft" | "active" | "archived";
+      redemption_status: "issued" | "used" | "cancelled";
+      referral_status:
+        "invited" | "signed_up" | "first_purchase_completed" | "rewarded";
       retailer_role:
         | "read_only"
         | "production_staff"
@@ -2969,6 +3298,8 @@ export type Database = {
       retailer_status:
         "pending_onboarding" | "active" | "suspended" | "churned";
       retailer_tier: "boutique" | "house" | "maison";
+      reward_type:
+        "discount_percent" | "discount_fixed" | "gift" | "early_access";
       work_classification: "work_now" | "future_order_note";
       workshop_status: "active" | "inactive";
     };
@@ -3180,6 +3511,15 @@ export const Constants = {
       ],
       garment_identification_state: ["verified", "needs_verification"],
       garment_source_kind: ["external", "finished_mtm"],
+      loyalty_entry_type: [
+        "earn_purchase",
+        "earn_referral",
+        "earn_bonus",
+        "redeem_reward",
+        "adjustment_expiry",
+        "adjustment_manual",
+      ],
+      loyalty_tier: ["member", "silver", "gold", "platinum"],
       order_channel: ["online", "in_store", "clienteling", "phone"],
       order_status: [
         "draft",
@@ -3206,6 +3546,13 @@ export const Constants = {
         "withdrawn",
       ],
       product_status: ["draft", "active", "archived"],
+      redemption_status: ["issued", "used", "cancelled"],
+      referral_status: [
+        "invited",
+        "signed_up",
+        "first_purchase_completed",
+        "rewarded",
+      ],
       retailer_role: [
         "read_only",
         "production_staff",
@@ -3218,6 +3565,12 @@ export const Constants = {
       ],
       retailer_status: ["pending_onboarding", "active", "suspended", "churned"],
       retailer_tier: ["boutique", "house", "maison"],
+      reward_type: [
+        "discount_percent",
+        "discount_fixed",
+        "gift",
+        "early_access",
+      ],
       work_classification: ["work_now", "future_order_note"],
       workshop_status: ["active", "inactive"],
     },

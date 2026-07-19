@@ -334,6 +334,21 @@ and factory execution.
   provider, push and deployment. `ProductionOrder` remains a future
   connector-facing status projection.
 
+### Shipped: Loyalty, Rewards and Referral foundation (Phase 4)
+
+- Retailer managers configure an enabled loyalty programme, purchase earning
+  rate and referral bonus, create tier-aware rewards, and see member/points
+  totals at `/loyalty`.
+- A delivered order accrues purchase points exactly once through a database
+  trigger. The append-only ledger is authoritative; cached balances update in
+  the same transaction.
+- Customers join per-retailer programmes, see balances and available rewards,
+  redeem transactionally with an issued redemption code, and invite friends.
+  RLS follows the existing multi-retailer customer identity model rather than
+  trusting a single retailer claim.
+- Events remain the unbuilt part of Phase 4. Referral signup/purchase matching
+  and reward issuance will be completed with the referral acquisition journey.
+
 ## Local database verification
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration

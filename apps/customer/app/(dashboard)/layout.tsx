@@ -42,6 +42,12 @@ export default async function DashboardLayout({
               >
                 Alterations
               </Link>
+              <Link
+                href="/loyalty"
+                className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+              >
+                Loyalty
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">

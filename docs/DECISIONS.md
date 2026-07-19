@@ -576,3 +576,17 @@ preserved in the new timeline and the original foundation tables remain
 archived. Future production connectors may project supplier status into PAON,
 but they must not move manufacturing specifications or construction workflow
 into this aggregate.
+
+## ADR-017: Loyalty is a retailer programme with an append-only ledger
+
+**Decision.** Loyalty belongs to each retailer-customer relationship. Points
+accrue once when an order first reaches `delivered`; balances are cached on the
+account but every change has an immutable ledger entry. Reward redemption is a
+single transactional RPC that locks the account, deducts points, writes the
+ledger and issues a unique redemption code. Customer authority is always
+re-derived through `customers.user_id = auth.uid()`.
+
+**Why.** One customer login can belong to many retailers, whose programmes and
+balances must never blend. Payment is not integrated yet, so `delivered` is the
+first reliable qualifying lifecycle event. The ledger preserves an auditable
+history and prevents direct client-side balance arithmetic.

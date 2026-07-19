@@ -29,6 +29,7 @@ export * from "./appointments/appointment";
 export * from "./appointments/appointment.schema";
 
 export * from "./loyalty/loyalty";
+export * from "./loyalty/loyalty.schema";
 
 export * from "./engagement/notification";
 export * from "./engagement/messaging";
