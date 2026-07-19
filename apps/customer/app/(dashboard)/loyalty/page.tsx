@@ -106,10 +106,27 @@ export default async function LoyaltyPage() {
                   <Button type="submit">Invite friend</Button>
                 </form>
                 {referrals.length ? (
-                  <p className="text-sm text-[var(--color-stone-500)]">
-                    {referrals.length} referral
-                    {referrals.length === 1 ? "" : "s"} sent
-                  </p>
+                  <div>
+                    <h3 className="mb-2 font-medium">
+                      {referrals.length} referral
+                      {referrals.length === 1 ? "" : "s"} sent
+                    </h3>
+                    <ul className="flex flex-col gap-1">
+                      {referrals.map((referral) => (
+                        <li
+                          key={referral.id}
+                          className="flex items-center justify-between text-sm"
+                        >
+                          <span className="text-[var(--color-stone-700)]">
+                            {referral.referredEmail}
+                          </span>
+                          <span className="capitalize text-[var(--color-stone-500)]">
+                            {referral.status.replaceAll("_", " ")}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ) : null}
               </>
             ) : (

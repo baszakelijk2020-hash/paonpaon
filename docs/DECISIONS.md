@@ -717,3 +717,57 @@ mutation that needs the same "recompute the total after touching one line"
 shape should reuse `add_to_cart`/`update_cart_line`'s pattern (recompute
 `subtotal`/`total` from `order_lines` inside the same transaction) rather
 than trusting a client-supplied total.
+
+## ADR-025: Referral conversion is trigger-driven off existing lifecycle events
+
+**Context.** ADR-017 shipped `create_my_referral` and the `Referral`
+aggregate but left every referral at `status = 'invited'` forever —
+`docs/PROJECT_STATE.md` flagged "signup/purchase matching and reward
+issuance" as the remaining piece. The three later states
+(`signed_up`, `first_purchase_completed`, `rewarded`) each correspond to an
+event that already happens elsewhere in the system: a Customer Portal
+signup/link, and an order reaching `delivered`. No new customer action or
+UI submission drives any of these transitions.
+
+**Decision.**
+
+1. **A new trigger on `customers` (`match_referral_after_customer_link`,
+   `after insert or update of user_id ... when (new.user_id is not null)`)
+   matches a still-`invited` referral by `lower(referred_email) =
+lower(customers.email)` within the same retailer**, and advances it to
+   `signed_up`. This fires for every path a `customers` row can gain a
+   `user_id` — the inline creation inside `place_order`/`add_to_cart`/
+   `request_appointment` (insert with `user_id` already set) and
+   `link_my_customer_accounts` linking a staff-created prospect record
+   (update of `user_id`) — without either of those functions needing to
+   know referrals exist.
+2. **`accrue_loyalty_on_delivered_order` (ADR-017) is extended in place**
+   (`create or replace function`, same forward-migration shape as
+   `20260719000101_*`/`20260719000103_*` amending earlier functions) rather
+   than adding a second trigger on the same `orders` status transition —
+   purchase-point accrual and referral conversion both react to "this order
+   just became delivered" and share the "ensure a loyalty account exists"
+   step. It advances a `signed_up` referral to `first_purchase_completed`
+   only if this is the referred customer's first-ever delivered order at
+   that retailer (a repeat purchase can't retroactively earn a reward,
+   and can't re-fire regardless — the referral is no longer `signed_up`
+   after conversion), then to `rewarded` and credits the _referrer's_
+   loyalty account `referral_points` as an `earn_referral` ledger entry, in
+   the same transaction as the purchase accrual.
+3. **`Referral.rewardId` stays unused by this slice.** The column exists on
+   the table/domain type for a possible future "reward the referrer with a
+   specific catalogue `Reward` instead of raw points" enhancement; today's
+   reward is always `loyalty_programs.referral_points`, recorded as a
+   ledger entry, not a `reward_redemptions` row.
+
+**Why.** Every prior "X happens as a side effect of Y" case in this
+codebase (loyalty accrual on delivery, JWT claim sync on staff writes) uses
+a trigger that re-derives its own facts rather than asking the triggering
+code path to know about the downstream concern — referral conversion is the
+same shape. Doing it any other way would mean `place_order`, `add_to_cart`,
+`request_appointment`, and `link_my_customer_accounts` all growing
+referral-specific logic, and `OrderRepository.updateStatus` growing
+loyalty-specific logic on top of what it already carries — a violation of
+`docs/PRINCIPLES.md` "maximum reuse, zero duplicated logic" in the other
+direction (duplicating a concern across every place that can cause it,
+instead of centralizing it at the one place that observes it).

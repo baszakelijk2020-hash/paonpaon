@@ -392,8 +392,26 @@ and factory execution.
   redeem transactionally with an issued redemption code, and invite friends.
   RLS follows the existing multi-retailer customer identity model rather than
   trusting a single retailer claim.
-- Referral signup/purchase matching and reward issuance will be completed with
-  the referral acquisition journey.
+
+### Shipped: Referral acquisition journey (Phase 4)
+
+Full reasoning in `docs/DECISIONS.md` ADR-025.
+
+- A referral now progresses through its full lifecycle with no new customer
+  action required beyond the invite already shipped: `invited` →
+  `signed_up`, driven by a trigger on `customers` that fires whenever a row
+  gains a `user_id` (the referred email's Customer Portal signup, however it
+  happens — inline creation from `place_order`/`add_to_cart`/
+  `request_appointment`, or `link_my_customer_accounts` linking an existing
+  prospect) → `first_purchase_completed`, on the referred customer's
+  first-ever delivered order at that retailer → `rewarded`, crediting the
+  _referrer's_ loyalty account `referral_points` as an `earn_referral`
+  ledger entry, in the same transaction as ordinary purchase-point accrual.
+- Customer Portal `/loyalty` lists each sent referral with its live status
+  (previously just a count) so a shopper can see a referral convert.
+- `Referral.rewardId` stays unused — today's reward is always raw points,
+  not a catalogue `Reward` redemption; the column is reserved for a possible
+  future enhancement, not populated speculatively.
 
 ### Shipped: Retailer Events and customer RSVP journey (Phase 4)
 
@@ -434,10 +452,14 @@ and factory execution.
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
   chain (`20260719000000`–`20260719000103`, then `20260720000000`–
-  `20260720000009` including the persisted-cart migration) was executed
-  twice from an empty local PostgreSQL database with `supabase start` and
-  `supabase db reset`. `supabase db lint --level warning` reports no schema
-  errors.
+  `20260720000010` including the persisted-cart and referral-journey
+  migrations) was executed repeatedly from an empty local PostgreSQL
+  database with `supabase start` and `supabase db reset`.
+  `supabase db lint --level warning` reports no schema errors. The referral
+  triggers were also verified directly against the local database with a
+  throwaway script exercising the full invite → signup → delivered-order →
+  reward sequence via the admin client before the Playwright coverage below
+  was written, since a Postgres trigger can't be unit-tested in Vitest.
 - `packages/database/src/generated/database.types.ts` is real output from
   `supabase gen types typescript --local`, reformatted with `pnpm format`
   (the CLI's raw output omits semicolons; Prettier normalizes it back to the
@@ -446,12 +468,12 @@ and factory execution.
   actual schema, not a hand-maintained approximation.
 - The real local Supabase stack backs all browser journeys. Playwright is
   green for PAON Admin (5 tests), Retailer Portal (14 tests), and Customer
-  Portal (7 tests) — re-verified 2026-07-20 against the persisted-cart
-  slice, each suite run twice back-to-back to confirm idempotency. These
-  cover onboarding, invitations, authentication, CRM, catalogue, storefront
-  ordering and cart/checkout, appointments, alterations, and pickup
-  readiness. This pass caught and fixed three real bugs, not just
-  environment drift:
+  Portal (8 tests) — re-verified 2026-07-20 against both the persisted-cart
+  and referral-journey slices, each suite run at least twice back-to-back to
+  confirm idempotency. These cover onboarding, invitations, authentication,
+  CRM, catalogue, storefront ordering and cart/checkout, appointments,
+  alterations, pickup readiness, and referral conversion. This pass caught
+  and fixed three real bugs, not just environment drift:
   - The cart's "Update" and "Place order" buttons
     (`apps/customer/app/r/[slug]/cart/cart-client.tsx`) had no
     `type="submit"` — `@paon/ui`'s `Button` defaults to `type="button"`

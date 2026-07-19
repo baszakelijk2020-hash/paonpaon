@@ -124,7 +124,8 @@ platforms — see [VISION.md](./VISION.md).
 - ✅ `LoyaltyAccount` / append-only `LoyaltyLedgerEntry` accrual when an
   order becomes delivered, with retailer-configurable earning rules.
 - ✅ Reward catalogue and transactional customer redemption.
-- ✅ Referral invite foundation with retailer-safe customer ownership.
+- ✅ Referral invite, signup matching, first-purchase matching and reward
+  issuance — the full acquisition journey, not just the invite. See ADR-025.
 - ✅ `RetailerEvent` / `EventRsvp` for public, invitation-only and VIP-tier
   trunk shows and events, with capacity-safe customer responses.
 
