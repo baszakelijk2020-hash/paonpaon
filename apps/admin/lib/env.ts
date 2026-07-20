@@ -30,6 +30,10 @@ export const env = {
   get adminAppUrl() {
     return requireEnv("NEXT_PUBLIC_ADMIN_APP_URL");
   },
+  /** Customer Portal's base URL — the daily newsletter digest links back here, not to this app. */
+  get customerAppUrl() {
+    return optionalEnv("NEXT_PUBLIC_CUSTOMER_APP_URL");
+  },
   /** PAON's own platform Stripe secret key — absent until a platform operator provisions one, see docs/PROJECT_STATE.md "Credentials needed". */
   get stripeSecretKey() {
     return optionalEnv("STRIPE_SECRET_KEY");

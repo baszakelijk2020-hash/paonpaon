@@ -2203,6 +2203,44 @@ export type Database = {
           },
         ];
       };
+      newsletter_subscribers: {
+        Row: {
+          created_at: string;
+          email: string;
+          id: string;
+          retailer_id: string;
+          subscribed_at: string;
+          unsubscribed_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          email: string;
+          id?: string;
+          retailer_id: string;
+          subscribed_at?: string;
+          unsubscribed_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string;
+          id?: string;
+          retailer_id?: string;
+          subscribed_at?: string;
+          unsubscribed_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_subscribers_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       notifications: {
         Row: {
           action_href: string | null;
@@ -4411,6 +4449,10 @@ export type Database = {
           p_retailer_id: string;
         };
         Returns: string;
+      };
+      subscribe_to_newsletter: {
+        Args: { p_email: string; p_retailer_id: string };
+        Returns: undefined;
       };
       toggle_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };

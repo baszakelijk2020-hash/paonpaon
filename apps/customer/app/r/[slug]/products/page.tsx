@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { NewsletterSignup } from "../newsletter-signup";
 import { TrackView } from "../track-view";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -148,6 +149,16 @@ export default async function StorefrontProductsPage({
           ))}
         </div>
       )}
+
+      <div className="mt-16 border-t border-[var(--color-stone-200)] pt-8">
+        <p className="mb-1 text-lg font-[var(--font-display)] text-[var(--color-stone-900)]">
+          Stay in the know
+        </p>
+        <p className="mb-3 text-sm text-[var(--color-stone-500)]">
+          New arrivals and a daily style pick, straight to your inbox.
+        </p>
+        <NewsletterSignup retailerId={retailer.id} />
+      </div>
     </main>
   );
 }
