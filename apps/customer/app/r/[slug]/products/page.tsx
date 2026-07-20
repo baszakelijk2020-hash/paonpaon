@@ -64,12 +64,20 @@ export default async function StorefrontProductsPage({
             Shop
           </h1>
         </div>
-        <Link
-          href={`/r/${slug}/appointments`}
-          className="text-sm text-[var(--color-stone-700)] underline underline-offset-4"
-        >
-          Book an appointment
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href={`/r/${slug}/swipe`}
+            className="text-sm text-[var(--color-stone-700)] underline underline-offset-4"
+          >
+            Find your style
+          </Link>
+          <Link
+            href={`/r/${slug}/appointments`}
+            className="text-sm text-[var(--color-stone-700)] underline underline-offset-4"
+          >
+            Book an appointment
+          </Link>
+        </div>
       </div>
 
       {collections.length > 0 ? (
