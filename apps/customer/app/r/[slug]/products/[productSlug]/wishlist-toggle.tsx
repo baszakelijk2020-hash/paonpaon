@@ -2,6 +2,7 @@
 
 import type { ProductVariant } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
+import { Select } from "@paon/ui/components/Select";
 import { useActionState, useState } from "react";
 
 import { toggleWishlist, type ToggleWishlistState } from "./actions";
@@ -34,11 +35,11 @@ export function WishlistToggle({
       <input type="hidden" name="retailerId" value={retailerId} />
       <input type="hidden" name="productVariantId" value={variantId} />
       {variants.length > 1 ? (
-        <select
+        <Select
           aria-label="Wishlist option"
           value={variantId}
           onChange={(event) => setVariantId(event.target.value)}
-          className="rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-xs"
+          className="w-auto text-xs"
         >
           {variants.map((variant) => (
             <option key={variant.id} value={variant.id}>
@@ -46,7 +47,7 @@ export function WishlistToggle({
                 variant.sku}
             </option>
           ))}
-        </select>
+        </Select>
       ) : null}
       <Button
         type="submit"

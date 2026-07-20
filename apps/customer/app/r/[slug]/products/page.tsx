@@ -3,7 +3,6 @@ import {
   ProductRepository,
   RetailerRepository,
 } from "@paon/database";
-import { Card } from "@paon/ui/components/Card";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -43,21 +42,26 @@ export default async function StorefrontProductsPage({
     : allProducts;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
-      <p className="mb-1 text-sm font-medium uppercase tracking-wide text-[var(--color-stone-500)]">
-        {retailer.displayName}
-      </p>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
-          Shop
-        </h1>
-        <Link href={`/r/${slug}/appointments`} className="text-sm underline">
+    <main className="mx-auto max-w-6xl px-6 py-12">
+      <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="mb-1 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+            {retailer.displayName}
+          </p>
+          <h1 className="text-4xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+            Shop
+          </h1>
+        </div>
+        <Link
+          href={`/r/${slug}/appointments`}
+          className="text-sm text-[var(--color-stone-700)] underline underline-offset-4"
+        >
           Book an appointment
         </Link>
       </div>
 
       {collections.length > 0 ? (
-        <nav className="mb-6 flex flex-wrap gap-2">
+        <nav className="mb-10 flex flex-wrap gap-2">
           <Link
             href={`/r/${slug}/products`}
             className={`rounded-full border px-3 py-1 text-sm ${
@@ -91,36 +95,38 @@ export default async function StorefrontProductsPage({
             : "Nothing available yet — check back soon."}
         </p>
       ) : (
-        <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+        <div className="columns-2 gap-5 sm:columns-3 [&>*]:mb-5 [&>*]:break-inside-avoid">
           {products.map((product) => (
             <Link
               key={product.id}
               href={`/r/${slug}/products/${product.slug}`}
-              className="flex items-center gap-4 px-6 py-4 hover:bg-[var(--color-stone-50)]"
+              className="group block"
             >
-              {product.primaryImageUrl ? (
-                <Image
-                  src={product.primaryImageUrl}
-                  alt=""
-                  width={56}
-                  height={56}
-                  unoptimized
-                  className="aspect-square w-14 shrink-0 rounded-[var(--radius-sm)] object-cover"
-                />
-              ) : null}
-              <div>
-                <p className="font-medium text-[var(--color-stone-900)]">
-                  {product.name}
-                </p>
-                {product.isMadeToOrder ? (
-                  <p className="text-sm text-[var(--color-stone-500)]">
-                    Made to order
-                  </p>
-                ) : null}
+              <div className="mb-3 overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-stone-100)]">
+                {product.primaryImageUrl ? (
+                  <Image
+                    src={product.primaryImageUrl}
+                    alt=""
+                    width={480}
+                    height={480}
+                    unoptimized
+                    className="w-full object-cover transition-transform duration-500 ease-[var(--ease-out-quiet)] group-hover:scale-[1.03]"
+                  />
+                ) : (
+                  <div className="aspect-[3/4] w-full" />
+                )}
               </div>
+              <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                {product.name}
+              </p>
+              {product.isMadeToOrder ? (
+                <p className="text-xs uppercase tracking-wide text-[var(--color-stone-500)]">
+                  Made to order
+                </p>
+              ) : null}
             </Link>
           ))}
-        </Card>
+        </div>
       )}
     </main>
   );

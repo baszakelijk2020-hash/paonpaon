@@ -5,6 +5,7 @@ import {
   RetailerRepository,
   WishlistRepository,
 } from "@paon/database";
+import { formatMoney } from "@paon/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -61,62 +62,108 @@ export default async function StorefrontProductPage({
     }
   }
 
+  const prices = variants.map((variant) => variant.price.amountMinorUnits);
+  const priceLabel =
+    variants.length === 0
+      ? null
+      : prices.every((amount) => amount === prices[0])
+        ? formatMoney(variants[0]!.price, "en-US")
+        : `From ${formatMoney(
+            variants.reduce((lowest, variant) =>
+              variant.price.amountMinorUnits < lowest.price.amountMinorUnits
+                ? variant
+                : lowest,
+            ).price,
+            "en-US",
+          )}`;
+
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
+    <main className="mx-auto max-w-5xl px-6 py-10">
       <Link
         href={`/r/${slug}/products`}
-        className="mb-6 inline-block text-sm text-[var(--color-stone-500)] hover:underline"
+        className="mb-8 inline-block text-sm text-[var(--color-stone-500)] hover:underline"
       >
         ← Back to {retailer.displayName}
       </Link>
-      {product.primaryImageUrl ? (
-        <Image
-          src={product.primaryImageUrl}
-          alt={product.name}
-          width={640}
-          height={640}
-          unoptimized
-          className="mb-6 aspect-square w-full rounded-[var(--radius-md)] object-cover"
-        />
-      ) : null}
-      <h1 className="mb-2 text-2xl font-medium text-[var(--color-stone-900)]">
-        {product.name}
-      </h1>
-      {product.description ? (
-        <p className="mb-6 text-[var(--color-stone-700)]">
-          {product.description}
-        </p>
-      ) : null}
-      {product.isMadeToOrder ? (
-        <p className="mb-6 text-sm text-[var(--color-stone-500)]">
-          Made to order
-        </p>
-      ) : null}
 
-      {variants.length === 0 ? (
-        <p className="text-[var(--color-stone-600)]">
-          Not currently available.
-        </p>
-      ) : (
-        <>
-          <OrderForm
-            slug={slug}
-            productSlug={productSlug}
-            retailerId={retailer.id}
-            variants={variants}
-            isSignedIn={isSignedIn}
-          />
-          {isSignedIn ? (
-            <WishlistToggle
-              slug={slug}
-              productSlug={productSlug}
-              retailerId={retailer.id}
-              variants={variants}
-              savedVariantIds={savedVariantIds}
+      <div className="grid gap-10 lg:grid-cols-2">
+        <div className="lg:sticky lg:top-10 lg:self-start">
+          {product.primaryImageUrl ? (
+            <Image
+              src={product.primaryImageUrl}
+              alt={product.name}
+              width={800}
+              height={800}
+              unoptimized
+              priority
+              className="aspect-square w-full rounded-[var(--radius-md)] object-cover"
             />
+          ) : (
+            <div className="aspect-square w-full rounded-[var(--radius-md)] bg-[var(--color-stone-100)]" />
+          )}
+        </div>
+
+        <div>
+          {product.isMadeToOrder ? (
+            <p className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+              Made to order
+            </p>
           ) : null}
-        </>
-      )}
+          <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+            {product.name}
+          </h1>
+          {priceLabel ? (
+            <p className="mt-2 text-lg text-[var(--color-stone-700)]">
+              {priceLabel}
+            </p>
+          ) : null}
+          {product.description ? (
+            <p className="mt-5 text-[var(--color-stone-700)]">
+              {product.description}
+            </p>
+          ) : null}
+
+          <div className="mt-8 border-t border-[var(--color-stone-200)] pt-8">
+            {variants.length === 0 ? (
+              <p className="text-[var(--color-stone-600)]">
+                Not currently available.
+              </p>
+            ) : (
+              <>
+                <OrderForm
+                  slug={slug}
+                  productSlug={productSlug}
+                  retailerId={retailer.id}
+                  variants={variants}
+                  isSignedIn={isSignedIn}
+                />
+                {isSignedIn ? (
+                  <WishlistToggle
+                    slug={slug}
+                    productSlug={productSlug}
+                    retailerId={retailer.id}
+                    variants={variants}
+                    savedVariantIds={savedVariantIds}
+                  />
+                ) : null}
+              </>
+            )}
+          </div>
+
+          <div className="mt-6 border-t border-[var(--color-stone-200)] pt-6">
+            <p className="text-sm text-[var(--color-stone-600)]">
+              Prefer to try it on first?{" "}
+              <Link
+                href={`/r/${slug}/appointments`}
+                className="underline underline-offset-4"
+              >
+                Book a complimentary fitting
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }

@@ -1,9 +1,12 @@
 "use client";
 
 import type { ProductVariant } from "@paon/domain";
-import { Button } from "@paon/ui/components/Button";
+import { Button, buttonVariants } from "@paon/ui/components/Button";
+import { FormField } from "@paon/ui/components/FormField";
+import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
 import { formatMoney } from "@paon/utils";
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { addToCart, type PlaceOrderFormState } from "./actions";
@@ -31,12 +34,12 @@ export function OrderForm({
 
   if (!isSignedIn) {
     return (
-      <a
+      <Link
         href={`/login?redirectTo=${encodeURIComponent(`/r/${slug}/products/${productSlug}`)}`}
-        className="inline-flex items-center rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-stone-700)]"
+        className={buttonVariants({ className: "w-full justify-center" })}
       >
         Sign in to purchase
-      </a>
+      </Link>
     );
   }
 
@@ -45,38 +48,29 @@ export function OrderForm({
       <input type="hidden" name="retailerId" value={retailerId} />
       <div className="flex items-end gap-3">
         <div className="flex-1">
-          <label
-            htmlFor="productVariantId"
-            className="mb-1 block text-sm font-medium text-[var(--color-stone-700)]"
-          >
-            Option
-          </label>
-          <Select id="productVariantId" name="productVariantId" required>
-            {variants.map((variant) => (
-              <option key={variant.id} value={variant.id}>
-                {[variant.size, variant.color].filter(Boolean).join(" · ") ||
-                  variant.sku}{" "}
-                — {formatMoney(variant.price, "en-US")}
-              </option>
-            ))}
-          </Select>
+          <FormField label="Option" htmlFor="productVariantId">
+            <Select id="productVariantId" name="productVariantId" required>
+              {variants.map((variant) => (
+                <option key={variant.id} value={variant.id}>
+                  {[variant.size, variant.color].filter(Boolean).join(" · ") ||
+                    variant.sku}{" "}
+                  — {formatMoney(variant.price, "en-US")}
+                </option>
+              ))}
+            </Select>
+          </FormField>
         </div>
         <div className="w-24">
-          <label
-            htmlFor="quantity"
-            className="mb-1 block text-sm font-medium text-[var(--color-stone-700)]"
-          >
-            Qty
-          </label>
-          <input
-            id="quantity"
-            name="quantity"
-            type="number"
-            min={1}
-            max={20}
-            defaultValue={1}
-            className="w-full rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 py-2 text-sm"
-          />
+          <FormField label="Qty" htmlFor="quantity">
+            <Input
+              id="quantity"
+              name="quantity"
+              type="number"
+              min={1}
+              max={20}
+              defaultValue={1}
+            />
+          </FormField>
         </div>
       </div>
       {state.formError ? (
