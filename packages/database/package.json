@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "generate-types": "supabase gen types typescript --local > src/generated/database.types.ts",
-    "bootstrap:platform-admin": "tsx scripts/bootstrap-platform-admin.ts"
+    "bootstrap:platform-admin": "tsx scripts/bootstrap-platform-admin.ts",
+    "seed:demo": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
     "@paon/domain": "workspace:*",
