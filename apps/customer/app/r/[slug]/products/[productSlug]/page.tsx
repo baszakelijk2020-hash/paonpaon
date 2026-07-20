@@ -10,6 +10,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { TrackView } from "../../track-view";
+
 import { OrderForm } from "./order-form";
 import { WishlistToggle } from "./wishlist-toggle";
 
@@ -79,6 +81,11 @@ export default async function StorefrontProductPage({
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
+      <TrackView
+        retailerId={retailer.id}
+        name="product_viewed"
+        properties={{ productId: product.id, productName: product.name }}
+      />
       <Link
         href={`/r/${slug}/products`}
         className="mb-8 inline-block text-sm text-[var(--color-stone-500)] hover:underline"

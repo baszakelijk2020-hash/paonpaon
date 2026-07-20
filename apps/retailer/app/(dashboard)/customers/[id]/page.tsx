@@ -150,7 +150,7 @@ export default async function CustomerDetailPage({
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card id="clienteling-notes">
           <h2 className="mb-3 text-lg font-medium">Clienteling notes</h2>
           {canManage ? (
             <form

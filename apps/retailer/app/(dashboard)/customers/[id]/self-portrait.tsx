@@ -27,6 +27,15 @@ function eventLabel(event: BehavioralEvent): string {
   return EVENT_LABELS[event.name] ?? event.name.replaceAll("_", " ");
 }
 
+const CLIENTELING_PROMPT_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
+
+function isRecent(occurredAt: string | undefined): boolean {
+  if (!occurredAt) return false;
+  return (
+    Date.now() - new Date(occurredAt).getTime() < CLIENTELING_PROMPT_WINDOW_MS
+  );
+}
+
 /**
  * The one place staff read the customer as a whole rather than
  * per-record — loyalty standing, what they've been doing, and what the
@@ -71,6 +80,20 @@ export function SelfPortrait({
           <p className="text-sm text-[var(--color-stone-900)]">
             {pinnedNote.body}
           </p>
+        </div>
+      ) : null}
+
+      {isRecent(recentEvents[0]?.occurredAt) ? (
+        <div className="border-[var(--color-warning-500)]/30 bg-[var(--color-warning-500)]/10 mb-4 flex items-center justify-between rounded-[var(--radius-sm)] border px-3 py-2">
+          <p className="text-sm text-[var(--color-stone-800)]">
+            Active in the last few days — worth a clienteling note?
+          </p>
+          <a
+            href="#clienteling-notes"
+            className="whitespace-nowrap text-sm font-medium underline underline-offset-4"
+          >
+            Add note
+          </a>
         </div>
       ) : null}
 

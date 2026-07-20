@@ -7,6 +7,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { TrackView } from "../track-view";
+
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function StorefrontProductsPage({
@@ -43,6 +45,16 @@ export default async function StorefrontProductsPage({
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
+      {activeCollection ? (
+        <TrackView
+          retailerId={retailer.id}
+          name="category_browsed"
+          properties={{
+            collectionId: activeCollection.id,
+            collectionName: activeCollection.name,
+          }}
+        />
+      ) : null}
       <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mb-1 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
