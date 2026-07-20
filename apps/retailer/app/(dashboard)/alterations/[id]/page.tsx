@@ -77,6 +77,7 @@ export default async function AlterationDetailPage({
     fulfillment,
     assignment,
     attachments,
+    pricingHistory,
   ] = await Promise.all([
     fullAlteration
       ? new CustomerRepository(supabase).findById(fullAlteration.customerId)
@@ -118,6 +119,9 @@ export default async function AlterationDetailPage({
     new AlterationAttachmentRepository(supabase).findByAlteration(
       alteration.id,
     ),
+    isWorker
+      ? Promise.resolve([])
+      : workflowRepository.findPricingHistory(alteration.id),
   ]);
 
   const hasUpdatePermission = [
@@ -746,6 +750,38 @@ export default async function AlterationDetailPage({
               />
             ) : null}
           </Card>
+
+          {pricingHistory.length > 0 ? (
+            <Card>
+              <h2 className="mb-3 text-lg font-medium">Pricing audit trail</h2>
+              <p className="mb-3 text-sm text-[var(--color-stone-500)]">
+                Every quote, proposal, approval and rejection, in order —
+                append-only, cross-check this against the workshop&rsquo;s
+                invoice.
+              </p>
+              <div className="divide-y divide-[var(--color-stone-100)]">
+                {pricingHistory.map((entry) => (
+                  <div key={entry.id} className="py-2 text-sm">
+                    <span className="font-medium capitalize">
+                      {entry.eventType.replaceAll("_", " ")}
+                    </span>{" "}
+                    · {(entry.amount.amountMinorUnits / 100).toFixed(2)}{" "}
+                    {entry.amount.currency}
+                    {entry.actorStaffId
+                      ? ` · ${staff.find((s) => s.id === entry.actorStaffId)?.fullName ?? "Unknown"}`
+                      : ""}
+                    {" · "}
+                    {formatDate(entry.createdAt, "en-US")}
+                    {entry.reason ? (
+                      <p className="text-[var(--color-stone-600)]">
+                        {entry.reason}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          ) : null}
         </div>
       ) : null}
 

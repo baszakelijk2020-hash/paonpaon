@@ -2,6 +2,7 @@ import {
   asId,
   money,
   type AlterationId,
+  type AlterationPricingHistoryEntry,
   type AlterationTaskId,
   type CurrencyCode,
   type PriceChangeProposal,
@@ -15,6 +16,26 @@ import type { Database } from "../generated/database.types";
 
 type ProposalRow =
   Database["public"]["Tables"]["price_change_proposals"]["Row"];
+type PricingHistoryRow =
+  Database["public"]["Tables"]["alteration_pricing_history"]["Row"];
+
+function pricingHistoryToDomain(
+  row: PricingHistoryRow,
+): AlterationPricingHistoryEntry {
+  return {
+    id: row.id,
+    alterationId: asId<"AlterationId">(row.alteration_id),
+    ...(row.task_id ? { taskId: asId<"AlterationTaskId">(row.task_id) } : {}),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    eventType: row.event_type as AlterationPricingHistoryEntry["eventType"],
+    amount: money(row.amount_minor_units, row.currency as CurrencyCode),
+    ...(row.reason ? { reason: row.reason } : {}),
+    ...(row.actor_staff_id
+      ? { actorStaffId: asId<"StaffId">(row.actor_staff_id) }
+      : {}),
+    createdAt: row.created_at,
+  };
+}
 
 function proposalToDomain(row: ProposalRow): PriceChangeProposal {
   return {
@@ -65,6 +86,20 @@ export class AlterationWorkflowRepository {
       .order("created_at", { ascending: true });
     if (error) throw error;
     return data.map(proposalToDomain);
+  }
+
+  /** The full audit trail — what a retailer checks a workshop's
+   * invoice against, not just the currently-pending proposal. */
+  async findPricingHistory(
+    alterationId: AlterationId,
+  ): Promise<AlterationPricingHistoryEntry[]> {
+    const { data, error } = await this.client
+      .from("alteration_pricing_history")
+      .select("*")
+      .eq("alteration_id", alterationId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data.map(pricingHistoryToDomain);
   }
 
   async proposePriceChange(params: {

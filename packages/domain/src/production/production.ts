@@ -301,6 +301,29 @@ export interface PriceChangeProposal extends Timestamps {
   readonly decisionReason?: string;
 }
 
+/** Append-only — every original quote, proposal, approval, rejection,
+ * withdrawal and price-list change on an alteration, in order. The
+ * audit trail a retailer reviews to confirm a workshop's invoice
+ * matches what was actually proposed and approved. Never updated or
+ * deleted (see the migration comment for `alteration_pricing_history`). */
+export interface AlterationPricingHistoryEntry {
+  readonly id: string;
+  readonly alterationId: AlterationId;
+  readonly taskId?: AlterationTaskId;
+  readonly retailerId: RetailerId;
+  readonly eventType:
+    | "original_quote"
+    | "proposal"
+    | "approval"
+    | "rejection"
+    | "withdrawal"
+    | "price_list_change";
+  readonly amount: Money;
+  readonly reason?: string;
+  readonly actorStaffId?: StaffId;
+  readonly createdAt: string;
+}
+
 export interface AlterationAttachment {
   readonly id: AlterationAttachmentId;
   readonly retailerId: RetailerId;
