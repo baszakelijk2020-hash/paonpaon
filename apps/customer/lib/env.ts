@@ -40,4 +40,8 @@ export const env = {
   get openaiApiKey() {
     return optionalEnv("OPENAI_API_KEY");
   },
+  /** Powers Today's Pick's weather line (ADR-035 MorningRoutine). */
+  get openWeatherApiKey() {
+    return optionalEnv("OPENWEATHER_API_KEY");
+  },
 };

@@ -25,7 +25,7 @@ function buildUserPrompt(context: NextBestActionContext): string {
 }
 
 const RECOMMENDATION_SYSTEM_PROMPT =
-  'You are a personal shopping assistant for a premium retailer. Given a customer\'s recent browsing activity and a short list of currently available products, pick exactly one product that best fits what they have been looking at, with a short one-sentence rationale written to the customer directly. Respond only as JSON: {"productId": string, "rationale": string}. productId must be exactly one of the given candidate ids.';
+  'You are a personal shopping assistant for a premium retailer. Given a customer\'s recent browsing activity, today\'s weather at the store (if given), and a short list of currently available products, pick exactly one product that best fits what they have been looking at — and the weather, when it\'s given and genuinely relevant to the choice — with a short one-sentence rationale written to the customer directly. Respond only as JSON: {"productId": string, "rationale": string}. productId must be exactly one of the given candidate ids.';
 
 function buildRecommendationPrompt(
   context: ProductRecommendationContext,
@@ -36,6 +36,11 @@ function buildRecommendationPrompt(
   const lines = [
     `Retailer: ${context.retailerName}`,
     `Customer: ${context.customerName}`,
+    ...(context.weather
+      ? [
+          `Weather at the store today: ${context.weather.temperatureCelsius}°C, ${context.weather.description}`,
+        ]
+      : []),
     `Recent activity: ${context.recentEventNames.length ? context.recentEventNames.join(", ") : "none recorded"}`,
     `Candidates:\n${candidateLines}`,
   ];

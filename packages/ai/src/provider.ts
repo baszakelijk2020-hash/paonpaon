@@ -32,6 +32,10 @@ export interface ProductRecommendationContext {
   customerName: string;
   recentEventNames: readonly string[];
   candidates: readonly ProductRecommendationCandidate[];
+  /** Current weather at the retailer's store (ADR-035
+   * MorningRoutine) — omitted when OPENWEATHER_API_KEY isn't
+   * configured, never fabricated. */
+  weather?: { temperatureCelsius: number; description: string };
 }
 
 export interface ProductRecommendationResult {

@@ -65,6 +65,13 @@ export function TodaysPick({
 
       {state.result ? (
         <div className="rounded-[var(--radius-md)] bg-[var(--color-stone-50)] p-4">
+          {state.result.weather ? (
+            <p className="mb-2 text-xs text-[var(--color-stone-500)]">
+              {state.result.weather.temperatureCelsius}°C and{" "}
+              {state.result.weather.description} in {state.result.weather.city}{" "}
+              today
+            </p>
+          ) : null}
           <p className="text-lg font-[var(--font-display)] text-[var(--color-stone-900)]">
             {state.result.productName}
           </p>
