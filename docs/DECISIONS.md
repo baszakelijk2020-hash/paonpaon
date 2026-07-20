@@ -836,3 +836,42 @@ storefront" gap and makes Retailer Portal's existing collection authoring
 method: catalog sizes here are boutique-scale, and filtering a
 Server-Component-fetched list in place is simpler than a second query
 path — revisit only if evidence shows catalogs large enough to need it.
+
+## ADR-028: `CustomerPreferences` is direct-RLS, not a `security definer` RPC
+
+**Context.** `CustomerPreferences` (`packages/domain/src/customer/customer.ts`)
+has existed as a domain type with no table since Phase 1 — every prior
+customer-write path this session (`add_to_cart`, `toggle_wishlist_item`,
+`request_appointment`) used a `security definer` RPC (ADR-012/013 family)
+because each one also had to create the caller's `Customer` row inline on
+a first interaction with a retailer, and often a second row
+transactionally.
+
+**Decision.** `customer_preferences` is a plain table with direct
+`insert`/`update`/`select` RLS policies scoped by `exists (select 1 from
+customers c where c.id = customer_preferences.customer_id and c.user_id =
+auth.uid())` — no RPC. Unlike every prior write path, saving preferences
+never creates the `Customer` row itself (a shopper can only reach
+`/account` once at least one relationship already exists from ordering,
+saving, or appointment-booking) and never writes a second table
+transactionally, so neither reason for reaching for `security definer`
+applies. `CustomerPreferencesRepository.upsert` does a plain
+`.upsert(..., { onConflict: "customer_id" })`, backed by RLS on both the
+insert and update branch.
+
+**Consequences.** This is the RLS-only counterpart to the
+"`security definer` RPC over a broadened RLS policy" convention
+(`docs/PROJECT_STATE.md`'s conventions list) — reach for direct RLS
+instead of an RPC when a write is scoped to a single already-existing
+owned row and needs no transactional fan-out. Customer Portal `/account`
+lists one preferences form per retailer relationship (same fan-out shape
+as `/wishlist`, `/loyalty`, `/orders` — `CustomerPreferences` is
+per-`Customer`, i.e. per retailer relationship, not per `User`, matching
+every other entity in this bounded context, ADR-013). Retailer staff
+(`sales_associate`+) can read a customer's preferences through RLS, the
+same clienteling extension ADR-026 gave the wishlist — no Retailer Portal
+UI surfaces it yet. New tables created after `20260720000000`'s one-time
+blanket grant must `grant` PostgREST privileges themselves (this
+migration does); forgetting it produces a `permission denied for table`
+error that only surfaces at request time, since RLS and SQL-level grants
+are enforced independently in Postgres.

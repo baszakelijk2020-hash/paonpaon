@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-import type { CustomerLifecycleStage } from "./customer";
+import { currencyCodeSchema } from "../retailer/retailer.schema";
+
+import type { CustomerLifecycleStage, CustomerPreferences } from "./customer";
 
 export const CUSTOMER_LIFECYCLE_STAGES = [
   "prospect",
@@ -28,3 +30,31 @@ export const createCustomerInputSchema = z.object({
 });
 
 export type CreateCustomerInput = z.infer<typeof createCustomerInputSchema>;
+
+export const COMMUNICATION_CHANNELS = [
+  "email",
+  "sms",
+  "push",
+  "in_app",
+] as const satisfies readonly CustomerPreferences["communicationChannels"][number][];
+
+export const communicationChannelSchema = z.enum(COMMUNICATION_CHANNELS);
+
+/**
+ * A shopper editing their own preferences from Customer Portal — every
+ * field has a sensible default so a first save (no row exists yet) and a
+ * later edit (row exists) use the same input shape; the repository
+ * upserts on `customerId`, which this schema never accepts from the
+ * client (derived server-side from the caller's session).
+ */
+export const upsertCustomerPreferencesInputSchema = z.object({
+  preferredLocale: z.string().trim().min(2).max(10).default("en-US"),
+  preferredCurrency: currencyCodeSchema.default("USD"),
+  communicationChannels: z.array(communicationChannelSchema).default(["email"]),
+  styleNotes: z.string().trim().max(2000).optional(),
+  marketingOptIn: z.boolean().default(false),
+});
+
+export type UpsertCustomerPreferencesInput = z.infer<
+  typeof upsertCustomerPreferencesInputSchema
+>;

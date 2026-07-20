@@ -129,13 +129,28 @@ definer` RPC re-deriving its own authority, same shape as ADR-012 —
   migration). Zero relationships is a real, valid, designed-for state
   (empty-state copy, not an error) — there's no storefront yet to create
   one organically.
-- **Deliberately not built yet**: `CustomerPreferences` persistence —
-  domain type exists, no table. No profile-editing UI in Customer Portal.
-  No OAuth provider (Google/Apple) — passwordless email is the only login
-  method; OAuth needs external provider credentials this session doesn't
-  have, so it's flagged, not silently skipped or faked. Pick up when either
-  becomes the next highest-value slice. `Wishlist` (also listed here
-  previously) shipped — see below.
+- **Deliberately not built yet**: No OAuth provider (Google/Apple) —
+  passwordless email is the only login method; OAuth needs external
+  provider credentials this session doesn't have, so it's flagged, not
+  silently skipped or faked. `Wishlist` and `CustomerPreferences` (both
+  listed here previously) shipped — see below.
+
+### Shipped: CustomerPreferences persistence
+
+Full reasoning in `docs/DECISIONS.md` ADR-028.
+
+- `customer_preferences` is a plain table (no RPC — nothing about saving
+  preferences creates a `Customer` row or writes a second table
+  transactionally, unlike every other customer-write path this session),
+  scoped by direct RLS to `customers.user_id = auth.uid()`.
+  `CustomerPreferencesRepository.findByCustomer`/`.upsert` wrap it.
+- Customer Portal `/account` lists one preferences form per retailer
+  relationship — language, currency, contact channels
+  (email/SMS/push/in-app), marketing opt-in, and free-text style notes —
+  same per-relationship fan-out shape as `/wishlist`/`/loyalty`/`/orders`.
+- Retailer staff (`sales_associate`+) can read a customer's preferences
+  through RLS, the same clienteling extension ADR-026 gave the wishlist —
+  no Retailer Portal UI surfaces it yet.
 
 ### Shipped: Wishlist
 
@@ -479,14 +494,15 @@ Full reasoning in `docs/DECISIONS.md` ADR-025.
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
   chain (`20260719000000`–`20260719000103`, then `20260720000000`–
-  `20260720000012` including the persisted-cart, referral-journey, wishlist
-  and collection-browsing migrations) was executed repeatedly from an empty
-  local PostgreSQL database with `supabase start` and `supabase db reset`.
-  `supabase db lint --level warning` reports no schema errors. The referral
-  triggers were also verified directly against the local database with a
-  throwaway script exercising the full invite → signup → delivered-order →
-  reward sequence via the admin client before the Playwright coverage below
-  was written, since a Postgres trigger can't be unit-tested in Vitest.
+  `20260720000013` including the persisted-cart, referral-journey, wishlist,
+  collection-browsing and customer-preferences migrations) was executed
+  repeatedly from an empty local PostgreSQL database with `supabase start`
+  and `supabase db reset`. `supabase db lint --level warning` reports no
+  schema errors. The referral triggers were also verified directly against
+  the local database with a throwaway script exercising the full invite →
+  signup → delivered-order → reward sequence via the admin client before the
+  Playwright coverage below was written, since a Postgres trigger can't be
+  unit-tested in Vitest.
 - `packages/database/src/generated/database.types.ts` is real output from
   `supabase gen types typescript --local`, reformatted with `pnpm format`
   (the CLI's raw output omits semicolons; Prettier normalizes it back to the
@@ -495,13 +511,24 @@ Full reasoning in `docs/DECISIONS.md` ADR-025.
   actual schema, not a hand-maintained approximation.
 - The real local Supabase stack backs all browser journeys. Playwright is
   green for PAON Admin (5 tests), Retailer Portal (14 tests), and Customer
-  Portal (10 tests) — re-verified 2026-07-20 against the persisted-cart,
-  referral-journey, wishlist and collection-browsing slices, each suite run
-  at least twice back-to-back to confirm idempotency. These cover
-  onboarding, invitations, authentication, CRM, catalogue, storefront
-  ordering, cart/checkout, wishlist, collection browsing, appointments,
-  alterations, pickup readiness, and referral conversion. This pass caught
-  and fixed three real bugs, not just environment drift:
+  Portal (11 tests) — re-verified 2026-07-20 against the persisted-cart,
+  referral-journey, wishlist, collection-browsing and customer-preferences
+  slices, each suite run at least twice back-to-back to confirm idempotency.
+  These cover onboarding, invitations, authentication, CRM, catalogue,
+  storefront ordering, cart/checkout, wishlist, collection browsing,
+  appointments, alterations, pickup readiness, referral conversion, and
+  account preferences. This pass caught and fixed four real bugs, not just
+  environment drift:
+  - `customer_preferences` (this slice) had RLS policies but no PostgREST
+    table-level grant — `20260720000000_grant_api_base_table_access.sql`'s
+    blanket grant only covered tables that existed at the time it ran; every
+    table created afterward (see `wishlists`, `20260720000011_*`) must grant
+    `select, insert, update, delete` to `authenticated, service_role`
+    itself, or every request fails with `permission denied for table ...`
+    even though RLS is satisfied — RLS and SQL-level grants are enforced
+    independently in Postgres. Caught immediately by the new e2e spec, not
+    by lint/typecheck/build/unit tests, none of which touch the real
+    database.
   - The cart's "Update" and "Place order" buttons
     (`apps/customer/app/r/[slug]/cart/cart-client.tsx`) had no
     `type="submit"` — `@paon/ui`'s `Button` defaults to `type="button"`

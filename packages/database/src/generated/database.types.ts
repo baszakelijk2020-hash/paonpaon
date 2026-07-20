@@ -1420,6 +1420,47 @@ export type Database = {
           },
         ];
       };
+      customer_preferences: {
+        Row: {
+          communication_channels: string[];
+          created_at: string;
+          customer_id: string;
+          marketing_opt_in: boolean;
+          preferred_currency: string;
+          preferred_locale: string;
+          style_notes: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          communication_channels?: string[];
+          created_at?: string;
+          customer_id: string;
+          marketing_opt_in?: boolean;
+          preferred_currency?: string;
+          preferred_locale?: string;
+          style_notes?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          communication_channels?: string[];
+          created_at?: string;
+          customer_id?: string;
+          marketing_opt_in?: boolean;
+          preferred_currency?: string;
+          preferred_locale?: string;
+          style_notes?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_preferences_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: true;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customers: {
         Row: {
           acquisition_source: string | null;

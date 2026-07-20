@@ -7,6 +7,7 @@ export * from "./repositories/retailer-repository";
 export * from "./repositories/retailer-staff-repository";
 export * from "./repositories/platform-staff-repository";
 export * from "./repositories/customer-repository";
+export * from "./repositories/customer-preferences-repository";
 export * from "./repositories/collection-repository";
 export * from "./repositories/product-repository";
 export * from "./repositories/product-variant-repository";
