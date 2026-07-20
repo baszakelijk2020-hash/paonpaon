@@ -204,10 +204,30 @@ Full reasoning in `docs/DECISIONS.md` ADR-026.
   object shape exactly — `ProductVariantRepository` is the only place
   that (de)composes it.
 - Product and variant editing is complete from `/products/[id]`, including
-  publishing status, merchandising flags, hosted image URL, price, inventory,
-  lead time and collection assignment. Product metadata and collection
-  membership update in one tenant-revalidating transaction. Direct image upload
-  remains deferred; the hosted URL field is validated until Storage is added.
+  publishing status, merchandising flags, image, price, inventory, lead time
+  and collection assignment. Product metadata and collection membership
+  update in one tenant-revalidating transaction. Direct image upload shipped
+  — see below.
+
+### Shipped: Direct product image upload
+
+Full reasoning in `docs/DECISIONS.md` ADR-029.
+
+- `product-images` is a **public** Storage bucket (`manager`+ upload/remove,
+  RLS-gated by path-prefix retailer match) — unlike alteration evidence's
+  private/signed-URL shape, product photos are customer-facing, so reads use
+  `getPublicUrl`. `ProductRepository.uploadImage`/`.removeImageByPublicUrl`
+  are the new data-access surface; `products.primary_image_url` and
+  `update_product_catalogue` are unchanged, this only adds a real upload
+  path for that existing field.
+- Retailer Portal `/products/[id]` gained a dedicated `ProductImageUploader`
+  card (upload/remove), separate from the main product-fields form, which no
+  longer owns `primaryImageUrl` at all — replacing the old "paste a hosted
+  URL" text field.
+- Customer Portal's storefront `/r/[slug]/products` and
+  `/r/[slug]/products/[productSlug]` render the image for the first time —
+  `primaryImageUrl` was captured but never displayed anywhere before this
+  slice.
 
 ### Shipped: Commerce foundation
 
@@ -494,31 +514,33 @@ Full reasoning in `docs/DECISIONS.md` ADR-025.
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
   chain (`20260719000000`–`20260719000103`, then `20260720000000`–
-  `20260720000013` including the persisted-cart, referral-journey, wishlist,
-  collection-browsing and customer-preferences migrations) was executed
-  repeatedly from an empty local PostgreSQL database with `supabase start`
-  and `supabase db reset`. `supabase db lint --level warning` reports no
-  schema errors. The referral triggers were also verified directly against
-  the local database with a throwaway script exercising the full invite →
-  signup → delivered-order → reward sequence via the admin client before the
-  Playwright coverage below was written, since a Postgres trigger can't be
-  unit-tested in Vitest.
+  `20260720000014` including the persisted-cart, referral-journey, wishlist,
+  collection-browsing, customer-preferences and product-image-storage
+  migrations) was executed repeatedly from an empty local PostgreSQL
+  database with `supabase start` and `supabase db reset`. `supabase db lint
+--level warning` reports no schema errors. The referral triggers were also
+  verified directly against the local database with a throwaway script
+  exercising the full invite → signup → delivered-order → reward sequence
+  via the admin client before the Playwright coverage below was written,
+  since a Postgres trigger can't be unit-tested in Vitest.
 - `packages/database/src/generated/database.types.ts` is real output from
   `supabase gen types typescript --local`, reformatted with `pnpm format`
   (the CLI's raw output omits semicolons; Prettier normalizes it back to the
   repo's style — diffing the two confirms no schema drift beyond the
   intended change). Repository and application code compile against the
-  actual schema, not a hand-maintained approximation.
+  actual schema, not a hand-maintained approximation. The Storage bucket/RLS
+  migration produces zero diff here, as expected — `storage.*` isn't part of
+  the generated `public` schema types.
 - The real local Supabase stack backs all browser journeys. Playwright is
-  green for PAON Admin (5 tests), Retailer Portal (14 tests), and Customer
-  Portal (11 tests) — re-verified 2026-07-20 against the persisted-cart,
-  referral-journey, wishlist, collection-browsing and customer-preferences
-  slices, each suite run at least twice back-to-back to confirm idempotency.
-  These cover onboarding, invitations, authentication, CRM, catalogue,
-  storefront ordering, cart/checkout, wishlist, collection browsing,
-  appointments, alterations, pickup readiness, referral conversion, and
-  account preferences. This pass caught and fixed four real bugs, not just
-  environment drift:
+  green for PAON Admin (5 tests), Retailer Portal (15 tests), and Customer
+  Portal (12 tests) — re-verified 2026-07-20 against the persisted-cart,
+  referral-journey, wishlist, collection-browsing, customer-preferences and
+  product-image-upload slices, each suite run at least twice back-to-back to
+  confirm idempotency. These cover onboarding, invitations, authentication,
+  CRM, catalogue, product image upload, storefront ordering, cart/checkout,
+  wishlist, collection browsing, appointments, alterations, pickup
+  readiness, referral conversion, and account preferences. This pass caught
+  and fixed four real bugs, not just environment drift:
   - `customer_preferences` (this slice) had RLS policies but no PostgREST
     table-level grant — `20260720000000_grant_api_base_table_access.sql`'s
     blanket grant only covered tables that existed at the time it ran; every

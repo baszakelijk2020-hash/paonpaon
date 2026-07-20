@@ -4,6 +4,7 @@ import {
   RetailerRepository,
 } from "@paon/database";
 import { Card } from "@paon/ui/components/Card";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -95,8 +96,18 @@ export default async function StorefrontProductsPage({
             <Link
               key={product.id}
               href={`/r/${slug}/products/${product.slug}`}
-              className="flex items-center justify-between px-6 py-4 hover:bg-[var(--color-stone-50)]"
+              className="flex items-center gap-4 px-6 py-4 hover:bg-[var(--color-stone-50)]"
             >
+              {product.primaryImageUrl ? (
+                <Image
+                  src={product.primaryImageUrl}
+                  alt=""
+                  width={56}
+                  height={56}
+                  unoptimized
+                  className="aspect-square w-14 shrink-0 rounded-[var(--radius-sm)] object-cover"
+                />
+              ) : null}
               <div>
                 <p className="font-medium text-[var(--color-stone-900)]">
                   {product.name}

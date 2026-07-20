@@ -5,6 +5,7 @@ import {
   RetailerRepository,
   WishlistRepository,
 } from "@paon/database";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -68,6 +69,16 @@ export default async function StorefrontProductPage({
       >
         ← Back to {retailer.displayName}
       </Link>
+      {product.primaryImageUrl ? (
+        <Image
+          src={product.primaryImageUrl}
+          alt={product.name}
+          width={640}
+          height={640}
+          unoptimized
+          className="mb-6 aspect-square w-full rounded-[var(--radius-md)] object-cover"
+        />
+      ) : null}
       <h1 className="mb-2 text-2xl font-medium text-[var(--color-stone-900)]">
         {product.name}
       </h1>

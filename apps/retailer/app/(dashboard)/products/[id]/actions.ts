@@ -1,5 +1,7 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+
 import { requireRetailerRole } from "@paon/auth";
 import {
   ProductRepository,
@@ -23,6 +25,113 @@ export interface CatalogueFormState {
   saved?: boolean;
 }
 
+export interface ProductImageActionState {
+  formError?: string;
+  saved?: boolean;
+}
+
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+
+export async function uploadProductImage(
+  productId: string,
+  _previous: ProductImageActionState,
+  formData: FormData,
+): Promise<ProductImageActionState> {
+  const session = await requireSession();
+  requireRetailerRole(session.retailerRole, "manager");
+
+  const file = formData.get("image");
+  if (!(file instanceof File) || file.size === 0) {
+    return { formError: "Choose an image." };
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    return { formError: "Images must be 5 MB or smaller." };
+  }
+  if (
+    !ALLOWED_IMAGE_TYPES.includes(
+      file.type as (typeof ALLOWED_IMAGE_TYPES)[number],
+    )
+  ) {
+    return { formError: "Use a JPEG, PNG or WebP image." };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const productRepo = new ProductRepository(supabase);
+  const product = await productRepo.findById(asId<"ProductId">(productId));
+  if (!product) {
+    return { formError: "Product not found." };
+  }
+
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").slice(-120);
+  const storagePath = `${session.retailerId}/${productId}/${randomUUID()}-${safeName}`;
+
+  try {
+    const publicUrl = await productRepo.uploadImage({
+      storagePath,
+      mimeType: file.type as (typeof ALLOWED_IMAGE_TYPES)[number],
+      content: await file.arrayBuffer(),
+    });
+    await productRepo.update(product.id, {
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      status: product.status,
+      isMadeToOrder: product.isMadeToOrder,
+      isAlterable: product.isAlterable,
+      primaryImageUrl: publicUrl,
+      collectionIds: product.collectionIds,
+    });
+    if (product.primaryImageUrl) {
+      await productRepo.removeImageByPublicUrl(product.primaryImageUrl);
+    }
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Upload failed",
+    };
+  }
+
+  revalidatePath(`/products/${productId}`);
+  return { saved: true };
+}
+
+export async function removeProductImage(
+  productId: string,
+  _previous: ProductImageActionState,
+  _formData: FormData,
+): Promise<ProductImageActionState> {
+  const session = await requireSession();
+  requireRetailerRole(session.retailerRole, "manager");
+
+  const supabase = await getSupabaseServerClient();
+  const productRepo = new ProductRepository(supabase);
+  const product = await productRepo.findById(asId<"ProductId">(productId));
+  if (!product) {
+    return { formError: "Product not found." };
+  }
+
+  try {
+    await productRepo.update(product.id, {
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      status: product.status,
+      isMadeToOrder: product.isMadeToOrder,
+      isAlterable: product.isAlterable,
+      collectionIds: product.collectionIds,
+    });
+    if (product.primaryImageUrl) {
+      await productRepo.removeImageByPublicUrl(product.primaryImageUrl);
+    }
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Remove failed",
+    };
+  }
+
+  revalidatePath(`/products/${productId}`);
+  return { saved: true };
+}
+
 const errorsFrom = (
   issues: readonly { path: PropertyKey[]; message: string }[],
 ) => {
@@ -44,29 +153,30 @@ export async function updateProduct(
     status: formData.get("status"),
     isMadeToOrder: formData.get("isMadeToOrder") === "on",
     isAlterable: formData.get("isAlterable") === "on",
-    primaryImageUrl: formData.get("primaryImageUrl") || undefined,
     collectionIds: formData.getAll("collectionIds"),
   });
   const productId = String(formData.get("productId"));
   if (!parsed.success) return { fieldErrors: errorsFrom(parsed.error.issues) };
   try {
-    await new ProductRepository(await getSupabaseServerClient()).update(
-      asId<"ProductId">(productId),
-      {
-        name: parsed.data.name,
-        slug: parsed.data.slug,
-        description: parsed.data.description,
-        status: parsed.data.status,
-        isMadeToOrder: parsed.data.isMadeToOrder,
-        isAlterable: parsed.data.isAlterable,
-        ...(parsed.data.primaryImageUrl
-          ? { primaryImageUrl: parsed.data.primaryImageUrl }
-          : {}),
-        collectionIds: parsed.data.collectionIds.map((id) =>
-          asId<"CollectionId">(id),
-        ),
-      },
-    );
+    const productRepo = new ProductRepository(await getSupabaseServerClient());
+    // This form no longer owns primaryImageUrl (ProductImageUploader does)
+    // — preserve whatever it's currently set to rather than clearing it,
+    // since the update RPC has no "leave unchanged" sentinel of its own.
+    const current = await productRepo.findById(asId<"ProductId">(productId));
+    await productRepo.update(asId<"ProductId">(productId), {
+      name: parsed.data.name,
+      slug: parsed.data.slug,
+      description: parsed.data.description,
+      status: parsed.data.status,
+      isMadeToOrder: parsed.data.isMadeToOrder,
+      isAlterable: parsed.data.isAlterable,
+      ...(current?.primaryImageUrl
+        ? { primaryImageUrl: current.primaryImageUrl }
+        : {}),
+      collectionIds: parsed.data.collectionIds.map((id) =>
+        asId<"CollectionId">(id),
+      ),
+    });
   } catch (error) {
     if (error instanceof ProductSlugAlreadyExistsError) {
       return { fieldErrors: { slug: error.message } };

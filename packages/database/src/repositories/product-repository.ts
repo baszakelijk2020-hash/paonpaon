@@ -14,6 +14,7 @@ import type { Database } from "../generated/database.types";
 type ProductRow = Database["public"]["Tables"]["products"]["Row"];
 
 const UNIQUE_VIOLATION = "23505";
+const PRODUCT_IMAGES_BUCKET = "product-images";
 
 export class ProductSlugAlreadyExistsError extends Error {
   constructor(public readonly slug: string) {
@@ -206,5 +207,36 @@ export class ProductRepository {
     const updated = await this.findById(id);
     if (!updated) throw new Error("Updated product could not be reloaded");
     return updated;
+  }
+
+  /** Returns the uploaded image's public URL — `product-images` is a public bucket (customer-facing), unlike alteration evidence's private/signed shape. */
+  async uploadImage(params: {
+    storagePath: string;
+    mimeType: "image/jpeg" | "image/png" | "image/webp";
+    content: ArrayBuffer;
+  }): Promise<string> {
+    const { error } = await this.client.storage
+      .from(PRODUCT_IMAGES_BUCKET)
+      .upload(params.storagePath, params.content, {
+        contentType: params.mimeType,
+        upsert: false,
+      });
+    if (error) throw error;
+
+    return this.client.storage
+      .from(PRODUCT_IMAGES_BUCKET)
+      .getPublicUrl(params.storagePath).data.publicUrl;
+  }
+
+  /** No-ops for a URL that isn't hosted in `product-images` (e.g. a legacy hand-typed URL) — nothing to clean up. */
+  async removeImageByPublicUrl(url: string): Promise<void> {
+    const marker = `/${PRODUCT_IMAGES_BUCKET}/`;
+    const index = url.indexOf(marker);
+    if (index === -1) return;
+    const storagePath = url.slice(index + marker.length);
+    const { error } = await this.client.storage
+      .from(PRODUCT_IMAGES_BUCKET)
+      .remove([storagePath]);
+    if (error) throw error;
   }
 }

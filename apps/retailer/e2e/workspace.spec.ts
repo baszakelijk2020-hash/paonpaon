@@ -113,6 +113,38 @@ test("owner adds a product with its first variant", async ({ page }) => {
   await expect(page.getByText(`overcoat-${unique}`)).toBeVisible();
 });
 
+test("owner uploads and removes a product image", async ({ page }) => {
+  const unique = Date.now();
+
+  await page.goto("/products/new");
+  await page.getByLabel("Name").fill("Silk Pocket Square");
+  await page.getByLabel("Slug").fill(`pocket-square-${unique}`);
+  await page.getByLabel("SKU").fill(`SQUARE-${unique}`);
+  await page.getByLabel(/Price/).fill("9500");
+  await page.getByLabel("Currency").selectOption("USD");
+  await page.getByRole("button", { name: "Create product" }).click();
+  await expect(page).toHaveURL(/\/products\/[0-9a-f-]+$/);
+
+  await expect(page.getByText("No image uploaded yet.")).toBeVisible();
+
+  const pngBuffer = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+    "base64",
+  );
+  await page.getByLabel("Product image file").setInputFiles({
+    name: "square.png",
+    mimeType: "image/png",
+    buffer: pngBuffer,
+  });
+  await page.getByRole("button", { name: "Upload" }).click();
+
+  await expect(page.getByText("No image uploaded yet.")).toHaveCount(0);
+  await expect(page.locator('img[src*="product-images"]')).toBeVisible();
+
+  await page.getByRole("button", { name: "Remove image" }).click();
+  await expect(page.getByText("No image uploaded yet.")).toBeVisible();
+});
+
 test("owner adds a collection", async ({ page }) => {
   const unique = Date.now();
 

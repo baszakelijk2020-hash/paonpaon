@@ -49,12 +49,6 @@ export function ProductEditor({
           defaultValue={product.description}
           aria-label="Description"
         />
-        <Input
-          name="primaryImageUrl"
-          defaultValue={product.primaryImageUrl}
-          placeholder="Primary image URL"
-          aria-label="Primary image URL"
-        />
         <Select name="status" defaultValue={product.status} aria-label="Status">
           <option value="draft">Draft</option>
           <option value="active">Active</option>

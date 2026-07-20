@@ -100,3 +100,55 @@ test("a signed-in shopper builds a cart, updates a line, checks out, and sees th
   await page.goto("/orders");
   await expect(page.getByText(/ORD-\d+/).first()).toBeVisible();
 });
+
+test("storefront shows an uploaded product image", async ({ page }) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+    );
+  }
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const { data: retailerRow } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailerRow) throw new Error("fixture retailer missing");
+  const { data: productRow } = await admin
+    .from("products")
+    .select("id")
+    .eq("retailer_id", retailerRow.id)
+    .eq("slug", TEST_PRODUCT_SLUG)
+    .single();
+  if (!productRow) throw new Error("fixture product missing");
+
+  const pngBuffer = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+    "base64",
+  );
+  const storagePath = `${retailerRow.id}/${productRow.id}/e2e-fixture.png`;
+  const { error: uploadError } = await admin.storage
+    .from("product-images")
+    .upload(storagePath, pngBuffer, { contentType: "image/png", upsert: true });
+  if (uploadError) throw uploadError;
+  const {
+    data: { publicUrl },
+  } = admin.storage.from("product-images").getPublicUrl(storagePath);
+  await admin
+    .from("products")
+    .update({ primary_image_url: publicUrl })
+    .eq("id", productRow.id);
+
+  await page.goto(`/r/${TEST_RETAILER_SLUG}/products`);
+  await expect(
+    page.locator('img[src*="product-images"]').first(),
+  ).toBeVisible();
+
+  await page.goto(`/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`);
+  await expect(
+    page.locator('img[src*="product-images"]').first(),
+  ).toBeVisible();
+});

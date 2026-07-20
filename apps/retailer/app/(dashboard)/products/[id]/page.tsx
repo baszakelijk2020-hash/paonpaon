@@ -11,6 +11,7 @@ import { notFound } from "next/navigation";
 import { ProductStatusBadge } from "../status-badge";
 
 import { ProductEditor, VariantEditor } from "./catalogue-editor";
+import { ProductImageUploader } from "./product-image-uploader";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -60,6 +61,13 @@ export default async function ProductDetailPage({
           </p>
         ) : null}
       </div>
+
+      <ProductImageUploader
+        productId={product.id}
+        {...(product.primaryImageUrl
+          ? { imageUrl: product.primaryImageUrl }
+          : {})}
+      />
 
       <ProductEditor product={product} collections={collections} />
 

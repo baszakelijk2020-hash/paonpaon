@@ -875,3 +875,46 @@ blanket grant must `grant` PostgREST privileges themselves (this
 migration does); forgetting it produces a `permission denied for table`
 error that only surfaces at request time, since RLS and SQL-level grants
 are enforced independently in Postgres.
+
+## ADR-029: Product images use a public Storage bucket, not a signed-URL one
+
+**Context.** `products.primary_image_url` (`20260719000010_*`) has always
+been a plain, hand-typed URL string — `docs/PROJECT_STATE.md` flagged
+"direct image upload remains deferred... until Storage is added" as the
+last gap in catalogue editing. The only existing Storage integration in
+the repo is `alteration-evidence` (`20260719000103_*`): a **private**
+bucket, read via a 15-minute `createSignedUrl`, because that content is
+internal workshop evidence gated by `can_access_alteration_work_order`.
+
+**Decision.** `product-images` (`20260720000014_*`) is a **public**
+bucket instead. Product photos are customer-facing on the public
+storefront — the same "publicly showable, no `to` clause" territory
+ADR-014 already put `products`/`retailers` in — so reads use
+`getPublicUrl` (a pure client-side string, no request, no expiry), never
+a signed URL. Writes (insert/delete on `storage.objects`) are RLS-gated
+to `current_retailer_role() in ('manager','admin','owner')` scoped by the
+path's first folder segment matching `current_retailer_id()` — the same
+gate `20260719000010_*` already put on the `products` table itself,
+since an image is part of the product record, not a separate permission
+surface. No per-product ownership subquery is needed (unlike alteration
+evidence's `can_access_alteration_storage_object`), because there's no
+per-product staff assignment to check — retailer-manager+ is sufficient.
+
+**Consequences.** `products.primary_image_url` and
+`update_product_catalogue` are unchanged — this slice only adds a way to
+populate that existing field with a real uploaded file's public URL
+instead of requiring staff to type/host one themselves.
+`ProductRepository.uploadImage`/`removeImageByPublicUrl` are the only
+new data-access surface; there's no new table, because the column
+already existed and a single primary image needs no gallery/ordering
+metadata a `product_images` table would exist to hold. Retailer Portal's
+`/products/[id]` gained a dedicated upload/remove card
+(`ProductImageUploader`) separate from the main field-editing form —
+the same modularity the page already had between product fields and
+variant rows — so the main "Save product" submit no longer touches the
+image field at all (it now always round-trips the product's current
+`primaryImageUrl` unchanged, since the RPC's `p_primary_image_url`
+parameter has no "leave unchanged" sentinel of its own and an empty
+string clears it). Customer Portal's storefront list and detail pages
+render the image for the first time — it was captured but never
+displayed anywhere before this slice.
