@@ -582,8 +582,9 @@ Full reasoning in `docs/DECISIONS.md` ADR-025.
   (`supabase/templates/*.html`, using `{{ .RedirectTo }}` — set
   per-call via `redirectTo`/`emailRedirectTo` — never the fixed
   `{{ .SiteURL }}`, since different subjects land on different apps);
-  (3) whatever page that redirects to. `apps/admin` doesn't have this
-  yet for platform staff — see "Known gap" above.
+  (3) whatever page that redirects to. All three apps now use this shape
+  — `apps/admin`'s platform-staff invite acceptance (ADR-022) was the
+  last to land it.
 - **`security definer` RPC over a broadened RLS policy** for any narrow
   state transition a caller triggers about themselves (accept, activate,
   link) — see ADR-012, ADR-013, `docs/DATABASE.md` "Row Level Security".
