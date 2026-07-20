@@ -8,6 +8,14 @@
  *   SUPABASE_URL=... SUPABASE_ANON_KEY=... SUPABASE_SERVICE_ROLE_KEY=... \
  *   pnpm --filter @paon/database seed:demo
  */
+import type {
+  CurrencyCode,
+  CustomerId,
+  RetailerId,
+  StaffId,
+  UserId,
+} from "@paon/domain";
+
 import {
   AlterationRepository,
   AlterationTaskRepository,
@@ -29,13 +37,6 @@ import {
   createSupabaseAdminClient,
   createSupabaseDirectClient,
 } from "../src";
-import type {
-  CurrencyCode,
-  CustomerId,
-  RetailerId,
-  StaffId,
-  UserId,
-} from "@paon/domain";
 
 function requireEnv(name: string): string {
   const value = process.env[name];
