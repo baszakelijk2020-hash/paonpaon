@@ -3431,6 +3431,7 @@ export type Database = {
           deleted_at: string | null;
           event_date: string | null;
           id: string;
+          invite_token: string;
           notes: string | null;
           organizer_customer_id: string;
           retailer_id: string;
@@ -3443,6 +3444,7 @@ export type Database = {
           deleted_at?: string | null;
           event_date?: string | null;
           id?: string;
+          invite_token?: string;
           notes?: string | null;
           organizer_customer_id: string;
           retailer_id: string;
@@ -3455,6 +3457,7 @@ export type Database = {
           deleted_at?: string | null;
           event_date?: string | null;
           id?: string;
+          invite_token?: string;
           notes?: string | null;
           organizer_customer_id?: string;
           retailer_id?: string;
@@ -4136,6 +4139,15 @@ export type Database = {
           p_to: Database["public"]["Enums"]["alteration_work_order_status"];
         };
         Returns: boolean;
+      };
+      join_wedding_party: {
+        Args: {
+          p_email: string;
+          p_invite_token: string;
+          p_name: string;
+          p_role: Database["public"]["Enums"]["wedding_party_member_role"];
+        };
+        Returns: string;
       };
       link_my_customer_accounts: { Args: never; Returns: undefined };
       mark_conversation_read: {

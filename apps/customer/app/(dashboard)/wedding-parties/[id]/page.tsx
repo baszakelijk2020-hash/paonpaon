@@ -12,6 +12,9 @@ import { notFound } from "next/navigation";
 
 import { markFittingScheduled } from "../actions";
 
+import { InviteLink } from "./invite-link";
+
+import { env } from "@/lib/env";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -58,6 +61,21 @@ export default async function WeddingPartyDetailPage({
           {party.venueName ? ` · ${party.venueName}` : ""}
         </p>
       </div>
+
+      {myCustomerIds.has(party.organizerCustomerId) && retailer ? (
+        <Card>
+          <p className="mb-2 text-sm font-medium text-[var(--color-stone-900)]">
+            Invite your party
+          </p>
+          <p className="mb-3 text-sm text-[var(--color-stone-500)]">
+            Send this link to your best men and groomsmen — anyone who opens it
+            can add themselves, no account needed up front.
+          </p>
+          <InviteLink
+            url={`${env.appUrl}/r/${retailer.slug}/wedding-parties/join/${party.inviteToken}`}
+          />
+        </Card>
+      ) : null}
 
       <Card className="divide-y p-0">
         {members.map((member) => (

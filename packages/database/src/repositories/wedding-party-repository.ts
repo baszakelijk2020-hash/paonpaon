@@ -24,6 +24,7 @@ const toParty = (row: PartyRow): WeddingParty => ({
   ...(row.venue_name ? { venueName: row.venue_name } : {}),
   status: row.status,
   ...(row.notes ? { notes: row.notes } : {}),
+  inviteToken: row.invite_token,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   deletedAt: row.deleted_at,
@@ -156,6 +157,27 @@ export class WeddingPartyRepository {
   }): Promise<string> {
     const { data, error } = await this.client.rpc("add_wedding_party_member", {
       p_wedding_party_id: params.weddingPartyId,
+      p_name: params.name,
+      p_email: params.email,
+      p_role: params.role,
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  /** The anonymous join path (`join_wedding_party`, security definer)
+   * — no pre-validation read of the invite token beforehand, since
+   * `wedding_parties`' RLS has no anonymous select policy and never
+   * should (ADR-034's "no new anonymous RLS read/insert policy, narrow
+   * RPC only"). An invalid token surfaces as a thrown error here. */
+  async joinViaInvite(params: {
+    inviteToken: string;
+    name: string;
+    email: string;
+    role: WeddingPartyMemberRole;
+  }): Promise<string> {
+    const { data, error } = await this.client.rpc("join_wedding_party", {
+      p_invite_token: params.inviteToken,
       p_name: params.name,
       p_email: params.email,
       p_role: params.role,

@@ -47,6 +47,10 @@ export interface WeddingParty extends Timestamps {
   readonly venueName?: string;
   readonly status: WeddingPartyStatus;
   readonly notes?: string;
+  /** The shareable join link's token — the organizer sends
+   * `/r/{slug}/wedding-parties/join/{inviteToken}` to the whole party
+   * instead of a sales associate typing in every member by hand. */
+  readonly inviteToken: string;
 }
 
 /** Every member is a real `Customer` — find-or-created by email the
