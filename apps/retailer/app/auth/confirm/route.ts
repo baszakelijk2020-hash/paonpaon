@@ -3,17 +3,20 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
- * Only "invite" is issued today (Retailer Portal has no self-serve
- * signup or password-recovery flow yet) — extend this list rather than
- * restructure the handler when "recovery" is added. Deliberately a
- * local literal type, not `@supabase/supabase-js`'s `EmailOtpType`:
+ * "invite" and "magiclink": Retailer Portal has no self-serve signup or
+ * password-recovery flow, but a platform operator can still hand out a
+ * one-click sign-in link (`auth.admin.generateLink({ type: "magiclink" })`)
+ * for an already-provisioned account instead of a typed password —
+ * extend this list rather than restructure the handler when "recovery"
+ * is added. Deliberately a local literal type, not
+ * `@supabase/supabase-js`'s `EmailOtpType`:
  * this app depends on `@paon/database`, not on `@supabase/supabase-js`
  * directly (pnpm's strict linking means only a package's own listed
  * dependencies resolve — see docs/DECISIONS.md ADR-001), and
  * `verifyOtp`'s parameter type still checks structurally against this
  * literal without needing that import.
  */
-const ALLOWED_TYPES = ["invite"] as const;
+const ALLOWED_TYPES = ["invite", "magiclink"] as const;
 type ConfirmationType = (typeof ALLOWED_TYPES)[number];
 
 function isAllowedType(value: string | null): value is ConfirmationType {
@@ -50,5 +53,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(`${origin}/login?error=invalid_invite`);
   }
 
-  return NextResponse.redirect(`${origin}/accept-invite`);
+  const landing = type === "invite" ? "/accept-invite" : "/dashboard";
+  return NextResponse.redirect(`${origin}${landing}`);
 }
