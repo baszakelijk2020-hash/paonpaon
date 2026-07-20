@@ -143,14 +143,24 @@ platforms — see [VISION.md](./VISION.md).
 - ✅ AI personalisation built on `BehavioralEvent` — OpenAI behind a
   provider-neutral interface (founder decision, ADR-033). Next-best-action
   for staff shipped (Retailer Portal customer detail page); product
-  recommendations and personalized customer communication are modeled
-  (`AIGenerationKind`) but not wired to a call site yet. AI monitoring
+  recommendations shipped as customer-facing "Today's Pick" (ADR-035);
+  personalized customer communication is still modeled
+  (`AIGenerationKind`) but not wired to a call site. AI monitoring
   shipped in PAON Admin (`/ai-monitoring`). Code-complete, blocked only
   on a platform operator provisioning an OpenAI API key, see
   `docs/PROJECT_STATE.md` "Credentials needed".
-- ✅ Immutable retailer-scoped `BehavioralEvent` capture and the first real
-  retailer analytics dashboard — the foundation the AI personalisation
-  slice above builds its context from.
+- ✅ Immutable retailer-scoped `BehavioralEvent` capture, actually
+  instrumented on the customer storefront (product views, category
+  browsing) as of ADR-035, and the first real retailer analytics
+  dashboard — the foundation the AI personalisation slice above builds
+  its context from. Self-Portrait (ADR-034) is the composed read view
+  of this data on the retailer customer record.
+- ✅ `WeddingParty` / `WeddingPartyMember` (ADR-035, overriding
+  ADR-034's earlier deferral) — an organizer and their invited party
+  members, each getting their own guest `Customer` identity and
+  self-service fitting-status tracking, staff-managed per retailer.
+  Scoped to coordination (roster, fitting status, appointments); no
+  wedding-specific marketing/lead-gen funnel was built.
 
 ## Phase 6 — Platform maturity
 

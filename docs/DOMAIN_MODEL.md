@@ -29,18 +29,18 @@ correct and this document is stale and should be fixed.
 
 ## Bounded contexts
 
-| Context      | Path            | Owns                                                                                                                 |
-| ------------ | --------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Identity     | `identity/`     | `User`, `PlatformStaffMember`, `RetailerStaffMember`, role hierarchies                                               |
-| Retailer     | `retailer/`     | `Retailer` (the tenant root), `RetailerSubscription`, `SubscriptionPlan`, `FeatureFlagOverride`                      |
-| Customer     | `customer/`     | `Customer`, `CustomerAccountLink`, `CustomerPreferences`, `Wishlist`                                                 |
-| Catalog      | `catalog/`      | `Product`, `ProductVariant`, `Collection`                                                                            |
-| Commerce     | `commerce/`     | `Order`, `OrderLine`, `Payment`                                                                                      |
-| Production   | `production/`   | Physical garments, fittings/observations, alteration work orders/tasks, workshops, pricing, handoffs and fulfillment |
-| Appointments | `appointments/` | `Appointment`, `AvailabilityWindow`                                                                                  |
-| Loyalty      | `loyalty/`      | `LoyaltyAccount`, `LoyaltyLedgerEntry`, `Reward`, `Referral`                                                         |
-| Engagement   | `engagement/`   | `Notification`, `Conversation` / `Message`, `RetailerEvent` / `EventRsvp`, `ClientelingNote`                         |
-| Analytics    | `analytics/`    | `AuditLogEntry`, `BehavioralEvent`                                                                                   |
+| Context      | Path            | Owns                                                                                                                                |
+| ------------ | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Identity     | `identity/`     | `User`, `PlatformStaffMember`, `RetailerStaffMember`, role hierarchies                                                              |
+| Retailer     | `retailer/`     | `Retailer` (the tenant root), `RetailerSubscription`, `SubscriptionPlan`, `FeatureFlagOverride`                                     |
+| Customer     | `customer/`     | `Customer`, `CustomerAccountLink`, `CustomerPreferences`, `Wishlist`                                                                |
+| Catalog      | `catalog/`      | `Product`, `ProductVariant`, `Collection`                                                                                           |
+| Commerce     | `commerce/`     | `Order`, `OrderLine`, `Payment`                                                                                                     |
+| Production   | `production/`   | Physical garments, fittings/observations, alteration work orders/tasks, workshops, pricing, handoffs and fulfillment                |
+| Appointments | `appointments/` | `Appointment`, `AvailabilityWindow`                                                                                                 |
+| Loyalty      | `loyalty/`      | `LoyaltyAccount`, `LoyaltyLedgerEntry`, `Reward`, `Referral`                                                                        |
+| Engagement   | `engagement/`   | `Notification`, `Conversation` / `Message`, `RetailerEvent` / `EventRsvp`, `ClientelingNote`, `WeddingParty` / `WeddingPartyMember` |
+| Analytics    | `analytics/`    | `AuditLogEntry`, `BehavioralEvent`                                                                                                  |
 
 ## Key relationships
 
@@ -61,6 +61,7 @@ Customer 1───1 LoyaltyAccount 1───* LoyaltyLedgerEntry
 Customer 1───* Appointment ──0..1 RetailerStaffMember
 RetailerStaffMember 1───* AvailabilityWindow
 Customer 1───1 Conversation 1───* Message
+Customer 1───* WeddingParty (as organizer) 1───* WeddingPartyMember ──1 Customer (each member is also a Customer)
 ```
 
 ## Why a Customer is scoped to one Retailer

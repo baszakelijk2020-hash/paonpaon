@@ -1253,3 +1253,90 @@ has 7 primitives (`Badge`, `Button`, `Card`, `FormField`, `Input`,
 components (fabric/material selector, archetype customizer, masonry
 grid) built against the existing design tokens, not a new visual
 system.
+
+## ADR-035: Overriding ADR-034's bucket 3 — Wedding Party and Today's Pick, and a founder-directed premium visual pass
+
+**Context.** ADR-034 triaged the Nebel & Spiegel concept deck into
+three buckets and explicitly deferred `Moonstruck` (wedding vertical),
+`MorningRoutine` (daily curated push-commerce) and several others as
+"a different company's business model, not PAON's." The founder has
+since explicitly overridden that triage for two of them — "build the
+wedding party thing... make it working on the customer end and on the
+retailer end" and "build morningroutine" — and separately directed
+that the storefront's premium visual language (ADR-034 bucket 2)
+extend across every customer-facing surface, not just catalog/PDP,
+with the explicit instruction to prioritize this "despite any risks."
+Per this repository's own rule ("a reversal of a past ADR" is
+"genuinely architectural" and needs a recorded entry), this ADR
+supersedes ADR-034's bucket-3 placement of those two items only —
+`MunroMissionControl`, `MunroMerchant`, `InsiderTailoring`, `The
+Residents Club` remain out of scope; nothing about those changed.
+
+**Decision — scope, not literal reimplementation.** Both features are
+built as real PAON domain concepts serving the same underlying need
+the deck named, not as a port of Atelier Munro's specific mechanics
+(which assume a different product, a different membership business,
+and a static prototype with no real backend):
+
+1. **Behavioral tracking now actually fires.** `capture_behavioral_event`
+   and the `BehavioralEvent` domain model existed since Phase 5 with no
+   call site in `apps/customer`. A client-mount tracker
+   (`r/[slug]/track-view.tsx`) now emits `product_viewed` on the PDP
+   and `category_browsed` on a filtered catalog view, for signed-in
+   customers only — feeding Self-Portrait live instead of it only ever
+   showing whatever a seed script or manual entry produced. Self-Portrait
+   also gained a "worth a clienteling note?" nudge when a customer has
+   activity in the last 3 days.
+2. **"Today's Pick"** (MorningRoutine's core idea — one curated,
+   context-aware recommendation — without the parts that need
+   infrastructure this deployment doesn't have: no weather API, no
+   scheduled push/cron for a daily send, no 1-click saved-payment
+   checkout beyond what the existing cart already does). User-initiated
+   via a button on the customer dashboard, per retailer relationship.
+   `@paon/ai`'s `AIProvider` gained `generateProductRecommendation`
+   (candidates = a bounded slice of the retailer's active catalog,
+   never the full catalog dumped into the prompt); OpenAI is asked to
+   pick one candidate id and enforced to have actually picked one of
+   them, same defensive parsing shape as `generateNextBestAction`.
+   Recording the generation needed a new entry point:
+   `record_customer_ai_generation` (`20260721000003_*`) is a
+   `security definer` RPC re-deriving the caller's own `customer_id`
+   from `auth.uid()`, because `ai_generations`' insert policy is
+   staff-only (ADR-033) and broadening it to let a customer insert
+   arbitrary rows would be a much larger privilege change than this
+   narrow, kind-locked (`product_recommendation` only) RPC.
+3. **Wedding Party** (`Moonstruck`'s coordination need — one organizer,
+   several invited members, each booking their own fitting, staff
+   tracking the group — without the deck's broader "wedding vertical as
+   a lead-generation funnel" business strategy, which is a marketing
+   decision, not a data model). New bounded concept:
+   `WeddingParty` (one per retailer + organizer `Customer`, event date,
+   venue, status) and `WeddingPartyMember` (name, email, role, an
+   always-present `customer_id` — a member is find-or-created as a
+   guest `Customer` by email exactly the way TableService creates one,
+   reusing that dedupe rather than inventing a second guest-identity
+   path, `fitting_status`). Members and the organizer can read their own
+   party; staff (`sales_associate`+) manage it for their retailer.
+   Fitting-status transitions go through `update_wedding_party_member_status`
+   (`security definer`) so a member can mark themselves `scheduled`
+   without gaining any broader write access to the party record.
+4. **Premium visual pass**: extends the ADR-034 storefront redesign
+   (masonry catalog, editorial PDP) across every remaining
+   customer-facing page — dashboard, loyalty, wishlist, orders,
+   account — with the same serif-display + restrained-motion language,
+   plus the two new features' own UI. The back-office UI (admin,
+   retailer portal) is unaffected — ADR-034's distinction between
+   "storefront gets premium treatment, back-office stays quiet/editorial"
+   still holds; only the founder's instruction to broaden which pages
+   count as "storefront-adjacent, customer-facing" changed.
+
+**Consequences.** Two new tables (`wedding_parties`,
+`wedding_party_members`), one new nullable column already added
+nowhere else needs touching, and `@paon/ai`'s public interface grew by
+one method (a superset — `OpenAIProvider` implements both, nothing
+existing changed shape). No weather integration, no scheduled/cron
+daily send, no new payment capability were built — those remain
+explicitly unimplemented pending real infrastructure/credentials, not
+silently faked. `MunroMissionControl`, `MunroMerchant`,
+`InsiderTailoring`, `The Residents Club` are unchanged from ADR-034's
+bucket 3.
