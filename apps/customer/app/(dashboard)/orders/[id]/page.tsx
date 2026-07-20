@@ -1,5 +1,6 @@
 import {
   OrderRepository,
+  PaymentRepository,
   ProductVariantRepository,
   RetailerRepository,
 } from "@paon/database";
@@ -9,16 +10,21 @@ import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
 import { notFound } from "next/navigation";
 
+import { PayPanel } from "./pay-panel";
+
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function OrderDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ payment?: string }>;
 }) {
   await requireSession();
   const { id } = await params;
+  const { payment } = await searchParams;
   const supabase = await getSupabaseServerClient();
 
   const orderRepo = new OrderRepository(supabase);
@@ -27,9 +33,10 @@ export default async function OrderDetailPage({
     notFound();
   }
 
-  const [lines, retailer] = await Promise.all([
+  const [lines, retailer, paymentRecord] = await Promise.all([
     orderRepo.findLinesByOrder(order.id),
     new RetailerRepository(supabase).findById(order.retailerId),
+    new PaymentRepository(supabase).findByOrder(order.id),
   ]);
 
   const variantRepo = new ProductVariantRepository(supabase);
@@ -83,10 +90,31 @@ export default async function OrderDetailPage({
         </p>
       </Card>
 
-      <p className="text-sm text-[var(--color-stone-500)]">
-        No payment has been collected yet — this order is pending payment until
-        a payment provider is integrated.
-      </p>
+      {order.status === "pending_payment" ? (
+        payment === "success" ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            Confirming your payment — this can take a few seconds. Refresh if
+            the status above doesn&rsquo;t update.
+          </p>
+        ) : (
+          <PayPanel
+            orderId={order.id}
+            paymentCanceled={payment === "canceled"}
+          />
+        )
+      ) : paymentRecord?.status === "captured" ? (
+        <p className="text-sm text-[var(--color-stone-500)]">
+          Paid {formatMoney(paymentRecord.amount, "en-US")}
+          {paymentRecord.capturedAt
+            ? ` on ${formatDate(paymentRecord.capturedAt, "en-US")}`
+            : ""}
+          .
+        </p>
+      ) : paymentRecord?.status === "refunded" ? (
+        <p className="text-sm text-[var(--color-stone-500)]">
+          Refunded {formatMoney(paymentRecord.amount, "en-US")}.
+        </p>
+      ) : null}
     </div>
   );
 }

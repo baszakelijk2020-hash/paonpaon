@@ -57,6 +57,7 @@ export type WishlistId = Brand<string, "WishlistId">;
 export type ClientelingNoteId = Brand<string, "ClientelingNoteId">;
 export type SubscriptionId = Brand<string, "SubscriptionId">;
 export type SubscriptionPlanId = Brand<string, "SubscriptionPlanId">;
+export type PaymentId = Brand<string, "PaymentId">;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

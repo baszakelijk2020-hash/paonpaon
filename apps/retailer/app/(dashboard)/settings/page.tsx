@@ -1,5 +1,6 @@
 import { requireRetailerRole } from "@paon/auth";
 import { RetailerRepository } from "@paon/database";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { SettingsForm } from "./settings-form";
@@ -34,6 +35,12 @@ export default async function SettingsPage() {
           Business profile and billing address. Slug, tier, subscription and
           currency are managed by PAON Admin.
         </p>
+        <Link
+          href="/settings/payments"
+          className="mt-2 inline-block text-sm underline"
+        >
+          Payments settings →
+        </Link>
       </div>
       <SettingsForm retailer={retailer} />
     </div>

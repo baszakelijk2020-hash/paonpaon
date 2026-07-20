@@ -17,6 +17,7 @@
     "@paon/auth": "workspace:*",
     "@paon/database": "workspace:*",
     "@paon/domain": "workspace:*",
+    "@paon/payments": "workspace:*",
     "@paon/ui": "workspace:*",
     "@paon/utils": "workspace:*",
     "next": "^15.1.3",

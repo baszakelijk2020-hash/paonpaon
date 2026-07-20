@@ -64,15 +64,3 @@ export interface OrderLine {
   readonly requiresProduction: boolean;
   readonly requiresAlteration: boolean;
 }
-
-export type PaymentStatus =
-  "pending" | "authorized" | "captured" | "refunded" | "failed";
-
-export interface Payment {
-  readonly orderId: OrderId;
-  readonly amount: Money;
-  readonly status: PaymentStatus;
-  readonly provider: string;
-  readonly providerReference: string;
-  readonly capturedAt?: string;
-}

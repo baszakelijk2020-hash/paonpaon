@@ -22,6 +22,8 @@ export * from "./catalog/product.schema";
 
 export * from "./commerce/order";
 export * from "./commerce/order.schema";
+export * from "./commerce/payment";
+export * from "./commerce/payment.schema";
 
 export * from "./production/production";
 export * from "./production/production.schema";

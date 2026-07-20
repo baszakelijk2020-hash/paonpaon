@@ -77,12 +77,11 @@ commerce logic is built on top of it.
   retailer relationship, add/update/remove lines, checkout re-validates
   price/stock/currency and collects a shipping address. Buy-now
   (`place_order`) still exists alongside it. See ADR-024.
-- ⬜ `Payment` integration — the one piece of "Catalog and Commerce"
-  deliberately not built. Provider selection is an open decision
-  (needs its own ADR once made) and almost certainly needs external
-  credentials (a payment provider account) this environment doesn't
-  have — flag this explicitly when picked up, don't guess a provider or
-  fake a working integration.
+- ✅ `Payment` integration — Stripe Connect Express, direct charges,
+  every retailer merchant of record (founder decision, ADR-030).
+  Code-complete and unit-tested; blocked only on a platform operator
+  provisioning real Stripe credentials, see `docs/PROJECT_STATE.md`
+  "Credentials needed".
 
 ## Phase 3 — Production, Alteration, Appointments (in progress)
 

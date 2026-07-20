@@ -9,9 +9,10 @@ phase-level plan this fits into.
 ## Where we are
 
 **Phase 0 (engineering foundation): done. Phase 1 (Identity, Retailer,
-Customer core): done. Phase 2 (Catalog and Commerce): catalog, storefront
-and order placement/management shipped — payment integration is the
-one thing left, blocked on a provider decision + external credentials,
+Customer core): done. Phase 2 (Catalog and Commerce): catalog, storefront,
+order placement/management and Stripe Connect customer payments shipped
+— fully wired code-complete, blocked only on a platform operator
+provisioning real Stripe credentials (see "Credentials needed" below),
 not on anything technical. Phase 3 (Production, Alteration,
 Appointments): Appointments plus the production-ready garment-first
 Alterations vertical slice shipped — connector-facing `ProductionOrder`
@@ -347,14 +348,75 @@ got built.
   single "empty cart" button); a cart-item counter/badge elsewhere in the
   storefront chrome.
 
-### Not yet built (Phase 2 — Catalog and Commerce, continued)
+### Shipped: Stripe Connect customer payments
 
-1. Payment provider integration — the provider itself is an open
-   decision (needs its own ADR once made, per `docs/DECISIONS.md`'s own
-   convention) and needs external credentials (a payment provider
-   account) this environment doesn't have — flag this explicitly when
-   reached rather than guessing a provider or faking a working
-   integration. This is the one piece of Phase 2 not shipped.
+Full reasoning in `docs/DECISIONS.md` ADR-030 (founder decision: Stripe
+Connect Express, every retailer is merchant of record, optional
+configurable platform fee). This is the piece of Phase 2 the previous
+version of this document flagged as not started — it is now fully
+code-complete and unit-tested, blocked only on real credentials (see
+"Credentials needed" below), not on anything technical.
+
+- **`@paon/payments`** — new package, isolates every Stripe SDK call the
+  same way `@paon/database` isolates `@supabase/supabase-js` (ADR-001).
+  `connect.ts` (Express account creation, onboarding/dashboard links,
+  direct-charge Checkout Session creation), `webhooks.ts` (signature
+  verification), `webhook-events.ts` (pure event → action mapping, fully
+  unit-tested with fixture objects, no live Stripe account needed).
+- **`retailer_stripe_accounts`, `payments`, `stripe_webhook_events`
+  tables + `record_stripe_payment_event` RPC** (`20260720000015_*`).
+  `record_stripe_payment_event` is the only way a `payments` row or a
+  `pending_payment`→`placed`/`refunded` order transition happens —
+  granted to `service_role` only, idempotent at both the Stripe-event
+  level and the payment-record level (a redelivered webhook, which
+  Stripe does until it gets a 2xx, is a total no-op).
+- **Retailer Portal `/settings/payments`** (owner/admin): "Connect with
+  Stripe" starts Express onboarding; status badges
+  (charges/payouts enabled, onboarding incomplete); "Manage on Stripe"
+  opens an Express dashboard login link. Renders a "Stripe is not
+  configured on this deployment" state instead of crashing when
+  `STRIPE_SECRET_KEY` is unset — same non-faking treatment
+  `docs/PROJECT_STATE.md` already applies to unconfigured AI.
+- **Customer Portal `/orders/[id]`**: a `pending_payment` order shows a
+  "Pay now" button (`createCheckoutSession` → redirect to Stripe
+  Checkout); canceling returns to the same page with a retry affordance
+  — checkout never strands an order mid-flow, since `checkout_cart`
+  itself never calls Stripe. A `captured`/`refunded` payment renders a
+  receipt line from the real `payments` row.
+- **`apps/customer/app/api/webhooks/stripe/route.ts`**: verifies the
+  signature, calls `parseStripeConnectEvent`, dispatches to
+  `PaymentRepository`/`RetailerStripeAccountRepository` — handles
+  `payment_intent.succeeded`/`.payment_failed`, `charge.refunded`,
+  `account.updated`. Never inlines business logic (docs/API.md "Route
+  Handlers").
+- **Deliberately not built**: multiple payment attempts or partial
+  refunds per order (`payments.order_id` is unique — MVP scope, a later
+  enhancement, not modeled speculatively now); a PAON Admin cross-retailer
+  payments view (Retailer Portal and Customer Portal cover today's actual
+  need).
+
+#### Credentials needed (Stripe Connect)
+
+Everything above is real, wired code — it needs a platform operator to:
+
+1. Create (or use an existing) Stripe account for PAON itself, enable
+   **Connect** (Dashboard → Connect → Get started, Express accounts).
+2. Copy the **platform account's secret key** into `STRIPE_SECRET_KEY`
+   for both `apps/retailer` and `apps/customer` (same key, both apps —
+   see each app's `.env.example`).
+3. Register a webhook endpoint at
+   `https://<customer-app-domain>/api/webhooks/stripe`, subscribed to
+   **Connect events** (not account events): `payment_intent.succeeded`,
+   `payment_intent.payment_failed`, `charge.refunded`,
+   `account.updated`. Copy the endpoint's signing secret into
+   `STRIPE_CONNECT_WEBHOOK_SECRET` (`apps/customer` only).
+4. For local development, use the Stripe CLI (`stripe listen --forward-to
+localhost:3002/api/webhooks/stripe`) to get a local webhook secret and
+   exercise the flow against Stripe's real test mode.
+
+No code change is required once these exist — `lib/stripe.ts` in both
+apps picks up `STRIPE_SECRET_KEY` automatically, and every caller
+already checks for its presence.
 
 ### Shipped: Appointments and garment-first Alterations (Phase 3)
 

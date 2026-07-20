@@ -102,6 +102,9 @@ importers:
       '@paon/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@paon/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@paon/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -163,6 +166,9 @@ importers:
       '@paon/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@paon/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@paon/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -329,6 +335,31 @@ importers:
       typescript-eslint:
         specifier: ^8.19.0
         version: 8.64.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+
+  packages/payments:
+    dependencies:
+      '@paon/domain':
+        specifier: workspace:*
+        version: link:../domain
+      stripe:
+        specifier: ^22.3.2
+        version: 22.3.2(@types/node@22.20.1)
+    devDependencies:
+      '@paon/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@paon/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      eslint:
+        specifier: ^9.17.0
+        version: 9.39.5(jiti@2.7.0)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)(lightningcss@1.32.0)
 
   packages/typescript-config: {}
 
@@ -2723,6 +2754,15 @@ packages:
   strip-json-comments@3.1.1:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
+
+  stripe@22.3.2:
+    resolution: {integrity: sha512-O13QOvgEIQvDlTy6Ubb5kB980wpbhmoZNsgCXKILjCMZS67f+bW+6w99k3gnSi/N1lkryoj1WYdpGT5Wc5edjg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/node': '>=18'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
 
   styled-jsx@5.1.6:
     resolution: {integrity: sha512-qSVyDTeMotdvQYoHWLNGwRFJHC+i+ZvdBRYosOFgC+Wg1vx4frN2/RG/NA7SYqqvKNLf39P2LSRA2pu6n0XYZA==}
@@ -5248,6 +5288,10 @@ snapshots:
   strip-final-newline@3.0.0: {}
 
   strip-json-comments@3.1.1: {}
+
+  stripe@22.3.2(@types/node@22.20.1):
+    optionalDependencies:
+      '@types/node': 22.20.1
 
   styled-jsx@5.1.6(react@19.2.7):
     dependencies:

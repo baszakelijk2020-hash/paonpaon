@@ -918,3 +918,81 @@ parameter has no "leave unchanged" sentinel of its own and an empty
 string clears it). Customer Portal's storefront list and detail pages
 render the image for the first time — it was captured but never
 displayed anywhere before this slice.
+
+## ADR-030: Stripe Connect Express for customer payments, direct charges, retailer is merchant of record
+
+**Context.** Payment provider integration has been the one deliberately
+unbuilt piece of Phase 2 since ADR-014 — `Order` could reach
+`"pending_payment"` but never `"placed"`, because nothing actually moved
+money. Founder decision: Stripe Connect Express, every retailer is
+merchant of record, PAON must support an optional configurable platform
+fee later.
+
+**Decision.**
+
+1. **Direct charges on the connected account, never destination
+   charges.** `createDirectChargeCheckoutSession` (`@paon/payments`)
+   calls `stripe.checkout.sessions.create(..., { stripeAccount:
+connectedAccountId })` — the retailer's own Express account is the
+   merchant of record for every charge; PAON's platform account never
+   holds customer funds. The only money PAON ever touches is an
+   optional `application_fee_amount`, computed from
+   `RetailerStripeAccount.platformFeeBasisPoints` (0 unless a platform
+   operator configures one — "optional configurable... later" built as
+   a real, working field with a zero default, not a stub).
+2. **`RetailerStripeAccount` is a new table, not a `Retailer` column**
+   (`20260720000015_*`) — same reasoning as `CustomerPreferences`
+   (ADR-028): a retailer's Stripe relationship is operational
+   integration state, not core tenant identity. Owner/admin can start
+   Connect onboarding (`connectStripeAccount`, Retailer Portal
+   `/settings/payments`) and read their own account's status; only the
+   `account.updated` webhook (service-role) ever updates
+   `charges_enabled`/`payouts_enabled`/`details_submitted` —
+   `platform_fee_basis_points` is platform-staff-only, the same
+   "platform-controlled field" shape as `Retailer.defaultCurrency`.
+3. **`payments` uses direct RLS + a narrow RPC, not RLS alone** —
+   unlike ADR-028's `customer_preferences` (direct RLS was enough
+   because nothing else needed to change transactionally), a payment
+   event must atomically record the payment row _and_ transition
+   `orders.status`, exactly the "two tables, one client call" shape
+   ADR-012/013/014/024 already established a `security definer` RPC
+   for. `record_stripe_payment_event` is granted to `service_role`
+   only — a normal user session must never be able to assert its own
+   payment status, the same restraint `place_order`/`checkout_cart`
+   already apply to price and inventory.
+4. **Idempotent at two levels.** `stripe_webhook_events` (Stripe event
+   id as primary key) makes a redelivered webhook a total no-op — Stripe
+   retries every delivery until it gets a 2xx, so this _will_ happen
+   under normal operation, not just after a crash. `payments.order_id`
+   is unique, so a payment retry after a failed attempt updates the same
+   row rather than creating a new one.
+5. **The webhook Route Handler is thin; event interpretation is a pure,
+   unit-tested function.** `parseStripeConnectEvent` (`@paon/payments`)
+   maps a verified `Stripe.Event` to a small discriminated-union
+   "action" with no I/O — fully testable with plain fixture objects, no
+   live Stripe account needed. The Route Handler
+   (`apps/customer/app/api/webhooks/stripe/route.ts`) only verifies the
+   signature, calls the parser, and dispatches to repository methods —
+   matching docs/API.md's "verify signatures before doing anything
+   else; delegate to a repository/service, never inline business logic
+   in the handler."
+6. **Failure recovery, not a one-shot flow.** `checkout_cart` (ADR-024)
+   still only moves an order to `pending_payment` — it does not call
+   Stripe. Creating the Checkout Session is a separate step
+   (`createCheckoutSession`, `/orders/[id]`'s "Pay now"), so a canceled
+   or failed Stripe Checkout leaves the order exactly where it was:
+   `pending_payment`, retryable, never stranded mid-flow.
+
+**Consequences.** MVP scope is one `payments` row per order — multiple
+payment attempts and partial refunds are a later enhancement (a refund
+event always records the order's full original amount, not
+`amount_refunded`, since the recording RPC validates against the
+order's total). Every Stripe API-calling function (`connect.ts`) is
+unit-tested by mocking the Stripe SDK client (dependency injection, no
+live account); nothing about credential absence is faked — `lib/stripe.ts`
+in both `apps/retailer` and `apps/customer` returns `null` when
+`STRIPE_SECRET_KEY` is unset, and every caller renders a "not
+configured" state rather than a crash or a fabricated success. See
+`docs/PROJECT_STATE.md` "Credentials needed" for the exact Stripe
+dashboard setup (webhook endpoint, events, secrets) required before
+this goes live.

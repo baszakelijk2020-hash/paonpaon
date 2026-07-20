@@ -2273,6 +2273,56 @@ export type Database = {
           },
         ];
       };
+      payments: {
+        Row: {
+          amount_minor_units: number;
+          captured_at: string | null;
+          created_at: string;
+          currency: string;
+          id: string;
+          order_id: string;
+          platform_fee_amount_minor_units: number;
+          provider: string;
+          provider_payment_intent_id: string;
+          status: Database["public"]["Enums"]["payment_status"];
+          updated_at: string;
+        };
+        Insert: {
+          amount_minor_units: number;
+          captured_at?: string | null;
+          created_at?: string;
+          currency: string;
+          id?: string;
+          order_id: string;
+          platform_fee_amount_minor_units?: number;
+          provider?: string;
+          provider_payment_intent_id: string;
+          status?: Database["public"]["Enums"]["payment_status"];
+          updated_at?: string;
+        };
+        Update: {
+          amount_minor_units?: number;
+          captured_at?: string | null;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          order_id?: string;
+          platform_fee_amount_minor_units?: number;
+          provider?: string;
+          provider_payment_intent_id?: string;
+          status?: Database["public"]["Enums"]["payment_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payments_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: true;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       physical_garments: {
         Row: {
           brand: string | null;
@@ -2945,6 +2995,47 @@ export type Database = {
           },
         ];
       };
+      retailer_stripe_accounts: {
+        Row: {
+          charges_enabled: boolean;
+          created_at: string;
+          details_submitted: boolean;
+          payouts_enabled: boolean;
+          platform_fee_basis_points: number;
+          retailer_id: string;
+          stripe_account_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          charges_enabled?: boolean;
+          created_at?: string;
+          details_submitted?: boolean;
+          payouts_enabled?: boolean;
+          platform_fee_basis_points?: number;
+          retailer_id: string;
+          stripe_account_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          charges_enabled?: boolean;
+          created_at?: string;
+          details_submitted?: boolean;
+          payouts_enabled?: boolean;
+          platform_fee_basis_points?: number;
+          retailer_id?: string;
+          stripe_account_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_stripe_accounts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: true;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailers: {
         Row: {
           billing_address: Json;
@@ -3090,6 +3181,24 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      stripe_webhook_events: {
+        Row: {
+          id: string;
+          processed_at: string;
+          type: string;
+        };
+        Insert: {
+          id: string;
+          processed_at?: string;
+          type: string;
+        };
+        Update: {
+          id?: string;
+          processed_at?: string;
+          type?: string;
+        };
+        Relationships: [];
       };
       wishlist_items: {
         Row: {
@@ -3692,6 +3801,19 @@ export type Database = {
         };
         Returns: string;
       };
+      record_stripe_payment_event: {
+        Args: {
+          p_amount_minor_units: number;
+          p_currency: string;
+          p_event_id: string;
+          p_event_type: string;
+          p_order_id: string;
+          p_platform_fee_amount_minor_units?: number;
+          p_provider_payment_intent_id: string;
+          p_status: Database["public"]["Enums"]["payment_status"];
+        };
+        Returns: undefined;
+      };
       redeem_my_reward: { Args: { p_reward_id: string }; Returns: string };
       request_appointment: {
         Args: {
@@ -3863,6 +3985,8 @@ export type Database = {
         | "completed"
         | "canceled"
         | "refunded";
+      payment_status:
+        "pending" | "authorized" | "captured" | "refunded" | "failed";
       platform_role:
         | "platform_owner"
         | "platform_admin"
@@ -4135,6 +4259,13 @@ export const Constants = {
         "completed",
         "canceled",
         "refunded",
+      ],
+      payment_status: [
+        "pending",
+        "authorized",
+        "captured",
+        "refunded",
+        "failed",
       ],
       platform_role: [
         "platform_owner",
