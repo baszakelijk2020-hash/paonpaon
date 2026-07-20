@@ -23,6 +23,53 @@ run an appointment calendar, and track alterations; Customer Portal has
 a public storefront/checkout and can request appointments and see
 alteration status. See "Not yet built" below.
 
+### Shipped: Production deployment
+
+All three apps are live on Vercel, backed by a real (not local) Supabase
+project — the first time anything in this repo has run outside a
+developer's machine.
+
+- **Supabase**: project `hngxrczavwywsnfceppb` (`ap-southeast-2`). All
+  migrations in `supabase/migrations` applied via `supabase db push
+--linked`. No seed data — the live database is empty until real
+  retailers/customers sign up or a platform operator seeds it.
+- **Vercel**: three projects, one per app, each with its Root Directory
+  set to the corresponding `apps/<name>` and reading the rest of the
+  monorepo (`packages/*`) as workspace dependencies —
+  `paon-admin.vercel.app`, `paon-retailer.vercel.app`,
+  `paon-customer.vercel.app`. `.vercelignore` at the repo root excludes
+  `node_modules`/build artifacts so CLI archive uploads stay small
+  enough for Vercel's Hobby-plan quotas.
+- **Env vars configured (production only)**: `NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` on all
+  three; `NEXT_PUBLIC_ADMIN_APP_URL`/`NEXT_PUBLIC_RETAILER_APP_URL` on
+  admin; `NEXT_PUBLIC_APP_URL` on retailer and customer.
+  **`STRIPE_SECRET_KEY`, `RESEND_API_KEY`, `OPENAI_API_KEY` and all
+  other provider credentials are still unset** — see "Credentials
+  needed" throughout this document. Every feature that depends on them
+  renders its existing "not configured" state in production exactly as
+  it does locally; nothing was faked to make the deploy look more
+  complete than it is.
+- **Cron on Hobby plan**: `apps/admin/vercel.json`'s email-dispatch cron
+  was changed from every 5 minutes to once daily (`0 6 * * *`) — Vercel
+  Hobby accounts cap cron jobs at once per day. This means, once Resend
+  credentials are added, enqueued email can sit in `email_outbox` for
+  up to 24h before a Hobby-plan deploy sends it; upgrading to Pro
+  restores near-real-time dispatch. This is a plan-cost tradeoff for a
+  human to decide, not something to change silently.
+- **Verified live**: `/login` renders correctly on all three apps
+  against the real Supabase Auth instance; the public storefront
+  (`/r/[slug]/products` on Customer Portal) correctly 404s for an
+  unknown retailer slug rather than erroring. No further live-account
+  verification (e.g. actually signing up a retailer) has been done —
+  see "Not yet built"/"Credentials needed" for what's still required
+  before this is usable by a real retailer.
+- **Deployed via Vercel CLI archive upload, not git** — there is no
+  GitHub remote connected to this repo, so there is no CI-triggered
+  redeploy on push. Future deploys are manual: `vercel deploy --prod
+--yes --archive=tgz` from the repo root, after `vercel link --project
+paon-<app>` for whichever app changed.
+
 ### Shipped: Behavioral analytics foundation
 
 - Immutable retailer-scoped `behavioral_events`, captured only through a narrow
