@@ -3,6 +3,7 @@ import {
   LoyaltyRepository,
   RetailerRepository,
 } from "@paon/database";
+import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
@@ -11,6 +12,20 @@ import { inviteFriend, joinLoyalty, redeemReward } from "./actions";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+const TIER_TONE = {
+  member: "neutral",
+  silver: "neutral",
+  gold: "warning",
+  platinum: "success",
+} as const;
+
+const REFERRAL_TONE = {
+  invited: "neutral",
+  signed_up: "warning",
+  first_purchase_completed: "success",
+  rewarded: "success",
+} as const;
 
 export default async function LoyaltyPage() {
   const session = await requireSession();
@@ -32,8 +47,8 @@ export default async function LoyaltyPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
-          Loyalty & rewards
+        <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+          Loyalty &amp; rewards
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Your memberships, rewards and referrals across retailers.
@@ -44,22 +59,32 @@ export default async function LoyaltyPage() {
           <Card key={customer.id} className="flex flex-col gap-5">
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="text-lg font-medium">
+                <p className="text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
                   {retailer?.displayName ?? "Retailer"}
-                </h2>
-                <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                  {account?.tier ?? "Not joined"}
                 </p>
+                {account ? (
+                  <Badge tone={TIER_TONE[account.tier]} className="mt-1">
+                    {account.tier}
+                  </Badge>
+                ) : (
+                  <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+                    Not joined
+                  </p>
+                )}
               </div>
-              <p className="text-3xl font-medium">
+              <p className="text-4xl font-[var(--font-display)] text-[var(--color-stone-900)]">
                 {account?.pointsBalance ?? 0}
-                <span className="ml-1 text-sm font-normal">points</span>
+                <span className="ml-1 font-sans text-sm font-normal text-[var(--color-stone-500)]">
+                  points
+                </span>
               </p>
             </div>
             {account ? (
               <>
                 <div>
-                  <h3 className="mb-2 font-medium">Available rewards</h3>
+                  <p className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+                    Available rewards
+                  </p>
                   <div className="grid gap-2">
                     {rewards
                       .filter((reward) => reward.active)
@@ -67,30 +92,36 @@ export default async function LoyaltyPage() {
                         <form
                           key={reward.id}
                           action={redeemReward}
-                          className="flex items-center justify-between rounded border p-3"
+                          className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
                         >
                           <input
                             type="hidden"
                             name="rewardId"
                             value={reward.id}
                           />
-                          <span>
+                          <span className="text-sm text-[var(--color-stone-800)]">
                             {reward.name} · {reward.pointsCost} points
                           </span>
                           <Button
                             type="submit"
                             size="sm"
+                            variant="outline"
                             disabled={account.pointsBalance < reward.pointsCost}
                           >
                             Redeem
                           </Button>
                         </form>
                       ))}
+                    {rewards.filter((reward) => reward.active).length === 0 ? (
+                      <p className="text-sm text-[var(--color-stone-500)]">
+                        No rewards available yet.
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 <form
                   action={inviteFriend}
-                  className="flex flex-col gap-2 sm:flex-row"
+                  className="flex flex-col gap-2 border-t border-[var(--color-stone-100)] pt-5 sm:flex-row"
                 >
                   <input
                     type="hidden"
@@ -103,15 +134,17 @@ export default async function LoyaltyPage() {
                     placeholder="Friend's email"
                     required
                   />
-                  <Button type="submit">Invite friend</Button>
+                  <Button type="submit" variant="outline">
+                    Invite friend
+                  </Button>
                 </form>
                 {referrals.length ? (
                   <div>
-                    <h3 className="mb-2 font-medium">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
                       {referrals.length} referral
                       {referrals.length === 1 ? "" : "s"} sent
-                    </h3>
-                    <ul className="flex flex-col gap-1">
+                    </p>
+                    <ul className="flex flex-col gap-1.5">
                       {referrals.map((referral) => (
                         <li
                           key={referral.id}
@@ -120,9 +153,9 @@ export default async function LoyaltyPage() {
                           <span className="text-[var(--color-stone-700)]">
                             {referral.referredEmail}
                           </span>
-                          <span className="capitalize text-[var(--color-stone-500)]">
+                          <Badge tone={REFERRAL_TONE[referral.status]}>
                             {referral.status.replaceAll("_", " ")}
-                          </span>
+                          </Badge>
                         </li>
                       ))}
                     </ul>

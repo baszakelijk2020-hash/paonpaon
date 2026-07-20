@@ -29,7 +29,9 @@ export default async function MessagesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-medium">Messages</h1>
+        <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+          Messages
+        </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Speak directly with your retail advisors.
         </p>

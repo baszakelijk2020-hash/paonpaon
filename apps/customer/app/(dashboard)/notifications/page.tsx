@@ -16,7 +16,9 @@ export default async function NotificationsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-medium">Notifications</h1>
+        <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+          Notifications
+        </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Service and relationship updates.
         </p>

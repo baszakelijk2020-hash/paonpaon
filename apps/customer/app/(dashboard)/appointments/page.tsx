@@ -37,7 +37,7 @@ export default async function AppointmentsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
+      <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
         Appointments
       </h1>
 
