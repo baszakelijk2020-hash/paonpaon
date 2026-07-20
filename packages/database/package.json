@@ -16,7 +16,9 @@
     "test": "vitest run",
     "generate-types": "supabase gen types typescript --local > src/generated/database.types.ts",
     "bootstrap:platform-admin": "tsx scripts/bootstrap-platform-admin.ts",
-    "seed:demo": "tsx scripts/seed-demo.ts"
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "deactivate:demo": "tsx scripts/deactivate-demo-logins.ts",
+    "reactivate:demo": "tsx scripts/reactivate-demo-logins.ts"
   },
   "dependencies": {
     "@paon/domain": "workspace:*",
