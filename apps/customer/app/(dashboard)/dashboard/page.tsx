@@ -1,6 +1,9 @@
 import { CustomerRepository, RetailerRepository } from "@paon/database";
 import { Card } from "@paon/ui/components/Card";
 
+import { TodaysPick } from "./todays-pick";
+
+import { getAIProvider } from "@/lib/ai";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -18,11 +21,12 @@ export default async function DashboardPage() {
       retailer: await retailerRepo.findById(customer.retailerId),
     })),
   );
+  const aiConfigured = !!getAIProvider();
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
+        <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
           Your relationships
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
@@ -42,17 +46,34 @@ export default async function DashboardPage() {
       ) : (
         <Card className="divide-y divide-[var(--color-stone-100)] p-0">
           {relationships.map(({ customer, retailer }) => (
-            <div key={customer.id} className="px-6 py-4">
-              <p className="font-medium text-[var(--color-stone-900)]">
-                {retailer?.displayName ?? "Unknown retailer"}
-              </p>
-              <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                {customer.lifecycleStage.replaceAll("_", " ")}
-              </p>
+            <div key={customer.id}>
+              <div className="px-6 py-4">
+                <p className="font-medium text-[var(--color-stone-900)]">
+                  {retailer?.displayName ?? "Unknown retailer"}
+                </p>
+                <p className="text-sm capitalize text-[var(--color-stone-500)]">
+                  {customer.lifecycleStage.replaceAll("_", " ")}
+                </p>
+              </div>
+              {aiConfigured && retailer ? (
+                <TodaysPick
+                  slug={retailer.slug}
+                  retailerId={retailer.id}
+                  customerId={customer.id}
+                  retailerName={retailer.displayName}
+                  customerName={customer.fullName}
+                />
+              ) : null}
             </div>
           ))}
         </Card>
       )}
+
+      {!aiConfigured ? (
+        <p className="text-sm text-[var(--color-stone-500)]">
+          Personalised picks are not configured on this deployment.
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -94,4 +94,50 @@ describe("OpenAIProvider", () => {
       "missing action/rationale",
     );
   });
+
+  const recommendationContext = {
+    retailerName: "Maison Test",
+    customerName: "Jane Shopper",
+    recentEventNames: ["product_viewed", "category_browsed"],
+    candidates: [
+      { productId: "p1", name: "Wool Overcoat", description: "Camel wool" },
+      { productId: "p2", name: "Silk Tie", description: "Navy silk" },
+    ],
+  };
+
+  it("parses a valid productId/rationale recommendation", async () => {
+    const { client } = fakeOpenAI(
+      JSON.stringify({ productId: "p1", rationale: "Matches your browsing." }),
+    );
+    const provider = new OpenAIProvider(client);
+
+    const result = await provider.generateProductRecommendation(
+      recommendationContext,
+    );
+
+    expect(result).toEqual({
+      productId: "p1",
+      rationale: "Matches your browsing.",
+    });
+  });
+
+  it("rejects a recommendation outside the candidate list", async () => {
+    const { client } = fakeOpenAI(
+      JSON.stringify({ productId: "not-a-candidate", rationale: "Nice." }),
+    );
+    const provider = new OpenAIProvider(client);
+
+    await expect(
+      provider.generateProductRecommendation(recommendationContext),
+    ).rejects.toThrow("outside the candidate list");
+  });
+
+  it("throws when the recommendation response is missing productId or rationale", async () => {
+    const { client } = fakeOpenAI(JSON.stringify({ productId: "p1" }));
+    const provider = new OpenAIProvider(client);
+
+    await expect(
+      provider.generateProductRecommendation(recommendationContext),
+    ).rejects.toThrow("missing productId/rationale");
+  });
 });

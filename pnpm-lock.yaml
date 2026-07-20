@@ -99,6 +99,9 @@ importers:
 
   apps/customer:
     dependencies:
+      '@paon/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@paon/auth':
         specifier: workspace:*
         version: link:../../packages/auth

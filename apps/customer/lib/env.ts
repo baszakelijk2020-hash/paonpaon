@@ -36,4 +36,8 @@ export const env = {
   get stripeConnectWebhookSecret() {
     return optionalEnv("STRIPE_CONNECT_WEBHOOK_SECRET");
   },
+  /** Same key the Retailer Portal reads (ADR-033/ADR-035) — absent until a platform operator provisions one, see docs/PROJECT_STATE.md "Credentials needed". */
+  get openaiApiKey() {
+    return optionalEnv("OPENAI_API_KEY");
+  },
 };

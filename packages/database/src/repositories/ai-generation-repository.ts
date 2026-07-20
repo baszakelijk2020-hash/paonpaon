@@ -99,4 +99,38 @@ export class AIGenerationRepository {
     if (error) throw error;
     return data.map(toDomain);
   }
+
+  /** The customer-initiated counterpart to `record` — routed through
+   * `record_customer_ai_generation` (security definer, re-derives the
+   * caller's own `customer_id`) since `ai_generations`' insert policy
+   * only grants retailer staff (ADR-035). Always `kind:
+   * "product_recommendation"`, the only kind this RPC accepts. */
+  async recordAsCustomer(params: {
+    retailerId: RetailerId;
+    status: AIGenerationStatus;
+    model: string;
+    inputSummary: string;
+    output?: Record<string, unknown>;
+    errorMessage?: string;
+    latencyMs?: number;
+  }): Promise<string> {
+    const { data, error } = await this.client.rpc(
+      "record_customer_ai_generation",
+      {
+        p_retailer_id: params.retailerId,
+        p_status: params.status,
+        p_model: params.model,
+        p_input_summary: params.inputSummary,
+        ...(params.output ? { p_output: params.output as Json } : {}),
+        ...(params.errorMessage
+          ? { p_error_message: params.errorMessage }
+          : {}),
+        ...(params.latencyMs !== undefined
+          ? { p_latency_ms: params.latencyMs }
+          : {}),
+      },
+    );
+    if (error) throw error;
+    return data;
+  }
 }

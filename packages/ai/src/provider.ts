@@ -18,10 +18,34 @@ export interface NextBestActionResult {
   rationale: string;
 }
 
+/** One candidate product per recommendation call — the customer app
+ * passes a small active-catalog slice, never the full catalog, to keep
+ * the prompt bounded. */
+export interface ProductRecommendationCandidate {
+  productId: string;
+  name: string;
+  description: string;
+}
+
+export interface ProductRecommendationContext {
+  retailerName: string;
+  customerName: string;
+  recentEventNames: readonly string[];
+  candidates: readonly ProductRecommendationCandidate[];
+}
+
+export interface ProductRecommendationResult {
+  productId: string;
+  rationale: string;
+}
+
 export interface AIProvider {
   readonly providerName: string;
   readonly model: string;
   generateNextBestAction(
     context: NextBestActionContext,
   ): Promise<NextBestActionResult>;
+  generateProductRecommendation(
+    context: ProductRecommendationContext,
+  ): Promise<ProductRecommendationResult>;
 }

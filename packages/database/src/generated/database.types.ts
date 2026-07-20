@@ -4048,6 +4048,18 @@ export type Database = {
         };
         Returns: string;
       };
+      record_customer_ai_generation: {
+        Args: {
+          p_error_message?: string;
+          p_input_summary: string;
+          p_latency_ms?: number;
+          p_model: string;
+          p_output?: Json;
+          p_retailer_id: string;
+          p_status: Database["public"]["Enums"]["ai_generation_status"];
+        };
+        Returns: string;
+      };
       record_stripe_payment_event: {
         Args: {
           p_amount_minor_units: number;
