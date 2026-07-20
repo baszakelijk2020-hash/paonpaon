@@ -1,0 +1,14 @@
+node_modules
+.pnpm-store
+.next
+dist
+build
+out
+.turbo
+coverage
+playwright-report
+test-results
+.vitest-cache
+.git
+supabase/.branches
+supabase/.temp
