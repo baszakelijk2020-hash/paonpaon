@@ -1059,3 +1059,67 @@ and unit-tested with fixture objects, no live account needed. See
 `docs/PROJECT_STATE.md` "Credentials needed" for the exact Stripe
 dashboard setup (Products/Prices per plan, webhook endpoint, secrets)
 required before this goes live.
+
+## ADR-032: Resend transactional email via a durable outbox, not synchronous send
+
+**Context.** `docs/PROJECT_STATE.md` has flagged "Email, SMS and push
+remain future delivery adapters requiring provider credentials" since
+the messaging/notifications slice shipped — `notifications.channel`
+already had an `'email'` enum value with nothing behind it. Founder
+decision: Resend. Postgres triggers cannot make HTTP calls, and the one
+place `notifications` rows are created (`send_conversation_message`,
+`20260720000004_*`) runs inside a database transaction, not Node — so
+"call Resend synchronously when a notification is created" isn't
+available as an option the way it would be from a Server Action.
+
+**Decision.**
+
+1. **A durable outbox (`email_outbox`), not a direct send.** One
+   `after insert on notifications` trigger
+   (`enqueue_notification_email`, `20260720000017_*`) is the single
+   integration point — it fires regardless of which RPC created the
+   notification, so a future notification-creating code path gets
+   email delivery for free with zero changes to it. The trigger reads
+   `auth.users.email` and the customer's own
+   `communication_channels` preference (ADR-028); a customer who
+   opted out of email gets no outbox row at all, not a suppressed send.
+2. **A scheduled Route Handler drains it, not a background worker
+   process.** `apps/admin/app/api/cron/dispatch-emails` — `docs/API.md`
+   and `docs/DATABASE.md` already named "scheduled jobs" as a
+   legitimate Route Handler / service-role-client use case, so this
+   fills an anticipated gap rather than introducing a new pattern.
+   Authenticated by a shared secret (`CRON_SECRET`, checked as
+   `Authorization: Bearer`), the same shape Vercel Cron sends
+   automatically — not a webhook signature, since nothing signs a
+   scheduled trigger.
+3. **Atomic claim, not select-then-update.** `claim_pending_emails`
+   (`for update skip locked`, service_role only) makes two overlapping
+   drain runs safe by construction — the second run's claim simply
+   returns fewer or zero rows, never the same row twice. Verified
+   directly against the local database with a throwaway script (a
+   trigger and a `skip locked` claim can't be meaningfully unit-tested
+   in Vitest), the same verification approach ADR-025's referral
+   triggers used.
+4. **Retry with a cap, not infinite retry or immediate permanent
+   failure.** `EmailOutboxRepository.markFailed` reverts a failed send
+   to `pending` (picked up by the next drain tick) until
+   `MAX_ATTEMPTS` (5), then marks it `failed` permanently — bounded
+   failure recovery without needing exponential backoff bookkeeping
+   the 5-minute cron interval already provides for free.
+5. **`@paon/email` isolates the Resend SDK**, same shape
+   `@paon/payments` gives Stripe and `@paon/database` gives
+   `@supabase/supabase-js` (ADR-001) — `sendEmail` is a thin, unit-tested
+   wrapper; nothing else in the repository imports `resend` directly.
+
+**Consequences.** Same non-faking treatment as ADR-030/031:
+`lib/email.ts` returns `null` when `RESEND_API_KEY` is unset, and the
+drain endpoint reports "not configured" (503) rather than silently
+dropping queued email — mail simply accumulates in `email_outbox`
+until a platform operator provisions credentials, then drains normally
+on the next scheduled tick. No email HTML templating system was
+added — `enqueue_notification_email` builds a single `<p>` wrapping the
+notification body; richer per-category templates are a future
+enhancement once there's a second call site to generalize from. See
+`docs/PROJECT_STATE.md` "Credentials needed" for the exact Resend
+account setup (domain verification, API key, `CRON_SECRET` generation)
+required before this goes live.

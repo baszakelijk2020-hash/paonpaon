@@ -33,6 +33,7 @@ export * from "./repositories/event-repository";
 export * from "./repositories/clienteling-repository";
 export * from "./repositories/messaging-repository";
 export * from "./repositories/notification-repository";
+export * from "./repositories/email-outbox-repository";
 export * from "./repositories/analytics-repository";
 export * from "./repositories/wishlist-repository";
 export type { Database } from "./generated/database.types";

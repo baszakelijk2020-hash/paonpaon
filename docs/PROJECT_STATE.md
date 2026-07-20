@@ -633,8 +633,60 @@ Full reasoning in `docs/DECISIONS.md` ADR-025.
   audience.
 - Every message generates an in-app notification for the other side. Recipients
   can only mark notifications read; a database trigger prevents changing their
-  title, body, recipient or routing. Email, SMS and push remain future delivery
-  adapters requiring provider credentials.
+  title, body, recipient or routing. SMS and push remain future delivery
+  adapters requiring provider credentials — email shipped, see below.
+
+### Shipped: Resend transactional email (Phase 5)
+
+Full reasoning in `docs/DECISIONS.md` ADR-032.
+
+- **`email_outbox` table + `enqueue_notification_email` trigger**
+  (`20260720000017_*`) — fires on every `notifications` insert
+  (currently only `send_conversation_message`, but any future
+  notification-creating code gets email for free with no changes to
+  it). A customer who opted out of email in their
+  `CustomerPreferences.communicationChannels` (ADR-028) gets no outbox
+  row at all. Verified directly against the local database with a
+  throwaway script (trigger logic and `claim_pending_emails`'s atomic
+  `for update skip locked` claim can't be meaningfully unit-tested in
+  Vitest) — confirmed the opt-out gate, the enqueue, and that two
+  overlapping claims never both grab the same row.
+- **`apps/admin/app/api/cron/dispatch-emails`**: a scheduled Route
+  Handler (`vercel.json`, every 5 minutes), authenticated by
+  `CRON_SECRET` rather than a webhook signature — `docs/API.md`/
+  `docs/DATABASE.md` already named scheduled jobs as a legitimate
+  service-role-client use case. Claims up to 20 pending rows, sends via
+  `@paon/email`, marks sent or reverts to `pending` (up to 5 attempts,
+  then permanently `failed`).
+- **`@paon/email`**: isolates the Resend SDK the same way
+  `@paon/payments` isolates Stripe — `createResendClient`/`sendEmail`,
+  unit-tested by mocking the client.
+- **Deliberately not built**: per-category HTML templates (a single
+  `<p>` wraps the notification body today — richer templates are a
+  future enhancement once there's a second call site to generalize
+  from); SMS/push transports (still fully deferred, no provider chosen).
+
+#### Credentials needed (Resend)
+
+Everything above is real, wired code — it needs a platform operator to:
+
+1. Create a Resend account, verify a sending domain (Resend dashboard →
+   Domains), and generate an API key.
+2. Set `RESEND_API_KEY` and `RESEND_FROM_EMAIL` (e.g. `PAON
+<notifications@yourdomain.com>`, must be on the verified domain) in
+   `apps/admin`'s environment.
+3. Generate any long random string for `CRON_SECRET` and set it in the
+   same environment — Vercel automatically sends it as
+   `Authorization: Bearer $CRON_SECRET` for a project's own cron
+   invocations once `vercel.json` (already committed,
+   `apps/admin/vercel.json`) is deployed with that env var set.
+4. For local development or manual triggering, `curl -X POST
+-H "Authorization: Bearer $CRON_SECRET"
+http://localhost:3000/api/cron/dispatch-emails`.
+
+No code change is required once these exist — enqueued email already
+accumulates in `email_outbox` regardless of configuration; it just
+waits for the next successful drain.
 
 ## Local database verification
 

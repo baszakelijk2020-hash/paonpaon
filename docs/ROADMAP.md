@@ -132,8 +132,12 @@ platforms — see [VISION.md](./VISION.md).
 
 - ✅ `Conversation` / `Message` between customer and retailer staff, with
   participant-only access and shared retailer inbox.
-- ✅ In-app `Notification` delivery and read state. Email/SMS/push transports
-  remain credential-dependent adapters rather than mocked delivery.
+- ✅ In-app `Notification` delivery and read state. Email delivery shipped
+  (Resend via a durable outbox + scheduled drain, founder decision,
+  ADR-032) — code-complete, blocked only on a platform operator
+  provisioning Resend credentials, see `docs/PROJECT_STATE.md`
+  "Credentials needed". SMS/push remain credential-dependent adapters,
+  no provider chosen yet.
 - ✅ Private `ClientelingNote` staff tooling and a unified relationship timeline
   on the retailer customer record.
 - AI personalisation built on `BehavioralEvent` — recommendations,

@@ -1527,6 +1527,56 @@ export type Database = {
           },
         ];
       };
+      email_outbox: {
+        Row: {
+          attempts: number;
+          created_at: string;
+          html_body: string;
+          id: string;
+          last_error: string | null;
+          notification_id: string | null;
+          recipient_email: string;
+          sent_at: string | null;
+          status: string;
+          subject: string;
+          updated_at: string;
+        };
+        Insert: {
+          attempts?: number;
+          created_at?: string;
+          html_body: string;
+          id?: string;
+          last_error?: string | null;
+          notification_id?: string | null;
+          recipient_email: string;
+          sent_at?: string | null;
+          status?: string;
+          subject: string;
+          updated_at?: string;
+        };
+        Update: {
+          attempts?: number;
+          created_at?: string;
+          html_body?: string;
+          id?: string;
+          last_error?: string | null;
+          notification_id?: string | null;
+          recipient_email?: string;
+          sent_at?: string | null;
+          status?: string;
+          subject?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "email_outbox_notification_id_fkey";
+            columns: ["notification_id"];
+            isOneToOne: false;
+            referencedRelation: "notifications";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       event_rsvps: {
         Row: {
           created_at: string;
@@ -3808,6 +3858,28 @@ export type Database = {
       checkout_cart: {
         Args: { p_order_id: string; p_shipping_address: Json };
         Returns: string;
+      };
+      claim_pending_emails: {
+        Args: { p_limit?: number };
+        Returns: {
+          attempts: number;
+          created_at: string;
+          html_body: string;
+          id: string;
+          last_error: string | null;
+          notification_id: string | null;
+          recipient_email: string;
+          sent_at: string | null;
+          status: string;
+          subject: string;
+          updated_at: string;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "email_outbox";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       create_alteration_intake: {
         Args: {
