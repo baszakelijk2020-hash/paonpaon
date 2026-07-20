@@ -38,6 +38,7 @@ export * from "./loyalty/loyalty";
 export * from "./loyalty/loyalty.schema";
 
 export * from "./engagement/email-outbox";
+export * from "./engagement/sms-outbox";
 export * from "./engagement/notification";
 export * from "./engagement/messaging";
 export * from "./engagement/messaging.schema";

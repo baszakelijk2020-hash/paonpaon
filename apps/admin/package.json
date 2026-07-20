@@ -19,6 +19,7 @@
     "@paon/domain": "workspace:*",
     "@paon/email": "workspace:*",
     "@paon/payments": "workspace:*",
+    "@paon/sms": "workspace:*",
     "@paon/ui": "workspace:*",
     "@paon/utils": "workspace:*",
     "next": "^15.1.3",

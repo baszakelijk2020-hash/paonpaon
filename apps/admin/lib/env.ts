@@ -50,4 +50,19 @@ export const env = {
   get cronSecret() {
     return optionalEnv("CRON_SECRET");
   },
+  /** Twilio covers both SMS and WhatsApp through one account — absent until a platform operator provisions one, see docs/PROJECT_STATE.md "Credentials needed". */
+  get twilioAccountSid() {
+    return optionalEnv("TWILIO_ACCOUNT_SID");
+  },
+  get twilioAuthToken() {
+    return optionalEnv("TWILIO_AUTH_TOKEN");
+  },
+  /** The Twilio-provisioned sending number for plain SMS. */
+  get twilioSmsFrom() {
+    return optionalEnv("TWILIO_SMS_FROM");
+  },
+  /** The Twilio-approved WhatsApp sender (no `whatsapp:` prefix — `@paon/sms` adds it). */
+  get twilioWhatsappFrom() {
+    return optionalEnv("TWILIO_WHATSAPP_FROM");
+  },
 };

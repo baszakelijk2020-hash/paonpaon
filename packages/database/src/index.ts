@@ -36,6 +36,7 @@ export * from "./repositories/staff-roster-repository";
 export * from "./repositories/messaging-repository";
 export * from "./repositories/notification-repository";
 export * from "./repositories/email-outbox-repository";
+export * from "./repositories/sms-outbox-repository";
 export * from "./repositories/analytics-repository";
 export * from "./repositories/ai-generation-repository";
 export * from "./repositories/wishlist-repository";

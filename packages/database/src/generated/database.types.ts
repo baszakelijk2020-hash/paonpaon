@@ -3365,6 +3365,56 @@ export type Database = {
           },
         ];
       };
+      sms_outbox: {
+        Row: {
+          attempts: number;
+          body: string;
+          channel: string;
+          created_at: string;
+          id: string;
+          last_error: string | null;
+          notification_id: string | null;
+          recipient_phone: string;
+          sent_at: string | null;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          attempts?: number;
+          body: string;
+          channel?: string;
+          created_at?: string;
+          id?: string;
+          last_error?: string | null;
+          notification_id?: string | null;
+          recipient_phone: string;
+          sent_at?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          attempts?: number;
+          body?: string;
+          channel?: string;
+          created_at?: string;
+          id?: string;
+          last_error?: string | null;
+          notification_id?: string | null;
+          recipient_phone?: string;
+          sent_at?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sms_outbox_notification_id_fkey";
+            columns: ["notification_id"];
+            isOneToOne: false;
+            referencedRelation: "notifications";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       staff_shifts: {
         Row: {
           created_at: string;
@@ -4166,6 +4216,28 @@ export type Database = {
         SetofOptions: {
           from: "*";
           to: "email_outbox";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      claim_pending_sms: {
+        Args: { p_limit?: number };
+        Returns: {
+          attempts: number;
+          body: string;
+          channel: string;
+          created_at: string;
+          id: string;
+          last_error: string | null;
+          notification_id: string | null;
+          recipient_phone: string;
+          sent_at: string | null;
+          status: string;
+          updated_at: string;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "sms_outbox";
           isOneToOne: false;
           isSetofReturn: true;
         };
