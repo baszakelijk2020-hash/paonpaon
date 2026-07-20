@@ -18,7 +18,8 @@
     "bootstrap:platform-admin": "tsx scripts/bootstrap-platform-admin.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "deactivate:demo": "tsx scripts/deactivate-demo-logins.ts",
-    "reactivate:demo": "tsx scripts/reactivate-demo-logins.ts"
+    "reactivate:demo": "tsx scripts/reactivate-demo-logins.ts",
+    "print:magic-links": "tsx scripts/print-magic-links.ts"
   },
   "dependencies": {
     "@paon/domain": "workspace:*",
