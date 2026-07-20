@@ -34,6 +34,18 @@ describe("AnalyticsRepository", () => {
     });
   });
 
+  it("findRecentByCustomer scopes to both retailer and customer", async () => {
+    const client = {
+      from: () => fakeQueryBuilder({ data: [row], error: null }),
+    } as unknown as PaonSupabaseClient;
+    const events = await new AnalyticsRepository(client).findRecentByCustomer(
+      row.retailer_id as never,
+      row.customer_id as never,
+    );
+    expect(events).toHaveLength(1);
+    expect(events[0]?.name).toBe("product.viewed");
+  });
+
   it("uses the protected summary RPC", async () => {
     const summary = {
       customers: 10,

@@ -31,4 +31,8 @@ export const env = {
   get stripeSecretKey() {
     return optionalEnv("STRIPE_SECRET_KEY");
   },
+  /** OpenAI API key for AI personalisation (@paon/ai) — absent until a platform operator provisions one, see docs/PROJECT_STATE.md "Credentials needed". */
+  get openaiApiKey() {
+    return optionalEnv("OPENAI_API_KEY");
+  },
 };

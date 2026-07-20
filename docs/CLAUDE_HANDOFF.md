@@ -1,64 +1,71 @@
-# Claude Code Handoff
+# Active Engineering Handoff
 
-## Purpose
+Updated from the actual repository state on 2026-07-20. This file supersedes every earlier chat handoff. The code, Git history, `CLAUDE.md`, `PROJECT_STATE.md`, `ROADMAP.md`, and ADRs remain the source of truth.
 
-Claude Code is now the sole active engineering agent for PAON. Codex has stopped because its usage allowance is nearly exhausted. Do not run Claude and Codex concurrently on this repository.
+## Operating rule
 
-Read the root `CLAUDE.md` and all source-of-truth documents it references before changing anything. Preserve every established ADR, architectural pattern, and product boundary.
+Only one engineering agent may edit this repository at a time. Continue autonomously, complete and commit verified vertical slices, and do not stop for routine implementation decisions or progress summaries.
 
-## Current repository state
+Repository: `/Users/nguyen/Projects/PAON`
 
-- Repository: `/Users/nguyen/Projects/PAON`
-- Branch: `main`
-- Latest clean commit: `6b00f8a Complete catalogue editing and merchandising`
-- The worktree intentionally contains unfinished, uncommitted cart work. Do not discard, revert, or overwrite it.
+Branch: `main`
 
-Recent completed commits include:
+## Latest completed commits
 
-- PAON Admin invite acceptance
-- Platform analytics
-- Behavioral analytics
-- Messaging and in-app notifications
-- Clienteling notes and customer timeline
-- Catalogue editing and merchandising
+- `6a7d061` Build Resend transactional email via a durable outbox
+- `7d91b1a` Build Stripe Billing retailer subscriptions
+- `86cf5c7` Build Stripe Connect customer payments
+- `622d0a9` Build direct product image upload
+- `efe54dc` Build customer preferences persistence
+- `197b30d` Build storefront collection browsing
+- `9d60a9d` Build customer Wishlist
+- `820bca7` Complete referral acquisition journey
+- `0dc0da5` Build persisted multi-item cart checkout
 
-## Active vertical slice
+The cart, Stripe Connect, Stripe Billing, and Resend slices are complete and committed. Do not rebuild them.
 
-Finish the persisted multi-item customer cart and checkout slice already present in the worktree.
+## Active unfinished slice: OpenAI personalisation
 
-The unfinished work currently includes:
+The worktree intentionally contains uncommitted AI-personalisation work. Do not discard, revert, or overwrite it.
 
-- Draft orders used as persisted carts
-- `add_to_cart`, `update_cart_line`, and `checkout_cart` database functions
-- Stock, price, product, currency, and retailer validation at checkout
-- Shipping-address capture
-- Customer storefront cart pages under `/r/[slug]/cart`
-- Add-to-cart behavior replacing immediate buy-now behavior
-- Magic-link redirect preservation
-- Domain, repository, generated database type, and test changes
-- Migration `20260720000009_create_persisted_cart_checkout.sql`
+Changed or new work currently includes:
 
-Audit the implementation carefully, complete anything missing, and keep existing PAON conventions.
+- `packages/ai/`
+- `packages/domain/src/analytics/ai-generation.ts`
+- `packages/database/src/repositories/ai-generation-repository.ts`
+- `packages/database/src/repositories/ai-generation-repository.test.ts`
+- `supabase/migrations/20260720000018_create_ai_generations.sql`
+- `apps/retailer/lib/ai.ts`
+- `apps/retailer/app/(dashboard)/customers/[id]/ai-insights.tsx`
+- Customer-detail actions and UI wiring
+- Analytics repository additions
+- Generated database types, package exports, dependencies, and lockfile changes
 
-## Required completion checks
+Founder decision: use OpenAI behind a provider-neutral interface. Personalisation must be privacy-conscious, transmit no unnecessary personal information, and never fake provider success when credentials are missing.
 
-Before committing this slice:
+## Immediate objective
 
-1. Format changed files.
-2. Reset the local Supabase database and apply all migrations.
-3. Regenerate database types if required.
-4. Run Supabase database linting.
-5. Run the full repository lint, typecheck, tests, build, and formatting check.
-6. Run a final whitespace/diff check.
-7. Update `PROJECT_STATE.md`, relevant product/domain documentation, and `DECISIONS.md` or an ADR when appropriate.
-8. Commit only when everything is green, using a clear checkpoint message such as `Build persisted multi-item cart checkout`.
+1. Inspect all current uncommitted changes and established repository patterns.
+2. Finish the AI-personalisation vertical slice safely and coherently.
+3. Ensure missing OpenAI credentials produce an explicit safe disabled/not-configured state, never fabricated insights.
+4. Verify retailer isolation, RLS, authorization, privacy boundaries, auditability, and appropriate AI monitoring in PAON Admin where the existing product specification requires it.
+5. Add or finish all applicable domain, repository, migration, UI, validation, error handling, tests, documentation, and ADR work.
+6. Run the complete validation suite required by `CLAUDE.md`, including local Supabase reset/lint/type generation where applicable, formatting, lint, typecheck, tests, build, format check, and final diff/whitespace inspection.
+7. Update `docs/PROJECT_STATE.md`, `docs/ROADMAP.md`, and `docs/DECISIONS.md` or an ADR to match reality.
+8. Commit only after everything passes, using a clear checkpoint such as `Build provider-neutral AI personalisation`.
 
-## Autonomous continuation
+## After that
 
-After the cart slice is verified and committed, determine the next highest-value unblocked vertical slice from the project constitution, roadmap, current state, and backlog. Continue implementing complete production-ready slices without waiting for routine approval.
+Immediately determine and implement the next highest-value genuinely unblocked slice from the current repository state and roadmap. Do not revisit completed work.
 
-Each completed slice must include all applicable domain, database, migration, RLS, repository, validation, permissions, UI, tests, documentation, verification, and a clean commit.
+Continue deferring:
 
-Do not redesign PAON. Do not build supplier replacements, GoCreate replacements, manufacturing ERP, or MTM manufacturing fit-profile ownership. Defer features requiring undecided payment providers, supplier connectors, external email/SMS/push providers, AI providers, or unavailable credentials unless an established local abstraction permits useful provider-independent progress.
+- GoCreate and supplier/manufacturing connectors until a real integration exists
+- Public API until a real integration partner exists
+- SMS/push until providers and credentials exist
+- Live Stripe, Resend, or OpenAI activation until credentials are provisioned
+- Production deployment or live financial transactions without established authorization
 
-Stop only for a genuine founder-level product decision, unavailable external credentials, a destructive/irreversible action, or a material contradiction in the source-of-truth documents. Do not ask routine implementation questions.
+If one item is credential-blocked, document it and continue with another independent unblocked item.
+
+Stop only when a genuine founder-level commercial decision is required, every meaningful independent path is credential-blocked, a destructive/irreversible action is required, or source-of-truth documents materially contradict one another.

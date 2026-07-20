@@ -1,4 +1,9 @@
-import { asId, type BehavioralEvent, type RetailerId } from "@paon/domain";
+import {
+  asId,
+  type BehavioralEvent,
+  type CustomerId,
+  type RetailerId,
+} from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database, Json } from "../generated/database.types";
@@ -66,6 +71,23 @@ export class AnalyticsRepository {
       .from("behavioral_events")
       .select("*")
       .eq("retailer_id", retailerId)
+      .order("occurred_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data.map(toDomain);
+  }
+
+  /** Scoped to one customer — the context AI personalisation (`@paon/ai`) builds a prompt from, not the retailer-wide feed `findRecent` returns. */
+  async findRecentByCustomer(
+    retailerId: RetailerId,
+    customerId: CustomerId,
+    limit = 20,
+  ): Promise<BehavioralEvent[]> {
+    const { data, error } = await this.client
+      .from("behavioral_events")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .eq("customer_id", customerId)
       .order("occurred_at", { ascending: false })
       .limit(limit);
     if (error) throw error;

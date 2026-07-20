@@ -1,4 +1,5 @@
 import {
+  AIGenerationRepository,
   AppointmentRepository,
   ClientelingRepository,
   CustomerRepository,
@@ -17,7 +18,9 @@ import { startConversation } from "../../messages/actions";
 import { LifecycleBadge } from "../lifecycle-badge";
 
 import { createClientelingNote } from "./actions";
+import { AIInsights } from "./ai-insights";
 
+import { getAIProvider } from "@/lib/ai";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -38,11 +41,12 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  const [garments, notes, orders, appointments] = await Promise.all([
+  const [garments, notes, orders, appointments, aiHistory] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
     new OrderRepository(supabase).findByCustomer(customer.id),
     new AppointmentRepository(supabase).findByCustomer(customer.id),
+    new AIGenerationRepository(supabase).findByCustomer(customer.id, 5),
   ]);
   const canManage = retailerRoleAtLeast(
     session.retailerRole,

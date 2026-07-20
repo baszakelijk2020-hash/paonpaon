@@ -34,6 +34,76 @@ export type Database = {
   };
   public: {
     Tables: {
+      ai_generations: {
+        Row: {
+          created_at: string;
+          customer_id: string | null;
+          error_message: string | null;
+          id: string;
+          input_summary: string;
+          kind: Database["public"]["Enums"]["ai_generation_kind"];
+          latency_ms: number | null;
+          model: string;
+          output: Json | null;
+          provider: string;
+          requested_by_staff_id: string | null;
+          retailer_id: string;
+          status: Database["public"]["Enums"]["ai_generation_status"];
+        };
+        Insert: {
+          created_at?: string;
+          customer_id?: string | null;
+          error_message?: string | null;
+          id?: string;
+          input_summary: string;
+          kind: Database["public"]["Enums"]["ai_generation_kind"];
+          latency_ms?: number | null;
+          model: string;
+          output?: Json | null;
+          provider?: string;
+          requested_by_staff_id?: string | null;
+          retailer_id: string;
+          status: Database["public"]["Enums"]["ai_generation_status"];
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string | null;
+          error_message?: string | null;
+          id?: string;
+          input_summary?: string;
+          kind?: Database["public"]["Enums"]["ai_generation_kind"];
+          latency_ms?: number | null;
+          model?: string;
+          output?: Json | null;
+          provider?: string;
+          requested_by_staff_id?: string | null;
+          retailer_id?: string;
+          status?: Database["public"]["Enums"]["ai_generation_status"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_generations_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_generations_requested_by_staff_id_fkey";
+            columns: ["requested_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_generations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       alteration_attachments: {
         Row: {
           alteration_id: string | null;
@@ -4067,6 +4137,9 @@ export type Database = {
       };
     };
     Enums: {
+      ai_generation_kind:
+        "next_best_action" | "product_recommendation" | "communication_draft";
+      ai_generation_status: "succeeded" | "failed";
       alteration_attachment_kind:
         "intake" | "label" | "evidence" | "progress" | "completion";
       alteration_fulfillment_method: "pickup" | "delivery";
@@ -4327,6 +4400,12 @@ export const Constants = {
   },
   public: {
     Enums: {
+      ai_generation_kind: [
+        "next_best_action",
+        "product_recommendation",
+        "communication_draft",
+      ],
+      ai_generation_status: ["succeeded", "failed"],
       alteration_attachment_kind: [
         "intake",
         "label",
