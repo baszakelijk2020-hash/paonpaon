@@ -1188,3 +1188,68 @@ the OpenAI client (dependency injection, no live account, no API
 cost); nothing about this slice required or used a real OpenAI key.
 See `docs/PROJECT_STATE.md` "Credentials needed" for the exact OpenAI
 account setup (API key, usage limits) required before this goes live.
+
+## ADR-034: Mapping the Nebel & Spiegel concept deck onto PAON's roadmap
+
+**Context.** The founder shared a client-pitch concept deck (Atelier
+Munro / "Nebel & Spiegel") — `Self-Portrait`, `TableService`,
+`MunroMissionControl`, `MunroMerchant`, `InsiderTailoring`,
+`MorningRoutine`, `Moonstruck`, `The Residents Club`, and a separate
+storefront visual-language mockup (fabric/archetype product
+customization, catalog masonry grid, appointment booking) — as the
+benchmark for where PAON's UI and feature depth should be headed, and
+asked for these "tools" to be built into the real platform where
+applicable. The deck is marketing/vision material for a different
+brand (Adobe Muse export, fake data, no backend) — not a spec — so
+each concept needs mapping onto PAON's actual bounded contexts rather
+than literal reimplementation.
+
+**Decision.** Triage every concept in the deck into one of three
+buckets, and only build in the first:
+
+1. **Already shipped, needs surfacing.** `Self-Portrait` ("a digital
+   reflection of the customer") already exists as data — loyalty tier,
+   `BehavioralEvent` tracking, `ClientelingNote`, next-best-action
+   (ADR-033) — just not as one composed view. Addressed in this
+   change: a `SelfPortrait` card on the retailer customer detail page
+   composing `LoyaltyRepository.findAccountByCustomer`,
+   `AnalyticsRepository.findRecentByCustomer` and the top pinned
+   `ClientelingNote` — no new domain state, no new table.
+2. **Real, scoped, next.** `TableService` (chat-style, intent-driven
+   lead capture — "I'm getting married" / "I need new shirts" as
+   entry points instead of a search bar) maps onto PAON's existing
+   `Conversation`/`Message` model (Phase 5, shipped) plus a
+   customer-app front-door widget that starts a conversation with a
+   structured intent tag — not a new chat/LLM system. The storefront
+   visual language (archetype-based product customization, fabric/size
+   panel, masonry catalog, in-page appointment booking) is a
+   `packages/ui` + customer-app PDP/catalog investment, staying inside
+   `DESIGN_SYSTEM.md`'s "quiet, editorial" restraint — the information
+   architecture (customize → fabric → fit → book), not the deck's
+   GSAP/motion execution, is what's worth carrying over. Both are
+   scoped as immediate next work, not this change.
+3. **Out of scope, not on the roadmap.** `MunroMissionControl`
+   (competing-retailer marketing/onboarding hub), `MunroMerchant`
+   (managed multi-retailer ecom + asset supply chain — PAON is
+   single-tenant-per-retailer by design), `InsiderTailoring`
+   (third-party event/conference data scraping for lead generation),
+   `MorningRoutine` (always-logged-in daily-push commerce app),
+   `Moonstruck` (wedding vertical) and `The Residents Club` (physical
+   membership club + events business) describe a different company's
+   business model, not PAON's. None of these get built speculatively
+   per `NON_GOALS.md` — "building toward it prematurely is exactly the
+   kind of unrequested complexity `PRINCIPLES.md` warns against." They
+   stay listed here so a future re-read of the deck doesn't re-litigate
+   the triage.
+
+**Consequences.** UI plainness relative to the deck was, until now, a
+deliberate reading of `DESIGN_SYSTEM.md`'s restraint principle; this
+ADR records that the founder wants more visual and interaction depth
+on the customer-facing storefront specifically, which supersedes that
+default for the catalog/PDP/appointment surfaces (not the admin/
+retailer back-office UI, which stays quiet/editorial). `packages/ui`
+has 7 primitives (`Badge`, `Button`, `Card`, `FormField`, `Input`,
+`Label`, `Select`) — the storefront work will need several new
+components (fabric/material selector, archetype customizer, masonry
+grid) built against the existing design tokens, not a new visual
+system.

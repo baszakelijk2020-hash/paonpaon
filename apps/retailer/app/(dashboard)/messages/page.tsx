@@ -1,4 +1,6 @@
 import { CustomerRepository, MessagingRepository } from "@paon/database";
+import { CONVERSATION_INTENT_LABELS } from "@paon/domain";
+import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
@@ -28,8 +30,15 @@ export default async function MessagesPage() {
             href={`/messages/${item.id}`}
             className="flex justify-between px-6 py-4 hover:bg-[var(--color-stone-50)]"
           >
-            <span className="font-medium">
-              {names.get(item.customerId) ?? "Customer"}
+            <span className="flex items-center gap-2">
+              <span className="font-medium">
+                {names.get(item.customerId) ?? "Customer"}
+              </span>
+              {item.intent ? (
+                <Badge tone="neutral">
+                  {CONVERSATION_INTENT_LABELS[item.intent]}
+                </Badge>
+              ) : null}
             </span>
             <span className="text-sm text-[var(--color-stone-500)]">
               {item.lastMessageAt

@@ -1,8 +1,10 @@
 import {
   AIGenerationRepository,
+  AnalyticsRepository,
   AppointmentRepository,
   ClientelingRepository,
   CustomerRepository,
+  LoyaltyRepository,
   OrderRepository,
   PhysicalGarmentRepository,
 } from "@paon/database";
@@ -19,6 +21,7 @@ import { LifecycleBadge } from "../lifecycle-badge";
 
 import { createClientelingNote } from "./actions";
 import { AIInsights } from "./ai-insights";
+import { SelfPortrait } from "./self-portrait";
 
 import { getAIProvider } from "@/lib/ai";
 import { requireSession } from "@/lib/session";
@@ -41,17 +44,31 @@ export default async function CustomerDetailPage({
     notFound();
   }
 
-  const [garments, notes, orders, appointments, aiHistory] = await Promise.all([
+  const [
+    garments,
+    notes,
+    orders,
+    appointments,
+    aiHistory,
+    loyaltyAccount,
+    recentEvents,
+  ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
     new OrderRepository(supabase).findByCustomer(customer.id),
     new AppointmentRepository(supabase).findByCustomer(customer.id),
     new AIGenerationRepository(supabase).findByCustomer(customer.id, 5),
+    new LoyaltyRepository(supabase).findAccountByCustomer(customer.id),
+    new AnalyticsRepository(supabase).findRecentByCustomer(
+      session.retailerId,
+      customer.id,
+    ),
   ]);
   const canManage = retailerRoleAtLeast(
     session.retailerRole,
     "sales_associate",
   );
+  const pinnedNote = notes.find((note) => note.pinned) ?? null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -115,6 +132,14 @@ export default async function CustomerDetailPage({
           </p>
         </div>
       </Card>
+
+      {canManage ? (
+        <SelfPortrait
+          loyaltyAccount={loyaltyAccount}
+          recentEvents={recentEvents}
+          pinnedNote={pinnedNote}
+        />
+      ) : null}
 
       {canManage ? (
         <AIInsights

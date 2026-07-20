@@ -1,4 +1,6 @@
 import { CustomerRepository, MessagingRepository } from "@paon/database";
+import { CONVERSATION_INTENT_LABELS } from "@paon/domain";
+import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
@@ -28,11 +30,20 @@ export default async function ConversationPage({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-2xl font-medium">
-          {customer?.fullName ?? "Customer"}
-        </h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-medium">
+            {customer?.fullName ?? "Customer"}
+          </h1>
+          {conversation.intent ? (
+            <Badge tone="neutral">
+              {CONVERSATION_INTENT_LABELS[conversation.intent]}
+            </Badge>
+          ) : null}
+        </div>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Shared retailer conversation
+          {customer?.userId
+            ? "Shared retailer conversation"
+            : "Storefront inquiry — no portal account yet"}
         </p>
       </div>
       <Card className="flex max-h-[55vh] flex-col gap-3 overflow-y-auto">

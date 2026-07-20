@@ -7,11 +7,6 @@ export type Json =
   | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5";
-  };
   graphql_public: {
     Tables: {
       [_ in never]: never;
@@ -1420,6 +1415,7 @@ export type Database = {
           customer_id: string;
           deleted_at: string | null;
           id: string;
+          intent: string | null;
           last_message_at: string | null;
           retailer_id: string;
           updated_at: string;
@@ -1429,6 +1425,7 @@ export type Database = {
           customer_id: string;
           deleted_at?: string | null;
           id?: string;
+          intent?: string | null;
           last_message_at?: string | null;
           retailer_id: string;
           updated_at?: string;
@@ -1438,6 +1435,7 @@ export type Database = {
           customer_id?: string;
           deleted_at?: string | null;
           id?: string;
+          intent?: string | null;
           last_message_at?: string | null;
           retailer_id?: string;
           updated_at?: string;
@@ -4093,6 +4091,16 @@ export type Database = {
         };
         Returns: undefined;
       };
+      submit_table_service_inquiry: {
+        Args: {
+          p_email: string;
+          p_intent: string;
+          p_message: string;
+          p_name: string;
+          p_retailer_id: string;
+        };
+        Returns: string;
+      };
       toggle_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };
         Returns: boolean;
@@ -4214,7 +4222,7 @@ export type Database = {
         | "adjustment_expiry"
         | "adjustment_manual";
       loyalty_tier: "member" | "silver" | "gold" | "platinum";
-      message_sender_type: "customer" | "staff" | "ai_assistant";
+      message_sender_type: "customer" | "staff" | "ai_assistant" | "guest";
       notification_category:
         | "order_update"
         | "production_update"
@@ -4502,7 +4510,7 @@ export const Constants = {
         "adjustment_manual",
       ],
       loyalty_tier: ["member", "silver", "gold", "platinum"],
-      message_sender_type: ["customer", "staff", "ai_assistant"],
+      message_sender_type: ["customer", "staff", "ai_assistant", "guest"],
       notification_category: [
         "order_update",
         "production_update",

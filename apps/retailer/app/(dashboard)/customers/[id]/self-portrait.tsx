@@ -1,0 +1,105 @@
+import type {
+  BehavioralEvent,
+  ClientelingNote,
+  LoyaltyAccount,
+} from "@paon/domain";
+import { Badge } from "@paon/ui/components/Badge";
+import { Card } from "@paon/ui/components/Card";
+import { formatDate } from "@paon/utils";
+
+const TIER_TONE = {
+  member: "neutral",
+  silver: "neutral",
+  gold: "warning",
+  platinum: "success",
+} as const;
+
+const EVENT_LABELS: Record<string, string> = {
+  product_viewed: "Viewed a product",
+  product_favorited: "Favorited a product",
+  category_browsed: "Browsed a category",
+  wishlist_added: "Added to wishlist",
+  appointment_booked: "Booked an appointment",
+  order_placed: "Placed an order",
+};
+
+function eventLabel(event: BehavioralEvent): string {
+  return EVENT_LABELS[event.name] ?? event.name.replaceAll("_", " ");
+}
+
+/**
+ * The one place staff read the customer as a whole rather than
+ * per-record — loyalty standing, what they've been doing, and what the
+ * team already knows about them. Everything here is composed from
+ * data already captured elsewhere (loyalty accrual, behavioral
+ * tracking, clienteling notes); this card adds no new domain state.
+ */
+export function SelfPortrait({
+  loyaltyAccount,
+  recentEvents,
+  pinnedNote,
+}: {
+  loyaltyAccount: LoyaltyAccount | null;
+  recentEvents: BehavioralEvent[];
+  pinnedNote: ClientelingNote | null;
+}) {
+  return (
+    <Card>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+            Self-Portrait
+          </h2>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            What the team knows about this customer, in one place.
+          </p>
+        </div>
+        {loyaltyAccount ? (
+          <div className="text-right">
+            <Badge tone={TIER_TONE[loyaltyAccount.tier]}>
+              {loyaltyAccount.tier}
+            </Badge>
+            <p className="mt-1 text-sm text-[var(--color-stone-700)]">
+              {loyaltyAccount.pointsBalance.toLocaleString("en-US")} pts
+            </p>
+          </div>
+        ) : null}
+      </div>
+
+      {pinnedNote ? (
+        <div className="mb-4 rounded-[var(--radius-sm)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)] p-3">
+          <p className="text-sm text-[var(--color-stone-900)]">
+            {pinnedNote.body}
+          </p>
+        </div>
+      ) : null}
+
+      <div>
+        <p className="mb-2 text-xs font-medium uppercase text-[var(--color-stone-500)]">
+          Recent activity
+        </p>
+        {recentEvents.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No tracked activity yet.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1.5">
+            {recentEvents.slice(0, 6).map((event, index) => (
+              <li
+                key={`${event.name}-${event.occurredAt}-${index}`}
+                className="flex items-center justify-between text-sm"
+              >
+                <span className="capitalize text-[var(--color-stone-800)]">
+                  {eventLabel(event)}
+                </span>
+                <span className="text-xs text-[var(--color-stone-500)]">
+                  {formatDate(event.occurredAt, "en-US")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </Card>
+  );
+}

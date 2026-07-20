@@ -2,6 +2,7 @@ import {
   asId,
   type Conversation,
   type ConversationId,
+  type ConversationIntent,
   type CustomerId,
   type Message,
   type RetailerId,
@@ -16,6 +17,7 @@ const conversation = (row: ConversationRow): Conversation => ({
   retailerId: asId<"RetailerId">(row.retailer_id),
   customerId: asId<"CustomerId">(row.customer_id),
   ...(row.last_message_at ? { lastMessageAt: row.last_message_at } : {}),
+  ...(row.intent ? { intent: row.intent as ConversationIntent } : {}),
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   deletedAt: row.deleted_at,
@@ -109,5 +111,30 @@ export class MessagingRepository {
       p_conversation_id: id,
     });
     if (error) throw error;
+  }
+
+  /** The one write path an anonymous storefront visitor can reach —
+   * `submit_table_service_inquiry` finds-or-creates the guest Customer
+   * and Conversation itself (ADR-034); this repository does not expose
+   * any other anonymous-safe insert. */
+  async submitTableServiceInquiry(params: {
+    retailerId: RetailerId;
+    name: string;
+    email: string;
+    intent: ConversationIntent;
+    message: string;
+  }): Promise<ConversationId> {
+    const { data, error } = await this.client.rpc(
+      "submit_table_service_inquiry",
+      {
+        p_retailer_id: params.retailerId,
+        p_name: params.name,
+        p_email: params.email,
+        p_intent: params.intent,
+        p_message: params.message,
+      },
+    );
+    if (error) throw error;
+    return asId<"ConversationId">(data);
   }
 }

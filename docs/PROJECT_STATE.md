@@ -780,6 +780,72 @@ No code change is required once these exist — enqueued email already
 accumulates in `email_outbox` regardless of configuration; it just
 waits for the next successful drain.
 
+### Shipped: Self-Portrait consolidated profile + TableService storefront lead capture
+
+Full reasoning in `docs/DECISIONS.md` ADR-034 (also records the full
+triage of a founder-supplied concept deck onto the roadmap — what's
+being built vs. explicitly out of scope).
+
+- **Self-Portrait** (`apps/retailer/app/(dashboard)/customers/[id]/self-portrait.tsx`):
+  a single composed card on the retailer customer detail page —
+  loyalty tier/points (`LoyaltyRepository.findAccountByCustomer`),
+  recent `BehavioralEvent`s (`AnalyticsRepository.findRecentByCustomer`)
+  and the top pinned `ClientelingNote`. No new domain state; every
+  signal it shows already existed from Phase 4/5 work, just not in one
+  place.
+- **TableService**: an intent-driven lead-capture widget
+  (`apps/customer/app/r/[slug]/table-service-widget.tsx`) on every
+  public storefront page (mounted from the new `r/[slug]/layout.tsx`).
+  An anonymous visitor picks an intent (wedding / shirts / style help /
+  general) and submits name, email and a message with no login.
+  - `submit_table_service_inquiry` (`20260721000002_*`, `security
+definer`) is the only write path: finds-or-creates a guest
+    `Customer` by (retailer, email) — reusing the existing
+    `customers_retailer_email_idx` dedupe — finds-or-creates their
+    `Conversation`, tags it with `intent` (new nullable column, set
+    once, never overwritten), and inserts a `guest`-sender `Message`.
+    A 5-messages-per-10-minutes cap per customer is the only
+    spam guard; no CAPTCHA/rate-limit service integrated.
+  - **Deliberately not built**: any anonymous RLS insert policy on
+    `conversations`/`messages` — access is entirely through this one
+    narrow `security definer` function (granted to `anon`), matching
+    the founder's explicit choice (ADR-034) over a fully anonymous
+    session-based chat.
+  - `message_sender_type` gained a `guest` value
+    (`20260721000001_*`, its own migration — enum values can't be
+    referenced in the same transaction they're added in, same
+    constraint `20260719000100_add_workshop_roles.sql` hit first).
+  - Retailer inbox (`messages/page.tsx`, `messages/[id]/page.tsx`)
+    shows the intent as a badge and labels guest-originated threads
+    "Storefront inquiry — no portal account yet."
+- **Verified**: full migration chain applies cleanly on a local reset
+  (`supabase db reset --local`), types regenerated from local Postgres
+  (`pnpm --filter @paon/database generate-types`, which already targets
+  `--local` and needs no remote token), `pnpm lint`/`typecheck`/`test`/
+  `build` all pass repo-wide. **Not yet pushed to the live Supabase
+  project** — see "Credentials needed" below.
+
+#### Credentials needed (push TableService migrations to production)
+
+The two new migrations (`20260721000001_add_guest_message_sender_type.sql`,
+`20260721000002_create_table_service.sql`) exist only in this repo and
+the local Docker Postgres — they are not yet applied to the live
+project (`hngxrczavwywsnfceppb`). This is a credentials gap, not a code
+gap: pushing requires `SUPABASE_ACCESS_TOKEN` (a Supabase personal
+access token, distinct from any project API key), which is not present
+in this environment/session. Once available:
+
+```
+SUPABASE_ACCESS_TOKEN=... supabase link --project-ref hngxrczavwywsnfceppb
+supabase db push --linked
+pnpm --filter @paon/database generate-types   # optional re-check; local and remote schema now match
+```
+
+Until this runs, TableService is fully built and locally verified but
+not live — the storefront widget calling `submit_table_service_inquiry`
+against production would fail with "function does not exist" until
+the migration is pushed.
+
 ## Local database verification
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
