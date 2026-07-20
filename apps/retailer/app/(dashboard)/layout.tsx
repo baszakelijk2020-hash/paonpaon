@@ -138,6 +138,14 @@ export default async function DashboardLayout({
                   Customers
                 </Link>
               ) : null}
+              {canManageCustomers ? (
+                <Link
+                  href="/wedding-parties"
+                  className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                >
+                  Wedding Parties
+                </Link>
+              ) : null}
               {canManageCatalog ? (
                 <Link
                   href="/products"

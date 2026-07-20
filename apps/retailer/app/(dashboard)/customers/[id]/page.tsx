@@ -102,6 +102,12 @@ export default async function CustomerDetailPage({
             >
               New alteration
             </Link>
+            <Link
+              href={`/wedding-parties/new?customerId=${customer.id}`}
+              className={buttonVariants({ variant: "ghost" })}
+            >
+              Start a wedding party
+            </Link>
           </div>
         ) : null}
       </div>

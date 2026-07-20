@@ -43,6 +43,8 @@ export * from "./engagement/event";
 export * from "./engagement/event.schema";
 export * from "./engagement/clienteling";
 export * from "./engagement/clienteling.schema";
+export * from "./engagement/wedding-party";
+export * from "./engagement/wedding-party.schema";
 
 export * from "./analytics/ai-generation";
 export * from "./analytics/audit-log";

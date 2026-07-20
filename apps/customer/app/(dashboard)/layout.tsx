@@ -61,6 +61,12 @@ export default async function DashboardLayout({
                 Events
               </Link>
               <Link
+                href="/wedding-parties"
+                className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+              >
+                Wedding Parties
+              </Link>
+              <Link
                 href="/messages"
                 className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
               >

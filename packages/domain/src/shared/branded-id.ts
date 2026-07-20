@@ -58,6 +58,8 @@ export type ClientelingNoteId = Brand<string, "ClientelingNoteId">;
 export type SubscriptionId = Brand<string, "SubscriptionId">;
 export type SubscriptionPlanId = Brand<string, "SubscriptionPlanId">;
 export type PaymentId = Brand<string, "PaymentId">;
+export type WeddingPartyId = Brand<string, "WeddingPartyId">;
+export type WeddingPartyMemberId = Brand<string, "WeddingPartyMemberId">;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

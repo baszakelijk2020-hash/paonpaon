@@ -3425,6 +3425,111 @@ export type Database = {
         };
         Relationships: [];
       };
+      wedding_parties: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          event_date: string | null;
+          id: string;
+          notes: string | null;
+          organizer_customer_id: string;
+          retailer_id: string;
+          status: Database["public"]["Enums"]["wedding_party_status"];
+          updated_at: string;
+          venue_name: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          event_date?: string | null;
+          id?: string;
+          notes?: string | null;
+          organizer_customer_id: string;
+          retailer_id: string;
+          status?: Database["public"]["Enums"]["wedding_party_status"];
+          updated_at?: string;
+          venue_name?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          event_date?: string | null;
+          id?: string;
+          notes?: string | null;
+          organizer_customer_id?: string;
+          retailer_id?: string;
+          status?: Database["public"]["Enums"]["wedding_party_status"];
+          updated_at?: string;
+          venue_name?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wedding_parties_organizer_customer_id_fkey";
+            columns: ["organizer_customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_parties_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wedding_party_members: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          fitting_status: Database["public"]["Enums"]["wedding_party_member_fitting_status"];
+          id: string;
+          name: string;
+          role: Database["public"]["Enums"]["wedding_party_member_role"];
+          updated_at: string;
+          wedding_party_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          fitting_status?: Database["public"]["Enums"]["wedding_party_member_fitting_status"];
+          id?: string;
+          name: string;
+          role?: Database["public"]["Enums"]["wedding_party_member_role"];
+          updated_at?: string;
+          wedding_party_id: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          fitting_status?: Database["public"]["Enums"]["wedding_party_member_fitting_status"];
+          id?: string;
+          name?: string;
+          role?: Database["public"]["Enums"]["wedding_party_member_role"];
+          updated_at?: string;
+          wedding_party_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wedding_party_members_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_party_members_wedding_party_id_fkey";
+            columns: ["wedding_party_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       wishlist_items: {
         Row: {
           added_at: string;
@@ -3897,6 +4002,15 @@ export type Database = {
         };
         Returns: string;
       };
+      add_wedding_party_member: {
+        Args: {
+          p_email: string;
+          p_name: string;
+          p_role: Database["public"]["Enums"]["wedding_party_member_role"];
+          p_wedding_party_id: string;
+        };
+        Returns: string;
+      };
       assign_alteration_work_order: {
         Args: {
           p_alteration_id: string;
@@ -4152,6 +4266,13 @@ export type Database = {
         };
         Returns: string;
       };
+      update_wedding_party_member_status: {
+        Args: {
+          p_member_id: string;
+          p_status: Database["public"]["Enums"]["wedding_party_member_fitting_status"];
+        };
+        Returns: undefined;
+      };
       update_workshop_assignment: {
         Args: {
           p_alteration_id: string;
@@ -4293,6 +4414,12 @@ export type Database = {
         | "incomplete_expired"
         | "unpaid"
         | "paused";
+      wedding_party_member_fitting_status:
+        "invited" | "scheduled" | "fitted" | "completed";
+      wedding_party_member_role:
+        "groom" | "best_man" | "groomsman" | "father_of_groom" | "other";
+      wedding_party_status:
+        "planning" | "confirmed" | "completed" | "cancelled";
       work_classification: "work_now" | "future_order_note";
       workshop_status: "active" | "inactive";
     };
@@ -4602,6 +4729,20 @@ export const Constants = {
         "unpaid",
         "paused",
       ],
+      wedding_party_member_fitting_status: [
+        "invited",
+        "scheduled",
+        "fitted",
+        "completed",
+      ],
+      wedding_party_member_role: [
+        "groom",
+        "best_man",
+        "groomsman",
+        "father_of_groom",
+        "other",
+      ],
+      wedding_party_status: ["planning", "confirmed", "completed", "cancelled"],
       work_classification: ["work_now", "future_order_note"],
       workshop_status: ["active", "inactive"],
     },
