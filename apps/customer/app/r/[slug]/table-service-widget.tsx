@@ -35,7 +35,10 @@ export function TableServiceWidget({
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
       {open ? (
-        <div className="w-[min(22rem,calc(100vw-2.5rem))] rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-0,#fff)] p-5 shadow-xl">
+        <div
+          className="w-[min(22rem,calc(100vw-2.5rem))] rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-[var(--color-stone-0,#fff)] p-5"
+          style={{ boxShadow: "var(--shadow-elevated)" }}
+        >
           {state.submitted ? (
             <div className="py-4 text-center">
               <p className="text-sm font-medium text-[var(--color-stone-900)]">

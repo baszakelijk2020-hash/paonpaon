@@ -59,7 +59,7 @@ export default async function LoyaltyPage() {
           <Card key={customer.id} className="flex flex-col gap-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+                <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
                   {retailer?.displayName ?? "Retailer"}
                 </p>
                 {account ? (

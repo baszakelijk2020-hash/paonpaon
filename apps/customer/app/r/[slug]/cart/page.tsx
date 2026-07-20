@@ -54,7 +54,7 @@ export default async function CartPage({
     <main className="mx-auto max-w-5xl px-6 py-10">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+          <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
             {retailer.displayName}
           </p>
           <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">

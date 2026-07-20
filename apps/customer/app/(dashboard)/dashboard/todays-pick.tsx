@@ -36,7 +36,7 @@ export function TodaysPick({
     <div className="border-t border-[var(--color-stone-100)] px-6 py-5">
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+          <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
             Today&rsquo;s pick
           </p>
           <p className="text-sm text-[var(--color-stone-500)]">

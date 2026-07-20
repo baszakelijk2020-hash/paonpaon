@@ -57,7 +57,7 @@ export default async function StorefrontProductsPage({
       ) : null}
       <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="mb-1 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+          <p className="mb-1 text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
             {retailer.displayName}
           </p>
           <h1 className="text-4xl font-[var(--font-display)] text-[var(--color-stone-900)]">

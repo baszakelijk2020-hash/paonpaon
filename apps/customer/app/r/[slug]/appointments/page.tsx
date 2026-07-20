@@ -24,7 +24,7 @@ export default async function StorefrontAppointmentsPage({
 
   return (
     <main className="mx-auto max-w-xl px-6 py-10">
-      <p className="mb-1 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+      <p className="mb-1 text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
         {retailer.displayName}
       </p>
       <h1 className="mb-6 text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">

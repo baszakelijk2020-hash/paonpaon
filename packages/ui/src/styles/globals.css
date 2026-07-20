@@ -1,29 +1,51 @@
 @import "tailwindcss";
 
 /**
- * PAON design tokens.
- * Single source of truth for color, type and spacing across
- * PAON Admin, Retailer Portal and Customer Portal.
- * See /docs/DESIGN_SYSTEM.md for rationale.
+ * PAON design tokens, aligned to the paon.html reference design
+ * (nebelspiegel.com) per the founder's explicit direction — same
+ * typefaces (served from the founder's own nebelspiegel.com/fonts/
+ * host, the live source those files already exist at), same warm
+ * near-white/near-black palette, same generous corner radii and soft
+ * elevated shadow. See /docs/DESIGN_SYSTEM.md for rationale and
+ * docs/DECISIONS.md ADR-035.
  */
+@font-face {
+  font-family: "OptimaKlein";
+  src: url("https://www.nebelspiegel.com/fonts/optimaklein.woff2")
+    format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "GTBold3";
+  src: url("https://www.nebelspiegel.com/fonts/gtbold3.woff2") format("woff2");
+  font-display: swap;
+}
+
 @theme {
-  /* Typography */
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  /* Typography — OptimaKlein for display/headline (matches paon.html's
+   * headline serif), GTBold3 for small-caps/eyebrow labels and
+   * emphatic short copy, Inter still carries body text (neither
+   * display face is legible at paragraph size). */
+  --font-display: "OptimaKlein", "Fraunces", ui-serif, Georgia, serif;
+  --font-accent: "GTBold3", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  /* Neutral scale — warm stone, not cold gray. Luxury retail leans warm. */
-  --color-stone-50: oklch(98.5% 0.002 90);
-  --color-stone-100: oklch(96% 0.003 90);
-  --color-stone-200: oklch(91% 0.004 90);
-  --color-stone-300: oklch(83% 0.006 90);
-  --color-stone-400: oklch(66% 0.007 90);
-  --color-stone-500: oklch(52% 0.007 90);
-  --color-stone-600: oklch(42% 0.006 90);
-  --color-stone-700: oklch(32% 0.005 90);
-  --color-stone-800: oklch(22% 0.004 90);
-  --color-stone-900: oklch(14% 0.003 90);
-  --color-stone-950: oklch(9% 0.002 90);
+  /* Neutral scale — warm stone, sampled from paon.html's actual
+   * palette (#f5f3f0 background, #1a1a1a near-black text, #808080/
+   * #666666/#333333/#d9d9d9 grays) rather than a generic warm-gray
+   * ramp. */
+  --color-stone-50: #f5f3f0;
+  --color-stone-100: #ededea;
+  --color-stone-200: #d9d9d9;
+  --color-stone-300: #bfbfbf;
+  --color-stone-400: #999999;
+  --color-stone-500: #808080;
+  --color-stone-600: #666666;
+  --color-stone-700: #4d4d4d;
+  --color-stone-800: #333333;
+  --color-stone-900: #1a1a1a;
+  --color-stone-950: #000000;
 
   /* Brand — deep ink, used sparingly. Retailers layer their own accent via theming tokens. */
   --color-ink-500: oklch(30% 0.03 265);
@@ -35,10 +57,18 @@
   --color-warning-500: oklch(72% 0.15 80);
   --color-danger-500: oklch(55% 0.19 25);
 
-  /* Radius — restrained, editorial rather than app-like */
+  /* Radius — paon.html ranges from 2px chips to 20px hero cards;
+   * kept as a scale rather than one value so a component picks the
+   * right generosity for its own size. */
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
+  --radius-xl: 1.25rem;
+
+  /* Elevation — the soft, wide-spread shadow paon.html uses on
+   * lifted cards/panels (`0 20px 60px rgba(0,0,0,.2)`), not a tight
+   * default drop-shadow. */
+  --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.2);
 
   /* Motion */
   --ease-out-quiet: cubic-bezier(0.16, 1, 0.3, 1);
