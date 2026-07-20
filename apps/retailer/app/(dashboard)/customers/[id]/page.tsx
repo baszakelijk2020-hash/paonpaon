@@ -116,6 +116,14 @@ export default async function CustomerDetailPage({
         </div>
       </Card>
 
+      {canManage ? (
+        <AIInsights
+          customerId={customer.id}
+          aiConfigured={!!getAIProvider()}
+          history={aiHistory}
+        />
+      ) : null}
+
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <h2 className="mb-3 text-lg font-medium">Clienteling notes</h2>

@@ -31,12 +31,57 @@ alteration status. See "Not yet built" below.
   appointments, alteration workload, event attendance, messages and captured
   experience signals. Metrics aggregate authoritative source tables rather than
   copying business records into an analytics shadow model (ADR-021).
-- AI-generated recommendations remain deliberately unimplemented until a real
-  model/provider is configured; analytics work does not pretend deterministic
-  counts are AI.
+- AI-generated recommendations shipped afterward (founder decision: OpenAI
+  behind a provider-neutral interface) — see "Shipped: AI personalisation" below.
 - PAON Admin `/analytics` provides cross-retailer adoption and operational
   metrics behind platform-staff authorization. Cross-currency GMV is explicitly
   directional until a currency conversion policy exists.
+
+### Shipped: AI personalisation (Phase 5)
+
+Full reasoning in `docs/DECISIONS.md` ADR-033.
+
+- **`@paon/ai`**: an `AIProvider` interface (`generateNextBestAction` is
+  the only method implemented this slice — `product_recommendation`/
+  `communication_draft` are modeled in `AIGenerationKind` for the audit
+  trail but not wired to a call site yet) plus `OpenAIProvider`. Swapping
+  providers means adding another `AIProvider` implementation and
+  changing one construction site (`apps/retailer/lib/ai.ts`) — nothing
+  else imports `openai` directly.
+- **`ai_generations` table** (`20260720000018_*`) — every generation
+  attempt recorded, success or failure, append-only. Doubles as the
+  per-customer history (Retailer Portal) and the cross-retailer
+  monitoring feed (PAON Admin), not two separate tables. Direct RLS, no
+  RPC — a single-table write scoped to the caller's own retailer,
+  verifying `requested_by_staff_id` against the caller's own accepted
+  staff membership the same way `clienteling_notes` already does.
+- **Retailer Portal customer detail page**: an "AI insights" card
+  (`sales_associate`+) suggests one next action from the customer's
+  recent `BehavioralEvent` names and order summaries — never raw event
+  payloads or full prompts get stored, only a short `input_summary` for
+  audit purposes. Renders "AI personalisation is not configured on this
+  deployment" when `OPENAI_API_KEY` is unset.
+- **PAON Admin `/ai-monitoring`**: every generation across every
+  retailer, most recent first, with success/failure counts, latency and
+  error messages — the monitoring surface `docs/PRODUCT.md` named.
+- **Deliberately not built**: `product_recommendation`/
+  `communication_draft` generation (modeled, not wired to a UI — no
+  call site has needed them yet); a NullAIProvider/mock provider
+  (unnecessary — `lib/ai.ts` returning `null` when unconfigured already
+  covers the "gracefully degrade" case the provider-neutral interface
+  exists for).
+
+#### Credentials needed (OpenAI)
+
+Everything above is real, wired code, fully unit-tested by mocking the
+OpenAI client — it needs a platform operator to:
+
+1. Create an OpenAI account/API key (platform.openai.com), optionally
+   configure a usage limit.
+2. Set `OPENAI_API_KEY` in `apps/retailer`'s environment.
+
+No code change is required once this exists — `lib/ai.ts` picks it up
+automatically, and every caller already checks for its presence.
 
 ### Shipped: PAON Admin — platform auth + retailer onboarding
 

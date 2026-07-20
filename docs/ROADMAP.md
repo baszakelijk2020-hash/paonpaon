@@ -140,13 +140,17 @@ platforms — see [VISION.md](./VISION.md).
   no provider chosen yet.
 - ✅ Private `ClientelingNote` staff tooling and a unified relationship timeline
   on the retailer customer record.
-- AI personalisation built on `BehavioralEvent` — recommendations,
-  next-best-action for staff, personalized customer communication —
-  with AI monitoring surfaced in PAON Admin
-  ([PRODUCT.md](./PRODUCT.md)).
+- ✅ AI personalisation built on `BehavioralEvent` — OpenAI behind a
+  provider-neutral interface (founder decision, ADR-033). Next-best-action
+  for staff shipped (Retailer Portal customer detail page); product
+  recommendations and personalized customer communication are modeled
+  (`AIGenerationKind`) but not wired to a call site yet. AI monitoring
+  shipped in PAON Admin (`/ai-monitoring`). Code-complete, blocked only
+  on a platform operator provisioning an OpenAI API key, see
+  `docs/PROJECT_STATE.md` "Credentials needed".
 - ✅ Immutable retailer-scoped `BehavioralEvent` capture and the first real
-  retailer analytics dashboard. AI-generated recommendations remain deferred
-  until a model/provider is configured; the event foundation does not fake AI.
+  retailer analytics dashboard — the foundation the AI personalisation
+  slice above builds its context from.
 
 ## Phase 6 — Platform maturity
 

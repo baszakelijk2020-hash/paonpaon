@@ -42,6 +42,12 @@ export default async function DashboardLayout({
               >
                 Billing
               </Link>
+              <Link
+                href="/ai-monitoring"
+                className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+              >
+                AI monitoring
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">

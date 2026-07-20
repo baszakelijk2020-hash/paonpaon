@@ -82,6 +82,15 @@ test("owner adds a customer CRM record", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByText("Not linked")).toBeVisible();
 
+  // No OPENAI_API_KEY in this environment — the AI Insights card must
+  // degrade gracefully, not crash the page (docs/DECISIONS.md ADR-033).
+  await expect(
+    page.getByRole("heading", { name: "AI insights" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("AI personalisation is not configured on this deployment."),
+  ).toBeVisible();
+
   await page.goto("/customers");
   await expect(page.getByText(`jamie-${unique}@paon.test`)).toBeVisible();
 });

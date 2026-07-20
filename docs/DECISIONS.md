@@ -1123,3 +1123,68 @@ enhancement once there's a second call site to generalize from. See
 `docs/PROJECT_STATE.md` "Credentials needed" for the exact Resend
 account setup (domain verification, API key, `CRON_SECRET` generation)
 required before this goes live.
+
+## ADR-033: OpenAI for AI personalisation, behind a provider-neutral interface
+
+**Context.** `docs/PROJECT_STATE.md`/`docs/ROADMAP.md` have named "AI
+personalisation built on `BehavioralEvent` — recommendations,
+next-best-action for staff, personalized customer communication — with
+AI monitoring surfaced in PAON Admin" as the one deliberately
+unimplemented piece of Phase 5 since the behavioral-analytics slice
+shipped (ADR-021 explicitly said "analytics work does not pretend
+deterministic counts are AI"). Founder decision: OpenAI, but — unlike
+ADR-030/031/032's single-provider Stripe/Resend integrations — behind a
+provider-neutral interface so the provider stays replaceable.
+
+**Decision.**
+
+1. **`@paon/ai` exports an `AIProvider` interface first, `OpenAIProvider`
+   second.** `generateNextBestAction(context): Promise<NextBestActionResult>`
+   is the only method implemented in this slice — the interface is
+   deliberately narrow rather than speculatively covering
+   `product_recommendation`/`communication_draft` (both modeled in
+   `AIGenerationKind` for the audit trail, ADR-026's "reserved, not
+   populated speculatively" restraint) before a real call site needs
+   them. Swapping providers later means adding another `AIProvider`
+   implementation and changing one construction site
+   (`apps/retailer/lib/ai.ts`) — nothing else in the codebase imports
+   `openai` (ADR-001's "never import a provider SDK type directly
+   outside its wrapping package" shape).
+2. **Every generation attempt is recorded, success or failure** —
+   `ai_generations` (`20260720000018_*`) is simultaneously the
+   per-customer history a sales associate sees (Retailer Portal
+   customer detail page) and the cross-retailer monitoring feed PAON
+   Admin's `/ai-monitoring` reads, rather than two separate tables
+   duplicating the same event. Append-only (no update/delete grant) —
+   a generation record is an audit entry, not a mutable document.
+3. **Direct RLS, no security-definer RPC** — a single-table write
+   scoped to the caller's own retailer, verifying `requested_by_staff_id`
+   against the caller's own accepted staff membership the same way
+   `clienteling_notes`' insert policy already does. No transactional
+   fan-out, no privilege-escalation risk, the same reasoning ADR-028
+   and ADR-031 already established for reaching for direct RLS instead
+   of an RPC.
+4. **The context fed to the model is small and structured, not a raw
+   data dump** — `NextBestActionContext` carries only event _names_
+   (`AnalyticsRepository.findRecentByCustomer`) and short order
+   summaries, never full `BehavioralEvent.properties` payloads or PII
+   beyond the customer's own name — `input_summary` on the stored
+   record is similarly a short descriptive string
+   (`"customer=... events=N orders=M"`), not the full prompt, keeping
+   the audit trail useful without duplicating potentially-sensitive
+   content into a second table.
+5. **JSON-mode chat completion, strictly validated.** `OpenAIProvider`
+   requests `response_format: { type: "json_object" }` and throws if
+   the response is missing, unparseable, or missing `action`/`rationale`
+   — a malformed model response becomes a recorded `failed` generation
+   with a real error message, never a silently empty or fabricated result.
+
+**Consequences.** Same non-faking treatment as ADR-030/031/032:
+`apps/retailer/lib/ai.ts` returns `null` when `OPENAI_API_KEY` is
+unset, and the customer detail page's AI Insights card renders "AI
+personalisation is not configured on this deployment" rather than a
+crash or a fake suggestion. `OpenAIProvider` is unit-tested by mocking
+the OpenAI client (dependency injection, no live account, no API
+cost); nothing about this slice required or used a real OpenAI key.
+See `docs/PROJECT_STATE.md` "Credentials needed" for the exact OpenAI
+account setup (API key, usage limits) required before this goes live.

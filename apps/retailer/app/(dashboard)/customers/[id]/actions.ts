@@ -87,7 +87,7 @@ export async function generateNextBestAction(
       provider: provider.providerName,
       model: provider.model,
       inputSummary,
-      output: result,
+      output: { action: result.action, rationale: result.rationale },
       latencyMs: Date.now() - startedAt,
     });
     revalidatePath(`/customers/${customerId}`);
