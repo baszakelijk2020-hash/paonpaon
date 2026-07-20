@@ -3036,6 +3036,66 @@ export type Database = {
           },
         ];
       };
+      retailer_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean;
+          created_at: string;
+          current_period_end: string | null;
+          current_period_start: string | null;
+          id: string;
+          plan_id: string;
+          provider_customer_id: string | null;
+          provider_subscription_id: string | null;
+          retailer_id: string;
+          status: Database["public"]["Enums"]["subscription_status"];
+          trial_ends_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          cancel_at_period_end?: boolean;
+          created_at?: string;
+          current_period_end?: string | null;
+          current_period_start?: string | null;
+          id?: string;
+          plan_id: string;
+          provider_customer_id?: string | null;
+          provider_subscription_id?: string | null;
+          retailer_id: string;
+          status?: Database["public"]["Enums"]["subscription_status"];
+          trial_ends_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          cancel_at_period_end?: boolean;
+          created_at?: string;
+          current_period_end?: string | null;
+          current_period_start?: string | null;
+          id?: string;
+          plan_id?: string;
+          provider_customer_id?: string | null;
+          provider_subscription_id?: string | null;
+          retailer_id?: string;
+          status?: Database["public"]["Enums"]["subscription_status"];
+          trial_ends_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_subscriptions_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "retailer_subscriptions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: true;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailers: {
         Row: {
           billing_address: Json;
@@ -3197,6 +3257,48 @@ export type Database = {
           id?: string;
           processed_at?: string;
           type?: string;
+        };
+        Relationships: [];
+      };
+      subscription_plans: {
+        Row: {
+          billing_interval: string;
+          created_at: string;
+          id: string;
+          included_feature_keys: string[];
+          key: string;
+          name: string;
+          price_amount_minor_units: number;
+          price_currency: string;
+          provider_price_id: string | null;
+          seat_limit: number | null;
+          updated_at: string;
+        };
+        Insert: {
+          billing_interval: string;
+          created_at?: string;
+          id?: string;
+          included_feature_keys?: string[];
+          key: string;
+          name: string;
+          price_amount_minor_units: number;
+          price_currency: string;
+          provider_price_id?: string | null;
+          seat_limit?: number | null;
+          updated_at?: string;
+        };
+        Update: {
+          billing_interval?: string;
+          created_at?: string;
+          id?: string;
+          included_feature_keys?: string[];
+          key?: string;
+          name?: string;
+          price_amount_minor_units?: number;
+          price_currency?: string;
+          provider_price_id?: string | null;
+          seat_limit?: number | null;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -4012,6 +4114,15 @@ export type Database = {
       retailer_tier: "boutique" | "house" | "maison";
       reward_type:
         "discount_percent" | "discount_fixed" | "gift" | "early_access";
+      subscription_status:
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "canceled"
+        | "incomplete"
+        | "incomplete_expired"
+        | "unpaid"
+        | "paused";
       work_classification: "work_now" | "future_order_note";
       workshop_status: "active" | "inactive";
     };
@@ -4304,6 +4415,16 @@ export const Constants = {
         "discount_fixed",
         "gift",
         "early_access",
+      ],
+      subscription_status: [
+        "trialing",
+        "active",
+        "past_due",
+        "canceled",
+        "incomplete",
+        "incomplete_expired",
+        "unpaid",
+        "paused",
       ],
       work_classification: ["work_now", "future_order_note"],
       workshop_status: ["active", "inactive"],

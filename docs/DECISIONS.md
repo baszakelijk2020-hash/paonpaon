@@ -996,3 +996,66 @@ configured" state rather than a crash or a fabricated success. See
 `docs/PROJECT_STATE.md` "Credentials needed" for the exact Stripe
 dashboard setup (webhook endpoint, events, secrets) required before
 this goes live.
+
+## ADR-031: Stripe Billing under PAON's own platform account for retailer subscriptions
+
+**Context.** `RetailerSubscription`/`SubscriptionPlan` (`packages/domain/src/retailer/subscription.ts`)
+have existed as domain types with no table since Phase 0's initial
+modeling — "Owned by PAON Admin," never implemented. Founder decision:
+Stripe Billing under PAON's own platform Stripe account, kept
+separate from ADR-030's Connect customer-payments integration — this
+is the reverse money direction, a retailer paying PAON, not a customer
+paying a retailer.
+
+**Decision.**
+
+1. **Separate from Connect entirely** — `billing.ts` (`@paon/payments`)
+   calls the Stripe SDK with no `stripeAccount` header, i.e. against
+   PAON's own platform account, never a connected account.
+   `retailer_subscriptions`/`subscription_plans` are new tables,
+   unrelated to `retailer_stripe_accounts`/`payments`
+   (`20260720000015_*`).
+2. **`SubscriptionStatus` mirrors Stripe's own `Subscription.status`
+   values directly** (`trialing`/`active`/`past_due`/`canceled`/
+   `incomplete`/`incomplete_expired`/`unpaid`/`paused`), not a narrower
+   business-level enum translated at the boundary — Stripe is the one
+   provider (founder decision), so a translation layer would only add
+   a place for drift.
+3. **`subscription_plans` is a real, seeded table, not env-var
+   config** (`20260720000016_*`, seeded with `boutique_monthly`/
+   `house_monthly`/`maison_monthly`) — `SubscriptionPlan.providerPriceId`
+   starts null and PAON Admin `/billing` lets a platform operator paste
+   in the real Stripe Price id once created in the dashboard. A plan
+   with no price configured can't be assigned to a retailer (checked
+   before calling Stripe, not discovered as a Stripe API error).
+4. **Assignment is platform-staff-initiated, RLS alone, no RPC** —
+   unlike ADR-030's `payments` (which needs the "two tables, one
+   client call" transactional guarantee a `security definer` RPC
+   exists for), assigning a subscription is a single-table write
+   already fully covered by `retailer_subscriptions`' "platform staff
+   can manage all" policy, and the webhook sync
+   (`customer.subscription.updated`/`.deleted`) is a single-table,
+   no-business-validation update via `service_role` — the same shape
+   `retailer_stripe_accounts.syncCapabilities` already established.
+5. **Retailers manage their own payment method via the Stripe-hosted
+   Billing Portal**, not a PAON-built form — `createBillingPortalSession`
+   (Retailer Portal `/settings/billing`, owner/admin) redirects to
+   Stripe. PAON never handles a retailer's card details, the same
+   restraint ADR-030 already applies to customer payments.
+6. **One subscription per retailer, no plan-change flow yet** —
+   `retailer_subscriptions.retailer_id` is unique; `assignSubscriptionPlan`
+   explicitly rejects reassigning an existing subscription rather than
+   guessing at upgrade/downgrade/proration semantics no one has
+   specified. Cancel or change a plan directly in the Stripe dashboard
+   until that flow is built.
+
+**Consequences.** Same non-faking treatment as ADR-030: `lib/stripe.ts`
+in `apps/admin` returns `null` when `STRIPE_SECRET_KEY` is unset, and
+every caller (`/billing`, retailer plan assignment, `/settings/billing`)
+renders a "not configured" state. Every Stripe API-calling function in
+`billing.ts` is unit-tested by mocking the Stripe client (dependency
+injection); `parseStripePlatformEvent`'s event→action mapping is pure
+and unit-tested with fixture objects, no live account needed. See
+`docs/PROJECT_STATE.md` "Credentials needed" for the exact Stripe
+dashboard setup (Products/Prices per plan, webhook endpoint, secrets)
+required before this goes live.

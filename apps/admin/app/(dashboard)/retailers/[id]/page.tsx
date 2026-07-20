@@ -1,4 +1,9 @@
-import { RetailerRepository, RetailerStaffRepository } from "@paon/database";
+import {
+  RetailerRepository,
+  RetailerStaffRepository,
+  RetailerSubscriptionRepository,
+  SubscriptionPlanRepository,
+} from "@paon/database";
 import { asId } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
@@ -6,6 +11,8 @@ import { formatDate } from "@paon/utils";
 import { notFound } from "next/navigation";
 
 import { RetailerStatusBadge } from "../status-badge";
+
+import { BillingPanel } from "./billing-panel";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -27,6 +34,16 @@ export default async function RetailerDetailPage({
 
   const staff = await new RetailerStaffRepository(supabase).findByRetailer(
     retailer.id,
+  );
+  const subscription = await new RetailerSubscriptionRepository(
+    supabase,
+  ).findByRetailer(retailer.id);
+  const plans = await new SubscriptionPlanRepository(supabase).findAll();
+  const currentPlan = subscription
+    ? (plans.find((candidate) => candidate.id === subscription.planId) ?? null)
+    : null;
+  const assignablePlans = plans.filter(
+    (candidate) => candidate.providerPriceId,
   );
 
   return (
@@ -69,6 +86,13 @@ export default async function RetailerDetailPage({
           </p>
         </div>
       </Card>
+
+      <BillingPanel
+        retailerId={retailer.id}
+        subscription={subscription}
+        plan={currentPlan}
+        assignablePlans={assignablePlans}
+      />
 
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">

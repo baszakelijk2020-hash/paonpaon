@@ -147,7 +147,14 @@ platforms — see [VISION.md](./VISION.md).
 ## Phase 6 — Platform maturity
 
 - ✅ Retailer- and platform-scoped analytics dashboards.
-- Subscription self-serve billing changes, usage-based feature gating.
+- ✅ Retailer subscription billing — Stripe Billing under PAON's own
+  platform account (founder decision, ADR-031). Plan assignment
+  (PAON Admin), status/renewal display and Stripe-hosted billing
+  portal (Retailer Portal `/settings/billing`) are code-complete;
+  blocked only on a platform operator provisioning Stripe
+  Products/Prices, see `docs/PROJECT_STATE.md` "Credentials needed".
+  Self-serve plan upgrade/downgrade and usage-based feature gating
+  remain future enhancements — one plan per retailer, platform-staff-assigned only, today.
 - Public API (see [API.md](./API.md), [NON_GOALS.md](./NON_GOALS.md) —
   only once a real integration partner exists).
 - Anything deferred in [NON_GOALS.md](./NON_GOALS.md) gets re-evaluated

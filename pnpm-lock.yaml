@@ -41,6 +41,9 @@ importers:
       '@paon/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@paon/payments':
+        specifier: workspace:*
+        version: link:../../packages/payments
       '@paon/ui':
         specifier: workspace:*
         version: link:../../packages/ui

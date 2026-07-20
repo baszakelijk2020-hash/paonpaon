@@ -418,6 +418,70 @@ No code change is required once these exist — `lib/stripe.ts` in both
 apps picks up `STRIPE_SECRET_KEY` automatically, and every caller
 already checks for its presence.
 
+### Shipped: Stripe Billing retailer subscriptions (Phase 6)
+
+Full reasoning in `docs/DECISIONS.md` ADR-031. `RetailerSubscription`/
+`SubscriptionPlan` (`packages/domain/src/retailer/subscription.ts`)
+existed as domain types with no table since Phase 0 — this is the
+first implementation, and it's deliberately separate from Stripe
+Connect (ADR-030): a retailer paying PAON, not a customer paying a
+retailer.
+
+- **`subscription_plans`, `retailer_subscriptions` tables**
+  (`20260720000016_*`). Three plans seeded (`boutique_monthly`/
+  `house_monthly`/`maison_monthly`) with `provider_price_id` null until
+  a platform operator creates the matching Stripe Price. No `security
+definer` RPC needed — unlike payments, assignment is a single-table
+  write already covered by "platform staff can manage all," and the
+  webhook sync is a single-table, no-validation update, the same shape
+  `retailer_stripe_accounts.syncCapabilities` already established.
+- **PAON Admin `/billing`**: lists all plans, lets a platform operator
+  paste in each plan's real Stripe Price id. `/retailers/[id]` gained a
+  Billing panel — assign a plan (creates the real Stripe
+  Customer/Subscription, then records the result) or view the current
+  subscription's status/renewal date. A plan with no Price configured
+  can't be assigned (checked before calling Stripe).
+- **Retailer Portal `/settings/billing`** (owner/admin): status badge,
+  current plan, renewal/cancellation date, and a "Manage billing"
+  button that opens a Stripe-hosted Billing Portal session — PAON never
+  handles a retailer's card details directly, same restraint ADR-030
+  applies to customer payments.
+- **`apps/admin/app/api/webhooks/stripe/route.ts`**: verifies the
+  signature, calls `parseStripePlatformEvent`, syncs
+  `retailer_subscriptions` on `customer.subscription.updated`/`.deleted`.
+  A separate endpoint, separate signing secret
+  (`STRIPE_BILLING_WEBHOOK_SECRET`) and separate app from Connect's
+  webhook (`apps/customer`) — platform-account events, not
+  connected-account events.
+- **Deliberately not built**: self-serve plan upgrade/downgrade
+  (`assignSubscriptionPlan` explicitly rejects reassigning an existing
+  subscription — cancel/change directly in the Stripe dashboard for
+  now); usage-based feature gating from `FeatureFlagOverride` (the
+  domain type exists, nothing reads it yet).
+
+#### Credentials needed (Stripe Billing)
+
+Everything above is real, wired code — it needs a platform operator to:
+
+1. In the **same** Stripe account used for Connect (Dashboard, not in
+   Connect-specific settings this time), create one Product + Price per
+   plan (Boutique/House/Maison, matching `subscription_plans.key`).
+2. Paste each Price id into PAON Admin → Billing (`/billing`) — no
+   direct database edit needed.
+3. `STRIPE_SECRET_KEY` is the same platform secret key Connect already
+   uses (`apps/admin`'s own `.env.example` — a third copy, since
+   `apps/admin` didn't need one before this).
+4. Register a **second** webhook endpoint at
+   `https://<admin-app-domain>/api/webhooks/stripe`, subscribed to
+   **platform account events** (not Connect events):
+   `customer.subscription.updated`, `customer.subscription.deleted`.
+   Copy its signing secret into `STRIPE_BILLING_WEBHOOK_SECRET`
+   (`apps/admin` only — distinct from Connect's
+   `STRIPE_CONNECT_WEBHOOK_SECRET` in `apps/customer`).
+5. For local development, `stripe listen --forward-to
+localhost:3000/api/webhooks/stripe` for a local billing webhook
+   secret, separate from Connect's `stripe listen` session.
+
 ### Shipped: Appointments and garment-first Alterations (Phase 3)
 
 Appointment reasoning remains in ADR-015. ADR-016 records the founder

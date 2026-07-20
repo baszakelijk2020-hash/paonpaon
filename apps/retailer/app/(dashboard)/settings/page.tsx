@@ -35,12 +35,14 @@ export default async function SettingsPage() {
           Business profile and billing address. Slug, tier, subscription and
           currency are managed by PAON Admin.
         </p>
-        <Link
-          href="/settings/payments"
-          className="mt-2 inline-block text-sm underline"
-        >
-          Payments settings →
-        </Link>
+        <div className="mt-2 flex gap-4">
+          <Link href="/settings/payments" className="text-sm underline">
+            Payments settings →
+          </Link>
+          <Link href="/settings/billing" className="text-sm underline">
+            Billing →
+          </Link>
+        </div>
       </div>
       <SettingsForm retailer={retailer} />
     </div>

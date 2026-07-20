@@ -14,6 +14,8 @@ export * from "./repositories/product-variant-repository";
 export * from "./repositories/order-repository";
 export * from "./repositories/payment-repository";
 export * from "./repositories/retailer-stripe-account-repository";
+export * from "./repositories/subscription-plan-repository";
+export * from "./repositories/retailer-subscription-repository";
 export * from "./repositories/availability-window-repository";
 export * from "./repositories/appointment-repository";
 export * from "./repositories/alteration-repository";
