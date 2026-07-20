@@ -846,6 +846,42 @@ not live — the storefront widget calling `submit_table_service_inquiry`
 against production would fail with "function does not exist" until
 the migration is pushed.
 
+### Shipped: Storefront editorial visual redesign
+
+Also part of ADR-034's triage (bucket 2 — "real, scoped, next").
+Catalog (`products/page.tsx`) is now a masonry grid with larger
+imagery instead of a single-column list; the PDP is a two-column
+sticky-image layout with a serif (`--font-display`, defined in
+`packages/ui` since the design system's inception but unused until
+now) heading treatment, a computed price/price-range label, and an
+inline "Book a complimentary fitting" link into the existing
+appointments flow. `order-form.tsx`/`wishlist-toggle.tsx` also had
+their raw `<input type=number>`/`<select>` replaced with the shared
+`Input`/`Select` components — a pre-existing inconsistency, not
+something this redesign introduced. The same heading treatment was
+then carried to appointments/cart/events for visual consistency across
+the whole `/r/[slug]` storefront. The authenticated back-office UI
+(admin/retailer portals, customer account dashboard) deliberately
+keeps the existing quiet/editorial restraint — this redesign is scoped
+to the public storefront only.
+
+- **Verified**: manually seeded a product+variants into the local
+  database and confirmed both pages render correctly (formatted price,
+  image, made-to-order tag, sign-in gating) via direct HTTP requests
+  against a local dev server. Also ran the existing Playwright e2e
+  suite's `storefront.spec.ts` against local Supabase —
+  `browsing the storefront requires no sign-in` and
+  `storefront shows an uploaded product image` both pass unmodified
+  (proof the redesign didn't change any behavior those tests depend
+  on). The suite's third test (`a signed-in shopper builds a
+cart...`) fails at the magic-link sign-in step, before it ever
+  reaches a page this redesign touched — `apps/customer/app/auth/confirm/route.ts`
+  was last modified in an unrelated, much earlier commit
+  (`0dc0da5`), so this is a pre-existing local-environment issue
+  (likely Inbucket/GoTrue email-link timing in this Docker setup), not
+  a regression from this change. Not investigated further — out of
+  scope for a UI redesign task.
+
 ## Local database verification
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
