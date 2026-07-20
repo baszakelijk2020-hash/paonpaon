@@ -31,7 +31,7 @@ export default async function DashboardPage() {
     <div className="flex flex-col gap-6">
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
+          <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
             {retailer.displayName}
           </h1>
           <RetailerStatusBadge status={retailer.status} />

@@ -26,7 +26,7 @@ export default async function LoginPage({
         <p className="mb-1 text-sm font-medium uppercase tracking-wide text-[var(--color-stone-500)]">
           PAON Admin
         </p>
-        <h1 className="mb-6 text-2xl font-medium text-[var(--color-stone-900)]">
+        <h1 className="mb-6 text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
           Sign in
         </h1>
         <Card>

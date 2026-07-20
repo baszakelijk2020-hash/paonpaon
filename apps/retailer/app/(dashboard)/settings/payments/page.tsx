@@ -31,7 +31,7 @@ export default async function PaymentsSettingsPage() {
         >
           ← Settings
         </Link>
-        <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
+        <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
           Payments
         </h1>
       </div>

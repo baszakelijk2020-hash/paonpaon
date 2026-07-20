@@ -25,7 +25,7 @@ export default async function EventsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-medium">Events</h1>
+        <h1 className="text-2xl font-[var(--font-display)]">Events</h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Trunk shows, launches and private client events.
         </p>

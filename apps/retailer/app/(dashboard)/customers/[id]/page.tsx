@@ -75,7 +75,7 @@ export default async function CustomerDetailPage({
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
+            <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
               {customer.fullName}
             </h1>
             <LifecycleBadge stage={customer.lifecycleStage} />

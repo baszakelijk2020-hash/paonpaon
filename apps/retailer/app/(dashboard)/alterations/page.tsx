@@ -51,7 +51,7 @@ export default async function AlterationsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
+          <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
             Alterations
           </h1>
           <p className="text-sm text-[var(--color-stone-500)]">

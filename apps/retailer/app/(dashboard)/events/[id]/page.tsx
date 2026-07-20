@@ -39,7 +39,7 @@ export default async function EventPage({
         <p className="text-sm uppercase tracking-wide text-[var(--color-stone-500)]">
           {event.status}
         </p>
-        <h1 className="text-2xl font-medium">{event.name}</h1>
+        <h1 className="text-2xl font-[var(--font-display)]">{event.name}</h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           {formatDate(event.startsAt, "en-US")} · {event.venueName}
         </p>

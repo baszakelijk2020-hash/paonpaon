@@ -16,7 +16,7 @@ export default async function NotificationsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-medium">Updates</h1>
+        <h1 className="text-2xl font-[var(--font-display)]">Updates</h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Customer and operational notifications.
         </p>

@@ -22,7 +22,7 @@ export default async function AcceptInvitePage() {
         <p className="mb-1 text-sm font-medium uppercase tracking-wide text-[var(--color-stone-500)]">
           PAON Admin
         </p>
-        <h1 className="mb-2 text-2xl font-medium text-[var(--color-stone-900)]">
+        <h1 className="mb-2 text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
           Set your password
         </h1>
         <p className="mb-6 text-sm text-[var(--color-stone-600)]">

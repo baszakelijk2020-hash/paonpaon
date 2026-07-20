@@ -31,7 +31,7 @@ export default async function ConversationPage({
     <div className="flex flex-col gap-5">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-medium">
+          <h1 className="text-2xl font-[var(--font-display)]">
             {customer?.fullName ?? "Customer"}
           </h1>
           {conversation.intent ? (

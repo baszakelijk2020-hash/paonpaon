@@ -210,7 +210,7 @@ export default async function AlterationDetailPage({
     <div className="flex flex-col gap-6">
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
+          <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
             {customer?.fullName ?? (isWorker ? "Assigned garment" : "Customer")}
           </h1>
           <AlterationStatusBadge status={alteration.status} />
