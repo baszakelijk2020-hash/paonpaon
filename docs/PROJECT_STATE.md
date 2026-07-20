@@ -825,26 +825,10 @@ definer`) is the only write path: finds-or-creates a guest
   `build` all pass repo-wide. **Not yet pushed to the live Supabase
   project** — see "Credentials needed" below.
 
-#### Credentials needed (push TableService migrations to production)
-
-The two new migrations (`20260721000001_add_guest_message_sender_type.sql`,
-`20260721000002_create_table_service.sql`) exist only in this repo and
-the local Docker Postgres — they are not yet applied to the live
-project (`hngxrczavwywsnfceppb`). This is a credentials gap, not a code
-gap: pushing requires `SUPABASE_ACCESS_TOKEN` (a Supabase personal
-access token, distinct from any project API key), which is not present
-in this environment/session. Once available:
-
-```
-SUPABASE_ACCESS_TOKEN=... supabase link --project-ref hngxrczavwywsnfceppb
-supabase db push --linked
-pnpm --filter @paon/database generate-types   # optional re-check; local and remote schema now match
-```
-
-Until this runs, TableService is fully built and locally verified but
-not live — the storefront widget calling `submit_table_service_inquiry`
-against production would fail with "function does not exist" until
-the migration is pushed.
+**Pushed to production** (2026-07-21): both migrations are now applied
+to the live project (`hngxrczavwywsnfceppb`) via `supabase db push
+--linked`, once a founder-provisioned `SUPABASE_ACCESS_TOKEN` became
+available. TableService is live end to end.
 
 ### Shipped: Storefront editorial visual redesign
 
