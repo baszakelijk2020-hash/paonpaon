@@ -1,9 +1,15 @@
-import { RetailerRepository, RetailerStaffRepository } from "@paon/database";
+import {
+  RetailerRepository,
+  RetailerStaffRepository,
+  StaffRosterRepository,
+} from "@paon/database";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import { notFound, redirect } from "next/navigation";
 
 import { RetailerStatusBadge } from "../status-badge";
+
+import { ClockWidget } from "./clock-widget";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -27,6 +33,13 @@ export default async function DashboardPage() {
   );
   const activeStaffCount = staff.filter((member) => member.acceptedAt).length;
 
+  const myStaffRow = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  const openEntry = myStaffRow
+    ? await new StaffRosterRepository(supabase).findOpenTimeEntry(myStaffRow.id)
+    : null;
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -41,6 +54,12 @@ export default async function DashboardPage() {
           {retailer.defaultLocale}
         </p>
       </div>
+
+      {myStaffRow ? (
+        <ClockWidget
+          {...(openEntry ? { clockedInAt: openEntry.clockInAt } : {})}
+        />
+      ) : null}
 
       <Card className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>

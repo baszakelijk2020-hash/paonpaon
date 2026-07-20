@@ -4,6 +4,8 @@ export * from "./shared/address";
 export * from "./shared/timestamps";
 
 export * from "./identity/role";
+export * from "./identity/staff-roster";
+export * from "./identity/staff-roster.schema";
 export * from "./identity/user";
 export * from "./identity/platform-staff.schema";
 export * from "./identity/retailer-staff.schema";

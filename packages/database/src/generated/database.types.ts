@@ -3365,6 +3365,105 @@ export type Database = {
           },
         ];
       };
+      staff_shifts: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          end_time: string;
+          id: string;
+          notes: string | null;
+          retailer_id: string;
+          shift_date: string;
+          staff_id: string;
+          start_time: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          end_time: string;
+          id?: string;
+          notes?: string | null;
+          retailer_id: string;
+          shift_date: string;
+          staff_id: string;
+          start_time: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          end_time?: string;
+          id?: string;
+          notes?: string | null;
+          retailer_id?: string;
+          shift_date?: string;
+          staff_id?: string;
+          start_time?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_shifts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_shifts_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      staff_time_entries: {
+        Row: {
+          clock_in_at: string;
+          clock_out_at: string | null;
+          created_at: string;
+          id: string;
+          retailer_id: string;
+          staff_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          clock_in_at?: string;
+          clock_out_at?: string | null;
+          created_at?: string;
+          id?: string;
+          retailer_id: string;
+          staff_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          clock_in_at?: string;
+          clock_out_at?: string | null;
+          created_at?: string;
+          id?: string;
+          retailer_id?: string;
+          staff_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_time_entries_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_time_entries_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       stripe_webhook_events: {
         Row: {
           id: string;
@@ -4071,6 +4170,8 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      clock_in: { Args: never; Returns: string };
+      clock_out: { Args: never; Returns: undefined };
       create_alteration_intake: {
         Args: {
           p_appointment_id: string;

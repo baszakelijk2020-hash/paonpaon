@@ -33,9 +33,17 @@ export default async function StaffPage() {
             {staff.length} staff member{staff.length === 1 ? "" : "s"}
           </p>
         </div>
-        <Link href="/staff/new" className={buttonVariants()}>
-          Invite staff
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/staff/roster"
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Roster
+          </Link>
+          <Link href="/staff/new" className={buttonVariants()}>
+            Invite staff
+          </Link>
+        </div>
       </div>
 
       <Card className="divide-y divide-[var(--color-stone-100)] p-0">
