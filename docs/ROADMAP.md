@@ -178,6 +178,70 @@ platforms — see [VISION.md](./VISION.md).
 - Anything deferred in [NON_GOALS.md](./NON_GOALS.md) gets re-evaluated
   here, not before.
 
+## Phase 7 — Founder-directed, not yet built (2026-07-21)
+
+A large batch of asks landed in one session (ADR-035's scope plus
+this list) faster than they can be responsibly built and verified.
+Recorded here so none of it is lost, roughly in the order it should
+be picked up. None of these have any code yet unless noted.
+
+- **Back-office premium visual pass.** ADR-034 drew a line — premium/
+  editorial styling for the customer storefront, quiet/restrained for
+  admin and retailer portal back-office. The founder's later messages
+  ask for paon.html's language "on literally all pages, all
+  interfaces." Treat this as superseding that line: extend the same
+  token-driven heading/color/radius treatment already used across the
+  customer app to `apps/retailer` and `apps/admin` — mechanical, since
+  every page already reads the same `--font-display`/`--color-stone-*`
+  tokens `packages/ui` defines centrally.
+- **Wedding Party visual redesign.** What shipped (ADR-035) is a
+  functional roster — plain tables, dropdowns, Cards — not a redesign
+  matching the founder's original wedding-tool HTML mockup's actual
+  layout. Functionally complete; visually still default back-office.
+- **Staff planning/roster tool.** A shift-scheduling surface for
+  retailer staff — new domain concept, not an extension of
+  `AvailabilityWindow` (that's customer-appointment availability, a
+  different thing). Needs its own scoping pass: what "roster" means
+  here (weekly shift grid? time-off requests? workshop capacity
+  planning?) before a data model is worth committing to.
+- **Shipping/pickup carrier selection.** A preference field on the
+  customer address card (DHL, PostNL, local pickup, "preferred
+  carrier") is buildable now with no credentials — a UI-only addition
+  to `CustomerPreferences`/order fulfillment. Actual label generation,
+  rate shopping or tracking against a real carrier API is a separate,
+  much larger integration needing real DHL/PostNL/carrier credentials
+  this deployment does not have — do not fabricate a working "buy
+  shipping label" button before those exist.
+- **SMS/WhatsApp notifications.** `docs/PROJECT_STATE.md`'s Resend
+  slice (ADR-032) already established the provider-neutral pattern
+  (`notification_channel` enum already includes `sms`/`push`, the
+  `email_outbox`-style durable queue is generalizable). No SMS/WhatsApp
+  provider is chosen or has credentials — this is the same shape of
+  work as Resend, blocked the same way, not started.
+- **Alteration operation depth**: per-employee login/photo/notes
+  attribution already exists in large part (`AlterationAttachmentId`,
+  `ChainOfCustodyEvent`, `CompletionReview`, `AlterationTaskNote`
+  in the domain model — see DOMAIN_MODEL.md) — audit what's actually
+  wired into UI before assuming a rebuild is needed. What's explicitly
+  not built: a customer-facing "your alteration is ready" push
+  notification trigger (the `notifications` table/category already
+  supports `alteration_update`, wiring a trigger on the relevant
+  status transition is small); a dedicated manager cost-approval
+  dashboard distinct from the existing pricing-history/proposal
+  records; and a stated "watertight fraud-prevention calculation" —
+  needs a concrete definition of what fraud pattern is being guarded
+  against before designing controls against it.
+- **Dynamic pricing / idle-customer re-engagement.** "Full insight
+  into customer online behavior... dynamic pricing... track buying
+  patterns... know when to clientele" is a real analytics/personalisation
+  engine, not a UI feature — needs its own domain concept (a
+  "re-engagement window" or "purchase cadence" model per customer,
+  computed from `BehavioralEvent`/`Order` history) and a pricing-rules
+  concept that doesn't exist anywhere in the current commerce domain
+  (today: one fixed price per `ProductVariant`, no discount/promotion
+  primitives at all). The single largest item on this list — deserves
+  its own dedicated design pass, not a bolt-on.
+
 ## How this roadmap changes
 
 A phase only starts once the previous phase's data model has real
