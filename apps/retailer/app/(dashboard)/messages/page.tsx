@@ -23,7 +23,7 @@ export default async function MessagesPage() {
           Customer conversations shared by the retail team.
         </p>
       </div>
-      <Card className="divide-y p-0">
+      <Card className="divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
         {conversations.map((item) => (
           <Link
             key={item.id}

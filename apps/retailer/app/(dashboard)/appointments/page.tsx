@@ -49,7 +49,7 @@ export default async function AppointmentsPage() {
           <p className="text-[var(--color-stone-600)]">No appointments yet.</p>
         </div>
       ) : (
-        <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
           {appointments.map((appointment) => (
             <Link
               key={appointment.id}

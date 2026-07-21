@@ -98,7 +98,7 @@ export default async function RetailerDetailPage({
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
           Staff
         </h2>
-        <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
           {staff.length === 0 ? (
             <p className="p-6 text-sm text-[var(--color-stone-500)]">
               No staff invited yet.

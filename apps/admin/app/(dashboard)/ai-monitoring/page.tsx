@@ -69,7 +69,7 @@ export default async function AIMonitoringPage() {
           </p>
         </Card>
       ) : (
-        <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
           {generations.map((generation) => (
             <div key={generation.id} className="px-6 py-4">
               <div className="flex items-center justify-between">

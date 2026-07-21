@@ -60,7 +60,7 @@ export default async function OrderDetailPage({
         </p>
       </div>
 
-      <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+      <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
         {lines.map((line, index) => {
           const variant = variants[index];
           return (

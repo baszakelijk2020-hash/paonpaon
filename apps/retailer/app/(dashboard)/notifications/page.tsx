@@ -21,7 +21,7 @@ export default async function NotificationsPage() {
           Customer and operational notifications.
         </p>
       </div>
-      <Card className="divide-y p-0">
+      <Card className="divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
         {items.map((item) => (
           <div
             key={item.id}
