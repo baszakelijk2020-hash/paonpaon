@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { PaonSupabaseClient } from "../client-type";
 
 import { AlterationWorkflowRepository } from "./alteration-workflow-repository";
+import { fakeQueryBuilder } from "./test-helpers/fake-query-builder";
 
 describe("AlterationWorkflowRepository", () => {
   it("assigns approved work through the transactional assignment RPC", async () => {
@@ -60,5 +61,51 @@ describe("AlterationWorkflowRepository", () => {
       p_decision: "approved",
       p_reason: "Evidence and revised scope confirmed.",
     });
+  });
+
+  it("finds retailer-wide pending proposals for the dashboard digest, carrying the work order number", async () => {
+    const from = vi.fn().mockReturnValue(
+      fakeQueryBuilder({
+        data: [
+          {
+            id: "44444444-4444-4444-4444-444444444444",
+            alteration_id: "11111111-1111-1111-1111-111111111111",
+            task_id: null,
+            retailer_id: "22222222-2222-2222-2222-222222222222",
+            original_amount_minor_units: 12000,
+            proposed_amount_minor_units: 14500,
+            currency: "GBP",
+            explanation: "Additional hand finishing.",
+            evidence_attachment_id: null,
+            status: "pending",
+            proposed_by_staff_id: "33333333-3333-3333-3333-333333333333",
+            decided_by_staff_id: null,
+            decided_at: null,
+            decision_reason: null,
+            created_at: "2026-01-01T00:00:00.000Z",
+            updated_at: "2026-01-01T00:00:00.000Z",
+            deleted_at: null,
+            alteration_work_orders: { work_order_number: "ALT-000001" },
+          },
+        ],
+        error: null,
+      }),
+    );
+    const repository = new AlterationWorkflowRepository({
+      from,
+    } as unknown as PaonSupabaseClient);
+
+    const result = await repository.findPendingProposalsByRetailer(
+      "22222222-2222-2222-2222-222222222222" as never,
+    );
+
+    expect(from).toHaveBeenCalledWith("price_change_proposals");
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: "44444444-4444-4444-4444-444444444444",
+        status: "pending",
+        workOrderNumber: "ALT-000001",
+      }),
+    ]);
   });
 });

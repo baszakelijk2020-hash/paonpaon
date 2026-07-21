@@ -7,6 +7,7 @@ import {
   type CurrencyCode,
   type PriceChangeProposal,
   type PriceChangeProposalId,
+  type RetailerId,
   type StaffId,
   type WorkshopId,
 } from "@paon/domain";
@@ -86,6 +87,26 @@ export class AlterationWorkflowRepository {
       .order("created_at", { ascending: true });
     if (error) throw error;
     return data.map(proposalToDomain);
+  }
+
+  /** Retailer-wide pending proposals, for a "needs your attention" digest —
+   * the single most time-sensitive alterations action, otherwise buried
+   * on each work order's own detail page. */
+  async findPendingProposalsByRetailer(
+    retailerId: RetailerId,
+  ): Promise<(PriceChangeProposal & { workOrderNumber: string })[]> {
+    const { data, error } = await this.client
+      .from("price_change_proposals")
+      .select("*, alteration_work_orders(work_order_number)")
+      .eq("retailer_id", retailerId)
+      .eq("status", "pending")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data.map((row) => ({
+      ...proposalToDomain(row),
+      workOrderNumber: row.alteration_work_orders?.work_order_number ?? "—",
+    }));
   }
 
   /** The full audit trail — what a retailer checks a workshop's

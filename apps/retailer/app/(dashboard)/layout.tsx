@@ -45,9 +45,16 @@ export default async function DashboardLayout({
             >
               Retailer Portal
             </Link>
-            <nav className="flex max-w-full items-center gap-4 overflow-x-auto pb-1 lg:gap-6">
+            <nav
+              aria-label="Primary"
+              className="flex max-w-full items-stretch gap-5 overflow-x-auto pb-1 lg:gap-7"
+            >
               {!isWorkshopRole ? (
-                <>
+                <div
+                  role="group"
+                  aria-label="Operate"
+                  className="flex shrink-0 items-center gap-4 lg:gap-6"
+                >
                   <Link
                     href="/dashboard"
                     className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
@@ -78,12 +85,70 @@ export default async function DashboardLayout({
                   >
                     Updates
                   </Link>
-                  {canManageCatalog ? (
+                </div>
+              ) : null}
+
+              <div
+                role="group"
+                aria-label="Alterations"
+                className="flex shrink-0 items-center gap-4 border-l border-[var(--color-stone-200)] pl-5 lg:gap-6 lg:pl-7"
+              >
+                <Link
+                  href="/alterations"
+                  className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                >
+                  Alterations
+                </Link>
+                {canConfigureAlterations || canManageWorkshop ? (
+                  <>
                     <Link
-                      href="/analytics"
+                      href="/alterations/catalogue"
                       className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
                     >
-                      Analytics
+                      {canManageWorkshop
+                        ? "Workshop prices"
+                        : "Alteration settings"}
+                    </Link>
+                    {canConfigureAlterations ? (
+                      <Link
+                        href="/alterations/workshops"
+                        className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                      >
+                        Workshops
+                      </Link>
+                    ) : null}
+                  </>
+                ) : null}
+              </div>
+
+              {!isWorkshopRole && (canManageCustomers || canManageCatalog) ? (
+                <div
+                  role="group"
+                  aria-label="Sell"
+                  className="flex shrink-0 items-center gap-4 border-l border-[var(--color-stone-200)] pl-5 lg:gap-6 lg:pl-7"
+                >
+                  {canManageCustomers ? (
+                    <Link
+                      href="/customers"
+                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                    >
+                      Customers
+                    </Link>
+                  ) : null}
+                  {canManageCustomers ? (
+                    <Link
+                      href="/wedding-parties"
+                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                    >
+                      Wedding Parties
+                    </Link>
+                  ) : null}
+                  {canManageCatalog ? (
+                    <Link
+                      href="/products"
+                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
+                    >
+                      Products
                     </Link>
                   ) : null}
                   {canManageCatalog ? (
@@ -102,60 +167,23 @@ export default async function DashboardLayout({
                       Events
                     </Link>
                   ) : null}
-                </>
-              ) : null}
-              <Link
-                href="/alterations"
-                className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-              >
-                Alterations
-              </Link>
-              {canConfigureAlterations || canManageWorkshop ? (
-                <>
-                  <Link
-                    href="/alterations/catalogue"
-                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                  >
-                    {canManageWorkshop
-                      ? "Workshop prices"
-                      : "Alteration settings"}
-                  </Link>
-                  {canConfigureAlterations ? (
+                  {canManageCatalog ? (
                     <Link
-                      href="/alterations/workshops"
+                      href="/analytics"
                       className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
                     >
-                      Workshops
+                      Analytics
                     </Link>
                   ) : null}
-                </>
+                </div>
               ) : null}
-              {canManageCustomers ? (
-                <Link
-                  href="/customers"
-                  className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                >
-                  Customers
-                </Link>
-              ) : null}
-              {canManageCustomers ? (
-                <Link
-                  href="/wedding-parties"
-                  className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                >
-                  Wedding Parties
-                </Link>
-              ) : null}
-              {canManageCatalog ? (
-                <Link
-                  href="/products"
-                  className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                >
-                  Products
-                </Link>
-              ) : null}
+
               {canManageRetailer ? (
-                <>
+                <div
+                  role="group"
+                  aria-label="Configure"
+                  className="flex shrink-0 items-center gap-4 border-l border-[var(--color-stone-200)] pl-5 lg:gap-6 lg:pl-7"
+                >
                   <Link
                     href="/staff"
                     className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
@@ -168,7 +196,7 @@ export default async function DashboardLayout({
                   >
                     Settings
                   </Link>
-                </>
+                </div>
               ) : null}
             </nav>
           </div>

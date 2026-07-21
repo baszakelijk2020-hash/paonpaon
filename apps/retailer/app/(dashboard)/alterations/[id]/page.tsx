@@ -232,6 +232,107 @@ export default async function AlterationDetailPage({
         ) : null}
       </div>
 
+      {canSeePricing ? (
+        <div id="pricing">
+          <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
+            Pricing proposals
+          </h2>
+          <Card className="flex flex-col gap-4">
+            {proposals.length === 0 ? (
+              <p className="text-sm text-[var(--color-stone-500)]">
+                No workshop price changes proposed. The original quote remains
+                preserved.
+              </p>
+            ) : (
+              proposals.map((proposal) => (
+                <div
+                  key={proposal.id}
+                  className="border-b border-[var(--color-stone-100)] pb-4 last:border-0"
+                >
+                  <p className="font-medium capitalize">
+                    {proposal.status} ·{" "}
+                    {proposal.originalAmount.amountMinorUnits / 100} →{" "}
+                    {proposal.proposedAmount.amountMinorUnits / 100}{" "}
+                    {proposal.proposedAmount.currency}
+                  </p>
+                  <p className="text-sm text-[var(--color-stone-700)]">
+                    {proposal.explanation}
+                  </p>
+                  {proposal.evidenceAttachmentId
+                    ? attachments
+                        .filter(
+                          ({ attachment }) =>
+                            attachment.id === proposal.evidenceAttachmentId,
+                        )
+                        .map(({ attachment, signedUrl }) => (
+                          <a
+                            key={attachment.id}
+                            href={signedUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm underline"
+                          >
+                            Evidence: {attachment.fileName}
+                          </a>
+                        ))
+                    : null}
+                  {proposal.decisionReason ? (
+                    <p className="text-sm">
+                      Decision: {proposal.decisionReason}
+                    </p>
+                  ) : null}
+                  {canApprovePrice && proposal.status === "pending" ? (
+                    <PriceDecisionForm
+                      alterationId={alteration.id}
+                      proposal={proposal}
+                    />
+                  ) : null}
+                </div>
+              ))
+            )}
+            {canProposePrice ? (
+              <PriceProposalForm
+                alterationId={alteration.id}
+                tasks={tasks.filter((task) => "originalQuote" in task)}
+                evidence={attachments.map(({ attachment }) => attachment)}
+              />
+            ) : null}
+          </Card>
+
+          {pricingHistory.length > 0 ? (
+            <Card>
+              <h2 className="mb-3 text-lg font-medium">Pricing audit trail</h2>
+              <p className="mb-3 text-sm text-[var(--color-stone-500)]">
+                Every quote, proposal, approval and rejection, in order —
+                append-only, cross-check this against the workshop&rsquo;s
+                invoice.
+              </p>
+              <div className="divide-y divide-[var(--color-stone-100)]">
+                {pricingHistory.map((entry) => (
+                  <div key={entry.id} className="py-2 text-sm">
+                    <span className="font-medium capitalize">
+                      {entry.eventType.replaceAll("_", " ")}
+                    </span>{" "}
+                    · {(entry.amount.amountMinorUnits / 100).toFixed(2)}{" "}
+                    {entry.amount.currency}
+                    {entry.actorStaffId
+                      ? ` · ${staff.find((s) => s.id === entry.actorStaffId)?.fullName ?? "Unknown"}`
+                      : ""}
+                    {" · "}
+                    {formatDate(entry.createdAt, "en-US")}
+                    {entry.reason ? (
+                      <p className="text-[var(--color-stone-600)]">
+                        {entry.reason}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          ) : null}
+        </div>
+      ) : null}
+
       <div>
         <h2 className="mb-3 text-lg font-medium">Chain of custody</h2>
         <Card className="flex flex-col gap-3">
@@ -683,107 +784,6 @@ export default async function AlterationDetailPage({
           )}
         </Card>
       </div>
-
-      {canSeePricing ? (
-        <div>
-          <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
-            Pricing proposals
-          </h2>
-          <Card className="flex flex-col gap-4">
-            {proposals.length === 0 ? (
-              <p className="text-sm text-[var(--color-stone-500)]">
-                No workshop price changes proposed. The original quote remains
-                preserved.
-              </p>
-            ) : (
-              proposals.map((proposal) => (
-                <div
-                  key={proposal.id}
-                  className="border-b border-[var(--color-stone-100)] pb-4 last:border-0"
-                >
-                  <p className="font-medium capitalize">
-                    {proposal.status} ·{" "}
-                    {proposal.originalAmount.amountMinorUnits / 100} →{" "}
-                    {proposal.proposedAmount.amountMinorUnits / 100}{" "}
-                    {proposal.proposedAmount.currency}
-                  </p>
-                  <p className="text-sm text-[var(--color-stone-700)]">
-                    {proposal.explanation}
-                  </p>
-                  {proposal.evidenceAttachmentId
-                    ? attachments
-                        .filter(
-                          ({ attachment }) =>
-                            attachment.id === proposal.evidenceAttachmentId,
-                        )
-                        .map(({ attachment, signedUrl }) => (
-                          <a
-                            key={attachment.id}
-                            href={signedUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-sm underline"
-                          >
-                            Evidence: {attachment.fileName}
-                          </a>
-                        ))
-                    : null}
-                  {proposal.decisionReason ? (
-                    <p className="text-sm">
-                      Decision: {proposal.decisionReason}
-                    </p>
-                  ) : null}
-                  {canApprovePrice && proposal.status === "pending" ? (
-                    <PriceDecisionForm
-                      alterationId={alteration.id}
-                      proposal={proposal}
-                    />
-                  ) : null}
-                </div>
-              ))
-            )}
-            {canProposePrice ? (
-              <PriceProposalForm
-                alterationId={alteration.id}
-                tasks={tasks.filter((task) => "originalQuote" in task)}
-                evidence={attachments.map(({ attachment }) => attachment)}
-              />
-            ) : null}
-          </Card>
-
-          {pricingHistory.length > 0 ? (
-            <Card>
-              <h2 className="mb-3 text-lg font-medium">Pricing audit trail</h2>
-              <p className="mb-3 text-sm text-[var(--color-stone-500)]">
-                Every quote, proposal, approval and rejection, in order —
-                append-only, cross-check this against the workshop&rsquo;s
-                invoice.
-              </p>
-              <div className="divide-y divide-[var(--color-stone-100)]">
-                {pricingHistory.map((entry) => (
-                  <div key={entry.id} className="py-2 text-sm">
-                    <span className="font-medium capitalize">
-                      {entry.eventType.replaceAll("_", " ")}
-                    </span>{" "}
-                    · {(entry.amount.amountMinorUnits / 100).toFixed(2)}{" "}
-                    {entry.amount.currency}
-                    {entry.actorStaffId
-                      ? ` · ${staff.find((s) => s.id === entry.actorStaffId)?.fullName ?? "Unknown"}`
-                      : ""}
-                    {" · "}
-                    {formatDate(entry.createdAt, "en-US")}
-                    {entry.reason ? (
-                      <p className="text-[var(--color-stone-600)]">
-                        {entry.reason}
-                      </p>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </Card>
-          ) : null}
-        </div>
-      ) : null}
 
       {canAddUpdate ? (
         <UpdateForm
