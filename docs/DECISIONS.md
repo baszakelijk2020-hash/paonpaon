@@ -1430,3 +1430,117 @@ only). Every new provider-dependent path (Twilio, OpenWeatherMap,
 carrier APIs) either has a real key already wired (weather) or reports
 "not configured" rather than faking a result (SMS/WhatsApp, carrier
 label generation — never built, never pretended to exist).
+
+## ADR-037: UX & Logic Audit, Omni-Device Optimization, and a monorepo Tailwind content-detection fix
+
+**Context.** A founder-directed request for a "brutal, full-scale
+diagnostic audit" of both portals before any further feature work —
+output the audit findings first, then fix what the audit found, then
+prove the fixes with automated tests, then update docs. Full findings
+are the "Friction Elimination Matrix" delivered alongside this ADR in
+the session transcript, not restated here; this entry records the
+architectural decisions behind the fixes, not the UX rationale (that
+lives in the matrix itself and in each changed component's own
+comments where non-obvious).
+
+**Decisions.**
+
+1. **"Needs your attention" digest replaces the Retailer Portal
+   dashboard placeholder.** `/dashboard` previously rendered a literal
+   Phase-1 placeholder string even though orders, alterations,
+   appointments and messaging had all since shipped. It now surfaces,
+   in priority order: pending alteration price approvals the viewer
+   can act on (`AlterationWorkflowRepository.findPendingProposalsByRetailer`,
+   new), today's non-terminal appointments, and unread notification
+   count — each a direct link into the record. No new tables; this is
+   a read-composition of data that already existed, the same shape
+   Self-Portrait (ADR-034) already established for the customer detail
+   page.
+2. **Pricing proposals moved to the top of the alteration detail page.**
+   Approving a price change was the single named pain point — the
+   section was previously the 8th thing on the page, below read-only
+   history a viewer has to scroll past every time. It's now
+   immediately after the header, with an `id="pricing"` anchor the
+   dashboard digest links straight to. Every other section's order is
+   unchanged.
+3. **Customer Portal dashboard gained a per-relationship status line**
+   (next appointment / order awaiting payment / unread count), same
+   reasoning as (1) applied to the shopper side — existing repository
+   reads, composed differently, no new queries invented.
+4. **Both apps' flat navigation lists are now grouped**, not
+   restructured into new routes: Retailer Portal into Operate /
+   Alterations / Sell / Configure (`role="group"` clusters with a
+   divider, `aria-label`s so a screen reader announces the grouping);
+   Customer Portal into My activity / Community / Inbox on desktop,
+   **plus a pinned bottom tab bar on mobile** (`md:hidden` desktop nav,
+   a fixed `<nav>` under `md:hidden` reversed) for the four highest-use
+   destinations (Orders, Appointments, Messages, Account) — the
+   explicit "pinned bottom bar" mandate, applied where it actually
+   matters (the most mobile-first of the three apps).
+5. **Cart quantity control replaced with steppers + a Remove button.**
+   The previous UI required editing a raw number `<input>` then tapping
+   a separately-positioned "Update" button — two imprecise taps for one
+   action, with no way to remove a line except discovering that
+   quantity 0 does it. Steppers auto-submit the existing
+   `updateCartLine` action via `element.requestSubmit()`; no new
+   backend logic. A sticky bottom bar (mobile only) mirrors the total
+   and "Place order" CTA so checkout never scrolls out of reach on a
+   multi-item cart.
+6. **Every new/changed interactive control meets the 44×44px minimum
+   tap target** (steppers, Remove, the mobile bottom nav links, the
+   sticky checkout CTA) — enforced by, not just designed to, the
+   Playwright specs in decision 8.
+7. **A real, unrelated, severe bug found and fixed while verifying (6):
+   `packages/ui`'s own component classes were missing from every app's
+   compiled CSS.** Tailwind v4's automatic content-detection walks
+   outward from the app doing `@import "tailwindcss"`, explicitly
+   skipping anything under `node_modules` — and `@paon/ui` is only ever
+   reached through the pnpm workspace symlink at
+   `node_modules/@paon/ui`. Any class that lived solely inside a
+   `@paon/ui` component's own source (`Button.tsx`'s `inline-flex`,
+   `h-12`, `h-10`, `h-8`, `gap-2`, `whitespace-nowrap`, ...) — never
+   re-typed as a literal string in app-local code — was silently absent
+   from every app's production CSS. Confirmed by direct inspection of
+   compiled output (`grep -c '\.inline-flex{' .next/static/css/*.css`
+   returned 0 before the fix), not assumed. This means every Button
+   across all three apps has been rendering without its intended
+   `display`/`height`/`padding`/`gap` this entire build — invisible in
+   this environment because there is no browser/visual-QA tool to
+   catch it, and unit/type checks never exercise compiled CSS. Fixed
+   with two `@source` directives in `packages/ui/src/styles/globals.css`
+   (`@source "../components"; @source "../lib";`) — Tailwind v4's
+   documented escape hatch for exactly this monorepo shape. This is the
+   single most consequential fix in this slice and applies retroactively
+   to every component built in every prior session, not just this one.
+8. **Automated proof, not just written code.** Two new Playwright
+   specs: `apps/retailer/e2e/dashboard-digest.spec.ts` (seeds a pending
+   price proposal, asserts the dashboard surfaces it and that the
+   alteration page's h2 order places "Pricing proposals" before "Chain
+   of custody") and `apps/customer/e2e/mobile-ux.spec.ts` (390×844
+   mobile viewport: bottom-nav visibility and 44px tap targets, cart
+   stepper/remove/checkout-bar tap targets, desktop viewport shows the
+   opposite nav). `apps/customer/e2e/storefront.spec.ts`'s existing
+   cart test was updated for the new stepper interaction (no "Update"
+   button exists anymore) — the same "fix the stale test, don't work
+   around it" precedent `docs/PROJECT_STATE.md` already documents for
+   the product-editing test. One new unit test
+   (`alteration-workflow-repository.test.ts`) covers the new
+   `findPendingProposalsByRetailer` query in isolation.
+9. **`behavioral_events` grant gap, found by the retailer e2e suite,
+   fixed the same way `customer_preferences`/`wishlists` was before
+   it.** `20260720000005_create_behavioral_analytics.sql` predates the
+   blanket PostgREST grant migration by table-creation order the wrong
+   way, so it never got its own `select` grant — RLS was satisfied but
+   PostgREST still 403'd with "permission denied for table
+   behavioral_events". One-line additive migration
+   (`20260721000011_grant_behavioral_events_select.sql`), matching the
+   established pattern exactly (`docs/PROJECT_STATE.md` "Local database
+   verification" already documents this class of bug once).
+
+**Consequences.** No schema changes beyond the one-line grant in (9).
+One new repository method, no new tables. The Tailwind `@source` fix
+(7) is a two-line change with outsized effect — every existing and
+future `@paon/ui` component now renders its intended styling in every
+app, retroactively; worth a deliberate visual smoke-check next time a
+browser/visual-QA tool is available in this environment, since it was
+never actually seen broken, only proven broken by measurement.

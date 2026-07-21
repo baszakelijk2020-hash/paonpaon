@@ -940,6 +940,50 @@ to production (`hngxrczavwywsnfceppb`) the same session.
   account, no key, no integration code. The `preferred_carrier` field
   only records staff's intent today.
 
+### Shipped: UX & Logic Audit, omni-device optimization, and a monorepo Tailwind fix
+
+Full reasoning in `docs/DECISIONS.md` ADR-037. A founder-directed
+"brutal diagnostic teardown" of both portals — audit first, then fix,
+then prove with automated tests, then document. Findings themselves
+were delivered as a "Friction Elimination Matrix" in-session, not
+duplicated here.
+
+- Retailer Portal `/dashboard` replaced its Phase-1 placeholder with a
+  real "Needs your attention" digest — pending alteration price
+  approvals, today's appointments, unread messages, each linking
+  straight to the record. Customer Portal `/dashboard` gained the
+  equivalent per-relationship status line. No new tables; both compose
+  existing repository reads differently.
+- Alteration detail page: Pricing proposals moved from the 8th section
+  to immediately after the header (`id="pricing"` anchor) — approving a
+  price change no longer requires scrolling past unrelated history.
+- Both apps' flat nav lists are now grouped (`role="group"` clusters);
+  Customer Portal additionally gained a pinned bottom tab bar on mobile
+  viewports (Orders/Appointments/Messages/Account).
+- Cart quantity control replaced raw-input-plus-separate-button with
+  auto-submitting steppers and a dedicated Remove action; a sticky
+  mobile checkout bar keeps "Place order" reachable on longer carts.
+  Every new/changed control verified at the 44×44px minimum tap target.
+- **Found and fixed while verifying the above: `@paon/ui` component
+  classes (Button's `inline-flex`, `h-*`, `gap-2`, etc.) were missing
+  from every app's compiled CSS.** Tailwind v4's automatic content
+  detection never follows the `node_modules/@paon/ui` workspace
+  symlink. Fixed with two `@source` directives in
+  `packages/ui/src/styles/globals.css` — retroactively fixes every
+  `@paon/ui` component in all three apps, not just this slice's
+  changes. This was invisible without direct compiled-CSS inspection;
+  no browser/visual-QA tool exists in this environment to have caught
+  it visually.
+- Also fixed: `behavioral_events` was missing its table-level `select`
+  grant (same class of bug `customer_preferences`/`wishlists` hit
+  before it) — caught by the retailer e2e suite, not by lint/typecheck.
+- **Verified**: `pnpm lint`/`typecheck`/`test`/`build` all pass
+  repo-wide. All 38 Playwright e2e tests pass across all three apps
+  (PAON Admin 6, Retailer Portal 16 — including two new specs,
+  Customer Portal 16 — including two new specs) against a local
+  Supabase reset, each app rebuilt clean (`.next` removed) after the
+  Tailwind `@source` fix to rule out stale-build false negatives.
+
 ## Local database verification
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration

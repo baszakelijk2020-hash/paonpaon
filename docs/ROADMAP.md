@@ -200,7 +200,24 @@ yet, see below); shipping/carrier preference on the customer record
 back-office premium visual pass (serif display heading carried across
 all 45 retailer/admin pages) — a first pass at applying paon.html's
 language everywhere, not the full component-by-component treatment
-the customer storefront got.
+the customer storefront got; real design tokens extracted from
+paon.html (easing curve, glass material, elevation shadows), a global
+touch-safe `hover` variant and 44px+ active/tap states project-wide,
+glass-panel nav headers, and an accessibility pass on the previously
+visually-unverified components.
+
+**Shipped, second follow-up** (ADR-037): a full UX & Logic Audit of
+both portals — "Needs your attention" dashboards (retailer and
+customer) replacing a stale placeholder and a plain relationship list;
+alteration pricing approvals moved to the top of the detail page;
+grouped navigation plus a mobile bottom tab bar (Customer Portal); cart
+quantity steppers/Remove/sticky mobile checkout bar, all 44px+ tap
+targets, proven by new Playwright specs. Also found and fixed, mid-
+verification: `@paon/ui` component base classes (Button's
+`inline-flex`/`h-*`/`gap-2`) were absent from every app's compiled CSS
+— Tailwind v4 never follows the `node_modules/@paon/ui` workspace
+symlink without an explicit `@source` directive. Fixed once, in
+`packages/ui`, retroactively correct for every app.
 
 **Still open:**
 
