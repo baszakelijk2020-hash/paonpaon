@@ -866,6 +866,80 @@ cart...`) fails at the magic-link sign-in step, before it ever
   a regression from this change. Not investigated further — out of
   scope for a UI redesign task.
 
+### Shipped: Second wave — Wedding Party invites, staff roster, SMS/WhatsApp, weather, newsletter, carrier preference, alteration cost controls
+
+Full reasoning in `docs/DECISIONS.md` ADR-036. All migrations applied
+to production (`hngxrczavwywsnfceppb`) the same session.
+
+- **Wedding Party invite links**: `wedding_parties.invite_token` +
+  `join_wedding_party` (anonymous-safe security definer RPC, same
+  shape as `submit_table_service_inquiry`) — the organizer shares one
+  link, every member self-registers and appears immediately in the
+  retailer's existing roster view. Verified end to end (RPC called
+  directly as `anon`, confirmed the member row was created).
+- **Staff planning**: `StaffShift` (manager-authored schedule) +
+  `StaffTimeEntry` (self-service clock in/out via `clock_in`/`clock_out`
+  RPCs). Retailer `/staff/roster` (manager+) shows a week grid plus
+  actual worked hours (`totalHours`, computed from clocked duration,
+  never the schedule); a clock in/out widget is on the retailer
+  dashboard for every staff role.
+- **SMS/WhatsApp pipeline** (`@paon/sms`, Twilio): `sms_outbox` mirrors
+  `email_outbox` exactly; `/api/cron/dispatch-sms` drains it. **Not
+  live** — reports 503 until a platform operator sets
+  `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/`TWILIO_SMS_FROM` (and
+  optionally `TWILIO_WHATSAPP_FROM`) on `apps/admin`. No code change
+  needed once those exist.
+- **Weather-personalized Today's Pick**: real, founder-supplied
+  OpenWeatherMap key (verified live against the real API). **Not live
+  in production** — `OPENWEATHER_API_KEY` needs to be set on the
+  `paon-customer` Vercel project; this specific step was blocked by
+  the build sandbox's own safety classifier (a production
+  infrastructure change) rather than by a missing credential. Set it
+  in the Vercel dashboard (Settings → Environment Variables) or grant
+  Bash permission for Vercel API calls.
+- **Newsletter signup + daily digest**: `newsletter_subscribers` +
+  `subscribe_to_newsletter` (anonymous-safe RPC) + a footer signup
+  form on the storefront front door. `/api/cron/dispatch-newsletter`
+  sends one "featured product" email per retailer to every active
+  subscriber. **Not scheduled** — Vercel's Hobby plan cron-job cap per
+  project is already used by `dispatch-emails`/`dispatch-sms`; needs
+  an external scheduler, folding into an existing cron tick, or a plan
+  upgrade before it fires automatically. Callable manually today with
+  `CRON_SECRET`.
+- **Shipping/carrier preference**: `customers.preferred_carrier`
+  (DHL/PostNL/UPS/FedEx/local courier/customer pickup), shown next to
+  a customer's shipping addresses on their retailer detail page.
+  Staff-writable directly (no RPC — `customers` already grants
+  sales_associate+ a blanket RLS policy). No real carrier API
+  integration exists or was faked.
+- **Alteration cost-control hardening**: audited the existing
+  proposal/approval system first (it was already real — immutable
+  quote, mandatory evidence, append-only history). Closed two gaps:
+  capped resubmission after two rejections on the same target, and
+  increases over 50% of the original quote now require the retailer
+  _owner_ specifically to approve (not any manager/admin) — closes the
+  single-approver collusion risk. The full `alteration_pricing_history`
+  audit trail (existed in the DB, had no UI) is now a visible Card on
+  the alteration detail page.
+- **Wedding Party + back-office visual pass**: rounded-xl +
+  shadow-elevated cards on every Wedding Party view (retailer and
+  customer); the serif display heading carried across all 45
+  retailer/admin back-office pages. Not the full paon.html component
+  treatment on back-office yet — see `docs/ROADMAP.md` Phase 7 "Still
+  open."
+
+#### Credentials needed (Twilio, OpenWeatherMap, real carrier APIs)
+
+- **Twilio** (SMS/WhatsApp): create an account, provision a phone
+  number (SMS) and a WhatsApp Business sender, set
+  `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/`TWILIO_SMS_FROM`/
+  `TWILIO_WHATSAPP_FROM` on `apps/admin`.
+- **OpenWeatherMap**: key already exists (see above) — just needs
+  `OPENWEATHER_API_KEY` set on `apps/customer`'s Vercel project.
+- **Carrier APIs** (DHL/PostNL/UPS/FedEx): not started at all — no
+  account, no key, no integration code. The `preferred_carrier` field
+  only records staff's intent today.
+
 ## Local database verification
 
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration

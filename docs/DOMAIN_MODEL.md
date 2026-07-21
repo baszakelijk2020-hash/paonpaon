@@ -29,18 +29,18 @@ correct and this document is stale and should be fixed.
 
 ## Bounded contexts
 
-| Context      | Path            | Owns                                                                                                                                |
-| ------------ | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Identity     | `identity/`     | `User`, `PlatformStaffMember`, `RetailerStaffMember`, role hierarchies                                                              |
-| Retailer     | `retailer/`     | `Retailer` (the tenant root), `RetailerSubscription`, `SubscriptionPlan`, `FeatureFlagOverride`                                     |
-| Customer     | `customer/`     | `Customer`, `CustomerAccountLink`, `CustomerPreferences`, `Wishlist`                                                                |
-| Catalog      | `catalog/`      | `Product`, `ProductVariant`, `Collection`                                                                                           |
-| Commerce     | `commerce/`     | `Order`, `OrderLine`, `Payment`                                                                                                     |
-| Production   | `production/`   | Physical garments, fittings/observations, alteration work orders/tasks, workshops, pricing, handoffs and fulfillment                |
-| Appointments | `appointments/` | `Appointment`, `AvailabilityWindow`                                                                                                 |
-| Loyalty      | `loyalty/`      | `LoyaltyAccount`, `LoyaltyLedgerEntry`, `Reward`, `Referral`                                                                        |
-| Engagement   | `engagement/`   | `Notification`, `Conversation` / `Message`, `RetailerEvent` / `EventRsvp`, `ClientelingNote`, `WeddingParty` / `WeddingPartyMember` |
-| Analytics    | `analytics/`    | `AuditLogEntry`, `BehavioralEvent`                                                                                                  |
+| Context      | Path            | Owns                                                                                                                                                                                               |
+| ------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identity     | `identity/`     | `User`, `PlatformStaffMember`, `RetailerStaffMember`, role hierarchies, `StaffShift` / `StaffTimeEntry`                                                                                            |
+| Retailer     | `retailer/`     | `Retailer` (the tenant root), `RetailerSubscription`, `SubscriptionPlan`, `FeatureFlagOverride`                                                                                                    |
+| Customer     | `customer/`     | `Customer` (incl. `preferredCarrier`), `CustomerAccountLink`, `CustomerPreferences`, `Wishlist`                                                                                                    |
+| Catalog      | `catalog/`      | `Product`, `ProductVariant`, `Collection`                                                                                                                                                          |
+| Commerce     | `commerce/`     | `Order`, `OrderLine`, `Payment`                                                                                                                                                                    |
+| Production   | `production/`   | Physical garments, fittings/observations, alteration work orders/tasks, workshops, pricing, handoffs and fulfillment                                                                               |
+| Appointments | `appointments/` | `Appointment`, `AvailabilityWindow`                                                                                                                                                                |
+| Loyalty      | `loyalty/`      | `LoyaltyAccount`, `LoyaltyLedgerEntry`, `Reward`, `Referral`                                                                                                                                       |
+| Engagement   | `engagement/`   | `Notification`, `Conversation` / `Message`, `RetailerEvent` / `EventRsvp`, `ClientelingNote`, `WeddingParty` / `WeddingPartyMember`, `NewsletterSubscriber`, `EmailOutboxEntry` / `SmsOutboxEntry` |
+| Analytics    | `analytics/`    | `AuditLogEntry`, `BehavioralEvent`                                                                                                                                                                 |
 
 ## Key relationships
 

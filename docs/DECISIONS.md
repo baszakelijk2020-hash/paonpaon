@@ -1340,3 +1340,93 @@ explicitly unimplemented pending real infrastructure/credentials, not
 silently faked. `MunroMissionControl`, `MunroMerchant`,
 `InsiderTailoring`, `The Residents Club` are unchanged from ADR-034's
 bucket 3.
+
+## ADR-036: Second wave — Wedding Party invites, staff roster, SMS/WhatsApp, weather, newsletter, carrier preference, alteration cost controls
+
+**Context.** Immediately following ADR-035, the founder directed a
+further batch of concrete features in one session, all building on
+infrastructure ADR-032–035 already established. Recorded together
+since they shipped together and lean on the same patterns rather than
+introducing new ones.
+
+**Decisions.**
+
+1. **Wedding Party self-service invite links.** Each `WeddingParty`
+   gets an `invite_token` (unique uuid); the organizer shares
+   `/r/{slug}/wedding-parties/join/{token}`, fully public. Rather than
+   a pre-validation read of the token (which would need a new
+   anonymous `wedding_parties` select policy), `join_wedding_party`
+   (security definer) validates the token itself and is the only
+   write path — same "narrow RPC, no new anonymous RLS policy" shape
+   as `submit_table_service_inquiry`. A joining member is found-or-created
+   as a guest `Customer` exactly like TableService, and immediately
+   visible in the retailer's existing roster view — no new retailer-side
+   code needed, since it's the same `wedding_party_members` table the
+   staff "add member" flow already writes to.
+2. **Staff planning: scheduled roster + self-service check-in/check-out.**
+   New Identity-context concept, deliberately two tables: `StaffShift`
+   (manager-authored schedule) and `StaffTimeEntry` (what actually
+   happened) — the same status-vs-history split this repo already uses
+   everywhere (Alteration vs. AlterationStatusHistory, etc.). `clock_in`/
+   `clock_out` are narrow security-definer RPCs deriving the caller's
+   own `staff_id` from `auth.uid()`; only one open time entry per staff
+   member at a time. Hours are computed from actual clocked duration
+   (`totalHours` in `@paon/database`), never from the schedule.
+3. **SMS/WhatsApp pipeline, no credentials yet.** Founder decision:
+   build the plumbing now, a Twilio key gets provisioned later — same
+   non-faking pattern as every other unconfigured provider. New
+   `@paon/sms` package isolates the Twilio SDK (ADR-001); one
+   `sendText()` serves both channels (Twilio differs only by a
+   `whatsapp:` prefix). `sms_outbox` mirrors `email_outbox` exactly
+   (ADR-032's shape) — `enqueue_notification_sms` gates on the
+   customer's own `communication_channels` preference (already
+   supported `'sms'`) and a phone on file, defaulting to _not_ sending
+   (unlike email's opt-out default, since SMS was never previously
+   offered). `/api/cron/dispatch-sms` drains it.
+4. **Weather-personalized Today's Pick.** Uses a real, founder-supplied
+   OpenWeatherMap key (verified live) via a bare `fetch` in
+   `apps/customer/lib/weather.ts` — not a wrapping package, since
+   there's no SDK to isolate (ADR-001's rule is about provider SDKs).
+   Returns `null` on any failure or missing key; `@paon/ai`'s
+   `ProductRecommendationContext` gained an optional `weather` field,
+   additive to existing call sites.
+5. **Newsletter signup + daily digest, deliberately lighter than Customer.**
+   A newsletter subscriber hasn't started a purchase relationship —
+   `newsletter_subscribers` is its own table, not a `Customer`, with
+   `subscribe_to_newsletter` as the one anonymous write path (same
+   ADR-034 shape). `/api/cron/dispatch-newsletter` sends one "featured
+   product" per retailer to every active subscriber — no AI/behavioral
+   personalisation (a subscriber may have no browsing history to
+   personalise against, unlike Today's Pick). Deliberately **not**
+   added to `vercel.json`'s crons: Vercel's Hobby plan caps cron jobs
+   per project and `dispatch-emails`/`dispatch-sms` already claim the
+   available slots — noted as needing an external scheduler or folding
+   into an existing cron tick, not silently assumed to just work.
+6. **Shipping/carrier preference on the customer record.** Retailer-staff-set
+   (DHL/PostNL/UPS/FedEx/local courier/customer pickup) — unlike
+   `CustomerPreferences`, which only the customer themselves may write,
+   `customers` already has a staff-writable `for all` RLS policy
+   (sales_associate+), so this is a plain column and a direct update,
+   no RPC needed. No real carrier API integration exists or was faked
+   — this only records staff's chosen arrangement for them to act on
+   manually.
+7. **Alteration cost-control hardening.** Audited the existing
+   proposal/approval flow first rather than rebuilding it — it was
+   already real (immutable original quote, mandatory explanation and
+   evidence, append-only history, amount ceiling, workshop-manager-only
+   proposing, management-only deciding). Two genuine gaps closed:
+   unlimited resubmission after rejection (now capped at two rejections
+   per target), and single-approver collusion risk on large increases
+   (`decide_alteration_price_change` now requires the retailer _owner_
+   specifically — not any manager/admin — to approve an increase over
+   50% of the original quote, above a 5000-minor-unit floor so
+   small-ticket items never trip it).
+
+**Consequences.** One new package (`@paon/sms`), four new tables
+(`staff_shifts`, `staff_time_entries`, `sms_outbox`,
+`newsletter_subscribers`), one new column (`customers.preferred_carrier`),
+and two hardened functions (no schema change, `create or replace`
+only). Every new provider-dependent path (Twilio, OpenWeatherMap,
+carrier APIs) either has a real key already wired (weather) or reports
+"not configured" rather than faking a result (SMS/WhatsApp, carrier
+label generation — never built, never pretended to exist).

@@ -178,59 +178,60 @@ platforms — see [VISION.md](./VISION.md).
 - Anything deferred in [NON_GOALS.md](./NON_GOALS.md) gets re-evaluated
   here, not before.
 
-## Phase 7 — Founder-directed, not yet built (2026-07-21)
+## Phase 7 — Founder-directed (2026-07-21)
 
-A large batch of asks landed in one session (ADR-035's scope plus
-this list) faster than they can be responsibly built and verified.
-Recorded here so none of it is lost, roughly in the order it should
-be picked up. None of these have any code yet unless noted.
+A large batch of asks landed in one session; most shipped the same
+session (ADR-036). What's left is recorded below, roughly in the
+order it should be picked up.
 
-- **Back-office premium visual pass.** ADR-034 drew a line — premium/
-  editorial styling for the customer storefront, quiet/restrained for
-  admin and retailer portal back-office. The founder's later messages
-  ask for paon.html's language "on literally all pages, all
-  interfaces." Treat this as superseding that line: extend the same
-  token-driven heading/color/radius treatment already used across the
-  customer app to `apps/retailer` and `apps/admin` — mechanical, since
-  every page already reads the same `--font-display`/`--color-stone-*`
-  tokens `packages/ui` defines centrally.
-- **Wedding Party visual redesign.** What shipped (ADR-035) is a
-  functional roster — plain tables, dropdowns, Cards — not a redesign
-  matching the founder's original wedding-tool HTML mockup's actual
-  layout. Functionally complete; visually still default back-office.
-- **Staff planning/roster tool.** A shift-scheduling surface for
-  retailer staff — new domain concept, not an extension of
-  `AvailabilityWindow` (that's customer-appointment availability, a
-  different thing). Needs its own scoping pass: what "roster" means
-  here (weekly shift grid? time-off requests? workshop capacity
-  planning?) before a data model is worth committing to.
-- **Shipping/pickup carrier selection.** A preference field on the
-  customer address card (DHL, PostNL, local pickup, "preferred
-  carrier") is buildable now with no credentials — a UI-only addition
-  to `CustomerPreferences`/order fulfillment. Actual label generation,
-  rate shopping or tracking against a real carrier API is a separate,
-  much larger integration needing real DHL/PostNL/carrier credentials
-  this deployment does not have — do not fabricate a working "buy
-  shipping label" button before those exist.
-- **SMS/WhatsApp notifications.** `docs/PROJECT_STATE.md`'s Resend
-  slice (ADR-032) already established the provider-neutral pattern
-  (`notification_channel` enum already includes `sms`/`push`, the
-  `email_outbox`-style durable queue is generalizable). No SMS/WhatsApp
-  provider is chosen or has credentials — this is the same shape of
-  work as Resend, blocked the same way, not started.
-- **Alteration operation depth**: per-employee login/photo/notes
-  attribution already exists in large part (`AlterationAttachmentId`,
-  `ChainOfCustodyEvent`, `CompletionReview`, `AlterationTaskNote`
-  in the domain model — see DOMAIN_MODEL.md) — audit what's actually
-  wired into UI before assuming a rebuild is needed. What's explicitly
-  not built: a customer-facing "your alteration is ready" push
-  notification trigger (the `notifications` table/category already
-  supports `alteration_update`, wiring a trigger on the relevant
-  status transition is small); a dedicated manager cost-approval
-  dashboard distinct from the existing pricing-history/proposal
-  records; and a stated "watertight fraud-prevention calculation" —
-  needs a concrete definition of what fraud pattern is being guarded
-  against before designing controls against it.
+**Shipped this phase** (see ADR-035/ADR-036 for full reasoning):
+Wedding Party self-service invite links; Wedding Party visual
+elevation (rounded-xl + shadow-elevated cards, both retailer and
+customer); staff planning (`StaffShift` schedule + self-service
+`StaffTimeEntry` clock in/out, hours auto-computed); SMS/WhatsApp
+pipeline (`@paon/sms`, `sms_outbox`, `/api/cron/dispatch-sms` —
+code-complete, blocked only on Twilio credentials, see
+`docs/PROJECT_STATE.md` "Credentials needed"); weather-personalized
+Today's Pick (live OpenWeatherMap key, needs `OPENWEATHER_API_KEY` set
+on Vercel — see "Credentials needed"); newsletter signup +
+`newsletter_subscribers` + daily digest route (not on a cron schedule
+yet, see below); shipping/carrier preference on the customer record
+(`customers.preferred_carrier`, UI-only, no live carrier API); the
+back-office premium visual pass (serif display heading carried across
+all 45 retailer/admin pages) — a first pass at applying paon.html's
+language everywhere, not the full component-by-component treatment
+the customer storefront got.
+
+**Still open:**
+
+- **Newsletter digest scheduling.** `/api/cron/dispatch-newsletter`
+  exists and works when triggered, but isn't in `vercel.json` —
+  Vercel's Hobby plan caps cron jobs per project and
+  `dispatch-emails`/`dispatch-sms` already use the available slots.
+  Needs either an external scheduler (e.g. a free cron-ping service
+  hitting the URL with `CRON_SECRET`), folding into an existing daily
+  cron tick, or a Vercel plan upgrade.
+- **Real carrier API integration.** The `preferred_carrier` field
+  records staff's chosen arrangement only — no DHL/PostNL/UPS/FedEx
+  label generation, rate shopping or tracking exists. A real
+  integration needs actual carrier credentials this deployment does
+  not have.
+- **Back-office visual pass, full depth.** Headings now match; the
+  rest of paon.html's language (elevated cards, accent-font labels,
+  masonry-style layouts where content allows) has only been applied to
+  the customer-facing storefront and Wedding Party. Retailer/admin
+  back-office tables, forms and dashboards are still the original
+  quiet/editorial component set.
+- **Alteration operation depth beyond cost controls.** Cost-control
+  hardening shipped (ADR-036); per-employee login/photo/notes
+  attribution already exists in large part
+  (`AlterationAttachmentId`, `ChainOfCustodyEvent`, `CompletionReview`,
+  `AlterationTaskNote` — see DOMAIN_MODEL.md), not audited against UI
+  wiring yet. A customer-facing "your alteration is ready" push
+  notification trigger is small (the `notifications` table/category
+  already supports `alteration_update`) but not built. A dedicated
+  manager cost-approval dashboard distinct from the pricing-history
+  Card that shipped is not built.
 - **Dynamic pricing / idle-customer re-engagement.** "Full insight
   into customer online behavior... dynamic pricing... track buying
   patterns... know when to clientele" is a real analytics/personalisation
