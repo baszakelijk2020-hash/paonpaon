@@ -216,12 +216,14 @@ the customer storefront got.
   label generation, rate shopping or tracking exists. A real
   integration needs actual carrier credentials this deployment does
   not have.
-- **Back-office visual pass, full depth.** Headings now match; the
-  rest of paon.html's language (elevated cards, accent-font labels,
-  masonry-style layouts where content allows) has only been applied to
-  the customer-facing storefront and Wedding Party. Retailer/admin
-  back-office tables, forms and dashboards are still the original
-  quiet/editorial component set.
+- **Back-office visual pass, remaining depth.** Headings and every
+  list/roster Card (rounded-xl + shadow-elevated) now match across all
+  of `apps/retailer`/`apps/admin`. Not yet carried: `--font-accent`
+  eyebrow-label styling (still storefront-only) and any
+  masonry/grid-style layout for pages where a plain list isn't the
+  right shape (e.g. a product grid in Retailer Portal's own `/products`
+  page, which still lists rather than grids). Detail-page forms and
+  inputs are unchanged from the original quiet/editorial component set.
 - **Alteration operation depth beyond cost controls.** Cost-control
   hardening shipped (ADR-036); per-employee login/photo/notes
   attribution already exists in large part
