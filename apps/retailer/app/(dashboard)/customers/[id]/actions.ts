@@ -10,7 +10,12 @@ import {
   RetailerRepository,
   RetailerStaffRepository,
 } from "@paon/database";
-import { asId, createClientelingNoteSchema } from "@paon/domain";
+import {
+  asId,
+  createClientelingNoteSchema,
+  PREFERRED_CARRIERS,
+  type PreferredCarrier,
+} from "@paon/domain";
 import { formatMoney } from "@paon/utils";
 import { revalidatePath } from "next/cache";
 
@@ -110,6 +115,34 @@ export async function generateNextBestAction(
     revalidatePath(`/customers/${customerId}`);
     return { formError: message };
   }
+}
+
+/** Retailer-staff-set — no live carrier API, this only records which
+ * carrier/pickup arrangement staff intend to use for this customer,
+ * shown alongside their shipping addresses. */
+export async function setPreferredCarrier(formData: FormData) {
+  const session = await requireSession();
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const customerId = String(formData.get("customerId"));
+  const raw = String(formData.get("carrier") ?? "");
+  const carrier: PreferredCarrier | null = (
+    PREFERRED_CARRIERS as readonly string[]
+  ).includes(raw)
+    ? (raw as PreferredCarrier)
+    : null;
+
+  const client = await getSupabaseServerClient();
+  const customer = await new CustomerRepository(client).findById(
+    asId<"CustomerId">(customerId),
+  );
+  if (!customer || customer.retailerId !== session.retailerId) {
+    throw new Error("Customer not found.");
+  }
+  await new CustomerRepository(client).updatePreferredCarrier(
+    customer.id,
+    carrier,
+  );
+  revalidatePath(`/customers/${customerId}`);
 }
 
 export async function createClientelingNote(formData: FormData) {

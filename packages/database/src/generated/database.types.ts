@@ -1545,6 +1545,7 @@ export type Database = {
           id: string;
           lifecycle_stage: Database["public"]["Enums"]["customer_lifecycle_stage"];
           phone: string | null;
+          preferred_carrier: string | null;
           retailer_id: string;
           shipping_addresses: Json;
           tags: string[];
@@ -1561,6 +1562,7 @@ export type Database = {
           id?: string;
           lifecycle_stage?: Database["public"]["Enums"]["customer_lifecycle_stage"];
           phone?: string | null;
+          preferred_carrier?: string | null;
           retailer_id: string;
           shipping_addresses?: Json;
           tags?: string[];
@@ -1577,6 +1579,7 @@ export type Database = {
           id?: string;
           lifecycle_stage?: Database["public"]["Enums"]["customer_lifecycle_stage"];
           phone?: string | null;
+          preferred_carrier?: string | null;
           retailer_id?: string;
           shipping_addresses?: Json;
           tags?: string[];

@@ -19,13 +19,22 @@ import { notFound } from "next/navigation";
 import { startConversation } from "../../messages/actions";
 import { LifecycleBadge } from "../lifecycle-badge";
 
-import { createClientelingNote } from "./actions";
+import { createClientelingNote, setPreferredCarrier } from "./actions";
 import { AIInsights } from "./ai-insights";
 import { SelfPortrait } from "./self-portrait";
 
 import { getAIProvider } from "@/lib/ai";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+const CARRIER_LABELS: [string, string][] = [
+  ["dhl", "DHL"],
+  ["postnl", "PostNL"],
+  ["ups", "UPS"],
+  ["fedex", "FedEx"],
+  ["local_courier", "Local courier"],
+  ["customer_pickup", "Customer pickup"],
+];
 
 export default async function CustomerDetailPage({
   params,
@@ -138,6 +147,55 @@ export default async function CustomerDetailPage({
           </p>
         </div>
       </Card>
+
+      {canManage ? (
+        <Card>
+          <p className="mb-1 text-sm font-medium text-[var(--color-stone-900)]">
+            Shipping
+          </p>
+          {customer.shippingAddresses.length > 0 ? (
+            <div className="mb-3 flex flex-col gap-1 text-sm text-[var(--color-stone-700)]">
+              {customer.shippingAddresses.map((address, index) => (
+                <p key={index}>
+                  {address.line1}
+                  {address.line2 ? `, ${address.line2}` : ""}, {address.city}
+                  {address.region ? `, ${address.region}` : ""}{" "}
+                  {address.postalCode}, {address.countryCode}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="mb-3 text-sm text-[var(--color-stone-500)]">
+              No address on file yet.
+            </p>
+          )}
+          <p className="mb-2 text-xs font-medium uppercase text-[var(--color-stone-500)]">
+            Preferred carrier
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {CARRIER_LABELS.map(([value, label]) => (
+              <form key={value} action={setPreferredCarrier}>
+                <input type="hidden" name="customerId" value={customer.id} />
+                <input type="hidden" name="carrier" value={value} />
+                <button
+                  type="submit"
+                  className={`rounded-full border px-3 py-1 text-xs ${
+                    customer.preferredCarrier === value
+                      ? "border-[var(--color-stone-900)] bg-[var(--color-stone-900)] text-white"
+                      : "border-[var(--color-stone-300)] text-[var(--color-stone-600)]"
+                  }`}
+                >
+                  {label}
+                </button>
+              </form>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-[var(--color-stone-500)]">
+            Records the arrangement for staff to act on — no live carrier
+            integration is connected yet.
+          </p>
+        </Card>
+      ) : null}
 
       {canManage ? (
         <SelfPortrait

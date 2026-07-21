@@ -4,6 +4,7 @@ import {
   type Customer,
   type CustomerLifecycleStage,
   type CustomerId,
+  type PreferredCarrier,
   type RetailerId,
   type StaffId,
   type UserId,
@@ -31,6 +32,9 @@ function toDomain(row: CustomerRow): Customer {
       ? { acquisitionSource: row.acquisition_source }
       : {}),
     tags: row.tags,
+    ...(row.preferred_carrier
+      ? { preferredCarrier: row.preferred_carrier as PreferredCarrier }
+      : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -117,6 +121,21 @@ export class CustomerRepository {
     }
 
     return toDomain(data);
+  }
+
+  /** Direct table write — `customers` already grants sales_associate+
+   * a blanket `for all` RLS policy (20260719000007_*), so this needs
+   * no RPC, unlike `CustomerPreferences` which only the customer
+   * themselves can write. */
+  async updatePreferredCarrier(
+    id: CustomerId,
+    preferredCarrier: PreferredCarrier | null,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("customers")
+      .update({ preferred_carrier: preferredCarrier })
+      .eq("id", id);
+    if (error) throw error;
   }
 
   /**

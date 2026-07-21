@@ -10,6 +10,22 @@ import type { Timestamps } from "../shared/timestamps";
 export type CustomerLifecycleStage =
   "prospect" | "first_purchase" | "returning" | "vip" | "lapsed";
 
+/** A retailer-staff-set preference (not customer self-service, unlike
+ * `CustomerPreferences` — this is who arranges the shipment, not what
+ * the customer wants). No live carrier API integration exists; this
+ * only records the choice for staff to act on manually. */
+export type PreferredCarrier =
+  "dhl" | "postnl" | "ups" | "fedex" | "local_courier" | "customer_pickup";
+
+export const PREFERRED_CARRIERS: readonly PreferredCarrier[] = [
+  "dhl",
+  "postnl",
+  "ups",
+  "fedex",
+  "local_courier",
+  "customer_pickup",
+];
+
 /**
  * A Customer is scoped to one retailer, even when the same shopper buys
  * from several PAON retailers — each relationship is modeled
@@ -30,6 +46,7 @@ export interface Customer extends Timestamps {
   readonly shippingAddresses: readonly Address[];
   readonly acquisitionSource?: string;
   readonly tags: readonly string[];
+  readonly preferredCarrier?: PreferredCarrier;
 }
 
 /** Links one Customer Portal login to many per-retailer Customer records. */
