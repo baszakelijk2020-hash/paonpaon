@@ -36,7 +36,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-[var(--color-stone-50)]">
-      <header className="border-b border-[var(--color-stone-200)] bg-white">
+      <header className="glass-panel sticky top-0 z-40 border-b border-[var(--color-stone-200)]">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
             <Link
