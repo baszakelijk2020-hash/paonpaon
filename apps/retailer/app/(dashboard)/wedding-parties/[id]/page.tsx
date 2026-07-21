@@ -93,7 +93,7 @@ export default async function WeddingPartyDetailPage({
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
           Party members
         </h2>
-        <Card className="divide-y p-0">
+        <Card className="divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
           {members.map((member) => (
             <div
               key={member.id}

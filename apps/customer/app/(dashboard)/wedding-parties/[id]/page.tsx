@@ -77,7 +77,7 @@ export default async function WeddingPartyDetailPage({
         </Card>
       ) : null}
 
-      <Card className="divide-y p-0">
+      <Card className="divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
         {members.map((member) => (
           <div
             key={member.id}
