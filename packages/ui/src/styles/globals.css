@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Tailwind v4's automatic content detection never follows a workspace
+ * package reached only through node_modules/@paon/ui (the pnpm symlink) —
+ * it walks outward from each consuming app's own directory and explicitly
+ * skips anything under node_modules. Every class that lives solely inside
+ * a @paon/ui component's own source (e.g. Button.tsx's `inline-flex`,
+ * `h-12`, `gap-2` — never re-typed as literal strings in app code) was
+ * silently absent from every app's compiled CSS without this. */
+@source "../components";
+@source "../lib";
+
 /**
  * PAON design tokens, aligned to the paon.html reference design
  * (nebelspiegel.com) per the founder's explicit direction — same
