@@ -50,8 +50,11 @@ export default async function CartPage({
       }),
     )
   ).filter((item): item is NonNullable<typeof item> => !!item);
+  const hasItems = !!cart && items.length > 0;
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
+    <main
+      className={`mx-auto max-w-5xl px-6 py-10 ${hasItems ? "pb-28 lg:pb-10" : ""}`}
+    >
       <div className="mb-6 flex items-center justify-between">
         <div>
           <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">

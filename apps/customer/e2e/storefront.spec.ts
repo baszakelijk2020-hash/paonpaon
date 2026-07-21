@@ -80,12 +80,19 @@ test("a signed-in shopper builds a cart, updates a line, checks out, and sees th
 
   await expect(page).toHaveURL(new RegExp(`/r/${TEST_RETAILER_SLUG}/cart$`));
   await expect(page.getByText("E2E Storefront Overcoat")).toBeVisible();
-  await expect(page.getByText("$4,500.00", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("$4,500.00", { exact: true }).first(),
+  ).toBeVisible();
 
-  // update_cart_line: raising the quantity recomputes the cart total.
-  await page.getByLabel("Quantity").fill("2");
-  await page.getByRole("button", { name: "Update" }).click();
-  await expect(page.getByText("$9,000.00")).toBeVisible();
+  // update_cart_line: the quantity stepper's "+" auto-submits and
+  // recomputes the cart total — no separate "Update" button (removed as
+  // unnecessary friction, see ADR-037).
+  await page
+    .getByRole("button", {
+      name: "Increase quantity of E2E Storefront Overcoat",
+    })
+    .click();
+  await expect(page.getByText("$9,000.00").first()).toBeVisible();
 
   // checkout_cart: revalidates stock/price and moves the cart to pending_payment.
   await page.getByPlaceholder("Address", { exact: true }).fill("1 Test Street");

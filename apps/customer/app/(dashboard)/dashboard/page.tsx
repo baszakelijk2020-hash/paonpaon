@@ -1,5 +1,13 @@
-import { CustomerRepository, RetailerRepository } from "@paon/database";
+import {
+  AppointmentRepository,
+  CustomerRepository,
+  NotificationRepository,
+  OrderRepository,
+  RetailerRepository,
+} from "@paon/database";
 import { Card } from "@paon/ui/components/Card";
+import { formatDate } from "@paon/utils";
+import Link from "next/link";
 
 import { TodaysPick } from "./todays-pick";
 
@@ -15,12 +23,44 @@ export default async function DashboardPage() {
     session.userId,
   );
   const retailerRepo = new RetailerRepository(supabase);
+  const appointmentRepo = new AppointmentRepository(supabase);
+  const orderRepo = new OrderRepository(supabase);
   const relationships = await Promise.all(
-    customers.map(async (customer) => ({
-      customer,
-      retailer: await retailerRepo.findById(customer.retailerId),
-    })),
+    customers.map(async (customer) => {
+      const [retailer, appointments, orders] = await Promise.all([
+        retailerRepo.findById(customer.retailerId),
+        appointmentRepo.findByCustomer(customer.id),
+        orderRepo.findByCustomer(customer.id),
+      ]);
+      const now = Date.now();
+      const nextAppointment = appointments
+        .filter(
+          (appointment) =>
+            !["completed", "canceled", "no_show"].includes(
+              appointment.status,
+            ) && new Date(appointment.startsAt).getTime() >= now,
+        )
+        .sort(
+          (a, b) =>
+            new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+        )[0];
+      const orderAwaitingPayment = orders.find(
+        (order) => order.status === "pending_payment",
+      );
+      return { customer, retailer, nextAppointment, orderAwaitingPayment };
+    }),
   );
+  const notifications = await new NotificationRepository(supabase).findByUser(
+    session.userId,
+  );
+  const unreadByRetailer = new Map<string, number>();
+  for (const notification of notifications) {
+    if (notification.readAt) continue;
+    unreadByRetailer.set(
+      notification.retailerId,
+      (unreadByRetailer.get(notification.retailerId) ?? 0) + 1,
+    );
+  }
   const aiConfigured = !!getAIProvider();
 
   return (
@@ -45,27 +85,63 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <Card className="divide-y divide-[var(--color-stone-100)] p-0">
-          {relationships.map(({ customer, retailer }) => (
-            <div key={customer.id}>
-              <div className="px-6 py-4">
-                <p className="font-medium text-[var(--color-stone-900)]">
-                  {retailer?.displayName ?? "Unknown retailer"}
-                </p>
-                <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                  {customer.lifecycleStage.replaceAll("_", " ")}
-                </p>
-              </div>
-              {aiConfigured && retailer ? (
-                <TodaysPick
-                  slug={retailer.slug}
-                  retailerId={retailer.id}
-                  customerId={customer.id}
-                  retailerName={retailer.displayName}
-                  customerName={customer.fullName}
-                />
-              ) : null}
-            </div>
-          ))}
+          {relationships.map(
+            ({ customer, retailer, nextAppointment, orderAwaitingPayment }) => {
+              const unread = unreadByRetailer.get(customer.retailerId) ?? 0;
+              const hasUpdate =
+                !!nextAppointment || !!orderAwaitingPayment || unread > 0;
+              return (
+                <div key={customer.id}>
+                  <div className="px-6 py-4">
+                    <p className="font-medium text-[var(--color-stone-900)]">
+                      {retailer?.displayName ?? "Unknown retailer"}
+                    </p>
+                    <p className="text-sm capitalize text-[var(--color-stone-500)]">
+                      {customer.lifecycleStage.replaceAll("_", " ")}
+                    </p>
+                    {hasUpdate ? (
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                        {orderAwaitingPayment ? (
+                          <Link
+                            href={`/orders/${orderAwaitingPayment.id}`}
+                            className="font-medium text-[var(--color-danger-500)] hover:underline"
+                          >
+                            Order awaiting payment →
+                          </Link>
+                        ) : null}
+                        {nextAppointment ? (
+                          <Link
+                            href={`/appointments/${nextAppointment.id}`}
+                            className="text-[var(--color-stone-700)] hover:underline"
+                          >
+                            Next appointment{" "}
+                            {formatDate(nextAppointment.startsAt, "en-US")} →
+                          </Link>
+                        ) : null}
+                        {unread > 0 ? (
+                          <Link
+                            href="/messages"
+                            className="text-[var(--color-stone-700)] hover:underline"
+                          >
+                            {unread} unread message{unread === 1 ? "" : "s"} →
+                          </Link>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                  {aiConfigured && retailer ? (
+                    <TodaysPick
+                      slug={retailer.slug}
+                      retailerId={retailer.id}
+                      customerId={customer.id}
+                      retailerName={retailer.displayName}
+                      customerName={customer.fullName}
+                    />
+                  ) : null}
+                </div>
+              );
+            },
+          )}
         </Card>
       )}
 
