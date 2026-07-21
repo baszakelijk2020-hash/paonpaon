@@ -81,18 +81,25 @@ export default async function StaffRosterPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--color-stone-100)] text-left">
-              <th className="px-4 py-3 font-medium text-[var(--color-stone-500)]">
+              <th
+                scope="col"
+                className="px-4 py-3 font-medium text-[var(--color-stone-500)]"
+              >
                 Staff
               </th>
               {days.map((day, i) => (
                 <th
+                  scope="col"
                   key={day}
                   className="px-4 py-3 font-medium text-[var(--color-stone-500)]"
                 >
                   {DAY_LABELS[i]}
                 </th>
               ))}
-              <th className="px-4 py-3 font-medium text-[var(--color-stone-500)]">
+              <th
+                scope="col"
+                className="px-4 py-3 font-medium text-[var(--color-stone-500)]"
+              >
                 Hours (worked)
               </th>
             </tr>

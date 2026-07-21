@@ -36,11 +36,12 @@ export function TableServiceWidget({
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
       {open ? (
         <div
-          className="w-[min(22rem,calc(100vw-2.5rem))] rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-[var(--color-stone-0,#fff)] p-5"
-          style={{ boxShadow: "var(--shadow-elevated)" }}
+          role="dialog"
+          aria-label="Contact the retailer"
+          className="glass-panel w-[min(22rem,calc(100vw-2.5rem))] rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] p-5 shadow-[var(--shadow-elevated)]"
         >
           {state.submitted ? (
-            <div className="py-4 text-center">
+            <div role="status" aria-live="polite" className="py-4 text-center">
               <p className="text-sm font-medium text-[var(--color-stone-900)]">
                 Thank you — {retailerName} will be in touch shortly.
               </p>
@@ -70,8 +71,9 @@ export function TableServiceWidget({
                   <button
                     key={option.value}
                     type="button"
+                    aria-pressed={intent === option.value}
                     onClick={() => setIntent(option.value)}
-                    className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                    className={`rounded-full border px-3 py-1.5 text-xs transition-colors duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] active:scale-95 ${
                       intent === option.value
                         ? "border-[var(--color-stone-900)] bg-[var(--color-stone-900)] text-[var(--color-stone-0,#fff)]"
                         : "border-[var(--color-stone-200)] text-[var(--color-stone-700)]"

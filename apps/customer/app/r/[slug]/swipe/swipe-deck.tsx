@@ -6,6 +6,7 @@ import { formatMoney } from "@paon/utils";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  useEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -42,6 +43,16 @@ export function SwipeDeck({
   const [dragX, setDragX] = useState(0);
   const dragging = useRef(false);
   const startX = useRef(0);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(query.matches);
+    const listener = (event: MediaQueryListEvent) =>
+      setReducedMotion(event.matches);
+    query.addEventListener("change", listener);
+    return () => query.removeEventListener("change", listener);
+  }, []);
 
   const remaining = cards.slice(index, index + VISIBLE_STACK);
 
@@ -100,6 +111,11 @@ export function SwipeDeck({
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center">
+      <p className="sr-only" role="status" aria-live="polite">
+        {cards[index]
+          ? `Showing ${cards[index].name}, item ${index + 1} of ${cards.length}`
+          : "No more items"}
+      </p>
       <div className="relative h-[26rem] w-full max-w-sm">
         {remaining
           .map((card, depth) => ({ card, depth }))
@@ -120,9 +136,10 @@ export function SwipeDeck({
                 className="absolute inset-0 select-none overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-[var(--color-stone-0,#fff)]"
                 style={{
                   transform: `translate(${translateX}px, ${translateY}px) rotate(${rotate}deg) scale(${scale})`,
-                  transition: dragging.current
-                    ? "none"
-                    : "transform 300ms var(--ease-out-quiet)",
+                  transition:
+                    dragging.current || reducedMotion
+                      ? "none"
+                      : "transform var(--duration-quiet) var(--ease-out-quiet)",
                   touchAction: "pan-y",
                   cursor: isTop ? "grab" : "default",
                   zIndex: VISIBLE_STACK - depth,
@@ -151,12 +168,18 @@ export function SwipeDeck({
                   </p>
                 </div>
                 {isTop && dragX > 30 ? (
-                  <div className="absolute right-5 top-5 rounded-full border-2 border-[var(--color-success-500)] px-3 py-1 text-sm font-medium text-[var(--color-success-500)]">
+                  <div
+                    aria-hidden="true"
+                    className="absolute right-5 top-5 rounded-full border-2 border-[var(--color-success-500)] px-3 py-1 text-sm font-medium text-[var(--color-success-500)]"
+                  >
                     SAVE
                   </div>
                 ) : null}
                 {isTop && dragX < -30 ? (
-                  <div className="absolute left-5 top-5 rounded-full border-2 border-[var(--color-danger-500)] px-3 py-1 text-sm font-medium text-[var(--color-danger-500)]">
+                  <div
+                    aria-hidden="true"
+                    className="absolute left-5 top-5 rounded-full border-2 border-[var(--color-danger-500)] px-3 py-1 text-sm font-medium text-[var(--color-danger-500)]"
+                  >
                     SKIP
                   </div>
                 ) : null}
@@ -170,7 +193,7 @@ export function SwipeDeck({
           type="button"
           aria-label="Skip"
           onClick={() => commit("left")}
-          className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--color-stone-300)] text-xl text-[var(--color-stone-600)] hover:border-[var(--color-danger-500)] hover:text-[var(--color-danger-500)]"
+          className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--color-stone-300)] text-xl text-[var(--color-stone-600)] transition-[background-color,color,transform] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:border-[var(--color-danger-500)] hover:text-[var(--color-danger-500)] active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           ✕
         </button>
@@ -184,7 +207,7 @@ export function SwipeDeck({
           type="button"
           aria-label="Save"
           onClick={() => commit("right")}
-          className="hover:bg-[var(--color-success-500)]/10 flex h-14 w-14 items-center justify-center rounded-full border border-[var(--color-stone-300)] text-xl text-[var(--color-danger-500)] hover:border-[var(--color-success-500)]"
+          className="hover:bg-[var(--color-success-500)]/10 flex h-14 w-14 items-center justify-center rounded-full border border-[var(--color-stone-300)] text-xl text-[var(--color-danger-500)] transition-[background-color,color,transform] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:border-[var(--color-success-500)] active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           ♥
         </button>

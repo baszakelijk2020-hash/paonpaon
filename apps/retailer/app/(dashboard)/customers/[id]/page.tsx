@@ -179,7 +179,8 @@ export default async function CustomerDetailPage({
                 <input type="hidden" name="carrier" value={value} />
                 <button
                   type="submit"
-                  className={`rounded-full border px-3 py-1 text-xs ${
+                  aria-pressed={customer.preferredCarrier === value}
+                  className={`rounded-full border px-3 py-1 text-xs transition-[background-color,color] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 ${
                     customer.preferredCarrier === value
                       ? "border-[var(--color-stone-900)] bg-[var(--color-stone-900)] text-white"
                       : "border-[var(--color-stone-300)] text-[var(--color-stone-600)]"

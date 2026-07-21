@@ -17,7 +17,11 @@ export function JoinForm({ token }: { token: string }) {
 
   if (state.joined) {
     return (
-      <p className="text-sm text-[var(--color-stone-700)]">
+      <p
+        role="status"
+        aria-live="polite"
+        className="text-sm text-[var(--color-stone-700)]"
+      >
         You&rsquo;re in — the team can now see you as part of the party and will
         follow up to schedule your fitting.
       </p>

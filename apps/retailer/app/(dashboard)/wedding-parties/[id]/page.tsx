@@ -65,6 +65,7 @@ export default async function WeddingPartyDetailPage({
           <input type="hidden" name="weddingPartyId" value={party.id} />
           <select
             name="status"
+            aria-label="Party status"
             defaultValue={party.status}
             className="rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-sm capitalize"
           >
@@ -117,6 +118,7 @@ export default async function WeddingPartyDetailPage({
                   <input type="hidden" name="weddingPartyId" value={party.id} />
                   <select
                     name="status"
+                    aria-label={`${member.name}'s fitting status`}
                     defaultValue={member.fittingStatus}
                     className="rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-xs capitalize"
                   >

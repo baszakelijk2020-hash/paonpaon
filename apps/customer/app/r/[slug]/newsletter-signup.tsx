@@ -17,7 +17,11 @@ export function NewsletterSignup({ retailerId }: { retailerId: string }) {
 
   if (state.subscribed) {
     return (
-      <p className="text-sm text-[var(--color-stone-700)]">
+      <p
+        role="status"
+        aria-live="polite"
+        className="text-sm text-[var(--color-stone-700)]"
+      >
         You&rsquo;re subscribed — look out for our next issue.
       </p>
     );
@@ -28,6 +32,7 @@ export function NewsletterSignup({ retailerId }: { retailerId: string }) {
       <Input
         name="email"
         type="email"
+        aria-label="Email address"
         placeholder="Your email"
         required
         className="sm:max-w-xs"
