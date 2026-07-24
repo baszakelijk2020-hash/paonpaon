@@ -32,8 +32,10 @@ Implementation order:
    — complete as a functional foundation; visual acceptance pending;
 3. validated shared retailer theme architecture — complete as a functional
    foundation; visual acceptance pending;
-4. Admin Demo Studio — next;
-5. isolated synthetic demo generation and persona previews;
+4. Admin prospect workbench and versioned Demo Studio configuration — complete
+   as a functional foundation;
+5. isolated synthetic demo generation, role/device previews and secure
+   publication — next;
 6. private personalized proposals;
 7. founder sales pipeline and revenue cockpit;
 8. approved pilot-to-live onboarding transition;

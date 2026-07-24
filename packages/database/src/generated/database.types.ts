@@ -1427,6 +1427,74 @@ export type Database = {
           },
         ];
       };
+      commercial_prospects: {
+        Row: {
+          company_name: string;
+          created_at: string;
+          created_by_user_id: string | null;
+          deleted_at: string | null;
+          id: string;
+          next_action: string | null;
+          next_action_due_at: string | null;
+          observed_opportunities: string[];
+          primary_contact_email: string;
+          primary_contact_name: string;
+          primary_contact_phone: string | null;
+          recommended_plan_id: string | null;
+          sales_notes: string;
+          source: string;
+          stage: Database["public"]["Enums"]["commercial_prospect_stage"];
+          updated_at: string;
+          website_url: string | null;
+        };
+        Insert: {
+          company_name: string;
+          created_at?: string;
+          created_by_user_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          next_action?: string | null;
+          next_action_due_at?: string | null;
+          observed_opportunities?: string[];
+          primary_contact_email: string;
+          primary_contact_name: string;
+          primary_contact_phone?: string | null;
+          recommended_plan_id?: string | null;
+          sales_notes?: string;
+          source?: string;
+          stage?: Database["public"]["Enums"]["commercial_prospect_stage"];
+          updated_at?: string;
+          website_url?: string | null;
+        };
+        Update: {
+          company_name?: string;
+          created_at?: string;
+          created_by_user_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          next_action?: string | null;
+          next_action_due_at?: string | null;
+          observed_opportunities?: string[];
+          primary_contact_email?: string;
+          primary_contact_name?: string;
+          primary_contact_phone?: string | null;
+          recommended_plan_id?: string | null;
+          sales_notes?: string;
+          source?: string;
+          stage?: Database["public"]["Enums"]["commercial_prospect_stage"];
+          updated_at?: string;
+          website_url?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "commercial_prospects_recommended_plan_id_fkey";
+            columns: ["recommended_plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       completion_reviews: {
         Row: {
           alteration_id: string;
@@ -3012,6 +3080,134 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "retailers";
             referencedColumns: ["id"];
+          },
+        ];
+      };
+      prospect_demo_configuration_versions: {
+        Row: {
+          change_note: string;
+          changed_by_user_id: string | null;
+          configuration_id: string;
+          created_at: string;
+          id: string;
+          snapshot: Json;
+          version_number: number;
+        };
+        Insert: {
+          change_note: string;
+          changed_by_user_id?: string | null;
+          configuration_id: string;
+          created_at?: string;
+          id?: string;
+          snapshot: Json;
+          version_number: number;
+        };
+        Update: {
+          change_note?: string;
+          changed_by_user_id?: string | null;
+          configuration_id?: string;
+          created_at?: string;
+          id?: string;
+          snapshot?: Json;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "prospect_demo_configuration_versions_configuration_id_fkey";
+            columns: ["configuration_id"];
+            isOneToOne: false;
+            referencedRelation: "prospect_demo_configurations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      prospect_demo_configurations: {
+        Row: {
+          created_at: string;
+          current_version: number;
+          id: string;
+          locations: Json;
+          marketing_headline: string;
+          personalized_introduction: string;
+          plan_id: string | null;
+          product_mix: string[];
+          prospect_id: string;
+          status: Database["public"]["Enums"]["demo_configuration_status"];
+          theme: Json;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          current_version?: number;
+          id?: string;
+          locations?: Json;
+          marketing_headline?: string;
+          personalized_introduction?: string;
+          plan_id?: string | null;
+          product_mix?: string[];
+          prospect_id: string;
+          status?: Database["public"]["Enums"]["demo_configuration_status"];
+          theme?: Json;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          current_version?: number;
+          id?: string;
+          locations?: Json;
+          marketing_headline?: string;
+          personalized_introduction?: string;
+          plan_id?: string | null;
+          product_mix?: string[];
+          prospect_id?: string;
+          status?: Database["public"]["Enums"]["demo_configuration_status"];
+          theme?: Json;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "prospect_demo_configurations_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "prospect_demo_configurations_prospect_id_fkey";
+            columns: ["prospect_id"];
+            isOneToOne: true;
+            referencedRelation: "commercial_prospects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      prospect_demo_modules: {
+        Row: {
+          configuration_id: string;
+          feature_key: string;
+        };
+        Insert: {
+          configuration_id: string;
+          feature_key: string;
+        };
+        Update: {
+          configuration_id?: string;
+          feature_key?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "prospect_demo_modules_configuration_id_fkey";
+            columns: ["configuration_id"];
+            isOneToOne: false;
+            referencedRelation: "prospect_demo_configurations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "prospect_demo_modules_feature_key_fkey";
+            columns: ["feature_key"];
+            isOneToOne: false;
+            referencedRelation: "commercial_features";
+            referencedColumns: ["key"];
           },
         ];
       };
@@ -4615,6 +4811,14 @@ export type Database = {
         Args: { p_retailer_id: string; p_since?: string };
         Returns: Json;
       };
+      hex_color_contrast_ratio: {
+        Args: { p_first: string; p_second: string };
+        Returns: number;
+      };
+      hex_color_relative_luminance: {
+        Args: { p_hex: string };
+        Returns: number;
+      };
       is_alterations_advisor: { Args: never; Returns: boolean };
       is_alterations_management: { Args: never; Returns: boolean };
       is_my_event_invitation: {
@@ -4717,6 +4921,20 @@ export type Database = {
           p_status: Database["public"]["Enums"]["event_rsvp_status"];
         };
         Returns: undefined;
+      };
+      save_prospect_demo_configuration: {
+        Args: {
+          p_change_note: string;
+          p_feature_keys: string[];
+          p_locations: Json;
+          p_marketing_headline: string;
+          p_personalized_introduction: string;
+          p_plan_id: string;
+          p_product_mix: string[];
+          p_prospect_id: string;
+          p_theme: Json;
+        };
+        Returns: number;
       };
       save_retailer_brand_theme: {
         Args: { p_change_note: string; p_retailer_id: string; p_theme: Json };
@@ -4884,6 +5102,17 @@ export type Database = {
         | "event";
       commercial_inquiry_type:
         "personalized_demo" | "consultation" | "paid_pilot";
+      commercial_prospect_stage:
+        | "researched"
+        | "qualified"
+        | "demo_preparation"
+        | "demo_ready"
+        | "demo_sent"
+        | "consultation"
+        | "proposal"
+        | "pilot"
+        | "converted"
+        | "lost";
       completion_review_status: "pending" | "approved" | "changes_requested";
       custody_event_type:
         | "received"
@@ -4894,6 +5123,7 @@ export type Database = {
         | "delivery_complete";
       customer_lifecycle_stage:
         "prospect" | "first_purchase" | "returning" | "vip" | "lapsed";
+      demo_configuration_status: "draft" | "review_ready" | "published";
       event_rsvp_status: "invited" | "attending" | "declined" | "attended";
       event_status: "draft" | "published" | "cancelled" | "completed";
       event_visibility: "public" | "invite_only" | "vip_tier";
@@ -5176,6 +5406,18 @@ export const Constants = {
         "consultation",
         "paid_pilot",
       ],
+      commercial_prospect_stage: [
+        "researched",
+        "qualified",
+        "demo_preparation",
+        "demo_ready",
+        "demo_sent",
+        "consultation",
+        "proposal",
+        "pilot",
+        "converted",
+        "lost",
+      ],
       completion_review_status: ["pending", "approved", "changes_requested"],
       custody_event_type: [
         "received",
@@ -5192,6 +5434,7 @@ export const Constants = {
         "vip",
         "lapsed",
       ],
+      demo_configuration_status: ["draft", "review_ready", "published"],
       event_rsvp_status: ["invited", "attending", "declined", "attended"],
       event_status: ["draft", "published", "cancelled", "completed"],
       event_visibility: ["public", "invite_only", "vip_tier"],

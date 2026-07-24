@@ -167,6 +167,31 @@ is being substituted for the required desktop/mobile inspection evidence.
   the shared shell receives it, and cleans up its own state. Visual acceptance
   remains blocked on the empty in-app-browser inventory.
 
+**Commercialisation checkpoint 4 implemented locally (not deployed):**
+
+- PAON Admin now has `/prospects`, `/prospects/new` and
+  `/prospects/[id]/studio`: a focused founder workbench for business research,
+  commercial contact, observed opportunities, package hypothesis and the next
+  revenue-producing action;
+- prospects are platform-only under RLS and contain no imported customer data.
+  Creator attribution is database-derived and immutable;
+- Demo Studio reuses the exact validated theme and commercial-feature
+  vocabularies already used by live retailers and plan authorization. The
+  founder configures package, capability scope, brand assets/tokens,
+  personalized narrative, locations and product mix without code changes;
+- a dedicated Storage bucket accepts bounded public-facing brand imagery from
+  platform staff. HTTPS remains mandatory outside loopback local development;
+- `save_prospect_demo_configuration` validates the entire configuration,
+  replaces its module scope and appends a complete immutable snapshot in one
+  transaction. Early prospects move to `demo_preparation`; no tenant or
+  synthetic record is created by configuration alone;
+- the Studio’s shared-component preview is real but its environment status
+  explicitly says synthetic data has not been generated. Role previews and
+  secure publish controls are withheld until the next isolated-generation
+  checkpoint can make them truthful;
+- Admin E2E creates a prospect, uploads a real asset, persists version 1,
+  verifies the authoritative row and cleans up all test state.
+
 **Phase 0 (engineering foundation): done. Phase 1 (Identity, Retailer,
 Customer core): done. Phase 2 (Catalog and Commerce): catalog, storefront,
 order placement/management and Stripe Connect customer payments shipped

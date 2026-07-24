@@ -1707,3 +1707,29 @@ prospect can copy an approved token document into onboarding without copying
 code or synthetic records. The curated vocabulary intentionally limits
 pixel-level brand mimicry; extending it requires an explicit schema, database
 validator and shared renderer change rather than injecting bespoke CSS.
+
+## ADR-043: Demo Studio configuration is versioned before an isolated environment exists
+
+**Context.** A founder must prepare a specific retailer demonstration quickly,
+but configuration, tenant generation and publication have different security
+consequences. Creating a live retailer or copying showcase records as soon as a
+prospect form is saved would make research destructive, leak synthetic state
+into onboarding and produce links before role isolation can be verified.
+
+**Decision.** `commercial_prospects` stores only business research, contact and
+sales context under platform-staff RLS. A prospect has at most one current
+`prospect_demo_configuration`, composed from an existing commercial plan,
+normalized feature keys, the ADR-042 theme document, bounded retailer copy,
+locations and a curated product mix. `save_prospect_demo_configuration`
+validates and replaces the module set and appends a full immutable snapshot in
+one transaction. Configuration advances early pipeline state only to
+`demo_preparation`; it cannot create a retailer, auth identity, demo tenant or
+public link. Brand assets use a dedicated bounded platform-write Storage
+bucket; non-local asset URLs remain HTTPS-only.
+
+**Consequences.** Research and design can be revised/restored without orphaned
+tenants, and synthetic generation can consume one explicit version in the next
+checkpoint. Demo Studio shows a component preview but labels the environment
+as ungenerated until isolation exists. Publication, access codes, engagement
+tracking and pilot conversion cannot accidentally be inferred from a saved
+configuration.

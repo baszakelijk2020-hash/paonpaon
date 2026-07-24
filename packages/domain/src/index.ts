@@ -16,6 +16,8 @@ export * from "./retailer/subscription";
 export * from "./retailer/subscription.schema";
 export * from "./retailer/commercial-inquiry";
 export * from "./retailer/commercial-inquiry.schema";
+export * from "./retailer/commercial-prospect";
+export * from "./retailer/commercial-prospect.schema";
 
 export * from "./customer/customer";
 export * from "./customer/customer.schema";

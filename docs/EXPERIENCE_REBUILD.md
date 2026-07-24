@@ -141,8 +141,8 @@ proposal lines—not subscription features or implementation fees.
 | Demo request/consultation/pilot | High-trust lead and next-action journey                           | Foundation |
 | Admin commercial catalogue      | Edit package copy, fees, entitlements and Stripe bridge           | Foundation |
 | Admin sales cockpit             | Attention-ranked pipeline and next three revenue actions          | Planned    |
-| Admin prospect record           | Research, contact, package and opportunity context                | Planned    |
-| Admin Demo Studio               | Safe branding, modules, content, synthetic data and role previews | Planned    |
+| Admin prospect record           | Research, contact, package and opportunity context                | Foundation |
+| Admin Demo Studio               | Safe branding, modules, content, synthetic data and role previews | Foundation |
 | Retailer `/settings/brand`      | Validated tokens, live preview and restorable brand versions      | Foundation |
 | Private demo/proposal           | Retailer-specific environment, terms and secure action            | Planned    |
 | Pilot-to-live transition        | Copy approved configuration only into onboarding                  | Planned    |
@@ -225,6 +225,36 @@ Implemented locally:
 This architecture is the theme boundary that Demo Studio must reuse for
 prospects. It remains **Foundation** pending the required desktop/tablet/mobile
 visual pass in the unavailable in-app browser.
+
+### Commercial checkpoint 4 — prospect workbench and Demo Studio
+
+Implemented locally:
+
+- PAON Admin `/prospects` is the founder’s prospect workbench, with active,
+  waiting-for-demo and overdue-follow-up signals plus clear next actions;
+- `/prospects/new` captures business research, source, named commercial
+  contact, observed customer-experience opportunities, recommended package and
+  next revenue action. It does not accept or import retailer customer records;
+- `/prospects/[id]/studio` configures the package, normalized capability scope,
+  validated shared brand theme, retailer-specific headline/introduction,
+  locations and product mix in one composed workspace;
+- platform staff can upload bounded SVG/ICO/JPEG/PNG/WebP public-facing brand
+  assets to a dedicated Storage bucket. Production asset URLs remain HTTPS;
+  loopback HTTP is accepted only for the real local Supabase environment;
+- each save runs through one platform-authorized transaction, replaces the
+  selected normalized capability set, advances early prospects into demo
+  preparation and appends an immutable complete configuration snapshot;
+- a shared-component preview makes the configuration legible before data
+  generation. It deliberately does not pretend an environment exists:
+  status says synthetic data has not been generated and publish controls are
+  absent until the isolated-generation checkpoint creates a safe target;
+- Admin E2E coverage creates a prospect, uploads and cleans up a real brand
+  asset, saves version 1, verifies the database snapshot and deletes the
+  prospect/configuration cascade.
+
+The creation/configuration part of Demo Studio is **Foundation**. Synthetic
+data, role/device previews and secure publication follow next and are required
+before the Studio can be accepted.
 
 ## Experience principles
 

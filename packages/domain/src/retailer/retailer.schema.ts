@@ -23,12 +23,16 @@ export const currencyCodeSchema = z.enum(CURRENCY_CODES);
 export const retailerTierSchema = z.enum(["boutique", "house", "maison"]);
 
 const httpsAssetSchema = z
-  .union([
-    z.string().trim().url().startsWith("https://").max(1000),
-    z.literal(""),
-  ])
+  .union([z.string().trim().url().max(1000), z.literal("")])
   .optional()
-  .transform((value) => value || undefined);
+  .transform((value) => value || undefined)
+  .refine(
+    (value) =>
+      !value ||
+      value.startsWith("https://") ||
+      /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\//.test(value),
+    "Use HTTPS (local development assets may use localhost)",
+  );
 
 const hexColorSchema = z
   .string()

@@ -20,6 +20,11 @@ const navigation: AppShellNavGroup[] = [
         label: "Commercials",
         description: "Plans and subscription status",
       },
+      {
+        href: "/prospects",
+        label: "Demo Studio",
+        description: "Prospects and personalized environments",
+      },
     ],
   },
   {
