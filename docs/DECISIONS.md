@@ -1544,3 +1544,37 @@ future `@paon/ui` component now renders its intended styling in every
 app, retroactively; worth a deliberate visual smoke-check next time a
 browser/visual-QA tool is available in this environment, since it was
 never actually seen broken, only proven broken by measurement.
+
+## ADR-038: Alteration readiness creates one customer notification at the workflow boundary
+
+**Context.** The garment-first alteration workflow already recorded
+`ready_for_pickup`/`out_for_delivery` transactionally and exposed those
+statuses through a customer-safe projection, but it only set
+`customer_notification_ready_at`; it never created a `Notification`.
+The shared notification inbox and preference-aware email/SMS outboxes
+already supported the `alteration_update` category, so adding another
+delivery path or sending from the Retailer Portal Server Action would
+duplicate established infrastructure and could let workflow state
+commit without its customer update.
+
+**Decision.** An `after update of status` trigger on
+`alteration_work_orders` creates an in-app `alteration_update` only when
+a work order first enters `ready_for_pickup` or `out_for_delivery` and
+the customer has a linked Customer Portal user. It derives the recipient
+and garment description from tenant-matched database rows, never from
+the caller, and deep-links to `/alterations/{id}`, whose repository reads
+the existing security-barrier customer projection. The insert happens in
+the same transaction as `transition_alteration_work_order`; ADR-032 and
+ADR-036's existing notification triggers then enqueue email and SMS
+according to the customer's stored channel preferences. The forward
+migration backfills already-ready work for linked customers while
+skipping an existing readiness notification for the same work order.
+
+**Consequences.** Retailer code has no second notification call to
+remember or retry, and a failed notification insert rolls back the
+status transition instead of silently losing the update. Customers
+without a linked portal identity still see the authoritative status
+after they link/sign in, but there is no recipient to notify before
+that identity exists. Native push remains unimplemented pending a
+provider decision and credentials; email/SMS continue to degrade through
+their documented durable outbox behavior when credentials are absent.

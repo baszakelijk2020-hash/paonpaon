@@ -246,11 +246,10 @@ symlink without an explicit `@source` directive. Fixed once, in
   attribution already exists in large part
   (`AlterationAttachmentId`, `ChainOfCustodyEvent`, `CompletionReview`,
   `AlterationTaskNote` — see DOMAIN_MODEL.md), not audited against UI
-  wiring yet. A customer-facing "your alteration is ready" push
-  notification trigger is small (the `notifications` table/category
-  already supports `alteration_update`) but not built. A dedicated
-  manager cost-approval dashboard distinct from the pricing-history
-  Card that shipped is not built.
+  wiring yet. Customer-facing alteration-readiness notifications now ship
+  through the existing in-app/email/SMS pipeline (ADR-038); native push still
+  needs a provider decision and credentials. A dedicated manager cost-approval
+  dashboard distinct from the pricing-history Card that shipped is not built.
 - **Dynamic pricing / idle-customer re-engagement.** "Full insight
   into customer online behavior... dynamic pricing... track buying
   patterns... know when to clientele" is a real analytics/personalisation

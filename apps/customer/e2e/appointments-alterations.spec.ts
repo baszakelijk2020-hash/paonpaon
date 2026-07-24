@@ -51,10 +51,26 @@ test("a shopper sees their alteration status and pickup readiness", async ({
 }) => {
   await signInAsShopper(page);
 
+  await page.goto("/notifications");
+  const readinessNotification = page.getByText("Alteration ready for pickup", {
+    exact: true,
+  });
+  await expect(readinessNotification).toBeVisible();
+  await readinessNotification
+    .locator("xpath=ancestor::div[contains(@class, 'px-6')]")
+    .getByRole("link", { name: "Open" })
+    .click();
+  await expect(page).toHaveURL(/\/alterations\/[0-9a-f-]+$/);
+  await expect(
+    page.getByText("Ready for pickup", { exact: true }),
+  ).toBeVisible();
+
   await page.goto("/alterations");
   await expect(page.getByText("ready for pickup")).toBeVisible();
 
   await page.getByText("ready for pickup").first().click();
-  await expect(page.getByText("Ready for pickup")).toBeVisible();
+  await expect(
+    page.getByText("Ready for pickup", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText("Ready at the front desk.")).toBeVisible();
 });

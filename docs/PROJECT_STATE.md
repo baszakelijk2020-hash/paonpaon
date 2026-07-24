@@ -640,8 +640,13 @@ and factory execution.
   completion and cancellation. Original quote, proposals/decisions, actors,
   timestamps and reasons are immutable. Private Storage-backed evidence,
   append-only attachment metadata, chain of custody, completion reviews,
-  notification readiness, verified pickup/delivery and sensitive audit triggers
-  are first-class.
+  verified pickup/delivery and sensitive audit triggers are first-class.
+  Moving a linked customer's work order to `ready_for_pickup` or
+  `out_for_delivery` now creates an `alteration_update` notification in the
+  same database transaction, deep-linked to the safe Customer Portal detail
+  view. Existing ready work was backfilled; the established email/SMS outbox
+  triggers fan the notification out according to the customer's channel
+  preferences (ADR-038).
 - **Least privilege:** additive restrictive policies prevent workshop roles
   from inheriting broad CRM/commerce/appointment/product access. Workshop
   managers see only their assigned workshop's work; workers only directly
@@ -656,9 +661,10 @@ and factory execution.
   pickup/delivery projection. Customer records now list physical garments, not
   generic measurements.
 - **Deliberately not built:** GoCreate integration, any supplier connector,
-  MTM/specification/construction UI, notification delivery transport, payment
-  provider, push and deployment. `ProductionOrder` remains a future
-  connector-facing status projection.
+  MTM/specification/construction UI or native push provider.
+  `ProductionOrder` remains a future connector-facing status projection.
+  Alteration-readiness in-app delivery is real; email and SMS delivery use the
+  existing code-complete outboxes and remain credential-dependent.
 
 ### Shipped: Loyalty, Rewards and Referral foundation (Phase 4)
 
@@ -986,6 +992,13 @@ duplicated here.
 
 ## Local database verification
 
+- `20260724000000_notify_customer_when_alteration_ready.sql` applied cleanly
+  to the existing local migration chain. Alteration readiness now creates a
+  customer `alteration_update` transactionally and backfills linked customers
+  whose work was already ready. The Customer Portal e2e journey proves the
+  inbox notification opens the intended safe alteration detail view, and the
+  resulting notification has a linked durable email-outbox row.
+  `supabase db lint --level warning` reports no schema errors.
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
   chain (`20260719000000`–`20260719000103`, then `20260720000000`–
   `20260720000014` including the persisted-cart, referral-journey, wishlist,
