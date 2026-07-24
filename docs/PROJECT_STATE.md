@@ -74,6 +74,24 @@ This checkpoint still cannot be called visually accepted while the in-app
 browser inventory is empty. No source-rendered image or automated E2E screenshot
 is being substituted for the required desktop/mobile inspection evidence.
 
+**Relationship-to-appointment checkpoint implemented locally (not deployed):**
+
+- Retailer `/customers/[id]` is now a true client workspace rather than a
+  sequence of database cards: identity and pinned team memory lead, live
+  relationship/lifetime value/wardrobe/portal signals establish context, and
+  the next appointment or next relationship action is explicit;
+- contextual message, garment-intake and wedding-party actions remain governed
+  by existing role authorization, while shipping, Self-Portrait, AI insights,
+  clienteling notes, chronology and garment history remain available below the
+  new decision surface;
+- `/appointments/[id]` now carries that relationship context into an advisor
+  preparation brief, with pinned preference, request notes, assigned advisor,
+  wardrobe/order history, status management and a direct follow-up route back
+  to private notes;
+- no domain, database or RLS model changed. Existing repositories compose the
+  richer workspace, and retailer E2E coverage asserts both preparation and
+  next-action surfaces before exercising the established mutations.
+
 **Phase 0 (engineering foundation): done. Phase 1 (Identity, Retailer,
 Customer core): done. Phase 2 (Catalog and Commerce): catalog, storefront,
 order placement/management and Stripe Connect customer payments shipped

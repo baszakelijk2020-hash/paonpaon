@@ -12,7 +12,7 @@ import { asId, retailerRoleAtLeast } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate } from "@paon/utils";
+import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -78,75 +78,189 @@ export default async function CustomerDetailPage({
     "sales_associate",
   );
   const pinnedNote = notes.find((note) => note.pinned) ?? null;
+  const now = Date.now();
+  const nextAppointment = appointments
+    .filter(
+      (appointment) =>
+        new Date(appointment.startsAt).getTime() >= now &&
+        !["completed", "canceled", "no_show"].includes(appointment.status),
+    )
+    .sort(
+      (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+    )[0];
+  const lastOrder = orders[0];
+  const lifetimeValue = orders.reduce(
+    (total, order) => total + order.total.amountMinorUnits,
+    0,
+  );
+  const lifetimeMoney = lastOrder
+    ? { amountMinorUnits: lifetimeValue, currency: lastOrder.total.currency }
+    : null;
+  const initials = customer.fullName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
-              {customer.fullName}
-            </h1>
-            <LifecycleBadge stage={customer.lifecycleStage} />
+    <div className="flex flex-col gap-8">
+      <section className="relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-7 text-white shadow-[var(--shadow-elevated)] sm:p-10">
+        <div
+          aria-hidden="true"
+          className="absolute -right-24 -top-24 -z-10 h-80 w-80 rounded-full border border-white/10 bg-white/5"
+        />
+        <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+          <div className="flex items-start gap-5">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-2xl font-[var(--font-display)] sm:h-20 sm:w-20">
+              {initials || "P"}
+            </div>
+            <div>
+              <div className="mb-3 flex flex-wrap items-center gap-3">
+                <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.2em] text-white/60">
+                  Relationship workspace
+                </p>
+                <LifecycleBadge stage={customer.lifecycleStage} />
+              </div>
+              <h1 className="text-5xl font-[var(--font-display)] leading-none sm:text-6xl">
+                {customer.fullName}
+              </h1>
+              <p className="mt-4 text-sm text-white/65">
+                {customer.email ?? "No email on file"}
+                {customer.phone ? ` · ${customer.phone}` : ""}
+              </p>
+              {pinnedNote ? (
+                <p className="mt-4 max-w-2xl border-l border-white/40 pl-4 text-sm leading-6 text-white/80">
+                  “{pinnedNote.body}”
+                </p>
+              ) : null}
+            </div>
           </div>
-          <p className="text-sm text-[var(--color-stone-500)]">
-            {customer.email ?? "No email on file"}
-            {customer.phone ? ` · ${customer.phone}` : ""}
+          {canManage ? (
+            <div className="flex flex-wrap gap-3">
+              <form action={startConversation}>
+                <input type="hidden" name="customerId" value={customer.id} />
+                <button
+                  type="submit"
+                  className={buttonVariants({
+                    variant: "secondary",
+                    size: "lg",
+                  })}
+                >
+                  Message client
+                </button>
+              </form>
+              <Link
+                href={`/alterations/new?customerId=${customer.id}`}
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "lg",
+                  className: "border-white/30 text-white hover:bg-white/10",
+                })}
+              >
+                Begin garment intake
+              </Link>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="grid grid-cols-2 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] lg:grid-cols-4">
+        <div className="border-b border-r border-[var(--color-stone-200)] p-5 sm:p-6">
+          <p className="text-xs text-[var(--color-stone-500)]">Relationship</p>
+          <p className="mt-2 text-lg capitalize">
+            {customer.lifecycleStage.replaceAll("_", " ")}
           </p>
         </div>
-        {canManage ? (
-          <div className="flex gap-2">
-            <form action={startConversation}>
-              <input type="hidden" name="customerId" value={customer.id} />
-              <button
-                type="submit"
-                className={buttonVariants({ variant: "outline" })}
+        <div className="border-b border-r border-[var(--color-stone-200)] p-5 sm:p-6">
+          <p className="text-xs text-[var(--color-stone-500)]">
+            Lifetime orders
+          </p>
+          <p className="mt-2 text-lg">
+            {orders.length}
+            {lifetimeMoney ? ` · ${formatMoney(lifetimeMoney, "en-US")}` : ""}
+          </p>
+        </div>
+        <div className="border-b border-r border-[var(--color-stone-200)] p-5 sm:p-6">
+          <p className="text-xs text-[var(--color-stone-500)]">Wardrobe</p>
+          <p className="mt-2 text-lg">
+            {garments.length} garment{garments.length === 1 ? "" : "s"}
+          </p>
+        </div>
+        <div className="border-b border-[var(--color-stone-200)] p-5 sm:p-6">
+          <p className="text-xs text-[var(--color-stone-500)]">Portal</p>
+          <div className="mt-2">
+            <Badge tone={customer.userId ? "success" : "neutral"}>
+              {customer.userId ? "Connected" : "Not connected"}
+            </Badge>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+        <Card className="rounded-[var(--radius-xl)] border-l-4 border-l-[var(--color-stone-900)]">
+          <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            Next best moment
+          </p>
+          {nextAppointment ? (
+            <>
+              <h2 className="mt-3 text-3xl font-[var(--font-display)] capitalize">
+                Prepare the {nextAppointment.type.replaceAll("_", " ")}
+              </h2>
+              <p className="mt-2 text-sm text-[var(--color-stone-500)]">
+                {formatDate(nextAppointment.startsAt, "en-US")} ·{" "}
+                {nextAppointment.status.replaceAll("_", " ")}
+              </p>
+              <Link
+                href={`/appointments/${nextAppointment.id}`}
+                className={buttonVariants({
+                  variant: "outline",
+                  className: "mt-5",
+                })}
               >
-                Message
-              </button>
-            </form>
-            <Link
-              href={`/alterations/new?customerId=${customer.id}`}
-              className={buttonVariants({ variant: "secondary" })}
-            >
-              New alteration
-            </Link>
+                Open appointment brief
+              </Link>
+            </>
+          ) : (
+            <>
+              <h2 className="mt-3 text-3xl font-[var(--font-display)]">
+                Create the next reason to return.
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-stone-500)]">
+                There is no upcoming appointment. Use the relationship context
+                below to make a relevant, personal follow-up.
+              </p>
+            </>
+          )}
+        </Card>
+        <Card className="rounded-[var(--radius-xl)]">
+          <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            Relationship provenance
+          </p>
+          <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt className="text-[var(--color-stone-500)]">Introduced</dt>
+              <dd className="mt-1">
+                {formatDate(customer.createdAt, "en-US")}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[var(--color-stone-500)]">Source</dt>
+              <dd className="mt-1 capitalize">
+                {customer.acquisitionSource?.replaceAll("_", " ") ??
+                  "Personal introduction"}
+              </dd>
+            </div>
+          </dl>
+          {canManage ? (
             <Link
               href={`/wedding-parties/new?customerId=${customer.id}`}
-              className={buttonVariants({ variant: "ghost" })}
+              className="mt-5 inline-flex text-sm underline underline-offset-4"
             >
-              Start a wedding party
+              Begin a wedding party relationship →
             </Link>
-          </div>
-        ) : null}
-      </div>
-
-      <Card className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div>
-          <p className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
-            Customer Portal
-          </p>
-          <Badge tone={customer.userId ? "success" : "neutral"}>
-            {customer.userId ? "Linked" : "Not linked"}
-          </Badge>
-        </div>
-        <div>
-          <p className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
-            Acquisition source
-          </p>
-          <p className="text-[var(--color-stone-900)]">
-            {customer.acquisitionSource ?? "—"}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
-            Added
-          </p>
-          <p className="text-[var(--color-stone-900)]">
-            {formatDate(customer.createdAt, "en-US")}
-          </p>
-        </div>
-      </Card>
+          ) : null}
+        </Card>
+      </section>
 
       {canManage ? (
         <Card>

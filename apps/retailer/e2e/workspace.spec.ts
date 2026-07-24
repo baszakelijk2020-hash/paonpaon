@@ -80,7 +80,10 @@ test("owner adds a customer CRM record", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Jamie Shopper" }),
   ).toBeVisible();
-  await expect(page.getByText("Not linked")).toBeVisible();
+  await expect(page.getByText("Not connected")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Create the next reason to return." }),
+  ).toBeVisible();
 
   // No OPENAI_API_KEY in this environment — the AI Insights card must
   // degrade gracefully, not crash the page (docs/DECISIONS.md ADR-033).
@@ -201,6 +204,9 @@ test("owner books an appointment and updates its status", async ({ page }) => {
   await page.getByRole("button", { name: "Book appointment" }).click();
 
   await expect(page).toHaveURL(/\/appointments\/[0-9a-f-]+$/);
+  await expect(
+    page.getByRole("heading", { name: "What should the advisor know?" }),
+  ).toBeVisible();
   await page.getByLabel("Status").selectOption("confirmed");
   await page.getByRole("button", { name: "Save" }).click();
 

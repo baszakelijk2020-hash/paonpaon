@@ -1,6 +1,9 @@
 import {
   AppointmentRepository,
+  ClientelingRepository,
   CustomerRepository,
+  OrderRepository,
+  PhysicalGarmentRepository,
   RetailerStaffRepository,
 } from "@paon/database";
 import { asId, retailerRoleAtLeast } from "@paon/domain";
@@ -10,6 +13,7 @@ import { formatDate } from "@paon/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { LifecycleBadge } from "../../customers/lifecycle-badge";
 import { AppointmentStatusBadge } from "../status-badge";
 
 import { AppointmentActionsForm } from "./appointment-actions-form";
@@ -37,6 +41,17 @@ export default async function AppointmentDetailPage({
     new CustomerRepository(supabase).findById(appointment.customerId),
     new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
   ]);
+  const [notes, orders, garments] = customer
+    ? await Promise.all([
+        new ClientelingRepository(supabase).findByCustomer(customer.id),
+        new OrderRepository(supabase).findByCustomer(customer.id),
+        new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
+      ])
+    : [[], [], []];
+  const pinnedNote = notes.find((note) => note.pinned);
+  const assignedAdvisor = staff.find(
+    (member) => member.id === appointment.staffId,
+  );
 
   const canManage = retailerRoleAtLeast(
     session.retailerRole,
@@ -44,77 +59,183 @@ export default async function AppointmentDetailPage({
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
-            {customer?.fullName ?? "Unknown customer"}
-          </h1>
-          <AppointmentStatusBadge status={appointment.status} />
+    <div className="flex flex-col gap-8">
+      <section className="relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-7 text-white shadow-[var(--shadow-elevated)] sm:p-10">
+        <div
+          aria-hidden="true"
+          className="absolute right-8 top-0 -z-10 text-[12rem] font-[var(--font-display)] leading-none text-white/[0.035]"
+        >
+          {new Date(appointment.startsAt).getDate()}
         </div>
-        <p className="text-sm capitalize text-[var(--color-stone-500)]">
-          {appointment.type.replaceAll("_", " ")} ·{" "}
-          {formatDate(appointment.startsAt, "en-US")}
-        </p>
-        {appointment.notes ? (
-          <p className="mt-2 text-sm text-[var(--color-stone-700)]">
-            {appointment.notes}
-          </p>
-        ) : null}
-      </div>
-
-      <div>
-        <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
-          Customer profile
-        </h2>
-        <Card className="flex flex-col gap-3">
-          {customer ? (
-            <>
-              <p className="text-sm text-[var(--color-stone-700)]">
-                {customer.email ?? "No email on file"}
-                {customer.phone ? ` · ${customer.phone}` : ""} ·{" "}
-                <span className="capitalize">{customer.lifecycleStage}</span>
+        <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-white/60">
+                Appointment brief
               </p>
-              <p className="text-sm text-[var(--color-stone-500)]">
-                Fit observations are recorded against the physical garment
-                during alteration intake.
-              </p>
+              <AppointmentStatusBadge status={appointment.status} />
+            </div>
+            <h1 className="mt-4 text-5xl font-[var(--font-display)] leading-none sm:text-6xl">
+              {customer?.fullName ?? "Unknown customer"}
+            </h1>
+            <p className="mt-4 text-sm capitalize text-white/65">
+              {appointment.type.replaceAll("_", " ")} ·{" "}
+              {formatDate(appointment.startsAt, "en-US")} ·{" "}
+              {new Date(appointment.startsAt).toLocaleTimeString("en-US", {
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
+          {customer && canManage ? (
+            <div className="flex flex-wrap gap-3">
               <Link
                 href={`/customers/${customer.id}`}
-                className="text-sm underline"
+                className={buttonVariants({
+                  variant: "secondary",
+                  size: "lg",
+                })}
               >
-                View full customer record
+                Open relationship
               </Link>
-              {canManage ? (
-                <Link
-                  href={`/alterations/new?customerId=${customer.id}&appointmentId=${appointment.id}`}
-                  className={buttonVariants({
-                    variant: "secondary",
-                    size: "sm",
-                  })}
-                >
-                  Start garment intake
-                </Link>
-              ) : null}
-            </>
-          ) : (
-            <p className="text-sm text-[var(--color-stone-500)]">
-              Customer record not found.
-            </p>
-          )}
-        </Card>
-      </div>
+              <Link
+                href={`/alterations/new?customerId=${customer.id}&appointmentId=${appointment.id}`}
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "lg",
+                  className: "border-white/30 text-white hover:bg-white/10",
+                })}
+              >
+                Begin garment intake
+              </Link>
+            </div>
+          ) : null}
+        </div>
+      </section>
 
-      {canManage ? (
-        <AppointmentActionsForm
-          appointmentId={appointment.id}
-          currentStatus={appointment.status}
-          {...(appointment.staffId
-            ? { currentStaffId: appointment.staffId }
-            : {})}
-          staff={staff}
-        />
-      ) : null}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+        <div className="flex flex-col gap-6">
+          <Card className="rounded-[var(--radius-xl)]">
+            <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+              Prepare the moment
+            </p>
+            <h2 className="mt-3 text-3xl font-[var(--font-display)]">
+              What should the advisor know?
+            </h2>
+            {pinnedNote ? (
+              <blockquote className="mt-5 border-l-2 border-[var(--color-stone-900)] pl-5 text-lg leading-7">
+                {pinnedNote.body}
+              </blockquote>
+            ) : (
+              <p className="mt-4 text-sm leading-6 text-[var(--color-stone-500)]">
+                No team preference is pinned yet. Open the relationship after
+                the appointment and save the detail worth remembering.
+              </p>
+            )}
+            {appointment.notes ? (
+              <div className="mt-6 rounded-[var(--radius-lg)] bg-[var(--color-stone-50)] p-5">
+                <p className="text-xs uppercase tracking-wide text-[var(--color-stone-500)]">
+                  Appointment request
+                </p>
+                <p className="mt-2 text-sm leading-6">{appointment.notes}</p>
+              </div>
+            ) : null}
+          </Card>
+
+          {canManage ? (
+            <Card className="rounded-[var(--radius-xl)]">
+              <div className="mb-5">
+                <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+                  Run the appointment
+                </p>
+                <h2 className="mt-2 text-3xl font-[var(--font-display)]">
+                  Ownership and progress
+                </h2>
+              </div>
+              <AppointmentActionsForm
+                appointmentId={appointment.id}
+                currentStatus={appointment.status}
+                {...(appointment.staffId
+                  ? { currentStaffId: appointment.staffId }
+                  : {})}
+                staff={staff}
+              />
+            </Card>
+          ) : null}
+        </div>
+
+        <aside className="flex flex-col gap-6">
+          <Card className="rounded-[var(--radius-xl)] p-0">
+            <div className="border-b border-[var(--color-stone-100)] p-6">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-3xl font-[var(--font-display)]">
+                    {customer?.fullName ?? "Customer unavailable"}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+                    {customer?.email ?? "No email on file"}
+                  </p>
+                </div>
+                {customer ? (
+                  <LifecycleBadge stage={customer.lifecycleStage} />
+                ) : null}
+              </div>
+            </div>
+            <dl className="grid grid-cols-2">
+              <div className="border-b border-r border-[var(--color-stone-100)] p-5">
+                <dt className="text-xs text-[var(--color-stone-500)]">
+                  Advisor
+                </dt>
+                <dd className="mt-1 text-sm">
+                  {assignedAdvisor?.fullName ?? "Unassigned"}
+                </dd>
+              </div>
+              <div className="border-b border-[var(--color-stone-100)] p-5">
+                <dt className="text-xs text-[var(--color-stone-500)]">
+                  Wardrobe
+                </dt>
+                <dd className="mt-1 text-sm">{garments.length} garments</dd>
+              </div>
+              <div className="border-r border-[var(--color-stone-100)] p-5">
+                <dt className="text-xs text-[var(--color-stone-500)]">
+                  Orders
+                </dt>
+                <dd className="mt-1 text-sm">{orders.length} recorded</dd>
+              </div>
+              <div className="p-5">
+                <dt className="text-xs text-[var(--color-stone-500)]">
+                  Contact
+                </dt>
+                <dd className="mt-1 text-sm">
+                  {customer?.phone ? "Phone ready" : "Email only"}
+                </dd>
+              </div>
+            </dl>
+          </Card>
+
+          <Card className="rounded-[var(--radius-xl)]">
+            <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+              After this visit
+            </p>
+            <h2 className="mt-2 text-2xl font-[var(--font-display)]">
+              Preserve continuity.
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-[var(--color-stone-500)]">
+              Complete the status, record the preference in the relationship
+              workspace, and start garment intake only when a physical garment
+              is present.
+            </p>
+            {customer ? (
+              <Link
+                href={`/customers/${customer.id}#clienteling-notes`}
+                className="mt-4 inline-flex text-sm underline underline-offset-4"
+              >
+                Add a private follow-up note →
+              </Link>
+            ) : null}
+          </Card>
+        </aside>
+      </div>
     </div>
   );
 }

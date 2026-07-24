@@ -74,6 +74,26 @@ personas plus the platform and customer dashboards. As with Checkpoint 1, these
 screens remain **Foundation**, not **Accepted**, until in-app-browser desktop
 and mobile screenshots can be inspected.
 
+### Checkpoint 3 — relationship-to-appointment continuity
+
+Implemented locally:
+
+- retailer `/customers/[id]` now opens as a relationship workspace with a
+  private-client identity hero, pinned team memory, relationship/lifetime
+  value/wardrobe/portal signals, next-best-moment guidance and contextual
+  message, garment-intake and wedding-party actions;
+- `/appointments/[id]` now behaves as an advisor preparation brief. It carries
+  the pinned relationship memory, appointment request, assigned advisor,
+  wardrobe/order context, operational status controls and explicit post-visit
+  continuity back into the client record;
+- the existing authoritative customer, order, appointment, garment,
+  clienteling and loyalty repositories remain the source of every signal; this
+  checkpoint added no duplicated relationship state.
+
+The retailer E2E journey now asserts the relationship next-action state and the
+appointment preparation workspace before exercising the existing mutations.
+Visual acceptance remains blocked on the unavailable in-app browser.
+
 ## Experience principles
 
 1. **Attention before administration.** Every dashboard opens with the few
@@ -398,8 +418,8 @@ primary mutation feedback. Dynamic routes use seeded records.
 | `/login`, `/accept-invite`                                          | Editorial entry and guided activation                       | Foundation / Baseline |
 | `/dashboard`                                                        | Role-specific daily brief and day plan                      | Foundation            |
 | `/customers`, `/customers/new`                                      | Client book and polished client capture                     | Baseline              |
-| `/customers/[id]`                                                   | Rich relationship workspace with chronology and next action | Baseline              |
-| `/appointments`, `/appointments/new`, `/appointments/[id]`          | Agenda, booking and service workspace                       | Baseline              |
+| `/customers/[id]`                                                   | Rich relationship workspace with chronology and next action | Foundation            |
+| `/appointments`, `/appointments/new`, `/appointments/[id]`          | Agenda, booking and service workspace                       | Baseline / Foundation |
 | `/appointments/availability`                                        | Human-readable weekly capacity editor                       | Baseline              |
 | `/orders`, `/orders/[id]`                                           | Risk-aware fulfilment queue and progress record             | Baseline              |
 | `/alterations`, `/alterations/new`                                  | Visual work queue and fitting-led intake                    | Foundation / Baseline |
