@@ -971,6 +971,12 @@ duplicated here.
 - Both apps' flat nav lists are now grouped (`role="group"` clusters);
   Customer Portal additionally gained a pinned bottom tab bar on mobile
   viewports (Orders/Appointments/Messages/Account).
+- Retailer Portal `/products` now uses a responsive, scan-friendly product
+  grid rather than treating visual merchandise like an administrative roster:
+  image/empty-image state, publication badge, slug and made-to-order/alterable
+  signals share one fully clickable, keyboard-focused card. The semantic
+  labelled list and product link are covered by the existing catalogue E2E
+  journey.
 - Cart quantity control replaced raw-input-plus-separate-button with
   auto-submitting steppers and a dedicated Remove action; a sticky
   mobile checkout bar keeps "Place order" reachable on longer carts.

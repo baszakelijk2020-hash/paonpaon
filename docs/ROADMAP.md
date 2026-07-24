@@ -235,12 +235,11 @@ symlink without an explicit `@source` directive. Fixed once, in
   not have.
 - **Back-office visual pass, remaining depth.** Headings and every
   list/roster Card (rounded-xl + shadow-elevated) now match across all
-  of `apps/retailer`/`apps/admin`. Not yet carried: `--font-accent`
-  eyebrow-label styling (still storefront-only) and any
-  masonry/grid-style layout for pages where a plain list isn't the
-  right shape (e.g. a product grid in Retailer Portal's own `/products`
-  page, which still lists rather than grids). Detail-page forms and
-  inputs are unchanged from the original quiet/editorial component set.
+  of `apps/retailer`/`apps/admin`, and Retailer Portal `/products` now uses a
+  responsive image-led product grid instead of a roster list. Not yet carried:
+  `--font-accent` eyebrow-label styling (still storefront-only) or a broader
+  redesign of detail-page forms and inputs beyond the original quiet/editorial
+  component set.
 - **Alteration operation depth beyond cost controls.** Cost-control
   hardening shipped (ADR-036); per-employee photo/notes/operational attribution
   is now audited, database-derived where callers previously could submit it,

@@ -119,6 +119,12 @@ test("owner adds a product with its first variant", async ({ page }) => {
   await expect(page.getByLabel(/Price/).first()).toHaveValue("450000");
 
   await page.goto("/products");
+  await expect(
+    page.getByRole("list", { name: "Product catalog" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: new RegExp(`overcoat-${unique}`) }),
+  ).toBeVisible();
   await expect(page.getByText(`overcoat-${unique}`)).toBeVisible();
 });
 
