@@ -16,6 +16,7 @@ import {
   canRetailerRoleTransitionAlteration,
   retailerRoleHasAlterationsPermission,
   type Alteration,
+  type StaffId,
 } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
@@ -78,6 +79,7 @@ export default async function AlterationDetailPage({
     assignment,
     attachments,
     pricingHistory,
+    completionReviews,
   ] = await Promise.all([
     fullAlteration
       ? new CustomerRepository(supabase).findById(fullAlteration.customerId)
@@ -103,7 +105,9 @@ export default async function AlterationDetailPage({
       ? Promise.resolve([])
       : new WorkshopRepository(supabase).findByRetailer(session.retailerId),
     isWorker
-      ? Promise.resolve([])
+      ? new RetailerStaffRepository(supabase)
+          .findByUserId(session.userId)
+          .then((member) => (member ? [member] : []))
       : new RetailerStaffRepository(supabase).findByRetailer(
           session.retailerId,
         ),
@@ -122,7 +126,15 @@ export default async function AlterationDetailPage({
     isWorker
       ? Promise.resolve([])
       : workflowRepository.findPricingHistory(alteration.id),
+    isWorker
+      ? Promise.resolve([])
+      : workflowRepository.findCompletionReviews(alteration.id),
   ]);
+  const staffName = (staffId?: StaffId): string =>
+    staffId
+      ? (staff.find((member) => member.id === staffId)?.fullName ??
+        "Former staff member")
+      : "System";
 
   const hasUpdatePermission = [
     "intake",
@@ -258,6 +270,10 @@ export default async function AlterationDetailPage({
                   <p className="text-sm text-[var(--color-stone-700)]">
                     {proposal.explanation}
                   </p>
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    Proposed by {staffName(proposal.proposedByStaffId)} ·{" "}
+                    {formatDate(proposal.createdAt, "en-US")}
+                  </p>
                   {proposal.evidenceAttachmentId
                     ? attachments
                         .filter(
@@ -277,9 +293,17 @@ export default async function AlterationDetailPage({
                         ))
                     : null}
                   {proposal.decisionReason ? (
-                    <p className="text-sm">
-                      Decision: {proposal.decisionReason}
-                    </p>
+                    <>
+                      <p className="text-sm">
+                        Decision: {proposal.decisionReason}
+                      </p>
+                      <p className="text-xs text-[var(--color-stone-500)]">
+                        Decided by {staffName(proposal.decidedByStaffId)}
+                        {proposal.decidedAt
+                          ? ` · ${formatDate(proposal.decidedAt, "en-US")}`
+                          : ""}
+                      </p>
+                    </>
                   ) : null}
                   {canApprovePrice && proposal.status === "pending" ? (
                     <PriceDecisionForm
@@ -315,9 +339,8 @@ export default async function AlterationDetailPage({
                     </span>{" "}
                     · {(entry.amount.amountMinorUnits / 100).toFixed(2)}{" "}
                     {entry.amount.currency}
-                    {entry.actorStaffId
-                      ? ` · ${staff.find((s) => s.id === entry.actorStaffId)?.fullName ?? "Unknown"}`
-                      : ""}
+                    {" · "}
+                    {staffName(entry.actorStaffId)}
                     {" · "}
                     {formatDate(entry.createdAt, "en-US")}
                     {entry.reason ? (
@@ -345,6 +368,9 @@ export default async function AlterationDetailPage({
               <p className="text-sm text-[var(--color-stone-500)]">
                 {event.fromParty ?? "—"} → {event.toParty ?? "—"}
                 {event.conditionNote ? ` · ${event.conditionNote}` : ""}
+              </p>
+              <p className="text-xs text-[var(--color-stone-500)]">
+                Recorded by {staffName(event.actorStaffId)}
               </p>
             </div>
           ))}
@@ -393,11 +419,33 @@ export default async function AlterationDetailPage({
         <div>
           <h2 className="mb-3 text-lg font-medium">Pickup or delivery</h2>
           <Card>
-            <p className="mb-3 text-sm text-[var(--color-stone-500)]">
-              {fulfillment[0]
-                ? `Latest: ${fulfillment[0].method} · ${fulfillment[0].status}`
-                : "No pickup or delivery arrangement yet."}
-            </p>
+            {fulfillment.length ? (
+              <div className="mb-4 divide-y divide-[var(--color-stone-100)]">
+                {fulfillment.map((event) => (
+                  <div key={event.id} className="py-2 text-sm">
+                    <p className="font-medium capitalize">
+                      {event.method} · {event.status}
+                    </p>
+                    <p className="text-xs text-[var(--color-stone-500)]">
+                      Recorded by {staffName(event.actorStaffId)} ·{" "}
+                      {formatDate(event.createdAt, "en-US")}
+                    </p>
+                    {event.releasedToName ? (
+                      <p className="text-[var(--color-stone-600)]">
+                        Released to {event.releasedToName}
+                        {event.verificationNote
+                          ? ` · ${event.verificationNote}`
+                          : ""}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mb-3 text-sm text-[var(--color-stone-500)]">
+                No pickup or delivery arrangement yet.
+              </p>
+            )}
             <WorkflowActionForm
               action={recordFulfillment.bind(null, alteration.id)}
               className="grid grid-cols-1 gap-2 sm:grid-cols-3"
@@ -549,6 +597,10 @@ export default async function AlterationDetailPage({
                   />
                   <p className="truncate px-2 py-1 text-xs">
                     {attachment.kind} · {attachment.fileName}
+                  </p>
+                  <p className="truncate px-2 pb-2 text-xs text-[var(--color-stone-500)]">
+                    {staffName(attachment.uploadedByStaffId)} ·{" "}
+                    {formatDate(attachment.createdAt, "en-US")}
                   </p>
                 </a>
               ))}
@@ -706,6 +758,10 @@ export default async function AlterationDetailPage({
                     className="mt-1 text-sm text-[var(--color-stone-600)]"
                   >
                     Work note: {note.note}
+                    <span className="block text-xs text-[var(--color-stone-500)]">
+                      {staffName(note.actorStaffId)} ·{" "}
+                      {formatDate(note.createdAt, "en-US")}
+                    </span>
                   </p>
                 ))}
               {canWorkTasks && task.classification === "work_now" ? (
@@ -756,6 +812,33 @@ export default async function AlterationDetailPage({
         </Card>
       </div>
 
+      {!isWorker && completionReviews.length > 0 ? (
+        <div>
+          <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
+            Completion reviews
+          </h2>
+          <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+            {completionReviews.map((review) => (
+              <div key={review.id} className="px-6 py-4">
+                <p className="font-medium capitalize">
+                  {review.status.replaceAll("_", " ")}
+                </p>
+                <p className="text-xs text-[var(--color-stone-500)]">
+                  {review.reviewedAt
+                    ? `Reviewed by ${staffName(review.reviewedByStaffId)} · ${formatDate(review.reviewedAt, "en-US")}`
+                    : `Awaiting review · ${formatDate(review.createdAt, "en-US")}`}
+                </p>
+                {review.notes ? (
+                  <p className="mt-1 text-sm text-[var(--color-stone-700)]">
+                    {review.notes}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </Card>
+        </div>
+      ) : null}
+
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
           Updates
@@ -771,6 +854,7 @@ export default async function AlterationDetailPage({
                 <div className="flex items-center gap-2">
                   <AlterationStatusBadge status={update.toStatus} />
                   <span className="text-xs text-[var(--color-stone-500)]">
+                    {staffName(update.actorStaffId)} ·{" "}
                     {formatDate(update.createdAt, "en-US")}
                   </span>
                 </div>

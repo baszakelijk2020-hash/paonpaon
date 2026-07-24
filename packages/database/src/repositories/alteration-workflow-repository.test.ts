@@ -108,4 +108,40 @@ describe("AlterationWorkflowRepository", () => {
       }),
     ]);
   });
+
+  it("maps completion-review employee attribution", async () => {
+    const from = vi.fn().mockReturnValue(
+      fakeQueryBuilder({
+        data: [
+          {
+            id: "55555555-5555-5555-5555-555555555555",
+            alteration_id: "11111111-1111-1111-1111-111111111111",
+            retailer_id: "22222222-2222-2222-2222-222222222222",
+            status: "approved",
+            notes: "Finishing and symmetry confirmed.",
+            reviewed_by_staff_id: "33333333-3333-3333-3333-333333333333",
+            reviewed_at: "2026-07-24T10:00:00.000Z",
+            created_at: "2026-07-24T09:00:00.000Z",
+            updated_at: "2026-07-24T10:00:00.000Z",
+            deleted_at: null,
+          },
+        ],
+        error: null,
+      }),
+    );
+
+    const result = await new AlterationWorkflowRepository({
+      from,
+    } as unknown as PaonSupabaseClient).findCompletionReviews(
+      "11111111-1111-1111-1111-111111111111" as never,
+    );
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        status: "approved",
+        reviewedByStaffId: "33333333-3333-3333-3333-333333333333",
+        notes: "Finishing and symmetry confirmed.",
+      }),
+    ]);
+  });
 });

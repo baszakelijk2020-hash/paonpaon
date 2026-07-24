@@ -103,12 +103,16 @@ manual future entry into GoCreate and cannot be assigned as current work.
 `Alteration` is the work-order aggregate root. Its original quote is immutable;
 approved workshop increases/decreases are separate proposal and pricing-history
 records. Status history, task notes, pricing history and custody events are
-append-only. Customer Portal reads purpose-built safe projections rather than
-the base aggregate, so internal notes, evidence and unapproved prices are not
-part of the customer security surface. Assigned workers likewise read
-worker-specific work-order/task projections with customer and pricing fields
-removed; private images are reached only through short-lived signed URLs backed
-by assignment-aware Storage policies.
+append-only. Employee attribution is part of each operational record: task
+notes, status/pricing changes, evidence uploads, custody, completion review and
+pickup/delivery identify the responsible staff member; direct-RLS writes derive
+that identity in Postgres instead of trusting a submitted staff id. Customer
+Portal reads purpose-built safe projections rather than the base aggregate, so
+internal notes, evidence, employee identities and unapproved prices are not part
+of the customer security surface. Assigned workers likewise read worker-specific
+work-order/task projections with customer and pricing fields removed; private
+images are reached only through short-lived signed URLs backed by
+assignment-aware Storage policies.
 
 ## Extending the model
 

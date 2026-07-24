@@ -124,7 +124,12 @@ tasks/task notes, attachment metadata, pricing proposals, custody, completion
 reviews and fulfillment. Price-list writes and alteration status/agreed-price
 changes go through audited, validated `security definer` functions.
 `alteration_status_history`, `alteration_pricing_history` and
-`chain_of_custody_events` are append-only.
+`chain_of_custody_events` are append-only. Direct-RLS operational inserts
+(`alteration_attachments`, `chain_of_custody_events`,
+`alteration_fulfillment_events`) derive their employee-attribution columns from
+`current_staff_id()` in `before insert` triggers; a browser cannot claim another
+staff member's identity even when it otherwise has permission to create the
+record.
 
 ## Soft delete
 

@@ -264,6 +264,7 @@ export type Database = {
       };
       alteration_fulfillment_events: {
         Row: {
+          actor_staff_id: string | null;
           alteration_id: string;
           completed_at: string | null;
           created_at: string;
@@ -279,6 +280,7 @@ export type Database = {
           verification_note: string | null;
         };
         Insert: {
+          actor_staff_id?: string | null;
           alteration_id: string;
           completed_at?: string | null;
           created_at?: string;
@@ -294,6 +296,7 @@ export type Database = {
           verification_note?: string | null;
         };
         Update: {
+          actor_staff_id?: string | null;
           alteration_id?: string;
           completed_at?: string | null;
           created_at?: string;
@@ -309,6 +312,13 @@ export type Database = {
           verification_note?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "alteration_fulfillment_events_actor_staff_id_fkey";
+            columns: ["actor_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "alteration_fulfillment_events_alteration_id_fkey";
             columns: ["alteration_id"];

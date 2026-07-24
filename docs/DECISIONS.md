@@ -1578,3 +1578,36 @@ after they link/sign in, but there is no recipient to notify before
 that identity exists. Native push remains unimplemented pending a
 provider decision and credentials; email/SMS continue to degrade through
 their documented durable outbox behavior when credentials are absent.
+
+## ADR-039: Operational alteration attribution is database-derived and visible in the work-order audit trail
+
+**Context.** The garment-first model already stored staff ids on most
+operational records, but the Retailer Portal rendered only pricing-history
+actors. Task notes, evidence, custody, status changes and completion reviews
+therefore looked anonymous even though their rows were attributed, while
+fulfillment had no actor column at all. More importantly, attachment and custody
+were direct-RLS inserts whose actor columns came from the Server Action payload:
+RLS checked permission to insert but did not prevent an authorized caller from
+submitting a different staff member's id.
+
+**Decision.** `alteration_fulfillment_events` gains nullable
+`actor_staff_id`, forward-filled from its existing immutable audit entry where
+available. Before-insert triggers now overwrite attachment uploader, custody
+actor and fulfillment actor with `current_staff_id()` for every non-service-role
+caller; the service role may retain explicit attribution for fixtures and
+authorized internal tooling. This keeps the existing direct-RLS write shape but
+makes staff identity a database-derived fact. The Retailer work-order page maps
+ids through `RetailerStaffRepository` and displays actor + timestamp for price
+proposals/decisions, pricing history, custody, evidence, task notes, status
+history, completion reviews and the full fulfillment history. Worker views load
+only their own staff record and retain the established customer/pricing
+projection restrictions.
+
+**Consequences.** An authorized staff member can no longer impersonate a
+colleague in alteration evidence or handoff metadata. Managers get one
+human-readable audit surface without querying `audit_log_entries`, while the
+immutable audit log remains the deeper privileged record. Former/deleted staff
+continue to render as “Former staff member” rather than losing the event; system
+or legacy rows with no actor render as “System.” No customer-safe projection
+gained employee identity, and no supplier/manufacturing responsibility moved
+into PAON.

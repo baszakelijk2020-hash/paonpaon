@@ -253,4 +253,5 @@ test("owner creates a garment work order with current and future work", async ({
   await expect(
     page.getByText("Scope and original quote prepared."),
   ).toBeVisible();
+  await expect(page.getByText(/E2E Owner ·/).last()).toBeVisible();
 });

@@ -659,7 +659,12 @@ and factory execution.
   task/pricing/approval/handoff/pickup-delivery controls and catalogue/workshop
   configuration. Customer Portal shows only the approved garment status and
   pickup/delivery projection. Customer records now list physical garments, not
-  generic measurements.
+  generic measurements. The Retailer work-order view now names the employee and
+  timestamp across proposals/decisions, pricing history, custody, photos, task
+  notes, status updates, completion reviews and every pickup/delivery event.
+  Fulfillment gained first-class `actor_staff_id`; attachment, custody and
+  fulfillment inserts derive the authenticated staff id in Postgres rather than
+  trusting browser-supplied attribution (ADR-039).
 - **Deliberately not built:** GoCreate integration, any supplier connector,
   MTM/specification/construction UI or native push provider.
   `ProductionOrder` remains a future connector-facing status projection.
@@ -999,6 +1004,11 @@ duplicated here.
   inbox notification opens the intended safe alteration detail view, and the
   resulting notification has a linked durable email-outbox row.
   `supabase db lint --level warning` reports no schema errors.
+- `20260724000001_complete_alteration_employee_attribution.sql` applied cleanly
+  and its actor-derivation trigger was verified inside a rolled-back
+  authenticated transaction: a deliberately spoofed attachment uploader id was
+  replaced by `current_staff_id()`. Repository tests cover fulfillment and
+  completion-review mapping; `supabase db lint --level warning` remains clean.
 - Docker and Supabase CLI are available. On 2026-07-20, the complete migration
   chain (`20260719000000`–`20260719000103`, then `20260720000000`–
   `20260720000014` including the persisted-cart, referral-journey, wishlist,

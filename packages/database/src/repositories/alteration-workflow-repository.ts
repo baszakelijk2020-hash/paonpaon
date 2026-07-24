@@ -4,6 +4,7 @@ import {
   type AlterationId,
   type AlterationPricingHistoryEntry,
   type AlterationTaskId,
+  type CompletionReview,
   type CurrencyCode,
   type PriceChangeProposal,
   type PriceChangeProposalId,
@@ -19,6 +20,25 @@ type ProposalRow =
   Database["public"]["Tables"]["price_change_proposals"]["Row"];
 type PricingHistoryRow =
   Database["public"]["Tables"]["alteration_pricing_history"]["Row"];
+type CompletionReviewRow =
+  Database["public"]["Tables"]["completion_reviews"]["Row"];
+
+function completionReviewToDomain(row: CompletionReviewRow): CompletionReview {
+  return {
+    id: asId<"CompletionReviewId">(row.id),
+    alterationId: asId<"AlterationId">(row.alteration_id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    status: row.status,
+    ...(row.notes ? { notes: row.notes } : {}),
+    ...(row.reviewed_by_staff_id
+      ? { reviewedByStaffId: asId<"StaffId">(row.reviewed_by_staff_id) }
+      : {}),
+    ...(row.reviewed_at ? { reviewedAt: row.reviewed_at } : {}),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
+  };
+}
 
 function pricingHistoryToDomain(
   row: PricingHistoryRow,
@@ -121,6 +141,19 @@ export class AlterationWorkflowRepository {
       .order("created_at", { ascending: true });
     if (error) throw error;
     return data.map(pricingHistoryToDomain);
+  }
+
+  async findCompletionReviews(
+    alterationId: AlterationId,
+  ): Promise<CompletionReview[]> {
+    const { data, error } = await this.client
+      .from("completion_reviews")
+      .select("*")
+      .eq("alteration_id", alterationId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data.map(completionReviewToDomain);
   }
 
   async proposePriceChange(params: {

@@ -374,6 +374,7 @@ export interface FulfillmentEvent extends Timestamps {
   readonly id: FulfillmentEventId;
   readonly alterationId: AlterationId;
   readonly retailerId: RetailerId;
+  readonly actorStaffId?: StaffId;
   readonly method: "pickup" | "delivery";
   readonly status:
     "scheduled" | "ready" | "dispatched" | "completed" | "canceled";

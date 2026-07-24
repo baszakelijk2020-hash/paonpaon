@@ -100,6 +100,7 @@ test("owner sees a pending price approval on the dashboard and can jump straight
   await expect(
     page.getByRole("heading", { name: "Pricing proposals" }),
   ).toBeVisible();
+  await expect(page.getByText(/Proposed by E2E Owner/)).toBeVisible();
 
   const headings = await page
     .getByRole("heading", { level: 2 })

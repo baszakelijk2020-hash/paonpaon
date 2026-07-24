@@ -242,14 +242,13 @@ symlink without an explicit `@source` directive. Fixed once, in
   page, which still lists rather than grids). Detail-page forms and
   inputs are unchanged from the original quiet/editorial component set.
 - **Alteration operation depth beyond cost controls.** Cost-control
-  hardening shipped (ADR-036); per-employee login/photo/notes
-  attribution already exists in large part
-  (`AlterationAttachmentId`, `ChainOfCustodyEvent`, `CompletionReview`,
-  `AlterationTaskNote` — see DOMAIN_MODEL.md), not audited against UI
-  wiring yet. Customer-facing alteration-readiness notifications now ship
-  through the existing in-app/email/SMS pipeline (ADR-038); native push still
-  needs a provider decision and credentials. A dedicated manager cost-approval
-  dashboard distinct from the pricing-history Card that shipped is not built.
+  hardening shipped (ADR-036); per-employee photo/notes/operational attribution
+  is now audited, database-derived where callers previously could submit it,
+  and visible across the retailer workflow (ADR-039). Customer-facing
+  alteration-readiness notifications now ship through the existing
+  in-app/email/SMS pipeline (ADR-038); native push still needs a provider
+  decision and credentials. A dedicated manager cost-approval dashboard
+  distinct from the pricing-history Card that shipped is not built.
 - **Dynamic pricing / idle-customer re-engagement.** "Full insight
   into customer online behavior... dynamic pricing... track buying
   patterns... know when to clientele" is a real analytics/personalisation
