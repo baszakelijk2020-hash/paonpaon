@@ -23,6 +23,9 @@ test("demo atelier launches every seeded operating perspective", async ({
   await page.getByLabel("Password").fill(TEST_ADMIN_PASSWORD);
   await page.getByRole("button", { name: "Enter PAON" }).click();
   await expect(page).toHaveURL(/\/retailers$/);
+  await expect(
+    page.getByRole("heading", { name: "The network, clearly in view." }),
+  ).toBeVisible();
   await page.goto("/demo-mode");
 
   await expect(

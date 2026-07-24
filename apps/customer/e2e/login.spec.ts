@@ -59,7 +59,9 @@ test("an existing customer signs in and sees their linked retailer", async ({
   );
 
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByText(TEST_RETAILER_DISPLAY_NAME)).toBeVisible();
+  await expect(
+    page.getByText(TEST_RETAILER_DISPLAY_NAME, { exact: true }),
+  ).toBeVisible();
 });
 
 test("a seeded private-client persona has deterministic demo access", async ({
@@ -81,5 +83,10 @@ test("a seeded private-client persona has deterministic demo access", async ({
     .click();
 
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByText("Maison Dubois")).toBeVisible();
+  await expect(page.getByText("Maison Dubois", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "Your wardrobe, beautifully in motion.",
+    }),
+  ).toBeVisible();
 });

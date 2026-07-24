@@ -31,7 +31,7 @@ test.describe("Login", () => {
 
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(
-      page.getByRole("heading", { name: "E2E Workspace" }),
+      page.getByRole("heading", { name: "The atelier, at a glance." }),
     ).toBeVisible();
     await expect(
       page.getByRole("complementary").getByText(TEST_OWNER_EMAIL),

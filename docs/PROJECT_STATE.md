@@ -50,6 +50,30 @@ required baseline screenshot register remains explicitly blocked in
 `EXPERIENCE_REBUILD.md`; automated Chromium interaction coverage is evidence of
 function and authorization, not a claimed substitute for visual inspection.
 
+**Attention-dashboard checkpoint implemented locally (not deployed):**
+
+- PAON Admin `/retailers` is no longer a sparse tenant table. It opens with a
+  platform morning brief, real 30-day aggregate activity, non-active retailer
+  intervention cards and a composed network view with direct operational
+  routes;
+- Retailer `/dashboard` now uses the signed-in role to provide distinct owner,
+  manager, advisor and production language/actions. The live page combines
+  today’s appointment agenda, open orders, garments, unread updates, pending
+  price decisions, staff/atelier context and useful clear-state guidance;
+- workshop manager and assigned worker entry now uses `/alterations` as a real
+  workroom dashboard: active/due/workbench counts, due-soon visibility,
+  progressive garment rails and actions limited to the current role;
+- Customer `/dashboard` is now a consumer-grade private-client home with
+  reference-derived editorial imagery, the next relationship moment,
+  appointment/alteration/conversation signals and rich per-atelier continuity;
+- the seeded role suite now asserts the distinct brief for every retailer
+  operating persona in addition to role navigation. Platform and customer
+  dashboard identity are also asserted.
+
+This checkpoint still cannot be called visually accepted while the in-app
+browser inventory is empty. No source-rendered image or automated E2E screenshot
+is being substituted for the required desktop/mobile inspection evidence.
+
 **Phase 0 (engineering foundation): done. Phase 1 (Identity, Retailer,
 Customer core): done. Phase 2 (Catalog and Commerce): catalog, storefront,
 order placement/management and Stripe Connect customer payments shipped

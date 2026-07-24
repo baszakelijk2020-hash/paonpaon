@@ -82,8 +82,9 @@ test("an invited owner must set a password before reaching the workspace", async
   await page.getByRole("button", { name: "Set password & continue" }).click();
 
   await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByText(retailer.displayName).first()).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: retailer.displayName }),
+    page.getByRole("heading", { name: "The atelier, at a glance." }),
   ).toBeVisible();
   await expect(page.getByText("Active", { exact: true })).toBeVisible();
 });

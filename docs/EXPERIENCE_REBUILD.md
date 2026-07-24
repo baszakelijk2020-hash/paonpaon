@@ -31,7 +31,7 @@ not a substitute screenshot.
 
 ### Checkpoint 1 — demo truth, entry and shells
 
-Implemented locally:
+Committed as `d3bbc0d`:
 
 - rich idempotent showcase data and all required personas, including
   production/operations and an assigned alteration worker;
@@ -49,6 +49,30 @@ Implemented locally:
 The code checkpoint is functionally verified but remains **Foundation**, not
 **Accepted**, until the required browser screenshots and visual interaction pass
 can be completed.
+
+### Checkpoint 2 — attention dashboards
+
+Implemented locally:
+
+- PAON Admin `/retailers` is now the platform morning brief: network health,
+  authoritative 30-day activity signals, explicit intervention cards and a
+  composed retailer network instead of a generic table;
+- retailer `/dashboard` now speaks differently to owner, manager, advisor and
+  operations personas while retaining one secure data path. It combines a
+  role-written priority, live appointments/orders/garments/messages, price
+  approvals, a time-ordered day agenda, clear-state guidance and relevant
+  primary actions;
+- workshop manager and worker `/alterations` entry is now a due-aware visual
+  work queue with live workload metrics, progress rails, garment context and
+  worker-safe copy/actions;
+- customer `/dashboard` is now a private-client home: editorial imagery, a
+  single next-moment hero, appointment/garment/conversation signals and rich
+  atelier relationship cards.
+
+Role E2E assertions exercise the distinct brief for all six retailer operating
+personas plus the platform and customer dashboards. As with Checkpoint 1, these
+screens remain **Foundation**, not **Accepted**, until in-app-browser desktop
+and mobile screenshots can be inspected.
 
 ## Experience principles
 
@@ -358,7 +382,7 @@ primary mutation feedback. Dynamic routes use seeded records.
 | ------------------- | ------------------------------------------------------------ | ---------- |
 | `/login`            | Editorial platform entry, clear access model and errors      | Foundation |
 | `/accept-invite`    | Secure activation with visible progress and trust            | Baseline   |
-| `/retailers`        | Network brief with health/attention, not a plain table       | Baseline   |
+| `/retailers`        | Network brief with health/attention, not a plain table       | Foundation |
 | `/retailers/new`    | Guided retailer + owner onboarding                           | Baseline   |
 | `/retailers/[id]`   | Retailer command record: identity, access, billing, activity | Baseline   |
 | `/analytics`        | Platform pulse with interpreted trends and drill-through     | Baseline   |
@@ -372,13 +396,13 @@ primary mutation feedback. Dynamic routes use seeded records.
 | Route                                                               | Intended experience                                         | Status                |
 | ------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------- |
 | `/login`, `/accept-invite`                                          | Editorial entry and guided activation                       | Foundation / Baseline |
-| `/dashboard`                                                        | Role-specific daily brief and day plan                      | Baseline              |
+| `/dashboard`                                                        | Role-specific daily brief and day plan                      | Foundation            |
 | `/customers`, `/customers/new`                                      | Client book and polished client capture                     | Baseline              |
 | `/customers/[id]`                                                   | Rich relationship workspace with chronology and next action | Baseline              |
 | `/appointments`, `/appointments/new`, `/appointments/[id]`          | Agenda, booking and service workspace                       | Baseline              |
 | `/appointments/availability`                                        | Human-readable weekly capacity editor                       | Baseline              |
 | `/orders`, `/orders/[id]`                                           | Risk-aware fulfilment queue and progress record             | Baseline              |
-| `/alterations`, `/alterations/new`                                  | Visual work queue and fitting-led intake                    | Baseline              |
+| `/alterations`, `/alterations/new`                                  | Visual work queue and fitting-led intake                    | Foundation / Baseline |
 | `/alterations/[id]`                                                 | Complete fitting-to-workshop garment workspace              | Baseline              |
 | `/alterations/catalogue`                                            | Retailer/workshop service-price workspace                   | Baseline              |
 | `/alterations/workshops`                                            | Workshop network and operational status                     | Baseline              |
@@ -399,7 +423,7 @@ primary mutation feedback. Dynamic routes use seeded records.
 | Route                                       | Intended experience                                          | Status     |
 | ------------------------------------------- | ------------------------------------------------------------ | ---------- |
 | `/login`, `/login?demo=1`                   | Private-client passwordless entry + deterministic demo entry | Foundation |
-| `/dashboard`                                | Personal next moment and relationship world                  | Baseline   |
+| `/dashboard`                                | Personal next moment and relationship world                  | Foundation |
 | `/orders`, `/orders/[id]`                   | Purchase timeline, payment and delivery confidence           | Baseline   |
 | `/appointments`, `/appointments/[id]`       | Upcoming experience and preparation                          | Baseline   |
 | `/alterations`, `/alterations/[id]`         | Garment progress, imagery and pickup clarity                 | Baseline   |

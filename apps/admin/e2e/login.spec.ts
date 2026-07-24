@@ -31,7 +31,7 @@ test.describe("Login", () => {
 
     await expect(page).toHaveURL(/\/retailers$/);
     await expect(
-      page.getByRole("heading", { name: "Retailers" }),
+      page.getByRole("heading", { name: "The network, clearly in view." }),
     ).toBeVisible();
     await expect(
       page.getByRole("complementary").getByText(TEST_ADMIN_EMAIL),

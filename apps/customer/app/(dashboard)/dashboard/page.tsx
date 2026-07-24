@@ -1,10 +1,12 @@
 import {
   AppointmentRepository,
+  CustomerAlterationRepository,
   CustomerRepository,
   NotificationRepository,
   OrderRepository,
   RetailerRepository,
 } from "@paon/database";
+import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
@@ -14,6 +16,13 @@ import { TodaysPick } from "./todays-pick";
 import { getAIProvider } from "@/lib/ai";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+const TERMINAL_ORDER_STATUSES = new Set(["completed", "canceled", "refunded"]);
+const TERMINAL_ALTERATION_STATUSES = new Set(["completed", "canceled"]);
+
+function humanise(value: string): string {
+  return value.replaceAll("_", " ");
+}
 
 export default async function DashboardPage() {
   const session = await requireSession();
@@ -25,12 +34,14 @@ export default async function DashboardPage() {
   const retailerRepo = new RetailerRepository(supabase);
   const appointmentRepo = new AppointmentRepository(supabase);
   const orderRepo = new OrderRepository(supabase);
+  const alterationRepo = new CustomerAlterationRepository(supabase);
   const relationships = await Promise.all(
     customers.map(async (customer) => {
-      const [retailer, appointments, orders] = await Promise.all([
+      const [retailer, appointments, orders, alterations] = await Promise.all([
         retailerRepo.findById(customer.retailerId),
         appointmentRepo.findByCustomer(customer.id),
         orderRepo.findByCustomer(customer.id),
+        alterationRepo.findByCustomer(customer.id),
       ]);
       const now = Date.now();
       const nextAppointment = appointments
@@ -44,10 +55,19 @@ export default async function DashboardPage() {
           (a, b) =>
             new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
         )[0];
-      const orderAwaitingPayment = orders.find(
-        (order) => order.status === "pending_payment",
+      const activeOrder = orders.find(
+        (order) => !TERMINAL_ORDER_STATUSES.has(order.status),
       );
-      return { customer, retailer, nextAppointment, orderAwaitingPayment };
+      const activeAlteration = alterations.find(
+        (alteration) => !TERMINAL_ALTERATION_STATUSES.has(alteration.status),
+      );
+      return {
+        customer,
+        retailer,
+        nextAppointment,
+        activeOrder,
+        activeAlteration,
+      };
     }),
   );
   const notifications = await new NotificationRepository(supabase).findByUser(
@@ -62,92 +82,283 @@ export default async function DashboardPage() {
     );
   }
   const aiConfigured = !!getAIProvider();
+  const primary = relationships[0];
+  const firstName =
+    primary?.customer.fullName.trim().split(/\s+/)[0] ?? "there";
+  const primaryUnread = primary
+    ? (unreadByRetailer.get(primary.customer.retailerId) ?? 0)
+    : 0;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
-          Your relationships
-        </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          {relationships.length} retailer
-          {relationships.length === 1 ? "" : "s"}
-        </p>
-      </div>
-
-      {relationships.length === 0 ? (
-        <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
-          <p className="text-[var(--color-stone-600)]">
-            You don&rsquo;t have any retailer relationships yet. Once a retailer
-            you&rsquo;ve shopped with adds you as a client (or you place an
-            order once storefronts are live), it&rsquo;ll show up here.
-          </p>
-        </div>
+    <div className="flex flex-col gap-8">
+      {primary ? (
+        <section className="relative isolate min-h-[28rem] overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] text-white shadow-[var(--shadow-elevated)]">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-20 bg-cover bg-[center_35%] opacity-55"
+            style={{
+              backgroundImage:
+                "url(https://www.nebelspiegel.com/images/smaller/6065.webp)",
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/55 to-black/10"
+          />
+          <div className="flex min-h-[28rem] max-w-2xl flex-col justify-between p-7 sm:p-11">
+            <div className="flex items-center gap-3">
+              <span className="h-px w-8 bg-white/60" />
+              <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.24em] text-white/70">
+                Private client
+              </p>
+            </div>
+            <div>
+              <p className="mb-3 text-sm text-white/70">
+                Good {new Date().getHours() < 12 ? "morning" : "afternoon"},{" "}
+                {firstName}
+              </p>
+              <h1 className="text-5xl font-[var(--font-display)] leading-[0.94] sm:text-7xl">
+                Your wardrobe,
+                <br />
+                beautifully in motion.
+              </h1>
+              <p className="mt-5 max-w-lg text-sm leading-6 text-white/70 sm:text-base">
+                {primary.nextAppointment
+                  ? `${primary.retailer?.displayName ?? "Your atelier"} is preparing for your ${humanise(primary.nextAppointment.type)}.`
+                  : `${primary.retailer?.displayName ?? "Your atelier"} is here when you are ready for the next conversation.`}
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                {primary.nextAppointment ? (
+                  <Link
+                    href={`/appointments/${primary.nextAppointment.id}`}
+                    className={buttonVariants({
+                      variant: "secondary",
+                      size: "lg",
+                    })}
+                  >
+                    View next appointment
+                  </Link>
+                ) : (
+                  <Link
+                    href={`/r/${primary.retailer?.slug ?? ""}/appointments`}
+                    className={buttonVariants({
+                      variant: "secondary",
+                      size: "lg",
+                    })}
+                  >
+                    Request an appointment
+                  </Link>
+                )}
+                <Link
+                  href="/messages"
+                  className={buttonVariants({
+                    variant: "outline",
+                    size: "lg",
+                    className: "border-white/35 text-white hover:bg-white/10",
+                  })}
+                >
+                  Message your advisor
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       ) : (
-        <Card className="divide-y divide-[var(--color-stone-100)] p-0">
-          {relationships.map(
-            ({ customer, retailer, nextAppointment, orderAwaitingPayment }) => {
-              const unread = unreadByRetailer.get(customer.retailerId) ?? 0;
-              const hasUpdate =
-                !!nextAppointment || !!orderAwaitingPayment || unread > 0;
-              return (
-                <div key={customer.id}>
-                  <div className="px-6 py-4">
-                    <p className="font-medium text-[var(--color-stone-900)]">
-                      {retailer?.displayName ?? "Unknown retailer"}
-                    </p>
-                    <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                      {customer.lifecycleStage.replaceAll("_", " ")}
-                    </p>
-                    {hasUpdate ? (
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                        {orderAwaitingPayment ? (
-                          <Link
-                            href={`/orders/${orderAwaitingPayment.id}`}
-                            className="font-medium text-[var(--color-danger-500)] hover:underline"
-                          >
-                            Order awaiting payment →
-                          </Link>
-                        ) : null}
-                        {nextAppointment ? (
-                          <Link
-                            href={`/appointments/${nextAppointment.id}`}
-                            className="text-[var(--color-stone-700)] hover:underline"
-                          >
-                            Next appointment{" "}
-                            {formatDate(nextAppointment.startsAt, "en-US")} →
-                          </Link>
-                        ) : null}
-                        {unread > 0 ? (
-                          <Link
-                            href="/messages"
-                            className="text-[var(--color-stone-700)] hover:underline"
-                          >
-                            {unread} unread message{unread === 1 ? "" : "s"} →
-                          </Link>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
-                  {aiConfigured && retailer ? (
-                    <TodaysPick
-                      slug={retailer.slug}
-                      retailerId={retailer.id}
-                      customerId={customer.id}
-                      retailerName={retailer.displayName}
-                      customerName={customer.fullName}
-                    />
-                  ) : null}
-                </div>
-              );
-            },
-          )}
-        </Card>
+        <section className="rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-8 text-white sm:p-12">
+          <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-white/60">
+            Welcome to PAON
+          </p>
+          <h1 className="mt-4 max-w-xl text-5xl font-[var(--font-display)] leading-none">
+            Your private client space begins here.
+          </h1>
+          <p className="mt-5 max-w-lg text-sm leading-6 text-white/65">
+            When an atelier connects your profile, appointments, orders,
+            fittings and conversations will appear as one considered story.
+          </p>
+        </section>
       )}
 
-      {!aiConfigured ? (
-        <p className="text-sm text-[var(--color-stone-500)]">
-          Personalised picks are not configured on this deployment.
+      {primary ? (
+        <section
+          aria-label="Your current moments"
+          className="grid overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] sm:grid-cols-3"
+        >
+          <Link
+            href={
+              primary.nextAppointment
+                ? `/appointments/${primary.nextAppointment.id}`
+                : "/appointments"
+            }
+            className="border-b border-[var(--color-stone-200)] p-6 sm:border-b-0 sm:border-r"
+          >
+            <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+              Next appointment
+            </p>
+            <p className="mt-3 text-2xl font-[var(--font-display)]">
+              {primary.nextAppointment
+                ? formatDate(primary.nextAppointment.startsAt, "en-US")
+                : "Whenever you’re ready"}
+            </p>
+            <p className="mt-1 text-sm capitalize text-[var(--color-stone-500)]">
+              {primary.nextAppointment
+                ? humanise(primary.nextAppointment.type)
+                : "Your advisor is a message away"}{" "}
+              →
+            </p>
+          </Link>
+          <Link
+            href={
+              primary.activeAlteration
+                ? `/alterations/${primary.activeAlteration.id}`
+                : "/alterations"
+            }
+            className="border-b border-[var(--color-stone-200)] p-6 sm:border-b-0 sm:border-r"
+          >
+            <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+              At the workroom
+            </p>
+            <p className="mt-3 text-2xl font-[var(--font-display)] capitalize">
+              {primary.activeAlteration
+                ? humanise(primary.activeAlteration.status)
+                : "Nothing away"}
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+              {primary.activeAlteration?.garmentType ?? "View garment care"} →
+            </p>
+          </Link>
+          <Link href="/messages" className="p-6">
+            <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+              Your conversation
+            </p>
+            <p className="mt-3 text-2xl font-[var(--font-display)]">
+              {primaryUnread > 0
+                ? `${primaryUnread} new note${primaryUnread === 1 ? "" : "s"}`
+                : "All caught up"}
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+              Speak with your advisor →
+            </p>
+          </Link>
+        </section>
+      ) : null}
+
+      {relationships.length > 0 ? (
+        <section>
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
+                Your houses
+              </p>
+              <h2 className="text-4xl font-[var(--font-display)]">
+                Relationships, not records.
+              </h2>
+            </div>
+            <Link
+              href="/account"
+              className={buttonVariants({ variant: "outline" })}
+            >
+              Your preferences
+            </Link>
+          </div>
+          <div className="grid gap-5 lg:grid-cols-2">
+            {relationships.map(
+              ({
+                customer,
+                retailer,
+                nextAppointment,
+                activeOrder,
+                activeAlteration,
+              }) => {
+                const unread = unreadByRetailer.get(customer.retailerId) ?? 0;
+                return (
+                  <Card
+                    key={customer.id}
+                    className="overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-lifted)]"
+                  >
+                    <div className="flex items-start justify-between gap-4 border-b border-[var(--color-stone-100)] p-6">
+                      <div>
+                        <p className="text-3xl font-[var(--font-display)]">
+                          {retailer?.displayName ?? "Your atelier"}
+                        </p>
+                        <p className="mt-1 text-sm capitalize text-[var(--color-stone-500)]">
+                          {humanise(customer.lifecycleStage)} relationship
+                        </p>
+                      </div>
+                      {unread > 0 ? (
+                        <span className="rounded-full bg-[var(--color-stone-900)] px-3 py-1 text-xs text-white">
+                          {unread} new
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="grid grid-cols-2 divide-x divide-[var(--color-stone-100)]">
+                      <Link
+                        href={
+                          activeOrder ? `/orders/${activeOrder.id}` : "/orders"
+                        }
+                        className="p-5"
+                      >
+                        <p className="text-xs text-[var(--color-stone-500)]">
+                          Order
+                        </p>
+                        <p className="mt-1 text-sm font-medium capitalize">
+                          {activeOrder
+                            ? humanise(activeOrder.status)
+                            : "No order in motion"}{" "}
+                          →
+                        </p>
+                      </Link>
+                      <Link
+                        href={
+                          activeAlteration
+                            ? `/alterations/${activeAlteration.id}`
+                            : "/alterations"
+                        }
+                        className="p-5"
+                      >
+                        <p className="text-xs text-[var(--color-stone-500)]">
+                          Garment
+                        </p>
+                        <p className="mt-1 text-sm font-medium capitalize">
+                          {activeAlteration
+                            ? humanise(activeAlteration.status)
+                            : "Safely with you"}{" "}
+                          →
+                        </p>
+                      </Link>
+                    </div>
+                    {nextAppointment ? (
+                      <Link
+                        href={`/appointments/${nextAppointment.id}`}
+                        className="flex items-center justify-between border-t border-[var(--color-stone-100)] px-6 py-4 text-sm"
+                      >
+                        <span>
+                          Next: {humanise(nextAppointment.type)} ·{" "}
+                          {formatDate(nextAppointment.startsAt, "en-US")}
+                        </span>
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    ) : null}
+                    {aiConfigured && retailer ? (
+                      <TodaysPick
+                        slug={retailer.slug}
+                        retailerId={retailer.id}
+                        customerId={customer.id}
+                        retailerName={retailer.displayName}
+                        customerName={customer.fullName}
+                      />
+                    ) : null}
+                  </Card>
+                );
+              },
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {!aiConfigured && relationships.length > 0 ? (
+        <p className="text-xs text-[var(--color-stone-500)]">
+          Personalised editorial picks are unavailable in this demo environment;
+          your live service information remains current.
         </p>
       ) : null}
     </div>

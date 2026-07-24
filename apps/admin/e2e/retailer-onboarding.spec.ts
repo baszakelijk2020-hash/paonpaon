@@ -14,7 +14,7 @@ test("onboards a new retailer and invites its owner", async ({ page }) => {
   const unique = Date.now();
   const slug = `e2e-atelier-${unique}`;
 
-  await page.getByRole("link", { name: "New retailer" }).click();
+  await page.getByRole("link", { name: "Onboard a retailer" }).click();
   await expect(page).toHaveURL(/\/retailers\/new$/);
 
   await page.getByLabel("Legal name").fill("E2E Atelier, Inc.");
