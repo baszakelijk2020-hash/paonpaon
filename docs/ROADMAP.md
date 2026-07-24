@@ -3,6 +3,22 @@
 Phased by dependency order — each phase's data model and UI depend on
 the ones before it. Not date-committed; sequencing, not scheduling.
 
+## Immediate priority — Experience Rebuild (in progress)
+
+The functional roadmap is paused. PAON has broad business capability but has
+not passed product-experience acceptance: the portals still read too often as
+sparse generic CRM surfaces. The governing plan, persona architecture, route
+inventory, acceptance criteria and implementation order now live in
+[EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md).
+
+The original `/Users/nguyen/Downloads/paon.html` is the visual source of truth.
+This phase preserves the domain model, database, RLS, authorization and
+completed workflows while rebuilding demo truth, entry, shells, role
+navigation, attention dashboards, high-frequency journeys and every remaining
+route. No prior phase is considered the next implementation queue until every
+persona and route passes the desktop/mobile experience criteria or a genuine
+founder decision blocks progress.
+
 ## Phase 0 — Engineering foundation (done)
 
 Monorepo, shared packages (`domain`, `database`, `auth`, `ui`, `utils`),

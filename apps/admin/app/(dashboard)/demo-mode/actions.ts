@@ -51,7 +51,7 @@ export async function setDemoLoginsActive(active: boolean): Promise<void> {
     env.supabaseUrl,
     env.supabaseServiceRoleKey,
   );
-  const { data, error } = await admin.auth.admin.listUsers();
+  const { data, error } = await admin.auth.admin.listUsers({ perPage: 1000 });
   if (error) throw error;
   const demoUsers = data.users.filter((u) =>
     u.email?.endsWith("@nebelspiegel.com"),

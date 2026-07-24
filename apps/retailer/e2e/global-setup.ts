@@ -59,9 +59,19 @@ async function globalSetup(): Promise<void> {
       },
     });
   }
+  // workspace.spec.ts temporarily edits the display name and restores it.
+  // A failed/interrupted run must not make the next run inherit an ever-longer
+  // name, otherwise the business-profile test eventually exceeds validation.
+  if (retailer.displayName !== "E2E Workspace") {
+    const { error } = await admin
+      .from("retailers")
+      .update({ display_name: "E2E Workspace" })
+      .eq("id", retailer.id);
+    if (error) throw error;
+  }
 
   const { data: existingUsers, error: listError } =
-    await admin.auth.admin.listUsers();
+    await admin.auth.admin.listUsers({ perPage: 1000 });
   if (listError) {
     throw listError;
   }

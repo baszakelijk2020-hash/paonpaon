@@ -2,12 +2,23 @@ import {
   retailerRoleAtLeast,
   retailerRoleHasAlterationsPermission,
 } from "@paon/domain";
+import { AppShell, type AppShellNavGroup } from "@paon/ui/components/AppShell";
 import { Button } from "@paon/ui/components/Button";
-import Link from "next/link";
 
 import { signOut } from "./actions";
 
 import { requireSession } from "@/lib/session";
+
+const PERSONA_LABELS = {
+  owner: "Retailer owner",
+  admin: "Retailer administrator",
+  manager: "Retailer manager",
+  sales_associate: "Sales advisor",
+  production_staff: "Production specialist",
+  workshop_manager: "Workshop manager",
+  worker: "Alteration specialist",
+  read_only: "Read-only observer",
+} as const;
 
 export default async function DashboardLayout({
   children,
@@ -34,187 +45,168 @@ export default async function DashboardLayout({
   );
   const homeHref = isWorkshopRole ? "/alterations" : "/dashboard";
 
+  const navigation: AppShellNavGroup[] = [
+    ...(!isWorkshopRole
+      ? [
+          {
+            label: "Today",
+            items: [
+              {
+                href: "/dashboard",
+                label: "Daily brief",
+                description: "Attention, appointments and pace",
+              },
+              {
+                href: "/appointments",
+                label: "Appointments",
+                description: "Calendar, fittings and follow-up",
+              },
+              {
+                href: "/orders",
+                label: "Orders",
+                description: "Promises through fulfilment",
+              },
+              {
+                href: "/messages",
+                label: "Conversations",
+                description: "Client questions and requests",
+              },
+              {
+                href: "/notifications",
+                label: "Updates",
+                description: "Activity across the atelier",
+              },
+            ],
+          },
+        ]
+      : []),
+    {
+      label: isWorkshopRole ? "Workshop floor" : "Fitting room",
+      items: [
+        {
+          href: "/alterations",
+          label: isWorkshopRole ? "Work queue" : "Alterations",
+          description: isWorkshopRole
+            ? "Assigned garments and due dates"
+            : "Fitting-to-workshop progress",
+        },
+        ...(canConfigureAlterations || canManageWorkshop
+          ? [
+              {
+                href: "/alterations/catalogue",
+                label: canManageWorkshop
+                  ? "Workshop pricing"
+                  : "Service catalogue",
+                description: "Operations and agreed costs",
+              },
+            ]
+          : []),
+        ...(canConfigureAlterations
+          ? [
+              {
+                href: "/alterations/workshops",
+                label: "Workshop network",
+                description: "Partners, assignments and access",
+              },
+            ]
+          : []),
+      ],
+    },
+    ...(!isWorkshopRole && canManageCustomers
+      ? [
+          {
+            label: "Relationships",
+            items: [
+              {
+                href: "/customers",
+                label: "Client book",
+                description: "Profiles, history and next action",
+              },
+              {
+                href: "/wedding-parties",
+                label: "Wedding parties",
+                description: "Group fittings and readiness",
+              },
+              ...(canManageCatalog
+                ? [
+                    {
+                      href: "/loyalty",
+                      label: "Loyalty",
+                      description: "Recognition and rewards",
+                    },
+                    {
+                      href: "/events",
+                      label: "Events",
+                      description: "Invitations and attendance",
+                    },
+                  ]
+                : []),
+            ],
+          },
+        ]
+      : []),
+    ...(canManageCatalog
+      ? [
+          {
+            label: "Merchandise",
+            items: [
+              {
+                href: "/products",
+                label: "Catalogue",
+                description: "Products, imagery and availability",
+              },
+              {
+                href: "/collections",
+                label: "Collections",
+                description: "Editorial product stories",
+              },
+              {
+                href: "/analytics",
+                label: "Performance",
+                description: "Commercial and service signals",
+              },
+            ],
+          },
+        ]
+      : []),
+    ...(canManageRetailer
+      ? [
+          {
+            label: "Atelier",
+            items: [
+              {
+                href: "/staff",
+                label: "Team",
+                description: "People, roles and invitations",
+              },
+              {
+                href: "/settings",
+                label: "Settings",
+                description: "Identity, billing and payments",
+              },
+            ],
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <div className="min-h-screen bg-[var(--color-stone-50)]">
-      <header className="glass-panel sticky top-0 z-40 border-b border-[var(--color-stone-200)]">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
-            <Link
-              href={homeHref}
-              className="text-sm font-medium uppercase tracking-wide text-[var(--color-stone-900)]"
-            >
-              Retailer Portal
-            </Link>
-            <nav
-              aria-label="Primary"
-              className="flex max-w-full items-stretch gap-5 overflow-x-auto pb-1 lg:gap-7"
-            >
-              {!isWorkshopRole ? (
-                <div
-                  role="group"
-                  aria-label="Operate"
-                  className="flex shrink-0 items-center gap-4 lg:gap-6"
-                >
-                  <Link
-                    href="/dashboard"
-                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/orders"
-                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                  >
-                    Orders
-                  </Link>
-                  <Link
-                    href="/appointments"
-                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                  >
-                    Appointments
-                  </Link>
-                  <Link
-                    href="/messages"
-                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                  >
-                    Messages
-                  </Link>
-                  <Link
-                    href="/notifications"
-                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                  >
-                    Updates
-                  </Link>
-                </div>
-              ) : null}
-
-              <div
-                role="group"
-                aria-label="Alterations"
-                className="flex shrink-0 items-center gap-4 border-l border-[var(--color-stone-200)] pl-5 lg:gap-6 lg:pl-7"
-              >
-                <Link
-                  href="/alterations"
-                  className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                >
-                  Alterations
-                </Link>
-                {canConfigureAlterations || canManageWorkshop ? (
-                  <>
-                    <Link
-                      href="/alterations/catalogue"
-                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                    >
-                      {canManageWorkshop
-                        ? "Workshop prices"
-                        : "Alteration settings"}
-                    </Link>
-                    {canConfigureAlterations ? (
-                      <Link
-                        href="/alterations/workshops"
-                        className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                      >
-                        Workshops
-                      </Link>
-                    ) : null}
-                  </>
-                ) : null}
-              </div>
-
-              {!isWorkshopRole && (canManageCustomers || canManageCatalog) ? (
-                <div
-                  role="group"
-                  aria-label="Sell"
-                  className="flex shrink-0 items-center gap-4 border-l border-[var(--color-stone-200)] pl-5 lg:gap-6 lg:pl-7"
-                >
-                  {canManageCustomers ? (
-                    <Link
-                      href="/customers"
-                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                    >
-                      Customers
-                    </Link>
-                  ) : null}
-                  {canManageCustomers ? (
-                    <Link
-                      href="/wedding-parties"
-                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                    >
-                      Wedding Parties
-                    </Link>
-                  ) : null}
-                  {canManageCatalog ? (
-                    <Link
-                      href="/products"
-                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                    >
-                      Products
-                    </Link>
-                  ) : null}
-                  {canManageCatalog ? (
-                    <Link
-                      href="/loyalty"
-                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                    >
-                      Loyalty
-                    </Link>
-                  ) : null}
-                  {canManageCatalog ? (
-                    <Link
-                      href="/events"
-                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                    >
-                      Events
-                    </Link>
-                  ) : null}
-                  {canManageCatalog ? (
-                    <Link
-                      href="/analytics"
-                      className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                    >
-                      Analytics
-                    </Link>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {canManageRetailer ? (
-                <div
-                  role="group"
-                  aria-label="Configure"
-                  className="flex shrink-0 items-center gap-4 border-l border-[var(--color-stone-200)] pl-5 lg:gap-6 lg:pl-7"
-                >
-                  <Link
-                    href="/staff"
-                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                  >
-                    Staff
-                  </Link>
-                  <Link
-                    href="/settings"
-                    className="text-sm text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-                  >
-                    Settings
-                  </Link>
-                </div>
-              ) : null}
-            </nav>
-          </div>
-          <div className="flex items-center justify-between gap-4 lg:justify-end">
-            <span className="text-sm text-[var(--color-stone-500)]">
-              {session.email}
-            </span>
-            <form action={signOut}>
-              <Button type="submit" variant="ghost" size="sm">
-                Sign out
-              </Button>
-            </form>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
-        {children}
-      </main>
-    </div>
+    <AppShell
+      brand="PAON"
+      product="Retail"
+      homeHref={homeHref}
+      persona={PERSONA_LABELS[session.retailerRole]}
+      email={session.email}
+      navigation={navigation}
+      signOutControl={
+        <form action={signOut}>
+          <Button type="submit" variant="ghost" size="sm">
+            Sign out
+          </Button>
+        </form>
+      }
+    >
+      {children}
+    </AppShell>
   );
 }

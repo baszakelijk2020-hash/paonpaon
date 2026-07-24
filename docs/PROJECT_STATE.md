@@ -8,6 +8,48 @@ phase-level plan this fits into.
 
 ## Where we are
 
+### Experience Rebuild is now the active product phase
+
+The functional roadmap is paused. `docs/EXPERIENCE_REBUILD.md` is the governing
+experience architecture and route acceptance register; the original
+`/Users/nguyen/Downloads/paon.html` is the visual source of truth.
+
+**Foundation checkpoint implemented locally (not deployed):**
+
+- one shared editorial PAON application shell now serves all three apps: 256px
+  charcoal reference-derived desktop rail, grouped role-specific navigation,
+  active-route treatment, warm glass context header, responsive 390px drawer,
+  and a retained customer bottom dock for the four highest-frequency mobile
+  destinations;
+- every retailer role now receives a purpose-built information architecture:
+  owner, manager, sales advisor, production/operations, workshop manager,
+  alteration worker and read-only observer no longer share one undifferentiated
+  horizontal navigation strip;
+- PAON Admin, Retailer Portal and Customer Portal login surfaces now use an
+  image-led editorial entry composition derived from `paon.html`; normal
+  customer access remains passwordless while `/login?demo=1` provides
+  deterministic password entry restricted to seeded `@nebelspiegel.com`
+  showcase identities;
+- the idempotent demo seed now includes the previously missing
+  production/operations and alteration-worker personas, assigns real work to
+  the worker, and adds current/completed appointments, pinned clienteling
+  context, a two-sided unread conversation, a published event and a wedding
+  party. Auth-user discovery now requests the full local demo set instead of
+  silently truncating at the provider's default page size;
+- PAON Admin `/demo-mode` is now a real persona launcher: environment health,
+  shared password, role/retailer cards, correct app deep links and copyable
+  login bundles;
+- role E2E coverage proves all six active retailer operating personas see only
+  their relevant navigation, including a 390×844 worker drawer; platform and
+  customer demo entry are covered too. Existing app E2E selectors were updated
+  to the new product language.
+
+The in-app browser surface was unavailable (empty browser inventory) during
+this checkpoint. Therefore no route is marked visually accepted and the
+required baseline screenshot register remains explicitly blocked in
+`EXPERIENCE_REBUILD.md`; automated Chromium interaction coverage is evidence of
+function and authorization, not a claimed substitute for visual inspection.
+
 **Phase 0 (engineering foundation): done. Phase 1 (Identity, Retailer,
 Customer core): done. Phase 2 (Catalog and Commerce): catalog, storefront,
 order placement/management and Stripe Connect customer payments shipped

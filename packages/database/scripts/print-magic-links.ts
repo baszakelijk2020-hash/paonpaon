@@ -42,7 +42,7 @@ function appUrlFor(email: string): string {
 }
 
 async function main() {
-  const { data, error } = await admin.auth.admin.listUsers();
+  const { data, error } = await admin.auth.admin.listUsers({ perPage: 1000 });
   if (error) throw error;
 
   const demoUsers = data.users

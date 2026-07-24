@@ -21,16 +21,19 @@ import {
   AlterationWorkflowRepository,
   AppointmentRepository,
   AvailabilityWindowRepository,
+  ClientelingRepository,
   CollectionRepository,
   CustomerRepository,
   EventRepository,
   LoyaltyRepository,
+  MessagingRepository,
   OrderRepository,
   PlatformStaffRepository,
   ProductRepository,
   ProductVariantRepository,
   RetailerRepository,
   RetailerStaffRepository,
+  WeddingPartyRepository,
   WorkshopRepository,
   createSupabaseAdminClient,
   createSupabaseDirectClient,
@@ -41,6 +44,15 @@ export interface DemoLogin {
   email: string;
   password: string;
 }
+
+export interface DemoPersonaLogin {
+  app: "admin" | "retailer" | "customer";
+  retailer?: string;
+  persona: string;
+  email: string;
+}
+
+export const DEMO_PASSWORD = "Demo-PAON-2026!";
 
 interface RetailerSpec {
   slug: string;
@@ -224,13 +236,56 @@ const RETAILERS: RetailerSpec[] = [
 ];
 
 const STAFF_ROLES: {
-  role: "owner" | "manager" | "sales_associate" | "workshop_manager";
+  role:
+    | "owner"
+    | "manager"
+    | "sales_associate"
+    | "production_staff"
+    | "workshop_manager"
+    | "worker";
   label: string;
 }[] = [
   { role: "owner", label: "owner" },
   { role: "manager", label: "manager" },
   { role: "sales_associate", label: "sales" },
+  { role: "production_staff", label: "operations" },
   { role: "workshop_manager", label: "workshop" },
+  { role: "worker", label: "alteration-worker" },
+];
+
+export const DEMO_PERSONA_LOGINS: DemoPersonaLogin[] = [
+  {
+    app: "admin",
+    persona: "Platform administrator",
+    email: "contact@nebelspiegel.com",
+  },
+  ...RETAILERS.flatMap((retailer) => [
+    ...STAFF_ROLES.map(({ role, label }) => ({
+      app: "retailer" as const,
+      retailer: retailer.displayName,
+      persona:
+        role === "sales_associate"
+          ? "Sales advisor"
+          : role === "production_staff"
+            ? "Production / operations"
+            : role === "workshop_manager"
+              ? "Workshop manager"
+              : role === "worker"
+                ? "Alteration worker"
+                : role === "owner"
+                  ? "Retailer owner"
+                  : "Retailer manager",
+      email: `contact+${retailer.slug}-${label}@nebelspiegel.com`,
+    })),
+    ...retailer.customers
+      .filter((customer) => customer.portal)
+      .map((customer) => ({
+        app: "customer" as const,
+        retailer: retailer.displayName,
+        persona: `Customer — ${customer.name}`,
+        email: customer.email,
+      })),
+  ]),
 ];
 
 export async function seedDemoData(params: {
@@ -239,13 +294,12 @@ export async function seedDemoData(params: {
   serviceRoleKey: string;
 }): Promise<DemoLogin[]> {
   const { supabaseUrl, anonKey, serviceRoleKey } = params;
-  const DEMO_PASSWORD = "Demo-PAON-2026!";
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
   const logins: DemoLogin[] = [];
 
   async function ensureUser(email: string, fullName: string): Promise<UserId> {
     const { data: existing, error: listError } =
-      await admin.auth.admin.listUsers();
+      await admin.auth.admin.listUsers({ perPage: 1000 });
     if (listError) throw listError;
     const found = existing.users.find((u) => u.email === email);
     if (found) return found.id as UserId;
@@ -354,7 +408,9 @@ export async function seedDemoData(params: {
         fullName,
         email,
         role,
-        ...(role === "workshop_manager" ? { workshopId: workshop.id } : {}),
+        ...(["workshop_manager", "worker"].includes(role)
+          ? { workshopId: workshop.id }
+          : {}),
       });
       if (!staff.acceptedAt) {
         await admin
@@ -466,10 +522,72 @@ export async function seedDemoData(params: {
         });
       }
     }
+    const portalCustomers = spec.customers.filter((c) => c.portal);
+
+    // Durable clienteling context. The demo should feel like a working client
+    // book, not a list of names created five minutes ago.
+    if (customerIds[0]) {
+      const clientelingRepo = new ClientelingRepository(admin);
+      const existingNotes = await clientelingRepo.findByCustomer(
+        customerIds[0],
+      );
+      const notes = [
+        {
+          body: "Prefers a quiet fitting room and appointments after 16:00. Usually travels the following morning.",
+          pinned: true,
+        },
+        {
+          body: "Strong preference for soft-shouldered jackets, charcoal and midnight navy. Avoid high-contrast linings.",
+          pinned: true,
+        },
+        {
+          body: "Anniversary in October. Mention the private outerwear preview when confirming the next fitting.",
+          pinned: false,
+        },
+      ];
+      for (const note of notes) {
+        if (!existingNotes.some((existing) => existing.body === note.body)) {
+          await clientelingRepo.create({
+            retailerId,
+            customerId: customerIds[0],
+            authorStaffId: staffIds["sales_associate"]!,
+            ...note,
+          });
+        }
+      }
+    }
+
+    // One realistic advisor conversation, including an unread customer reply.
+    // Each side uses its own authenticated projection so demo data exercises
+    // the same RLS and notification path as the product.
+    const firstPortalCustomer = portalCustomers[0];
+    if (firstPortalCustomer && customerIds[0]) {
+      const ownerEmail = `contact+${spec.slug}-owner@nebelspiegel.com`;
+      const staffMessaging = new MessagingRepository(
+        await signedInClient(ownerEmail),
+      );
+      const customerMessaging = new MessagingRepository(
+        await signedInClient(firstPortalCustomer.email),
+      );
+      const conversationId = await staffMessaging.getOrCreateForStaff(
+        customerIds[0],
+      );
+      const existingMessages =
+        await staffMessaging.findMessages(conversationId);
+      if (existingMessages.length === 0) {
+        await staffMessaging.send(
+          conversationId,
+          `Your ${spec.products[0]!.name.toLowerCase()} is ready for its final fitting. Would tomorrow at 16:30 suit you?`,
+        );
+        await customerMessaging.send(
+          conversationId,
+          "16:30 would be perfect. Could you also have the charcoal overcoat ready for me to compare?",
+        );
+      }
+    }
 
     // Orders: portal customers buy something, staff advances status to delivered
     const orderRepo = new OrderRepository(admin);
-    const portalCustomers = spec.customers.filter((c) => c.portal);
     const variantsForFirstProduct = await variantRepo.findByProduct(
       productIds[0]!,
     );
@@ -538,18 +656,58 @@ export async function seedDemoData(params: {
     }
     const existingAppointments =
       await appointmentRepo.findByRetailer(retailerId);
-    if (existingAppointments.length === 0 && customerIds[0]) {
-      const start = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-      const end = new Date(start.getTime() + 60 * 60 * 1000);
-      await appointmentRepo.create({
-        retailerId,
-        customerId: customerIds[0],
-        staffId: ownerStaffId,
-        type: "styling_consultation",
-        startsAt: start.toISOString(),
-        endsAt: end.toISOString(),
-        notes: "Demo appointment.",
-      });
+    if (customerIds[0]) {
+      const appointmentStories = [
+        {
+          marker: "Demo: final fitting today",
+          offsetHours: 2,
+          type: "fitting" as const,
+          status: "confirmed" as const,
+          notes:
+            "Demo: final fitting today — compare charcoal overcoat and confirm sleeve break.",
+        },
+        {
+          marker: "Demo: wardrobe consultation tomorrow",
+          offsetHours: 26,
+          type: "styling_consultation" as const,
+          status: "requested" as const,
+          notes:
+            "Demo: wardrobe consultation tomorrow — business travel capsule for Paris and Milan.",
+        },
+        {
+          marker: "Demo: completed collection handover",
+          offsetHours: -72,
+          type: "personal_shopping" as const,
+          status: "completed" as const,
+          notes:
+            "Demo: completed collection handover — client loved the softer shoulder and asked to retain the pattern.",
+        },
+      ];
+      for (const story of appointmentStories) {
+        if (
+          existingAppointments.some((appointment) =>
+            appointment.notes?.startsWith(story.marker),
+          )
+        ) {
+          continue;
+        }
+        const start = new Date(Date.now() + story.offsetHours * 60 * 60 * 1000);
+        const end = new Date(start.getTime() + 60 * 60 * 1000);
+        const appointment = await appointmentRepo.create({
+          retailerId,
+          customerId: customerIds[0],
+          staffId: ownerStaffId,
+          type: story.type,
+          startsAt: start.toISOString(),
+          endsAt: end.toISOString(),
+          notes: story.notes,
+        });
+        if (story.status !== "requested") {
+          await appointmentRepo.update(appointment.id, {
+            status: story.status,
+          });
+        }
+      }
     }
 
     // Alteration referencing the workshop created above.
@@ -610,6 +768,13 @@ export async function seedDemoData(params: {
           });
           status = "assigned";
         }
+        await alterationWorkflowRepo.updateWorkshopAssignment({
+          alterationId: alteration.id,
+          workerId: staffIds["worker"]!,
+          targetCompletionDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 10),
+        });
         if (status === "assigned") {
           const tasks = await alterationTaskRepo.findByAlteration(
             alteration.id,
@@ -639,13 +804,14 @@ export async function seedDemoData(params: {
     const eventRepo = new EventRepository(admin);
     const existingEvents = await admin
       .from("retailer_events")
-      .select("id")
+      .select("id, status")
       .eq("retailer_id", retailerId)
       .limit(1);
+    let eventId = existingEvents.data?.[0]?.id;
     if (!existingEvents.data || existingEvents.data.length === 0) {
       const start = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
       const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
-      await eventRepo.create(retailerId, {
+      const event = await eventRepo.create(retailerId, {
         name: `${spec.displayName} Trunk Show`,
         description: "An evening preview of the new collection.",
         startsAt: start.toISOString(),
@@ -654,6 +820,50 @@ export async function seedDemoData(params: {
         visibility: "public",
         capacity: 40,
       });
+      eventId = event.id;
+    }
+    if (
+      eventId &&
+      (!existingEvents.data?.[0] ||
+        existingEvents.data[0].status !== "published")
+    ) {
+      await eventRepo.updateStatus(eventId as never, "published");
+    }
+
+    // A coordinated wedding party gives both retailer and customer personas
+    // a complete group-service workspace to explore.
+    if (customerIds[0]) {
+      const weddingRepo = new WeddingPartyRepository(admin);
+      const existingParties = await weddingRepo.findByRetailer(retailerId);
+      let party = existingParties.find(
+        (candidate) => candidate.venueName === "Villa Aurelia",
+      );
+      if (!party) {
+        const weddingDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
+        party = await weddingRepo.create({
+          retailerId,
+          organizerCustomerId: customerIds[0],
+          eventDate: weddingDate.toISOString().slice(0, 10),
+          venueName: "Villa Aurelia",
+          notes:
+            "Black tie garden ceremony. Four attendants, fittings to be completed six weeks before travel.",
+        });
+      }
+      const members = await weddingRepo.findMembers(party.id);
+      if (members.length === 0) {
+        await weddingRepo.addMember({
+          weddingPartyId: party.id,
+          name: "Julien Moreau",
+          email: `contact+${spec.slug}-wedding-julien@nebelspiegel.com`,
+          role: "best_man",
+        });
+        await weddingRepo.addMember({
+          weddingPartyId: party.id,
+          name: "Thomas Leroy",
+          email: `contact+${spec.slug}-wedding-thomas@nebelspiegel.com`,
+          role: "groomsman",
+        });
+      }
     }
   }
 

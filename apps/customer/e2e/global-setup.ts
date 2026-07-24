@@ -139,7 +139,7 @@ async function globalSetup(): Promise<void> {
 
     const fixtureActorEmail = "e2e-alteration-actor@paon.test";
     const { data: existingUsers, error: listUsersError } =
-      await admin.auth.admin.listUsers();
+      await admin.auth.admin.listUsers({ perPage: 1000 });
     if (listUsersError) throw listUsersError;
     let fixtureActorUserId = existingUsers.users.find(
       (user) => user.email === fixtureActorEmail,

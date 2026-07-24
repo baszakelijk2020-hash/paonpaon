@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("Email").fill(TEST_ADMIN_EMAIL);
   await page.getByLabel("Password").fill(TEST_ADMIN_PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Enter PAON" }).click();
   await expect(page).toHaveURL(/\/retailers$/);
 });
 
@@ -16,7 +16,7 @@ test("platform staff records a Stripe Price id on a seeded plan", async ({
   const unique = Date.now();
   const priceId = `price_e2e_${unique}`;
 
-  await page.getByRole("link", { name: "Billing" }).click();
+  await page.getByRole("link", { name: /^Commercials/ }).click();
   await expect(page).toHaveURL(/\/billing$/);
   await expect(page.getByText("Boutique", { exact: true })).toBeVisible();
 

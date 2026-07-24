@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("Email").fill(TEST_ADMIN_EMAIL);
   await page.getByLabel("Password").fill(TEST_ADMIN_PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Enter PAON" }).click();
   await expect(page).toHaveURL(/\/retailers$/);
 });
 

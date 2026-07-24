@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@paon/database";
+import { DEMO_PASSWORD, seedDemoData } from "@paon/database/demo-seed";
 import { expect, test } from "@playwright/test";
 
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_DISPLAY_NAME } from "./fixtures";
@@ -6,7 +7,9 @@ import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_DISPLAY_NAME } from "./fixtures";
 test("redirects unauthenticated visitors to /login", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/login/);
-  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Welcome back." }),
+  ).toBeVisible();
 });
 
 test("requesting a sign-in link shows a confirmation, not an error", async ({
@@ -57,4 +60,26 @@ test("an existing customer signs in and sees their linked retailer", async ({
 
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByText(TEST_RETAILER_DISPLAY_NAME)).toBeVisible();
+});
+
+test("a seeded private-client persona has deterministic demo access", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+    throw new Error("Demo login test requires the local Supabase variables.");
+  }
+  await seedDemoData({ supabaseUrl, anonKey, serviceRoleKey });
+
+  await page.goto("/login?demo=1");
+  await page.getByLabel("Demo email").fill("contact+isabelle@nebelspiegel.com");
+  await page.getByLabel("Demo password").fill(DEMO_PASSWORD);
+  await page
+    .getByRole("button", { name: "Enter the private client demo" })
+    .click();
+
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByText("Maison Dubois")).toBeVisible();
 });

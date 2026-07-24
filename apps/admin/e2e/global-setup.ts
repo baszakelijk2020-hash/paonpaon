@@ -25,7 +25,7 @@ async function globalSetup(): Promise<void> {
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
 
   const { data: existingUsers, error: listError } =
-    await admin.auth.admin.listUsers();
+    await admin.auth.admin.listUsers({ perPage: 1000 });
   if (listError) {
     throw listError;
   }

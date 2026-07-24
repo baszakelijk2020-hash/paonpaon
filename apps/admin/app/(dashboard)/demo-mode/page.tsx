@@ -1,9 +1,11 @@
 import { createSupabaseAdminClient } from "@paon/database";
+import { DEMO_PASSWORD, DEMO_PERSONA_LOGINS } from "@paon/database/demo-seed";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 
 import { setDemoLoginsActive } from "./actions";
+import { DemoPersonaDirectory } from "./demo-persona-directory";
 import { SeedDemoDataForm } from "./seed-demo-data-form";
 
 import { env } from "@/lib/env";
@@ -16,7 +18,7 @@ export default async function DemoModePage() {
     env.supabaseUrl,
     env.supabaseServiceRoleKey,
   );
-  const { data } = await admin.auth.admin.listUsers();
+  const { data } = await admin.auth.admin.listUsers({ perPage: 1000 });
   const demoUsers = (data?.users ?? []).filter((u) =>
     u.email?.endsWith("@nebelspiegel.com"),
   );
@@ -24,65 +26,104 @@ export default async function DemoModePage() {
     (u) => !u.banned_until || new Date(u.banned_until) < new Date(),
   ).length;
   const isOwner = session.platformRole === "platform_owner";
+  const customerAppUrl = env.customerAppUrl ?? "http://localhost:3002";
+  const personas = DEMO_PERSONA_LOGINS.map((persona) => ({
+    ...persona,
+    href:
+      persona.app === "admin"
+        ? `${env.adminAppUrl}/login`
+        : persona.app === "retailer"
+          ? `${env.retailerAppUrl}/login`
+          : `${customerAppUrl}/login?demo=1`,
+  }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
+      <div className="grid gap-6 border-b border-[var(--color-stone-200)] pb-8 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          <p className="text-[8px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            Showcase environment
+          </p>
+          <h1 className="mt-2 text-4xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+            Demo atelier
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
+            Enter PAON as every operating persona. The seed provides two
+            image-rich retailers, relationship history, live appointments,
+            messages, workshop assignments, events and wedding-party
+            coordination.
+          </p>
+        </div>
+        <div className="rounded-[var(--radius-lg)] bg-[var(--color-stone-900)] px-5 py-4 text-white">
+          <p className="text-[7px] font-[var(--font-accent)] uppercase tracking-[0.16em] text-white/45">
+            Shared demo password
+          </p>
+          <p className="mt-2 font-mono text-sm">{DEMO_PASSWORD}</p>
+        </div>
+      </div>
+
+      <Card className="grid gap-6 shadow-[var(--shadow-elevated)] lg:grid-cols-[1fr_auto] lg:items-center">
+        <div>
+          <div className="flex items-center gap-3">
+            <p className="text-lg font-[var(--font-display)] text-[var(--color-stone-900)]">
+              Environment health
+            </p>
+            <Badge tone={demoUsers.length > 0 ? "success" : "neutral"}>
+              {demoUsers.length > 0 ? "ready" : "empty"}
+            </Badge>
+          </div>
+          <p className="mt-2 text-sm text-[var(--color-stone-500)]">
+            {demoUsers.length} accounts provisioned · {activeCount} active
+          </p>
+        </div>
+        <div className="flex flex-col items-start gap-3 lg:items-end">
+          {isOwner ? (
+            <SeedDemoDataForm />
+          ) : (
+            <p className="text-sm text-[var(--color-stone-500)]">
+              Only a platform owner can populate or toggle demo data.
+            </p>
+          )}
+          {isOwner && demoUsers.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              <form action={setDemoLoginsActive.bind(null, true)}>
+                <button
+                  type="submit"
+                  className={buttonVariants({
+                    variant: "outline",
+                    size: "sm",
+                  })}
+                >
+                  Activate logins
+                </button>
+              </form>
+              <form action={setDemoLoginsActive.bind(null, false)}>
+                <button
+                  type="submit"
+                  className={buttonVariants({
+                    variant: "ghost",
+                    size: "sm",
+                  })}
+                >
+                  Deactivate
+                </button>
+              </form>
+            </div>
+          ) : null}
+        </div>
+      </Card>
+
       <div>
-        <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
-          Demo mode
-        </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          Populate the live deployment with two demo retailers — staff,
-          customers, products with real photography, orders, appointments,
-          alterations, loyalty and a referral — so you can browse the system as
-          if it were live. Safe to run more than once.
+        <h2 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+          Choose a perspective
+        </h2>
+        <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+          Copy a complete login or open the correct application in a new tab.
+          Customer demos use the dedicated password entry.
         </p>
       </div>
 
-      <Card className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-medium text-[var(--color-stone-900)]">
-              Demo accounts
-            </p>
-            <p className="text-sm text-[var(--color-stone-500)]">
-              {demoUsers.length} total, {activeCount} currently able to sign in
-            </p>
-          </div>
-          <Badge tone={demoUsers.length > 0 ? "success" : "neutral"}>
-            {demoUsers.length > 0 ? "populated" : "empty"}
-          </Badge>
-        </div>
-
-        {isOwner ? (
-          <SeedDemoDataForm />
-        ) : (
-          <p className="text-sm text-[var(--color-stone-500)]">
-            Only a platform owner can populate or toggle demo data.
-          </p>
-        )}
-
-        {isOwner && demoUsers.length > 0 ? (
-          <div className="flex gap-2 border-t border-[var(--color-stone-100)] pt-4">
-            <form action={setDemoLoginsActive.bind(null, true)}>
-              <button
-                type="submit"
-                className={buttonVariants({ variant: "outline", size: "sm" })}
-              >
-                Activate demo logins
-              </button>
-            </form>
-            <form action={setDemoLoginsActive.bind(null, false)}>
-              <button
-                type="submit"
-                className={buttonVariants({ variant: "ghost", size: "sm" })}
-              >
-                Deactivate demo logins
-              </button>
-            </form>
-          </div>
-        ) : null}
-      </Card>
+      <DemoPersonaDirectory personas={personas} password={DEMO_PASSWORD} />
     </div>
   );
 }

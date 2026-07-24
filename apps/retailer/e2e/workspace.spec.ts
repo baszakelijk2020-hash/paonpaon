@@ -6,14 +6,14 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
   await page.getByLabel("Password").fill(TEST_OWNER_PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Enter the atelier" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
 });
 
 test("owner invites an additional staff member", async ({ page }) => {
   const unique = Date.now();
 
-  await page.getByRole("link", { name: "Staff" }).click();
+  await page.getByRole("link", { name: /^Team/ }).click();
   await expect(page).toHaveURL(/\/staff$/);
 
   await page.getByRole("link", { name: "Invite staff" }).click();
@@ -43,7 +43,7 @@ test("owner edits the retailer's business profile", async ({ page }) => {
   // Restores the fixture retailer's display name afterwards — other
   // specs (login.spec.ts) run in parallel against the same shared
   // fixture and assert on its original value.
-  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  await page.getByRole("link", { name: /^Settings/ }).click();
   await expect(page).toHaveURL(/\/settings$/);
 
   const originalDisplayName = await page
@@ -65,7 +65,7 @@ test("owner edits the retailer's business profile", async ({ page }) => {
 test("owner adds a customer CRM record", async ({ page }) => {
   const unique = Date.now();
 
-  await page.getByRole("link", { name: "Customers" }).click();
+  await page.getByRole("link", { name: /^Client book/ }).click();
   await expect(page).toHaveURL(/\/customers$/);
 
   await page.getByRole("link", { name: "New customer" }).click();
@@ -98,7 +98,7 @@ test("owner adds a customer CRM record", async ({ page }) => {
 test("owner adds a product with its first variant", async ({ page }) => {
   const unique = Date.now();
 
-  await page.getByRole("link", { name: "Products" }).click();
+  await page.getByRole("link", { name: /^Catalogue/ }).click();
   await expect(page).toHaveURL(/\/products$/);
 
   await page.getByRole("link", { name: "New product" }).click();
@@ -172,7 +172,7 @@ test("owner adds a collection", async ({ page }) => {
 });
 
 test("owner views and updates an order's status", async ({ page }) => {
-  await page.getByRole("link", { name: "Orders" }).click();
+  await page.getByRole("link", { name: /^Orders/ }).click();
   await expect(page).toHaveURL(/\/orders$/);
 
   const firstOrderLink = page.getByRole("link", { name: /ORD-/ }).first();
