@@ -101,7 +101,17 @@ async function globalSetup(): Promise<void> {
   }
 
   const existingVariants = await variantRepo.findByProduct(product.id);
-  if (existingVariants.length === 0) {
+  const storefrontVariant = existingVariants.find(
+    (variant) => variant.sku === "E2E-OVERCOAT-42",
+  );
+  if (storefrontVariant) {
+    await variantRepo.update(storefrontVariant.id, {
+      sku: "E2E-OVERCOAT-42",
+      size: "42",
+      price: { amountMinorUnits: 450000, currency: "USD" },
+      inventoryQuantity: 10,
+    });
+  } else {
     await variantRepo.create({
       productId: product.id,
       sku: "E2E-OVERCOAT-42",
