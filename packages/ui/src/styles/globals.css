@@ -133,6 +133,20 @@
   background-color: color-mix(in oklab, var(--color-stone-50) 72%, transparent);
 }
 
+@utility retailer-theme {
+  background-color: var(--retailer-surface);
+  color: var(--retailer-ink);
+  font-family: var(--font-retailer-body);
+
+  & :where(h1, h2, h3, [data-retailer-display]) {
+    font-family: var(--font-retailer-display);
+  }
+
+  & :where(.rounded-xl, .rounded-\[1\.25rem\]) {
+    border-radius: var(--retailer-radius);
+  }
+}
+
 /**
  * Touch-device safety (mandate: hover animations have no place on
  * touch devices). Tailwind's `hover:` variant is redefined project-wide

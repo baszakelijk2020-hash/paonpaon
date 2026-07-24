@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
@@ -140,5 +140,42 @@ describe("RetailerRepository", () => {
         },
       }),
     ).rejects.toBeTruthy();
+  });
+
+  it("saves a validated theme through the versioning RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: 2, error: null });
+    const repo = new RetailerRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+    const theme = {
+      accentColor: "#7a2d31",
+      surfaceColor: "#f5f3f0",
+      inkColor: "#1a1a1a",
+      displayFont: "heritage",
+      bodyFont: "humanist",
+      cornerStyle: "tailored",
+    } as const;
+
+    await expect(
+      repo.saveBrandTheme(row.id as never, theme, "Refined identity"),
+    ).resolves.toBe(2);
+    expect(rpc).toHaveBeenCalledWith("save_retailer_brand_theme", {
+      p_retailer_id: row.id,
+      p_theme: theme,
+      p_change_note: "Refined identity",
+    });
+  });
+
+  it("restores a theme only through the authorized restore RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: 3, error: null });
+    const repo = new RetailerRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+
+    await expect(repo.restoreBrandTheme(row.id as never, 1)).resolves.toBe(3);
+    expect(rpc).toHaveBeenCalledWith("restore_retailer_brand_theme", {
+      p_retailer_id: row.id,
+      p_version_number: 1,
+    });
   });
 });

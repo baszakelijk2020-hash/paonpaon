@@ -36,6 +36,9 @@ export default async function SettingsPage() {
           currency are managed by PAON Admin.
         </p>
         <div className="mt-2 flex gap-4">
+          <Link href="/settings/brand" className="text-sm underline">
+            Brand configuration →
+          </Link>
           <Link href="/settings/payments" className="text-sm underline">
             Payments settings →
           </Link>

@@ -145,6 +145,28 @@ is being substituted for the required desktop/mobile inspection evidence.
   because the required in-app browser is still unavailable for desktop/mobile
   screenshot inspection.
 
+**Commercialisation checkpoint 3 implemented locally (not deployed):**
+
+- retailer identity is now a typed, curated `RetailerBrandTheme`, not an
+  untrusted JSON cast. It supports HTTPS logo/favicon/hero imagery, validated
+  accent/surface/ink colors, curated display/body typography and restrained
+  corner character—never arbitrary CSS, scripts or HTML;
+- domain and database validation both require 4.5:1 surface/ink contrast and
+  reject unknown tokens, non-HTTPS assets and values outside the curated
+  vocabulary. Legacy empty themes normalize safely to the PAON defaults;
+- one shared `RetailerTheme` maps the tokens to scoped CSS variables. Retailer
+  Portal and every `/r/[slug]` storefront now consume that same component, so
+  personalization does not fork applications or components;
+- owner/admin `/settings/brand` provides an immediate component preview,
+  explicit publish feedback and immutable version history.
+  `save_retailer_brand_theme` and `restore_retailer_brand_theme` re-derive
+  caller authority, lock the retailer, version atomically and activate the
+  chosen tokens; direct retailer-staff JSON mutation is rejected;
+- unit coverage protects schema normalization, contrast and repository RPC
+  boundaries. A real Retailer E2E journey publishes a theme version, verifies
+  the shared shell receives it, and cleans up its own state. Visual acceptance
+  remains blocked on the empty in-app-browser inventory.
+
 **Phase 0 (engineering foundation): done. Phase 1 (Identity, Retailer,
 Customer core): done. Phase 2 (Catalog and Commerce): catalog, storefront,
 order placement/management and Stripe Connect customer payments shipped

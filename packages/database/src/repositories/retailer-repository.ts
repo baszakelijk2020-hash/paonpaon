@@ -1,9 +1,12 @@
 import {
   asId,
+  normalizeRetailerBrandTheme,
   type Address,
   type CurrencyCode,
   type Retailer,
   type RetailerId,
+  type RetailerBrandTheme,
+  type RetailerBrandThemeVersion,
   type RetailerTier,
 } from "@paon/domain";
 import type { PostgrestError } from "@supabase/supabase-js";
@@ -12,6 +15,8 @@ import type { PaonSupabaseClient } from "../client-type";
 import type { Database, Json } from "../generated/database.types";
 
 type RetailerRow = Database["public"]["Tables"]["retailers"]["Row"];
+type ThemeVersionRow =
+  Database["public"]["Tables"]["retailer_brand_theme_versions"]["Row"];
 
 const UNIQUE_VIOLATION = "23505";
 
@@ -38,10 +43,24 @@ function toDomain(row: RetailerRow): Retailer {
     billingAddress: row.billing_address as unknown as Address,
     defaultCurrency: row.default_currency,
     defaultLocale: row.default_locale,
-    brandTheme: row.brand_theme as unknown as Retailer["brandTheme"],
+    brandTheme: normalizeRetailerBrandTheme(row.brand_theme),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
+  };
+}
+
+function themeVersionToDomain(row: ThemeVersionRow): RetailerBrandThemeVersion {
+  return {
+    id: row.id,
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    versionNumber: row.version_number,
+    theme: normalizeRetailerBrandTheme(row.theme),
+    changeNote: row.change_note,
+    ...(row.changed_by_user_id
+      ? { changedByUserId: row.changed_by_user_id }
+      : {}),
+    createdAt: row.created_at,
   };
 }
 
@@ -176,5 +195,46 @@ export class RetailerRepository {
     }
 
     return toDomain(data);
+  }
+
+  async saveBrandTheme(
+    id: RetailerId,
+    theme: RetailerBrandTheme,
+    changeNote: string,
+  ): Promise<number> {
+    const { data, error } = await this.client.rpc("save_retailer_brand_theme", {
+      p_retailer_id: id,
+      p_theme: theme as unknown as Json,
+      p_change_note: changeNote,
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async listBrandThemeVersions(
+    id: RetailerId,
+  ): Promise<RetailerBrandThemeVersion[]> {
+    const { data, error } = await this.client
+      .from("retailer_brand_theme_versions")
+      .select("*")
+      .eq("retailer_id", id)
+      .order("version_number", { ascending: false });
+    if (error) throw error;
+    return data.map(themeVersionToDomain);
+  }
+
+  async restoreBrandTheme(
+    id: RetailerId,
+    versionNumber: number,
+  ): Promise<number> {
+    const { data, error } = await this.client.rpc(
+      "restore_retailer_brand_theme",
+      {
+        p_retailer_id: id,
+        p_version_number: versionNumber,
+      },
+    );
+    if (error) throw error;
+    return data;
   }
 }

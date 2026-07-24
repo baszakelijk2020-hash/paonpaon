@@ -30,8 +30,9 @@ Implementation order:
    — complete;
 2. premium public PAON marketing, pricing and persisted inquiry journeys
    — complete as a functional foundation; visual acceptance pending;
-3. validated shared retailer theme architecture — next;
-4. Admin Demo Studio;
+3. validated shared retailer theme architecture — complete as a functional
+   foundation; visual acceptance pending;
+4. Admin Demo Studio — next;
 5. isolated synthetic demo generation and persona previews;
 6. private personalized proposals;
 7. founder sales pipeline and revenue cockpit;

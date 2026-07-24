@@ -1,13 +1,17 @@
+import { RetailerRepository } from "@paon/database";
 import {
   retailerRoleAtLeast,
   retailerRoleHasAlterationsPermission,
 } from "@paon/domain";
 import { AppShell, type AppShellNavGroup } from "@paon/ui/components/AppShell";
 import { Button } from "@paon/ui/components/Button";
+import { RetailerTheme } from "@paon/ui/components/RetailerTheme";
+import { notFound } from "next/navigation";
 
 import { signOut } from "./actions";
 
 import { requireSession } from "@/lib/session";
+import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const PERSONA_LABELS = {
   owner: "Retailer owner",
@@ -26,6 +30,10 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
+  const retailer = await new RetailerRepository(
+    await getSupabaseServerClient(),
+  ).findById(session.retailerId);
+  if (!retailer) notFound();
   const canManageRetailer = retailerRoleAtLeast(session.retailerRole, "admin");
   const canManageCustomers = retailerRoleAtLeast(
     session.retailerRole,
@@ -191,22 +199,24 @@ export default async function DashboardLayout({
   ];
 
   return (
-    <AppShell
-      brand="PAON"
-      product="Retail"
-      homeHref={homeHref}
-      persona={PERSONA_LABELS[session.retailerRole]}
-      email={session.email}
-      navigation={navigation}
-      signOutControl={
-        <form action={signOut}>
-          <Button type="submit" variant="ghost" size="sm">
-            Sign out
-          </Button>
-        </form>
-      }
-    >
-      {children}
-    </AppShell>
+    <RetailerTheme theme={retailer.brandTheme}>
+      <AppShell
+        brand={retailer.displayName}
+        product="PAON Retail"
+        homeHref={homeHref}
+        persona={PERSONA_LABELS[session.retailerRole]}
+        email={session.email}
+        navigation={navigation}
+        signOutControl={
+          <form action={signOut}>
+            <Button type="submit" variant="ghost" size="sm">
+              Sign out
+            </Button>
+          </form>
+        }
+      >
+        {children}
+      </AppShell>
+    </RetailerTheme>
   );
 }

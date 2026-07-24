@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  colorContrastRatio,
   createRetailerInputSchema,
+  normalizeRetailerBrandTheme,
+  retailerBrandThemeSchema,
   updateRetailerProfileInputSchema,
 } from "./retailer.schema";
 
@@ -116,5 +119,54 @@ describe("updateRetailerProfileInputSchema", () => {
     expect(result).not.toHaveProperty("tier");
     expect(result).not.toHaveProperty("status");
     expect(result).not.toHaveProperty("defaultCurrency");
+  });
+});
+
+describe("retailerBrandThemeSchema", () => {
+  const validTheme = {
+    logoUrl: "https://example.com/logo.svg",
+    accentColor: "#7a2d31",
+    surfaceColor: "#f5f3f0",
+    inkColor: "#1a1a1a",
+    displayFont: "heritage",
+    bodyFont: "humanist",
+    cornerStyle: "tailored",
+  };
+
+  it("accepts curated tokens and sufficient text contrast", () => {
+    expect(retailerBrandThemeSchema.parse(validTheme)).toMatchObject({
+      accentColor: "#7a2d31",
+      displayFont: "heritage",
+    });
+    expect(colorContrastRatio("#f5f3f0", "#1a1a1a")).toBeGreaterThan(4.5);
+  });
+
+  it("rejects arbitrary fonts, insecure assets and inaccessible colors", () => {
+    expect(
+      retailerBrandThemeSchema.safeParse({
+        ...validTheme,
+        displayFont: "url(javascript:evil)",
+      }).success,
+    ).toBe(false);
+    expect(
+      retailerBrandThemeSchema.safeParse({
+        ...validTheme,
+        logoUrl: "http://example.com/logo.svg",
+      }).success,
+    ).toBe(false);
+    expect(
+      retailerBrandThemeSchema.safeParse({
+        ...validTheme,
+        inkColor: "#eeeeee",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("normalizes legacy empty themes to the PAON defaults", () => {
+    expect(normalizeRetailerBrandTheme({})).toMatchObject({
+      surfaceColor: "#f5f3f0",
+      displayFont: "paon_editorial",
+      cornerStyle: "soft",
+    });
   });
 });

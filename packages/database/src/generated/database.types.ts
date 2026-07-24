@@ -3178,6 +3178,44 @@ export type Database = {
           },
         ];
       };
+      retailer_brand_theme_versions: {
+        Row: {
+          change_note: string;
+          changed_by_user_id: string | null;
+          created_at: string;
+          id: string;
+          retailer_id: string;
+          theme: Json;
+          version_number: number;
+        };
+        Insert: {
+          change_note: string;
+          changed_by_user_id?: string | null;
+          created_at?: string;
+          id?: string;
+          retailer_id: string;
+          theme: Json;
+          version_number: number;
+        };
+        Update: {
+          change_note?: string;
+          changed_by_user_id?: string | null;
+          created_at?: string;
+          id?: string;
+          retailer_id?: string;
+          theme?: Json;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_brand_theme_versions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailer_entitlement_overrides: {
         Row: {
           created_at: string;
@@ -4591,6 +4629,10 @@ export type Database = {
         };
         Returns: boolean;
       };
+      is_valid_retailer_brand_theme: {
+        Args: { p_theme: Json };
+        Returns: boolean;
+      };
       join_wedding_party: {
         Args: {
           p_email: string;
@@ -4661,6 +4703,10 @@ export type Database = {
         };
         Returns: string;
       };
+      restore_retailer_brand_theme: {
+        Args: { p_retailer_id: string; p_version_number: number };
+        Returns: number;
+      };
       retailer_has_entitlement: {
         Args: { p_feature_key: string; p_retailer_id: string };
         Returns: boolean;
@@ -4671,6 +4717,10 @@ export type Database = {
           p_status: Database["public"]["Enums"]["event_rsvp_status"];
         };
         Returns: undefined;
+      };
+      save_retailer_brand_theme: {
+        Args: { p_change_note: string; p_retailer_id: string; p_theme: Json };
+        Returns: number;
       };
       send_conversation_message: {
         Args: { p_body: string; p_conversation_id: string };

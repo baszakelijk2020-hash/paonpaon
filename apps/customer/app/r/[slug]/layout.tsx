@@ -1,4 +1,5 @@
 import { RetailerRepository } from "@paon/database";
+import { RetailerTheme } from "@paon/ui/components/RetailerTheme";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -28,12 +29,12 @@ export default async function StorefrontLayout({
   }
 
   return (
-    <>
+    <RetailerTheme theme={retailer.brandTheme}>
       {children}
       <TableServiceWidget
         retailerId={retailer.id}
         retailerName={retailer.displayName}
       />
-    </>
+    </RetailerTheme>
   );
 }

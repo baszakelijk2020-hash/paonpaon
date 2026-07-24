@@ -1680,3 +1680,30 @@ unstructured messages. Submission does not imply qualification, consent to
 research, demo generation, tenant creation or production onboarding. Abuse
 controls beyond payload validation and platform-level infrastructure limits
 remain required before high-volume public launch.
+
+## ADR-042: Retailer branding is a validated token document with immutable versions
+
+**Context.** Personalized demonstrations and live retailers need meaningful
+visual identity without retailer-specific forks. Storing arbitrary CSS, font
+URLs or HTML would make every preview a security boundary, undermine PAON's
+design coherence and create configurations that cannot safely move from a
+prospect into onboarding. The existing `retailers.brand_theme` JSON was only
+cast to a TypeScript interface and accepted three optional strings.
+
+**Decision.** `RetailerBrandTheme` is one closed token document: three HTTPS
+asset URLs, three six-digit colors, curated display/body font keys and a
+curated corner key. Domain and database validation reject unknown keys and
+require 4.5:1 contrast between surface and ink. A shared UI component maps the
+keys to scoped CSS variables; it never emits supplied CSS. Publishing goes
+through `save_retailer_brand_theme`, which re-derives platform or tenant
+owner/admin authority, locks the retailer, appends an immutable attributed
+version and activates the same validated document transactionally. Restore
+appends another version rather than rewriting history. Direct staff updates to
+the JSON field are blocked by the retailer update trigger.
+
+**Consequences.** Storefront, operating portal, future prospect demo and
+proposal can share one design system and one configuration shape. A sold
+prospect can copy an approved token document into onboarding without copying
+code or synthetic records. The curated vocabulary intentionally limits
+pixel-level brand mimicry; extending it requires an explicit schema, database
+validator and shared renderer change rather than injecting bespoke CSS.

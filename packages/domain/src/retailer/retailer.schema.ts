@@ -2,6 +2,11 @@ import { z } from "zod";
 
 import type { CurrencyCode } from "../shared/money";
 
+import {
+  DEFAULT_RETAILER_BRAND_THEME,
+  type RetailerBrandTheme,
+} from "./retailer";
+
 export const CURRENCY_CODES = [
   "USD",
   "EUR",
@@ -16,6 +21,75 @@ export const CURRENCY_CODES = [
 export const currencyCodeSchema = z.enum(CURRENCY_CODES);
 
 export const retailerTierSchema = z.enum(["boutique", "house", "maison"]);
+
+const httpsAssetSchema = z
+  .union([
+    z.string().trim().url().startsWith("https://").max(1000),
+    z.literal(""),
+  ])
+  .optional()
+  .transform((value) => value || undefined);
+
+const hexColorSchema = z
+  .string()
+  .trim()
+  .regex(/^#[0-9a-fA-F]{6}$/, "Use a 6-digit hex color")
+  .transform((value) => value.toLowerCase());
+
+function relativeLuminance(hex: string): number {
+  const channels = [1, 3, 5].map((start) => {
+    const channel = Number.parseInt(hex.slice(start, start + 2), 16) / 255;
+    return channel <= 0.04045
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return (
+    0.2126 * (channels[0] ?? 0) +
+    0.7152 * (channels[1] ?? 0) +
+    0.0722 * (channels[2] ?? 0)
+  );
+}
+
+export function colorContrastRatio(first: string, second: string): number {
+  const lighter = Math.max(relativeLuminance(first), relativeLuminance(second));
+  const darker = Math.min(relativeLuminance(first), relativeLuminance(second));
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+export const retailerBrandThemeSchema = z
+  .object({
+    logoUrl: httpsAssetSchema,
+    faviconUrl: httpsAssetSchema,
+    heroImageUrl: httpsAssetSchema,
+    accentColor: hexColorSchema,
+    surfaceColor: hexColorSchema,
+    inkColor: hexColorSchema,
+    displayFont: z.enum(["paon_editorial", "heritage", "modern"]),
+    bodyFont: z.enum(["quiet_sans", "humanist"]),
+    cornerStyle: z.enum(["tailored", "soft", "architectural"]),
+  })
+  .superRefine((theme, context) => {
+    if (colorContrastRatio(theme.surfaceColor, theme.inkColor) < 4.5) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["inkColor"],
+        message: "Ink and surface need at least 4.5:1 contrast",
+      });
+    }
+  });
+
+export type RetailerBrandThemeInput = z.infer<typeof retailerBrandThemeSchema>;
+
+export function normalizeRetailerBrandTheme(
+  value: unknown,
+): RetailerBrandTheme {
+  const candidate =
+    value && typeof value === "object"
+      ? { ...DEFAULT_RETAILER_BRAND_THEME, ...value }
+      : DEFAULT_RETAILER_BRAND_THEME;
+  const parsed = retailerBrandThemeSchema.safeParse(candidate);
+  return parsed.success ? parsed.data : DEFAULT_RETAILER_BRAND_THEME;
+}
 
 export const addressSchema = z.object({
   line1: z.string().trim().min(1, "Required"),

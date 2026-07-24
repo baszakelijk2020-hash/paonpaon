@@ -143,6 +143,7 @@ proposal lines—not subscription features or implementation fees.
 | Admin sales cockpit             | Attention-ranked pipeline and next three revenue actions          | Planned    |
 | Admin prospect record           | Research, contact, package and opportunity context                | Planned    |
 | Admin Demo Studio               | Safe branding, modules, content, synthetic data and role previews | Planned    |
+| Retailer `/settings/brand`      | Validated tokens, live preview and restorable brand versions      | Foundation |
 | Private demo/proposal           | Retailer-specific environment, terms and secure action            | Planned    |
 | Pilot-to-live transition        | Copy approved configuration only into onboarding                  | Planned    |
 
@@ -196,6 +197,34 @@ Implemented locally:
 These routes are **Foundation**, not **Accepted**. The required in-app-browser
 desktop/mobile inspection and screenshot evidence remains unavailable; no
 automated screenshot has been promoted into the baseline register.
+
+### Commercial checkpoint 3 — safe shared retailer themes
+
+Implemented locally:
+
+- one `RetailerBrandTheme` vocabulary now represents HTTPS logo/favicon/hero
+  assets, three curated display treatments, two readable body treatments,
+  three corner characters and validated accent/surface/ink colors;
+- surface/ink combinations must meet WCAG 4.5:1 contrast in both domain
+  validation and the database. Unknown keys, arbitrary fonts, HTTP assets,
+  scripts, CSS and HTML cannot be represented or persisted;
+- the shared `RetailerTheme` component maps only those tokens to CSS variables.
+  The same component wraps the Retailer operating shell and public storefront,
+  preserving one codebase and one PAON component system;
+- retailer owners/admins can configure and preview themes at
+  `/settings/brand`. Publishing creates an immutable attributed version and
+  atomically activates it; any version can be restored as a new auditable
+  version;
+- direct retailer-staff mutation of `brand_theme` is rejected. The narrow
+  save/restore functions re-derive tenant authority, while PAON platform staff
+  and authorized service tooling retain their established scope;
+- unit coverage proves unsafe token rejection, fallback normalization and RPC
+  boundaries. Retailer E2E coverage publishes a real version, verifies the
+  shared shell consumes its CSS variables, and removes its own test state.
+
+This architecture is the theme boundary that Demo Studio must reuse for
+prospects. It remains **Foundation** pending the required desktop/tablet/mobile
+visual pass in the unavailable in-app browser.
 
 ## Experience principles
 
@@ -516,30 +545,30 @@ primary mutation feedback. Dynamic routes use seeded records.
 
 ### Retailer Portal
 
-| Route                                                               | Intended experience                                         | Status                |
-| ------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------- |
-| `/login`, `/accept-invite`                                          | Editorial entry and guided activation                       | Foundation / Baseline |
-| `/dashboard`                                                        | Role-specific daily brief and day plan                      | Foundation            |
-| `/customers`, `/customers/new`                                      | Client book and polished client capture                     | Baseline              |
-| `/customers/[id]`                                                   | Rich relationship workspace with chronology and next action | Foundation            |
-| `/appointments`, `/appointments/new`, `/appointments/[id]`          | Agenda, booking and service workspace                       | Baseline / Foundation |
-| `/appointments/availability`                                        | Human-readable weekly capacity editor                       | Baseline              |
-| `/orders`, `/orders/[id]`                                           | Risk-aware fulfilment queue and progress record             | Baseline              |
-| `/alterations`, `/alterations/new`                                  | Visual work queue and fitting-led intake                    | Foundation / Baseline |
-| `/alterations/[id]`                                                 | Complete fitting-to-workshop garment workspace              | Baseline              |
-| `/alterations/catalogue`                                            | Retailer/workshop service-price workspace                   | Baseline              |
-| `/alterations/workshops`                                            | Workshop network and operational status                     | Baseline              |
-| `/messages`, `/messages/[id]`                                       | Shared client inbox and relationship context                | Baseline              |
-| `/notifications`                                                    | Actionable activity stream                                  | Baseline              |
-| `/products`, `/products/new`, `/products/[id]`                      | Editorial catalogue and visual product editor               | Baseline              |
-| `/collections`                                                      | Curated collection stories                                  | Baseline              |
-| `/loyalty`                                                          | Program health, rewards and member value                    | Baseline              |
-| `/events`, `/events/[id]`                                           | Event portfolio, readiness and guest response               | Baseline              |
-| `/wedding-parties`, `/wedding-parties/new`, `/wedding-parties/[id]` | Group service command centre                                | Baseline              |
-| `/analytics`                                                        | Commercial/service performance with explanation             | Baseline              |
-| `/staff`, `/staff/new`, `/staff/roster`                             | Team access, coverage and time                              | Baseline              |
-| `/settings`, `/settings/billing`, `/settings/payments`              | Calm configuration and provider readiness                   | Baseline              |
-| authenticated shell                                                 | Role-specific PAON rail and mobile drawer                   | Foundation            |
+| Route                                                                     | Intended experience                                         | Status                |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------- |
+| `/login`, `/accept-invite`                                                | Editorial entry and guided activation                       | Foundation / Baseline |
+| `/dashboard`                                                              | Role-specific daily brief and day plan                      | Foundation            |
+| `/customers`, `/customers/new`                                            | Client book and polished client capture                     | Baseline              |
+| `/customers/[id]`                                                         | Rich relationship workspace with chronology and next action | Foundation            |
+| `/appointments`, `/appointments/new`, `/appointments/[id]`                | Agenda, booking and service workspace                       | Baseline / Foundation |
+| `/appointments/availability`                                              | Human-readable weekly capacity editor                       | Baseline              |
+| `/orders`, `/orders/[id]`                                                 | Risk-aware fulfilment queue and progress record             | Baseline              |
+| `/alterations`, `/alterations/new`                                        | Visual work queue and fitting-led intake                    | Foundation / Baseline |
+| `/alterations/[id]`                                                       | Complete fitting-to-workshop garment workspace              | Baseline              |
+| `/alterations/catalogue`                                                  | Retailer/workshop service-price workspace                   | Baseline              |
+| `/alterations/workshops`                                                  | Workshop network and operational status                     | Baseline              |
+| `/messages`, `/messages/[id]`                                             | Shared client inbox and relationship context                | Baseline              |
+| `/notifications`                                                          | Actionable activity stream                                  | Baseline              |
+| `/products`, `/products/new`, `/products/[id]`                            | Editorial catalogue and visual product editor               | Baseline              |
+| `/collections`                                                            | Curated collection stories                                  | Baseline              |
+| `/loyalty`                                                                | Program health, rewards and member value                    | Baseline              |
+| `/events`, `/events/[id]`                                                 | Event portfolio, readiness and guest response               | Baseline              |
+| `/wedding-parties`, `/wedding-parties/new`, `/wedding-parties/[id]`       | Group service command centre                                | Baseline              |
+| `/analytics`                                                              | Commercial/service performance with explanation             | Baseline              |
+| `/staff`, `/staff/new`, `/staff/roster`                                   | Team access, coverage and time                              | Baseline              |
+| `/settings`, `/settings/brand`, `/settings/billing`, `/settings/payments` | Calm profile, validated identity and provider readiness     | Baseline / Foundation |
+| authenticated shell                                                       | Role-specific PAON rail and mobile drawer                   | Foundation            |
 
 ### Customer Portal and storefront
 
