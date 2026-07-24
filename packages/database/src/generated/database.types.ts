@@ -1374,6 +1374,59 @@ export type Database = {
         };
         Relationships: [];
       };
+      commercial_inquiries: {
+        Row: {
+          company_name: string;
+          contact_name: string;
+          created_at: string;
+          email: string;
+          id: string;
+          inquiry_type: Database["public"]["Enums"]["commercial_inquiry_type"];
+          objective: string;
+          requested_plan_key: string | null;
+          source: string;
+          status: string;
+          updated_at: string;
+          website_url: string | null;
+        };
+        Insert: {
+          company_name: string;
+          contact_name: string;
+          created_at?: string;
+          email: string;
+          id?: string;
+          inquiry_type: Database["public"]["Enums"]["commercial_inquiry_type"];
+          objective: string;
+          requested_plan_key?: string | null;
+          source?: string;
+          status?: string;
+          updated_at?: string;
+          website_url?: string | null;
+        };
+        Update: {
+          company_name?: string;
+          contact_name?: string;
+          created_at?: string;
+          email?: string;
+          id?: string;
+          inquiry_type?: Database["public"]["Enums"]["commercial_inquiry_type"];
+          objective?: string;
+          requested_plan_key?: string | null;
+          source?: string;
+          status?: string;
+          updated_at?: string;
+          website_url?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "commercial_inquiries_requested_plan_key_fkey";
+            columns: ["requested_plan_key"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["key"];
+          },
+        ];
+      };
       completion_reviews: {
         Row: {
           alteration_id: string;
@@ -4631,6 +4684,18 @@ export type Database = {
         };
         Returns: undefined;
       };
+      submit_commercial_inquiry: {
+        Args: {
+          p_company_name: string;
+          p_contact_name: string;
+          p_email: string;
+          p_inquiry_type: Database["public"]["Enums"]["commercial_inquiry_type"];
+          p_objective: string;
+          p_requested_plan_key: string;
+          p_website_url: string;
+        };
+        Returns: string;
+      };
       submit_table_service_inquiry: {
         Args: {
           p_email: string;
@@ -4767,6 +4832,8 @@ export type Database = {
         | "alteration_fitting"
         | "personal_shopping"
         | "event";
+      commercial_inquiry_type:
+        "personalized_demo" | "consultation" | "paid_pilot";
       completion_review_status: "pending" | "approved" | "changes_requested";
       custody_event_type:
         | "received"
@@ -5053,6 +5120,11 @@ export const Constants = {
         "alteration_fitting",
         "personal_shopping",
         "event",
+      ],
+      commercial_inquiry_type: [
+        "personalized_demo",
+        "consultation",
+        "paid_pilot",
       ],
       completion_review_status: ["pending", "approved", "changes_requested"],
       custody_event_type: [

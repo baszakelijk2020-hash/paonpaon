@@ -117,6 +117,34 @@ is being substituted for the required desktop/mobile inspection evidence.
   included capabilities atomically, while the Stripe Price bridge remains a
   visibly separate activation concern.
 
+**Commercialisation checkpoint 2 implemented locally (not deployed):**
+
+- Customer Portal `/` is now the public PAON product story, with a fixed
+  reference-derived corporate shell, image-led editorial hero and sections
+  connecting relationship retail, fitting/workshop operations and the
+  private-client experience; signed-out access to `/dashboard` remains
+  protected;
+- the product preview is genuinely interactive across sales-advisor, workshop
+  and private-client perspectives, and focused `/discover/[topic]` narratives
+  cover platform, outcomes, alterations, engagement, templates, loyalty,
+  weddings/events and purpose-built roles;
+- public `/pricing` consumes the same Admin-editable commercial catalogue and
+  normalized capability list used by authorization. It shows Fused, Half
+  Canvas and Full Canvas with recurring software, implementation and optional
+  managed services kept separate;
+- `/demo-request`, `/consultation` and `/pilot` persist explicit commercial
+  intent to `commercial_inquiries` through `submit_commercial_inquiry`. The
+  security-definer RPC validates and normalizes the narrow anonymous payload;
+  anonymous users receive no direct table access, and submitting never creates
+  a prospect tenant, demo environment or production retailer;
+- domain validation and a repository keep the new write behind established
+  application boundaries. Playwright proves public access, role-preview
+  interaction, exact package terms and real inquiry persistence with cleanup;
+- the Customer production build, domain/database/customer typechecks and
+  Supabase database lint are green. The checkpoint remains **Foundation**
+  because the required in-app browser is still unavailable for desktop/mobile
+  screenshot inspection.
+
 **Phase 0 (engineering foundation): done. Phase 1 (Identity, Retailer,
 Customer core): done. Phase 2 (Catalog and Commerce): catalog, storefront,
 order placement/management and Stripe Connect customer payments shipped

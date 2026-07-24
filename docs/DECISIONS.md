@@ -1655,3 +1655,28 @@ retailers are not silently subscribed or granted features by the migration;
 live access enforcement is introduced route by route only after subscription
 fixtures and denial-state UX are in place. Managed-service proposal pricing and
 live Stripe product provisioning remain subsequent commercial checkpoints.
+
+## ADR-041: Public commercial interest is persisted without creating a tenant
+
+**Context.** PAON's public product story needs genuine next actions for a
+personalized demonstration, retailer consultation and paid pilot. A decorative
+form would fail the experience test, but allowing an anonymous request to
+create a retailer, demo environment or sales prospect would cross a material
+trust and isolation boundary before the founder has reviewed it.
+
+**Decision.** The three public journeys submit one validated
+`CommercialInquiryInput` with an explicit intent enum. Anonymous callers have
+execute permission only on `submit_commercial_inquiry`; they have no table
+grant or policy. The security-definer function normalizes and bounds every
+field, inserts a founder-owned inbox row with `new` status, and returns only its
+opaque id. Platform staff may manage the rows through RLS. The public marketing
+surface lives in Customer Portal because it already owns customer-facing and
+public retailer experiences, but protected private-client routes retain their
+existing middleware boundary.
+
+**Consequences.** Success feedback represents a real durable request, and the
+same commercial intent can later feed the sales cockpit without re-parsing
+unstructured messages. Submission does not imply qualification, consent to
+research, demo generation, tenant creation or production onboarding. Abuse
+controls beyond payload validation and platform-level infrastructure limits
+remain required before high-volume public launch.

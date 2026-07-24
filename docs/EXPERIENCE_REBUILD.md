@@ -134,11 +134,11 @@ proposal lines—not subscription features or implementation fees.
 
 | Surface                         | Intended experience                                               | Status     |
 | ------------------------------- | ----------------------------------------------------------------- | ---------- |
-| Public PAON landing/platform    | Visual product demonstration with retailer outcomes               | Planned    |
-| Public alterations/engagement   | Interactive workflow and relationship previews                    | Planned    |
-| Public templates/roles          | Storefront and operating-role product previews                    | Planned    |
+| Public PAON landing/platform    | Visual product demonstration with retailer outcomes               | Foundation |
+| Public alterations/engagement   | Interactive workflow and relationship previews                    | Foundation |
+| Public templates/roles          | Storefront and operating-role product previews                    | Foundation |
 | Public pricing                  | Editable Fused/Half Canvas/Full Canvas comparison                 | Foundation |
-| Demo request/consultation/pilot | High-trust lead and next-action journey                           | Planned    |
+| Demo request/consultation/pilot | High-trust lead and next-action journey                           | Foundation |
 | Admin commercial catalogue      | Edit package copy, fees, entitlements and Stripe bridge           | Foundation |
 | Admin sales cockpit             | Attention-ranked pipeline and next three revenue actions          | Planned    |
 | Admin prospect record           | Research, contact, package and opportunity context                | Planned    |
@@ -166,6 +166,36 @@ Implemented locally:
 
 This is a functional foundation. Public marketing, retailer theme
 configuration and Demo Studio follow in the stated dependency order.
+
+### Commercial checkpoint 2 — public product story and genuine inquiry
+
+Implemented locally:
+
+- Customer Portal `/` is now PAON's public corporate surface rather than an
+  authentication redirect, while `/dashboard` and every private-client route
+  remain protected;
+- the landing story uses the reference typography, charcoal/warm material
+  system, editorial proportions and image-led pacing to connect relationship
+  selling, alteration operations and the private-client experience;
+- an interactive role preview lets a retailer move between advisor, workshop
+  and customer contexts and see different attention, metrics and next action;
+- `/discover/[topic]` provides focused, non-generic product narratives for the
+  platform, outcomes, alterations, engagement, templates, loyalty,
+  weddings/events and role architecture;
+- `/pricing` reads the Admin-editable catalogue and entitlement vocabulary
+  directly, presents every included capability, and keeps recurring software,
+  implementation and optional managed services visibly separate;
+- `/demo-request`, `/consultation` and `/pilot` are distinct high-trust entry
+  journeys backed by one validated inquiry model and narrow anonymous RPC.
+  Success is shown only after persistence; no retailer, demo or production
+  tenant is created implicitly;
+- public-product and inquiry Playwright coverage exercises the interactive
+  preview, the three exact packages and a real persisted-and-cleaned-up demo
+  request.
+
+These routes are **Foundation**, not **Accepted**. The required in-app-browser
+desktop/mobile inspection and screenshot evidence remains unavailable; no
+automated screenshot has been promoted into the baseline register.
 
 ## Experience principles
 

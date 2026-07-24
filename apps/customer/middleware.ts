@@ -4,7 +4,15 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { env } from "./lib/env";
 
-const PUBLIC_PATHS = ["/login", "/auth/confirm"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/auth/confirm",
+  "/pricing",
+  "/demo-request",
+  "/consultation",
+  "/pilot",
+  "/discover",
+];
 // Storefront browsing (docs/DECISIONS.md ADR-014) — never gated behind
 // a session, and never signs an unrelated session out just for
 // visiting it (unlike the protected paths below).
@@ -33,6 +41,10 @@ export async function middleware(request: NextRequest) {
   );
 
   const { pathname } = request.nextUrl;
+
+  if (pathname === "/") {
+    return response;
+  }
 
   // /auth/confirm establishes the session itself (verifyOtp) — never
   // gate it behind an existing session check.

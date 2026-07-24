@@ -16,6 +16,7 @@ export * from "./repositories/payment-repository";
 export * from "./repositories/retailer-stripe-account-repository";
 export * from "./repositories/subscription-plan-repository";
 export * from "./repositories/entitlement-repository";
+export * from "./repositories/commercial-inquiry-repository";
 export * from "./repositories/retailer-subscription-repository";
 export * from "./repositories/availability-window-repository";
 export * from "./repositories/appointment-repository";

@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_DISPLAY_NAME } from "./fixtures";
 
 test("redirects unauthenticated visitors to /login", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/dashboard");
   await expect(page).toHaveURL(/\/login/);
   await expect(
     page.getByRole("heading", { name: "Welcome back." }),

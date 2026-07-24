@@ -26,9 +26,11 @@ System. PAON must let the founder produce one safe, branded, retailer-specific
 demonstration in under one hour without code changes or per-retailer forks.
 Implementation order:
 
-1. commercial domain, Fused/Half Canvas/Full Canvas plans and entitlements;
-2. premium public PAON marketing and pricing;
-3. validated shared retailer theme architecture;
+1. commercial domain, Fused/Half Canvas/Full Canvas plans and entitlements
+   — complete;
+2. premium public PAON marketing, pricing and persisted inquiry journeys
+   — complete as a functional foundation; visual acceptance pending;
+3. validated shared retailer theme architecture — next;
 4. Admin Demo Studio;
 5. isolated synthetic demo generation and persona previews;
 6. private personalized proposals;

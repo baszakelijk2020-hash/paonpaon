@@ -4,7 +4,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "PAON",
-  description: "Your account, orders and style — in one place.",
+  description:
+    "The digital customer and operating platform for premium retail houses.",
 };
 
 export default function RootLayout({
