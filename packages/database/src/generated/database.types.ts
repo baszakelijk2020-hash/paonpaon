@@ -1344,6 +1344,36 @@ export type Database = {
           },
         ];
       };
+      commercial_features: {
+        Row: {
+          category: string;
+          created_at: string;
+          description: string;
+          display_order: number;
+          key: string;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          category: string;
+          created_at?: string;
+          description?: string;
+          display_order?: number;
+          key: string;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          category?: string;
+          created_at?: string;
+          description?: string;
+          display_order?: number;
+          key?: string;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       completion_reviews: {
         Row: {
           alteration_id: string;
@@ -2158,6 +2188,51 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      managed_service_offerings: {
+        Row: {
+          billing_interval: string | null;
+          created_at: string;
+          description: string;
+          display_order: number;
+          id: string;
+          is_public: boolean;
+          key: string;
+          name: string;
+          price_amount_minor_units: number | null;
+          price_currency: string | null;
+          price_is_from: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          billing_interval?: string | null;
+          created_at?: string;
+          description?: string;
+          display_order?: number;
+          id?: string;
+          is_public?: boolean;
+          key: string;
+          name: string;
+          price_amount_minor_units?: number | null;
+          price_currency?: string | null;
+          price_is_from?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          billing_interval?: string | null;
+          created_at?: string;
+          description?: string;
+          display_order?: number;
+          id?: string;
+          is_public?: boolean;
+          key?: string;
+          name?: string;
+          price_amount_minor_units?: number | null;
+          price_currency?: string | null;
+          price_is_from?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       messages: {
         Row: {
@@ -3050,6 +3125,51 @@ export type Database = {
           },
         ];
       };
+      retailer_entitlement_overrides: {
+        Row: {
+          created_at: string;
+          enabled: boolean;
+          expires_at: string | null;
+          feature_key: string;
+          reason: string | null;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          enabled: boolean;
+          expires_at?: string | null;
+          feature_key: string;
+          reason?: string | null;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          enabled?: boolean;
+          expires_at?: string | null;
+          feature_key?: string;
+          reason?: string | null;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_entitlement_overrides_feature_key_fkey";
+            columns: ["feature_key"];
+            isOneToOne: false;
+            referencedRelation: "commercial_features";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "retailer_entitlement_overrides_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailer_events: {
         Row: {
           capacity: number | null;
@@ -3583,16 +3703,56 @@ export type Database = {
         };
         Relationships: [];
       };
+      subscription_plan_entitlements: {
+        Row: {
+          created_at: string;
+          feature_key: string;
+          plan_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          feature_key: string;
+          plan_id: string;
+        };
+        Update: {
+          created_at?: string;
+          feature_key?: string;
+          plan_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "subscription_plan_entitlements_feature_key_fkey";
+            columns: ["feature_key"];
+            isOneToOne: false;
+            referencedRelation: "commercial_features";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "subscription_plan_entitlements_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       subscription_plans: {
         Row: {
           billing_interval: string;
           created_at: string;
+          description: string;
+          display_order: number;
           id: string;
+          implementation_fee_amount_minor_units: number;
+          implementation_fee_currency: string;
           included_feature_keys: string[];
+          is_public: boolean;
           key: string;
           name: string;
+          positioning: string;
           price_amount_minor_units: number;
           price_currency: string;
+          price_is_from: boolean;
           provider_price_id: string | null;
           seat_limit: number | null;
           updated_at: string;
@@ -3600,12 +3760,19 @@ export type Database = {
         Insert: {
           billing_interval: string;
           created_at?: string;
+          description?: string;
+          display_order?: number;
           id?: string;
+          implementation_fee_amount_minor_units?: number;
+          implementation_fee_currency?: string;
           included_feature_keys?: string[];
+          is_public?: boolean;
           key: string;
           name: string;
+          positioning?: string;
           price_amount_minor_units: number;
           price_currency: string;
+          price_is_from?: boolean;
           provider_price_id?: string | null;
           seat_limit?: number | null;
           updated_at?: string;
@@ -3613,12 +3780,19 @@ export type Database = {
         Update: {
           billing_interval?: string;
           created_at?: string;
+          description?: string;
+          display_order?: number;
           id?: string;
+          implementation_fee_amount_minor_units?: number;
+          implementation_fee_currency?: string;
           included_feature_keys?: string[];
+          is_public?: boolean;
           key?: string;
           name?: string;
+          positioning?: string;
           price_amount_minor_units?: number;
           price_currency?: string;
+          price_is_from?: boolean;
           provider_price_id?: string | null;
           seat_limit?: number | null;
           updated_at?: string;
@@ -4434,6 +4608,10 @@ export type Database = {
         };
         Returns: string;
       };
+      retailer_has_entitlement: {
+        Args: { p_feature_key: string; p_retailer_id: string };
+        Returns: boolean;
+      };
       rsvp_to_event: {
         Args: {
           p_event_id: string;
@@ -4490,6 +4668,23 @@ export type Database = {
       };
       update_cart_line: {
         Args: { p_line_id: string; p_quantity: number };
+        Returns: undefined;
+      };
+      update_commercial_plan: {
+        Args: {
+          p_description: string;
+          p_feature_keys: string[];
+          p_implementation_fee_amount_minor_units: number;
+          p_implementation_fee_currency: string;
+          p_is_public: boolean;
+          p_name: string;
+          p_plan_id: string;
+          p_positioning: string;
+          p_price_amount_minor_units: number;
+          p_price_currency: string;
+          p_price_is_from: boolean;
+          p_seat_limit: number;
+        };
         Returns: undefined;
       };
       update_product_catalogue: {

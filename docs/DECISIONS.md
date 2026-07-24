@@ -1611,3 +1611,47 @@ continue to render as “Former staff member” rather than losing the event; sy
 or legacy rows with no actor render as “System.” No customer-safe projection
 gained employee identity, and no supplier/manufacturing responsibility moved
 into PAON.
+
+## ADR-040: Commercial packages use normalized server entitlements and separate revenue concepts
+
+**Context.** PAON must support public pricing, retailer-specific demos,
+proposals and paid pilots from one codebase. ADR-031 established Stripe Billing
+and three seeded plans, but their names/prices were provisional, capability
+keys were an unvalidated text array, and only the provider Price ID was
+editable. Using retailer tiers or plan-name checks in routes would couple
+product access to marketing copy and make demos unsafe to configure.
+
+**Decision.**
+
+1. Existing plan rows migrate in place to PAON Fused, Half Canvas and Full
+   Canvas so subscription foreign keys and any configured Stripe Price IDs
+   survive. Public copy, recurring price, “from” treatment, implementation fee,
+   visibility and display order become editable plan data.
+2. Recurring software price and one-time implementation fee are distinct typed
+   money fields. Optional managed services have a separate catalogue and may be
+   scoped per proposal; they are neither entitlements nor hidden subscription
+   charges.
+3. `commercial_features` is the validated capability vocabulary and
+   `subscription_plan_entitlements` is the authorization source. The legacy
+   `included_feature_keys` array remains a synchronized read-compatible
+   projection during migration, updated only through the same atomic RPC.
+4. `update_commercial_plan` updates package content/pricing and replaces its
+   entitlement set in one platform-staff transaction. An invalid capability
+   foreign key or empty set rolls back the entire change.
+5. `retailer_entitlement_overrides` models explicit enabled/disabled
+   exceptions with reason and optional expiry. It is not a general feature-flag
+   system and cannot contain arbitrary keys.
+6. `retailer_has_entitlement` is the server decision boundary. It re-derives
+   tenant/platform authority, honors a current override, then requires an
+   active or trialing subscription with the capability. UI visibility may
+   mirror this result but can never replace the server check.
+7. Public users may read only public package/catalogue data. Overrides and
+   retailer subscriptions retain tenant/platform RLS.
+
+**Consequences.** Marketing, Demo Studio, proposals and application guards can
+consume one catalogue without forking applications or scattering tier checks.
+Package copy can change without changing authorization keys. Existing
+retailers are not silently subscribed or granted features by the migration;
+live access enforcement is introduced route by route only after subscription
+fixtures and denial-state UX are in place. Managed-service proposal pricing and
+live Stripe product provisioning remain subsequent commercial checkpoints.

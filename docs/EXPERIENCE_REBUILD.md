@@ -94,6 +94,79 @@ The retailer E2E journey now asserts the relationship next-action state and the
 appointment preparation workspace before exercising the existing mutations.
 Visual acceptance remains blocked on the unavailable in-app browser.
 
+## Commercialisation and Retailer Demo System
+
+The rebuild now has a commercial acceptance outcome: the founder can turn a
+researched premium retailer into a safe, personalized demonstration, proposal
+and paid pilot without editing code or forking PAON. One platform varies
+validated branding tokens, content, enabled capabilities, commercial terms and
+isolated synthetic data per prospect.
+
+### Commercial packages
+
+| Package          | Recurring software | Implementation | Positioning                                 |
+| ---------------- | ------------------ | -------------- | ------------------------------------------- |
+| PAON Fused       | €349/month         | €1,500         | A professional digital customer foundation. |
+| PAON Half Canvas | €749/month         | €3,500         | Customer growth, service and retention.     |
+| PAON Full Canvas | From €1,750/month  | From €7,500    | Complete platform with managed growth.      |
+
+Admin owns package names, positioning, descriptions, recurring prices,
+implementation prices, public visibility, seat guidance, Stripe Price bridge
+and entitlements. Optional campaign, lead-generation and advisory services are
+proposal lines—not subscription features or implementation fees.
+
+### Commercial journey architecture
+
+1. Research target retailer without importing customer data.
+2. Create prospect and record company/contact/sales context.
+3. Select a recommended package.
+4. Apply logo, imagery, curated typography and validated color tokens.
+5. Select modules, locations and product mix.
+6. Generate isolated synthetic people, products, orders, fittings and activity.
+7. Preview every relevant persona at desktop, tablet and mobile.
+8. Publish one private, revocable demo/proposal link.
+9. Track opens and follow-up due dates.
+10. Conduct consultation and issue a paid-pilot proposal.
+11. Mark pilot accepted and copy approved configuration—not synthetic records—
+    into live onboarding.
+
+### Commercial route inventory
+
+| Surface                         | Intended experience                                               | Status     |
+| ------------------------------- | ----------------------------------------------------------------- | ---------- |
+| Public PAON landing/platform    | Visual product demonstration with retailer outcomes               | Planned    |
+| Public alterations/engagement   | Interactive workflow and relationship previews                    | Planned    |
+| Public templates/roles          | Storefront and operating-role product previews                    | Planned    |
+| Public pricing                  | Editable Fused/Half Canvas/Full Canvas comparison                 | Foundation |
+| Demo request/consultation/pilot | High-trust lead and next-action journey                           | Planned    |
+| Admin commercial catalogue      | Edit package copy, fees, entitlements and Stripe bridge           | Foundation |
+| Admin sales cockpit             | Attention-ranked pipeline and next three revenue actions          | Planned    |
+| Admin prospect record           | Research, contact, package and opportunity context                | Planned    |
+| Admin Demo Studio               | Safe branding, modules, content, synthetic data and role previews | Planned    |
+| Private demo/proposal           | Retailer-specific environment, terms and secure action            | Planned    |
+| Pilot-to-live transition        | Copy approved configuration only into onboarding                  | Planned    |
+
+### Commercial checkpoint 1 — plans and entitlements
+
+Implemented locally:
+
+- the old Boutique/House/Maison billing rows are migrated in place to PAON
+  Fused, Half Canvas and Full Canvas, preserving any existing Stripe bridge IDs;
+- recurring software and one-time implementation money have distinct typed
+  fields; managed service offerings live in their own catalogue;
+- a normalized commercial feature catalogue and plan-entitlement relation
+  provide the source for public comparison and server authorization;
+- retailer-specific entitlement overrides are explicit, attributable,
+  optionally expiring exceptions—not scattered plan-name checks;
+- `retailer_has_entitlement` derives access from the authenticated tenant,
+  active/trialing subscription, normalized plan entitlements and current
+  override, returning false outside the caller's authority;
+- Admin `/billing` is now an editorial commercial catalogue editor with atomic
+  plan/entitlement updates and a deliberately separate Stripe Price bridge.
+
+This is a functional foundation. Public marketing, retailer theme
+configuration and Demo Studio follow in the stated dependency order.
+
 ## Experience principles
 
 1. **Attention before administration.** Every dashboard opens with the few

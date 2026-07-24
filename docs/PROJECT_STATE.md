@@ -92,6 +92,31 @@ is being substituted for the required desktop/mobile inspection evidence.
   richer workspace, and retailer E2E coverage asserts both preparation and
   next-action surfaces before exercising the established mutations.
 
+**Commercialisation checkpoint 1 implemented locally (not deployed):**
+
+- the active Experience Rebuild now includes the end-to-end Retailer Demo
+  System and founder commercial workflow; ordinary backend expansion remains
+  paused;
+- the existing Stripe Billing plan records migrate in place from
+  Boutique/House/Maison to PAON Fused (€349 + €1,500 implementation), Half
+  Canvas (€749 + €3,500) and Full Canvas (from €1,750 + from €7,500), preserving
+  existing plan IDs and provider Price IDs;
+- recurring software, one-time implementation and optional managed services
+  are separate schema/domain concepts. Managed service offerings are not
+  smuggled into subscription prices or feature access;
+- a normalized `commercial_features` catalogue,
+  `subscription_plan_entitlements` join and expiring
+  `retailer_entitlement_overrides` replace future plan-name conditionals with a
+  coherent entitlement source;
+- `retailer_has_entitlement(retailer_id, feature_key)` is the server-enforced
+  decision boundary. It re-derives caller authority and resolves current
+  overrides before active/trialing subscription capabilities; access lookup
+  errors fail closed in the repository;
+- PAON Admin `/billing` now edits package identity, positioning, description,
+  recurring price, implementation fee, public visibility, seat guidance and
+  included capabilities atomically, while the Stripe Price bridge remains a
+  visibly separate activation concern.
+
 **Phase 0 (engineering foundation): done. Phase 1 (Identity, Retailer,
 Customer core): done. Phase 2 (Catalog and Commerce): catalog, storefront,
 order placement/management and Stripe Connect customer payments shipped

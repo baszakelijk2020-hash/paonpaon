@@ -11,12 +11,19 @@ type SubscriptionPlanRow =
 
 const planRow: SubscriptionPlanRow = {
   id: "11111111-1111-1111-1111-111111111111",
-  key: "boutique_monthly",
-  name: "Boutique",
-  price_amount_minor_units: 29900,
-  price_currency: "USD",
+  key: "fused_monthly",
+  name: "PAON Fused",
+  positioning: "A professional digital customer foundation.",
+  description: "The essential PAON customer foundation.",
+  price_amount_minor_units: 34900,
+  price_currency: "EUR",
+  price_is_from: false,
+  implementation_fee_amount_minor_units: 150000,
+  implementation_fee_currency: "EUR",
+  is_public: true,
+  display_order: 10,
   billing_interval: "monthly",
-  included_feature_keys: ["catalog", "orders"],
+  included_feature_keys: ["catalogue", "order_tracking"],
   seat_limit: 5,
   provider_price_id: null,
   created_at: "2026-01-01T00:00:00.000Z",
@@ -39,8 +46,8 @@ describe("SubscriptionPlanRepository", () => {
     );
     const plans = await repo.findAll();
     expect(plans[0]?.price).toEqual({
-      amountMinorUnits: 29900,
-      currency: "USD",
+      amountMinorUnits: 34900,
+      currency: "EUR",
     });
     expect(plans[0]?.seatLimit).toBe(5);
     expect(plans[0]?.providerPriceId).toBeUndefined();

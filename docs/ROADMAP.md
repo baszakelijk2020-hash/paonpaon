@@ -19,6 +19,27 @@ route. No prior phase is considered the next implementation queue until every
 persona and route passes the desktop/mobile experience criteria or a genuine
 founder decision blocks progress.
 
+### Immediate commercialisation track
+
+The Experience Rebuild now includes the Commercialisation and Retailer Demo
+System. PAON must let the founder produce one safe, branded, retailer-specific
+demonstration in under one hour without code changes or per-retailer forks.
+Implementation order:
+
+1. commercial domain, Fused/Half Canvas/Full Canvas plans and entitlements;
+2. premium public PAON marketing and pricing;
+3. validated shared retailer theme architecture;
+4. Admin Demo Studio;
+5. isolated synthetic demo generation and persona previews;
+6. private personalized proposals;
+7. founder sales pipeline and revenue cockpit;
+8. approved pilot-to-live onboarding transition;
+9. responsive visual and commercial-journey acceptance.
+
+Ordinary backend expansion remains paused. Software subscriptions,
+implementation fees and optional managed services remain separate commercial
+concepts throughout pricing, proposals and billing.
+
 ## Phase 0 — Engineering foundation (done)
 
 Monorepo, shared packages (`domain`, `database`, `auth`, `ui`, `utils`),
