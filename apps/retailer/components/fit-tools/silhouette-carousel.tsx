@@ -100,7 +100,7 @@ export function SilhouetteCarousel({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        className="relative h-56 w-full max-w-[220px] touch-pan-y select-none overflow-hidden"
+        className="relative h-56 w-full max-w-[220px] touch-pan-y select-none overflow-hidden lg:h-72 lg:max-w-xs"
       >
         <div
           className="flex h-full"
@@ -118,7 +118,7 @@ export function SilhouetteCarousel({
             >
               <svg
                 viewBox="0 0 100 90"
-                className={`h-48 w-auto transition-colors duration-300 ${
+                className={`h-48 w-auto transition-colors duration-300 lg:h-64 ${
                   selected === type.name
                     ? "fill-[var(--color-stone-900)]"
                     : "fill-[var(--color-stone-300)]"

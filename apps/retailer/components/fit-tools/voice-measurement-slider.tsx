@@ -262,16 +262,12 @@ export function VoiceMeasurementSlider({
   }
 
   return (
-    <div className="flex flex-col items-center gap-2.5">
+    <div className="mx-auto grid w-full max-w-[350px] grid-cols-1 gap-2.5 lg:max-w-3xl lg:grid-cols-2 lg:gap-x-8 lg:gap-y-3">
       {FIELDS.map((field, index) => {
         const vals = generateVals(field.limit, field.step);
         const zeroIndex = vals.indexOf(0);
         return (
-          <div
-            key={field.name}
-            data-field={field.name}
-            className="w-full max-w-[350px]"
-          >
+          <div key={field.name} data-field={field.name} className="w-full">
             <div
               className={`overflow-hidden rounded-lg px-2 py-1 transition-colors duration-500 ${
                 activeIndex === index
@@ -345,7 +341,7 @@ export function VoiceMeasurementSlider({
         );
       })}
 
-      <div className="mt-3 flex flex-col items-center gap-2">
+      <div className="mt-3 flex flex-col items-center gap-2 lg:col-span-2">
         {transcript ? (
           <p
             role="status"

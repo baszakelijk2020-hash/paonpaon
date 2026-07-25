@@ -116,7 +116,7 @@ export function SwipeDeck({
           ? `Showing ${cards[index].name}, item ${index + 1} of ${cards.length}`
           : "No more items"}
       </p>
-      <div className="relative h-[26rem] w-full max-w-sm">
+      <div className="relative h-[26rem] w-full max-w-sm lg:h-[32rem] lg:max-w-md">
         {remaining
           .map((card, depth) => ({ card, depth }))
           .reverse()
