@@ -9,12 +9,5 @@
       "path": "/api/cron/dispatch-sms",
       "schedule": "0 7 * * *"
     }
-  ],
-  "_comment_dispatch_newsletter": "Route is live at /api/cron/dispatch-newsletter but not registered below — Vercel Hobby caps a project at 2 cron jobs. Uncomment this third entry (and remove this key) once the team is on Pro, or free a slot by merging dispatch-emails/dispatch-sms into one route.",
-  "_disabled_crons": [
-    {
-      "path": "/api/cron/dispatch-newsletter",
-      "schedule": "0 8 * * 1"
-    }
   ]
 }
