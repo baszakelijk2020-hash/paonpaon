@@ -1778,3 +1778,38 @@ having ever been gutted, even briefly and never deployed, is the reason
 authorization-check integrity is now something worth spot-checking after any
 externally-sourced or multi-tool-session change to this repository, not just
 assumed intact.
+
+## ADR-045: RLS self-referential-pair recursion — the mutual-lookup trap and its fix
+
+**Context.** `wedding_parties`' "organizer and members read their wedding
+party" `select` policy inlined a lookup against `wedding_party_members`
+(itself RLS-protected); `wedding_party_members`' "organizer and members read
+the roster" policy inlined a lookup against `wedding_parties` right back.
+Postgres evaluates each inline subquery under RLS too, so reading either
+table re-triggered the other's policy, which re-triggered the first —
+`ERROR 42P17: infinite recursion detected in policy`. This had shipped
+silently: every prior code path read these tables as retailer staff (a
+different, non-recursive policy branch), so the bug was invisible until
+Phase 4 of the Nebel & Spiegel round-2 build (2026-07-26) added the first
+code path reading them as an organizer/member.
+
+**Decision.** Fixed by moving the cross-table check into
+`is_wedding_party_organizer_or_member(p_wedding_party_id)`, a `stable
+security definer` function owned by the migration role (which owns both
+tables). A `security definer` function's body executes under its owner's
+privileges, and Postgres does not apply RLS to a table's owner by default —
+so the function's _internal_ lookups bypass RLS entirely instead of
+re-entering the calling policy, breaking the cycle. Both policies now call
+this one function instead of inlining the join.
+
+**Consequences.** Any future policy that needs to read a _different_
+RLS-protected table as part of its own `USING`/`WITH CHECK` clause should
+default to a `security definer` helper rather than an inline subquery,
+whenever there's a realistic chance the other table's own policies read
+back the first table (a "pair" or "cycle" of mutually-referencing tables —
+`wedding_parties`/`wedding_party_members`, `conversations`/`messages`, and
+similar parent/child shapes are exactly the pattern to watch). This is the
+same technique `current_retailer_id()`/`is_platform_staff()` already use for
+JWT-claim lookups, just applied to a table lookup instead. See
+[ACCESS_MODEL.md](./ACCESS_MODEL.md) for the broader visibility-tier
+reference this spot-check fed into.

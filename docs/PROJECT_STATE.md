@@ -1185,34 +1185,71 @@ duplicated here.
   Supabase reset, each app rebuilt clean (`.next` removed) after the
   Tailwind `@source` fix to rule out stale-build false negatives.
 
-### Shipped: Nebel & Spiegel round 2 — Mission Control chat attachments (in progress)
+### Shipped: Nebel & Spiegel round 2 — all 6 phases complete (2026-07-25/26)
 
 Full plan and reasoning: `/Users/nguyen/.claude/plans/lovely-wiggling-stroustrup.md`
 (a founder-approved 7-phase plan reusing existing domain models —
 `FittingObservation`, `Conversation`/`Message`, `WeddingParty` — rather
 than inventing parallel schema, learned directly from what went wrong
-in the incident above).
+in the incident above). Phase 7 (Residents Club) stayed out of scope
+per the plan.
 
-- **Phase 1 (Mission Control shell)**: verified already complete by the
-  time this phase started — the retailer portal's `AppShell`,
-  role-based dashboard brief, "Needs your attention" panel and stat
-  grid (built as part of the Experience Rebuild checkpoints above)
-  already delivered it. No rework.
+- **Phase 1 (Mission Control shell)**: verified already complete — the
+  retailer portal's `AppShell`, role-based dashboard brief, "Needs your
+  attention" panel and stat grid already delivered it. No rework.
 - **Phase 2 (staff chat/ticket inbox)**: real image attachments on
   retailer-customer conversations. New `message_attachments` table +
   private Storage bucket + path-scoped RLS, mirroring
-  `alteration_attachments`' existing shape exactly. Writes go through
-  one narrow `security definer` RPC (`record_message_attachment`) that
-  re-derives the caller's own sender identity, same shape as the
-  existing `send_conversation_message`. Caught and fixed the same
-  missing-PostgREST-grant class of bug this document already documents
-  three times over (`customer_preferences`, `wishlists`,
-  `behavioral_events`) — `message_attachments` needed its own explicit
-  `select` grant too. New Playwright spec proves the full round trip
-  (attach → Storage → RPC → signed-URL read), not just that the form
-  submits.
-- Remaining phases (fit-tool widgets, groom's-party app, landing page,
-  storefront fidelity pass) not started as of this entry.
+  `alteration_attachments`. `record_message_attachment` RPC re-derives
+  sender identity server-side. Same missing-PostgREST-grant class of
+  bug this document documents repeatedly, caught and fixed again.
+- **Phase 3 (fit-tool widgets)**: the founder's `vox-` voice-controlled
+  chip-slider and `nbs-silhouette-` body-type carousel ported to React
+  client components (`apps/retailer/components/fit-tools/`), gated
+  behind a new `add_fitting_observation` RPC — `fitting_observations`
+  previously had no append-only write path outside the one-time intake
+  transaction. Widened for desktop/iPad in the overnight pass below.
+- **Phase 4 (AM House Party / groom's-party app)**: extends the
+  existing `WeddingParty`/`WeddingPartyMember` foundation rather than
+  building parallel schema — staff message the organizer's existing
+  `Conversation`, see each member's real `Wishlist` as their style
+  picks, and link into a member's fitting/fit-tools panel if a work
+  order exists. Surfaced a genuine RLS infinite-recursion bug
+  (ADR-045) in `wedding_parties`/`wedding_party_members`, invisible
+  until this was the first code path reading them as an
+  organizer/member instead of staff.
+- **Phase 5 (storefront landing page)**: `/r/{slug}` replaced its
+  redirect-to-`/products` stub with a real mobile-first landing page —
+  scroll-snap hero/collections/featured/CTA sections, sticky bottom
+  nav + slide-out menu on mobile, a proper top nav on desktop/iPad.
+  PAON's own copy throughout; the founder's own "Munro Mark-II"
+  reference file's real assets/copy were not reused, only the
+  interaction pattern, since real photography/video doesn't exist yet
+  (gradient placeholders stand in until it does).
+- **Phase 6 (paon.html storefront fidelity)**: gap-checked the
+  already-real, already-tested storefront against paon.html; the one
+  genuine gap was the variant picker (a plain `<select>` vs. named
+  priced selector cards) — fixed, no new commerce plumbing needed.
+
+**Overnight follow-up pass (2026-07-26), same build, before deployment:**
+
+- Fixed a real bug in the Phase 5 landing page: scroll-snap was
+  applied to an inner `overflow-y-scroll` div, so the actual document
+  never scrolled and mobile browser chrome never auto-hid. Moved to
+  the real document scroller (`document-scroll-snap.tsx`).
+- `apps/customer`'s PWA config referenced icon/manifest files that
+  never existed in `public/` (`apple-touch-icon.png`,
+  `android-chrome-*.png`, `mask-icon.png`) plus a dead, unregistered
+  `service-worker.js` whose own asset list also 404'd. Replaced with
+  Next's file-convention `icon.tsx`/`apple-icon.tsx`/`manifest.ts`
+  (real generated PNGs, valid manifest) and gave `apps/retailer` and
+  `apps/admin` — which had no PWA config at all — the same treatment.
+- Fit-tools, the silhouette carousel and the style-swipe deck were
+  phone-width-only with no wider-viewport variant; added `lg:` layouts.
+- Added `docs/ACCESS_MODEL.md` — the retailer role hierarchy, platform
+  roles, and the four RLS visibility tiers (public/customer/staff/
+  platform) in one place, spot-checked against loyalty/referrals and
+  wedding-party tables for drift (none found beyond the ADR-045 bug).
 
 ### Shipped: Commercial prospects, Demo Studio, retailer brand themes
 

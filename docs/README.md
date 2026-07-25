@@ -19,6 +19,7 @@ full context; each document links forward to the ones that build on it.
 14. [PROJECT_STATE.md](./PROJECT_STATE.md) — what's actually built right now, and what's next — read this first when resuming work
 15. [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md) — the commercial/prospect/demo-studio initiative's own checkpoint log (Foundation/Accepted status per route) — real, disciplined, but written outside this index; cross-check against PROJECT_STATE.md's "Shipped: Commercial prospects..." section for what's actually live
 16. [PROPOSAL_GENERATION.md](./PROPOSAL_GENERATION.md) — **caution**: describes a proposal-generation feature whose implementation was broken (failed typecheck, unreferenced anywhere, a colliding duplicate route tree) and was deleted during incident recovery (2026-07-25). Treat as an unbuilt design sketch, not a description of working code, until someone rebuilds it deliberately.
+17. [ACCESS_MODEL.md](./ACCESS_MODEL.md) — who can see and change what: the retailer role hierarchy, platform roles, the four visibility tiers (public/customer/staff/platform), and where RLS was spot-checked for drift
 
 The root [CLAUDE.md](../CLAUDE.md) is the operating charter for AI-assisted
 work in this repository and points back into this set.
