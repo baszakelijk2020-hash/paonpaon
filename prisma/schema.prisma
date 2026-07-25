@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  name          String?
+  membership    Membership @relation(fields: [membershipId], references: [id])
+  membershipId  Int
+  measurements  Measurement[]
+  events        Event[] @relation("UserEvents")
+  calendarEntry CalendarEntry?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("users")
+}
+
+model MembershipTier {
+  id          Int             @id @default(autoincrement())
+  name        String          @unique
+  description String?
+  services    Service[]       @relation("MembershipServices")
+  members     User[]          @relation("membership")
+  events      Event[]         @relation("tierEvents")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("membership_tiers")
+}
+
+model Service {
+  id          Int             @id @default(autoincrement())
+  name        String          @unique
+  description String?
+  tier        MembershipTier? @relation("MembershipServices")
+  tierId      Int?
+  offerings   Offering[]      @relation("serviceOfferings")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("services")
+}
+
+model Offering {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  description  String?
+  service      Service? @relation("serviceOfferings")
+  serviceId    Int?
+  price        Decimal?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("offerings")
+}
+
+model Event {
+  id          Int             @id @default(autoincrement())
+  title       String
+  description String?
+  location    Location        @relation("eventLocation")
+  locationId  Int
+  startTime   DateTime
+  endTime     DateTime
+  isMemberLed Boolean       @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("events")
+}
+
+model Location {
+  id          Int             @id @default(autoincrement())
+  name        String          @unique
+  address     String?
+  latitude    Float?
+  longitude   Float?
+  events      Event[]         @relation("eventLocation")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("locations")
+}
+
+model Measurement {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  heightCm  Float
+  weightKg  Float
+  bodyStats Json?    // For storing various body measurements
+  createdAt DateTime @default(now())
+
+  @@map("measurements")
+}
+
+model CalendarEntry {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  eventId      Int
+  event        Event    @relation("UserEvents")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("calendar_entries")
+}
+
+model WeatherData {
+  id           Int      @id @default(autoincrement())
+  locationId   Int
+  location     Location @relation(fields: [locationId], references: [id])
+  temperatureC Float
+  precipitationMm Float
+  timestamp    DateTime @default(now())
+
+  @@map("weather_data")
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  token        String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  id           Int      @id @default(autoincrement())
+  identifier   String
+  token        String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@map("verification_tokens")
+}
+
+$enum MembershipLevel {
+  ASSOCIATE
+  DIRECTOR
+  BOARD
+  EXECUTIVE
+  VIP
+}
+
+model UserProfile {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  membershipLevel MembershipLevel @default(ASSOCIATE)
+  bio          String?
+  avatarUrl    String?
+  preferences  Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}

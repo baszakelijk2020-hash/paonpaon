@@ -1,6 +1,5 @@
--- Commercial plan catalogue and server-enforced entitlements for the PAON
--- Commercialisation and Retailer Demo System. Subscription revenue,
--- implementation work and optional managed services remain distinct concepts.
+-- Commercial plan catalogue and server-enforced entitlements for PAON
+-- Subscription revenue, implementation work, and managed services remain distinct
 
 alter table public.subscription_plans
   add column positioning text not null default '',
@@ -247,7 +246,7 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = public
+ set search_path = public
 as $$
   select
     case

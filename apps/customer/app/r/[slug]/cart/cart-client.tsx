@@ -1,201 +1,189 @@
 "use client";
 
-import type { Order, OrderLine, Product, ProductVariant } from "@paon/domain";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { Input } from "@paon/ui/components/Input";
-import { formatMoney } from "@paon/utils";
-import { useActionState, useRef } from "react";
+import { updateCartLine } from "./actions";
 
-import { checkoutCart, updateCartLine, type CartFormState } from "./actions";
-
-const initial: CartFormState = {};
-type CartItem = { line: OrderLine; variant: ProductVariant; product: Product };
-
-function CartLine({ slug, item }: { slug: string; item: CartItem }) {
-  const [state, action, pending] = useActionState(
-    updateCartLine.bind(null, slug),
-    initial,
-  );
-  const formRef = useRef<HTMLFormElement>(null);
-  const quantityRef = useRef<HTMLInputElement>(null);
-
-  function submitWithQuantity(nextQuantity: number) {
-    if (quantityRef.current) {
-      quantityRef.current.value = String(Math.max(0, nextQuantity));
-    }
-    formRef.current?.requestSubmit();
-  }
-
-  return (
-    <form
-      ref={formRef}
-      action={action}
-      className="flex items-center justify-between gap-4 border-b border-[var(--color-stone-100)] py-4 last:border-0"
-    >
-      <input type="hidden" name="lineId" value={item.line.id} />
-      <div>
-        <p className="font-medium">{item.product.name}</p>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          {[item.variant.size, item.variant.color]
-            .filter(Boolean)
-            .join(" · ") || item.variant.sku}{" "}
-          · {formatMoney(item.line.unitPrice, "en-US")}
-        </p>
-        {state.formError ? (
-          <p className="text-sm text-[var(--color-danger-500)]">
-            {state.formError}
-          </p>
-        ) : null}
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="flex items-center rounded-[var(--radius-sm)] border border-[var(--color-stone-300)]">
-          <button
-            type="button"
-            aria-label={`Decrease quantity of ${item.product.name}`}
-            disabled={pending}
-            onClick={() => submitWithQuantity(item.line.quantity - 1)}
-            className="flex h-11 w-11 items-center justify-center text-lg text-[var(--color-stone-700)] active:scale-90 disabled:opacity-50 motion-reduce:active:scale-100"
-          >
-            −
-          </button>
-          <Input
-            ref={quantityRef}
-            className="h-11 w-12 border-x border-y-0 text-center [appearance:textfield]"
-            name="quantity"
-            type="number"
-            min={0}
-            max={20}
-            defaultValue={item.line.quantity}
-            aria-label={`Quantity of ${item.product.name}`}
-            readOnly
-          />
-          <button
-            type="button"
-            aria-label={`Increase quantity of ${item.product.name}`}
-            disabled={pending}
-            onClick={() => submitWithQuantity(item.line.quantity + 1)}
-            className="flex h-11 w-11 items-center justify-center text-lg text-[var(--color-stone-700)] active:scale-90 disabled:opacity-50 motion-reduce:active:scale-100"
-          >
-            +
-          </button>
-        </div>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          disabled={pending}
-          onClick={() => submitWithQuantity(0)}
-          aria-label={`Remove ${item.product.name} from cart`}
-          className="h-11 min-w-11"
-        >
-          Remove
-        </Button>
-      </div>
-    </form>
-  );
+interface CartItem {
+  line: {
+    id: string;
+    productVariantId: string;
+    quantity: number;
+    unitPriceAmountMinorUnits: number;
+    unitPriceCurrency: string;
+  };
+  variant: {
+    id: string;
+    sku: string;
+    size?: string;
+    color?: string;
+    productId: string;
+  };
+  product: {
+    id: string;
+    name: string;
+    slug: string;
+    primaryImageUrl?: string;
+  };
 }
 
-export function CartClient({
-  slug,
-  order,
-  items,
-}: {
+interface CartClientProps {
   slug: string;
-  order: Order;
+  order: {
+    id: string;
+    retailerId: string;
+    customerId: string;
+  };
   items: CartItem[];
-}) {
-  const [state, action, pending] = useActionState(
-    checkoutCart.bind(null, slug),
-    initial,
-  );
-  const checkoutFormRef = useRef<HTMLFormElement>(null);
+}
+
+export function CartClient({ slug, items }: CartClientProps) {
+  const router = useRouter();
+  const [localItems, setLocalItems] = useState<CartItem[]>(items);
+  const [updatingLineId, setUpdatingLineId] = useState<string | null>(null);
+
+  const formatPrice = (amount: number, currency: string) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+    }).format(amount / 100);
+  };
+
+  const handleQuantityChange = async (lineId: string, newQuantity: number) => {
+    if (newQuantity < 0) return;
+    
+    setUpdatingLineId(lineId);
+    
+    const formData = new FormData();
+    formData.append("lineId", lineId);
+    formData.append("quantity", newQuantity.toString());
+    
+    const result = await updateCartLine(slug, {}, formData);
+    
+    if (result.formError) {
+      console.error("Cart update failed:", result.formError);
+      // Revert to original quantity on error
+      router.refresh();
+    } else {
+      // Update local state optimistically
+      setLocalItems(prev =>
+        prev.map(item =>
+          item.line.id === lineId
+            ? { ...item, line: { ...item.line, quantity: newQuantity } }
+            : item
+        )
+      );
+    }
+    
+    setUpdatingLineId(null);
+  };
+
+  const subtotal = localItems.reduce((sum, item) => {
+    return sum + (item.line.unitPriceAmountMinorUnits * item.line.quantity);
+  }, 0);
+
+  const shipping = subtotal > 10000 ? 0 : 500; // Free shipping over $100
+  const total = subtotal + shipping;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-      <Card>
-        <h2 className="text-lg font-medium">Items</h2>
-        {items.map((item) => (
-          <CartLine key={item.line.id} slug={slug} item={item} />
+    <div className="space-y-6">
+      {/* Cart Items */}
+      <div className="space-y-4">
+        {localItems.map((item) => (
+          <Card key={item.line.id} className="p-4">
+            <div className="flex gap-4">
+              {/* Product Image Placeholder */}
+              <div className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0" />
+              
+              {/* Product Info */}
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-gray-900 truncate">
+                  {item.product.name}
+                </h3>
+                <p className="text-sm text-gray-500 truncate">
+                  {item.variant.sku}
+                  {item.variant.size && ` • Size: ${item.variant.size}`}
+                  {item.variant.color && ` • Color: ${item.variant.color}`}
+                </p>
+                <p className="text-sm font-medium text-gray-900">
+                  {formatPrice(item.line.unitPriceAmountMinorUnits, item.line.unitPriceCurrency)}
+                </p>
+              </div>
+              
+              {/* Quantity Controls */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuantityChange(item.line.id, item.line.quantity - 1)}
+                  disabled={updatingLineId === item.line.id}
+                >
+                  -
+                </Button>
+                <span className="w-8 text-center font-medium">
+                  {item.line.quantity}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuantityChange(item.line.id, item.line.quantity + 1)}
+                  disabled={updatingLineId === item.line.id}
+                >
+                  +
+                </Button>
+              </div>
+              
+              {/* Line Total */}
+              <div className="text-right">
+                <p className="font-medium">
+                  {formatPrice(item.line.unitPriceAmountMinorUnits * item.line.quantity, item.line.unitPriceCurrency)}
+                </p>
+              </div>
+            </div>
+          </Card>
         ))}
-        <div className="mt-4 flex justify-between font-medium">
-          <span>Total</span>
-          <span>{formatMoney(order.total, "en-US")}</span>
-        </div>
-      </Card>
-      <Card>
-        <form
-          ref={checkoutFormRef}
-          action={action}
-          className="flex flex-col gap-3"
-        >
-          <input type="hidden" name="orderId" value={order.id} />
-          <h2 className="text-lg font-medium">Shipping</h2>
-          <Input
-            name="line1"
-            aria-label="Address"
-            placeholder="Address"
-            required
-          />
-          <Input
-            name="line2"
-            aria-label="Address line 2 (optional)"
-            placeholder="Address line 2 (optional)"
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <Input name="city" aria-label="City" placeholder="City" required />
-            <Input name="region" aria-label="Region" placeholder="Region" />
-            <Input
-              name="postalCode"
-              aria-label="Postal code"
-              placeholder="Postal code"
-              required
-            />
-            <Input
-              name="countryCode"
-              aria-label="Country code"
-              placeholder="Country code"
-              maxLength={2}
-              required
-            />
-          </div>
-          {state.formError ? (
-            <p role="alert" className="text-sm text-[var(--color-danger-500)]">
-              {state.formError}
-            </p>
-          ) : null}
-          <Button
-            type="submit"
-            disabled={pending}
-            className="hidden lg:inline-flex"
-          >
-            {pending ? "Checking out…" : "Place order"}
-          </Button>
-          <p className="text-xs text-[var(--color-stone-500)]">
-            No payment is collected yet. The order will be saved as pending
-            payment.
-          </p>
-        </form>
-      </Card>
-
-      <div className="glass-panel fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-4 border-t border-[var(--color-stone-200)] px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:hidden">
-        <div>
-          <p className="text-xs uppercase text-[var(--color-stone-500)]">
-            Total
-          </p>
-          <p className="font-medium text-[var(--color-stone-900)]">
-            {formatMoney(order.total, "en-US")}
-          </p>
-        </div>
-        <Button
-          type="button"
-          size="lg"
-          disabled={pending}
-          onClick={() => checkoutFormRef.current?.requestSubmit()}
-        >
-          {pending ? "Checking out…" : "Place order"}
-        </Button>
       </div>
+
+      {/* Order Summary */}
+      <Card className="p-6">
+        <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+        
+        <div className="space-y-2 mb-4">
+          <div className="flex justify-between text-sm">
+            <span>Subtotal</span>
+            <span>{formatPrice(subtotal, "USD")}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span>Shipping</span>
+            <span>{shipping === 0 ? "Free" : formatPrice(shipping, "USD")}</span>
+          </div>
+          {shipping === 0 && (
+            <p className="text-xs text-green-600">
+              Free shipping on orders over $100
+            </p>
+          )}
+        </div>
+        
+        <div className="border-t pt-4">
+          <div className="flex justify-between text-lg font-semibold">
+            <span>Total</span>
+            <span>{formatPrice(total, "USD")}</span>
+          </div>
+        </div>
+        
+        <div className="mt-6">
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={() => router.push(`/r/${slug}/cart/checkout`)}
+            disabled={localItems.length === 0}
+          >
+            Proceed to Checkout
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }

@@ -12,6 +12,7 @@ const PUBLIC_PATHS = [
   "/consultation",
   "/pilot",
   "/discover",
+  "/demo",
 ];
 // Storefront browsing (docs/DECISIONS.md ADR-014) — never gated behind
 // a session, and never signs an unrelated session out just for

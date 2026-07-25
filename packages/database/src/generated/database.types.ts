@@ -3181,6 +3181,104 @@ export type Database = {
           },
         ];
       };
+      prospect_demo_engagement_events: {
+        Row: {
+          environment_id: string;
+          event_name: string;
+          id: string;
+          occurred_at: string;
+        };
+        Insert: {
+          environment_id: string;
+          event_name: string;
+          id?: string;
+          occurred_at?: string;
+        };
+        Update: {
+          environment_id?: string;
+          event_name?: string;
+          id?: string;
+          occurred_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "prospect_demo_engagement_events_environment_id_fkey";
+            columns: ["environment_id"];
+            isOneToOne: false;
+            referencedRelation: "prospect_demo_environments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      prospect_demo_environments: {
+        Row: {
+          access_code_hash: string | null;
+          configuration_id: string;
+          configuration_version: number;
+          created_at: string;
+          created_by_user_id: string | null;
+          expires_at: string;
+          generated_at: string;
+          id: string;
+          prospect_id: string;
+          public_token: string;
+          published_at: string | null;
+          revoked_at: string | null;
+          status: Database["public"]["Enums"]["prospect_demo_environment_status"];
+          synthetic_data: Json;
+          updated_at: string;
+        };
+        Insert: {
+          access_code_hash?: string | null;
+          configuration_id: string;
+          configuration_version: number;
+          created_at?: string;
+          created_by_user_id?: string | null;
+          expires_at: string;
+          generated_at?: string;
+          id?: string;
+          prospect_id: string;
+          public_token: string;
+          published_at?: string | null;
+          revoked_at?: string | null;
+          status?: Database["public"]["Enums"]["prospect_demo_environment_status"];
+          synthetic_data: Json;
+          updated_at?: string;
+        };
+        Update: {
+          access_code_hash?: string | null;
+          configuration_id?: string;
+          configuration_version?: number;
+          created_at?: string;
+          created_by_user_id?: string | null;
+          expires_at?: string;
+          generated_at?: string;
+          id?: string;
+          prospect_id?: string;
+          public_token?: string;
+          published_at?: string | null;
+          revoked_at?: string | null;
+          status?: Database["public"]["Enums"]["prospect_demo_environment_status"];
+          synthetic_data?: Json;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "prospect_demo_environments_configuration_id_fkey";
+            columns: ["configuration_id"];
+            isOneToOne: false;
+            referencedRelation: "prospect_demo_configurations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "prospect_demo_environments_prospect_id_fkey";
+            columns: ["prospect_id"];
+            isOneToOne: true;
+            referencedRelation: "commercial_prospects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       prospect_demo_modules: {
         Row: {
           configuration_id: string;
@@ -4798,6 +4896,16 @@ export type Database = {
         Args: { p_retailer_id: string };
         Returns: string;
       };
+      generate_prospect_demo_environment: {
+        Args: {
+          p_access_code: string;
+          p_expires_at: string;
+          p_prospect_id: string;
+          p_public_token: string;
+          p_synthetic_data: Json;
+        };
+        Returns: string;
+      };
       get_or_create_my_conversation: {
         Args: { p_retailer_id: string };
         Returns: string;
@@ -4853,6 +4961,10 @@ export type Database = {
       };
       next_alteration_work_order_number: { Args: never; Returns: string };
       next_order_number: { Args: never; Returns: string };
+      open_prospect_demo: {
+        Args: { p_access_code: string; p_public_token: string };
+        Returns: Json;
+      };
       place_order: {
         Args: {
           p_quantity: number;
@@ -4950,6 +5062,10 @@ export type Database = {
           p_operation_id: string;
           p_workshop_id?: string;
         };
+        Returns: undefined;
+      };
+      set_prospect_demo_publication: {
+        Args: { p_prospect_id: string; p_publish: boolean };
         Returns: undefined;
       };
       submit_commercial_inquiry: {
@@ -5170,6 +5286,8 @@ export type Database = {
       price_change_proposal_status:
         "pending" | "approved" | "rejected" | "withdrawn";
       product_status: "draft" | "active" | "archived";
+      prospect_demo_environment_status:
+        "draft" | "published" | "revoked" | "expired";
       redemption_status: "issued" | "used" | "cancelled";
       referral_status:
         "invited" | "signed_up" | "first_purchase_completed" | "rewarded";
@@ -5494,6 +5612,12 @@ export const Constants = {
         "withdrawn",
       ],
       product_status: ["draft", "active", "archived"],
+      prospect_demo_environment_status: [
+        "draft",
+        "published",
+        "revoked",
+        "expired",
+      ],
       redemption_status: ["issued", "used", "cancelled"],
       referral_status: [
         "invited",

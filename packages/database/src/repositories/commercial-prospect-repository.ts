@@ -2,8 +2,11 @@ import {
   normalizeRetailerBrandTheme,
   type CommercialProspect,
   type DemoProductMix,
+  type DemoSyntheticData,
   type ProspectDemoConfiguration,
+  type ProspectDemoEnvironment,
   type ProspectDemoLocation,
+  type PublicProspectDemo,
   type RetailerBrandTheme,
 } from "@paon/domain";
 
@@ -13,6 +16,8 @@ import type { Database, Json } from "../generated/database.types";
 type ProspectRow = Database["public"]["Tables"]["commercial_prospects"]["Row"];
 type ConfigurationRow =
   Database["public"]["Tables"]["prospect_demo_configurations"]["Row"];
+type EnvironmentRow =
+  Database["public"]["Tables"]["prospect_demo_environments"]["Row"];
 
 const prospectToDomain = (row: ProspectRow): CommercialProspect => ({
   id: row.id,
@@ -62,6 +67,14 @@ export interface SaveProspectDemoConfigurationParams {
   productMix: DemoProductMix[];
   featureKeys: string[];
   changeNote: string;
+}
+
+export interface GenerateProspectDemoEnvironmentParams {
+  prospectId: string;
+  publicToken: string;
+  accessCode: string;
+  expiresAt: string;
+  syntheticData: DemoSyntheticData;
 }
 
 export class CommercialProspectRepository {
@@ -152,6 +165,66 @@ export class CommercialProspectRepository {
     return data;
   }
 
+  async findEnvironment(
+    prospectId: string,
+  ): Promise<ProspectDemoEnvironment | null> {
+    const { data, error } = await this.client
+      .from("prospect_demo_environments")
+      .select("*")
+      .eq("prospect_id", prospectId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? this.environmentToDomain(data) : null;
+  }
+
+  async generateEnvironment(
+    params: GenerateProspectDemoEnvironmentParams,
+  ): Promise<string> {
+    const { data, error } = await this.client.rpc(
+      "generate_prospect_demo_environment",
+      {
+        p_prospect_id: params.prospectId,
+        p_public_token: params.publicToken,
+        p_access_code: params.accessCode,
+        p_expires_at: params.expiresAt,
+        p_synthetic_data: params.syntheticData as unknown as Json,
+      },
+    );
+    if (error) throw error;
+    return data;
+  }
+
+  async setEnvironmentPublished(
+    prospectId: string,
+    published: boolean,
+  ): Promise<void> {
+    const { error } = await this.client.rpc("set_prospect_demo_publication", {
+      p_prospect_id: prospectId,
+      p_publish: published,
+    });
+    if (error) throw error;
+  }
+
+  async openPublishedDemo(
+    publicToken: string,
+    accessCode: string,
+  ): Promise<PublicProspectDemo | null> {
+    const { data, error } = await this.client.rpc("open_prospect_demo", {
+      p_public_token: publicToken,
+      p_access_code: accessCode,
+    });
+    if (error) throw error;
+    return data as unknown as PublicProspectDemo | null;
+  }
+
+  async updateStage(id: string, stage: 'researched' | 'qualified' | 'demo_preparation' | 'demo_ready' | 'demo_sent' | 'consultation' | 'proposal' | 'pilot' | 'converted' | 'lost'): Promise<void> {
+    const { error } = await this.client
+      .from("commercial_prospects")
+      .update({ stage: stage })
+      .eq("id", id);
+    if (error) throw error;
+  }
+
   private configurationToDomain(
     row: ConfigurationRow,
     featureKeys: string[],
@@ -170,6 +243,21 @@ export class CommercialProspectRepository {
       currentVersion: row.current_version,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+    };
+  }
+
+  private environmentToDomain(row: EnvironmentRow): ProspectDemoEnvironment {
+    return {
+      id: row.id,
+      prospectId: row.prospect_id,
+      configurationId: row.configuration_id,
+      configurationVersion: row.configuration_version,
+      publicToken: row.public_token,
+      status: row.status,
+      expiresAt: row.expires_at,
+      syntheticData: row.synthetic_data as unknown as DemoSyntheticData,
+      generatedAt: row.generated_at,
+      ...(row.published_at ? { publishedAt: row.published_at } : {}),
     };
   }
 }

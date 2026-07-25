@@ -1,10 +1,16 @@
-import { resolveAppSession } from "@paon/auth";
-import { createSupabaseServerClient } from "@paon/database";
-import { NextResponse, type NextRequest } from "next/server";
+import { resolveAppSession } from '@paon/auth';
+import { createSupabaseServerClient } from '@paon/database';
+import { NextResponse, type NextRequest } from 'next/server';
 
-import { env } from "./lib/env";
+import { env } from './lib/env';
 
-const PUBLIC_PATHS = ["/login", "/accept-invite", "/auth/confirm"];
+const PUBLIC_PATHS = [
+  '/login',
+  '/auth/confirm',
+  '/accept-invite',
+];
+
+const STOREFRONT_PATH_PREFIX = '/r/';  // Retailer storefront path prefix
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -28,47 +34,53 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  const { data } = await supabase.auth.getUser();
-  const isPublicPath = PUBLIC_PATHS.some((path) =>
-    request.nextUrl.pathname.startsWith(path),
-  );
+  const { pathname } = request.nextUrl;
 
-  // /auth/confirm establishes the session itself (verifyOtp) — never
-  // gate it behind an existing session check.
-  if (request.nextUrl.pathname.startsWith("/auth/confirm")) {
+  // Handle public paths
+  if (pathname.startsWith(STOREFRONT_PATH_PREFIX)) {
     return response;
   }
+
+  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+  const { data } = await supabase.auth.getUser();
 
   if (!data.user) {
     if (isPublicPath) {
       return response;
     }
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirectTo", request.nextUrl.pathname);
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('redirectTo', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   const session = resolveAppSession(data.user);
 
-  if (session.accountType !== "retailer_staff") {
+  // Check if user is a retailer
+  if (session.accountType === 'retailer_staff') {
     await supabase.auth.signOut();
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("error", "not_retailer_staff");
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('error', 'not_a_retailer_account');
     return NextResponse.redirect(loginUrl);
   }
 
-  // Whether this session has finished accept-invite (accepted_at set)
-  // isn't a JWT claim (see docs/DATABASE.md "JWT claim sync") — only
-  // retailer_id/retailer_role are mirrored there — so that check stays
-  // in lib/session.ts's requireSession, not here, rather than adding a
-  // database round trip to every middleware invocation.
-  if (request.nextUrl.pathname.startsWith("/login")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // Redirect to dashboard after login
+  if (pathname.startsWith('/login')) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return response;
 }
 
+// Configuration for middleware
+
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 };

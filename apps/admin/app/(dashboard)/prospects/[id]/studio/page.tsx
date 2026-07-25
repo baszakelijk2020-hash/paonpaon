@@ -5,9 +5,12 @@ import {
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { setDemoPublication } from "./actions";
 import { BrandAssetUploader } from "./brand-asset-uploader";
+import { EnvironmentPanel } from "./environment-panel";
 import { StudioForm } from "./studio-form";
 
+import { env } from "@/lib/env";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function DemoStudioPage({
@@ -19,12 +22,14 @@ export default async function DemoStudioPage({
   const client = await getSupabaseServerClient();
   const prospects = new CommercialProspectRepository(client);
   const plans = new SubscriptionPlanRepository(client);
-  const [prospect, configuration, planList, features] = await Promise.all([
-    prospects.findById(id),
-    prospects.findConfiguration(id),
-    plans.findAll(),
-    plans.findCommercialFeatures(),
-  ]);
+  const [prospect, configuration, environment, planList, features] =
+    await Promise.all([
+      prospects.findById(id),
+      prospects.findConfiguration(id),
+      prospects.findEnvironment(id),
+      plans.findAll(),
+      plans.findCommercialFeatures(),
+    ]);
   if (!prospect) notFound();
 
   return (
@@ -61,6 +66,46 @@ export default async function DemoStudioPage({
         features={features}
         configuration={configuration}
       />
+      <EnvironmentPanel
+        prospectId={prospect.id}
+        environment={environment}
+        customerAppUrl={env.customerAppUrl}
+      />
+      {environment ? (
+        <section className="flex flex-col gap-5 rounded-[1.25rem] bg-stone-900 p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/45">
+              Publication boundary
+            </p>
+            <h2 className="mt-2 text-3xl font-[var(--font-display)]">
+              {environment.status === "published"
+                ? "This private demo is available."
+                : "The preview remains internal."}
+            </h2>
+            <p className="mt-2 text-sm text-white/55">
+              {environment.status === "published"
+                ? "Revoke immediately to close the link without deleting the configuration."
+                : "Publish only after reviewing each synthetic role and device width."}
+            </p>
+          </div>
+          <form action={setDemoPublication}>
+            <input type="hidden" name="prospectId" value={prospect.id} />
+            <input
+              type="hidden"
+              name="publish"
+              value={environment.status === "published" ? "false" : "true"}
+            />
+            <button
+              type="submit"
+              className="min-h-11 rounded-md bg-white px-5 text-sm text-black"
+            >
+              {environment.status === "published"
+                ? "Revoke private demo"
+                : "Publish private demo"}
+            </button>
+          </form>
+        </section>
+      ) : null}
     </div>
   );
 }

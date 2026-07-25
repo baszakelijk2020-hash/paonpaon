@@ -65,3 +65,76 @@ export interface ProspectDemoConfiguration {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ProspectDemoEnvironment {
+  id: string;
+  prospectId: string;
+  configurationId: string;
+  configurationVersion: number;
+  publicToken: string;
+  status: "draft" | "published" | "revoked" | "expired";
+  expiresAt: string;
+  syntheticData: DemoSyntheticData;
+  generatedAt: string;
+  publishedAt?: string | undefined;
+}
+
+export interface DemoSyntheticData {
+  personas: Array<{
+    key: string;
+    label: string;
+    attention: string;
+    primaryAction: string;
+  }>;
+  customers: Array<{
+    name: string;
+    tier: string;
+    nextMoment: string;
+    lifetimeValue: string;
+  }>;
+  products: Array<{
+    name: string;
+    category: string;
+    price: string;
+    imageUrl?: string | undefined;
+  }>;
+  appointments: Array<{
+    time: string;
+    customer: string;
+    purpose: string;
+    status: string;
+  }>;
+  alterations: Array<{
+    garment: string;
+    customer: string;
+    status: string;
+    progress: number;
+    due: string;
+  }>;
+  orders: Array<{
+    reference: string;
+    customer: string;
+    status: string;
+    value: string;
+  }>;
+  metrics: {
+    relationshipValue: string;
+    appointmentsToday: number;
+    garmentsInMotion: number;
+    returnRate: string;
+  };
+}
+
+export interface PublicProspectDemo {
+  environmentId: string;
+  companyName: string;
+  expiresAt: string;
+  configuration: {
+    theme: RetailerBrandTheme;
+    marketingHeadline: string;
+    personalizedIntroduction: string;
+    locations: ProspectDemoLocation[];
+    productMix: DemoProductMix[];
+  };
+  syntheticData: DemoSyntheticData;
+}
