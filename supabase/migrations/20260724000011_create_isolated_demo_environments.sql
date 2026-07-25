@@ -1,3 +1,10 @@
+-- A stray, hand-created prospect_demo_environments table (bypassing the
+-- real migration chain) survived a schema wipe that predates this push —
+-- confirmed to hold no real data (nothing had gone live yet). Drop it so
+-- this migration can create the real, versioned table with its actual
+-- constraints and RLS policies.
+drop table if exists public.prospect_demo_environments cascade;
+
 create type public.prospect_demo_environment_status as enum (
   'draft', 'published', 'revoked', 'expired'
 );
