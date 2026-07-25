@@ -4882,6 +4882,15 @@ export type Database = {
         Args: { p_note: string; p_task_id: string };
         Returns: string;
       };
+      add_fitting_observation: {
+        Args: {
+          p_area: string;
+          p_classification?: Database["public"]["Enums"]["work_classification"];
+          p_observation: string;
+          p_physical_garment_id: string;
+        };
+        Returns: string;
+      };
       add_to_cart: {
         Args: {
           p_quantity: number;

@@ -29,6 +29,7 @@ import {
   addTaskNote,
   assignWorkOrder,
   recordCustodyEvent,
+  recordFitToolObservation,
   recordFulfillment,
   updateTaskStatus,
   updateWorkshopAssignment,
@@ -38,6 +39,7 @@ import { PriceDecisionForm, PriceProposalForm } from "./pricing-actions";
 import { UpdateForm } from "./update-form";
 import { WorkflowActionForm } from "./workflow-action-form";
 
+import { FitToolPanel } from "@/components/fit-tools/fit-tool-panel";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -80,6 +82,7 @@ export default async function AlterationDetailPage({
     attachments,
     pricingHistory,
     completionReviews,
+    fitObservations,
   ] = await Promise.all([
     fullAlteration
       ? new CustomerRepository(supabase).findById(fullAlteration.customerId)
@@ -129,6 +132,11 @@ export default async function AlterationDetailPage({
     isWorker
       ? Promise.resolve([])
       : workflowRepository.findCompletionReviews(alteration.id),
+    isWorker
+      ? Promise.resolve([])
+      : new PhysicalGarmentRepository(supabase).findObservationsByGarment(
+          alteration.physicalGarmentId,
+        ),
   ]);
   const staffName = (staffId?: StaffId): string =>
     staffId
@@ -654,6 +662,35 @@ export default async function AlterationDetailPage({
           ) : null}
         </Card>
       </div>
+
+      {canUploadEvidence && !isWorker ? (
+        <div>
+          <h2 className="mb-3 text-lg font-medium">Fit tools</h2>
+          <Card className="flex flex-col gap-4">
+            <FitToolPanel
+              recordObservation={recordFitToolObservation.bind(
+                null,
+                alteration.id,
+                alteration.physicalGarmentId,
+              )}
+            />
+            {fitObservations.length > 0 ? (
+              <div className="divide-y divide-[var(--color-stone-100)] border-t border-[var(--color-stone-100)] pt-3">
+                {fitObservations.map((observation) => (
+                  <div key={observation.id} className="py-2 text-sm">
+                    <span className="font-medium">{observation.area}</span> ·{" "}
+                    {observation.observation}
+                    <span className="block text-xs text-[var(--color-stone-500)]">
+                      {staffName(observation.recordedByStaffId)} ·{" "}
+                      {formatDate(observation.createdAt, "en-US")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </Card>
+        </div>
+      ) : null}
 
       {canAssign && alteration.status === "approved" ? (
         <Card>

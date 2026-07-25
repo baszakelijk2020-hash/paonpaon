@@ -9,6 +9,7 @@ import {
   AlterationTaskRepository,
   AlterationHandoffRepository,
   AlterationWorkflowRepository,
+  PhysicalGarmentRepository,
   RetailerStaffRepository,
 } from "@paon/database";
 import {
@@ -465,6 +466,40 @@ export async function recordFulfillment(
   }
   revalidatePath(`/alterations/${alterationId}`);
   return { successMessage: "Pickup or delivery updated." };
+}
+
+export async function recordFitToolObservation(
+  alterationId: string,
+  physicalGarmentId: string,
+  area: string,
+  observation: string,
+): Promise<WorkflowActionState> {
+  const session = await requireSession();
+  const allowed = [
+    "intake",
+    "oversight",
+    "manage_assigned_workshop",
+    "work_assigned_tasks",
+  ].some((permission) =>
+    retailerRoleHasAlterationsPermission(
+      session.retailerRole,
+      permission as Parameters<typeof retailerRoleHasAlterationsPermission>[1],
+    ),
+  );
+  if (!allowed) throw new ForbiddenError();
+  try {
+    await new PhysicalGarmentRepository(
+      await getSupabaseServerClient(),
+    ).addObservation({
+      physicalGarmentId: asId<"PhysicalGarmentId">(physicalGarmentId),
+      area,
+      observation,
+    });
+  } catch (error) {
+    return workflowError(error, "Unable to record fit-tool observation.");
+  }
+  revalidatePath(`/alterations/${alterationId}`);
+  return { successMessage: "Observation recorded." };
 }
 
 export async function addAlterationUpdate(
