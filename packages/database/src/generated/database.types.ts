@@ -3309,6 +3309,41 @@ export type Database = {
           },
         ];
       };
+      prospect_demo_previews: {
+        Row: {
+          created_at: string;
+          device: string;
+          environment_id: string;
+          id: string;
+          preview_data: Json;
+          role: string;
+        };
+        Insert: {
+          created_at?: string;
+          device: string;
+          environment_id: string;
+          id?: string;
+          preview_data: Json;
+          role: string;
+        };
+        Update: {
+          created_at?: string;
+          device?: string;
+          environment_id?: string;
+          id?: string;
+          preview_data?: Json;
+          role?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "prospect_demo_previews_environment_id_fkey";
+            columns: ["environment_id"];
+            isOneToOne: false;
+            referencedRelation: "prospect_demo_environments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       referrals: {
         Row: {
           code: string;
@@ -4184,6 +4219,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      synthetic_demo_generations: {
+        Row: {
+          config: Json;
+          created_at: string;
+          created_by_user_id: string | null;
+          device: string;
+          id: string;
+          role: string;
+        };
+        Insert: {
+          config: Json;
+          created_at?: string;
+          created_by_user_id?: string | null;
+          device: string;
+          id?: string;
+          role: string;
+        };
+        Update: {
+          config?: Json;
+          created_at?: string;
+          created_by_user_id?: string | null;
+          device?: string;
+          id?: string;
+          role?: string;
+        };
+        Relationships: [];
+      };
       wedding_parties: {
         Row: {
           created_at: string;
@@ -4854,6 +4916,10 @@ export type Database = {
       };
       clock_in: { Args: never; Returns: string };
       clock_out: { Args: never; Returns: undefined };
+      convert_pilot_to_live_retailer: {
+        Args: { p_prospect_id: string };
+        Returns: string;
+      };
       create_alteration_intake: {
         Args: {
           p_appointment_id: string;
@@ -4903,6 +4969,15 @@ export type Database = {
           p_prospect_id: string;
           p_public_token: string;
           p_synthetic_data: Json;
+        };
+        Returns: string;
+      };
+      generate_prospect_demo_preview: {
+        Args: {
+          p_config: Json;
+          p_device: string;
+          p_environment_id: string;
+          p_role: string;
         };
         Returns: string;
       };
