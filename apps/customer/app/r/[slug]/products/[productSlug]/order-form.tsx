@@ -4,10 +4,9 @@ import type { ProductVariant } from "@paon/domain";
 import { Button, buttonVariants } from "@paon/ui/components/Button";
 import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
-import { Select } from "@paon/ui/components/Select";
 import { formatMoney } from "@paon/utils";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { addToCart, type PlaceOrderFormState } from "./actions";
 
@@ -31,6 +30,9 @@ export function OrderForm({
     boundAction,
     initialPlaceOrderFormState,
   );
+  const [selectedVariantId, setSelectedVariantId] = useState(
+    variants[0]?.id ?? "",
+  );
 
   if (!isSignedIn) {
     return (
@@ -46,20 +48,43 @@ export function OrderForm({
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="retailerId" value={retailerId} />
+      <input type="hidden" name="productVariantId" value={selectedVariantId} />
+      {variants.length > 1 ? (
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium text-[var(--color-stone-700)]">
+            Option
+          </legend>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {variants.map((variant) => {
+              const label =
+                [variant.size, variant.color].filter(Boolean).join(" · ") ||
+                variant.sku;
+              const selected = selectedVariantId === variant.id;
+              return (
+                <button
+                  key={variant.id}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setSelectedVariantId(variant.id)}
+                  className={`flex min-h-11 flex-col items-start rounded-[var(--radius-sm)] border px-3 py-2 text-left transition-colors ${
+                    selected
+                      ? "border-[var(--color-stone-900)] bg-[var(--color-stone-900)] text-white"
+                      : "border-[var(--color-stone-300)] text-[var(--color-stone-700)]"
+                  }`}
+                >
+                  <span className="text-sm font-medium">{label}</span>
+                  <span
+                    className={`text-xs ${selected ? "text-white/70" : "text-[var(--color-stone-500)]"}`}
+                  >
+                    {formatMoney(variant.price, "en-US")}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      ) : null}
       <div className="flex items-end gap-3">
-        <div className="flex-1">
-          <FormField label="Option" htmlFor="productVariantId">
-            <Select id="productVariantId" name="productVariantId" required>
-              {variants.map((variant) => (
-                <option key={variant.id} value={variant.id}>
-                  {[variant.size, variant.color].filter(Boolean).join(" · ") ||
-                    variant.sku}{" "}
-                  — {formatMoney(variant.price, "en-US")}
-                </option>
-              ))}
-            </Select>
-          </FormField>
-        </div>
         <div className="w-24">
           <FormField label="Qty" htmlFor="quantity">
             <Input
