@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { DocumentScrollSnap } from "./document-scroll-snap";
 import { StorefrontNav } from "./storefront-nav";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -15,10 +16,13 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
  * The mobile-first entry point pattern from the founder's landing-page
  * reference (scroll-snap full-height sections, sticky bottom nav bar,
  * horizontal carousels, vertical slide-out menu) — rebuilt with PAON's
- * own copy and structure. No real hero video/photography exists yet, so
- * every "video" section is a decorative gradient placeholder rather than
- * a stand-in third-party asset; swap in real media when the founder
- * supplies it.
+ * own copy and structure, and widened at sm:/lg: for tablet/desktop
+ * rather than staying a stretched phone layout. No real hero
+ * video/photography exists yet, so every "video" section is a decorative
+ * gradient placeholder rather than a stand-in third-party asset; swap in
+ * real media when the founder supplies it. Scroll-snap runs on the real
+ * document scroller (see DocumentScrollSnap) so mobile browser chrome
+ * still auto-hides on scroll, same as every other route.
  */
 export default async function StorefrontLandingPage({
   params,
@@ -49,24 +53,25 @@ export default async function StorefrontLandingPage({
 
   return (
     <>
-      <main className="h-[100dvh] snap-y snap-mandatory overflow-y-scroll scroll-smooth pb-16">
-        <section className="relative flex h-[100dvh] snap-start flex-col items-center justify-center overflow-hidden">
+      <DocumentScrollSnap />
+      <main className="pb-16 lg:pb-0 lg:pt-16">
+        <section className="relative flex h-[100svh] snap-start flex-col items-center justify-center overflow-hidden">
           <div
             aria-hidden="true"
             className="absolute inset-0 bg-[linear-gradient(155deg,var(--retailer-ink,#1a1a1a)_0%,var(--retailer-accent,#3a3a3a)_55%,var(--retailer-ink,#1a1a1a)_100%)]"
           />
-          <div className="relative flex flex-col items-center gap-4 px-6 text-center text-white">
+          <div className="relative flex max-w-3xl flex-col items-center gap-4 px-6 text-center text-white">
             <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.3em] text-white/70">
               {retailer.displayName}
             </p>
-            <h1 className="text-4xl font-[var(--font-retailer-display,var(--font-display))] sm:text-6xl">
+            <h1 className="text-balance text-4xl font-[var(--font-retailer-display,var(--font-display))] sm:text-6xl lg:text-7xl">
               Made to measure.
               <br />
               Made to matter.
             </h1>
             <Link
               href={`/r/${slug}/products`}
-              className="mt-4 rounded-full bg-white px-8 py-3 text-sm font-medium text-black"
+              className="mt-4 rounded-full bg-white px-8 py-3 text-sm font-medium text-black transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:scale-[1.03]"
             >
               Enter the atelier
             </Link>
@@ -80,21 +85,21 @@ export default async function StorefrontLandingPage({
         </section>
 
         {collectionsWithCover.length > 0 ? (
-          <section className="flex h-[100dvh] snap-start flex-col justify-center gap-6 px-6 py-10">
-            <div>
+          <section className="flex min-h-[100svh] snap-start flex-col justify-center gap-6 px-6 py-10 lg:px-16">
+            <div className="mx-auto w-full max-w-6xl">
               <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
                 Collections
               </p>
-              <h2 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+              <h2 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)] lg:text-3xl">
                 Choose your world
               </h2>
             </div>
-            <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+            <div className="mx-auto flex w-full max-w-6xl snap-x snap-mandatory gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible">
               {collectionsWithCover.map(({ collection, coverImageUrl }) => (
                 <Link
                   key={collection.id}
                   href={`/r/${slug}/products?collection=${collection.slug}`}
-                  className="group relative flex h-72 w-56 shrink-0 snap-start flex-col justify-end overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-stone-100)]"
+                  className="group relative flex h-72 w-56 shrink-0 snap-start flex-col justify-end overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-stone-100)] lg:h-96 lg:w-full"
                 >
                   {coverImageUrl ? (
                     <Image
@@ -125,21 +130,21 @@ export default async function StorefrontLandingPage({
         ) : null}
 
         {featured.length > 0 ? (
-          <section className="flex min-h-[100dvh] snap-start flex-col justify-center gap-6 px-6 py-10">
-            <div>
+          <section className="flex min-h-[100svh] snap-start flex-col justify-center gap-6 px-6 py-10 lg:px-16">
+            <div className="mx-auto w-full max-w-6xl">
               <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
                 Featured
               </p>
-              <h2 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+              <h2 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)] lg:text-3xl">
                 New this season
               </h2>
             </div>
-            <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2">
+            <div className="mx-auto flex w-full max-w-6xl snap-x snap-mandatory gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:gap-6 lg:overflow-visible">
               {featured.map((product) => (
                 <Link
                   key={product.id}
                   href={`/r/${slug}/products/${product.slug}`}
-                  className="group w-40 shrink-0 snap-start"
+                  className="group w-40 shrink-0 snap-start lg:w-full"
                 >
                   <div className="mb-2 aspect-[3/4] overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-stone-100)]">
                     {product.primaryImageUrl ? (
@@ -166,44 +171,50 @@ export default async function StorefrontLandingPage({
             </div>
             <Link
               href={`/r/${slug}/products`}
-              className="text-sm text-[var(--color-stone-700)] underline underline-offset-4"
+              className="mx-auto w-full max-w-6xl text-sm text-[var(--color-stone-700)] underline underline-offset-4"
             >
               Shop the full collection
             </Link>
           </section>
         ) : null}
 
-        <section className="relative flex h-[100dvh] snap-start flex-col items-center justify-center overflow-hidden text-center">
+        <section className="relative flex h-[100svh] snap-start flex-col items-center justify-center overflow-hidden text-center">
           <div
             aria-hidden="true"
             className="absolute inset-0 bg-[linear-gradient(155deg,var(--color-stone-900)_0%,var(--retailer-accent,#3a3a3a)_100%)]"
           />
-          <div className="relative flex flex-col items-center gap-4 px-6 text-white">
+          <div className="relative flex max-w-2xl flex-col items-center gap-4 px-6 text-white">
             <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.3em] text-white/70">
               By appointment
             </p>
-            <h2 className="text-3xl font-[var(--font-retailer-display,var(--font-display))] sm:text-4xl">
+            <h2 className="text-balance text-3xl font-[var(--font-retailer-display,var(--font-display))] sm:text-4xl lg:text-5xl">
               A fitting, on your time.
             </h2>
             <div className="mt-2 flex flex-wrap justify-center gap-3">
               <Link
                 href={`/r/${slug}/appointments`}
-                className="rounded-full bg-white px-8 py-3 text-sm font-medium text-black"
+                className="rounded-full bg-white px-8 py-3 text-sm font-medium text-black transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:scale-[1.03]"
               >
                 Book an appointment
               </Link>
               <Link
                 href={`/r/${slug}/swipe`}
-                className="rounded-full border border-white/40 px-8 py-3 text-sm font-medium text-white"
+                className="rounded-full border border-white/40 px-8 py-3 text-sm font-medium text-white transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:scale-[1.03]"
               >
                 Find your style
+              </Link>
+              <Link
+                href="/loyalty"
+                className="rounded-full border border-white/40 px-8 py-3 text-sm font-medium text-white transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:scale-[1.03]"
+              >
+                Join &amp; earn rewards
               </Link>
             </div>
           </div>
         </section>
       </main>
 
-      <StorefrontNav slug={slug} />
+      <StorefrontNav slug={slug} retailerName={retailer.displayName} />
     </>
   );
 }
