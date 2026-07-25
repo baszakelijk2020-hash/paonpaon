@@ -1,4 +1,11 @@
-import { CustomerRepository, WeddingPartyRepository } from "@paon/database";
+import {
+  AlterationRepository,
+  CustomerRepository,
+  ProductRepository,
+  ProductVariantRepository,
+  WeddingPartyRepository,
+  WishlistRepository,
+} from "@paon/database";
 import {
   WEDDING_PARTY_MEMBER_FITTING_STATUSES,
   WEDDING_PARTY_STATUSES,
@@ -6,9 +13,11 @@ import {
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate } from "@paon/utils";
+import { formatDate, formatMoney } from "@paon/utils";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { startConversation } from "../../messages/actions";
 import {
   updateMemberFittingStatus,
   updateWeddingPartyStatus,
@@ -44,6 +53,36 @@ export default async function WeddingPartyDetailPage({
     new CustomerRepository(supabase).findById(party.organizerCustomerId),
   ]);
 
+  const wishlistRepo = new WishlistRepository(supabase);
+  const variantRepo = new ProductVariantRepository(supabase);
+  const productRepo = new ProductRepository(supabase);
+  const alterationRepo = new AlterationRepository(supabase);
+
+  const memberDetails = await Promise.all(
+    members.map(async (member) => {
+      const [wishlist, alterations] = await Promise.all([
+        wishlistRepo.findByCustomer(member.customerId),
+        alterationRepo.findByCustomer(member.customerId),
+      ]);
+      const stylePicks = wishlist
+        ? (
+            await Promise.all(
+              (await wishlistRepo.findItems(wishlist.id)).map(async (item) => {
+                const variant = await variantRepo.findById(
+                  item.productVariantId,
+                );
+                const product = variant
+                  ? await productRepo.findById(variant.productId)
+                  : null;
+                return variant && product ? { variant, product } : null;
+              }),
+            )
+          ).filter((entry): entry is NonNullable<typeof entry> => !!entry)
+        : [];
+      return { member, stylePicks, alteration: alterations[0] };
+    }),
+  );
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between">
@@ -58,30 +97,45 @@ export default async function WeddingPartyDetailPage({
             {party.venueName ? ` · ${party.venueName}` : ""}
           </p>
         </div>
-        <form
-          action={updateWeddingPartyStatus}
-          className="flex items-center gap-2"
-        >
-          <input type="hidden" name="weddingPartyId" value={party.id} />
-          <select
-            name="status"
-            aria-label="Party status"
-            defaultValue={party.status}
-            className="rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-sm capitalize"
+        <div className="flex items-center gap-3">
+          <form action={startConversation}>
+            <input
+              type="hidden"
+              name="customerId"
+              value={party.organizerCustomerId}
+            />
+            <button
+              type="submit"
+              className={buttonVariants({ variant: "secondary", size: "sm" })}
+            >
+              Message the party
+            </button>
+          </form>
+          <form
+            action={updateWeddingPartyStatus}
+            className="flex items-center gap-2"
           >
-            {WEDDING_PARTY_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Update
-          </button>
-        </form>
+            <input type="hidden" name="weddingPartyId" value={party.id} />
+            <select
+              name="status"
+              aria-label="Party status"
+              defaultValue={party.status}
+              className="rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-sm capitalize"
+            >
+              {WEDDING_PARTY_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Update
+            </button>
+          </form>
+        </div>
       </div>
 
       {party.notes ? (
@@ -95,53 +149,87 @@ export default async function WeddingPartyDetailPage({
           Party members
         </h2>
         <Card className="divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
-          {members.map((member) => (
-            <div
-              key={member.id}
-              className="flex items-center justify-between px-6 py-4"
-            >
-              <div>
-                <p className="font-medium">{member.name}</p>
-                <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                  {member.role.replaceAll("_", " ")}
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge tone={FITTING_TONE[member.fittingStatus]}>
-                  {member.fittingStatus}
-                </Badge>
-                <form
-                  action={updateMemberFittingStatus}
-                  className="flex items-center gap-2"
-                >
-                  <input type="hidden" name="memberId" value={member.id} />
-                  <input type="hidden" name="weddingPartyId" value={party.id} />
-                  <select
-                    name="status"
-                    aria-label={`${member.name}'s fitting status`}
-                    defaultValue={member.fittingStatus}
-                    className="rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-xs capitalize"
+          {memberDetails.map(({ member, stylePicks, alteration }) => (
+            <div key={member.id} className="flex flex-col gap-3 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{member.name}</p>
+                  <p className="text-sm capitalize text-[var(--color-stone-500)]">
+                    {member.role.replaceAll("_", " ")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge tone={FITTING_TONE[member.fittingStatus]}>
+                    {member.fittingStatus}
+                  </Badge>
+                  <form
+                    action={updateMemberFittingStatus}
+                    className="flex items-center gap-2"
                   >
-                    {WEDDING_PARTY_MEMBER_FITTING_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {status}
-                      </option>
+                    <input type="hidden" name="memberId" value={member.id} />
+                    <input
+                      type="hidden"
+                      name="weddingPartyId"
+                      value={party.id}
+                    />
+                    <select
+                      name="status"
+                      aria-label={`${member.name}'s fitting status`}
+                      defaultValue={member.fittingStatus}
+                      className="rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-xs capitalize"
+                    >
+                      {WEDDING_PARTY_MEMBER_FITTING_STATUSES.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="submit"
+                      className={buttonVariants({
+                        variant: "outline",
+                        size: "sm",
+                      })}
+                    >
+                      Update
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {stylePicks.length > 0 ? (
+                <div>
+                  <p className="text-xs uppercase text-[var(--color-stone-500)]">
+                    Style picks
+                  </p>
+                  <ul className="mt-1 flex flex-col gap-0.5">
+                    {stylePicks.map(({ variant, product }) => (
+                      <li
+                        key={variant.id}
+                        className="text-sm text-[var(--color-stone-700)]"
+                      >
+                        {product.name}
+                        {[variant.size, variant.color].filter(Boolean).length
+                          ? ` (${[variant.size, variant.color].filter(Boolean).join(" · ")})`
+                          : ""}{" "}
+                        · {formatMoney(variant.price, "en-US")}
+                      </li>
                     ))}
-                  </select>
-                  <button
-                    type="submit"
-                    className={buttonVariants({
-                      variant: "outline",
-                      size: "sm",
-                    })}
-                  >
-                    Update
-                  </button>
-                </form>
-              </div>
+                  </ul>
+                </div>
+              ) : null}
+
+              {alteration ? (
+                <Link
+                  href={`/alterations/${alteration.id}`}
+                  className="text-sm text-[var(--color-stone-600)] underline underline-offset-4"
+                >
+                  View fitting & fit tools
+                </Link>
+              ) : null}
             </div>
           ))}
-          {members.length === 0 ? (
+          {memberDetails.length === 0 ? (
             <p className="p-6 text-sm text-[var(--color-stone-500)]">
               No members added yet.
             </p>

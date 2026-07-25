@@ -5,6 +5,7 @@ import {
   type AlterationId,
   type CreateAlterationInput,
   type CurrencyCode,
+  type CustomerId,
   type GarmentCategoryCode,
   type RetailerId,
   type WorkerAlterationWorkOrder,
@@ -96,6 +97,19 @@ export class AlterationRepository {
       .from("alteration_work_orders")
       .select("*")
       .eq("retailer_id", retailerId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(toDomain);
+  }
+
+  /** Wedding-party coordination (Phase 4, AM House Party) needs each
+   * member's own work order without a full retailer-wide scan. */
+  async findByCustomer(customerId: CustomerId): Promise<Alteration[]> {
+    const { data, error } = await this.client
+      .from("alteration_work_orders")
+      .select("*")
+      .eq("customer_id", customerId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (error) throw error;

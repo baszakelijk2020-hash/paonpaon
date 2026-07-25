@@ -93,18 +93,34 @@ export default async function WeddingPartyDetailPage({
               <Badge tone={FITTING_TONE[member.fittingStatus]}>
                 {member.fittingStatus}
               </Badge>
-              {myCustomerIds.has(member.customerId) &&
-              member.fittingStatus === "invited" ? (
-                <form action={markFittingScheduled}>
-                  <input type="hidden" name="memberId" value={member.id} />
-                  <input type="hidden" name="weddingPartyId" value={party.id} />
-                  <button
-                    type="submit"
-                    className={buttonVariants({ size: "sm" })}
+              {myCustomerIds.has(member.customerId) && retailer ? (
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/r/${retailer.slug}/swipe`}
+                    className={buttonVariants({
+                      variant: "outline",
+                      size: "sm",
+                    })}
                   >
-                    I&rsquo;ve booked my fitting
-                  </button>
-                </form>
+                    Pick your look
+                  </Link>
+                  {member.fittingStatus === "invited" ? (
+                    <form action={markFittingScheduled}>
+                      <input type="hidden" name="memberId" value={member.id} />
+                      <input
+                        type="hidden"
+                        name="weddingPartyId"
+                        value={party.id}
+                      />
+                      <button
+                        type="submit"
+                        className={buttonVariants({ size: "sm" })}
+                      >
+                        I&rsquo;ve booked my fitting
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
               ) : null}
             </div>
           </div>

@@ -5097,6 +5097,10 @@ export type Database = {
         Args: { p_theme: Json };
         Returns: boolean;
       };
+      is_wedding_party_organizer_or_member: {
+        Args: { p_wedding_party_id: string };
+        Returns: boolean;
+      };
       join_wedding_party: {
         Args: {
           p_email: string;
