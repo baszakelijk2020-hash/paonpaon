@@ -1185,6 +1185,121 @@ duplicated here.
   Supabase reset, each app rebuilt clean (`.next` removed) after the
   Tailwind `@source` fix to rule out stale-build false negatives.
 
+### Shipped: Nebel & Spiegel round 2 — Mission Control chat attachments (in progress)
+
+Full plan and reasoning: `/Users/nguyen/.claude/plans/lovely-wiggling-stroustrup.md`
+(a founder-approved 7-phase plan reusing existing domain models —
+`FittingObservation`, `Conversation`/`Message`, `WeddingParty` — rather
+than inventing parallel schema, learned directly from what went wrong
+in the incident above).
+
+- **Phase 1 (Mission Control shell)**: verified already complete by the
+  time this phase started — the retailer portal's `AppShell`,
+  role-based dashboard brief, "Needs your attention" panel and stat
+  grid (built as part of the Experience Rebuild checkpoints above)
+  already delivered it. No rework.
+- **Phase 2 (staff chat/ticket inbox)**: real image attachments on
+  retailer-customer conversations. New `message_attachments` table +
+  private Storage bucket + path-scoped RLS, mirroring
+  `alteration_attachments`' existing shape exactly. Writes go through
+  one narrow `security definer` RPC (`record_message_attachment`) that
+  re-derives the caller's own sender identity, same shape as the
+  existing `send_conversation_message`. Caught and fixed the same
+  missing-PostgREST-grant class of bug this document already documents
+  three times over (`customer_preferences`, `wishlists`,
+  `behavioral_events`) — `message_attachments` needed its own explicit
+  `select` grant too. New Playwright spec proves the full round trip
+  (attach → Storage → RPC → signed-URL read), not just that the form
+  submits.
+- Remaining phases (fit-tool widgets, groom's-party app, landing page,
+  storefront fidelity pass) not started as of this entry.
+
+### Shipped: Commercial prospects, Demo Studio, retailer brand themes
+
+Full detail in `docs/EXPERIENCE_REBUILD.md` (its own checkpoint log,
+outside this document's usual "Shipped" format — read it directly for
+the complete commercial-journey architecture, package pricing table,
+and route-by-route acceptance status). Summary of what's real and live:
+
+- **Retailer brand themes**: one validated `RetailerBrandTheme`
+  vocabulary (logo/favicon/hero assets over HTTPS, curated display/body
+  font pairs, corner radius character, WCAG-4.5:1-enforced accent/
+  surface/ink colors — unsafe tokens rejected in both domain validation
+  and the database). Retailer owners/admins configure and preview at
+  `/settings/brand`; publishing creates an immutable, attributable,
+  restorable version. `RetailerTheme` (`packages/ui`) maps only those
+  validated tokens to CSS variables and wraps both the retailer shell
+  and the public storefront — one component, not two theme systems.
+- **PAON Admin `/prospects`, `/prospects/new`, `/prospects/[id]/studio`**:
+  a prospect workbench (research a target retailer without importing
+  real customer data) feeding a Demo Studio that configures package,
+  capability scope, the same validated brand theme, headline/
+  introduction copy, locations and product mix — one composed,
+  platform-staff-authorized, versioned configuration per prospect.
+- **Commercial plans**: `subscription_plans` migrated in place to PAON
+  Fused / Half Canvas / Full Canvas (distinct recurring-software vs.
+  one-time-implementation fields), a normalized feature-entitlement
+  catalogue, and `retailer_has_entitlement` deriving access from the
+  authenticated tenant's active subscription + entitlement overrides.
+  Admin `/billing` edits the catalogue directly.
+- **Isolated demo environments**: `prospect_demo_environments` +
+  `prospect_demo_previews` + `generate_prospect_demo_preview` produce a
+  private, code-gated, revocable demo link per prospect with synthetic
+  (never real-customer) data, previewable per persona/device before
+  publishing.
+- **Pilot-to-live transition**: `convert_pilot_to_live_retailer` copies
+  an accepted prospect's _approved configuration_ — never its synthetic
+  demo records — into a real onboarded retailer.
+- **Status, honestly**: `EXPERIENCE_REBUILD.md` marks almost all of this
+  **Foundation**, not **Accepted** — functionally verified (unit +
+  Playwright coverage exists per checkpoint) but never visually
+  inspected, because no browser/screenshot tool has been available in
+  this environment at any point this document was written. Same
+  disclosed limitation as every other slice in this file.
+- **Not real**: a documented "Private Proposal Generation Service"
+  (`docs/PROPOSAL_GENERATION.md`) — its implementation was broken
+  (failed `tsc`, wrong import paths, a Jest-authored test in a Vitest
+  project, zero references from any real route) and its UI lived in a
+  duplicate `apps/customer/src/app/` tree that collided with the real
+  `apps/customer/app/` tree and broke the Next.js build outright. Both
+  were deleted during incident recovery (below); the doc is marked
+  accordingly and nothing currently implements it.
+
+### Recorded: production incident and recovery (2026-07-25)
+
+Full timeline lives in this session's transcript, not restated here —
+the load-bearing facts for future sessions:
+
+- A separate, uncoordinated tool session left an **unfinished,
+  uncommitted NextAuth migration** that deleted every app's login page
+  and `/auth/confirm` route, and gutted `packages/auth/src/guards.ts`
+  so every authorization check (`requireRetailerRole`,
+  `requireAlterationsPermission`, `requireCustomerSession`, etc.)
+  unconditionally passed — a severe access-control regression, not just
+  a broken build. That work was `git stash drop`'d — discarded for
+  good, never committed, never deployed.
+- Separately, the **production Supabase database's entire `public`
+  schema had been wiped** (`DROP SCHEMA public CASCADE` or equivalent)
+  down to one stray, hand-created table. Confirmed via direct
+  Management API query before touching anything; confirmed with the
+  founder that no real retailer/customer had used production yet, so
+  this was a structural rebuild, not data recovery.
+- Recovery: fixed a real inverted-boolean bug in
+  `apps/retailer/middleware.ts` (was signing out any session that
+  correctly matched `retailer_staff`, exactly backwards), fixed a
+  migration dependency-ordering bug and removed one migration with a
+  hard syntax error and wide-open (`USING (true)`, no `TO` clause) RLS
+  policies, repaired the remote migration bookkeeping (`supabase
+migration repair --status reverted`) so `db push --linked` would
+  actually recreate the wiped tables instead of skipping them it
+  believed were already applied, and restored the schema-level `USAGE`
+  grant the wipe also removed (never previously needed in any migration
+  here, since Supabase sets it up once at project creation).
+- All three apps redeployed and reverified live afterward. See
+  `docs/DECISIONS.md` for anything architectural that followed from
+  this (the message-attachment work below reuses the same
+  grant-gap-class fix pattern this incident re-surfaced).
+
 ## Local database verification
 
 - `20260724000000_notify_customer_when_alteration_ready.sql` applied cleanly
@@ -1272,11 +1387,14 @@ duplicated here.
     responsibility to reset.
   - The standard code checks are also green: `pnpm lint`, `pnpm typecheck`,
     `pnpm test` (unit), `pnpm build`, and `pnpm format:check`.
-- **No live Supabase project.** `.env.local` was never created in any
-  app. To actually run the apps: `supabase start`, copy its printed
-  `API URL`/`anon key`/`service_role key` into each app's `.env.local`
-  per its `.env.example` — admin needs `NEXT_PUBLIC_RETAILER_APP_URL`,
-  retailer and customer each need their own `NEXT_PUBLIC_APP_URL` — then
+- **A live Supabase project now exists** (`hngxrczavwywsnfceppb`,
+  `ap-southeast-2`) and all three apps are deployed to Vercel — see
+  "Shipped: Production deployment" above. For **local** development
+  against a fresh local stack instead: `supabase start`, copy its
+  printed `API URL`/`anon key`/`service_role key` into each app's
+  `.env.local` per its `.env.example` — admin needs
+  `NEXT_PUBLIC_RETAILER_APP_URL`, retailer and customer each need their
+  own `NEXT_PUBLIC_APP_URL` — then
   `pnpm --filter @paon/database bootstrap:platform-admin` to create the
   first PAON Admin login before `pnpm dev`.
 

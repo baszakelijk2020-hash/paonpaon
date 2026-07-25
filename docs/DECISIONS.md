@@ -1733,3 +1733,48 @@ checkpoint. Demo Studio shows a component preview but labels the environment
 as ungenerated until isolation exists. Publication, access codes, engagement
 tracking and pilot conversion cannot accidentally be inferred from a saved
 configuration.
+
+## ADR-044: Production incident recovery — inverted auth check, wiped schema, and the migration-bookkeeping repair pattern
+
+**Context.** A separate, uncoordinated tool session (not this one) left an
+unfinished, uncommitted NextAuth migration in the working tree that deleted
+every app's login page and `/auth/confirm` route, and gutted
+`packages/auth/src/guards.ts` so every authorization check
+(`requireRetailerRole`, `requireAlterationsPermission`,
+`requireCustomerSession`, etc.) unconditionally passed — every guard function
+returned immediately with no check at all. Separately, and more seriously,
+the production Supabase database's entire `public` schema had been dropped
+down to one stray, hand-created table (`prospect_demo_environments`),
+confirmed by direct Management API query rather than assumed from symptoms.
+The founder confirmed no real retailer or customer had used production yet.
+
+**Decision.** Discard the auth-gutting work entirely (`git stash drop` — not
+committed, not deployed, unrecoverable by design) rather than attempt to
+finish or repair it; it was fundamentally the wrong direction, not a
+work-in-progress worth salvaging. Rebuild the wiped schema by pushing the
+existing, already-reviewed migration chain rather than writing new recovery
+SQL — but first: fix a real dependency-ordering bug the chain had (a table
+referencing another table numbered to be created after it), remove one
+migration outright for a hard syntax error and wide-open `USING (true)`
+RLS with no `TO` clause (any caller, authenticated or anonymous, could have
+read and written every customer's data), and scan the rest of the pending
+batch for the same destructive/RLS patterns before pushing anything to
+production. Since the remote migration-bookkeeping table (`supabase_migrations
+.schema_migrations`, outside the wiped `public` schema) still recorded the
+now-missing tables as applied, `db push --linked` silently skipped
+recreating them — fixed with `supabase migration repair --status reverted`
+against the affected version range before repushing, a now-documented,
+reusable pattern for exactly this failure mode.
+
+**Consequences.** No customer/retailer data was lost (none existed yet), but
+this establishes migration-bookkeeping repair as a real, load-bearing
+recovery technique for this project, not just a `db push` retry. It also
+means every future migration batch gets scanned for destructive statements
+and permissive RLS before touching production — the classifier that blocks
+Claude from running `db push`/`migration repair` directly against production
+is a deliberate, correct guard, not friction to route around; the founder
+ran both commands themselves after review. `packages/auth/src/guards.ts`
+having ever been gutted, even briefly and never deployed, is the reason
+authorization-check integrity is now something worth spot-checking after any
+externally-sourced or multi-tool-session change to this repository, not just
+assumed intact.
