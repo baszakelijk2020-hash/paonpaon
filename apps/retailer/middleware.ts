@@ -1,16 +1,12 @@
-import { resolveAppSession } from '@paon/auth';
-import { createSupabaseServerClient } from '@paon/database';
-import { NextResponse, type NextRequest } from 'next/server';
+import { resolveAppSession } from "@paon/auth";
+import { createSupabaseServerClient } from "@paon/database";
+import { NextResponse, type NextRequest } from "next/server";
 
-import { env } from './lib/env';
+import { env } from "./lib/env";
 
-const PUBLIC_PATHS = [
-  '/login',
-  '/auth/confirm',
-  '/accept-invite',
-];
+const PUBLIC_PATHS = ["/login", "/auth/confirm", "/accept-invite"];
 
-const STOREFRONT_PATH_PREFIX = '/r/';  // Retailer storefront path prefix
+const STOREFRONT_PATH_PREFIX = "/r/"; // Retailer storefront path prefix
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -48,24 +44,24 @@ export async function middleware(request: NextRequest) {
     if (isPublicPath) {
       return response;
     }
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirectTo', pathname);
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   const session = resolveAppSession(data.user);
 
-  // Check if user is a retailer
-  if (session.accountType === 'retailer_staff') {
+  // Reject any session that isn't a Retailer Portal staff account.
+  if (session.accountType !== "retailer_staff") {
     await supabase.auth.signOut();
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('error', 'not_a_retailer_account');
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("error", "not_a_retailer_account");
     return NextResponse.redirect(loginUrl);
   }
 
   // Redirect to dashboard after login
-  if (pathname.startsWith('/login')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  if (pathname.startsWith("/login")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;
@@ -81,6 +77,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };

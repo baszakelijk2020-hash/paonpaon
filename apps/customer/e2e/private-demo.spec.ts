@@ -1,9 +1,10 @@
+import { randomBytes } from "node:crypto";
+
 import {
   createSupabaseAdminClient,
   createSupabaseDirectClient,
 } from "@paon/database";
 import { expect, test } from "@playwright/test";
-import { randomBytes } from "node:crypto";
 
 test("a private synthetic demo is code-gated, useful, revocable, and not table-readable", async ({
   page,
@@ -104,11 +105,18 @@ test("a private synthetic demo is code-gated, useful, revocable, and not table-r
       .single();
     if (featureError) throw featureError;
 
+    const { data: plan, error: planError } = await admin
+      .from("subscription_plans")
+      .select("id")
+      .limit(1)
+      .single();
+    if (planError) throw planError;
+
     const { error: configurationError } = await admin.rpc(
       "save_prospect_demo_configuration",
       {
         p_prospect_id: prospect.id,
-        p_plan_id: null,
+        p_plan_id: plan.id,
         p_theme: {
           accentColor: "#5f4b3b",
           surfaceColor: "#f4f0e9",
