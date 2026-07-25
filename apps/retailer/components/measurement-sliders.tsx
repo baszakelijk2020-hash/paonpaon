@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 
 function generateVals(limit: number): number[] {
   return Array.from({ length: limit }, (_, i) => i + 1);
@@ -28,8 +28,12 @@ const MeasurementSliders: React.FC = () => {
             min="1"
             max="100"
             value={val}
-            onChange={(e) => handleSliderChange(index, parseInt(e.target.value))}
-            ref={(ref) => { sliderRefs.current[index] = ref; }}
+            onChange={(e) =>
+              handleSliderChange(index, parseInt(e.target.value))
+            }
+            ref={(ref) => {
+              sliderRefs.current[index] = ref;
+            }}
           />
           <span>{val}</span>
         </div>

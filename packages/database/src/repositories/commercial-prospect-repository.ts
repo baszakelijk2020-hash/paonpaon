@@ -217,7 +217,20 @@ export class CommercialProspectRepository {
     return data as unknown as PublicProspectDemo | null;
   }
 
-  async updateStage(id: string, stage: 'researched' | 'qualified' | 'demo_preparation' | 'demo_ready' | 'demo_sent' | 'consultation' | 'proposal' | 'pilot' | 'converted' | 'lost'): Promise<void> {
+  async updateStage(
+    id: string,
+    stage:
+      | "researched"
+      | "qualified"
+      | "demo_preparation"
+      | "demo_ready"
+      | "demo_sent"
+      | "consultation"
+      | "proposal"
+      | "pilot"
+      | "converted"
+      | "lost",
+  ): Promise<void> {
     const { error } = await this.client
       .from("commercial_prospects")
       .update({ stage: stage })
