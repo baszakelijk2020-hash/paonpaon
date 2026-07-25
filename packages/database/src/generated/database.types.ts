@@ -2355,6 +2355,70 @@ export type Database = {
         };
         Relationships: [];
       };
+      message_attachments: {
+        Row: {
+          created_at: string;
+          file_name: string;
+          id: string;
+          message_id: string;
+          mime_type: string;
+          retailer_id: string;
+          size_bytes: number;
+          storage_bucket: string;
+          storage_path: string;
+          uploaded_by_staff_id: string | null;
+          uploaded_by_user_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          file_name: string;
+          id?: string;
+          message_id: string;
+          mime_type: string;
+          retailer_id: string;
+          size_bytes: number;
+          storage_bucket: string;
+          storage_path: string;
+          uploaded_by_staff_id?: string | null;
+          uploaded_by_user_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          file_name?: string;
+          id?: string;
+          message_id?: string;
+          mime_type?: string;
+          retailer_id?: string;
+          size_bytes?: number;
+          storage_bucket?: string;
+          storage_path?: string;
+          uploaded_by_staff_id?: string | null;
+          uploaded_by_user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "message_attachments_message_id_fkey";
+            columns: ["message_id"];
+            isOneToOne: false;
+            referencedRelation: "messages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "message_attachments_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "message_attachments_uploaded_by_staff_id_fkey";
+            columns: ["uploaded_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       messages: {
         Row: {
           body: string;
@@ -4851,6 +4915,10 @@ export type Database = {
         Args: { p_alteration_id: string };
         Returns: boolean;
       };
+      can_access_conversation_storage_object: {
+        Args: { p_name: string };
+        Returns: boolean;
+      };
       can_access_physical_garment: {
         Args: { p_garment_id: string };
         Returns: boolean;
@@ -5067,6 +5135,16 @@ export type Database = {
           p_output?: Json;
           p_retailer_id: string;
           p_status: Database["public"]["Enums"]["ai_generation_status"];
+        };
+        Returns: string;
+      };
+      record_message_attachment: {
+        Args: {
+          p_file_name: string;
+          p_message_id: string;
+          p_mime_type: string;
+          p_size_bytes: number;
+          p_storage_path: string;
         };
         Returns: string;
       };

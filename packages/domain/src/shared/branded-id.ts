@@ -52,6 +52,7 @@ export type ReferralId = Brand<string, "ReferralId">;
 export type EventId = Brand<string, "EventId">;
 export type NotificationId = Brand<string, "NotificationId">;
 export type MessageId = Brand<string, "MessageId">;
+export type MessageAttachmentId = Brand<string, "MessageAttachmentId">;
 export type ConversationId = Brand<string, "ConversationId">;
 export type WishlistId = Brand<string, "WishlistId">;
 export type ClientelingNoteId = Brand<string, "ClientelingNoteId">;

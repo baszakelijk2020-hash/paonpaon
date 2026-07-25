@@ -5,6 +5,9 @@ import {
   type ConversationIntent,
   type CustomerId,
   type Message,
+  type MessageAttachment,
+  type MessageAttachmentMimeType,
+  type MessageId,
   type RetailerId,
 } from "@paon/domain";
 
@@ -12,6 +15,8 @@ import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 type ConversationRow = Database["public"]["Tables"]["conversations"]["Row"];
 type MessageRow = Database["public"]["Tables"]["messages"]["Row"];
+type MessageAttachmentRow =
+  Database["public"]["Tables"]["message_attachments"]["Row"];
 const conversation = (row: ConversationRow): Conversation => ({
   id: asId<"ConversationId">(row.id),
   retailerId: asId<"RetailerId">(row.retailer_id),
@@ -38,6 +43,23 @@ const message = (row: MessageRow): Message => ({
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   deletedAt: row.deleted_at,
+});
+const messageAttachment = (row: MessageAttachmentRow): MessageAttachment => ({
+  id: asId<"MessageAttachmentId">(row.id),
+  retailerId: asId<"RetailerId">(row.retailer_id),
+  messageId: asId<"MessageId">(row.message_id),
+  storageBucket: row.storage_bucket,
+  storagePath: row.storage_path,
+  fileName: row.file_name,
+  mimeType: row.mime_type as MessageAttachmentMimeType,
+  sizeBytes: row.size_bytes,
+  ...(row.uploaded_by_staff_id
+    ? { uploadedByStaffId: asId<"StaffId">(row.uploaded_by_staff_id) }
+    : {}),
+  ...(row.uploaded_by_user_id
+    ? { uploadedByUserId: row.uploaded_by_user_id }
+    : {}),
+  createdAt: row.created_at,
 });
 export class MessagingRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
@@ -99,12 +121,15 @@ export class MessagingRepository {
     if (error) throw error;
     return asId<"ConversationId">(data);
   }
-  async send(id: ConversationId, body: string): Promise<void> {
-    const { error } = await this.client.rpc("send_conversation_message", {
+  /** Returns the new message's id — the attach-file flow needs it right
+   * after sending to attribute an upload to the message it belongs to. */
+  async send(id: ConversationId, body: string): Promise<MessageId> {
+    const { data, error } = await this.client.rpc("send_conversation_message", {
       p_body: body,
       p_conversation_id: id,
     });
     if (error) throw error;
+    return asId<"MessageId">(data);
   }
   async markRead(id: ConversationId): Promise<void> {
     const { error } = await this.client.rpc("mark_conversation_read", {
@@ -136,5 +161,74 @@ export class MessagingRepository {
     );
     if (error) throw error;
     return asId<"ConversationId">(data);
+  }
+
+  /** Signed URLs, same 15-minute-expiry shape as
+   * AlterationAttachmentRepository.findByAlteration — never a public URL,
+   * this bucket is private. */
+  async findAttachmentsByConversation(
+    conversationId: ConversationId,
+  ): Promise<{ attachment: MessageAttachment; signedUrl: string }[]> {
+    const { data: messageRows, error: messagesError } = await this.client
+      .from("messages")
+      .select("id")
+      .eq("conversation_id", conversationId);
+    if (messagesError) throw messagesError;
+    const messageIds = messageRows.map((row) => row.id);
+    if (messageIds.length === 0) return [];
+
+    const { data, error } = await this.client
+      .from("message_attachments")
+      .select("*")
+      .in("message_id", messageIds)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+
+    return Promise.all(
+      data.map(async (row) => {
+        const attachment = messageAttachment(row);
+        const { data: signed, error: signedError } = await this.client.storage
+          .from(attachment.storageBucket)
+          .createSignedUrl(attachment.storagePath, 15 * 60);
+        if (signedError) throw signedError;
+        return { attachment, signedUrl: signed.signedUrl };
+      }),
+    );
+  }
+
+  async uploadAttachment(params: {
+    retailerId: RetailerId;
+    conversationId: ConversationId;
+    messageId: MessageId;
+    fileName: string;
+    mimeType: MessageAttachmentMimeType;
+    sizeBytes: number;
+    content: ArrayBuffer;
+  }): Promise<MessageAttachment> {
+    const storagePath = `${params.retailerId}/${params.conversationId}/${Date.now()}-${params.fileName}`;
+    const { error: uploadError } = await this.client.storage
+      .from("message-attachments")
+      .upload(storagePath, params.content, {
+        contentType: params.mimeType,
+        upsert: false,
+      });
+    if (uploadError) throw uploadError;
+
+    const { data, error } = await this.client.rpc("record_message_attachment", {
+      p_message_id: params.messageId,
+      p_storage_path: storagePath,
+      p_file_name: params.fileName,
+      p_mime_type: params.mimeType,
+      p_size_bytes: params.sizeBytes,
+    });
+    if (error) throw error;
+
+    const { data: row, error: fetchError } = await this.client
+      .from("message_attachments")
+      .select("*")
+      .eq("id", data)
+      .single();
+    if (fetchError) throw fetchError;
+    return messageAttachment(row);
   }
 }

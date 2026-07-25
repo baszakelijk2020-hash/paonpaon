@@ -1,6 +1,7 @@
 import type {
   ConversationId,
   CustomerId,
+  MessageAttachmentId,
   MessageId,
   RetailerId,
   StaffId,
@@ -43,4 +44,31 @@ export interface Message extends Timestamps {
   readonly body: string;
   readonly readByCustomerAt?: string;
   readonly readByStaffAt?: string;
+}
+
+const ALLOWED_MESSAGE_ATTACHMENT_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+export type MessageAttachmentMimeType =
+  (typeof ALLOWED_MESSAGE_ATTACHMENT_MIME_TYPES)[number];
+export const MESSAGE_ATTACHMENT_MIME_TYPES =
+  ALLOWED_MESSAGE_ATTACHMENT_MIME_TYPES;
+
+/** One uploaded image on a message — the `gcw-` chat widget's attach
+ * panel / picture gallery. Sender identity is exactly one of
+ * `uploadedByStaffId`/`uploadedByUserId`, matching who actually sent the
+ * parent message (see `record_message_attachment`, ADR-037 follow-up). */
+export interface MessageAttachment extends Pick<Timestamps, "createdAt"> {
+  readonly id: MessageAttachmentId;
+  readonly retailerId: RetailerId;
+  readonly messageId: MessageId;
+  readonly storageBucket: string;
+  readonly storagePath: string;
+  readonly fileName: string;
+  readonly mimeType: MessageAttachmentMimeType;
+  readonly sizeBytes: number;
+  readonly uploadedByStaffId?: StaffId;
+  readonly uploadedByUserId?: string;
 }
