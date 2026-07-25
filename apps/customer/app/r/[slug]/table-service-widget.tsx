@@ -4,6 +4,7 @@ import type { ConversationIntent } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
+import { usePathname } from "next/navigation";
 import { useActionState, useState } from "react";
 
 import {
@@ -32,8 +33,18 @@ export function TableServiceWidget({
   const boundAction = submitTableServiceInquiry.bind(null, retailerId);
   const [state, formAction, isPending] = useActionState(boundAction, initial);
 
+  // The landing page (`/r/{slug}` exactly, no further segment) has its
+  // own sticky bottom nav bar — lift the widget above it there so the
+  // two fixed-position elements don't collide.
+  const pathname = usePathname();
+  const isLandingPage = /^\/r\/[^/]+\/?$/.test(pathname ?? "");
+
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+    <div
+      className={`fixed right-5 z-50 flex flex-col items-end gap-3 ${
+        isLandingPage ? "bottom-20" : "bottom-5"
+      }`}
+    >
       {open ? (
         <div
           role="dialog"
