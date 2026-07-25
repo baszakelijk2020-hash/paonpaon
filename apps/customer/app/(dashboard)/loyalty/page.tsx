@@ -92,7 +92,7 @@ export default async function LoyaltyPage() {
                         <form
                           key={reward.id}
                           action={redeemReward}
-                          className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
+                          className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 transition-[border-color,box-shadow] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:border-[var(--color-stone-400)] hover:shadow-[var(--shadow-lifted)]"
                         >
                           <input
                             type="hidden"

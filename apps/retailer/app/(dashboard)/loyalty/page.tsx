@@ -102,7 +102,10 @@ export default async function LoyaltyPage() {
         <h2 className="mb-4 text-lg font-medium">Create a reward</h2>
         <form action={createReward} className="grid gap-4 sm:grid-cols-2">
           <Input name="name" placeholder="Complimentary alteration" required />
-          <select name="type" className="h-10 rounded border px-3">
+          <select
+            name="type"
+            className="h-10 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 text-sm"
+          >
             <option value="gift">Gift</option>
             <option value="discount_fixed">Fixed discount</option>
             <option value="discount_percent">Percentage discount</option>
@@ -115,7 +118,10 @@ export default async function LoyaltyPage() {
             placeholder="Points cost"
             required
           />
-          <select name="minimumTier" className="h-10 rounded border px-3">
+          <select
+            name="minimumTier"
+            className="h-10 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 text-sm"
+          >
             <option value="">All tiers</option>
             <option value="silver">Silver</option>
             <option value="gold">Gold</option>
@@ -127,16 +133,25 @@ export default async function LoyaltyPage() {
       <Card>
         <h2 className="mb-3 text-lg font-medium">Reward catalogue</h2>
         {rewards.length ? (
-          <div className="divide-y">
+          <div className="divide-y divide-[var(--color-stone-100)]">
             {rewards.map((item) => (
-              <div key={item.id} className="flex justify-between py-3">
+              <div
+                key={item.id}
+                className="flex items-center justify-between rounded-[var(--radius-sm)] px-2 py-3 transition-colors duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:bg-[var(--color-stone-50)]"
+              >
                 <div>
-                  <p className="font-medium">{item.name}</p>
+                  <p className="font-medium text-[var(--color-stone-900)]">
+                    {item.name}
+                  </p>
                   <p className="text-sm text-[var(--color-stone-500)]">
                     {item.type.replaceAll("_", " ")}
+                    {item.minimumTier ? ` · ${item.minimumTier}+` : ""}
+                    {!item.active ? " · inactive" : ""}
                   </p>
                 </div>
-                <strong>{item.pointsCost} points</strong>
+                <strong className="text-[var(--color-stone-900)]">
+                  {item.pointsCost} points
+                </strong>
               </div>
             ))}
           </div>
