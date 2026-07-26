@@ -1,35 +1,37 @@
 import {
-  CollectionRepository,
   ProductRepository,
+  ProductVariantRepository,
   RetailerRepository,
 } from "@paon/database";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { DocumentScrollSnap } from "./document-scroll-snap";
+import { ProductDetailPanel } from "./product-detail-panel";
 import { StorefrontNav } from "./storefront-nav";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
- * The mobile-first entry point pattern from the founder's landing-page
- * reference (scroll-snap full-height sections, sticky bottom nav bar,
- * horizontal carousels, vertical slide-out menu) — rebuilt with PAON's
- * own copy and structure, and widened at sm:/lg: for tablet/desktop
- * rather than staying a stretched phone layout. No real hero
- * video/photography exists yet, so every "video" section is a decorative
- * gradient placeholder rather than a stand-in third-party asset; swap in
- * real media when the founder supplies it. Scroll-snap runs on the real
- * document scroller (see DocumentScrollSnap) so mobile browser chrome
- * still auto-hides on scroll, same as every other route.
+ * paon.html's real home: a 3-column masonry grid of the full catalogue
+ * (`.home-masonry-grid`), tall portrait cards with a bottom-left
+ * name/price caption, a 900ms scale+brightness hover, opening a fixed
+ * 500px right-hand product panel (`.detail-right`) on click rather than
+ * navigating away — ported pixel-for-pixel from the founder's own
+ * source file (measured directly: `--image-ratio: 1168 / 2247`,
+ * `#808080` caption text, `linear-gradient(to right, #595959, #000)`
+ * panel body), not the earlier "Munro Mark-II"-inspired scroll-snap
+ * hero this replaced.
  */
 export default async function StorefrontLandingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ p?: string }>;
 }) {
   const { slug } = await params;
+  const { p: selectedSlug } = await searchParams;
   const supabase = await getSupabaseServerClient();
 
   const retailer = await new RetailerRepository(supabase).findBySlug(slug);
@@ -37,182 +39,82 @@ export default async function StorefrontLandingPage({
     notFound();
   }
 
-  const [collections, allProducts] = await Promise.all([
-    new CollectionRepository(supabase).findByRetailer(retailer.id),
-    new ProductRepository(supabase).findByRetailer(retailer.id),
-  ]);
+  const productRepo = new ProductRepository(supabase);
+  const allProducts = await productRepo.findByRetailer(retailer.id);
   const products = allProducts.filter((product) => product.status === "active");
-  const featured = products.slice(0, 10);
 
-  const collectionsWithCover = collections.map((collection) => ({
-    collection,
-    coverImageUrl: products.find((product) =>
-      product.collectionIds.includes(collection.id),
-    )?.primaryImageUrl,
-  }));
+  const variantRepo = new ProductVariantRepository(supabase);
+  const cards = await Promise.all(
+    products.map(async (product) => {
+      const variants = await variantRepo.findByProduct(product.id);
+      const prices = variants.map((v) => v.price.amountMinorUnits);
+      const priceLabel =
+        variants.length === 0
+          ? null
+          : prices.every((amount) => amount === prices[0])
+            ? variants[0]!.price
+            : variants.reduce((lowest, variant) =>
+                variant.price.amountMinorUnits < lowest.price.amountMinorUnits
+                  ? variant
+                  : lowest,
+              ).price;
+      return { product, variants, priceLabel };
+    }),
+  );
+
+  const selected = selectedSlug
+    ? cards.find((card) => card.product.slug === selectedSlug)
+    : undefined;
 
   return (
     <>
-      <DocumentScrollSnap />
-      <main className="pb-16 lg:pb-0 lg:pt-16">
-        <section className="relative flex h-[100svh] snap-start flex-col items-center justify-center overflow-hidden">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-[linear-gradient(155deg,var(--retailer-ink,#1a1a1a)_0%,var(--retailer-accent,#3a3a3a)_55%,var(--retailer-ink,#1a1a1a)_100%)]"
-          />
-          <div className="relative flex max-w-3xl flex-col items-center gap-4 px-6 text-center text-white">
-            <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.3em] text-white/70">
-              {retailer.displayName}
-            </p>
-            <h1 className="text-balance text-4xl font-[var(--font-retailer-display,var(--font-display))] sm:text-6xl lg:text-7xl">
-              Made to measure.
-              <br />
-              Made to matter.
-            </h1>
-            <Link
-              href={`/r/${slug}/products`}
-              className="mt-4 rounded-full bg-white px-8 py-3 text-sm font-medium text-black transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:scale-[1.03]"
-            >
-              Enter the atelier
-            </Link>
-          </div>
-          <span
-            aria-hidden="true"
-            className="absolute bottom-8 text-xs uppercase tracking-[0.2em] text-white/50"
-          >
-            Scroll
-          </span>
-        </section>
-
-        {collectionsWithCover.length > 0 ? (
-          <section className="flex min-h-[100svh] snap-start flex-col justify-center gap-6 px-6 py-10 lg:px-16">
-            <div className="mx-auto w-full max-w-6xl">
-              <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
-                Collections
-              </p>
-              <h2 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)] lg:text-3xl">
-                Choose your world
-              </h2>
-            </div>
-            <div className="mx-auto flex w-full max-w-6xl snap-x snap-mandatory gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible">
-              {collectionsWithCover.map(({ collection, coverImageUrl }) => (
-                <Link
-                  key={collection.id}
-                  href={`/r/${slug}/products?collection=${collection.slug}`}
-                  className="group relative flex h-72 w-56 shrink-0 snap-start flex-col justify-end overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-stone-100)] lg:h-96 lg:w-full"
-                >
-                  {coverImageUrl ? (
-                    <Image
-                      src={coverImageUrl}
-                      alt=""
-                      width={400}
-                      height={560}
-                      unoptimized
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-out-quiet)] group-hover:scale-[1.04]"
-                    />
-                  ) : (
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-0 bg-[linear-gradient(165deg,var(--color-stone-300)_0%,var(--color-stone-100)_100%)]"
-                    />
-                  )}
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
+      <main className="px-2 py-2 pb-20 lg:px-4 lg:pb-4 lg:pt-20">
+        {cards.length === 0 ? (
+          <p className="px-4 py-16 text-center text-[var(--color-stone-500)]">
+            Nothing available yet — check back soon.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:gap-1.5">
+            {cards.map(({ product, priceLabel }) => (
+              <Link
+                key={product.id}
+                href={`/r/${slug}?p=${product.slug}`}
+                scroll={false}
+                className="group relative block aspect-[1168/2247] overflow-hidden bg-[#e8e3dc]"
+              >
+                {product.primaryImageUrl ? (
+                  <Image
+                    src={product.primaryImageUrl}
+                    alt=""
+                    width={584}
+                    height={1124}
+                    unoptimized
+                    className="h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(.19,.74,.31,1)] group-hover:scale-[1.02] group-hover:brightness-[1.01] group-hover:saturate-[1.02]"
                   />
-                  <p className="relative px-4 pb-4 text-lg font-[var(--font-display)] text-white">
-                    {collection.name}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {featured.length > 0 ? (
-          <section className="flex min-h-[100svh] snap-start flex-col justify-center gap-6 px-6 py-10 lg:px-16">
-            <div className="mx-auto w-full max-w-6xl">
-              <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
-                Featured
-              </p>
-              <h2 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)] lg:text-3xl">
-                New this season
-              </h2>
-            </div>
-            <div className="mx-auto flex w-full max-w-6xl snap-x snap-mandatory gap-4 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:gap-6 lg:overflow-visible">
-              {featured.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/r/${slug}/products/${product.slug}`}
-                  className="group w-40 shrink-0 snap-start lg:w-full"
-                >
-                  <div className="mb-2 aspect-[3/4] overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-stone-100)]">
-                    {product.primaryImageUrl ? (
-                      <Image
-                        src={product.primaryImageUrl}
-                        alt=""
-                        width={320}
-                        height={420}
-                        unoptimized
-                        className="h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-out-quiet)] group-hover:scale-[1.03]"
-                      />
-                    ) : (
-                      <div
-                        aria-hidden="true"
-                        className="h-full w-full bg-[linear-gradient(165deg,var(--color-stone-200)_0%,var(--color-stone-50)_100%)]"
-                      />
-                    )}
-                  </div>
-                  <p className="text-sm font-medium text-[var(--color-stone-900)]">
-                    {product.name}
-                  </p>
-                </Link>
-              ))}
-            </div>
-            <Link
-              href={`/r/${slug}/products`}
-              className="mx-auto w-full max-w-6xl text-sm text-[var(--color-stone-700)] underline underline-offset-4"
-            >
-              Shop the full collection
-            </Link>
-          </section>
-        ) : null}
-
-        <section className="relative flex h-[100svh] snap-start flex-col items-center justify-center overflow-hidden text-center">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-[linear-gradient(155deg,var(--color-stone-900)_0%,var(--retailer-accent,#3a3a3a)_100%)]"
-          />
-          <div className="relative flex max-w-2xl flex-col items-center gap-4 px-6 text-white">
-            <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.3em] text-white/70">
-              By appointment
-            </p>
-            <h2 className="text-balance text-3xl font-[var(--font-retailer-display,var(--font-display))] sm:text-4xl lg:text-5xl">
-              A fitting, on your time.
-            </h2>
-            <div className="mt-2 flex flex-wrap justify-center gap-3">
-              <Link
-                href={`/r/${slug}/appointments`}
-                className="rounded-full bg-white px-8 py-3 text-sm font-medium text-black transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:scale-[1.03]"
-              >
-                Book an appointment
+                ) : null}
+                <div className="absolute bottom-3 left-3 text-xs leading-tight text-[#808080] [text-shadow:0_1px_2px_rgba(255,255,255,.6)]">
+                  <p>{product.name}</p>
+                  {priceLabel ? (
+                    <p>
+                      {priceLabel.currency}{" "}
+                      {(priceLabel.amountMinorUnits / 100).toFixed(0)}
+                    </p>
+                  ) : null}
+                </div>
               </Link>
-              <Link
-                href={`/r/${slug}/swipe`}
-                className="rounded-full border border-white/40 px-8 py-3 text-sm font-medium text-white transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:scale-[1.03]"
-              >
-                Find your style
-              </Link>
-              <Link
-                href="/loyalty"
-                className="rounded-full border border-white/40 px-8 py-3 text-sm font-medium text-white transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:scale-[1.03]"
-              >
-                Join &amp; earn rewards
-              </Link>
-            </div>
+            ))}
           </div>
-        </section>
+        )}
       </main>
+
+      {selected ? (
+        <ProductDetailPanel
+          slug={slug}
+          retailerId={retailer.id}
+          product={selected.product}
+          variants={selected.variants}
+        />
+      ) : null}
 
       <StorefrontNav slug={slug} retailerName={retailer.displayName} />
     </>
