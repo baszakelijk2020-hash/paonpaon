@@ -1290,6 +1290,83 @@ per the plan.
   Next.js loading behavior (blank until hydration, no skeleton), not
   the polish originally asked for.
 
+### Shipped: paon.html verbatim storefront + pixel-exact Mission Control/AM House Party/Morning Routine (2026-07-26, session 2)
+
+Full reasoning in `docs/DECISIONS.md` ADR-046. The founder rejected the
+round-2 build's React ports above as "an interpretation" and demanded the
+literal design files be served pixel-for-pixel, with only backend data
+wiring changed — this entry supersedes Phase 5/6 of round 2 for the
+storefront landing page specifically, not the rest of round 2.
+
+- **`/r/[slug]` now serves the founder's actual `paon.html` verbatim** via
+  a `GET` Route Handler (`apps/customer/app/r/[slug]/route.ts` +
+  `paon-template.html`, the file stored byte-for-byte with five placeholder
+  tokens for real catalog data). The Phase 5 scroll-snap React landing page
+  and Phase 6's variant-picker fix are gone — `page.tsx`,
+  `product-detail-panel.tsx`, `product-variant-selector.tsx`,
+  `storefront-nav.tsx` were deleted, confirmed unreferenced elsewhere first.
+  Real catalog data (`ProductRepository`/`ProductVariantRepository`/
+  `CollectionRepository`) is substituted into the template at request time;
+  category is derived from `Collection` membership, brand from
+  `retailer.displayName` (`Product` has no `brand` field), material from
+  `product.isMadeToOrder`, since the domain model doesn't carry those
+  fields the mockup's copy implies.
+- **A new `POST /r/[slug]/api/cart-add` Route Handler** wires the
+  template's own buy/consult buttons to a real cart line
+  (`OrderRepository.addToCart`) — 401s to `/login?redirectTo=...` if
+  signed out, redirects to the cart on success. No DOM/CSS/animation in
+  the original file was touched to add this; it hooks in through one
+  appended `<script>` block the original's own logic already
+  conditionally checks for.
+- **Retailer dashboard** (`apps/retailer/app/(dashboard)/dashboard/page.tsx`)
+  gained pag1.html's "Mission Control" dark utility header (date/sun glyph,
+  retailer wordmark, real Calendar/Inbox icon links with a real unread
+  badge) and a "Daily briefing" anchor pill, layered on top of the
+  dashboard's pre-existing real data (appointments, orders, alterations,
+  notifications, staff, pending proposals) — no data wiring changed, only
+  the header chrome above it.
+- **`AmHouseHero`**
+  (`apps/customer/app/(dashboard)/wedding-parties/[id]/am-house-hero.tsx`,
+  new) ports pag1.html's "AM House Party"/"Moonstruck" screen — full-bleed
+  video hero, glass notification card, glass bottom nav — pixel-matched
+  (rounded corners, `bg-white/10` + `backdrop-blur-2xl` glass, translucent
+  avatar ring). Mounted at the top of `wedding-parties/[id]/page.tsx`,
+  above the existing real invite-link/roster/fitting-booking content,
+  which is unchanged. The mockup's "Munchies"/"I AM" nav icons had no real
+  feature behind them — relabeled to Fittings/Your look/Cart/Account
+  rather than fabricated (see ADR-046).
+- **Today's Pick** (`apps/customer/app/(dashboard)/dashboard/todays-pick.tsx`,
+  `actions.ts`) restyled to match pag1.html's "Morning Routine" screen —
+  dark status bar (city/temp), cream card body, real product image via
+  `next/image`. The underlying feature (real weather fetch, real AI
+  recommendation, real analytics) is unchanged, already-real code from
+  ADR-035; this was a visual wrapper change only, plus surfacing
+  `product.primaryImageUrl` on the existing result payload.
+- **Verified**: `pnpm lint`, `pnpm typecheck`, and a clean `rm -rf .next &&
+pnpm build` per affected app; root `pnpm test` (unit suites, all
+  packages) green. Not yet done: a Playwright e2e re-run (the existing
+  storefront/cart/wedding-party specs target the deleted React
+  components/old markup and need updating for the new verbatim-HTML
+  route and its `data-*`/class hooks), and no live-browser screenshot
+  verification for Mission Control/AM House Party/Morning Routine — only
+  the paon.html storefront swap was checked against a screenshot of the
+  founder's actual file.
+- **Not yet started**: a separate consumer-facing landing page with a
+  background video hero and AM-House-Party-styled glassmorphic buttons —
+  explicitly requested by the founder as distinct from the AM House Party
+  wedding-coordination screen above ("the same for the lander for
+  consumers with the bg video and buttons like am house on it"). Also
+  unconfirmed: whether "ALL THE OTHER TOOLS" the founder referenced
+  includes anything beyond these three, or is satisfied by round 2's
+  already-shipped Phase 2 (staff chat attachments) / Phase 3 (fit-tool
+  widgets) — those were not touched this session and are believed still
+  current, but haven't been re-screenshotted against pag1.html under this
+  same "exact, not interpreted" standard.
+- Commits: `22f3308` (storefront home page rebuild, since superseded by
+  the Route Handler swap below it in the same session), `7b53830`
+  (paon.html verbatim + Mission Control), `d0e4efc` (AM House Party +
+  Morning Routine).
+
 ### Shipped: Commercial prospects, Demo Studio, retailer brand themes
 
 Full detail in `docs/EXPERIENCE_REBUILD.md` (its own checkpoint log,

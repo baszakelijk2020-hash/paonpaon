@@ -1813,3 +1813,87 @@ same technique `current_retailer_id()`/`is_platform_staff()` already use for
 JWT-claim lookups, just applied to a table lookup instead. See
 [ACCESS_MODEL.md](./ACCESS_MODEL.md) for the broader visibility-tier
 reference this spot-check fed into.
+
+## ADR-046: paon.html served byte-for-byte through a Route Handler — a deliberate exception to "Route Handlers are only for webhooks/non-browser callers"
+
+**Context.** After the Nebel & Spiegel round-2 build (ADR-045 and the
+surrounding "Shipped: Nebel & Spiegel round 2" entry in
+`docs/PROJECT_STATE.md`) reimplemented the storefront landing page and
+Mission Control/AM House Party/Morning Routine as idiomatic React ports of
+the founder's `paon.html`/`pag1.html` design files, the founder rejected
+that approach outright and explicitly, repeatedly demanded the literal
+source files be served pixel-for-pixel, not a reinterpretation, with only
+backend data wiring changed. A React Server Component render, even a very
+careful one, cannot byte-reproduce a ~1,600-line hand-authored HTML/CSS/JS
+file; every port introduces some drift (attribute order, whitespace, a
+Tailwind utility standing in for a bespoke `rgba()`/`blur()` value, event
+wiring living in a different place) that is invisible in isolation but
+violates the literal instruction given.
+
+**Decision.** `apps/customer/app/r/[slug]/route.ts` serves the founder's
+`paon.html` verbatim: the file is stored unmodified as
+`paon-template.html` (aside from five narrow placeholder tokens —
+`__PAON_PRODUCTS_JSON__`, `__PAON_RETAILER_NAME__`, `__PAON_CATEGORIES_JSON__`,
+`__PAON_DEFAULT_CATEGORY_JSON__`, `__PAON_SLUG__`) and returned as raw
+`text/html` from a `GET` Route Handler, with real catalog data
+(`ProductRepository`/`ProductVariantRepository`/`CollectionRepository`)
+substituted in via string replacement before the response is sent. A
+trailing `<script>` block wires the original file's buy/consult buttons to
+a real `POST /r/[slug]/api/cart-add` endpoint (also a Route Handler, since
+its only caller is the template's own inline JS, not a Server
+Component/Action). This directly contradicts `docs/API.md`'s stated scope
+for Route Handlers ("used only when the caller is not the app's own Server
+Components/Actions... if you're reaching for one to serve the app's own
+frontend, use a Server Component or Server Action instead") — flagged here
+rather than silently worked around, per this project's standing rule that
+an unavoidable shortcut gets written down, not hidden. It is unavoidable
+here specifically because a Route Handler is the only mechanism in the App
+Router that bypasses the React component tree (and therefore `layout.tsx`,
+JSX serialization, and any Tailwind/React rendering drift) entirely — which
+is exactly the property "byte-for-byte" requires.
+
+The same "serve/replicate the real design exactly, layer real data on top,
+never invent" instruction was applied, at the founder's explicit direction,
+to the retailer dashboard (a dark Mission Control utility header —
+`apps/retailer/app/(dashboard)/dashboard/page.tsx`), the wedding-party
+detail page (`AmHouseHero`,
+`apps/customer/app/(dashboard)/wedding-parties/[id]/am-house-hero.tsx`, a
+full-bleed video hero with glass notification/nav panels pixel-matched to
+pag1.html's "AM House Party"/"Moonstruck" screen), and Today's Pick
+(`apps/customer/app/(dashboard)/dashboard/todays-pick.tsx`, matched to
+pag1.html's "Morning Routine" screen) — those three are ordinary React
+components, not Route Handlers, because none of them needed to reproduce a
+file that isn't itself HTML/JS (pag1.html's screens were extracted as a
+visual/CSS reference via direct `sed`/`grep` inspection and a Playwright
+screenshot of the rendered phone-bezel mockup, not served as a file).
+Where pag1.html's own copy described a feature with no backend model behind
+it (the "Munchies"/"I AM" nav icons in the AM House Party screen — a
+wedding food-menu concept never modeled in PAON's domain), the icons were
+relabeled to real destinations (Fittings/Your look/Cart/Account) rather
+than fabricated, consistent with this project's no-fabrication rule — the
+one deliberate content deviation from "exact," made because inventing a
+working feature behind a mockup icon would violate a different, equally
+firm rule.
+
+**Consequences.** `apps/customer/app/r/[slug]/route.ts` is the one route in
+this codebase that is simultaneously "serves the app's own frontend" and "a
+Route Handler," and any future engineer reading `docs/API.md` in isolation
+will correctly flag it as a violation — this entry is that flag, resolved.
+`paon-template.html` must never be "cleaned up," reformatted, or partially
+rewritten into JSX; any future visual change to the storefront happens by
+editing the founder's own file directly (or replacing it wholesale if he
+supplies a new one), not by the codebase's usual component conventions. The
+old `apps/customer/app/r/[slug]/page.tsx` and its supporting
+`product-detail-panel.tsx`/`product-variant-selector.tsx`/
+`storefront-nav.tsx` components (the Phase 5/6 React port) were deleted
+entirely rather than kept as a fallback — confirmed via grep that nothing
+else referenced them first. Not yet done as of this entry: a fresh
+Playwright e2e pass for the storefront's new cart-add flow (only
+lint/typecheck/build were re-verified after the swap), and the
+founder-requested separate consumer landing page ("the same for the lander
+for consumers with the bg video and buttons like am house on it" — distinct
+from the AM House Party wedding-coordination screen above, a public
+marketing entry point reusing the same video-hero/glass-button visual
+language). See `docs/PROJECT_STATE.md`'s "paon.html verbatim + Mission
+Control/AM House Party/Morning Routine" entry for the fuller status and
+what's still open.

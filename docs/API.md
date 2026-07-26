@@ -38,6 +38,13 @@ A Route Handler is a deliberate, documented exception, not the default
 way to move data — if you're reaching for one to serve the app's own
 frontend, use a Server Component or Server Action instead.
 
+**One narrow, deliberate exception**: `apps/customer/app/r/[slug]/route.ts`
+serves a founder-supplied legacy HTML file byte-for-byte (a Route Handler
+is the only mechanism that bypasses the React tree/layout entirely, which
+byte-fidelity requires) — see `docs/DECISIONS.md` ADR-046 before assuming
+this pattern is available elsewhere; it is not a precedent for serving any
+other page this way.
+
 ## Error conventions
 
 - Expected, user-facing failures (validation, authorization, not found)
