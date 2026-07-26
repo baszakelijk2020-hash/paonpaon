@@ -1250,6 +1250,45 @@ per the plan.
   roles, and the four RLS visibility tiers (public/customer/staff/
   platform) in one place, spot-checked against loyalty/referrals and
   wedding-party tables for drift (none found beyond the ADR-045 bug).
+- Polished the loyalty/rewards/referrals pages (already fully built —
+  domain, repository, RPCs, both apps' nav-linked pages) to match the
+  rest of the design system's hover/transition treatment; surfaced
+  "Join & earn rewards" from the new landing page and its nav.
+- Attempted a shared `RouteLoading` component wired via root and
+  `(dashboard)`-group `loading.tsx` in all three apps for consistent
+  animated loading states. **Reverted** — it broke Server Action
+  redirects in the production build (`/customers/new`, `/alterations/new`
+  and similar forms stayed on their own URL instead of redirecting to
+  the created record). Root-caused to the new Suspense boundary via a
+  git-bisect-style add/remove test against the retailer e2e suite, not
+  guessed. Left unimplemented rather than shipped broken; worth
+  revisiting with per-page Suspense around specific slow fetches
+  instead of a blanket route-level boundary.
+- Found and fixed two real, pre-existing backend gaps while running the
+  full e2e suite as a regression check (not introduced by tonight's
+  changes, surfaced by finally running the full suite end to end):
+  `prospect_demo_environments` never granted `anon` `select` (same
+  missing-PostgREST-grant class of bug as `behavioral_events`/
+  `message_attachments`, this time causing a hard 403 instead of a
+  graceful RLS-empty result for anonymous demo-link visitors), and
+  `notify_customer_when_alteration_ready`'s trigger silently never
+  notifies a customer whose account gets linked _after_ their garment
+  already reached `ready_for_pickup` — `link_my_customer_accounts` now
+  re-runs the same guarded backfill on every link instead of only once
+  at the original migration's deploy time.
+- Full verification before stopping: `pnpm lint && pnpm typecheck` and
+  a fresh `pnpm build` clean across all three apps; full Playwright
+  suites green on both `apps/retailer` (27/27) and `apps/customer`
+  (22/22, one pre-existing magic-link-race flake confirmed unrelated
+  to any change made tonight — passes on retry, always has).
+- Not done tonight, flagged rather than silently skipped: a
+  Lighthouse-grade performance pass (bundle sizes were sanity-checked
+  from build output only — 103–140kB first-load JS across every route,
+  nothing obviously bloated, but not independently profiled), and a
+  deliberate, consistent "animated loading" treatment (see the
+  `RouteLoading` revert above) — the honest state is native browser/
+  Next.js loading behavior (blank until hydration, no skeleton), not
+  the polish originally asked for.
 
 ### Shipped: Commercial prospects, Demo Studio, retailer brand themes
 
