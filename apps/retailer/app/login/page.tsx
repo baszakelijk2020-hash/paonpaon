@@ -4,6 +4,7 @@ import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 
 import { signIn } from "./actions";
+import { QuickDemoLogin } from "./quick-demo-login";
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_credentials:
@@ -66,6 +67,9 @@ export default async function LoginPage({
           Enter the atelier
         </Button>
       </form>
+      {process.env.NODE_ENV !== "production" ? (
+        <QuickDemoLogin redirectTo={redirectTo} />
+      ) : null}
     </AuthShell>
   );
 }

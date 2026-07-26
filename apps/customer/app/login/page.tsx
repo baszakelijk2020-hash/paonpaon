@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { DemoLoginForm } from "./demo-login-form";
 import { MagicLinkForm } from "./magic-link-form";
+import { QuickDemoLogin } from "./quick-demo-login";
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_invite: "That sign-in link is invalid or has expired.",
@@ -57,6 +58,9 @@ export default async function LoginPage({
       ) : (
         <MagicLinkForm redirectTo={redirectTo} />
       )}
+      {process.env.NODE_ENV !== "production" ? (
+        <QuickDemoLogin redirectTo={redirectTo} />
+      ) : null}
     </AuthShell>
   );
 }
