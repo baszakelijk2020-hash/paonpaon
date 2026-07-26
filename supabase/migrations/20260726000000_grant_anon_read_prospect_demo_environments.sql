@@ -1,0 +1,13 @@
+-- prospect_demo_environments (20260724000011) only granted
+-- authenticated/service_role — the same missing-PostgREST-grant class
+-- of bug this project has hit repeatedly (behavioral_events,
+-- message_attachments), except here the *absence* of an anon grant is
+-- itself the bug: an anonymous storefront visitor querying this table
+-- directly should get an empty result set via RLS ("platform staff
+-- manage prospect demo environments" evaluates false for anon), not a
+-- hard 42501 permission-denied error — the difference between "RLS
+-- quietly filtered this to nothing" and "the API rejected the query
+-- outright" matters for e2e verification of the privacy boundary
+-- (private-demo.spec.ts) and for any anon client code that expects a
+-- normal empty-array response rather than a thrown error.
+grant select on public.prospect_demo_environments to anon;

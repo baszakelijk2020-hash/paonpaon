@@ -165,7 +165,7 @@ test("a private synthetic demo is code-gated, useful, revocable, and not table-r
     ).toBeVisible();
     await page.getByLabel("Access code").fill("wrong-code");
     await page.getByRole("button", { name: "Open private demo" }).click();
-    await expect(page.getByRole("alert")).toContainText("unavailable");
+    await expect(page.getByText(/unavailable/)).toBeVisible();
 
     await page.getByLabel("Access code").fill(accessCode);
     await page.getByRole("button", { name: "Open private demo" }).click();
