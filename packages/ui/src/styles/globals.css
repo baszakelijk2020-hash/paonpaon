@@ -98,6 +98,24 @@
     border-color: var(--color-stone-200);
   }
 
+  html,
+  body {
+    /* Every dashboard shell (AppShell) pins its sidebar with
+     * `position: fixed`, which is fixed relative to the layout
+     * viewport — but Safari/WebKit's elastic rubber-band overscroll
+     * translates the *whole* layout viewport during the bounce, so a
+     * "fixed" sidebar visibly drags along with it at the top/bottom of
+     * a scroll. `overscroll-behavior-y: none` stops the page itself
+     * from rubber-banding at all, which is the only way to keep a
+     * fixed element genuinely still — trying to compensate the
+     * sidebar's own transform instead would fight the browser instead
+     * of removing the cause. Normal scrolling and scroll-snap
+     * (e.g. the storefront landing page) are unaffected; only the
+     * beyond-the-edge bounce is suppressed.
+     */
+    overscroll-behavior-y: none;
+  }
+
   body {
     background-color: var(--color-stone-50);
     color: var(--color-stone-900);
