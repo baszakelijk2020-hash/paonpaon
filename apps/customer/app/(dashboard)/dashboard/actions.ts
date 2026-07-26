@@ -18,6 +18,7 @@ export interface TodaysPickState {
     productId: string;
     productName: string;
     productSlug: string;
+    productImageUrl?: string;
     rationale: string;
     weather?: { temperatureCelsius: number; description: string; city: string };
   };
@@ -111,6 +112,9 @@ export async function generateTodaysPick(
         productId: picked.id,
         productName: picked.name,
         productSlug: picked.slug,
+        ...(picked.primaryImageUrl
+          ? { productImageUrl: picked.primaryImageUrl }
+          : {}),
         rationale: recommendation.rationale,
         ...(weather && city
           ? {

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, buttonVariants } from "@paon/ui/components/Button";
+import Image from "next/image";
 import Link from "next/link";
 import { useActionState } from "react";
 
@@ -64,47 +65,71 @@ export function TodaysPick({
       ) : null}
 
       {state.result ? (
-        <div className="rounded-[var(--radius-md)] bg-[var(--color-stone-50)] p-4">
+        <div className="overflow-hidden rounded-[var(--radius-md)] bg-[#f4f1ec]">
           {state.result.weather ? (
-            <p className="mb-2 text-xs text-[var(--color-stone-500)]">
-              {state.result.weather.temperatureCelsius}°C and{" "}
-              {state.result.weather.description} in {state.result.weather.city}{" "}
-              today
-            </p>
+            <div className="flex items-center justify-between bg-[#1a1a1a] px-4 py-2 text-white">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-white/70">
+                {state.result.weather.city}
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-white/70">
+                {state.result.weather.temperatureCelsius}°C ·{" "}
+                {state.result.weather.description}
+              </p>
+            </div>
           ) : null}
-          <p className="text-lg font-[var(--font-display)] text-[var(--color-stone-900)]">
-            {state.result.productName}
-          </p>
-          <p className="mt-1 text-sm text-[var(--color-stone-700)]">
-            {state.result.rationale}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href={`/r/${slug}/products/${state.result.productSlug}`}
-              className={buttonVariants({ size: "sm" })}
-            >
-              View it
-            </Link>
-            <form action={startConversation}>
-              <input type="hidden" name="retailerId" value={retailerId} />
-              <input
-                type="hidden"
-                name="body"
-                value={`I'd like to know more about ${state.result.productName}.`}
-              />
-              <button
-                type="submit"
-                className={buttonVariants({ variant: "outline", size: "sm" })}
+          <div className="p-4">
+            <p className="text-sm leading-6 text-[var(--color-stone-700)]">
+              Hi {customerName},{" "}
+              {state.result.weather
+                ? `with ${state.result.weather.temperatureCelsius}°C today calls for something special. `
+                : ""}
+              {state.result.rationale}
+            </p>
+            {state.result.productImageUrl ? (
+              <div className="relative mt-3 aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-sm)] bg-[var(--color-stone-100)]">
+                <Image
+                  src={state.result.productImageUrl}
+                  alt={state.result.productName}
+                  fill
+                  unoptimized
+                  className="object-cover"
+                />
+              </div>
+            ) : null}
+            <p className="mt-3 text-lg font-[var(--font-display)] text-[var(--color-stone-900)]">
+              {state.result.productName}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                href={`/r/${slug}/products/${state.result.productSlug}`}
+                className={buttonVariants({ size: "sm" })}
               >
-                Ask your Style Advisor
-              </button>
-            </form>
-            <Link
-              href={`/r/${slug}/appointments`}
-              className={buttonVariants({ variant: "ghost", size: "sm" })}
-            >
-              Book a fitting
-            </Link>
+                View it
+              </Link>
+              <form action={startConversation}>
+                <input type="hidden" name="retailerId" value={retailerId} />
+                <input
+                  type="hidden"
+                  name="body"
+                  value={`I'd like to know more about ${state.result.productName}.`}
+                />
+                <button
+                  type="submit"
+                  className={buttonVariants({
+                    variant: "outline",
+                    size: "sm",
+                  })}
+                >
+                  Ask your Style Advisor
+                </button>
+              </form>
+              <Link
+                href={`/r/${slug}/appointments`}
+                className={buttonVariants({ variant: "ghost", size: "sm" })}
+              >
+                Book a fitting
+              </Link>
+            </div>
           </div>
         </div>
       ) : null}

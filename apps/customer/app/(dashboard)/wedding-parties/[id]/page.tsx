@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 
 import { markFittingScheduled } from "../actions";
 
+import { AmHouseHero } from "./am-house-hero";
 import { InviteLink } from "./invite-link";
 
 import { env } from "@/lib/env";
@@ -44,23 +45,22 @@ export default async function WeddingPartyDetailPage({
     new CustomerRepository(supabase).findByUserId(session.userId),
   ]);
   const myCustomerIds = new Set(myCustomers.map((c) => c.id));
+  const organizer = members.find(
+    (member) => member.customerId === party.organizerCustomerId,
+  );
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
-          {retailer?.displayName}
-        </p>
-        <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
-          Wedding party
-        </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          {party.eventDate
-            ? formatDate(party.eventDate, "en-US")
-            : "No date set"}
-          {party.venueName ? ` · ${party.venueName}` : ""}
-        </p>
-      </div>
+      <AmHouseHero
+        retailerName={retailer?.displayName ?? "Your atelier"}
+        eventDate={
+          party.eventDate ? formatDate(party.eventDate, "en-US") : undefined
+        }
+        venueName={party.venueName}
+        organizerName={organizer?.name}
+        note={party.notes}
+        retailerSlug={retailer?.slug}
+      />
 
       {myCustomerIds.has(party.organizerCustomerId) && retailer ? (
         <Card>
