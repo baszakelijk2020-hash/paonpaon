@@ -172,14 +172,71 @@ export default async function DashboardPage() {
     pendingProposals.length > 0 ||
     todaysAppointments.length > 0 ||
     unreadCount > 0;
+  const todayLabel = new Date().toLocaleDateString("en-US", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+  const attentionCount =
+    pendingProposals.length + todaysAppointments.length + unreadCount;
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] px-6 py-8 text-white shadow-[var(--shadow-elevated)] sm:px-10 sm:py-11">
+      <section className="relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[#111110] px-6 py-8 text-[#d9d9d9] shadow-[var(--shadow-elevated)] sm:px-10 sm:py-11">
         <div
           aria-hidden="true"
-          className="absolute inset-y-0 right-0 -z-10 w-2/5 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.16),transparent_68%)]"
+          className="absolute inset-y-0 right-0 -z-10 w-2/5 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_68%)]"
         />
+        <div className="mb-8 flex items-center justify-between border-b border-white/10 pb-5">
+          <div className="flex items-center gap-2 text-xs text-white/50">
+            <span aria-hidden="true">☼</span>
+            <span>{todayLabel}</span>
+          </div>
+          <p className="text-sm font-[var(--font-accent)] uppercase tracking-[0.28em] text-white/85">
+            {retailer.displayName}
+          </p>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/appointments"
+              aria-label="Calendar"
+              className="text-white/60 hover:text-white"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M3 10h18M8 3v4M16 3v4" />
+              </svg>
+            </Link>
+            <Link
+              href="/messages"
+              aria-label="Inbox"
+              className="relative text-white/60 hover:text-white"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path d="M4 6h16v12H4z" />
+                <path d="M4 7l8 6 8-6" />
+              </svg>
+              {unreadCount > 0 ? (
+                <span className="absolute -right-1.5 -top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-[8px] font-medium text-[#111110]">
+                  {unreadCount}
+                </span>
+              ) : null}
+            </Link>
+          </div>
+        </div>
         <div className="flex max-w-3xl flex-col gap-5">
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-white/60">
@@ -195,7 +252,7 @@ export default async function DashboardPage() {
               {brief.description}
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href={
                 session.retailerRole === "production_staff"
@@ -223,6 +280,12 @@ export default async function DashboardPage() {
                 Find a client
               </Link>
             ) : null}
+            <a
+              href="#attention"
+              className="ml-auto rounded-full bg-white/10 px-5 py-2.5 text-xs uppercase tracking-[0.14em] text-white/80 backdrop-blur hover:bg-white/15"
+            >
+              Daily briefing{attentionCount > 0 ? ` · ${attentionCount}` : ""}
+            </a>
           </div>
         </div>
       </section>
@@ -274,12 +337,15 @@ export default async function DashboardPage() {
         />
       ) : null}
 
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.75fr)]">
+      <div
+        id="attention"
+        className="grid scroll-mt-8 gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.75fr)]"
+      >
         <section>
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
               <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
-                Now
+                Daily briefing
               </p>
               <h2 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
                 Needs your attention
