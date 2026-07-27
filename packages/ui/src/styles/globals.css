@@ -36,30 +36,40 @@
 }
 
 @theme {
-  /* Typography — OptimaKlein for display/headline (matches paon.html's
-   * headline serif), GTBold3 for small-caps/eyebrow labels and
-   * emphatic short copy, Inter still carries body text (neither
-   * display face is legible at paragraph size). */
+  /* Typography — taken from paon-template.html, which sets
+   * `font-family: OptimaKlein, serif` on `html, body`. OptimaKlein is the
+   * body face, not only the display face. An earlier version of this file
+   * routed body text to Inter on the judgement that the serif was "not
+   * legible at paragraph size"; that judgement is not the founder's, and
+   * substituting a different typeface for the whole product is the single
+   * largest reason the portals did not look like the design. Do not
+   * reintroduce it — see docs/DESIGN_PORTS.md and ADR-052. */
   --font-display: "OptimaKlein", "Fraunces", ui-serif, Georgia, serif;
   --font-accent: "GTBold3", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "OptimaKlein", "Fraunces", ui-serif, Georgia, serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  /* Neutral scale — warm stone, sampled from paon.html's actual
-   * palette (#f5f3f0 background, #1a1a1a near-black text, #808080/
-   * #666666/#333333/#d9d9d9 grays) rather than a generic warm-gray
-   * ramp. */
-  --color-stone-50: #f5f3f0;
-  --color-stone-100: #ededea;
-  --color-stone-200: #d9d9d9;
-  --color-stone-300: #bfbfbf;
-  --color-stone-400: #999999;
-  --color-stone-500: #808080;
-  --color-stone-600: #666666;
-  --color-stone-700: #4d4d4d;
-  --color-stone-800: #333333;
-  --color-stone-900: #1a1a1a;
-  --color-stone-950: #000000;
+  /* Neutral scale — the founder's actual `:root` from
+   * paon-template.html, which is a *warm* palette:
+   *   --cream #f4f1ec  --warm-mid #e8e4de  --mid #cdc9c2
+   *   --muted #7a7870  --text #2a2925  --black #111110  --panel #0e0e0c
+   * A previous version claimed to be sampled from it but was a pure
+   * neutral grey ramp (#d9d9d9 / #999999 / #808080 / #333333 — R=G=B).
+   * Greys where the design is warm is why every page read as generic
+   * admin UI. Anchors below are the founder's exact values; only the
+   * intermediate steps (300, 400, 600, 700) are interpolated, and they
+   * hold the same warm cast. */
+  --color-stone-50: #f4f1ec; /* --cream */
+  --color-stone-100: #e8e4de; /* --warm-mid */
+  --color-stone-200: #cdc9c2; /* --mid */
+  --color-stone-300: #b0aca4;
+  --color-stone-400: #949087;
+  --color-stone-500: #7a7870; /* --muted */
+  --color-stone-600: #605e57;
+  --color-stone-700: #47453f;
+  --color-stone-800: #2a2925; /* --text */
+  --color-stone-900: #111110; /* --black */
+  --color-stone-950: #0e0e0c; /* --panel */
 
   /* Brand — deep ink, used sparingly. Retailers layer their own accent via theming tokens. */
   --color-ink-500: oklch(30% 0.03 265);
@@ -122,8 +132,16 @@
 
   body {
     background-color: var(--color-stone-50);
-    color: var(--color-stone-900);
+    /* paon-template.html sets body colour to `--text` (#2a2925), a soft
+     * warm near-black, not the hard `--black` (#111110) it reserves for
+     * headlines and emphasis. Using the hard black for body copy is what
+     * makes an editorial layout read as an admin console. */
+    color: var(--color-stone-800);
     font-family: var(--font-sans);
+    /* paon-template.html: `html, body { font-size: 13px }`. Tailwind's
+     * text-* utilities are relative to this, so the whole portal inherits
+     * the design's typographic scale rather than the browser's 16px. */
+    font-size: 13px;
   }
 
   /* Accessibility: a visible, on-brand focus ring for every

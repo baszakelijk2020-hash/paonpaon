@@ -13,19 +13,50 @@ function optionalEnv(name: string): string | undefined {
   return process.env[name] || undefined;
 }
 
+/**
+ * First non-empty of several names. The Vercel↔Supabase marketplace
+ * integration injects its own variable names, which do not match the ones
+ * this app was written against, so a deploy configured entirely by that
+ * integration would otherwise fail at boot. Accepting both spellings means
+ * a fresh deploy needs no hand-copied values — see docs/DEPLOYMENT.md.
+ */
+function firstEnv(...names: readonly string[]): string {
+  for (const name of names) {
+    const value = process.env[name];
+    if (value) return value;
+  }
+  throw new Error(
+    `Missing required environment variable. Set one of: ${names.join(", ")}. See docs/DEPLOYMENT.md.`,
+  );
+}
+
 export const env = {
   get supabaseUrl() {
-    return requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+    return firstEnv("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL");
   },
   get supabaseAnonKey() {
-    return requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    // `PUBLISHABLE_KEY` is Supabase's newer name for the same client-safe
+    // key, and is what the Vercel integration injects.
+    return firstEnv(
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    );
   },
   /** Only for the Stripe webhook Route Handler, which has no user session to run an RLS-scoped client under. */
   get supabaseServiceRoleKey() {
-    return requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+    return firstEnv("SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY");
   },
-  /** This app's own base URL — used to build the magic-link redirectTo (see /auth/confirm) and Stripe Checkout success/cancel URLs. */
+  /**
+   * This app's own base URL — magic-link redirectTo (`/auth/confirm`) and
+   * Stripe Checkout success/cancel URLs. Falls back to Vercel's own
+   * `VERCEL_PROJECT_PRODUCTION_URL` so a deploy is never left pointing at
+   * whatever `localhost` value a developer's `.env.local` happened to hold.
+   */
   get appUrl() {
+    const explicit = optionalEnv("NEXT_PUBLIC_APP_URL");
+    if (explicit && !explicit.includes("localhost")) return explicit;
+    const vercelHost = optionalEnv("VERCEL_PROJECT_PRODUCTION_URL");
+    if (vercelHost) return `https://${vercelHost}`;
     return requireEnv("NEXT_PUBLIC_APP_URL");
   },
   /** PAON's own platform Stripe secret key — absent until a platform operator provisions one, see docs/PROJECT_STATE.md "Credentials needed". */
