@@ -4,7 +4,7 @@
   "private": true,
   "description": "PAON — RetailOS and customer engagement platform for premium and luxury retailers.",
   "engines": {
-    "node": ">=20.9.0",
+    "node": ">=22.0.0",
     "pnpm": ">=9.0.0"
   },
   "packageManager": "pnpm@9.15.0",

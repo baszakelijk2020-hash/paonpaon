@@ -7,3 +7,14 @@ coverage
 pnpm-lock.yaml
 supabase/.branches
 supabase/.temp
+
+# Verbatim HTML that must never be reformatted.
+# paon-template.html is the founder's own file, served byte-for-byte
+# (ADR-048) — prettier rewriting it would silently change the storefront.
+# downloaded_pages/* are saved page snapshots kept as visual reference.
+# Both are hand-authored HTML with implied closing tags that prettier
+# cannot parse, which is what broke `pnpm format:check` in CI.
+# The glob avoids a literal path because .prettierignore reads [slug] as a
+# character class, not a directory name.
+**/paon-template.html
+downloaded_pages

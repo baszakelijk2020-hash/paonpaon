@@ -6107,7 +6107,7 @@
                     async function fetchTemperature() {
                       try {
                         const response = await fetch(
-                          "https://api.openweathermap.org/data/2.5/weather?q=Amsterdam&units=metric&appid=1a15bfa421ee139e0374f61872ca8438",
+                          "https://api.openweathermap.org/data/2.5/weather?q=Amsterdam&units=metric&appid=REDACTED_OWM_KEY_ROTATED",
                         );
                         const data = await response.json();
                         const temperature = Math.round(data.main.temp);

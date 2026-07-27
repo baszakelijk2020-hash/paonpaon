@@ -4635,7 +4635,7 @@ setInterval(nextSlide, stepTime);
   async function fetchTemperature() {
     try {
       const response = await fetch(
-        'https://api.openweathermap.org/data/2.5/weather?q=Amsterdam&units=metric&appid=1a15bfa421ee139e0374f61872ca8438'
+        'https://api.openweathermap.org/data/2.5/weather?q=Amsterdam&units=metric&appid=REDACTED_OWM_KEY_ROTATED'
       );
       const data = await response.json();
       const temperature = Math.round(data.main.temp);
@@ -4893,7 +4893,7 @@ setInterval(nextSlide, stepTime);
       const wrapper = document.getElementById('ns-ams-stream-wrapper');
       if (!wrapper) return;
 
-      const OWM_API_KEY = '1a15bfa421ee139e0374f61872ca8438';
+      const OWM_API_KEY = 'REDACTED_OWM_KEY_ROTATED';
       const LAT = 52.37;
       const LON = 4.89;
       const TIMEZONE = 'Europe/Amsterdam';
@@ -6062,7 +6062,7 @@ setInterval(nextSlide, stepTime);
             const outerEl = document.getElementById('live-feed-widget-outer');
             if (!widgetContainer) return;
 
-            const OWM_API_KEY = '1a15bfa421ee139e0374f61872ca8438';
+            const OWM_API_KEY = 'REDACTED_OWM_KEY_ROTATED';
             const satelliteNumbers = ['01', '02', '03', '04', '05', '06'];
             const WEATHER_REFRESH_INTERVAL = 1800000;
             const MAIN_STAGGER_DELAY = 600;
@@ -11774,7 +11774,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function fetchTemperature() {
       try {
         const response = await fetch(
-          'https://api.openweathermap.org/data/2.5/weather?q=Amsterdam&units=metric&appid=1a15bfa421ee139e0374f61872ca8438'
+          'https://api.openweathermap.org/data/2.5/weather?q=Amsterdam&units=metric&appid=REDACTED_OWM_KEY_ROTATED'
         );
         const data = await response.json();
         const temperature = Math.round(data.main.temp);
@@ -12706,7 +12706,7 @@ document.addEventListener('DOMContentLoaded', function () {
   async function fetchTemperature() {
     try {
       const response = await fetch(
-        'https://api.openweathermap.org/data/2.5/weather?q=Amsterdam&units=metric&appid=1a15bfa421ee139e0374f61872ca8438'
+        'https://api.openweathermap.org/data/2.5/weather?q=Amsterdam&units=metric&appid=REDACTED_OWM_KEY_ROTATED'
       );
       const data = await response.json();
       const temperature = Math.round(data.main.temp);
