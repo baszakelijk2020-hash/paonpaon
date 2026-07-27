@@ -39,11 +39,13 @@ command.
 
 Paste this first, in Claude Code or Codex:
 
-> Read docs/PHASE.md and docs/WORKING_AGREEMENT.md first. You are the
-> principal engineer for PAON. Before writing code, tell me what you plan to
-> change and why, and stop if it falls outside the scope freeze. Build one
-> reviewable increment, run the full definition-of-done command, then stop
-> and wait for me.
+> Read docs/PHASE.md, docs/WORKING_AGREEMENT.md and docs/DESIGN_PORTS.md
+> first. You are the principal engineer for PAON. We are in a scope freeze —
+> three workstreams only. Founder-designed surfaces are ported verbatim from
+> downloaded_pages/\*.html, never rewritten in Tailwind or @paon/ui
+> (ADR-052). Before writing code, tell me what you plan to change and why,
+> and stop if it falls outside the freeze. Build one reviewable increment,
+> run the full definition-of-done command, then stop and wait for me.
 
 Then: it proposes → you say go → it builds one thing and stops → you
 review → you commit. Never let it start a second thing before you have

@@ -31,18 +31,46 @@ as design specification.
 bearing no relationship to the founder's CSS. It must be replaced by a real
 port, not patched.
 
-| #   | Surface                    | Source id           | Implementation                                                            | Status                                                                                                            |
-| --- | -------------------------- | ------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 1   | Fit sliders (voice + drag) | `vox-widget-root`   | `apps/retailer/components/fit-tools/vox-fit-slider.tsx` + `vox-source.ts` | **Ported** 2026-07-27 — visual confirmation pending; backend wiring beyond `recordFitToolObservation` not started |
-| 2   | Silhouette carousel        | `nbs-silhouette-…`  | `apps/retailer/components/fit-tools/silhouette-carousel.tsx`              | **Wrong** — 186 lines Tailwind                                                                                    |
-| 3   | Swipe deck                 | —                   | `apps/customer/app/r/[slug]/swipe/swipe-deck.tsx`                         | **Wrong** — 0 refs to founder CSS                                                                                 |
-| 4   | Table service chat         | `gilda-chat-widget` | `apps/customer/app/r/[slug]/table-service-widget.tsx`                     | Claimed byte-for-byte (ADR-048) — **verify**                                                                      |
-| 5   | AM House Party orbit       | `#ow`               | `apps/customer/app/(dashboard)/wedding-parties/[id]/am-house-hero.tsx`    | **Verify**                                                                                                        |
-| 6   | Location globe (Cesium)    | `am-globe-widget`   | not built                                                                 | Not started                                                                                                       |
-| 7   | Lapel configurator         | `nbs-lapel-…-v4`    | not built                                                                 | Not started                                                                                                       |
-| 8   | Gift card 3D booklet       | `amibx-root-…`      | not built                                                                 | Not started                                                                                                       |
-| 9   | Monthly photo grid         | bottom of pag1      | not built                                                                 | Not started                                                                                                       |
-| 10  | Gift/voucher SaaS module   | pag2                | not built                                                                 | Not started                                                                                                       |
+| #   | Surface                    | Source id           | Implementation                                                            | Status                                                             |
+| --- | -------------------------- | ------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| 1   | Fit sliders (voice + drag) | `vox-widget-root`   | `apps/retailer/components/fit-tools/vox-fit-slider.tsx` + `vox-source.ts` | **Ported, then PARKED** 2026-07-27 — see "Parked: fit tools" below |
+| 2   | Silhouette carousel        | `nbs-silhouette-…`  | `apps/retailer/components/fit-tools/silhouette-carousel.tsx`              | **Wrong** — 186 lines Tailwind                                     |
+| 3   | Swipe deck                 | —                   | `apps/customer/app/r/[slug]/swipe/swipe-deck.tsx`                         | **Wrong** — 0 refs to founder CSS                                  |
+| 4   | Table service chat         | `gilda-chat-widget` | `apps/customer/app/r/[slug]/table-service-widget.tsx`                     | Claimed byte-for-byte (ADR-048) — **verify**                       |
+| 5   | AM House Party orbit       | `#ow`               | `apps/customer/app/(dashboard)/wedding-parties/[id]/am-house-hero.tsx`    | **Verify**                                                         |
+| 6   | Location globe (Cesium)    | `am-globe-widget`   | not built                                                                 | Not started                                                        |
+| 7   | Lapel configurator         | `nbs-lapel-…-v4`    | not built                                                                 | Not started                                                        |
+| 8   | Gift card 3D booklet       | `amibx-root-…`      | not built                                                                 | Not started                                                        |
+| 9   | Monthly photo grid         | bottom of pag1      | not built                                                                 | Not started                                                        |
+| 10  | Gift/voucher SaaS module   | pag2                | not built                                                                 | Not started                                                        |
+
+## Parked: fit tools (founder decision, 2026-07-27)
+
+The `vox-` slider is ported correctly and verbatim, and the component stays
+in the repository. **The feature is parked.** Applying fit corrections is
+only useful if the values reach the supplier that actually makes the
+garment, which means an integration with each retailer's own supplier
+ordering system. That dependency is not in reach, so no further work on fit
+tools until it is.
+
+## `/alterations/*` is not a founder-designed surface
+
+Everything under `apps/retailer/app/(dashboard)/alterations/` — including
+`/alterations/new` and the "Fit tools" panel on the detail page — was
+invented by an engineering session. It matches nothing in `pag1.html` and
+carries none of the founder's cues. **Do not treat any of it as canonical
+design, and do not extend it.**
+
+This is the trap that cost a full increment: a verbatim widget port was
+placed inside an invented screen, so a correct port still produced something
+the founder did not recognise. Before porting any widget, confirm the
+surface it lands on is founder-designed. If it is not, stop and ask.
+
+**What the real tool is.** The valuable alterations product is not fit
+correction. It is work-order handling for the third-party alteration
+workshop, and cost management for the store owner — the money question, not
+the measurement question. The founder will design it. Until that design
+exists, nothing in the alterations vertical should be built or extended.
 
 ## How to extract a widget from the source
 
