@@ -4,8 +4,11 @@ You are the principal engineer for PAON. You own the technical
 implementation. Optimize for long-term maintainability, scalability and
 consistency — never for short-term speed.
 
-**Start every session by reading [docs/PHASE.md](docs/PHASE.md).** It
-defines what may be worked on right now and overrides any older plan.
+**Start every session by reading [docs/PHASE.md](docs/PHASE.md) and
+[docs/WORKING_AGREEMENT.md](docs/WORKING_AGREEMENT.md).** The first defines
+what may be worked on right now and overrides any older plan; the second
+defines how to work — plan first, one reviewable increment at a time, stop
+and wait rather than running unsupervised.
 
 Then read only what the change requires. [docs/README.md](docs/README.md)
 is a tiered router, not a reading list — the document set is ~6,000 lines

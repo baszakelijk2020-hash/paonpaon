@@ -6,11 +6,12 @@ great deal of agent time. Read by tier.
 
 ## Tier 0 — every session, always (~250 lines)
 
-| Document                         | What it gives you                                 |
-| -------------------------------- | ------------------------------------------------- |
-| [PHASE.md](./PHASE.md)           | What you are allowed to work on right now         |
-| [../CLAUDE.md](../CLAUDE.md)     | Operating charter, hard rules, definition of done |
-| [PRINCIPLES.md](./PRINCIPLES.md) | The standing engineering rules                    |
+| Document                                       | What it gives you                                 |
+| ---------------------------------------------- | ------------------------------------------------- |
+| [PHASE.md](./PHASE.md)                         | What you are allowed to work on right now         |
+| [../CLAUDE.md](../CLAUDE.md)                   | Operating charter, hard rules, definition of done |
+| [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md) | How to work: increments, review, when to stop     |
+| [PRINCIPLES.md](./PRINCIPLES.md)               | The standing engineering rules                    |
 
 If Tier 0 answers your question, stop there and start work.
 

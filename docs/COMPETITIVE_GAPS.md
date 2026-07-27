@@ -76,6 +76,52 @@ structurally cannot do. A prettier catalog alone is a losing position.
 
 ---
 
+## Go-to-market
+
+Recorded here because it determines what gets built, and because it was
+decided in conversation and would otherwise be lost.
+
+**The approach is cold, and it rests on the founder.** No channel, no
+introductions, no endorsement. What opens the door is that the founder ran
+a private-label made-to-measure business inside this exact segment and has
+spent a career in menswear. A 55-year-old owner-operator takes the call
+because someone who has stood on their side of the counter is calling. That
+is the most convertible asset PAON has, and it belongs at the front of the
+marketing site — ahead of any feature grid.
+
+**The conversion instrument is the personalised demo, not the website.** A
+cold email linking to _their_ store — their name, their garments, rebuilt
+properly — is unanswerable in a way no landing page is. This is what the
+Demo Studio exists for. One hour of founder time per prospect, and it
+converts because it is specific. Budget effort accordingly: the demo is the
+weapon; the site is the credential.
+
+**The marketing site's job is narrower than it looks.** It exists to
+survive the Google search that happens ninety seconds after the email
+lands. Prove the founder is real, prove menswear is understood, prove the
+product exists, make a demo bookable. Five pages, proof-heavy,
+funnel-light.
+
+**Do not copy Squarespace or Shopify's marketing architecture.** Those
+pages sell to millions of strangers at scale — feature grids, tiered
+pricing tables, testimonial walls, self-serve signup. PAON sells to a few
+hundred named people. Copying that shape actively hurts: an empty
+testimonial section reads as "nobody uses this," and a self-serve pricing
+table invites a no before a conversation has happened.
+
+**Build order.** Storefront template → Demo Studio → marketing site. The
+template is the substance of every demo; the Demo Studio is what makes a
+demo personal; the site is checked afterwards. Building the site first
+optimises the least load-bearing asset.
+
+**The bar is a paid pilot.** Three retailers with money down. A beautiful
+demo reliably produces enthusiastic yeses that evaporate, so the thing
+being tested is willingness to pay, not enthusiasm. This is why
+[PHASE.md](./PHASE.md) states the objective in those terms and not as
+"interest" or "meetings."
+
+---
+
 ## Tier 1 — hard blockers
 
 A retailer in the **first** beachhead cannot adopt PAON while any of these
