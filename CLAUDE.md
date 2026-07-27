@@ -85,7 +85,18 @@ how control over this build was lost once already.
   or a tracked follow-up — never leave it silent.
 - Never duplicate a component (`@paon/ui`) or business logic
   (`@paon/domain`). If two apps need the same thing, it belongs in
-  `packages/*`.
+  `packages/*`. **Exception: founder-designed surfaces — see the porting
+  rule below. That exception is deliberate and overrides this rule.**
+- **Founder-designed surfaces are ported verbatim, never re-expressed.**
+  `downloaded_pages/pag1.html`, `pag2.html`, `pag3.html` and
+  `apps/customer/app/r/[slug]/paon-template.html` are canonical design
+  sources, committed to this repository. When implementing any surface they
+  define, copy the original CSS, markup and JS byte-for-byte into an
+  isolated component and wire data through the narrowest possible hook.
+  Do **not** rebuild it in Tailwind or `@paon/ui`, do not "modernise" it,
+  do not approximate it. Three sessions did exactly that and produced work
+  the founder could not use — see `docs/DESIGN_PORTS.md` and ADR-052.
+  If a surface genuinely cannot be ported verbatim, stop and ask.
 - Every tenant-scoped entity is scoped by `retailerId` and enforced by
   Postgres RLS, not application code alone — see
   [docs/DATABASE.md](docs/DATABASE.md).

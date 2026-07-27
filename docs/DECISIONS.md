@@ -2296,3 +2296,62 @@ rather than settled in a document. Items 1 and 2 are infrastructure that
 serve the current phase directly and are therefore in scope under
 `PHASE.md` despite not being one of the three workstreams; this entry is the
 authority for that exception.
+
+## ADR-052: Founder-designed surfaces are ported verbatim; the design-system rule does not apply to them
+
+**Context.** The founder hand-designed the storefront
+(`paon-template.html`) and a set of tools (`downloaded_pages/pag1.html`:
+fit sliders, silhouette carousel, table service chat, location globe, lapel
+configurator, gift-card booklet, house-party orbit, monthly grid). All of
+those sources have been committed to this repository the entire time.
+
+Three separate sessions implemented them anyway as Tailwind rewrites:
+
+- `voice-measurement-slider.tsx` — 609 lines, **one** reference to the
+  founder's `vox-` class names.
+- `silhouette-carousel.tsx` — 186 lines, one reference.
+- `swipe-deck.tsx` — 217 lines, **zero** references.
+
+The founder's description: "outputs that didn't remotely look like what I
+had made." ADR-048 already recorded this as an open problem and it was not
+acted on.
+
+The cause was not missing sources or messy Adobe Muse output. It was this
+charter. `CLAUDE.md`'s hard rule — "never duplicate a component, build from
+`@paon/ui`" — made rewriting the architecturally correct act. Every session
+did the right thing by the charter and destroyed the product's
+differentiator doing it.
+
+**Decision.** Founder-designed surfaces are ported byte-for-byte and are a
+named exception to the design-system rule.
+
+- Copy the founder's `<style>`, markup and script unchanged into an isolated
+  component. The widgets already self-scope by id/class prefix, so they do
+  not leak.
+- Wire data through the narrowest possible hook — a JSON injection point, a
+  submit handler, an initial value.
+- Two deviations only, each noted in the component: accessibility fixes this
+  repository's lint requires (`<div onClick>` → `<button>`, inline-reset to
+  stay visually identical), and removal of hardcoded credentials (the Cesium
+  globe embeds a live Ion token, which must move to an environment variable).
+- If a surface genuinely cannot be ported verbatim, stop and ask. Do not
+  approximate.
+
+`paon-template.html` is confirmed as **the product**, not a demo artifact —
+resolving the open question ADR-051 raised. The inventory and per-surface
+status live in `docs/DESIGN_PORTS.md`.
+
+**Consequences.** The trade is explicit: these components sit outside the
+token system, will not inherit theme changes, and cannot be restyled
+centrally. That cost is accepted, because consistency with the design system
+is worth less than the design. Three existing components are now recorded as
+wrong and must be replaced by real ports rather than patched — patching a
+rewrite produces a slightly better rewrite, not the founder's design. Two
+further surfaces (`table-service-widget.tsx`, `am-house-hero.tsx`) claim to
+be faithful and are unverified.
+
+This ADR does not authorise porting anything. `DESIGN_PORTS.md` notes that
+the full inventory is months of work against an objective of three paid
+pilots, and that four of the ten surfaces are sales-presentation modules
+rather than product. Sequencing remains a founder decision under
+`PHASE.md`.

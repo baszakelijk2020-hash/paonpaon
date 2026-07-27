@@ -35,12 +35,13 @@ capacity — it is proof.
 Both come from the build audit in `DECISIONS.md` ADR-051. Neither is
 rhetorical; work is gated on them.
 
-**1. Is `paon-template.html` a demo artifact or the product?** It is a
-16,183-line hand-authored file outside `@paon/ui`, exempt from lint and
-prettier, with no tests. As a demo artifact that is fine — leave it alone
-and never "properly integrate" it. As the product it is a large unplanned
-debt that grows with every hour of polish. The repository currently treats
-it as both. **Do not start storefront work until this is answered.**
+**1. Is `paon-template.html` a demo artifact or the product? — ANSWERED
+2026-07-27: it is the product.** It is the retailer's digital front door,
+the thing PAON sells on subscription, and the artifact that started this
+venture. It is therefore maintained as canonical design source, ported
+verbatim, and never re-expressed in `@paon/ui` — see
+[DESIGN_PORTS.md](./DESIGN_PORTS.md) and ADR-052. The same applies to every
+surface designed in `downloaded_pages/pag1–3.html`.
 
 **2. Which wedge is actually being sold?** A prettier storefront is
 aesthetic. Control over third-party alteration cost — the alterations

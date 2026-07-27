@@ -17,16 +17,17 @@ If Tier 0 answers your question, stop there and start work.
 
 ## Tier 1 — read the one that covers what you are touching
 
-| Touching...                     | Read                                   |
-| ------------------------------- | -------------------------------------- |
-| Entities, business logic        | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)   |
-| Repo shape, layering, rendering | [ARCHITECTURE.md](./ARCHITECTURE.md)   |
-| Schema, RLS, migrations         | [DATABASE.md](./DATABASE.md)           |
-| Components, tokens, theming     | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) |
-| Interaction, layout, mobile     | [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md) |
-| Server Actions, Route Handlers  | [API.md](./API.md)                     |
-| Roles, permissions, visibility  | [ACCESS_MODEL.md](./ACCESS_MODEL.md)   |
-| Product surface, app boundaries | [PRODUCT.md](./PRODUCT.md)             |
+| Touching...                           | Read                                                                    |
+| ------------------------------------- | ----------------------------------------------------------------------- |
+| Entities, business logic              | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)                                    |
+| Repo shape, layering, rendering       | [ARCHITECTURE.md](./ARCHITECTURE.md)                                    |
+| Schema, RLS, migrations               | [DATABASE.md](./DATABASE.md)                                            |
+| Components, tokens, theming           | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)                                  |
+| Interaction, layout, mobile           | [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md)                                  |
+| Server Actions, Route Handlers        | [API.md](./API.md)                                                      |
+| Roles, permissions, visibility        | [ACCESS_MODEL.md](./ACCESS_MODEL.md)                                    |
+| Product surface, app boundaries       | [PRODUCT.md](./PRODUCT.md)                                              |
+| Any founder-designed screen or widget | [DESIGN_PORTS.md](./DESIGN_PORTS.md) — **port verbatim, never rewrite** |
 
 ## Tier 2 — reference. Search, never read whole.
 
