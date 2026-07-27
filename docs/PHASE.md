@@ -30,6 +30,29 @@ capacity — it is proof.
 | 2   | Demo Studio — `apps/admin/app/(dashboard)/prospects/[id]/studio` | The conversion instrument: their store, their name, in an hour |
 | 3   | Marketing site — `apps/customer/app/(marketing)`                 | Survives the Google search after a cold email                  |
 
+## Where things stand (2026-07-27)
+
+**Done today.** Repository brought back under control: 21 stranded commits
+and 130 uncommitted files pushed; CI switched on for the first time and made
+green (stale Node pin, prettier parsing verbatim HTML, e2e gated to manual);
+docs tiered so a session reads ~500 lines instead of 6,000; `AGENTS.md`
+added so Codex loads the same charter as Claude; a stale handoff file that
+told agents "do not stop" archived. Then the build audit (ADR-051) and the
+verbatim-porting rule (ADR-052).
+
+**Parked.** Fit tools — the `vox-` slider is ported correctly but the
+feature needs an integration with each retailer's supplier ordering system.
+See `DESIGN_PORTS.md`.
+
+**Blocked on founder design.** The alterations vertical. Everything under
+`/alterations/*` was invented by an engineering session and carries none of
+the founder's cues. The real product there is workshop work-order handling
+and owner cost control, not fit correction. Do not build or extend it until
+that design exists.
+
+**Next, in scope.** The storefront (`paon-template.html` — the founder's own
+design, and the product) and the Demo Studio. Ask which before starting.
+
 ## Two questions to answer before building
 
 Both come from the build audit in `DECISIONS.md` ADR-051. Neither is
