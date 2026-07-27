@@ -1,5 +1,19 @@
 # Project State
 
+> **Verify before you rely on anything in here (ADR-051, 2026-07-27).** This
+> document asserted that no GitHub remote was connected and no CI ran. Both
+> were false — `origin` was configured and `.github/workflows/ci.yml` had
+> been present the entire time. A 1,721-line status document that is wrong
+> about something that basic cannot be trusted on detail. Check the code
+> before acting on any claim here.
+>
+> Two specific classes of claim are known to be misleading. **"Code-complete,
+> blocked only on credentials"** appears for Stripe payments, Stripe billing,
+> Resend email, Twilio SMS and OpenAI — none of those credentials were ever
+> provisioned, so none of that code has ever executed against its real
+> dependency. And **passing unit tests** for those subsystems exercise fakes,
+> not providers. Treat both as written, not working.
+
 Living status of the build. Update this file as part of every vertical
 slice — a future session (human or AI) should be able to read this one
 document and know exactly what exists, what's next, and why, without

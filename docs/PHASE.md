@@ -30,6 +30,37 @@ capacity — it is proof.
 | 2   | Demo Studio — `apps/admin/app/(dashboard)/prospects/[id]/studio` | The conversion instrument: their store, their name, in an hour |
 | 3   | Marketing site — `apps/customer/app/(marketing)`                 | Survives the Google search after a cold email                  |
 
+## Two questions to answer before building
+
+Both come from the build audit in `DECISIONS.md` ADR-051. Neither is
+rhetorical; work is gated on them.
+
+**1. Is `paon-template.html` a demo artifact or the product?** It is a
+16,183-line hand-authored file outside `@paon/ui`, exempt from lint and
+prettier, with no tests. As a demo artifact that is fine — leave it alone
+and never "properly integrate" it. As the product it is a large unplanned
+debt that grows with every hour of polish. The repository currently treats
+it as both. **Do not start storefront work until this is answered.**
+
+**2. Which wedge is actually being sold?** A prettier storefront is
+aesthetic. Control over third-party alteration cost — the alterations
+vertical, already the deepest thing built — is financial. Neither has been
+tested with a real retailer. Two phone calls asking which they would pay
+for costs nothing and could redirect the whole build.
+
+## Foundation work, in scope by exception
+
+These are not one of the three workstreams but are authorised by ADR-051
+because they serve this phase directly:
+
+- **Provision Stripe.** The objective is retailers with money down. PAON
+  cannot currently accept money — the payment code (ADR-030) exists but has
+  never run, because credentials were never provisioned.
+- **Connect Vercel to git.** Deploys are currently manual CLI archive
+  uploads with no git integration, so there is no per-change preview URL.
+  The conversion instrument is sending a prospect a link; this is the
+  infrastructure that makes that routine.
+
 ## Out of scope
 
 Everything else — including work that fits the architecture perfectly,

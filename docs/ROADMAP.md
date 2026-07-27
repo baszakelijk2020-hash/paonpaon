@@ -1,5 +1,13 @@
 # Roadmap
 
+> **Subordinate to [PHASE.md](./PHASE.md) (ADR-051, 2026-07-27).** During
+> the current scope freeze this document is sequencing _history_, not a work
+> queue. Nothing here authorises work. If this document and `PHASE.md`
+> disagree about what should be built, `PHASE.md` wins — two competing plans
+> in one repository is the exact mechanism by which control over this build
+> was lost once already. In particular, the "Experience Rebuild" and its
+> eight-item commercialisation track below are **paused**, not in progress.
+
 Phased by dependency order — each phase's data model and UI depend on
 the ones before it. Not date-committed; sequencing, not scheduling.
 

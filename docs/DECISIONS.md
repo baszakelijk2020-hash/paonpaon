@@ -2203,3 +2203,96 @@ Cross-references in this entry are by section name rather than number: the
 gap document was reorganized after this ADR was written, and a pointer that
 silently goes stale is worse than a slightly longer one. The decision
 itself is unchanged.
+
+## ADR-051: Build audit — breadth is now a liability; five subsystems have never executed
+
+**Context.** A full inventory taken 2026-07-27, immediately after CI was
+switched on for the first time:
+
+- 84 pages, 16 API routes, 30 domain entity files, 76 migrations, 41
+  repositories, 280 unit tests.
+- Shipped surface includes loyalty, rewards, referrals, events and RSVP,
+  wedding parties, clienteling, staff shift scheduling, staff time clock,
+  AI next-best-action, AI recommendations, weather personalisation,
+  newsletter digests, behavioural analytics, subscription billing, and an
+  alterations vertical with chain of custody, immutable quotes, workshop
+  assignment and Postgres-derived employee attribution.
+- Paying customers: zero. Pilot commitments: zero.
+
+Three facts make that inventory misleading.
+
+**Five subsystems have never run.** Stripe payments (ADR-030), Stripe
+billing (ADR-031), Resend email (ADR-032), Twilio SMS/WhatsApp (ADR-036)
+and OpenAI personalisation (ADR-033) are all recorded as "code-complete,
+blocked only on credentials." None of those credentials were ever
+provisioned. Their unit tests exercise fakes, so a green suite proves the
+code calls a pretend provider correctly and nothing more. Code that has
+never executed against its real dependency is a hypothesis, not a feature,
+and this document set has repeatedly described such code as shipped.
+
+**Breadth is now a demo liability.** Every one of those 84 pages is a place
+a prospect can click and find an empty state. For a product being sold on
+the promise of digital credibility, a half-populated Loyalty screen does
+more damage than a missing one.
+
+**The three workstreams that matter are the thinnest artifacts in the
+repository.** Marketing site: 817 lines, three of six routes are stubs.
+Demo Studio: 696 lines. Storefront: a 271-line route injecting JSON into a
+16,183-line hand-authored HTML file that sits outside `@paon/ui`, is
+exempt from prettier and lint, has no test coverage, and has been re-synced
+wholesale twice after drifting from the founder's own source (ADR-048).
+
+The underlying error is diagnosable: **PAON was built as though the risk
+were technical.** It is not. The risk is that no retailer wants it. Every
+hour spent on alteration chain-of-custody presumed the product question had
+already been answered. It had not.
+
+**Decision.** Four things are settled by this entry.
+
+1. **Provision Stripe.** Not to build anything new — to make ADR-030's
+   existing code real. The stated objective in `PHASE.md` is retailers with
+   money down, and PAON currently cannot accept money. This moves onto the
+   critical path.
+2. **Connect Vercel to git.** `PROJECT_STATE.md` records that deploys happen
+   by CLI archive upload with no git integration, so there is no per-change
+   preview URL and no staging anyone trusts. For a business whose conversion
+   instrument is sending a prospect a link, this is the highest-value piece
+   of missing infrastructure.
+3. **`ROADMAP.md` is subordinate to `PHASE.md`.** It still describes an
+   "Experience Rebuild in progress" with an eight-item commercialisation
+   track. Two competing plans in one repository is the precise mechanism by
+   which control was lost. `PHASE.md` wins; `ROADMAP.md` is sequencing
+   history until the freeze lifts.
+4. **`PROJECT_STATE.md` is not trustworthy without verification.** It
+   asserted that no GitHub remote existed and no CI ran. Both were false —
+   `origin` was configured and `.github/workflows/ci.yml` had been present
+   the whole time. A 1,721-line document that is wrong about something that
+   basic must be checked against code before any claim in it is relied on.
+
+**Open — requires a founder decision.**
+
+- **Is `paon-template.html` a demo artifact or the product?** Today the
+  repository treats it as both, which is the worst of the options. As a
+  demo artifact it should be left alone and never "properly integrated." As
+  the product it carries a large, unplanned debt that grows with every hour
+  of polish. Answer before any further work on the storefront.
+- **Which wedge is actually being sold — the storefront or alterations?**
+  The alterations vertical (`highmaintenance`) is the deepest and most
+  differentiated thing in this repository and solves an expensive, boring,
+  real problem: control over third-party alteration cost. A prettier
+  storefront is aesthetic; alteration cost control is financial. Neither has
+  been validated with a retailer. Two conversations asking which they would
+  pay for would cost nothing and could redirect the entire build.
+- **Whether to feature-flag the demo surface down.** `FeatureFlagOverride`
+  and entitlements already exist. Using them to hide everything outside the
+  demo path would trade breadth for polish. Cheap to do, materially changes
+  what a prospect sees.
+
+**Consequences.** Nothing in the codebase changes as a result of this entry;
+it records an assessment and four commitments. The two open questions gate
+real work — storefront effort should not begin before the template question
+is answered, and the wedge question should be tested against live retailers
+rather than settled in a document. Items 1 and 2 are infrastructure that
+serve the current phase directly and are therefore in scope under
+`PHASE.md` despite not being one of the three workstreams; this entry is the
+authority for that exception.
