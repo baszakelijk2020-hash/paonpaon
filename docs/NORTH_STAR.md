@@ -1,38 +1,71 @@
 # North Star
 
-PAON exists to make every interaction between a premium or luxury retailer
-and its customers feel like it happens in one continuous, well-tended
-relationship — from the first appointment to the tenth alteration, across
-every channel the retailer sells through.
-
-## The single sentence
+## The mission
 
 **PAON is the system of record and the system of engagement for the
-lifetime relationship between a luxury retailer and its customers.**
+lifetime relationship between an independent menswear retailer and their
+clients.**
+
+## Who it is for
+
+An independent multi-brand menswear retailer, usually owner-operated, who
+carries private-label made-to-measure alongside several other houses. They
+compete on personal service and garment quality, and they lose credibility
+online because their digital presence is a decade behind what their clients
+now expect.
+
+They are not a chain, not a marketplace seller, and not a high-volume
+retailer. Every product decision in this repository assumes low volume, high
+touch, long production and alteration cycles, and staff who are expected to
+remember a client without being told twice.
+
+## PAON is independent
+
+There is no brand partnership, channel agreement or endorsement behind PAON.
+The founder's credibility with this segment comes from having run a
+private-label made-to-measure business inside it, and from a career in
+menswear.
+
+Two consequences bind both product and go-to-market:
+
+- No marketing surface may imply affiliation with any brand.
+- No part of the architecture may assume a brand supplies data, assets or
+  introductions. Where the product ingests supplier collection assets, that
+  is the retailer uploading material they already hold and control.
+
+## What we are not trying to be
+
+Not a vertically integrated chain's website. Suitsupply set the expectation
+these retailers are judged against, and matching its conversion funnel would
+mean competing on its ground with its strengths, while abandoning the one
+advantage an independent has: the returning client who values being known.
+
+The goal is not to make these retailers look like a chain. It is to make
+them look like themselves, executed properly.
 
 ## What success looks like
 
-- A retailer's staff never re-key the same customer fact into two tools.
-  CRM, orders, production, alterations, loyalty and clienteling notes are
-  one connected record, not five disconnected ones.
-- A customer can see the truth about where their order, their alteration
-  and their loyalty status stand, without calling the store.
-- A retailer that grows from one boutique to a multi-location house never
-  has to migrate off PAON — the platform scales with them.
-- PAON Admin lets a small platform team operate hundreds of retailer
-  tenants without linear headcount growth, because onboarding, billing,
-  support and monitoring are first-class product surfaces, not scripts.
-- Every future engineer who opens this repository can predict where a
-  given piece of logic lives before they search for it, because the
-  architecture in [ARCHITECTURE.md](./ARCHITECTURE.md) and the domain
-  model in [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) are followed without
-  exception.
+- A retailer's staff never re-key the same client fact into two tools.
+- A client can see the truth about their order, their alteration and their
+  standing without calling the store.
+- A retailer who grows from one door to several never has to migrate off
+  PAON.
+- A small platform team operates many retailer tenants without linear
+  headcount growth.
+- An engineer opening this repository can predict where a piece of logic
+  lives before searching for it.
 
 ## What we optimize for, in order
 
 Correct → Reliable → Scalable → Consistent → Fast to build.
 
-We are building for years, not for a demo. See
-[PRINCIPLES.md](./PRINCIPLES.md) for how that trade-off is applied
-day to day, and [NON_GOALS.md](./NON_GOALS.md) for what we deliberately
-are not building yet.
+Built for years, not for a demo. See [PRINCIPLES.md](./PRINCIPLES.md) for
+how that is applied day to day, and [NON_GOALS.md](./NON_GOALS.md) for what
+is deliberately deferred.
+
+## The current objective is narrower than the mission
+
+The mission above is the multi-year destination. It is **not** a licence to
+build toward it today. What may be worked on right now is defined solely by
+[PHASE.md](./PHASE.md), and it is currently three workstreams aimed at
+winning paid pilots. Read that before starting anything.

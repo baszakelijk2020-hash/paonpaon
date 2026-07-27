@@ -18,10 +18,10 @@ export default async function BillingPlansPage() {
   return (
     <div className="flex flex-col gap-8">
       <section className="rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-8 text-white shadow-[var(--shadow-elevated)] sm:p-11">
-        <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-white/60">
+        <p className="font-accent text-[11px] uppercase tracking-[0.22em] text-white/60">
           Commercial catalogue
         </p>
-        <h1 className="mt-4 max-w-3xl text-5xl font-[var(--font-display)] leading-none sm:text-6xl">
+        <h1 className="font-display mt-4 max-w-3xl text-5xl leading-none sm:text-6xl">
           Package the value. Keep the promise clear.
         </h1>
         <p className="mt-5 max-w-2xl text-sm leading-6 text-white/65">
@@ -36,10 +36,10 @@ export default async function BillingPlansPage() {
         ))}
       </div>
       <section>
-        <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
+        <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
           Optional human services
         </p>
-        <h2 className="mt-2 text-4xl font-[var(--font-display)]">
+        <h2 className="font-display mt-2 text-4xl">
           Managed services stay separate.
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
@@ -52,9 +52,7 @@ export default async function BillingPlansPage() {
               key={service.id}
               className="rounded-[var(--radius-xl)] border bg-white p-6"
             >
-              <h3 className="text-2xl font-[var(--font-display)]">
-                {service.name}
-              </h3>
+              <h3 className="font-display text-2xl">{service.name}</h3>
               <p className="mt-2 text-sm leading-6 text-[var(--color-stone-500)]">
                 {service.description}
               </p>

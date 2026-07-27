@@ -25,11 +25,11 @@ export default async function StorefrontEventsPage({
   ]);
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
-      <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+      <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
         {retailer.displayName}
       </p>
       <div className="mb-6 flex items-end justify-between">
-        <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
           Events
         </h1>
         <Link

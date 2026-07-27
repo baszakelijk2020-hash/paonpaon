@@ -72,11 +72,18 @@ for (const persona of retailerPersonas) {
     await expect(
       page.getByRole("heading", { name: persona.brief }),
     ).toBeVisible();
+    // Scoped to the sidebar's own nav region — the Mission Control header's
+    // "Daily briefing · N" pill (`href="#attention"`) also starts with
+    // "Daily brief", which would otherwise collide with the "Daily brief"
+    // nav link's own accessible name in a page-wide query.
+    const primaryNav = page.getByRole("navigation", { name: "Primary" });
     for (const label of persona.visible) {
-      await expect(page.getByRole("link", { name: label })).toBeVisible();
+      await expect(primaryNav.getByRole("link", { name: label })).toBeVisible();
     }
     for (const label of persona.hidden) {
-      await expect(page.getByRole("link", { name: label })).toHaveCount(0);
+      await expect(primaryNav.getByRole("link", { name: label })).toHaveCount(
+        0,
+      );
     }
   });
 }

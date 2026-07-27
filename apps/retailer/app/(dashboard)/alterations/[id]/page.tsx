@@ -233,11 +233,22 @@ export default async function AlterationDetailPage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
-            {customer?.fullName ?? (isWorker ? "Assigned garment" : "Customer")}
-          </h1>
-          <AlterationStatusBadge status={alteration.status} />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
+              {customer?.fullName ??
+                (isWorker ? "Assigned garment" : "Customer")}
+            </h1>
+            <AlterationStatusBadge status={alteration.status} />
+          </div>
+          <a
+            href={`/alterations/${alteration.id}/print`}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 rounded-full border border-[var(--color-stone-300)] px-4 py-2 text-sm text-[var(--color-stone-700)] hover:border-[var(--color-stone-500)]"
+          >
+            Print / export card
+          </a>
         </div>
         <p className="text-sm text-[var(--color-stone-500)]">
           {alteration.workOrderNumber} ·{" "}

@@ -1,22 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 
 /**
  * Direct port of the founder's `vox-` Adobe Muse widget (chip-slider
  * momentum physics + Dutch voice command parsing) into a React client
- * component. Ported as close to 1:1 as reasonable — rewriting the drag
- * physics as declarative React state would risk losing the exact feel —
- * with one real change: `applyValue` now also calls `onApply(fieldName,
- * formattedValue)` so the parent page can persist it as a
- * FittingObservation, instead of only updating the chip's own display.
+ * component. Drag state (position, velocity samples, active pointer) is
+ * kept in refs and applied via direct DOM writes on the track/chip
+ * elements, not component state — matching the original's own imperative
+ * approach, and avoiding a per-frame re-render during drag, which is
+ * what a fully declarative port would force. `applyValue` calls
+ * `onApply(fieldName, formattedValue)` so the parent page persists it as
+ * a FittingObservation, instead of only updating the chip's own display.
  *
- * Not ported from the original: the "both shoulders at once" voice combo
- * and the continued-listening grace-period re-refinement window — real
- * interactions, deliberately deferred rather than risking a subtly wrong
- * port of the trickiest part of the original parser. Tap-to-select and
- * drag-to-select both work for every field; voice applies a value the
- * moment a field + number are both recognized in one utterance.
+ * Not ported from the original: the "both shoulders at once" voice combo,
+ * the continued-listening grace-period re-refinement window, and the
+ * wheel/trackpad handler — real interactions, deliberately deferred
+ * rather than risking a subtly wrong port of the trickiest parts of the
+ * original parser and input handling. Tap-to-select, drag-to-scrub (with
+ * release-velocity momentum and edge rubber-banding), and voice all work
+ * for every field; voice applies a value the moment a field + number are
+ * both recognized in one utterance.
  */
 
 interface FieldConfig {
@@ -150,6 +159,14 @@ export function VoiceMeasurementSlider({
 }) {
   const trackRefs = useRef<(HTMLDivElement | null)[]>([]);
   const swRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const curXRef = useRef<number[]>([]);
+  const dragRef = useRef<{
+    index: number;
+    startX: number;
+    startPX: number;
+    samples: { t: number; x: number }[];
+    moved: boolean;
+  } | null>(null);
   const [transcript, setTranscript] = useState("");
   const [listening, setListening] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -161,6 +178,57 @@ export function VoiceMeasurementSlider({
   const GAP = 6;
   const STEP = CHIP_W + GAP;
 
+  function getCenter(index: number): number {
+    const width = trackRefs.current[index]?.parentElement?.clientWidth ?? 0;
+    return width / 2 - CHIP_W / 2;
+  }
+
+  function getBounds(index: number, vals: number[]) {
+    const center = getCenter(index);
+    return { min: center - (vals.length - 1) * STEP, max: center };
+  }
+
+  function getNearestIndexFromX(index: number, x: number, vals: number[]) {
+    const center = getCenter(index);
+    return Math.max(
+      0,
+      Math.min(vals.length - 1, Math.round((center - x) / STEP)),
+    );
+  }
+
+  /** Live visual feedback during drag — mirrors the original's per-chip
+   * green/red/transparent tint while dragging, cleared once settled. */
+  function paintTrack(index: number, x: number, dragging: boolean) {
+    const track = trackRefs.current[index];
+    const sw = swRefs.current[index];
+    const field = FIELDS[index];
+    if (!track || !field) return;
+    const vals = generateVals(field.limit, field.step);
+    track.style.transform = `translateX(${x}px)`;
+    const nearest = getNearestIndexFromX(index, x, vals);
+    const value = vals[nearest];
+    if (sw && value !== undefined) sw.textContent = fmt(value);
+
+    for (let i = 0; i < track.children.length; i++) {
+      const chip = track.children[i];
+      if (!(chip instanceof HTMLElement)) continue;
+      const v = vals[i];
+      if (v === undefined) continue;
+      if (dragging) {
+        const isZero = Math.abs(v) < 0.001;
+        chip.style.background = isZero
+          ? "transparent"
+          : v > 0
+            ? "#BCD4C6"
+            : "#FFE6E6";
+        chip.style.color = isZero ? "#808080" : v > 0 ? "#009144" : "#ED1C27";
+      } else {
+        chip.style.background = "";
+        chip.style.color = "";
+      }
+    }
+  }
+
   function applyValue(index: number, value: number) {
     const field = FIELDS[index];
     if (!field) return;
@@ -171,19 +239,157 @@ export function VoiceMeasurementSlider({
 
   function snapTrackToValue(index: number, value: number) {
     const track = trackRefs.current[index];
-    const sw = swRefs.current[index];
     const field = FIELDS[index];
     if (!track || !field) return;
     const vals = generateVals(field.limit, field.step);
-    const vpWidth = track.parentElement?.clientWidth ?? 0;
-    const center = vpWidth / 2 - CHIP_W / 2;
     const i = vals.findIndex((v) => Math.abs(v - value) < 0.001);
     if (i === -1) return;
-    const x = center - i * STEP;
+    const x = getCenter(index) - i * STEP;
+    curXRef.current[index] = x;
     track.style.transition = "transform 400ms cubic-bezier(0.23,1,0.32,1)";
-    track.style.transform = `translateX(${x}px)`;
-    if (sw) sw.textContent = fmt(value);
+    paintTrack(index, x, false);
   }
+
+  /** Pointer-drag-to-scrub with release-velocity momentum and edge
+   * rubber-banding, matching the mockup's own physics. Position is
+   * written straight to the DOM via refs during the drag (no re-render
+   * per frame); the field's value is only actually applied once, on
+   * release, at the velocity-projected snap index.
+   *
+   * This viewport-level handling and each chip's own `onClick` are both
+   * bound (matching the mockup's own dual row+chip binding), so a plain
+   * tap on a chip also dispatches a pointerdown/pointerup pair here with
+   * ~0 movement. Two things keep a tap from fighting its own chip click:
+   * `setPointerCapture` is deferred until real movement is confirmed —
+   * capturing immediately on every pointerdown was observed to suppress
+   * the chip's native click from ever firing at all (Chromium routes the
+   * click through pointer capture too, not just move/up, despite capture
+   * nominally only affecting pointer events) — and the snap+apply logic
+   * itself only runs once movement crossed `MOVE_THRESHOLD`, so a
+   * stationary tap's outcome is solely owned by the chip's own onClick. */
+  const MOVE_THRESHOLD = 4;
+
+  function onTrackPointerDown(
+    index: number,
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) {
+    const track = trackRefs.current[index];
+    const field = FIELDS[index];
+    if (!track || !field) return;
+    const vals = generateVals(field.limit, field.step);
+    const startX =
+      curXRef.current[index] ?? getCenter(index) - vals.indexOf(0) * STEP;
+    dragRef.current = {
+      index,
+      startX,
+      startPX: event.clientX,
+      samples: [{ t: performance.now(), x: event.clientX }],
+      moved: false,
+    };
+  }
+
+  function onTrackPointerMove(
+    index: number,
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) {
+    const drag = dragRef.current;
+    if (!drag || drag.index !== index) return;
+    if (
+      !drag.moved &&
+      Math.abs(event.clientX - drag.startPX) < MOVE_THRESHOLD
+    ) {
+      return;
+    }
+    if (!drag.moved) {
+      drag.moved = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      const track = trackRefs.current[index];
+      if (track) track.style.transition = "";
+    }
+    const field = FIELDS[index];
+    if (!field) return;
+    const vals = generateVals(field.limit, field.step);
+    const bounds = getBounds(index, vals);
+    let x = drag.startX + (event.clientX - drag.startPX);
+    if (x < bounds.min) x = bounds.min - (bounds.min - x) * 0.25;
+    else if (x > bounds.max) x = bounds.max + (x - bounds.max) * 0.25;
+
+    curXRef.current[index] = x;
+    drag.samples.push({ t: performance.now(), x: event.clientX });
+    if (drag.samples.length > 6) drag.samples.shift();
+    paintTrack(index, x, true);
+  }
+
+  function onTrackPointerUp(
+    index: number,
+    event: ReactPointerEvent<HTMLDivElement>,
+  ) {
+    const drag = dragRef.current;
+    if (!drag || drag.index !== index) return;
+    dragRef.current = null;
+    if (!drag.moved) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    const field = FIELDS[index];
+    const track = trackRefs.current[index];
+    if (!field || !track) return;
+    const vals = generateVals(field.limit, field.step);
+    const bounds = getBounds(index, vals);
+    const x = Math.max(
+      bounds.min,
+      Math.min(bounds.max, curXRef.current[index] ?? bounds.max),
+    );
+
+    let velocity = 0;
+    const samples = drag.samples;
+    const last = samples[samples.length - 1];
+    if (samples.length >= 2 && last) {
+      const ref = samples.find((s) => last.t - s.t <= 80) ?? samples[0];
+      const dt = ref ? last.t - ref.t : 0;
+      if (ref && dt > 0) velocity = (last.x - ref.x) / dt;
+    }
+
+    const DECEL_DIST = 28;
+    const projected = Math.max(
+      bounds.min,
+      Math.min(bounds.max, x + velocity * DECEL_DIST),
+    );
+    const snapIdx = getNearestIndexFromX(index, projected, vals);
+    const targetX = getCenter(index) - snapIdx * STEP;
+
+    curXRef.current[index] = targetX;
+    track.style.transition = "transform 400ms cubic-bezier(0.23,1,0.32,1)";
+    paintTrack(index, targetX, false);
+
+    const value = vals[snapIdx];
+    if (value !== undefined) applyValue(index, value);
+  }
+
+  useEffect(() => {
+    function positionAll() {
+      FIELDS.forEach((field, index) => {
+        if (dragRef.current?.index === index) return;
+        const vals = generateVals(field.limit, field.step);
+        const track = trackRefs.current[index];
+        if (!track) return;
+        const existing = curXRef.current[index];
+        const nearest =
+          existing === undefined
+            ? vals.indexOf(0)
+            : getNearestIndexFromX(index, existing, vals);
+        const x = getCenter(index) - nearest * STEP;
+        curXRef.current[index] = x;
+        track.style.transition = "";
+        track.style.transform = `translateX(${x}px)`;
+      });
+    }
+    positionAll();
+    window.addEventListener("resize", positionAll);
+    return () => window.removeEventListener("resize", positionAll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const SpeechRecognitionCtor =
@@ -265,7 +471,6 @@ export function VoiceMeasurementSlider({
     <div className="mx-auto grid w-full max-w-[350px] grid-cols-1 gap-2.5 lg:max-w-3xl lg:grid-cols-2 lg:gap-x-8 lg:gap-y-3">
       {FIELDS.map((field, index) => {
         const vals = generateVals(field.limit, field.step);
-        const zeroIndex = vals.indexOf(0);
         return (
           <div key={field.name} data-field={field.name} className="w-full">
             <div
@@ -303,7 +508,11 @@ export function VoiceMeasurementSlider({
                   0
                 </div>
                 <div
-                  className="relative h-full w-full overflow-hidden"
+                  onPointerDown={(event) => onTrackPointerDown(index, event)}
+                  onPointerMove={(event) => onTrackPointerMove(index, event)}
+                  onPointerUp={(event) => onTrackPointerUp(index, event)}
+                  onPointerCancel={(event) => onTrackPointerUp(index, event)}
+                  className="relative h-full w-full touch-pan-y select-none overflow-hidden"
                   style={{
                     WebkitMaskImage:
                       "linear-gradient(to right, transparent, black 30%, black 70%, transparent)",
@@ -316,9 +525,6 @@ export function VoiceMeasurementSlider({
                       trackRefs.current[index] = el;
                     }}
                     className="absolute flex h-full items-center gap-1.5"
-                    style={{
-                      transform: `translateX(calc(50% - 23px - ${zeroIndex * STEP}px))`,
-                    }}
                   >
                     {vals.map((v) => (
                       <button

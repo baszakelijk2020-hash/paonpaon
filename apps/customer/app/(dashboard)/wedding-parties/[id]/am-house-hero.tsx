@@ -1,14 +1,25 @@
 import Link from "next/link";
 
 /**
- * pag1.html's "Moonstruck"/AM House Party screen — a full-bleed hero
- * video with a glass notification card floating over the top and a
- * glass bottom nav bar, ported pixel-for-pixel (rounded-[54px] frame,
- * `rgba(255,255,255,0.1)` + `blur(16px)` glass panels, translucent
- * avatar ring). The mockup's own nav icons ("Munchies", "I AM") were a
- * wedding-menu concept with no backend behind it — those two are
- * relabeled to real destinations rather than invented, everything else
- * (video, glass treatment, notification card, layout) is exact.
+ * pag1.html's "Moonstruck"/AM House Party screen (`#video-frame-hero2`,
+ * `wed2027.mp4`), ported pixel-for-pixel from the real markup at
+ * `downloaded_pages/pag1.html` around id `u569403`/`u569392` — not the
+ * visually-similar-but-different "AM App" promo screen further up the
+ * same file (`munross2026.mp4`), which was the wrong reference an
+ * earlier pass used. Verified against the mockup's literal inline
+ * styles: `344×735` frame at `border-radius: 54px`, notification card
+ * `rgba(255,255,255,0.1)` + `blur(16px)` (Tailwind `backdrop-blur-lg`,
+ * not `-2xl`), avatar ring same `blur(16px)`, video `object-fit: cover`
+ * under a flat `rgba(0,0,0,0.2)` scrim. The mockup's bottom nav has 5
+ * icons (`amhh`, `cutlery`, `hamburger`, `shopping-bag`, `profile` —
+ * hosted SVGs, referenced directly here for true glyph fidelity rather
+ * than redrawn as generic stroke icons) labeled AM House/Munchies/Menu/
+ * Cart/I AM. `amhh`→home, `shopping-bag`→Cart, and `profile`→Account
+ * map 1:1 to real destinations. "Munchies" (`cutlery`) and "Menu"
+ * (`hamburger`) are both the same food-ordering concept with no backend
+ * behind either — rather than fabricate two features or drop both
+ * glyphs, they collapse into one real destination ("Your look"), reusing
+ * `cutlery` as its icon since neither original glyph reads as "outfit."
  */
 export function AmHouseHero({
   retailerName,
@@ -32,7 +43,7 @@ export function AmHouseHero({
     } — hope you are too! Make sure to complete your fitting.`;
 
   return (
-    <div className="relative mx-auto aspect-[344/560] w-full max-w-[420px] overflow-hidden rounded-[28px] bg-black sm:rounded-[36px]">
+    <div className="aspect-344/735 max-w-105 relative mx-auto w-full overflow-hidden rounded-[54px] bg-black">
       <video
         autoPlay
         muted
@@ -46,8 +57,8 @@ export function AmHouseHero({
       </video>
       <div className="absolute inset-0 bg-black/20" />
 
-      <div className="absolute inset-x-3 top-3 flex items-start gap-2.5 rounded-t-[20px] bg-white/10 p-3.5 backdrop-blur-2xl">
-        <div className="h-[25px] w-[25px] shrink-0 overflow-hidden rounded-full border-2 border-white/10 bg-white/20 backdrop-blur">
+      <div className="absolute inset-x-3 top-3 flex items-start gap-2.5 rounded-t-xl bg-white/10 p-3.5 backdrop-blur-lg">
+        <div className="h-6.25 w-6.25 shrink-0 overflow-hidden rounded-full border-2 border-white/10 bg-white/20 backdrop-blur-lg">
           <div className="flex h-full w-full items-center justify-center text-[10px] text-white">
             {(organizerName ?? "?").charAt(0).toUpperCase()}
           </div>
@@ -61,26 +72,40 @@ export function AmHouseHero({
         </div>
       </div>
 
-      <div className="absolute inset-x-3 bottom-3 flex items-center justify-between rounded-[20px] bg-white/10 px-5 py-3 backdrop-blur-2xl">
-        <NavIcon href="#" label="Fittings" active>
-          <path d="M3 9h18M8 3v4M16 3v4M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
-        </NavIcon>
+      <div className="absolute inset-x-3 bottom-3 flex items-center justify-between rounded-xl bg-white/10 px-5 py-3 backdrop-blur-lg">
+        <NavIcon
+          href="#"
+          label="AM House"
+          active
+          iconSrc="https://www.nebelspiegel.com/images/amhh.svg"
+          iconWidth={22}
+          iconHeight={10}
+        />
         {retailerSlug ? (
-          <NavIcon href={`/r/${retailerSlug}/swipe`} label="Your look">
-            <path d="M12 3v6M8 6l4 3 4-3M4 21l4-9h8l4 9" />
-          </NavIcon>
+          <NavIcon
+            href={`/r/${retailerSlug}/swipe`}
+            label="Your look"
+            iconSrc="https://www.nebelspiegel.com/images/cutlery.svg"
+            iconWidth={17}
+            iconHeight={17}
+          />
         ) : null}
         {retailerSlug ? (
-          <NavIcon href={`/r/${retailerSlug}/cart`} label="Cart">
-            <path d="M6 6h15l-1.5 9h-12L6 6Zm0 0L5 3H2" />
-            <circle cx="9" cy="20" r="1" />
-            <circle cx="18" cy="20" r="1" />
-          </NavIcon>
+          <NavIcon
+            href={`/r/${retailerSlug}/cart`}
+            label="Cart"
+            iconSrc="https://www.nebelspiegel.com/images/shopping-bag.svg"
+            iconWidth={17}
+            iconHeight={17}
+          />
         ) : null}
-        <NavIcon href="/account" label="Account">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-        </NavIcon>
+        <NavIcon
+          href="/account"
+          label="Account"
+          iconSrc="https://www.nebelspiegel.com/images/profile.svg"
+          iconWidth={19}
+          iconHeight={19}
+        />
       </div>
     </div>
   );
@@ -90,30 +115,30 @@ function NavIcon({
   href,
   label,
   active,
-  children,
+  iconSrc,
+  iconWidth,
+  iconHeight,
 }: {
   href: string;
   label: string;
   active?: boolean;
-  children: React.ReactNode;
+  iconSrc: string;
+  iconWidth: number;
+  iconHeight: number;
 }) {
   return (
     <Link
       href={href}
       className={`flex flex-col items-center gap-1 ${active ? "text-white" : "text-white/60 hover:text-white/85"}`}
     >
-      <svg
-        viewBox="0 0 24 24"
-        width="19"
-        height="19"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        {children}
-      </svg>
+      {/* eslint-disable-next-line @next/next/no-img-element -- byte-for-byte source markup, not a Next-optimized image */}
+      <img
+        src={iconSrc}
+        alt=""
+        width={iconWidth}
+        height={iconHeight}
+        className={active ? "opacity-100" : "opacity-60"}
+      />
       <span className="text-[9px] uppercase tracking-[0.08em]">{label}</span>
     </Link>
   );

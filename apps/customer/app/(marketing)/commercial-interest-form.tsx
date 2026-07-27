@@ -42,7 +42,7 @@ export function CommercialInterestForm({
         <p className="text-[10px] uppercase tracking-[0.2em] text-[#547052]">
           Request received
         </p>
-        <h2 className="mt-4 text-4xl font-[var(--font-display)] leading-none">
+        <h2 className="font-display mt-4 text-4xl leading-none">
           A considered conversation starts here.
         </h2>
         <p className="mt-5 max-w-xl text-sm leading-7 text-black/60">

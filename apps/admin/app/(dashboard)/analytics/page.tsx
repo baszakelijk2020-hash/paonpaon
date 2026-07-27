@@ -46,7 +46,7 @@ export default async function PlatformAnalyticsPage() {
     <div className="flex flex-col gap-6">
       <div>
         <p className="text-sm text-[var(--color-stone-500)]">Last 30 days</p>
-        <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+        <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
           Platform overview
         </h1>
       </div>

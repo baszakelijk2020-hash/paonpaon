@@ -44,7 +44,7 @@ export function CommercialPage({
           <p className="text-[10px] uppercase tracking-[0.22em] text-black/45">
             {copy.eyebrow}
           </p>
-          <h1 className="mt-5 max-w-3xl text-5xl font-[var(--font-display)] leading-[0.94] sm:text-7xl">
+          <h1 className="font-display mt-5 max-w-3xl text-5xl leading-[0.94] sm:text-7xl">
             {copy.title}
           </h1>
           <p className="mt-7 max-w-xl text-base leading-8 text-black/55">
@@ -55,9 +55,7 @@ export function CommercialPage({
           </div>
         </div>
         <div className="rounded-[1.25rem] border border-black/10 bg-white/55 p-6 shadow-[var(--shadow-subtle)] sm:p-10">
-          <p className="mb-8 text-3xl font-[var(--font-display)]">
-            Tell us where to focus.
-          </p>
+          <p className="font-display mb-8 text-3xl">Tell us where to focus.</p>
           <CommercialInterestForm
             inquiryType={inquiryType}
             requestedPlanKey={requestedPlanKey}

@@ -9,10 +9,7 @@ export default function MarketingLayout({
     <div className="min-h-screen bg-[#f4f1ec] text-[#1a1a1a]">
       <header className="glass-panel fixed inset-x-0 top-0 z-50 border-b border-black/10">
         <div className="mx-auto flex h-16 max-w-[92rem] items-center justify-between px-5 sm:px-8">
-          <Link
-            href="/"
-            className="text-xl font-[var(--font-display)] tracking-[0.28em]"
-          >
+          <Link href="/" className="font-display text-xl tracking-[0.28em]">
             PAON
           </Link>
           <nav
@@ -36,9 +33,7 @@ export default function MarketingLayout({
       <footer className="bg-[#1a1a1a] px-5 py-14 text-white sm:px-8">
         <div className="mx-auto grid max-w-[92rem] gap-10 md:grid-cols-[1fr_auto]">
           <div>
-            <p className="text-4xl font-[var(--font-display)] tracking-[0.18em]">
-              PAON
-            </p>
+            <p className="font-display text-4xl tracking-[0.18em]">PAON</p>
             <p className="mt-4 max-w-md text-sm leading-6 text-white/55">
               The digital customer and operating platform for premium retail
               houses.

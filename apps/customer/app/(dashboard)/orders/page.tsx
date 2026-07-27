@@ -23,7 +23,7 @@ export default async function OrdersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+      <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
         Orders
       </h1>
 

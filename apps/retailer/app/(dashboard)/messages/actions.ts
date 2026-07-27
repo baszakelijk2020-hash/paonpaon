@@ -31,7 +31,7 @@ export async function startConversation(formData: FormData) {
   const id = await repo.getOrCreateForStaff(value.customerId as never);
   const messages = await repo.findMessages(id);
   if (messages.length === 0) await repo.send(id, value.body);
-  redirect(`/messages/${id}`);
+  redirect(`/messages?c=${id}`);
 }
 export async function sendMessage(formData: FormData) {
   const session = await requireSession();
@@ -61,5 +61,5 @@ export async function sendMessage(formData: FormData) {
     });
   }
 
-  revalidatePath(`/messages/${value.conversationId}`);
+  revalidatePath("/messages");
 }

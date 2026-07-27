@@ -47,7 +47,7 @@ export default async function LoyaltyPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
           Loyalty &amp; rewards
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
@@ -59,7 +59,7 @@ export default async function LoyaltyPage() {
           <Card key={customer.id} className="flex flex-col gap-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+                <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
                   {retailer?.displayName ?? "Retailer"}
                 </p>
                 {account ? (
@@ -72,7 +72,7 @@ export default async function LoyaltyPage() {
                   </p>
                 )}
               </div>
-              <p className="text-4xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+              <p className="font-display text-4xl text-[var(--color-stone-900)]">
                 {account?.pointsBalance ?? 0}
                 <span className="ml-1 font-sans text-sm font-normal text-[var(--color-stone-500)]">
                   points

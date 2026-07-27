@@ -39,7 +39,7 @@ export function DemoPersonaDirectory({
           <div>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-lg font-[var(--font-display)] text-[var(--color-stone-900)]">
+                <p className="font-display text-lg text-[var(--color-stone-900)]">
                   {persona.persona}
                 </p>
                 <p className="mt-1 text-xs text-[var(--color-stone-500)]">

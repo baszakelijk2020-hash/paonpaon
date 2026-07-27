@@ -42,7 +42,7 @@ function NavGroups({
     <nav aria-label="Primary" className="flex flex-col gap-8">
       {groups.map((group) => (
         <div key={group.label}>
-          <p className="mb-2 px-3 text-[7px] font-[var(--font-accent)] uppercase tracking-[0.16em] text-white/35">
+          <p className="font-accent mb-2 px-3 text-[7px] uppercase tracking-[0.16em] text-white/35">
             {group.label}
           </p>
           <div className="flex flex-col gap-0.5">
@@ -70,9 +70,7 @@ function NavGroups({
                       active ? "opacity-70" : "opacity-0",
                     )}
                   />
-                  <span className="block font-[var(--font-display)]">
-                    {item.label}
-                  </span>
+                  <span className="font-display block">{item.label}</span>
                   {item.description ? (
                     <span className="mt-0.5 block text-[10px] leading-4 text-white/35">
                       {item.description}
@@ -109,7 +107,7 @@ export function AppShell({
           href={homeHref}
           className="flex items-center border-b border-white/10 px-7"
         >
-          <span className="text-xl font-[var(--font-display)] tracking-[0.14em]">
+          <span className="font-display text-xl tracking-[0.14em]">
             {brand}
           </span>
           <span className="ml-3 border-l border-white/20 pl-3 text-[9px] uppercase tracking-[0.18em] text-white/45">
@@ -120,12 +118,10 @@ export function AppShell({
           <NavGroups groups={navigation} />
         </div>
         <div className="border-t border-white/10 bg-black/10 px-7 py-6">
-          <p className="text-[7px] font-[var(--font-accent)] uppercase tracking-[0.16em] text-white/35">
+          <p className="font-accent text-[7px] uppercase tracking-[0.16em] text-white/35">
             Signed in as
           </p>
-          <p className="mt-2 text-sm font-[var(--font-display)] text-white/90">
-            {persona}
-          </p>
+          <p className="font-display mt-2 text-sm text-white/90">{persona}</p>
           <p className="mt-1 truncate text-[10px] text-white/40">{email}</p>
           <div className="mt-4 [&_button]:!h-8 [&_button]:!px-0 [&_button]:!text-white/55 hover:[&_button]:!bg-transparent hover:[&_button]:!text-white">
             {signOutControl}
@@ -151,10 +147,10 @@ export function AppShell({
                 </span>
               </button>
               <div>
-                <p className="text-[7px] font-[var(--font-accent)] uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
+                <p className="font-accent text-[7px] uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
                   {product}
                 </p>
-                <p className="text-sm font-[var(--font-display)] text-[var(--color-stone-800)]">
+                <p className="font-display text-sm text-[var(--color-stone-800)]">
                   {persona}
                 </p>
               </div>
@@ -221,7 +217,7 @@ export function AppShell({
               <Link
                 href={homeHref}
                 onClick={() => setMenuOpen(false)}
-                className="text-lg font-[var(--font-display)] tracking-[0.14em]"
+                className="font-display text-lg tracking-[0.14em]"
               >
                 {brand}
               </Link>
@@ -241,7 +237,7 @@ export function AppShell({
               />
             </div>
             <div className="border-t border-white/10 px-6 py-5">
-              <p className="text-sm font-[var(--font-display)]">{persona}</p>
+              <p className="font-display text-sm">{persona}</p>
               <p className="mt-1 truncate text-[10px] text-white/40">{email}</p>
               <div className="mt-3 [&_button]:!h-8 [&_button]:!px-0 [&_button]:!text-white/55">
                 {signOutControl}

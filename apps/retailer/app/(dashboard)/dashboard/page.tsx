@@ -192,7 +192,7 @@ export default async function DashboardPage() {
             <span aria-hidden="true">☼</span>
             <span>{todayLabel}</span>
           </div>
-          <p className="text-sm font-[var(--font-accent)] uppercase tracking-[0.28em] text-white/85">
+          <p className="font-accent text-sm uppercase tracking-[0.28em] text-white/85">
             {retailer.displayName}
           </p>
           <div className="flex items-center gap-4">
@@ -239,13 +239,13 @@ export default async function DashboardPage() {
         </div>
         <div className="flex max-w-3xl flex-col gap-5">
           <div className="flex flex-wrap items-center gap-3">
-            <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-white/60">
+            <p className="font-accent text-[11px] uppercase tracking-[0.22em] text-white/60">
               {brief.eyebrow}
             </p>
             <RetailerStatusBadge status={retailer.status} />
           </div>
           <div>
-            <h1 className="max-w-2xl text-4xl font-[var(--font-display)] leading-[0.98] sm:text-6xl">
+            <h1 className="font-display max-w-2xl text-4xl leading-[0.98] sm:text-6xl">
               {brief.title}
             </h1>
             <p className="mt-4 max-w-xl text-sm leading-6 text-white/65 sm:text-base">
@@ -321,7 +321,7 @@ export default async function DashboardPage() {
             href={metric.href}
             className="group border-b border-r border-[var(--color-stone-200)] px-5 py-5 last:border-r-0 sm:px-6"
           >
-            <p className="text-4xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+            <p className="font-display text-4xl text-[var(--color-stone-900)]">
               {metric.value}
             </p>
             <p className="mt-1 text-xs text-[var(--color-stone-500)] group-hover:text-[var(--color-stone-900)]">
@@ -344,10 +344,10 @@ export default async function DashboardPage() {
         <section>
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
-              <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+              <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
                 Daily briefing
               </p>
-              <h2 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+              <h2 className="font-display text-3xl text-[var(--color-stone-900)]">
                 Needs your attention
               </h2>
             </div>
@@ -388,7 +388,7 @@ export default async function DashboardPage() {
                   className="group"
                 >
                   <Card className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-4 transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lifted)]">
-                    <p className="text-2xl font-[var(--font-display)]">
+                    <p className="font-display text-2xl">
                       {formatTime(appointment.startsAt)}
                     </p>
                     <div>
@@ -422,9 +422,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <Card className="border-dashed py-12 text-center">
-              <p className="text-2xl font-[var(--font-display)]">
-                The atelier is in rhythm.
-              </p>
+              <p className="font-display text-2xl">The atelier is in rhythm.</p>
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--color-stone-500)]">
                 There are no approvals, appointments or unread messages waiting.
                 Use the quiet moment to prepare a client follow-up.
@@ -443,15 +441,13 @@ export default async function DashboardPage() {
         </section>
 
         <aside>
-          <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+          <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             House pulse
           </p>
-          <h2 className="text-3xl font-[var(--font-display)]">This atelier</h2>
+          <h2 className="font-display text-3xl">This atelier</h2>
           <Card className="mt-4 overflow-hidden p-0">
             <div className="border-b border-[var(--color-stone-100)] px-6 py-5">
-              <p className="text-2xl font-[var(--font-display)]">
-                {retailer.displayName}
-              </p>
+              <p className="font-display text-2xl">{retailer.displayName}</p>
               <p className="mt-1 text-sm text-[var(--color-stone-500)]">
                 {retailer.legalName}
               </p>

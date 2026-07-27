@@ -25,6 +25,7 @@ export default async function LoginPage({
   return (
     <AuthShell
       eyebrow="Retail operations"
+      persona="Staff access"
       title="Open the atelier."
       description="A calm command centre for client relationships, fittings, garments and every promise your team is carrying today."
       imageUrl="https://www.nebelspiegel.com/images/smaller/6054.webp"

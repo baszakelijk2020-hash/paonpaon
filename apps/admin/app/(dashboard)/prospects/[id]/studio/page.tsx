@@ -42,9 +42,7 @@ export default async function DemoStudioPage({
           <p className="mt-6 text-xs uppercase tracking-[0.18em] text-stone-500">
             Demo Studio · Version {configuration?.currentVersion ?? 0}
           </p>
-          <h1 className="mt-2 text-5xl font-[var(--font-display)]">
-            {prospect.companyName}
-          </h1>
+          <h1 className="font-display mt-2 text-5xl">{prospect.companyName}</h1>
           <p className="mt-3 text-sm text-stone-500">
             {prospect.primaryContactName} · {prospect.primaryContactEmail}
           </p>
@@ -77,7 +75,7 @@ export default async function DemoStudioPage({
             <p className="text-xs uppercase tracking-[0.18em] text-white/45">
               Publication boundary
             </p>
-            <h2 className="mt-2 text-3xl font-[var(--font-display)]">
+            <h2 className="font-display mt-2 text-3xl">
               {environment.status === "published"
                 ? "This private demo is available."
                 : "The preview remains internal."}

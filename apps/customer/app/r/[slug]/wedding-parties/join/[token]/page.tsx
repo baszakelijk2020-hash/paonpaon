@@ -22,10 +22,10 @@ export default async function JoinWeddingPartyPage({
 
   return (
     <main className="mx-auto max-w-md px-6 py-16">
-      <p className="mb-1 text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+      <p className="font-accent mb-1 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
         {retailer.displayName}
       </p>
-      <h1 className="mb-2 text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+      <h1 className="font-display mb-2 text-3xl text-[var(--color-stone-900)]">
         You&rsquo;re invited
       </h1>
       <p className="mb-6 text-sm text-[var(--color-stone-500)]">

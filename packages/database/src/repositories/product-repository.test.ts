@@ -21,6 +21,7 @@ const row: ProductRow = {
   is_made_to_order: true,
   is_alterable: true,
   primary_image_url: null,
+  swatch_image_url: null,
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
   deleted_at: null,

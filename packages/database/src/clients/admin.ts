@@ -3,6 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
+import { fetchWithJwtClockSkewRetry } from "./resilient-fetch";
+
 /**
  * Service-role client. Bypasses RLS entirely — never import this into
  * client-rendered code or any module reachable from a browser bundle.
@@ -16,5 +18,6 @@ export function createSupabaseAdminClient(
 ): PaonSupabaseClient {
   return createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: fetchWithJwtClockSkewRetry },
   });
 }

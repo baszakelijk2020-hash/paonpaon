@@ -34,7 +34,7 @@ export default async function MarketingHomePage() {
             Premium retail, connected
           </div>
           <div className="max-w-5xl">
-            <h1 className="text-[clamp(4rem,9vw,9rem)] font-[var(--font-display)] leading-[0.82] tracking-[-0.04em]">
+            <h1 className="font-display text-[clamp(4rem,9vw,9rem)] leading-[0.82] tracking-[-0.04em]">
               The relationship
               <br />
               is the product.
@@ -75,10 +75,10 @@ export default async function MarketingHomePage() {
         <div className="mx-auto max-w-[92rem]">
           <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
             <div>
-              <p className="text-[10px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-black/45">
+              <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-black/45">
                 A product people can feel
               </p>
-              <h2 className="mt-5 text-5xl font-[var(--font-display)] leading-[0.95] sm:text-7xl">
+              <h2 className="font-display mt-5 text-5xl leading-[0.95] sm:text-7xl">
                 Calm on the surface.
                 <br />
                 Deep underneath.
@@ -113,7 +113,7 @@ export default async function MarketingHomePage() {
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/55">
                 Private-client experience
               </p>
-              <h2 className="mt-4 max-w-xl text-5xl font-[var(--font-display)] leading-none">
+              <h2 className="font-display mt-4 max-w-xl text-5xl leading-none">
                 Luxury does not end at checkout.
               </h2>
               <p className="mt-5 max-w-xl text-sm leading-6 text-white/65">
@@ -133,11 +133,11 @@ export default async function MarketingHomePage() {
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/45">
                 Alteration operations
               </p>
-              <p className="mt-12 text-7xl font-[var(--font-display)]">62%</p>
+              <p className="font-display mt-12 text-7xl">62%</p>
               <div className="mt-5 h-1 bg-white/15">
                 <div className="h-full w-[62%] bg-white" />
               </div>
-              <h3 className="mt-8 text-3xl font-[var(--font-display)]">
+              <h3 className="font-display mt-8 text-3xl">
                 From fitting observation to confident handoff.
               </h3>
               <Link
@@ -153,15 +153,15 @@ export default async function MarketingHomePage() {
               </p>
               <div className="mt-8 grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-4xl font-[var(--font-display)]">1</p>
+                  <p className="font-display text-4xl">1</p>
                   <p className="mt-1 text-xs text-black/45">client view</p>
                 </div>
                 <div>
-                  <p className="text-4xl font-[var(--font-display)]">8</p>
+                  <p className="font-display text-4xl">8</p>
                   <p className="mt-1 text-xs text-black/45">role lenses</p>
                 </div>
                 <div>
-                  <p className="text-4xl font-[var(--font-display)]">Now</p>
+                  <p className="font-display text-4xl">Now</p>
                   <p className="mt-1 text-xs text-black/45">next action</p>
                 </div>
               </div>
@@ -172,11 +172,11 @@ export default async function MarketingHomePage() {
 
       <section className="px-5 py-24 sm:px-8 sm:py-32">
         <div className="mx-auto max-w-[92rem]">
-          <p className="text-[10px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-black/45">
+          <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-black/45">
             Built around the people doing the work
           </p>
           <div className="mt-5 grid gap-10 lg:grid-cols-2">
-            <h2 className="text-6xl font-[var(--font-display)] leading-[0.95] sm:text-8xl">
+            <h2 className="font-display text-6xl leading-[0.95] sm:text-8xl">
               One house.
               <br />
               Eight clear views.
@@ -207,10 +207,10 @@ export default async function MarketingHomePage() {
         <div className="mx-auto max-w-[92rem]">
           <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
             <div>
-              <p className="text-[10px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-white/45">
+              <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-white/45">
                 A clear way to begin
               </p>
-              <h2 className="mt-5 text-6xl font-[var(--font-display)] leading-none sm:text-8xl">
+              <h2 className="font-display mt-5 text-6xl leading-none sm:text-8xl">
                 Choose the canvas.
               </h2>
             </div>
@@ -225,12 +225,12 @@ export default async function MarketingHomePage() {
             {plans.map((plan) => (
               <article key={plan.id} className="bg-[#1a1a1a] p-7 sm:p-9">
                 <p className="text-xs text-white/45">{plan.name}</p>
-                <p className="mt-6 text-4xl font-[var(--font-display)]">
+                <p className="font-display mt-6 text-4xl">
                   {plan.priceIsFrom ? "From " : ""}
                   {formatMoney(plan.price, "en-US")}
                 </p>
                 <p className="text-xs text-white/45">per month</p>
-                <h3 className="mt-8 text-2xl font-[var(--font-display)]">
+                <h3 className="font-display mt-8 text-2xl">
                   {plan.positioning}
                 </h3>
                 <p className="mt-4 text-sm leading-6 text-white/50">

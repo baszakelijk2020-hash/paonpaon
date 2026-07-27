@@ -63,19 +63,19 @@ export default async function AppointmentDetailPage({
       <section className="relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-7 text-white shadow-[var(--shadow-elevated)] sm:p-10">
         <div
           aria-hidden="true"
-          className="absolute right-8 top-0 -z-10 text-[12rem] font-[var(--font-display)] leading-none text-white/[0.035]"
+          className="font-display absolute right-8 top-0 -z-10 text-[12rem] leading-none text-white/[0.035]"
         >
           {new Date(appointment.startsAt).getDate()}
         </div>
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-white/60">
+              <p className="font-accent text-[11px] uppercase tracking-[0.22em] text-white/60">
                 Appointment brief
               </p>
               <AppointmentStatusBadge status={appointment.status} />
             </div>
-            <h1 className="mt-4 text-5xl font-[var(--font-display)] leading-none sm:text-6xl">
+            <h1 className="font-display mt-4 text-5xl leading-none sm:text-6xl">
               {customer?.fullName ?? "Unknown customer"}
             </h1>
             <p className="mt-4 text-sm capitalize text-white/65">
@@ -116,10 +116,10 @@ export default async function AppointmentDetailPage({
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
         <div className="flex flex-col gap-6">
           <Card className="rounded-[var(--radius-xl)]">
-            <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
               Prepare the moment
             </p>
-            <h2 className="mt-3 text-3xl font-[var(--font-display)]">
+            <h2 className="font-display mt-3 text-3xl">
               What should the advisor know?
             </h2>
             {pinnedNote ? (
@@ -145,10 +145,10 @@ export default async function AppointmentDetailPage({
           {canManage ? (
             <Card className="rounded-[var(--radius-xl)]">
               <div className="mb-5">
-                <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+                <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
                   Run the appointment
                 </p>
-                <h2 className="mt-2 text-3xl font-[var(--font-display)]">
+                <h2 className="font-display mt-2 text-3xl">
                   Ownership and progress
                 </h2>
               </div>
@@ -169,7 +169,7 @@ export default async function AppointmentDetailPage({
             <div className="border-b border-[var(--color-stone-100)] p-6">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-3xl font-[var(--font-display)]">
+                  <p className="font-display text-3xl">
                     {customer?.fullName ?? "Customer unavailable"}
                   </p>
                   <p className="mt-1 text-sm text-[var(--color-stone-500)]">
@@ -214,12 +214,10 @@ export default async function AppointmentDetailPage({
           </Card>
 
           <Card className="rounded-[var(--radius-xl)]">
-            <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
               After this visit
             </p>
-            <h2 className="mt-2 text-2xl font-[var(--font-display)]">
-              Preserve continuity.
-            </h2>
+            <h2 className="font-display mt-2 text-2xl">Preserve continuity.</h2>
             <p className="mt-3 text-sm leading-6 text-[var(--color-stone-500)]">
               Complete the status, record the preference in the relationship
               workspace, and start garment intake only when a physical garment

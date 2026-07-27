@@ -1,7 +1,9 @@
 "use server";
 
 import { MessagingRepository } from "@paon/database";
-import { type ConversationIntent, asId } from "@paon/domain";
+import { asId } from "@paon/domain";
+
+import { validateTableServiceInquiry } from "./table-service-validation";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -10,17 +12,6 @@ export interface TableServiceFormState {
   fieldErrors: Record<string, string>;
   formError?: string;
   submitted?: boolean;
-}
-
-const INTENTS: ConversationIntent[] = [
-  "wedding",
-  "shirts",
-  "style_help",
-  "freeform",
-];
-
-function isConversationIntent(value: string): value is ConversationIntent {
-  return (INTENTS as string[]).includes(value);
 }
 
 /**
@@ -35,25 +26,12 @@ export async function submitTableServiceInquiry(
   formData: FormData,
 ): Promise<TableServiceFormState> {
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
-  const fieldErrors: Record<string, string> = {};
 
-  const name = (raw["name"] ?? "").trim();
-  const email = (raw["email"] ?? "").trim();
-  const message = (raw["message"] ?? "").trim();
-  const intentRaw = raw["intent"] ?? "freeform";
-
-  if (!name) fieldErrors["name"] = "Your name is required.";
-  if (!email || !email.includes("@")) {
-    fieldErrors["email"] = "A valid email is required.";
+  const validation = validateTableServiceInquiry({ ...raw, retailerId });
+  if (!validation.ok) {
+    return { values: raw, fieldErrors: validation.fieldErrors };
   }
-  if (!message) fieldErrors["message"] = "Tell us what you're looking for.";
-  if (!isConversationIntent(intentRaw)) {
-    fieldErrors["intent"] = "Unrecognized selection.";
-  }
-
-  if (Object.keys(fieldErrors).length > 0) {
-    return { values: raw, fieldErrors };
-  }
+  const { name, email, message, intent } = validation.value;
 
   const supabase = await getSupabaseServerClient();
   try {
@@ -61,7 +39,7 @@ export async function submitTableServiceInquiry(
       retailerId: asId<"RetailerId">(retailerId),
       name,
       email,
-      intent: intentRaw as ConversationIntent,
+      intent,
       message,
     });
   } catch (error) {

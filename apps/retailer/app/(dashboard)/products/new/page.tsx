@@ -16,7 +16,7 @@ export default async function NewProductPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+        <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
           New product
         </h1>
       </div>

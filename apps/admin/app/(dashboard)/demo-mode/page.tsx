@@ -41,10 +41,10 @@ export default async function DemoModePage() {
     <div className="flex flex-col gap-8">
       <div className="grid gap-6 border-b border-[var(--color-stone-200)] pb-8 lg:grid-cols-[1fr_auto] lg:items-end">
         <div>
-          <p className="text-[8px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+          <p className="font-accent text-[8px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             Showcase environment
           </p>
-          <h1 className="mt-2 text-4xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+          <h1 className="font-display mt-2 text-4xl text-[var(--color-stone-900)]">
             Demo atelier
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
@@ -55,7 +55,7 @@ export default async function DemoModePage() {
           </p>
         </div>
         <div className="rounded-[var(--radius-lg)] bg-[var(--color-stone-900)] px-5 py-4 text-white">
-          <p className="text-[7px] font-[var(--font-accent)] uppercase tracking-[0.16em] text-white/45">
+          <p className="font-accent text-[7px] uppercase tracking-[0.16em] text-white/45">
             Shared demo password
           </p>
           <p className="mt-2 font-mono text-sm">{DEMO_PASSWORD}</p>
@@ -65,7 +65,7 @@ export default async function DemoModePage() {
       <Card className="grid gap-6 shadow-[var(--shadow-elevated)] lg:grid-cols-[1fr_auto] lg:items-center">
         <div>
           <div className="flex items-center gap-3">
-            <p className="text-lg font-[var(--font-display)] text-[var(--color-stone-900)]">
+            <p className="font-display text-lg text-[var(--color-stone-900)]">
               Environment health
             </p>
             <Badge tone={demoUsers.length > 0 ? "success" : "neutral"}>
@@ -114,7 +114,7 @@ export default async function DemoModePage() {
       </Card>
 
       <div>
-        <h2 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+        <h2 className="font-display text-2xl text-[var(--color-stone-900)]">
           Choose a perspective
         </h2>
         <p className="mt-1 text-sm text-[var(--color-stone-500)]">

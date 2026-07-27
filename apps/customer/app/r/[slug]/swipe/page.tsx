@@ -70,10 +70,10 @@ export default async function SwipePage({
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col px-6 py-10">
       <div className="mb-6 text-center">
-        <p className="text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+        <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
           {retailer.displayName}
         </p>
-        <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
           Find your style
         </h1>
         <p className="mt-1 text-sm text-[var(--color-stone-500)]">

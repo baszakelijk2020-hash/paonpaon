@@ -46,3 +46,12 @@ next-env.d.ts
 
 # Vercel
 .vercel
+
+# Agent tooling — machine-local settings, never shared
+.claude/settings.local.json
+
+# Agent scratch — throwaway verification specs must never be committed.
+# Name any temporary Playwright/vitest file with this prefix so it is
+# ignored by construction rather than by remembering to delete it.
+**/_tmp-*.spec.ts
+**/_tmp-*.ts

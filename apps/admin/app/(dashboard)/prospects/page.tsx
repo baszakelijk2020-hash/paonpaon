@@ -36,7 +36,7 @@ export default async function ProspectsPage() {
         </p>
         <div className="mt-5 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-5xl font-[var(--font-display)] leading-none sm:text-7xl">
+            <h1 className="font-display text-5xl leading-none sm:text-7xl">
               Make the next conversation specific.
             </h1>
             <p className="mt-5 max-w-2xl text-sm leading-6 text-white/55">
@@ -66,7 +66,7 @@ export default async function ProspectsPage() {
         ].map(([label, value]) => (
           <div key={label} className="rounded-[1.25rem] border bg-white p-6">
             <p className="text-xs text-stone-500">{label}</p>
-            <p className="mt-3 text-4xl font-[var(--font-display)]">{value}</p>
+            <p className="font-display mt-3 text-4xl">{value}</p>
           </div>
         ))}
       </section>
@@ -77,9 +77,7 @@ export default async function ProspectsPage() {
             <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
               Personalized environments
             </p>
-            <h2 className="mt-2 text-3xl font-[var(--font-display)]">
-              Prospect workbench
-            </h2>
+            <h2 className="font-display mt-2 text-3xl">Prospect workbench</h2>
           </div>
         </div>
         {prospects.length ? (
@@ -95,7 +93,7 @@ export default async function ProspectsPage() {
                     <p className="text-xs text-stone-500">
                       {STAGE_LABELS[prospect.stage]}
                     </p>
-                    <h3 className="mt-2 text-3xl font-[var(--font-display)]">
+                    <h3 className="font-display mt-2 text-3xl">
                       {prospect.companyName}
                     </h3>
                     <p className="mt-2 text-sm text-stone-500">
@@ -116,7 +114,7 @@ export default async function ProspectsPage() {
           </div>
         ) : (
           <div className="rounded-[1.25rem] border border-dashed p-10 text-center">
-            <h3 className="text-3xl font-[var(--font-display)]">
+            <h3 className="font-display text-3xl">
               Start with one deliberately chosen retailer.
             </h3>
             <p className="mx-auto mt-3 max-w-xl text-sm text-stone-500">

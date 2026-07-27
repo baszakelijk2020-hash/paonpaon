@@ -21,7 +21,7 @@ export default async function WorkshopsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-[var(--font-display)]">Workshops</h1>
+        <h1 className="font-display text-2xl">Workshops</h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Create retailer-scoped workshops, then invite workshop managers and
           workers from Staff.

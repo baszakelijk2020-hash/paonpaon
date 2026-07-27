@@ -28,9 +28,7 @@ export default async function BrandSettingsPage() {
         <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
           Retail identity
         </p>
-        <h1 className="mt-2 text-4xl font-[var(--font-display)]">
-          Brand configuration
-        </h1>
+        <h1 className="font-display mt-2 text-4xl">Brand configuration</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500">
           Curated tokens personalize storefront and operating surfaces without
           custom CSS, scripts or duplicated PAON components.
@@ -41,7 +39,7 @@ export default async function BrandSettingsPage() {
         retailerName={retailer.displayName}
       />
       <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
-        <h2 className="text-2xl font-[var(--font-display)]">Version history</h2>
+        <h2 className="font-display text-2xl">Version history</h2>
         {versions.length ? (
           <div className="mt-5 divide-y">
             {versions.map((version) => (

@@ -14,7 +14,7 @@ export default async function NewProspectPage() {
         <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
           Demo Studio
         </p>
-        <h1 className="mt-2 text-5xl font-[var(--font-display)]">
+        <h1 className="font-display mt-2 text-5xl">
           Begin with a commercial point of view.
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-6 text-stone-500">

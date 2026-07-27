@@ -143,7 +143,7 @@ export function SilhouetteCarousel({
           ‹
         </button>
         <div className="w-40 text-center">
-          <p className="text-base font-[var(--font-display)] text-[var(--color-stone-900)]">
+          <p className="font-display text-base text-[var(--color-stone-900)]">
             {current?.name}
           </p>
           <p className="text-xs text-[var(--color-stone-500)]">

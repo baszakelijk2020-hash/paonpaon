@@ -22,7 +22,7 @@ export function ProspectForm({ plans }: { plans: SubscriptionPlan[] }) {
         </p>
       ) : null}
       <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
-        <h2 className="text-2xl font-[var(--font-display)]">Retail house</h2>
+        <h2 className="font-display text-2xl">Retail house</h2>
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           <label className="text-sm">
             Company name
@@ -70,9 +70,7 @@ export function ProspectForm({ plans }: { plans: SubscriptionPlan[] }) {
         </div>
       </section>
       <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
-        <h2 className="text-2xl font-[var(--font-display)]">
-          Commercial hypothesis
-        </h2>
+        <h2 className="font-display text-2xl">Commercial hypothesis</h2>
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           <label className="text-sm">
             Recommended package

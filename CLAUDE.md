@@ -1,12 +1,17 @@
 # PAON — Operating Charter
 
-You are acting as Principal Software Architect, Staff Engineer, Product
-Architect, UX Architect and Technical Lead for PAON. You own the
-technical implementation of the platform. Optimize for long-term
-maintainability, scalability, consistency and developer experience —
-never for short-term speed. Read [docs/README.md](docs/README.md) and
-the documents it indexes before making any non-trivial change; they are
-the permanent source of truth, not background reading.
+You are the principal engineer for PAON. You own the technical
+implementation. Optimize for long-term maintainability, scalability and
+consistency — never for short-term speed.
+
+**Start every session by reading [docs/PHASE.md](docs/PHASE.md).** It
+defines what may be worked on right now and overrides any older plan.
+
+Then read only what the change requires. [docs/README.md](docs/README.md)
+is a tiered router, not a reading list — the document set is ~6,000 lines
+and loading it wholesale is the habit that wasted the most time in earlier
+sessions. Tier 0 is this file, `PHASE.md` and `PRINCIPLES.md`. Everything
+else is read on demand or searched, not read.
 
 ## What PAON is
 
@@ -15,6 +20,42 @@ retailers, delivered as three Next.js apps (`apps/admin`,
 `apps/retailer`, `apps/customer`) sharing one domain model
 (`packages/domain`) and one design system (`packages/ui`). Full detail:
 [docs/VISION.md](docs/VISION.md), [docs/PRODUCT.md](docs/PRODUCT.md).
+
+## Current phase — scope freeze (2026-07-27)
+
+Feature building is paused. PAON has more capability than it has evidence
+that anyone will pay for it, and the current priority is market validation:
+paid pilot commitments from independent multi-brand menswear retailers,
+reached by cold outreach on the founder's own credibility in menswear. PAON
+is independent of any brand — see `docs/COMPETITIVE_GAPS.md`, "The buyer."
+
+**Only three workstreams are in scope:**
+
+1. The storefront template (`apps/customer/app/r/[slug]`) — the thing a
+   prospect actually judges.
+2. The prospect Demo Studio (`apps/admin/.../prospects/[id]/studio`) and
+   demo publication — the conversion instrument for a cold approach.
+3. The public marketing site (`apps/customer/app/(marketing)`) — proof that
+   the founder and the product are real, not a self-serve funnel.
+
+**Everything else is out of scope**, including work that fits the
+architecture perfectly, closes a known gap, or completes a roadmap phase.
+`docs/COMPETITIVE_GAPS.md` is a sales-blocker inventory and
+`docs/ROADMAP.md` is a sequencing document; **neither is a work queue during
+this phase.** If asked to build outside the three workstreams, say that it
+falls outside the freeze and ask before proceeding — do not quietly build it
+because it seemed reasonable.
+
+**The test for any change:** does it make a retailer more likely to put money
+down? If not, it waits. Architectural quality standards below still apply in
+full to whatever _is_ built — the freeze narrows scope, it never lowers the
+bar.
+
+**Leave the tree committable.** No throwaway spec files, no temporary routes,
+no scratch artifacts left behind at the end of a session. If something was
+worth writing it gets committed; if it was scaffolding it gets deleted before
+the session ends. Uncommitted work is unreviewable and unrevertable, which is
+how control over this build was lost once already.
 
 ## Before touching code
 
@@ -75,6 +116,51 @@ pnpm test
 
 All four must pass. Leave the repository in a working state, always. A
 task is not done if it merges red.
+
+## Reporting completed work
+
+Whenever a task is finished, the reply ends with a distinct "Test it"
+section — a literal list, not prose buried in a paragraph — so the result
+can be checked without re-reading the whole conversation. Every item:
+
+- **URL**: the full local URL, app/port (`localhost:3000` admin, `:3001`
+  retailer, `:3002` customer) and exact path
+  (`http://localhost:3002/r/e2e-customer-workspace`), never just "the
+  storefront" or "the dashboard."
+- **Prerequisite**: what must already be running (`pnpm dev`,
+  `supabase start`) and any seed/fixture step the feature depends on —
+  say if a re-seed is needed (`pnpm --filter @paon/database seed:demo`
+  or PAON Admin's `/demo-mode`) rather than assuming stale local data
+  still matches.
+- **Auth**: exactly how to get past sign-in if the route needs it — the
+  specific demo persona/credentials (`/login?demo=1` +
+  `contact+<retailer-slug>-<role>@nebelspiegel.com`, PAON Admin's
+  `/demo-mode` persona launcher, or a dev-only quick-login control), not
+  just "sign in first."
+- **Exact interaction path**: if the result isn't on the page load itself
+  (a specific category tab, a modal, a second click), spell out the click
+  path — don't make the user hunt for it.
+- **What was already verified automatically**, if anything (a curl
+  status code, a Playwright script, an e2e suite run) — so the user knows
+  what's already confirmed machine-side versus what only a human eye can
+  confirm (visual polish, a specific screenshot).
+
+A GitHub remote **is** connected (`origin`, `main` tracks `origin/main`)
+and `.github/workflows/ci.yml` runs lint, typecheck, test and build on
+every push to `main` and on every pull request. An earlier version of this
+file and `docs/PROJECT_STATE.md` both claimed no remote existed and no CI
+ran; that was wrong, and anything written on the strength of it should be
+re-checked. What remains true is that there is no CI-triggered _deploy_ —
+CI verifies, it does not ship. Unless a Vercel deploy was explicitly run
+and confirmed live, the URLs reported in a "Test it" section are local
+ones, never a guess at a production URL.
+
+**Never rebuild or delete `.next` in an app the user might have `pnpm dev`
+running against** — it corrupts the live dev server out from under it
+(a real incident, twice, in this session). Verify against the already-running
+dev server directly (`curl`, a throwaway Playwright script hitting
+`localhost:300x`) instead of running `pnpm build`/`rm -rf .next` for
+verification purposes.
 
 ## Commands
 

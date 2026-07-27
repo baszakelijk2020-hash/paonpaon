@@ -58,10 +58,10 @@ export default async function StorefrontProductsPage({
       ) : null}
       <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="mb-1 text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+          <p className="font-accent mb-1 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
             {retailer.displayName}
           </p>
-          <h1 className="text-4xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+          <h1 className="font-display text-4xl text-[var(--color-stone-900)]">
             Shop
           </h1>
         </div>
@@ -151,7 +151,7 @@ export default async function StorefrontProductsPage({
       )}
 
       <div className="mt-16 border-t border-[var(--color-stone-200)] pt-8">
-        <p className="mb-1 text-lg font-[var(--font-display)] text-[var(--color-stone-900)]">
+        <p className="font-display mb-1 text-lg text-[var(--color-stone-900)]">
           Stay in the know
         </p>
         <p className="mb-3 text-sm text-[var(--color-stone-500)]">

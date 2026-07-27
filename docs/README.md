@@ -1,29 +1,61 @@
 # PAON Documentation
 
-This is the permanent source of truth for PAON. Read in this order for
-full context; each document links forward to the ones that build on it.
+**Do not read this set end to end.** It is roughly 6,000 lines and most of
+it is reference. Reading it all was the old instruction and it wasted a
+great deal of agent time. Read by tier.
 
-1. [NORTH_STAR.md](./NORTH_STAR.md) — the mission, in one sentence
-2. [VISION.md](./VISION.md) — the problem, the market, the time horizon
-3. [PRODUCT.md](./PRODUCT.md) — the three apps and their feature scope
-4. [ARCHITECTURE.md](./ARCHITECTURE.md) — repo shape, layering, tech stack
-5. [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) — entities, relationships, bounded contexts
-6. [DATABASE.md](./DATABASE.md) — schema, RLS, migrations, type generation
-7. [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) — tokens, components, theming
-8. [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md) — interaction principles per app
-9. [API.md](./API.md) — Server Actions, Route Handlers, future public API
-10. [PRINCIPLES.md](./PRINCIPLES.md) — the standing engineering rules
-11. [DECISIONS.md](./DECISIONS.md) — architecture decision log (ADRs)
-12. [NON_GOALS.md](./NON_GOALS.md) — what we deliberately aren't building yet
-13. [ROADMAP.md](./ROADMAP.md) — build order, phase by phase
-14. [PROJECT_STATE.md](./PROJECT_STATE.md) — what's actually built right now, and what's next — read this first when resuming work
-15. [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md) — the commercial/prospect/demo-studio initiative's own checkpoint log (Foundation/Accepted status per route) — real, disciplined, but written outside this index; cross-check against PROJECT_STATE.md's "Shipped: Commercial prospects..." section for what's actually live
-16. [PROPOSAL_GENERATION.md](./PROPOSAL_GENERATION.md) — **caution**: describes a proposal-generation feature whose implementation was broken (failed typecheck, unreferenced anywhere, a colliding duplicate route tree) and was deleted during incident recovery (2026-07-25). Treat as an unbuilt design sketch, not a description of working code, until someone rebuilds it deliberately.
-17. [ACCESS_MODEL.md](./ACCESS_MODEL.md) — who can see and change what: the retailer role hierarchy, platform roles, the four visibility tiers (public/customer/staff/platform), and where RLS was spot-checked for drift
+## Tier 0 — every session, always (~250 lines)
 
-The root [CLAUDE.md](../CLAUDE.md) is the operating charter for AI-assisted
-work in this repository and points back into this set.
+| Document                         | What it gives you                                 |
+| -------------------------------- | ------------------------------------------------- |
+| [PHASE.md](./PHASE.md)           | What you are allowed to work on right now         |
+| [../CLAUDE.md](../CLAUDE.md)     | Operating charter, hard rules, definition of done |
+| [PRINCIPLES.md](./PRINCIPLES.md) | The standing engineering rules                    |
 
-If a future change conflicts with something written here, the
-architecture wins — update these documents deliberately, as a decision
-([DECISIONS.md](./DECISIONS.md)), not as a side effect of a feature PR.
+If Tier 0 answers your question, stop there and start work.
+
+## Tier 1 — read the one that covers what you are touching
+
+| Touching...                     | Read                                   |
+| ------------------------------- | -------------------------------------- |
+| Entities, business logic        | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)   |
+| Repo shape, layering, rendering | [ARCHITECTURE.md](./ARCHITECTURE.md)   |
+| Schema, RLS, migrations         | [DATABASE.md](./DATABASE.md)           |
+| Components, tokens, theming     | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) |
+| Interaction, layout, mobile     | [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md) |
+| Server Actions, Route Handlers  | [API.md](./API.md)                     |
+| Roles, permissions, visibility  | [ACCESS_MODEL.md](./ACCESS_MODEL.md)   |
+| Product surface, app boundaries | [PRODUCT.md](./PRODUCT.md)             |
+
+## Tier 2 — reference. Search, never read whole.
+
+These are long append-only logs and inventories. Grep them for the specific
+thing you need; do not load them into context wholesale.
+
+| Document                                                | Use it to find                                                  |
+| ------------------------------------------------------- | --------------------------------------------------------------- |
+| [DECISIONS.md](./DECISIONS.md) (~2,200 lines)           | Why something is the way it is. Search by ADR number or keyword |
+| [PROJECT_STATE.md](./PROJECT_STATE.md) (~1,700)         | Whether a given feature is actually built                       |
+| [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md) (~700) | Per-route acceptance status for the rebuild                     |
+| [ROADMAP.md](./ROADMAP.md)                              | Sequencing intent. **Not a work queue** — see PHASE.md          |
+| [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)            | What blocks a sale. **Not a work queue** — see PHASE.md         |
+| [NON_GOALS.md](./NON_GOALS.md)                          | What is deliberately not being built yet                        |
+
+## Why PAON exists
+
+[NORTH_STAR.md](./NORTH_STAR.md) and [VISION.md](./VISION.md). Read once,
+for orientation. Neither authorizes work — PHASE.md does that.
+
+## Rules for this document set
+
+1. **The code wins.** If a document and the code disagree, the code is
+   correct and the document is stale. Fix the document.
+2. **DECISIONS.md is append-only.** Never edit or delete a past ADR to
+   reflect a later change; add a new entry that supersedes it.
+3. **Do not write a document describing code that does not exist.** This has
+   happened twice (`PROPOSAL_GENERATION.md`, `SUMMARY.md`, both archived) and
+   both times a later session trusted the document and built on a lie. If you
+   are documenting a design rather than an implementation, say so in the
+   first line.
+4. **Do not add a document without adding it here, in a tier.** An unindexed
+   document is one nobody reads and everybody eventually contradicts.

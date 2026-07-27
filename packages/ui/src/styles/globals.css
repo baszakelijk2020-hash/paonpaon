@@ -13,21 +13,25 @@
 /**
  * PAON design tokens, aligned to the paon.html reference design
  * (nebelspiegel.com) per the founder's explicit direction — same
- * typefaces (served from the founder's own nebelspiegel.com/fonts/
- * host, the live source those files already exist at), same warm
- * near-white/near-black palette, same generous corner radii and soft
- * elevated shadow. See /docs/DESIGN_SYSTEM.md for rationale and
- * docs/DECISIONS.md ADR-035.
+ * typefaces, same warm near-white/near-black palette, same generous
+ * corner radii and soft elevated shadow. See /docs/DESIGN_SYSTEM.md for
+ * rationale and docs/DECISIONS.md ADR-035.
+ *
+ * Font `src` is same-origin (`/fonts/<file>`), not the raw
+ * nebelspiegel.com URL: that host sends no
+ * `Access-Control-Allow-Origin`, so @font-face — a genuine CORS-gated
+ * fetch — silently fails cross-origin on every app (confirmed on
+ * production too). Each app proxies same-origin via its own
+ * `app/fonts/[filename]/route.ts`.
  */
 @font-face {
   font-family: "OptimaKlein";
-  src: url("https://www.nebelspiegel.com/fonts/optimaklein.woff2")
-    format("woff2");
+  src: url("/fonts/optimaklein.woff2") format("woff2");
   font-display: swap;
 }
 @font-face {
   font-family: "GTBold3";
-  src: url("https://www.nebelspiegel.com/fonts/gtbold3.woff2") format("woff2");
+  src: url("/fonts/gtbold3.woff2") format("woff2");
   font-display: swap;
 }
 

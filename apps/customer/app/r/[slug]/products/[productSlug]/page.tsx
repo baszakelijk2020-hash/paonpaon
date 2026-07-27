@@ -112,11 +112,11 @@ export default async function StorefrontProductPage({
 
         <div>
           {product.isMadeToOrder ? (
-            <p className="mb-2 text-xs font-[var(--font-accent)] font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+            <p className="font-accent mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
               Made to order
             </p>
           ) : null}
-          <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+          <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
             {product.name}
           </h1>
           {priceLabel ? (

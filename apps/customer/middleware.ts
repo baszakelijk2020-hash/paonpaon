@@ -13,11 +13,30 @@ const PUBLIC_PATHS = [
   "/pilot",
   "/discover",
   "/demo",
+  // Same-origin proxy for paon-template.html's @font-face URLs — the
+  // founder's own domain sends no CORS header, so every page that embeds
+  // this template (signed in or not) needs this reachable unauthenticated.
+  "/fonts",
 ];
 // Storefront browsing (docs/DECISIONS.md ADR-014) — never gated behind
 // a session, and never signs an unrelated session out just for
 // visiting it (unlike the protected paths below).
 const STOREFRONT_PATH_PREFIX = "/r/";
+
+/**
+ * `NextResponse.redirect(...)` builds a brand-new response object, so
+ * any cookies Supabase just refreshed (or cleared on sign-out) on
+ * `response` during this request would otherwise be silently dropped
+ * on every redirect — a known Supabase SSR pitfall. The browser keeps
+ * the stale cookie, which Safari treats as invalid far more readily
+ * than Chrome, producing an intermittent redirect loop that is nearly
+ * impossible to reproduce outside Safari.
+ */
+function redirectWithCookies(url: URL, from: NextResponse): NextResponse {
+  const to = NextResponse.redirect(url);
+  from.cookies.getAll().forEach((cookie) => to.cookies.set(cookie));
+  return to;
+}
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -66,7 +85,7 @@ export async function middleware(request: NextRequest) {
     }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirectTo", pathname);
-    return NextResponse.redirect(loginUrl);
+    return redirectWithCookies(loginUrl, response);
   }
 
   const session = resolveAppSession(data.user);
@@ -75,11 +94,11 @@ export async function middleware(request: NextRequest) {
     await supabase.auth.signOut();
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("error", "not_a_customer_account");
-    return NextResponse.redirect(loginUrl);
+    return redirectWithCookies(loginUrl, response);
   }
 
   if (pathname.startsWith("/login")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return redirectWithCookies(new URL("/dashboard", request.url), response);
   }
 
   return response;

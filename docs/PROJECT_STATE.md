@@ -1351,21 +1351,103 @@ pnpm build` per affected app; root `pnpm test` (unit suites, all
   verification for Mission Control/AM House Party/Morning Routine — only
   the paon.html storefront swap was checked against a screenshot of the
   founder's actual file.
-- **Not yet started**: a separate consumer-facing landing page with a
-  background video hero and AM-House-Party-styled glassmorphic buttons —
-  explicitly requested by the founder as distinct from the AM House Party
-  wedding-coordination screen above ("the same for the lander for
-  consumers with the bg video and buttons like am house on it"). Also
-  unconfirmed: whether "ALL THE OTHER TOOLS" the founder referenced
+- Commits: `22f3308` (storefront home page rebuild, since superseded by
+  the Route Handler swap below it in the same session), `7b53830`
+  (paon.html verbatim + Mission Control), `d0e4efc` (AM House Party +
+  Morning Routine).
+- Still unconfirmed: whether "ALL THE OTHER TOOLS" the founder referenced
   includes anything beyond these three, or is satisfied by round 2's
   already-shipped Phase 2 (staff chat attachments) / Phase 3 (fit-tool
   widgets) — those were not touched this session and are believed still
   current, but haven't been re-screenshotted against pag1.html under this
   same "exact, not interpreted" standard.
-- Commits: `22f3308` (storefront home page rebuild, since superseded by
-  the Route Handler swap below it in the same session), `7b53830`
-  (paon.html verbatim + Mission Control), `d0e4efc` (AM House Party +
-  Morning Routine).
+
+### Shipped: paon-template.html layout bug fix, e2e recovery, and the consumer lander (2026-07-26, session 3)
+
+Full reasoning in `docs/DECISIONS.md` ADR-047.
+
+- **A real layout bug in `paon-template.html` was found and fixed, not just
+  tested around.** Unstyled, unwired hamburger-menu placeholder markup
+  (`#paon-mobile-menu-dim`/`#paon-mobile-menu-drawer` — no CSS, no JS
+  anywhere in the file) was stealing the middle grid column from `#main` on
+  every viewport, collapsing the real storefront content. Confirmed with the
+  founder before patching the founder's own file (an explicit exception under
+  ADR-046): the two elements now get `position: fixed` so they stop
+  participating in `.layout`'s CSS Grid, and `#main` gained its own explicit
+  `grid-column: 2` (it previously only landed correctly by accident of
+  sibling order, which broke as soon as `aside` is `display:none` — every
+  phone). Verified via direct `getBoundingClientRect()` probes at 390px and
+  1280px, not just re-running assertions that couldn't tell the difference.
+- **`apps/customer/e2e/landing-page.spec.ts` rewritten** — it still targeted
+  the deleted Phase 5 React port (top nav/bottom dock/slide-out menu). It now
+  drives the real verbatim template: opens a product via
+  `.grid-card[data-product-id]`, asserts `#view-detail.visible`, and
+  exercises "Add to Bag" for both signed-out (→ `/login?redirectTo=...`) and
+  signed-in (→ real cart line, lands on `/r/[slug]/cart`) shoppers.
+- **`apps/retailer/e2e/demo-personas.spec.ts` fixed** — an unrelated
+  collision from the Mission Control header's new "Daily briefing · N" pill,
+  whose accessible name also starts with "Daily brief" and made the existing
+  page-wide nav assertion ambiguous. Scoped to the sidebar's own
+  `getByRole("navigation", {name: "Primary"})`.
+- **The founder-requested consumer lander is `apps/customer/app/login/page.tsx`**
+  — not a new orphan route. It's the actual front door every real shopper
+  hits (Customer Portal's only other public page is B2B platform marketing
+  aimed at prospective retailers, not shoppers), and the previous shared
+  `AuthShell` hid its hero entirely on mobile. Now a full-bleed video hero
+  (`munross2026.mp4`, generic apparel content, not the wedding-specific
+  `wed2027.mp4`) with `AmHouseHero`'s exact glass treatment
+  (`bg-white/10 backdrop-blur-2xl`), wrapping the **unmodified**
+  `MagicLinkForm`/`DemoLoginForm`/`QuickDemoLogin` in a solid card rather than
+  inventing an inverted-on-dark variant of `@paon/ui`'s `Input`/`Label`/
+  `Button` for one call site. Retailer and Admin logins are untouched (staff
+  auth, still on the shared `AuthShell`).
+- **Verified**: all 60 e2e tests pass across the three apps (24 customer, 27
+  retailer, 9 admin); `pnpm lint`/`typecheck`/`build`/`test` clean across
+  every package with caches forced off. Not yet done: a screenshot pass
+  against the founder's own device/browser (only this session's own
+  Playwright screenshots were checked).
+
+### Shipped: complete paon.html re-sync and the real TableService widget (2026-07-26, session 4)
+
+Full reasoning in `docs/DECISIONS.md` ADR-048.
+
+- The stored `paon-template.html` was an **older, incomplete** snapshot of
+  the founder's file (4,359 lines vs the real 15,982) — this is what "70%"
+  meant. Replaced wholesale with the founder's current, complete file;
+  re-applied the same minimal product-data/cart-add hooks as ADR-046/047.
+  His `categories` filter taxonomy is his own fixed design, left untouched;
+  `route.ts` now classifies real products into it by keyword match, and
+  the founder's own later mobile-menu CSS fix (missing from the old
+  incomplete copy) made ADR-047's manual patch redundant, so it was
+  removed. Maison Dubois's demo catalog grew from 6 products to 15 (real
+  image assets already in the founder's file) so category views aren't
+  one-item-sparse.
+- **TableService** (`table-service-widget.tsx`) is now a byte-for-byte
+  port of pag1.html's real `#gilda-chat-widget` — quick-intent image
+  picker, WhatsApp-style `#dcf8c6` bubbles, paperclip/attach panel —
+  wired to the already-shipped anonymous `submitTableServiceInquiry`
+  Server Action. Verified end to end: a real `messages` row was confirmed
+  directly against the local database after a full picker → name → email
+  → message → submit run.
+- **Still open, same rigor owed**: Voice Command's fit-tool slider, the
+  Tinder-style swipe deck, Self-Portrait, and both apps' messaging UI are
+  confirmed generic `@paon/ui` builds with no relationship to pag1.html's
+  actual CSS — not yet ported. No e2e coverage yet for the TableService
+  widget either.
+- **Fonts were silently falling back the whole time.** `paon-template.html`'s
+  `@font-face` rules pointed straight at `www.nebelspiegel.com/fonts/*` —
+  no CORS header on that domain, so every browser on any other origin
+  (localhost, Vercel) silently dropped the founder's actual typefaces and
+  rendered in a generic system font. A same-origin proxy already existed
+  for exactly this (`apps/customer/app/fonts/[filename]/route.ts`) but the
+  wholesale file re-sync above had reverted the template back to the
+  direct (broken) URLs. Re-pointed at the proxy.
+- **`products.swatch_image_url` is a real new column** (ADR-049) —
+  `Product` had only one image field, so the storefront's fabric-swatch
+  detail section was silently showing the same main photo twice. All 21
+  demo products now carry the founder's own real, looked-up-not-guessed
+  swatch companion image, verified live. Not yet wired into the manager
+  product-edit UI — read path only, a disclosed follow-up.
 
 ### Shipped: Commercial prospects, Demo Studio, retailer brand themes
 

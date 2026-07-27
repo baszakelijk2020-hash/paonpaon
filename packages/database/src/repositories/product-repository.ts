@@ -41,6 +41,7 @@ function toDomain(row: ProductRow, collectionIds: CollectionId[]): Product {
     ...(row.primary_image_url
       ? { primaryImageUrl: row.primary_image_url }
       : {}),
+    ...(row.swatch_image_url ? { swatchImageUrl: row.swatch_image_url } : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,

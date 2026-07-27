@@ -1,5 +1,6 @@
 import {
   AIGenerationRepository,
+  AlterationRepository,
   AnalyticsRepository,
   AppointmentRepository,
   ClientelingRepository,
@@ -16,6 +17,7 @@ import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AlterationStatusBadge } from "../../alterations/status-badge";
 import { startConversation } from "../../messages/actions";
 import { LifecycleBadge } from "../lifecycle-badge";
 
@@ -61,6 +63,7 @@ export default async function CustomerDetailPage({
     aiHistory,
     loyaltyAccount,
     recentEvents,
+    alterations,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -72,7 +75,30 @@ export default async function CustomerDetailPage({
       session.retailerId,
       customer.id,
     ),
+    new AlterationRepository(supabase).findByCustomer(customer.id),
   ]);
+  const garmentById = new Map(garments.map((garment) => [garment.id, garment]));
+
+  /** Fit-tool values (Neiging, Kraag, Schouder R/L, etc.) are captured
+   * per garment during intake/alteration, not as customer-level
+   * constants — see the empty-state copy below. Surfacing them here,
+   * against the exact garment (and its `categoryCode`, e.g. jacket vs
+   * suit) they were recorded for, is what actually "links the values to
+   * the customer card" without conflating a fitting note from one
+   * jacket with a different garment's fit. */
+  const garmentObservations = await Promise.all(
+    garments.map((garment) =>
+      new PhysicalGarmentRepository(supabase).findObservationsByGarment(
+        garment.id,
+      ),
+    ),
+  );
+  const observationsByGarmentId = new Map(
+    garments.map((garment, index) => [
+      garment.id,
+      garmentObservations[index] ?? [],
+    ]),
+  );
   const canManage = retailerRoleAtLeast(
     session.retailerRole,
     "sales_associate",
@@ -111,17 +137,17 @@ export default async function CustomerDetailPage({
         />
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <div className="flex items-start gap-5">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-2xl font-[var(--font-display)] sm:h-20 sm:w-20">
+            <div className="font-display flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-2xl sm:h-20 sm:w-20">
               {initials || "P"}
             </div>
             <div>
               <div className="mb-3 flex flex-wrap items-center gap-3">
-                <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.2em] text-white/60">
+                <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-white/60">
                   Relationship workspace
                 </p>
                 <LifecycleBadge stage={customer.lifecycleStage} />
               </div>
-              <h1 className="text-5xl font-[var(--font-display)] leading-none sm:text-6xl">
+              <h1 className="font-display text-5xl leading-none sm:text-6xl">
                 {customer.fullName}
               </h1>
               <p className="mt-4 text-sm text-white/65">
@@ -198,12 +224,12 @@ export default async function CustomerDetailPage({
 
       <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         <Card className="rounded-[var(--radius-xl)] border-l-4 border-l-[var(--color-stone-900)]">
-          <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+          <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             Next best moment
           </p>
           {nextAppointment ? (
             <>
-              <h2 className="mt-3 text-3xl font-[var(--font-display)] capitalize">
+              <h2 className="font-display mt-3 text-3xl capitalize">
                 Prepare the {nextAppointment.type.replaceAll("_", " ")}
               </h2>
               <p className="mt-2 text-sm text-[var(--color-stone-500)]">
@@ -222,7 +248,7 @@ export default async function CustomerDetailPage({
             </>
           ) : (
             <>
-              <h2 className="mt-3 text-3xl font-[var(--font-display)]">
+              <h2 className="font-display mt-3 text-3xl">
                 Create the next reason to return.
               </h2>
               <p className="mt-2 text-sm leading-6 text-[var(--color-stone-500)]">
@@ -233,7 +259,7 @@ export default async function CustomerDetailPage({
           )}
         </Card>
         <Card className="rounded-[var(--radius-xl)]">
-          <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+          <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             Relationship provenance
           </p>
           <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
@@ -408,6 +434,46 @@ export default async function CustomerDetailPage({
 
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
+          Alterations
+        </h2>
+        {alterations.length === 0 ? (
+          <p className="mb-4 text-sm text-[var(--color-stone-500)]">
+            No alteration work orders yet.
+          </p>
+        ) : (
+          <Card className="mb-4 divide-y divide-[var(--color-stone-100)] p-0">
+            {alterations.map((alteration) => {
+              const garment = garmentById.get(alteration.physicalGarmentId);
+              return (
+                <Link
+                  key={alteration.id}
+                  href={`/alterations/${alteration.id}`}
+                  className="flex items-center justify-between gap-3 px-6 py-4 hover:bg-[var(--color-stone-50)]"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                      {alteration.workOrderNumber} ·{" "}
+                      {garment
+                        ? `${garment.brand ? `${garment.brand} ` : ""}${garment.garmentType}`
+                        : "Garment"}
+                    </p>
+                    <p className="text-xs text-[var(--color-stone-500)]">
+                      {formatDate(alteration.createdAt, "en-US")}
+                      {alteration.dueDate
+                        ? ` · Due ${formatDate(alteration.dueDate, "en-US")}`
+                        : ""}
+                    </p>
+                  </div>
+                  <AlterationStatusBadge status={alteration.status} />
+                </Link>
+              );
+            })}
+          </Card>
+        )}
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
           Garments & fitting history
         </h2>
         {garments.length === 0 ? (
@@ -418,21 +484,40 @@ export default async function CustomerDetailPage({
           </p>
         ) : (
           <Card className="mb-4 divide-y divide-[var(--color-stone-100)] p-0">
-            {garments.map((garment) => (
-              <div key={garment.id} className="px-6 py-4">
-                <p className="text-xs text-[var(--color-stone-500)]">
-                  {formatDate(garment.createdAt, "en-US")} ·{" "}
-                  {garment.categoryCode}
-                </p>
-                <p className="text-sm font-medium text-[var(--color-stone-900)]">
-                  {garment.brand ? `${garment.brand} ` : ""}
-                  {garment.garmentType}
-                </p>
-                <p className="text-sm text-[var(--color-stone-700)]">
-                  {garment.description}
-                </p>
-              </div>
-            ))}
+            {garments.map((garment) => {
+              const observations =
+                observationsByGarmentId.get(garment.id) ?? [];
+              return (
+                <div key={garment.id} className="px-6 py-4">
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    {formatDate(garment.createdAt, "en-US")} ·{" "}
+                    {garment.categoryCode}
+                  </p>
+                  <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                    {garment.brand ? `${garment.brand} ` : ""}
+                    {garment.garmentType}
+                  </p>
+                  <p className="text-sm text-[var(--color-stone-700)]">
+                    {garment.description}
+                  </p>
+                  {observations.length > 0 ? (
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t border-[var(--color-stone-100)] pt-2">
+                      {observations.map((observation) => (
+                        <p
+                          key={observation.id}
+                          className="text-xs text-[var(--color-stone-600)]"
+                        >
+                          <span className="font-medium">
+                            {observation.area}
+                          </span>{" "}
+                          {observation.observation}
+                        </p>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </Card>
         )}
       </div>

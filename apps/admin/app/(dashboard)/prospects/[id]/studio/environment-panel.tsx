@@ -44,7 +44,7 @@ export function EnvironmentPanel({
           <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
             04 · Isolated environment
           </p>
-          <h2 className="mt-2 text-3xl font-[var(--font-display)]">
+          <h2 className="font-display mt-2 text-3xl">
             Generate, review, then publish.
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500">
@@ -155,7 +155,7 @@ export function EnvironmentPanel({
                 <p className="text-xs uppercase tracking-[0.2em] text-white/45">
                   What needs attention now
                 </p>
-                <h3 className="mt-4 text-4xl font-[var(--font-display)] leading-none">
+                <h3 className="font-display mt-4 text-4xl leading-none">
                   {persona?.attention}
                 </h3>
                 <button className="mt-7 min-h-11 rounded-md bg-white px-4 text-sm text-black">
@@ -194,7 +194,7 @@ export function EnvironmentPanel({
         </div>
       ) : (
         <div className="mt-8 rounded-xl border border-dashed p-8 text-center">
-          <p className="text-2xl font-[var(--font-display)]">
+          <p className="font-display text-2xl">
             No synthetic environment exists.
           </p>
           <p className="mt-2 text-sm text-stone-500">

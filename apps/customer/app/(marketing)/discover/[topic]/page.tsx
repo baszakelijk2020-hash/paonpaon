@@ -143,7 +143,7 @@ export default async function DiscoverPage({
           <p className="text-[10px] uppercase tracking-[0.24em] text-white/55">
             {content.eyebrow}
           </p>
-          <h1 className="mt-6 max-w-5xl text-6xl font-[var(--font-display)] leading-[0.9] sm:text-8xl">
+          <h1 className="font-display mt-6 max-w-5xl text-6xl leading-[0.9] sm:text-8xl">
             {content.title}
           </h1>
         </div>
@@ -162,7 +162,7 @@ export default async function DiscoverPage({
                 <span className="font-mono text-xs text-black/35">
                   0{index + 1}
                 </span>
-                <h2 className="text-2xl font-[var(--font-display)]">{label}</h2>
+                <h2 className="font-display text-2xl">{label}</h2>
                 <p className="text-sm leading-6 text-black/50">{detail}</p>
               </div>
             ))}
@@ -171,7 +171,7 @@ export default async function DiscoverPage({
       </section>
       <section className="bg-[#1a1a1a] px-5 py-24 text-white sm:px-8">
         <div className="mx-auto flex max-w-[92rem] flex-col justify-between gap-8 lg:flex-row lg:items-end">
-          <h2 className="max-w-3xl text-5xl font-[var(--font-display)] leading-none sm:text-7xl">
+          <h2 className="font-display max-w-3xl text-5xl leading-none sm:text-7xl">
             See this through your retailer’s eyes.
           </h2>
           <div className="flex flex-wrap gap-5 text-sm">

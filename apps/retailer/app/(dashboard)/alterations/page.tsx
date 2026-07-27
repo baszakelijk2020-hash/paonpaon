@@ -85,12 +85,12 @@ export default async function AlterationsPage() {
           aria-hidden="true"
           className="absolute inset-y-0 right-0 -z-10 w-1/2 bg-[repeating-linear-gradient(135deg,transparent,transparent_18px,rgba(255,255,255,0.035)_18px,rgba(255,255,255,0.035)_19px)]"
         />
-        <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-white/60">
+        <p className="font-accent text-[11px] uppercase tracking-[0.22em] text-white/60">
           {isWorkshopPersona ? "Workshop floor" : "Fitting to finish"}
         </p>
         <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <h1 className="text-5xl font-[var(--font-display)] leading-none sm:text-6xl">
+            <h1 className="font-display text-5xl leading-none sm:text-6xl">
               {session.retailerRole === "worker"
                 ? "Your workbench."
                 : session.retailerRole === "workshop_manager"
@@ -144,9 +144,7 @@ export default async function AlterationsPage() {
             key={metric.label}
             className="border-r border-[var(--color-stone-200)] p-5 last:border-r-0 sm:p-6"
           >
-            <p className="text-4xl font-[var(--font-display)]">
-              {metric.value}
-            </p>
+            <p className="font-display text-4xl">{metric.value}</p>
             <p className="mt-1 text-xs text-[var(--color-stone-500)]">
               {metric.label}
             </p>
@@ -157,12 +155,10 @@ export default async function AlterationsPage() {
       <section>
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
+            <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
               {isWorkshopPersona ? "Priority queue" : "Garment journeys"}
             </p>
-            <h2 className="text-4xl font-[var(--font-display)]">
-              What moves next
-            </h2>
+            <h2 className="font-display text-4xl">What moves next</h2>
           </div>
           <p className="text-sm text-[var(--color-stone-500)]">
             {alterations.length} total
@@ -171,9 +167,7 @@ export default async function AlterationsPage() {
 
         {alterations.length === 0 ? (
           <Card className="border-dashed py-14 text-center">
-            <p className="text-3xl font-[var(--font-display)]">
-              The workbench is clear.
-            </p>
+            <p className="font-display text-3xl">The workbench is clear.</p>
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--color-stone-500)]">
               {session.retailerRole === "worker"
                 ? "When a workshop manager assigns approved work to you, the garment and its instructions will appear here."
@@ -211,7 +205,7 @@ export default async function AlterationsPage() {
                     <div className="grid items-center gap-5 p-5 sm:grid-cols-[minmax(0,1.2fr)_minmax(180px,0.7fr)_auto] sm:p-6">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-2xl font-[var(--font-display)]">
+                          <p className="font-display text-2xl">
                             {customerName}
                           </p>
                           {isDueSoon(alteration.dueDate) ? (

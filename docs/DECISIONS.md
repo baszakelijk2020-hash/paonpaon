@@ -1897,3 +1897,309 @@ marketing entry point reusing the same video-hero/glass-button visual
 language). See `docs/PROJECT_STATE.md`'s "paon.html verbatim + Mission
 Control/AM House Party/Morning Routine" entry for the fuller status and
 what's still open.
+
+## ADR-047: a real layout bug in `paon-template.html` was patched directly, and the founder-requested consumer lander was built as Customer Portal's own `/login`
+
+**Context.** Closing out ADR-046's two open items surfaced a genuine defect,
+not a styling question. `paon-template.html` contains `#paon-mobile-menu-dim`
+and `#paon-mobile-menu-drawer` — markup for a phone hamburger-menu overlay
+with **zero** CSS anywhere in the 4,342-line file and **zero** JavaScript
+(`window.paonOpenMenu`/`paonCloseMenu` are referenced by `onclick` but never
+defined). Being unstyled, plain `<div>`s, they behaved as ordinary items in
+`.layout`'s CSS Grid and stole the middle (`1fr`) track from `#main` — on
+**every** viewport, desktop included, collapsing the real storefront content
+into a 0-width or wrong-position box. It was invisible to a quick look
+because deeply-nested absolutely-positioned children still painted outside
+their collapsed container, and it was invisible to the existing e2e suite
+because those tests only asserted `toBeVisible()`/text content, never actual
+box dimensions.
+
+**Decision.** Patched `paon-template.html` directly — the one class of change
+ADR-046 reserves for "editing the founder's own file directly": (1)
+`position: fixed` on the two unstyled menu placeholders so they stop
+participating in grid layout at all (they remain exactly as inert/invisible
+as before — no menu was ever functional, so nothing about the visible product
+changes); (2) an explicit `.layout main { grid-column: 2; }` rule, because
+`#main` was never given its own column assignment and only ever landed in the
+right place by the accident of being the Nth sibling after `aside` — which
+breaks the moment `aside` is `display:none` (every viewport ≤ 850px, i.e.
+every phone), independent of the menu-placeholder bug. Confirmed via a direct
+Playwright `getBoundingClientRect()` probe at both 390px and 1280px before and
+after, not just re-running the existing assertions. Checked with the founder
+before patching, given ADR-046's explicit "never edit this file" instruction;
+confirmed the menu scaffold has no current visible or functional presence, so
+fixing it changes nothing a real visitor could already see.
+
+Also rewrote `apps/customer/e2e/landing-page.spec.ts` entirely — it still
+exercised the deleted Phase 5 React port (top nav, bottom dock, slide-out
+menu `getByRole("button", {name: "Menu"})`), none of which exists in the
+verbatim template. It now drives the real template: opens a product via
+`.grid-card[data-product-id]`, asserts `#view-detail.visible`, and exercises
+"Add to Bag" end to end (signed-out → `/login?redirectTo=...`; signed-in →
+real `addToCart` line, landing on `/r/[slug]/cart`). The test product
+belongs to `collections.spec.ts`'s "E2E Capsule" collection, which is never
+the grid's default active category, so desktop tests switch to it via the
+sidebar's `.cat-grid` category chip first; mobile hides that chip entirely
+(the category rail lives in the `<aside>` `.cat-grid`, which mobile's own
+`@media (max-width: 850px)` rule hides in favor of a separate `#filter-panel`
+flow) so the mobile test checks the grid's default-category product instead
+of switching category — the mobile filter-panel flow itself is not exercised.
+Separately, `apps/retailer/e2e/demo-personas.spec.ts` broke for an unrelated
+reason: the Mission Control header's new "Daily briefing · N" pill
+(`href="#attention"`) starts with the same text as the sidebar's existing
+"Daily brief" nav link, so a page-wide `getByRole("link", {name:
+/^Daily brief/})` became ambiguous. Scoped those assertions to
+`getByRole("navigation", {name: "Primary"})` instead of touching either
+label.
+
+The founder-requested consumer lander ("the same for the lander for
+consumers with the bg video and buttons like am house on it") is now
+`apps/customer/app/login/page.tsx` — deliberately not a new orphan route.
+Customer Portal's only other public page is `(marketing)/page.tsx`, which is
+platform-facing B2B copy aimed at prospective retailers ("PAON gives premium
+retailers…", pricing plans, "Book a retailer consultation") — not a page a
+shopper ever lands on. `/login` is the actual front door every real customer
+hits, and on mobile the previous shared `AuthShell` component hid its image
+hero entirely (`hidden lg:block`), leaving phones with a bare form and no
+hero at all. The new page keeps `AmHouseHero`'s exact visual grammar — a
+full-bleed autoplay/muted/loop video (`nebelspiegel.com/images/munross2026.mp4`,
+the "Spring—Summer Tailoring" clip already present in `pag1.html`, generic
+apparel content rather than the wedding-specific `wed2027.mp4`), a
+translucent `bg-white/10 backdrop-blur-2xl` glass eyebrow badge and outer
+card — but the actual sign-in form (`MagicLinkForm`/`DemoLoginForm`/
+`QuickDemoLogin`) is unchanged and sits in a solid `bg-[var(--color-stone-50)]`
+inner card, not directly on the glass. `@paon/ui`'s `Input`/`Label`/`Button`
+have no inverted-on-dark variant, and adding one for a single call site would
+be exactly the kind of speculative abstraction `docs/PRINCIPLES.md` rules
+out — wrapping the unmodified, already-accessible form in a solid card gets
+the video-hero/glass treatment the founder asked for without touching a
+shared component or its contrast guarantees. `apps/retailer` and
+`apps/admin` logins are untouched; both remain on the shared `AuthShell`
+(staff auth, a different audience with no such request).
+
+**Consequences.** All 60 e2e tests across the three apps pass (24 customer,
+27 retailer, 9 admin), plus `pnpm lint`/`typecheck`/`build`/`test` clean
+across every package, run with caches forced off to confirm nothing was
+stale. Not yet done: a live-browser screenshot pass against the founder's
+own device (only this session's own Playwright screenshots were checked);
+whether "ALL THE OTHER TOOLS" the founder referenced covers anything beyond
+the items ADR-046 already named remains unconfirmed.
+
+## ADR-048: `paon-template.html` re-synced to the founder's complete file; `#gilda-chat-widget` ("TableService") ported byte-for-byte
+
+**Context.** ADR-046/047's "byte-for-byte" claim turned out to be only
+partially true: `paon-template.html` (4,359 lines) was a stored copy of an
+_older, incomplete_ snapshot of the founder's actual `paon.html`
+(15,982 lines, 600,652 bytes vs the stored 140,076). Entire later sections
+— the home masonry feed, the founder's own mobile-menu CSS fix, the grid's
+fixed 10-category taxonomy (Suits/Jackets/Pants/Knits/Shoes/Shirts/
+Outerwear/Evening/Wedding), dozens of the founder's own iterative "final"
+CSS/JS patches — never made it into the repo. This is what the founder
+meant by "this is 70%."
+
+**Decision.** Replaced `paon-template.html` wholesale with the founder's
+complete current file, re-applying only the same class of minimal
+data-wiring hooks as ADR-046/047 (never new visual markup):
+
+- `const products = __PAON_PRODUCTS_JSON__;` at the real array's exact
+  bounds (previously lines 3973–4464 in the source).
+- `const categories = [...]` is the founder's own fixed taxonomy —
+  **not** templated, left exactly as written. Its `getCat()` bucketing
+  was keyed to the founder's own sample data's id-naming scheme (numeric
+  ids, `broek*`/`schoen*` prefixes), which real slug-based products never
+  match; `route.ts`'s `canonicalCategoryFor()` classifies each real
+  product into that exact taxonomy by keyword match against its
+  name/collection, and a one-line addition to `getCat()` trusts an exact
+  canonical match before falling back to the founder's own heuristic. The
+  default active category is now whichever bucket has the most products,
+  not just the first one, so the initial view isn't gratuitously sparse.
+- The `openModal()` hook and trailing wiring `<script>` are unchanged in
+  shape from ADR-046 — re-applied to the new file since it's a wholesale
+  replacement, not a patch.
+- The old file's missing `#paon-mobile-menu-final` style/script (the
+  founder's own later fix for the mobile-menu grid bug ADR-047 patched
+  independently) is now present natively; ADR-047's manual patch was
+  redundant against the complete file and was dropped.
+- Maison Dubois's demo catalog grew from 6 products (one per taxonomy
+  bucket, so every category view showed exactly one item) to 15, using
+  real image assets already present in the founder's own file
+  (`broeken-webp/broek2.webp`, `trui1_converted.webp`,
+  `schoen02_converted.webp`, etc.) — a content-depth fix, not a code fix;
+  the taxonomy-matching code was already correct, the seed just didn't
+  have enough products per bucket to look like a real boutique.
+
+Separately, **`#gilda-chat-widget`** — pag1.html's "TableService" section,
+anchor `id="tableservice"` — is a real, self-contained ~170-line CSS +
+37-line HTML + 53-line JS chat widget (quick-intent image picker,
+WhatsApp-style `#dcf8c6` message bubbles, paperclip/attach panel), not a
+restaurant-ordering flow as its name suggests. `apps/customer/app/r/
+[slug]/table-service-widget.tsx` was previously a generic `@paon/ui`
+popup form with no visual relationship to it — despite "TableService"
+being named as shipped in an earlier session, its actual CSS/markup was
+never ported. Rewrote it as a byte-for-byte port: identical class names,
+colors, image URLs, and interaction behavior (picker fade-out, bubble
+rendering, attach-panel slide). The source widget has no name/email
+field — a static mockup never needed a real visitor identity — but the
+already-shipped, real `submitTableServiceInquiry` Server Action
+(anonymous-write, ADR-034's `submit_table_service_inquiry` RPC) requires
+both, so the single `.gcw-field` input is reused as a short guided
+sequence (name → email → message) instead of adding three fields at
+once. The attach-panel's four items stay exactly as inert as they are in
+the founder's own source (no upload call exists in his original JS
+either) — not wired to a fabricated upload feature. Two `<div
+onClick>` elements became `<button>` (source used raw divs; this repo's
+WCAG 2.1 AA rule and `jsx-a11y` lint require a real interactive element),
+styled to be visually identical via inline resets.
+
+**Consequences.** Verified end-to-end against the running dev server (per
+the new "never rebuild `.next` under a live `pnpm dev`" rule): every
+category renders the founder's real taxonomy with correct product
+counts/images/captions; the TableService widget's full flow (intent tap →
+name → email → message → submit) produces a real `messages` row joined to
+a real `customers`/`conversations` record, confirmed directly against the
+local database. Not yet done: e2e coverage for the TableService widget
+(no existing spec touches it); the same rigor still owed to Voice
+Command's fit-tool slider, the Tinder-style swipe deck, Self-Portrait, and
+both apps' messaging UI — all confirmed generic `@paon/ui` builds with no
+relationship to pag1.html's actual CSS, still open.
+
+## ADR-049: `products.swatch_image_url` — a real second image field, not a reused photo
+
+**Context.** The storefront detail view's mobile "swatch" section
+(`#paon-mobile-swatch-img`) is supposed to show a distinct fabric/texture
+close-up, separate from the main mannequin photo. `Product` (`@paon/domain`)
+only ever had one image field, `primaryImageUrl`; `route.ts`'s `toDetailImg`
+returned that same URL for both, so every product's "swatch" was silently
+just its main photo again — a real content defect the founder flagged
+directly ("fabric swatches are incorrect").
+
+**Decision.** `20260726000002_add_product_swatch_image.sql` adds a plain
+nullable `swatch_image_url` column to `products` (same shape as
+`primary_image_url`, no RLS change needed — covered by the table's existing
+policies). `Product.swatchImageUrl` (`@paon/domain`) and
+`ProductRepository`'s `toDomain` mapping expose it; `route.ts`'s
+`toDetailImg` now returns `product.swatchImageUrl ?? product.primaryImageUrl`
+— a real second asset when the retailer has one, the same photo as before
+when they don't, never a broken image.
+
+The demo seed's `swatchImagePath` per product is **not** a guessed naming
+convention (`smaller/6054.webp` → `smaller/6054_1.webp` looks reliable, but
+`schoen01_converted.webp`'s real companion is `schoen3-3.jpg` — the
+founder's own numbering is shuffled between his `img`/`detailImg` pairs, not
+sequential). Every one of the 21 demo products' swatch paths was looked up
+directly in the founder's real `paon.html` array by matching `img` to its
+actual `detailImg`, then verified to resolve with a live `curl` before being
+committed — not derived, not invented.
+
+**Consequences.** `retailer_has_entitlement`-style write access to this new
+field from the Retailer Portal's `/products/[id]` editor is **not** built —
+`update_product_catalogue` (the manager-facing RPC) doesn't accept it yet.
+Scoped deliberately to fixing the storefront read path the founder flagged;
+extending the manager upload UI to let a retailer set their own swatch photo
+is a real, separate, disclosed follow-up, not silently skipped.
+
+## ADR-050: Pricing primitives — `PriceAdjustment` records, `PromotionRule` configuration, and stored value as tender
+
+> **Status: design only. No code implements this ADR.** It is recorded
+> ahead of implementation because the shape of the model determines how
+> every order total in the system is computed, and that is not a decision
+> to make incrementally inside a feature PR. Read it as a deliberate
+> design, not a description of working code, until an implementing ADR
+> supersedes this line. Several points below are marked as requiring a
+> founder decision and are genuinely undecided.
+
+**Context.** PAON has no pricing primitives of any kind. `Order` carries
+`subtotal` and `total`; `OrderLine` carries `unitPrice`; nothing in
+`packages/domain/src` or `supabase/migrations` expresses a discount, a
+promotion, a coupon or a gift card. `ROADMAP.md` Phase 7 already names this
+as the largest open item, and `COMPETITIVE_GAPS.md` ("Discount, promotion
+and stored-value primitives") records it as an adoption blocker for the
+initial target segment: every retailer there runs seasonal offers,
+trunk-show pricing and gift cards, and there is no manual workaround that
+doesn't corrupt the order record.
+
+Two existing parts of the system constrain the answer and must not be
+duplicated. `Reward` redemption already exists in the Loyalty context
+(Phase 4) and already reduces what a customer pays. And the Production
+context already solved a structurally identical problem for alterations:
+an immutable original quote plus append-only pricing history with employee
+attribution (ADR-016). A second, parallel discount mechanism would violate
+`PRINCIPLES.md` "maximum reuse, zero duplicated logic" on day one.
+
+**Decision.** Three separate concepts, in the Commerce context, plus one
+correction to Order's shape.
+
+_1. `PriceAdjustment` — an immutable applied record._ A row stating that a
+specific amount was taken off a specific order line, why, and on whose
+authority. It is never recomputed after the fact, for the same reason
+`Alteration`'s original quote is immutable: an order's history must remain
+readable years later, when the promotion that produced it no longer exists.
+Kinds: `promotion` (a rule fired), `manual` (staff discretion),
+`loyalty_reward` (a `Reward` redemption, so loyalty produces adjustments
+rather than owning a parallel path to the same effect). `manual` carries
+the responsible `RetailerStaffMember`, derived in Postgres from the caller
+rather than trusted from the client — the attribution pattern ADR-039
+established.
+
+_2. `PromotionRule` — retailer-scoped configuration._ What may be
+discounted, by how much, under what conditions, over what period. Editing
+or deleting a rule never alters a `PriceAdjustment` it previously produced.
+
+_3. Stored value is tender, not a discount._ A gift card does not reduce
+the price of goods; it settles part of what is owed. Modeling it as a
+discount produces wrong VAT (tax is due on the full price) and wrong
+revenue recognition (the sale of a gift card is a liability, not revenue).
+It therefore belongs alongside `Payment`, not alongside `PriceAdjustment`.
+This is the single most consequential call in this ADR and the one most
+commonly got wrong.
+
+_4. Adjustments attach at line level, always._ An order-level discount is
+allocated across lines rather than stored at the order. Returns, partial
+refunds, tax and per-garment margin reporting all need per-line truth, and
+reconstructing it later from an order-level figure is lossy. Allocation is
+deterministic and uses largest-remainder distribution so that integer
+minor-unit amounts sum exactly to the intended total with no rounding
+drift — `Money` forbids float arithmetic by construction
+(`shared/money.ts`) and this is exactly the case that tempts a violation.
+
+_5. `Order` gains explicit components._ `subtotal`, `adjustmentTotal`,
+`taxTotal`, `shippingTotal`, `total` — replacing today's bare
+`subtotal`/`total`. A pure `computeOrderTotals()` in `@paon/domain` owns
+the arithmetic and the ordering (adjustments before tax), following the
+`retailerRoleAtLeast` precedent `DOMAIN_MODEL.md` names as the pattern for
+invariant-enforcing functions.
+
+**Open — requires a founder decision, not an engineering default.**
+
+- **Stacking.** Whether two promotions may apply to one line; whether a
+  manual staff discount stacks on a promotional price. This is commercial
+  policy, and guessing it wrong is expensive to unwind once real orders
+  exist.
+- **Manual discount authority.** Whether staff may discount at all, and
+  from which role upward. Every other sensitive capability in this
+  codebase is role-gated (`ACCESS_MODEL.md`); discounting is more
+  sensitive than most, since it is a direct margin leak.
+- **Stored value in the first slice, or deferred.** Gift cards are
+  separable from discounts and could follow later. They carry their own
+  liability-accounting and fraud surface.
+- **Whether promotion rules are retailer-authored or platform-configured**
+  at this stage, consistent with how `SubscriptionPlan` is handled.
+
+**Consequences.** Nothing here is built; the repository is unchanged by
+this entry. When it is built, three things follow. Changing `Order`'s
+shape is a breaking domain change touching the cart, checkout, order
+repositories, both portals' order views and the analytics dashboards —
+it is not additive and should not be attempted as a side effect of a
+feature. Tax is deliberately named in `computeOrderTotals()` while no tax
+concept exists anywhere in the system (`COMPETITIVE_GAPS.md`, "Tax, VAT and
+multi-currency correctness"), so either tax lands first or `taxTotal` is a
+documented zero with a tracked follow-up rather than a silent omission. And
+deposit schedules (`COMPETITIVE_GAPS.md`, Tier 2) depend on this landing
+first, since a deposit is a percentage of a total that is currently
+computed wrong — that work also has to supersede ADR-030's "one Payment per
+Order (MVP scope)" constraint explicitly, which this ADR does not do.
+
+Cross-references in this entry are by section name rather than number: the
+gap document was reorganized after this ADR was written, and a pointer that
+silently goes stale is worse than a slightly longer one. The decision
+itself is unchanged.

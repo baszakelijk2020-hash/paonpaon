@@ -41,7 +41,7 @@ export default async function WeddingPartiesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
           Wedding parties
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">

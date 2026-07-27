@@ -1,58 +1,317 @@
-import { CustomerRepository, MessagingRepository } from "@paon/database";
+import {
+  ClientelingRepository,
+  CustomerRepository,
+  MessagingRepository,
+  OrderRepository,
+} from "@paon/database";
 import { CONVERSATION_INTENT_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
+import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate } from "@paon/utils";
-import Link from "next/link";
+import { formatDate, formatMoney } from "@paon/utils";
+import Image from "next/image";
+
+import { LifecycleBadge } from "../customers/lifecycle-badge";
+
+import { sendMessage } from "./actions";
+import { AttachFileInput } from "./attach-file-input";
+import {
+  ConversationList,
+  type ConversationListItem,
+} from "./conversation-list";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-export default async function MessagesPage() {
+
+/**
+ * The staff inbox — a real 3-pane layout (conversation list, thread,
+ * customer context), not the previous list-then-navigate-away pattern.
+ * All three panes are wired to the actual repositories already used
+ * elsewhere in the app (messaging, customers, orders, clienteling
+ * notes) rather than any new/duplicated data layer.
+ */
+export default async function MessagesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ c?: string }>;
+}) {
+  const { c: selectedId } = await searchParams;
   const session = await requireSession();
   const client = await getSupabaseServerClient();
+  const messagingRepo = new MessagingRepository(client);
+  const customerRepo = new CustomerRepository(client);
+
   const [conversations, customers] = await Promise.all([
-    new MessagingRepository(client).findByRetailer(session.retailerId),
-    new CustomerRepository(client).findByRetailer(session.retailerId),
+    messagingRepo.findByRetailer(session.retailerId),
+    customerRepo.findByRetailer(session.retailerId),
   ]);
-  const names = new Map(customers.map((item) => [item.id, item.fullName]));
+  const customerById = new Map(customers.map((item) => [item.id, item]));
+
+  const sorted = [...conversations].sort((a, b) =>
+    (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? ""),
+  );
+
+  const listItems: ConversationListItem[] = await Promise.all(
+    sorted.map(async (conversation) => {
+      const messages = await messagingRepo.findMessages(conversation.id);
+      const last = messages[messages.length - 1];
+      return {
+        id: conversation.id,
+        customerName:
+          customerById.get(conversation.customerId)?.fullName ?? "Customer",
+        intentLabel: conversation.intent
+          ? CONVERSATION_INTENT_LABELS[conversation.intent]
+          : null,
+        lastMessageAt: conversation.lastMessageAt ?? null,
+        preview: last?.body ?? "No messages yet",
+        awaitingReply: last
+          ? last.senderType === "customer" || last.senderType === "guest"
+          : false,
+      };
+    }),
+  );
+
+  const activeId = selectedId ?? listItems[0]?.id ?? null;
+  const activeConversation = activeId
+    ? (conversations.find((item) => item.id === activeId) ?? null)
+    : null;
+
+  let thread: Awaited<ReturnType<MessagingRepository["findMessages"]>> = [];
+  let attachmentsByMessage = new Map<
+    string,
+    { attachment: { id: string; fileName: string }; signedUrl: string }[]
+  >();
+  let activeCustomer: Awaited<ReturnType<CustomerRepository["findById"]>> =
+    null;
+  let orders: Awaited<ReturnType<OrderRepository["findByCustomer"]>> = [];
+  let notes: Awaited<ReturnType<ClientelingRepository["findByCustomer"]>> = [];
+
+  if (activeConversation) {
+    await messagingRepo.markRead(activeConversation.id);
+    const [messages, attachments, customer, orderHistory, clientelingNotes] =
+      await Promise.all([
+        messagingRepo.findMessages(activeConversation.id),
+        messagingRepo.findAttachmentsByConversation(activeConversation.id),
+        customerRepo.findById(activeConversation.customerId),
+        new OrderRepository(client).findByCustomer(
+          activeConversation.customerId,
+        ),
+        new ClientelingRepository(client).findByCustomer(
+          activeConversation.customerId,
+        ),
+      ]);
+    thread = messages;
+    activeCustomer = customer;
+    orders = orderHistory;
+    notes = clientelingNotes;
+
+    const grouped = new Map<
+      string,
+      { attachment: { id: string; fileName: string }; signedUrl: string }[]
+    >();
+    for (const entry of attachments) {
+      const key = entry.attachment.messageId;
+      const existing = grouped.get(key) ?? [];
+      existing.push(entry);
+      grouped.set(key, existing);
+    }
+    attachmentsByMessage = grouped;
+  }
+
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-[var(--font-display)]">Messages</h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          Customer conversations shared by the retail team.
-        </p>
+    <div className="grid h-[calc(100vh-6rem)] grid-cols-[320px_1fr_320px] gap-0 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] shadow-[var(--shadow-elevated)]">
+      {/* Left: conversation list */}
+      <div className="border-r border-[var(--color-stone-200)] bg-white">
+        <ConversationList conversations={listItems} selectedId={activeId} />
       </div>
-      <Card className="divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
-        {conversations.map((item) => (
-          <Link
-            key={item.id}
-            href={`/messages/${item.id}`}
-            className="flex justify-between px-6 py-4 hover:bg-[var(--color-stone-50)]"
-          >
-            <span className="flex items-center gap-2">
-              <span className="font-medium">
-                {names.get(item.customerId) ?? "Customer"}
-              </span>
-              {item.intent ? (
-                <Badge tone="neutral">
-                  {CONVERSATION_INTENT_LABELS[item.intent]}
-                </Badge>
+
+      {/* Centre: message thread */}
+      <div className="flex flex-col bg-[var(--color-stone-50)]">
+        {activeConversation ? (
+          <>
+            <div className="border-b border-[var(--color-stone-200)] bg-white px-5 py-3">
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-medium text-[var(--color-stone-900)]">
+                  {activeCustomer?.fullName ?? "Customer"}
+                </h1>
+                {activeConversation.intent ? (
+                  <Badge tone="neutral">
+                    {CONVERSATION_INTENT_LABELS[activeConversation.intent]}
+                  </Badge>
+                ) : null}
+              </div>
+              <p className="text-xs text-[var(--color-stone-500)]">
+                {activeCustomer?.userId
+                  ? "Shared retailer conversation"
+                  : "Storefront inquiry — no portal account yet"}
+              </p>
+            </div>
+
+            <div className="flex-1 space-y-3 overflow-y-auto p-5">
+              {thread.map((msg) => {
+                const msgAttachments = attachmentsByMessage.get(msg.id) ?? [];
+                return (
+                  <div
+                    key={msg.id}
+                    className={`max-w-[75%] rounded-lg px-4 py-3 ${
+                      msg.senderType === "staff"
+                        ? "ml-auto bg-[var(--color-stone-900)] text-white"
+                        : "bg-white"
+                    }`}
+                  >
+                    <p className="text-sm">{msg.body}</p>
+                    {msgAttachments.length > 0 ? (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {msgAttachments.map(({ attachment, signedUrl }) => (
+                          <a
+                            key={attachment.id}
+                            href={signedUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block overflow-hidden rounded-[var(--radius-sm)]"
+                          >
+                            <Image
+                              src={signedUrl}
+                              alt={attachment.fileName}
+                              width={160}
+                              height={160}
+                              unoptimized
+                              className="max-h-40 w-auto object-cover"
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    ) : null}
+                    <p className="mt-1 text-xs opacity-60">
+                      {formatDate(msg.createdAt, "en-US")}
+                    </p>
+                  </div>
+                );
+              })}
+              {thread.length === 0 ? (
+                <p className="text-sm text-[var(--color-stone-500)]">
+                  No messages yet.
+                </p>
               ) : null}
-            </span>
-            <span className="text-sm text-[var(--color-stone-500)]">
-              {item.lastMessageAt
-                ? formatDate(item.lastMessageAt, "en-US")
-                : "New"}
-            </span>
-          </Link>
-        ))}
-        {conversations.length === 0 ? (
-          <p className="p-6 text-sm text-[var(--color-stone-500)]">
-            Start a conversation from a customer record.
+            </div>
+
+            <form
+              action={sendMessage}
+              className="flex flex-col gap-2 border-t border-[var(--color-stone-200)] bg-white p-4"
+            >
+              <input
+                type="hidden"
+                name="conversationId"
+                value={activeConversation.id}
+              />
+              <div className="flex gap-2">
+                <textarea
+                  name="body"
+                  required
+                  maxLength={5000}
+                  aria-label="Message"
+                  className="min-h-16 flex-1 resize-none rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink-600)] focus-visible:ring-offset-2"
+                  placeholder="Write a reply — ⌘/Ctrl+Enter to send"
+                />
+                <Button type="submit">Send</Button>
+              </div>
+              <AttachFileInput />
+            </form>
+          </>
+        ) : (
+          <p className="flex h-full items-center justify-center text-sm text-[var(--color-stone-500)]">
+            No conversations yet.
           </p>
-        ) : null}
-      </Card>
+        )}
+      </div>
+
+      {/* Right: customer context panel */}
+      <div className="overflow-y-auto border-l border-[var(--color-stone-200)] bg-white p-5">
+        {activeCustomer ? (
+          <div className="flex flex-col gap-6">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-[var(--color-stone-400)]">
+                Customer
+              </p>
+              <p className="mt-1 font-medium text-[var(--color-stone-900)]">
+                {activeCustomer.fullName}
+              </p>
+              <div className="mt-1">
+                <LifecycleBadge stage={activeCustomer.lifecycleStage} />
+              </div>
+              {activeCustomer.email ? (
+                <p className="mt-2 text-sm text-[var(--color-stone-600)]">
+                  {activeCustomer.email}
+                </p>
+              ) : null}
+              {activeCustomer.phone ? (
+                <p className="text-sm text-[var(--color-stone-600)]">
+                  {activeCustomer.phone}
+                </p>
+              ) : null}
+              <a
+                href={`/customers/${activeCustomer.id}`}
+                className="mt-3 inline-block text-sm underline"
+              >
+                Open full customer card →
+              </a>
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs uppercase tracking-wide text-[var(--color-stone-400)]">
+                Order history ({orders.length})
+              </p>
+              {orders.length === 0 ? (
+                <p className="text-sm text-[var(--color-stone-500)]">
+                  No orders yet.
+                </p>
+              ) : (
+                <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+                  {orders.slice(0, 5).map((order) => (
+                    <div key={order.id} className="px-3 py-2 text-sm">
+                      <p className="font-medium">{order.orderNumber}</p>
+                      <p className="text-xs capitalize text-[var(--color-stone-500)]">
+                        {order.status.replaceAll("_", " ")} ·{" "}
+                        {formatMoney(order.total, "en-US")}
+                      </p>
+                    </div>
+                  ))}
+                </Card>
+              )}
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs uppercase tracking-wide text-[var(--color-stone-400)]">
+                Clienteling notes ({notes.length})
+              </p>
+              {notes.length === 0 ? (
+                <p className="text-sm text-[var(--color-stone-500)]">
+                  No notes yet.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {notes.slice(0, 5).map((note) => (
+                    <div
+                      key={note.id}
+                      className="rounded-[var(--radius-sm)] bg-[var(--color-stone-50)] p-2 text-sm"
+                    >
+                      <p>{note.body}</p>
+                      <p className="mt-1 text-xs text-[var(--color-stone-400)]">
+                        {note.pinned ? "Pinned · " : ""}
+                        {formatDate(note.createdAt, "en-US")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            Select a conversation to see customer context.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

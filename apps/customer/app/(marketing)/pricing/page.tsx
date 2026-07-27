@@ -19,11 +19,11 @@ export default async function PricingPage() {
   return (
     <main className="px-5 pb-24 pt-32 sm:px-8 sm:pt-40">
       <section className="mx-auto max-w-[92rem]">
-        <p className="text-[10px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-black/45">
+        <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-black/45">
           PAON packages
         </p>
         <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_0.7fr] lg:items-end">
-          <h1 className="text-6xl font-[var(--font-display)] leading-[0.9] sm:text-8xl">
+          <h1 className="font-display text-6xl leading-[0.9] sm:text-8xl">
             Start clearly.
             <br />
             Grow deliberately.
@@ -47,12 +47,12 @@ export default async function PricingPage() {
             }`}
           >
             <p className="text-xs opacity-55">{plan.name}</p>
-            <p className="mt-7 text-5xl font-[var(--font-display)]">
+            <p className="font-display mt-7 text-5xl">
               {plan.priceIsFrom ? "From " : ""}
               {formatMoney(plan.price, "en-US")}
             </p>
             <p className="mt-1 text-xs opacity-50">per month</p>
-            <h2 className="mt-9 text-3xl font-[var(--font-display)] leading-tight">
+            <h2 className="font-display mt-9 text-3xl leading-tight">
               {plan.positioning}
             </h2>
             <p className="mt-4 text-sm leading-6 opacity-60">
@@ -97,7 +97,7 @@ export default async function PricingPage() {
             <p className="text-[10px] uppercase tracking-[0.2em] text-black/40">
               Optional managed growth
             </p>
-            <h2 className="mt-4 text-5xl font-[var(--font-display)] leading-none">
+            <h2 className="font-display mt-4 text-5xl leading-none">
               Human partnership,
               <br />
               scoped honestly.
@@ -108,9 +108,7 @@ export default async function PricingPage() {
               .filter((service) => service.isPublic)
               .map((service) => (
                 <div key={service.id} className="py-6">
-                  <h3 className="text-2xl font-[var(--font-display)]">
-                    {service.name}
-                  </h3>
+                  <h3 className="font-display text-2xl">{service.name}</h3>
                   <p className="mt-2 text-sm leading-6 text-black/50">
                     {service.description} Scoped and priced in the retailer’s
                     proposal.
@@ -122,7 +120,7 @@ export default async function PricingPage() {
       </section>
 
       <section className="mx-auto mt-24 max-w-[92rem] rounded-[1.25rem] bg-[#1a1a1a] p-8 text-white sm:p-12">
-        <h2 className="max-w-3xl text-5xl font-[var(--font-display)] leading-none sm:text-7xl">
+        <h2 className="font-display max-w-3xl text-5xl leading-none sm:text-7xl">
           Begin with a paid pilot built around one real retailer objective.
         </h2>
         <div className="mt-9 flex flex-wrap gap-3">

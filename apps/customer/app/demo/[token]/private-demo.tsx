@@ -17,13 +17,11 @@ export function PrivateDemo({ publicToken }: { publicToken: string }) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#1a1a1a] px-5 py-16 text-white">
         <section className="w-full max-w-lg rounded-[1.25rem] border border-white/15 bg-white/5 p-7 backdrop-blur-xl sm:p-10">
-          <p className="text-2xl font-[var(--font-display)] tracking-[0.24em]">
-            PAON
-          </p>
+          <p className="font-display text-2xl tracking-[0.24em]">PAON</p>
           <p className="mt-12 text-xs uppercase tracking-[0.2em] text-white/45">
             Private demonstration
           </p>
-          <h1 className="mt-4 text-5xl font-[var(--font-display)] leading-none">
+          <h1 className="font-display mt-4 text-5xl leading-none">
             Enter the room.
           </h1>
           <p className="mt-5 text-sm leading-6 text-white/55">

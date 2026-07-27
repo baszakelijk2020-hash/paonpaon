@@ -66,7 +66,7 @@ export function ExperiencePreview() {
       </div>
       <div className="grid min-h-[32rem] md:grid-cols-[15rem_1fr]">
         <aside className="hidden bg-gradient-to-r from-[#333] to-[#1a1a1a] p-6 text-white md:block">
-          <p className="font-[var(--font-display)] tracking-[0.22em]">PAON</p>
+          <p className="font-display tracking-[0.22em]">PAON</p>
           <div className="mt-16 space-y-5 text-xs text-white/45">
             <p className="border-l border-white pl-3 text-white">Today</p>
             <p>Relationships</p>
@@ -77,10 +77,10 @@ export function ExperiencePreview() {
         </aside>
         <div className="p-5 sm:p-8">
           <div className="rounded-[1.25rem] bg-[#1a1a1a] p-7 text-white sm:p-9">
-            <p className="text-[10px] font-[var(--font-accent)] uppercase tracking-[0.2em] text-white/50">
+            <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-white/50">
               {view.eyebrow}
             </p>
-            <h3 className="mt-5 text-4xl font-[var(--font-display)] leading-none sm:text-5xl">
+            <h3 className="font-display mt-5 text-4xl leading-none sm:text-5xl">
               {view.title}
             </h3>
             <p className="mt-5 max-w-xl text-sm leading-6 text-white/65">

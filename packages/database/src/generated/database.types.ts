@@ -3107,6 +3107,7 @@ export type Database = {
           retailer_id: string;
           slug: string;
           status: Database["public"]["Enums"]["product_status"];
+          swatch_image_url: string | null;
           updated_at: string;
         };
         Insert: {
@@ -3121,6 +3122,7 @@ export type Database = {
           retailer_id: string;
           slug: string;
           status?: Database["public"]["Enums"]["product_status"];
+          swatch_image_url?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -3135,6 +3137,7 @@ export type Database = {
           retailer_id?: string;
           slug?: string;
           status?: Database["public"]["Enums"]["product_status"];
+          swatch_image_url?: string | null;
           updated_at?: string;
         };
         Relationships: [

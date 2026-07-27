@@ -26,6 +26,10 @@ export interface Product extends Timestamps {
   readonly isAlterable: boolean;
   readonly collectionIds: readonly CollectionId[];
   readonly primaryImageUrl?: string;
+  /** A distinct fabric/texture close-up — paon.html's detail view shows
+   * this separately from the main photo. Falls back to primaryImageUrl
+   * when unset, not a required second upload. */
+  readonly swatchImageUrl?: string;
 }
 
 export interface ProductVariant extends Timestamps {

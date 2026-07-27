@@ -35,13 +35,13 @@ export function PlanRow({
     <Card className="overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-lifted)]">
       <div className="grid gap-6 border-b border-[var(--color-stone-100)] p-6 lg:grid-cols-[1fr_auto]">
         <div>
-          <p className="text-3xl font-[var(--font-display)]">{plan.name}</p>
+          <p className="font-display text-3xl">{plan.name}</p>
           <p className="mt-1 text-sm text-[var(--color-stone-500)]">
             {plan.positioning}
           </p>
         </div>
         <div className="text-left lg:text-right">
-          <p className="text-2xl font-[var(--font-display)]">
+          <p className="font-display text-2xl">
             {plan.priceIsFrom ? "From " : ""}
             {formatMoney(plan.price, "en-US")} / month
           </p>

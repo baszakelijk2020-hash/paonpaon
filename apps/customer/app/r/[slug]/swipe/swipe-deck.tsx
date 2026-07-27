@@ -160,7 +160,7 @@ export function SwipeDeck({
                   <div className="h-3/4 w-full bg-[var(--color-stone-100)]" />
                 )}
                 <div className="flex h-1/4 flex-col justify-center px-5">
-                  <p className="text-lg font-[var(--font-display)] text-[var(--color-stone-900)]">
+                  <p className="font-display text-lg text-[var(--color-stone-900)]">
                     {card.name}
                   </p>
                   <p className="text-sm text-[var(--color-stone-600)]">

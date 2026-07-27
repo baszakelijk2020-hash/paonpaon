@@ -26,7 +26,7 @@ export default async function AIMonitoringPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+        <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
           AI monitoring
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
@@ -40,7 +40,7 @@ export default async function AIMonitoringPage() {
           <p className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
             Total
           </p>
-          <p className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+          <p className="font-display text-2xl text-[var(--color-stone-900)]">
             {generations.length}
           </p>
         </div>
@@ -48,7 +48,7 @@ export default async function AIMonitoringPage() {
           <p className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
             Succeeded
           </p>
-          <p className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+          <p className="font-display text-2xl text-[var(--color-stone-900)]">
             {succeeded}
           </p>
         </div>
@@ -56,7 +56,7 @@ export default async function AIMonitoringPage() {
           <p className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
             Failed
           </p>
-          <p className="text-2xl font-[var(--font-display)] text-[var(--color-stone-900)]">
+          <p className="font-display text-2xl text-[var(--color-stone-900)]">
             {failed}
           </p>
         </div>

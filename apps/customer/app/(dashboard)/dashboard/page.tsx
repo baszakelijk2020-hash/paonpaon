@@ -108,7 +108,7 @@ export default async function DashboardPage() {
           <div className="flex min-h-[28rem] max-w-2xl flex-col justify-between p-7 sm:p-11">
             <div className="flex items-center gap-3">
               <span className="h-px w-8 bg-white/60" />
-              <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.24em] text-white/70">
+              <p className="font-accent text-[11px] uppercase tracking-[0.24em] text-white/70">
                 Private client
               </p>
             </div>
@@ -117,7 +117,7 @@ export default async function DashboardPage() {
                 Good {new Date().getHours() < 12 ? "morning" : "afternoon"},{" "}
                 {firstName}
               </p>
-              <h1 className="text-5xl font-[var(--font-display)] leading-[0.94] sm:text-7xl">
+              <h1 className="font-display text-5xl leading-[0.94] sm:text-7xl">
                 Your wardrobe,
                 <br />
                 beautifully in motion.
@@ -165,10 +165,10 @@ export default async function DashboardPage() {
         </section>
       ) : (
         <section className="rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-8 text-white sm:p-12">
-          <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.22em] text-white/60">
+          <p className="font-accent text-[11px] uppercase tracking-[0.22em] text-white/60">
             Welcome to PAON
           </p>
-          <h1 className="mt-4 max-w-xl text-5xl font-[var(--font-display)] leading-none">
+          <h1 className="font-display mt-4 max-w-xl text-5xl leading-none">
             Your private client space begins here.
           </h1>
           <p className="mt-5 max-w-lg text-sm leading-6 text-white/65">
@@ -194,7 +194,7 @@ export default async function DashboardPage() {
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
               Next appointment
             </p>
-            <p className="mt-3 text-2xl font-[var(--font-display)]">
+            <p className="font-display mt-3 text-2xl">
               {primary.nextAppointment
                 ? formatDate(primary.nextAppointment.startsAt, "en-US")
                 : "Whenever you’re ready"}
@@ -217,7 +217,7 @@ export default async function DashboardPage() {
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
               At the workroom
             </p>
-            <p className="mt-3 text-2xl font-[var(--font-display)] capitalize">
+            <p className="font-display mt-3 text-2xl capitalize">
               {primary.activeAlteration
                 ? humanise(primary.activeAlteration.status)
                 : "Nothing away"}
@@ -230,7 +230,7 @@ export default async function DashboardPage() {
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
               Your conversation
             </p>
-            <p className="mt-3 text-2xl font-[var(--font-display)]">
+            <p className="font-display mt-3 text-2xl">
               {primaryUnread > 0
                 ? `${primaryUnread} new note${primaryUnread === 1 ? "" : "s"}`
                 : "All caught up"}
@@ -246,10 +246,10 @@ export default async function DashboardPage() {
         <section>
           <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
+              <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
                 Your houses
               </p>
-              <h2 className="text-4xl font-[var(--font-display)]">
+              <h2 className="font-display text-4xl">
                 Relationships, not records.
               </h2>
             </div>
@@ -277,7 +277,7 @@ export default async function DashboardPage() {
                   >
                     <div className="flex items-start justify-between gap-4 border-b border-[var(--color-stone-100)] p-6">
                       <div>
-                        <p className="text-3xl font-[var(--font-display)]">
+                        <p className="font-display text-3xl">
                           {retailer?.displayName ?? "Your atelier"}
                         </p>
                         <p className="mt-1 text-sm capitalize text-[var(--color-stone-500)]">

@@ -33,10 +33,10 @@ export default async function RetailersPage() {
         />
         <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
           <div className="max-w-3xl">
-            <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.24em] text-white/60">
+            <p className="font-accent text-[11px] uppercase tracking-[0.24em] text-white/60">
               Platform morning brief
             </p>
-            <h1 className="mt-4 text-5xl font-[var(--font-display)] leading-[0.96] sm:text-7xl">
+            <h1 className="font-display mt-4 text-5xl leading-[0.96] sm:text-7xl">
               The network,
               <br />
               clearly in view.
@@ -90,9 +90,7 @@ export default async function RetailersPage() {
             key={metric.label}
             className="border-b border-r border-[var(--color-stone-200)] px-5 py-5 sm:px-6"
           >
-            <p className="text-4xl font-[var(--font-display)]">
-              {metric.value}
-            </p>
+            <p className="font-display text-4xl">{metric.value}</p>
             <p className="mt-1 text-xs text-[var(--color-stone-500)]">
               {metric.label}
             </p>
@@ -104,10 +102,10 @@ export default async function RetailersPage() {
         <section>
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
-              <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
+              <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
                 Intervention
               </p>
-              <h2 className="text-3xl font-[var(--font-display)]">
+              <h2 className="font-display text-3xl">
                 Needs platform attention
               </h2>
             </div>
@@ -134,9 +132,7 @@ export default async function RetailersPage() {
         </section>
       ) : (
         <Card className="border-dashed text-center">
-          <p className="text-2xl font-[var(--font-display)]">
-            The network is healthy.
-          </p>
+          <p className="font-display text-2xl">The network is healthy.</p>
           <p className="mt-2 text-sm text-[var(--color-stone-500)]">
             Every retailer is active. Platform attention can stay focused on
             adoption and growth.
@@ -147,10 +143,10 @@ export default async function RetailersPage() {
       <section>
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-[var(--font-accent)] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
+            <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
               Retailer network
             </p>
-            <h2 className="text-4xl font-[var(--font-display)]">
+            <h2 className="font-display text-4xl">
               {retailers.length} operating house
               {retailers.length === 1 ? "" : "s"}
             </h2>
@@ -165,7 +161,7 @@ export default async function RetailersPage() {
 
         {retailers.length === 0 ? (
           <Card className="border-dashed py-14 text-center">
-            <p className="text-3xl font-[var(--font-display)]">
+            <p className="font-display text-3xl">
               Build the first relationship.
             </p>
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--color-stone-500)]">
@@ -190,7 +186,7 @@ export default async function RetailersPage() {
                 <Card className="h-full overflow-hidden rounded-[var(--radius-xl)] p-0 transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lifted)]">
                   <div className="flex items-start justify-between gap-4 p-6">
                     <div>
-                      <p className="text-3xl font-[var(--font-display)]">
+                      <p className="font-display text-3xl">
                         {retailer.displayName}
                       </p>
                       <p className="mt-1 font-mono text-xs text-[var(--color-stone-500)]">

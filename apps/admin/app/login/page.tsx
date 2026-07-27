@@ -24,10 +24,16 @@ export default async function LoginPage({
   return (
     <AuthShell
       eyebrow="Platform administration"
+      persona="Platform staff"
       title="Good to see you."
       description="Steward the retailer network, commercial health and PAON service quality from one private operating environment."
       imageUrl="https://www.nebelspiegel.com/images/smaller/6057.webp"
       imageAlt="Tailored overcoat from the PAON collection"
+      trustSignals={[
+        "Invite-only — no self-serve signup",
+        "Full visibility across every retailer tenant",
+        "Platform actions are attributed and logged",
+      ]}
       footer={
         <p>
           PAON Admin accounts are provisioned by another platform admin — there

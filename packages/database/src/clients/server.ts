@@ -3,6 +3,8 @@ import { type CookieMethodsServer, createServerClient } from "@supabase/ssr";
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
+import { fetchWithJwtClockSkewRetry } from "./resilient-fetch";
+
 /**
  * Server-side Supabase client (Server Components, Route Handlers,
  * Server Actions). Takes the cookie adapter as a parameter rather than
@@ -16,5 +18,6 @@ export function createSupabaseServerClient(
 ): PaonSupabaseClient {
   return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
     cookies,
+    global: { fetch: fetchWithJwtClockSkewRetry },
   }) as unknown as PaonSupabaseClient;
 }
