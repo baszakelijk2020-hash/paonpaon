@@ -105,17 +105,24 @@ how control over this build was lost once already.
 
 ## Definition of done
 
-Before considering any task complete:
+Before considering any task complete, run exactly what CI runs — in one
+line, so a failure stops the chain:
 
 ```
-pnpm lint
-pnpm typecheck
-pnpm build
-pnpm test
+pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
 ```
 
-All four must pass. Leave the repository in a working state, always. A
-task is not done if it merges red.
+All six must pass. `format:check` and `--frozen-lockfile` are part of this
+list because CI runs them and an earlier four-command version of this
+section let two real CI failures through unseen.
+
+Stop `pnpm dev` before this runs — `pnpm build` rebuilds `.next` and has
+corrupted a live dev server twice.
+
+**Local green does not mean CI green.** CI pins Node from `.nvmrc`; a
+developer machine is usually far ahead of it. If CI fails where local
+passed, suspect the Node gap before anything else. Leave the repository in
+a working state, always. A task is not done if it merges red.
 
 ## Reporting completed work
 

@@ -75,11 +75,11 @@ losing control looks like in practice.
 ## Definition of done, this phase
 
 ```
-pnpm lint && pnpm typecheck && pnpm test && pnpm build
+pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
 ```
 
-All four green. Stop `pnpm dev` before `pnpm build` — rebuilding `.next`
-under a live dev server has corrupted it before.
+All six green — this is exactly what CI runs. Stop `pnpm dev` first;
+rebuilding `.next` under a live dev server has corrupted it before.
 
 Then report a **Test it** section per `CLAUDE.md`: exact local URL, port,
 prerequisites, auth path, and what was already verified automatically.
