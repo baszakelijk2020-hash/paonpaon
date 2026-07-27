@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 
 import { SilhouetteCarousel } from "./silhouette-carousel";
-import { VoiceMeasurementSlider } from "./voice-measurement-slider";
+import { VoxFitSlider } from "./vox-fit-slider";
 
 export function FitToolPanel({
   recordObservation,
@@ -57,7 +57,7 @@ export function FitToolPanel({
       </div>
 
       {tab === "slider" ? (
-        <VoiceMeasurementSlider onApply={apply} />
+        <VoxFitSlider onApply={apply} />
       ) : (
         <SilhouetteCarousel onApply={apply} />
       )}

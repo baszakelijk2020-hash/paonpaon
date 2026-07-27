@@ -31,18 +31,45 @@ as design specification.
 bearing no relationship to the founder's CSS. It must be replaced by a real
 port, not patched.
 
-| #   | Surface                    | Source id           | Implementation                                                         | Status                                          |
-| --- | -------------------------- | ------------------- | ---------------------------------------------------------------------- | ----------------------------------------------- |
-| 1   | Fit sliders (voice + drag) | `vox-widget-root`   | `apps/retailer/components/fit-tools/voice-measurement-slider.tsx`      | **Wrong** — 609 lines Tailwind, 1 ref to `vox-` |
-| 2   | Silhouette carousel        | `nbs-silhouette-…`  | `apps/retailer/components/fit-tools/silhouette-carousel.tsx`           | **Wrong** — 186 lines Tailwind                  |
-| 3   | Swipe deck                 | —                   | `apps/customer/app/r/[slug]/swipe/swipe-deck.tsx`                      | **Wrong** — 0 refs to founder CSS               |
-| 4   | Table service chat         | `gilda-chat-widget` | `apps/customer/app/r/[slug]/table-service-widget.tsx`                  | Claimed byte-for-byte (ADR-048) — **verify**    |
-| 5   | AM House Party orbit       | `#ow`               | `apps/customer/app/(dashboard)/wedding-parties/[id]/am-house-hero.tsx` | **Verify**                                      |
-| 6   | Location globe (Cesium)    | `am-globe-widget`   | not built                                                              | Not started                                     |
-| 7   | Lapel configurator         | `nbs-lapel-…-v4`    | not built                                                              | Not started                                     |
-| 8   | Gift card 3D booklet       | `amibx-root-…`      | not built                                                              | Not started                                     |
-| 9   | Monthly photo grid         | bottom of pag1      | not built                                                              | Not started                                     |
-| 10  | Gift/voucher SaaS module   | pag2                | not built                                                              | Not started                                     |
+| #   | Surface                    | Source id           | Implementation                                                            | Status                                                                                                            |
+| --- | -------------------------- | ------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1   | Fit sliders (voice + drag) | `vox-widget-root`   | `apps/retailer/components/fit-tools/vox-fit-slider.tsx` + `vox-source.ts` | **Ported** 2026-07-27 — visual confirmation pending; backend wiring beyond `recordFitToolObservation` not started |
+| 2   | Silhouette carousel        | `nbs-silhouette-…`  | `apps/retailer/components/fit-tools/silhouette-carousel.tsx`              | **Wrong** — 186 lines Tailwind                                                                                    |
+| 3   | Swipe deck                 | —                   | `apps/customer/app/r/[slug]/swipe/swipe-deck.tsx`                         | **Wrong** — 0 refs to founder CSS                                                                                 |
+| 4   | Table service chat         | `gilda-chat-widget` | `apps/customer/app/r/[slug]/table-service-widget.tsx`                     | Claimed byte-for-byte (ADR-048) — **verify**                                                                      |
+| 5   | AM House Party orbit       | `#ow`               | `apps/customer/app/(dashboard)/wedding-parties/[id]/am-house-hero.tsx`    | **Verify**                                                                                                        |
+| 6   | Location globe (Cesium)    | `am-globe-widget`   | not built                                                                 | Not started                                                                                                       |
+| 7   | Lapel configurator         | `nbs-lapel-…-v4`    | not built                                                                 | Not started                                                                                                       |
+| 8   | Gift card 3D booklet       | `amibx-root-…`      | not built                                                                 | Not started                                                                                                       |
+| 9   | Monthly photo grid         | bottom of pag1      | not built                                                                 | Not started                                                                                                       |
+| 10  | Gift/voucher SaaS module   | pag2                | not built                                                                 | Not started                                                                                                       |
+
+## How to extract a widget from the source
+
+Do not retype it. Transcribing 1,000 lines by hand introduces errors that
+are invisible until the founder looks at the screen. Extract it
+mechanically, the way surface 1 was done:
+
+```
+python3 - <<'PY'
+import json
+src = open('downloaded_pages/pag1.html', encoding='utf-8', errors='replace').read()
+i = src.find('.SELECTOR-widget-root')                      # a class unique to the widget
+s = src.find('>', src.rfind('<style', 0, i)) + 1
+css = src[s:src.find('</style>', i)]
+j = src.find('SOME_UNIQUE_FUNCTION_NAME')                  # a symbol unique to its script
+js = src.find('>', src.rfind('<script', 0, j)) + 1
+script = src[js:src.find('</script>', j)]
+open('path/to/widget-source.ts','w').write(
+  'export const CSS = ' + json.dumps(css) + ';\n'
+  'export const SCRIPT = ' + json.dumps(script) + ';\n')
+PY
+```
+
+`json.dumps` is doing real work here: the founder's scripts are full of
+regexes, and pasting them into a TypeScript template literal would turn
+`\b` into a backspace character and silently corrupt every word boundary.
+Add the generated file to `.prettierignore`.
 
 ## What a correct port looks like
 
