@@ -80,7 +80,8 @@ export default async function LoginPage({
               ) : (
                 <MagicLinkForm redirectTo={redirectTo} />
               )}
-              {process.env.NODE_ENV !== "production" ? (
+              {process.env.NODE_ENV !== "production" ||
+              process.env["NEXT_PUBLIC_DEMO_LOGIN"] === "1" ? (
                 <QuickDemoLogin redirectTo={redirectTo} />
               ) : null}
             </div>

@@ -72,7 +72,8 @@ export default async function LoginPage({
           Enter PAON
         </Button>
       </form>
-      {process.env.NODE_ENV !== "production" ? (
+      {process.env.NODE_ENV !== "production" ||
+      process.env["NEXT_PUBLIC_DEMO_LOGIN"] === "1" ? (
         <QuickDemoLogin redirectTo={redirectTo} />
       ) : null}
     </AuthShell>
