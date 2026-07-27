@@ -50,8 +50,36 @@ the founder's cues. The real product there is workshop work-order handling
 and owner cost control, not fit correction. Do not build or extend it until
 that design exists.
 
-**Next, in scope.** The storefront (`paon-template.html` — the founder's own
-design, and the product) and the Demo Studio. Ask which before starting.
+## The queue
+
+Founder decision 2026-07-27: finish the build to a demonstrable state.
+Ordered by what a prospect sees first. **One increment at a time, reviewed
+and committed before the next** — the order is fixed, the batching is not
+negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
+
+1. **Stripe live.** Blocked on the founder provisioning credentials — no
+   session can do this. Once `STRIPE_SECRET_KEY` is set, verify a real
+   Connect onboarding and a real charge end to end. ADR-030 code is
+   complete and has never executed.
+2. **Resend live.** Same shape. `RESEND_API_KEY` set, then verify the outbox
+   actually delivers.
+3. **A demo retailer that looks like a real store.** Full catalog with real
+   photography, a populated client book, plausible order/loyalty/appointment
+   history. This is what every prospect conversation runs on.
+4. **Walk the whole flow on a phone and fix what breaks.** Storefront →
+   account → appointment → order → loyalty. Fix only real breakage; resist
+   redesigning on the way through.
+5. **Retailer Portal visual pass.** 40 pages currently generic admin UI.
+   **Open question the founder must answer first:** `paon.html` (light,
+   editorial) and pag1's Mission Control (dark, bottom tab bar, weather,
+   calendar) are two different designs. Do not start until told which.
+6. **Re-port the wrong widgets** — silhouette carousel, swipe deck — per
+   [DESIGN_PORTS.md](./DESIGN_PORTS.md), and verify the two unverified ones
+   (table service, house party orbit).
+
+Not in the queue and not to be started: fit tools (parked), the alterations
+vertical (awaiting founder design), and the four presentation modules —
+globe, lapel configurator, gift-card booklet, pag2 vouchers.
 
 ## Two questions to answer before building
 
