@@ -11,12 +11,20 @@ priority. Nothing here is a licence to start building — each Tier 1 item
 that gets picked up needs its own founder decision and, where it touches
 the domain model, its own entry in [DECISIONS.md](./DECISIONS.md).
 
-**The buyer.** An independent multi-brand menswear retailer — typically an
-owner-operator — carrying private-label made-to-measure alongside several
-other labels. They pay PAON directly. Nothing here requires a
-brand-over-retailer hierarchy in the tenancy model. Conclusions are
-specific to this segment and should not be generalized to broader retail —
-see [NON_GOALS.md](./NON_GOALS.md), "Explicitly out of scope."
+**The buyer, in two waves.** The segment is the independent menswear
+retailer — typically an owner-operator — who pays PAON directly. Nothing
+here requires a brand-over-retailer hierarchy in the tenancy model.
+
+- **Wave one, now:** retailers who sell **only their own made-to-measure**.
+  One label, no third-party stock. Chosen deliberately to keep the first
+  sale reachable — see "Multi-brand, deferred" below.
+- **Wave two, later:** multi-brand houses carrying private-label MTM
+  alongside several other labels. Larger market, more infrastructure,
+  addressed only once wave one has produced paying pilots.
+
+Conclusions are specific to this segment and should not be generalized to
+broader retail — see [NON_GOALS.md](./NON_GOALS.md), "Explicitly out of
+scope."
 
 **PAON is independent of Atelier Munro.** There is no partnership, no
 channel agreement and no endorsement. The founder's credibility with this
@@ -70,38 +78,41 @@ structurally cannot do. A prettier catalog alone is a losing position.
 
 ## Tier 1 — hard blockers
 
-A retailer in this segment cannot adopt PAON while any of these is missing.
+A retailer in the **first** beachhead cannot adopt PAON while any of these
+is missing. Multi-brand blockers are deferred — see "Multi-brand, deferred"
+below.
 
-### 1.1 Brand as a first-class catalog concept
+### 1.1 Multi-brand, deferred (founder decision, 2026-07-27)
 
-**Current state.** It does not exist. `Product`
-(`packages/domain/src/catalog/product.ts`) carries `retailerId`, `name`,
-`slug`, `description`, status flags, `collectionIds` and two image URLs —
-and no notion whatsoever of which house made the garment. Nothing in
-`packages/domain/src` or `supabase/migrations` models a brand, a supplier
-or a manufacturer.
+**The decision.** The first wave targets retailers who sell **only their own
+made-to-measure** — one label, no third-party stock. Multi-brand support
+becomes a named item on the roadmap presented to prospects, not
+infrastructure built before the first sale. Get yeses first.
 
-**Why it blocks.** On a multi-brand menswear site, brand is the primary
-navigation facet — it is how customers browse, how staff search, and how
-the retailer thinks about their own stock. A store carrying a private
-label plus five other houses cannot have its storefront rendered correctly
-by PAON today. This is not a missing convenience; the site is not
-buildable.
+**Why this is right.** Brand-as-an-entity was the largest Tier 1 item and it
+is a pure prerequisite: it buys no demo value for a single-label MTM
+retailer, who has nothing to filter by. Narrowing the segment removes the
+work rather than postponing it into technical debt. It also sharpens the
+pitch — an MTM-only house is exactly the buyer whose advantage is
+craft and relationship, which is what PAON is actually good at.
 
-**The workaround, and why it isn't one.** A retailer could create a
-`Collection` named after each label they carry. A collection is a merchandising
-grouping with a season — overloading it as brand loses supplier
-attribution, per-brand margin reporting, per-brand asset provenance (1.2)
-and the ability for a product to belong to both a brand and a seasonal
-collection at once. It would be a shortcut of exactly the kind
-[PRINCIPLES.md](./PRINCIPLES.md) forbids taking silently.
+**What stays true for later.** `Product`
+(`packages/domain/src/catalog/product.ts`) has no notion of which house made
+a garment — no brand, supplier or manufacturer anywhere in
+`packages/domain/src` or `supabase/migrations`. When multi-brand retailers
+become the target, the answer is a `Brand` entity in the Catalog context,
+referenced by `Product`, retailer-scoped like everything else — each
+retailer curating their own list, with no shared global brand registry,
+which would create exactly the cross-tenant coupling
+[DOMAIN_MODEL.md](./DOMAIN_MODEL.md) avoids.
 
-**Shape of the work.** A `Brand` entity in the Catalog context, referenced
-by `Product`, retailer-scoped like everything else (each retailer curates
-their own brand list — there is no shared global brand registry, and
-introducing one would create the cross-tenant coupling
-[DOMAIN_MODEL.md](./DOMAIN_MODEL.md) deliberately avoids). Storefront
-filtering and a brand landing page follow from it.
+**Do not** reach for the shortcut of overloading `Collection` as brand when
+that day comes. A collection is a merchandising grouping with a season;
+using it as brand loses supplier attribution, per-brand margin reporting,
+per-brand asset provenance, and the ability for a product to sit in both a
+brand and a seasonal collection. It is the kind of shortcut
+[PRINCIPLES.md](./PRINCIPLES.md) forbids taking silently — and with the
+segment narrowed, there is no longer any reason to take it.
 
 ### 1.2 The content system
 

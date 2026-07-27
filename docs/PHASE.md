@@ -7,8 +7,16 @@ this is still current.
 
 ## The objective
 
-Three paid pilot commitments from independent multi-brand menswear
-retailers. Money down, not letters of intent, not enthusiasm.
+Three paid pilot commitments from independent menswear retailers who sell
+**only their own made-to-measure** — one label, no third-party stock. Money
+down, not letters of intent, not enthusiasm.
+
+Multi-brand retailers are the larger market and come second. Targeting
+single-label MTM first is a deliberate choice to remove the biggest
+prerequisite from the critical path: PAON has no `Brand` entity, and a
+single-label retailer does not need one. Multi-brand is a roadmap item shown
+to prospects, not infrastructure built before the first sale. See
+`COMPETITIVE_GAPS.md`, "Multi-brand, deferred."
 
 Everything else is subordinate to that. PAON already has more capability
 than it has evidence anyone will pay for. The constraint is not engineering
