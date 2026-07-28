@@ -122,3 +122,15 @@ of proceeding on any of the conditions above.
   numbers. Confirm button gets `.paon-appt-confirm`'s specific
   full-width/52px/uppercase treatment as a one-off className, not a shared
   Button change. DoD green, pushed.
+- Verified both `50baa41` (button color) and `b0ed0ab` (appointment picker)
+  against production once deployed. Button: computed `background-color` on
+  the product-detail "Add to cart" button is `rgb(26,26,26)` (`#1a1a1a`),
+  not the old blue oklch — this is `packages/domain/src/retailer/retailer.ts`'s
+  pre-existing `DEFAULT_RETAILER_BRAND_THEME.inkColor` (Maison Dubois has no
+  custom brand theme set), which `RetailerTheme.tsx` overrides
+  `--color-stone-900` to on `/r/[slug]` routes — expected and correct per
+  the founder's own instruction that retailer theming wins where present;
+  not a bug. Appointment picker: day strip renders 7 selectable cells at
+  the correct 8px/54×56px, selecting a day + time produces a valid
+  `startsAt` (`2026-07-29T09:00`), confirm button renders in the
+  near-black with uppercase/tracking as specified, no console errors.
