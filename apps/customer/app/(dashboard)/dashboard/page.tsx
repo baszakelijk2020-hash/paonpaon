@@ -92,7 +92,7 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       {primary ? (
-        <section className="relative isolate min-h-[28rem] overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] text-white shadow-[var(--shadow-elevated)]">
+        <section className="paon-reveal relative isolate min-h-[28rem] overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] text-white shadow-[var(--shadow-elevated)]">
           <div
             aria-hidden="true"
             className="absolute inset-0 -z-20 bg-cover bg-[center_35%] opacity-55"
@@ -181,7 +181,8 @@ export default async function DashboardPage() {
       {primary ? (
         <section
           aria-label="Your current moments"
-          className="grid overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] sm:grid-cols-3"
+          className="paon-reveal grid overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] sm:grid-cols-3"
+          style={{ animationDelay: "120ms" }}
         >
           <Link
             href={
@@ -262,18 +263,22 @@ export default async function DashboardPage() {
           </div>
           <div className="grid gap-5 lg:grid-cols-2">
             {relationships.map(
-              ({
-                customer,
-                retailer,
-                nextAppointment,
-                activeOrder,
-                activeAlteration,
-              }) => {
+              (
+                {
+                  customer,
+                  retailer,
+                  nextAppointment,
+                  activeOrder,
+                  activeAlteration,
+                },
+                index,
+              ) => {
                 const unread = unreadByRetailer.get(customer.retailerId) ?? 0;
                 return (
                   <Card
                     key={customer.id}
-                    className="overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-lifted)]"
+                    className="paon-reveal overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-lifted)]"
+                    style={{ animationDelay: `${index * 120}ms` }}
                   >
                     <div className="flex items-start justify-between gap-4 border-b border-[var(--color-stone-100)] p-6">
                       <div>
