@@ -75,6 +75,9 @@ of proceeding on any of the conditions above.
   `--ease-out-expo`/`--duration-reveal` tokens + keyframe) for the
   founder's own card-entrance animation, applied to the cart's two cards
   with a 120ms stagger, `prefers-reduced-motion`-safe. DoD green, pushed.
-  Vercel's deploy queue is backed up (many pushes tonight from both sides)
-  — production screenshot verification pending, will confirm once it
-  clears rather than block the loop on it.
+  Verified against production once the deploy (queued behind other pushes,
+  then landed via the next commit) went READY: `.paon-reveal` card computes
+  to `border-radius: 8px`, `animation-name: paon-content-reveal`,
+  `1s cubic-bezier(0.16, 1, 0.3, 1)`, no console errors. Screenshot shows
+  the empty-cart state (Isabelle's demo cart has no lines) rendering
+  cleanly on the cream/white palette.
