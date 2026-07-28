@@ -52,6 +52,68 @@ export interface ProspectDemoLocation {
   imageUrl?: string | undefined;
 }
 
+/** Studio line → stored https URL (optional name/description in the hash). */
+export function encodeProspectProductImageLine(input: {
+  url: string;
+  name?: string | undefined;
+  description?: string | undefined;
+}): string {
+  const url = new URL(input.url);
+  const params = new URLSearchParams();
+  if (input.name?.trim()) params.set("n", input.name.trim());
+  if (input.description?.trim()) params.set("d", input.description.trim());
+  const encoded = params.toString();
+  url.hash = encoded ? `paon&${encoded}` : "";
+  return url.toString();
+}
+
+/** Stored URL or Studio `url | name | description` line → image + captions. */
+export function decodeProspectProductImageLine(line: string): {
+  url: string;
+  name?: string | undefined;
+  description?: string | undefined;
+} {
+  const trimmed = line.trim();
+  if (!trimmed) return { url: "" };
+  if (trimmed.includes("|")) {
+    const [url, name, description] = trimmed
+      .split("|")
+      .map((part) => part.trim());
+    return {
+      url: url ?? "",
+      ...(name ? { name } : {}),
+      ...(description ? { description } : {}),
+    };
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.hash.startsWith("#paon&") || parsed.hash === "#paon") {
+      const params = new URLSearchParams(
+        parsed.hash.slice(1).replace(/^paon&?/, ""),
+      );
+      const name = params.get("n")?.trim() || undefined;
+      const description = params.get("d")?.trim() || undefined;
+      parsed.hash = "";
+      return {
+        url: parsed.toString(),
+        ...(name ? { name } : {}),
+        ...(description ? { description } : {}),
+      };
+    }
+    return { url: trimmed };
+  } catch {
+    return { url: trimmed };
+  }
+}
+
+/** Form textarea display for a stored encoded product image URL. */
+export function formatProspectProductImageLine(stored: string): string {
+  const decoded = decodeProspectProductImageLine(stored);
+  return [decoded.url, decoded.name ?? "", decoded.description ?? ""]
+    .filter((part, index) => index === 0 || part)
+    .join(" | ");
+}
+
 export interface ProspectDemoConfiguration {
   id: string;
   prospectId: string;

@@ -5,7 +5,11 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { requirePlatformOperator } from "@paon/auth";
 import { CommercialProspectRepository } from "@paon/database";
 import { seedProspectDemoRetailer } from "@paon/database/demo-seed";
-import { saveProspectDemoConfigurationInputSchema } from "@paon/domain";
+import {
+  decodeProspectProductImageLine,
+  encodeProspectProductImageLine,
+  saveProspectDemoConfigurationInputSchema,
+} from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
 import { env } from "@/lib/env";
@@ -354,7 +358,11 @@ export async function saveStudioConfiguration(
     productImageUrls: String(formData.get("productImageUrls") ?? "")
       .split("\n")
       .map((line) => line.trim())
-      .filter(Boolean),
+      .filter(Boolean)
+      .map((line) => {
+        const decoded = decodeProspectProductImageLine(line);
+        return encodeProspectProductImageLine(decoded);
+      }),
     featureKeys: formData.getAll("featureKeys"),
     changeNote: formData.get("changeNote"),
   });

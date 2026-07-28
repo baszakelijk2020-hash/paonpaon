@@ -5176,6 +5176,10 @@ export type Database = {
         };
         Returns: string;
       };
+      preview_prospect_demo: {
+        Args: { p_public_token: string };
+        Returns: Json;
+      };
       preview_wedding_party_invite: {
         Args: { p_invite_token: string };
         Returns: Json;

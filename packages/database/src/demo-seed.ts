@@ -16,6 +16,7 @@ import type {
   StaffId,
   UserId,
 } from "@paon/domain";
+import { decodeProspectProductImageLine } from "@paon/domain";
 
 import {
   AlterationRepository,
@@ -1312,17 +1313,19 @@ async function applyProspectProductMix(
   }
 }
 
-/** Overlay prospect photography onto the front of the seeded catalogue. */
+/** Overlay prospect photography (and optional names) onto the seeded catalogue. */
 async function applyProspectProductImages(
   admin: ReturnType<typeof createSupabaseAdminClient>,
   retailerId: RetailerId,
   urls: readonly string[],
 ): Promise<void> {
-  const safe = urls
-    .map((url) => url.trim())
-    .filter((url) => url.startsWith("https://") && url.length <= 1000)
+  const overlays = urls
+    .map((line) => decodeProspectProductImageLine(line))
+    .filter(
+      (item) => item.url.startsWith("https://") && item.url.length <= 1000,
+    )
     .slice(0, 24);
-  if (safe.length === 0) return;
+  if (overlays.length === 0) return;
 
   const { data: products, error } = await admin
     .from("products")
@@ -1331,18 +1334,22 @@ async function applyProspectProductImages(
     .eq("status", "active")
     .is("deleted_at", null)
     .order("created_at", { ascending: true })
-    .limit(safe.length);
+    .limit(overlays.length);
   if (error) throw error;
   if (!products?.length) return;
 
   for (let index = 0; index < products.length; index += 1) {
     const product = products[index]!;
-    const imageUrl = safe[index]!;
+    const overlay = overlays[index]!;
     const { error: updateError } = await admin
       .from("products")
       .update({
-        primary_image_url: imageUrl,
-        swatch_image_url: imageUrl,
+        primary_image_url: overlay.url,
+        swatch_image_url: overlay.url,
+        ...(overlay.name ? { name: overlay.name.slice(0, 160) } : {}),
+        ...(overlay.description
+          ? { description: overlay.description.slice(0, 2000) }
+          : {}),
       })
       .eq("id", product.id);
     if (updateError) throw updateError;

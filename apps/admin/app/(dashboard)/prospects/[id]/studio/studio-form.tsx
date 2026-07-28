@@ -6,7 +6,10 @@ import type {
   RetailerBrandTheme,
   SubscriptionPlan,
 } from "@paon/domain";
-import { DEFAULT_RETAILER_BRAND_THEME } from "@paon/domain";
+import {
+  DEFAULT_RETAILER_BRAND_THEME,
+  formatProspectProductImageLine,
+} from "@paon/domain";
 import { RetailerTheme } from "@paon/ui/components/RetailerTheme";
 import { useActionState, useState } from "react";
 
@@ -265,7 +268,8 @@ export function StudioForm({
               <label className="block text-sm">
                 Prospect garment photos{" "}
                 <span className="text-stone-400">
-                  (one https URL per line, up to 24 — uploads above append here
+                  (one line: https URL | optional garment name | optional
+                  description — up to 24. Uploads above append here
                   automatically. Leave blank to keep shared demo catalogue
                   photography under their brand.)
                 </span>
@@ -273,9 +277,11 @@ export function StudioForm({
                   className={`${input} min-h-28 py-3 font-mono text-xs`}
                   name="productImageUrls"
                   defaultValue={
-                    configuration?.productImageUrls.join("\n") ?? ""
+                    configuration?.productImageUrls
+                      .map((stored) => formatProspectProductImageLine(stored))
+                      .join("\n") ?? ""
                   }
-                  placeholder="https://…/their-jacket.webp"
+                  placeholder="https://…/their-jacket.webp | Midnight dinner jacket | Evening formal"
                 />
               </label>
               <label className="block text-sm">

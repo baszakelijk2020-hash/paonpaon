@@ -5,6 +5,13 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>__PAON_RETAILER_NAME__</title>
+<meta property="og:title" content="__PAON_OG_TITLE__"/>
+<meta property="og:description" content="__PAON_OG_DESCRIPTION__"/>
+<meta property="og:image" content="__PAON_OG_IMAGE__"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="__PAON_OG_TITLE__"/>
+<meta name="twitter:description" content="__PAON_OG_DESCRIPTION__"/>
+<meta name="twitter:image" content="__PAON_OG_IMAGE__"/>
 __PAON_BRAND_HEAD__
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -10104,7 +10111,11 @@ body.product-detail-open .header-back svg {
         heading.textContent = 'Collection';
         grid.appendChild(heading);
 
-        ['Suits', 'Jackets', 'Pants', 'Knits', 'Shoes', 'Shirts', 'Outerwear', 'Evening', 'Wedding'].forEach(function (name) {
+        var categoryNames = (typeof __PAON_CATEGORY_NAMES_JSON__ !== 'undefined' && Array.isArray(__PAON_CATEGORY_NAMES_JSON__) && __PAON_CATEGORY_NAMES_JSON__.length)
+            ? __PAON_CATEGORY_NAMES_JSON__
+            : ['Suits', 'Jackets', 'Pants', 'Knits', 'Shoes', 'Shirts', 'Outerwear', 'Evening', 'Wedding'];
+
+        categoryNames.forEach(function (name) {
             var item = document.createElement('div');
             item.className = 'cat-item' + (name === state.activeCat && state.view !== 'home' ? ' active' : '');
             item.innerHTML = '<div class="cat-label">' + name + '</div>';
@@ -10122,7 +10133,11 @@ body.product-detail-open .header-back svg {
         if (window.paonReturnHomeFromDetail) {
             var detailView = document.getElementById('view-detail');
             if (detailView) detailView.classList.remove('visible');
-            showHome();
+            if (__PAON_LAND_ON_GRID__) {
+                showCollectionGrid(state.activeCat || __PAON_DEFAULT_CATEGORY_JSON__ || 'Suits');
+            } else {
+                showHome();
+            }
             return;
         }
         if (typeof originalGoBack === 'function') originalGoBack();
@@ -10130,7 +10145,11 @@ body.product-detail-open .header-back svg {
 
     document.addEventListener('DOMContentLoaded', function () {
         ensureHomeView();
-        showHome();
+        if (__PAON_LAND_ON_GRID__) {
+            showCollectionGrid(__PAON_DEFAULT_CATEGORY_JSON__ || 'Suits');
+        } else {
+            showHome();
+        }
     });
 })();
 </script>

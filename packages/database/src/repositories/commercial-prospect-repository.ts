@@ -282,6 +282,44 @@ export class CommercialProspectRepository {
     return payload as PublicProspectDemo;
   }
 
+  /** Published-demo branding for link unfurls and the access-code gate. */
+  async previewPublishedDemo(publicToken: string): Promise<{
+    companyName: string;
+    marketingHeadline?: string | undefined;
+    logoUrl?: string | undefined;
+    heroImageUrl?: string | undefined;
+    accentColor?: string | undefined;
+    surfaceColor?: string | undefined;
+    inkColor?: string | undefined;
+  } | null> {
+    const { data, error } = await this.client.rpc("preview_prospect_demo", {
+      p_public_token: publicToken,
+    });
+    if (error) throw error;
+    if (!data) return null;
+    const payload = data as {
+      companyName?: string;
+      marketingHeadline?: string | null;
+      logoUrl?: string | null;
+      heroImageUrl?: string | null;
+      accentColor?: string | null;
+      surfaceColor?: string | null;
+      inkColor?: string | null;
+    };
+    if (!payload.companyName) return null;
+    return {
+      companyName: payload.companyName,
+      ...(payload.marketingHeadline
+        ? { marketingHeadline: payload.marketingHeadline }
+        : {}),
+      ...(payload.logoUrl ? { logoUrl: payload.logoUrl } : {}),
+      ...(payload.heroImageUrl ? { heroImageUrl: payload.heroImageUrl } : {}),
+      ...(payload.accentColor ? { accentColor: payload.accentColor } : {}),
+      ...(payload.surfaceColor ? { surfaceColor: payload.surfaceColor } : {}),
+      ...(payload.inkColor ? { inkColor: payload.inkColor } : {}),
+    };
+  }
+
   async updateStage(
     id: string,
     stage:

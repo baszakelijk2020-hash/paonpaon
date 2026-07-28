@@ -341,8 +341,10 @@ wire into logo / favicon / hero / garments by role; demo headline and
 introduction land on `/r/{slug}`; location lines accept optional photo URLs
 for Book Appointment; marketing Open Graph + sitemap/robots; bag CTA leads
 with Book appointment until Stripe keys exist; Admin `/inquiries` lists
-marketing form submissions while Resend is blocked. Custom domain still
-deferred (ADR-014).
+marketing form submissions while Resend is blocked. Prospect demos land on
+the collection grid (Maison keeps Home), empty Collection tabs are hidden,
+garment lines accept `url | name | description`, private-demo links unfurl
+and gate with prospect brand. Custom domain still deferred (ADR-014).
 
 **Blocked (skip in continuous mode until founder provisions):**
 

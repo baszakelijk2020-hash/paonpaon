@@ -456,15 +456,37 @@ ${
       ? `<p class="paon-marketing-intro" style="margin:8px 12px 0;max-width:42rem;font-size:12px;line-height:1.55;opacity:.72;font-family:var(--font-retailer-body),system-ui,sans-serif;">${escapeHtml(demoStory.personalizedIntroduction)}</p>`
       : "",
   ].join("");
+  const categoryNames = UNAMBIGUOUS_CATEGORY_ORDER.filter((category) =>
+    entries.some((entry) => entry.category === category),
+  );
+  const resolvedCategories =
+    categoryNames.length > 0 ? categoryNames : [...UNAMBIGUOUS_CATEGORY_ORDER];
+  const landOnGrid = slug !== "maison-dubois";
+  const ogTitle = demoStory?.marketingHeadline
+    ? `${safeName} — ${escapeHtml(demoStory.marketingHeadline)}`
+    : safeName;
+  const ogDescription = demoStory?.personalizedIntroduction
+    ? escapeHtml(demoStory.personalizedIntroduction.slice(0, 200))
+    : `Explore ${safeName} on PAON.`;
+  const ogImage =
+    heroUrl ??
+    entries.find((entry) => entry.img)?.img ??
+    "https://www.nebelspiegel.com/images/smaller/6088.webp";
+
   const html = template
     .replaceAll("__PAON_SLUG__", slug)
     .replaceAll("__PAON_RETAILER_ID__", retailer.id)
     .replaceAll("__PAON_RETAILER_NAME__", safeName)
+    .replaceAll("__PAON_OG_TITLE__", ogTitle)
+    .replaceAll("__PAON_OG_DESCRIPTION__", ogDescription)
+    .replaceAll("__PAON_OG_IMAGE__", escapeHtml(ogImage))
     .replace("__PAON_BRAND_HEAD__", brandHead)
     .replace("__PAON_BRAND_MARK__", brandMark)
     .replace("__PAON_HERO_HTML__", heroHtml + storyHtml + catalogueNoteHtml)
     .replace("__PAON_PRODUCTS_JSON__", JSON.stringify(entries))
     .replace("__PAON_DEFAULT_CATEGORY_JSON__", JSON.stringify(defaultCategory))
+    .replace("__PAON_CATEGORY_NAMES_JSON__", JSON.stringify(resolvedCategories))
+    .replace("__PAON_LAND_ON_GRID__", landOnGrid ? "true" : "false")
     .replace("__PAON_STORES_JSON__", JSON.stringify(stores));
 
   return new NextResponse(html, {
