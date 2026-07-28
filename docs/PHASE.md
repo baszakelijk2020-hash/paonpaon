@@ -268,8 +268,8 @@ is not.
    6. ~~**Join-flow onboarding depth.**~~ **Done** — join captures role,
       contact, photo, height/weight; ADR-055 records the party-scoped
       measurement decision.
-   7. **The orbit.** `am-house-hero.tsx` last — it can only be finished once
-      member photos exist, which is why it was parked.
+   7. ~~**The orbit.**~~ **Done** — `#ow` animation on the customer party
+      page, driven by real member photos (initials fallback).
 
 7. **Re-port the wrong widgets** — silhouette carousel, swipe deck — per
    [DESIGN_PORTS.md](./DESIGN_PORTS.md), and verify the two unverified ones

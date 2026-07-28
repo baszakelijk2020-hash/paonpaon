@@ -14,6 +14,7 @@ import { notFound } from "next/navigation";
 import { markFittingScheduled } from "../actions";
 
 import { AmHouseHero } from "./am-house-hero";
+import { AmHouseOrbit } from "./am-house-orbit";
 import { InviteLink } from "./invite-link";
 import { MemberPhotoUploader, PartyCoverUploader } from "./party-photos";
 
@@ -66,6 +67,19 @@ export default async function WeddingPartyDetailPage({
         organizerName={organizer?.name}
         note={party.notes}
         retailerSlug={retailer?.slug}
+      />
+
+      <AmHouseOrbit
+        center={{
+          name: organizer?.name ?? "Organizer",
+          ...(organizer?.photoUrl ? { photoUrl: organizer.photoUrl } : {}),
+        }}
+        orbiters={members
+          .filter((member) => member.customerId !== party.organizerCustomerId)
+          .map((member) => ({
+            name: member.name,
+            ...(member.photoUrl ? { photoUrl: member.photoUrl } : {}),
+          }))}
       />
 
       {myCustomerIds.has(party.organizerCustomerId) && retailer ? (

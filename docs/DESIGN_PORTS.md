@@ -37,31 +37,19 @@ port, not patched.
 | 2   | Silhouette carousel        | `nbs-silhouette-…`                  | `apps/retailer/components/fit-tools/silhouette-carousel.tsx`              | **Wrong** — 186 lines Tailwind, and its only render site is `/alterations/*` — see open question in `NIGHT_LOG.md` 2026-07-28                                                     |
 | 3   | Swipe deck                 | `swipe-app-placeholder` (pag1.html) | `apps/customer/app/r/[slug]/swipe/swipe-deck.tsx`                         | **Ported** 2026-07-28 — verbatim CSS/dimensions from pag1's `munro-swipe-card` widget, real product data through the existing `SwipeCard[]` prop                                  |
 | 4   | Table service chat         | `gilda-chat-widget`                 | `apps/customer/app/r/[slug]/table-service-widget.tsx`                     | **Verified** 2026-07-28 — spot-checked `.gcw-chat-wrapper/-history/-pics/-panel-wrapper/-message/-field/-send-button` against pag1.html, all byte-for-byte; ADR-048's claim holds |
-| 5   | AM House Party orbit       | `#ow`                               | `apps/customer/app/(dashboard)/wedding-parties/[id]/am-house-hero.tsx`    | **Incomplete** 2026-07-28 — see note below; the orbit itself was never built                                                                                                      |
+| 5   | AM House Party orbit       | `#ow`                               | `apps/customer/app/(dashboard)/wedding-parties/[id]/am-house-orbit.tsx`   | **Done** 2026-07-28 — pag1 `#ow` math/CSS; member `photoUrl` wired                                                                                                                |
 | 6   | Location globe (Cesium)    | `am-globe-widget`                   | not built                                                                 | Not started                                                                                                                                                                       |
 | 7   | Lapel configurator         | `nbs-lapel-…-v4`                    | not built                                                                 | Not started                                                                                                                                                                       |
 | 8   | Gift card 3D booklet       | `amibx-root-…`                      | not built                                                                 | Not started                                                                                                                                                                       |
 | 9   | Monthly photo grid         | bottom of pag1                      | not built                                                                 | Not started                                                                                                                                                                       |
 | 10  | Gift/voucher SaaS module   | pag2                                | not built                                                                 | Not started                                                                                                                                                                       |
 
-## AM House Party orbit is not actually built (found 2026-07-28)
+## AM House Party orbit — done 2026-07-28
 
-`am-house-hero.tsx`'s own header comment documents a careful, correct port
-of pag1.html's `wed2027.mp4` video-hero mockup (id neighborhood
-`u569387`–`u569408`) — the video, the notification card, the bottom nav.
-That work is accurate and stays as-is.
-
-But `#ow` — the actual "AM House Party" orbit (a center avatar with five
-others slowly orbiting it, `orbitR: 130`, sine-wave drift, `344×380px`) —
-sits in the same mockup, literally labelled `<p>AM House Party</p>`
-(`u569402`) immediately before it, and was never built at all. The row's
-own name and source id are about this orbit specifically, not the video
-shell around it. Real data for it exists (`WeddingPartyRepository`'s
-`members`, already rendered as a plain list below the hero on
-`wedding-parties/[id]/page.tsx`) but there's no per-member photo to use as
-the source's `avaN.png` avatars — a real design decision (initials circles?
-uploaded photos, a feature that doesn't exist yet?), not a quick addition.
-Logged rather than built on the spot; see `NIGHT_LOG.md` 2026-07-28.
+`am-house-hero.tsx` remains the video-hero shell (`wed2027.mp4`). The
+actual `#ow` orbit now lives in `am-house-orbit.tsx`: source CSS and
+`orbitR: 130` / sine-drift animation preserved; center + ring avatars
+come from `WeddingPartyMember` (`photoUrl`, initials fallback).
 
 ## Parked: fit tools (founder decision, 2026-07-27)
 
