@@ -191,3 +191,16 @@ of proceeding on any of the conditions above.
   so the work has nowhere real to land. Is there a different, founder-
   designed surface this carousel belongs on, or should it wait until
   fit tools unparks?
+- Swipe deck re-ported verbatim (`63c5e56`, docs update `702f936`): found
+  the real source — pag1.html's `#swipe-app-placeholder`
+  ("munro-swipe-card" widget, `#swipe`/tinder anchor) — a Tinder-style
+  card deck with like/dislike buttons and a "liked" carousel strip. Copied
+  its exact CSS (20px card radius, 390×555px container, the layered
+  "gummy" button shadows, `#4caf50`/`#ff4c4c` colors — pag1's own palette,
+  not paon-template.html's, same as table-service-widget.tsx keeping its
+  own WhatsApp green) and replaced the source's 10 static demo photos /
+  third-party end-of-deck pitch with the existing real `SwipeCard[]` data
+  and this retailer's own navigation. DoD green, pushed. Verified live:
+  card computes `border-radius: 20px`, container `height: 555px`, like
+  button `rgb(76,175,80)`, 10 liked-carousel slots render, and clicking
+  "like" fills a slot with the real product photo. No console errors.
