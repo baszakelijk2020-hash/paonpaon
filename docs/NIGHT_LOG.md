@@ -134,3 +134,8 @@ of proceeding on any of the conditions above.
   the correct 8px/54×56px, selecting a day + time produces a valid
   `startsAt` (`2026-07-29T09:00`), confirm button renders in the
   near-black with uppercase/tracking as specified, no console errors.
+- Queue item 5, screen 5 of 10 (Customer dashboard): `ea33f7a`. Colors,
+  radii and shadows already matched (this page had an earlier premium
+  visual pass, ADR-035) — added `paon-reveal` to the hero, the
+  current-moments strip, and each relationship card (120ms stagger per
+  card). DoD green, pushed.
