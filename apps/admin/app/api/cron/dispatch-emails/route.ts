@@ -1,4 +1,7 @@
-import { EmailOutboxRepository } from "@paon/database";
+import {
+  CommercialProspectRepository,
+  EmailOutboxRepository,
+} from "@paon/database";
 import { sendEmail } from "@paon/email";
 import { NextResponse } from "next/server";
 
@@ -15,6 +18,10 @@ import { getSupabaseAdminClient } from "@/lib/supabase-admin";
  * `docs/DATABASE.md` "Row Level Security" explicitly names scheduled
  * jobs as one of the few contexts allowed to use the service-role
  * client — this is exactly that case.
+ *
+ * Also runs Demo Studio expiry teardown on the same tick (Hobby caps
+ * cron jobs at two daily slots — see docs/DEPLOYMENT.md). The dedicated
+ * `/api/cron/expire-demo-environments` route remains for manual runs.
  */
 async function handleDispatch(request: Request): Promise<Response> {
   const cronSecret = env.cronSecret;
@@ -28,16 +35,24 @@ async function handleDispatch(request: Request): Promise<Response> {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const admin = getSupabaseAdminClient();
+  const demosExpired = await new CommercialProspectRepository(
+    admin,
+  ).expireDueEnvironments();
+
   const resend = getResendClient();
   const fromEmail = env.resendFromEmail;
   if (!resend || !fromEmail) {
     return NextResponse.json(
-      { error: "Resend is not configured on this deployment." },
+      {
+        error: "Resend is not configured on this deployment.",
+        demosExpired,
+      },
       { status: 503 },
     );
   }
 
-  const outboxRepo = new EmailOutboxRepository(getSupabaseAdminClient());
+  const outboxRepo = new EmailOutboxRepository(admin);
   const claimed = await outboxRepo.claimPending(20);
 
   let sent = 0;
@@ -62,7 +77,12 @@ async function handleDispatch(request: Request): Promise<Response> {
     }
   }
 
-  return NextResponse.json({ claimed: claimed.length, sent, failed });
+  return NextResponse.json({
+    claimed: claimed.length,
+    sent,
+    failed,
+    demosExpired,
+  });
 }
 
 export async function GET(request: Request): Promise<Response> {

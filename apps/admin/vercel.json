@@ -8,10 +8,6 @@
     {
       "path": "/api/cron/dispatch-sms",
       "schedule": "0 7 * * *"
-    },
-    {
-      "path": "/api/cron/expire-demo-environments",
-      "schedule": "0 * * * *"
     }
   ]
 }

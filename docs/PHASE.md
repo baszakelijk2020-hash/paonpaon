@@ -113,9 +113,10 @@ under an access code and expiry.
    into the real storefront~~ **Done** — live `/r/{slug}` after access code.
 4. ~~Teardown: expiring or unpublishing a demo must remove or disable its
    tenant~~ **Done** — linked retailer is `suspended` on unpublish and on
-   expiry (hourly cron + `open_prospect_demo` side-effect); re-publish
-   reactivates. `/r/{slug}` still only checks `status === "active"` — one
-   gate, no demo logic on the storefront route.
+   expiry (daily via `/api/cron/dispatch-emails` + `open_prospect_demo`
+   side-effect; Hobby has no spare cron slot); re-publish reactivates.
+   `/r/{slug}` still only checks `status === "active"` — one gate, no
+   demo logic on the storefront route.
 
 **Also (workstream 1, founder-requested 2026-07-28).** Storefront chrome
 fidelity vs `paon.html`: fabric swatches fill their container (`cover`),
