@@ -157,12 +157,50 @@ negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
    changing hands is the moment a retailer decides whether this is real, and
    checkout has no design treatment at all today.
 
+   **Primary buttons are `paon.html`'s black, not `--color-ink-*` — founder
+   decision 2026-07-28, resolving the open question logged in
+   `NIGHT_LOG.md`.** `--color-ink-500/600/700` are `oklch(… 265)` — a
+   blue-tinted brand ink that predates the decision that `paon.html` is the
+   design language. Every button in the founder's file uses `var(--black)`
+   (`#111110`, i.e. `--color-stone-900`): `.drf-btn`,
+   `.paon-appt-confirm`. Change `@paon/ui`'s primary Button default to
+   `--color-stone-900` with `#f0efec` text, per `.paon-appt-confirm`.
+   Retailer theming still layers `RetailerBrandTheme.accentColor` on top
+   where a retailer has set one; the _default_ is the founder's black, not
+   blue. This is a shared-component change — do it as its own increment and
+   verify the cart, checkout and appointment screens after.
+
+   **Date/time selection and forms are already designed — do not invent
+   them.** `#paon-mobile-appointment` in the template is the appointment
+   booking pattern, and it is what screens 4 and 10 must use. There is no
+   calendar grid and no date-picker widget anywhere in this product; a
+   horizontally scrolling strip is the design:
+   - **Day strip** (`.calendar`): horizontal scroll, `gap: 10px`, scrollbars
+     hidden, bleeding to the container edge via `margin: 0 -20px`.
+   - **Day cell** (`.day`): 56×54px, `border-radius: 8px`, white,
+     `opacity: .55` → `1` when `.selected`, `transition: opacity 200ms ease`.
+     Inside: `.weekday` 9px uppercase `--muted` over `.date` 20px `--text`.
+   - **Time slots** (`.paon-time-slot`): min-width 76px, height 38px,
+     `border-radius: 6px`, white, same `.55 → 1` selection, `.disabled` at
+     `.25` with pointer-events off.
+   - **Inputs** (`#paon-appt-name`, `#paon-appt-email`): `padding: 12px 14px`,
+     white, `1px solid var(--mid)`, `border-radius: 8px`, OptimaKlein 14px,
+     placeholder `--muted`.
+   - **Primary action** (`.paon-appt-confirm`): full width, 52px,
+     `border-radius: 8px`, `background: var(--black)`, text `#f0efec`,
+     OptimaKlein 14px uppercase, `letter-spacing: .04em`, disabled at `.55`.
+   - **Headings**: `.paon-appt-heading` OptimaKlein 18px `--text`;
+     `.paon-appt-sub` 12.5px `--muted`.
+
+   That vocabulary — white cards on cream, 6–8px radii, opacity as the
+   selection signal, 200ms ease — is the answer for most "there is no design
+   for this" cases. Read the template before concluding something is
+   missing; an earlier session wrongly assumed the date picker was absent.
+   If something genuinely is not in the file, stop and ask rather than
+   invent.
+
    One screen per increment. Do not restructure layout or change behaviour —
-   this is a visual and motion pass, not a rebuild. The founder's own
-   template answers every question; when unsure how something should look or
-   move, read `apps/customer/app/r/[slug]/paon-template.html` rather than
-   deciding. Anything genuinely absent from it (data tables, date pickers,
-   status timelines, form-heavy screens) — stop and ask rather than invent.
+   this is a visual and motion pass, not a rebuild.
 
    When all ten are done, stop and report. Do not continue into the other
    83 routes without a new founder decision.
