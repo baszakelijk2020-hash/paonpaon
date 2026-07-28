@@ -95,10 +95,32 @@ negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
 4. **Walk the whole flow on a phone and fix what breaks.** Storefront →
    account → appointment → order → loyalty. Fix only real breakage; resist
    redesigning on the way through.
-5. **Retailer Portal visual pass.** 40 pages currently generic admin UI.
-   **Open question the founder must answer first:** `paon.html` (light,
-   editorial) and pag1's Mission Control (dark, bottom tab bar, weather,
-   calendar) are two different designs. Do not start until told which.
+5. **Retailer Portal visual pass — UNBLOCKED, founder decision 2026-07-27.**
+   **`paon.html` is the design language for the entire product**, staff app
+   included. Not pag1's Mission Control. One language across customer and
+   retailer.
+
+   Its actual vocabulary, sampled from
+   `apps/customer/app/r/[slug]/paon-template.html` — use these values, do
+   not invent adjacent ones:
+   - **Surfaces**: `--cream #f4f1ec`, `--warm-mid #e8e4de`, `--mid #cdc9c2`,
+     `--panel #0e0e0c`. Already in `packages/ui/src/styles/globals.css` as
+     the stone scale.
+   - **Ink**: body `--text #2a2925`, headline `--black #111110`, secondary
+     `--muted #7a7870`.
+   - **Type**: OptimaKlein at 13px base for body and headline. `GTBold3` at
+     7px, uppercase, `#666666` for eyebrow/section labels
+     (`.cat-section-heading`). No Inter anywhere.
+   - **Chrome**: dark rail sidebar,
+     `linear-gradient(to right, #333, #1a1a1a)`, 250px wide, 60px header
+     row, logo in `Aviano` at 19px (`aside`, `#sidebar-logo`).
+   - **Nav items**: `.cat-label` — OptimaKlein 13px, `#a6a6a6`, brightening
+     to `#d9d9d9` on hover.
+   - **Motion**: `cubic-bezier(.22,.61,.36,1)`, ~220ms.
+
+   Work page by page, one page per increment. Do not restructure layout or
+   change behaviour — this is a visual pass, not a rebuild.
+
 6. **Re-port the wrong widgets** — silhouette carousel, swipe deck — per
    [DESIGN_PORTS.md](./DESIGN_PORTS.md), and verify the two unverified ones
    (table service, house party orbit).
@@ -119,6 +141,10 @@ venture. It is therefore maintained as canonical design source, ported
 verbatim, and never re-expressed in `@paon/ui` — see
 [DESIGN_PORTS.md](./DESIGN_PORTS.md) and ADR-052. The same applies to every
 surface designed in `downloaded_pages/pag1–3.html`.
+
+**1b. Which design language does the staff app use? — ANSWERED 2026-07-27:
+`paon.html`, for the entire product.** pag1's Mission Control is not the
+target. See queue item 5 for the sampled vocabulary.
 
 **2. Which wedge is actually being sold?** A prettier storefront is
 aesthetic. Control over third-party alteration cost — the alterations
