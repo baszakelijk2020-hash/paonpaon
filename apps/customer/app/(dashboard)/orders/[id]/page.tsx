@@ -59,7 +59,7 @@ export default async function OrderDetailPage({
         </p>
       </div>
 
-      <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+      <Card className="paon-reveal divide-y divide-[var(--color-stone-100)] p-0">
         {lines.map((line, index) => {
           const variant = variants[index];
           return (
@@ -83,7 +83,10 @@ export default async function OrderDetailPage({
         })}
       </Card>
 
-      <Card className="flex items-center justify-between">
+      <Card
+        className="paon-reveal flex items-center justify-between"
+        style={{ animationDelay: "120ms" }}
+      >
         <p className="font-medium text-[var(--color-stone-900)]">Total</p>
         <p className="font-medium text-[var(--color-stone-900)]">
           {formatMoney(order.total, "en-US")}
