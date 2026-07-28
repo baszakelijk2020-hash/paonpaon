@@ -7,11 +7,6 @@ export type Json =
   | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5";
-  };
   graphql_public: {
     Tables: {
       [_ in never]: never;
@@ -5060,14 +5055,15 @@ export type Database = {
         Args: { p_retailer_id: string };
         Returns: string;
       };
+      expire_due_prospect_demo_environments: { Args: never; Returns: number };
       generate_prospect_demo_environment: {
         Args: {
           p_access_code: string;
           p_expires_at: string;
           p_prospect_id: string;
           p_public_token: string;
-          p_retailer_id?: string | null;
-          p_retailer_slug?: string | null;
+          p_retailer_id?: string;
+          p_retailer_slug?: string;
           p_synthetic_data: Json;
         };
         Returns: string;

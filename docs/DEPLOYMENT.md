@@ -110,6 +110,28 @@ deploy boots and immediately throws.
 ignores any `localhost` value, because importing a developer's `.env.local`
 otherwise leaves production generating links that point at a laptop.
 
+## Cron jobs (Vercel Hobby — hard cap)
+
+`paonpaon-admin` is on **Vercel Hobby**. That plan allows **at most two
+cron jobs**, and **daily frequency only** — hourly (`0 * * * *`) is
+rejected at deploy with "Hobby accounts are limited to daily cron jobs".
+`docs/ROADMAP.md` already notes this; it is why
+`/api/cron/dispatch-newsletter` was never scheduled.
+
+The only entries in [`apps/admin/vercel.json`](../apps/admin/vercel.json)
+must stay:
+
+| Path                        | Schedule    | Job                                     |
+| --------------------------- | ----------- | --------------------------------------- |
+| `/api/cron/dispatch-emails` | `0 6 * * *` | Email outbox + Demo Studio expiry sweep |
+| `/api/cron/dispatch-sms`    | `0 7 * * *` | SMS outbox                              |
+
+Do **not** add a third cron. Fold new daily work into one of these two
+handlers (as Demo Studio teardown does via `dispatch-emails`), keep a
+manual-only route if needed, use an external ping, or upgrade the plan.
+A deploy that adds a third entry or an hourly schedule will fail before
+the build finishes.
+
 ## What a session may and may not do
 
 **May, standing approval granted 2026-07-28, scoped to the `paonpaon-*`

@@ -119,6 +119,16 @@ describe("RetailerRepository", () => {
     expect(retailer.displayName).toBe("New Name");
   });
 
+  it("setStatus maps the returned row after a platform status flip", async () => {
+    const suspendedRow: RetailerRow = { ...row, status: "suspended" };
+    const repo = new RetailerRepository(
+      clientReturning({ data: suspendedRow, error: null }),
+    );
+
+    const retailer = await repo.setStatus(row.id as never, "suspended");
+    expect(retailer.status).toBe("suspended");
+  });
+
   it("updateProfile rejects when the underlying query errors", async () => {
     const repo = new RetailerRepository(
       clientReturning({
