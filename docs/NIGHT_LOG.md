@@ -159,3 +159,14 @@ of proceeding on any of the conditions above.
   ADR-035-aligned pattern as the retailer dashboard; added `paon-reveal`
   to hero/stats/content section (0/120/240ms) rather than staggering each
   of the ~7 nested cards individually. DoD green, pushed.
+- Queue item 5, screen 10 of 10 (Retailer appointments): `5f3f5e7`. Moved
+  `date-time-picker.tsx` from apps/customer into `packages/ui` as
+  `DateTimePicker` (two apps needing it is exactly the no-duplication
+  rule's case) and used it in the staff booking form
+  (`appointments/new`), which had the same native-datetime-local gap
+  screen 4 fixed. That form needs independent start/end values, so it
+  uses two `DateTimePicker` instances — added an optional `defaultValue`
+  prop so a failed submit still re-populates the selection. Also added
+  `paon-reveal` to the plain appointments list (screen 10's literal
+  route) and the booking form's card. **All ten demo-path screens are now
+  done.** DoD green, pushed.
