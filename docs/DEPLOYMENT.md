@@ -5,55 +5,106 @@ take a PAON app live without asking the founder for values.
 
 ## What exists
 
-| Thing            | Value                                                                |
-| ---------------- | -------------------------------------------------------------------- |
-| Git remote       | `github.com/baszakelijk2020-hash/paonpaon`, production branch `main` |
-| Vercel team      | `baszakelijk2020-hashs-projects` (`team_fDLh0iXJ8upTJTwbAktVdtGc`)   |
-| Supabase org     | `nguyen` (`hvmmhiaggimktxucryek`)                                    |
-| Supabase project | `PAON` — `https://hngxrczavwywsnfceppb.supabase.co`                  |
-| Deployed         | `paonpaon-customer` (root `apps/customer`) — **live and working**    |
-| Not deployed     | the Retailer Portal and PAON Admin                                   |
+| Thing            | Value                                                                           |
+| ---------------- | ------------------------------------------------------------------------------- |
+| Git remote       | `github.com/baszakelijk2020-hash/paonpaon`, production branch `main`            |
+| Vercel team      | `baszakelijk2020-hashs-projects` (`team_fDLh0iXJ8upTJTwbAktVdtGc`)              |
+| Supabase org     | `nguyen` (`hvmmhiaggimktxucryek`)                                               |
+| Supabase project | `PAON` — `https://hngxrczavwywsnfceppb.supabase.co`                             |
+| Deployed         | `paonpaon-customer`, `paonpaon-admin`, `paonpaon-retailer` — **all three live** |
 
-**Live and confirmed working 2026-07-27:**
-<https://paonpaon-customer.vercel.app/r/maison-dubois> — the Maison Dubois
-storefront, rendering the founder's template against seeded production data.
-`NEXT_PUBLIC_DEMO_LOGIN=1` is set on that project, so
-`/login` shows one-click persona buttons. **Remove that variable before any
-real retailer data exists** — it signs anyone straight in.
+**Live and confirmed working 2026-07-28** (HTTP status checked directly against
+each deployment, not inferred from "the deploy succeeded"):
 
-`PROJECT_STATE.md` claims three `paon-*.vercel.app` projects exist. They do
-not; the Vercel API returned an empty project list on 2026-07-27. Trust this
-file over that one.
+| App      | URL                                                    | Verified                                        |
+| -------- | ------------------------------------------------------ | ----------------------------------------------- |
+| Customer | <https://paonpaon-customer.vercel.app/r/maison-dubois> | 200, founder's template, seeded production data |
+| Admin    | <https://paonpaon-admin.vercel.app/login>              | 200 (root `/` correctly 307s to `/login`)       |
+| Retailer | <https://paonpaon-retailer.vercel.app/login>           | 200 (root `/` correctly 307s to `/login`)       |
+
+All three have `NEXT_PUBLIC_DEMO_LOGIN=1` set, so `/login` shows one-click
+persona buttons (confirmed present in the rendered HTML on all three).
+**Remove that variable on every project before any real retailer data
+exists** — it signs anyone straight in.
+
+### Stale duplicate projects — leave alone
+
+`paon-admin`, `paon-retailer`, `paon-customer` (single `paon-`, no double)
+also exist in this Vercel team, are still responding, and are **not** the
+projects above. They predate the `paonpaon-*` naming and nothing has been
+done to retire them. Founder decision 2026-07-28: leave them alone — do not
+deploy to them, do not delete them, don't assume they're dead.
+
+**Footgun this caused once already:** the repo-root `.vercel/project.json`
+had been silently pointing at the old `paon-retailer` project. Running
+`vercel --prod` from the repo root (the correct way to deploy — see below)
+deploys to whatever project that file currently names, not necessarily the
+one you mean to touch, and this bit a session on 2026-07-28 (an unwanted
+rebuild of the stale project — no data loss, but not what was intended).
+The repo root's `.vercel` directory has been deleted so a bare `vercel
+--prod` at the root now fails closed instead of silently targeting the
+wrong project. Before any root-level deploy: `vercel link --yes --scope
+baszakelijk2020-hashs-projects --project <paonpaon-admin|paonpaon-retailer|paonpaon-customer>`
+first, confirm with `cat .vercel/project.json`, then deploy.
 
 ## Deploying an app that is not yet live
 
-Retailer and Admin still need this. Use the Vercel MCP (`list_projects`,
-`get_project`, `list_deployments`, `get_runtime_errors`,
-`get_deployment_build_logs`) for inspection, and Claude-in-Chrome for the
-dashboard steps.
+This is the procedure actually used to bring `paonpaon-admin` and
+`paonpaon-retailer` live on 2026-07-28 — CLI/API end to end, no dashboard
+clicks required, keys never printed to the terminal.
 
-1. **Import the repo.** `vercel.com/new` → import `paonpaon` → set **Root
-   Directory** to `apps/retailer` or `apps/admin` → name it
-   `paonpaon-retailer` / `paonpaon-admin`. Framework auto-detects as
-   Next.js. Connecting the repo also enables deploy-on-push.
-2. **Link Supabase.** Supabase dashboard → org `nguyen` → Integrations →
-   Vercel → **Add new project connection** → project `PAON` → the new Vercel
-   project. This injects `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
-   `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_JWT_SECRET` and the
-   `POSTGRES_*` set automatically. **Do not hand-copy keys.**
-3. **Add the one variable the integration does not provide:**
-   `NEXT_PUBLIC_SUPABASE_URL` = `https://hngxrczavwywsnfceppb.supabase.co`.
-   It is a URL, not a secret, so a session may set it directly.
-4. **Redeploy** and check.
+1. **Create the project.**
+   `vercel project add <name> --scope baszakelijk2020-hashs-projects`
+2. **Set the root directory and framework** (the dashboard "Import" flow
+   does this for you; creating via CLI does not):
+   ```
+   curl -X PATCH "https://api.vercel.com/v9/projects/<projectId>?teamId=team_fDLh0iXJ8upTJTwbAktVdtGc" \
+     -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+     -d '{"rootDirectory":"apps/<name>","framework":"nextjs"}'
+   ```
+3. **Connect the Git repo** (enables deploy-on-push):
+   ```
+   curl -X POST "https://api.vercel.com/v9/projects/<projectId>/link?teamId=team_fDLh0iXJ8upTJTwbAktVdtGc" \
+     -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+     -d '{"type":"github","repo":"baszakelijk2020-hash/paonpaon"}'
+   ```
+   `$VERCEL_TOKEN` comes from the repo-root `.env.local`, exactly like
+   `$SUPABASE_ACCESS_TOKEN` — sourced into the shell, never typed or echoed.
+4. **Set env vars via the Vercel CLI**, piping values in so nothing prints:
+   ```
+   printf '%s' "$VALUE" | vercel env add <NAME> production --scope baszakelijk2020-hashs-projects
+   ```
+   Needed: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+   `SUPABASE_SERVICE_ROLE_KEY` (fetch both keys the same way
+   `scripts/seed-production.sh` does — `supabase projects api-keys
+--project-ref hngxrczavwywsnfceppb --output json` — never hand-copied),
+   the app's own `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_ADMIN_APP_URL` /
+   `NEXT_PUBLIC_RETAILER_APP_URL` as applicable, and `NEXT_PUBLIC_DEMO_LOGIN=1`
+   for a prospect-facing demo.
+5. **Link the local directory** so future CLI deploys target the right
+   project: `vercel link --yes --scope baszakelijk2020-hashs-projects
+--project <name>` run from inside `apps/<name>` (this only rewrites the
+   gitignored `.vercel/project.json`, nothing shared).
+6. **Deploy from the repo root**, not from inside the app directory —
+   `vercel --prod --yes --scope baszakelijk2020-hashs-projects` run from
+   inside the app subdirectory double-applies the root directory setting
+   and fails with a "path does not exist" error. The Root Directory setting
+   from step 2 selects the right app from the full monorepo upload, which
+   is also what makes shared packages (`@paon/ui`, `@paon/domain`, ...)
+   resolve.
+7. **Verify with an actual request** — `curl -s -o /dev/null -w
+"%{http_code}"` against the deployed URL. A successful build is not
+   evidence the app works; `paonpaon-admin` built clean and still 500'd on
+   every request (`MIDDLEWARE_INVOCATION_FAILED`) until its env vars were
+   complete, because middleware reads `env.supabaseAnonKey` before any
+   public-path check runs.
 
 ## Variable names: why there are two spellings
 
-`apps/customer/lib/env.ts` accepts both the names this codebase was written
-against and the names the Vercel↔Supabase integration injects
+All three apps' `lib/env.ts` accept both the names this codebase was
+written against and the names the Vercel↔Supabase integration injects
 (`firstEnv(...)`). That is deliberate — without it, an integration-configured
-deploy boots and immediately throws. **Apply the same pattern to
-`apps/retailer/lib/env.ts` and `apps/admin/lib/env.ts` before deploying
-them**, or they will fail the same way.
+deploy boots and immediately throws.
 
 `appUrl` falls back to Vercel's own `VERCEL_PROJECT_PRODUCTION_URL` and
 ignores any `localhost` value, because importing a developer's `.env.local`
@@ -61,13 +112,18 @@ otherwise leaves production generating links that point at a laptop.
 
 ## What a session may and may not do
 
-**May:** create projects, set root directories, connect the Git repo, link
-the Supabase integration, set non-secret values (URLs, app URLs, feature
-flags), trigger redeploys, read build and runtime logs.
+**May, standing approval granted 2026-07-28, scoped to the `paonpaon-*`
+projects:** create a `paonpaon-*` project, set its root directory, connect
+the Git repo, fetch Supabase keys via the Supabase CLI and write them into
+Vercel env vars via the Vercel CLI (never printed to stdout, never typed
+into a web form), trigger redeploys, read build and runtime logs, relink
+local `.vercel/project.json` files. This supersedes the older "may not type
+service-role keys" line below for these three specific projects — ask
+before assuming it extends to infrastructure beyond them.
 
-**May not:** type API keys, tokens, passwords or service-role keys into any
-form, or grant OAuth/SSO consent. Those are the founder's to click. Use the
-Supabase integration precisely so this almost never comes up.
+**May not, without asking first:** grant OAuth/SSO consent (the founder's
+to click), delete or redeploy the stale `paon-*` projects, or touch anything
+outside the three in-scope workstreams per `PHASE.md`.
 
 ## Seeding the production database
 
@@ -89,11 +145,9 @@ simply is not there.
 
 ## Still owed by the founder
 
-- `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SECRET_KEY`) on each project.
-  The integration does not inject it. Required by the Stripe webhook handler
-  and `lib/supabase-admin.ts`.
 - `STRIPE_SECRET_KEY` / `RESEND_API_KEY` — blocked on the new business
-  entity, see `PHASE.md`.
+  entity, see `PHASE.md`. (`SUPABASE_SERVICE_ROLE_KEY` is now set on all
+  three `paonpaon-*` projects, as of 2026-07-28.)
 
 ## Debugging a white screen
 

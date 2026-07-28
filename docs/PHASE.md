@@ -58,19 +58,23 @@ that design exists.
 
 ## Live right now
 
-<https://paonpaon-customer.vercel.app/r/maison-dubois>
+All three apps are deployed and confirmed responding (2026-07-28):
 
-The Customer Portal is deployed, connected to the hosted Supabase project,
-seeded with demo data, and rendering the founder's own template. Every push
-to `main` redeploys it. Full details, IDs and runbook:
-[DEPLOYMENT.md](./DEPLOYMENT.md).
+- <https://paonpaon-customer.vercel.app/r/maison-dubois> — founder's
+  template, seeded production data.
+- <https://paonpaon-admin.vercel.app/login>
+- <https://paonpaon-retailer.vercel.app/login>
 
-**Immediately next:** create the `paonpaon-retailer` Vercel project (root
-`apps/retailer`), then `paonpaon-admin` (root `apps/admin`). Both apps have
-already been updated to accept the Supabase integration's variable names, so
-the steps in `DEPLOYMENT.md` should work unmodified. This is queue item 3's
-prerequisite — the demo is not showable until a retailer can be logged into
-Mission Control alongside the storefront.
+All connected to the hosted Supabase project, all deploy-on-push to `main`,
+all have `NEXT_PUBLIC_DEMO_LOGIN=1` set for one-click persona login. Full
+details, IDs and runbook: [DEPLOYMENT.md](./DEPLOYMENT.md), including a
+footgun discovered while bringing these up (a stale root-level Vercel link
+that redeployed the wrong project) and the stale duplicate `paon-*`
+projects the founder has said to leave alone.
+
+Queue item "a retailer logged into Mission Control alongside the
+storefront" is done — the prerequisite for item 3 below is now just
+populating the demo data, not deploying anything.
 
 ## The queue
 

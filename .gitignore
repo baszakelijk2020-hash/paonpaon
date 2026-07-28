@@ -55,3 +55,4 @@ next-env.d.ts
 # ignored by construction rather than by remembering to delete it.
 **/_tmp-*.spec.ts
 **/_tmp-*.ts
+.env*
