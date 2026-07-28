@@ -44,11 +44,33 @@ verbatim-porting rule (ADR-052).
 feature needs an integration with each retailer's supplier ordering system.
 See `DESIGN_PORTS.md`.
 
+**Also done.** Design tokens now use `paon.html`'s real warm palette
+(`#f4f1ec` / `#cdc9c2` / `#2a2925`) and OptimaKlein as the **body** face at
+13px — an earlier version substituted a pure grey ramp and Inter, which is
+the single largest reason the portals did not look like the founder's design.
+Do not reintroduce that substitution.
+
 **Blocked on founder design.** The alterations vertical. Everything under
 `/alterations/*` was invented by an engineering session and carries none of
 the founder's cues. The real product there is workshop work-order handling
 and owner cost control, not fit correction. Do not build or extend it until
 that design exists.
+
+## Live right now
+
+<https://paonpaon-customer.vercel.app/r/maison-dubois>
+
+The Customer Portal is deployed, connected to the hosted Supabase project,
+seeded with demo data, and rendering the founder's own template. Every push
+to `main` redeploys it. Full details, IDs and runbook:
+[DEPLOYMENT.md](./DEPLOYMENT.md).
+
+**Immediately next:** create the `paonpaon-retailer` Vercel project (root
+`apps/retailer`), then `paonpaon-admin` (root `apps/admin`). Both apps have
+already been updated to accept the Supabase integration's variable names, so
+the steps in `DEPLOYMENT.md` should work unmodified. This is queue item 3's
+prerequisite — the demo is not showable until a retailer can be logged into
+Mission Control alongside the storefront.
 
 ## The queue
 

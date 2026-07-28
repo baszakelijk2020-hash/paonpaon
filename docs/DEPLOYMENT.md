@@ -11,8 +11,15 @@ take a PAON app live without asking the founder for values.
 | Vercel team      | `baszakelijk2020-hashs-projects` (`team_fDLh0iXJ8upTJTwbAktVdtGc`)   |
 | Supabase org     | `nguyen` (`hvmmhiaggimktxucryek`)                                    |
 | Supabase project | `PAON` — `https://hngxrczavwywsnfceppb.supabase.co`                  |
-| Deployed         | `paonpaon-customer` (root `apps/customer`)                           |
+| Deployed         | `paonpaon-customer` (root `apps/customer`) — **live and working**    |
 | Not deployed     | the Retailer Portal and PAON Admin                                   |
+
+**Live and confirmed working 2026-07-27:**
+<https://paonpaon-customer.vercel.app/r/maison-dubois> — the Maison Dubois
+storefront, rendering the founder's template against seeded production data.
+`NEXT_PUBLIC_DEMO_LOGIN=1` is set on that project, so
+`/login` shows one-click persona buttons. **Remove that variable before any
+real retailer data exists** — it signs anyone straight in.
 
 `PROJECT_STATE.md` claims three `paon-*.vercel.app` projects exist. They do
 not; the Vercel API returned an empty project list on 2026-07-27. Trust this
@@ -61,6 +68,24 @@ flags), trigger redeploys, read build and runtime logs.
 **May not:** type API keys, tokens, passwords or service-role keys into any
 form, or grant OAuth/SSO consent. Those are the founder's to click. Use the
 Supabase integration precisely so this almost never comes up.
+
+## Seeding the production database
+
+`scripts/seed-production.sh` does it end to end. It fetches the project's API
+keys via the Supabase CLI using the `SUPABASE_ACCESS_TOKEN` in the repo-root
+`.env.local`, so no key is ever typed, pasted or echoed:
+
+```
+./scripts/seed-production.sh
+```
+
+Idempotent — safe to re-run. Takes a few minutes and prints nothing until it
+finishes, then lists every demo login. All use password `Demo-PAON-2026!`.
+
+An empty production database presents as a page that renders the shell and
+says **"Not found"** — distinct from a white screen, which is a runtime
+throw. Not-found means the app reached Supabase successfully and the row
+simply is not there.
 
 ## Still owed by the founder
 
