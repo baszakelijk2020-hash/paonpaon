@@ -52,7 +52,12 @@ export default async function WeddingPartiesPage() {
                 {party.eventDate
                   ? formatDate(party.eventDate, "en-US")
                   : "No date set"}
-                {party.venueName ? ` · ${party.venueName}` : ""}
+                {party.eventTime ? ` · ${party.eventTime}` : ""}
+                {party.fittingLocation
+                  ? ` · Fitting at ${party.fittingLocation}`
+                  : party.venueName
+                    ? ` · ${party.venueName}`
+                    : ""}
               </p>
             </div>
             <Badge tone={STATUS_TONE[party.status]}>{party.status}</Badge>

@@ -19,7 +19,9 @@ export async function createWeddingParty(formData: FormData) {
   const value = createWeddingPartySchema.parse({
     organizerCustomerId: formData.get("organizerCustomerId"),
     eventDate: formData.get("eventDate") || undefined,
+    eventTime: formData.get("eventTime") || undefined,
     venueName: formData.get("venueName") || undefined,
+    fittingLocation: formData.get("fittingLocation") || undefined,
     notes: formData.get("notes") || undefined,
   });
   const repo = new WeddingPartyRepository(await getSupabaseServerClient());
@@ -27,7 +29,11 @@ export async function createWeddingParty(formData: FormData) {
     retailerId: session.retailerId,
     organizerCustomerId: asId<"CustomerId">(value.organizerCustomerId),
     ...(value.eventDate ? { eventDate: value.eventDate } : {}),
+    ...(value.eventTime ? { eventTime: value.eventTime } : {}),
     ...(value.venueName ? { venueName: value.venueName } : {}),
+    ...(value.fittingLocation
+      ? { fittingLocation: value.fittingLocation }
+      : {}),
     ...(value.notes ? { notes: value.notes } : {}),
   });
   redirect(`/wedding-parties/${party.id}`);

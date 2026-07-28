@@ -41,8 +41,26 @@ export function NewWeddingPartyForm({
         <FormField label="Event date" htmlFor="eventDate" hint="Optional">
           <Input id="eventDate" name="eventDate" type="date" />
         </FormField>
-        <FormField label="Venue" htmlFor="venueName" hint="Optional">
+        <FormField label="Fitting time" htmlFor="eventTime" hint="Optional">
+          <Input id="eventTime" name="eventTime" type="time" />
+        </FormField>
+        <FormField
+          label="Wedding venue"
+          htmlFor="venueName"
+          hint="Optional — the ceremony venue, not the shop"
+        >
           <Input id="venueName" name="venueName" placeholder="Wedding venue" />
+        </FormField>
+        <FormField
+          label="Fitting location"
+          htmlFor="fittingLocation"
+          hint="Optional — which shop the party meets at"
+        >
+          <Input
+            id="fittingLocation"
+            name="fittingLocation"
+            placeholder="Atelier address or store name"
+          />
         </FormField>
         <FormField label="Notes" htmlFor="notes" hint="Optional">
           <Input id="notes" name="notes" />

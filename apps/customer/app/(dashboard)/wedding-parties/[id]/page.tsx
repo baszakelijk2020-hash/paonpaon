@@ -54,9 +54,13 @@ export default async function WeddingPartyDetailPage({
       <AmHouseHero
         retailerName={retailer?.displayName ?? "Your atelier"}
         eventDate={
-          party.eventDate ? formatDate(party.eventDate, "en-US") : undefined
+          party.eventDate
+            ? `${formatDate(party.eventDate, "en-US")}${
+                party.eventTime ? ` at ${party.eventTime}` : ""
+              }`
+            : undefined
         }
-        venueName={party.venueName}
+        venueName={party.fittingLocation ?? party.venueName}
         organizerName={organizer?.name}
         note={party.notes}
         retailerSlug={retailer?.slug}

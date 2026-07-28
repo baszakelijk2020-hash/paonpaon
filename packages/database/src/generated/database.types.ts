@@ -4331,6 +4331,8 @@ export type Database = {
           created_at: string;
           deleted_at: string | null;
           event_date: string | null;
+          event_time: string | null;
+          fitting_location: string | null;
           id: string;
           invite_token: string;
           notes: string | null;
@@ -4344,6 +4346,8 @@ export type Database = {
           created_at?: string;
           deleted_at?: string | null;
           event_date?: string | null;
+          event_time?: string | null;
+          fitting_location?: string | null;
           id?: string;
           invite_token?: string;
           notes?: string | null;
@@ -4357,6 +4361,8 @@ export type Database = {
           created_at?: string;
           deleted_at?: string | null;
           event_date?: string | null;
+          event_time?: string | null;
+          fitting_location?: string | null;
           id?: string;
           invite_token?: string;
           notes?: string | null;

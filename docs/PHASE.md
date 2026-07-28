@@ -199,115 +199,12 @@ is not.
    targets locked to 44 CSS px. Cart→checkout verified by Playwright
    (`mobile-ux` sticky bar + `storefront` full checkout). Stripe payment
    collection remains blocked on founder credentials (queue item 1).
-5. **Demo-path visual and motion pass — UNBLOCKED, founder decision
-   2026-07-27.**
-   **`paon.html` is the design language for the entire product**, staff app
-   included. Not pag1's Mission Control. One language across customer and
-   retailer.
-
-   Its actual vocabulary, sampled from
-   `apps/customer/app/r/[slug]/paon-template.html` — use these values, do
-   not invent adjacent ones:
-   - **Surfaces**: `--cream #f4f1ec`, `--warm-mid #e8e4de`, `--mid #cdc9c2`,
-     `--panel #0e0e0c`. Already in `packages/ui/src/styles/globals.css` as
-     the stone scale.
-   - **Ink**: body `--text #2a2925`, headline `--black #111110`, secondary
-     `--muted #7a7870`.
-   - **Type**: OptimaKlein at 13px base for body and headline. `GTBold3` at
-     7px, uppercase, `#666666` for eyebrow/section labels
-     (`.cat-section-heading`). No Inter anywhere.
-   - **Chrome**: dark rail sidebar,
-     `linear-gradient(to right, #333, #1a1a1a)`, 250px wide, 60px header
-     row, logo in `Aviano` at 19px (`aside`, `#sidebar-logo`).
-   - **Nav items**: `.cat-label` — OptimaKlein 13px, `#a6a6a6`, brightening
-     to `#d9d9d9` on hover.
-   - **Motion**: `cubic-bezier(.22,.61,.36,1)`, ~220ms.
-
-   **Motion is part of the design, not decoration.** Sampled from the same
-   file — use these, do not invent:
-   - Easing: `cubic-bezier(.22,.61,.36,1)` (41 occurrences; the house
-     curve). GSAP tweens use `expo.out`.
-   - Durations: 0.2s for state flips, 0.62–0.72s for panel and view
-     transitions, 1.0s for content reveals.
-   - Content reveal, verbatim:
-     `from { opacity: 0, y: 20, scale: 0.97, filter: 'blur(4px)' }` →
-     `to { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }`, staggered
-     ~120ms per card, `expo.out`.
-   - Images fade from `opacity: 0; transform: scale(1.04)` to `1` on load.
-   - Below-fold content is revealed by ScrollTrigger against the scrolling
-     container, `start: 'top 95%'`, `once: true`.
-
-   **Scope: the demo path only — these ten screens, in this order.** Founder
-   decision 2026-07-27. The product has ~93 routes; a prospect sees about
-   ten. Treating all 93 is a month of work, eighty of them for screens
-   nobody will open before a paid pilot exists. Everything not on this list
-   is explicitly deferred, including all of PAON Admin and the marketing
-   site.
-
-   | #   | Screen                | Route                                    |
-   | --- | --------------------- | ---------------------------------------- |
-   | 1   | Cart                  | `/r/[slug]/cart` (customer)              |
-   | 2   | Checkout → confirm    | the flow after cart — no treatment today |
-   | 3   | Product detail        | `/r/[slug]/products/[productSlug]`       |
-   | 4   | Book appointment      | `/r/[slug]/appointments`                 |
-   | 5   | Customer dashboard    | `/(dashboard)/dashboard` (customer)      |
-   | 6   | Customer loyalty      | `/(dashboard)/loyalty` (customer)        |
-   | 7   | Retailer dashboard    | `/(dashboard)/dashboard` (retailer)      |
-   | 8   | Client list           | `/(dashboard)/customers` (retailer)      |
-   | 9   | Client record         | `/(dashboard)/customers/[id]` (retailer) |
-   | 10  | Retailer appointments | `/(dashboard)/appointments` (retailer)   |
-
-   Cart and checkout come first because they are the weakest link: money
-   changing hands is the moment a retailer decides whether this is real, and
-   checkout has no design treatment at all today.
-
-   **Primary buttons are `paon.html`'s black, not `--color-ink-*` — founder
-   decision 2026-07-28, resolving the open question logged in
-   `NIGHT_LOG.md`.** `--color-ink-500/600/700` are `oklch(… 265)` — a
-   blue-tinted brand ink that predates the decision that `paon.html` is the
-   design language. Every button in the founder's file uses `var(--black)`
-   (`#111110`, i.e. `--color-stone-900`): `.drf-btn`,
-   `.paon-appt-confirm`. Change `@paon/ui`'s primary Button default to
-   `--color-stone-900` with `#f0efec` text, per `.paon-appt-confirm`.
-   Retailer theming still layers `RetailerBrandTheme.accentColor` on top
-   where a retailer has set one; the _default_ is the founder's black, not
-   blue. This is a shared-component change — do it as its own increment and
-   verify the cart, checkout and appointment screens after.
-
-   **Date/time selection and forms are already designed — do not invent
-   them.** `#paon-mobile-appointment` in the template is the appointment
-   booking pattern, and it is what screens 4 and 10 must use. There is no
-   calendar grid and no date-picker widget anywhere in this product; a
-   horizontally scrolling strip is the design:
-   - **Day strip** (`.calendar`): horizontal scroll, `gap: 10px`, scrollbars
-     hidden, bleeding to the container edge via `margin: 0 -20px`.
-   - **Day cell** (`.day`): 56×54px, `border-radius: 8px`, white,
-     `opacity: .55` → `1` when `.selected`, `transition: opacity 200ms ease`.
-     Inside: `.weekday` 9px uppercase `--muted` over `.date` 20px `--text`.
-   - **Time slots** (`.paon-time-slot`): min-width 76px, height 38px,
-     `border-radius: 6px`, white, same `.55 → 1` selection, `.disabled` at
-     `.25` with pointer-events off.
-   - **Inputs** (`#paon-appt-name`, `#paon-appt-email`): `padding: 12px 14px`,
-     white, `1px solid var(--mid)`, `border-radius: 8px`, OptimaKlein 14px,
-     placeholder `--muted`.
-   - **Primary action** (`.paon-appt-confirm`): full width, 52px,
-     `border-radius: 8px`, `background: var(--black)`, text `#f0efec`,
-     OptimaKlein 14px uppercase, `letter-spacing: .04em`, disabled at `.55`.
-   - **Headings**: `.paon-appt-heading` OptimaKlein 18px `--text`;
-     `.paon-appt-sub` 12.5px `--muted`.
-
-   That vocabulary — white cards on cream, 6–8px radii, opacity as the
-   selection signal, 200ms ease — is the answer for most "there is no design
-   for this" cases. Read the template before concluding something is
-   missing; an earlier session wrongly assumed the date picker was absent.
-   If something genuinely is not in the file, stop and ask rather than
-   invent.
-
-   One screen per increment. Do not restructure layout or change behaviour —
-   this is a visual and motion pass, not a rebuild.
-
-   When all ten are done, stop and report. Do not continue into the other
-   83 routes without a new founder decision.
+5. ~~**Demo-path visual and motion pass.**~~ **Done** — all ten screens
+   logged in `NIGHT_LOG.md` (`372dbb9`…`5f3f5e7`); primary Button is
+   `paon.html` black (`3444a2c`). Design vocabulary remains
+   `paon-template.html` (cream / OptimaKlein / 6–8px radii /
+   `paon-reveal` / day-strip appointment pattern). Do not expand to the
+   other 83 routes without a new founder decision.
 
 6. **AM House Party — customer-owned party planning. Founder spec
    2026-07-28.** Replaces the parked "orbit needs avatar data" question in
@@ -328,16 +225,12 @@ is not.
    management screens.
 
    **Genuinely missing:**
-   - **The customer cannot create a party.** Only `apps/retailer` has a
-     `/wedding-parties/new`. This is the largest gap and the first
-     increment.
+   - ~~**The customer cannot create a party.**~~ **Done** — customer
+     `/wedding-parties/new` (steps 1–3 landed; see `b961198`).
    - **Photos.** No photo field on member or party. Needed for the orbit
      visualisation and for the organizer's roster.
-   - **Time and store location.** `eventDate` is a date with no time, and
-     `venueName` is the _wedding_ venue, not which store the fitting happens
-     at. Note `Location` is not modelled at all (deferred, ROADMAP Phase 1),
-     so "store location" needs a founder decision: a free-text field now, or
-     model `Location` properly.
+   - ~~**Time and store location.**~~ **Done** — `eventTime` +
+     `fittingLocation` columns and create/list/detail surfaces.
    - **Member onboarding depth.** The join flow captures identity, not the
      preparation detail described above.
 
@@ -360,20 +253,16 @@ is not.
    customer-level measurement record is reintroduced. Record this reasoning
    as a short ADR in the same increment.
 
-   **Sequence — decided, one increment each, in this order:**
+   **Sequence — decided, one increment each, in this order.** Continuous
+   mode (ADR-054) ships each domain step without pausing between them.
 
-   1. **Customer-side create.** `/wedding-parties/new` in `apps/customer`:
-      name, date, time, store location (free text — `Location` is not
-      modelled and this phase will not model it), notes. Mirror the existing
-      retailer create action rather than inventing a second shape.
-   2. **Share the link.** `inviteToken` already exists — surface a
-      copy-to-clipboard share affordance on the organizer's party page. No
-      domain work; this is the step that makes the feature spread.
-   3. **Mission Control pass.** The retailer screens exist — verify against
-      the real flow and apply the `paon.html` visual pass.
-   4. **Time and store location.** Add `eventTime` and `fittingLocation` to
-      `WeddingParty` (`eventDate` is date-only; `venueName` is the wedding
-      venue, not the shop). Migration + domain change.
+   1. ~~**Customer-side create.**~~ **Done**
+   2. ~~**Share the link.**~~ **Done**
+   3. ~~**Mission Control pass.**~~ **Done**
+   4. ~~**Time and store location.**~~ **Done** — `event_time` +
+      `fitting_location` on `wedding_parties`; create forms and list/detail
+      surfaces show both. Venue remains the ceremony; fitting location is
+      the shop (free text until `Location` exists).
    5. **Photos.** Add `photoUrl` to `WeddingPartyMember` plus a party cover.
       Reuse the proven upload path — `product-images` bucket and
       `product-image-uploader.tsx` are the pattern; add a `party-photos`
@@ -383,10 +272,6 @@ is not.
       photo and the party-scoped height/weight, with the ADR above.
    7. **The orbit.** `am-house-hero.tsx` last — it can only be finished once
       member photos exist, which is why it was parked.
-
-   Steps 1–3 need no schema change and make the feature usable end to end;
-   land those first. Steps 4–6 each touch the domain — state the plan and
-   stop before writing each one.
 
 7. **Re-port the wrong widgets** — silhouette carousel, swipe deck — per
    [DESIGN_PORTS.md](./DESIGN_PORTS.md), and verify the two unverified ones

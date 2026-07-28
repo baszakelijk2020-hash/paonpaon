@@ -94,7 +94,12 @@ export default async function WeddingPartyDetailPage({
             {party.eventDate
               ? formatDate(party.eventDate, "en-US")
               : "No date set"}
-            {party.venueName ? ` · ${party.venueName}` : ""}
+            {party.eventTime ? ` · ${party.eventTime}` : ""}
+            {party.fittingLocation
+              ? ` · Fitting at ${party.fittingLocation}`
+              : party.venueName
+                ? ` · ${party.venueName}`
+                : ""}
           </p>
         </div>
         <div className="flex items-center gap-3">

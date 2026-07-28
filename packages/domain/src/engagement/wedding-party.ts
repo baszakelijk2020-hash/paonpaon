@@ -44,7 +44,12 @@ export interface WeddingParty extends Timestamps {
   readonly retailerId: RetailerId;
   readonly organizerCustomerId: CustomerId;
   readonly eventDate?: string;
+  /** Local wall-clock time for the fitting (`HH:MM` or `HH:MM:SS`). */
+  readonly eventTime?: string;
   readonly venueName?: string;
+  /** Free-text shop / atelier address for the fitting — not the wedding
+   * venue. `Location` is not modelled yet (ROADMAP Phase 1). */
+  readonly fittingLocation?: string;
   readonly status: WeddingPartyStatus;
   readonly notes?: string;
   /** The shareable join link's token — the organizer sends

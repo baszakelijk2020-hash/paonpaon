@@ -40,7 +40,9 @@ export async function createWeddingParty(
     .omit({ organizerCustomerId: true })
     .safeParse({
       eventDate: formData.get("eventDate") || undefined,
+      eventTime: formData.get("eventTime") || undefined,
       venueName: formData.get("venueName") || undefined,
+      fittingLocation: formData.get("fittingLocation") || undefined,
       notes: formData.get("notes") || undefined,
     });
   if (!retailerId) {
@@ -65,7 +67,11 @@ export async function createWeddingParty(
     retailerId: customer.retailerId,
     organizerCustomerId: customer.id,
     ...(parsed.data.eventDate ? { eventDate: parsed.data.eventDate } : {}),
+    ...(parsed.data.eventTime ? { eventTime: parsed.data.eventTime } : {}),
     ...(parsed.data.venueName ? { venueName: parsed.data.venueName } : {}),
+    ...(parsed.data.fittingLocation
+      ? { fittingLocation: parsed.data.fittingLocation }
+      : {}),
     ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
   });
   redirect(`/wedding-parties/${party.id}`);

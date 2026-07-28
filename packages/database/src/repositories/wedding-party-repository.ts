@@ -21,7 +21,9 @@ const toParty = (row: PartyRow): WeddingParty => ({
   retailerId: asId<"RetailerId">(row.retailer_id),
   organizerCustomerId: asId<"CustomerId">(row.organizer_customer_id),
   ...(row.event_date ? { eventDate: row.event_date } : {}),
+  ...(row.event_time ? { eventTime: row.event_time.slice(0, 5) } : {}),
   ...(row.venue_name ? { venueName: row.venue_name } : {}),
+  ...(row.fitting_location ? { fittingLocation: row.fitting_location } : {}),
   status: row.status,
   ...(row.notes ? { notes: row.notes } : {}),
   inviteToken: row.invite_token,
@@ -117,7 +119,9 @@ export class WeddingPartyRepository {
     retailerId: RetailerId;
     organizerCustomerId: CustomerId;
     eventDate?: string;
+    eventTime?: string;
     venueName?: string;
+    fittingLocation?: string;
     notes?: string;
   }): Promise<WeddingParty> {
     const id = asId<"WeddingPartyId">(crypto.randomUUID());
@@ -126,7 +130,11 @@ export class WeddingPartyRepository {
       retailer_id: values.retailerId,
       organizer_customer_id: values.organizerCustomerId,
       ...(values.eventDate ? { event_date: values.eventDate } : {}),
+      ...(values.eventTime ? { event_time: values.eventTime } : {}),
       ...(values.venueName ? { venue_name: values.venueName } : {}),
+      ...(values.fittingLocation
+        ? { fitting_location: values.fittingLocation }
+        : {}),
       ...(values.notes ? { notes: values.notes } : {}),
     });
     if (error) throw error;
