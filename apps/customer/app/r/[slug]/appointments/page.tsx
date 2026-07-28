@@ -30,7 +30,7 @@ export default async function StorefrontAppointmentsPage({
       <h1 className="font-display mb-6 text-3xl text-[var(--color-stone-900)]">
         Request an appointment
       </h1>
-      <Card>
+      <Card className="paon-reveal">
         <AppointmentRequestForm
           slug={slug}
           retailerId={retailer.id}

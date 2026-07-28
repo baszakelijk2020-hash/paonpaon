@@ -11,6 +11,7 @@ import {
   requestAppointment,
   type RequestAppointmentFormState,
 } from "./actions";
+import { DateTimePicker } from "./date-time-picker";
 
 const initialRequestAppointmentFormState: RequestAppointmentFormState = {
   values: {},
@@ -52,13 +53,7 @@ export function AppointmentRequestForm({
         htmlFor="startsAt"
         error={state.fieldErrors["startsAt"]}
       >
-        <Input
-          id="startsAt"
-          name="startsAt"
-          type="datetime-local"
-          invalid={!!state.fieldErrors["startsAt"]}
-          required
-        />
+        <DateTimePicker name="startsAt" />
       </FormField>
       <FormField
         label="Anything we should know?"
@@ -72,7 +67,13 @@ export function AppointmentRequestForm({
           {state.formError}
         </p>
       ) : null}
-      <Button type="submit" disabled={isPending} className="mt-2">
+      {/* .paon-appt-confirm: full-width, 52px, uppercase with letter-spacing
+          — specific to this one button, not the shared Button default. */}
+      <Button
+        type="submit"
+        disabled={isPending}
+        className="mt-2 h-[52px] w-full uppercase tracking-[0.04em]"
+      >
         {isPending
           ? "Requesting…"
           : isSignedIn
