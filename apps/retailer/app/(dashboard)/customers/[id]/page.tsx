@@ -130,7 +130,7 @@ export default async function CustomerDetailPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-7 text-white shadow-[var(--shadow-elevated)] sm:p-10">
+      <section className="paon-reveal relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-7 text-white shadow-[var(--shadow-elevated)] sm:p-10">
         <div
           aria-hidden="true"
           className="absolute -right-24 -top-24 -z-10 h-80 w-80 rounded-full border border-white/10 bg-white/5"
@@ -190,7 +190,10 @@ export default async function CustomerDetailPage({
         </div>
       </section>
 
-      <section className="grid grid-cols-2 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] lg:grid-cols-4">
+      <section
+        className="paon-reveal grid grid-cols-2 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] lg:grid-cols-4"
+        style={{ animationDelay: "120ms" }}
+      >
         <div className="border-b border-r border-[var(--color-stone-200)] p-5 sm:p-6">
           <p className="text-xs text-[var(--color-stone-500)]">Relationship</p>
           <p className="mt-2 text-lg capitalize">
@@ -222,7 +225,10 @@ export default async function CustomerDetailPage({
         </div>
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+      <section
+        className="paon-reveal grid gap-5 lg:grid-cols-[1.2fr_0.8fr]"
+        style={{ animationDelay: "240ms" }}
+      >
         <Card className="rounded-[var(--radius-xl)] border-l-4 border-l-[var(--color-stone-900)]">
           <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             Next best moment
