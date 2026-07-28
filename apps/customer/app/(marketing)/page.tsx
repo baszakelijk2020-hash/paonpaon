@@ -150,20 +150,20 @@ export default async function MarketingHomePage() {
           <div className="grid gap-5 lg:col-span-5">
             <article className="rounded-[1.25rem] bg-[#1a1a1a] p-8 text-white sm:p-10">
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/45">
-                Alteration operations
+                Weddings and group fittings
               </p>
               <p className="font-display mt-12 text-3xl leading-tight">
-                Fitting notes become workroom tasks without a chase.
+                One party, every attendant prepared before they walk in.
               </p>
               <h3 className="mt-8 text-sm leading-6 text-white/65">
-                From observation to handoff in one garment story — appointments
-                booked online, progress visible to staff and client.
+                Organizers share a private link; guests onboard themselves;
+                Mission Control keeps the fitting roster calm.
               </h3>
               <Link
-                href="/discover/alterations"
+                href="/discover/weddings-events"
                 className="mt-5 inline-flex text-sm text-white/65 underline underline-offset-4"
               >
-                Follow a garment journey →
+                See weddings and events →
               </Link>
             </article>
             <article className="rounded-[1.25rem] border border-black/10 bg-white p-8 sm:p-10">

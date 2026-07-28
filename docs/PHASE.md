@@ -311,6 +311,12 @@ parties; outreach pack survives refresh in sessionStorage; access code
 field is visible text; marketing Weddings page deep-links the live party
 demo; syntheticData shrinks to personas only.
 
+**Also (Mission Control + marketing honesty, 2026-07-28 late).** Prospect
+demo seed now applies the same lived-in client histories as Maison;
+marketing nav demotes founder-blocked Alterations in favour of Weddings;
+homepage card follows; private-demo access code is visible text; guest
+portal demo CTA opens the wedding-party walk.
+
 **Blocked (skip in continuous mode until founder provisions):**
 
 - Stripe live (queue 1) — keys missing from env.

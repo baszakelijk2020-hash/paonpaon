@@ -17,7 +17,6 @@ export default function MarketingLayout({
             className="hidden items-center gap-7 text-xs md:flex"
           >
             <Link href="/discover/platform">Platform</Link>
-            <Link href="/discover/alterations">Alterations</Link>
             <Link href="/discover/engagement">Engagement</Link>
             <Link href="/discover/weddings-events">Weddings</Link>
             <Link href="/founder">Founder</Link>

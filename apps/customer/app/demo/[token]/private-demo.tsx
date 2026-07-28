@@ -41,7 +41,8 @@ export function PrivateDemo({
               <input
                 className="mt-2 min-h-12 w-full rounded-md border border-white/20 bg-white/10 px-4 text-white"
                 name="accessCode"
-                type="password"
+                type="text"
+                autoComplete="off"
                 required
                 minLength={6}
                 maxLength={80}

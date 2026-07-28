@@ -36,14 +36,14 @@ export function GuestPortalPreview({
               Sign in
             </Link>
             <Link
-              href="/login?demo=1&redirectTo=%2Fdashboard"
+              href={`/login?demo=1&email=${encodeURIComponent("contact+isabelle@nebelspiegel.com")}&redirectTo=${encodeURIComponent("/wedding-parties")}`}
               className={buttonVariants({
                 variant: "outline",
                 size: "lg",
                 className: "border-white/35 text-white hover:bg-white/10",
               })}
             >
-              Try a demo persona
+              Try the wedding party demo
             </Link>
           </div>
         </div>

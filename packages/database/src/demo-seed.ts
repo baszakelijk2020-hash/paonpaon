@@ -1609,8 +1609,9 @@ async function seedRetailerSpecs(params: {
     const productIdBySlug = new Map(
       spec.products.map((product, index) => [product.slug, productIds[index]!]),
     );
-    const histories =
-      spec.slug === "maison-dubois" ? MAISON_CLIENT_HISTORIES : {};
+    // Prospect demos reuse the Maison client emails and need the same
+    // lived-in notes/appointments — an empty Mission Control kills the walk.
+    const histories = MAISON_CLIENT_HISTORIES;
 
     // Durable clienteling context across the book — not Isabelle-only.
     const clientelingRepo = new ClientelingRepository(admin);
