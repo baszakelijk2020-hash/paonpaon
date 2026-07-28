@@ -169,4 +169,25 @@ of proceeding on any of the conditions above.
   prop so a failed submit still re-populates the selection. Also added
   `paon-reveal` to the plain appointments list (screen 10's literal
   route) and the booking form's card. **All ten demo-path screens are now
-  done.** DoD green, pushed.
+  done.** DoD green, pushed. Verified against production once deployed:
+  apps/retailer's `/appointments/new` renders 14 day-cells (2 pickers × 7
+  days) with no console errors; apps/customer's `/r/[slug]/appointments`
+  still renders its own 7 correctly after the move to `packages/ui` — the
+  shared-component refactor didn't break either app.
+- Starting queue item 6 (DESIGN_PORTS.md "Wrong" surfaces). **Open
+  question for the founder on the silhouette carousel — not re-ported
+  here, skipping to the swipe deck instead:** its only render site is
+  `apps/retailer/app/(dashboard)/alterations/[id]/page.tsx` via
+  `fit-tool-panel.tsx` — i.e. it only ever appears inside `/alterations/*`,
+  which is both (a) explicitly off-limits ("never touch
+  apps/retailer/app/(dashboard)/alterations/") and (b) documented in
+  DESIGN_PORTS.md itself as the exact trap that cost a prior session a
+  full increment: "a verbatim widget port was placed inside an invented
+  screen, so a correct port still produced something the founder did not
+  recognise." A byte-for-byte correct carousel would still only be
+  reachable from a screen with no founder design behind it and a parked
+  feature (fit tools) behind that. Re-porting the component file itself
+  wouldn't technically touch `/alterations/*`, but its only consumer does,
+  so the work has nowhere real to land. Is there a different, founder-
+  designed surface this carousel belongs on, or should it wait until
+  fit tools unparks?
