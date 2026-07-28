@@ -120,19 +120,21 @@ export class WeddingPartyRepository {
     venueName?: string;
     notes?: string;
   }): Promise<WeddingParty> {
-    const { data, error } = await this.client
-      .from("wedding_parties")
-      .insert({
-        retailer_id: values.retailerId,
-        organizer_customer_id: values.organizerCustomerId,
-        ...(values.eventDate ? { event_date: values.eventDate } : {}),
-        ...(values.venueName ? { venue_name: values.venueName } : {}),
-        ...(values.notes ? { notes: values.notes } : {}),
-      })
-      .select("*")
-      .single();
+    const id = asId<"WeddingPartyId">(crypto.randomUUID());
+    const { error } = await this.client.from("wedding_parties").insert({
+      id,
+      retailer_id: values.retailerId,
+      organizer_customer_id: values.organizerCustomerId,
+      ...(values.eventDate ? { event_date: values.eventDate } : {}),
+      ...(values.venueName ? { venue_name: values.venueName } : {}),
+      ...(values.notes ? { notes: values.notes } : {}),
+    });
     if (error) throw error;
-    return toParty(data);
+    const party = await this.findById(id);
+    if (!party) {
+      throw new Error("Inserted wedding party could not be reloaded");
+    }
+    return party;
   }
 
   async updateStatus(

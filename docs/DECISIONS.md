@@ -2355,3 +2355,33 @@ the full inventory is months of work against an objective of three paid
 pilots, and that four of the ten surfaces are sales-presentation modules
 rather than product. Sequencing remains a founder decision under
 `PHASE.md`.
+
+---
+
+## ADR-053: Customer-written tenant-scoped rows must prove both actor identity and tenant identity
+
+**Context.** `wedding_parties` is the first tenant-scoped table in PAON that
+an authenticated customer may insert into directly. The initial policy shape
+for customer-created wedding parties checked only that
+`organizer_customer_id` belonged to `auth.uid()`. That proves who the actor
+is, but not that the new row stays inside that actor's tenant. On a table
+whose boundary is `retailer_id`, a policy that omits the tenant join allows a
+customer to create a row under a different retailer if they can supply that
+UUID.
+
+**Decision.** Customer-side `insert` policies on tenant-scoped tables must
+prove both facts in the same `with check`:
+
+1. the actor owns the customer/member record being referenced, and
+2. that customer/member record belongs to the same tenant as the row being
+   inserted (`... and c.retailer_id = <table>.retailer_id`).
+
+For `wedding_parties`, that means the policy checks both
+`c.id = wedding_parties.organizer_customer_id` and
+`c.retailer_id = wedding_parties.retailer_id`, not either alone.
+
+**Consequences.** This becomes the baseline for every future customer-writable
+tenant-scoped table: identity-only checks are insufficient. The rule is cheap
+to apply up front and expensive to rediscover after a feature ships, so it is
+recorded here as an explicit policy-design requirement rather than left as a
+one-off wedding-party fix.
