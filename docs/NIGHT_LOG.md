@@ -81,3 +81,19 @@ of proceeding on any of the conditions above.
   `1s cubic-bezier(0.16, 1, 0.3, 1)`, no console errors. Screenshot shows
   the empty-cart state (Isabelle's demo cart has no lines) rendering
   cleanly on the cream/white palette.
+- Queue item 5, screen 2 of 10 (Checkout → confirm): `4dfedbb`. The
+  shipping form on screen 1's cart page already inherited the radius fix
+  (shared Input/Card); this fixes Input's border color to `--color-stone-200`
+  (`var(--mid)`, matching `#paon-appt-name/email`) and adds `paon-reveal`
+  motion to the order confirmation page's two cards. DoD green, pushed.
+  **Open question for the founder, not resolved here:** every "primary"
+  Button (including "Pay now" — literally the money-changing-hands moment
+  queue item 5 called out as the weakest link) renders in
+  `--color-ink-600`, a blue-tinted brand color documented in globals.css as
+  "Brand — deep ink... retailers layer their own accent via theming
+  tokens" — not paon.html's own warm `--black` that its actual buttons use
+  (`.drf-btn`, `.paon-appt-confirm`). Is `--color-ink-600` intentional
+  platform branding independent of retailer theming, or should primary
+  buttons use each retailer's theme color / paon.html's black by default?
+  Left untouched — a shared button's brand color felt like a bigger call
+  than a visual/motion pass should make alone.
