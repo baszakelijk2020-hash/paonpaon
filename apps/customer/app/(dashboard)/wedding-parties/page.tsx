@@ -4,6 +4,7 @@ import {
   WeddingPartyRepository,
 } from "@paon/database";
 import { Badge } from "@paon/ui/components/Badge";
+import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
@@ -40,19 +41,25 @@ export default async function WeddingPartiesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Wedding parties
-        </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          Coordinate fittings for everyone in the party.
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
+            Wedding parties
+          </h1>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            Coordinate fittings for everyone in the party.
+          </p>
+        </div>
+        <Link href="/wedding-parties/new" className={buttonVariants()}>
+          Start a party
+        </Link>
       </div>
 
       {rows.length === 0 ? (
-        <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
+        <div className="paon-reveal rounded-[var(--radius-lg)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
           <p className="text-[var(--color-stone-600)]">
-            No wedding parties yet — your Style Advisor can start one for you.
+            No wedding parties yet — start one yourself, or your Style Advisor
+            can start one for you.
           </p>
         </div>
       ) : (
