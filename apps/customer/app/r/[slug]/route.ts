@@ -343,11 +343,70 @@ export async function GET(
   const defaultCategory =
     [...countByCategory.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
 
+  const theme = retailer.brandTheme;
+  const accent = safeHex(theme.accentColor) ?? "#1a1a1a";
+  const surface = safeHex(theme.surfaceColor) ?? "#f5f3f0";
+  const ink = safeHex(theme.inkColor) ?? "#1a1a1a";
+  const logoUrl = safeHttpsUrl(theme.logoUrl);
+  const heroUrl = safeHttpsUrl(theme.heroImageUrl);
+  const safeName = escapeHtml(retailer.displayName);
+
+  const brandHead = [
+    logoUrl || heroUrl
+      ? `<link rel="preload" as="image" href="${escapeHtml(logoUrl ?? heroUrl!)}"/>`
+      : "",
+    logoUrl ? `<link rel="icon" href="${escapeHtml(logoUrl)}"/>` : "",
+    `<style id="paon-retailer-brand">
+:root {
+  --paon-accent: ${accent};
+  --paon-surface: ${surface};
+  --paon-ink: ${ink};
+}
+#sidebar-logo {
+  background: linear-gradient(to right, ${accent}, ${ink}) !important;
+}
+${
+  logoUrl
+    ? `#sidebar-logo { flex-direction: column; gap: 6px; padding: 8px 12px; }
+#sidebar-logo .paon-retailer-logo {
+  max-height: 28px; max-width: 140px; width: auto; height: auto;
+  object-fit: contain; display: block;
+}
+#lagilda-shimmer-unique { display: none !important; }`
+    : ""
+}
+${
+  heroUrl
+    ? `.paon-retailer-hero {
+  width: 100%; max-height: min(42vh, 420px); overflow: hidden;
+  margin: 0 0 12px; border-radius: 0;
+}
+.paon-retailer-hero img {
+  width: 100%; height: min(42vh, 420px); object-fit: cover; display: block;
+}`
+    : ""
+}
+</style>`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const brandMark = logoUrl
+    ? `<img class="paon-retailer-logo" src="${escapeHtml(logoUrl)}" alt="${safeName}"/>`
+    : "";
+
+  const heroHtml = heroUrl
+    ? `<div class="paon-retailer-hero" aria-hidden="true"><img src="${escapeHtml(heroUrl)}" alt=""/></div>`
+    : "";
+
   const template = await loadTemplate();
   const html = template
     .replaceAll("__PAON_SLUG__", slug)
     .replaceAll("__PAON_RETAILER_ID__", retailer.id)
-    .replace("__PAON_RETAILER_NAME__", escapeHtml(retailer.displayName))
+    .replaceAll("__PAON_RETAILER_NAME__", safeName)
+    .replace("__PAON_BRAND_HEAD__", brandHead)
+    .replace("__PAON_BRAND_MARK__", brandMark)
+    .replace("__PAON_HERO_HTML__", heroHtml)
     .replace("__PAON_PRODUCTS_JSON__", JSON.stringify(entries))
     .replace("__PAON_DEFAULT_CATEGORY_JSON__", JSON.stringify(defaultCategory));
 
@@ -356,9 +415,25 @@ export async function GET(
   });
 }
 
+function safeHex(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  return /^#[0-9A-Fa-f]{3,8}$/.test(value) ? value : undefined;
+}
+
+function safeHttpsUrl(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }

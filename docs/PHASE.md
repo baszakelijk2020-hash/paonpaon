@@ -284,6 +284,11 @@ is not.
    **Hard stop:** need a founder-designed home for silhouette before a
    real port; do not re-port onto the invented alterations screens.
 
+**Also (Demo Studio honesty, 2026-07-28).** Storefront HTML now applies
+`Retailer.brandTheme` — accent/ink on the sidebar logo bar, optional logo
+mark, optional hero banner above the grid, document title. Studio-saved
+themes finally show on `/r/{slug}`, not only React child routes.
+
 **Blocked (skip in continuous mode until founder provisions):**
 
 - Stripe live (queue 1) — keys missing from env.
