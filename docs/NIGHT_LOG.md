@@ -257,7 +257,35 @@ of proceeding on any of the conditions above.
   `paon-reveal` to every card (staggered where a page has several) and
   fixed two raw `<select>` elements from `--radius-sm`/stone-300 to
   `--radius-md`/stone-200. DoD green, pushed.
-- **Steps 1-3 complete. Stopping per the founder's explicit instruction** —
-  steps 4-6 each touch the domain (new fields, a migration, a
-  `party-photos` storage bucket) and need founder review before any code
-  is written. Not started.
+- **Bug found verifying step 1 live, not fixed here — needs founder
+  review, same as steps 4-6.** Submitting `/wedding-parties/new` 500s in
+  production: `new row violates row-level security policy for table
+"wedding_parties"` (code `42501`). Confirmed the cause by reading
+  `supabase/migrations/20260721000004_create_wedding_parties.sql`: the
+  only `for all` (which includes insert) policy on `wedding_parties` is
+  "retailer staff manage wedding parties," scoped to
+  `retailer_id = current_retailer_id()`. Customers only ever got a `for
+select` policy — no one anticipated a customer inserting this row
+  themselves, because until this feature only retailer staff ever did.
+  The action code (`79cbd26`) is correct and needs no change; a migration
+  is what's missing. Proposed shape, matching the existing customer
+  `select` policy's exact pattern, not invented fresh:
+  ```sql
+  create policy "customer creates own wedding party" on public.wedding_parties
+    for insert
+    with check (
+      exists (
+        select 1 from public.customers c
+        where c.id = organizer_customer_id and c.user_id = auth.uid()
+      )
+    );
+  ```
+  Not written as a migration file — this is exactly a database/domain
+  change the founder said to stop and state the plan for, same bar as
+  steps 4-6.
+- **Steps 1-3 otherwise complete. Stopping per the founder's explicit
+  instruction** — steps 4-6 each touch the domain (new fields, a
+  migration, a `party-photos` storage bucket) and need founder review
+  before any code is written. Not started. The RLS gap above should
+  likely be fixed before or alongside step 4, since step 1 doesn't
+  actually work end-to-end without it.
