@@ -50,6 +50,8 @@ export interface WeddingParty extends Timestamps {
   /** Free-text shop / atelier address for the fitting — not the wedding
    * venue. `Location` is not modelled yet (ROADMAP Phase 1). */
   readonly fittingLocation?: string;
+  /** Public URL of the party cover image in the `party-photos` bucket. */
+  readonly coverPhotoUrl?: string;
   readonly status: WeddingPartyStatus;
   readonly notes?: string;
   /** The shareable join link's token — the organizer sends
@@ -69,4 +71,6 @@ export interface WeddingPartyMember extends Timestamps {
   readonly name: string;
   readonly role: WeddingPartyMemberRole;
   readonly fittingStatus: WeddingPartyMemberFittingStatus;
+  /** Public URL of the member's photo in the `party-photos` bucket. */
+  readonly photoUrl?: string;
 }

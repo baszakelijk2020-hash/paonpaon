@@ -227,8 +227,8 @@ is not.
    **Genuinely missing:**
    - ~~**The customer cannot create a party.**~~ **Done** — customer
      `/wedding-parties/new` (steps 1–3 landed; see `b961198`).
-   - **Photos.** No photo field on member or party. Needed for the orbit
-     visualisation and for the organizer's roster.
+   - ~~**Photos.**~~ **Done** — cover + member `photoUrl`, `party-photos`
+     bucket, organizer upload on the customer party page.
    - ~~**Time and store location.**~~ **Done** — `eventTime` +
      `fittingLocation` columns and create/list/detail surfaces.
    - **Member onboarding depth.** The join flow captures identity, not the
@@ -263,10 +263,8 @@ is not.
       `fitting_location` on `wedding_parties`; create forms and list/detail
       surfaces show both. Venue remains the ceremony; fitting location is
       the shop (free text until `Location` exists).
-   5. **Photos.** Add `photoUrl` to `WeddingPartyMember` plus a party cover.
-      Reuse the proven upload path — `product-images` bucket and
-      `product-image-uploader.tsx` are the pattern; add a `party-photos`
-      bucket with the same RLS shape. Do not invent a new upload mechanism.
+   5. ~~**Photos.**~~ **Done** — cover + member photo URLs, `party-photos`
+      bucket, organizer upload UI on the customer party page.
    6. **Join-flow onboarding depth.** Extend
       `/r/[slug]/wedding-parties/join/[token]` to capture role, contact,
       photo and the party-scoped height/weight, with the ADR above.

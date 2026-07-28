@@ -7,6 +7,7 @@ import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -14,6 +15,7 @@ import { markFittingScheduled } from "../actions";
 
 import { AmHouseHero } from "./am-house-hero";
 import { InviteLink } from "./invite-link";
+import { MemberPhotoUploader, PartyCoverUploader } from "./party-photos";
 
 import { env } from "@/lib/env";
 import { requireSession } from "@/lib/session";
@@ -81,6 +83,20 @@ export default async function WeddingPartyDetailPage({
         </Card>
       ) : null}
 
+      {myCustomerIds.has(party.organizerCustomerId) ? (
+        <Card className="paon-reveal" style={{ animationDelay: "60ms" }}>
+          <p className="mb-3 text-sm font-medium text-[var(--color-stone-900)]">
+            Party cover
+          </p>
+          <PartyCoverUploader
+            partyId={party.id}
+            {...(party.coverPhotoUrl
+              ? { coverPhotoUrl: party.coverPhotoUrl }
+              : {})}
+          />
+        </Card>
+      ) : null}
+
       <Card
         className="paon-reveal divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]"
         style={{ animationDelay: "120ms" }}
@@ -88,13 +104,39 @@ export default async function WeddingPartyDetailPage({
         {members.map((member) => (
           <div
             key={member.id}
-            className="flex items-center justify-between px-6 py-4"
+            className="flex items-center justify-between gap-4 px-6 py-4"
           >
-            <div>
-              <p className="font-medium">{member.name}</p>
-              <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                {member.role.replaceAll("_", " ")}
-              </p>
+            <div className="flex min-w-0 items-center gap-3">
+              {myCustomerIds.has(party.organizerCustomerId) ? (
+                <MemberPhotoUploader
+                  partyId={party.id}
+                  memberId={member.id}
+                  memberName={member.name}
+                  {...(member.photoUrl ? { photoUrl: member.photoUrl } : {})}
+                />
+              ) : member.photoUrl ? (
+                <Image
+                  src={member.photoUrl}
+                  alt=""
+                  width={40}
+                  height={40}
+                  unoptimized
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <div
+                  aria-hidden
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-stone-200)] text-sm text-[var(--color-stone-600)]"
+                >
+                  {member.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="font-medium">{member.name}</p>
+                <p className="text-sm capitalize text-[var(--color-stone-500)]">
+                  {member.role.replaceAll("_", " ")}
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Badge tone={FITTING_TONE[member.fittingStatus]}>

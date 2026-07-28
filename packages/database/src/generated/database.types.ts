@@ -4328,6 +4328,7 @@ export type Database = {
       };
       wedding_parties: {
         Row: {
+          cover_photo_url: string | null;
           created_at: string;
           deleted_at: string | null;
           event_date: string | null;
@@ -4343,6 +4344,7 @@ export type Database = {
           venue_name: string | null;
         };
         Insert: {
+          cover_photo_url?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           event_date?: string | null;
@@ -4358,6 +4360,7 @@ export type Database = {
           venue_name?: string | null;
         };
         Update: {
+          cover_photo_url?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           event_date?: string | null;
@@ -4397,6 +4400,7 @@ export type Database = {
           fitting_status: Database["public"]["Enums"]["wedding_party_member_fitting_status"];
           id: string;
           name: string;
+          photo_url: string | null;
           role: Database["public"]["Enums"]["wedding_party_member_role"];
           updated_at: string;
           wedding_party_id: string;
@@ -4408,6 +4412,7 @@ export type Database = {
           fitting_status?: Database["public"]["Enums"]["wedding_party_member_fitting_status"];
           id?: string;
           name: string;
+          photo_url?: string | null;
           role?: Database["public"]["Enums"]["wedding_party_member_role"];
           updated_at?: string;
           wedding_party_id: string;
@@ -4419,6 +4424,7 @@ export type Database = {
           fitting_status?: Database["public"]["Enums"]["wedding_party_member_fitting_status"];
           id?: string;
           name?: string;
+          photo_url?: string | null;
           role?: Database["public"]["Enums"]["wedding_party_member_role"];
           updated_at?: string;
           wedding_party_id?: string;
@@ -4952,6 +4958,10 @@ export type Database = {
       };
       can_access_physical_garment: {
         Args: { p_garment_id: string };
+        Returns: boolean;
+      };
+      can_manage_party_photo_object: {
+        Args: { p_name: string };
         Returns: boolean;
       };
       capture_behavioral_event: {

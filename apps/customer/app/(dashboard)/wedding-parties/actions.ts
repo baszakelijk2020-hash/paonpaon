@@ -1,7 +1,9 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+
 import { CustomerRepository, WeddingPartyRepository } from "@paon/database";
-import { createWeddingPartySchema } from "@paon/domain";
+import { asId, createWeddingPartySchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -23,6 +25,56 @@ export async function markFittingScheduled(formData: FormData) {
 
 export interface CreateWeddingPartyState {
   formError?: string;
+}
+
+export interface PartyPhotoActionState {
+  formError?: string;
+}
+
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+
+async function requireOrganizerParty(partyId: string) {
+  const session = await requireSession();
+  const supabase = await getSupabaseServerClient();
+  const repo = new WeddingPartyRepository(supabase);
+  const party = await repo.findById(asId<"WeddingPartyId">(partyId));
+  if (!party) return { error: "Party not found." as const };
+  const relationships = await new CustomerRepository(supabase).findByUserId(
+    session.userId,
+  );
+  const isOrganizer = relationships.some(
+    (customer) => customer.id === party.organizerCustomerId,
+  );
+  if (!isOrganizer) {
+    return { error: "Only the organizer can upload photos." as const };
+  }
+  return { session, supabase, repo, party };
+}
+
+function parseImageFile(formData: FormData):
+  | { error: string }
+  | {
+      file: File;
+      mimeType: (typeof ALLOWED_IMAGE_TYPES)[number];
+    } {
+  const file = formData.get("image");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Choose an image." };
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    return { error: "Images must be 5 MB or smaller." };
+  }
+  if (
+    !ALLOWED_IMAGE_TYPES.includes(
+      file.type as (typeof ALLOWED_IMAGE_TYPES)[number],
+    )
+  ) {
+    return { error: "Use a JPEG, PNG or WebP image." };
+  }
+  return {
+    file,
+    mimeType: file.type as (typeof ALLOWED_IMAGE_TYPES)[number],
+  };
 }
 
 /** The customer-initiated counterpart to the retailer's own
@@ -75,4 +127,77 @@ export async function createWeddingParty(
     ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
   });
   redirect(`/wedding-parties/${party.id}`);
+}
+
+export async function uploadPartyCoverPhoto(
+  partyId: string,
+  _prev: PartyPhotoActionState,
+  formData: FormData,
+): Promise<PartyPhotoActionState> {
+  const gate = await requireOrganizerParty(partyId);
+  if ("error" in gate) return { formError: gate.error };
+  const parsed = parseImageFile(formData);
+  if ("error" in parsed) return { formError: parsed.error };
+
+  const safeName = parsed.file.name
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .slice(-120);
+  const storagePath = `${gate.party.retailerId}/${gate.party.id}/cover-${randomUUID()}-${safeName}`;
+
+  try {
+    if (gate.party.coverPhotoUrl) {
+      await gate.repo.removePartyPhotoByPublicUrl(gate.party.coverPhotoUrl);
+    }
+    const publicUrl = await gate.repo.uploadPartyPhoto({
+      storagePath,
+      mimeType: parsed.mimeType,
+      content: await parsed.file.arrayBuffer(),
+    });
+    await gate.repo.setCoverPhotoUrl(gate.party.id, publicUrl);
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Upload failed",
+    };
+  }
+  revalidatePath(`/wedding-parties/${partyId}`);
+  return {};
+}
+
+export async function uploadMemberPhoto(
+  partyId: string,
+  memberId: string,
+  _prev: PartyPhotoActionState,
+  formData: FormData,
+): Promise<PartyPhotoActionState> {
+  const gate = await requireOrganizerParty(partyId);
+  if ("error" in gate) return { formError: gate.error };
+  const parsed = parseImageFile(formData);
+  if ("error" in parsed) return { formError: parsed.error };
+
+  const members = await gate.repo.findMembers(gate.party.id);
+  const member = members.find((item) => item.id === memberId);
+  if (!member) return { formError: "Member not found." };
+
+  const safeName = parsed.file.name
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .slice(-120);
+  const storagePath = `${gate.party.retailerId}/${gate.party.id}/members/${member.id}-${randomUUID()}-${safeName}`;
+
+  try {
+    if (member.photoUrl) {
+      await gate.repo.removePartyPhotoByPublicUrl(member.photoUrl);
+    }
+    const publicUrl = await gate.repo.uploadPartyPhoto({
+      storagePath,
+      mimeType: parsed.mimeType,
+      content: await parsed.file.arrayBuffer(),
+    });
+    await gate.repo.setMemberPhotoUrl(member.id, publicUrl);
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Upload failed",
+    };
+  }
+  revalidatePath(`/wedding-parties/${partyId}`);
+  return {};
 }

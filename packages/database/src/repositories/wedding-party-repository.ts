@@ -7,6 +7,7 @@ import {
   type WeddingPartyMemberFittingStatus,
   type WeddingPartyMemberRole,
   type WeddingPartyId,
+  type WeddingPartyMemberId,
   type WeddingPartyStatus,
 } from "@paon/domain";
 
@@ -16,6 +17,8 @@ import type { Database } from "../generated/database.types";
 type PartyRow = Database["public"]["Tables"]["wedding_parties"]["Row"];
 type MemberRow = Database["public"]["Tables"]["wedding_party_members"]["Row"];
 
+const PARTY_PHOTOS_BUCKET = "party-photos";
+
 const toParty = (row: PartyRow): WeddingParty => ({
   id: asId<"WeddingPartyId">(row.id),
   retailerId: asId<"RetailerId">(row.retailer_id),
@@ -24,6 +27,7 @@ const toParty = (row: PartyRow): WeddingParty => ({
   ...(row.event_time ? { eventTime: row.event_time.slice(0, 5) } : {}),
   ...(row.venue_name ? { venueName: row.venue_name } : {}),
   ...(row.fitting_location ? { fittingLocation: row.fitting_location } : {}),
+  ...(row.cover_photo_url ? { coverPhotoUrl: row.cover_photo_url } : {}),
   status: row.status,
   ...(row.notes ? { notes: row.notes } : {}),
   inviteToken: row.invite_token,
@@ -39,6 +43,7 @@ const toMember = (row: MemberRow): WeddingPartyMember => ({
   name: row.name,
   role: row.role,
   fittingStatus: row.fitting_status,
+  ...(row.photo_url ? { photoUrl: row.photo_url } : {}),
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   deletedAt: row.deleted_at,
@@ -204,6 +209,56 @@ export class WeddingPartyRepository {
       "update_wedding_party_member_status",
       { p_member_id: memberId, p_status: status },
     );
+    if (error) throw error;
+  }
+
+  async uploadPartyPhoto(params: {
+    storagePath: string;
+    mimeType: "image/jpeg" | "image/png" | "image/webp";
+    content: ArrayBuffer;
+  }): Promise<string> {
+    const { error } = await this.client.storage
+      .from(PARTY_PHOTOS_BUCKET)
+      .upload(params.storagePath, params.content, {
+        contentType: params.mimeType,
+        upsert: false,
+      });
+    if (error) throw error;
+    return this.client.storage
+      .from(PARTY_PHOTOS_BUCKET)
+      .getPublicUrl(params.storagePath).data.publicUrl;
+  }
+
+  async setCoverPhotoUrl(
+    partyId: WeddingPartyId,
+    coverPhotoUrl: string | null,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("wedding_parties")
+      .update({ cover_photo_url: coverPhotoUrl })
+      .eq("id", partyId);
+    if (error) throw error;
+  }
+
+  async setMemberPhotoUrl(
+    memberId: WeddingPartyMemberId,
+    photoUrl: string | null,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("wedding_party_members")
+      .update({ photo_url: photoUrl })
+      .eq("id", memberId);
+    if (error) throw error;
+  }
+
+  async removePartyPhotoByPublicUrl(url: string): Promise<void> {
+    const marker = `/${PARTY_PHOTOS_BUCKET}/`;
+    const index = url.indexOf(marker);
+    if (index === -1) return;
+    const storagePath = url.slice(index + marker.length);
+    const { error } = await this.client.storage
+      .from(PARTY_PHOTOS_BUCKET)
+      .remove([storagePath]);
     if (error) throw error;
   }
 }
