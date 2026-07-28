@@ -43,6 +43,7 @@ thing you need; do not load them into context wholesale.
 | [ROADMAP.md](./ROADMAP.md)                              | Sequencing intent. **Not a work queue** — see PHASE.md          |
 | [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)            | What blocks a sale. **Not a work queue** — see PHASE.md         |
 | [NON_GOALS.md](./NON_GOALS.md)                          | What is deliberately not being built yet                        |
+| [NIGHT_LOG.md](./NIGHT_LOG.md)                          | Trail from an explicitly authorized unattended overnight run    |
 
 ## Why PAON exists
 
