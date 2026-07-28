@@ -5236,6 +5236,19 @@ export type Database = {
         };
         Returns: string;
       };
+      request_guest_appointment: {
+        Args: {
+          p_email: string;
+          p_ends_at: string;
+          p_name: string;
+          p_notes?: string;
+          p_phone?: string;
+          p_retailer_id: string;
+          p_starts_at: string;
+          p_type?: Database["public"]["Enums"]["appointment_type"];
+        };
+        Returns: string;
+      };
       restore_retailer_brand_theme: {
         Args: { p_retailer_id: string; p_version_number: number };
         Returns: number;

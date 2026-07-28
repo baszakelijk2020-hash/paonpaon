@@ -165,4 +165,29 @@ export class AppointmentRepository {
 
     return asId<"AppointmentId">(data);
   }
+
+  /** Anonymous storefront Book Appointment — `request_guest_appointment`. */
+  async requestGuestAppointment(params: {
+    retailerId: RetailerId;
+    name: string;
+    email: string;
+    startsAt: string;
+    endsAt: string;
+    phone?: string;
+    notes?: string;
+    type?: AppointmentType;
+  }): Promise<AppointmentId> {
+    const { data, error } = await this.client.rpc("request_guest_appointment", {
+      p_retailer_id: params.retailerId,
+      p_name: params.name,
+      p_email: params.email,
+      p_starts_at: params.startsAt,
+      p_ends_at: params.endsAt,
+      ...(params.phone ? { p_phone: params.phone } : {}),
+      ...(params.notes ? { p_notes: params.notes } : {}),
+      ...(params.type ? { p_type: params.type } : {}),
+    });
+    if (error) throw error;
+    return asId<"AppointmentId">(data);
+  }
 }

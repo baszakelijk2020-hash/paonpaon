@@ -14810,11 +14810,53 @@ requestAnimationFrame(fixFeedImages);
                 var btn = document.getElementById('paon-appt-confirm');
                 var msg = document.getElementById('paon-appt-message');
                 if (!btn || !btn.classList.contains('enabled')) return;
+                var dateStr = document.getElementById('paon-appt-selected-date').value;
+                var timeStr = document.getElementById('paon-appt-selected-time').value;
+                if (!dateStr || !timeStr) return;
+                var startsAt = dateStr + 'T' + timeStr + ':00.000Z';
+                var endsAt = new Date(Date.parse(startsAt) + 60 * 60 * 1000).toISOString();
                 var textEl = document.getElementById('paon-appt-confirm-text');
-                if (textEl) textEl.textContent = 'Confirmed';
-                if (msg) msg.textContent = "We'll be in touch shortly to confirm your fitting.";
+                var nameVal = document.getElementById('paon-appt-name').value.trim();
+                var emailVal = document.getElementById('paon-appt-email').value.trim();
+                var phoneEl = document.getElementById('paon-appt-phone');
+                var notesEl = document.getElementById('paon-appt-msg');
                 btn.classList.remove('enabled');
                 btn.style.pointerEvents = 'none';
+                if (textEl) textEl.textContent = 'Sending…';
+                fetch('/r/__PAON_SLUG__/api/appointment-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        retailerId: '__PAON_RETAILER_ID__',
+                        name: nameVal,
+                        email: emailVal,
+                        phone: phoneEl ? phoneEl.value.trim() : '',
+                        notes: notesEl ? notesEl.value.trim() : '',
+                        startsAt: startsAt,
+                        endsAt: endsAt
+                    })
+                }).then(function (res) {
+                    return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+                }).then(function (result) {
+                    if (result.ok) {
+                        if (textEl) textEl.textContent = 'Confirmed';
+                        if (msg) msg.textContent = "We'll be in touch shortly to confirm your fitting.";
+                    } else {
+                        if (textEl) textEl.textContent = 'Confirm Appointment';
+                        btn.classList.add('enabled');
+                        btn.style.pointerEvents = '';
+                        if (msg) {
+                            msg.textContent = (result.data && result.data.error)
+                                ? result.data.error
+                                : 'Something went wrong — please try again.';
+                        }
+                    }
+                }).catch(function () {
+                    if (textEl) textEl.textContent = 'Confirm Appointment';
+                    btn.classList.add('enabled');
+                    btn.style.pointerEvents = '';
+                    if (msg) msg.textContent = 'Something went wrong — please try again.';
+                });
             });
         }
     }
@@ -15749,9 +15791,50 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         confirmBtn.innerHTML = '<span id="paon-appt-confirm-text">Confirm Appointment</span>';
         confirmBtn.addEventListener('click', function () {
             if (!confirmBtn.classList.contains('enabled')) return;
-            document.getElementById('paon-appt-confirm-text').textContent = 'Confirmed';
+            var dateStr = apptSection.dataset.selectedDate;
+            var timeStr = apptSection.dataset.selectedTime;
+            if (!dateStr || !timeStr) return;
+            var startsAt = dateStr + 'T' + timeStr + ':00.000Z';
+            var endsAt = new Date(Date.parse(startsAt) + 60 * 60 * 1000).toISOString();
+            var textEl = document.getElementById('paon-appt-confirm-text');
+            var msgEl = document.getElementById('paon-appt-message');
             confirmBtn.classList.remove('enabled');
             confirmBtn.style.pointerEvents = 'none';
+            if (textEl) textEl.textContent = 'Sending…';
+            fetch('/r/__PAON_SLUG__/api/appointment-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    retailerId: '__PAON_RETAILER_ID__',
+                    name: nameInput.value.trim(),
+                    email: emailInput.value.trim(),
+                    phone: phoneInput.value.trim(),
+                    notes: msgInput.value.trim(),
+                    startsAt: startsAt,
+                    endsAt: endsAt
+                })
+            }).then(function (res) {
+                return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+            }).then(function (result) {
+                if (result.ok) {
+                    if (textEl) textEl.textContent = 'Confirmed';
+                    if (msgEl) msgEl.textContent = "We'll be in touch shortly to confirm your fitting.";
+                } else {
+                    if (textEl) textEl.textContent = 'Confirm Appointment';
+                    confirmBtn.classList.add('enabled');
+                    confirmBtn.style.pointerEvents = '';
+                    if (msgEl) {
+                        msgEl.textContent = (result.data && result.data.error)
+                            ? result.data.error
+                            : 'Something went wrong — please try again.';
+                    }
+                }
+            }).catch(function () {
+                if (textEl) textEl.textContent = 'Confirm Appointment';
+                confirmBtn.classList.add('enabled');
+                confirmBtn.style.pointerEvents = '';
+                if (msgEl) msgEl.textContent = 'Something went wrong — please try again.';
+            });
         });
         form.appendChild(confirmBtn);
 
