@@ -2,6 +2,7 @@ import { AuthShell } from "@paon/ui/components/AuthShell";
 import { Button } from "@paon/ui/components/Button";
 import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
+import { Suspense } from "react";
 
 import { signIn } from "./actions";
 import { QuickDemoLogin } from "./quick-demo-login";
@@ -82,7 +83,9 @@ export default async function LoginPage({
       </form>
       {process.env.NODE_ENV !== "production" ||
       process.env["NEXT_PUBLIC_DEMO_LOGIN"] === "1" ? (
-        <QuickDemoLogin redirectTo={redirectTo} />
+        <Suspense fallback={null}>
+          <QuickDemoLogin redirectTo={redirectTo} />
+        </Suspense>
       ) : null}
     </AuthShell>
   );

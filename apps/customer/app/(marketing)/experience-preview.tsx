@@ -23,7 +23,7 @@ const VIEWS = {
     metrics: [
       ["Work order", "ALT-0248"],
       ["Due", "Tomorrow"],
-      ["Progress", "62%"],
+      ["Status", "Hand-finish"],
     ],
     action: "Open approved work",
   },

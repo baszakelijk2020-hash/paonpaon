@@ -65,9 +65,12 @@ export function PrivateDemo({
   }
 
   const storefrontHref = `/r/${demo.retailerSlug}`;
+  // Seeded Demo Studio owner — same pattern as seedProspectDemoRetailer.
+  const ownerEmail = `contact+${demo.retailerSlug}-owner@nebelspiegel.com`;
   const portalHref = retailerAppUrl
-    ? `${retailerAppUrl.replace(/\/$/, "")}/login?demo=1`
+    ? `${retailerAppUrl.replace(/\/$/, "")}/login?demo=1&email=${encodeURIComponent(ownerEmail)}`
     : undefined;
+  const locations = demo.configuration.locations;
 
   return (
     <RetailerTheme theme={demo.configuration.theme}>
@@ -86,6 +89,16 @@ export function PrivateDemo({
           <p className="mt-4 text-sm leading-6 opacity-50">
             {demo.configuration.marketingHeadline}
           </p>
+          {locations.length > 0 ? (
+            <ul className="mt-6 space-y-1 text-sm leading-6 opacity-50">
+              {locations.map((location) => (
+                <li key={`${location.name}-${location.city}`}>
+                  {location.name}
+                  {location.city ? ` · ${location.city}` : ""}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Link
               href={storefrontHref}
@@ -104,7 +117,9 @@ export function PrivateDemo({
           </div>
           <p className="mt-8 text-xs leading-5 opacity-40">
             You are entering a real seeded PAON tenant for this prospect — not a
-            slideshow. The storefront is live at /r/{demo.retailerSlug}.
+            slideshow. The storefront is live at /r/{demo.retailerSlug}. Mission
+            Control opens with the demo owner email prefilled; password is the
+            shared demo credential.
           </p>
         </section>
       </main>

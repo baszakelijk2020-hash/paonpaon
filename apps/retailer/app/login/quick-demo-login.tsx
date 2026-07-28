@@ -1,30 +1,52 @@
+"use client";
+
 import { DEMO_PASSWORD, DEMO_PERSONA_LOGINS } from "@paon/database/demo-seed";
+import { useSearchParams } from "next/navigation";
 
 import { signIn } from "./actions";
 
+const PROSPECT_ROLES = [
+  ["owner", "Owner"],
+  ["manager", "Manager"],
+  ["sales", "Sales"],
+] as const;
+
 /**
  * Dev-only one-click persona switcher — NODE_ENV-gated, never rendered
- * in a production build. Submits straight to the real `signIn` action
- * with a seeded persona's credentials pre-filled, so trying out "what
- * does a workshop manager see" doesn't require typing an email/password
- * you had to look up separately. Temporary by design: delete this file
- * and its one call site in page.tsx once there's a better story for
- * exploring personas than the actual login form.
+ * in a production build. Prefer ?email= from Demo Studio / private demo
+ * so prospect tenants get their own owner/manager/sales buttons instead
+ * of only the static Maison Dubois list.
  */
 export function QuickDemoLogin({
   redirectTo,
 }: {
   redirectTo?: string | undefined;
 }) {
-  const personas = DEMO_PERSONA_LOGINS.filter(
+  const searchParams = useSearchParams();
+  const emailParam = searchParams.get("email") ?? "";
+  const prospectSlug = prospectSlugFromEmail(emailParam);
+
+  const maisonPersonas = DEMO_PERSONA_LOGINS.filter(
     (login) => login.app === "retailer",
   );
+
+  const prospectPersonas = prospectSlug
+    ? PROSPECT_ROLES.map(([role, label]) => ({
+        email: `contact+${prospectSlug}-${role}@nebelspiegel.com`,
+        persona: label,
+        retailer: prospectSlug,
+      }))
+    : [];
+
+  const personas =
+    prospectPersonas.length > 0 ? prospectPersonas : maisonPersonas;
   if (personas.length === 0) return null;
 
   return (
     <div className="mt-8 border-t border-dashed border-[var(--color-stone-300)] pt-6">
       <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-danger-500)]">
         Dev only — quick persona login
+        {prospectSlug ? ` · ${prospectSlug}` : ""}
       </p>
       <div className="flex flex-wrap gap-2">
         {personas.map((login) => (
@@ -39,11 +61,25 @@ export function QuickDemoLogin({
               className="rounded-full border border-[var(--color-stone-300)] px-3 py-1.5 text-xs text-[var(--color-stone-700)] transition-colors hover:border-[var(--color-stone-500)]"
             >
               {login.persona}
-              {login.retailer ? ` · ${login.retailer}` : ""}
+              {"retailer" in login && login.retailer
+                ? ` · ${login.retailer}`
+                : ""}
             </button>
           </form>
         ))}
       </div>
     </div>
   );
+}
+
+function prospectSlugFromEmail(email: string): string | null {
+  const match =
+    /^contact\+([a-z0-9-]+)-(?:owner|manager|sales|workshop)@nebelspiegel\.com$/i.exec(
+      email.trim(),
+    );
+  if (!match?.[1]) return null;
+  const slug = match[1];
+  // Maison Dubois uses the same pattern — keep the static list for it.
+  if (slug === "maison-dubois") return null;
+  return slug;
 }

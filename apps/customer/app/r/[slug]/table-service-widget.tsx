@@ -127,9 +127,14 @@ export function TableServiceWidget({
     setIntent(value);
     setPicsVisible(false);
     if (caption === "I'm getting married") {
-      setHistory((h) => [...h, caption, "Opening your wedding party planner…"]);
+      setHistory((h) => [
+        ...h,
+        caption,
+        "Sign in to open your wedding party planner — we'll bring you back here.",
+      ]);
       window.setTimeout(() => {
-        window.location.href = "/wedding-parties/new";
+        const next = encodeURIComponent("/wedding-parties/new");
+        window.location.href = `/login?redirectTo=${next}`;
       }, 700);
       return;
     }

@@ -275,6 +275,23 @@ function canonicalCategoryFor(
   return "";
 }
 
+const DISPLAY_FONTS: Record<string, string> = {
+  paon_editorial: "var(--font-display)",
+  heritage: '"Iowan Old Style", "Baskerville", Georgia, serif',
+  modern: '"Helvetica Neue", Arial, sans-serif',
+};
+
+const BODY_FONTS: Record<string, string> = {
+  quiet_sans: "var(--font-sans)",
+  humanist: '"Avenir Next", Avenir, "Segoe UI", sans-serif',
+};
+
+const CORNERS: Record<string, string> = {
+  tailored: "0.25rem",
+  soft: "1.25rem",
+  architectural: "0rem",
+};
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ slug: string }> },
@@ -348,22 +365,37 @@ export async function GET(
   const surface = safeHex(theme.surfaceColor) ?? "#f5f3f0";
   const ink = safeHex(theme.inkColor) ?? "#1a1a1a";
   const logoUrl = safeHttpsUrl(theme.logoUrl);
+  const faviconUrl = safeHttpsUrl(theme.faviconUrl) ?? logoUrl;
   const heroUrl = safeHttpsUrl(theme.heroImageUrl);
   const safeName = escapeHtml(retailer.displayName);
+  const displayFont =
+    DISPLAY_FONTS[theme.displayFont] ?? DISPLAY_FONTS.paon_editorial;
+  const bodyFont = BODY_FONTS[theme.bodyFont] ?? BODY_FONTS.quiet_sans;
+  const radius = CORNERS[theme.cornerStyle] ?? CORNERS.tailored;
 
   const brandHead = [
     logoUrl || heroUrl
       ? `<link rel="preload" as="image" href="${escapeHtml(logoUrl ?? heroUrl!)}"/>`
       : "",
-    logoUrl ? `<link rel="icon" href="${escapeHtml(logoUrl)}"/>` : "",
+    faviconUrl ? `<link rel="icon" href="${escapeHtml(faviconUrl)}"/>` : "",
     `<style id="paon-retailer-brand">
 :root {
   --paon-accent: ${accent};
   --paon-surface: ${surface};
   --paon-ink: ${ink};
+  --font-retailer-display: ${displayFont};
+  --font-retailer-body: ${bodyFont};
+  --retailer-radius: ${radius};
+}
+body {
+  font-family: var(--font-retailer-body), var(--font-sans), system-ui, sans-serif;
+}
+.font-display, .sidebar-brand, #sidebar-logo, .product-name, .modal-title {
+  font-family: var(--font-retailer-display), var(--font-display), Georgia, serif;
 }
 #sidebar-logo {
   background: linear-gradient(to right, ${accent}, ${ink}) !important;
+  border-radius: var(--retailer-radius);
 }
 ${
   logoUrl

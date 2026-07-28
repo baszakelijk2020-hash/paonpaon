@@ -119,6 +119,7 @@ export async function generateDemoEnvironment(
       slug,
       brandTheme: configuration.theme,
       productImageUrls: configuration.productImageUrls,
+      productMix: configuration.productMix,
     });
 
     // Studio handoff payload: live links come from retailerSlug; personas

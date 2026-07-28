@@ -61,8 +61,13 @@ export function StudioForm({
             <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
               01 · Commercial frame
             </p>
+            <p className="mt-3 text-xs leading-5 text-stone-400">
+              Pitch notes for the conversation — not applied to the live demo
+              tenant yet.
+            </p>
             <label className="mt-5 block text-sm">
               Recommended package
+              <span className="text-stone-400"> (pitch only)</span>
               <select
                 className={input}
                 name="planId"

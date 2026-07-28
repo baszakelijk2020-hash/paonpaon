@@ -152,12 +152,12 @@ export default async function MarketingHomePage() {
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/45">
                 Alteration operations
               </p>
-              <p className="font-display mt-12 text-7xl">62%</p>
-              <div className="mt-5 h-1 bg-white/15">
-                <div className="h-full w-[62%] bg-white" />
-              </div>
-              <h3 className="font-display mt-8 text-3xl">
-                From fitting observation to confident handoff.
+              <p className="font-display mt-12 text-3xl leading-tight">
+                Fitting notes become workroom tasks without a chase.
+              </p>
+              <h3 className="mt-8 text-sm leading-6 text-white/65">
+                From observation to handoff in one garment story — appointments
+                booked online, progress visible to staff and client.
               </h3>
               <Link
                 href="/discover/alterations"

@@ -1,9 +1,9 @@
 import { AppShell, type AppShellNavGroup } from "@paon/ui/components/AppShell";
 import { Button } from "@paon/ui/components/Button";
-import Link from "next/link";
+import { Suspense } from "react";
 
 import { signOut } from "./actions";
-import { GuestPortalPreview } from "./guest-portal-preview";
+import { GuestPortalShell } from "./guest-portal-shell";
 
 import { getSession } from "@/lib/session";
 
@@ -95,30 +95,9 @@ export default async function DashboardLayout({
 
   if (!isCustomer) {
     return (
-      <AppShell
-        brand="PAON"
-        product="Private client"
-        homeHref="/dashboard"
-        persona="Preview"
-        email="Wander first — sign in when you wish"
-        navigation={navigation}
-        mobileDock={[
-          { href: "/dashboard", label: "Home" },
-          { href: "/login?redirectTo=%2Fdashboard", label: "Sign in" },
-          { href: "/r/maison-dubois", label: "Store" },
-          { href: "/account", label: "Account" },
-        ]}
-        signOutControl={
-          <Link
-            href="/login?redirectTo=%2Fdashboard"
-            className="inline-flex min-h-9 items-center px-3 text-sm underline underline-offset-4"
-          >
-            Sign in
-          </Link>
-        }
-      >
-        <GuestPortalPreview />
-      </AppShell>
+      <Suspense fallback={null}>
+        <GuestPortalShell navigation={navigation} />
+      </Suspense>
     );
   }
 

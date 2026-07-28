@@ -6,7 +6,13 @@ import Link from "next/link";
  * Read-only look of the private-client portal for guests who arrive from
  * the storefront profile icon. Mutations stay behind sign-in.
  */
-export function GuestPortalPreview() {
+export function GuestPortalPreview({
+  storeHref = "/r/maison-dubois",
+}: {
+  storeHref?: string;
+}) {
+  const storeLabel = storeHref.replace(/^\/r\//, "") || "the store";
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-1 pb-10 pt-2">
       <Card className="overflow-hidden border-0 bg-[#1a1a1a] p-0 text-white shadow-none">
@@ -63,8 +69,8 @@ export function GuestPortalPreview() {
 
       <p className="text-center text-sm text-black/45">
         Prefer the storefront?{" "}
-        <Link href="/r/maison-dubois" className="underline underline-offset-4">
-          Continue browsing Maison Dubois
+        <Link href={storeHref} className="underline underline-offset-4">
+          Continue browsing {storeLabel}
         </Link>
       </p>
     </div>

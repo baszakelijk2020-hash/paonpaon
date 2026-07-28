@@ -19,6 +19,7 @@ export default function MarketingLayout({
             <Link href="/discover/platform">Platform</Link>
             <Link href="/discover/alterations">Alterations</Link>
             <Link href="/discover/engagement">Engagement</Link>
+            <Link href="/discover/weddings-events">Weddings</Link>
             <Link href="/founder">Founder</Link>
             <Link href="/pricing">Packages</Link>
             <Link href="/r/maison-dubois">Live store</Link>

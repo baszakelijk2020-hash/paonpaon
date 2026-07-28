@@ -1142,6 +1142,20 @@ export async function seedDemoData(params: {
  * named prospect, seeded with the same proven Maison Dubois catalogue
  * shape. Idempotent on slug — regenerate reuses the tenant.
  */
+/**
+ * Maps Demo Studio productMix checkboxes onto Maison Dubois SKU families.
+ * Bridal has no dedicated SKUs in the seed catalogue — formalwear suits are
+ * the closest honest stand-in for a wedding-party pitch.
+ */
+const PRODUCT_MIX_SKU_PREFIXES: Record<string, readonly string[]> = {
+  tailoring: ["MD-JACKET-", "MD-PANT-"],
+  formalwear: ["MD-SUIT-"],
+  ready_to_wear: ["MD-KNIT-"],
+  accessories: ["MD-SHOE-"],
+  bridal: ["MD-SUIT-"],
+  made_to_measure: ["MD-JACKET-", "MD-PANT-"],
+};
+
 export async function seedProspectDemoRetailer(params: {
   supabaseUrl: string;
   anonKey: string;
@@ -1150,8 +1164,12 @@ export async function seedProspectDemoRetailer(params: {
   slug: string;
   brandTheme: RetailerBrandTheme;
   productImageUrls?: readonly string[];
+  productMix?: readonly string[];
 }): Promise<{ retailerId: RetailerId; slug: string; logins: DemoLogin[] }> {
   const template = RETAILERS[0]!;
+  const allowedPrefixes = prefixesForProductMix(params.productMix);
+  // Always seed the full Maison catalogue so regenerate can expand the mix
+  // later; applyProspectProductMix archives SKUs outside the selection.
   const spec: RetailerSpec = {
     ...template,
     slug: params.slug,
@@ -1183,6 +1201,11 @@ export async function seedProspectDemoRetailer(params: {
     stripEmptyBrandUrls(params.brandTheme),
     "Demo Studio prospect branding",
   );
+  await applyProspectProductMix(
+    admin,
+    retailer.id as RetailerId,
+    allowedPrefixes,
+  );
   await applyProspectProductImages(
     admin,
     retailer.id as RetailerId,
@@ -1193,6 +1216,63 @@ export async function seedProspectDemoRetailer(params: {
     slug: params.slug,
     logins,
   };
+}
+
+/** null = no filtering (full catalogue). */
+function prefixesForProductMix(
+  productMix: readonly string[] | undefined,
+): string[] | null {
+  if (!productMix || productMix.length === 0) return null;
+  const prefixes = new Set<string>();
+  for (const key of productMix) {
+    for (const prefix of PRODUCT_MIX_SKU_PREFIXES[key] ?? []) {
+      prefixes.add(prefix);
+    }
+  }
+  return prefixes.size > 0 ? [...prefixes] : null;
+}
+
+/**
+ * Archive SKUs outside the selected mix and reactivate those inside so
+ * Studio checkboxes change the live storefront assortment on regenerate.
+ */
+async function applyProspectProductMix(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  retailerId: RetailerId,
+  allowedPrefixes: string[] | null,
+): Promise<void> {
+  if (allowedPrefixes === null) {
+    await admin
+      .from("products")
+      .update({ status: "active" })
+      .eq("retailer_id", retailerId)
+      .is("deleted_at", null)
+      .eq("status", "archived");
+    return;
+  }
+
+  const { data: products, error } = await admin
+    .from("products")
+    .select("id")
+    .eq("retailer_id", retailerId)
+    .is("deleted_at", null);
+  if (error) throw error;
+
+  for (const product of products ?? []) {
+    const { data: variants, error: variantError } = await admin
+      .from("product_variants")
+      .select("sku")
+      .eq("product_id", product.id)
+      .limit(1);
+    if (variantError) throw variantError;
+    const sku = variants?.[0]?.sku ?? "";
+    const inMix = allowedPrefixes.some((prefix) => sku.startsWith(prefix));
+    const { error: updateError } = await admin
+      .from("products")
+      .update({ status: inMix ? "active" : "archived" })
+      .eq("id", product.id);
+    if (updateError) throw updateError;
+  }
 }
 
 /** Overlay prospect photography onto the front of the seeded catalogue. */

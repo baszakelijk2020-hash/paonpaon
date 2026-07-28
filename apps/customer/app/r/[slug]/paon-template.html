@@ -4002,16 +4002,6 @@ __PAON_HERO_HTML__
 </div>
 </div>
 <div id="filter-dim" onclick="closeFilterPanel()"></div>
-<div class="modal-overlay" id="modal">
-<div class="modal-box">
-<div class="modal-title" id="modal-title">Book a Fitting</div>
-<div class="modal-sub" id="modal-sub">Schedule a personal consultation.</div>
-<input class="modal-input" placeholder="Your name"/>
-<input class="modal-input" placeholder="Email address"/>
-<button class="modal-submit">Confirm</button>
-<button class="modal-close" onclick="closeModal()">Cancel</button>
-</div>
-</div>
 <script>
     /* Static product set based on confirmed available image filenames.
        Suits shown: 6054, 6055, 6057, 6058, 6059, 6060, 6061, 6062, 6063, 6064, 6065, 6066, 6067, 6069, 6070, 6071, 6073, 6074, 6075, 6078, 6079, 6080, 6081, 6082, 6085, 6086, 6087, 6088, 6089.
@@ -6438,22 +6428,18 @@ function renderGrid() {
         if (type === 'fitting') {
             if (window.paonOpenAppointmentSheet) {
                 window.paonOpenAppointmentSheet();
-                return;
             }
+            return;
         }
         if (type === 'account') {
             paonOpenCustomerPortal();
-            return;
         }
-        document.getElementById('modal-title').textContent = 'Book a Fitting';
-        document.getElementById('modal').classList.add('open');
     }
     function closeModal() {
-        document.getElementById('modal').classList.remove('open');
         if (window.paonCloseAppointmentSheet) window.paonCloseAppointmentSheet();
     }
     function paonOpenCustomerPortal() {
-        window.location.href = '/dashboard';
+        window.location.href = '/dashboard?from=' + encodeURIComponent('/r/__PAON_SLUG__');
     }
     function paonFavoritesKey() {
         return 'paon-favorites:' + String('__PAON_SLUG__');
@@ -16271,9 +16257,9 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
                 appendMessage(text);
                 chatPicsContainer.style.display = 'none';
                 if (weddingPath === 'organize') {
-                    appendMessage('Opening your wedding party planner…');
+                    appendMessage('Sign in to open your wedding party planner — we\'ll bring you back.');
                     window.setTimeout(function() {
-                        window.location.href = '/wedding-parties/new';
+                        window.location.href = '/login?redirectTo=' + encodeURIComponent('/wedding-parties/new');
                     }, 700);
                     return;
                 }

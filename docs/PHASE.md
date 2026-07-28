@@ -296,6 +296,14 @@ prospect product image URLs; generate overlays them onto the seeded
 catalogue so `/r/{demo-slug}` shows their photography, not only Maison
 Dubois stock.
 
+**Also (Demo Studio honesty, 2026-07-28 evening).** Private demo Mission
+Control prefills the seeded owner email; Studio `productMix` archives
+out-of-mix SKUs on generate; Studio locations render on the private demo
+gate; HTML storefront applies theme fonts/corners/favicon; dead fitting
+`#modal` removed; guest portal returns to the originating `/r/{slug}`;
+Ask-us wedding create routes through login; marketing drops the invented
+62% figure and links Weddings in the nav.
+
 **Blocked (skip in continuous mode until founder provisions):**
 
 - Stripe live (queue 1) — keys missing from env.
