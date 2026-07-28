@@ -65,6 +65,7 @@ export interface SaveProspectDemoConfigurationParams {
   personalizedIntroduction: string;
   locations: ProspectDemoLocation[];
   productMix: DemoProductMix[];
+  productImageUrls: string[];
   featureKeys: string[];
   changeNote: string;
 }
@@ -159,6 +160,7 @@ export class CommercialProspectRepository {
         p_personalized_introduction: params.personalizedIntroduction,
         p_locations: params.locations as unknown as Json,
         p_product_mix: params.productMix,
+        p_product_image_urls: params.productImageUrls,
         p_feature_keys: params.featureKeys,
         p_change_note: params.changeNote,
       },
@@ -269,6 +271,7 @@ export class CommercialProspectRepository {
       personalizedIntroduction: row.personalized_introduction,
       locations: row.locations as unknown as ProspectDemoLocation[],
       productMix: row.product_mix as DemoProductMix[],
+      productImageUrls: row.product_image_urls ?? [],
       featureKeys,
       status: row.status,
       currentVersion: row.current_version,

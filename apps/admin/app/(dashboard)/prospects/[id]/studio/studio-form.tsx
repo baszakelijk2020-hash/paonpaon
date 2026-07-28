@@ -251,6 +251,20 @@ export function StudioForm({
                 </div>
               </div>
               <label className="block text-sm">
+                Prospect garment photos{" "}
+                <span className="text-stone-400">
+                  (one https URL per line, up to 24 — upload above first)
+                </span>
+                <textarea
+                  className={`${input} min-h-28 py-3 font-mono text-xs`}
+                  name="productImageUrls"
+                  defaultValue={
+                    configuration?.productImageUrls.join("\n") ?? ""
+                  }
+                  placeholder="https://…/their-jacket.webp"
+                />
+              </label>
+              <label className="block text-sm">
                 Version note
                 <input
                   className={input}

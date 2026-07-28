@@ -3197,6 +3197,7 @@ export type Database = {
           marketing_headline: string;
           personalized_introduction: string;
           plan_id: string | null;
+          product_image_urls: string[];
           product_mix: string[];
           prospect_id: string;
           status: Database["public"]["Enums"]["demo_configuration_status"];
@@ -3211,6 +3212,7 @@ export type Database = {
           marketing_headline?: string;
           personalized_introduction?: string;
           plan_id?: string | null;
+          product_image_urls?: string[];
           product_mix?: string[];
           prospect_id: string;
           status?: Database["public"]["Enums"]["demo_configuration_status"];
@@ -3225,6 +3227,7 @@ export type Database = {
           marketing_headline?: string;
           personalized_introduction?: string;
           plan_id?: string | null;
+          product_image_urls?: string[];
           product_mix?: string[];
           prospect_id?: string;
           status?: Database["public"]["Enums"]["demo_configuration_status"];
@@ -5256,6 +5259,7 @@ export type Database = {
           p_marketing_headline: string;
           p_personalized_introduction: string;
           p_plan_id: string;
+          p_product_image_urls?: string[];
           p_product_mix: string[];
           p_prospect_id: string;
           p_theme: Json;

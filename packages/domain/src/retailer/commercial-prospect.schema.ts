@@ -56,6 +56,10 @@ export const saveProspectDemoConfigurationInputSchema = z.object({
     .min(1)
     .max(25),
   productMix: z.array(z.enum(DEMO_PRODUCT_MIX)).min(1),
+  productImageUrls: z
+    .array(z.string().trim().url().startsWith("https://").max(1000))
+    .max(24)
+    .default([]),
   featureKeys: z.array(z.string().trim().min(1).max(80)).min(1).max(60),
   changeNote: z.string().trim().min(2).max(240),
 });

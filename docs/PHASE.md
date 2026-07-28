@@ -289,6 +289,11 @@ is not.
 mark, optional hero banner above the grid, document title. Studio-saved
 themes finally show on `/r/{slug}`, not only React child routes.
 
+**Also (Demo Studio garments, 2026-07-28).** Studio accepts up to 24
+prospect product image URLs; generate overlays them onto the seeded
+catalogue so `/r/{demo-slug}` shows their photography, not only Maison
+Dubois stock.
+
 **Blocked (skip in continuous mode until founder provisions):**
 
 - Stripe live (queue 1) — keys missing from env.

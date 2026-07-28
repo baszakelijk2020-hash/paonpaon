@@ -15,8 +15,9 @@ export function BrandAssetUploader({ prospectId }: { prospectId: string }) {
         Brand asset library
       </p>
       <p className="mt-3 text-sm text-stone-500">
-        Upload public-facing logo, favicon or editorial imagery, then use its
-        generated URL in the configuration below.
+        Upload logo, favicon, hero, or garment photography, then paste the
+        generated URL into the theme fields or the prospect garment photos list
+        below.
       </p>
       <form
         action={formAction}

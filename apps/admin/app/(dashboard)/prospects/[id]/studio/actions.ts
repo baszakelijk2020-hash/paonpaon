@@ -114,6 +114,7 @@ export async function generateDemoEnvironment(
       displayName: prospect.companyName,
       slug,
       brandTheme: configuration.theme,
+      productImageUrls: configuration.productImageUrls,
     });
 
     // Studio handoff payload: live links come from retailerSlug; personas
@@ -331,6 +332,10 @@ export async function saveStudioConfiguration(
     personalizedIntroduction: formData.get("personalizedIntroduction"),
     locations,
     productMix: formData.getAll("productMix"),
+    productImageUrls: String(formData.get("productImageUrls") ?? "")
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean),
     featureKeys: formData.getAll("featureKeys"),
     changeNote: formData.get("changeNote"),
   });

@@ -59,6 +59,8 @@ export interface ProspectDemoConfiguration {
   personalizedIntroduction: string;
   locations: ProspectDemoLocation[];
   productMix: DemoProductMix[];
+  /** Prospect garment photography applied onto the seeded catalogue. */
+  productImageUrls: string[];
   featureKeys: string[];
   status: "draft" | "review_ready" | "published";
   currentVersion: number;

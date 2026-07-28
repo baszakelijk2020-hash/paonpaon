@@ -1149,6 +1149,7 @@ export async function seedProspectDemoRetailer(params: {
   displayName: string;
   slug: string;
   brandTheme: RetailerBrandTheme;
+  productImageUrls?: readonly string[];
 }): Promise<{ retailerId: RetailerId; slug: string; logins: DemoLogin[] }> {
   const template = RETAILERS[0]!;
   const spec: RetailerSpec = {
@@ -1182,11 +1183,53 @@ export async function seedProspectDemoRetailer(params: {
     stripEmptyBrandUrls(params.brandTheme),
     "Demo Studio prospect branding",
   );
+  await applyProspectProductImages(
+    admin,
+    retailer.id as RetailerId,
+    params.productImageUrls ?? [],
+  );
   return {
     retailerId: retailer.id as RetailerId,
     slug: params.slug,
     logins,
   };
+}
+
+/** Overlay prospect photography onto the front of the seeded catalogue. */
+async function applyProspectProductImages(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  retailerId: RetailerId,
+  urls: readonly string[],
+): Promise<void> {
+  const safe = urls
+    .map((url) => url.trim())
+    .filter((url) => url.startsWith("https://") && url.length <= 1000)
+    .slice(0, 24);
+  if (safe.length === 0) return;
+
+  const { data: products, error } = await admin
+    .from("products")
+    .select("id")
+    .eq("retailer_id", retailerId)
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true })
+    .limit(safe.length);
+  if (error) throw error;
+  if (!products?.length) return;
+
+  for (let index = 0; index < products.length; index += 1) {
+    const product = products[index]!;
+    const imageUrl = safe[index]!;
+    const { error: updateError } = await admin
+      .from("products")
+      .update({
+        primary_image_url: imageUrl,
+        swatch_image_url: imageUrl,
+      })
+      .eq("id", product.id);
+    if (updateError) throw updateError;
+  }
 }
 
 /** Postgres rejects non-https logo/favicon/hero URLs; omit blanks. */
