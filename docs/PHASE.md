@@ -244,12 +244,45 @@ negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
    grounds that fit data belongs to a `PhysicalGarment` via a
    `FittingObservation`, never to a customer record. Capturing weight and
    height on a wedding-party member reintroduces exactly what that ADR
-   removed. Either ADR-016 is superseded by a new ADR that says why, or the
-   onboarding captures something narrower. **Do not add measurement fields
-   to a customer without that decision.**
+   removed.
 
-   Sequence: customer-side create → photos → time and store → onboarding
-   depth (after the ADR question is settled). One increment each.
+   **Resolved 2026-07-28.** Both hold, because they are not the same thing:
+   self-reported height and weight given to prepare for a group fitting are
+   **party-scoped coordination data**, not a fit profile. They exist so the
+   store can pull roughly-right sample garments before six people walk in,
+   and the real `FittingObservation` supersedes them the moment anyone is
+   measured. So put them on `WeddingPartyMember`, never on `Customer`, and
+   read them nowhere outside the party. ADR-016 stays intact — no
+   customer-level measurement record is reintroduced. Record this reasoning
+   as a short ADR in the same increment.
+
+   **Sequence — decided, one increment each, in this order:**
+
+   1. **Customer-side create.** `/wedding-parties/new` in `apps/customer`:
+      name, date, time, store location (free text — `Location` is not
+      modelled and this phase will not model it), notes. Mirror the existing
+      retailer create action rather than inventing a second shape.
+   2. **Share the link.** `inviteToken` already exists — surface a
+      copy-to-clipboard share affordance on the organizer's party page. No
+      domain work; this is the step that makes the feature spread.
+   3. **Mission Control pass.** The retailer screens exist — verify against
+      the real flow and apply the `paon.html` visual pass.
+   4. **Time and store location.** Add `eventTime` and `fittingLocation` to
+      `WeddingParty` (`eventDate` is date-only; `venueName` is the wedding
+      venue, not the shop). Migration + domain change.
+   5. **Photos.** Add `photoUrl` to `WeddingPartyMember` plus a party cover.
+      Reuse the proven upload path — `product-images` bucket and
+      `product-image-uploader.tsx` are the pattern; add a `party-photos`
+      bucket with the same RLS shape. Do not invent a new upload mechanism.
+   6. **Join-flow onboarding depth.** Extend
+      `/r/[slug]/wedding-parties/join/[token]` to capture role, contact,
+      photo and the party-scoped height/weight, with the ADR above.
+   7. **The orbit.** `am-house-hero.tsx` last — it can only be finished once
+      member photos exist, which is why it was parked.
+
+   Steps 1–3 need no schema change and make the feature usable end to end;
+   land those first. Steps 4–6 each touch the domain — state the plan and
+   stop before writing each one.
 
 7. **Re-port the wrong widgets** — silhouette carousel, swipe deck — per
    [DESIGN_PORTS.md](./DESIGN_PORTS.md), and verify the two unverified ones
