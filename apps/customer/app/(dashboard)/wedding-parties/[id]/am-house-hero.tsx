@@ -28,6 +28,7 @@ export function AmHouseHero({
   organizerName,
   note,
   retailerSlug,
+  coverPhotoUrl,
 }: {
   retailerName: string;
   eventDate?: string | undefined;
@@ -35,12 +36,15 @@ export function AmHouseHero({
   organizerName?: string | undefined;
   note?: string | undefined;
   retailerSlug?: string | undefined;
+  coverPhotoUrl?: string | undefined;
 }) {
   const message =
     note ??
     `Best men! Very excited for the fitting at ${retailerName}${
       eventDate ? ` for the wedding on ${eventDate}` : " for the wedding"
     } — hope you are too! Make sure to complete your fitting.`;
+  const poster =
+    coverPhotoUrl ?? "https://www.nebelspiegel.com/images/wed2027-poster.jpg";
 
   return (
     <div className="paon-reveal aspect-344/735 max-w-105 relative mx-auto w-full overflow-hidden rounded-[54px] bg-black">
@@ -50,7 +54,7 @@ export function AmHouseHero({
         loop
         playsInline
         preload="none"
-        poster="https://www.nebelspiegel.com/images/wed2027-poster.jpg"
+        poster={poster}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
       >
         <source src="https://nebelspiegel.com/images/wed2027.mp4" />

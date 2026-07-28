@@ -205,7 +205,7 @@ export function SwipeDeck({
                   Browse the full shop
                 </Link>
                 <Link
-                  href="/wishlist"
+                  href={`/r/${slug}?favorites=1`}
                   className={buttonVariants({ size: "sm" })}
                 >
                   See your favorites

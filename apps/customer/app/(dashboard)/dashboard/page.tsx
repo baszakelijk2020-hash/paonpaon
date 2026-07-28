@@ -14,7 +14,7 @@ import Link from "next/link";
 import { TodaysPick } from "./todays-pick";
 
 import { getAIProvider } from "@/lib/ai";
-import { requireSession } from "@/lib/session";
+import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const TERMINAL_ORDER_STATUSES = new Set(["completed", "canceled", "refunded"]);
@@ -25,7 +25,14 @@ function humanise(value: string): string {
 }
 
 export default async function DashboardPage() {
-  const session = await requireSession();
+  const session = await getSession();
+  // Guests hit /dashboard from the storefront profile icon; the layout
+  // renders GuestPortalPreview and does not mount {children}. The page
+  // still runs — bail without requireSession so middleware public access
+  // is not undone by a redirect.
+  if (!session || session.accountType !== "customer") {
+    return null;
+  }
   const supabase = await getSupabaseServerClient();
 
   const customers = await new CustomerRepository(supabase).findByUserId(

@@ -88,6 +88,9 @@ export interface DemoSyntheticData {
     label: string;
     attention: string;
     primaryAction: string;
+    /** Seeded persona email when a real tenant exists (Demo Studio handoff). */
+    email?: string | undefined;
+    app?: "retailer" | "customer" | undefined;
   }>;
   customers: Array<{
     name: string;

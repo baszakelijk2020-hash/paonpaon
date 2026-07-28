@@ -116,15 +116,22 @@ export async function generateDemoEnvironment(
       brandTheme: configuration.theme,
     });
 
-    // Preview payload for the Studio panel only. /demo/[token] now routes
-    // into the live storefront after access-code unlock (step 3).
+    // Studio handoff payload: live links come from retailerSlug; personas
+    // carry the real seeded emails so the founder can copy one-click logins.
+    const loginFor = (label: string) =>
+      seeded.logins.find((login) => login.role.endsWith(`— ${label}`));
+    const customerLogin = seeded.logins.find((login) =>
+      login.role.includes(" customer — "),
+    );
     const syntheticData = {
       personas: [
         {
           key: "owner",
           label: "Retailer owner",
           attention: `${prospect.companyName}'s storefront is live with a seeded client book.`,
-          primaryAction: "Open the storefront",
+          primaryAction: "Open Mission Control",
+          app: "retailer" as const,
+          ...(loginFor("owner") ? { email: loginFor("owner")!.email } : {}),
         },
         {
           key: "manager",
@@ -132,6 +139,8 @@ export async function generateDemoEnvironment(
           attention:
             "Appointments, alterations and loyalty are seeded and ready to walk.",
           primaryAction: "Open Mission Control",
+          app: "retailer" as const,
+          ...(loginFor("manager") ? { email: loginFor("manager")!.email } : {}),
         },
         {
           key: "advisor",
@@ -139,6 +148,8 @@ export async function generateDemoEnvironment(
           attention:
             "Isabelle's relationship brief and fittings are on the real tenant.",
           primaryAction: "Open the client book",
+          app: "retailer" as const,
+          ...(loginFor("sales") ? { email: loginFor("sales")!.email } : {}),
         },
         {
           key: "operations",
@@ -146,12 +157,20 @@ export async function generateDemoEnvironment(
           attention:
             "Orders and garments in motion exist on the seeded retailer.",
           primaryAction: "Review garments in motion",
+          app: "retailer" as const,
+          ...(loginFor("operations")
+            ? { email: loginFor("operations")!.email }
+            : {}),
         },
         {
           key: "workshop_manager",
           label: "Workshop manager",
           attention: "The alteration workroom queue is seeded on this tenant.",
           primaryAction: "Open the workroom queue",
+          app: "retailer" as const,
+          ...(loginFor("workshop")
+            ? { email: loginFor("workshop")!.email }
+            : {}),
         },
         {
           key: "worker",
@@ -159,13 +178,19 @@ export async function generateDemoEnvironment(
           attention:
             "Assigned alteration work is waiting on the real retailer.",
           primaryAction: "Continue assigned work",
+          app: "retailer" as const,
+          ...(loginFor("alteration-worker")
+            ? { email: loginFor("alteration-worker")!.email }
+            : {}),
         },
         {
           key: "customer",
           label: "Private client",
           attention:
             "Private-client personas can sign into the live Customer Portal.",
-          primaryAction: "View the storefront",
+          primaryAction: "Open the Customer Portal",
+          app: "customer" as const,
+          ...(customerLogin ? { email: customerLogin.email } : {}),
         },
       ],
       customers: [

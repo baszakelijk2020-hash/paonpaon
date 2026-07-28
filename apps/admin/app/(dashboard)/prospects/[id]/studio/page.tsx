@@ -68,6 +68,7 @@ export default async function DemoStudioPage({
         prospectId={prospect.id}
         environment={environment}
         customerAppUrl={env.customerAppUrl}
+        retailerAppUrl={env.retailerAppUrl}
       />
       {environment ? (
         <section className="flex flex-col gap-5 rounded-[1.25rem] bg-stone-900 p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">
@@ -83,7 +84,7 @@ export default async function DemoStudioPage({
             <p className="mt-2 text-sm text-white/55">
               {environment.status === "published"
                 ? "Revoke immediately to close the link without deleting the configuration."
-                : "Publish only after reviewing each synthetic role and device width."}
+                : "Publish after walking the live storefront and a seeded persona login."}
             </p>
           </div>
           <form action={setDemoPublication}>

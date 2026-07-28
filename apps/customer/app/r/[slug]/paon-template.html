@@ -3762,9 +3762,9 @@
 </div>
 <div class="cat-grid" id="cat-grid"></div>
 <div class="sidebar-footer">
-<a href="#">How it works</a>
-<a href="#">About Us</a>
-<a href="#">Contact</a>
+<a href="/discover/platform">How it works</a>
+<a href="/founder">About Us</a>
+<a href="/consultation">Contact</a>
 <button class="whatsapp-btn" id="appt-btn" type="button" onclick="openModal('fitting')">
 <img alt="" src="https://www.nebelspiegel.com/images/calendar10.png" style="width:20px;height:20px;object-fit:contain;display:block;flex-shrink:0;margin-right:auto;opacity:.75;position:relative;top:-1px;"/>
 Book Appointment
@@ -6483,6 +6483,12 @@ function renderGrid() {
         if (basket) basket.classList.remove('open');
         root.classList.toggle('open');
         if (root.classList.contains('open')) paonRenderFavoritesPanel();
+    }
+    if (/(?:^|[?&])favorites=1(?:&|$)/.test(location.search)) {
+        window.addEventListener('load', function () {
+            var root = document.getElementById('paon-favorites-root');
+            if (root && !root.classList.contains('open')) toggleFavorites();
+        });
     }
     function paonRenderFavoritesPanel() {
         var linesEl = document.getElementById('paon-favorites-lines');

@@ -67,6 +67,7 @@ export default async function WeddingPartyDetailPage({
         organizerName={organizer?.name}
         note={party.notes}
         retailerSlug={retailer?.slug}
+        {...(party.coverPhotoUrl ? { coverPhotoUrl: party.coverPhotoUrl } : {})}
       />
 
       <AmHouseOrbit

@@ -8,34 +8,41 @@ import {
   type DemoEnvironmentActionState,
 } from "./actions";
 
+const DEMO_PASSWORD = "Demo-PAON-2026!";
 const initialState: DemoEnvironmentActionState = {};
 
 export function EnvironmentPanel({
   prospectId,
   environment,
   customerAppUrl,
+  retailerAppUrl,
 }: {
   prospectId: string;
   environment: ProspectDemoEnvironment | null;
   customerAppUrl?: string | undefined;
+  retailerAppUrl?: string | undefined;
 }) {
   const action = generateDemoEnvironment.bind(null, prospectId);
   const [state, formAction, pending] = useActionState(action, initialState);
-  const [activeRole, setActiveRole] = useState(
-    environment?.syntheticData.personas[0]?.key ?? "owner",
-  );
-  const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">(
-    "desktop",
-  );
-  const persona = environment?.syntheticData.personas.find(
-    (item) => item.key === activeRole,
-  );
-  const previewWidth =
-    device === "desktop"
-      ? "max-w-full"
-      : device === "tablet"
-        ? "max-w-[48rem]"
-        : "max-w-[24.375rem]";
+  const [copied, setCopied] = useState<string>();
+
+  const storefrontUrl =
+    environment?.retailerSlug && customerAppUrl
+      ? `${customerAppUrl}/r/${environment.retailerSlug}`
+      : environment?.retailerSlug
+        ? `/r/${environment.retailerSlug}`
+        : null;
+  const demoUrl = environment
+    ? customerAppUrl
+      ? `${customerAppUrl}/demo/${environment.publicToken}`
+      : `/demo/${environment.publicToken}`
+    : null;
+
+  async function copyLogin(email: string, href: string) {
+    await navigator.clipboard.writeText(`${email}\n${DEMO_PASSWORD}\n${href}`);
+    setCopied(email);
+    window.setTimeout(() => setCopied(undefined), 1800);
+  }
 
   return (
     <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
@@ -49,9 +56,8 @@ export function EnvironmentPanel({
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500">
             Generation creates a real seeded retailer tenant for this prospect —
-            storefront, client book, staff personas — then links it here. The
-            role cards below are a transitional Studio preview until the public
-            demo route opens the live apps.
+            storefront, client book, staff personas — then hands back live links
+            and one-click demo logins.
           </p>
         </div>
         {environment ? (
@@ -113,99 +119,102 @@ export function EnvironmentPanel({
 
       {environment ? (
         <div className="mt-8 space-y-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex gap-2 overflow-x-auto">
-              {environment.syntheticData.personas.map((item) => (
-                <button
-                  type="button"
-                  key={item.key}
-                  onClick={() => setActiveRole(item.key)}
-                  className={`min-h-11 whitespace-nowrap rounded-md px-3 text-xs ${
-                    activeRole === item.key
-                      ? "bg-stone-900 text-white"
-                      : "border"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              {(["desktop", "tablet", "mobile"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setDevice(mode)}
-                  className={`min-h-11 rounded-md px-3 text-xs capitalize ${
-                    device === mode ? "bg-stone-200" : "border"
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="overflow-x-auto rounded-xl bg-stone-200 p-4 sm:p-8">
-            <div
-              className={`mx-auto overflow-hidden rounded-xl bg-stone-900 text-white shadow-[var(--shadow-elevated)] transition-all ${previewWidth}`}
-            >
-              <div className="border-b border-white/10 px-5 py-4 text-xs text-white/45">
-                {persona?.label} · synthetic preview
-              </div>
-              <div className="p-6 sm:p-9">
-                <p className="text-xs uppercase tracking-[0.2em] text-white/45">
-                  What needs attention now
+          <div className="grid gap-4 lg:grid-cols-2">
+            {storefrontUrl ? (
+              <a
+                href={storefrontUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl border p-5 transition hover:bg-stone-50"
+              >
+                <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+                  Live storefront
                 </p>
-                <h3 className="font-display mt-4 text-4xl leading-none">
-                  {persona?.attention}
-                </h3>
-                <button className="mt-7 min-h-11 rounded-md bg-white px-4 text-sm text-black">
-                  {persona?.primaryAction} →
-                </button>
-                <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {Object.entries(environment.syntheticData.metrics).map(
-                    ([label, value]) => (
-                      <div key={label} className="rounded-lg bg-white/10 p-4">
-                        <p className="text-[10px] text-white/45">{label}</p>
-                        <p className="mt-2 text-lg">{value}</p>
-                      </div>
-                    ),
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 rounded-xl border p-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-3">
-              {environment.retailerSlug ? (
-                <div>
-                  <p className="text-sm font-medium">
-                    Live storefront · /r/{environment.retailerSlug}
-                  </p>
-                  <p className="mt-1 break-all font-mono text-xs text-stone-500">
-                    {customerAppUrl
-                      ? `${customerAppUrl}/r/${environment.retailerSlug}`
-                      : `/r/${environment.retailerSlug}`}
-                  </p>
-                </div>
-              ) : null}
-              <div>
-                <p className="text-sm font-medium">
-                  Private link expires{" "}
-                  {new Date(environment.expiresAt).toLocaleDateString()}
+                <p className="mt-2 font-medium">
+                  /r/{environment.retailerSlug}
                 </p>
                 <p className="mt-1 break-all font-mono text-xs text-stone-500">
-                  {customerAppUrl
-                    ? `${customerAppUrl}/demo/${environment.publicToken}`
-                    : `/demo/${environment.publicToken}`}
+                  {storefrontUrl}
                 </p>
-              </div>
-            </div>
-            <p className="text-xs text-stone-500">
-              Publication controls are shown outside the client preview.
+              </a>
+            ) : null}
+            {demoUrl ? (
+              <a
+                href={demoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl border p-5 transition hover:bg-stone-50"
+              >
+                <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+                  Private demo link
+                </p>
+                <p className="mt-2 font-medium">
+                  Expires {new Date(environment.expiresAt).toLocaleDateString()}
+                </p>
+                <p className="mt-1 break-all font-mono text-xs text-stone-500">
+                  {demoUrl}
+                </p>
+              </a>
+            ) : null}
+          </div>
+
+          <div>
+            <p className="text-sm font-medium text-stone-900">
+              One-click persona logins
             </p>
+            <p className="mt-1 text-xs text-stone-500">
+              Password for every seeded persona: {DEMO_PASSWORD}
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {environment.syntheticData.personas.map((persona) => {
+                const base =
+                  persona.app === "customer" ? customerAppUrl : retailerAppUrl;
+                const href = persona.email
+                  ? `${base ?? ""}/login?demo=1`
+                  : (storefrontUrl ?? "#");
+                return (
+                  <article
+                    key={persona.key}
+                    className="flex flex-col justify-between rounded-xl border p-4"
+                  >
+                    <div>
+                      <p className="font-medium">{persona.label}</p>
+                      <p className="mt-1 text-xs text-stone-500">
+                        {persona.attention}
+                      </p>
+                      {persona.email ? (
+                        <p className="mt-3 break-all font-mono text-[11px] text-stone-600">
+                          {persona.email}
+                        </p>
+                      ) : (
+                        <p className="mt-3 text-xs text-stone-400">
+                          Regenerate to attach a seeded login email.
+                        </p>
+                      )}
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex min-h-9 items-center rounded-md bg-stone-900 px-3 text-xs text-white"
+                      >
+                        {persona.primaryAction} →
+                      </a>
+                      {persona.email ? (
+                        <button
+                          type="button"
+                          className="inline-flex min-h-9 items-center rounded-md border px-3 text-xs"
+                          onClick={() => copyLogin(persona.email!, href)}
+                        >
+                          {copied === persona.email ? "Copied" : "Copy login"}
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </div>
       ) : (
