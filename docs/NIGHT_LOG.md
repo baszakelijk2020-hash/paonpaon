@@ -110,3 +110,15 @@ of proceeding on any of the conditions above.
   `RetailerTheme.tsx`'s existing per-retailer override of
   `--color-stone-900` rather than inventing a new mechanism, so retailer
   theming still wins where set. DoD green, pushed.
+- Queue item 5, screen 4 of 10 (Book appointment): `b0ed0ab`. Replaced the
+  native `datetime-local` input with a new `date-time-picker.tsx` porting
+  `#paon-mobile-appointment`'s actual behaviour (day strip + time-slot row,
+  opacity-based selection) from `paon-template.html`'s own
+  `buildAppointmentPicker()` — next 7 weekdays, half-hour slots 09:00-18:00
+  — producing the same value format the existing `requestAppointment`
+  action already expects, so no backend change needed. Day-cell 8px /
+  time-slot 6px radii kept as their own distinct literal values rather than
+  both collapsed to one shared token, matching the template's actual
+  numbers. Confirm button gets `.paon-appt-confirm`'s specific
+  full-width/52px/uppercase treatment as a one-off className, not a shared
+  Button change. DoD green, pushed.
