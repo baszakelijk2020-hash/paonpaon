@@ -95,7 +95,8 @@ negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
 4. **Walk the whole flow on a phone and fix what breaks.** Storefront →
    account → appointment → order → loyalty. Fix only real breakage; resist
    redesigning on the way through.
-5. **Retailer Portal visual pass — UNBLOCKED, founder decision 2026-07-27.**
+5. **Whole-product visual and motion pass — UNBLOCKED, founder decision
+   2026-07-27.**
    **`paon.html` is the design language for the entire product**, staff app
    included. Not pag1's Mission Control. One language across customer and
    retailer.
@@ -118,8 +119,31 @@ negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
      to `#d9d9d9` on hover.
    - **Motion**: `cubic-bezier(.22,.61,.36,1)`, ~220ms.
 
-   Work page by page, one page per increment. Do not restructure layout or
-   change behaviour — this is a visual pass, not a rebuild.
+   **Motion is part of the design, not decoration.** Sampled from the same
+   file — use these, do not invent:
+   - Easing: `cubic-bezier(.22,.61,.36,1)` (41 occurrences; the house
+     curve). GSAP tweens use `expo.out`.
+   - Durations: 0.2s for state flips, 0.62–0.72s for panel and view
+     transitions, 1.0s for content reveals.
+   - Content reveal, verbatim:
+     `from { opacity: 0, y: 20, scale: 0.97, filter: 'blur(4px)' }` →
+     `to { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }`, staggered
+     ~120ms per card, `expo.out`.
+   - Images fade from `opacity: 0; transform: scale(1.04)` to `1` on load.
+   - Below-fold content is revealed by ScrollTrigger against the scrolling
+     container, `start: 'top 95%'`, `once: true`.
+
+   **Scope: every environment and every window**, not just the Retailer
+   Portal — customer portal, retailer portal, admin, marketing site, and
+   the full checkout sequence (cart → address → payment → confirmation),
+   which currently has no design treatment at all. One language across all
+   of it.
+
+   Work one page or one flow step per increment. Do not restructure layout
+   or change behaviour — this is a visual and motion pass, not a rebuild.
+   The founder's own template is the reference for every question; when
+   unsure how something should look or move, read
+   `apps/customer/app/r/[slug]/paon-template.html` rather than deciding.
 
 6. **Re-port the wrong widgets** — silhouette carousel, swipe deck — per
    [DESIGN_PORTS.md](./DESIGN_PORTS.md), and verify the two unverified ones

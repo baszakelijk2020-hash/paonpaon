@@ -49,3 +49,10 @@ of proceeding on any of the conditions above.
 
 - Authorization recorded; loop starting from the top of the `PHASE.md`
   queue (Stripe live — expected immediate stop, no credentials).
+- Queue items 1–2 (Stripe, Resend) skipped — both require founder-provided
+  credentials, already documented as blocked in `PHASE.md`. No commit.
+- `9f5e197` — queue item 3: expanded Maison Dubois's client book from 3 to
+  12 customers (all five lifecycle stages, 6 with portal access instead of
+  2). DoD green. Landed in the founder's own concurrent commit alongside
+  their live `PHASE.md` edit (queue item 5 unblocked) rather than a
+  separate one — same working tree, no conflict.
