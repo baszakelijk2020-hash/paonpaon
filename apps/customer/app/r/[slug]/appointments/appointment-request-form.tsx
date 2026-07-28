@@ -2,6 +2,7 @@
 
 import { APPOINTMENT_TYPES } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
+import { DateTimePicker } from "@paon/ui/components/DateTimePicker";
 import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
@@ -11,7 +12,6 @@ import {
   requestAppointment,
   type RequestAppointmentFormState,
 } from "./actions";
-import { DateTimePicker } from "./date-time-picker";
 
 const initialRequestAppointmentFormState: RequestAppointmentFormState = {
   values: {},

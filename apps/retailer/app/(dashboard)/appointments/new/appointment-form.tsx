@@ -4,6 +4,7 @@ import { APPOINTMENT_TYPES } from "@paon/domain";
 import type { Customer, RetailerStaffMember } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
+import { DateTimePicker } from "@paon/ui/components/DateTimePicker";
 import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
@@ -40,7 +41,7 @@ export function AppointmentForm({
         </p>
       ) : null}
 
-      <Card className="flex flex-col gap-4">
+      <Card className="paon-reveal flex flex-col gap-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             label="Customer"
@@ -86,28 +87,14 @@ export function AppointmentForm({
             hint="Store local time"
             error={state.fieldErrors["startsAt"]}
           >
-            <Input
-              id="startsAt"
-              name="startsAt"
-              type="datetime-local"
-              defaultValue={v["startsAt"]}
-              invalid={!!state.fieldErrors["startsAt"]}
-              required
-            />
+            <DateTimePicker name="startsAt" defaultValue={v["startsAt"]} />
           </FormField>
           <FormField
             label="Ends"
             htmlFor="endsAt"
             error={state.fieldErrors["endsAt"]}
           >
-            <Input
-              id="endsAt"
-              name="endsAt"
-              type="datetime-local"
-              defaultValue={v["endsAt"]}
-              invalid={!!state.fieldErrors["endsAt"]}
-              required
-            />
+            <DateTimePicker name="endsAt" defaultValue={v["endsAt"]} />
           </FormField>
           <FormField
             label="Advisor"

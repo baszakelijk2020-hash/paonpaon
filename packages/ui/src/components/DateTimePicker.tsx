@@ -8,8 +8,10 @@ import { useMemo, useState } from "react";
  * opacity, not a calendar grid or native date picker. Ported behaviour from
  * that file's `buildAppointmentPicker()`: next 7 weekdays (Sat/Sun
  * skipped), half-hour slots 09:00-18:00. Produces the same
- * `YYYY-MM-DDTHH:MM` value a native `datetime-local` input would, so the
- * existing `requestAppointment` action needs no changes.
+ * `YYYY-MM-DDTHH:MM` value a native `datetime-local` input would, so
+ * consuming Server Actions (`requestAppointment`, `createAppointment`)
+ * need no changes. Shared by both apps/customer's booking request form and
+ * apps/retailer's staff booking form — do not duplicate a per-app copy.
  */
 
 const WEEKDAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -47,11 +49,23 @@ function timeSlots(): string[] {
   return slots;
 }
 
-export function DateTimePicker({ name }: { name: string }) {
+export function DateTimePicker({
+  name,
+  defaultValue,
+}: {
+  name: string;
+  /** `YYYY-MM-DDTHH:MM`, re-populating the selection after a failed submit —
+   * the same round-trip a native `datetime-local` input gets for free. */
+  defaultValue?: string | undefined;
+}) {
   const days = useMemo(() => nextBusinessDays(7), []);
   const slots = useMemo(() => timeSlots(), []);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string | null>(
+    defaultValue?.slice(0, 10) || null,
+  );
+  const [selectedTime, setSelectedTime] = useState<string | null>(
+    defaultValue?.slice(11, 16) || null,
+  );
 
   const value =
     selectedDate && selectedTime ? `${selectedDate}T${selectedTime}` : "";
