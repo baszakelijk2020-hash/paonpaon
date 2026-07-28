@@ -53,6 +53,12 @@ export default function FounderPage() {
             See it through a retailer&apos;s eyes.
           </h2>
           <div className="flex flex-wrap gap-5 text-sm">
+            <Link
+              href="/r/maison-dubois"
+              className="underline underline-offset-4"
+            >
+              Open the live Maison Dubois store
+            </Link>
             <Link href="/demo-request" className="underline underline-offset-4">
               View a personalized demonstration
             </Link>
