@@ -300,6 +300,19 @@ const MAISON_CLIENT_HISTORIES: Record<string, ClientHistoryStory> = {
   },
 };
 
+/** Remap Maison client-book stories onto slug-scoped prospect emails. */
+function clientHistoriesForSlug(
+  slug: string,
+): Record<string, ClientHistoryStory> {
+  if (slug === "maison-dubois") return MAISON_CLIENT_HISTORIES;
+  return Object.fromEntries(
+    Object.entries(MAISON_CLIENT_HISTORIES).map(([email, story]) => {
+      const local = email.split("@")[0]?.replace(/^contact\+/, "") ?? "client";
+      return [`contact+${slug}-${local}@nebelspiegel.com`, story];
+    }),
+  );
+}
+
 const RETAILERS: RetailerSpec[] = [
   {
     slug: "maison-dubois",
@@ -1176,6 +1189,17 @@ export async function seedProspectDemoRetailer(params: {
   const primaryLocation = params.locations?.[0];
   // Always seed the full Maison catalogue so regenerate can expand the mix
   // later; applyProspectProductMix archives SKUs outside the selection.
+  const customers = template.customers.map((customer) => {
+    if (params.slug === "maison-dubois") return customer;
+    // Isolate prospect-demo portal users from Maison so wedding/client
+    // walks land on this tenant, not the shared Maison client book.
+    const localPart = customer.email.split("@")[0] ?? "client";
+    const alias = localPart.replace(/^contact\+/, "");
+    return {
+      ...customer,
+      email: `contact+${params.slug}-${alias}@nebelspiegel.com`,
+    };
+  });
   const spec: RetailerSpec = {
     ...template,
     slug: params.slug,
@@ -1183,6 +1207,7 @@ export async function seedProspectDemoRetailer(params: {
     legalName: `${params.displayName} Demo SARL`,
     collectionName: `${params.displayName} Collection`,
     collectionSlug: "signature-tailoring",
+    customers,
     ...(primaryLocation
       ? {
           fittingLocation: `${primaryLocation.name} · ${primaryLocation.city}`,
@@ -1609,9 +1634,8 @@ async function seedRetailerSpecs(params: {
     const productIdBySlug = new Map(
       spec.products.map((product, index) => [product.slug, productIds[index]!]),
     );
-    // Prospect demos reuse the Maison client emails and need the same
-    // lived-in notes/appointments — an empty Mission Control kills the walk.
-    const histories = MAISON_CLIENT_HISTORIES;
+    // Prospect demos reuse Maison client stories under slug-scoped emails.
+    const histories = clientHistoriesForSlug(spec.slug);
 
     // Durable clienteling context across the book — not Isabelle-only.
     const clientelingRepo = new ClientelingRepository(admin);

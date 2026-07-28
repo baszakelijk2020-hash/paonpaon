@@ -7,7 +7,6 @@ import { useActionState } from "react";
 import { openPrivateDemo, type OpenDemoState } from "./actions";
 
 const initialState: OpenDemoState = {};
-const DEMO_CUSTOMER_EMAIL = "contact+isabelle@nebelspiegel.com";
 
 export function PrivateDemo({
   publicToken,
@@ -69,10 +68,11 @@ export function PrivateDemo({
   const storefrontHref = `/r/${demo.retailerSlug}`;
   // Seeded Demo Studio owner — same pattern as seedProspectDemoRetailer.
   const ownerEmail = `contact+${demo.retailerSlug}-owner@nebelspiegel.com`;
+  const customerEmail = `contact+${demo.retailerSlug}-isabelle@nebelspiegel.com`;
   const portalHref = retailerAppUrl
     ? `${retailerAppUrl.replace(/\/$/, "")}/login?demo=1&email=${encodeURIComponent(ownerEmail)}`
     : undefined;
-  const weddingHref = `/login?demo=1&email=${encodeURIComponent(DEMO_CUSTOMER_EMAIL)}&redirectTo=${encodeURIComponent("/wedding-parties")}`;
+  const weddingHref = `/login?demo=1&email=${encodeURIComponent(customerEmail)}&redirectTo=${encodeURIComponent("/wedding-parties")}`;
   const locations = demo.configuration.locations;
 
   return (
