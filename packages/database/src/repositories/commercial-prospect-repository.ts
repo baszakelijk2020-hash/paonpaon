@@ -93,6 +93,48 @@ export class CommercialProspectRepository {
     return data.map(prospectToDomain);
   }
 
+  /** Workbench cards: prospect + latest demo environment status/links. */
+  async listWithDemoSummaries(): Promise<
+    Array<{
+      prospect: CommercialProspect;
+      demo: {
+        status: ProspectDemoEnvironment["status"];
+        publicToken: string;
+        retailerSlug?: string | undefined;
+        expiresAt: string;
+      } | null;
+    }>
+  > {
+    const prospects = await this.list();
+    if (prospects.length === 0) return [];
+
+    const { data, error } = await this.client
+      .from("prospect_demo_environments")
+      .select("prospect_id, status, public_token, retailer_slug, expires_at")
+      .in(
+        "prospect_id",
+        prospects.map((prospect) => prospect.id),
+      );
+    if (error) throw error;
+
+    const byProspect = new Map(
+      (data ?? []).map((row) => [
+        row.prospect_id,
+        {
+          status: row.status as ProspectDemoEnvironment["status"],
+          publicToken: row.public_token,
+          ...(row.retailer_slug ? { retailerSlug: row.retailer_slug } : {}),
+          expiresAt: row.expires_at,
+        },
+      ]),
+    );
+
+    return prospects.map((prospect) => ({
+      prospect,
+      demo: byProspect.get(prospect.id) ?? null,
+    }));
+  }
+
   async findById(id: string): Promise<CommercialProspect | null> {
     const { data, error } = await this.client
       .from("commercial_prospects")

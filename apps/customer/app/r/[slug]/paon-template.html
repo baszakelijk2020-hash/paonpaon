@@ -14807,8 +14807,8 @@ requestAnimationFrame(fixFeedImages);
                 var phoneEl = document.getElementById('paon-appt-phone');
                 var notesEl = document.getElementById('paon-appt-msg');
                 var guestNotes = notesEl ? notesEl.value.trim() : '';
-                var storeCity = (document.getElementById('paon-appt-section') || {}).dataset
-                    ? document.getElementById('paon-appt-section').dataset.store
+                var storeCity = (document.getElementById('paon-mobile-appointment') || {}).dataset
+                    ? document.getElementById('paon-mobile-appointment').dataset.store
                     : '';
                 var notesVal = storeCity
                     ? ('Preferred store: ' + storeCity + (guestNotes ? '\n' + guestNotes : ''))

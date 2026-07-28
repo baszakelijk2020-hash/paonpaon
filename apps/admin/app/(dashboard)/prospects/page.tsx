@@ -2,6 +2,7 @@ import { CommercialProspectRepository } from "@paon/database";
 import { buttonVariants } from "@paon/ui/components/Button";
 import Link from "next/link";
 
+import { env } from "@/lib/env";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const STAGE_LABELS = {
@@ -18,11 +19,12 @@ const STAGE_LABELS = {
 } as const;
 
 export default async function ProspectsPage() {
-  const prospects = await new CommercialProspectRepository(
+  const customerBase = (env.customerAppUrl ?? "").replace(/\/$/, "");
+  const rows = await new CommercialProspectRepository(
     await getSupabaseServerClient(),
-  ).list();
-  const overdue = prospects.filter(
-    (prospect) =>
+  ).listWithDemoSummaries();
+  const overdue = rows.filter(
+    ({ prospect }) =>
       prospect.nextActionDueAt &&
       new Date(prospect.nextActionDueAt).getTime() < Date.now() &&
       !["converted", "lost"].includes(prospect.stage),
@@ -55,11 +57,11 @@ export default async function ProspectsPage() {
 
       <section className="grid gap-4 sm:grid-cols-3">
         {[
-          ["Active prospects", prospects.length],
+          ["Active prospects", rows.length],
           [
             "Waiting for demo",
-            prospects.filter((item) =>
-              ["qualified", "demo_preparation"].includes(item.stage),
+            rows.filter(({ prospect }) =>
+              ["qualified", "demo_preparation"].includes(prospect.stage),
             ).length,
           ],
           ["Follow-ups overdue", overdue.length],
@@ -80,37 +82,86 @@ export default async function ProspectsPage() {
             <h2 className="font-display mt-2 text-3xl">Prospect workbench</h2>
           </div>
         </div>
-        {prospects.length ? (
+        {rows.length ? (
           <div className="grid gap-4 lg:grid-cols-2">
-            {prospects.map((prospect) => (
-              <Link
-                href={`/prospects/${prospect.id}/studio`}
-                key={prospect.id}
-                className="rounded-[1.25rem] border bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-lifted)]"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs text-stone-500">
-                      {STAGE_LABELS[prospect.stage]}
-                    </p>
-                    <h3 className="font-display mt-2 text-3xl">
-                      {prospect.companyName}
-                    </h3>
-                    <p className="mt-2 text-sm text-stone-500">
-                      {prospect.primaryContactName} ·{" "}
-                      {prospect.primaryContactEmail}
-                    </p>
-                  </div>
-                  <span className="text-xl">→</span>
-                </div>
-                <div className="mt-6 border-t pt-4">
-                  <p className="text-xs text-stone-500">Next action</p>
-                  <p className="mt-1 text-sm">
-                    {prospect.nextAction ?? "Define the next commercial action"}
-                  </p>
-                </div>
-              </Link>
-            ))}
+            {rows.map(({ prospect, demo }) => {
+              const storefrontHref = demo?.retailerSlug
+                ? customerBase
+                  ? `${customerBase}/r/${demo.retailerSlug}`
+                  : `/r/${demo.retailerSlug}`
+                : null;
+              const privateDemoHref = demo
+                ? customerBase
+                  ? `${customerBase}/demo/${demo.publicToken}`
+                  : `/demo/${demo.publicToken}`
+                : null;
+
+              return (
+                <article
+                  key={prospect.id}
+                  className="rounded-[1.25rem] border bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-lifted)]"
+                >
+                  <Link
+                    href={`/prospects/${prospect.id}/studio`}
+                    className="block"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs text-stone-500">
+                          {STAGE_LABELS[prospect.stage]}
+                          {demo ? ` · demo ${demo.status}` : ""}
+                        </p>
+                        <h3 className="font-display mt-2 text-3xl">
+                          {prospect.companyName}
+                        </h3>
+                        <p className="mt-2 text-sm text-stone-500">
+                          {prospect.primaryContactName} ·{" "}
+                          {prospect.primaryContactEmail}
+                        </p>
+                      </div>
+                      <span className="text-xl">→</span>
+                    </div>
+                    <div className="mt-6 border-t pt-4">
+                      <p className="text-xs text-stone-500">Next action</p>
+                      <p className="mt-1 text-sm">
+                        {prospect.nextAction ??
+                          "Define the next commercial action"}
+                      </p>
+                    </div>
+                  </Link>
+                  {demo?.retailerSlug || privateDemoHref ? (
+                    <div className="mt-4 flex flex-wrap gap-3 border-t pt-4 text-xs">
+                      {storefrontHref ? (
+                        <a
+                          href={storefrontHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline underline-offset-4"
+                        >
+                          /r/{demo?.retailerSlug}
+                        </a>
+                      ) : null}
+                      {privateDemoHref ? (
+                        <a
+                          href={privateDemoHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline underline-offset-4"
+                        >
+                          Private demo
+                        </a>
+                      ) : null}
+                      <Link
+                        href={`/prospects/${prospect.id}/studio`}
+                        className="underline underline-offset-4"
+                      >
+                        Open Studio
+                      </Link>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
           </div>
         ) : (
           <div className="rounded-[1.25rem] border border-dashed p-10 text-center">
@@ -118,8 +169,8 @@ export default async function ProspectsPage() {
               Start with one deliberately chosen retailer.
             </h3>
             <p className="mx-auto mt-3 max-w-xl text-sm text-stone-500">
-              Capture the brand and customer-experience hypothesis before
-              configuring a demo. No scraped customer records belong here.
+              Capture the research, configure their brand and generate a
+              retailer-specific demonstration before the first call.
             </p>
           </div>
         )}
