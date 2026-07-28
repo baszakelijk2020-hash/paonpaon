@@ -14862,7 +14862,10 @@ requestAnimationFrame(fixFeedImages);
         var nameOk = document.getElementById('paon-appt-name').value.trim();
         var emailInput = document.getElementById('paon-appt-email');
         var emailOk = emailInput && emailInput.checkValidity() && emailInput.value.trim();
-        btn.classList.toggle('enabled', !!(dateOk && timeOk && nameOk && emailOk));
+        var storeOk = (document.getElementById('paon-mobile-appointment') || {}).dataset
+            ? document.getElementById('paon-mobile-appointment').dataset.store
+            : '';
+        btn.classList.toggle('enabled', !!(dateOk && timeOk && storeOk && nameOk && emailOk));
     }
 
     if (document.readyState === 'loading') {
@@ -15842,9 +15845,13 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         function checkApptReady() {
             var dateOk = apptSection.dataset.selectedDate;
             var timeOk = apptSection.dataset.selectedTime;
+            var storeOk = apptSection.dataset.store;
             var nameOk = nameInput.value.trim();
             var emailOk = emailInput.value.trim() && emailInput.checkValidity();
-            confirmBtn.classList.toggle('enabled', !!(dateOk && timeOk && nameOk && emailOk));
+            confirmBtn.classList.toggle(
+                'enabled',
+                !!(dateOk && timeOk && storeOk && nameOk && emailOk),
+            );
         }
     }
 
@@ -15922,9 +15929,12 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         width: min(23.5rem, calc(100vw - 40px));
         border-radius: 6px;
         overflow: hidden;
-        background: linear-gradient(to right, #1a1a1a, #000000);
-        color: #e8e4de;
-        box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        background: rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        color: var(--text, #1a1a1a);
+        box-shadow: none;
         font-family: 'lvreg', sans-serif;
         box-sizing: border-box;
     }
@@ -16318,9 +16328,12 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         max-height: 60vh;
         overflow-y: auto;
         border-radius: 6px;
-        background: linear-gradient(to right, #1a1a1a, #000000);
-        color: #e8e4de;
-        box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        background: rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        color: var(--text, #1a1a1a);
+        box-shadow: none;
         padding: 16px;
     }
     #paon-favorites-root.open #paon-favorites-panel,
@@ -16334,7 +16347,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         width: 100%;
         padding: 10px 0;
         border: 0;
-        border-bottom: 1px solid rgba(255,255,255,.12);
+        border-bottom: 1px solid rgba(0,0,0,.1);
         background: transparent;
         color: inherit;
         text-align: left;
@@ -16346,7 +16359,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         height: 60px;
         object-fit: cover;
         border-radius: 4px;
-        background: #111;
+        background: rgba(0,0,0,.06);
     }
     .paon-favorites-line-info {
         display: flex;
@@ -16356,16 +16369,16 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     }
     .paon-favorites-name {
         font-size: 13px;
-        color: #e8e4de;
+        color: var(--text, #1a1a1a);
     }
     .paon-favorites-price {
         font-size: 11px;
-        color: rgba(232,228,222,.55);
+        color: rgba(26,26,26,.55);
     }
     #paon-favorites-empty {
         padding: 20px 0;
         text-align: center;
-        color: rgba(232,228,222,.55);
+        color: rgba(26,26,26,.55);
         font-size: 13px;
     }
     .paon-fav-chip {
@@ -16402,16 +16415,16 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         justify-content: space-between;
         gap: 10px;
         padding: 10px 0;
-        border-bottom: 1px solid rgba(255,255,255,.12);
+        border-bottom: 1px solid rgba(0,0,0,.1);
     }
     .paon-basket-line-info p {
         margin: 0;
         font-size: 13px;
-        color: #e8e4de;
+        color: var(--text, #1a1a1a);
     }
     .paon-basket-line-info p.paon-basket-variant {
         font-size: 11px;
-        color: rgba(232,228,222,.55);
+        color: rgba(26,26,26,.55);
         margin-top: 2px;
     }
     .paon-basket-qty {
@@ -16423,9 +16436,9 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         width: 26px;
         height: 26px;
         border-radius: 6px;
-        border: 1px solid rgba(255,255,255,.25);
-        background: rgba(255,255,255,.08);
-        color: #e8e4de;
+        border: 1px solid rgba(0,0,0,.15);
+        background: rgba(255,255,255,.45);
+        color: var(--text, #1a1a1a);
         cursor: pointer;
         font-size: 14px;
         line-height: 1;
@@ -16433,7 +16446,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     #paon-basket-empty {
         padding: 20px 0;
         text-align: center;
-        color: rgba(232,228,222,.55);
+        color: rgba(26,26,26,.55);
         font-size: 13px;
     }
     #paon-basket-footer {
@@ -16441,14 +16454,14 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         align-items: center;
         justify-content: space-between;
         padding-top: 14px;
-        color: #e8e4de;
+        color: var(--text, #1a1a1a);
     }
     #paon-basket-checkout {
         display: inline-block;
         padding: 10px 16px;
         border-radius: 6px;
-        background: #e8e4de;
-        color: #1a1a1a;
+        background: #1a1a1a;
+        color: #e8e4de;
         text-decoration: none;
         font-size: 13px;
     }

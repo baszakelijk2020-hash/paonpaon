@@ -132,10 +132,10 @@ show without restarting the customer app.
    panel; wander without sign-in).
 2. Profile icon → customer portal environment straight away — no login /
    fitting popup. Guests may browse the portal look; sign in when they wish.
-3. Basket popup and Ask us anything: same grey-gradient / glass language as
-   the rest of the chrome. Ask us anything: `rgba(0,0,0,0.1)` + `blur(20px)`,
-   rectangle with the same `6px` corner radius as Book Appointment; basket
-   panel matches that radius.
+3. ~~Basket popup and Ask us anything: same grey-gradient / glass language as
+   the rest of the chrome.~~ **Done** — panels use `rgba(0,0,0,0.1)` +
+   `blur(20px)` + `6px` radius (matches the Ask-us toggle). Book Appointment
+   also requires a store selection before Confirm enables.
 4. Book Appointment: **500px** wide, full height, slides in from the **left**
    (not a full-width bottom sheet).
 5. Filters: SuitSupply-style — sort (newest / price low–high / high–low) plus
