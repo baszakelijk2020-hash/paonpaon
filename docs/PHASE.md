@@ -76,6 +76,70 @@ Queue item "a retailer logged into Mission Control alongside the
 storefront" is done — the prerequisite for item 3 below is now just
 populating the demo data, not deploying anything.
 
+## Focus from 2026-07-28: workstreams 2 and 3
+
+Workstream 1 is far enough. Ten demo-path screens carry the design language,
+all three apps are live, the storefront works on real data. Almost all effort
+so far went to workstream 1; the two that actually convert a prospect have
+had none.
+
+### A. Demo Studio — make a demo a real store, not a slideshow
+
+**The defect.** `generateDemoEnvironment` in
+`apps/admin/app/(dashboard)/prospects/[id]/studio/actions.ts` writes a
+**hardcoded `syntheticData` object** — the same invented names, orders and
+metrics for every prospect ("Isabelle Laurent", "PAON-1048", "€3,690").
+It never creates a `Retailer`, never seeds a catalog, never touches the
+product. Searching that file for `createRetailer`, `seedDemoData` or
+`RetailerRepository` returns nothing. A prospect opening a demo link sees a
+static mockup carrying a stranger's client names.
+
+**What it should do**, using machinery that already exists and is proven
+live: create a **real retailer tenant per prospect** — their name, logo,
+colours and product photography via the existing
+`RetailerBrandTheme` and `uploadBrandAsset` — seeded through
+`seedDemoData`, and hand back two links: their storefront at `/r/{slug}`
+and a one-click login to their Retailer Portal. `maison-dubois` is already
+exactly this and is live; the Studio's job is to produce one per prospect,
+under an access code and expiry.
+
+**Sequence, one increment each:**
+
+1. Replace the `syntheticData` blob with a real seeded retailer tenant
+   created from the prospect's saved Studio configuration. Domain/data
+   change — state the plan and stop before writing it.
+2. Brand it: apply the prospect's `RetailerBrandTheme` and uploaded assets
+   to the generated tenant.
+3. Rework `/demo/[token]` to gate on access code and expiry, then route
+   into the real storefront and portal rather than rendering the blob.
+4. Teardown: expiring or unpublishing a demo must remove or disable its
+   tenant. A demo that outlives its expiry is a data-leak surface.
+
+**The bar:** the founder can produce a branded, working demo for a named
+prospect in under an hour without code changes. That is the original
+commercialisation promise in `ROADMAP.md` and it is still unmet.
+
+### B. Marketing site — proof, not a funnel
+
+Correction to an earlier assessment: this is **not** three stub pages. The
+homepage is a real commercial site with published pricing (Fused €349,
+Half Canvas €749, Full Canvas from €1,750, plus implementation), role
+explanations and working inquiry journeys. `consultation`, `pilot` and
+`demo-request` are thin wrappers over a shared `commercial-page` and
+interest form, not empty.
+
+What it is missing is the thing `COMPETITIVE_GAPS.md` calls the most
+convertible asset PAON has: **the founder**. There is no page saying who
+built this, that he ran a private-label made-to-measure business inside
+this exact segment, and that he spent a career in menswear. For a cold
+approach to a 55-year-old owner-operator, that is the page that matters
+most, and it does not exist.
+
+1. A founder page — who built PAON and why, in his own voice.
+2. Surface it from the homepage, above the feature sections.
+3. Honest proof only. No invented testimonials, no logo wall, no "trusted
+   by" — an empty social-proof section reads as "nobody uses this."
+
 ## The queue
 
 Founder decision 2026-07-27: finish the build to a demonstrable state.
