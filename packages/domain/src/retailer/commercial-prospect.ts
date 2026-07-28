@@ -132,6 +132,8 @@ export interface PublicProspectDemo {
   environmentId: string;
   companyName: string;
   expiresAt: string;
+  /** Live seeded tenant — opened demos always have one (RPC fails closed). */
+  retailerSlug: string;
   configuration: {
     theme: RetailerBrandTheme;
     marketingHeadline: string;
@@ -139,5 +141,4 @@ export interface PublicProspectDemo {
     locations: ProspectDemoLocation[];
     productMix: DemoProductMix[];
   };
-  syntheticData: DemoSyntheticData;
 }

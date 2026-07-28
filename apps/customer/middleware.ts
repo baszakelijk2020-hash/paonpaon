@@ -92,6 +92,11 @@ export async function middleware(request: NextRequest) {
 
   if (session.accountType !== "customer") {
     await supabase.auth.signOut();
+    // Marketing and /demo/[token] are public — clear the wrong session and
+    // continue, instead of trapping the visitor on the customer login page.
+    if (isPublicPath) {
+      return response;
+    }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("error", "not_a_customer_account");
     return redirectWithCookies(loginUrl, response);

@@ -75,4 +75,8 @@ export const env = {
   get openWeatherApiKey() {
     return optionalEnv("OPENWEATHER_API_KEY");
   },
+  /** Retailer Portal base URL — private demo Mission Control CTA. */
+  get retailerAppUrl() {
+    return optionalEnv("NEXT_PUBLIC_RETAILER_APP_URL");
+  },
 };

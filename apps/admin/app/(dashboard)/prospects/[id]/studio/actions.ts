@@ -116,9 +116,8 @@ export async function generateDemoEnvironment(
       brandTheme: configuration.theme,
     });
 
-    // Preview payload for the Studio panel and /demo/[token] until step 3
-    // routes those surfaces into the live storefront and portal. The real
-    // tenant is what matters; this blob is transitional.
+    // Preview payload for the Studio panel only. /demo/[token] now routes
+    // into the live storefront after access-code unlock (step 3).
     const syntheticData = {
       personas: [
         {
