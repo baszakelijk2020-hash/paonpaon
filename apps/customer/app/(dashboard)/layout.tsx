@@ -96,7 +96,7 @@ export default async function DashboardLayout({
   if (!isCustomer) {
     return (
       <Suspense fallback={null}>
-        <GuestPortalShell navigation={navigation} />
+        <GuestPortalShell />
       </Suspense>
     );
   }

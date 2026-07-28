@@ -14756,7 +14756,12 @@ requestAnimationFrame(fixFeedImages);
             var d = new Date(date);
             var dayDiv = document.createElement('div');
             dayDiv.className = 'day';
-            dayDiv.dataset.date = d.toISOString().split('T')[0];
+            dayDiv.dataset.date = (function (date) {
+                var y = date.getFullYear();
+                var m = String(date.getMonth() + 1).padStart(2, '0');
+                var day = String(date.getDate()).padStart(2, '0');
+                return y + '-' + m + '-' + day;
+            })(d);
             dayDiv.innerHTML = '<div class="weekday">' + weekdays[dow] + '</div><div class="date">' + d.getDate() + '</div>';
             dayDiv.addEventListener('click', function () {
                 document.querySelectorAll('#paon-appt-calendar .day').forEach(function (x) { x.classList.remove('selected'); });
@@ -14799,7 +14804,11 @@ requestAnimationFrame(fixFeedImages);
                 var dateStr = document.getElementById('paon-appt-selected-date').value;
                 var timeStr = document.getElementById('paon-appt-selected-time').value;
                 if (!dateStr || !timeStr) return;
-                var startsAt = dateStr + 'T' + timeStr + ':00.000Z';
+                var offsetMin = -new Date().getTimezoneOffset();
+                var sign = offsetMin >= 0 ? '+' : '-';
+                var abs = Math.abs(offsetMin);
+                var off = sign + String(Math.floor(abs / 60)).padStart(2, '0') + ':' + String(abs % 60).padStart(2, '0');
+                var startsAt = dateStr + 'T' + timeStr + ':00' + off;
                 var endsAt = new Date(Date.parse(startsAt) + 60 * 60 * 1000).toISOString();
                 var textEl = document.getElementById('paon-appt-confirm-text');
                 var nameVal = document.getElementById('paon-appt-name').value.trim();
@@ -15688,11 +15697,17 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
 
         var weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
         var now = new Date();
+        function localDateKey(date) {
+            var y = date.getFullYear();
+            var m = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + day;
+        }
         for (var i = 0; i < 30; i++) {
             var d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
             var dayDiv = document.createElement('div');
             dayDiv.className = 'day';
-            dayDiv.dataset.date = d.toISOString().split('T')[0];
+            dayDiv.dataset.date = localDateKey(d);
             dayDiv.dataset.isToday = i === 0 ? '1' : '0';
             dayDiv.innerHTML = '<div class="weekday">' + weekdays[d.getDay()] + '</div><div class="date">' + d.getDate() + '</div>';
             (function (dayEl, dateStr, isToday) {
@@ -15787,7 +15802,11 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
             var dateStr = apptSection.dataset.selectedDate;
             var timeStr = apptSection.dataset.selectedTime;
             if (!dateStr || !timeStr) return;
-            var startsAt = dateStr + 'T' + timeStr + ':00.000Z';
+            var offsetMin = -new Date().getTimezoneOffset();
+            var sign = offsetMin >= 0 ? '+' : '-';
+            var abs = Math.abs(offsetMin);
+            var off = sign + String(Math.floor(abs / 60)).padStart(2, '0') + ':' + String(abs % 60).padStart(2, '0');
+            var startsAt = dateStr + 'T' + timeStr + ':00' + off;
             var endsAt = new Date(Date.parse(startsAt) + 60 * 60 * 1000).toISOString();
             var textEl = document.getElementById('paon-appt-confirm-text');
             var msgEl = document.getElementById('paon-appt-message');
@@ -16182,11 +16201,17 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     var paperclip         = chatWidget.querySelector('#gcw-paperclip');
     var attachPanel       = chatWidget.querySelector('#gcw-attach-panel');
 
-    var step = 'name';          // name -> email -> message -> done
+    var step = 'name';          // name -> email -> message | invite_token -> done
     var intent = 'freeform';
     var name = '';
     var email = '';
-    var placeholders = { name: "Your name...", email: "Your email...", message: "Type a message...", done: "" };
+    var placeholders = {
+        name: "Your name...",
+        email: "Your email...",
+        message: "Type a message...",
+        invite_token: "Paste invite token or full join URL...",
+        done: ""
+    };
 
     function appendMessage(text) {
         var wrapper = document.createElement('div');
@@ -16233,6 +16258,17 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         if (!text || step === 'done') return;
         appendMessage(text);
         chatInput.value = '';
+
+        if (step === 'invite_token') {
+            var tokenMatch = (text.match(/wedding-parties\/join\/([A-Za-z0-9_-]+)/) || [])[1]
+                || (text.match(/^[A-Za-z0-9_-]{12,}$/) || [])[0];
+            if (tokenMatch) {
+                window.location.href = '/r/' + SLUG + '/wedding-parties/join/' + tokenMatch;
+                return;
+            }
+            appendMessage("That didn't look like an invite token. Paste the full join link, or the long code after /join/.");
+            return;
+        }
 
         if (step === 'name') {
             name = text;
@@ -16283,7 +16319,10 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
                     return;
                 }
                 if (weddingPath === 'guest') {
-                    appendMessage('Ask the groom for your private invite link — it opens a short form so the atelier can prepare sample garments before you arrive. You can also leave us a message below.');
+                    appendMessage('Paste the invite token from your link (the long code after /join/), or ask the groom to send the full link.');
+                    step = 'invite_token';
+                    chatInput.placeholder = 'Paste invite token or full join URL...';
+                    return;
                 }
             }, 500);
         });

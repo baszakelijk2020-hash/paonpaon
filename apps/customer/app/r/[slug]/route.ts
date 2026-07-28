@@ -125,7 +125,7 @@ function deriveColor(name: string, variantColor?: string): string {
   if (/blue|teal|aqua|powder blue|dusty blue/.test(hay)) return "blue";
   if (/black/.test(hay)) return "black";
   if (/green|sage|olive|forest/.test(hay)) return "green";
-  return "beige";
+  return "unknown";
 }
 
 function derivePattern(name: string): string {
@@ -144,10 +144,9 @@ function derivePattern(name: string): string {
 
 function deriveSeason(name: string, collectionSeason?: string): string {
   const hay = `${name} ${collectionSeason ?? ""}`.toLowerCase();
-  if (/summer|spring|tropical|linen|light/.test(hay)) return "spring-summer";
-  if (/winter|autumn|fall|cashmere|flannel|heavy/.test(hay))
-    return "autumn-winter";
-  return "all-season";
+  if (/summer|spring|tropical|linen/.test(hay)) return "spring-summer";
+  if (/winter|autumn|fall|cashmere|flannel/.test(hay)) return "autumn-winter";
+  return "unknown";
 }
 
 const CANONICAL_CATEGORIES = [
@@ -431,6 +430,16 @@ ${
     ? `<div class="paon-retailer-hero" aria-hidden="true"><img src="${escapeHtml(heroUrl)}" alt=""/></div>`
     : "";
 
+  const usesSharedCataloguePhotography =
+    slug !== "maison-dubois" &&
+    entries.length > 0 &&
+    entries.every(
+      (entry) => !entry.img || entry.img.includes("nebelspiegel.com/images/"),
+    );
+  const catalogueNoteHtml = usesSharedCataloguePhotography
+    ? `<p class="paon-catalogue-note" style="margin:8px 12px 0;font-size:11px;line-height:1.4;opacity:.55;font-family:var(--font-retailer-body),system-ui,sans-serif;">Demonstration photography from the shared PAON catalogue, shown under ${safeName}'s brand.</p>`
+    : "";
+
   const template = await loadTemplate();
   const stores = await appointmentStoresFor(supabase, retailer, heroUrl);
   const html = template
@@ -439,7 +448,7 @@ ${
     .replaceAll("__PAON_RETAILER_NAME__", safeName)
     .replace("__PAON_BRAND_HEAD__", brandHead)
     .replace("__PAON_BRAND_MARK__", brandMark)
-    .replace("__PAON_HERO_HTML__", heroHtml)
+    .replace("__PAON_HERO_HTML__", heroHtml + catalogueNoteHtml)
     .replace("__PAON_PRODUCTS_JSON__", JSON.stringify(entries))
     .replace("__PAON_DEFAULT_CATEGORY_JSON__", JSON.stringify(defaultCategory))
     .replace("__PAON_STORES_JSON__", JSON.stringify(stores));

@@ -175,12 +175,14 @@ most, and it does not exist.
 
 Founder decision 2026-07-27: finish the build to a demonstrable state.
 Ordered by what a prospect sees first. **Continuous mode (ADR-054,
-reinforced 2026-07-28 evening):** build, self-verify, commit, push, and
-advance this queue **without stopping to check with the founder.** Push
-all the way until this queue is exhausted or only hard blockers remain.
-Still one coherent commit at a time — the batching pause is gone; the
-small-commit discipline is not. Skipping a blocked item is required;
-pausing the session for review is forbidden.
+reinforced 2026-07-28 evening, again 2026-07-29):** build, self-verify,
+commit, push, and advance this queue **without stopping to check with
+the founder and without ending an agent turn between finished batches.**
+Push all the way until this queue is exhausted or only hard blockers
+remain. Still one coherent commit at a time — the batching pause is
+gone; the small-commit discipline is not. Skipping a blocked item is
+required; pausing the session for review is forbidden. Ending a reply
+after shipping a batch while freeze work remains is a process failure.
 
 1. **Stripe live.** Blocked — `STRIPE_SECRET_KEY` (and related) are not
    in `.env.local` / hosted env; no session can provision them. Once set,
@@ -321,6 +323,14 @@ portal demo CTA opens the wedding-party walk.
 slug-scoped (`contact+{slug}-isabelle@…`) so wedding/client walks stay on
 the prospect tenant. Studio copy is explicit that blank product photos keep
 shared catalogue photography under their brand.
+
+**Also (continuous mode hardened 2026-07-29).** Controlling docs forbid
+ending an agent turn between finished batches. Guest portal nav no longer
+hits `requireSession` walls; wedding CTA is slug-scoped; Book Appointment
+uses local wall time; filters stop dumping unknowns into beige; marketing
+preview labeled illustrative; wedding join success has next steps; Ask-us
+guest accepts invite token; prospect storefront discloses shared catalogue
+photography.
 
 **Blocked (skip in continuous mode until founder provisions):**
 

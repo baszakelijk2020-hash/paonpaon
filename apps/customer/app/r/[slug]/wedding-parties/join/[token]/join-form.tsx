@@ -5,26 +5,54 @@ import { Button } from "@paon/ui/components/Button";
 import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { joinWeddingParty, type JoinPartyState } from "./actions";
 
 const initial: JoinPartyState = {};
 
-export function JoinForm({ token }: { token: string }) {
+export function JoinForm({
+  token,
+  retailerSlug,
+}: {
+  token: string;
+  retailerSlug: string;
+}) {
   const boundAction = joinWeddingParty.bind(null, token);
   const [state, formAction, isPending] = useActionState(boundAction, initial);
 
   if (state.joined) {
+    const storeHref = `/r/${retailerSlug}`;
+    const signInHref = state.email
+      ? `/login?demo=1&email=${encodeURIComponent(state.email)}&redirectTo=${encodeURIComponent("/wedding-parties")}`
+      : `/login?redirectTo=${encodeURIComponent("/wedding-parties")}`;
+
     return (
-      <p
-        role="status"
-        aria-live="polite"
-        className="text-sm text-[var(--color-stone-700)]"
-      >
-        You&rsquo;re in — the team can now see you as part of the party and will
-        follow up to schedule your fitting.
-      </p>
+      <div className="space-y-4" role="status" aria-live="polite">
+        <p className="text-sm text-[var(--color-stone-700)]">
+          You&rsquo;re in — the atelier can see you on the party roster and will
+          follow up to schedule your fitting.
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Link
+            href={storeHref}
+            className="inline-flex min-h-11 items-center justify-center rounded-md bg-[var(--color-stone-900)] px-4 text-sm text-white"
+          >
+            Back to the storefront
+          </Link>
+          <Link
+            href={signInHref}
+            className="inline-flex min-h-11 items-center justify-center rounded-md border px-4 text-sm"
+          >
+            Sign in with the email you used
+          </Link>
+        </div>
+        <p className="text-xs text-[var(--color-stone-500)]">
+          Ask the groom for updates, or sign in later with the same email to see
+          party details in your portal.
+        </p>
+      </div>
     );
   }
 

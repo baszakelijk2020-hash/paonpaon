@@ -11,7 +11,13 @@ export function GuestPortalPreview({
 }: {
   storeHref?: string;
 }) {
-  const storeLabel = storeHref.replace(/^\/r\//, "") || "the store";
+  const slug = storeHref.replace(/^\/r\//, "") || "maison-dubois";
+  const storeLabel = slug;
+  const customerEmail =
+    slug === "maison-dubois"
+      ? "contact+isabelle@nebelspiegel.com"
+      : `contact+${slug}-isabelle@nebelspiegel.com`;
+  const weddingDemoHref = `/login?demo=1&email=${encodeURIComponent(customerEmail)}&redirectTo=${encodeURIComponent("/wedding-parties")}`;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-1 pb-10 pt-2">
@@ -36,7 +42,7 @@ export function GuestPortalPreview({
               Sign in
             </Link>
             <Link
-              href={`/login?demo=1&email=${encodeURIComponent("contact+isabelle@nebelspiegel.com")}&redirectTo=${encodeURIComponent("/wedding-parties")}`}
+              href={weddingDemoHref}
               className={buttonVariants({
                 variant: "outline",
                 size: "lg",

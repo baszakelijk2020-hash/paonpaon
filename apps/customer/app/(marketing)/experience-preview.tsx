@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 const VIEWS = {
@@ -49,6 +50,12 @@ export function ExperiencePreview() {
 
   return (
     <div className="overflow-hidden rounded-[1.25rem] border border-black/10 bg-[#ededea] shadow-[0_20px_60px_rgba(0,0,0,.2)]">
+      <p className="border-b border-black/10 px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-black/45">
+        Illustrative preview — not live customer data.{" "}
+        <Link href="/r/maison-dubois" className="underline underline-offset-2">
+          Open the live store
+        </Link>
+      </p>
       <div className="flex gap-1 overflow-x-auto border-b border-black/10 p-2">
         {(Object.keys(VIEWS) as ViewKey[]).map((key) => (
           <button

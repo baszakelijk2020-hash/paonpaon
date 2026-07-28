@@ -61,7 +61,7 @@ export default async function JoinWeddingPartyPage({
         </Card>
       ) : null}
       <Card>
-        <JoinForm token={token} />
+        <JoinForm token={token} retailerSlug={slug} />
       </Card>
     </main>
   );

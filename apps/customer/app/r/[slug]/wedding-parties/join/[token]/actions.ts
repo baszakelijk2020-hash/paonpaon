@@ -15,6 +15,7 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 export interface JoinPartyState {
   formError?: string;
   joined?: boolean;
+  email?: string;
 }
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
@@ -101,5 +102,5 @@ export async function joinWeddingParty(
     };
   }
 
-  return { joined: true };
+  return { joined: true, email: parsed.data.email };
 }

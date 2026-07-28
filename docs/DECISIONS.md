@@ -2418,11 +2418,12 @@ every change.
 5. Quality bar unchanged: definition-of-done, no silent debt, verbatim
    founder surfaces (ADR-052), tenant RLS, repository pattern.
 
-**Reinforcement (same day, evening).** The founder restated explicitly:
-do not stop and check; push all the way to finish. Sessions that ship one
-increment and then wait for review are process failures even when the
-code is correct. Controlling docs (`WORKING_AGREEMENT.md`, `CLAUDE.md`,
-`AGENTS.md`, `PHASE.md`) were strengthened to match.
+**Reinforcement (2026-07-29).** The founder again: do not stop between
+finished batches and features; hardcode that rule into the controlling
+docs. Ending an agent turn after a shipped batch while in-scope PHASE
+work remains is a process failure — chain the next item in the same
+turn. "Test it" is only for when the queue is exhausted or only hard
+blockers remain, never a pause after one batch.
 
 **Consequences.** Sessions ship more often and must leave the tree clean
 after every coherent change. Risk of drift returns if sessions skip

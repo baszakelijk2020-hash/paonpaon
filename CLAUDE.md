@@ -9,16 +9,18 @@ consistency — never for short-term speed.
 what may be worked on right now and overrides any older plan; the second
 defines how to work.
 
-**NON-NEGOTIABLE — continuous mode (founder 2026-07-28, reiterated same
-day):** Do **not** stop and check. Do **not** pause for review. Push
-**all the way** through the PHASE queue until it is exhausted or only
-hard blockers remain. Build → self-verify → commit → push → immediately
-start the next in-scope item. Skip Stripe / Resend / silhouette (note in
-PHASE.md, continue). A "Test it" list is a record, not a gate. Ending
-after one increment to wait for confirmation is a process failure.
-Hard stops only: out-of-freeze work, ADR conflicts you cannot ADR, or a
-founder surface that cannot be ported verbatim (ADR-052). Full rules:
-`docs/WORKING_AGREEMENT.md`.
+**NON-NEGOTIABLE — continuous mode (founder 2026-07-28, reiterated
+2026-07-29):** Do **not** stop and check. Do **not** pause for review.
+Do **not** end an agent turn between finished batches while in-scope
+work remains. Push **all the way** through the PHASE queue until it is
+exhausted or only hard blockers remain. Build → self-verify → commit →
+push → **immediately** start the next in-scope item **in the same turn**.
+Skip Stripe / Resend / silhouette (note in PHASE.md, continue). A
+"Test it" list is a record written when the queue is done — never a
+session closer after one batch. Ending after one increment to wait for
+confirmation is a process failure. Hard stops only: out-of-freeze work,
+ADR conflicts you cannot ADR, or a founder surface that cannot be ported
+verbatim (ADR-052). Full rules: `docs/WORKING_AGREEMENT.md`.
 
 Then read only what the change requires. [docs/README.md](docs/README.md)
 is a tiered router, not a reading list — the document set is ~6,000 lines

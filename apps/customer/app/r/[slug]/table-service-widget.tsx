@@ -78,12 +78,13 @@ const ATTACH_ITEMS = [
 
 const initial: TableServiceFormState = { values: {}, fieldErrors: {} };
 
-type Step = "name" | "email" | "message" | "done";
+type Step = "name" | "email" | "message" | "invite_token" | "done";
 
 const PLACEHOLDER_BY_STEP: Record<Step, string> = {
   name: "Your name...",
   email: "Your email...",
   message: "Type a message...",
+  invite_token: "Paste invite token or full join URL...",
   done: "",
 };
 
@@ -142,8 +143,9 @@ export function TableServiceWidget({
       setHistory((h) => [
         ...h,
         caption,
-        "Ask the groom for your private invite link — it opens a short form so the atelier can prepare sample garments before you arrive. You can also leave us a message below.",
+        "Paste the invite token from your link (the long code after /join/), or ask the groom to send the full link. You can also leave us a message below.",
       ]);
+      setStep("invite_token");
       return;
     }
     setHistory((h) => [...h, caption]);
@@ -154,6 +156,23 @@ export function TableServiceWidget({
     if (!text) return;
     setHistory((h) => [...h, text]);
     setInputValue("");
+
+    if (step === "invite_token") {
+      const slugMatch = pathname?.match(/^\/r\/([^/]+)/);
+      const slug = slugMatch?.[1];
+      const tokenMatch =
+        text.match(/wedding-parties\/join\/([A-Za-z0-9_-]+)/)?.[1] ??
+        text.match(/^[A-Za-z0-9_-]{12,}$/)?.[0];
+      if (slug && tokenMatch) {
+        window.location.href = `/r/${slug}/wedding-parties/join/${tokenMatch}`;
+        return;
+      }
+      setHistory((h) => [
+        ...h,
+        "That didn't look like an invite token. Paste the full join link, or the long code after /join/.",
+      ]);
+      return;
+    }
 
     if (step === "name") {
       setName(text);

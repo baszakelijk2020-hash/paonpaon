@@ -5,23 +5,26 @@ or any other) work together on PAON. **Tier 0 — read every session.**
 
 ---
 
-## NON-NEGOTIABLE (founder, 2026-07-28 — reiterated the same day)
+## NON-NEGOTIABLE (founder, 2026-07-28 — reiterated 2026-07-29)
 
-**Do not stop and check. Do not pause for review. Push all the way to
-finish.**
+**Do not stop and check. Do not pause for review. Do not end a turn
+between finished batches. Push all the way to finish.**
 
 This is not optional soft guidance. Sessions that stop after one
-increment, ask "please review," wait for a click-through, or end with
-"Test it / tell me when to continue" are **violating this agreement.**
+increment, ask "please review," wait for a click-through, end with
+"Test it / tell me when to continue," or **close a reply after shipping
+a batch while in-scope work remains** are **violating this agreement.**
 
-| Forbidden                                                          | Required                                                                   |
-| ------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| Stop after a commit to wait for founder confirmation               | Commit → push → immediately start the next in-scope item                   |
-| "Please review" / "does this look right?" / "ready for your check" | Self-verify with curl / browser / Playwright, then keep going              |
-| Ending the session because one queue item shipped                  | Keep going until the PHASE queue is exhausted or only hard blockers remain |
-| Treating a "Test it" section as a gate                             | Write "Test it" for the record, then continue without waiting              |
-| Halting the whole session on Stripe / Resend / silhouette          | Note the block in PHASE.md in one line, **skip**, take the next item       |
-| Leaving finished work uncommitted or unpushed                      | Every coherent increment is committed and pushed before the next begins    |
+| Forbidden                                                          | Required                                                                                                        |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| Stop after a commit to wait for founder confirmation               | Commit → push → immediately start the next in-scope item                                                        |
+| End the agent turn / reply after a finished batch or feature       | Chain the next unfinished PHASE item in the **same turn** until blockers only                                   |
+| "Please review" / "does this look right?" / "ready for your check" | Self-verify with curl / browser / Playwright, then keep going                                                   |
+| Ending the session because one queue item shipped                  | Keep going until the PHASE queue is exhausted or only hard blockers remain                                      |
+| Treating a "Test it" section as a gate or a session closer         | Write "Test it" only when the whole queue is done or only blockers remain; never as the last act before waiting |
+| Halting the whole session on Stripe / Resend / silhouette          | Note the block in PHASE.md in one line, **skip**, take the next item                                            |
+| Leaving finished work uncommitted or unpushed                      | Every coherent increment is committed and pushed before the next begins                                         |
+| Summarizing progress and stopping while freeze work remains        | Progress notes are fine mid-flight; stopping is not                                                             |
 
 The earlier stop-and-wait rule fixed a real failure (21 unpushed commits,
 130 uncommitted files, no CI). Continuous mode keeps that **discipline**
@@ -29,9 +32,10 @@ The earlier stop-and-wait rule fixed a real failure (21 unpushed commits,
 between increments. Quality is enforced by self-verify + CI on every push —
 never by waiting for the founder between tasks.
 
-If you are about to write a message whose purpose is to get permission
-or a visual check before the next in-scope change: **do not send it —
-do the next change instead.**
+If you are about to write a message whose purpose is to get permission,
+a visual check, or a "continue?" before the next in-scope change: **do
+not send it — do the next change instead.** Finishing a batch is not
+permission to idle.
 
 ---
 
@@ -147,12 +151,13 @@ Paste when starting a fresh agent:
 
 > Read docs/PHASE.md, docs/WORKING_AGREEMENT.md and docs/DESIGN_PORTS.md
 > first. NON-NEGOTIABLE continuous mode: do NOT stop and check with me.
-> Build, self-verify, commit, push, advance the PHASE queue all the way
-> until only hard blockers remain. Skip Stripe/Resend/silhouette — note
-> and continue. Scope freeze — three workstreams only. Founder-designed
-> surfaces are verbatim ports (ADR-052). Hard stops only for out-of-freeze
-> work, ADR conflicts you cannot ADR, or surfaces that cannot be ported
-> verbatim.
+> Do NOT end a turn between finished batches. Build, self-verify, commit,
+> push, advance the PHASE queue all the way until only hard blockers
+> remain — chain the next item in the same turn. Skip Stripe/Resend/
+> silhouette — note and continue. Scope freeze — three workstreams only.
+> Founder-designed surfaces are verbatim ports (ADR-052). Hard stops
+> only for out-of-freeze work, ADR conflicts you cannot ADR, or surfaces
+> that cannot be ported verbatim.
 
 ---
 
