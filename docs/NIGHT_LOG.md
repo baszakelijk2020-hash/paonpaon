@@ -16,24 +16,36 @@ can audit in the morning without reading the whole session.
 
 ## Rules for any loop that writes to this file
 
-- Never commit red. If the definition-of-done command fails, fix it or stop
-  — do not log a failure and move on to the next item.
+- Never commit red. If the definition-of-done command fails, try to fix it;
+  if the same increment still fails a second time, `git checkout -- .` to
+  discard it and move to the next queue item rather than force a commit or
+  get stuck.
 - One line per increment, appended as it lands, not batched at the end.
 - Stop, don't guess, on anything gated on a founder decision (see the
   `PHASE.md` queue — the visual-pass design direction, Stripe/Resend
-  credentials) or anything outside the three in-scope workstreams.
-- Never touch `apps/retailer/app/(dashboard)/alterations/` or rewrite a
-  founder-designed surface in Tailwind/`@paon/ui` (ADR-052).
+  credentials), anything needing a secret or a dashboard click, anything
+  needing a new domain entity or migration, anything contradicting an ADR,
+  or anything outside the three in-scope workstreams / the queue.
+- Never touch `apps/retailer/app/(dashboard)/alterations/`, rewrite a
+  founder-designed surface in Tailwind/`@paon/ui`, or reintroduce Inter or a
+  grey palette (ADR-052).
+- Don't redeploy or touch Vercel/Supabase config — all three apps are
+  already live and verified — unless something this loop changed broke it.
 - A run against this file is only valid for the authorization logged below
   it, for the scope stated — not a permanent standing instruction for every
   future session.
 
 ## Authorization
 
-_(Empty until the founder explicitly re-issues the overnight instruction
-with this file in place. Record the date and what was authorized here
-before the first loop iteration runs.)_
+**2026-07-27, founder** (recorded 2026-07-28): run the continuous loop
+against the queue in `PHASE.md` until exhausted, then the surfaces marked
+"Wrong" in `DESIGN_PORTS.md` (silhouette carousel, then swipe deck), ported
+verbatim per ADR-052. Per increment: state the one-line change, make one
+reviewable change, run the full definition-of-done command, commit and push
+if green, append one line here, then start the next. Stop-and-log instead
+of proceeding on any of the conditions above.
 
 ## Log
 
-_(One line per increment: commit hash, one-line summary, DoD result.)_
+- Authorization recorded; loop starting from the top of the `PHASE.md`
+  queue (Stripe live — expected immediate stop, no credentials).
