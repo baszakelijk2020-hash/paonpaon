@@ -55,8 +55,12 @@ export default async function LoyaltyPage() {
         </p>
       </div>
       {relationships.map(
-        ({ customer, retailer, account, rewards, referrals }) => (
-          <Card key={customer.id} className="flex flex-col gap-5">
+        ({ customer, retailer, account, rewards, referrals }, index) => (
+          <Card
+            key={customer.id}
+            className="paon-reveal flex flex-col gap-5"
+            style={{ animationDelay: `${index * 120}ms` }}
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
@@ -176,7 +180,7 @@ export default async function LoyaltyPage() {
         ),
       )}
       {relationships.length === 0 ? (
-        <Card>
+        <Card className="paon-reveal">
           <p className="text-sm text-[var(--color-stone-500)]">
             Shop or book with a retailer to begin a relationship.
           </p>
