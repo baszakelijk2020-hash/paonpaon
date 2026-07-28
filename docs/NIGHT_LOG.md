@@ -227,3 +227,37 @@ of proceeding on any of the conditions above.
   than drifting into the other 83 routes or building the orbit's missing
   avatar-photo feature without a decision — both would be exactly the kind
   of unsupervised scope creep this file exists to prevent.
+- **Loop resumed 2026-07-28.** Founder answered the silhouette-carousel and
+  orbit open questions above by speccing AM House Party as a real feature
+  (`PHASE.md` queue item 6) and authorizing steps 1-3 specifically (no
+  schema change), stopping for review before steps 4-6 (each touches the
+  domain). Also landed `005115c`, refocusing priority toward workstreams 2
+  and 3 once this item's steps 1-3 are done — noted, not acted on yet.
+- Queue item 6, step 1 (Customer-side create): `79cbd26`. New
+  `/wedding-parties/new` in apps/customer, mirroring the retailer's
+  `createWeddingParty` action exactly — same repository call, organizer
+  resolved from the signed-in customer's own relationship with the chosen
+  atelier (never trusted from form input). Handles zero/one/many-retailer
+  customers. Deliberately collects only `eventDate`/`venueName`/`notes` —
+  no "time" or "store location" inputs, since those need
+  `eventTime`/`fittingLocation` (step 4's migration) and this step is
+  explicitly no-schema-change; no "name" field either, since `WeddingParty`
+  has none today and adding one would itself be a schema change. Also
+  fixed `Select.tsx`'s radius/border/focus-ring (still the pre-tonight
+  `--radius-sm`/stone-300/ink-600 gap), caught because this is the first
+  new form to use it. DoD green, pushed.
+- Step 2 (Share the link): no code needed. `InviteLink` already renders on
+  the party page for whichever customer organizes it, retailer-created or
+  customer-created alike — confirmed by reading the existing gating logic
+  (`myCustomerIds.has(party.organizerCustomerId)`). Already correct.
+- Queue item 6, step 3 (Mission Control pass): `38a2c7a`. Wedding-parties
+  screens in both apps weren't among the original ten demo-path screens,
+  so they'd never gotten the reveal motion or radius fix. Card/Badge/Button
+  already inherited correct tokens from shared components; added
+  `paon-reveal` to every card (staggered where a page has several) and
+  fixed two raw `<select>` elements from `--radius-sm`/stone-300 to
+  `--radius-md`/stone-200. DoD green, pushed.
+- **Steps 1-3 complete. Stopping per the founder's explicit instruction** —
+  steps 4-6 each touch the domain (new fields, a migration, a
+  `party-photos` storage bucket) and need founder review before any code
+  is written. Not started.
