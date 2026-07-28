@@ -221,13 +221,20 @@ export function StudioForm({
                 />
               </label>
               <label className="block text-sm">
-                Locations <span className="text-stone-400">(Name | City)</span>
+                Locations{" "}
+                <span className="text-stone-400">
+                  (Name | City | optional https photo)
+                </span>
                 <textarea
                   className={`${input} min-h-24 py-3`}
                   name="locations"
                   defaultValue={
                     configuration?.locations
-                      .map((location) => `${location.name} | ${location.city}`)
+                      .map((location) =>
+                        [location.name, location.city, location.imageUrl ?? ""]
+                          .filter((part, index) => index < 2 || part)
+                          .join(" | "),
+                      )
                       .join("\n") ?? "Flagship | London"
                   }
                   required

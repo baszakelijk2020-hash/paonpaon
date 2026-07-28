@@ -1,10 +1,11 @@
 "use client";
 
 import type { Order, OrderLine, Product, ProductVariant } from "@paon/domain";
-import { Button } from "@paon/ui/components/Button";
+import { Button, buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
 import { formatMoney } from "@paon/utils";
+import Link from "next/link";
 import { useActionState, useRef } from "react";
 
 import { checkoutCart, updateCartLine, type CartFormState } from "./actions";
@@ -49,44 +50,40 @@ function CartLine({ slug, item }: { slug: string; item: CartItem }) {
         ) : null}
       </div>
       <div className="flex items-center gap-2">
-        <div className="flex items-center rounded-[var(--radius-sm)] border border-[var(--color-stone-300)]">
-          <button
-            type="button"
-            aria-label={`Decrease quantity of ${item.product.name}`}
-            disabled={pending}
-            onClick={() => submitWithQuantity(item.line.quantity - 1)}
-            style={{ width: 44, height: 44 }}
-            className="flex shrink-0 items-center justify-center text-lg text-[var(--color-stone-700)] active:scale-90 disabled:opacity-50 motion-reduce:active:scale-100"
-          >
-            −
-          </button>
-          <Input
-            ref={quantityRef}
-            className="h-[44px] w-12 border-x border-y-0 text-center [appearance:textfield]"
-            name="quantity"
-            type="number"
-            min={0}
-            max={20}
-            defaultValue={item.line.quantity}
-            aria-label={`Quantity of ${item.product.name}`}
-            readOnly
-          />
-          <button
-            type="button"
-            aria-label={`Increase quantity of ${item.product.name}`}
-            disabled={pending}
-            onClick={() => submitWithQuantity(item.line.quantity + 1)}
-            style={{ width: 44, height: 44 }}
-            className="flex shrink-0 items-center justify-center text-lg text-[var(--color-stone-700)] active:scale-90 disabled:opacity-50 motion-reduce:active:scale-100"
-          >
-            +
-          </button>
-        </div>
+        <input
+          ref={quantityRef}
+          type="hidden"
+          name="quantity"
+          defaultValue={item.line.quantity}
+        />
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => submitWithQuantity(item.line.quantity - 1)}
+          aria-label="Decrease quantity"
+          style={{ minWidth: 44, height: 44 }}
+          className="rounded-[var(--radius-md)] px-3 text-sm font-medium text-[var(--color-stone-900)] hover:bg-[var(--color-stone-100)] disabled:opacity-50"
+        >
+          −
+        </button>
+        <span className="min-w-8 text-center text-sm">
+          {item.line.quantity}
+        </span>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => submitWithQuantity(item.line.quantity + 1)}
+          aria-label="Increase quantity"
+          style={{ minWidth: 44, height: 44 }}
+          className="rounded-[var(--radius-md)] px-3 text-sm font-medium text-[var(--color-stone-900)] hover:bg-[var(--color-stone-100)] disabled:opacity-50"
+        >
+          +
+        </button>
         <button
           type="button"
           disabled={pending}
           onClick={() => submitWithQuantity(0)}
-          aria-label={`Remove ${item.product.name} from cart`}
+          aria-label="Remove line"
           style={{ minWidth: 44, height: 44 }}
           className="rounded-[var(--radius-md)] px-3 text-sm font-medium text-[var(--color-stone-900)] hover:bg-[var(--color-stone-100)] disabled:opacity-50"
         >
@@ -111,6 +108,7 @@ export function CartClient({
     initial,
   );
   const checkoutFormRef = useRef<HTMLFormElement>(null);
+  const appointmentHref = `/r/${slug}/appointments`;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -125,58 +123,79 @@ export function CartClient({
         </div>
       </Card>
       <Card className="paon-reveal" style={{ animationDelay: "120ms" }}>
-        <form
-          ref={checkoutFormRef}
-          action={action}
-          className="flex flex-col gap-3"
-        >
-          <input type="hidden" name="orderId" value={order.id} />
-          <h2 className="text-lg font-medium">Shipping</h2>
-          <Input
-            name="line1"
-            aria-label="Address"
-            placeholder="Address"
-            required
-          />
-          <Input
-            name="line2"
-            aria-label="Address line 2 (optional)"
-            placeholder="Address line 2 (optional)"
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <Input name="city" aria-label="City" placeholder="City" required />
-            <Input name="region" aria-label="Region" placeholder="Region" />
-            <Input
-              name="postalCode"
-              aria-label="Postal code"
-              placeholder="Postal code"
-              required
-            />
-            <Input
-              name="countryCode"
-              aria-label="Country code"
-              placeholder="Country code"
-              maxLength={2}
-              required
-            />
-          </div>
-          {state.formError ? (
-            <p role="alert" className="text-sm text-[var(--color-danger-500)]">
-              {state.formError}
-            </p>
-          ) : null}
-          <Button
-            type="submit"
-            disabled={pending}
-            className="hidden lg:inline-flex"
-          >
-            {pending ? "Checking out…" : "Place order"}
-          </Button>
-          <p className="text-xs text-[var(--color-stone-500)]">
-            No payment is collected yet. The order will be saved as pending
-            payment.
+        <div className="flex flex-col gap-3">
+          <h2 className="text-lg font-medium">Next step</h2>
+          <p className="text-sm text-[var(--color-stone-600)]">
+            Made-to-measure starts with a fitting. Book an appointment with
+            these pieces in mind — card payment is not live on this demo yet.
           </p>
-        </form>
+          <Link
+            href={appointmentHref}
+            className={`${buttonVariants()} hidden lg:inline-flex`}
+          >
+            Book an appointment
+          </Link>
+          <details className="mt-2 border-t border-[var(--color-stone-100)] pt-4">
+            <summary className="cursor-pointer text-sm text-[var(--color-stone-500)]">
+              Save as pending order instead
+            </summary>
+            <form
+              ref={checkoutFormRef}
+              action={action}
+              className="mt-3 flex flex-col gap-3"
+            >
+              <input type="hidden" name="orderId" value={order.id} />
+              <Input
+                name="line1"
+                aria-label="Address"
+                placeholder="Address"
+                required
+              />
+              <Input
+                name="line2"
+                aria-label="Address line 2 (optional)"
+                placeholder="Address line 2 (optional)"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  name="city"
+                  aria-label="City"
+                  placeholder="City"
+                  required
+                />
+                <Input name="region" aria-label="Region" placeholder="Region" />
+                <Input
+                  name="postalCode"
+                  aria-label="Postal code"
+                  placeholder="Postal code"
+                  required
+                />
+                <Input
+                  name="countryCode"
+                  aria-label="Country code"
+                  placeholder="Country code"
+                  maxLength={2}
+                  required
+                />
+              </div>
+              {state.formError ? (
+                <p
+                  role="alert"
+                  className="text-sm text-[var(--color-danger-500)]"
+                >
+                  {state.formError}
+                </p>
+              ) : null}
+              <Button type="submit" variant="secondary" disabled={pending}>
+                {pending ? "Saving…" : "Save pending order"}
+              </Button>
+              <p className="text-xs text-[var(--color-stone-500)]">
+                No payment is collected. The order is saved as pending until
+                Stripe is connected.
+              </p>
+            </form>
+          </details>
+        </div>
       </Card>
 
       <div className="glass-panel fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-4 border-t border-[var(--color-stone-200)] px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:hidden">
@@ -188,14 +207,9 @@ export function CartClient({
             {formatMoney(order.total, "en-US")}
           </p>
         </div>
-        <Button
-          type="button"
-          size="lg"
-          disabled={pending}
-          onClick={() => checkoutFormRef.current?.requestSubmit()}
-        >
-          {pending ? "Checking out…" : "Place order"}
-        </Button>
+        <Link href={appointmentHref} className={buttonVariants({ size: "lg" })}>
+          Book appointment
+        </Link>
       </div>
     </div>
   );

@@ -21,6 +21,7 @@ export interface StudioActionState {
 export interface BrandAssetActionState {
   error?: string;
   publicUrl?: string;
+  role?: "garment" | "logoUrl" | "faviconUrl" | "heroImageUrl";
 }
 
 export interface DemoEnvironmentActionState {
@@ -71,7 +72,14 @@ export async function uploadBrandAsset(
     });
   if (error) return { error: error.message };
   const { data } = client.storage.from("demo-brand-assets").getPublicUrl(path);
-  return { publicUrl: data.publicUrl };
+  const roleRaw = String(formData.get("assetRole") ?? "garment");
+  const role =
+    roleRaw === "logoUrl" ||
+    roleRaw === "faviconUrl" ||
+    roleRaw === "heroImageUrl"
+      ? roleRaw
+      : "garment";
+  return { publicUrl: data.publicUrl, role };
 }
 
 export async function generateDemoEnvironment(
@@ -320,7 +328,11 @@ export async function saveStudioConfiguration(
     .split("\n")
     .map((line) => line.split("|").map((part) => part.trim()))
     .filter(([name, city]) => name && city)
-    .map(([name, city]) => ({ name, city }));
+    .map(([name, city, imageUrl]) => ({
+      name,
+      city,
+      ...(imageUrl ? { imageUrl } : {}),
+    }));
   const parsed = saveProspectDemoConfigurationInputSchema.safeParse({
     prospectId,
     planId: formData.get("planId"),

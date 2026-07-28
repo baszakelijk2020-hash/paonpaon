@@ -48,6 +48,8 @@ export interface CommercialProspect {
 export interface ProspectDemoLocation {
   name: string;
   city: string;
+  /** Optional storefront appointment-sheet photography for this location. */
+  imageUrl?: string | undefined;
 }
 
 export interface ProspectDemoConfiguration {

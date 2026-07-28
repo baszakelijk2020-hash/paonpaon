@@ -1,4 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Premium retail, connected",
+  description:
+    "PAON connects the storefront, the atelier and the client relationship for independent premium retail houses.",
+  openGraph: {
+    title: "PAON — premium retail, connected",
+    description:
+      "See how a made-to-measure house runs appointments, fittings and client stories in one composed system.",
+  },
+};
 
 export default function MarketingLayout({
   children,

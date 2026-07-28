@@ -336,14 +336,20 @@ photography.
 revoked / wrong code; storefront chrome lives inside `<body>`; guest Add
 to Bag offers sign-in without a hard redirect yank.
 
+**Also (2026-07-29 continuous push, residual conversion).** Studio uploads
+wire into logo / favicon / hero / garments by role; demo headline lands on
+`/r/{slug}`; location lines accept optional photo URLs for Book Appointment;
+marketing Open Graph + share cards; bag CTA leads with Book appointment
+until Stripe keys exist. Custom domain still deferred (ADR-014).
+
 **Blocked (skip in continuous mode until founder provisions):**
 
 - Stripe live (queue 1) — keys missing from env.
 - Resend live (queue 2) — API key missing.
 - Silhouette carousel (queue 7) — no founder-designed mount.
-- Prospect garment photography without pasted HTTPS URLs — upload now
-  auto-appends to the garment photos list; still needs founder-provided
-  images. Leave blank only when shared catalogue disclosure is acceptable.
+- Prospect garment photography — upload path + role wiring exist; still
+  needs founder-provided images. Leave blank only when shared catalogue
+  disclosure is acceptable.
 
 Not in the queue and not to be started: fit tools (parked), the alterations
 vertical (awaiting founder design), and the four presentation modules —

@@ -441,14 +441,23 @@ ${
     : "";
 
   const template = await loadTemplate();
-  const stores = await appointmentStoresFor(supabase, retailer, heroUrl);
+  const demoStory = await prospectDemoStoryFor(supabase, slug);
+  const stores = await appointmentStoresFor(
+    supabase,
+    retailer,
+    heroUrl,
+    demoStory?.locations,
+  );
+  const storyHtml = demoStory?.marketingHeadline
+    ? `<p class="paon-marketing-headline" style="margin:12px 12px 0;font-size:15px;line-height:1.45;letter-spacing:.01em;font-family:var(--font-retailer-display),Georgia,serif;">${escapeHtml(demoStory.marketingHeadline)}</p>`
+    : "";
   const html = template
     .replaceAll("__PAON_SLUG__", slug)
     .replaceAll("__PAON_RETAILER_ID__", retailer.id)
     .replaceAll("__PAON_RETAILER_NAME__", safeName)
     .replace("__PAON_BRAND_HEAD__", brandHead)
     .replace("__PAON_BRAND_MARK__", brandMark)
-    .replace("__PAON_HERO_HTML__", heroHtml + catalogueNoteHtml)
+    .replace("__PAON_HERO_HTML__", heroHtml + storyHtml + catalogueNoteHtml)
     .replace("__PAON_PRODUCTS_JSON__", JSON.stringify(entries))
     .replace("__PAON_DEFAULT_CATEGORY_JSON__", JSON.stringify(defaultCategory))
     .replace("__PAON_STORES_JSON__", JSON.stringify(stores));
@@ -471,6 +480,53 @@ const MAISON_APPOINTMENT_STORES = [
   },
 ] as const;
 
+async function prospectDemoStoryFor(
+  supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>,
+  slug: string,
+): Promise<
+  | {
+      marketingHeadline?: string | undefined;
+      locations?: Array<{
+        name?: string;
+        city?: string;
+        imageUrl?: string;
+      }>;
+    }
+  | undefined
+> {
+  const { data: environment } = await supabase
+    .from("prospect_demo_environments")
+    .select("configuration_id")
+    .eq("retailer_slug", slug)
+    .maybeSingle();
+  if (!environment?.configuration_id) return undefined;
+  const { data: configuration } = await supabase
+    .from("prospect_demo_configurations")
+    .select("locations, marketing_headline")
+    .eq("id", environment.configuration_id)
+    .maybeSingle();
+  if (!configuration) return undefined;
+  const story: {
+    marketingHeadline?: string | undefined;
+    locations?: Array<{
+      name?: string;
+      city?: string;
+      imageUrl?: string;
+    }>;
+  } = {};
+  if (configuration.marketing_headline) {
+    story.marketingHeadline = configuration.marketing_headline;
+  }
+  if (configuration.locations) {
+    story.locations = configuration.locations as Array<{
+      name?: string;
+      city?: string;
+      imageUrl?: string;
+    }>;
+  }
+  return story;
+}
+
 async function appointmentStoresFor(
   supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>,
   retailer: {
@@ -479,6 +535,11 @@ async function appointmentStoresFor(
     billingAddress: { city: string; line1?: string };
   },
   heroUrl: string | undefined,
+  locations?: Array<{
+    name?: string;
+    city?: string;
+    imageUrl?: string;
+  }>,
 ): Promise<Array<{ city: string; address: string; img: string }>> {
   if (retailer.slug === "maison-dubois") {
     return [...MAISON_APPOINTMENT_STORES];
@@ -487,29 +548,18 @@ async function appointmentStoresFor(
   const fallbackImg =
     heroUrl ?? "https://www.nebelspiegel.com/images/smaller/6054.webp";
 
-  const { data: environment } = await supabase
-    .from("prospect_demo_environments")
-    .select("configuration_id")
-    .eq("retailer_slug", retailer.slug)
-    .maybeSingle();
+  const resolvedLocations =
+    locations ??
+    (await prospectDemoStoryFor(supabase, retailer.slug))?.locations;
 
-  if (environment?.configuration_id) {
-    const { data: configuration } = await supabase
-      .from("prospect_demo_configurations")
-      .select("locations")
-      .eq("id", environment.configuration_id)
-      .maybeSingle();
-    const locations = configuration?.locations as
-      Array<{ name?: string; city?: string }> | null | undefined;
-    if (Array.isArray(locations) && locations.length > 0) {
-      return locations
-        .filter((location) => location.city || location.name)
-        .map((location) => ({
-          city: location.city || location.name || retailer.displayName,
-          address: [location.name, location.city].filter(Boolean).join(",\n"),
-          img: fallbackImg,
-        }));
-    }
+  if (Array.isArray(resolvedLocations) && resolvedLocations.length > 0) {
+    return resolvedLocations
+      .filter((location) => location.city || location.name)
+      .map((location) => ({
+        city: location.city || location.name || retailer.displayName,
+        address: [location.name, location.city].filter(Boolean).join(",\n"),
+        img: safeHttpsUrl(location.imageUrl) ?? fallbackImg,
+      }));
   }
 
   return [

@@ -51,6 +51,7 @@ export const saveProspectDemoConfigurationInputSchema = z.object({
       z.object({
         name: z.string().trim().min(2).max(120),
         city: z.string().trim().min(2).max(120),
+        imageUrl: optionalHttpsUrl,
       }),
     )
     .min(1)
