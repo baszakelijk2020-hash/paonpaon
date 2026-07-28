@@ -94,7 +94,7 @@ export default async function StorefrontProductPage({
       </Link>
 
       <div className="grid gap-10 lg:grid-cols-2">
-        <div className="lg:sticky lg:top-10 lg:self-start">
+        <div className="paon-reveal lg:sticky lg:top-10 lg:self-start">
           {product.primaryImageUrl ? (
             <Image
               src={product.primaryImageUrl}
@@ -110,7 +110,7 @@ export default async function StorefrontProductPage({
           )}
         </div>
 
-        <div>
+        <div className="paon-reveal" style={{ animationDelay: "120ms" }}>
           {product.isMadeToOrder ? (
             <p className="font-accent mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
               Made to order

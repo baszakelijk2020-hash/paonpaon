@@ -66,7 +66,7 @@ export function OrderForm({
                   type="button"
                   aria-pressed={selected}
                   onClick={() => setSelectedVariantId(variant.id)}
-                  className={`flex min-h-11 flex-col items-start rounded-[var(--radius-sm)] border px-3 py-2 text-left transition-colors ${
+                  className={`flex min-h-11 flex-col items-start rounded-[var(--radius-md)] border px-3 py-2 text-left transition-colors ${
                     selected
                       ? "border-[var(--color-stone-900)] bg-[var(--color-stone-900)] text-white"
                       : "border-[var(--color-stone-300)] text-[var(--color-stone-700)]"
