@@ -15275,28 +15275,37 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     }
     window.moveSelectorToMobileFooter = function () { /* no-op */ };
 
-    /* ---- DOM reorder: appointment before YMAL ---- */
+    /* ---- DOM reorder: appointment placement ---- */
     function reorderSections() {
         var viewDetail = document.getElementById('view-detail');
         var appt = document.getElementById('paon-mobile-appointment');
-        var ymal = document.getElementById('paon-mobile-also-like');
         var detailMain = document.getElementById('detail-main');
-        if (!viewDetail || !appt || !ymal || !detailMain) return;
+        var detailRight = document.getElementById('detail-right');
+        if (!viewDetail || !appt || !detailMain) return;
 
-        /* The appointment section used to only ever be shown on mobile,
-         * where the fixed 500px `.detail-right` sidebar is `display:none`
-         * so a flex sibling of `.detail-main` inside `#view-detail` has
-         * nowhere else to render but full-width. Now that it also shows
-         * on desktop, staying a sibling there means it gets squeezed into
-         * whatever flex space is left beside `.detail-main` and visually
-         * buried under the always-on-top fixed sidebar. Moving it inside
-         * `.detail-main` — the actual scrollable content column, on both
-         * viewports — is the real fix, not a mobile/desktop special case. */
-        if (!appt.dataset.movedIntoDetailMain) {
+        /* Desktop: keep appointment inside `.detail-main` so the fixed
+         * right sidebar does not crush it into leftover flex space.
+         * Mobile: keep it AFTER `#detail-right` (the black title /
+         * archetype / fabric card). Appending into detail-main puts
+         * Book Your Fitting above that card — wrong. */
+        if (isMobile()) {
+            appt.dataset.movedIntoDetailMain = '';
+            if (detailRight && detailRight.parentNode === viewDetail) {
+                if (appt.previousElementSibling !== detailRight) {
+                    viewDetail.insertBefore(appt, detailRight.nextSibling);
+                }
+            } else if (appt.parentNode !== viewDetail) {
+                viewDetail.appendChild(appt);
+            }
+            return;
+        }
+
+        if (appt.parentNode !== detailMain) {
             appt.dataset.movedIntoDetailMain = '1';
             detailMain.appendChild(appt);
         }
     }
+    window.paonPlaceAppointmentSection = reorderSections;
 
     /* ---- Sticky-then-release footer for detail-right-footer ---- */
     var drfTicking = false;
@@ -15328,8 +15337,11 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         }, { passive: true });
     }
     window.addEventListener('resize', function () {
-        if (isMobile()) requestAnimationFrame(updateDrfStick);
-        ensureSelectorInDesktopHome();
+        requestAnimationFrame(function () {
+            if (isMobile()) updateDrfStick();
+            ensureSelectorInDesktopHome();
+            reorderSections();
+        });
     }, { passive: true });
 
     /* ---- Desktop carousel nav buttons ---- */
@@ -15548,13 +15560,11 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     if (typeof prevOpenDetail === 'function' && !prevOpenDetail.__paonV8Bound) {
         window.openDetail = function () {
             var r = prevOpenDetail.apply(this, arguments);
-            if (isMobile()) {
-                requestAnimationFrame(function () {
-                    ensureSelectorInDesktopHome();
-                    reorderSections();
-                    requestAnimationFrame(updateDrfStick);
-                });
-            }
+            requestAnimationFrame(function () {
+                ensureSelectorInDesktopHome();
+                reorderSections();
+                if (isMobile()) requestAnimationFrame(updateDrfStick);
+            });
             buildDesktopCarouselButtons();
             return r;
         };
@@ -16256,8 +16266,6 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     var dim = document.getElementById('paon-appt-sheet-dim');
     if (!appt || !dim) return;
 
-    var homeParent = null;
-    var homeNext = null;
     var closeBtn = null;
 
     function ensureCloseBtn() {
@@ -16275,10 +16283,6 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
 
     function openSheet() {
         ensureCloseBtn();
-        if (!homeParent) {
-            homeParent = appt.parentNode;
-            homeNext = appt.nextSibling;
-        }
         document.body.appendChild(appt);
         document.body.classList.add('paon-appt-sheet-open');
         dim.setAttribute('aria-hidden', 'false');
@@ -16290,12 +16294,10 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         if (!document.body.classList.contains('paon-appt-sheet-open')) return;
         document.body.classList.remove('paon-appt-sheet-open');
         dim.setAttribute('aria-hidden', 'true');
-        if (homeParent) {
-            if (homeNext && homeNext.parentNode === homeParent) {
-                homeParent.insertBefore(appt, homeNext);
-            } else {
-                homeParent.appendChild(appt);
-            }
+        /* Put the section back in document flow — mobile after the black
+           detail card, desktop inside detail-main — never leave it on body. */
+        if (typeof window.paonPlaceAppointmentSection === 'function') {
+            window.paonPlaceAppointmentSection();
         }
     }
 
@@ -16308,6 +16310,9 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
 
     function attachAfterRebuild() {
         ensureCloseBtn();
+        if (typeof window.paonPlaceAppointmentSection === 'function') {
+            window.paonPlaceAppointmentSection();
+        }
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {
