@@ -180,12 +180,12 @@ without waiting for founder review between increments. Still one coherent
 commit at a time — the batching pause is gone; the small-commit discipline
 is not.
 
-1. **Stripe live.** Blocked on the founder provisioning credentials — no
-   session can do this. Once `STRIPE_SECRET_KEY` is set, verify a real
-   Connect onboarding and a real charge end to end. ADR-030 code is
+1. **Stripe live.** Blocked — `STRIPE_SECRET_KEY` (and related) are not
+   in `.env.local` / hosted env; no session can provision them. Once set,
+   verify Connect onboarding and a real charge end to end. ADR-030 code is
    complete and has never executed.
-2. **Resend live.** Same shape. `RESEND_API_KEY` set, then verify the outbox
-   actually delivers.
+2. **Resend live.** Same shape — `RESEND_API_KEY` missing. Set it, then
+   verify the outbox actually delivers.
 3. ~~**A demo retailer that looks like a real store.**~~ **Done (local +
    production).** 68-SKU catalog with real photography; client-book history
    (orders/notes/appointments across the book); placeholder Broek/Shoes/Knit
@@ -206,9 +206,11 @@ is not.
    `paon-reveal` / day-strip appointment pattern). Do not expand to the
    other 83 routes without a new founder decision.
 
-6. **AM House Party — customer-owned party planning. Founder spec
-   2026-07-28.** Replaces the parked "orbit needs avatar data" question in
-   `NIGHT_LOG.md` with the actual feature.
+6. ~~**AM House Party — customer-owned party planning.**~~ **Done
+   (2026-07-28).** Create, share link, Mission Control, time/fitting
+   location, photos, join prep (ADR-055), and `#ow` orbit all shipped.
+   Demo seed now fills Villa Aurelia with schedule, cover, groom +
+   attendants, avatars and height/weight so the orbit is demonstrable.
 
    **The journey.** A customer opens "Wedding parties" in the Customer
    Portal sidebar (already there), creates a party — participant names and

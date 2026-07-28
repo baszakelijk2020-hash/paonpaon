@@ -1797,38 +1797,107 @@ async function seedRetailerSpecs(params: {
     }
 
     // A coordinated wedding party gives both retailer and customer personas
-    // a complete group-service workspace to explore.
+    // a complete group-service workspace to explore — including schedule,
+    // fitting location, roster photos and prep sizes for the orbit.
     if (customerIds[0]) {
       const weddingRepo = new WeddingPartyRepository(admin);
+      const customerRepo = new CustomerRepository(admin);
       const existingParties = await weddingRepo.findByRetailer(retailerId);
       let party = existingParties.find(
         (candidate) => candidate.venueName === "Villa Aurelia",
       );
+      const weddingDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
+      const fittingLocation = `${spec.displayName} Atelier`;
       if (!party) {
-        const weddingDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
         party = await weddingRepo.create({
           retailerId,
           organizerCustomerId: customerIds[0],
           eventDate: weddingDate.toISOString().slice(0, 10),
+          eventTime: "15:30",
           venueName: "Villa Aurelia",
+          fittingLocation,
           notes:
             "Black tie garden ceremony. Four attendants, fittings to be completed six weeks before travel.",
         });
+      } else {
+        await weddingRepo.updateSchedule(party.id, {
+          ...(party.eventTime ? {} : { eventTime: "15:30" }),
+          ...(party.fittingLocation ? {} : { fittingLocation }),
+        });
       }
-      const members = await weddingRepo.findMembers(party.id);
-      if (members.length === 0) {
+      if (!party.coverPhotoUrl) {
+        await weddingRepo.setCoverPhotoUrl(
+          party.id,
+          "https://www.nebelspiegel.com/images/wed2027-poster.jpg",
+        );
+      }
+
+      const organizer = await customerRepo.findById(customerIds[0]);
+      let members = await weddingRepo.findMembers(party.id);
+      if (
+        organizer?.email &&
+        !members.some((member) => member.customerId === organizer.id)
+      ) {
         await weddingRepo.addMember({
           weddingPartyId: party.id,
+          name: organizer.fullName,
+          email: organizer.email,
+          role: "groom",
+        });
+      }
+      const attendants = [
+        {
           name: "Julien Moreau",
           email: `contact+${spec.slug}-wedding-julien@nebelspiegel.com`,
-          role: "best_man",
-        });
-        await weddingRepo.addMember({
-          weddingPartyId: party.id,
+          role: "best_man" as const,
+        },
+        {
           name: "Thomas Leroy",
           email: `contact+${spec.slug}-wedding-thomas@nebelspiegel.com`,
-          role: "groomsman",
-        });
+          role: "groomsman" as const,
+        },
+      ];
+      for (const person of attendants) {
+        members = await weddingRepo.findMembers(party.id);
+        if (!members.some((member) => member.name === person.name)) {
+          await weddingRepo.addMember({
+            weddingPartyId: party.id,
+            name: person.name,
+            email: person.email,
+            role: person.role,
+          });
+        }
+      }
+
+      members = await weddingRepo.findMembers(party.id);
+      const avatarByRole: Record<string, string> = {
+        groom: "https://www.nebelspiegel.com/images/ava1.png",
+        best_man: "https://www.nebelspiegel.com/images/ava2.png",
+        groomsman: "https://www.nebelspiegel.com/images/ava3.png",
+      };
+      const prepByRole: Record<string, { heightCm: number; weightKg: number }> =
+        {
+          groom: { heightCm: 184, weightKg: 78 },
+          best_man: { heightCm: 181, weightKg: 76 },
+          groomsman: { heightCm: 178, weightKg: 74 },
+        };
+      for (const member of members) {
+        const photoUrl = avatarByRole[member.role];
+        const prep = prepByRole[member.role];
+        if (
+          (!member.photoUrl && photoUrl) ||
+          (prep && (member.heightCm == null || member.weightKg == null))
+        ) {
+          await weddingRepo.updateMemberPrep(member.id, {
+            ...(!member.photoUrl && photoUrl ? { photoUrl } : {}),
+            ...(prep && member.heightCm == null
+              ? { heightCm: prep.heightCm }
+              : {}),
+            ...(prep && member.weightKg == null
+              ? { weightKg: prep.weightKg }
+              : {}),
+          });
+        }
       }
     }
   }

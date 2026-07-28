@@ -163,6 +163,66 @@ export class WeddingPartyRepository {
     if (error) throw error;
   }
 
+  async updateSchedule(
+    id: WeddingPartyId,
+    values: {
+      eventDate?: string;
+      eventTime?: string;
+      venueName?: string;
+      fittingLocation?: string;
+      coverPhotoUrl?: string;
+      notes?: string;
+    },
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("wedding_parties")
+      .update({
+        ...(values.eventDate !== undefined
+          ? { event_date: values.eventDate }
+          : {}),
+        ...(values.eventTime !== undefined
+          ? { event_time: values.eventTime }
+          : {}),
+        ...(values.venueName !== undefined
+          ? { venue_name: values.venueName }
+          : {}),
+        ...(values.fittingLocation !== undefined
+          ? { fitting_location: values.fittingLocation }
+          : {}),
+        ...(values.coverPhotoUrl !== undefined
+          ? { cover_photo_url: values.coverPhotoUrl }
+          : {}),
+        ...(values.notes !== undefined ? { notes: values.notes } : {}),
+      })
+      .eq("id", id);
+    if (error) throw error;
+  }
+
+  async updateMemberPrep(
+    memberId: WeddingPartyMemberId,
+    values: {
+      photoUrl?: string | null;
+      heightCm?: number | null;
+      weightKg?: number | null;
+    },
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("wedding_party_members")
+      .update({
+        ...(values.photoUrl !== undefined
+          ? { photo_url: values.photoUrl }
+          : {}),
+        ...(values.heightCm !== undefined
+          ? { height_cm: values.heightCm }
+          : {}),
+        ...(values.weightKg !== undefined
+          ? { weight_kg: values.weightKg }
+          : {}),
+      })
+      .eq("id", memberId);
+    if (error) throw error;
+  }
+
   /** Transactional find-or-create-guest-customer + add-member via
    * `add_wedding_party_member` (security definer) — see the migration
    * comment for why this isn't two separate client calls. */
