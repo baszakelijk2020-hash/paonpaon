@@ -15005,7 +15005,16 @@ requestAnimationFrame(fixFeedImages);
             body: JSON.stringify({ variantId: product.variantId, kind: kind })
         }).then(function (res) {
             if (res.status === 401) {
-                window.location.href = '/login?redirectTo=' + encodeURIComponent('/r/__PAON_SLUG__');
+                var banner = document.getElementById('paon-guest-cart-banner');
+                if (!banner) {
+                    banner = document.createElement('div');
+                    banner.id = 'paon-guest-cart-banner';
+                    banner.setAttribute('role', 'status');
+                    banner.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:600;max-width:min(26rem,calc(100vw - 24px));padding:14px 16px;border-radius:6px;background:rgba(0,0,0,0.1);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,0.08);font:13px OptimaKlein,serif;color:#1a1a1a;box-shadow:none;';
+                    banner.innerHTML = 'Save your bag — <a href="/login?redirectTo=' + encodeURIComponent('/r/__PAON_SLUG__/cart') + '" style="text-decoration:underline">sign in</a> to continue, or keep browsing.';
+                    document.body.appendChild(banner);
+                    window.setTimeout(function () { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 8000);
+                }
                 return;
             }
             if (res.ok) {
@@ -15015,9 +15024,7 @@ requestAnimationFrame(fixFeedImages);
     };
 })();
 </script>
-</body>
 
-</html>
 <!-- paon-identical-all-category-grid-hover-final-v1 -->
 
 <!-- v5-real-content-change: category-switch-from-detail-fixed; jacket-swatches-use-hyphen-one; 6056-6076-physically-pruned -->
@@ -16771,4 +16778,5 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     }
 })();
 </script>
-
+</body>
+</html>
