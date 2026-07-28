@@ -175,6 +175,14 @@ export default async function DiscoverPage({
             See this through your retailer’s eyes.
           </h2>
           <div className="flex flex-wrap gap-5 text-sm">
+            {topic === "weddings-events" ? (
+              <Link
+                href="/login?demo=1&email=contact%2Bisabelle%40nebelspiegel.com&redirectTo=%2Fwedding-parties"
+                className="underline underline-offset-4"
+              >
+                Open the live wedding party demo
+              </Link>
+            ) : null}
             <Link href="/demo-request" className="underline underline-offset-4">
               View a personalized demonstration
             </Link>

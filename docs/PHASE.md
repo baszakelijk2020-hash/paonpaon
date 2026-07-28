@@ -304,6 +304,13 @@ gate; HTML storefront applies theme fonts/corners/favicon; dead fitting
 Ask-us wedding create routes through login; marketing drops the invented
 62% figure and links Weddings in the nav.
 
+**Also (Demo Studio walkthrough, 2026-07-28 night).** Book Appointment
+stores come from Studio locations (Maison keeps Antwerp/Amsterdam);
+selected store lands in appointment notes; private demo opens wedding
+parties; outreach pack survives refresh in sessionStorage; access code
+field is visible text; marketing Weddings page deep-links the live party
+demo; syntheticData shrinks to personas only.
+
 **Blocked (skip in continuous mode until founder provisions):**
 
 - Stripe live (queue 1) — keys missing from env.

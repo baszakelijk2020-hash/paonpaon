@@ -1,7 +1,7 @@
 "use client";
 
 import type { ProspectDemoEnvironment } from "@paon/domain";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import {
   generateDemoEnvironment,
@@ -10,6 +10,10 @@ import {
 
 const DEMO_PASSWORD = "Demo-PAON-2026!";
 const initialState: DemoEnvironmentActionState = {};
+
+function outreachStorageKey(prospectId: string) {
+  return `paon-demo-outreach:${prospectId}`;
+}
 
 export function EnvironmentPanel({
   prospectId,
@@ -27,6 +31,31 @@ export function EnvironmentPanel({
   const action = generateDemoEnvironment.bind(null, prospectId);
   const [state, formAction, pending] = useActionState(action, initialState);
   const [copied, setCopied] = useState<string>();
+  const [savedOutreachPack, setSavedOutreachPack] = useState<string>();
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(outreachStorageKey(prospectId));
+      if (stored) setSavedOutreachPack(stored);
+    } catch {
+      /* private mode */
+    }
+  }, [prospectId]);
+
+  useEffect(() => {
+    if (!state.outreachPack) return;
+    setSavedOutreachPack(state.outreachPack);
+    try {
+      sessionStorage.setItem(
+        outreachStorageKey(prospectId),
+        state.outreachPack,
+      );
+    } catch {
+      /* private mode */
+    }
+  }, [state.outreachPack, prospectId]);
+
+  const outreachPack = state.outreachPack ?? savedOutreachPack;
 
   const storefrontUrl =
     environment?.retailerSlug && customerAppUrl
@@ -93,9 +122,10 @@ export function EnvironmentPanel({
         <label className="text-sm">
           Private access code
           <input
-            className="mt-2 min-h-11 w-full rounded-md border bg-white px-3"
+            className="mt-2 min-h-11 w-full rounded-md border bg-white px-3 font-mono text-sm"
             name="accessCode"
-            type="password"
+            type="text"
+            autoComplete="off"
             minLength={6}
             required
           />
@@ -135,11 +165,16 @@ export function EnvironmentPanel({
           {state.success}
         </p>
       ) : null}
-      {state.outreachPack ? (
+      {outreachPack ? (
         <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-medium text-emerald-950">
-              Outreach pack (includes the access code — copy now)
+              Outreach pack (includes the access code)
+              {!state.outreachPack ? (
+                <span className="ml-2 text-xs font-normal text-emerald-800/70">
+                  restored from this browser session
+                </span>
+              ) : null}
             </p>
             <div className="flex flex-wrap gap-2">
               {state.prospectMailtoHref ? (
@@ -153,14 +188,14 @@ export function EnvironmentPanel({
               <button
                 type="button"
                 className="inline-flex min-h-9 items-center rounded-md border border-emerald-300 bg-white px-3 text-xs"
-                onClick={() => copyOutreachPack(state.outreachPack!)}
+                onClick={() => copyOutreachPack(outreachPack)}
               >
                 {copied === "outreach" ? "Copied" : "Copy outreach pack"}
               </button>
             </div>
           </div>
           <pre className="mt-3 overflow-x-auto whitespace-pre-wrap font-mono text-[11px] leading-5 text-emerald-950/80">
-            {state.outreachPack}
+            {outreachPack}
           </pre>
         </div>
       ) : null}

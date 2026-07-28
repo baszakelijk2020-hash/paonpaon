@@ -108,7 +108,6 @@ export async function generateDemoEnvironment(
   const slug =
     existingEnvironment?.retailerSlug ??
     prospectDemoSlug(prospect.companyName, prospect.id);
-  const hero = configuration.theme.heroImageUrl;
 
   try {
     const seeded = await seedProspectDemoRetailer({
@@ -120,6 +119,7 @@ export async function generateDemoEnvironment(
       brandTheme: configuration.theme,
       productImageUrls: configuration.productImageUrls,
       productMix: configuration.productMix,
+      locations: configuration.locations,
     });
 
     // Studio handoff payload: live links come from retailerSlug; personas
@@ -152,7 +152,7 @@ export async function generateDemoEnvironment(
           key: "advisor",
           label: "Sales advisor",
           attention:
-            "Isabelle's relationship brief and fittings are on the real tenant.",
+            "The seeded client book and fittings are on the real tenant.",
           primaryAction: "Open the client book",
           app: "retailer" as const,
           ...(loginFor("sales") ? { email: loginFor("sales")!.email } : {}),
@@ -199,66 +199,16 @@ export async function generateDemoEnvironment(
           ...(customerLogin ? { email: customerLogin.email } : {}),
         },
       ],
-      customers: [
-        {
-          name: "Isabelle Laurent",
-          tier: "Private client",
-          nextMoment: "Seeded on the real tenant",
-          lifetimeValue: "Live data",
-        },
-        {
-          name: "Marc Fontaine",
-          tier: "Returning client",
-          nextMoment: "Seeded on the real tenant",
-          lifetimeValue: "Live data",
-        },
-        {
-          name: "Julien Moreau",
-          tier: "VIP",
-          nextMoment: "Seeded on the real tenant",
-          lifetimeValue: "Live data",
-        },
-      ],
-      products: [
-        {
-          name: "Catalogue seeded from the Maison Dubois template",
-          category: "Made to measure",
-          price: "Live storefront",
-          ...(hero ? { imageUrl: hero } : {}),
-        },
-      ],
-      appointments: [
-        {
-          time: "Live",
-          customer: "Isabelle Laurent",
-          purpose: "Seeded fitting",
-          status: "On the real tenant",
-        },
-      ],
-      alterations: [
-        {
-          garment: "Wool jacket",
-          customer: "Isabelle Laurent",
-          status: "Seeded work order",
-          progress: 50,
-          due: "On the real tenant",
-        },
-      ],
-      orders: [
-        {
-          reference: "Seeded",
-          customer: "Isabelle Laurent",
-          status: "Delivered on the real tenant",
-          value: "Live data",
-        },
-      ],
+      customers: [],
+      products: [],
+      appointments: [],
+      alterations: [],
+      orders: [],
       metrics: {
         relationshipValue: "Live tenant",
-        appointmentsToday: seeded.logins.filter((l) =>
-          l.role.includes("customer"),
-        ).length,
-        garmentsInMotion: 1,
-        returnRate: "Seeded",
+        appointmentsToday: 0,
+        garmentsInMotion: 0,
+        returnRate: "—",
       },
     };
 

@@ -432,6 +432,7 @@ ${
     : "";
 
   const template = await loadTemplate();
+  const stores = await appointmentStoresFor(supabase, retailer, heroUrl);
   const html = template
     .replaceAll("__PAON_SLUG__", slug)
     .replaceAll("__PAON_RETAILER_ID__", retailer.id)
@@ -440,11 +441,81 @@ ${
     .replace("__PAON_BRAND_MARK__", brandMark)
     .replace("__PAON_HERO_HTML__", heroHtml)
     .replace("__PAON_PRODUCTS_JSON__", JSON.stringify(entries))
-    .replace("__PAON_DEFAULT_CATEGORY_JSON__", JSON.stringify(defaultCategory));
+    .replace("__PAON_DEFAULT_CATEGORY_JSON__", JSON.stringify(defaultCategory))
+    .replace("__PAON_STORES_JSON__", JSON.stringify(stores));
 
   return new NextResponse(html, {
     headers: { "content-type": "text/html; charset=utf-8" },
   });
+}
+
+const MAISON_APPOINTMENT_STORES = [
+  {
+    city: "Antwerp",
+    address: "Lombardenstraat 2,\n2000 Antwerp",
+    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Antwerpen_Centraal_station_2.jpg/320px-Antwerpen_Centraal_station_2.jpg",
+  },
+  {
+    city: "Amsterdam",
+    address: "PC Hooftstraat 48,\n1071 BZ Amsterdam",
+    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/KeijssKramer_PCHooftstraat.jpg/320px-KeijsKramer_PCHooftstraat.jpg",
+  },
+] as const;
+
+async function appointmentStoresFor(
+  supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>,
+  retailer: {
+    slug: string;
+    displayName: string;
+    billingAddress: { city: string; line1?: string };
+  },
+  heroUrl: string | undefined,
+): Promise<Array<{ city: string; address: string; img: string }>> {
+  if (retailer.slug === "maison-dubois") {
+    return [...MAISON_APPOINTMENT_STORES];
+  }
+
+  const fallbackImg =
+    heroUrl ?? "https://www.nebelspiegel.com/images/smaller/6054.webp";
+
+  const { data: environment } = await supabase
+    .from("prospect_demo_environments")
+    .select("configuration_id")
+    .eq("retailer_slug", retailer.slug)
+    .maybeSingle();
+
+  if (environment?.configuration_id) {
+    const { data: configuration } = await supabase
+      .from("prospect_demo_configurations")
+      .select("locations")
+      .eq("id", environment.configuration_id)
+      .maybeSingle();
+    const locations = configuration?.locations as
+      Array<{ name?: string; city?: string }> | null | undefined;
+    if (Array.isArray(locations) && locations.length > 0) {
+      return locations
+        .filter((location) => location.city || location.name)
+        .map((location) => ({
+          city: location.city || location.name || retailer.displayName,
+          address: [location.name, location.city].filter(Boolean).join(",\n"),
+          img: fallbackImg,
+        }));
+    }
+  }
+
+  return [
+    {
+      city: retailer.billingAddress.city || retailer.displayName,
+      address: [
+        retailer.displayName,
+        retailer.billingAddress.line1,
+        retailer.billingAddress.city,
+      ]
+        .filter(Boolean)
+        .join(",\n"),
+      img: fallbackImg,
+    },
+  ];
 }
 
 function safeHex(value: string | undefined): string | undefined {

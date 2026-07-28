@@ -78,6 +78,10 @@ interface RetailerSpec {
   }[];
   collectionName: string;
   collectionSlug: string;
+  /** Override billing city when Demo Studio supplied locations. */
+  billingCity?: string;
+  /** Wedding-party fitting location override from Demo Studio. */
+  fittingLocation?: string;
   customers: {
     name: string;
     email: string;
@@ -1165,9 +1169,11 @@ export async function seedProspectDemoRetailer(params: {
   brandTheme: RetailerBrandTheme;
   productImageUrls?: readonly string[];
   productMix?: readonly string[];
+  locations?: readonly { name: string; city: string }[];
 }): Promise<{ retailerId: RetailerId; slug: string; logins: DemoLogin[] }> {
   const template = RETAILERS[0]!;
   const allowedPrefixes = prefixesForProductMix(params.productMix);
+  const primaryLocation = params.locations?.[0];
   // Always seed the full Maison catalogue so regenerate can expand the mix
   // later; applyProspectProductMix archives SKUs outside the selection.
   const spec: RetailerSpec = {
@@ -1177,6 +1183,12 @@ export async function seedProspectDemoRetailer(params: {
     legalName: `${params.displayName} Demo SARL`,
     collectionName: `${params.displayName} Collection`,
     collectionSlug: "signature-tailoring",
+    ...(primaryLocation
+      ? {
+          fittingLocation: `${primaryLocation.name} · ${primaryLocation.city}`,
+          billingCity: primaryLocation.city,
+        }
+      : {}),
   };
   const logins = await seedRetailerSpecs({
     supabaseUrl: params.supabaseUrl,
@@ -1417,7 +1429,7 @@ async function seedRetailerSpecs(params: {
       defaultLocale: "en-US",
       billingAddress: {
         line1: "1 Demo Street",
-        city: "Demo City",
+        city: spec.billingCity ?? "Demo City",
         postalCode: "00000",
         countryCode: "FR",
       },
@@ -1426,6 +1438,19 @@ async function seedRetailerSpecs(params: {
       await admin
         .from("retailers")
         .update({ status: "active" })
+        .eq("id", retailer.id);
+    }
+    if (spec.billingCity && retailer.billingAddress.city !== spec.billingCity) {
+      await admin
+        .from("retailers")
+        .update({
+          billing_address: {
+            line1: retailer.billingAddress.line1,
+            city: spec.billingCity,
+            postalCode: retailer.billingAddress.postalCode,
+            countryCode: retailer.billingAddress.countryCode,
+          },
+        })
         .eq("id", retailer.id);
     }
     const retailerId = retailer.id as RetailerId;
@@ -1930,7 +1955,8 @@ async function seedRetailerSpecs(params: {
         (candidate) => candidate.venueName === "Villa Aurelia",
       );
       const weddingDate = new Date(Date.now() + 120 * 24 * 60 * 60 * 1000);
-      const fittingLocation = `${spec.displayName} Atelier`;
+      const fittingLocation =
+        spec.fittingLocation ?? `${spec.displayName} Atelier`;
       if (!party) {
         party = await weddingRepo.create({
           retailerId,

@@ -7,6 +7,7 @@ import { useActionState } from "react";
 import { openPrivateDemo, type OpenDemoState } from "./actions";
 
 const initialState: OpenDemoState = {};
+const DEMO_CUSTOMER_EMAIL = "contact+isabelle@nebelspiegel.com";
 
 export function PrivateDemo({
   publicToken,
@@ -70,6 +71,7 @@ export function PrivateDemo({
   const portalHref = retailerAppUrl
     ? `${retailerAppUrl.replace(/\/$/, "")}/login?demo=1&email=${encodeURIComponent(ownerEmail)}`
     : undefined;
+  const weddingHref = `/login?demo=1&email=${encodeURIComponent(DEMO_CUSTOMER_EMAIL)}&redirectTo=${encodeURIComponent("/wedding-parties")}`;
   const locations = demo.configuration.locations;
 
   return (
@@ -99,7 +101,7 @@ export function PrivateDemo({
               ))}
             </ul>
           ) : null}
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href={storefrontHref}
               className="inline-flex min-h-12 items-center justify-center rounded-[var(--retailer-radius)] bg-[var(--retailer-accent)] px-6 text-sm text-white"
@@ -114,12 +116,17 @@ export function PrivateDemo({
                 Open Mission Control
               </a>
             ) : null}
+            <Link
+              href={weddingHref}
+              className="inline-flex min-h-12 items-center justify-center rounded-[var(--retailer-radius)] border border-black/15 px-6 text-sm"
+            >
+              Open wedding parties
+            </Link>
           </div>
           <p className="mt-8 text-xs leading-5 opacity-40">
             You are entering a real seeded PAON tenant for this prospect — not a
-            slideshow. The storefront is live at /r/{demo.retailerSlug}. Mission
-            Control opens with the demo owner email prefilled; password is the
-            shared demo credential.
+            slideshow. The storefront is live at /r/{demo.retailerSlug}. Demo
+            password for every persona: Demo-PAON-2026!
           </p>
         </section>
       </main>

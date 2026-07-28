@@ -14806,6 +14806,13 @@ requestAnimationFrame(fixFeedImages);
                 var emailVal = document.getElementById('paon-appt-email').value.trim();
                 var phoneEl = document.getElementById('paon-appt-phone');
                 var notesEl = document.getElementById('paon-appt-msg');
+                var guestNotes = notesEl ? notesEl.value.trim() : '';
+                var storeCity = (document.getElementById('paon-appt-section') || {}).dataset
+                    ? document.getElementById('paon-appt-section').dataset.store
+                    : '';
+                var notesVal = storeCity
+                    ? ('Preferred store: ' + storeCity + (guestNotes ? '\n' + guestNotes : ''))
+                    : guestNotes;
                 btn.classList.remove('enabled');
                 btn.style.pointerEvents = 'none';
                 if (textEl) textEl.textContent = 'Sending…';
@@ -14817,7 +14824,7 @@ requestAnimationFrame(fixFeedImages);
                         name: nameVal,
                         email: emailVal,
                         phone: phoneEl ? phoneEl.value.trim() : '',
-                        notes: notesEl ? notesEl.value.trim() : '',
+                        notes: notesVal,
                         startsAt: startsAt,
                         endsAt: endsAt
                     })
@@ -15637,11 +15644,8 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         sub.textContent = 'Reserve a complimentary in-store consultation';
         apptSection.appendChild(sub);
 
-        /* Store location buttons */
-        var stores = [
-            { city: 'Antwerp', address: 'Lombardenstraat 2,\n2000 Antwerp', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Antwerpen_Centraal_station_2.jpg/320px-Antwerpen_Centraal_station_2.jpg' },
-            { city: 'Amsterdam', address: 'PC Hooftstraat 48,\n1071 BZ Amsterdam', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/KeijssKramer_PCHooftstraat.jpg/320px-KeijsKramer_PCHooftstraat.jpg' }
-        ];
+        /* Store location buttons — injected from the live retailer / Demo Studio. */
+        var stores = __PAON_STORES_JSON__;
         stores.forEach(function (s) {
             var btn = document.createElement('button');
             btn.type = 'button';
@@ -15787,6 +15791,11 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
             confirmBtn.classList.remove('enabled');
             confirmBtn.style.pointerEvents = 'none';
             if (textEl) textEl.textContent = 'Sending…';
+            var guestNotes = msgInput.value.trim();
+            var storeCity = apptSection.dataset.store || '';
+            var notesVal = storeCity
+                ? ('Preferred store: ' + storeCity + (guestNotes ? '\n' + guestNotes : ''))
+                : guestNotes;
             fetch('/r/__PAON_SLUG__/api/appointment-request', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -15795,7 +15804,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
                     name: nameInput.value.trim(),
                     email: emailInput.value.trim(),
                     phone: phoneInput.value.trim(),
-                    notes: msgInput.value.trim(),
+                    notes: notesVal,
                     startsAt: startsAt,
                     endsAt: endsAt
                 })
