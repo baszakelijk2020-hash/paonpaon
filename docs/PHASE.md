@@ -344,7 +344,11 @@ with Book appointment until Stripe keys exist; Admin `/inquiries` lists
 marketing form submissions while Resend is blocked. Prospect demos land on
 the collection grid (Maison keeps Home), empty Collection tabs are hidden,
 garment lines accept `url | name | description`, private-demo links unfurl
-and gate with prospect brand. Custom domain still deferred (ADR-014).
+and gate with prospect brand; outreach packs persist on the environment.
+Custom domain still deferred (ADR-014).
+
+**Agent buildable freeze queue: exhausted** (2026-07-29). Remaining work is
+founder-blocked only.
 
 **Blocked (skip in continuous mode until founder provisions):**
 
