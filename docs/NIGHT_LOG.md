@@ -67,3 +67,14 @@ of proceeding on any of the conditions above.
   pointed at the founder's own domain instead of this app's font proxy).
   DoD green; re-checked against production once `fc28152` deployed — no
   console errors, `body` computed font-family is `OptimaKlein, serif`.
+- Queue item 5 (demo-path visual pass), screen 1 of 10 (Cart): `372dbb9`.
+  Measured `.drf-btn` (6px), `#paon-basket-rect`/`#paon-appt-name` (8px) in
+  `paon-template.html` directly rather than guessing; moved Button/Input
+  from `--radius-sm` (4px) to `--radius-md` (8px), Card from `--radius-lg`
+  (12px) to the same. Added a `paon-reveal` utility (new
+  `--ease-out-expo`/`--duration-reveal` tokens + keyframe) for the
+  founder's own card-entrance animation, applied to the cart's two cards
+  with a 120ms stagger, `prefers-reduced-motion`-safe. DoD green, pushed.
+  Vercel's deploy queue is backed up (many pushes tonight from both sides)
+  — production screenshot verification pending, will confirm once it
+  clears rather than block the loop on it.
