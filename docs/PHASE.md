@@ -271,9 +271,11 @@ is not.
    7. ~~**The orbit.**~~ **Done** — `#ow` animation on the customer party
       page, driven by real member photos (initials fallback).
 
-7. **Re-port the wrong widgets** — silhouette carousel, swipe deck — per
-   [DESIGN_PORTS.md](./DESIGN_PORTS.md), and verify the two unverified ones
-   (table service, house party orbit).
+7. **Re-port the wrong widgets** — swipe deck is already **Done**
+   (DESIGN_PORTS #3). Silhouette carousel remains **Wrong** but its only
+   mount is `/alterations/*`, which is founder-blocked (do not extend).
+   **Hard stop:** need a founder-designed home for silhouette before a
+   real port; do not re-port onto the invented alterations screens.
 
 Not in the queue and not to be started: fit tools (parked), the alterations
 vertical (awaiting founder design), and the four presentation modules —
