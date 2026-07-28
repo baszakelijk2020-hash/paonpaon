@@ -199,7 +199,7 @@ export function SwipeDeck({
               <p>You&rsquo;ve seen everything for now.</p>
               <div className="flex gap-2">
                 <Link
-                  href={`/r/${slug}/products`}
+                  href={`/r/${slug}`}
                   className={buttonVariants({ variant: "outline", size: "sm" })}
                 >
                   Browse the full shop

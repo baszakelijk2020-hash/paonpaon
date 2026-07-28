@@ -87,7 +87,7 @@ export default async function StorefrontProductPage({
         properties={{ productId: product.id, productName: product.name }}
       />
       <Link
-        href={`/r/${slug}/products`}
+        href={`/r/${slug}`}
         className="mb-8 inline-block text-sm text-[var(--color-stone-500)] hover:underline"
       >
         ← Back to {retailer.displayName}

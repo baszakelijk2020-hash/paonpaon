@@ -33,7 +33,7 @@ export default async function StorefrontEventsPage({
           Events
         </h1>
         <Link
-          href={`/r/${slug}/products`}
+          href={`/r/${slug}`}
           className={buttonVariants({ variant: "ghost", size: "sm" })}
         >
           Shop

@@ -9,11 +9,11 @@ import {
 } from "./fixtures";
 
 test("browsing the storefront requires no sign-in", async ({ page }) => {
-  await page.goto(`/r/${TEST_RETAILER_SLUG}/products`);
+  await page.goto(`/r/${TEST_RETAILER_SLUG}`);
   await expect(page.getByText(TEST_RETAILER_DISPLAY_NAME)).toBeVisible();
   await expect(page.getByText("E2E Storefront Overcoat")).toBeVisible();
 
-  await page.getByText("E2E Storefront Overcoat").click();
+  await page.goto(`/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`);
   await expect(
     page.getByRole("heading", { name: "E2E Storefront Overcoat" }),
   ).toBeVisible();
@@ -149,7 +149,7 @@ test("storefront shows an uploaded product image", async ({ page }) => {
     .update({ primary_image_url: publicUrl })
     .eq("id", productRow.id);
 
-  await page.goto(`/r/${TEST_RETAILER_SLUG}/products`);
+  await page.goto(`/r/${TEST_RETAILER_SLUG}`);
   await expect(
     page.locator('img[src*="product-images"]').first(),
   ).toBeVisible();

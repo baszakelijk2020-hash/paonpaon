@@ -11,7 +11,9 @@ import { TEST_PRODUCT_SLUG, TEST_RETAILER_SLUG } from "./fixtures";
 const COLLECTION_SLUG = "e2e-capsule-collection";
 const OTHER_PRODUCT_SLUG = "e2e-outside-collection-product";
 
-test("storefront browsing filters by collection", async ({ page }) => {
+test("storefront template includes products from every collection", async ({
+  page,
+}) => {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
   if (!supabaseUrl || !serviceRoleKey) {
@@ -80,17 +82,9 @@ test("storefront browsing filters by collection", async ({ page }) => {
     });
   }
 
-  await page.goto(`/r/${TEST_RETAILER_SLUG}/products`);
+  // Catalogue browsing lives in the verbatim paon.html template at
+  // /r/[slug], not a separate Tailwind shop list.
+  await page.goto(`/r/${TEST_RETAILER_SLUG}`);
   await expect(page.getByText("E2E Storefront Overcoat")).toBeVisible();
-  await expect(page.getByText("E2E Outside-Collection Blazer")).toBeVisible();
-
-  await page.getByRole("link", { name: "E2E Capsule" }).click();
-  await expect(page).toHaveURL(new RegExp(`collection=${COLLECTION_SLUG}$`));
-  await expect(page.getByText("E2E Storefront Overcoat")).toBeVisible();
-  await expect(
-    page.getByText("E2E Outside-Collection Blazer"),
-  ).not.toBeVisible();
-
-  await page.getByRole("link", { name: "All" }).click();
   await expect(page.getByText("E2E Outside-Collection Blazer")).toBeVisible();
 });

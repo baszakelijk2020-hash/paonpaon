@@ -64,7 +64,7 @@ export default async function CartPage({
             Your cart
           </h1>
         </div>
-        <Link href={`/r/${slug}/products`} className="text-sm hover:underline">
+        <Link href={`/r/${slug}`} className="text-sm hover:underline">
           Continue shopping
         </Link>
       </div>
