@@ -10,8 +10,15 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // paon.html's own primary buttons (.drf-btn, .paon-appt-confirm) use
+        // var(--black) (--color-stone-900), not the blue-tinted --color-ink-*
+        // scale this used before — see docs/PHASE.md queue item 5, founder
+        // decision 2026-07-28. --color-stone-900 is exactly the token
+        // RetailerTheme already overrides per-retailer (see RetailerTheme.tsx),
+        // so a retailer's own accent still wins wherever that wrapper is
+        // present; the founder's black is only the default outside it.
         primary:
-          "bg-[var(--color-ink-600)] text-white hover:bg-[var(--color-ink-700)] focus-visible:ring-[var(--color-ink-600)]",
+          "bg-[var(--color-stone-900)] text-[#f0efec] hover:bg-[var(--color-stone-800)] focus-visible:ring-[var(--color-stone-900)]",
         secondary:
           "bg-[var(--color-stone-100)] text-[var(--color-stone-900)] hover:bg-[var(--color-stone-200)] focus-visible:ring-[var(--color-stone-400)]",
         outline:
