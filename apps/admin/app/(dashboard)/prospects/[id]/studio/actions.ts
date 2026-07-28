@@ -113,6 +113,7 @@ export async function generateDemoEnvironment(
       serviceRoleKey: env.supabaseServiceRoleKey,
       displayName: prospect.companyName,
       slug,
+      brandTheme: configuration.theme,
     });
 
     // Preview payload for the Studio panel and /demo/[token] until step 3
@@ -244,7 +245,7 @@ export async function generateDemoEnvironment(
     });
     revalidatePath(`/prospects/${prospectId}/studio`);
     return {
-      success: `Real demo retailer ready at /r/${seeded.slug}. Review the live storefront before publishing.`,
+      success: `Branded demo retailer ready at /r/${seeded.slug}. Review the live storefront before publishing.`,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";

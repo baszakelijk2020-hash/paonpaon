@@ -9,6 +9,7 @@
 import type {
   CurrencyCode,
   CustomerId,
+  RetailerBrandTheme,
   RetailerId,
   StaffId,
   UserId,
@@ -935,6 +936,7 @@ export async function seedProspectDemoRetailer(params: {
   serviceRoleKey: string;
   displayName: string;
   slug: string;
+  brandTheme: RetailerBrandTheme;
 }): Promise<{ retailerId: RetailerId; slug: string; logins: DemoLogin[] }> {
   const template = RETAILERS[0]!;
   const spec: RetailerSpec = {
@@ -956,14 +958,43 @@ export async function seedProspectDemoRetailer(params: {
     params.supabaseUrl,
     params.serviceRoleKey,
   );
-  const retailer = await new RetailerRepository(admin).findBySlug(params.slug);
+  const retailerRepo = new RetailerRepository(admin);
+  const retailer = await retailerRepo.findBySlug(params.slug);
   if (!retailer) {
     throw new Error(`Prospect demo retailer "${params.slug}" was not created`);
   }
+  // Always re-apply on regenerate so Studio colour/logo edits land on the
+  // live tenant without a teardown. Service role is authorised by the RPC.
+  await retailerRepo.saveBrandTheme(
+    retailer.id as RetailerId,
+    stripEmptyBrandUrls(params.brandTheme),
+    "Demo Studio prospect branding",
+  );
   return {
     retailerId: retailer.id as RetailerId,
     slug: params.slug,
     logins,
+  };
+}
+
+/** Postgres rejects non-https logo/favicon/hero URLs; omit blanks. */
+function stripEmptyBrandUrls(theme: RetailerBrandTheme): RetailerBrandTheme {
+  return {
+    accentColor: theme.accentColor,
+    surfaceColor: theme.surfaceColor,
+    inkColor: theme.inkColor,
+    displayFont: theme.displayFont,
+    bodyFont: theme.bodyFont,
+    cornerStyle: theme.cornerStyle,
+    ...(theme.logoUrl?.startsWith("https://")
+      ? { logoUrl: theme.logoUrl }
+      : {}),
+    ...(theme.faviconUrl?.startsWith("https://")
+      ? { faviconUrl: theme.faviconUrl }
+      : {}),
+    ...(theme.heroImageUrl?.startsWith("https://")
+      ? { heroImageUrl: theme.heroImageUrl }
+      : {}),
   };
 }
 
