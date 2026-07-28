@@ -17,6 +17,7 @@ import { AmHouseHero } from "./am-house-hero";
 import { AmHouseOrbit } from "./am-house-orbit";
 import { InviteLink } from "./invite-link";
 import { MemberPhotoUploader, PartyCoverUploader } from "./party-photos";
+import { PartyScheduleForm } from "./party-schedule-form";
 
 import { env } from "@/lib/env";
 import { requireSession } from "@/lib/session";
@@ -94,6 +95,24 @@ export default async function WeddingPartyDetailPage({
           </p>
           <InviteLink
             url={`${env.appUrl}/r/${retailer.slug}/wedding-parties/join/${party.inviteToken}`}
+          />
+        </Card>
+      ) : null}
+
+      {myCustomerIds.has(party.organizerCustomerId) ? (
+        <Card className="paon-reveal" style={{ animationDelay: "40ms" }}>
+          <p className="mb-3 text-sm font-medium text-[var(--color-stone-900)]">
+            Fitting schedule
+          </p>
+          <PartyScheduleForm
+            partyId={party.id}
+            {...(party.eventDate ? { eventDate: party.eventDate } : {})}
+            {...(party.eventTime ? { eventTime: party.eventTime } : {})}
+            {...(party.venueName ? { venueName: party.venueName } : {})}
+            {...(party.fittingLocation
+              ? { fittingLocation: party.fittingLocation }
+              : {})}
+            {...(party.notes ? { notes: party.notes } : {})}
           />
         </Card>
       ) : null}

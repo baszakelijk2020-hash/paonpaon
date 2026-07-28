@@ -99,3 +99,50 @@ export async function updateMemberFittingStatus(formData: FormData) {
   ).updateMemberFittingStatus(memberId, status);
   revalidatePath(`/wedding-parties/${weddingPartyId}`);
 }
+
+export interface UpdatePartyScheduleState {
+  formError?: string;
+  success?: string;
+}
+
+export async function updatePartySchedule(
+  partyId: string,
+  _prev: UpdatePartyScheduleState,
+  formData: FormData,
+): Promise<UpdatePartyScheduleState> {
+  await requireSession();
+  const parsed = createWeddingPartySchema
+    .omit({ organizerCustomerId: true })
+    .safeParse({
+      eventDate: formData.get("eventDate") || undefined,
+      eventTime: formData.get("eventTime") || undefined,
+      venueName: formData.get("venueName") || undefined,
+      fittingLocation: formData.get("fittingLocation") || undefined,
+      notes: formData.get("notes") || undefined,
+    });
+  if (!parsed.success) {
+    return {
+      formError:
+        parsed.error.issues[0]?.message ?? "Check the schedule fields.",
+    };
+  }
+  try {
+    await new WeddingPartyRepository(
+      await getSupabaseServerClient(),
+    ).updateSchedule(asId<"WeddingPartyId">(partyId), {
+      ...(parsed.data.eventDate ? { eventDate: parsed.data.eventDate } : {}),
+      ...(parsed.data.eventTime ? { eventTime: parsed.data.eventTime } : {}),
+      ...(parsed.data.venueName ? { venueName: parsed.data.venueName } : {}),
+      ...(parsed.data.fittingLocation
+        ? { fittingLocation: parsed.data.fittingLocation }
+        : {}),
+      ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
+    });
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Update failed",
+    };
+  }
+  revalidatePath(`/wedding-parties/${partyId}`);
+  return { success: "Schedule saved." };
+}

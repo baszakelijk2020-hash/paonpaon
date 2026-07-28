@@ -272,12 +272,23 @@ is not.
       measurement decision.
    7. ~~**The orbit.**~~ **Done** — `#ow` animation on the customer party
       page, driven by real member photos (initials fallback).
+   8. ~~**Join invite preview + schedule edit.**~~ **Done** —
+      `preview_wedding_party_invite` shows date/time/venue/fitting on the
+      public join page (slug-scoped); organizers and staff can edit the
+      schedule after create. Marketing outcomes/roles cards link through.
+      Retailer party list shows cover thumbnails.
 
 7. **Re-port the wrong widgets** — swipe deck is already **Done**
    (DESIGN_PORTS #3). Silhouette carousel remains **Wrong** but its only
    mount is `/alterations/*`, which is founder-blocked (do not extend).
    **Hard stop:** need a founder-designed home for silhouette before a
    real port; do not re-port onto the invented alterations screens.
+
+**Blocked (skip in continuous mode until founder provisions):**
+
+- Stripe live (queue 1) — keys missing from env.
+- Resend live (queue 2) — API key missing.
+- Silhouette carousel (queue 7) — no founder-designed mount.
 
 Not in the queue and not to be started: fit tools (parked), the alterations
 vertical (awaiting founder design), and the four presentation modules —

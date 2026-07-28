@@ -46,7 +46,7 @@ async function requireOrganizerParty(partyId: string) {
     (customer) => customer.id === party.organizerCustomerId,
   );
   if (!isOrganizer) {
-    return { error: "Only the organizer can upload photos." as const };
+    return { error: "Only the organizer can manage this party." as const };
   }
   return { session, supabase, repo, party };
 }
@@ -200,4 +200,50 @@ export async function uploadMemberPhoto(
   }
   revalidatePath(`/wedding-parties/${partyId}`);
   return {};
+}
+
+export interface UpdatePartyScheduleState {
+  formError?: string;
+  success?: string;
+}
+
+export async function updatePartySchedule(
+  partyId: string,
+  _prev: UpdatePartyScheduleState,
+  formData: FormData,
+): Promise<UpdatePartyScheduleState> {
+  const gate = await requireOrganizerParty(partyId);
+  if ("error" in gate) return { formError: gate.error };
+  const parsed = createWeddingPartySchema
+    .omit({ organizerCustomerId: true })
+    .safeParse({
+      eventDate: formData.get("eventDate") || undefined,
+      eventTime: formData.get("eventTime") || undefined,
+      venueName: formData.get("venueName") || undefined,
+      fittingLocation: formData.get("fittingLocation") || undefined,
+      notes: formData.get("notes") || undefined,
+    });
+  if (!parsed.success) {
+    return {
+      formError:
+        parsed.error.issues[0]?.message ?? "Check the schedule fields.",
+    };
+  }
+  try {
+    await gate.repo.updateSchedule(gate.party.id, {
+      ...(parsed.data.eventDate ? { eventDate: parsed.data.eventDate } : {}),
+      ...(parsed.data.eventTime ? { eventTime: parsed.data.eventTime } : {}),
+      ...(parsed.data.venueName ? { venueName: parsed.data.venueName } : {}),
+      ...(parsed.data.fittingLocation
+        ? { fittingLocation: parsed.data.fittingLocation }
+        : {}),
+      ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
+    });
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Update failed",
+    };
+  }
+  revalidatePath(`/wedding-parties/${partyId}`);
+  return { success: "Schedule saved." };
 }

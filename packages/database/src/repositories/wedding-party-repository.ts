@@ -282,6 +282,39 @@ export class WeddingPartyRepository {
     };
   }
 
+  async previewInvite(inviteToken: string): Promise<{
+    retailerName: string;
+    retailerSlug: string;
+    eventDate?: string;
+    eventTime?: string;
+    venueName?: string;
+    fittingLocation?: string;
+  }> {
+    const { data, error } = await this.client.rpc(
+      "preview_wedding_party_invite",
+      { p_invite_token: inviteToken },
+    );
+    if (error) throw error;
+    const payload = data as {
+      retailer_name: string;
+      retailer_slug: string;
+      event_date: string | null;
+      event_time: string | null;
+      venue_name: string | null;
+      fitting_location: string | null;
+    };
+    return {
+      retailerName: payload.retailer_name,
+      retailerSlug: payload.retailer_slug,
+      ...(payload.event_date ? { eventDate: payload.event_date } : {}),
+      ...(payload.event_time ? { eventTime: payload.event_time } : {}),
+      ...(payload.venue_name ? { venueName: payload.venue_name } : {}),
+      ...(payload.fitting_location
+        ? { fittingLocation: payload.fitting_location }
+        : {}),
+    };
+  }
+
   async updateMemberFittingStatus(
     memberId: string,
     status: WeddingPartyMemberFittingStatus,

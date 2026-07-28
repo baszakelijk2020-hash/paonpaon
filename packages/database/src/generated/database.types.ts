@@ -5173,6 +5173,10 @@ export type Database = {
         };
         Returns: string;
       };
+      preview_wedding_party_invite: {
+        Args: { p_invite_token: string };
+        Returns: Json;
+      };
       propose_alteration_price_change: {
         Args: {
           p_alteration_id: string;

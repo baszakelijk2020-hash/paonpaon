@@ -25,6 +25,7 @@ import {
 } from "../actions";
 
 import { AddMemberForm } from "./add-member-form";
+import { PartyScheduleForm } from "./party-schedule-form";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -149,6 +150,22 @@ export default async function WeddingPartyDetailPage({
           <p className="text-sm text-[var(--color-stone-700)]">{party.notes}</p>
         </Card>
       ) : null}
+
+      <Card className="paon-reveal" style={{ animationDelay: "60ms" }}>
+        <p className="mb-3 text-sm font-medium text-[var(--color-stone-900)]">
+          Fitting schedule
+        </p>
+        <PartyScheduleForm
+          partyId={party.id}
+          {...(party.eventDate ? { eventDate: party.eventDate } : {})}
+          {...(party.eventTime ? { eventTime: party.eventTime } : {})}
+          {...(party.venueName ? { venueName: party.venueName } : {})}
+          {...(party.fittingLocation
+            ? { fittingLocation: party.fittingLocation }
+            : {})}
+          {...(party.notes ? { notes: party.notes } : {})}
+        />
+      </Card>
 
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">

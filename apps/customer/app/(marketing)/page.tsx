@@ -184,6 +184,12 @@ export default async function MarketingHomePage() {
                   <p className="mt-1 text-xs text-black/45">next action</p>
                 </div>
               </div>
+              <Link
+                href="/discover/outcomes"
+                className="mt-8 inline-flex text-sm text-black/55 underline underline-offset-4"
+              >
+                See retailer outcomes →
+              </Link>
             </article>
           </div>
         </div>
@@ -217,6 +223,14 @@ export default async function MarketingHomePage() {
                   <p className="text-sm leading-6 text-black/50">{value}</p>
                 </div>
               ))}
+              <div className="pt-5">
+                <Link
+                  href="/discover/roles"
+                  className="text-sm text-black/55 underline underline-offset-4"
+                >
+                  Explore every role lens →
+                </Link>
+              </div>
             </div>
           </div>
         </div>
