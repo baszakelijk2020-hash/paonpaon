@@ -103,3 +103,10 @@ of proceeding on any of the conditions above.
   paon.html's selectable chips. Added `paon-reveal` to image + details
   panel, 120ms stagger. DoD green, pushed. Not yet re-verified against
   production (queue backlog) — will confirm alongside the next screen.
+- Founder resolved the button-color open question (`c1e9420`, PHASE.md):
+  primary buttons use paon.html's black, not `--color-ink-*`. Implemented
+  in `3444a2c` — Button's primary variant now `--color-stone-900` bg /
+  `#f0efec` text, matching `.paon-appt-confirm` exactly. Reuses
+  `RetailerTheme.tsx`'s existing per-retailer override of
+  `--color-stone-900` rather than inventing a new mechanism, so retailer
+  theming still wins where set. DoD green, pushed.
