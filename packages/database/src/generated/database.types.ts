@@ -7,6 +7,11 @@ export type Json =
   | Json[];
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5";
+  };
   graphql_public: {
     Tables: {
       [_ in never]: never;
@@ -3290,6 +3295,8 @@ export type Database = {
           prospect_id: string;
           public_token: string;
           published_at: string | null;
+          retailer_id: string | null;
+          retailer_slug: string | null;
           revoked_at: string | null;
           status: Database["public"]["Enums"]["prospect_demo_environment_status"];
           synthetic_data: Json;
@@ -3307,6 +3314,8 @@ export type Database = {
           prospect_id: string;
           public_token: string;
           published_at?: string | null;
+          retailer_id?: string | null;
+          retailer_slug?: string | null;
           revoked_at?: string | null;
           status?: Database["public"]["Enums"]["prospect_demo_environment_status"];
           synthetic_data: Json;
@@ -3324,6 +3333,8 @@ export type Database = {
           prospect_id?: string;
           public_token?: string;
           published_at?: string | null;
+          retailer_id?: string | null;
+          retailer_slug?: string | null;
           revoked_at?: string | null;
           status?: Database["public"]["Enums"]["prospect_demo_environment_status"];
           synthetic_data?: Json;
@@ -3342,6 +3353,13 @@ export type Database = {
             columns: ["prospect_id"];
             isOneToOne: true;
             referencedRelation: "commercial_prospects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "prospect_demo_environments_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];
@@ -5048,6 +5066,8 @@ export type Database = {
           p_expires_at: string;
           p_prospect_id: string;
           p_public_token: string;
+          p_retailer_id?: string | null;
+          p_retailer_slug?: string | null;
           p_synthetic_data: Json;
         };
         Returns: string;

@@ -917,7 +917,65 @@ export async function seedDemoData(params: {
   anonKey: string;
   serviceRoleKey: string;
 }): Promise<DemoLogin[]> {
-  const { supabaseUrl, anonKey, serviceRoleKey } = params;
+  return seedRetailerSpecs({
+    ...params,
+    specs: RETAILERS,
+    includePlatformAdmin: true,
+  });
+}
+
+/**
+ * Demo Studio generation path: create one real retailer tenant for a
+ * named prospect, seeded with the same proven Maison Dubois catalogue
+ * shape. Idempotent on slug — regenerate reuses the tenant.
+ */
+export async function seedProspectDemoRetailer(params: {
+  supabaseUrl: string;
+  anonKey: string;
+  serviceRoleKey: string;
+  displayName: string;
+  slug: string;
+}): Promise<{ retailerId: RetailerId; slug: string; logins: DemoLogin[] }> {
+  const template = RETAILERS[0]!;
+  const spec: RetailerSpec = {
+    ...template,
+    slug: params.slug,
+    displayName: params.displayName,
+    legalName: `${params.displayName} Demo SARL`,
+    collectionName: `${params.displayName} Collection`,
+    collectionSlug: "signature-tailoring",
+  };
+  const logins = await seedRetailerSpecs({
+    supabaseUrl: params.supabaseUrl,
+    anonKey: params.anonKey,
+    serviceRoleKey: params.serviceRoleKey,
+    specs: [spec],
+    includePlatformAdmin: false,
+  });
+  const admin = createSupabaseAdminClient(
+    params.supabaseUrl,
+    params.serviceRoleKey,
+  );
+  const retailer = await new RetailerRepository(admin).findBySlug(params.slug);
+  if (!retailer) {
+    throw new Error(`Prospect demo retailer "${params.slug}" was not created`);
+  }
+  return {
+    retailerId: retailer.id as RetailerId,
+    slug: params.slug,
+    logins,
+  };
+}
+
+async function seedRetailerSpecs(params: {
+  supabaseUrl: string;
+  anonKey: string;
+  serviceRoleKey: string;
+  specs: RetailerSpec[];
+  includePlatformAdmin: boolean;
+}): Promise<DemoLogin[]> {
+  const { supabaseUrl, anonKey, serviceRoleKey, specs, includePlatformAdmin } =
+    params;
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
   const logins: DemoLogin[] = [];
 
@@ -1496,8 +1554,10 @@ export async function seedDemoData(params: {
     }
   }
 
-  await seedPlatformAdmin();
-  for (const spec of RETAILERS) {
+  if (includePlatformAdmin) {
+    await seedPlatformAdmin();
+  }
+  for (const spec of specs) {
     await seedRetailer(spec);
   }
 

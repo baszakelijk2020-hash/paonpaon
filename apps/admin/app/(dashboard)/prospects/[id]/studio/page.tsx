@@ -51,7 +51,7 @@ export default async function DemoStudioPage({
           <p className="text-xs text-stone-500">Environment status</p>
           <p className="mt-1 text-sm font-medium">
             {configuration
-              ? "Configuration saved · synthetic data not generated"
+              ? "Configuration saved · generate a real demo retailer"
               : "Research captured · configuration not saved"}
           </p>
         </div>

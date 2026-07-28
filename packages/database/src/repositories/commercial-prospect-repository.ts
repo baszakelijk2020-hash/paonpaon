@@ -75,6 +75,8 @@ export interface GenerateProspectDemoEnvironmentParams {
   accessCode: string;
   expiresAt: string;
   syntheticData: DemoSyntheticData;
+  retailerId?: string | undefined;
+  retailerSlug?: string | undefined;
 }
 
 export class CommercialProspectRepository {
@@ -188,6 +190,8 @@ export class CommercialProspectRepository {
         p_access_code: params.accessCode,
         p_expires_at: params.expiresAt,
         p_synthetic_data: params.syntheticData as unknown as Json,
+        p_retailer_id: params.retailerId ?? null,
+        p_retailer_slug: params.retailerSlug ?? null,
       },
     );
     if (error) throw error;
@@ -269,6 +273,8 @@ export class CommercialProspectRepository {
       status: row.status,
       expiresAt: row.expires_at,
       syntheticData: row.synthetic_data as unknown as DemoSyntheticData,
+      ...(row.retailer_id ? { retailerId: row.retailer_id } : {}),
+      ...(row.retailer_slug ? { retailerSlug: row.retailer_slug } : {}),
       generatedAt: row.generated_at,
       ...(row.published_at ? { publishedAt: row.published_at } : {}),
     };

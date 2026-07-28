@@ -75,6 +75,9 @@ export interface ProspectDemoEnvironment {
   status: "draft" | "published" | "revoked" | "expired";
   expiresAt: string;
   syntheticData: DemoSyntheticData;
+  /** Real seeded tenant created for this prospect — null on pre-step-1 envs. */
+  retailerId?: string | undefined;
+  retailerSlug?: string | undefined;
   generatedAt: string;
   publishedAt?: string | undefined;
 }

@@ -4,9 +4,11 @@ import { randomBytes, randomUUID } from "node:crypto";
 
 import { requirePlatformOperator } from "@paon/auth";
 import { CommercialProspectRepository } from "@paon/database";
+import { seedProspectDemoRetailer } from "@paon/database/demo-seed";
 import { saveProspectDemoConfigurationInputSchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
+import { env } from "@/lib/env";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -90,163 +92,145 @@ export async function generateDemoEnvironment(
   const repository = new CommercialProspectRepository(
     await getSupabaseServerClient(),
   );
-  const [prospect, configuration] = await Promise.all([
+  const [prospect, configuration, existingEnvironment] = await Promise.all([
     repository.findById(prospectId),
     repository.findConfiguration(prospectId),
+    repository.findEnvironment(prospectId),
   ]);
   if (!prospect || !configuration || configuration.currentVersion < 1) {
     return { error: "Save a complete Demo Studio configuration first." };
   }
+
+  const slug =
+    existingEnvironment?.retailerSlug ??
+    prospectDemoSlug(prospect.companyName, prospect.id);
   const hero = configuration.theme.heroImageUrl;
-  const syntheticData = {
-    personas: [
-      {
-        key: "owner",
-        label: "Retailer owner",
-        attention:
-          "Two service promises and one growth decision need attention.",
-        primaryAction: "Review today’s commercial brief",
-      },
-      {
-        key: "manager",
-        label: "Retailer manager",
-        attention: "The afternoon fitting schedule has one preparation gap.",
-        primaryAction: "Balance the floor",
-      },
-      {
-        key: "advisor",
-        label: "Sales advisor",
-        attention: "Isabelle’s fitting begins in 45 minutes.",
-        primaryAction: "Prepare the relationship brief",
-      },
-      {
-        key: "operations",
-        label: "Production & operations",
-        attention: "One delivery promise is approaching its handoff deadline.",
-        primaryAction: "Review garments in motion",
-      },
-      {
-        key: "workshop_manager",
-        label: "Workshop manager",
-        attention: "Three garments need assignment before noon.",
-        primaryAction: "Open the workroom queue",
-      },
-      {
-        key: "worker",
-        label: "Alteration specialist",
-        attention: "The midnight dinner jacket is ready for hand-finishing.",
-        primaryAction: "Continue assigned work",
-      },
-      {
-        key: "customer",
-        label: "Private client",
-        attention: "Your jacket has moved into completion review.",
-        primaryAction: "View the garment story",
-      },
-    ],
-    customers: [
-      {
-        name: "Isabelle Laurent",
-        tier: "Private client",
-        nextMoment: "Wedding fitting · Today 14:30",
-        lifetimeValue: "€18,450",
-      },
-      {
-        name: "Theo Bennett",
-        tier: "Returning client",
-        nextMoment: "Collection preview · Friday",
-        lifetimeValue: "€9,820",
-      },
-      {
-        name: "Sofia Marin",
-        tier: "New relationship",
-        nextMoment: "First consultation · Tomorrow",
-        lifetimeValue: "€2,450",
-      },
-    ],
-    products: [
-      {
-        name: "Midnight dinner jacket",
-        category: "Tailoring",
-        price: "€2,950",
-        ...(hero ? { imageUrl: hero } : {}),
-      },
-      {
-        name: "Ivory silk evening shirt",
-        category: "Formalwear",
-        price: "€740",
-      },
-      {
-        name: "Hand-finished travel blazer",
-        category: "Made to measure",
-        price: "€2,250",
-      },
-    ],
-    appointments: [
-      {
-        time: "10:00",
-        customer: "Theo Bennett",
-        purpose: "Collection preview",
-        status: "Prepared",
-      },
-      {
-        time: "14:30",
-        customer: "Isabelle Laurent",
-        purpose: "Wedding fitting",
-        status: "Needs preparation",
-      },
-      {
-        time: "17:00",
-        customer: "Sofia Marin",
-        purpose: "Private consultation",
-        status: "Confirmed",
-      },
-    ],
-    alterations: [
-      {
-        garment: "Midnight dinner jacket",
-        customer: "Isabelle Laurent",
-        status: "Hand finishing",
-        progress: 72,
-        due: "Tomorrow",
-      },
-      {
-        garment: "Navy travel blazer",
-        customer: "Theo Bennett",
-        status: "Completion review",
-        progress: 88,
-        due: "Friday",
-      },
-      {
-        garment: "Silk evening trousers",
-        customer: "Sofia Marin",
-        status: "Fitting captured",
-        progress: 24,
-        due: "Next week",
-      },
-    ],
-    orders: [
-      {
-        reference: "PAON-1048",
-        customer: "Isabelle Laurent",
-        status: "In atelier",
-        value: "€3,690",
-      },
-      {
-        reference: "PAON-1042",
-        customer: "Theo Bennett",
-        status: "Ready for delivery",
-        value: "€2,250",
-      },
-    ],
-    metrics: {
-      relationshipValue: "€184k",
-      appointmentsToday: 7,
-      garmentsInMotion: 18,
-      returnRate: "68%",
-    },
-  };
+
   try {
+    const seeded = await seedProspectDemoRetailer({
+      supabaseUrl: env.supabaseUrl,
+      anonKey: env.supabaseAnonKey,
+      serviceRoleKey: env.supabaseServiceRoleKey,
+      displayName: prospect.companyName,
+      slug,
+    });
+
+    // Preview payload for the Studio panel and /demo/[token] until step 3
+    // routes those surfaces into the live storefront and portal. The real
+    // tenant is what matters; this blob is transitional.
+    const syntheticData = {
+      personas: [
+        {
+          key: "owner",
+          label: "Retailer owner",
+          attention: `${prospect.companyName}'s storefront is live with a seeded client book.`,
+          primaryAction: "Open the storefront",
+        },
+        {
+          key: "manager",
+          label: "Retailer manager",
+          attention:
+            "Appointments, alterations and loyalty are seeded and ready to walk.",
+          primaryAction: "Open Mission Control",
+        },
+        {
+          key: "advisor",
+          label: "Sales advisor",
+          attention:
+            "Isabelle's relationship brief and fittings are on the real tenant.",
+          primaryAction: "Open the client book",
+        },
+        {
+          key: "operations",
+          label: "Production & operations",
+          attention:
+            "Orders and garments in motion exist on the seeded retailer.",
+          primaryAction: "Review garments in motion",
+        },
+        {
+          key: "workshop_manager",
+          label: "Workshop manager",
+          attention: "The alteration workroom queue is seeded on this tenant.",
+          primaryAction: "Open the workroom queue",
+        },
+        {
+          key: "worker",
+          label: "Alteration specialist",
+          attention:
+            "Assigned alteration work is waiting on the real retailer.",
+          primaryAction: "Continue assigned work",
+        },
+        {
+          key: "customer",
+          label: "Private client",
+          attention:
+            "Private-client personas can sign into the live Customer Portal.",
+          primaryAction: "View the storefront",
+        },
+      ],
+      customers: [
+        {
+          name: "Isabelle Laurent",
+          tier: "Private client",
+          nextMoment: "Seeded on the real tenant",
+          lifetimeValue: "Live data",
+        },
+        {
+          name: "Marc Fontaine",
+          tier: "Returning client",
+          nextMoment: "Seeded on the real tenant",
+          lifetimeValue: "Live data",
+        },
+        {
+          name: "Julien Moreau",
+          tier: "VIP",
+          nextMoment: "Seeded on the real tenant",
+          lifetimeValue: "Live data",
+        },
+      ],
+      products: [
+        {
+          name: "Catalogue seeded from the Maison Dubois template",
+          category: "Made to measure",
+          price: "Live storefront",
+          ...(hero ? { imageUrl: hero } : {}),
+        },
+      ],
+      appointments: [
+        {
+          time: "Live",
+          customer: "Isabelle Laurent",
+          purpose: "Seeded fitting",
+          status: "On the real tenant",
+        },
+      ],
+      alterations: [
+        {
+          garment: "Wool jacket",
+          customer: "Isabelle Laurent",
+          status: "Seeded work order",
+          progress: 50,
+          due: "On the real tenant",
+        },
+      ],
+      orders: [
+        {
+          reference: "Seeded",
+          customer: "Isabelle Laurent",
+          status: "Delivered on the real tenant",
+          value: "Live data",
+        },
+      ],
+      metrics: {
+        relationshipValue: "Live tenant",
+        appointmentsToday: seeded.logins.filter((l) =>
+          l.role.includes("customer"),
+        ).length,
+        garmentsInMotion: 1,
+        returnRate: "Seeded",
+      },
+    };
+
     await repository.generateEnvironment({
       prospectId,
       publicToken: randomBytes(32).toString("base64url"),
@@ -255,15 +239,31 @@ export async function generateDemoEnvironment(
         Date.now() + expiryDays * 24 * 60 * 60 * 1000,
       ).toISOString(),
       syntheticData,
+      retailerId: seeded.retailerId,
+      retailerSlug: seeded.slug,
     });
     revalidatePath(`/prospects/${prospectId}/studio`);
     return {
-      success:
-        "Isolated synthetic environment generated. Review every role before publishing.",
+      success: `Real demo retailer ready at /r/${seeded.slug}. Review the live storefront before publishing.`,
     };
-  } catch {
-    return { error: "The isolated demo environment could not be generated." };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    return {
+      error: `The demo retailer could not be generated: ${message}`,
+    };
   }
+}
+
+function prospectDemoSlug(companyName: string, prospectId: string): string {
+  const base = companyName
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+  const suffix = prospectId.replace(/-/g, "").slice(0, 8);
+  return `demo-${base || "prospect"}-${suffix}`;
 }
 
 export async function setDemoPublication(formData: FormData): Promise<void> {

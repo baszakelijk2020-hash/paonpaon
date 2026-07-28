@@ -48,8 +48,10 @@ export function EnvironmentPanel({
             Generate, review, then publish.
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500">
-            Every person, order and garment below is synthetic and stored only
-            in this prospect environment—not in live retailer tables.
+            Generation creates a real seeded retailer tenant for this prospect —
+            storefront, client book, staff personas — then links it here. The
+            role cards below are a transitional Studio preview until the public
+            demo route opens the live apps.
           </p>
         </div>
         {environment ? (
@@ -176,16 +178,30 @@ export function EnvironmentPanel({
           </div>
 
           <div className="flex flex-col gap-4 rounded-xl border p-5 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-sm font-medium">
-                Private link expires{" "}
-                {new Date(environment.expiresAt).toLocaleDateString()}
-              </p>
-              <p className="mt-1 break-all font-mono text-xs text-stone-500">
-                {customerAppUrl
-                  ? `${customerAppUrl}/demo/${environment.publicToken}`
-                  : `/demo/${environment.publicToken}`}
-              </p>
+            <div className="space-y-3">
+              {environment.retailerSlug ? (
+                <div>
+                  <p className="text-sm font-medium">
+                    Live storefront · /r/{environment.retailerSlug}
+                  </p>
+                  <p className="mt-1 break-all font-mono text-xs text-stone-500">
+                    {customerAppUrl
+                      ? `${customerAppUrl}/r/${environment.retailerSlug}`
+                      : `/r/${environment.retailerSlug}`}
+                  </p>
+                </div>
+              ) : null}
+              <div>
+                <p className="text-sm font-medium">
+                  Private link expires{" "}
+                  {new Date(environment.expiresAt).toLocaleDateString()}
+                </p>
+                <p className="mt-1 break-all font-mono text-xs text-stone-500">
+                  {customerAppUrl
+                    ? `${customerAppUrl}/demo/${environment.publicToken}`
+                    : `/demo/${environment.publicToken}`}
+                </p>
+              </div>
             </div>
             <p className="text-xs text-stone-500">
               Publication controls are shown outside the client preview.
@@ -195,10 +211,11 @@ export function EnvironmentPanel({
       ) : (
         <div className="mt-8 rounded-xl border border-dashed p-8 text-center">
           <p className="font-display text-2xl">
-            No synthetic environment exists.
+            No demo retailer has been generated.
           </p>
           <p className="mt-2 text-sm text-stone-500">
-            Save the configuration, then generate a revocable private preview.
+            Save the configuration, then generate a real seeded tenant and a
+            revocable private preview.
           </p>
         </div>
       )}
