@@ -4,7 +4,9 @@ import { type ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "../lib/cn";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-sm)] text-sm font-medium transition-[background-color,color,transform] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+  // paon.html's own buttons (.drf-btn, #paon-basket-rect) sit at 6-8px, not
+  // the 4px `--radius-sm` this used before.
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-md)] text-sm font-medium transition-[background-color,color,transform] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
   {
     variants: {
       variant: {

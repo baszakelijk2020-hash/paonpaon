@@ -113,7 +113,7 @@ export function CartClient({
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-      <Card>
+      <Card className="paon-reveal">
         <h2 className="text-lg font-medium">Items</h2>
         {items.map((item) => (
           <CartLine key={item.line.id} slug={slug} item={item} />
@@ -123,7 +123,7 @@ export function CartClient({
           <span>{formatMoney(order.total, "en-US")}</span>
         </div>
       </Card>
-      <Card>
+      <Card className="paon-reveal" style={{ animationDelay: "120ms" }}>
         <form
           ref={checkoutFormRef}
           action={action}

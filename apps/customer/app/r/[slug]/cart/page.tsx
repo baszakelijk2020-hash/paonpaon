@@ -69,7 +69,7 @@ export default async function CartPage({
         </Link>
       </div>
       {!cart || items.length === 0 ? (
-        <Card>
+        <Card className="paon-reveal">
           <p className="text-sm text-[var(--color-stone-500)]">
             Your cart is empty.
           </p>

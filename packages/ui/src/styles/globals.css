@@ -105,6 +105,26 @@
    * approximated guess with the real, sampled value. */
   --ease-out-quiet: cubic-bezier(0.22, 0.61, 0.36, 1);
   --duration-quiet: 220ms;
+
+  /* Content reveal — paon.html's own entrance animation for cards/tiles as
+   * they appear (GSAP `expo.out`, ~1s, staggered ~120ms apart). Distinct
+   * from `--ease-out-quiet` above, which is the house curve for state
+   * changes (hover, press), not first appearance. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-reveal: 1s;
+}
+
+@keyframes paon-content-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
 }
 
 @layer base {
@@ -171,6 +191,22 @@
   backdrop-filter: blur(24px) saturate(1.4);
   -webkit-backdrop-filter: blur(24px) saturate(1.4);
   background-color: color-mix(in oklab, var(--color-stone-50) 72%, transparent);
+}
+
+/**
+ * Content-reveal entrance, per paon.html's own motion language — apply to
+ * a card/tile as it first appears, with `style={{ animationDelay }}` for
+ * the ~120ms-per-item stagger a group of them should share. Respects
+ * `prefers-reduced-motion` — no blur/scale/translate flicker for anyone
+ * who has asked for less motion, just a plain, immediate appearance.
+ */
+@utility paon-reveal {
+  animation: paon-content-reveal var(--duration-reveal) var(--ease-out-expo)
+    both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
 }
 
 @utility retailer-theme {

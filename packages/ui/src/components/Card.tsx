@@ -6,7 +6,9 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white p-6",
+        // paon.html's own white-card-on-cream panels (e.g. #paon-basket-rect)
+        // sit at 8px, not the 12px `--radius-lg` this used before.
+        "rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-6",
         className,
       )}
       {...props}
