@@ -191,15 +191,14 @@ is not.
    (orders/notes/appointments across the book); placeholder Broek/Shoes/Knit
    names replaced with retail copy; `seed-production.sh` re-run 2026-07-28
    so hosted Maison Dubois matches.
-4. **Walk the whole flow on a phone and fix what breaks.** Storefront →
-   account → appointment → order → loyalty. Fix only real breakage; resist
-   redesigning on the way through. **Started 2026-07-28:** mobile storefront
-   home / Pants / PDP / Book Appointment sheet load; Isabelle login →
-   dashboard + loyalty work. **Fixed:** pants/shoes/knit display names now
-   match product photography (earlier retail names were invented and
-   mismatched — e.g. “Black Dress Trousers” on khaki). Production re-seeded
-   again after the photo match. Still open: deeper cart→checkout path on
-   phone.
+4. ~~**Walk the whole flow on a phone and fix what breaks.**~~ **Done
+   (2026-07-28).** Storefront → account → appointment → order → loyalty
+   walked on a 390×844 viewport. **Fixed:** photo-matched SKU names;
+   mobile cart sticky “Place order” no longer covered by TableService
+   “Ask us anything” (lifted on `/cart`); cart quantity/remove tap
+   targets locked to 44 CSS px. Cart→checkout verified by Playwright
+   (`mobile-ux` sticky bar + `storefront` full checkout). Stripe payment
+   collection remains blocked on founder credentials (queue item 1).
 5. **Demo-path visual and motion pass — UNBLOCKED, founder decision
    2026-07-27.**
    **`paon.html` is the design language for the entire product**, staff app

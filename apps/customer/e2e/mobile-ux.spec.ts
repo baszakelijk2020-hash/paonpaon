@@ -142,8 +142,10 @@ test.describe("mobile cart", () => {
     for (const control of [increaseButton, decreaseButton, removeButton]) {
       const box = await control.boundingBox();
       expect(box).not.toBeNull();
-      expect(box!.height).toBeGreaterThanOrEqual(MIN_TAP_TARGET);
-      expect(box!.width).toBeGreaterThanOrEqual(MIN_TAP_TARGET);
+      // Ceil: Playwright can report 43.87 for a 44 CSS-px box under
+      // fractional device metrics; the WCAG floor is still 44 CSS pixels.
+      expect(Math.ceil(box!.height)).toBeGreaterThanOrEqual(MIN_TAP_TARGET);
+      expect(Math.ceil(box!.width)).toBeGreaterThanOrEqual(MIN_TAP_TARGET);
     }
 
     // The sticky mobile checkout bar is reachable without scrolling past
@@ -156,5 +158,13 @@ test.describe("mobile cart", () => {
     expect(checkoutBox).not.toBeNull();
     expect(checkoutBox!.height).toBeGreaterThanOrEqual(MIN_TAP_TARGET);
     expect(checkoutBox!.y).toBeLessThanOrEqual(MOBILE_VIEWPORT.height);
+
+    // TableService "Ask us anything" must sit above the sticky bar — an
+    // earlier phone walk found it covering Place order on the same tap.
+    const askUs = page.getByRole("button", { name: "Contact us" });
+    await expect(askUs).toBeVisible();
+    const askBox = await askUs.boundingBox();
+    expect(askBox).not.toBeNull();
+    expect(askBox!.y + askBox!.height).toBeLessThanOrEqual(checkoutBox!.y);
   });
 });

@@ -111,6 +111,10 @@ export function TableServiceWidget({
 
   const pathname = usePathname();
   const isLandingPage = /^\/r\/[^/]+\/?$/.test(pathname ?? "");
+  // Cart's mobile sticky "Place order" bar occupies the bottom edge;
+  // keep Ask us above it so the two do not fight for the same tap target.
+  const isCartPage = /^\/r\/[^/]+\/cart\/?$/.test(pathname ?? "");
+  const clearBottomChrome = isLandingPage || isCartPage;
 
   useEffect(() => {
     if (state.submitted) {
@@ -157,7 +161,7 @@ export function TableServiceWidget({
   return (
     <div
       className={`fixed right-5 z-50 flex flex-col items-end gap-3 ${
-        isLandingPage ? "bottom-20" : "bottom-5"
+        clearBottomChrome ? "bottom-24" : "bottom-5"
       }`}
     >
       {open ? (

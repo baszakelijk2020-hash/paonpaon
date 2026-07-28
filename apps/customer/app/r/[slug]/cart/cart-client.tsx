@@ -55,13 +55,14 @@ function CartLine({ slug, item }: { slug: string; item: CartItem }) {
             aria-label={`Decrease quantity of ${item.product.name}`}
             disabled={pending}
             onClick={() => submitWithQuantity(item.line.quantity - 1)}
-            className="flex h-11 w-11 items-center justify-center text-lg text-[var(--color-stone-700)] active:scale-90 disabled:opacity-50 motion-reduce:active:scale-100"
+            style={{ width: 44, height: 44 }}
+            className="flex shrink-0 items-center justify-center text-lg text-[var(--color-stone-700)] active:scale-90 disabled:opacity-50 motion-reduce:active:scale-100"
           >
             −
           </button>
           <Input
             ref={quantityRef}
-            className="h-11 w-12 border-x border-y-0 text-center [appearance:textfield]"
+            className="h-[44px] w-12 border-x border-y-0 text-center [appearance:textfield]"
             name="quantity"
             type="number"
             min={0}
@@ -75,22 +76,22 @@ function CartLine({ slug, item }: { slug: string; item: CartItem }) {
             aria-label={`Increase quantity of ${item.product.name}`}
             disabled={pending}
             onClick={() => submitWithQuantity(item.line.quantity + 1)}
-            className="flex h-11 w-11 items-center justify-center text-lg text-[var(--color-stone-700)] active:scale-90 disabled:opacity-50 motion-reduce:active:scale-100"
+            style={{ width: 44, height: 44 }}
+            className="flex shrink-0 items-center justify-center text-lg text-[var(--color-stone-700)] active:scale-90 disabled:opacity-50 motion-reduce:active:scale-100"
           >
             +
           </button>
         </div>
-        <Button
+        <button
           type="button"
-          size="sm"
-          variant="ghost"
           disabled={pending}
           onClick={() => submitWithQuantity(0)}
           aria-label={`Remove ${item.product.name} from cart`}
-          className="h-11 min-w-11"
+          style={{ minWidth: 44, height: 44 }}
+          className="rounded-[var(--radius-md)] px-3 text-sm font-medium text-[var(--color-stone-900)] hover:bg-[var(--color-stone-100)] disabled:opacity-50"
         >
           Remove
-        </Button>
+        </button>
       </div>
     </form>
   );
