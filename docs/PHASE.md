@@ -205,7 +205,53 @@ negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
    When all ten are done, stop and report. Do not continue into the other
    83 routes without a new founder decision.
 
-6. **Re-port the wrong widgets** — silhouette carousel, swipe deck — per
+6. **AM House Party — customer-owned party planning. Founder spec
+   2026-07-28.** Replaces the parked "orbit needs avatar data" question in
+   `NIGHT_LOG.md` with the actual feature.
+
+   **The journey.** A customer opens "Wedding parties" in the Customer
+   Portal sidebar (already there), creates a party — participant names and
+   photos, date, time, store location — then shares a public link. Whoever
+   opens that link runs their own onboarding: their details, measurements,
+   photo, everything needed to arrive prepared for the fitting party at the
+   store. Staff manage the whole party from Mission Control.
+
+   **Already built — do not rebuild:** `WeddingParty` (organizer,
+   `eventDate`, `venueName`, status, notes, `inviteToken`),
+   `WeddingPartyMember` (real `Customer` per member, role, fitting status),
+   the public join route `/r/[slug]/wedding-parties/join/[token]`, the
+   customer list and detail pages, the sidebar entry, and the full retailer
+   management screens.
+
+   **Genuinely missing:**
+   - **The customer cannot create a party.** Only `apps/retailer` has a
+     `/wedding-parties/new`. This is the largest gap and the first
+     increment.
+   - **Photos.** No photo field on member or party. Needed for the orbit
+     visualisation and for the organizer's roster.
+   - **Time and store location.** `eventDate` is a date with no time, and
+     `venueName` is the _wedding_ venue, not which store the fitting happens
+     at. Note `Location` is not modelled at all (deferred, ROADMAP Phase 1),
+     so "store location" needs a founder decision: a free-text field now, or
+     model `Location` properly.
+   - **Member onboarding depth.** The join flow captures identity, not the
+     preparation detail described above.
+
+   **Architectural conflict to resolve before building the onboarding —
+   surface it, do not work around it.** The founder's spec includes weight
+   and height. ADR-016 deliberately _removed_ the generic customer
+   measurement aggregate (`CustomerFitProfileEntry` is archived) on the
+   grounds that fit data belongs to a `PhysicalGarment` via a
+   `FittingObservation`, never to a customer record. Capturing weight and
+   height on a wedding-party member reintroduces exactly what that ADR
+   removed. Either ADR-016 is superseded by a new ADR that says why, or the
+   onboarding captures something narrower. **Do not add measurement fields
+   to a customer without that decision.**
+
+   Sequence: customer-side create → photos → time and store → onboarding
+   depth (after the ADR question is settled). One increment each.
+
+7. **Re-port the wrong widgets** — silhouette carousel, swipe deck — per
    [DESIGN_PORTS.md](./DESIGN_PORTS.md), and verify the two unverified ones
    (table service, house party orbit).
 
