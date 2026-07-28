@@ -3,11 +3,13 @@
 This file exists so Codex and any other agent that looks for `AGENTS.md`
 loads the same instructions Claude Code loads from `CLAUDE.md`.
 
-**Read [CLAUDE.md](./CLAUDE.md) and [docs/PHASE.md](./docs/PHASE.md) before
-doing anything.** They are the operating charter and the current scope
-freeze. `CLAUDE.md` is the single source of truth for engineering rules —
-this file is a pointer only and must never accumulate rules of its own,
-because two charters that disagree is worse than one nobody reads.
+**Read [CLAUDE.md](./CLAUDE.md), [docs/PHASE.md](./docs/PHASE.md), and
+[docs/WORKING_AGREEMENT.md](./docs/WORKING_AGREEMENT.md) before doing
+anything.** They are the operating charter, the scope freeze, and the
+working mode. `CLAUDE.md` is the single source of truth for engineering
+rules — this file is a pointer only and must never accumulate rules of
+its own, because two charters that disagree is worse than one nobody
+reads.
 
 If you have no MCP servers, you are not blocked — every deployment and
 database operation has a CLI equivalent, and the tokens are in the
@@ -15,13 +17,16 @@ repository-root `.env.local`. See [docs/TOOLING.md](./docs/TOOLING.md).
 
 Short version, so a session that ignores the links still behaves:
 
+- **NON-NEGOTIABLE:** Do **not** stop and check with the founder. Push
+  **all the way** through the PHASE queue. Build → self-verify → commit
+  → push → next item. No "please review." No waiting after one increment.
+  Skip Stripe / Resend / silhouette (note + continue). "Test it" is a
+  record, not a gate. See `docs/WORKING_AGREEMENT.md`.
 - Only three workstreams are in scope right now: the storefront template,
   the prospect Demo Studio, and the marketing site. See `docs/PHASE.md`.
 - Anything outside those: say so and ask. Do not build it quietly.
-- **Continuous mode (2026-07-28):** build, self-verify, commit, push, and
-  advance the PHASE queue without waiting for founder review between
-  increments. Hard stops only for out-of-freeze work, missing credentials,
-  or ADR conflicts. See `docs/WORKING_AGREEMENT.md`.
+- Hard stops only: out-of-freeze work, ADR conflicts you cannot ADR, or a
+  founder surface that cannot be ported verbatim.
 - `strict` TypeScript, no `any`. Data access through a `@paon/database`
   repository. Mutations are Server Actions. Never duplicate a component or
   a business rule across apps.

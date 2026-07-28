@@ -7,11 +7,18 @@ consistency — never for short-term speed.
 **Start every session by reading [docs/PHASE.md](docs/PHASE.md) and
 [docs/WORKING_AGREEMENT.md](docs/WORKING_AGREEMENT.md).** The first defines
 what may be worked on right now and overrides any older plan; the second
-defines how to work — **continuous mode (founder decision 2026-07-28):**
-build, self-verify, iterate, commit, push, and automatically advance the
-PHASE queue without stopping for founder review between increments. Hard
-stops only for out-of-freeze work, missing founder credentials, or ADR
-conflicts.
+defines how to work.
+
+**NON-NEGOTIABLE — continuous mode (founder 2026-07-28, reiterated same
+day):** Do **not** stop and check. Do **not** pause for review. Push
+**all the way** through the PHASE queue until it is exhausted or only
+hard blockers remain. Build → self-verify → commit → push → immediately
+start the next in-scope item. Skip Stripe / Resend / silhouette (note in
+PHASE.md, continue). A "Test it" list is a record, not a gate. Ending
+after one increment to wait for confirmation is a process failure.
+Hard stops only: out-of-freeze work, ADR conflicts you cannot ADR, or a
+founder surface that cannot be ported verbatim (ADR-052). Full rules:
+`docs/WORKING_AGREEMENT.md`.
 
 Then read only what the change requires. [docs/README.md](docs/README.md)
 is a tiered router, not a reading list — the document set is ~6,000 lines
@@ -143,12 +150,12 @@ a working state, always. A task is not done if it merges red.
 
 ## Reporting completed work
 
-In continuous mode the session **self-verifies** (curl, browser, or
-Playwright against the running apps), then **commits and pushes** without
-waiting. Still end each coherent push with a short "Test it" list so a
-human can spot-check later if they want — exact local URL/port, auth path,
-click path, and what was already machine-verified. Do not block the next
-queue item on that list being read.
+In continuous mode the session **self-verifies**, **commits and pushes**,
+and **continues the queue** without waiting. Append a short "Test it"
+list on each coherent push so a human can spot-check later if they want —
+exact local URL/port, auth path, click path, and what was already
+machine-verified. **Do not block the next queue item on that list being
+read. Do not ask the founder to confirm before continuing.**
 
 ## Commands
 

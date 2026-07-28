@@ -175,10 +175,12 @@ most, and it does not exist.
 
 Founder decision 2026-07-27: finish the build to a demonstrable state.
 Ordered by what a prospect sees first. **Continuous mode (ADR-054,
-2026-07-28):** build, self-verify, commit, push, and advance this queue
-without waiting for founder review between increments. Still one coherent
-commit at a time — the batching pause is gone; the small-commit discipline
-is not.
+reinforced 2026-07-28 evening):** build, self-verify, commit, push, and
+advance this queue **without stopping to check with the founder.** Push
+all the way until this queue is exhausted or only hard blockers remain.
+Still one coherent commit at a time — the batching pause is gone; the
+small-commit discipline is not. Skipping a blocked item is required;
+pausing the session for review is forbidden.
 
 1. **Stripe live.** Blocked — `STRIPE_SECRET_KEY` (and related) are not
    in `.env.local` / hosted env; no session can provision them. Once set,
@@ -360,18 +362,27 @@ If not, it waits. This narrows what gets built. It does not lower the
 quality bar for what does — the rules in `CLAUDE.md` and `PRINCIPLES.md`
 apply in full.
 
-## Stop and ask (hard stops only)
+## Stop and ask (hard stops only — everything else is keep going)
 
-Founder decision 2026-07-28: continuous mode. Do **not** stop between
-increments for review. Build, self-verify, commit, push, advance this
-queue. Stop and ask only when:
+**Founder (2026-07-28, reiterated same day): do NOT stop and check. Push
+all the way to finish.** Build, self-verify, commit, push, advance this
+queue immediately. Ending after one increment to wait for review is a
+process failure. Skip Stripe / Resend / silhouette — one-line note below,
+continue.
+
+**Stop and ask — and wait — only when:**
 
 - The work would touch anything outside the three workstreams.
-- Credentials only the founder can provision are required (Stripe, Resend).
 - You are about to contradict an ADR in `DECISIONS.md` without recording
   a new ADR.
+- A founder-designed surface cannot be ported verbatim (ADR-052).
 
-Autonomy inside the freeze is the goal. Uncommitted finished work is not.
+**Not hard stops:** missing API keys, blocked silhouette mount, visual
+preference uncertainty, finishing one queue item, or wanting a human to
+read a "Test it" list before the next change.
+
+Autonomy inside the freeze until the queue is done is the goal.
+Uncommitted finished work is not.
 
 ## End every session committable and pushed
 

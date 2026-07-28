@@ -2403,18 +2403,33 @@ every change.
 
 1. Build → self-verify (curl / browser / Playwright against running
    apps) → iterate → commit → push `origin/main` → advance the PHASE
-   queue automatically.
-2. Do not stop for routine founder review between increments.
-3. Hard stops only: out-of-freeze work, missing founder-only credentials
-   (Stripe, Resend, …), or ADR conflicts without a new ADR.
-4. Quality bar unchanged: definition-of-done, no silent debt, verbatim
+   queue automatically — **all the way until the queue is exhausted or
+   only hard blockers remain.**
+2. Do **not** stop for founder review, confirmation, or "please check"
+   between increments. A "Test it" section is a record, not a gate.
+3. Missing founder-only credentials (Stripe, Resend, …) and design-blocked
+   ports (e.g. silhouette without a founder-designed mount) are **skip
+   and continue**, not session-ending hard stops. Note one line in
+   PHASE.md and take the next item.
+4. Hard stops that actually wait for the founder: out-of-freeze work;
+   ADR conflicts that cannot be recorded as a new ADR; founder surfaces
+   that cannot be ported verbatim (ADR-052); destructive irreversible
+   production ops beyond documented seed/teardown.
+5. Quality bar unchanged: definition-of-done, no silent debt, verbatim
    founder surfaces (ADR-052), tenant RLS, repository pattern.
+
+**Reinforcement (same day, evening).** The founder restated explicitly:
+do not stop and check; push all the way to finish. Sessions that ship one
+increment and then wait for review are process failures even when the
+code is correct. Controlling docs (`WORKING_AGREEMENT.md`, `CLAUDE.md`,
+`AGENTS.md`, `PHASE.md`) were strengthened to match.
 
 **Consequences.** Sessions ship more often and must leave the tree clean
 after every coherent change. Risk of drift returns if sessions skip
 self-verify or leave unpushed work — continuous mode commits _more_
 often, not less. `WORKING_AGREEMENT.md`, `CLAUDE.md`, `AGENTS.md`, and
-`PHASE.md` were updated in the same change as this ADR.
+`PHASE.md` carry the operational wording; this ADR is the decision
+record.
 
 ---
 
