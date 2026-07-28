@@ -144,3 +144,11 @@ of proceeding on any of the conditions above.
   `--duration-quiet`/`--ease-out-quiet`; Badge already `rounded-full`
   matching `#paon-basket-count`'s pill). Added `paon-reveal` to each
   loyalty card (120ms stagger) and the empty state. DoD green, pushed.
+- Queue item 5, screen 7 of 10 (Retailer dashboard): `54f01ed`. Also
+  already carries the ADR-035 premium pass (literal `#111110` hero,
+  correct radii/duration/ease tokens on hover-lift cards). Added
+  `paon-reveal` to hero, stats strip, attention list and house-pulse
+  aside (0/120/240/360ms stagger). Deliberately left the shared
+  `AppShell` chrome (sidebar/header) untouched — already close to spec
+  and changing it ripples across every retailer/admin screen, out of
+  scope for a single screen's increment. DoD green, pushed.
