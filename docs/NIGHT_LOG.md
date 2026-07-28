@@ -60,3 +60,10 @@ of proceeding on any of the conditions above.
   the expanded client book is actually live, not just in source. Script
   output confirmed all 6 new/existing portal customers created
   (Isabelle, Marc, Julien, Camille, Nathalie, Thomas).
+- Queue item 4: mobile-viewport Playwright pass (read-only — no test
+  appointments/orders created against production) against all three live
+  apps. Found one real bug: `fc28152` fixed a CORS-blocked font fetch on
+  the storefront (a leftover duplicate `@font-face` in `paon-template.html`
+  pointed at the founder's own domain instead of this app's font proxy).
+  DoD green; re-checked against production once `fc28152` deployed — no
+  console errors, `body` computed font-family is `OptimaKlein, serif`.
