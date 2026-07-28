@@ -14,6 +14,7 @@ import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -160,11 +161,26 @@ export default async function WeddingPartyDetailPage({
           {memberDetails.map(({ member, stylePicks, alteration }) => (
             <div key={member.id} className="flex flex-col gap-3 px-6 py-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{member.name}</p>
-                  <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                    {member.role.replaceAll("_", " ")}
-                  </p>
+                <div className="flex min-w-0 items-center gap-3">
+                  {member.photoUrl ? (
+                    <Image
+                      src={member.photoUrl}
+                      alt=""
+                      width={40}
+                      height={40}
+                      unoptimized
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
+                  ) : null}
+                  <div>
+                    <p className="font-medium">{member.name}</p>
+                    <p className="text-sm capitalize text-[var(--color-stone-500)]">
+                      {member.role.replaceAll("_", " ")}
+                      {member.heightCm != null && member.weightKg != null
+                        ? ` · ${member.heightCm} cm / ${member.weightKg} kg`
+                        : ""}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge tone={FITTING_TONE[member.fittingStatus]}>

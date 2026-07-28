@@ -44,6 +44,8 @@ const toMember = (row: MemberRow): WeddingPartyMember => ({
   role: row.role,
   fittingStatus: row.fitting_status,
   ...(row.photo_url ? { photoUrl: row.photo_url } : {}),
+  ...(row.height_cm != null ? { heightCm: Number(row.height_cm) } : {}),
+  ...(row.weight_kg != null ? { weightKg: Number(row.weight_kg) } : {}),
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   deletedAt: row.deleted_at,
@@ -190,15 +192,34 @@ export class WeddingPartyRepository {
     name: string;
     email: string;
     role: WeddingPartyMemberRole;
-  }): Promise<string> {
+    heightCm: number;
+    weightKg: number;
+    photoUrl?: string;
+  }): Promise<{
+    memberId: string;
+    partyId: string;
+    retailerId: string;
+  }> {
     const { data, error } = await this.client.rpc("join_wedding_party", {
       p_invite_token: params.inviteToken,
       p_name: params.name,
       p_email: params.email,
       p_role: params.role,
+      p_height_cm: params.heightCm,
+      p_weight_kg: params.weightKg,
+      ...(params.photoUrl ? { p_photo_url: params.photoUrl } : {}),
     });
     if (error) throw error;
-    return data;
+    const payload = data as {
+      member_id: string;
+      party_id: string;
+      retailer_id: string;
+    };
+    return {
+      memberId: payload.member_id,
+      partyId: payload.party_id,
+      retailerId: payload.retailer_id,
+    };
   }
 
   async updateMemberFittingStatus(

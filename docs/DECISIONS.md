@@ -2415,3 +2415,28 @@ after every coherent change. Risk of drift returns if sessions skip
 self-verify or leave unpushed work — continuous mode commits _more_
 often, not less. `WORKING_AGREEMENT.md`, `CLAUDE.md`, `AGENTS.md`, and
 `PHASE.md` were updated in the same change as this ADR.
+
+---
+
+## ADR-055: Party-scoped height/weight on WeddingPartyMember (not CustomerFitProfile)
+
+**Context.** The AM House Party join flow needs self-reported height and
+weight so the atelier can pull roughly-right sample garments before a
+group fitting. ADR-016 archived the generic customer measurement
+aggregate (`CustomerFitProfileEntry`) — fit data belongs on a
+`PhysicalGarment` via `FittingObservation`, never on `Customer`. Putting
+height/weight on the customer record would reverse that decision.
+
+**Decision.** Store join-flow height (`height_cm`) and weight
+(`weight_kg`) on `WeddingPartyMember` only. They are coordination data
+for one party, readable in party roster UIs, and superseded the moment a
+real fitting observation exists. Do not reintroduce a customer-level
+fit profile. Anonymous join photo upload after `join_wedding_party`
+uses the service-role client because the joiner has no session and
+`party-photos` storage RLS is organizer/staff-only; the invite token
+already gated membership creation.
+
+**Consequences.** Orbit and Mission Control can show prep sizes per
+member without polluting `Customer`. Any future "my measurements" portal
+feature still needs FittingObservation / garment-scoped data, not these
+columns.

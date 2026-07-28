@@ -73,4 +73,9 @@ export interface WeddingPartyMember extends Timestamps {
   readonly fittingStatus: WeddingPartyMemberFittingStatus;
   /** Public URL of the member's photo in the `party-photos` bucket. */
   readonly photoUrl?: string;
+  /** Self-reported height in cm — party-scoped prep data (ADR-055),
+   * not a CustomerFitProfile. */
+  readonly heightCm?: number;
+  /** Self-reported weight in kg — party-scoped prep data (ADR-055). */
+  readonly weightKg?: number;
 }

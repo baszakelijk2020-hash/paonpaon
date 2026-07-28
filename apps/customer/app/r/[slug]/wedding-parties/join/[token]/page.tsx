@@ -29,8 +29,8 @@ export default async function JoinWeddingPartyPage({
         You&rsquo;re invited
       </h1>
       <p className="mb-6 text-sm text-[var(--color-stone-500)]">
-        Join the wedding party — a few details and the team will take it from
-        here.
+        Join the wedding party — name, contact, a photo, and your height and
+        weight so the atelier can prepare sample garments before you arrive.
       </p>
       <Card>
         <JoinForm token={token} />

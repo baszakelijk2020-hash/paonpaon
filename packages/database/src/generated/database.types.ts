@@ -4398,36 +4398,42 @@ export type Database = {
           customer_id: string;
           deleted_at: string | null;
           fitting_status: Database["public"]["Enums"]["wedding_party_member_fitting_status"];
+          height_cm: number | null;
           id: string;
           name: string;
           photo_url: string | null;
           role: Database["public"]["Enums"]["wedding_party_member_role"];
           updated_at: string;
           wedding_party_id: string;
+          weight_kg: number | null;
         };
         Insert: {
           created_at?: string;
           customer_id: string;
           deleted_at?: string | null;
           fitting_status?: Database["public"]["Enums"]["wedding_party_member_fitting_status"];
+          height_cm?: number | null;
           id?: string;
           name: string;
           photo_url?: string | null;
           role?: Database["public"]["Enums"]["wedding_party_member_role"];
           updated_at?: string;
           wedding_party_id: string;
+          weight_kg?: number | null;
         };
         Update: {
           created_at?: string;
           customer_id?: string;
           deleted_at?: string | null;
           fitting_status?: Database["public"]["Enums"]["wedding_party_member_fitting_status"];
+          height_cm?: number | null;
           id?: string;
           name?: string;
           photo_url?: string | null;
           role?: Database["public"]["Enums"]["wedding_party_member_role"];
           updated_at?: string;
           wedding_party_id?: string;
+          weight_kg?: number | null;
         };
         Relationships: [
           {
@@ -5139,11 +5145,14 @@ export type Database = {
       join_wedding_party: {
         Args: {
           p_email: string;
+          p_height_cm: number;
           p_invite_token: string;
           p_name: string;
+          p_photo_url?: string;
           p_role: Database["public"]["Enums"]["wedding_party_member_role"];
+          p_weight_kg: number;
         };
-        Returns: string;
+        Returns: Json;
       };
       link_my_customer_accounts: { Args: never; Returns: undefined };
       mark_conversation_read: {

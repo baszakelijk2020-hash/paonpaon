@@ -30,3 +30,13 @@ export const addWeddingPartyMemberSchema = z.object({
   email: z.string().trim().email(),
   role: z.enum(WEDDING_PARTY_MEMBER_ROLES as [string, ...string[]]),
 });
+
+/** Anonymous join-link onboarding — identity plus party-scoped prep
+ * (ADR-055). Photo is validated in the Server Action as a File. */
+export const joinWeddingPartySchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  email: z.string().trim().email(),
+  role: z.enum(WEDDING_PARTY_MEMBER_ROLES as [string, ...string[]]),
+  heightCm: z.coerce.number().min(100).max(250),
+  weightKg: z.coerce.number().min(30).max(300),
+});

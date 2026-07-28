@@ -31,10 +31,16 @@ export function JoinForm({ token }: { token: string }) {
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <FormField label="Your name" htmlFor="name">
-        <Input id="name" name="name" required />
+        <Input id="name" name="name" required autoComplete="name" />
       </FormField>
       <FormField label="Your email" htmlFor="email">
-        <Input id="email" name="email" type="email" required />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          required
+          autoComplete="email"
+        />
       </FormField>
       <FormField label="Your role" htmlFor="role">
         <Select id="role" name="role" defaultValue="groomsman">
@@ -44,6 +50,52 @@ export function JoinForm({ token }: { token: string }) {
             </option>
           ))}
         </Select>
+      </FormField>
+      <div className="grid grid-cols-2 gap-3">
+        <FormField
+          label="Height (cm)"
+          htmlFor="heightCm"
+          hint="So the atelier can pull sample garments"
+        >
+          <Input
+            id="heightCm"
+            name="heightCm"
+            type="number"
+            inputMode="decimal"
+            min={100}
+            max={250}
+            step="0.1"
+            required
+            placeholder="180"
+          />
+        </FormField>
+        <FormField label="Weight (kg)" htmlFor="weightKg">
+          <Input
+            id="weightKg"
+            name="weightKg"
+            type="number"
+            inputMode="decimal"
+            min={30}
+            max={300}
+            step="0.1"
+            required
+            placeholder="78"
+          />
+        </FormField>
+      </div>
+      <FormField
+        label="Your photo"
+        htmlFor="photo"
+        hint="Clear head-and-shoulders helps the fitting party"
+      >
+        <Input
+          id="photo"
+          name="photo"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          required
+          aria-label="Your photo"
+        />
       </FormField>
       {state.formError ? (
         <p role="alert" className="text-sm text-[var(--color-danger-500)]">

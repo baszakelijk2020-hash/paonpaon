@@ -135,6 +135,9 @@ export default async function WeddingPartyDetailPage({
                 <p className="font-medium">{member.name}</p>
                 <p className="text-sm capitalize text-[var(--color-stone-500)]">
                   {member.role.replaceAll("_", " ")}
+                  {member.heightCm != null && member.weightKg != null
+                    ? ` · ${member.heightCm} cm / ${member.weightKg} kg`
+                    : ""}
                 </p>
               </div>
             </div>

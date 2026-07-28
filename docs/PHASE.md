@@ -231,8 +231,8 @@ is not.
      bucket, organizer upload on the customer party page.
    - ~~**Time and store location.**~~ **Done** — `eventTime` +
      `fittingLocation` columns and create/list/detail surfaces.
-   - **Member onboarding depth.** The join flow captures identity, not the
-     preparation detail described above.
+   - ~~**Member onboarding depth.**~~ **Done** — join form captures role,
+     contact, photo, and party-scoped height/weight (ADR-055).
 
    **Architectural conflict to resolve before building the onboarding —
    surface it, do not work around it.** The founder's spec includes weight
@@ -265,9 +265,9 @@ is not.
       the shop (free text until `Location` exists).
    5. ~~**Photos.**~~ **Done** — cover + member photo URLs, `party-photos`
       bucket, organizer upload UI on the customer party page.
-   6. **Join-flow onboarding depth.** Extend
-      `/r/[slug]/wedding-parties/join/[token]` to capture role, contact,
-      photo and the party-scoped height/weight, with the ADR above.
+   6. ~~**Join-flow onboarding depth.**~~ **Done** — join captures role,
+      contact, photo, height/weight; ADR-055 records the party-scoped
+      measurement decision.
    7. **The orbit.** `am-house-hero.tsx` last — it can only be finished once
       member photos exist, which is why it was parked.
 
