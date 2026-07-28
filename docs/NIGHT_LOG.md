@@ -56,3 +56,7 @@ of proceeding on any of the conditions above.
   2). DoD green. Landed in the founder's own concurrent commit alongside
   their live `PHASE.md` edit (queue item 5 unblocked) rather than a
   separate one — same working tree, no conflict.
+- Re-ran `scripts/seed-production.sh` against the live Supabase project so
+  the expanded client book is actually live, not just in source. Script
+  output confirmed all 6 new/existing portal customers created
+  (Isabelle, Marc, Julien, Camille, Nathalie, Thomas).
