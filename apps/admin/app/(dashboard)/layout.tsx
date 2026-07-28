@@ -25,6 +25,11 @@ const navigation: AppShellNavGroup[] = [
         label: "Demo Studio",
         description: "Prospects and personalized environments",
       },
+      {
+        href: "/inquiries",
+        label: "Inquiries",
+        description: "Demo requests and consultations",
+      },
     ],
   },
   {

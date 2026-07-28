@@ -337,10 +337,12 @@ revoked / wrong code; storefront chrome lives inside `<body>`; guest Add
 to Bag offers sign-in without a hard redirect yank.
 
 **Also (2026-07-29 continuous push, residual conversion).** Studio uploads
-wire into logo / favicon / hero / garments by role; demo headline lands on
-`/r/{slug}`; location lines accept optional photo URLs for Book Appointment;
-marketing Open Graph + share cards; bag CTA leads with Book appointment
-until Stripe keys exist. Custom domain still deferred (ADR-014).
+wire into logo / favicon / hero / garments by role; demo headline and
+introduction land on `/r/{slug}`; location lines accept optional photo URLs
+for Book Appointment; marketing Open Graph + sitemap/robots; bag CTA leads
+with Book appointment until Stripe keys exist; Admin `/inquiries` lists
+marketing form submissions while Resend is blocked. Custom domain still
+deferred (ADR-014).
 
 **Blocked (skip in continuous mode until founder provisions):**
 

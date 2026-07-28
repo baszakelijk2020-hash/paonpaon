@@ -448,9 +448,14 @@ ${
     heroUrl,
     demoStory?.locations,
   );
-  const storyHtml = demoStory?.marketingHeadline
-    ? `<p class="paon-marketing-headline" style="margin:12px 12px 0;font-size:15px;line-height:1.45;letter-spacing:.01em;font-family:var(--font-retailer-display),Georgia,serif;">${escapeHtml(demoStory.marketingHeadline)}</p>`
-    : "";
+  const storyHtml = [
+    demoStory?.marketingHeadline
+      ? `<p class="paon-marketing-headline" style="margin:12px 12px 0;font-size:15px;line-height:1.45;letter-spacing:.01em;font-family:var(--font-retailer-display),Georgia,serif;">${escapeHtml(demoStory.marketingHeadline)}</p>`
+      : "",
+    demoStory?.personalizedIntroduction
+      ? `<p class="paon-marketing-intro" style="margin:8px 12px 0;max-width:42rem;font-size:12px;line-height:1.55;opacity:.72;font-family:var(--font-retailer-body),system-ui,sans-serif;">${escapeHtml(demoStory.personalizedIntroduction)}</p>`
+      : "",
+  ].join("");
   const html = template
     .replaceAll("__PAON_SLUG__", slug)
     .replaceAll("__PAON_RETAILER_ID__", retailer.id)
@@ -486,6 +491,7 @@ async function prospectDemoStoryFor(
 ): Promise<
   | {
       marketingHeadline?: string | undefined;
+      personalizedIntroduction?: string | undefined;
       locations?: Array<{
         name?: string;
         city?: string;
@@ -502,12 +508,13 @@ async function prospectDemoStoryFor(
   if (!environment?.configuration_id) return undefined;
   const { data: configuration } = await supabase
     .from("prospect_demo_configurations")
-    .select("locations, marketing_headline")
+    .select("locations, marketing_headline, personalized_introduction")
     .eq("id", environment.configuration_id)
     .maybeSingle();
   if (!configuration) return undefined;
   const story: {
     marketingHeadline?: string | undefined;
+    personalizedIntroduction?: string | undefined;
     locations?: Array<{
       name?: string;
       city?: string;
@@ -516,6 +523,9 @@ async function prospectDemoStoryFor(
   } = {};
   if (configuration.marketing_headline) {
     story.marketingHeadline = configuration.marketing_headline;
+  }
+  if (configuration.personalized_introduction) {
+    story.personalizedIntroduction = configuration.personalized_introduction;
   }
   if (configuration.locations) {
     story.locations = configuration.locations as Array<{
