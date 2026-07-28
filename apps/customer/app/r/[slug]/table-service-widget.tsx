@@ -126,6 +126,21 @@ export function TableServiceWidget({
   function pickIntent(value: ConversationIntent, caption: string) {
     setIntent(value);
     setPicsVisible(false);
+    if (caption === "I'm getting married") {
+      setHistory((h) => [...h, caption, "Opening your wedding party planner…"]);
+      window.setTimeout(() => {
+        window.location.href = "/wedding-parties/new";
+      }, 700);
+      return;
+    }
+    if (caption === "I'm a wedding guest") {
+      setHistory((h) => [
+        ...h,
+        caption,
+        "Ask the groom for your private invite link — it opens a short form so the atelier can prepare sample garments before you arrive. You can also leave us a message below.",
+      ]);
+      return;
+    }
     setHistory((h) => [...h, caption]);
   }
 

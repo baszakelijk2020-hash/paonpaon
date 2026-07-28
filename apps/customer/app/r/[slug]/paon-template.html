@@ -16039,8 +16039,8 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         <div class="gcw-chat-wrapper">
             <div class="gcw-chat-history"></div>
             <div class="gcw-chat-pics" id="gcw-pics">
-                <div class="gcw-panel-wrapper" data-intent="wedding"><img src="https://www.nebelspiegel.com/images/chats222.png"><div class="gcw-panel-overlay">I'm getting married</div></div>
-                <div class="gcw-panel-wrapper" data-intent="wedding"><img src="https://www.nebelspiegel.com/images/chatpic02.png"><div class="gcw-panel-overlay">I'm a wedding guest</div></div>
+                <div class="gcw-panel-wrapper" data-intent="wedding" data-wedding-path="organize"><img src="https://www.nebelspiegel.com/images/chats222.png"><div class="gcw-panel-overlay">I'm getting married</div></div>
+                <div class="gcw-panel-wrapper" data-intent="wedding" data-wedding-path="guest"><img src="https://www.nebelspiegel.com/images/chatpic02.png"><div class="gcw-panel-overlay">I'm a wedding guest</div></div>
                 <div class="gcw-panel-wrapper" data-intent="shirts"><img src="https://www.nebelspiegel.com/images/chatpic03.png"><div class="gcw-panel-overlay">I need new shirts</div></div>
                 <div class="gcw-panel-wrapper" data-intent="style_help"><img src="https://www.nebelspiegel.com/images/chatpic04.png"><div class="gcw-panel-overlay">How to find my style?</div></div>
             </div>
@@ -16180,12 +16180,23 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     chatPics.forEach(function(pic) {
         pic.addEventListener('click', function() {
             intent = pic.getAttribute('data-intent') || 'freeform';
+            var weddingPath = pic.getAttribute('data-wedding-path') || '';
             var text = pic.querySelector('.gcw-panel-overlay').textContent;
             chatPicsContainer.style.transition = 'opacity 0.5s ease';
             chatPicsContainer.style.opacity = '0';
             setTimeout(function() {
                 appendMessage(text);
                 chatPicsContainer.style.display = 'none';
+                if (weddingPath === 'organize') {
+                    appendMessage('Opening your wedding party planner…');
+                    window.setTimeout(function() {
+                        window.location.href = '/wedding-parties/new';
+                    }, 700);
+                    return;
+                }
+                if (weddingPath === 'guest') {
+                    appendMessage('Ask the groom for your private invite link — it opens a short form so the atelier can prepare sample garments before you arrive. You can also leave us a message below.');
+                }
             }, 500);
         });
     });
