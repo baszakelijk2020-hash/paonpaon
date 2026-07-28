@@ -3,16 +3,36 @@
 import type { Money } from "@paon/domain";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { formatMoney } from "@paon/utils";
-import Image from "next/image";
 import Link from "next/link";
 import {
-  useEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
 import { swipeLeft, swipeRight } from "./actions";
+
+/**
+ * Exact port of pag1.html's `#swipe-app-placeholder` ("munro-swipe-card")
+ * widget — CSS values (card radius, container/button dimensions, the
+ * layered "gummy" button shadows, the liked-carousel strip) and the
+ * drag-to-swipe/exit-animation numbers are byte-for-byte from that source,
+ * not paon-template.html's palette: pag1 is a separate, real design source
+ * (see docs/DESIGN_PORTS.md) and this widget keeps its own literal colors
+ * (#555555 text, #f0f0f0/#EBEBEB neutrals, #4caf50/#ff4c4c buttons) exactly
+ * as table-service-widget.tsx keeps its own WhatsApp-green bubble rather
+ * than being forced onto the storefront's warm stone tokens.
+ *
+ * Adapted for real data through the narrowest hook: the source's ten
+ * static `atinderN.jpg` demo photos become real product cards, and its
+ * `www.ateliermunro.com` end-of-deck pitch (a different brand entirely)
+ * becomes real navigation back into this retailer's shop/wishlist. The
+ * source's imperative "clone the card and animate a fixed clone" trick for
+ * the swipe-out doesn't fit a React tree, so the departing card animates
+ * itself with the same transform/timing values instead — same motion,
+ * idiomatic implementation. The source's touch-only listeners become
+ * pointer events so dragging also works with a mouse.
+ */
 
 export interface SwipeCard {
   productId: string;
@@ -23,8 +43,9 @@ export interface SwipeCard {
   price: Money;
 }
 
-const SWIPE_THRESHOLD = 110;
-const VISIBLE_STACK = 3;
+const SWIPE_THRESHOLD = 100;
+const EXIT_DURATION_MS = 450;
+const LIKED_SLOTS = 10;
 
 export function SwipeDeck({
   slug,
@@ -38,40 +59,41 @@ export function SwipeDeck({
   savedVariantIds: string[];
 }) {
   const [index, setIndex] = useState(0);
-  const [saved, setSaved] = useState<string[]>([]);
-  const savedSet = new Set([...savedVariantIds, ...saved]);
+  const [liked, setLiked] = useState<SwipeCard[]>([]);
+  const savedSet = new Set([
+    ...savedVariantIds,
+    ...liked.map((card) => card.variantId),
+  ]);
   const [dragX, setDragX] = useState(0);
+  const [exiting, setExiting] = useState<"left" | "right" | null>(null);
   const dragging = useRef(false);
   const startX = useRef(0);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(query.matches);
-    const listener = (event: MediaQueryListEvent) =>
-      setReducedMotion(event.matches);
-    query.addEventListener("change", listener);
-    return () => query.removeEventListener("change", listener);
-  }, []);
-
-  const remaining = cards.slice(index, index + VISIBLE_STACK);
+  const current = cards[index];
+  const likedSlotCount = Math.min(LIKED_SLOTS, cards.length || LIKED_SLOTS);
 
   function commit(direction: "left" | "right") {
     const card = cards[index];
-    if (!card) return;
+    if (!card || exiting) return;
+    setExiting(direction);
     if (direction === "right") {
-      setSaved((prev) => [...prev, card.variantId]);
+      setLiked((prev) => [...prev, card]);
       if (!savedSet.has(card.variantId)) {
         void swipeRight(retailerId, card.variantId, card.productId);
       }
     } else {
       void swipeLeft(retailerId, card.productId);
     }
-    setDragX(0);
-    setIndex((i) => i + 1);
+    setTimeout(() => {
+      setDragX(0);
+      setExiting(null);
+      setIndex((i) => i + 1);
+    }, EXIT_DURATION_MS);
   }
 
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (exiting) return;
     dragging.current = true;
     startX.current = event.clientX;
     event.currentTarget.setPointerCapture(event.pointerId);
@@ -88,129 +110,171 @@ export function SwipeDeck({
     else setDragX(0);
   }
 
-  if (remaining.length === 0) {
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-        <p className="text-[var(--color-stone-600)]">
-          You&rsquo;ve seen everything for now.
-        </p>
-        <div className="flex gap-2">
-          <Link
-            href={`/r/${slug}/products`}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Browse the full shop
-          </Link>
-          <Link href="/wishlist" className={buttonVariants()}>
-            See your favorites
-          </Link>
-        </div>
-      </div>
-    );
+  const containerWidth = containerRef.current?.offsetWidth ?? 390;
+  const p = Math.min(Math.abs(dragX) / containerWidth, 1);
+
+  let cardTransform = "translateZ(0)";
+  let cardTransition = "none";
+  let cardBoxShadow = "none";
+  let cardOpacity = 1;
+  if (exiting) {
+    const endX = (exiting === "right" ? 1 : -1) * containerWidth * 1.5;
+    const rotation = exiting === "right" ? 25 : -25;
+    cardTransform = `translate(${endX}px, 30px) rotate(${rotation}deg)`;
+    cardTransition = `transform ${EXIT_DURATION_MS}ms cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity ${EXIT_DURATION_MS}ms ease`;
+    cardOpacity = 0;
+  } else if (dragging.current || dragX !== 0) {
+    cardTransform = `translate(${dragX}px, ${dragX * 0.05}px) scale(${1 + p * 0.05}) rotate(${dragX / 20}deg)`;
+    cardTransition = "none";
+    cardBoxShadow = `0px ${5 + p * 15}px ${10 + p * 20}px rgba(0,0,0,${p * 0.25})`;
+  } else {
+    cardTransition = "transform 0.3s ease-out, box-shadow 0.3s ease-out";
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center">
+    <div id="paon-swipe-deck" className="flex flex-1 flex-col items-center">
+      <style>{`
+        #paon-swipe-deck { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        #paon-swipe-deck .swipe-clip-wrapper { position: relative; width: 100%; max-width: 390px; overflow: visible; box-sizing: border-box; }
+        #paon-swipe-deck .swipe-container { position: relative; width: 100%; height: 555px; touch-action: pan-y; overflow: visible; }
+        #paon-swipe-deck .munro-swipe-card { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 20px; background-color: #f0f0f0; background-size: cover; background-position: center; cursor: grab; user-select: none; font-family: OptimaKlein, sans-serif; font-size: 13px; text-align: center; color: #555555; box-sizing: border-box; }
+        #paon-swipe-deck .munro-final-card { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; background: #f2f2f2; padding: 20px; }
+        #paon-swipe-deck .card-label { display: flex; height: 25%; flex-direction: column; justify-content: center; padding: 0 20px; background: rgba(255,255,255,0.88); position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 20px 20px; }
+        #paon-swipe-deck .buttons { display: flex; justify-content: center; margin-top: 20px; gap: 50px; }
+        #paon-swipe-deck button.munro-swipe-btn { all: unset; cursor: pointer; position: relative; border-radius: 999vw; width: 60px; height: 60px; -webkit-tap-highlight-color: transparent; }
+        #paon-swipe-deck button.munro-swipe-btn:active .button-outer { box-shadow: none; }
+        #paon-swipe-deck .button-outer { position: relative; z-index: 1; border-radius: inherit; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0.05em 0.05em -0.01em rgba(5,5,5,1), 0 0.01em 0.01em -0.01em rgba(5,5,5,0.5), 0.15em 0.3em 0.1em -0.01em rgba(5,5,5,0.25); transition: box-shadow 300ms ease; }
+        #paon-swipe-deck .button-inner { position: relative; z-index: 1; border-radius: inherit; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transition: box-shadow 300ms ease, transform 250ms ease; overflow: clip; clip-path: inset(0 0 0 0 round 999vw); box-shadow: -0.05em -0.05em 0.05em 0 inset rgba(5,5,5,0.25), 0 0 0.05em 0.2em inset rgba(255,255,255,0.25), 0.025em 0.05em 0.1em 0 inset rgba(255,255,255,1), 0.12em 0.12em 0.12em inset rgba(255,255,255,0.25), -0.075em -0.25em 0.25em 0.1em inset rgba(5,5,5,0.25); }
+        #paon-swipe-deck button.munro-swipe-btn:active .button-inner { transform: scale(0.975); transition: transform 0.05s ease-in; }
+        #paon-swipe-deck .button-inner img { width: 18px; height: auto; display: block; }
+        #paon-swipe-deck #dislike .button-inner img { opacity: 0.75; width: 15px; }
+        #paon-swipe-deck #dislike .button-inner { background-color: #ff4c4c; }
+        #paon-swipe-deck #like .button-inner { background-color: #4caf50; }
+        #paon-swipe-deck .liked-carousel { position: relative; width: 100%; margin-top: 40px; height: 115px; }
+        #paon-swipe-deck .liked-track-wrapper { overflow-x: auto; overflow-y: hidden; height: 100%; display: flex; align-items: center; box-sizing: border-box; padding: 0 20px; scrollbar-width: none; }
+        #paon-swipe-deck .liked-track-wrapper::-webkit-scrollbar { display: none; }
+        #paon-swipe-deck .liked-track { display: flex; align-items: center; gap: 10px; width: max-content; }
+        #paon-swipe-deck .liked-item { flex: 0 0 auto; width: 70px; height: 105px; border-radius: 10px; background: #EBEBEB; background-position: center; background-size: cover; position: relative; }
+        #paon-swipe-deck .like-icon-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16.5px; height: 16.5px; background-image: url('https://www.nebelspiegel.com/images/bookmarkwhite.png'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: invert(1); opacity: 0.1; pointer-events: none; }
+      `}</style>
+
       <p className="sr-only" role="status" aria-live="polite">
-        {cards[index]
-          ? `Showing ${cards[index].name}, item ${index + 1} of ${cards.length}`
+        {current
+          ? `Showing ${current.name}, item ${index + 1} of ${cards.length}`
           : "No more items"}
       </p>
-      <div className="relative h-[26rem] w-full max-w-sm lg:h-[32rem] lg:max-w-md">
-        {remaining
-          .map((card, depth) => ({ card, depth }))
-          .reverse()
-          .map(({ card, depth }) => {
-            const isTop = depth === 0;
-            const rotate = isTop ? dragX / 18 : 0;
-            const translateX = isTop ? dragX : 0;
-            const translateY = depth * 10;
-            const scale = 1 - depth * 0.04;
-            return (
-              <div
-                key={card.variantId}
-                onPointerDown={isTop ? onPointerDown : undefined}
-                onPointerMove={isTop ? onPointerMove : undefined}
-                onPointerUp={isTop ? onPointerUp : undefined}
-                onPointerCancel={isTop ? onPointerUp : undefined}
-                className="absolute inset-0 select-none overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-[var(--color-stone-0,#fff)]"
-                style={{
-                  transform: `translate(${translateX}px, ${translateY}px) rotate(${rotate}deg) scale(${scale})`,
-                  transition:
-                    dragging.current || reducedMotion
-                      ? "none"
-                      : "transform var(--duration-quiet) var(--ease-out-quiet)",
-                  touchAction: "pan-y",
-                  cursor: isTop ? "grab" : "default",
-                  zIndex: VISIBLE_STACK - depth,
-                  boxShadow: "var(--shadow-elevated)",
-                }}
-              >
-                {card.imageUrl ? (
-                  <Image
-                    src={card.imageUrl}
-                    alt=""
-                    width={400}
-                    height={400}
-                    unoptimized
-                    draggable={false}
-                    className="h-3/4 w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-3/4 w-full bg-[var(--color-stone-100)]" />
-                )}
-                <div className="flex h-1/4 flex-col justify-center px-5">
-                  <p className="font-display text-lg text-[var(--color-stone-900)]">
-                    {card.name}
-                  </p>
-                  <p className="text-sm text-[var(--color-stone-600)]">
-                    {formatMoney(card.price, "en-US")}
-                  </p>
-                </div>
-                {isTop && dragX > 30 ? (
-                  <div
-                    aria-hidden="true"
-                    className="absolute right-5 top-5 rounded-full border-2 border-[var(--color-success-500)] px-3 py-1 text-sm font-medium text-[var(--color-success-500)]"
-                  >
-                    SAVE
-                  </div>
-                ) : null}
-                {isTop && dragX < -30 ? (
-                  <div
-                    aria-hidden="true"
-                    className="absolute left-5 top-5 rounded-full border-2 border-[var(--color-danger-500)] px-3 py-1 text-sm font-medium text-[var(--color-danger-500)]"
-                  >
-                    SKIP
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-      </div>
 
-      <div className="mt-8 flex items-center gap-6">
+      {current ? (
+        <div className="swipe-clip-wrapper">
+          <div className="swipe-container" ref={containerRef}>
+            <div
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              onPointerCancel={onPointerUp}
+              className="munro-swipe-card"
+              style={{
+                backgroundImage: current.imageUrl
+                  ? `url('${current.imageUrl}')`
+                  : undefined,
+                transform: cardTransform,
+                transition: cardTransition,
+                boxShadow: cardBoxShadow,
+                opacity: cardOpacity,
+              }}
+            >
+              <div className="card-label">
+                <p style={{ fontSize: 16, color: "#2a2925" }}>{current.name}</p>
+                <p style={{ fontSize: 13, color: "#7a7870" }}>
+                  {formatMoney(current.price, "en-US")}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="swipe-clip-wrapper">
+          <div className="swipe-container">
+            <div className="munro-swipe-card munro-final-card">
+              <p>You&rsquo;ve seen everything for now.</p>
+              <div className="flex gap-2">
+                <Link
+                  href={`/r/${slug}/products`}
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  Browse the full shop
+                </Link>
+                <Link
+                  href="/wishlist"
+                  className={buttonVariants({ size: "sm" })}
+                >
+                  See your favorites
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="buttons">
         <button
           type="button"
+          id="dislike"
+          className="munro-swipe-btn"
           aria-label="Skip"
           onClick={() => commit("left")}
-          className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--color-stone-300)] text-xl text-[var(--color-stone-600)] transition-[background-color,color,transform] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:border-[var(--color-danger-500)] hover:text-[var(--color-danger-500)] active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
         >
-          ✕
+          <div className="button-outer">
+            <div className="button-inner">
+              {/* eslint-disable-next-line @next/next/no-img-element -- byte-for-byte source markup */}
+              <img
+                src="https://www.nebelspiegel.com/images/closetinder.png"
+                alt=""
+              />
+            </div>
+          </div>
         </button>
-        <Link
-          href={`/r/${slug}/products/${cards[index]?.productSlug ?? ""}`}
-          className="text-sm text-[var(--color-stone-500)] underline underline-offset-4"
-        >
-          View details
-        </Link>
         <button
           type="button"
+          id="like"
+          className="munro-swipe-btn"
           aria-label="Save"
           onClick={() => commit("right")}
-          className="hover:bg-[var(--color-success-500)]/10 flex h-14 w-14 items-center justify-center rounded-full border border-[var(--color-stone-300)] text-xl text-[var(--color-danger-500)] transition-[background-color,color,transform] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:border-[var(--color-success-500)] active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
         >
-          ♥
+          <div className="button-outer">
+            <div className="button-inner">
+              {/* eslint-disable-next-line @next/next/no-img-element -- byte-for-byte source markup */}
+              <img
+                src="https://www.nebelspiegel.com/images/bookmarkwhite.png"
+                alt=""
+                style={{ width: 16.5, height: "auto", opacity: 0.8 }}
+              />
+            </div>
+          </div>
         </button>
+      </div>
+
+      <div className="liked-carousel">
+        <div className="liked-track-wrapper">
+          <div className="liked-track">
+            {Array.from({ length: likedSlotCount }, (_, i) => {
+              const item = liked[i];
+              return (
+                <div
+                  key={item?.variantId ?? i}
+                  className="liked-item"
+                  style={
+                    item?.imageUrl
+                      ? { backgroundImage: `url('${item.imageUrl}')` }
+                      : undefined
+                  }
+                >
+                  {!item ? <div className="like-icon-overlay" /> : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
