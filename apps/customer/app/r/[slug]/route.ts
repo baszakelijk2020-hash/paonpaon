@@ -42,7 +42,17 @@ async function loadTemplate(): Promise<string> {
     process.cwd(),
     "app/r/[slug]/paon-template.html",
   );
-  templateCache = await readFile(templatePath, "utf8");
+  const raw = await readFile(templatePath, "utf8");
+  // The table-service widget's embedded <style> still points at the
+  // founder's own domain for this one font. That host sends no
+  // Access-Control-Allow-Origin, so the browser silently fails the fetch
+  // and falls back to a system font — same CORS issue globals.css already
+  // works around via app/fonts/[filename]/route.ts, which serves this exact
+  // file same-origin. Confirmed broken in production before this fix.
+  templateCache = raw.replaceAll(
+    "https://www.nebelspiegel.com/fonts/optimaklein.woff2",
+    "/fonts/optimaklein.woff2",
+  );
   return templateCache;
 }
 
