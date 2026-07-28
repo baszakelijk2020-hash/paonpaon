@@ -317,11 +317,18 @@ marketing nav demotes founder-blocked Alterations in favour of Weddings;
 homepage card follows; private-demo access code is visible text; guest
 portal demo CTA opens the wedding-party walk.
 
+**Also (tenant isolation, 2026-07-28).** Prospect-demo customer emails are
+slug-scoped (`contact+{slug}-isabelle@…`) so wedding/client walks stay on
+the prospect tenant. Studio copy is explicit that blank product photos keep
+shared catalogue photography under their brand.
+
 **Blocked (skip in continuous mode until founder provisions):**
 
 - Stripe live (queue 1) — keys missing from env.
 - Resend live (queue 2) — API key missing.
 - Silhouette carousel (queue 7) — no founder-designed mount.
+- Prospect garment photography without pasted HTTPS URLs — still needs a
+  founder-provided upload/source path beyond the shared catalogue.
 
 Not in the queue and not to be started: fit tools (parked), the alterations
 vertical (awaiting founder design), and the four presentation modules —

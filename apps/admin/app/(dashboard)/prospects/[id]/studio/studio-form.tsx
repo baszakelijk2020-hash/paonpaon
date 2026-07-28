@@ -258,7 +258,9 @@ export function StudioForm({
               <label className="block text-sm">
                 Prospect garment photos{" "}
                 <span className="text-stone-400">
-                  (one https URL per line, up to 24 — upload above first)
+                  (one https URL per line, up to 24 — upload above first. Leave
+                  blank to keep the shared demo catalogue photography under
+                  their brand.)
                 </span>
                 <textarea
                   className={`${input} min-h-28 py-3 font-mono text-xs`}
