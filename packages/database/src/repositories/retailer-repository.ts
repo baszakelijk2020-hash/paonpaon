@@ -197,6 +197,30 @@ export class RetailerRepository {
     return toDomain(data);
   }
 
+  /**
+   * Platform-controlled status flip — used by Demo Studio teardown to
+   * suspend a seeded prospect tenant on unpublish/expiry and reactivate
+   * it on re-publish. Retailer staff cannot reach `status` through
+   * `updateProfile` (ADR-012); this path requires a privileged client.
+   */
+  async setStatus(
+    id: RetailerId,
+    status: "active" | "suspended",
+  ): Promise<Retailer> {
+    const { data, error } = await this.client
+      .from("retailers")
+      .update({ status })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return toDomain(data);
+  }
+
   async saveBrandTheme(
     id: RetailerId,
     theme: RetailerBrandTheme,

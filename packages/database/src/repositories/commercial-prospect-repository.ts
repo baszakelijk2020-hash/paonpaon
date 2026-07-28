@@ -190,8 +190,10 @@ export class CommercialProspectRepository {
         p_access_code: params.accessCode,
         p_expires_at: params.expiresAt,
         p_synthetic_data: params.syntheticData as unknown as Json,
-        p_retailer_id: params.retailerId ?? null,
-        p_retailer_slug: params.retailerSlug ?? null,
+        ...(params.retailerId ? { p_retailer_id: params.retailerId } : {}),
+        ...(params.retailerSlug
+          ? { p_retailer_slug: params.retailerSlug }
+          : {}),
       },
     );
     if (error) throw error;
@@ -207,6 +209,18 @@ export class CommercialProspectRepository {
       p_publish: published,
     });
     if (error) throw error;
+  }
+
+  /**
+   * Marks published demo environments past `expires_at` as `expired` and
+   * suspends each linked retailer so `/r/{slug}` 404s (Demo Studio A.4).
+   */
+  async expireDueEnvironments(): Promise<number> {
+    const { data, error } = await this.client.rpc(
+      "expire_due_prospect_demo_environments",
+    );
+    if (error) throw error;
+    return data ?? 0;
   }
 
   async openPublishedDemo(
