@@ -26,6 +26,8 @@ export interface BrandAssetActionState {
 export interface DemoEnvironmentActionState {
   error?: string;
   success?: string;
+  /** One-paste pack for the founder after generate (includes access code). */
+  outreachPack?: string;
 }
 
 const ALLOWED_ASSET_TYPES = [
@@ -257,9 +259,10 @@ export async function generateDemoEnvironment(
       },
     };
 
+    const publicToken = randomBytes(32).toString("base64url");
     await repository.generateEnvironment({
       prospectId,
-      publicToken: randomBytes(32).toString("base64url"),
+      publicToken,
       accessCode,
       expiresAt: new Date(
         Date.now() + expiryDays * 24 * 60 * 60 * 1000,
@@ -269,8 +272,36 @@ export async function generateDemoEnvironment(
       retailerSlug: seeded.slug,
     });
     revalidatePath(`/prospects/${prospectId}/studio`);
+
+    const customerBase = (env.customerAppUrl ?? "").replace(/\/$/, "");
+    const retailerBase = (env.retailerAppUrl ?? "").replace(/\/$/, "");
+    const storefront = customerBase
+      ? `${customerBase}/r/${seeded.slug}`
+      : `/r/${seeded.slug}`;
+    const demoLink = customerBase
+      ? `${customerBase}/demo/${publicToken}`
+      : `/demo/${publicToken}`;
+    const ownerEmail = loginFor("owner")?.email;
+    const customerEmail = customerLogin?.email;
+    const outreachPack = [
+      `${prospect.companyName} — PAON demo`,
+      `Storefront: ${storefront}`,
+      `Private demo: ${demoLink}`,
+      `Access code: ${accessCode}`,
+      `Demo password (all personas): Demo-PAON-2026!`,
+      ownerEmail
+        ? `Retailer owner login: ${retailerBase || "(retailer app)"}/login?demo=1&email=${encodeURIComponent(ownerEmail)}`
+        : null,
+      customerEmail
+        ? `Customer login: ${customerBase || "(customer app)"}/login?demo=1&email=${encodeURIComponent(customerEmail)}`
+        : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
     return {
       success: `Branded demo retailer ready at /r/${seeded.slug}. Review the live storefront before publishing.`,
+      outreachPack,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";

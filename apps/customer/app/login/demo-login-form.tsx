@@ -4,7 +4,15 @@ import { Input } from "@paon/ui/components/Input";
 
 import { signInToDemo } from "./actions";
 
-export function DemoLoginForm({ redirectTo }: { redirectTo: string }) {
+const DEMO_PASSWORD = "Demo-PAON-2026!";
+
+export function DemoLoginForm({
+  redirectTo,
+  email,
+}: {
+  redirectTo: string;
+  email?: string | undefined;
+}) {
   return (
     <form action={signInToDemo} className="flex flex-col gap-5">
       <input type="hidden" name="redirectTo" value={redirectTo} />
@@ -15,6 +23,7 @@ export function DemoLoginForm({ redirectTo }: { redirectTo: string }) {
           type="email"
           autoComplete="email"
           placeholder="contact+isabelle@nebelspiegel.com"
+          defaultValue={email ?? ""}
           required
         />
       </FormField>
@@ -24,6 +33,7 @@ export function DemoLoginForm({ redirectTo }: { redirectTo: string }) {
           name="password"
           type="password"
           autoComplete="current-password"
+          defaultValue={email ? DEMO_PASSWORD : ""}
           required
         />
       </FormField>

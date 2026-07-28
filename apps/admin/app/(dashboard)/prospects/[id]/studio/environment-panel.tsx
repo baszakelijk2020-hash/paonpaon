@@ -44,6 +44,23 @@ export function EnvironmentPanel({
     window.setTimeout(() => setCopied(undefined), 1800);
   }
 
+  async function copyOutreachPack(pack: string) {
+    await navigator.clipboard.writeText(pack);
+    setCopied("outreach");
+    window.setTimeout(() => setCopied(undefined), 1800);
+  }
+
+  function personaHref(persona: {
+    app?: "retailer" | "customer" | undefined;
+    email?: string | undefined;
+  }) {
+    const base = persona.app === "customer" ? customerAppUrl : retailerAppUrl;
+    if (!persona.email) return storefrontUrl ?? "#";
+    const origin = (base ?? "").replace(/\/$/, "");
+    const email = encodeURIComponent(persona.email);
+    return `${origin}/login?demo=1&email=${email}`;
+  }
+
   return (
     <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -116,6 +133,25 @@ export function EnvironmentPanel({
           {state.success}
         </p>
       ) : null}
+      {state.outreachPack ? (
+        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-medium text-emerald-950">
+              Outreach pack (includes the access code — copy now)
+            </p>
+            <button
+              type="button"
+              className="inline-flex min-h-9 items-center rounded-md border border-emerald-300 bg-white px-3 text-xs"
+              onClick={() => copyOutreachPack(state.outreachPack!)}
+            >
+              {copied === "outreach" ? "Copied" : "Copy outreach pack"}
+            </button>
+          </div>
+          <pre className="mt-3 overflow-x-auto whitespace-pre-wrap font-mono text-[11px] leading-5 text-emerald-950/80">
+            {state.outreachPack}
+          </pre>
+        </div>
+      ) : null}
 
       {environment ? (
         <div className="mt-8 space-y-5">
@@ -167,11 +203,7 @@ export function EnvironmentPanel({
             </p>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {environment.syntheticData.personas.map((persona) => {
-                const base =
-                  persona.app === "customer" ? customerAppUrl : retailerAppUrl;
-                const href = persona.email
-                  ? `${base ?? ""}/login?demo=1`
-                  : (storefrontUrl ?? "#");
+                const href = personaHref(persona);
                 return (
                   <article
                     key={persona.key}

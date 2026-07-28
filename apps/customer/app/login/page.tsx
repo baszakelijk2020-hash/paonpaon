@@ -29,11 +29,18 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ demo?: string; error?: string; redirectTo?: string }>;
+  searchParams: Promise<{
+    demo?: string;
+    error?: string;
+    redirectTo?: string;
+    email?: string;
+  }>;
 }) {
-  const { demo, error, redirectTo = "/dashboard" } = await searchParams;
+  const { demo, error, redirectTo = "/dashboard", email } = await searchParams;
   const errorMessage = error ? ERROR_MESSAGES[error] : undefined;
   const isDemo = demo === "1";
+  const prefilledEmail =
+    email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : undefined;
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-black">
@@ -76,7 +83,10 @@ export default async function LoginPage({
 
             <div className="mt-6">
               {isDemo ? (
-                <DemoLoginForm redirectTo={redirectTo} />
+                <DemoLoginForm
+                  redirectTo={redirectTo}
+                  {...(prefilledEmail ? { email: prefilledEmail } : {})}
+                />
               ) : (
                 <MagicLinkForm redirectTo={redirectTo} />
               )}

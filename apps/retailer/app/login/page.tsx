@@ -6,6 +6,8 @@ import { Input } from "@paon/ui/components/Input";
 import { signIn } from "./actions";
 import { QuickDemoLogin } from "./quick-demo-login";
 
+const DEMO_PASSWORD = "Demo-PAON-2026!";
+
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_credentials:
     "That email and password don't match a Retailer Portal account.",
@@ -17,10 +19,18 @@ const ERROR_MESSAGES: Record<string, string> = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; redirectTo?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    redirectTo?: string;
+    demo?: string;
+    email?: string;
+  }>;
 }) {
-  const { error, redirectTo } = await searchParams;
+  const { error, redirectTo, demo, email } = await searchParams;
   const errorMessage = error ? ERROR_MESSAGES[error] : undefined;
+  const prefilledEmail =
+    email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : undefined;
+  const isDemo = demo === "1";
 
   return (
     <AuthShell
@@ -47,6 +57,7 @@ export default async function LoginPage({
             name="email"
             type="email"
             autoComplete="email"
+            defaultValue={prefilledEmail ?? ""}
             required
           />
         </FormField>
@@ -56,6 +67,7 @@ export default async function LoginPage({
             name="password"
             type="password"
             autoComplete="current-password"
+            defaultValue={isDemo && prefilledEmail ? DEMO_PASSWORD : ""}
             required
           />
         </FormField>
