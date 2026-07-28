@@ -7,8 +7,11 @@ consistency — never for short-term speed.
 **Start every session by reading [docs/PHASE.md](docs/PHASE.md) and
 [docs/WORKING_AGREEMENT.md](docs/WORKING_AGREEMENT.md).** The first defines
 what may be worked on right now and overrides any older plan; the second
-defines how to work — plan first, one reviewable increment at a time, stop
-and wait rather than running unsupervised.
+defines how to work — **continuous mode (founder decision 2026-07-28):**
+build, self-verify, iterate, commit, push, and automatically advance the
+PHASE queue without stopping for founder review between increments. Hard
+stops only for out-of-freeze work, missing founder credentials, or ADR
+conflicts.
 
 Then read only what the change requires. [docs/README.md](docs/README.md)
 is a tiered router, not a reading list — the document set is ~6,000 lines
@@ -140,48 +143,12 @@ a working state, always. A task is not done if it merges red.
 
 ## Reporting completed work
 
-Whenever a task is finished, the reply ends with a distinct "Test it"
-section — a literal list, not prose buried in a paragraph — so the result
-can be checked without re-reading the whole conversation. Every item:
-
-- **URL**: the full local URL, app/port (`localhost:3000` admin, `:3001`
-  retailer, `:3002` customer) and exact path
-  (`http://localhost:3002/r/e2e-customer-workspace`), never just "the
-  storefront" or "the dashboard."
-- **Prerequisite**: what must already be running (`pnpm dev`,
-  `supabase start`) and any seed/fixture step the feature depends on —
-  say if a re-seed is needed (`pnpm --filter @paon/database seed:demo`
-  or PAON Admin's `/demo-mode`) rather than assuming stale local data
-  still matches.
-- **Auth**: exactly how to get past sign-in if the route needs it — the
-  specific demo persona/credentials (`/login?demo=1` +
-  `contact+<retailer-slug>-<role>@nebelspiegel.com`, PAON Admin's
-  `/demo-mode` persona launcher, or a dev-only quick-login control), not
-  just "sign in first."
-- **Exact interaction path**: if the result isn't on the page load itself
-  (a specific category tab, a modal, a second click), spell out the click
-  path — don't make the user hunt for it.
-- **What was already verified automatically**, if anything (a curl
-  status code, a Playwright script, an e2e suite run) — so the user knows
-  what's already confirmed machine-side versus what only a human eye can
-  confirm (visual polish, a specific screenshot).
-
-A GitHub remote **is** connected (`origin`, `main` tracks `origin/main`)
-and `.github/workflows/ci.yml` runs lint, typecheck, test and build on
-every push to `main` and on every pull request. An earlier version of this
-file and `docs/PROJECT_STATE.md` both claimed no remote existed and no CI
-ran; that was wrong, and anything written on the strength of it should be
-re-checked. What remains true is that there is no CI-triggered _deploy_ —
-CI verifies, it does not ship. Unless a Vercel deploy was explicitly run
-and confirmed live, the URLs reported in a "Test it" section are local
-ones, never a guess at a production URL.
-
-**Never rebuild or delete `.next` in an app the user might have `pnpm dev`
-running against** — it corrupts the live dev server out from under it
-(a real incident, twice, in this session). Verify against the already-running
-dev server directly (`curl`, a throwaway Playwright script hitting
-`localhost:300x`) instead of running `pnpm build`/`rm -rf .next` for
-verification purposes.
+In continuous mode the session **self-verifies** (curl, browser, or
+Playwright against the running apps), then **commits and pushes** without
+waiting. Still end each coherent push with a short "Test it" list so a
+human can spot-check later if they want — exact local URL/port, auth path,
+click path, and what was already machine-verified. Do not block the next
+queue item on that list being read.
 
 ## Commands
 

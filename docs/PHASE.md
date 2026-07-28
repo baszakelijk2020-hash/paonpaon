@@ -174,9 +174,11 @@ most, and it does not exist.
 ## The queue
 
 Founder decision 2026-07-27: finish the build to a demonstrable state.
-Ordered by what a prospect sees first. **One increment at a time, reviewed
-and committed before the next** — the order is fixed, the batching is not
-negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
+Ordered by what a prospect sees first. **Continuous mode (ADR-054,
+2026-07-28):** build, self-verify, commit, push, and advance this queue
+without waiting for founder review between increments. Still one coherent
+commit at a time — the batching pause is gone; the small-commit discipline
+is not.
 
 1. **Stripe live.** Blocked on the founder provisioning credentials — no
    session can do this. Once `STRIPE_SECRET_KEY` is set, verify a real
@@ -451,27 +453,29 @@ If not, it waits. This narrows what gets built. It does not lower the
 quality bar for what does — the rules in `CLAUDE.md` and `PRINCIPLES.md`
 apply in full.
 
-## Stop and ask
+## Stop and ask (hard stops only)
 
-Previous sessions ran unsupervised for long stretches and the build drifted.
-That is the failure this phase is correcting. Stop and ask when:
+Founder decision 2026-07-28: continuous mode. Do **not** stop between
+increments for review. Build, self-verify, commit, push, advance this
+queue. Stop and ask only when:
 
 - The work would touch anything outside the three workstreams.
-- A change needs a new domain entity, migration, or shared package.
-- You are about to contradict an ADR in `DECISIONS.md`.
-- You have been working for a long stretch without the founder seeing output.
+- Credentials only the founder can provision are required (Stripe, Resend).
+- You are about to contradict an ADR in `DECISIONS.md` without recording
+  a new ADR.
 
-Autonomy is not the goal. Reviewable increments are.
+Autonomy inside the freeze is the goal. Uncommitted finished work is not.
 
-## End every session committable
+## End every session committable and pushed
 
 No throwaway spec files, no temporary routes, no scratch artifacts. Name
-temporary files `_tmp-*` so `.gitignore` catches them. Commit what was worth
-writing; delete what was scaffolding.
+temporary files `_tmp-*` so `.gitignore` catches them. Commit and push what
+was worth writing; delete what was scaffolding.
 
 Uncommitted work is unreviewable and unrevertable. At the point this phase
-began there were 21 unpushed commits and 130 uncommitted files. That is what
-losing control looks like in practice.
+began there were 21 unpushed commits and 130 uncommitted files. Continuous
+mode fixes that by shipping smaller commits more often — not by leaving a
+pile on the laptop.
 
 ## Definition of done, this phase
 

@@ -3,236 +3,163 @@
 How the founder and an engineering session (Claude Code, Codex, or any
 other) work together on PAON. **Tier 0 — read every session.**
 
-This exists because of a specific, documented failure. Before 2026-07-27
-the repository had accumulated 21 unpushed commits and 130 uncommitted
-files, CI had never once run, Codex had no instructions file at all, and
-`docs/CLAUDE_HANDOFF.md` explicitly told agents to "continue autonomously
-and do not stop for routine implementation decisions or progress
-summaries." The result was months of work nobody could review, revert, or
-verify. None of that was caused by bad code. It was caused by working in
-units too large to inspect.
-
-The whole agreement below is one idea: **work in increments small enough
-that a non-engineer can confirm each one before the next begins.**
+**Founder decision 2026-07-28:** reverse the stop-and-wait loop. Sessions
+work continuously to completion — build, self-verify, iterate, commit,
+push, pick up the next in-scope item — without pausing for founder review
+after every increment. The earlier stop-and-wait rule fixed a real failure
+(21 unpushed commits, 130 uncommitted files, no CI). Continuous mode keeps
+the _discipline_ of that fix (small commits, green CI, no silent debt) and
+drops the _human gate_ between increments. Quality is enforced by the
+session verifying its own work (curl, browser, definition-of-done) and by
+CI on every push — not by waiting for a click-through between tasks.
 
 ---
 
-## The founder's routine
+## The loop (continuous)
 
-Written for the founder, not for a session. If you have lost the thread,
-start here.
+Every piece of work follows the same cycle. **Do not stop between
+increments to wait for the founder.** Chain them until the current
+PHASE.md queue item is done, then automatically start the next in-scope
+item.
 
-### Every time you sit down
+**1. Orient.** Read [PHASE.md](./PHASE.md). Take the next unfinished item
+in the live queue / workstreams. Skip items blocked on founder credentials
+(Stripe, Resend, etc.) — leave a one-line note in PHASE.md and move on.
 
-Open VS Code, open a terminal (`Ctrl` + `Shift` + `` ` ``), and run:
+**2. Plan briefly, then build.** State the intent in the commit message
+and PHASE.md notes, not in a waiting message. One increment is still one
+coherent change (one behaviour, one surface). If it needs the word "and"
+more than once, split into sequential commits — but ship them back to back
+without pausing.
 
-```
-cd ~/Projects/PAON && nvm use && pnpm dev
-```
+**3. Self-verify.** Prefer verifying against the already-running `pnpm
+dev` with curl / browser / Playwright. Do **not** run `pnpm build` against
+a live `.next` the founder may be using. Before considering an increment
+done, check the actual local URL and the interaction path. Fix what you
+find; iterate until it works.
 
-`nvm use` puts you on the same Node CI uses. `pnpm dev` starts the three
-apps: admin on `localhost:3000`, retailer on `:3001`, customer on `:3002`.
-Leave that tab running all day. Open a **second** tab for every other
-command.
-
-### Every time you ask an agent for work
-
-Paste this first, in Claude Code or Codex:
-
-> Read docs/PHASE.md, docs/WORKING_AGREEMENT.md and docs/DESIGN_PORTS.md
-> first. You are the principal engineer for PAON. We are in a scope freeze —
-> three workstreams only. Founder-designed surfaces are ported verbatim from
-> downloaded_pages/\*.html, never rewritten in Tailwind or @paon/ui
-> (ADR-052). Before writing code, tell me what you plan to change and why,
-> and stop if it falls outside the freeze. Build one reviewable increment,
-> run the full definition-of-done command, then stop and wait for me.
-
-Then: it proposes → you say go → it builds one thing and stops → you
-review → you commit. Never let it start a second thing before you have
-committed the first.
-
-### Every time it finishes something
-
-1. Look at VS Code's Source Control panel (branch icon, left bar). Does the
-   list of changed files roughly match what it said it would change?
-2. Open the URL from its **Test it** section. Click through. Does it work?
-3. In your second terminal tab:
-
-```
-git add -A && git commit -m "plain description of what changed" && git push origin main
-```
-
-4. Open `github.com/baszakelijk2020-hash/paonpaon/actions`. Wait for green.
-
-If CI goes red, stop and fix it before starting anything new. A red `main`
-means the next change is built on a broken foundation.
-
-### Before you stop for the day
-
-In your second tab:
-
-```
-git status --short
-```
-
-Empty output means everything is committed and safe. Anything listed is
-work that exists nowhere but your laptop — commit it or delete it. Do not
-leave it overnight; that is how 130 uncommitted files happened.
-
-### That is the whole routine
-
-Three commands to start, one to commit, one to check. Everything else in
-this document explains _why_ — you do not need to re-read it daily.
-
----
-
-## The loop
-
-Every piece of work follows the same five steps. No step is skipped, and
-the session stops at step 5 rather than rolling into the next increment.
-
-**1. Plan, before writing code.** The session states, in plain language:
-what it intends to change, which files, and why it serves the current
-objective in [PHASE.md](./PHASE.md). If the answer involves anything
-outside the three in-scope workstreams, it stops here and asks.
-
-**2. The founder confirms or redirects.** This costs a minute and is the
-entire control mechanism. Do not skip it because the plan sounds sensible —
-plans that sound sensible are exactly how scope crept before.
-
-**3. Build one increment.** One increment is a change the founder can look
-at and judge on its own: one page, one component, one behaviour. Not "the
-storefront." Not "the marketing site." If describing it needs the word
-"and" more than once, it is too big — split it.
-
-**4. Verify.** The session runs the full definition-of-done command from
-[CLAUDE.md](../CLAUDE.md) and reports the actual result, not an assumption:
+**4. Definition of done before push** (or when the hook requires it):
 
 ```
 pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
 ```
 
-Then it writes a **Test it** section — exact local URL and port, what must
-already be running, how to get past sign-in, the exact click path, and what
-was already checked automatically versus what only a human eye can confirm.
+Stop `pnpm dev` first if you must run `pnpm build`. All six green, or fix
+until they are.
 
-**5. Stop.** The session waits. The founder reviews and commits. Only then
-does the next increment start.
+**5. Commit and push.** Do not leave work only on the laptop.
+
+```
+git add -A && git commit -m "<why, in plain language>" && git push origin main
+```
+
+Watch CI / Vercel. If red, **fix immediately** before the next feature.
+Deploy is push-to-`main` (Hobby Vercel); do not invent a second deploy path.
+
+**6. Advance.** Update PHASE.md if an item finished. Start the next
+in-scope queue item in the same session. Keep going.
 
 ---
 
-## The founder's review, concretely
+## What still stops the session (hard stops only)
 
-Reviewing does not require reading code. Three checks, two minutes:
+Stop and ask the founder — do not proceed and report afterwards — only
+when:
 
-**Look at what changed.** VS Code's Source Control panel (the branch icon
-in the left bar) lists every modified file. Click one to see old and new
-side by side. You are not auditing logic — you are asking: does this touch
-roughly the files the plan said it would? A change to twelve files when the
-plan described one page is the signal to stop and ask why.
+- The work would leave the three workstreams in [PHASE.md](./PHASE.md).
+- Credentials or a third-party account only the founder can provision are
+  required (live Stripe, Resend, etc.).
+- A change would contradict an ADR in [DECISIONS.md](./DECISIONS.md)
+  without writing a new ADR that records the reversal.
+- Destructive irreversible ops on production data beyond the documented
+  seed / demo teardown paths.
 
-**Follow the Test it section.** Open the URL. Click the path. Look at it.
-If the session says something works and it does not, that is worth knowing
-now rather than three increments later.
+Outside those: **do not stop for routine progress, mid-increment
+confirmation, or "please review."** Verify yourself, commit, push,
+continue.
 
-**Commit before continuing.** An unreviewed, uncommitted increment sitting
-in the working tree while a second one starts on top of it is precisely the
-state that caused the incident above.
-
-```
-git add -A && git commit -m "<what changed, in plain language>" && git push origin main
-```
-
-Then check the Actions tab is green. CI is the only thing that verifies on
-a clean machine rather than yours.
+Drive-by fixes of unrelated bugs are still discouraged — park them in
+PHASE.md or a short commit message follow-up note, then finish the current
+item. Silent technical debt is still forbidden.
 
 ---
 
-## Never run unsupervised
+## Scope freeze (unchanged)
 
-The session stops and asks — it does not proceed and report afterwards —
-when any of these is true:
+Only the three workstreams in PHASE.md. `ROADMAP.md` and
+`COMPETITIVE_GAPS.md` are reference, not a free-for-all queue. Within the
+freeze, PHASE.md's ordered queue is the work queue — advance it
+automatically.
 
-- The work would touch anything outside the three workstreams in
-  [PHASE.md](./PHASE.md).
-- It needs a new domain entity, a migration, or a new shared package.
-- It would contradict an ADR in [DECISIONS.md](./DECISIONS.md).
-- It has been working long enough that the founder has not seen output.
-- It is about to delete or rewrite something it did not create.
-- It finds an existing problem unrelated to the current task. Report it,
-  write it down, do not fix it in passing. Drive-by fixes are how a
-  reviewable change becomes an unreviewable one.
+---
 
-"It seemed reasonable and in the spirit of the goal" is not a reason to
-proceed. It is the exact failure mode this document exists to prevent.
+## Founder-designed surfaces (unchanged)
+
+Port verbatim from `downloaded_pages/*.html` and
+`apps/customer/app/r/[slug]/paon-template.html` (ADR-052). Never rebuild
+those in Tailwind or `@paon/ui`. If a surface cannot be ported verbatim,
+stop and ask.
+
+---
+
+## The founder's routine (lightweight)
+
+You no longer need to gate every increment. When you sit down:
+
+```
+cd ~/Projects/PAON && nvm use && pnpm dev
+```
+
+Check `git log --oneline -10` and GitHub Actions / Vercel if you want the
+story of what shipped while you were away. If CI is red, tell the session
+to fix `main` first.
+
+Paste when starting a fresh agent:
+
+> Read docs/PHASE.md, docs/WORKING_AGREEMENT.md and docs/DESIGN_PORTS.md
+> first. Continuous mode: build, self-verify, commit, push, advance the
+> PHASE queue without waiting for me between increments. Scope freeze —
+> three workstreams only. Founder-designed surfaces are verbatim ports
+> (ADR-052). Hard stops only for out-of-freeze work, missing credentials,
+> or ADR conflicts.
 
 ---
 
 ## Switching between Claude Code and Codex
 
-The founder alternates between the two as usage limits allow. They share no
-memory whatsoever. The only continuity is the repository.
-
-**Both read the same charter.** `AGENTS.md` at the repository root exists so
-Codex loads the same instructions Claude does. It is a pointer to
-`CLAUDE.md` and must never accumulate rules of its own — two charters that
-disagree is worse than one nobody reads.
-
-**Never switch mid-increment.** Finish the loop, verify, commit, then
-switch. Handing a half-finished change to an agent with no idea what was
-intended produces the worst output of any situation in this document.
-
-**Orient the incoming session** by having it read `PHASE.md`, then
-`git log --oneline -10` to see what just happened. Recent commit messages
-are the handoff note. Write them for that purpose.
+They share no memory. Continuity is the repository: PHASE.md, commit
+messages, green CI. Orient with `PHASE.md` + `git log --oneline -10`.
+Prefer finishing a commit before switching tools so the handoff is clean.
 
 ---
 
 ## Environment discipline
 
-**Match CI's Node.** CI pins Node from `.nvmrc` (22.20.0). A developer
-machine drifts ahead — the founder's was on 26 while CI ran 20.9.0, which
-is why CI sat broken and invisible for months. Run `nvm use` in the project
-folder at the start of each day. If `nvm` is not installed, install it; the
-alternative is local green that predicts nothing.
+**Match CI's Node.** `nvm use` from `.nvmrc`.
 
-**Never build against a live dev server.** `pnpm build` rebuilds `.next`
-and has corrupted a running `pnpm dev` twice. Stop the dev server first, or
-verify against the already-running server with `curl` or a throwaway
-Playwright script instead.
+**Never rebuild `.next` under a live `pnpm dev`.** Verify with curl /
+browser against the running server when possible.
 
-**Name temporary files `_tmp-*`.** `.gitignore` catches that prefix, so
-scratch verification scripts cannot be committed by accident. Delete them
-anyway before the session ends.
+**Name temporary files `_tmp-*`.** Delete them before the session ends.
+
+**Leave the tree clean.** Uncommitted work at session end is still a
+failure mode — continuous mode commits more often, not less.
 
 ---
 
 ## Decisions are not real until they are written
 
-Anything agreed in a chat window and not committed to a file is lost the
-moment the session ends. This is not a limitation to work around; it is the
-single most important habit on this list.
-
-- Architectural choice, or a reversal of a past one →
-  [DECISIONS.md](./DECISIONS.md), as a new ADR. Never edit an old one.
+- Architectural choice or reversal → [DECISIONS.md](./DECISIONS.md) ADR.
 - Change to what may be worked on → [PHASE.md](./PHASE.md).
-- Commercial or positioning judgement →
-  [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md).
-- A shortcut taken under time pressure → written down somewhere, always.
-  Silent debt is the one thing this codebase cannot accumulate and survive.
-
-If a session proposes something significant and does not offer to record
-it, ask it to. If the founder decides something significant in
-conversation, it is the session's job to write it down as part of the same
-increment.
+- Working-mode change (this file) → keep CLAUDE.md / AGENTS.md in sync.
 
 ---
 
 ## What good looks like
 
-A session that ends with: one reviewed increment, six green checks, a
-committed and pushed change, a green CI run, and a one-paragraph statement
-of what is now true that was not true before.
+A session that runs for a long stretch and ends with: multiple small
+pushed commits, green CI, PHASE.md advanced, and concrete verified
+URLs — without the founder having to approve each step.
 
-A session that ends with thirty modified files, a confident summary, and
-nothing committed is a failure regardless of how good the code is.
+A session that ends with thirty modified files and nothing committed is
+still a failure.

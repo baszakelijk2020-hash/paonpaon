@@ -2385,3 +2385,33 @@ tenant-scoped table: identity-only checks are insufficient. The rule is cheap
 to apply up front and expensive to rediscover after a feature ships, so it is
 recorded here as an explicit policy-design requirement rather than left as a
 one-off wedding-party fix.
+
+---
+
+## ADR-054: Continuous agent working mode (supersedes stop-and-wait)
+
+**Context.** ADR-era process docs (`WORKING_AGREEMENT.md`, `CLAUDE.md`)
+required the session to stop after every reviewable increment so the
+founder could confirm before the next began. That fixed a prior failure
+mode (21 unpushed commits, 130 uncommitted files, no CI). By 2026-07-28
+the founder decided the gate had become the bottleneck: cold outreach
+needs the three in-scope workstreams finished, and the founder can
+self-verify via push → CI → Vercel rather than click-through between
+every change.
+
+**Decision.** Continuous mode inside the PHASE.md scope freeze:
+
+1. Build → self-verify (curl / browser / Playwright against running
+   apps) → iterate → commit → push `origin/main` → advance the PHASE
+   queue automatically.
+2. Do not stop for routine founder review between increments.
+3. Hard stops only: out-of-freeze work, missing founder-only credentials
+   (Stripe, Resend, …), or ADR conflicts without a new ADR.
+4. Quality bar unchanged: definition-of-done, no silent debt, verbatim
+   founder surfaces (ADR-052), tenant RLS, repository pattern.
+
+**Consequences.** Sessions ship more often and must leave the tree clean
+after every coherent change. Risk of drift returns if sessions skip
+self-verify or leave unpushed work — continuous mode commits _more_
+often, not less. `WORKING_AGREEMENT.md`, `CLAUDE.md`, `AGENTS.md`, and
+`PHASE.md` were updated in the same change as this ADR.
