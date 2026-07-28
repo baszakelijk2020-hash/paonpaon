@@ -182,7 +182,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[#111110] px-6 py-8 text-[#d9d9d9] shadow-[var(--shadow-elevated)] sm:px-10 sm:py-11">
+      <section className="paon-reveal relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[#111110] px-6 py-8 text-[#d9d9d9] shadow-[var(--shadow-elevated)] sm:px-10 sm:py-11">
         <div
           aria-hidden="true"
           className="absolute inset-y-0 right-0 -z-10 w-2/5 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_68%)]"
@@ -292,7 +292,8 @@ export default async function DashboardPage() {
 
       <section
         aria-label="Today at a glance"
-        className="grid grid-cols-2 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] lg:grid-cols-4"
+        className="paon-reveal grid grid-cols-2 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] lg:grid-cols-4"
+        style={{ animationDelay: "120ms" }}
       >
         {[
           {
@@ -341,7 +342,7 @@ export default async function DashboardPage() {
         id="attention"
         className="grid scroll-mt-8 gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.75fr)]"
       >
-        <section>
+        <section className="paon-reveal" style={{ animationDelay: "240ms" }}>
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
               <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
@@ -440,7 +441,7 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <aside>
+        <aside className="paon-reveal" style={{ animationDelay: "360ms" }}>
           <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             House pulse
           </p>
