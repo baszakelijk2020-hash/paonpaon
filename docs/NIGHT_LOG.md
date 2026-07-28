@@ -155,3 +155,7 @@ of proceeding on any of the conditions above.
 - Queue item 5, screen 8 of 10 (Client list): `b5eae0d`. Already
   well-tokenized; added `paon-reveal` to the list card and empty state.
   DoD green, pushed.
+- Queue item 5, screen 9 of 10 (Client record): `4e4d39a`. Same
+  ADR-035-aligned pattern as the retailer dashboard; added `paon-reveal`
+  to hero/stats/content section (0/120/240ms) rather than staggering each
+  of the ~7 nested cards individually. DoD green, pushed.
