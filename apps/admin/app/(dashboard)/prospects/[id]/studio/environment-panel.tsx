@@ -16,11 +16,13 @@ export function EnvironmentPanel({
   environment,
   customerAppUrl,
   retailerAppUrl,
+  contactEmail,
 }: {
   prospectId: string;
   environment: ProspectDemoEnvironment | null;
   customerAppUrl?: string | undefined;
   retailerAppUrl?: string | undefined;
+  contactEmail: string;
 }) {
   const action = generateDemoEnvironment.bind(null, prospectId);
   const [state, formAction, pending] = useActionState(action, initialState);
@@ -139,13 +141,23 @@ export function EnvironmentPanel({
             <p className="text-sm font-medium text-emerald-950">
               Outreach pack (includes the access code — copy now)
             </p>
-            <button
-              type="button"
-              className="inline-flex min-h-9 items-center rounded-md border border-emerald-300 bg-white px-3 text-xs"
-              onClick={() => copyOutreachPack(state.outreachPack!)}
-            >
-              {copied === "outreach" ? "Copied" : "Copy outreach pack"}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              {state.prospectMailtoHref ? (
+                <a
+                  href={state.prospectMailtoHref}
+                  className="inline-flex min-h-9 items-center rounded-md bg-emerald-900 px-3 text-xs text-white"
+                >
+                  Email {contactEmail} →
+                </a>
+              ) : null}
+              <button
+                type="button"
+                className="inline-flex min-h-9 items-center rounded-md border border-emerald-300 bg-white px-3 text-xs"
+                onClick={() => copyOutreachPack(state.outreachPack!)}
+              >
+                {copied === "outreach" ? "Copied" : "Copy outreach pack"}
+              </button>
+            </div>
           </div>
           <pre className="mt-3 overflow-x-auto whitespace-pre-wrap font-mono text-[11px] leading-5 text-emerald-950/80">
             {state.outreachPack}

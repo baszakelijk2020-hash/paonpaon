@@ -28,6 +28,8 @@ export interface DemoEnvironmentActionState {
   success?: string;
   /** One-paste pack for the founder after generate (includes access code). */
   outreachPack?: string;
+  /** Opens the founder's mail client with a cold-email draft (no Resend). */
+  prospectMailtoHref?: string;
 }
 
 const ALLOWED_ASSET_TYPES = [
@@ -299,9 +301,32 @@ export async function generateDemoEnvironment(
       .filter(Boolean)
       .join("\n");
 
+    const contactFirst =
+      prospect.primaryContactName.trim().split(/\s+/)[0] ??
+      prospect.primaryContactName;
+    const emailSubject = `Your private ${prospect.companyName} demonstration on PAON`;
+    const emailBody = [
+      `Hi ${contactFirst},`,
+      "",
+      `I've prepared a private PAON demonstration for ${prospect.companyName} — a live storefront and Mission Control, not a slide deck.`,
+      "",
+      "Open the private demo:",
+      demoLink,
+      "",
+      `Access code: ${accessCode}`,
+      "",
+      "Live storefront (same tenant):",
+      storefront,
+      "",
+      "Happy to walk it with you whenever suits.",
+      "",
+    ].join("\n");
+    const prospectMailtoHref = `mailto:${encodeURIComponent(prospect.primaryContactEmail)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+
     return {
       success: `Branded demo retailer ready at /r/${seeded.slug}. Review the live storefront before publishing.`,
       outreachPack,
+      prospectMailtoHref,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
