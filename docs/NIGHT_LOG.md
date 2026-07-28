@@ -152,3 +152,6 @@ of proceeding on any of the conditions above.
   `AppShell` chrome (sidebar/header) untouched — already close to spec
   and changing it ripples across every retailer/admin screen, out of
   scope for a single screen's increment. DoD green, pushed.
+- Queue item 5, screen 8 of 10 (Client list): `b5eae0d`. Already
+  well-tokenized; added `paon-reveal` to the list card and empty state.
+  DoD green, pushed.
