@@ -270,13 +270,16 @@ export class CommercialProspectRepository {
   async openPublishedDemo(
     publicToken: string,
     accessCode: string,
-  ): Promise<PublicProspectDemo | null> {
+  ): Promise<PublicProspectDemo | { error: string } | null> {
     const { data, error } = await this.client.rpc("open_prospect_demo", {
       p_public_token: publicToken,
       p_access_code: accessCode,
     });
     if (error) throw error;
-    return data as unknown as PublicProspectDemo | null;
+    if (!data) return null;
+    const payload = data as unknown as PublicProspectDemo & { error?: string };
+    if (payload.error) return { error: payload.error };
+    return payload as PublicProspectDemo;
   }
 
   async updateStage(
