@@ -139,3 +139,8 @@ of proceeding on any of the conditions above.
   visual pass, ADR-035) — added `paon-reveal` to the hero, the
   current-moments strip, and each relationship card (120ms stagger per
   card). DoD green, pushed.
+- Queue item 5, screen 6 of 10 (Customer loyalty): `5b64a58`. Already
+  matched paon.html (reward rows already used `--radius-md`,
+  `--duration-quiet`/`--ease-out-quiet`; Badge already `rounded-full`
+  matching `#paon-basket-count`'s pill). Added `paon-reveal` to each
+  loyalty card (120ms stagger) and the empty state. DoD green, pushed.
