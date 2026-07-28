@@ -204,3 +204,26 @@ of proceeding on any of the conditions above.
   card computes `border-radius: 20px`, container `height: 555px`, like
   button `rgb(76,175,80)`, 10 liked-carousel slots render, and clicking
   "like" fills a slot with the real product photo. No console errors.
+- Verified the two "Verify" rows (`1deeb42`). Table service chat: spot-
+  checked `.gcw-chat-wrapper/-history/-pics/-panel-wrapper/-message/
+-field/-send-button` against pag1.html directly — all byte-for-byte,
+  ADR-048's claim holds, no changes needed. AM House Party orbit: found
+  `am-house-hero.tsx` correctly ports the `wed2027.mp4` video-hero shell
+  (its own header comment already documents that verification carefully)
+  but the actual named "AM House Party" orbit widget (`#ow` — a center
+  avatar with five others slowly orbiting it) sits in the same mockup,
+  literally labelled right before it, and was **never built at all**. Not
+  built here either: real wedding-party member data exists but there's no
+  per-member photo to drive the orbit's avatars, which is a real design
+  decision (initials circles? a photo-upload feature that doesn't exist
+  yet?) rather than something to invent on the spot. Documented in
+  `DESIGN_PORTS.md`.
+- **Queue exhausted for tonight.** All of `PHASE.md`'s queue (items 1-2
+  skipped as blocked, 3-5 done, 6's swipe deck ported and both "Verify"
+  rows checked) and `DESIGN_PORTS.md`'s explicitly-authorized scope are
+  complete, except the silhouette carousel (open question above) and the
+  AM House Party orbit (needs a founder decision on avatar photos —
+  neither was invented or forced through). Stopping the loop here rather
+  than drifting into the other 83 routes or building the orbit's missing
+  avatar-photo feature without a decision — both would be exactly the kind
+  of unsupervised scope creep this file exists to prevent.
