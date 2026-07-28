@@ -97,3 +97,9 @@ of proceeding on any of the conditions above.
   buttons use each retailer's theme color / paon.html's black by default?
   Left untouched — a shared button's brand color felt like a bigger call
   than a visual/motion pass should make alone.
+- Queue item 5, screen 3 of 10 (Product detail): `8fb47f9`. Colors and the
+  product image radius were already correct; the variant-option chip
+  button was still `--radius-sm` (4px), moved to `--radius-md` matching
+  paon.html's selectable chips. Added `paon-reveal` to image + details
+  panel, 120ms stagger. DoD green, pushed. Not yet re-verified against
+  production (queue backlog) — will confirm alongside the next screen.
