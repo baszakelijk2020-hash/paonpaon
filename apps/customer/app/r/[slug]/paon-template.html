@@ -855,7 +855,8 @@
         width: 100% !important;
         height: 100% !important;
         max-height: none !important;
-        object-fit: contain !important;
+        object-fit: cover !important;
+        object-position: center center !important;
         display: block !important;
     }
 
@@ -3493,7 +3494,7 @@
     body.product-detail-open #detail-placeholder .detail-img-item.knit-fabric-image {
         position: relative !important;
         width: 100% !important;
-        aspect-ratio: auto !important;
+        aspect-ratio: 1 / 1 !important;
         height: auto !important;
         overflow: hidden !important;
         background: transparent !important;
@@ -3504,11 +3505,11 @@
     }
 
     body.product-detail-open #detail-placeholder .detail-img-item.knit-fabric-image img {
-        position: relative !important;
-        inset: auto !important;
+        position: absolute !important;
+        inset: 0 !important;
         width: 100% !important;
-        height: auto !important;
-        max-width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
         max-height: none !important;
         object-fit: cover !important;
         object-position: center center !important;
@@ -3521,7 +3522,7 @@
     body.product-detail-open #detail-placeholder .detail-img-item.shoe-fabric-image {
         position: relative !important;
         width: 100% !important;
-        aspect-ratio: auto !important;
+        aspect-ratio: 1 / 1 !important;
         height: auto !important;
         overflow: hidden !important;
         background: transparent !important;
@@ -3530,16 +3531,17 @@
     }
 
     body.product-detail-open #detail-placeholder .detail-img-item.shoe-fabric-image img {
-        position: relative !important;
-        inset: auto !important;
+        position: absolute !important;
+        inset: 0 !important;
         width: 100% !important;
-        height: auto !important;
-        max-width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
         max-height: none !important;
         object-fit: cover !important;
         object-position: center center !important;
         display: block !important;
-        vertical-align: top !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     body.product-detail-open #detail-placeholder .detail-img-item.shoe-product-image {
@@ -3725,15 +3727,16 @@
 
 <div id="paon-icons-bar">
 <div class="hb-icons">
-<div class="header-icon" onclick="toggleFavorites()">
+<div class="header-icon" id="paon-header-favorites" onclick="toggleFavorites()" aria-label="Favorites">
 <svg viewbox="0 0 24 24">
 <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"></path>
 </svg>
 </div>
-<div class="header-icon">
+<div class="header-icon" id="paon-header-basket" aria-label="Basket" role="button" tabindex="0">
 <svg viewbox="0 0 24 24">
 <path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"></path>
 </svg>
+<span id="paon-header-basket-count" hidden>0</span>
 </div>
 <div class="header-icon" onclick="openModal('account')">
 <svg viewbox="0 0 24 24">
@@ -6295,11 +6298,18 @@ function renderGrid() {
                 return;
             }
         }
+        if (type === 'fitting') {
+            if (window.paonOpenAppointmentSheet) {
+                window.paonOpenAppointmentSheet();
+                return;
+            }
+        }
         document.getElementById('modal-title').textContent = type === 'account' ? 'Account' : 'Book a Fitting';
         document.getElementById('modal').classList.add('open');
     }
     function closeModal() {
         document.getElementById('modal').classList.remove('open');
+        if (window.paonCloseAppointmentSheet) window.paonCloseAppointmentSheet();
     }
     function toggleFavorites() {}
 
@@ -11781,9 +11791,10 @@ html, body{
     color:#1a1a1a!important;
 }
 
-body.home-view-active #paon-icons-bar{
-    display:none!important;
-}
+/* Favorites + basket stay in the blurry top bar on home too — they
+   retract/appear with the header via the shared #paon-icons-bar transforms.
+   (Earlier hide-on-home left only the floating bottom basket, which is not
+   how paon.html places these icons.) */
 </style>
 
 
@@ -13276,14 +13287,16 @@ requestAnimationFrame(fixFeedImages);
 
     /* Hidden by default — desktop never sees any of these; only the
        html.paon-mobile rules further down turn them on. Missing this
-       was a real bug: without it these blocks rendered on desktop too. */
+       was a real bug: without it these blocks rendered on desktop too.
+       Appointment is the one exception: same markup on desktop + mobile
+       (shown inline on PDP, and as a bottom sheet from Book Appointment). */
     #paon-mobile-sticky-footer,
     #paon-mobile-swatch-section,
     #paon-mobile-also-like,
-    #paon-mobile-category-grid,
-    /* Shown on both mobile and desktop — same component, same markup,
-     * same behaviour, no separate desktop version. Previously
-     * `display: none` unless `html.paon-mobile` was set. */
+    #paon-mobile-category-grid {
+        display: none;
+    }
+
     #paon-mobile-appointment {
         display: block;
         width: 100%;
@@ -14828,7 +14841,7 @@ html.paon-mobile .detail-img-item img {
     display: block !important;
 }
 
-/* Swatch section: full width, NO gradient, NO caption */
+/* Swatch section: full width square, image fills like paon.html mobile cover */
 html.paon-mobile #paon-mobile-swatch-section {
     display: block !important;
     position: relative !important;
@@ -14838,6 +14851,16 @@ html.paon-mobile #paon-mobile-swatch-section {
     background: var(--mid) !important;
     margin-top: 0 !important;
     flex-shrink: 0 !important;
+    padding: 0 !important;
+}
+html.paon-mobile #paon-mobile-swatch-img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    display: block !important;
 }
 html.paon-mobile .paon-swatch-gradient { display: none !important; }
 html.paon-mobile .paon-swatch-caption { display: none !important; }
@@ -15956,62 +15979,24 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
 })();
 </script>
 
-<!-- Floating basket: a fixed, always-visible rectangle (not a pill/toast
-     per spec) showing live cart count/total, expandable to a line-item
-     panel with quantity controls and a link to full checkout. Backed by
-     api/cart-summary + api/cart-update since this page has no React tree
-     to read cart state from (see route.ts's own doc comment) — same
-     "raw document, real backend via fetch()" pattern as TableService. -->
+<!-- Basket panel: anchored to the top-right header icon (part of the
+     blurry retracting top bar), not a floating bottom rectangle.
+     Same cart-summary / cart-update fetch wiring as before. -->
 <style id="paon-floating-basket-css">
     #paon-basket-root {
         position: fixed;
-        right: 20px;
-        bottom: 90px;
-        z-index: 400;
+        top: calc(var(--header-h) + 8px);
+        right: 18px;
+        z-index: 450;
         font-family: OptimaKlein, serif;
+        pointer-events: none;
     }
     #paon-basket-rect {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        height: 50px;
-        padding: 0 18px;
-        border-radius: 8px;
-        background: var(--black);
-        color: #e8e4de;
-        cursor: pointer;
-        box-shadow: 0 10px 30px rgba(0,0,0,.25);
-        border: 0;
-        font-family: OptimaKlein, serif;
-    }
-    #paon-basket-rect svg {
-        width: 18px;
-        height: 18px;
-        flex-shrink: 0;
-    }
-    #paon-basket-count {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 18px;
-        height: 18px;
-        padding: 0 5px;
-        border-radius: 999px;
-        background: #e8e4de;
-        color: var(--black);
-        font-size: 11px;
-        font-weight: 600;
-    }
-    #paon-basket-total {
-        font-size: 13px;
-        color: #cdc9c2;
-        white-space: nowrap;
+        display: none !important;
     }
     #paon-basket-panel {
         display: none;
-        position: absolute;
-        right: 0;
-        bottom: 60px;
+        pointer-events: auto;
         width: min(23.5rem, calc(100vw - 40px));
         max-height: 60vh;
         overflow-y: auto;
@@ -16067,19 +16052,95 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         align-items: center;
         justify-content: space-between;
         padding-top: 14px;
-        margin-top: 4px;
     }
     #paon-basket-checkout {
         display: inline-block;
-        padding: 10px 20px;
+        padding: 10px 16px;
         border-radius: 6px;
-        background: var(--black);
+        background: #1a1a1a;
         color: #e8e4de;
         text-decoration: none;
         font-size: 13px;
+    }
+    #paon-header-basket {
+        position: relative !important;
+    }
+    #paon-header-basket-count {
+        position: absolute;
+        top: -6px;
+        right: -8px;
+        min-width: 14px;
+        height: 14px;
+        padding: 0 3px;
+        border-radius: 999px;
+        background: #1a1a1a;
+        color: #e8e4de;
+        font-size: 9px;
+        line-height: 14px;
         text-align: center;
+        font-family: OptimaKlein, serif;
+    }
+    #paon-header-basket-count:not([hidden]) {
+        display: inline-block;
+    }
+
+    /* Book Appointment → same PDP fitting form, as a bottom sheet */
+    #paon-appt-sheet-dim {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.45);
+        z-index: 900;
+    }
+    body.paon-appt-sheet-open #paon-appt-sheet-dim {
+        display: block;
+    }
+    body.paon-appt-sheet-open #paon-mobile-appointment {
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        top: auto !important;
+        z-index: 901 !important;
+        display: block !important;
+        width: 100% !important;
+        max-height: min(88vh, 820px) !important;
+        overflow-y: auto !important;
+        margin: 0 !important;
+        padding: 28px 20px 40px !important;
+        background: var(--cream) !important;
+        border-radius: 16px 16px 0 0 !important;
+        box-shadow: 0 -20px 60px rgba(0,0,0,.28) !important;
+        transform: translate3d(0, 0, 0) !important;
+        animation: paon-appt-sheet-up 280ms cubic-bezier(.22,.61,.36,1) both;
+    }
+    @keyframes paon-appt-sheet-up {
+        from { transform: translate3d(0, 100%, 0); }
+        to { transform: translate3d(0, 0, 0); }
+    }
+    #paon-appt-sheet-close {
+        display: none;
+        position: sticky;
+        top: 0;
+        float: right;
+        width: 36px;
+        height: 36px;
+        margin: -8px -4px 8px 0;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #808080;
+        cursor: pointer;
+        font-size: 22px;
+        line-height: 1;
+        z-index: 2;
+    }
+    body.paon-appt-sheet-open #paon-appt-sheet-close {
+        display: block;
     }
 </style>
+
+<div id="paon-appt-sheet-dim" aria-hidden="true"></div>
 
 <div id="paon-basket-root">
     <div id="paon-basket-panel">
@@ -16090,33 +16151,30 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
             <a id="paon-basket-checkout" href="#">Checkout</a>
         </div>
     </div>
-    <button type="button" id="paon-basket-rect" aria-label="Basket">
-        <svg viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18"></path>
-        </svg>
-        <span id="paon-basket-count">0</span>
-        <span id="paon-basket-total"></span>
-    </button>
+    <button type="button" id="paon-basket-rect" aria-label="Basket" hidden></button>
 </div>
 
 <script id="paon-floating-basket-js">
 (function() {
     var SLUG = '__PAON_SLUG__';
     var root = document.getElementById('paon-basket-root');
-    var rect = document.getElementById('paon-basket-rect');
-    var countEl = document.getElementById('paon-basket-count');
-    var totalEl = document.getElementById('paon-basket-total');
+    var countEl = document.getElementById('paon-header-basket-count');
     var panelTotalEl = document.getElementById('paon-basket-panel-total');
     var linesEl = document.getElementById('paon-basket-lines');
     var emptyEl = document.getElementById('paon-basket-empty');
     var checkoutLink = document.getElementById('paon-basket-checkout');
-    if (!root || !rect) return;
+    var headerBasket = document.getElementById('paon-header-basket');
+    if (!root || !headerBasket) return;
 
     checkoutLink.href = '/r/' + SLUG + '/cart';
 
     function render(data) {
-        countEl.textContent = String(data.count || 0);
-        totalEl.textContent = data.total || '';
+        var count = data.count || 0;
+        if (countEl) {
+            countEl.textContent = String(count);
+            if (count > 0) countEl.removeAttribute('hidden');
+            else countEl.setAttribute('hidden', '');
+        }
         panelTotalEl.textContent = data.total ? ('Total: ' + data.total) : '';
         linesEl.innerHTML = '';
 
@@ -16141,7 +16199,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
                     (line.variantLabel ? '<p class="paon-basket-variant">' + line.variantLabel + '</p>' : '') +
                 '</div>' +
                 '<div class="paon-basket-qty">' +
-                    '<button type="button" data-action="dec">âˆ’</button>' +
+                    '<button type="button" data-action="dec">\u2212</button>' +
                     '<span>' + line.quantity + '</span>' +
                     '<button type="button" data-action="inc">+</button>' +
                 '</div>';
@@ -16168,16 +16226,96 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         }).then(fetchSummary).catch(function() {});
     }
 
-    rect.addEventListener('click', function() {
+    function toggleBasket(e) {
+        if (e) e.stopPropagation();
         root.classList.toggle('open');
         if (root.classList.contains('open')) fetchSummary();
+    }
+
+    headerBasket.addEventListener('click', toggleBasket);
+    headerBasket.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleBasket(e);
+        }
     });
 
     document.addEventListener('click', function(e) {
-        if (!root.contains(e.target)) root.classList.remove('open');
+        if (!root.contains(e.target) && !headerBasket.contains(e.target)) {
+            root.classList.remove('open');
+        }
     });
 
     fetchSummary();
+})();
+</script>
+
+<script id="paon-appointment-sheet-js">
+(function () {
+    var appt = document.getElementById('paon-mobile-appointment');
+    var dim = document.getElementById('paon-appt-sheet-dim');
+    if (!appt || !dim) return;
+
+    var homeParent = null;
+    var homeNext = null;
+    var closeBtn = null;
+
+    function ensureCloseBtn() {
+        closeBtn = document.getElementById('paon-appt-sheet-close');
+        if (closeBtn) return closeBtn;
+        closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.id = 'paon-appt-sheet-close';
+        closeBtn.setAttribute('aria-label', 'Close');
+        closeBtn.textContent = '\u00d7';
+        closeBtn.addEventListener('click', closeSheet);
+        appt.insertBefore(closeBtn, appt.firstChild);
+        return closeBtn;
+    }
+
+    function openSheet() {
+        ensureCloseBtn();
+        if (!homeParent) {
+            homeParent = appt.parentNode;
+            homeNext = appt.nextSibling;
+        }
+        document.body.appendChild(appt);
+        document.body.classList.add('paon-appt-sheet-open');
+        dim.setAttribute('aria-hidden', 'false');
+        var modal = document.getElementById('modal');
+        if (modal) modal.classList.remove('open');
+    }
+
+    function closeSheet() {
+        if (!document.body.classList.contains('paon-appt-sheet-open')) return;
+        document.body.classList.remove('paon-appt-sheet-open');
+        dim.setAttribute('aria-hidden', 'true');
+        if (homeParent) {
+            if (homeNext && homeNext.parentNode === homeParent) {
+                homeParent.insertBefore(appt, homeNext);
+            } else {
+                homeParent.appendChild(appt);
+            }
+        }
+    }
+
+    window.paonOpenAppointmentSheet = openSheet;
+    window.paonCloseAppointmentSheet = closeSheet;
+    dim.addEventListener('click', closeSheet);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeSheet();
+    });
+
+    function attachAfterRebuild() {
+        ensureCloseBtn();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(attachAfterRebuild, 0);
+        });
+    } else {
+        setTimeout(attachAfterRebuild, 0);
+    }
 })();
 </script>
 

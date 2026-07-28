@@ -37,7 +37,12 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 let templateCache: string | null = null;
 
 async function loadTemplate(): Promise<string> {
-  if (templateCache) return templateCache;
+  // In dev, always re-read so edits to paon-template.html show up without
+  // restarting the customer app (the module-level cache otherwise sticks
+  // for the whole process lifetime).
+  if (process.env.NODE_ENV !== "development" && templateCache) {
+    return templateCache;
+  }
   const templatePath = path.join(
     process.cwd(),
     "app/r/[slug]/paon-template.html",
@@ -49,11 +54,12 @@ async function loadTemplate(): Promise<string> {
   // and falls back to a system font — same CORS issue globals.css already
   // works around via app/fonts/[filename]/route.ts, which serves this exact
   // file same-origin. Confirmed broken in production before this fix.
-  templateCache = raw.replaceAll(
+  const html = raw.replaceAll(
     "https://www.nebelspiegel.com/fonts/optimaklein.woff2",
     "/fonts/optimaklein.woff2",
   );
-  return templateCache;
+  templateCache = html;
+  return html;
 }
 
 function toDetailImg(product: Product): string {

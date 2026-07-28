@@ -105,15 +105,23 @@ under an access code and expiry.
 
 **Sequence, one increment each:**
 
-1. Replace the `syntheticData` blob with a real seeded retailer tenant
-   created from the prospect's saved Studio configuration. Domain/data
-   change — state the plan and stop before writing it.
-2. Brand it: apply the prospect's `RetailerBrandTheme` and uploaded assets
-   to the generated tenant.
-3. Rework `/demo/[token]` to gate on access code and expiry, then route
-   into the real storefront and portal rather than rendering the blob.
+1. ~~Replace the `syntheticData` blob with a real seeded retailer tenant~~
+   **Done** — real retailer per prospect from Studio config.
+2. ~~Brand it: apply the prospect's `RetailerBrandTheme` and uploaded assets~~
+   **Done** — theme applied on generate.
+3. ~~Rework `/demo/[token]` to gate on access code and expiry, then route
+   into the real storefront~~ **Done** — live `/r/{slug}` after access code.
 4. Teardown: expiring or unpublishing a demo must remove or disable its
    tenant. A demo that outlives its expiry is a data-leak surface.
+   **Next.**
+
+**Also (workstream 1, founder-requested 2026-07-28).** Storefront chrome
+fidelity vs `paon.html`: fabric swatches fill their container (`cover`),
+favorites + basket sit in the retracting blur top bar (no floating bottom
+basket), and **Book Appointment** slides up the same PDP fitting form
+(location / date / time / name / email / message) instead of the old modal.
+Dev: `route.ts` re-reads `paon-template.html` each request so template edits
+show without restarting the customer app.
 
 **The bar:** the founder can produce a branded, working demo for a named
 prospect in under an hour without code changes. That is the original
