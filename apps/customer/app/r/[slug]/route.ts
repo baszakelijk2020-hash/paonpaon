@@ -82,6 +82,74 @@ function variantNameFor(variants: readonly ProductVariant[]): string {
   return [first.size, first.color].filter(Boolean).join(" · ") || first.sku;
 }
 
+function priceMinorFor(variants: readonly ProductVariant[]): number {
+  if (variants.length === 0) return 0;
+  return variants.reduce((lowest, variant) =>
+    variant.price.amountMinorUnits < lowest.price.amountMinorUnits
+      ? variant
+      : lowest,
+  ).price.amountMinorUnits;
+}
+
+function deriveColor(name: string, variantColor?: string): string {
+  const fromVariant = variantColor?.trim().toLowerCase();
+  if (fromVariant) {
+    if (fromVariant.includes("navy") || fromVariant.includes("midnight"))
+      return "navy";
+    if (fromVariant.includes("grey") || fromVariant.includes("gray"))
+      return "grey";
+    if (fromVariant.includes("brown") || fromVariant.includes("chocolate"))
+      return "brown";
+    if (
+      fromVariant.includes("beige") ||
+      fromVariant.includes("cream") ||
+      fromVariant.includes("khaki") ||
+      fromVariant.includes("sand")
+    )
+      return "beige";
+    if (fromVariant.includes("blue")) return "blue";
+    if (fromVariant.includes("black")) return "black";
+    if (
+      fromVariant.includes("green") ||
+      fromVariant.includes("olive") ||
+      fromVariant.includes("sage")
+    )
+      return "green";
+  }
+  const hay = name.toLowerCase();
+  if (/navy|midnight/.test(hay)) return "navy";
+  if (/grey|gray|charcoal|smoke/.test(hay)) return "grey";
+  if (/brown|chocolate|rust|camel|taupe|espresso/.test(hay)) return "brown";
+  if (/beige|ivory|cream|ecru|khaki|sand|oatmeal|tobacco/.test(hay))
+    return "beige";
+  if (/blue|teal|aqua|powder blue|dusty blue/.test(hay)) return "blue";
+  if (/black/.test(hay)) return "black";
+  if (/green|sage|olive|forest/.test(hay)) return "green";
+  return "beige";
+}
+
+function derivePattern(name: string): string {
+  const hay = name.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+  if (hay.includes("herringbone")) return "herringbone";
+  if (hay.includes("glencheck")) return "glencheck";
+  if (hay.includes("houndstooth")) return "houndstooth";
+  if (hay.includes("sharkskin")) return "sharkskin";
+  if (hay.includes("basketweave")) return "basketweave";
+  if (hay.includes("windowpane")) return "windowpane";
+  if (hay.includes("twill")) return "twill";
+  if (hay.includes("melange") || hay.includes("mélange")) return "melange";
+  if (hay.includes("cable")) return "cable";
+  return "plain";
+}
+
+function deriveSeason(name: string, collectionSeason?: string): string {
+  const hay = `${name} ${collectionSeason ?? ""}`.toLowerCase();
+  if (/summer|spring|tropical|linen|light/.test(hay)) return "spring-summer";
+  if (/winter|autumn|fall|cashmere|flannel|heavy/.test(hay))
+    return "autumn-winter";
+  return "all-season";
+}
+
 const CANONICAL_CATEGORIES = [
   "Suits",
   "Jackets",
@@ -105,9 +173,8 @@ const CATEGORY_KEYWORDS: Record<
   // wording, not garment type.
   Suits: ["suit"],
   Jackets: ["jacket", "blazer", "sport coat", "sportcoat"],
-  // "broek" (Dutch for trousers) — the founder's own real catalog names
-  // several trouser products with their original Dutch working names
-  // ("PAON Broek 1"), never renamed to English.
+  // "broek" still matches trouser slugs (`…-broek1`); display names follow
+  // the product photography (e.g. "Khaki Cotton Trousers").
   Pants: ["pant", "trouser", "chino", "broek"],
   Knits: [
     "knit",
@@ -117,8 +184,14 @@ const CATEGORY_KEYWORDS: Record<
     "roll neck",
     "rollneck",
     "turtleneck",
+    "crew",
+    "polo",
+    "merino",
+    "cashmere",
+    "quarter-zip",
+    "cable",
   ],
-  Shoes: ["shoe", "loafer", "oxford", "boot", "sneaker"],
+  Shoes: ["shoe", "loafer", "oxford", "derby", "boot", "sneaker"],
   Shirts: ["shirt"],
   Outerwear: ["overcoat", "parka", "topcoat"],
   Evening: ["tuxedo", "evening", "black tie", "dinner jacket"],
@@ -239,6 +312,10 @@ export async function GET(
         detailImg: toDetailImg(product),
         name: product.name,
         price: priceLabelFor(variants),
+        priceMinor: priceMinorFor(variants),
+        color: deriveColor(product.name, variants[0]?.color),
+        pattern: derivePattern(product.name),
+        season: deriveSeason(product.name, undefined),
         category: canonicalCategoryFor(
           product.name,
           collectionName,

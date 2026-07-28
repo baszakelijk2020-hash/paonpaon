@@ -19,6 +19,7 @@ export default function MarketingLayout({
             <Link href="/discover/platform">Platform</Link>
             <Link href="/discover/alterations">Alterations</Link>
             <Link href="/discover/engagement">Engagement</Link>
+            <Link href="/founder">Founder</Link>
             <Link href="/pricing">Packages</Link>
           </nav>
           <Link
@@ -43,6 +44,7 @@ export default function MarketingLayout({
             <Link href="/pricing">Packages</Link>
             <Link href="/consultation">Consultation</Link>
             <Link href="/discover/roles">Retailer roles</Link>
+            <Link href="/founder">Founder</Link>
             <Link href="/pilot">Paid pilot</Link>
             <Link href="/login">Customer sign in</Link>
             <Link href="/demo-request">Personalized demo</Link>

@@ -126,6 +126,21 @@ basket), and **Book Appointment** slides up the same PDP fitting form
 Dev: `route.ts` re-reads `paon-template.html` each request so template edits
 show without restarting the customer app.
 
+**Also (workstream 1, founder-requested 2026-07-28 — chrome UX).**
+
+1. Favorites bookmark → real favorited items list (storefront localStorage
+   panel; wander without sign-in).
+2. Profile icon → customer portal environment straight away — no login /
+   fitting popup. Guests may browse the portal look; sign in when they wish.
+3. Basket popup and Ask us anything: same grey-gradient / glass language as
+   the rest of the chrome. Ask us anything: `rgba(0,0,0,0.1)` + `blur(20px)`,
+   rectangle with the same `6px` corner radius as Book Appointment; basket
+   panel matches that radius.
+4. Book Appointment: **500px** wide, full height, slides in from the **left**
+   (not a full-width bottom sheet).
+5. Filters: SuitSupply-style — sort (newest / price low–high / high–low) plus
+   color, pattern, price range, season; Apply must actually filter the grid.
+
 **The bar:** the founder can produce a branded, working demo for a named
 prospect in under an hour without code changes. That is the original
 commercialisation promise in `ROADMAP.md` and it is still unmet.
@@ -146,10 +161,15 @@ this exact segment, and that he spent a career in menswear. For a cold
 approach to a 55-year-old owner-operator, that is the page that matters
 most, and it does not exist.
 
-1. A founder page — who built PAON and why, in his own voice.
-2. Surface it from the homepage, above the feature sections.
+1. ~~A founder page — who built PAON and why, in his own voice.~~ **Done** —
+   `/founder` with the founder’s verbatim essay; cream / OptimaKlein prose
+   column; CTA to demo-request and consultation. No invented social proof.
+2. ~~Surface it from the homepage, above the feature sections.~~ **Done** —
+   pull-quote strip before the feature grid; Founder in nav and footer.
 3. Honest proof only. No invented testimonials, no logo wall, no "trusted
    by" — an empty social-proof section reads as "nobody uses this."
+   Still open for any later proof work; the founder page deliberately
+   ships without fake trust signals.
 
 ## The queue
 
@@ -164,12 +184,20 @@ negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
    complete and has never executed.
 2. **Resend live.** Same shape. `RESEND_API_KEY` set, then verify the outbox
    actually delivers.
-3. **A demo retailer that looks like a real store.** Full catalog with real
-   photography, a populated client book, plausible order/loyalty/appointment
-   history. This is what every prospect conversation runs on.
+3. ~~**A demo retailer that looks like a real store.**~~ **Done (local +
+   production).** 68-SKU catalog with real photography; client-book history
+   (orders/notes/appointments across the book); placeholder Broek/Shoes/Knit
+   names replaced with retail copy; `seed-production.sh` re-run 2026-07-28
+   so hosted Maison Dubois matches.
 4. **Walk the whole flow on a phone and fix what breaks.** Storefront →
    account → appointment → order → loyalty. Fix only real breakage; resist
-   redesigning on the way through.
+   redesigning on the way through. **Started 2026-07-28:** mobile storefront
+   home / Pants / PDP / Book Appointment sheet load; Isabelle login →
+   dashboard + loyalty work. **Fixed:** pants/shoes/knit display names now
+   match product photography (earlier retail names were invented and
+   mismatched — e.g. “Black Dress Trousers” on khaki). Production re-seeded
+   again after the photo match. Still open: deeper cart→checkout path on
+   phone.
 5. **Demo-path visual and motion pass — UNBLOCKED, founder decision
    2026-07-27.**
    **`paon.html` is the design language for the entire product**, staff app

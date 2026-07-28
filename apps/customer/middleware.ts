@@ -12,7 +12,21 @@ const PUBLIC_PATHS = [
   "/consultation",
   "/pilot",
   "/discover",
+  "/founder",
   "/demo",
+  // Guest-browsable private-client shell — see how the portal looks
+  // without a login wall; mutations still require a session.
+  "/dashboard",
+  "/wishlist",
+  "/loyalty",
+  "/orders",
+  "/appointments",
+  "/alterations",
+  "/messages",
+  "/events",
+  "/wedding-parties",
+  "/notifications",
+  "/account",
   // Same-origin proxy for paon-template.html's @font-face URLs — the
   // founder's own domain sends no CORS header, so every page that embeds
   // this template (signed in or not) needs this reachable unauthenticated.

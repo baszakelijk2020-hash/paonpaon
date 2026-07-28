@@ -1,9 +1,11 @@
 import { AppShell, type AppShellNavGroup } from "@paon/ui/components/AppShell";
 import { Button } from "@paon/ui/components/Button";
+import Link from "next/link";
 
 import { signOut } from "./actions";
+import { GuestPortalPreview } from "./guest-portal-preview";
 
-import { requireSession } from "@/lib/session";
+import { getSession } from "@/lib/session";
 
 const navigation: AppShellNavGroup[] = [
   {
@@ -88,7 +90,37 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireSession();
+  const session = await getSession();
+  const isCustomer = session?.accountType === "customer";
+
+  if (!isCustomer) {
+    return (
+      <AppShell
+        brand="PAON"
+        product="Private client"
+        homeHref="/dashboard"
+        persona="Preview"
+        email="Wander first — sign in when you wish"
+        navigation={navigation}
+        mobileDock={[
+          { href: "/dashboard", label: "Home" },
+          { href: "/login?redirectTo=%2Fdashboard", label: "Sign in" },
+          { href: "/r/maison-dubois", label: "Store" },
+          { href: "/account", label: "Account" },
+        ]}
+        signOutControl={
+          <Link
+            href="/login?redirectTo=%2Fdashboard"
+            className="inline-flex min-h-9 items-center px-3 text-sm underline underline-offset-4"
+          >
+            Sign in
+          </Link>
+        }
+      >
+        <GuestPortalPreview />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell

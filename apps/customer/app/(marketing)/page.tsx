@@ -97,6 +97,25 @@ export default async function MarketingHomePage() {
         </div>
       </section>
 
+      <section className="border-y border-black/10 bg-[#f4f1ec] px-5 py-20 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-[42rem] text-center">
+          <p className="font-display text-2xl leading-snug tracking-[-0.02em] text-[#111110] sm:text-3xl">
+            I&apos;m not building software for the menswear industry. I&apos;m
+            building the platform I always wished I&apos;d had.
+          </p>
+          <p className="mt-6 text-sm leading-7 text-black/50">
+            Built by someone who measured clients, ran fittings, and lived the
+            admin that gets in the way.
+          </p>
+          <Link
+            href="/founder"
+            className="mt-8 inline-block text-sm underline underline-offset-4"
+          >
+            Read why I built this →
+          </Link>
+        </div>
+      </section>
+
       <section className="bg-[#e8e4de] px-5 py-24 sm:px-8 sm:py-32">
         <div className="mx-auto grid max-w-[92rem] gap-5 lg:grid-cols-12">
           <article className="relative min-h-[38rem] overflow-hidden rounded-[1.25rem] bg-black text-white lg:col-span-7">
