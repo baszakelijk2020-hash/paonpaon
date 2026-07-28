@@ -332,13 +332,18 @@ preview labeled illustrative; wedding join success has next steps; Ask-us
 guest accepts invite token; prospect storefront discloses shared catalogue
 photography.
 
+**Also (2026-07-29 continuous push).** Private demo distinguishes expired /
+revoked / wrong code; storefront chrome lives inside `<body>`; guest Add
+to Bag offers sign-in without a hard redirect yank.
+
 **Blocked (skip in continuous mode until founder provisions):**
 
 - Stripe live (queue 1) — keys missing from env.
 - Resend live (queue 2) — API key missing.
 - Silhouette carousel (queue 7) — no founder-designed mount.
-- Prospect garment photography without pasted HTTPS URLs — still needs a
-  founder-provided upload/source path beyond the shared catalogue.
+- Prospect garment photography without pasted HTTPS URLs — upload now
+  auto-appends to the garment photos list; still needs founder-provided
+  images. Leave blank only when shared catalogue disclosure is acceptable.
 
 Not in the queue and not to be started: fit tools (parked), the alterations
 vertical (awaiting founder design), and the four presentation modules —
