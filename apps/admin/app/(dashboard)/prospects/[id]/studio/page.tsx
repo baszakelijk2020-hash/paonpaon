@@ -70,6 +70,7 @@ export default async function DemoStudioPage({
         customerAppUrl={env.customerAppUrl}
         retailerAppUrl={env.retailerAppUrl}
         contactEmail={prospect.primaryContactEmail}
+        initialOutreachPack={environment?.founderOutreachPack}
       />
       {environment ? (
         <section className="flex flex-col gap-5 rounded-[1.25rem] bg-stone-900 p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">

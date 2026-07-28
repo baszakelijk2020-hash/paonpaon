@@ -286,6 +286,8 @@ export async function generateDemoEnvironment(
     ].join("\n");
     const prospectMailtoHref = `mailto:${encodeURIComponent(prospect.primaryContactEmail)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
 
+    await repository.saveFounderOutreachPack(prospectId, outreachPack);
+
     return {
       success: `Branded demo retailer ready at /r/${seeded.slug}. Review the live storefront before publishing.`,
       outreachPack,

@@ -146,6 +146,8 @@ export interface ProspectDemoEnvironment {
   retailerSlug?: string | undefined;
   generatedAt: string;
   publishedAt?: string | undefined;
+  /** Founder-only outreach pack from last generate (includes access code). */
+  founderOutreachPack?: string | undefined;
 }
 
 export interface DemoSyntheticData {

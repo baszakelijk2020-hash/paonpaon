@@ -21,26 +21,25 @@ export function EnvironmentPanel({
   customerAppUrl,
   retailerAppUrl,
   contactEmail,
+  initialOutreachPack,
 }: {
   prospectId: string;
   environment: ProspectDemoEnvironment | null;
   customerAppUrl?: string | undefined;
   retailerAppUrl?: string | undefined;
   contactEmail: string;
+  initialOutreachPack?: string | undefined;
 }) {
   const action = generateDemoEnvironment.bind(null, prospectId);
   const [state, formAction, pending] = useActionState(action, initialState);
   const [copied, setCopied] = useState<string>();
-  const [savedOutreachPack, setSavedOutreachPack] = useState<string>();
+  const [savedOutreachPack, setSavedOutreachPack] = useState<
+    string | undefined
+  >(initialOutreachPack);
 
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem(outreachStorageKey(prospectId));
-      if (stored) setSavedOutreachPack(stored);
-    } catch {
-      /* private mode */
-    }
-  }, [prospectId]);
+    if (initialOutreachPack) setSavedOutreachPack(initialOutreachPack);
+  }, [initialOutreachPack]);
 
   useEffect(() => {
     if (!state.outreachPack) return;
@@ -55,7 +54,18 @@ export function EnvironmentPanel({
     }
   }, [state.outreachPack, prospectId]);
 
-  const outreachPack = state.outreachPack ?? savedOutreachPack;
+  useEffect(() => {
+    if (savedOutreachPack || initialOutreachPack) return;
+    try {
+      const stored = sessionStorage.getItem(outreachStorageKey(prospectId));
+      if (stored) setSavedOutreachPack(stored);
+    } catch {
+      /* private mode */
+    }
+  }, [prospectId, savedOutreachPack, initialOutreachPack]);
+
+  const outreachPack =
+    state.outreachPack ?? savedOutreachPack ?? initialOutreachPack;
 
   const storefrontUrl =
     environment?.retailerSlug && customerAppUrl
@@ -170,9 +180,14 @@ export function EnvironmentPanel({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-medium text-emerald-950">
               Outreach pack (includes the access code)
-              {!state.outreachPack ? (
+              {!state.outreachPack && !initialOutreachPack ? (
                 <span className="ml-2 text-xs font-normal text-emerald-800/70">
                   restored from this browser session
+                </span>
+              ) : null}
+              {!state.outreachPack && initialOutreachPack ? (
+                <span className="ml-2 text-xs font-normal text-emerald-800/70">
+                  restored from last generate
                 </span>
               ) : null}
             </p>

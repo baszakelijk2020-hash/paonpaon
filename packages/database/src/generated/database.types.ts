@@ -3288,6 +3288,7 @@ export type Database = {
           created_at: string;
           created_by_user_id: string | null;
           expires_at: string;
+          founder_outreach_pack: string | null;
           generated_at: string;
           id: string;
           prospect_id: string;
@@ -3307,6 +3308,7 @@ export type Database = {
           created_at?: string;
           created_by_user_id?: string | null;
           expires_at: string;
+          founder_outreach_pack?: string | null;
           generated_at?: string;
           id?: string;
           prospect_id: string;
@@ -3326,6 +3328,7 @@ export type Database = {
           created_at?: string;
           created_by_user_id?: string | null;
           expires_at?: string;
+          founder_outreach_pack?: string | null;
           generated_at?: string;
           id?: string;
           prospect_id?: string;

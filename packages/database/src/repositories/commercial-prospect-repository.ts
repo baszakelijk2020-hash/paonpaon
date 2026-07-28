@@ -282,6 +282,17 @@ export class CommercialProspectRepository {
     return payload as PublicProspectDemo;
   }
 
+  async saveFounderOutreachPack(
+    prospectId: string,
+    outreachPack: string,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("prospect_demo_environments")
+      .update({ founder_outreach_pack: outreachPack })
+      .eq("prospect_id", prospectId);
+    if (error) throw error;
+  }
+
   /** Published-demo branding for link unfurls and the access-code gate. */
   async previewPublishedDemo(publicToken: string): Promise<{
     companyName: string;
@@ -377,6 +388,9 @@ export class CommercialProspectRepository {
       ...(row.retailer_slug ? { retailerSlug: row.retailer_slug } : {}),
       generatedAt: row.generated_at,
       ...(row.published_at ? { publishedAt: row.published_at } : {}),
+      ...(row.founder_outreach_pack
+        ? { founderOutreachPack: row.founder_outreach_pack }
+        : {}),
     };
   }
 }
