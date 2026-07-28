@@ -120,7 +120,7 @@ export default async function WeddingPartyDetailPage({
               name="status"
               aria-label="Party status"
               defaultValue={party.status}
-              className="rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-sm capitalize"
+              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-1 text-sm capitalize"
             >
               {WEDDING_PARTY_STATUSES.map((status) => (
                 <option key={status} value={status}>
@@ -139,7 +139,7 @@ export default async function WeddingPartyDetailPage({
       </div>
 
       {party.notes ? (
-        <Card>
+        <Card className="paon-reveal">
           <p className="text-sm text-[var(--color-stone-700)]">{party.notes}</p>
         </Card>
       ) : null}
@@ -148,7 +148,10 @@ export default async function WeddingPartyDetailPage({
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
           Party members
         </h2>
-        <Card className="divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
+        <Card
+          className="paon-reveal divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]"
+          style={{ animationDelay: "120ms" }}
+        >
           {memberDetails.map(({ member, stylePicks, alteration }) => (
             <div key={member.id} className="flex flex-col gap-3 px-6 py-4">
               <div className="flex items-center justify-between">
@@ -176,7 +179,7 @@ export default async function WeddingPartyDetailPage({
                       name="status"
                       aria-label={`${member.name}'s fitting status`}
                       defaultValue={member.fittingStatus}
-                      className="rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-xs capitalize"
+                      className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-1 text-xs capitalize"
                     >
                       {WEDDING_PARTY_MEMBER_FITTING_STATUSES.map((status) => (
                         <option key={status} value={status}>
@@ -241,7 +244,7 @@ export default async function WeddingPartyDetailPage({
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
           Add a member
         </h2>
-        <Card>
+        <Card className="paon-reveal" style={{ animationDelay: "240ms" }}>
           <AddMemberForm weddingPartyId={party.id} />
         </Card>
       </div>

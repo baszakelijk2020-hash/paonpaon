@@ -63,7 +63,7 @@ export default async function WeddingPartyDetailPage({
       />
 
       {myCustomerIds.has(party.organizerCustomerId) && retailer ? (
-        <Card>
+        <Card className="paon-reveal">
           <p className="mb-2 text-sm font-medium text-[var(--color-stone-900)]">
             Invite your party
           </p>
@@ -77,7 +77,10 @@ export default async function WeddingPartyDetailPage({
         </Card>
       ) : null}
 
-      <Card className="divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
+      <Card
+        className="paon-reveal divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]"
+        style={{ animationDelay: "120ms" }}
+      >
         {members.map((member) => (
           <div
             key={member.id}

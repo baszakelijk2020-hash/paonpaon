@@ -43,7 +43,7 @@ export function AmHouseHero({
     } — hope you are too! Make sure to complete your fitting.`;
 
   return (
-    <div className="aspect-344/735 max-w-105 relative mx-auto w-full overflow-hidden rounded-[54px] bg-black">
+    <div className="paon-reveal aspect-344/735 max-w-105 relative mx-auto w-full overflow-hidden rounded-[54px] bg-black">
       <video
         autoPlay
         muted
