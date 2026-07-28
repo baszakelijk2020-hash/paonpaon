@@ -9,6 +9,10 @@ freeze. `CLAUDE.md` is the single source of truth for engineering rules —
 this file is a pointer only and must never accumulate rules of its own,
 because two charters that disagree is worse than one nobody reads.
 
+If you have no MCP servers, you are not blocked — every deployment and
+database operation has a CLI equivalent, and the tokens are in the
+repository-root `.env.local`. See [docs/TOOLING.md](./docs/TOOLING.md).
+
 Short version, so a session that ignores the links still behaves:
 
 - Only three workstreams are in scope right now: the storefront template,

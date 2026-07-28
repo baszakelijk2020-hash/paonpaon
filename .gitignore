@@ -55,4 +55,11 @@ next-env.d.ts
 # ignored by construction rather than by remembering to delete it.
 **/_tmp-*.spec.ts
 **/_tmp-*.ts
+
+# Secrets. The negation must stay AFTER the wildcard — an earlier
+# `!.env.example` on line 24 was silently overridden by a later bare
+# `.env*`, which meant a newly added .env.example would never be tracked
+# (the app-level ones survived only because they predated that rule).
 .env*
+!.env.example
+!**/.env.example
