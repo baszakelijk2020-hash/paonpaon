@@ -95,7 +95,7 @@ negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
 4. **Walk the whole flow on a phone and fix what breaks.** Storefront →
    account → appointment → order → loyalty. Fix only real breakage; resist
    redesigning on the way through.
-5. **Whole-product visual and motion pass — UNBLOCKED, founder decision
+5. **Demo-path visual and motion pass — UNBLOCKED, founder decision
    2026-07-27.**
    **`paon.html` is the design language for the entire product**, staff app
    included. Not pag1's Mission Control. One language across customer and
@@ -133,17 +133,39 @@ negotiable (see [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)).
    - Below-fold content is revealed by ScrollTrigger against the scrolling
      container, `start: 'top 95%'`, `once: true`.
 
-   **Scope: every environment and every window**, not just the Retailer
-   Portal — customer portal, retailer portal, admin, marketing site, and
-   the full checkout sequence (cart → address → payment → confirmation),
-   which currently has no design treatment at all. One language across all
-   of it.
+   **Scope: the demo path only — these ten screens, in this order.** Founder
+   decision 2026-07-27. The product has ~93 routes; a prospect sees about
+   ten. Treating all 93 is a month of work, eighty of them for screens
+   nobody will open before a paid pilot exists. Everything not on this list
+   is explicitly deferred, including all of PAON Admin and the marketing
+   site.
 
-   Work one page or one flow step per increment. Do not restructure layout
-   or change behaviour — this is a visual and motion pass, not a rebuild.
-   The founder's own template is the reference for every question; when
-   unsure how something should look or move, read
-   `apps/customer/app/r/[slug]/paon-template.html` rather than deciding.
+   | #   | Screen                | Route                                    |
+   | --- | --------------------- | ---------------------------------------- |
+   | 1   | Cart                  | `/r/[slug]/cart` (customer)              |
+   | 2   | Checkout → confirm    | the flow after cart — no treatment today |
+   | 3   | Product detail        | `/r/[slug]/products/[productSlug]`       |
+   | 4   | Book appointment      | `/r/[slug]/appointments`                 |
+   | 5   | Customer dashboard    | `/(dashboard)/dashboard` (customer)      |
+   | 6   | Customer loyalty      | `/(dashboard)/loyalty` (customer)        |
+   | 7   | Retailer dashboard    | `/(dashboard)/dashboard` (retailer)      |
+   | 8   | Client list           | `/(dashboard)/customers` (retailer)      |
+   | 9   | Client record         | `/(dashboard)/customers/[id]` (retailer) |
+   | 10  | Retailer appointments | `/(dashboard)/appointments` (retailer)   |
+
+   Cart and checkout come first because they are the weakest link: money
+   changing hands is the moment a retailer decides whether this is real, and
+   checkout has no design treatment at all today.
+
+   One screen per increment. Do not restructure layout or change behaviour —
+   this is a visual and motion pass, not a rebuild. The founder's own
+   template answers every question; when unsure how something should look or
+   move, read `apps/customer/app/r/[slug]/paon-template.html` rather than
+   deciding. Anything genuinely absent from it (data tables, date pickers,
+   status timelines, form-heavy screens) — stop and ask rather than invent.
+
+   When all ten are done, stop and report. Do not continue into the other
+   83 routes without a new founder decision.
 
 6. **Re-port the wrong widgets** — silhouette carousel, swipe deck — per
    [DESIGN_PORTS.md](./DESIGN_PORTS.md), and verify the two unverified ones
