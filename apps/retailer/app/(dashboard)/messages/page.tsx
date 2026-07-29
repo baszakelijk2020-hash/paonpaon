@@ -303,7 +303,7 @@ export default async function MessagesPage({
 
             <div>
               <p className="mb-2 text-xs uppercase tracking-wide text-[var(--color-stone-400)]">
-                Clienteling notes ({notes.length})
+                House notes ({notes.length})
               </p>
               {notes.length === 0 ? (
                 <p className="text-sm text-[var(--color-stone-500)]">

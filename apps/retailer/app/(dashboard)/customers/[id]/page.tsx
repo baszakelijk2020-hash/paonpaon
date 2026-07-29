@@ -429,7 +429,7 @@ export default async function CustomerDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card id="clienteling-notes">
-          <h2 className="mb-3 text-lg font-medium">Clienteling notes</h2>
+          <h2 className="mb-3 text-lg font-medium">House notes</h2>
           {canManage ? (
             <form
               action={createClientelingNote}
