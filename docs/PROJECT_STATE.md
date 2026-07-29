@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 96 forward Supabase migrations plus generated TypeScript
+- Schema source: 97 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -45,9 +45,10 @@ Snapshot: 2026-07-30.
   active knowledge, accepted catalogue assignments, active concepts, and
   fabric profiles for active products.
 - Catalogue import jobs, rows, and metadata review tasks exist with RLS,
-  versioned CSV/XLSX/JSON parsers, downloadable templates/LLM contract, and
-  Retailer Portal preview. Import publishing does not exist yet. No wardrobe,
-  roadmap, outfit, campaign, or concierge-service tables exist.
+  versioned CSV/XLSX/JSON parsers, downloadable templates/LLM contract,
+  Retailer Portal preview/review, and transactional reviewed-row publishing
+  with rollback and resumable retries. AI enrichment does not exist yet. No
+  wardrobe, roadmap, outfit, campaign, or concierge-service tables exist.
 
 ## External systems
 
@@ -65,7 +66,7 @@ The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
 contracts. Knowledge contracts (2.1), discovery ranking (2.2), founder-storefront
-knowledge mounts (2.3), structured catalogue query (2.4), and import contracts
-plus preview (2.5) are complete. The authoritative Resume Protocol identifies
-transactional reviewed import publishing (PHASE 2.6) as the exact continuation
-point.
+knowledge mounts (2.3), structured catalogue query (2.4), import contracts
+plus preview (2.5), and transactional reviewed import publishing (2.6) are
+complete. The authoritative Resume Protocol identifies AI-assisted import
+enrichment (PHASE 2.7) as the exact continuation point.
