@@ -423,6 +423,10 @@ tenant after **Generate** (or Regenerate).
 - Prospect garment photography — upload path + role wiring exist; still
   needs founder-provided images. Leave blank only when shared catalogue
   disclosure is acceptable.
+- **Vercel Hobby deploy cap (2026-07-29):** CLI prod deploys hit
+  `api-deployments-free-per-day` (>100/day). Customer was redeployed and
+  verified; retailer/admin wait for quota reset or git-integration push
+  if still connected. Prefer git-connected deploy-on-push over CLI spam.
 
 Not in the queue and not to be started: fit tools (parked), the alterations
 vertical (awaiting founder design), and the four presentation modules —
