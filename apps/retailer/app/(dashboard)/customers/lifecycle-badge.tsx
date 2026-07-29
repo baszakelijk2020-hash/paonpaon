@@ -1,13 +1,10 @@
-import type { CustomerLifecycleStage } from "@paon/domain";
+import {
+  CUSTOMER_LIFECYCLE_STAGE_LABELS,
+  type CustomerLifecycleStage,
+} from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 
-export const LIFECYCLE_STAGE_LABEL: Record<CustomerLifecycleStage, string> = {
-  prospect: "New acquaintance",
-  first_purchase: "First commission",
-  returning: "Returning client",
-  vip: "Private client",
-  lapsed: "Quiet for a while",
-};
+export { CUSTOMER_LIFECYCLE_STAGE_LABELS as LIFECYCLE_STAGE_LABEL };
 
 const STAGE_TONE: Record<
   CustomerLifecycleStage,
@@ -21,5 +18,9 @@ const STAGE_TONE: Record<
 };
 
 export function LifecycleBadge({ stage }: { stage: CustomerLifecycleStage }) {
-  return <Badge tone={STAGE_TONE[stage]}>{LIFECYCLE_STAGE_LABEL[stage]}</Badge>;
+  return (
+    <Badge tone={STAGE_TONE[stage]}>
+      {CUSTOMER_LIFECYCLE_STAGE_LABELS[stage]}
+    </Badge>
+  );
 }

@@ -1,6 +1,9 @@
 "use client";
 
-import { CUSTOMER_LIFECYCLE_STAGES } from "@paon/domain";
+import {
+  CUSTOMER_LIFECYCLE_STAGES,
+  CUSTOMER_LIFECYCLE_STAGE_LABELS,
+} from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { FormField } from "@paon/ui/components/FormField";
@@ -81,7 +84,7 @@ export function CustomerForm() {
             >
               {CUSTOMER_LIFECYCLE_STAGES.map((stage) => (
                 <option key={stage} value={stage}>
-                  {stage.replaceAll("_", " ")}
+                  {CUSTOMER_LIFECYCLE_STAGE_LABELS[stage]}
                 </option>
               ))}
             </Select>

@@ -1,6 +1,6 @@
 "use client";
 
-import { INVITABLE_RETAILER_ROLES } from "@paon/domain";
+import { INVITABLE_RETAILER_ROLES, RETAILER_ROLE_LABELS } from "@paon/domain";
 import type { Workshop } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -94,7 +94,7 @@ export function StaffForm({ workshops }: { workshops: readonly Workshop[] }) {
             >
               {INVITABLE_RETAILER_ROLES.map((role) => (
                 <option key={role} value={role}>
-                  {role.replaceAll("_", " ")}
+                  {RETAILER_ROLE_LABELS[role]}
                 </option>
               ))}
             </Select>

@@ -15,6 +15,17 @@ export const RETAILER_ROLES = [
 
 export const retailerRoleSchema = z.enum(RETAILER_ROLES);
 
+export const RETAILER_ROLE_LABELS: Record<RetailerRole, string> = {
+  owner: "Owner",
+  admin: "Administrator",
+  manager: "Manager",
+  sales_associate: "Sales advisor",
+  production_staff: "Production specialist",
+  workshop_manager: "Workshop manager",
+  worker: "Alteration specialist",
+  read_only: "Observer",
+};
+
 /**
  * Every role an in-portal invite (Retailer Portal "Staff" page, or any
  * future equivalent) may grant — deliberately excludes "owner".

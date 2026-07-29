@@ -14,6 +14,17 @@ export const CUSTOMER_LIFECYCLE_STAGES = [
 
 export const customerLifecycleStageSchema = z.enum(CUSTOMER_LIFECYCLE_STAGES);
 
+export const CUSTOMER_LIFECYCLE_STAGE_LABELS: Record<
+  CustomerLifecycleStage,
+  string
+> = {
+  prospect: "New acquaintance",
+  first_purchase: "First commission",
+  returning: "Returning client",
+  vip: "Private client",
+  lapsed: "Quiet for a while",
+};
+
 /**
  * A Retailer Portal staff member creating a CRM record for a client —
  * not a Customer Portal signup (which never supplies these fields

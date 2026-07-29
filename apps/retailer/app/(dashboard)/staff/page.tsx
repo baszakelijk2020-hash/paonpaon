@@ -1,5 +1,6 @@
 import { requireRetailerRole } from "@paon/auth";
 import { RetailerStaffRepository } from "@paon/database";
+import { RETAILER_ROLE_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -69,7 +70,7 @@ export default async function StaffPage() {
                 <p className="text-sm text-[var(--color-stone-500)]">
                   {member.email} ·{" "}
                   <span className="capitalize">
-                    {member.role.replaceAll("_", " ")}
+                    {RETAILER_ROLE_LABELS[member.role]}
                   </span>
                 </p>
               </div>
