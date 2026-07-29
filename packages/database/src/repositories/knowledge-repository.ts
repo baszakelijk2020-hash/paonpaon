@@ -1,6 +1,7 @@
 import {
   asId,
   type KnowledgeCommercialIntent,
+  type KnowledgeDiscoveryCandidate,
   type KnowledgeDisplayType,
   type KnowledgeObject,
   type KnowledgeObjectConcept,
@@ -390,6 +391,90 @@ export class KnowledgeRepository {
       throw error;
     }
     return toOverride(data);
+  }
+
+  /**
+   * Projects discovery candidates for accepted product concepts only.
+   * Ranking/explanation stays in `@paon/domain` (`rankKnowledgeDiscovery`).
+   */
+  async projectDiscoveryCandidates(
+    retailerId: RetailerId,
+    acceptedProductConceptIds: readonly MetadataConceptId[],
+  ): Promise<KnowledgeDiscoveryCandidate[]> {
+    if (acceptedProductConceptIds.length === 0) {
+      return [];
+    }
+
+    const { data: joins, error: joinsError } = await this.client
+      .from("knowledge_object_concepts")
+      .select("*")
+      .in("concept_id", [...acceptedProductConceptIds])
+      .is("deleted_at", null);
+
+    if (joinsError) {
+      throw joinsError;
+    }
+    if (joins.length === 0) {
+      return [];
+    }
+
+    const knowledgeObjectIds = [
+      ...new Set(joins.map((row) => row.knowledge_object_id)),
+    ];
+
+    const { data: objects, error: objectsError } = await this.client
+      .from("knowledge_objects")
+      .select("*")
+      .in("id", knowledgeObjectIds)
+      .or(`retailer_id.is.null,retailer_id.eq.${retailerId}`)
+      .is("deleted_at", null);
+
+    if (objectsError) {
+      throw objectsError;
+    }
+
+    const { data: allJoins, error: allJoinsError } = await this.client
+      .from("knowledge_object_concepts")
+      .select("*")
+      .in("knowledge_object_id", knowledgeObjectIds)
+      .is("deleted_at", null);
+
+    if (allJoinsError) {
+      throw allJoinsError;
+    }
+
+    const { data: overrides, error: overridesError } = await this.client
+      .from("retailer_knowledge_overrides")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .in("knowledge_object_id", knowledgeObjectIds)
+      .is("deleted_at", null);
+
+    if (overridesError) {
+      throw overridesError;
+    }
+
+    const overrideByObjectId = new Map(
+      overrides.map((row) => [row.knowledge_object_id, toOverride(row)]),
+    );
+    const joinsByObjectId = new Map<string, KnowledgeObjectConceptRow[]>();
+    for (const join of allJoins) {
+      const existing = joinsByObjectId.get(join.knowledge_object_id) ?? [];
+      existing.push(join);
+      joinsByObjectId.set(join.knowledge_object_id, existing);
+    }
+
+    return objects.map((row) => {
+      const objectJoins = joinsByObjectId.get(row.id) ?? [];
+      return {
+        object: toKnowledgeObject(row),
+        matchedConcepts: objectJoins.map((join) => ({
+          conceptId: asId<"MetadataConceptId">(join.concept_id),
+          matchStrength: join.match_strength,
+        })),
+        override: overrideByObjectId.get(row.id) ?? null,
+      };
+    });
   }
 }
 

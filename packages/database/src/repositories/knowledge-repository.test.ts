@@ -106,4 +106,16 @@ describe("KnowledgeRepository", () => {
       }),
     );
   });
+
+  it("returns no discovery candidates when accepted concepts are empty", async () => {
+    const repository = new KnowledgeRepository({
+      from: () => {
+        throw new Error("should not query");
+      },
+    } as unknown as PaonSupabaseClient);
+
+    await expect(
+      repository.projectDiscoveryCandidates(retailerId as never, []),
+    ).resolves.toEqual([]);
+  });
 });
