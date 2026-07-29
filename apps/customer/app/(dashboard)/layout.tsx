@@ -29,6 +29,11 @@ const navigation: AppShellNavGroup[] = [
         description: "Owned pieces by house",
       },
       {
+        href: "/morning-routine",
+        label: "MorningRoutine",
+        description: "Today’s owned-first picks",
+      },
+      {
         href: "/loyalty",
         label: "Loyalty",
         description: "Status, points and rewards",

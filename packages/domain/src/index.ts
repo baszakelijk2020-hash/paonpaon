@@ -91,6 +91,9 @@ export * from "./intelligence/style-profile.schema";
 export * from "./intelligence/advisor-brief";
 export * from "./intelligence/grounded-answer";
 
+export * from "./integrations/weather";
+export * from "./integrations/calendar";
+
 export * from "./wardrobe/wardrobe";
 export * from "./wardrobe/wardrobe.schema";
 export * from "./wardrobe/lifecycle";
@@ -100,3 +103,5 @@ export * from "./wardrobe/sartorial-fixtures";
 export * from "./wardrobe/outfit";
 export * from "./wardrobe/roadmap";
 export * from "./wardrobe/roadmap.schema";
+export * from "./wardrobe/morning-routine";
+export * from "./wardrobe/morning-routine.schema";

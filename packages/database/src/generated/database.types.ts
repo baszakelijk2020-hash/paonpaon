@@ -3391,6 +3391,201 @@ export type Database = {
           },
         ];
       };
+      morning_routine_recommendations: {
+        Row: {
+          actions: Json;
+          category_code: string | null;
+          created_at: string;
+          customer_id: string;
+          display_name: string;
+          explanation: Json;
+          factors: Json;
+          id: string;
+          primary_image_url: string | null;
+          product_id: string | null;
+          product_slug: string | null;
+          product_variant_id: string | null;
+          rank: number;
+          retailer_id: string;
+          score: number;
+          selection_id: string;
+          source: string;
+          wardrobe_item_id: string | null;
+        };
+        Insert: {
+          actions?: Json;
+          category_code?: string | null;
+          created_at?: string;
+          customer_id: string;
+          display_name: string;
+          explanation?: Json;
+          factors?: Json;
+          id?: string;
+          primary_image_url?: string | null;
+          product_id?: string | null;
+          product_slug?: string | null;
+          product_variant_id?: string | null;
+          rank: number;
+          retailer_id: string;
+          score: number;
+          selection_id: string;
+          source: string;
+          wardrobe_item_id?: string | null;
+        };
+        Update: {
+          actions?: Json;
+          category_code?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          display_name?: string;
+          explanation?: Json;
+          factors?: Json;
+          id?: string;
+          primary_image_url?: string | null;
+          product_id?: string | null;
+          product_slug?: string | null;
+          product_variant_id?: string | null;
+          rank?: number;
+          retailer_id?: string;
+          score?: number;
+          selection_id?: string;
+          source?: string;
+          wardrobe_item_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "morning_routine_recommendations_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_recommendations_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "morning_routine_recommendations_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_recommendations_product_variant_id_fkey";
+            columns: ["product_variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_recommendations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_recommendations_selection_id_fkey";
+            columns: ["selection_id"];
+            isOneToOne: false;
+            referencedRelation: "morning_routine_selections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_recommendations_wardrobe_item_id_fkey";
+            columns: ["wardrobe_item_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      morning_routine_selections: {
+        Row: {
+          calendar_status: string;
+          created_at: string;
+          customer_id: string;
+          for_date: string;
+          id: string;
+          location_consent: string;
+          location_kind: string;
+          location_label: string | null;
+          location_status: string;
+          occasion_labels: Json;
+          personalization_consent: string;
+          personalization_status: string;
+          retailer_id: string;
+          review_status: string;
+          summary: string;
+          weather_status: string;
+          weather_summary: string | null;
+        };
+        Insert: {
+          calendar_status: string;
+          created_at?: string;
+          customer_id: string;
+          for_date: string;
+          id?: string;
+          location_consent: string;
+          location_kind: string;
+          location_label?: string | null;
+          location_status: string;
+          occasion_labels?: Json;
+          personalization_consent: string;
+          personalization_status: string;
+          retailer_id: string;
+          review_status?: string;
+          summary: string;
+          weather_status: string;
+          weather_summary?: string | null;
+        };
+        Update: {
+          calendar_status?: string;
+          created_at?: string;
+          customer_id?: string;
+          for_date?: string;
+          id?: string;
+          location_consent?: string;
+          location_kind?: string;
+          location_label?: string | null;
+          location_status?: string;
+          occasion_labels?: Json;
+          personalization_consent?: string;
+          personalization_status?: string;
+          retailer_id?: string;
+          review_status?: string;
+          summary?: string;
+          weather_status?: string;
+          weather_summary?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "morning_routine_selections_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_selections_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "morning_routine_selections_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       newsletter_subscribers: {
         Row: {
           created_at: string;
@@ -7364,11 +7559,26 @@ export type Database = {
         Args: { p_conversation_id: string };
         Returns: undefined;
       };
+      mark_morning_routine_review: {
+        Args: { p_review_status: string; p_selection_id: string };
+        Returns: string;
+      };
       next_alteration_work_order_number: { Args: never; Returns: string };
       next_order_number: { Args: never; Returns: string };
       open_prospect_demo: {
         Args: { p_access_code: string; p_public_token: string };
         Returns: Json;
+      };
+      persist_morning_routine_selection: {
+        Args: {
+          p_customer_id: string;
+          p_for_date: string;
+          p_provenance: Json;
+          p_recommendations: Json;
+          p_retailer_id: string;
+          p_summary: string;
+        };
+        Returns: string;
       };
       persist_style_profile_recompute: {
         Args: {

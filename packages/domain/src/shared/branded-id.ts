@@ -61,6 +61,14 @@ export type WardrobeLifecycleEventId = Brand<
 >;
 export type WardrobeSelfScanId = Brand<string, "WardrobeSelfScanId">;
 export type WardrobeAttachmentId = Brand<string, "WardrobeAttachmentId">;
+export type MorningRoutineSelectionId = Brand<
+  string,
+  "MorningRoutineSelectionId"
+>;
+export type MorningRoutineRecommendationId = Brand<
+  string,
+  "MorningRoutineRecommendationId"
+>;
 export type OrderId = Brand<string, "OrderId">;
 export type OrderLineId = Brand<string, "OrderLineId">;
 export type ProductionOrderId = Brand<string, "ProductionOrderId">;
