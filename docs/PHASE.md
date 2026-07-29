@@ -56,8 +56,8 @@ Verified against code and 91 migrations on 2026-07-30:
   Accepted-metadata catalogue query supports named facets, weight/price
   ranges, intent mapping, and pagination with founder filter hooks.
   Catalogue import jobs/rows/review tasks, CSV/XLSX/JSON parsers, downloadable
-  contracts, Retailer Portal preview, and transactional reviewed-row publishing
-  exist; AI enrichment does not.
+  contracts, Retailer Portal preview, transactional reviewed-row publishing,
+  and AI-assisted enrichment with pending review exist.
   No style-profile, wardrobe, outfit, roadmap, service-plan, or campaign table
   exists.
 
@@ -301,7 +301,7 @@ storefront redesign, or customer personalization.
     repository batch resume, Retailer Portal review/publish actions and status
     UI, plus pgTAP coverage for success/idempotency/rollback/RLS/audit.
 
-- [ ] **2.7 AI-assisted import enrichment**
+- [x] **2.7 AI-assisted import enrichment**
   - **Requirement IDs:** `IMP-003`, `IMP-004`, `ENG-002`.
   - **Dependencies:** `2.5`, `2.6`.
   - **Owner boundary:** Admin-maintained external prompt/LLM contract first,
@@ -316,6 +316,12 @@ storefront redesign, or customer personalization.
     publish, prompt PII, or model-authored canonical knowledge.
   - **Hard blockers:** missing AI key blocks live smoke verification only, not
     external-prompt or provider-neutral implementation.
+  - **Landed:** `21297da` — Admin-maintained
+    `import_enrichment_prompt_contracts`, domain validation that rejects
+    invented protected facts, provider-neutral `@paon/ai` enrichment runner
+    with mocks, `ai_generations.import_enrichment` audit, pending AI review
+    tasks with evidence/field_key idempotency, and Retailer Portal enrich
+    action; live OpenAI smoke remains optional.
 
 **Stage 2 non-goals:** no semantic/vector retrieval before accepted metadata
 and search/click evidence exist; no autonomous AI facts; no React rewrite of
