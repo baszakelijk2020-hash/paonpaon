@@ -41,14 +41,14 @@ PY
 )"
 
 echo "${parse_output}"
-if printf "%s\n" "${parse_output}" | rg -q "^QUOTA_BLOCKED=1$"; then
+if printf "%s\n" "${parse_output}" | grep -q "^QUOTA_BLOCKED=1$"; then
   # Hobby daily deploy cap must not turn main red — verify already passed.
   echo "::warning::Vercel Hobby deploy cap hit; production not updated. Retry after quota reset."
   exit 0
 fi
 
-deployment_id="$(printf "%s\n" "${parse_output}" | rg "^DEPLOYMENT_ID=" | cut -d= -f2-)"
-deployment_url="$(printf "%s\n" "${parse_output}" | rg "^DEPLOYMENT_URL=" | cut -d= -f2-)"
+deployment_id="$(printf "%s\n" "${parse_output}" | grep "^DEPLOYMENT_ID=" | cut -d= -f2-)"
+deployment_url="$(printf "%s\n" "${parse_output}" | grep "^DEPLOYMENT_URL=" | cut -d= -f2-)"
 
 if [ -z "${deployment_id}" ]; then
   echo "Missing deployment id in Vercel response." >&2
