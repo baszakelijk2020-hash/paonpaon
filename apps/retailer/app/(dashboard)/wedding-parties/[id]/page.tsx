@@ -8,6 +8,7 @@ import {
 } from "@paon/database";
 import {
   WEDDING_PARTY_MEMBER_FITTING_STATUSES,
+  WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS,
   WEDDING_PARTY_MEMBER_ROLE_LABELS,
   WEDDING_PARTY_STATUSES,
 } from "@paon/domain";
@@ -202,7 +203,11 @@ export default async function WeddingPartyDetailPage({
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge tone={FITTING_TONE[member.fittingStatus]}>
-                    {member.fittingStatus}
+                    {
+                      WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS[
+                        member.fittingStatus
+                      ]
+                    }
                   </Badge>
                   <form
                     action={updateMemberFittingStatus}
@@ -218,11 +223,11 @@ export default async function WeddingPartyDetailPage({
                       name="status"
                       aria-label={`${member.name}'s fitting status`}
                       defaultValue={member.fittingStatus}
-                      className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-1 text-xs capitalize"
+                      className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-1 text-xs"
                     >
                       {WEDDING_PARTY_MEMBER_FITTING_STATUSES.map((status) => (
                         <option key={status} value={status}>
-                          {status}
+                          {WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS[status]}
                         </option>
                       ))}
                     </select>

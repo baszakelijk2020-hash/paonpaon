@@ -3,7 +3,10 @@ import {
   RetailerRepository,
   WeddingPartyRepository,
 } from "@paon/database";
-import { WEDDING_PARTY_MEMBER_ROLE_LABELS } from "@paon/domain";
+import {
+  WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS,
+  WEDDING_PARTY_MEMBER_ROLE_LABELS,
+} from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -178,7 +181,11 @@ export default async function WeddingPartyDetailPage({
             </div>
             <div className="flex items-center gap-3">
               <Badge tone={FITTING_TONE[member.fittingStatus]}>
-                {member.fittingStatus}
+                {
+                  WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS[
+                    member.fittingStatus
+                  ]
+                }
               </Badge>
               {myCustomerIds.has(member.customerId) && retailer ? (
                 <div className="flex items-center gap-2">

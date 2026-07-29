@@ -51,6 +51,16 @@ export type WeddingPartyMemberFittingStatus =
 export const WEDDING_PARTY_MEMBER_FITTING_STATUSES: readonly WeddingPartyMemberFittingStatus[] =
   ["invited", "scheduled", "fitted", "completed"];
 
+export const WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS: Record<
+  WeddingPartyMemberFittingStatus,
+  string
+> = {
+  invited: "Invited",
+  scheduled: "Scheduled",
+  fitted: "Fitted",
+  completed: "Completed",
+};
+
 /**
  * Coordination for a wedding's tailoring needs (ADR-035, overriding
  * ADR-034's earlier deferral of the deck's "Moonstruck" concept) —
