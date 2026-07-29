@@ -4,6 +4,22 @@ import type { Timestamps } from "../shared/timestamps";
 export type EventVisibility = "public" | "invite_only" | "vip_tier";
 export type EventStatus = "draft" | "published" | "cancelled" | "completed";
 
+export const EVENT_VISIBILITY_LABELS: Record<EventVisibility, string> = {
+  public: "Public",
+  invite_only: "Invite only",
+  vip_tier: "VIP clients",
+};
+
+export const EVENT_RSVP_STATUS_LABELS: Record<
+  "invited" | "attending" | "declined" | "attended",
+  string
+> = {
+  invited: "Invited",
+  attending: "Attending",
+  declined: "Declined",
+  attended: "Attended",
+};
+
 /** A retailer-hosted event (trunk show, VIP evening, launch). */
 export interface RetailerEvent extends Timestamps {
   readonly id: EventId;

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ALTERATION_STATUS_LABELS,
   ALTERATION_STATUS_TRANSITIONS,
   canRetailerRoleTransitionAlteration,
   type AlterationStatus,
@@ -53,7 +54,7 @@ export function UpdateForm({
             )
             .map((status) => (
               <option key={status} value={status}>
-                {status.replaceAll("_", " ")}
+                {ALTERATION_STATUS_LABELS[status]}
               </option>
             ))}
         </Select>

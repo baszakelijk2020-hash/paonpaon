@@ -1,6 +1,10 @@
 "use client";
 
-import { APPOINTMENT_STATUSES, type RetailerStaffMember } from "@paon/domain";
+import {
+  APPOINTMENT_STATUSES,
+  APPOINTMENT_STATUS_LABELS,
+  type RetailerStaffMember,
+} from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Select } from "@paon/ui/components/Select";
 import { useActionState } from "react";
@@ -38,7 +42,7 @@ export function AppointmentActionsForm({
         <Select id="status" name="status" defaultValue={currentStatus}>
           {APPOINTMENT_STATUSES.map((status) => (
             <option key={status} value={status}>
-              {status.replaceAll("_", " ")}
+              {APPOINTMENT_STATUS_LABELS[status]}
             </option>
           ))}
         </Select>

@@ -11,7 +11,9 @@ import {
 } from "@paon/database";
 import {
   asId,
+  APPOINTMENT_STATUS_LABELS,
   APPOINTMENT_TYPE_LABELS,
+  ORDER_STATUS_LABELS,
   retailerRoleAtLeast,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
@@ -312,7 +314,7 @@ export default async function CustomerDetailPage({
               </h2>
               <p className="mt-2 text-sm text-[var(--color-stone-500)]">
                 {formatDate(nextAppointment.startsAt, "en-US")} ·{" "}
-                {nextAppointment.status.replaceAll("_", " ")}
+                {APPOINTMENT_STATUS_LABELS[nextAppointment.status]}
               </p>
               <Link
                 href={`/appointments/${nextAppointment.id}`}
@@ -482,13 +484,13 @@ export default async function CustomerDetailPage({
                 id: `order-${item.id}`,
                 at: item.createdAt,
                 title: `Order ${item.orderNumber}`,
-                detail: item.status.replaceAll("_", " "),
+                detail: ORDER_STATUS_LABELS[item.status],
               })),
               ...appointments.map((item) => ({
                 id: `appointment-${item.id}`,
                 at: item.startsAt,
                 title: APPOINTMENT_TYPE_LABELS[item.type],
-                detail: item.status.replaceAll("_", " "),
+                detail: APPOINTMENT_STATUS_LABELS[item.status],
               })),
               ...garments.map((item) => ({
                 id: `garment-${item.id}`,

@@ -5,7 +5,14 @@ import {
   PhysicalGarmentRepository,
   RetailerStaffRepository,
 } from "@paon/database";
-import { asId, type Alteration, type StaffId } from "@paon/domain";
+import {
+  ALTERATION_STATUS_LABELS,
+  ALTERATION_TASK_STATUS_LABELS,
+  WORK_CLASSIFICATION_LABELS,
+  asId,
+  type Alteration,
+  type StaffId,
+} from "@paon/domain";
 import { formatDate, formatMoney } from "@paon/utils";
 import { notFound } from "next/navigation";
 
@@ -98,8 +105,8 @@ export default async function AlterationPrintPage({
             <p className="text-xs uppercase tracking-[0.18em] text-[#1a1a1a]/60">
               Status
             </p>
-            <p className="text-lg font-medium capitalize">
-              {alteration.status.replaceAll("_", " ")}
+            <p className="text-lg font-medium">
+              {ALTERATION_STATUS_LABELS[alteration.status]}
             </p>
             {alteration.dueDate ? (
               <p className="mt-1 text-sm text-[#1a1a1a]/70">
@@ -196,8 +203,8 @@ export default async function AlterationPrintPage({
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-medium">{task.title}</p>
                   <span className="text-xs uppercase text-[#1a1a1a]/60">
-                    {task.classification.replaceAll("_", " ")} ·{" "}
-                    {task.status.replaceAll("_", " ")}
+                    {WORK_CLASSIFICATION_LABELS[task.classification]} ·{" "}
+                    {ALTERATION_TASK_STATUS_LABELS[task.status]}
                   </span>
                 </div>
                 {task.instructions ? (

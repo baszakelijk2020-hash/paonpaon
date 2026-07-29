@@ -1,5 +1,6 @@
 import { requireRetailerRole } from "@paon/auth";
 import { CustomerRepository, EventRepository } from "@paon/database";
+import { EVENT_VISIBILITY_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button, buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -49,7 +50,7 @@ export default async function EventPage({
       <Card>
         <p>{event.description}</p>
         <p className="mt-3 text-sm capitalize text-[var(--color-stone-500)]">
-          {event.visibility.replaceAll("_", " ")} ·{" "}
+          {EVENT_VISIBILITY_LABELS[event.visibility]} ·{" "}
           {event.capacity ? `${event.capacity} places` : "No capacity limit"}
         </p>
         <div className="mt-5 flex gap-2">

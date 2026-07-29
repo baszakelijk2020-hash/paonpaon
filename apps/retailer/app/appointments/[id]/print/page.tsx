@@ -4,7 +4,11 @@ import {
   CustomerRepository,
   RetailerStaffRepository,
 } from "@paon/database";
-import { asId } from "@paon/domain";
+import {
+  asId,
+  APPOINTMENT_STATUS_LABELS,
+  APPOINTMENT_TYPE_LABELS,
+} from "@paon/domain";
 import { formatDate } from "@paon/utils";
 import { notFound } from "next/navigation";
 
@@ -64,7 +68,7 @@ export default async function AppointmentPrintPage({
           </div>
           <div className="text-right">
             <p className="text-xs uppercase tracking-[0.18em] text-[#1a1a1a]/60">
-              {appointment.type.replaceAll("_", " ")}
+              {APPOINTMENT_TYPE_LABELS[appointment.type]}
             </p>
             <p className="text-lg font-medium">
               {formatDate(appointment.startsAt, "en-US")}
@@ -101,7 +105,7 @@ export default async function AppointmentPrintPage({
               {assignedAdvisor?.fullName ?? "Unassigned"}
             </p>
             <p className="text-sm capitalize text-[#1a1a1a]/70">
-              Status: {appointment.status.replaceAll("_", " ")}
+              Status: {APPOINTMENT_STATUS_LABELS[appointment.status]}
             </p>
           </div>
         </section>

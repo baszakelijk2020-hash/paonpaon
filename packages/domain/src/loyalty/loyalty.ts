@@ -53,6 +53,13 @@ export interface LoyaltyLedgerEntry {
 export type RewardType =
   "discount_percent" | "discount_fixed" | "gift" | "early_access";
 
+export const REWARD_TYPE_LABELS: Record<RewardType, string> = {
+  discount_percent: "Percentage discount",
+  discount_fixed: "Fixed discount",
+  gift: "Gift",
+  early_access: "Early access",
+};
+
 export interface Reward extends Timestamps {
   readonly id: RewardId;
   readonly retailerId: RetailerId;

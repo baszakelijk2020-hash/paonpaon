@@ -31,6 +31,15 @@ export const APPOINTMENT_STATUSES = [
 
 export const appointmentStatusSchema = z.enum(APPOINTMENT_STATUSES);
 
+export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
+  requested: "Requested",
+  confirmed: "Confirmed",
+  checked_in: "Checked in",
+  completed: "Completed",
+  canceled: "Cancelled",
+  no_show: "No show",
+};
+
 /**
  * What a Customer Portal appointment request needs — mirrors
  * `placeOrderInputSchema`'s shape (docs/DECISIONS.md ADR-014): the

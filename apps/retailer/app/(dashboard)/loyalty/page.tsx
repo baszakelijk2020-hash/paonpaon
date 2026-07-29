@@ -1,5 +1,6 @@
 import { requireRetailerRole } from "@paon/auth";
 import { LoyaltyRepository } from "@paon/database";
+import { REWARD_TYPE_LABELS } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
@@ -144,7 +145,7 @@ export default async function LoyaltyPage() {
                     {item.name}
                   </p>
                   <p className="text-sm text-[var(--color-stone-500)]">
-                    {item.type.replaceAll("_", " ")}
+                    {REWARD_TYPE_LABELS[item.type]}
                     {item.minimumTier ? ` · ${item.minimumTier}+` : ""}
                     {!item.active ? " · inactive" : ""}
                   </p>

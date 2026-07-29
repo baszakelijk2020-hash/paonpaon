@@ -1,4 +1,5 @@
 import { CustomerRepository, EventRepository } from "@paon/database";
+import { EVENT_RSVP_STATUS_LABELS } from "@paon/domain";
 import { formatDate } from "@paon/utils";
 import { notFound } from "next/navigation";
 
@@ -77,8 +78,8 @@ export default async function EventPrintPage({
                 <span>
                   {customerById.get(rsvp.customerId)?.fullName ?? "Guest"}
                 </span>
-                <span className="capitalize text-[#1a1a1a]/60">
-                  {rsvp.status.replaceAll("_", " ")}
+                <span className="text-[#1a1a1a]/60">
+                  {EVENT_RSVP_STATUS_LABELS[rsvp.status]}
                 </span>
                 <span className="w-24 border-b border-[#1a1a1a]/40" />
               </div>

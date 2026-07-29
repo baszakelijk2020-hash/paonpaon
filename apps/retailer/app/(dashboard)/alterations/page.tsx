@@ -4,6 +4,7 @@ import {
   PhysicalGarmentRepository,
 } from "@paon/database";
 import {
+  ALTERATION_STATUS_LABELS,
   retailerRoleHasAlterationsPermission,
   type Alteration,
   type AlterationStatus,
@@ -223,8 +224,8 @@ export default async function AlterationsPage() {
                       </div>
                       <div>
                         <div className="mb-2 flex items-center justify-between gap-3 text-xs">
-                          <span className="capitalize text-[var(--color-stone-600)]">
-                            {alteration.status.replaceAll("_", " ")}
+                          <span className="text-[var(--color-stone-600)]">
+                            {ALTERATION_STATUS_LABELS[alteration.status]}
                           </span>
                           <span className="text-[var(--color-stone-400)]">
                             {alteration.dueDate

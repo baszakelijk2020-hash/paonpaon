@@ -12,6 +12,8 @@ import {
 } from "@paon/database";
 import {
   ALTERATION_STATUS_TRANSITIONS,
+  ALTERATION_TASK_STATUS_LABELS,
+  WORK_CLASSIFICATION_LABELS,
   asId,
   canRetailerRoleTransitionAlteration,
   retailerRoleHasAlterationsPermission,
@@ -783,8 +785,8 @@ export default async function AlterationDetailPage({
               <div className="flex items-center justify-between gap-3">
                 <p className="font-medium">{task.title}</p>
                 <span className="text-xs uppercase text-[var(--color-stone-500)]">
-                  {task.classification.replaceAll("_", " ")} ·{" "}
-                  {task.status.replaceAll("_", " ")}
+                  {WORK_CLASSIFICATION_LABELS[task.classification]} ·{" "}
+                  {ALTERATION_TASK_STATUS_LABELS[task.status]}
                 </span>
               </div>
               {task.instructions ? (
@@ -868,8 +870,14 @@ export default async function AlterationDetailPage({
           <Card className="divide-y divide-[var(--color-stone-100)] p-0">
             {completionReviews.map((review) => (
               <div key={review.id} className="px-6 py-4">
-                <p className="font-medium capitalize">
-                  {review.status.replaceAll("_", " ")}
+                <p className="font-medium">
+                  {
+                    {
+                      pending: "Pending",
+                      approved: "Approved",
+                      changes_requested: "Changes requested",
+                    }[review.status]
+                  }
                 </p>
                 <p className="text-xs text-[var(--color-stone-500)]">
                   {review.reviewedAt

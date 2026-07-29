@@ -3,7 +3,7 @@ import {
   OrderRepository,
   ProductVariantRepository,
 } from "@paon/database";
-import { asId } from "@paon/domain";
+import { asId, ORDER_STATUS_LABELS } from "@paon/domain";
 import { formatDate, formatMoney } from "@paon/utils";
 import { notFound } from "next/navigation";
 
@@ -61,8 +61,8 @@ export default async function OrderPrintPage({
             <p className="text-xs uppercase tracking-[0.18em] text-[#1a1a1a]/60">
               Status
             </p>
-            <p className="text-lg font-medium capitalize">
-              {order.status.replaceAll("_", " ")}
+            <p className="text-lg font-medium">
+              {ORDER_STATUS_LABELS[order.status]}
             </p>
             <p className="mt-1 text-sm text-[#1a1a1a]/70">
               {formatDate(order.createdAt, "en-US")} · {order.channel}

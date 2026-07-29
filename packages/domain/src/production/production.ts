@@ -385,6 +385,38 @@ export interface FulfillmentEvent extends Timestamps {
   readonly verificationNote?: string;
 }
 
+export const ALTERATION_TASK_STATUS_LABELS: Record<
+  AlterationTaskStatus,
+  string
+> = {
+  proposed: "Proposed",
+  approved: "Approved",
+  assigned: "Assigned",
+  in_progress: "In progress",
+  review_ready: "Ready for review",
+  completed: "Completed",
+  canceled: "Cancelled",
+};
+
+export const WORK_CLASSIFICATION_LABELS: Record<WorkClassification, string> = {
+  work_now: "Now",
+  future_order_note: "Future order",
+};
+
+export const ALTERATION_STATUS_LABELS: Record<AlterationStatus, string> = {
+  intake: "Intake",
+  quoted: "Quoted",
+  awaiting_approval: "Awaiting approval",
+  approved: "Approved",
+  assigned: "Assigned",
+  in_progress: "In progress",
+  completion_review: "Completion review",
+  ready_for_pickup: "Ready for collection",
+  out_for_delivery: "Out for delivery",
+  completed: "Completed",
+  canceled: "Cancelled",
+};
+
 export const ALTERATION_STATUS_TRANSITIONS: Readonly<
   Record<AlterationStatus, readonly AlterationStatus[]>
 > = {
