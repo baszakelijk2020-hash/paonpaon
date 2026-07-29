@@ -73,30 +73,92 @@ back-to-back sub-slices.
 
 ### Stage 0 — Direction
 
-- [x] **0.1 Documentation consolidation.** Establish this queue,
-      `PAON_INTELLIGENCE_PLATFORM.md`, the four programme ADRs, the cross-agent
-      loop, the authority map, factual project state, and Resume Protocol. No
-      feature implementation.
+- [x] **0.1 Documentation consolidation**
+  - **Requirement IDs:** `ENG-005` and traceability for every founder ID.
+  - **Dependencies:** none.
+  - **Owner boundary:** documentation authority only: `AGENTS.md`,
+    `CLAUDE.md`, `docs/README.md`, this queue, the founder brief, the technical
+    programme, append-only ADRs, and factual `PROJECT_STATE.md`.
+  - **Acceptance:** one authority per topic; stable-ID traceability covers the
+    full brief; Resume Protocol is at the top of the programme; this file is
+    the only queue; wardrobe and marketplace boundary ADRs exist.
+  - **Tests:** targeted stale-authority search, Markdown formatting, link
+    inspection, code/migration baseline audit, and repository definition of
+    done.
+  - **Non-goals:** no product feature, schema, runtime, or founder-surface
+    implementation.
+  - **Hard blockers:** none.
 
 ### Stage 1 — Metadata foundation
 
-- [ ] **1.1 Domain contracts.** Add branded IDs, concept/edge/assignment/
-      override types, enums, validation schemas, `ProductFabricProfile`, and pure
-      validation tests in `@paon/domain`. Update DOMAIN_MODEL only after code
-      lands. Dependency: 0.1. ADR: 059.
-- [ ] **1.2 Metadata persistence and RLS.** Add canonical and retailer-owned
-      concept rows, edges, entity assignments, retailer overrides, indexes,
-      generated database types, and repositories. Verify platform/retailer
-      tenancy, nullable canonical ownership, and cross-tenant denial. Dependency:
-      1.1. ADR: 059.
-- [ ] **1.3 Review workflow.** Add Admin canonical-concept management and
-      retailer assignment review/accept/reject flows with provenance, confidence,
-      evidence, reviewer, and timestamps. Unknown concepts remain proposals until
-      accepted. Dependency: 1.2. ADR: 059.
-- [ ] **1.4 Product facts and catalogue assignment UI.** Persist exact fabric
-      weight, supplier reference, and composition percentages without duplicating
-      concept labels; let retailer staff manage product/variant assignments through
-      repositories and Server Actions. Dependency: 1.3.
+- [ ] **1.1 Metadata domain contracts**
+  - **Requirement IDs:** `CAT-001`, `CAT-002`, `CAT-003`, `CAT-004`,
+    `ENG-001`, `ENG-003`.
+  - **Dependencies:** `0.1`; ADR-059.
+  - **Owner boundary:** `@paon/domain` only: metadata branded IDs, concept,
+    edge, assignment, override, provenance/review enums and schemas,
+    `ProductFabricProfile`, pure validation, and exports.
+  - **Acceptance:** every catalogue concept named by `CAT-001` is typed;
+    composition is concept-linked and totals exactly 100; confidence/evidence
+    requirements vary correctly by source/review state; target/ownership types
+    cannot be confused.
+  - **Tests:** schema boundary tables, invalid enums/IDs, duplicate fibres,
+    composition totals/precision, source/evidence/review combinations, and pure
+    tenant-compatibility rules.
+  - **Non-goals:** no migration, repository, seed taxonomy, UI, AI, search, or
+    free-form tag API.
+  - **Hard blockers:** none.
+
+- [ ] **1.2 Metadata persistence, repositories, and RLS**
+  - **Requirement IDs:** `CAT-003`, `CAT-004`, `ENG-001`, `ENG-003`.
+  - **Dependencies:** `1.1`; ADR-059.
+  - **Owner boundary:** forward Supabase migration, generated database types,
+    and `@paon/database` metadata repositories only.
+  - **Acceptance:** canonical/retailer concepts, edges, assignments,
+    retailer overrides, exact fabric facts, constraints, indexes, RLS, and
+    repository mappings implement the domain contracts; target ownership and
+    retailer-owned concept compatibility are database-enforced.
+  - **Tests:** migrated-schema assertions; repository CRUD/mapping; canonical
+    platform access; retailer same-tenant reads/writes; customer/public
+    denial; cross-tenant edge/assignment/override denial; append-only review
+    evidence where required.
+  - **Non-goals:** no management UI, import, knowledge, search, or public
+    anonymous metadata reads.
+  - **Hard blockers:** local Supabase/Docker unavailable blocks only live
+    migration/RLS verification; implement pure/repository work and continue
+    independent verification where possible.
+
+- [ ] **1.3 Metadata review workflow**
+  - **Requirement IDs:** `CAT-003`, `CAT-004`, `ENG-001`.
+  - **Dependencies:** `1.2`; ADR-059.
+  - **Owner boundary:** PAON Admin canonical management plus Retailer Portal
+    review repositories, Server Actions, and focused views.
+  - **Acceptance:** platform staff manage canonical concepts; authorized
+    retailer staff propose/review/accept/reject tenant assignments and
+    overrides; actor/time/source/raw value/confidence/evidence remain
+    auditable; unknown values cannot become accepted canonical data silently.
+  - **Tests:** authorization matrices, action validation, state-transition
+    rules, double-review/idempotency, cross-tenant denial, and accessible
+    pending/error/empty states.
+  - **Non-goals:** no bulk import UI, autonomous AI approval, knowledge
+    authoring, storefront redesign, or semantic retrieval.
+  - **Hard blockers:** none.
+
+- [ ] **1.4 Exact product facts and catalogue assignment UI**
+  - **Requirement IDs:** `CAT-001`, `CAT-002`, `CAT-004`, `ENG-003`.
+  - **Dependencies:** `1.3`; ADR-059.
+  - **Owner boundary:** catalogue domain/repositories and Retailer Portal
+    product management Server Actions/components.
+  - **Acceptance:** staff manage product/variant assignments, exact fabric
+    weight, supplier reference, and concept-linked composition; variant facts
+    exist only for real variant differences; accepted labels are never copied
+    into a parallel string field.
+  - **Tests:** product create/edit integration, composition rollback,
+    product-versus-variant precedence, authorization/RLS, and accessible form
+    validation.
+  - **Non-goals:** no import, customer filters, AI inference, or founder
+    storefront change.
+  - **Hard blockers:** none.
 
 **Stage 1 non-goals:** no embeddings, vector search, autonomous publishing,
 free-form tag bag, global Brand registry, Collection-as-Brand shortcut,
@@ -104,36 +166,120 @@ storefront redesign, or customer personalization.
 
 ### Stage 2 — Knowledge, discovery, search, and import
 
-- [ ] **2.1 Knowledge contracts and persistence.** Add canonical/retailer
-      knowledge objects, concept joins, relations, display types, commercial
-      intent, active state, retailer override/pin controls, RLS, repositories, and
-      initial reviewed menswear fixtures. Dependency: 1.3. ADR: 060.
-- [ ] **2.2 Deterministic discovery engine.** Implement and test ranking from
-      accepted metadata, journey relevance, retailer priority/pins, commercial
-      intent, novelty, relationship proximity, diversity, and viewed penalties.
-      Return three to six explainable cards. Dependency: 2.1. ADR: 060.
-- [ ] **2.3 Founder-storefront mounts.** Inject discovery results into the
-      existing Archetype, Fabric, and Sizing information areas of
-      `paon-template.html` through narrow data hooks. Verify desktop/mobile,
-      accessibility, and no unrelated markup/CSS/interaction drift. Dependency:
-      2.2. ADRs: 052, 060.
-- [ ] **2.4 Structured catalogue query.** Add repository-backed search,
-      accepted-metadata facets, numeric weight/price ranges, relevance ordering,
-      pagination, and transparent unresolved-query fallback. Replace the current
-      keyword/image heuristics only when equivalent storefront behavior is covered
-      by tests. Dependency: 1.4.
-- [ ] **2.5 Import contracts and preview.** Publish the PAON CSV/XLSX template,
-      import job/row/review-task domain and persistence, parser fixtures, duplicate
-      checks, asset matching, validation errors, raw supplier preservation, and a
-      retailer preview. Dependency: 1.3.
-- [ ] **2.6 Transactional reviewed publishing.** Publish product, variants,
-      assets, exact facts, and accepted assignments atomically; failed rows remain
-      unpublished and resumable. Dependency: 2.5.
-- [ ] **2.7 AI-assisted enrichment.** First ship the Admin-maintained external
-      ChatGPT enrichment prompt and structured import workflow. Then add a
-      provider-neutral job-runner path that returns schema-validated JSON with
-      field confidence/evidence and never invents supplier facts. All inference
-      remains pending review. Dependencies: 2.5 and 2.6.
+- [ ] **2.1 Knowledge contracts and persistence**
+  - **Requirement IDs:** `EDU-001`, `ENG-001`, `ENG-002`, `ENG-003`.
+  - **Dependencies:** `1.3`; ADR-060.
+  - **Owner boundary:** `@paon/domain`, forward migration/RLS, generated types,
+    `@paon/database`, and reviewed canonical fixture data.
+  - **Acceptance:** canonical/retailer knowledge objects, concept joins,
+    relations, display types, commercial intent, active state, local
+    hide/presentation/priority/pin controls, and all founder-named education
+    topics are representable.
+  - **Tests:** schema validation, override precedence, RLS/cross-tenant denial,
+    repository mapping, fixture idempotency, and disabled/hidden eligibility.
+  - **Non-goals:** no runtime AI-authored facts, storefront mount, ranking,
+    embeddings, or retailer mutation of canonical copy.
+  - **Hard blockers:** reviewed production copy/images do not block contracts
+    or neutral fixtures; mark unapproved editorial content inactive.
+
+- [ ] **2.2 Deterministic discovery engine**
+  - **Requirement IDs:** `EDU-002`, `ENG-002`.
+  - **Dependencies:** `2.1`; ADR-060.
+  - **Owner boundary:** pure ranking/explanation in `@paon/domain` plus
+    repository candidate projection; no app-specific scoring forks.
+  - **Acceptance:** accepted metadata, journey, pins/priority, commercial
+    intent, novelty, relationship proximity, diversity, and viewed penalties
+    deterministically yield three to six eligible cards with factor
+    explanations.
+  - **Tests:** golden ranking fixtures, tie-breaking, diversity, hidden/pinned
+    precedence, viewed penalties, empty candidates, and rejected/pending
+    metadata exclusion.
+  - **Non-goals:** no LLM ranking, vector search, personalization without
+    consent, or runtime content generation.
+  - **Hard blockers:** none.
+
+- [ ] **2.3 Founder-storefront knowledge mounts**
+  - **Requirement IDs:** `EDU-003`, `ENG-004`.
+  - **Dependencies:** `2.2`; ADR-052 and ADR-060.
+  - **Owner boundary:** narrow data serialization/runtime hooks in
+    `apps/customer/app/r/[slug]/route.ts` and canonical
+    `paon-template.html`; reuse existing information panels.
+  - **Acceptance:** square image/title/useful-copy cards appear in Archetype,
+    Fabric, and Sizing areas on desktop/mobile; existing markup, styling,
+    swipe/cart/filter behavior, and fallback content remain intact.
+  - **Tests:** route serialization, DOM snapshot/diff allowlist, Playwright
+    desktop/mobile behavior, keyboard/screen-reader semantics, contrast, and
+    no-data fallback.
+  - **Non-goals:** no React/Tailwind/shared-design-system rewrite, new visual
+    language, or unrelated founder HTML cleanup.
+  - **Hard blockers:** an indispensable mount that cannot preserve the founder
+    surface under ADR-052 blocks this item only.
+
+- [ ] **2.4 Structured catalogue query**
+  - **Requirement IDs:** `SRCH-001`, `SRCH-002`, `ENG-002`, `ENG-003`.
+  - **Dependencies:** `1.4`.
+  - **Owner boundary:** `@paon/domain` query contract, indexed
+    `@paon/database` repository query, and existing storefront filter/search
+    hooks.
+  - **Acceptance:** active accepted metadata drives all named facets,
+    weight/price ranges, relevance/pagination, known intent mapping, and
+    transparent unresolved fallback; existing behavior remains until parity
+    coverage passes.
+  - **Tests:** repository combinations/ranges/pagination, intent fixtures,
+    unresolved query, rejected metadata exclusion, query-plan/index evidence,
+    and founder storefront regression.
+  - **Non-goals:** no embeddings, opaque relevance, public API, or removal of a
+    heuristic before equivalent behavior is protected.
+  - **Hard blockers:** none.
+
+- [ ] **2.5 Import contracts and preview**
+  - **Requirement IDs:** `IMP-001`, `IMP-002`, `IMP-004`, `CAT-004`.
+  - **Dependencies:** `1.3`.
+  - **Owner boundary:** import domain schemas, CSV/XLSX/JSON parsers,
+    migration/RLS/repositories, downloadable templates/contracts, and
+    Retailer Portal preview only.
+  - **Acceptance:** jobs/rows/review tasks preserve raw supplier values,
+    identifiers and source type; asset matching/category mapping/validation/
+    duplicates are explained; schema is PDF-extractor-ready; no row publishes
+    from preview.
+  - **Tests:** parser fixtures/encoding/empty cells, malformed files, size
+    limits, formula/CSV injection handling, duplicates, image matching,
+    cross-tenant RLS, and accessible preview.
+  - **Non-goals:** no direct PDF extraction, AI inference, autonomous category
+    creation, or publishing.
+  - **Hard blockers:** none for CSV/XLSX/JSON; a future PDF extraction provider
+    is explicitly not required.
+
+- [ ] **2.6 Transactional reviewed import publishing**
+  - **Requirement IDs:** `IMP-002`, `IMP-004`, `CAT-002`, `CAT-004`.
+  - **Dependencies:** `2.5`.
+  - **Owner boundary:** database transaction/RPC, repositories, authorized
+    Server Action, and import status UI.
+  - **Acceptance:** a valid reviewed row atomically creates/updates product,
+    variants, assets, exact facts, and accepted assignments; failures roll back
+    fully, retain source/error state, and can be retried idempotently.
+  - **Tests:** successful transaction, every failure rollback point,
+    duplicate/retry idempotency, partial-batch resume, authorization/RLS, and
+    audit attribution.
+  - **Non-goals:** no unreviewed bulk publish, AI inference, supplier-specific
+    publishing fork, or destructive overwrite of live products.
+  - **Hard blockers:** none.
+
+- [ ] **2.7 AI-assisted import enrichment**
+  - **Requirement IDs:** `IMP-003`, `IMP-004`, `ENG-002`.
+  - **Dependencies:** `2.5`, `2.6`.
+  - **Owner boundary:** Admin-maintained external prompt/LLM contract first,
+    then provider-neutral `@paon/ai` job runner and audit repository.
+  - **Acceptance:** schema-validated JSON proposes taxonomy mappings and
+    derived suitability with field-level source/evidence/confidence; protected
+    supplier facts cannot be invented; every inference is pending review.
+  - **Tests:** golden prompt/schema fixtures, malicious/invalid model output,
+    unknown taxonomy, invented mill/composition rejection, retries/idempotency,
+    and provider mocks.
+  - **Non-goals:** no provider lock-in, live-provider requirement, autonomous
+    publish, prompt PII, or model-authored canonical knowledge.
+  - **Hard blockers:** missing AI key blocks live smoke verification only, not
+    external-prompt or provider-neutral implementation.
 
 **Stage 2 non-goals:** no semantic/vector retrieval before accepted metadata
 and search/click evidence exist; no autonomous AI facts; no React rewrite of
@@ -142,24 +288,72 @@ unreviewed bulk publish.
 
 ### Stage 3 — Customer and advisor intelligence
 
-- [ ] **3.1 Consent and event upgrade.** Define personalization and marketing
-      consent separately, add anonymous-session support where lawful, purpose and
-      retention metadata, consent withdrawal/deletion behavior, and event types for
-      view/search/filter/favorite/cart/knowledge/advisor/swipe/appointment. Preserve
-      durable business records as their own sources of truth. Dependency: 2.4.
-      ADRs: 021, 061.
-- [ ] **3.2 StyleProfile evidence.** Add explicit preferences, inferred
-      preferences, per-concept evidence, polarity, confidence, and explainable
-      recomputation. Never write inference into explicit preference fields.
-      Dependency: 3.1. ADR: 061.
-- [ ] **3.3 Advisor briefing.** Add a retailer-scoped repository and client
-      workspace view for recent interests, saved products, knowledge consumed,
-      declared occasion, evidence, questions, wardrobe gaps when available, and
-      appointment preparation. Show only consented information. Dependency: 3.2.
-- [ ] **3.4 Grounded TableService and guided preference capture.** Ground AI
-      answers in approved knowledge with citations/uncertainty, hand off early to
-      an advisor, convert chats/swipes into traceable evidence, a shortlist, or an
-      appointment. Dependencies: 2.2 and 3.2.
+- [ ] **3.1 Consent and interaction-event upgrade**
+  - **Requirement IDs:** `CUST-001`, `CUST-003`, `ENG-002`.
+  - **Dependencies:** `2.4`; ADR-021 and ADR-061.
+  - **Owner boundary:** consent/event domain, forward migration/RLS,
+    repositories, customer controls, and narrow event producers.
+  - **Acceptance:** personalization, marketing, and location purposes are
+    separate; every named interaction is typed with consent snapshot,
+    retention, and lawful anonymous session support; withdrawal stops new use
+    and starts documented deletion/anonymization without erasing durable
+    records.
+  - **Tests:** consent state matrix, withdrawal, expiry/retention, anonymous
+    linking denial, advisor visibility, event validation, and cross-tenant RLS.
+  - **Non-goals:** no covert fingerprinting, raw prompt duplication, durable
+    order/message duplication, StyleProfile inference, or required location.
+  - **Hard blockers:** unresolved jurisdiction-specific anonymous tracking
+    blocks anonymous persistence only; signed-in explicit-consent work remains.
+
+- [ ] **3.2 StyleProfile evidence and recomputation**
+  - **Requirement IDs:** `CUST-002`, `CUST-003`, `ENG-002`.
+  - **Dependencies:** `3.1`; ADR-061.
+  - **Owner boundary:** intelligence domain pure rules, migration/RLS,
+    repositories, and customer preference controls.
+  - **Acceptance:** declared and inferred preferences are structurally
+    separate; evidence records concept/source/polarity/confidence/recency;
+    recomputation is deterministic/explainable; customers can inspect/remove
+    inference without deleting lawful business history.
+  - **Tests:** scoring/decay fixtures, contradictory evidence, explicit
+    precedence, withdrawal/deletion, idempotent recomputation, and
+    advisor/cross-tenant denial.
+  - **Non-goals:** no black-box personality score, cross-retailer profile,
+    location inference, or AI overwrite of explicit preferences.
+  - **Hard blockers:** none.
+
+- [ ] **3.3 Advisor preparation brief**
+  - **Requirement IDs:** `ADV-003`, `CUST-003`.
+  - **Dependencies:** `3.2`.
+  - **Owner boundary:** retailer-scoped intelligence repository projection and
+    the existing Retailer Portal client workspace.
+  - **Acceptance:** authorized advisor sees consented recent interests, saved
+    products, knowledge, occasion, evidence, questions, shortlist, and later
+    wardrobe gaps with source/recency; appointment prep continues the online
+    conversation.
+  - **Tests:** projection completeness, no-consent/withdrawn states,
+    role/cross-tenant denial, stale evidence, empty/error/accessibility, and no
+    raw hidden PII.
+  - **Non-goals:** no autonomous outreach, staff performance scoring, customer
+    sharing between retailers, or generated facts.
+  - **Hard blockers:** none.
+
+- [ ] **3.4 Grounded TableService and guided preference capture**
+  - **Requirement IDs:** `ADV-001`, `ADV-002`, `ENG-002`.
+  - **Dependencies:** `2.2`, `3.2`; ADR-060 and ADR-061.
+  - **Owner boundary:** TableService orchestration, approved-knowledge
+    retrieval, `@paon/ai` structured answer, existing conversation/swipe/
+    shortlist/appointment surfaces.
+  - **Acceptance:** advisor-first handoff stays visible; approved citations and
+    uncertainty ground answers; occasion flows including summer weddings
+    produce explainable shortlists, swipe evidence, and appointment conversion;
+    advisors can continue the thread.
+  - **Tests:** grounding/citation allowlist, unsupported-answer refusal,
+    human-handoff path, occasion/swipe evidence, consent withdrawal, provider
+    mocks, browser and accessibility.
+  - **Non-goals:** no autonomous high-value advice, open-web grounding,
+    uncited product facts, hidden persuasion, or mandatory AI provider.
+  - **Hard blockers:** missing AI key blocks live generation only; deterministic
+    retrieval, handoff, and mocked orchestration remain buildable.
 
 **Stage 3 non-goals:** no covert tracking, no precise location without
 separate opt-in, no unexplained score, no advisor access across tenants, no raw
@@ -168,26 +362,94 @@ replacement of human advice for uncertain high-value decisions.
 
 ### Stage 4 — Wardrobe intelligence and MorningRoutine
 
-- [ ] **4.1 Wardrobe ownership.** Add retailer-purchased and customer-added
-      wardrobe items linked to products and the metadata assignment mechanism,
-      plus ownership history, condition, fit notes, wear/care state, provenance,
-      tenant/customer access, and external-garment review. Dependency: 3.2.
-- [ ] **4.2 Wardrobe Roadmap and outfits.** Add advisor-authored goals, ranked
-      gaps, complete-look combinations, staged purchase priorities, explanation
-      links, and customer-visible approval state. Dependency: 4.1.
-- [ ] **4.3 Lifecycle and care intelligence.** Add wear rotation, garment age,
-      care, repair, fit-update reminders, customer-submitted current-wear
-      photo/notes tied to a wardrobe item and appointment handoff, plus visible fit
-      freshness (last measured date, escalating stale state, appointment action).
-      Dependency: 4.1.
-- [ ] **4.4 MorningRoutine.** Select owned garments and, secondarily, catalogue
-      recommendations from wardrobe availability, accepted preferences, occasion,
-      weather, and separately consented location. Provide explanations and direct
-      save/book/buy actions. Dependency: 4.2.
-- [ ] **4.5 MorningRoutine delivery.** Add opt-in in-app and email delivery,
-      frequency controls, quiet periods, delivery audit, and unsubscribe. Verify
-      that service content is timely rather than generic promotion. Dependency:
-      4.4.
+- [ ] **4.1 Wardrobe ownership and collaboration**
+  - **Requirement IDs:** `WARD-001`, `WARD-002`, `WARD-003`, `ENG-003`.
+  - **Dependencies:** `3.2`; ADR-063.
+  - **Owner boundary:** wardrobe domain, forward migration/RLS, repositories,
+    and Customer/Retailer Portal wardrobe views; existing `PhysicalGarment`
+    remains the official fitting/service aggregate.
+  - **Acceptance:** retailer-purchased and external items carry ownership,
+    provenance, condition, basic fit/care/wear state and accepted/reviewable
+    metadata; customer and authorized advisor collaborate only inside the same
+    retailer relationship.
+  - **Tests:** external/catalogue item schemas, ownership history, customer/
+    advisor role matrix, cross-tenant denial, external metadata review, visual
+    empty/error/accessibility states.
+  - **Non-goals:** no generic manufacturing fit profile, product clone,
+    cross-retailer wardrobe, roadmap, recommendation, or marketplace item.
+  - **Hard blockers:** none.
+
+- [ ] **4.2 Wardrobe Roadmap, outfits, and sartorial rules**
+  - **Requirement IDs:** `ROAD-001`, `ROAD-002`, `ENG-002`.
+  - **Dependencies:** `4.1`, `2.1`; ADR-060 and ADR-063.
+  - **Owner boundary:** wardrobe/knowledge domain, repositories, advisor
+    authoring, customer approved-plan view, and explainable pure compatibility
+    rules.
+  - **Acceptance:** advisors build goals, ranked gaps, staged priorities, and
+    complete looks spanning jackets/trousers/shirts/shoes/accessories/
+    pocket-squares; every suggestion cites owned/catalogue facts and an
+    approved founder/retailer rule.
+  - **Tests:** compatibility/conflict fixtures, explanation completeness,
+    author/approval transitions, tenant/RLS, unavailable items, and
+    customer/advisor browser/a11y flows.
+  - **Non-goals:** no unreviewed generic menswear assertion, autonomous
+    purchase, hidden score, or roadmap shared across retailers.
+  - **Hard blockers:** missing founder-authored rules blocks only claims that
+    require those exact rules; neutral data model and reviewed proposal
+    workflow remain buildable.
+
+- [ ] **4.3 Lifecycle, longevity, self-scan, and fit freshness**
+  - **Requirement IDs:** `WARD-002`, `FIT-001`, `FIT-002`, `FIT-003`,
+    `LONG-001`.
+  - **Dependencies:** `4.1`; ADR-016, ADR-055, and ADR-063.
+  - **Owner boundary:** wardrobe lifecycle/history, private attachment storage,
+    official-fitting projection, appointment/alteration handoff, and customer/
+    advisor service views.
+  - **Acceptance:** age/wear/rest/care/cleaning/repair state produces respectful
+    guidance; eligible order-line/garment self-scan accepts photo/notes;
+    official last-measured date drives deterministic escalating freshness and
+    book/alteration actions; self reports never become formal observations.
+  - **Tests:** lifecycle state/rules, secure object paths, provenance
+    separation, freshness thresholds, appointment/alteration handoff,
+    customer/advisor/cross-tenant access, and accessibility.
+  - **Non-goals:** no coercive planned obsolescence, body measurement profile,
+    medical judgement, automatic alteration, or public images.
+  - **Hard blockers:** none.
+
+- [ ] **4.4 MorningRoutine selection and actions**
+  - **Requirement IDs:** `MR-001`, `MR-002`, `ENG-002`.
+  - **Dependencies:** `4.2`, `3.2`; ADR-061 and ADR-063.
+  - **Owner boundary:** pure routine selection/explanation, provider-neutral
+    weather/calendar interfaces, repository projections, and Customer
+    Environment in-app view.
+  - **Acceptance:** owned available garments rank first; catalogue items are
+    secondary; consented StyleProfile/occasion/weather/location inputs are
+    traceable and optional; every result explains itself and exposes
+    save/review/book/buy where valid.
+  - **Tests:** selection fixtures/fallbacks, no-location path, withdrawn
+    consent, weather/calendar failure, unavailable garment, action
+    authorization, browser/a11y.
+  - **Non-goals:** no native mobile app, required precise location, automatic
+    purchase, generic ad insertion, or provider-specific domain logic.
+  - **Hard blockers:** missing weather/calendar credentials blocks live smoke
+    verification only; interfaces, fixtures, and no-provider fallbacks remain.
+
+- [ ] **4.5 MorningRoutine delivery and retailer controls**
+  - **Requirement IDs:** `MR-002`, `MR-003`, `CUST-003`.
+  - **Dependencies:** `4.4`; ADR-061.
+  - **Owner boundary:** in-app notification/email outbox orchestration,
+    subscription/frequency/quiet-period controls, delivery audit, suppression,
+    and retailer eligible-product controls.
+  - **Acceptance:** explicit opt-in daily delivery is timely, auditable,
+    frequency-controlled, unsubscribeable, and derives from the exact routine;
+    retailer controls cannot bypass consent or inject unrelated promotion.
+  - **Tests:** scheduler/idempotency/time zone/quiet period, unsubscribe/
+    withdrawal, suppression, outbox payload, provider mocks, and customer/
+    retailer browser accessibility.
+  - **Non-goals:** no marketing-consent inference, SMS/push by default,
+    guaranteed live email without credentials, or mass campaign engine.
+  - **Hard blockers:** missing Resend key blocks live delivery verification
+    only; outbox and mocked delivery remain buildable.
 
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain), no retailer sharing of wardrobe data, no required location,
@@ -196,23 +458,76 @@ explanation path.
 
 ### Stage 5 — Relationship programmes and concierge services
 
-- [ ] **5.1 Campaigns.** Add a private-offers area; premium consent-aware
-      weekly/daily offers; member-only releases; controls by fabric, category,
-      product, audience, and schedule; and a seven-day catalogue look-composition
-      challenge with restrained tie/shirt/short-lived rewards. Include delivery
-      audit and suppression controls. Dependency: 3.2.
-- [ ] **5.2 Milestones.** Extend the existing loyalty ledger/events with
-      auditable eligibility rules for first commission, repeat orders, new
-      categories, premium construction, and advanced fabrics. Dependency: 1.4.
-- [ ] **5.3 Concierge service model.** Add Preferred Tailoring and
-      HighMaintenance service plans, entitlements/credits, bookings, fulfilment,
-      cleaning/repair/care records, collection/delivery, commitments, and advisor
-      ownership without overloading orders or alterations. Dependencies: 4.3 and
-      existing appointment/alteration foundations.
-- [ ] **5.4 Tie-Mate.** Build the dedicated mobile-first tie-fabric discovery
-      surface on metadata, discovery, shortlist, order, and advisor-handoff
-      foundations. Dependencies: 2.3 and 3.4; requires founder surface or an
-      approved design.
+- [ ] **5.1 Private offers and seven-day wardrobe campaigns**
+  - **Requirement IDs:** `CAMP-001`, `CAMP-002`, `MR-003`, `MILE-002`.
+  - **Dependencies:** `3.2`, `4.2`; ADR-061.
+  - **Owner boundary:** campaign domain/migration/RLS/repositories, Retailer
+    Portal rules, authenticated Customer Environment private-offers and
+    seven-look experience, delivery/suppression audit.
+  - **Acceptance:** retailer targets fabric/category/product/audience/schedule
+    through explainable consent-aware rules; customer composes seven complete
+    catalogue looks; deterministic completion grants only restrained
+    configured tie/shirt/short-lived rewards.
+  - **Tests:** audience/schedule/time zone, suppression/withdrawal, challenge
+    completeness/idempotency, reward cap, RLS, private authentication,
+    premium responsive UI and accessibility.
+  - **Non-goals:** no Groupon-style feed, indiscriminate discount, chance-based
+    reward, opaque audience, or reuse of marketing consent for personalization.
+  - **Hard blockers:** an unprovided founder visual blocks only a new
+    founder-defined surface; domain/control work and existing-surface
+    composition remain buildable.
+
+- [ ] **5.2 Tailoring milestones and premium rewards**
+  - **Requirement IDs:** `MILE-001`, `MILE-002`.
+  - **Dependencies:** `1.4`; existing loyalty ledger.
+  - **Owner boundary:** pure eligibility rules and existing loyalty
+    event/ledger/reward repositories and customer/advisor projections.
+  - **Acceptance:** first commission, repeat order, new category, premium
+    construction, advanced fabric, and configured peers derive idempotently
+    from authoritative data; awards are auditable and never create a second
+    balance.
+  - **Tests:** rule fixtures, replay/idempotency, corrections/refunds,
+    concurrency, ledger audit, tenant isolation, and premium presentation/a11y.
+  - **Non-goals:** no gambling, streak pressure, random reward, shadow points
+    balance, or unaudited manual grant.
+  - **Hard blockers:** none.
+
+- [ ] **5.3 Preferred Tailoring and HighMaintenance operations**
+  - **Requirement IDs:** `SERV-001`, `SERV-002`, `LONG-001`.
+  - **Dependencies:** `4.3`; existing appointments/alterations; ADR-062 for
+    later billing only.
+  - **Owner boundary:** dedicated concierge service plans, entitlements/
+    non-monetary credits, bookings, fulfilment, care/repair, collection/
+    delivery and advisor ownership; compose rather than overload orders/
+    alterations.
+  - **Acceptance:** both named services support advisor planning, customer
+    booking, operational commitments/status, service history, cost recording,
+    and handoffs; the entire operational workflow works without new payment
+    capability.
+  - **Tests:** plan/booking/fulfilment transitions, entitlement consumption/
+    idempotency, appointment/alteration composition, role/RLS, audit history,
+    customer/advisor browser and accessibility.
+  - **Non-goals:** no unapproved subscription billing, stored value, hidden
+    generic order statuses, automatic collection routing, or provider lock-in.
+  - **Hard blockers:** payment/compliance blocks money collection only, not
+    service operations.
+
+- [ ] **5.4 Tie-Mate**
+  - **Requirement IDs:** `TIE-001`, `ENG-004`.
+  - **Dependencies:** `2.3`, `3.4`; ADR-052; approved founder surface/design.
+  - **Owner boundary:** dedicated mobile founder surface and narrow catalogue/
+    stock/discovery/shortlist/order/advisor hooks; shared domain/repositories
+    remain canonical.
+  - **Acceptance:** fabrics render at true-feeling phone-screen scale with
+    mobile swipe, save, order, and advisor handoff; stock and retailer tenancy
+    are live; desktop fallback and accessibility are intentional.
+  - **Tests:** viewport/gesture/keyboard/screen-reader, realistic-scale visual
+    snapshots, stock changes, save/order/handoff integration, and cross-tenant
+    denial.
+  - **Non-goals:** no invented founder design, product stock copy, generic
+    Tinder styling, or separate catalogue.
+  - **Hard blockers:** no approved founder surface/design is a real blocker for
+    the UI item; underlying reusable foundations must still ship first.
 
 **Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
 duplicate loyalty ledger, service state hidden in generic order status, or
@@ -220,21 +535,65 @@ invented founder-designed surface.
 
 ### Stage 6 — Later commerce capabilities
 
-- [ ] **6.1 Payment/compliance design gate.** Before deposits, stored value,
-      one-click payment, payment-eligibility status, the MunroMonnaie
-      order-commitment/deposit journey, instalments, service subscriptions, or
-      membership billing, record provider capabilities, merchant-of-record,
-      VAT/accounting, refunds, custody, SCA, consent, retention, and jurisdictional
-      review. Dependency: business/legal decisions and provider configuration.
-      ADRs: 030, 031, 050, 062.
-- [ ] **6.2 Approved commerce primitives.** Implement only the capabilities
-      authorized by 6.1 using provider-hosted/tokenized payment methods; preserve
-      immutable order/payment/ledger history and existing Stripe boundaries.
-      Dependency: 6.1.
-- [ ] **6.3 Retailer-owner marketplace.** Model the fixture/packaging/display/
-      furnishing marketplace as a distinct catalogue and commerce context. It
-      must not reuse customer-retail catalogue assumptions or leak tenant data.
-      Dependencies: stable intelligence programme and a separate marketplace ADR.
+- [ ] **6.1 Payment and compliance design gate**
+  - **Requirement IDs:** `PAY-001`, `PAY-002`, `SERV-002`.
+  - **Dependencies:** business/legal/accounting/provider decisions; ADR-030,
+    ADR-031, ADR-050, and ADR-062.
+  - **Owner boundary:** decision record and verified provider/compliance
+    capability matrix only; no transaction implementation.
+  - **Acceptance:** merchant-of-record, custody, VAT/accounting, refunds/
+    disputes, SCA, consent/retention, jurisdictions, eligibility, deposit/
+    commitment semantics, subscriptions, instalments, direct debit, and stored
+    value are each explicitly approved, rejected, or deferred.
+  - **Tests:** decision completeness checklist, current provider documentation/
+    account capability evidence, threat/privacy review, and reversal/migration
+    plan; no live charge.
+  - **Non-goals:** no code path, custom credit, PAON lending, raw card storage,
+    assumed provider capability, or silent merchant-of-record change.
+  - **Hard blockers:** missing founder business choice, legal/accounting
+    approval, provider account/capability, or jurisdiction decision blocks only
+    the affected money capability.
+
+- [ ] **6.2 Approved commerce primitives**
+  - **Requirement IDs:** `PAY-001`, `PAY-002`, `SERV-002`.
+  - **Dependencies:** a completed `6.1` authorization naming the exact
+    capability.
+  - **Owner boundary:** existing commerce/payment domain, provider integration,
+    immutable repositories/ledger, and approved Customer/Retailer surfaces.
+  - **Acceptance:** implement only named provider-hosted/tokenized eligibility,
+    one-click, commitment/deposit, or billing capabilities; order/payment/
+    refund history is immutable/auditable and existing retailer merchant-of-
+    record boundaries remain.
+  - **Tests:** provider contract mocks, webhook signature/idempotency/replay,
+    SCA/failure/refund/dispute, ledger reconciliation, authorization/RLS,
+    browser accessibility, and an explicitly recorded live smoke test.
+  - **Non-goals:** every capability not approved by `6.1`, custom processor,
+    credit underwriting, raw credential vault, or balance inferred from UI.
+  - **Hard blockers:** missing production provider credentials/capability or
+    live compliance approval blocks the affected implementation and live
+    verification.
+
+- [ ] **6.3 Retailer-owner marketplace**
+  - **Requirement IDs:** `MKT-001`.
+  - **Dependencies:** stable catalogue/commerce foundations; ADR-064; a
+    separately approved marketplace commercial/payment design.
+  - **Owner boundary:** new business-marketplace bounded context, retailer-
+    buyer access, supplier/product/order assumptions, and distinct app surface;
+    reuse only value objects/infrastructure that do not import customer-retail
+    rules.
+  - **Acceptance:** mannequins, bags, shoe displays, fixtures, furniture, and
+    retailer supplies can be populated later; retailer buyers see only
+    marketplace inventory; customer catalogue/search/orders and retailer
+    tenant data cannot cross the boundary.
+  - **Tests:** type/package boundary, migration/RLS, retailer-buyer roles,
+    catalogue/search contamination denial, order/payment separation, and
+    responsive/accessibility flows.
+  - **Non-goals:** no customer-facing products, customer StyleProfile/
+    wardrobe reuse, inventory assumption shortcut, or payment implementation
+    without its own approved design.
+  - **Hard blockers:** missing marketplace commercial/payment decisions or
+    approved surface blocks those portions; isolated domain modelling can
+    proceed only when explicitly activated after prior stages.
 
 **Stage 6 non-goals:** no PAON-built payment processor, credit underwriting,
 custom stored-card vault, silent merchant-of-record change, unapproved stored

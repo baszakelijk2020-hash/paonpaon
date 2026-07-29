@@ -56,10 +56,12 @@ wear-out risks, explainable. No silent deletion of items.
 - P2 — Customer wardrobe UI
 - P3 — Wear frequency, resale, replacement prediction
 
-## 8. Dependencies and freeze blockers
+## 8. Dependencies and active programme
 
-Horizon B after Metadata Horizon A. Freeze: do not build during current
-pilot freeze.
+This historical Horizon B concept is now traced into Stage 4 of
+[PHASE.md](../PHASE.md), after the metadata and consent dependencies. Follow
+the active queue and `PAON_INTELLIGENCE_PLATFORM.md`, not this old horizon
+sequence.
 
 ## 9. Open research questions
 

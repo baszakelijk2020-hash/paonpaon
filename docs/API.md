@@ -27,7 +27,7 @@ Used only when the caller is not the app's own Server Components/Actions:
 - **Webhooks** — Supabase, payment provider, future integrations.
   Verify signatures before doing anything else; delegate to a
   repository/service, never inline business logic in the handler.
-- **Public API** (future, see [ROADMAP.md](./ROADMAP.md)) — versioned
+- **Public API** (future; not in the active [PHASE.md](./PHASE.md) queue) — versioned
   (`/api/v1/...`), authenticated with retailer-scoped API keys, rate
   limited, documented with OpenAPI. Not started yet — see
   [NON_GOALS.md](./NON_GOALS.md).

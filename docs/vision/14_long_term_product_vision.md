@@ -53,14 +53,15 @@ every recommendation explainable via metadata + wardrobe facts.**
 
 ## 7. Phased delivery (horizons)
 
-See [ROADMAP.md](../ROADMAP.md) Horizons A–D. Pilot freeze first
-([PHASE.md](../PHASE.md)). No vision pillar overrides paid-pilot focus.
+The Horizons A–D in [ROADMAP.md](../ROADMAP.md) are historical. The active
+Intelligence Platform dependencies and acceptance contracts live only in
+[PHASE.md](../PHASE.md). No vision pillar reorders that queue.
 
-## 8. Dependencies and freeze blockers
+## 8. Dependencies and programme boundaries
 
-Three paid pilot commitments remain the near-term objective. Vision docs
-inform sequencing after that — they do not authorize building wardrobe AI
-during freeze.
+Vision docs remain design references. `PHASE.md` now authorizes the complete
+programme in dependency order; this document neither adds work nor blocks an
+authorized queue item.
 
 ## 9. Open research questions
 

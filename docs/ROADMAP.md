@@ -48,21 +48,18 @@ flowchart LR
 Category map: [vision/14_long_term_product_vision.md](./vision/14_long_term_product_vision.md).
 Do not invent schema in DOMAIN_MODEL/DATABASE until PHASE authorizes a build.
 
-## Immediate priority — Experience Rebuild (in progress)
+## Historical immediate priority — Experience Rebuild (superseded)
 
-The functional roadmap is paused. PAON has broad business capability but has
-not passed product-experience acceptance: the portals still read too often as
-sparse generic CRM surfaces. The governing plan, persona architecture, route
-inventory, acceptance criteria and implementation order now live in
-[EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md).
+At the time of this historical plan, the functional roadmap was paused for an
+Experience Rebuild. That sequence is no longer active. Preserve the material
+below as rationale only; use [PHASE.md](./PHASE.md) for every current
+implementation decision.
 
 The original `/Users/nguyen/Downloads/paon.html` is the visual source of truth.
-This phase preserves the domain model, database, RLS, authorization and
-completed workflows while rebuilding demo truth, entry, shells, role
-navigation, attention dashboards, high-frequency journeys and every remaining
-route. No prior phase is considered the next implementation queue until every
-persona and route passes the desktop/mobile experience criteria or a genuine
-founder decision blocks progress.
+That historical phase preserved the domain model, database, RLS,
+authorization and completed workflows while rebuilding demo truth, entry,
+shells, role navigation, attention dashboards, high-frequency journeys and
+remaining routes. It is not a current gate or queue.
 
 ### Immediate commercialisation track
 

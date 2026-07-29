@@ -1,10 +1,9 @@
 # PAON Founder Intelligence Brief
 
-**Status: preserved founder-origin reference input, not an authority or work
-queue.** Its complete intent was consolidated into
-`PAON_INTELLIGENCE_PLATFORM.md` and ordered by `PHASE.md` on 2026-07-30. Those
-documents win if wording here conflicts or ages; keep this brief as provenance
-rather than reopening strategy or creating a second specification.
+**Status: authoritative founder product intent, not an implementation queue.**
+`PAON_INTELLIGENCE_PLATFORM.md` traces every requirement here into technical
+acceptance, and `PHASE.md` alone orders implementation. Code and migrations
+remain authoritative for what already exists.
 
 ## Starting point
 

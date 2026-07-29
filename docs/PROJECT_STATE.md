@@ -47,7 +47,9 @@ Snapshot: 2026-07-30.
 
 ## Current handoff
 
-The documentation-consolidation pass authorizes the PAON Intelligence Platform.
-No feature implementation is part of that pass. The next implementation area
-is the metadata domain contract in `packages/domain/src/metadata/`, as stated
-in the authoritative Resume Protocol.
+The founder brief is the complete product-intent authority. The technical
+programme traces it through stable requirement IDs, and `PHASE.md` contains
+the sole dependency-ordered queue with per-item acceptance/test/boundary
+contracts. No Intelligence Platform feature slice has landed. The next
+implementation area remains metadata domain contracts, as stated in the
+authoritative Resume Protocol.

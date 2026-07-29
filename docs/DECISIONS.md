@@ -2715,3 +2715,91 @@ not block those stages. Deposits, stored value, instalments, one-click payment,
 and new membership billing are real hard blockers until their boundary review
 is complete. Existing Stripe code and ADRs remain authoritative where they
 already apply.
+
+## ADR-063: Wardrobe ownership is relationship-scoped and does not replace official garment fitting
+
+**Status: authorized design; implementation begins at PHASE 4.1.**
+
+**Context.** PAON already models `PhysicalGarment` as the retailer's
+garment-scoped source for official fitting observations, alteration work, and
+service history (ADR-016). The Intelligence Platform also needs a customer-
+visible wardrobe containing retailer purchases and garments bought elsewhere,
+plus self-reported wear, care, condition, and current-fit evidence. Collapsing
+those concerns into `Product`, `PhysicalGarment`, or a generic customer body
+profile would either contaminate catalogue truth, weaken fitting provenance, or
+revive the model rejected by ADR-016/055.
+
+**Decision.**
+
+1. A wardrobe item belongs to exactly one retailer-customer relationship and
+   carries both `retailer_id` and `customer_id`. It may optionally reference a
+   product, order line, or physical garment, but it is not any of those
+   aggregates and never creates a cross-retailer “global wardrobe.”
+2. Retailer-purchased and customer-added external garments have explicit
+   ownership/provenance. External garment descriptions and metadata assignments
+   remain retailer-bound proposals subject to the metadata review rules in
+   ADR-059; they cannot mutate canonical taxonomy or create a catalogue product
+   implicitly.
+3. `PhysicalGarment` and garment-scoped fitting observations remain the source
+   of official measured/fitted truth. Customer photos, notes, perceived size
+   changes, wear, condition, and care are self-reported wardrobe evidence. They
+   may trigger an appointment or alteration handoff but never populate official
+   measurements silently.
+4. Customers may read/manage wardrobe data for their own linked relationship.
+   Authorized retailer staff may collaborate only inside the same retailer.
+   RLS and repository tests must deny another retailer, another customer, and
+   unlinked portal identities.
+5. Wardrobe Roadmaps and outfits reference wardrobe/catalogue items and
+   approved knowledge with explanation links. They do not copy product facts,
+   fitting observations, or loyalty balances into a parallel source of truth.
+6. Lifecycle events with service or audit value are append-only. User-removable
+   personalization and legally retained business/service records follow their
+   respective consent/retention rules rather than one blanket delete.
+
+**Consequences.** Wardrobe intelligence can include external possessions and
+daily-use evidence without weakening PAON's garment-first production boundary.
+Fit freshness projects the last official observation while showing
+self-reported context separately. MorningRoutine, roadmaps, longevity, and
+concierge services share one relationship-scoped wardrobe model, and none may
+leak it to another retailer.
+
+## ADR-064: The retailer-owner marketplace is a separate business-commerce context
+
+**Status: boundary decision; implementation is sequenced by PHASE 6.3.**
+
+**Context.** The founder intends a marketplace where retailer owners buy
+mannequins, bags, shoe displays, fixtures, furniture, and other store supplies.
+Those buyers, products, inventory, tax/shipping assumptions, fulfilment, and
+merchant relationships are materially different from a retailer selling
+menswear to its customers. Reusing the customer-retail `Product`, `Order`, or
+storefront merely because their screens may look familiar would spread invalid
+tenant and commerce assumptions through both systems.
+
+**Decision.**
+
+1. The marketplace is a separate bounded context. A PAON retailer participates
+   as a business buyer; it is not treated as one of its own customer records.
+2. Marketplace listings, categories, inventory, suppliers, carts, orders, and
+   fulfilment do not share customer-retail aggregate tables. They may reuse
+   context-neutral value objects and infrastructure such as branded IDs,
+   `Money`, asset handling, pagination, and provider clients through explicit
+   interfaces.
+3. Marketplace listings never appear in a retailer's customer catalogue,
+   accepted-metadata facets, customer recommendations, StyleProfile, wardrobe,
+   campaigns, loyalty, or MorningRoutine. Database constraints, RLS, repository
+   contracts, and search tests prove that separation.
+4. Marketplace access is authenticated and authorized through a dedicated
+   retailer-buyer capability. One retailer cannot see another buyer's orders or
+   private commercial data.
+5. Merchant-of-record, supplier onboarding, tax, shipping, returns, custody,
+   payment flow, jurisdictions, and PAON's commercial role remain explicit
+   design-gate decisions. Existing Stripe Connect customer-payment assumptions
+   do not authorize marketplace money movement.
+6. A visual family resemblance to PAON catalogue surfaces does not authorize
+   reuse of founder customer-storefront HTML or customer interaction rules.
+
+**Consequences.** Marketplace implementation can reuse safe platform
+primitives without contaminating the customer intelligence programme. PHASE
+6.3 remains blocked for money movement and operational claims until the
+separate commercial/provider decisions are recorded; no earlier queue item
+needs marketplace assumptions.

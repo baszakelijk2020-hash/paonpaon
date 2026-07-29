@@ -6,18 +6,19 @@ a second charter.
 
 ## Read in this order
 
-Read only the smallest authoritative set needed to work:
+For an ordinary implementation turn, read only:
 
 1. `AGENTS.md`
-2. `docs/PHASE.md`
-3. `docs/PAON_INTELLIGENCE_PLATFORM.md`
-4. the ADR named by the active queue item
-5. the relevant code and migrations
+2. `docs/PHASE.md`, including the active item's acceptance contract
+3. the Resume Protocol at the top of
+   `docs/PAON_INTELLIGENCE_PLATFORM.md`
+4. the ADR named by the active item
+5. the directly relevant code, tests, repository, and migration
 
-Use `docs/README.md` only when you need to find another authority. Code and
-migrations are the truth for what exists. `docs/PHASE.md` is the ordered work
-queue. `docs/PAON_INTELLIGENCE_PLATFORM.md` is the product and technical
-specification for the active programme.
+Use `docs/README.md` to cross a topic boundary. Read the founder brief or the
+full programme only for a product ambiguity, conflict, or audit. Code and
+migrations are the truth for what exists; `docs/PHASE.md` is the only ordered
+work queue.
 
 ## Continuous-build contract
 
@@ -48,6 +49,8 @@ never a queue or authority.
   through narrow hooks; do not re-express the design.
 - New schema changes are forward migrations with generated database types,
   repository coverage, and tenant-isolation verification.
+- Preserve unrelated user or other-agent work. Inspect a dirty tree before
+  editing; never reset, discard, or overwrite changes to make a slice easier.
 
 ## Definition of done
 
