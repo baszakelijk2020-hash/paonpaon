@@ -48,6 +48,11 @@ const importRowRecord: CatalogueImportRowRecord = {
   },
   validation_errors: [],
   status: "valid",
+  published_product_id: null,
+  published_variant_id: null,
+  publish_error: null,
+  published_at: null,
+  published_by_staff_id: null,
   created_at: "2026-07-30T00:00:00.000Z",
   updated_at: "2026-07-30T00:00:00.000Z",
 };
@@ -181,5 +186,78 @@ describe("CatalogueImportRepository", () => {
         ],
       }),
     ).rejects.toThrow(/cannot persist published/);
+  });
+
+  it("calls publish RPC and maps the transactional result", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: {
+        productId: "99999999-9999-4999-8999-999999999999",
+        variantId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        idempotent: false,
+      },
+      error: null,
+    });
+    const from = vi.fn((table: string) => {
+      if (table === "catalogue_import_rows") {
+        return fakeQueryBuilder({ data: importRowRecord, error: null });
+      }
+      if (table === "metadata_review_tasks") {
+        return fakeQueryBuilder({ data: [], error: null });
+      }
+      throw new Error(`unexpected table ${table}`);
+    });
+    const repository = new CatalogueImportRepository({
+      from,
+      rpc,
+    } as unknown as PaonSupabaseClient);
+
+    const result = await repository.publishRow({
+      retailerId: retailerId as never,
+      importRowId: rowId as never,
+    });
+
+    expect(rpc).toHaveBeenCalledWith("publish_catalogue_import_row", {
+      p_import_row_id: rowId,
+    });
+    expect(result).toEqual({
+      productId: "99999999-9999-4999-8999-999999999999",
+      variantId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      idempotent: false,
+    });
+  });
+
+  it("retains publish_error when the RPC fails", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValue({ data: null, error: { message: "blocked" } });
+    const update = vi
+      .fn()
+      .mockReturnValue(fakeQueryBuilder({ data: null, error: null }));
+    const from = vi.fn((table: string) => {
+      if (table === "catalogue_import_rows") {
+        const builder = fakeQueryBuilder({
+          data: importRowRecord,
+          error: null,
+        });
+        builder.update = update;
+        return builder;
+      }
+      if (table === "metadata_review_tasks") {
+        return fakeQueryBuilder({ data: [], error: null });
+      }
+      throw new Error(`unexpected table ${table}`);
+    });
+    const repository = new CatalogueImportRepository({
+      from,
+      rpc,
+    } as unknown as PaonSupabaseClient);
+
+    await expect(
+      repository.publishRow({
+        retailerId: retailerId as never,
+        importRowId: rowId as never,
+      }),
+    ).rejects.toEqual({ message: "blocked" });
+    expect(update).toHaveBeenCalled();
   });
 });

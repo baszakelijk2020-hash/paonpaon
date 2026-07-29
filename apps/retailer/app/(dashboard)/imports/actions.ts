@@ -12,12 +12,18 @@ import {
   DEFAULT_CATALOGUE_IMPORT_LIMITS,
   parseCatalogueImportFile,
 } from "@paon/domain";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface ImportUploadState {
+  formError?: string;
+  saved?: boolean;
+}
+
+export interface ImportActionState {
   formError?: string;
   saved?: boolean;
 }
@@ -147,6 +153,102 @@ export async function previewCatalogueImport(
         error instanceof Error
           ? error.message
           : "Could not preview this import right now.",
+    };
+  }
+}
+
+export async function dismissImportReviewTaskAction(
+  _previous: ImportActionState,
+  formData: FormData,
+): Promise<ImportActionState> {
+  const importId = String(formData.get("importId") ?? "");
+  const taskId = String(formData.get("taskId") ?? "");
+  const session = await requireManagerSession();
+  const repository = new CatalogueImportRepository(
+    await getSupabaseServerClient(),
+  );
+
+  try {
+    await repository.reviewMetadataTask({
+      retailerId: session.retailerId,
+      taskId: taskId as never,
+      status: "dismissed",
+    });
+    revalidatePath(`/imports/${importId}`);
+    return { saved: true };
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not dismiss this review task.",
+    };
+  }
+}
+
+export async function publishCatalogueImportRowAction(
+  _previous: ImportActionState,
+  formData: FormData,
+): Promise<ImportActionState> {
+  const importId = String(formData.get("importId") ?? "");
+  const rowId = String(formData.get("rowId") ?? "");
+  const session = await requireManagerSession();
+  const repository = new CatalogueImportRepository(
+    await getSupabaseServerClient(),
+  );
+
+  try {
+    await repository.publishRow({
+      retailerId: session.retailerId,
+      importRowId: rowId as never,
+    });
+    revalidatePath(`/imports/${importId}`);
+    revalidatePath("/products");
+    return { saved: true };
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error ? error.message : "Could not publish this row.",
+    };
+  }
+}
+
+export async function publishCatalogueImportAction(
+  _previous: ImportActionState,
+  formData: FormData,
+): Promise<ImportActionState> {
+  const importId = String(formData.get("importId") ?? "");
+  const session = await requireManagerSession();
+  const repository = new CatalogueImportRepository(
+    await getSupabaseServerClient(),
+  );
+
+  try {
+    const batch = await repository.publishEligibleRows({
+      retailerId: session.retailerId,
+      importId: importId as never,
+    });
+    revalidatePath(`/imports/${importId}`);
+    revalidatePath("/products");
+    if (batch.failures.length > 0) {
+      return {
+        formError:
+          `${batch.failures.length} row(s) failed to publish. ${batch.failures[0]?.message ?? ""}`.trim(),
+      };
+    }
+    if (batch.published.length === 0) {
+      return {
+        formError:
+          "No eligible rows were ready to publish. Resolve review tasks and category mappings first.",
+      };
+    }
+    return { saved: true };
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not publish this import.",
     };
   }
 }

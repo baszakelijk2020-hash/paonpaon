@@ -56,7 +56,8 @@ Verified against code and 91 migrations on 2026-07-30:
   Accepted-metadata catalogue query supports named facets, weight/price
   ranges, intent mapping, and pagination with founder filter hooks.
   Catalogue import jobs/rows/review tasks, CSV/XLSX/JSON parsers, downloadable
-  contracts, and Retailer Portal preview exist; publishing does not.
+  contracts, and Retailer Portal preview and transactional publish exist; AI-assisted
+  enrichment does not.
   No style-profile, wardrobe, outfit, roadmap, service-plan, or campaign table
   exists.
 
@@ -281,7 +282,7 @@ storefront redesign, or customer personalization.
     with RLS, `CatalogueImportRepository`, downloadable templates/LLM
     contract, and Retailer Portal `/imports` preview without publishing.
 
-- [ ] **2.6 Transactional reviewed import publishing**
+- [x] **2.6 Transactional reviewed import publishing**
   - **Requirement IDs:** `IMP-002`, `IMP-004`, `CAT-002`, `CAT-004`.
   - **Dependencies:** `2.5`.
   - **Owner boundary:** database transaction/RPC, repositories, authorized
@@ -295,6 +296,10 @@ storefront redesign, or customer personalization.
   - **Non-goals:** no unreviewed bulk publish, AI inference, supplier-specific
     publishing fork, or destructive overwrite of live products.
   - **Hard blockers:** none.
+  - **Landed:** transactional `publish_catalogue_import_row` /
+    `review_catalogue_import_metadata_task` RPCs, publish eligibility in
+    `@paon/domain`, `CatalogueImportRepository.publishRow`, and Retailer Portal
+    import publish controls with retained source/error state.
 
 - [ ] **2.7 AI-assisted import enrichment**
   - **Requirement IDs:** `IMP-003`, `IMP-004`, `ENG-002`.
