@@ -55,7 +55,7 @@ test.describe("mobile bottom navigation", () => {
       MOBILE_VIEWPORT.height - 2,
     );
 
-    for (const label of ["Orders", "Appointments", "Messages", "Account"]) {
+    for (const label of ["Home", "Appointments", "Messages", "Orders"]) {
       const link = bottomNav.getByRole("link", { name: label, exact: true });
       await expect(link).toBeVisible();
       const linkBox = await link.boundingBox();

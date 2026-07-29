@@ -45,7 +45,7 @@ export default async function DemoModePage() {
             Showcase environment
           </p>
           <h1 className="font-display mt-2 text-4xl text-[var(--color-stone-900)]">
-            Demo atelier
+            Seed data
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
             Enter PAON as every operating persona. The seed provides two

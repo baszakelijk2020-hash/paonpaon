@@ -52,10 +52,10 @@ export default async function WishlistPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Wishlist
+          Saved
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Products you&rsquo;ve saved across retailers.
+          Pieces you&rsquo;ve saved across houses.
         </p>
       </div>
 

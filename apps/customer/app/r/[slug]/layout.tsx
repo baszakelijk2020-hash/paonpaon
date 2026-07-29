@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { TableServiceWidget } from "./table-service-widget";
 
+import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
@@ -22,7 +23,10 @@ export default async function StorefrontLayout({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const supabase = await getSupabaseServerClient();
+  const [supabase, session] = await Promise.all([
+    getSupabaseServerClient(),
+    getSession(),
+  ]);
   const retailer = await new RetailerRepository(supabase).findBySlug(slug);
   if (!retailer || retailer.status !== "active") {
     notFound();
@@ -34,6 +38,9 @@ export default async function StorefrontLayout({
       <TableServiceWidget
         retailerId={retailer.id}
         retailerName={retailer.displayName}
+        {...(session?.accountType === "customer"
+          ? { signedInMessagesHref: "/messages" }
+          : {})}
       />
     </RetailerTheme>
   );

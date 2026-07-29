@@ -2,7 +2,7 @@ import { requireRetailerRole } from "@paon/auth";
 import { CustomerRepository, EventRepository } from "@paon/database";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate } from "@paon/utils";
+import { formatDate, humaniseStatus } from "@paon/utils";
 import { notFound, redirect } from "next/navigation";
 
 import { updateEventStatus } from "../actions";
@@ -37,7 +37,7 @@ export default async function EventPage({
     <div className="flex flex-col gap-6">
       <div>
         <p className="text-sm uppercase tracking-wide text-[var(--color-stone-500)]">
-          {event.status}
+          {humaniseStatus(event.status)}
         </p>
         <h1 className="font-display text-2xl">{event.name}</h1>
         <p className="text-sm text-[var(--color-stone-500)]">

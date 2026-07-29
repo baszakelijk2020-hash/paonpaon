@@ -52,7 +52,7 @@ export default async function AnalyticsPage() {
       <div>
         <p className="text-sm text-[var(--color-stone-500)]">Last 30 days</p>
         <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
-          Business overview
+          Performance
         </h1>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

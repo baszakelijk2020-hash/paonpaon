@@ -14,7 +14,7 @@ test("demo atelier launches every seeded operating perspective", async ({
   const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
   if (!supabaseUrl || !anonKey || !serviceRoleKey) {
-    throw new Error("Demo atelier test requires the local Supabase variables.");
+    throw new Error("Seed data test requires the local Supabase variables.");
   }
   await seedDemoData({ supabaseUrl, anonKey, serviceRoleKey });
 
@@ -28,9 +28,7 @@ test("demo atelier launches every seeded operating perspective", async ({
   ).toBeVisible();
   await page.goto("/demo-mode");
 
-  await expect(
-    page.getByRole("heading", { name: "Demo atelier" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Seed data" })).toBeVisible();
   await expect(page.getByText(DEMO_PASSWORD)).toBeVisible();
   await expect(page.getByText("Production / operations").first()).toBeVisible();
   await expect(page.getByText("Alteration worker").first()).toBeVisible();

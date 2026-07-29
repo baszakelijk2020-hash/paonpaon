@@ -91,9 +91,12 @@ const PLACEHOLDER_BY_STEP: Record<Step, string> = {
 export function TableServiceWidget({
   retailerId,
   retailerName,
+  signedInMessagesHref,
 }: {
   retailerId: string;
   retailerName: string;
+  /** When set, Ask-us opens the signed-in Messages inbox instead of anonymous inquiry. */
+  signedInMessagesHref?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [intent, setIntent] = useState<ConversationIntent>("freeform");
@@ -344,7 +347,13 @@ export function TableServiceWidget({
 
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          if (signedInMessagesHref && !open) {
+            window.location.href = signedInMessagesHref;
+            return;
+          }
+          setOpen((value) => !value);
+        }}
         aria-expanded={open}
         aria-label="Contact us"
         className="rounded-full bg-[var(--color-ink-600)] px-5 py-3 text-sm font-medium text-white shadow-lg"

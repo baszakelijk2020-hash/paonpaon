@@ -14,8 +14,10 @@ import {
 } from "@paon/payments";
 import { revalidatePath } from "next/cache";
 
+import { env } from "@/lib/env";
 import { getSession } from "@/lib/session";
 import { getStripeClient } from "@/lib/stripe";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface BillingActionState {
@@ -121,4 +123,40 @@ export async function assignSubscriptionPlan(
 
   revalidatePath(`/retailers/${retailerId}`);
   return { saved: true };
+}
+
+export async function setRetailerStatus(formData: FormData): Promise<void> {
+  requirePlatformOperator(await getSession());
+  const retailerId = String(formData.get("retailerId") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (!retailerId || (status !== "active" && status !== "suspended")) {
+    return;
+  }
+  await new RetailerRepository(await getSupabaseServerClient()).setStatus(
+    asId<"RetailerId">(retailerId),
+    status,
+  );
+  revalidatePath(`/retailers/${retailerId}`);
+  revalidatePath("/retailers");
+}
+
+export async function resendStaffInvite(formData: FormData): Promise<void> {
+  requirePlatformOperator(await getSession());
+  const retailerId = String(formData.get("retailerId") ?? "");
+  const staffId = String(formData.get("staffId") ?? "");
+  if (!retailerId || !staffId) return;
+
+  const supabase = await getSupabaseServerClient();
+  const staff = await new RetailerStaffRepository(supabase).findByRetailer(
+    asId<"RetailerId">(retailerId),
+  );
+  const member = staff.find((row) => row.id === staffId);
+  if (!member || member.acceptedAt) return;
+
+  const admin = getSupabaseAdminClient();
+  await admin.auth.admin.inviteUserByEmail(member.email, {
+    data: { full_name: member.fullName },
+    redirectTo: `${env.retailerAppUrl}/auth/confirm`,
+  });
+  revalidatePath(`/retailers/${retailerId}`);
 }

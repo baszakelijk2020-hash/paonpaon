@@ -8,9 +8,10 @@ import {
 } from "@paon/database";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate } from "@paon/utils";
+import { formatDate, humaniseStatus } from "@paon/utils";
 import Link from "next/link";
 
+import { HouseSwitcher } from "./house-switcher";
 import { TodaysPick } from "./todays-pick";
 
 import { getAIProvider } from "@/lib/ai";
@@ -19,10 +20,6 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const TERMINAL_ORDER_STATUSES = new Set(["completed", "canceled", "refunded"]);
 const TERMINAL_ALTERATION_STATUSES = new Set(["completed", "canceled"]);
-
-function humanise(value: string): string {
-  return value.replaceAll("_", " ");
-}
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -98,6 +95,12 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <HouseSwitcher
+        houses={relationships.map(({ customer, retailer }) => ({
+          id: customer.id,
+          name: retailer?.displayName ?? "Your atelier",
+        }))}
+      />
       {primary ? (
         <section className="paon-reveal relative isolate min-h-[18rem] overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-stone-900)] text-white shadow-[var(--shadow-elevated)] sm:min-h-[24rem]">
           <div
@@ -131,7 +134,7 @@ export default async function DashboardPage() {
               </h1>
               <p className="mt-5 max-w-lg text-sm leading-6 text-white/70 sm:text-base">
                 {primary.nextAppointment
-                  ? `${primary.retailer?.displayName ?? "Your atelier"} is preparing for your ${humanise(primary.nextAppointment.type)}.`
+                  ? `${primary.retailer?.displayName ?? "Your atelier"} is preparing for your ${humaniseStatus(primary.nextAppointment.type)}.`
                   : `${primary.retailer?.displayName ?? "Your atelier"} is here when you are ready for the next conversation.`}
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
@@ -209,7 +212,7 @@ export default async function DashboardPage() {
             </p>
             <p className="mt-1 text-sm capitalize text-[var(--color-stone-500)]">
               {primary.nextAppointment
-                ? humanise(primary.nextAppointment.type)
+                ? humaniseStatus(primary.nextAppointment.type)
                 : "Your advisor is a message away"}{" "}
               →
             </p>
@@ -227,7 +230,7 @@ export default async function DashboardPage() {
             </p>
             <p className="font-display mt-3 text-2xl capitalize">
               {primary.activeAlteration
-                ? humanise(primary.activeAlteration.status)
+                ? humaniseStatus(primary.activeAlteration.status)
                 : "Nothing away"}
             </p>
             <p className="mt-1 text-sm text-[var(--color-stone-500)]">
@@ -283,7 +286,7 @@ export default async function DashboardPage() {
                   href: "/orders",
                   label: "Orders",
                   detail: primary.activeOrder
-                    ? humanise(primary.activeOrder.status)
+                    ? humaniseStatus(primary.activeOrder.status)
                     : "Purchases and delivery",
                 },
                 {
@@ -293,17 +296,22 @@ export default async function DashboardPage() {
                 },
                 {
                   href: "/wishlist",
-                  label: "Saved pieces",
+                  label: "Saved",
                   detail: "Your considered selection",
                 },
                 {
                   href: "/loyalty",
-                  label: "Recognition",
+                  label: "Loyalty",
                   detail: "Status, points and rewards",
                 },
                 {
+                  href: "/loyalty#referrals",
+                  label: "Referrals",
+                  detail: "Invite someone you trust",
+                },
+                {
                   href: "/messages",
-                  label: "Your advisors",
+                  label: "Messages",
                   detail:
                     primaryUnread > 0
                       ? `${primaryUnread} waiting`
@@ -316,8 +324,8 @@ export default async function DashboardPage() {
                 },
                 {
                   href: "/events",
-                  label: "Invitations",
-                  detail: "Private previews and events",
+                  label: "Events",
+                  detail: "Private previews and invitations",
                 },
                 {
                   href: "/notifications",
@@ -326,7 +334,7 @@ export default async function DashboardPage() {
                 },
                 {
                   href: "/account",
-                  label: "Preferences",
+                  label: "Settings",
                   detail: "Contact, delivery and privacy",
                 },
               ] as const
@@ -363,7 +371,7 @@ export default async function DashboardPage() {
               href="/account"
               className={buttonVariants({ variant: "outline" })}
             >
-              Your preferences
+              Your settings
             </Link>
           </div>
           <div className="grid gap-5 lg:grid-cols-2">
@@ -382,7 +390,8 @@ export default async function DashboardPage() {
                 return (
                   <Card
                     key={customer.id}
-                    className="paon-reveal overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-lifted)]"
+                    id={`house-${customer.id}`}
+                    className="paon-reveal scroll-mt-24 overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-lifted)]"
                     style={{ animationDelay: `${index * 120}ms` }}
                   >
                     <div className="flex items-start justify-between gap-4 border-b border-[var(--color-stone-100)] p-6">
@@ -391,7 +400,7 @@ export default async function DashboardPage() {
                           {retailer?.displayName ?? "Your atelier"}
                         </p>
                         <p className="mt-1 text-sm capitalize text-[var(--color-stone-500)]">
-                          {humanise(customer.lifecycleStage)} relationship
+                          {humaniseStatus(customer.lifecycleStage)} relationship
                         </p>
                       </div>
                       {unread > 0 ? (
@@ -412,7 +421,7 @@ export default async function DashboardPage() {
                         </p>
                         <p className="mt-1 text-sm font-medium capitalize">
                           {activeOrder
-                            ? humanise(activeOrder.status)
+                            ? humaniseStatus(activeOrder.status)
                             : "No order in motion"}{" "}
                           →
                         </p>
@@ -430,7 +439,7 @@ export default async function DashboardPage() {
                         </p>
                         <p className="mt-1 text-sm font-medium capitalize">
                           {activeAlteration
-                            ? humanise(activeAlteration.status)
+                            ? humaniseStatus(activeAlteration.status)
                             : "Safely with you"}{" "}
                           →
                         </p>
@@ -442,7 +451,7 @@ export default async function DashboardPage() {
                         className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-stone-100)] px-6 py-4 text-sm"
                       >
                         <span className="min-w-0">
-                          Next: {humanise(nextAppointment.type)} ·{" "}
+                          Next: {humaniseStatus(nextAppointment.type)} ·{" "}
                           {formatDate(nextAppointment.startsAt, "en-US")}
                         </span>
                         <span aria-hidden="true" className="shrink-0">

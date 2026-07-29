@@ -347,6 +347,17 @@ export function StudioForm({
         </p>
       ) : null}
       <div className="bg-[var(--color-stone-50)]/95 sticky bottom-20 z-20 -mx-4 mt-6 border-t border-[var(--color-stone-200)] px-4 py-4 backdrop-blur xl:static xl:mx-0 xl:border-0 xl:bg-transparent xl:px-0 xl:py-0 xl:backdrop-blur-none">
+        <p className="mb-3 max-w-2xl text-xs leading-5 text-[var(--color-stone-500)]">
+          <strong className="font-medium text-[var(--color-stone-800)]">
+            Save
+          </strong>{" "}
+          updates live story fields (headline, introduction, location photos).{" "}
+          <strong className="font-medium text-[var(--color-stone-800)]">
+            Generate
+          </strong>{" "}
+          (in the environment panel) applies logo, garments, product mix and the
+          seeded tenant.
+        </p>
         <button
           type="submit"
           disabled={pending}

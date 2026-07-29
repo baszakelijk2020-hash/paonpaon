@@ -1,10 +1,9 @@
 import { AnalyticsRepository, RetailerRepository } from "@paon/database";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate } from "@paon/utils";
 import Link from "next/link";
 
-import { RetailerStatusBadge } from "./status-badge";
+import { RetailersNetworkList } from "./retailers-network-list";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -64,14 +63,14 @@ export default async function RetailersPage() {
                 className: "border-white/35 text-white hover:bg-white/10",
               })}
             >
-              Open demo atelier
+              Open seed data
             </Link>
           </div>
         </div>
       </section>
 
       <section
-        aria-label="Platform pulse"
+        aria-label="Analytics"
         className="grid grid-cols-2 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] lg:grid-cols-4"
       >
         {[
@@ -176,53 +175,17 @@ export default async function RetailersPage() {
             </Link>
           </Card>
         ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {retailers.map((retailer) => (
-              <Link
-                key={retailer.id}
-                href={`/retailers/${retailer.id}`}
-                className="group"
-              >
-                <Card className="h-full overflow-hidden rounded-[var(--radius-xl)] p-0 transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lifted)]">
-                  <div className="flex items-start justify-between gap-4 p-6">
-                    <div>
-                      <p className="font-display text-3xl">
-                        {retailer.displayName}
-                      </p>
-                      <p className="mt-1 font-mono text-xs text-[var(--color-stone-500)]">
-                        /{retailer.slug}
-                      </p>
-                    </div>
-                    <RetailerStatusBadge status={retailer.status} />
-                  </div>
-                  <dl className="grid grid-cols-3 border-t border-[var(--color-stone-100)]">
-                    <div className="border-r border-[var(--color-stone-100)] p-4">
-                      <dt className="text-[11px] text-[var(--color-stone-500)]">
-                        Tier
-                      </dt>
-                      <dd className="mt-1 text-sm capitalize">
-                        {retailer.tier}
-                      </dd>
-                    </div>
-                    <div className="border-r border-[var(--color-stone-100)] p-4">
-                      <dt className="text-[11px] text-[var(--color-stone-500)]">
-                        Locale
-                      </dt>
-                      <dd className="mt-1 text-sm">{retailer.defaultLocale}</dd>
-                    </div>
-                    <div className="p-4">
-                      <dt className="text-[11px] text-[var(--color-stone-500)]">
-                        Joined
-                      </dt>
-                      <dd className="mt-1 text-sm">
-                        {formatDate(retailer.createdAt, "en-US")}
-                      </dd>
-                    </div>
-                  </dl>
-                </Card>
-              </Link>
-            ))}
-          </div>
+          <RetailersNetworkList
+            retailers={retailers.map((retailer) => ({
+              id: retailer.id,
+              displayName: retailer.displayName,
+              slug: retailer.slug,
+              status: retailer.status,
+              tier: retailer.tier,
+              defaultLocale: retailer.defaultLocale,
+              createdAt: retailer.createdAt,
+            }))}
+          />
         )}
       </section>
     </div>

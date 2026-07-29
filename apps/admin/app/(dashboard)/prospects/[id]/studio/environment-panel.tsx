@@ -1,6 +1,7 @@
 "use client";
 
 import type { ProspectDemoEnvironment } from "@paon/domain";
+import { demoEnvironmentLabel } from "@paon/utils";
 import { useActionState, useEffect, useState } from "react";
 
 import {
@@ -114,13 +115,13 @@ export function EnvironmentPanel({
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
             Generation creates a real seeded retailer tenant for this prospect —
-            storefront, client book, staff personas — then hands back live links
-            and one-click demo logins.
+            storefront, Clients, staff personas — then hands back live links and
+            one-click demo logins.
           </p>
         </div>
         {environment ? (
-          <span className="rounded-[var(--radius-md)] border px-3 py-1 text-xs capitalize">
-            {environment.status}
+          <span className="rounded-[var(--radius-md)] border px-3 py-1 text-xs">
+            {demoEnvironmentLabel(environment.status)}
           </span>
         ) : null}
       </div>

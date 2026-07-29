@@ -17,54 +17,24 @@ function guestNav(fromQuery: string) {
 
   return [
     {
-      label: "Preview",
+      label: "Start here",
       items: [
         {
           href: fromQuery
             ? `/dashboard?from=${encodeURIComponent(fromQuery)}`
             : "/dashboard",
-          label: "Your world",
-          description: "What is happening now",
+          label: "Home",
+          description: "Private-client preview",
         },
         {
-          href: signIn("/wishlist"),
-          label: "Saved pieces",
-          description: "Sign in to open",
+          href: signIn("/dashboard"),
+          label: "Sign in",
+          description: "Open your full client space",
         },
         {
-          href: signIn("/loyalty"),
-          label: "Recognition",
-          description: "Sign in to open",
-        },
-      ],
-    },
-    {
-      label: "In progress",
-      items: [
-        {
-          href: signIn("/orders"),
-          label: "Orders",
-          description: "Sign in to open",
-        },
-        {
-          href: signIn("/appointments"),
-          label: "Appointments",
-          description: "Sign in to open",
-        },
-        {
-          href: signIn("/wedding-parties"),
-          label: "Wedding parties",
-          description: "Sign in to open",
-        },
-      ],
-    },
-    {
-      label: "Account",
-      items: [
-        {
-          href: signIn("/account"),
-          label: "Preferences",
-          description: "Sign in to open",
+          href: fromQuery || "/r/maison-dubois",
+          label: "Continue shopping",
+          description: "Return to the storefront",
         },
       ],
     },
@@ -99,10 +69,6 @@ export function GuestPortalShell() {
         },
         { href: signInDashboard, label: "Sign in" },
         { href: storeHref, label: "Store" },
-        {
-          href: `/login?redirectTo=${encodeURIComponent("/account")}`,
-          label: "Account",
-        },
       ]}
       signOutControl={
         <Link

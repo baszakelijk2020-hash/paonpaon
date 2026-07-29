@@ -16,7 +16,7 @@ test("platform staff records a Stripe Price id on a seeded plan", async ({
   const unique = Date.now();
   const priceId = `price_e2e_${unique}`;
 
-  await page.getByRole("link", { name: /^Commercials/ }).click();
+  await page.getByRole("link", { name: /^Billing/ }).click();
   await expect(page).toHaveURL(/\/billing$/);
   await expect(page.getByText("PAON Fused", { exact: true })).toBeVisible();
 
@@ -47,7 +47,7 @@ test("platform staff records a Stripe Price id on a seeded plan", async ({
 test("platform staff edits commercial positioning and entitlements atomically", async ({
   page,
 }) => {
-  await page.getByRole("link", { name: /^Commercials/ }).click();
+  await page.getByRole("link", { name: /^Billing/ }).click();
   const positioning = page.getByLabel("Positioning").first();
   const original = await positioning.inputValue();
   const updated = `${original.replace(/\.$/, "")} — configured for pilots.`;

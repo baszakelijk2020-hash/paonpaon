@@ -3,6 +3,7 @@
 import { requirePlatformOperator } from "@paon/auth";
 import { CommercialProspectRepository } from "@paon/database";
 import { createCommercialProspectInputSchema } from "@paon/domain";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/session";
@@ -48,4 +49,31 @@ export async function createProspect(
     await getSupabaseServerClient(),
   ).create(parsed.data);
   redirect(`/prospects/${id}/studio`);
+}
+
+const STAGES = [
+  "researched",
+  "qualified",
+  "demo_preparation",
+  "demo_ready",
+  "demo_sent",
+  "consultation",
+  "proposal",
+  "pilot",
+  "converted",
+  "lost",
+] as const;
+
+export async function updateProspectStage(formData: FormData): Promise<void> {
+  requirePlatformOperator(await getSession());
+  const prospectId = String(formData.get("prospectId") ?? "");
+  const stage = String(formData.get("stage") ?? "");
+  if (!prospectId || !STAGES.includes(stage as (typeof STAGES)[number])) {
+    return;
+  }
+  await new CommercialProspectRepository(
+    await getSupabaseServerClient(),
+  ).updateStage(prospectId, stage as (typeof STAGES)[number]);
+  revalidatePath("/prospects");
+  revalidatePath(`/prospects/${prospectId}/studio`);
 }

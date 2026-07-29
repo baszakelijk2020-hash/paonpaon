@@ -47,4 +47,15 @@ export class CommercialInquiryRepository {
     if (error) throw error;
     return data.map(toDomain);
   }
+
+  async updateStatus(
+    id: string,
+    status: CommercialInquiry["status"],
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("commercial_inquiries")
+      .update({ status })
+      .eq("id", id);
+    if (error) throw error;
+  }
 }

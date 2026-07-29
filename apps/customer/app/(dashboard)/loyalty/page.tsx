@@ -7,6 +7,7 @@ import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
+import { humaniseStatus } from "@paon/utils";
 
 import { inviteFriend, joinLoyalty, redeemReward } from "./actions";
 
@@ -125,8 +126,9 @@ export default async function LoyaltyPage() {
                   </div>
                 </div>
                 <form
+                  id="referrals"
                   action={inviteFriend}
-                  className="flex flex-col gap-2 border-t border-[var(--color-stone-100)] pt-5 sm:flex-row"
+                  className="flex scroll-mt-24 flex-col gap-2 border-t border-[var(--color-stone-100)] pt-5 sm:flex-row"
                 >
                   <input
                     type="hidden"
@@ -159,7 +161,7 @@ export default async function LoyaltyPage() {
                             {referral.referredEmail}
                           </span>
                           <Badge tone={REFERRAL_TONE[referral.status]}>
-                            {referral.status.replaceAll("_", " ")}
+                            {humaniseStatus(referral.status)}
                           </Badge>
                         </li>
                       ))}

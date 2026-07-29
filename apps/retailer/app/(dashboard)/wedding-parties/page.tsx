@@ -1,7 +1,7 @@
 import { CustomerRepository, WeddingPartyRepository } from "@paon/database";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate } from "@paon/utils";
+import { formatDate, humaniseStatus } from "@paon/utils";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -79,7 +79,7 @@ export default async function WeddingPartiesPage() {
               </div>
             </div>
             <Badge className="shrink-0" tone={STATUS_TONE[party.status]}>
-              {party.status}
+              {humaniseStatus(party.status)}
             </Badge>
           </Link>
         ))}

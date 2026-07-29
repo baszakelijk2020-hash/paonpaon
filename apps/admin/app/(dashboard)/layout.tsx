@@ -17,7 +17,7 @@ const navigation: AppShellNavGroup[] = [
       },
       {
         href: "/billing",
-        label: "Commercials",
+        label: "Billing",
         description: "Plans and subscription status",
       },
       {
@@ -37,12 +37,12 @@ const navigation: AppShellNavGroup[] = [
     items: [
       {
         href: "/analytics",
-        label: "Platform pulse",
+        label: "Analytics",
         description: "Adoption and operating signals",
       },
       {
         href: "/ai-monitoring",
-        label: "AI studio",
+        label: "AI monitoring",
         description: "Generation quality and failures",
       },
     ],
@@ -52,7 +52,7 @@ const navigation: AppShellNavGroup[] = [
     items: [
       {
         href: "/demo-mode",
-        label: "Demo atelier",
+        label: "Seed data",
         description: "Personas and showcase data",
       },
     ],
@@ -82,6 +82,7 @@ export default async function DashboardLayout({
         { href: "/prospects", label: "Prospects" },
         { href: "/inquiries", label: "Inquiries" },
         { href: "/retailers", label: "Retailers" },
+        { href: "/billing", label: "Billing" },
       ]}
       signOutControl={
         <form action={signOut}>

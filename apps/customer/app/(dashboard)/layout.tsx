@@ -13,17 +13,17 @@ const navigation: AppShellNavGroup[] = [
     items: [
       {
         href: "/dashboard",
-        label: "Your world",
+        label: "Home",
         description: "What is happening now",
       },
       {
         href: "/wishlist",
-        label: "Saved pieces",
+        label: "Saved",
         description: "Your considered selection",
       },
       {
         href: "/loyalty",
-        label: "Recognition",
+        label: "Loyalty",
         description: "Status, points and rewards",
       },
     ],
@@ -53,13 +53,13 @@ const navigation: AppShellNavGroup[] = [
     items: [
       {
         href: "/messages",
-        label: "Your advisors",
+        label: "Messages",
         description: "Private conversations",
       },
       {
         href: "/events",
-        label: "Invitations",
-        description: "Private previews and events",
+        label: "Events",
+        description: "Private previews and invitations",
       },
       {
         href: "/wedding-parties",
@@ -74,11 +74,11 @@ const navigation: AppShellNavGroup[] = [
     ],
   },
   {
-    label: "Profile",
+    label: "Settings",
     items: [
       {
         href: "/account",
-        label: "Preferences",
+        label: "Settings",
         description: "Contact, delivery and privacy",
       },
     ],
@@ -110,7 +110,7 @@ export default async function DashboardLayout({
       email={session.email}
       navigation={navigation}
       mobileDock={[
-        { href: "/dashboard", label: "World" },
+        { href: "/dashboard", label: "Home" },
         { href: "/appointments", label: "Appointments" },
         { href: "/messages", label: "Messages" },
         { href: "/orders", label: "Orders" },

@@ -65,7 +65,7 @@ test("owner edits the retailer's business profile", async ({ page }) => {
 test("owner adds a customer CRM record", async ({ page }) => {
   const unique = Date.now();
 
-  await page.getByRole("link", { name: /^Client book/ }).click();
+  await page.getByRole("link", { name: /^Clients/ }).click();
   await expect(page).toHaveURL(/\/customers$/);
 
   await page.getByRole("link", { name: "New customer" }).click();
@@ -101,7 +101,7 @@ test("owner adds a customer CRM record", async ({ page }) => {
 test("owner adds a product with its first variant", async ({ page }) => {
   const unique = Date.now();
 
-  await page.getByRole("link", { name: /^Catalogue/ }).click();
+  await page.getByRole("link", { name: /^Products/ }).click();
   await expect(page).toHaveURL(/\/products$/);
 
   await page.getByRole("link", { name: "New product" }).click();

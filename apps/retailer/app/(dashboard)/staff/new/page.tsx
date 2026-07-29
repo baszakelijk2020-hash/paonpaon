@@ -22,7 +22,7 @@ export default async function NewStaffPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
-          Invite staff
+          Invite teammate
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           They&rsquo;ll receive an email invite to set a password and sign in to

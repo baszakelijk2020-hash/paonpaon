@@ -59,7 +59,7 @@ export default async function DashboardLayout({
       items: [
         {
           href: "/dashboard",
-          label: "Daily brief",
+          label: "Brief",
           description: "Attention, appointments and pace",
         },
         ...(!isWorkshopRole
@@ -76,7 +76,7 @@ export default async function DashboardLayout({
               },
               {
                 href: "/messages",
-                label: "Conversations",
+                label: "Messages",
                 description: "Client questions and requests",
               },
               {
@@ -133,7 +133,7 @@ export default async function DashboardLayout({
             items: [
               {
                 href: "/customers",
-                label: "Client book",
+                label: "Clients",
                 description: "Profiles, history and next action",
               },
               {
@@ -166,8 +166,8 @@ export default async function DashboardLayout({
             items: [
               {
                 href: "/products",
-                label: "Catalogue",
-                description: "Products, imagery and availability",
+                label: "Products",
+                description: "Catalogue, imagery and availability",
               },
               {
                 href: "/collections",
@@ -215,11 +215,11 @@ export default async function DashboardLayout({
       ]
     : [
         { href: "/dashboard", label: "Brief" },
-        { href: "/appointments", label: "Diary" },
+        { href: "/appointments", label: "Appointments" },
         ...(canManageCustomers
           ? [{ href: "/customers", label: "Clients" }]
           : [{ href: "/orders", label: "Orders" }]),
-        { href: "/messages", label: "Inbox" },
+        { href: "/messages", label: "Messages" },
       ];
 
   return (

@@ -38,10 +38,10 @@ export default async function MyEventsPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Invitations
+          Events
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Events you have been invited to, and your responses.
+          Invitations you have received, and your responses.
         </p>
       </div>
       {rows.map(({ rsvp, event, retailer }) =>

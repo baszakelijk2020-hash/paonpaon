@@ -263,7 +263,7 @@ export default async function DashboardPage() {
             >
               {session.retailerRole === "production_staff"
                 ? "Open production queue"
-                : "Open today’s diary"}
+                : "Open appointments"}
             </Link>
             {session.retailerRole !== "production_staff" ? (
               <Link
@@ -281,7 +281,7 @@ export default async function DashboardPage() {
               href="#attention"
               className="ml-auto rounded-[var(--radius-md)] bg-white/10 px-5 py-2.5 text-xs uppercase tracking-[0.14em] text-white/80 backdrop-blur hover:bg-white/15"
             >
-              Daily briefing{attentionCount > 0 ? ` · ${attentionCount}` : ""}
+              Attention{attentionCount > 0 ? ` · ${attentionCount}` : ""}
             </a>
           </div>
         </div>
@@ -377,7 +377,7 @@ export default async function DashboardPage() {
               },
               {
                 href: "/customers",
-                label: "Client book",
+                label: "Clients",
                 detail: "Profiles and next actions",
                 show: retailerRoleAtLeast(
                   session.retailerRole,
@@ -386,7 +386,7 @@ export default async function DashboardPage() {
               },
               {
                 href: "/messages",
-                label: "Conversations",
+                label: "Messages",
                 detail:
                   unreadCount > 0 ? `${unreadCount} waiting` : "Client inbox",
                 show: !["workshop_manager", "worker"].includes(
@@ -404,8 +404,8 @@ export default async function DashboardPage() {
               },
               {
                 href: "/products",
-                label: "Catalogue",
-                detail: "Products and imagery",
+                label: "Products",
+                detail: "Catalogue and imagery",
                 show: retailerRoleAtLeast(session.retailerRole, "manager"),
               },
               {
@@ -498,7 +498,7 @@ export default async function DashboardPage() {
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
               <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
-                Daily briefing
+                Brief
               </p>
               <h2 className="font-display text-3xl text-[var(--color-stone-900)]">
                 Needs your attention

@@ -27,10 +27,10 @@ export default async function StaffPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
-            Staff
+            Team
           </h1>
           <p className="text-sm text-[var(--color-stone-500)]">
-            {staff.length} staff member{staff.length === 1 ? "" : "s"}
+            {staff.length} team member{staff.length === 1 ? "" : "s"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -41,16 +41,21 @@ export default async function StaffPage() {
             Roster
           </Link>
           <Link href="/staff/new" className={buttonVariants()}>
-            Invite staff
+            Invite teammate
           </Link>
         </div>
       </div>
 
       <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-elevated)]">
         {staff.length === 0 ? (
-          <p className="p-6 text-sm text-[var(--color-stone-500)]">
-            No staff invited yet.
-          </p>
+          <div className="flex flex-col items-start gap-3 p-6">
+            <p className="text-sm text-[var(--color-stone-500)]">
+              No teammates invited yet.
+            </p>
+            <Link href="/staff/new" className={buttonVariants()}>
+              Invite teammate
+            </Link>
+          </div>
         ) : (
           staff.map((member) => (
             <div
@@ -63,7 +68,9 @@ export default async function StaffPage() {
                 </p>
                 <p className="text-sm text-[var(--color-stone-500)]">
                   {member.email} ·{" "}
-                  <span className="capitalize">{member.role}</span>
+                  <span className="capitalize">
+                    {member.role.replaceAll("_", " ")}
+                  </span>
                 </p>
               </div>
               <Badge

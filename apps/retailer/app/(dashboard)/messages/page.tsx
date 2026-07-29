@@ -129,10 +129,10 @@ export default async function MessagesPage({
       >
         <div className="border-b border-[var(--color-stone-200)] px-4 py-3 lg:hidden">
           <p className="font-accent text-[10px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
-            Inbox
+            Messages
           </p>
           <p className="font-display text-xl text-[var(--color-stone-900)]">
-            Conversations
+            Messages
           </p>
         </div>
         <ConversationList conversations={listItems} selectedId={activeId} />
@@ -151,7 +151,7 @@ export default async function MessagesPage({
                   href="/messages"
                   className="font-accent text-[10px] uppercase tracking-[0.14em] text-[var(--color-stone-600)] underline-offset-4 hover:underline lg:hidden"
                 >
-                  ← Inbox
+                  ← Messages
                 </Link>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

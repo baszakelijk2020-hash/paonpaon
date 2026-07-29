@@ -24,7 +24,7 @@ export default async function WorkshopsPage() {
         <h1 className="font-display text-2xl">Workshops</h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Create retailer-scoped workshops, then invite workshop managers and
-          workers from Staff.
+          workers from Team.
         </p>
       </div>
       <Card>

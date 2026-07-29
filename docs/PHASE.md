@@ -364,11 +364,19 @@ Demo Studio cool `stone-*` / soft radii replaced with paon tokens
 (`36fba0a`, `dbaeb41`). Still skip Stripe / Resend / silhouette /
 inventing alterations.
 
-**Also (2026-07-29 continuous — mobile chrome):** marketing hamburger nav;
-Admin mobile dock (Prospects / Inquiries / Retailers); sticky Studio Save
-and message composers above the dock; list-row wrap across Private Client
-and Mission Control; private-demo + Studio leftovers on `--radius-md`
-(`bd22b47` and follow-ups).
+**Also (2026-07-29 continuous — UX audit execution):** Naming unified
+(Home/Messages/Loyalty/Saved/Clients/Appointments/Products/Team/Billing/
+Analytics); list search on Clients/Prospects/Retailers/Inquiries/
+Appointments; inquiry triage + create-prospect link; prospect stage
+writes + empty CTA; retailer suspend/activate + resend invite; guest
+portal three CTAs; payment fail escapes; house switcher; duplicate
+client guard; appointment row status updates; Save vs Generate
+explainer. Follow-on: H1 leftovers (Events/Saved/Team/Performance/
+Seed data); Billing on admin dock; Ask-us → Messages when signed in;
+`humaniseStatus` / demo Live labels; Referrals house tile; e2e
+Commercials/Catalogue/Demo atelier asserts. Still skip Stripe keys /
+Resend / POS invent / offline / founder alterations redesign /
+paon-template rewrite.
 
 **Save vs Generate (Studio).** Save alone updates live storefront story
 fields that are read from the prospect configuration at request time

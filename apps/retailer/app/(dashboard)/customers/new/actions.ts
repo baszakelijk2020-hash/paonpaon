@@ -41,6 +41,23 @@ export async function createCustomer(
   }
 
   const supabase = await getSupabaseServerClient();
+  const existing = await new CustomerRepository(supabase).findByRetailer(
+    session.retailerId,
+  );
+  const email = parsed.data.email?.trim().toLowerCase();
+  const phone = parsed.data.phone?.replace(/\s+/g, "");
+  const duplicate = existing.find((customer) => {
+    if (email && customer.email?.trim().toLowerCase() === email) return true;
+    if (phone && customer.phone?.replace(/\s+/g, "") === phone) return true;
+    return false;
+  });
+  if (duplicate) {
+    return {
+      values: raw,
+      fieldErrors: {},
+      formError: `A client already exists with that contact (${duplicate.fullName}). Open their record instead of creating a duplicate.`,
+    };
+  }
 
   const customer = await new CustomerRepository(supabase).create({
     retailerId: session.retailerId,

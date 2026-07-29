@@ -69,7 +69,7 @@ export default async function StaffRosterPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
-          Staff roster
+          Team roster
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Week of {from} — hours are calculated from actual clock-in/out, not
@@ -85,7 +85,7 @@ export default async function StaffRosterPage() {
                 scope="col"
                 className="px-4 py-3 font-medium text-[var(--color-stone-500)]"
               >
-                Staff
+                Teammate
               </th>
               {days.map((day, i) => (
                 <th
@@ -180,7 +180,7 @@ export default async function StaffRosterPage() {
             action={createStaffShift}
             className="flex flex-wrap items-end gap-3"
           >
-            <FormField label="Staff" htmlFor="staffId">
+            <FormField label="Teammate" htmlFor="staffId">
               <Select id="staffId" name="staffId" required>
                 {staff.map((member) => (
                   <option key={member.id} value={member.id}>
