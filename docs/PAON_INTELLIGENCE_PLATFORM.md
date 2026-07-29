@@ -12,9 +12,11 @@ implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
 - **Programme status:** paused on documented hard blockers only after the
-  Tie-Mate domain foundation. Customer Tie-Mate UI and Stage 6 remain gated.
+  Tie-Mate domain + repository wiring. Customer Tie-Mate UI and Stage 6 remain
+  gated.
 - **Current queue item:** `5.4 Tie-Mate` (UI blocked — awaiting approved founder
-  mobile surface under ADR-052; concept + domain deck authorized by ADR-065)
+  mobile surface under ADR-052; concept, domain deck, and catalogue projection
+  authorized by ADR-065)
 - **Current requirement IDs:** `TIE-001`, `ENG-004`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
@@ -43,7 +45,9 @@ requires it.
   (PHASE 5.1 complete); `36fecc5` adds tailoring milestones on the loyalty
   ledger (PHASE 5.2 complete); `437a49e` adds Preferred Tailoring and
   HighMaintenance concierge operations (PHASE 5.3 complete); `6842fb5` adds
-  Tie-Mate domain deck/photo/handoff under ADR-065 (PHASE 5.4 foundation).
+  Tie-Mate domain deck/photo/handoff under ADR-065 (PHASE 5.4 foundation);
+  Tie-Mate catalogue projection repository wires live products/stock/accepted
+  neckwear concepts into `buildTieMateDeck` (PHASE 5.4 repository wiring).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -88,7 +92,7 @@ requires it.
   `record_service_care` / `record_service_cost` /
   `set_service_membership_status` / `assign_service_advisor`, generated
   database types, `MetadataRepository`, `ProductFabricProfileRepository`,
-  `KnowledgeRepository`, `CatalogueQueryRepository`,
+  `KnowledgeRepository`, `CatalogueQueryRepository`, `TieMateRepository`,
   `CatalogueImportRepository`, `ImportEnrichmentPromptRepository`,
   `CustomerConsentRepository`, `StyleProfileRepository`,
   `AdvisorBriefRepository`, `TableServiceGuidanceRepository`,
@@ -110,27 +114,28 @@ requires it.
   TableService occasion guidance with swipe/appointment conversion hooks, and
   `@paon/domain` Tie-Mate deck/photo/handoff contracts (`buildTieMateDeck`,
   swatch-preferred fabric images, neckwear concept filter, existing-path
-  handoffs).
-- **Checks/deployment state:** 109 migrations; Tie-Mate domain foundation and
-  lint/typecheck/test/build/format are green on the 5.4-foundation tip.
-  Anonymous interaction persistence remains blocked pending jurisdiction
+  handoffs) plus `@paon/database` `TieMateRepository` catalogue projection.
+- **Checks/deployment state:** 109 migrations; Tie-Mate domain + repository
+  wiring and lint/typecheck/test/build/format are green on the 5.4-repository
+  tip. Anonymous interaction persistence remains blocked pending jurisdiction
   documentation. Live Resend/OpenWeather smoke still needs provider
   credentials.
 - **Real blockers:** no approved founder Tie-Mate surface/design still blocks
-  the 5.4 UI acceptance criteria (ADR-065 authorizes the Tie Break–like concept
-  and domain deck only; inventing founder HTML remains forbidden); Stage 6.1 is
-  blocked on founder business/legal/accounting/provider decisions; 6.2 depends
-  on 6.1; 6.3 marketplace modelling is not explicitly activated and remains
-  gated on commercial/payment design; anonymous persistence remains blocked
-  for new anonymous producers only; missing founder-authored
-  fabric/colour/formality sartorial rules still block only those exact claims;
-  live delivery smoke still needs credentials; payment blocks money collection
-  only (ADR-062).
+  the 5.4 UI acceptance criteria (ADR-065 authorizes the Tie Break–like concept,
+  domain deck, and repository projection only; inventing founder HTML remains
+  forbidden); Stage 6.1 is blocked on founder business/legal/accounting/
+  provider decisions; 6.2 depends on 6.1; 6.3 marketplace modelling is not
+  explicitly activated and remains gated on commercial/payment design;
+  anonymous persistence remains blocked for new anonymous producers only;
+  missing founder-authored fabric/colour/formality sartorial rules still block
+  only those exact claims; live delivery smoke still needs credentials;
+  payment blocks money collection only (ADR-062).
 - **Exact next files/tests:** feed sharp fabric close-ups into
-  `swatch_image_url` for neckwear SKUs; optionally wire a repository query that
-  projects catalogue rows into `TieMateFabricCandidate`. Resume the 5.4 customer
-  surface only after the founder supplies an approved Tie-Mate mobile design for
-  an ADR-052 verbatim port (or explicitly names an interim route). Do not invent
+  `swatch_image_url` for neckwear SKUs; accept/assign neckwear `garment_type`
+  concepts on those products. Resume the 5.4 customer surface only after the
+  founder supplies an approved Tie-Mate mobile design for an ADR-052 verbatim
+  port (or explicitly names an interim route). Mount via
+  `TieMateRepository.buildDeck` + `buildTieMateActionPaths` — do not invent
   founder HTML, a parallel Tie-Mate catalogue, payment code, or marketplace
   domain while those gates hold.
 

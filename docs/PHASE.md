@@ -633,15 +633,22 @@ explanation path.
     the UI item; underlying reusable foundations must still ship first.
   - **Status:** partially unblocked — founder authorized the Hermès Tie Break–
     like try-on discovery concept and retailer-fed sharp fabric close-ups
-    (ADR-065). Domain deck/photo/handoff contract landed; customer UI remains
-    blocked until an approved mobile surface exists under ADR-052 (or the
-    founder explicitly names an interim route). Stages 2–3 already shipped the
-    reusable catalogue, discovery, stock, shortlist, and advisor foundations.
+    (ADR-065). Domain deck/photo/handoff contract and catalogue projection
+    repository landed; customer UI remains blocked until an approved mobile
+    surface exists under ADR-052 (or the founder explicitly names an interim
+    route). Stages 2–3 already shipped the reusable catalogue, discovery,
+    stock, shortlist, and advisor foundations.
   - **Landed (foundation):** `6842fb5` — `@paon/domain` `buildTieMateDeck` /
     `resolveTieMateFabricImage` / `buildTieMateActionPaths` /
     `resolveTieConceptIds` with unit coverage — swatch-preferred fabric
     photos, neckwear concept filter, stock truth, shortlist pin order, and
     handoffs into existing product/swipe/appointment/message paths.
+  - **Landed (repository):** `@paon/database` `TieMateRepository` projects
+    live tenant products + variants/stock + accepted metadata assignments
+    into `TieMateFabricCandidate`, resolves neckwear `garment_type` concept
+    IDs, and feeds `buildTieMateDeck` (`projectFabricCandidates` /
+    `resolveTieConceptIdsForRetailer` / `buildDeck`) with unit + storefront
+    read-security coverage. No customer UI / founder HTML.
 
 **Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
 duplicate loyalty ledger, service state hidden in generic order status, or
