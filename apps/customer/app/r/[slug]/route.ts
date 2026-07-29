@@ -11,6 +11,11 @@ import type { Product, ProductVariant } from "@paon/domain";
 import { formatMoney } from "@paon/utils";
 import { NextResponse } from "next/server";
 
+import {
+  loadStorefrontKnowledgeByProduct,
+  serializeStorefrontKnowledgeJson,
+} from "./serialize-storefront-knowledge";
+
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
@@ -316,42 +321,56 @@ export async function GET(
   const activeProducts = allProducts.filter((p) => p.status === "active");
   const collectionNameById = new Map(collections.map((c) => [c.id, c.name]));
 
-  const entries = await Promise.all(
+  const productsWithVariants = await Promise.all(
     activeProducts.map(async (product) => {
       const variants = await variantRepo.findByProduct(product.id);
-      const collectionName = product.collectionIds
-        .map((id) => collectionNameById.get(id))
-        .find((name): name is string => Boolean(name));
-      return {
-        id: product.slug,
-        img: product.primaryImageUrl ?? "",
-        detailImg: toDetailImg(product),
-        name: product.name,
-        price: priceLabelFor(variants),
-        priceMinor: priceMinorFor(variants),
-        color: deriveColor(product.name, variants[0]?.color),
-        pattern: derivePattern(product.name),
-        season: deriveSeason(product.name, undefined),
-        category: canonicalCategoryFor(
-          product.name,
-          collectionName,
-          product.primaryImageUrl ?? "",
-        ),
-        brand: retailer.displayName,
-        description: product.description,
-        material: product.isMadeToOrder ? "Made to order" : "In atelier",
-        variantName: variantNameFor(variants),
-        variantId: variants[0]?.id ?? null,
-        inventoryQuantity: variants[0]?.inventoryQuantity ?? 0,
-        // Made-to-order lines are never "sold out" — there is no fixed
-        // inventory to exhaust, only a lead time. A stocked line with
-        // nothing left is the one case this storefront should stop
-        // selling instead of quietly overselling (Critical 1).
-        soldOut:
-          !product.isMadeToOrder && (variants[0]?.inventoryQuantity ?? 0) <= 0,
-      };
+      return { product, variants };
     }),
   );
+
+  const knowledgeByProduct = await loadStorefrontKnowledgeByProduct(
+    supabase,
+    retailer.id,
+    productsWithVariants.map(({ product, variants }) => ({
+      id: product.id,
+      slug: product.slug,
+      variantIds: variants.map((variant) => variant.id),
+    })),
+  );
+
+  const entries = productsWithVariants.map(({ product, variants }) => {
+    const collectionName = product.collectionIds
+      .map((id) => collectionNameById.get(id))
+      .find((name): name is string => Boolean(name));
+    return {
+      id: product.slug,
+      img: product.primaryImageUrl ?? "",
+      detailImg: toDetailImg(product),
+      name: product.name,
+      price: priceLabelFor(variants),
+      priceMinor: priceMinorFor(variants),
+      color: deriveColor(product.name, variants[0]?.color),
+      pattern: derivePattern(product.name),
+      season: deriveSeason(product.name, undefined),
+      category: canonicalCategoryFor(
+        product.name,
+        collectionName,
+        product.primaryImageUrl ?? "",
+      ),
+      brand: retailer.displayName,
+      description: product.description,
+      material: product.isMadeToOrder ? "Made to order" : "In atelier",
+      variantName: variantNameFor(variants),
+      variantId: variants[0]?.id ?? null,
+      inventoryQuantity: variants[0]?.inventoryQuantity ?? 0,
+      // Made-to-order lines are never "sold out" — there is no fixed
+      // inventory to exhaust, only a lead time. A stocked line with
+      // nothing left is the one case this storefront should stop
+      // selling instead of quietly overselling (Critical 1).
+      soldOut:
+        !product.isMadeToOrder && (variants[0]?.inventoryQuantity ?? 0) <= 0,
+    };
+  });
 
   // The category with the most matching products, so the first thing a
   // visitor sees is the fullest grid the catalog can show — not just
@@ -510,7 +529,11 @@ ${
       JSON.stringify(resolvedCategories),
     )
     .replaceAll("__PAON_LAND_ON_GRID__", landOnGrid ? "true" : "false")
-    .replaceAll("__PAON_STORES_JSON__", JSON.stringify(stores));
+    .replaceAll("__PAON_STORES_JSON__", JSON.stringify(stores))
+    .replaceAll(
+      "__PAON_KNOWLEDGE_BY_PRODUCT_JSON__",
+      serializeStorefrontKnowledgeJson(knowledgeByProduct),
+    );
 
   if (html.includes("__PAON_")) {
     const leftovers = [...html.matchAll(/__PAON_[A-Z0-9_]+__/g)].map(

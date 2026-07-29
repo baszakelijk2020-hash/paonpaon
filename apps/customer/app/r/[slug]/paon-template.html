@@ -1050,6 +1050,75 @@ __PAON_BRAND_HEAD__
         color: #bfbfbf;
     }
 
+    /* EDU-003 knowledge mounts — additive only; founder chrome unchanged. */
+    .paon-knowledge-mount[hidden] {
+        display: none !important;
+    }
+    .paon-knowledge-cards {
+        display: grid;
+        gap: 12px;
+        padding: 12px 20px 14px;
+        margin: 0;
+        list-style: none;
+    }
+    .paon-knowledge-card {
+        display: grid;
+        grid-template-columns: 72px 1fr;
+        gap: 12px;
+        align-items: start;
+        color: #bfbfbf;
+    }
+    .paon-knowledge-card-image,
+    .paon-knowledge-card-image-fallback {
+        width: 72px;
+        aspect-ratio: 1 / 1;
+        border-radius: 8px;
+        object-fit: cover;
+        background: #222220;
+        border: 1px solid rgba(255, 255, 255, .12);
+        display: block;
+    }
+    .paon-knowledge-card-image-fallback {
+        box-sizing: border-box;
+    }
+    .paon-knowledge-card-copy {
+        min-width: 0;
+    }
+    .paon-knowledge-card-title {
+        margin: 0 0 4px;
+        font-size: 13px;
+        line-height: 1.35;
+        font-weight: 500;
+        color: #e8e8e6;
+    }
+    .paon-knowledge-card-summary {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: #9a9a96;
+    }
+    #paon-knowledge-archetype .paon-knowledge-cards {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 13px;
+    }
+    #paon-knowledge-archetype .paon-knowledge-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    #paon-knowledge-archetype .paon-knowledge-card-image,
+    #paon-knowledge-archetype .paon-knowledge-card-image-fallback {
+        width: 100%;
+    }
+    #paon-knowledge-archetype .paon-knowledge-card-title {
+        font-size: 12px;
+    }
+    #paon-knowledge-archetype .paon-knowledge-card-summary {
+        font-size: 11px;
+    }
+    .paon-knowledge-fallback-hidden {
+        display: none !important;
+    }
+
     .dr-customize {
         display: block;
         text-align: right;
@@ -3836,19 +3905,20 @@ __PAON_HERO_HTML__
 <span class="dr-section-icon" id="icon-archetype">−</span>
 </div>
 <div class="dr-section-body closed" id="body-archetype">
-<div class="archetype-cards">
+<div class="archetype-cards" id="archetype-cards-fallback">
 <div class="archetype-card"></div>
 <div class="archetype-card"></div>
 <div class="archetype-card active"></div>
 <div class="archetype-card"></div>
 </div>
-<div class="archetype-labels">
+<div class="archetype-labels" id="archetype-labels-fallback">
 <div class="archetype-lbl">The Essentialist</div>
 <div class="archetype-lbl">The Perfectionist</div>
 <div class="archetype-lbl active">The Specialist</div>
 <div class="archetype-lbl">Your Profile</div>
 </div>
-<button class="dr-customize">Customize</button>
+<button class="dr-customize" id="archetype-customize-fallback">Customize</button>
+<div id="paon-knowledge-archetype" class="paon-knowledge-mount" hidden></div>
 </div>
 <div class="dr-sep"></div>
 <div class="dr-section" onclick="toggleSection('fabric')">
@@ -3857,6 +3927,7 @@ __PAON_HERO_HTML__
 </div>
 <div class="dr-section-body closed" id="body-fabric">
 <p class="dr-body-text" id="dr-fabric-body">Select your preferred fabric from our curated mill collections.</p><img class="dr-lining-img" id="dr-lining-img" alt="Recommended lining">
+<div id="paon-knowledge-fabric" class="paon-knowledge-mount" hidden></div>
 </div>
 <div class="dr-sep"></div>
 <div class="dr-section" onclick="toggleSection('sizing')">
@@ -3864,7 +3935,8 @@ __PAON_HERO_HTML__
 <span class="dr-section-icon" id="icon-sizing">−</span>
 </div>
 <div class="dr-section-body closed" id="body-sizing">
-<p class="dr-body-text">Book your complimentary fitting after checkout.</p>
+<p class="dr-body-text" id="dr-sizing-body">Book your complimentary fitting after checkout.</p>
+<div id="paon-knowledge-sizing" class="paon-knowledge-mount" hidden></div>
 </div>
 <div class="dr-sep"></div>
 </div>
@@ -4016,6 +4088,7 @@ __PAON_HERO_HTML__
        Suit and jacket swatches use /images/smaller/####_1.webp. Jackets shown: 9177, 9178, 9179, 9180, 9181, 9182, 9183, 9184, 9185, 9187, 9188, 9189, 9190, 9191, 9193, 9194, 9195, 9196, 9197, 9201, 9203, 9206, 9207, 9208.
     */
 const products = __PAON_PRODUCTS_JSON__;
+const PAON_KNOWLEDGE_BY_PRODUCT = __PAON_KNOWLEDGE_BY_PRODUCT_JSON__;
 
     // hardcoded exclusions and 9197 image override, applied statically to this build
     for (let i = products.length - 1; i >= 0; i--) {
@@ -5522,6 +5595,71 @@ function renderGrid() {
             .replace(/-1\.(jpg|jpeg|png|webp)$/i, '-1.$1')
             .replace(/\.(jpg|jpeg|png|webp)$/i, '-1.$1');
     }
+    function paonEscapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function paonKnowledgeCardHtml(card) {
+        var title = paonEscapeHtml(card.title || '');
+        var summary = paonEscapeHtml(card.summary || '');
+        var image = card.imageUrl
+            ? '<img class="paon-knowledge-card-image" src="' + paonEscapeHtml(card.imageUrl) + '" alt="" width="72" height="72" loading="lazy" decoding="async">'
+            : '<span class="paon-knowledge-card-image-fallback" aria-hidden="true"></span>';
+        return '<li class="paon-knowledge-card" role="listitem" tabindex="0">' +
+            image +
+            '<div class="paon-knowledge-card-copy">' +
+            '<h4 class="paon-knowledge-card-title">' + title + '</h4>' +
+            '<p class="paon-knowledge-card-summary">' + summary + '</p>' +
+            '</div></li>';
+    }
+
+    function paonRenderKnowledgeMount(mountId, cards, label) {
+        var mount = document.getElementById(mountId);
+        if (!mount) return false;
+        if (!cards || !cards.length) {
+            mount.innerHTML = '';
+            mount.hidden = true;
+            mount.removeAttribute('aria-label');
+            return false;
+        }
+        mount.innerHTML =
+            '<ul class="paon-knowledge-cards" role="list" aria-label="' +
+            paonEscapeHtml(label) +
+            '">' +
+            cards.map(paonKnowledgeCardHtml).join('') +
+            '</ul>';
+        mount.hidden = false;
+        return true;
+    }
+
+    function paonMountKnowledgePanels(productId) {
+        var byProduct = (typeof PAON_KNOWLEDGE_BY_PRODUCT !== 'undefined' && PAON_KNOWLEDGE_BY_PRODUCT)
+            ? PAON_KNOWLEDGE_BY_PRODUCT
+            : {};
+        var panels = byProduct[String(productId)] || { archetype: [], fabric: [], sizing: [] };
+        var hasArchetype = paonRenderKnowledgeMount(
+            'paon-knowledge-archetype',
+            panels.archetype,
+            'Style education'
+        );
+        paonRenderKnowledgeMount('paon-knowledge-fabric', panels.fabric, 'Fabric education');
+        paonRenderKnowledgeMount('paon-knowledge-sizing', panels.sizing, 'Fit and care education');
+
+        var cardsFallback = document.getElementById('archetype-cards-fallback');
+        var labelsFallback = document.getElementById('archetype-labels-fallback');
+        var customizeFallback = document.getElementById('archetype-customize-fallback');
+        [cardsFallback, labelsFallback, customizeFallback].forEach(function (el) {
+            if (!el) return;
+            if (hasArchetype) el.classList.add('paon-knowledge-fallback-hidden');
+            else el.classList.remove('paon-knowledge-fallback-hidden');
+        });
+    }
+
     function openDetail(id) {
         const p = products.find(x => x.id === id) || products[0];
         const mainEl = document.getElementById('main');
@@ -5599,6 +5737,7 @@ function renderGrid() {
                 liningImg.style.display = 'none';
             }
         }
+        paonMountKnowledgePanels(p.id);
         const detailMainImage = String(p.id) === '9197' ? 'https://www.nebelspiegel.com/images/smaller/9197.webp' : p.img;
         const detailFabricImage = p.detailImg || String(p.img || '').replace(/\.(jpg|jpeg|png|webp)$/i, '_1.webp');
         document.getElementById('detail-placeholder').innerHTML =
