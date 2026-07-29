@@ -5,6 +5,7 @@ import {
   RetailerRepository,
   WishlistRepository,
 } from "@paon/database";
+import { asId, type ProductId } from "@paon/domain";
 import { notFound } from "next/navigation";
 
 import { SwipeDeck } from "./swipe-deck";
@@ -12,13 +13,31 @@ import { SwipeDeck } from "./swipe-deck";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
+function parseProductIds(raw: string | undefined): ProductId[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((part) => part.trim())
+    .filter((part) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        part,
+      ),
+    )
+    .map((part) => asId<"ProductId">(part));
+}
+
 export default async function SwipePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ occasion?: string; products?: string }>;
 }) {
   const { slug } = await params;
+  const query = await searchParams;
   const session = await requireSession();
+  const occasion = query.occasion?.trim();
+  const shortlistIds = new Set(parseProductIds(query.products));
 
   const supabase = await getSupabaseServerClient();
   const retailer = await new RetailerRepository(supabase).findBySlug(slug);
@@ -28,10 +47,18 @@ export default async function SwipePage({
     await new ProductRepository(supabase).findByRetailer(retailer.id)
   ).filter((product) => product.status === "active");
 
+  const ordered =
+    shortlistIds.size > 0
+      ? [
+          ...products.filter((product) => shortlistIds.has(product.id)),
+          ...products.filter((product) => !shortlistIds.has(product.id)),
+        ]
+      : products;
+
   const variantRepo = new ProductVariantRepository(supabase);
   const cards = (
     await Promise.all(
-      products.map(async (product) => {
+      ordered.map(async (product) => {
         const variants = await variantRepo.findByProduct(product.id);
         const variant = variants[0];
         return variant
@@ -74,10 +101,20 @@ export default async function SwipePage({
           {retailer.displayName}
         </p>
         <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Find your style
+          {occasion ? "Options for your occasion" : "Find your style"}
         </h1>
         <p className="mt-1 text-sm text-[var(--color-stone-500)]">
-          Swipe right to save, left to skip.
+          {occasion
+            ? `Guided shortlist for ${occasion}. Swipe right to save, left to skip.`
+            : "Swipe right to save, left to skip."}
+        </p>
+        <p className="mt-3 text-sm">
+          <a
+            className="text-[var(--color-stone-700)] underline"
+            href={`/r/${slug}/appointments${occasion ? `?occasion=${encodeURIComponent(occasion)}` : ""}`}
+          >
+            Book an advisor to refine in store
+          </a>
         </p>
       </div>
       <SwipeDeck

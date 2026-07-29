@@ -7,6 +7,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useTransition,
   type KeyboardEvent,
 } from "react";
 
@@ -14,20 +15,14 @@ import {
   submitTableServiceInquiry,
   type TableServiceFormState,
 } from "./table-service-actions";
+import { requestTableServiceGuidance } from "./table-service-guidance-actions";
 
 /**
  * Exact port of pag1.html's `#gilda-chat-widget` ("TableService") — CSS,
  * markup and the quick-intent picker/attach-panel interactions are
  * byte-for-byte from the source (class names, image URLs, colors,
- * the WhatsApp-style `#dcf8c6` bubble). The source widget has no
- * name/email fields (a static mockup never needed a real visitor
- * identity) but `submitTableServiceInquiry` — a real, already-shipped
- * anonymous-write Server Action — requires both, so the single
- * `.gcw-field` input is reused as a short guided sequence (name → email
- * → message) instead of adding three fields at once; every other visual
- * element is unchanged. The attach-panel's four options are decorative
- * in the source too (no upload call in the original JS either), so they
- * stay exactly as inert here — not wired to a fabricated upload feature.
+ * the WhatsApp-style `#dcf8c6` bubble). PHASE 3.4 adds narrow grounded
+ * guidance hooks after intent selection without redesigning the chrome.
  */
 
 const INTENT_PICS: {
@@ -88,25 +83,43 @@ const PLACEHOLDER_BY_STEP: Record<Step, string> = {
   done: "",
 };
 
+function shouldRequestGuidance(
+  intent: ConversationIntent,
+  caption: string,
+): boolean {
+  if (caption === "I'm getting married") return false;
+  return (
+    intent === "wedding" ||
+    intent === "shirts" ||
+    intent === "style_help" ||
+    caption.toLowerCase().includes("wedding")
+  );
+}
+
 export function TableServiceWidget({
   retailerId,
   retailerName,
+  slug,
   signedInMessagesHref,
+  isSignedIn = false,
 }: {
   retailerId: string;
   retailerName: string;
-  /** When set, Ask-us opens the signed-in Messages inbox instead of anonymous inquiry. */
+  slug: string;
+  /** Advisor-first handoff — shown as CTA; signed-in users still open the widget. */
   signedInMessagesHref?: string;
+  isSignedIn?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [intent, setIntent] = useState<ConversationIntent>("freeform");
   const [picsVisible, setPicsVisible] = useState(true);
-  const [step, setStep] = useState<Step>("name");
+  const [step, setStep] = useState<Step>(isSignedIn ? "message" : "name");
   const [history, setHistory] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [attachOpen, setAttachOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [guidancePending, startGuidance] = useTransition();
 
   const boundAction = submitTableServiceInquiry.bind(null, retailerId);
   const [state, formAction, isPending] = useActionState(boundAction, initial);
@@ -115,17 +128,33 @@ export function TableServiceWidget({
 
   const pathname = usePathname();
   const isLandingPage = /^\/r\/[^/]+\/?$/.test(pathname ?? "");
-  // Cart's mobile sticky "Place order" bar occupies the bottom edge;
-  // keep Ask us above it so the two do not fight for the same tap target.
   const isCartPage = /^\/r\/[^/]+\/cart\/?$/.test(pathname ?? "");
   const clearBottomChrome = isLandingPage || isCartPage;
 
   useEffect(() => {
     if (state.submitted) {
-      setHistory((h) => [...h, "Thank you — we'll be in touch shortly."]);
+      setHistory((h) => [
+        ...h,
+        "Thank you — we'll be in touch shortly. An advisor can continue this conversation anytime.",
+      ]);
       setStep("done");
     }
   }, [state.submitted]);
+
+  function appendGuidance(intentValue: ConversationIntent, caption: string) {
+    if (!shouldRequestGuidance(intentValue, caption)) return;
+    startGuidance(async () => {
+      const result = await requestTableServiceGuidance({
+        retailerId,
+        slug,
+        intent: intentValue,
+        caption,
+        freeText: intentValue === "wedding" ? "summer wedding" : caption,
+        question: caption,
+      });
+      setHistory((h) => [...h, ...result.chatLines]);
+    });
+  }
 
   function pickIntent(value: ConversationIntent, caption: string) {
     setIntent(value);
@@ -134,7 +163,7 @@ export function TableServiceWidget({
       setHistory((h) => [
         ...h,
         caption,
-        "Sign in to open your wedding party planner — we'll bring you back here.",
+        "Sign in to open your wedding party planner — we'll bring you back here. You can also message an advisor below.",
       ]);
       window.setTimeout(() => {
         const next = encodeURIComponent("/wedding-parties/new");
@@ -146,12 +175,14 @@ export function TableServiceWidget({
       setHistory((h) => [
         ...h,
         caption,
-        "Paste the invite token from your link (the long code after /join/), or ask the groom to send the full link. You can also leave us a message below.",
+        "Paste the invite token from your link (the long code after /join/), or ask the groom to send the full link. Meanwhile, here is grounded summer-wedding guidance:",
       ]);
-      setStep("invite_token");
+      setStep(isSignedIn ? "message" : "invite_token");
+      appendGuidance(value, caption);
       return;
     }
     setHistory((h) => [...h, caption]);
+    appendGuidance(value, caption);
   }
 
   function handleSend() {
@@ -162,18 +193,19 @@ export function TableServiceWidget({
 
     if (step === "invite_token") {
       const slugMatch = pathname?.match(/^\/r\/([^/]+)/);
-      const slug = slugMatch?.[1];
+      const pathSlug = slugMatch?.[1];
       const tokenMatch =
         text.match(/wedding-parties\/join\/([A-Za-z0-9_-]+)/)?.[1] ??
         text.match(/^[A-Za-z0-9_-]{12,}$/)?.[0];
-      if (slug && tokenMatch) {
-        window.location.href = `/r/${slug}/wedding-parties/join/${tokenMatch}`;
+      if (pathSlug && tokenMatch) {
+        window.location.href = `/r/${pathSlug}/wedding-parties/join/${tokenMatch}`;
         return;
       }
       setHistory((h) => [
         ...h,
-        "That didn't look like an invite token. Paste the full join link, or the long code after /join/.",
+        "That didn't look like an invite token. Paste the full join link, or the long code after /join/. You can also leave a message for an advisor.",
       ]);
+      setStep(isSignedIn ? "message" : "name");
       return;
     }
 
@@ -188,6 +220,28 @@ export function TableServiceWidget({
       return;
     }
     if (step === "message") {
+      if (
+        text.toLowerCase().includes("summer") &&
+        text.toLowerCase().includes("wedding")
+      ) {
+        startGuidance(async () => {
+          const result = await requestTableServiceGuidance({
+            retailerId,
+            slug,
+            intent,
+            freeText: text,
+            question: text,
+          });
+          setHistory((h) => [...h, ...result.chatLines]);
+        });
+      }
+      if (isSignedIn && signedInMessagesHref) {
+        setHistory((h) => [
+          ...h,
+          `To continue with an advisor, open Messages: ${signedInMessagesHref}`,
+        ]);
+        return;
+      }
       if (messageInputRef.current) messageInputRef.current.value = text;
       formRef.current?.requestSubmit();
     }
@@ -241,6 +295,8 @@ export function TableServiceWidget({
             #gilda-chat-widget .gcw-attach-btn { width: 50px; height: 50px; border-radius: 7px; background: linear-gradient(to right, #808080, #000); display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
             #gilda-chat-widget .gcw-attach-btn img { width: 22px; height: 22px; }
             #gilda-chat-widget .gcw-attach-label { font-family: 'lvreg'; font-size: 16px; color: #333; text-align: left; text-transform: capitalize; margin-left: 15px; }
+            #gilda-chat-widget .gcw-handoff { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 20px 10px; }
+            #gilda-chat-widget .gcw-handoff a { font-family: 'lvreg'; font-size: 13px; color: #000; text-decoration: underline; }
           `}</style>
 
           <div className="gcw-chat-wrapper">
@@ -272,6 +328,18 @@ export function TableServiceWidget({
               ) : null}
             </div>
 
+            {!picsVisible ? (
+              <div className="gcw-handoff" aria-label="Advisor handoff">
+                {signedInMessagesHref ? (
+                  <a href={signedInMessagesHref}>Message advisor</a>
+                ) : null}
+                <a href={`/r/${slug}/appointments`}>Book appointment</a>
+                <a href={`/r/${slug}/swipe?occasion=summer+wedding`}>
+                  Swipe options
+                </a>
+              </div>
+            ) : null}
+
             <div className="gcw-input-container">
               <div className="gcw-field-wrapper">
                 <input
@@ -279,9 +347,10 @@ export function TableServiceWidget({
                   className="gcw-field"
                   placeholder={PLACEHOLDER_BY_STEP[step]}
                   value={inputValue}
-                  disabled={step === "done" || isPending}
+                  disabled={step === "done" || isPending || guidancePending}
                   onChange={(event) => setInputValue(event.target.value)}
                   onKeyDown={handleKeyDown}
+                  aria-busy={guidancePending || isPending}
                 />
                 <button
                   type="button"
@@ -296,10 +365,10 @@ export function TableServiceWidget({
                 <button
                   type="button"
                   className="gcw-send-button"
-                  disabled={step === "done" || isPending}
+                  disabled={step === "done" || isPending || guidancePending}
                   onClick={handleSend}
                 >
-                  {isPending ? "…" : "Send"}
+                  {isPending || guidancePending ? "…" : "Send"}
                 </button>
               </div>
             </div>
@@ -347,13 +416,7 @@ export function TableServiceWidget({
 
       <button
         type="button"
-        onClick={() => {
-          if (signedInMessagesHref && !open) {
-            window.location.href = signedInMessagesHref;
-            return;
-          }
-          setOpen((value) => !value);
-        }}
+        onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-label="Contact us"
         className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-5 py-3 text-sm font-medium text-white shadow-lg"

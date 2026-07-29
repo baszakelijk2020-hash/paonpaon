@@ -146,6 +146,12 @@ export class MockImportEnrichmentProvider implements AIProvider {
     }
     return this.output;
   }
+
+  async generateGroundedAnswer(): Promise<never> {
+    throw new Error(
+      "MockImportEnrichmentProvider does not support grounded answers",
+    );
+  }
 }
 
 export { buildUserPayload };

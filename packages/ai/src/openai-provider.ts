@@ -3,6 +3,8 @@ import type OpenAI from "openai";
 import type {
   AIProvider,
   CatalogueImportEnrichmentContext,
+  GroundedAnswerContext,
+  GroundedAnswerResult,
   NextBestActionContext,
   NextBestActionResult,
   ProductRecommendationContext,
@@ -59,6 +61,87 @@ function buildEnrichmentUserPrompt(
     null,
     2,
   );
+}
+
+const GROUNDED_SYSTEM_PROMPT =
+  'You are TableService for a premium menswear retailer. Answer only from the approved knowledge cards and product shortlist provided. Never invent product facts, mills, prices, or stock. Express uncertainty when the basis is thin. Always leave room for a human advisor. Respond only as JSON: {"refuse": boolean, "refuseReason"?: string, "answerText": string, "uncertaintyNote"?: string, "knowledgeObjectIds": string[], "productIds": string[]}. knowledgeObjectIds and productIds must be subsets of the provided ids. If you cannot ground the answer, set refuse true.';
+
+function buildGroundedPrompt(context: GroundedAnswerContext): string {
+  return JSON.stringify(
+    {
+      retailer: context.retailerName,
+      question: context.question,
+      occasionLabel: context.occasionLabel ?? null,
+      approvedKnowledge: context.knowledge,
+      approvedProducts: context.products,
+      rules: [
+        "Cite only provided knowledgeObjectIds and productIds",
+        "Do not invent facts",
+        "Recommend advisor handoff for high-value or uncertain decisions",
+      ],
+    },
+    null,
+    2,
+  );
+}
+
+function parseGroundedAnswer(
+  parsed: unknown,
+  context: GroundedAnswerContext,
+): GroundedAnswerResult {
+  if (typeof parsed !== "object" || parsed === null) {
+    throw new Error("OpenAI grounded answer was not an object");
+  }
+  const record = parsed as {
+    refuse?: unknown;
+    refuseReason?: unknown;
+    answerText?: unknown;
+    uncertaintyNote?: unknown;
+    knowledgeObjectIds?: unknown;
+    productIds?: unknown;
+  };
+  if (typeof record.answerText !== "string") {
+    throw new Error("OpenAI grounded answer was missing answerText");
+  }
+  const refuse = record.refuse === true;
+  const knowledgeObjectIds = Array.isArray(record.knowledgeObjectIds)
+    ? record.knowledgeObjectIds.filter(
+        (id): id is string => typeof id === "string",
+      )
+    : [];
+  const productIds = Array.isArray(record.productIds)
+    ? record.productIds.filter((id): id is string => typeof id === "string")
+    : [];
+
+  const allowedKnowledge = new Set(
+    context.knowledge.map((item) => item.knowledgeObjectId),
+  );
+  const allowedProducts = new Set(
+    context.products.map((item) => item.productId),
+  );
+  if (knowledgeObjectIds.some((id) => !allowedKnowledge.has(id))) {
+    throw new Error(
+      "OpenAI grounded answer cited knowledge outside the allowlist",
+    );
+  }
+  if (productIds.some((id) => !allowedProducts.has(id))) {
+    throw new Error(
+      "OpenAI grounded answer cited a product outside the allowlist",
+    );
+  }
+
+  return {
+    refuse,
+    ...(typeof record.refuseReason === "string"
+      ? { refuseReason: record.refuseReason }
+      : {}),
+    answerText: record.answerText,
+    ...(typeof record.uncertaintyNote === "string"
+      ? { uncertaintyNote: record.uncertaintyNote }
+      : {}),
+    knowledgeObjectIds,
+    productIds,
+  };
 }
 
 export class OpenAIProvider implements AIProvider {
@@ -173,5 +256,42 @@ export class OpenAIProvider implements AIProvider {
     } catch {
       throw new Error("OpenAI import enrichment response was not valid JSON");
     }
+  }
+
+  async generateGroundedAnswer(
+    context: GroundedAnswerContext,
+  ): Promise<GroundedAnswerResult> {
+    if (context.knowledge.length === 0 && context.products.length === 0) {
+      return {
+        refuse: true,
+        refuseReason: "no_approved_basis",
+        answerText:
+          "I don't have approved knowledge to answer that confidently yet. An advisor can help in person or over message.",
+        knowledgeObjectIds: [],
+        productIds: [],
+      };
+    }
+
+    const response = await this.client.chat.completions.create({
+      model: this.model,
+      messages: [
+        { role: "system", content: GROUNDED_SYSTEM_PROMPT },
+        { role: "user", content: buildGroundedPrompt(context) },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const content = response.choices[0]?.message.content;
+    if (!content) {
+      throw new Error("OpenAI returned no content for grounded answer");
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      throw new Error("OpenAI grounded answer was not valid JSON");
+    }
+    return parseGroundedAnswer(parsed, context);
   }
 }

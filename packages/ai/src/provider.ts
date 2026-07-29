@@ -58,6 +58,36 @@ export interface CatalogueImportEnrichmentContext {
   }[];
 }
 
+/** Approved knowledge + catalogue shortlist only (ADV-001 / ADR-060). */
+export interface GroundedAnswerKnowledgeCandidate {
+  readonly knowledgeObjectId: string;
+  readonly title: string;
+  readonly summary: string;
+}
+
+export interface GroundedAnswerProductCandidate {
+  readonly productId: string;
+  readonly name: string;
+  readonly explanation: string;
+}
+
+export interface GroundedAnswerContext {
+  readonly retailerName: string;
+  readonly question: string;
+  readonly occasionLabel?: string;
+  readonly knowledge: readonly GroundedAnswerKnowledgeCandidate[];
+  readonly products: readonly GroundedAnswerProductCandidate[];
+}
+
+export interface GroundedAnswerResult {
+  readonly refuse: boolean;
+  readonly refuseReason?: string;
+  readonly answerText: string;
+  readonly uncertaintyNote?: string;
+  readonly knowledgeObjectIds: readonly string[];
+  readonly productIds: readonly string[];
+}
+
 export interface AIProvider {
   readonly providerName: string;
   readonly model: string;
@@ -74,4 +104,11 @@ export interface AIProvider {
   enrichCatalogueImportRow(
     context: CatalogueImportEnrichmentContext,
   ): Promise<unknown>;
+  /**
+   * Structured TableService answer grounded only on the provided
+   * approved knowledge and product allowlist (ADV-001).
+   */
+  generateGroundedAnswer(
+    context: GroundedAnswerContext,
+  ): Promise<GroundedAnswerResult>;
 }

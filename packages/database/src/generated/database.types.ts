@@ -6419,6 +6419,19 @@ export type Database = {
         };
         Returns: string;
       };
+      record_customer_tableservice_grounded: {
+        Args: {
+          p_error_message?: string;
+          p_input_summary: string;
+          p_latency_ms?: number;
+          p_model: string;
+          p_output?: Json;
+          p_provider: string;
+          p_retailer_id: string;
+          p_status: Database["public"]["Enums"]["ai_generation_status"];
+        };
+        Returns: string;
+      };
       record_message_attachment: {
         Args: {
           p_file_name: string;
@@ -6731,7 +6744,8 @@ export type Database = {
         | "next_best_action"
         | "product_recommendation"
         | "communication_draft"
-        | "import_enrichment";
+        | "import_enrichment"
+        | "tableservice_grounded";
       ai_generation_status: "succeeded" | "failed";
       alteration_attachment_kind:
         "intake" | "label" | "evidence" | "progress" | "completion";
@@ -7088,6 +7102,7 @@ export const Constants = {
         "product_recommendation",
         "communication_draft",
         "import_enrichment",
+        "tableservice_grounded",
       ],
       ai_generation_status: ["succeeded", "failed"],
       alteration_attachment_kind: [

@@ -133,4 +133,36 @@ export class AIGenerationRepository {
     if (error) throw error;
     return data;
   }
+
+  /** Authenticated customer TableService grounded-answer audit (PHASE 3.4). */
+  async recordTableserviceGroundedAsCustomer(params: {
+    retailerId: RetailerId;
+    status: AIGenerationStatus;
+    provider: string;
+    model: string;
+    inputSummary: string;
+    output?: Record<string, unknown>;
+    errorMessage?: string;
+    latencyMs?: number;
+  }): Promise<string> {
+    const { data, error } = await this.client.rpc(
+      "record_customer_tableservice_grounded",
+      {
+        p_retailer_id: params.retailerId,
+        p_status: params.status,
+        p_provider: params.provider,
+        p_model: params.model,
+        p_input_summary: params.inputSummary,
+        ...(params.output ? { p_output: params.output as Json } : {}),
+        ...(params.errorMessage
+          ? { p_error_message: params.errorMessage }
+          : {}),
+        ...(params.latencyMs !== undefined
+          ? { p_latency_ms: params.latencyMs }
+          : {}),
+      },
+    );
+    if (error) throw error;
+    return data;
+  }
 }

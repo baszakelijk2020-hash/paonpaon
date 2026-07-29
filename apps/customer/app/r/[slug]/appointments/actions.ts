@@ -1,7 +1,17 @@
 "use server";
 
-import { AppointmentRepository } from "@paon/database";
-import { requestAppointmentInputSchema } from "@paon/domain";
+import {
+  AnalyticsRepository,
+  AppointmentRepository,
+  CustomerConsentRepository,
+  CustomerRepository,
+} from "@paon/database";
+import {
+  asId,
+  mayCapturePersonalizationForCustomer,
+  requestAppointmentInputSchema,
+  retentionExpiresAt,
+} from "@paon/domain";
 import { redirect } from "next/navigation";
 
 import { getSession } from "@/lib/session";
@@ -63,13 +73,14 @@ export async function requestAppointment(
   }
 
   const supabase = await getSupabaseServerClient();
+  const rId = asId<"RetailerId">(parsed.data.retailerId);
 
   let appointmentId: string;
   try {
     appointmentId = await new AppointmentRepository(
       supabase,
     ).requestAppointment({
-      retailerId: parsed.data.retailerId as never,
+      retailerId: rId,
       type: parsed.data.type,
       startsAt: parsed.data.startsAt,
       endsAt: parsed.data.endsAt,
@@ -78,6 +89,46 @@ export async function requestAppointment(
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
     return { values: raw, fieldErrors: {}, formError: message };
+  }
+
+  try {
+    const customers = await new CustomerRepository(supabase).findByUserId(
+      session.userId,
+    );
+    const customer = customers.find((c) => c.retailerId === rId);
+    if (customer) {
+      const consentRepo = new CustomerConsentRepository(supabase);
+      const consentState = await consentRepo.getState(rId, customer.id);
+      if (mayCapturePersonalizationForCustomer(consentState)) {
+        const occurredAt = new Date().toISOString();
+        const consentSnapshot = await consentRepo.snapshotForCapture(
+          rId,
+          customer.id,
+          occurredAt,
+        );
+        await new AnalyticsRepository(supabase).capture({
+          retailerId: rId,
+          customerId: customer.id,
+          name: "appointment_intent",
+          properties: {
+            appointmentId,
+            via: parsed.data.notes?.includes("TableService")
+              ? "tableservice_conversion"
+              : "storefront_appointments",
+            type: parsed.data.type,
+          },
+          occurredAt,
+          source: "customer_portal",
+          purpose: "personalization",
+          consentBasis: "explicit_opt_in",
+          consentSnapshot,
+          retentionClass: "personalization_signal",
+          retentionExpiresAt: retentionExpiresAt({ occurredAt }),
+        });
+      }
+    }
+  } catch {
+    // Best-effort conversion signal.
   }
 
   redirect(`/appointments/${appointmentId}`);

@@ -38,6 +38,8 @@ export default async function StorefrontLayout({
       <TableServiceWidget
         retailerId={retailer.id}
         retailerName={retailer.displayName}
+        slug={slug}
+        isSignedIn={session?.accountType === "customer"}
         {...(session?.accountType === "customer"
           ? { signedInMessagesHref: "/messages" }
           : {})}
