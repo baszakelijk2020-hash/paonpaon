@@ -213,7 +213,7 @@ storefront redesign, or customer personalization.
     consent, or runtime content generation.
   - **Hard blockers:** none.
 
-- [ ] **2.3 Founder-storefront knowledge mounts**
+- [x] **2.3 Founder-storefront knowledge mounts**
   - **Requirement IDs:** `EDU-003`, `ENG-004`.
   - **Dependencies:** `2.2`; ADR-052 and ADR-060.
   - **Owner boundary:** narrow data serialization/runtime hooks in

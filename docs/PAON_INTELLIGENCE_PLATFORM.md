@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `2.3 Founder-storefront knowledge mounts`
-- **Current requirement IDs:** `EDU-003`, `ENG-004`
+- **Current queue item:** `2.4 Structured catalogue query`
+- **Current requirement IDs:** `SRCH-001`, `SRCH-002`, `ENG-002`, `ENG-003`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -21,24 +21,24 @@ requires it.
   transition contract and PAON Admin canonical management; `8eaa834` added
   the Retailer Portal metadata review UI; `117fa8e` added exact product facts
   and catalogue assignment UI; `b5827bc` added knowledge contracts,
-  persistence, and fixtures; `353b737` adds the deterministic discovery engine
-  (PHASE 2.2 complete).
+  persistence, and fixtures; `353b737` added the deterministic discovery engine
+  (PHASE 2.2 complete); `afb3bd0` mounts storefront knowledge cards in
+  Archetype, Fabric, and Sizing panels (PHASE 2.3 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables plus four
   knowledge tables, generated database types, `MetadataRepository`,
   `ProductFabricProfileRepository`, `KnowledgeRepository` (including
-  `projectDiscoveryCandidates`), `rankKnowledgeDiscovery` pure ranking with
-  factor explanations, and idempotent EDU-001 canonical knowledge fixtures.
+  `projectDiscoveryCandidates`), `rankKnowledgeDiscovery` and
+  `partitionDiscoveryForStorefront`, storefront `__PAON_KNOWLEDGE_BY_PRODUCT_JSON__`
+  injection, and idempotent EDU-001 canonical knowledge fixtures.
 - **Checks/deployment state:** 93 migrations; knowledge foundation pgTAP (18)
-  plus domain discovery golden tests are green with lint/typecheck on the 2.2
-  tip. Provider credentials remain optional for this stage.
-- **Real blockers:** none for storefront knowledge mounts beyond ADR-052
-  founder-surface preservation constraints on item 2.3 itself.
-- **Exact next files/tests:** implement queue item 2.3 founder-storefront
-  knowledge mounts per ADR-052/060: narrow serialization/runtime hooks in
-  `apps/customer/app/r/[slug]/route.ts` and canonical `paon-template.html`
-  so square image/title/copy cards appear in Archetype, Fabric, and Sizing
-  areas without redesigning founder HTML. Cover route serialization, DOM
-  allowlist, Playwright desktop/mobile, a11y, and no-data fallback.
+  plus domain discovery and storefront-mount golden tests are green with
+  lint/typecheck on the 2.3 tip. Provider credentials remain optional for
+  this stage.
+- **Real blockers:** none for structured catalogue query.
+- **Exact next files/tests:** implement queue item 2.4 structured catalogue
+  query per SRCH-001/002: `@paon/domain` query contract, indexed
+  `@paon/database` repository query, and existing storefront filter/search
+  hooks with parity tests before removing heuristics.
 
 ## 1. Programme intent
 
@@ -104,7 +104,7 @@ above. Status changes only after the named acceptance criteria are verified.
 | CAT-004                | Provenance, source, confidence, evidence, review state, and auditable review                                                                                                                               | `metadata`                         | Pending proposals and actor-derived idempotent terminal reviews retain append-only evidence; Admin + Retailer + product UI exist | CAT-001                                   | 1.1–1.4              | Every proposal records authority and evidence; AI never bypasses pending review; review actor/time are retained                  | Done (1.4)         |
 | EDU-001                | Reusable commercial education for mills, fibres, fabrics, weaves, construction, collars, styling, care, performance, occasion, value, and tradeoffs                                                        | `knowledge`                        | Domain contracts, persistence/RLS, repositories, and reviewed canonical fixtures cover every named topic                         | CAT-001, CAT-004                          | 2.1                  | Reviewed reusable objects cover every named topic and explain why, fit, tradeoffs, and value                                     | Done (2.1)         |
 | EDU-002                | Automatic metadata-backed card selection with ranking and diversity                                                                                                                                        | `knowledge` + `discovery`          | Deterministic `rankKnowledgeDiscovery` plus repository candidate projection                                                      | EDU-001                                   | 2.2                  | Accepted metadata selects three to six explainable, diverse cards under ADR-060 precedence                                       | Done (2.2)         |
-| EDU-003                | Inject cards into existing desktop/mobile founder information areas without redesign                                                                                                                       | Customer founder storefront        | Canonical HTML has Archetype/Fabric/Sizing areas but no dynamic knowledge cards                                                  | EDU-002                                   | 2.3                  | Narrow hooks render square-image/title/copy cards accessibly with no unrelated visual or interaction drift                       | Not started        |
+| EDU-003                | Inject cards into existing desktop/mobile founder information areas without redesign                                                                                                                       | Customer founder storefront        | Archetype/Fabric/Sizing panels mount ranked knowledge cards via `__PAON_KNOWLEDGE_BY_PRODUCT_JSON__`                             | EDU-002                                   | 2.3                  | Narrow hooks render square-image/title/copy cards accessibly with no unrelated visual or interaction drift                       | Done (2.3)         |
 | IMP-001                | CSV, XLSX, JSON, and future PDF-ready supplier ingestion                                                                                                                                                   | Catalogue import                   | No import model or parser                                                                                                        | CAT-004                                   | 2.5                  | Versioned CSV/XLSX/JSON contracts and fixtures work; source type permits a later PDF extractor without schema redesign           | Not started        |
 | IMP-002                | Preserve supplier SKU/reference/raw data; match main/swatches; map categories; validate and detect duplicates                                                                                              | Catalogue import                   | Product create/edit is individual; images and SKUs exist                                                                         | IMP-001                                   | 2.5–2.6              | Preview explains mappings/errors/duplicates; raw identifiers survive; assets match deterministically                             | Not started        |
 | IMP-003                | AI-assisted structured extraction with taxonomy validation, evidence/confidence, no invented facts, and pending review                                                                                     | `@paon/ai` + import                | Generic AI generation audit exists; no import enrichment                                                                         | IMP-001, CAT-004                          | 2.7                  | External prompt and provider-neutral schema return validated proposals; unsupported facts fail closed                            | Not started        |
@@ -142,7 +142,7 @@ above. Status changes only after the named acceptance criteria are verified.
 | ENG-001                | PAON owns canonical taxonomy/knowledge; retailers own tenant catalogue, review, and local overrides                                                                                                        | Metadata + knowledge governance    | Canonical management, review boundaries, and knowledge ownership/override rules are enforced                                     | Direction                                 | 1.1–2.1              | ADR-059/060 ownership rules are enforced in types, database constraints, RLS, and repositories                                   | Done (2.1)         |
 | ENG-002                | Recommendations and AI answers use accepted metadata/approved knowledge, explain why, and respect consent/retention                                                                                        | Intelligence governance            | Audited AI calls exist without the new grounding/consent model                                                                   | EDU-002, CUST-001                         | 2.2–4.5              | Every output exposes evidence/explanation and fails closed when approval or consent is absent                                    | Not started        |
 | ENG-003                | Extend branded-ID/domain/repository/Server-Action/RLS/migration/test architecture; do not create a parallel product                                                                                        | Engineering platform               | Architecture exists and is enforced in current code                                                                              | Direction                                 | All                  | Every slice follows package boundaries, strict TypeScript, forward migrations, generated types, and tenant tests                 | In force           |
-| ENG-004                | Preserve founder HTML and interaction behavior through narrow hooks rather than React/Tailwind/design-system rewrites                                                                                      | Founder surfaces                   | Founder route serves canonical HTML with narrow runtime injection                                                                | ADR-052                                   | 2.3, 5.4             | DOM/CSS diff and desktop/mobile/a11y checks show only authorized mounts changed                                                  | Partial foundation |
+| ENG-004                | Preserve founder HTML and interaction behavior through narrow hooks rather than React/Tailwind/design-system rewrites                                                                                      | Founder surfaces                   | Founder route serves canonical HTML with knowledge-card runtime injection and Playwright/a11y regression coverage                | ADR-052                                   | 2.3, 5.4             | DOM/CSS diff and desktop/mobile/a11y checks show only authorized mounts changed                                                  | Partial foundation |
 | ENG-005                | Continuous inspect→implement→test→repair→state→commit→push loop without routine handoff                                                                                                                    | Delivery governance                | AGENTS/WORKING_AGREEMENT establish the loop                                                                                      | Direction                                 | 0.1 and recurring    | Queue and Resume Protocol remain factual after every pushed slice; agent stops only at real blockers                             | In force           |
 
 ## 3. Architecture and bounded contexts
