@@ -130,6 +130,21 @@ export type LoyaltyMilestoneDefinitionId = Brand<
   "LoyaltyMilestoneDefinitionId"
 >;
 export type LoyaltyMilestoneAwardId = Brand<string, "LoyaltyMilestoneAwardId">;
+export type ServicePlanId = Brand<string, "ServicePlanId">;
+export type ServiceMembershipId = Brand<string, "ServiceMembershipId">;
+export type ServiceEntitlementId = Brand<string, "ServiceEntitlementId">;
+export type ServiceEntitlementEntryId = Brand<
+  string,
+  "ServiceEntitlementEntryId"
+>;
+export type ServiceBookingId = Brand<string, "ServiceBookingId">;
+export type ServiceFulfilmentEventId = Brand<
+  string,
+  "ServiceFulfilmentEventId"
+>;
+export type ServiceCareRecordId = Brand<string, "ServiceCareRecordId">;
+export type ServiceCostRecordId = Brand<string, "ServiceCostRecordId">;
+export type ServiceHistoryEventId = Brand<string, "ServiceHistoryEventId">;
 export type RewardId = Brand<string, "RewardId">;
 export type RewardRedemptionId = Brand<string, "RewardRedemptionId">;
 export type ReferralId = Brand<string, "ReferralId">;

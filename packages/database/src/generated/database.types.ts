@@ -6683,6 +6683,757 @@ export type Database = {
           },
         ];
       };
+      service_bookings: {
+        Row: {
+          advisor_staff_id: string | null;
+          appointment_id: string | null;
+          commitment_notes: string | null;
+          created_at: string;
+          customer_id: string;
+          entitlement_entry_id: string | null;
+          id: string;
+          kind: string;
+          membership_id: string;
+          notes: string | null;
+          plan_id: string;
+          request_idempotency_key: string;
+          requested_for: string | null;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          advisor_staff_id?: string | null;
+          appointment_id?: string | null;
+          commitment_notes?: string | null;
+          created_at?: string;
+          customer_id: string;
+          entitlement_entry_id?: string | null;
+          id?: string;
+          kind: string;
+          membership_id: string;
+          notes?: string | null;
+          plan_id: string;
+          request_idempotency_key: string;
+          requested_for?: string | null;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          advisor_staff_id?: string | null;
+          appointment_id?: string | null;
+          commitment_notes?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          entitlement_entry_id?: string | null;
+          id?: string;
+          kind?: string;
+          membership_id?: string;
+          notes?: string | null;
+          plan_id?: string;
+          request_idempotency_key?: string;
+          requested_for?: string | null;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_bookings_advisor_staff_id_fkey";
+            columns: ["advisor_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_bookings_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_bookings_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_bookings_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_bookings_entitlement_entry_fk";
+            columns: ["entitlement_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "service_entitlement_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_bookings_membership_fk";
+            columns: ["membership_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_memberships";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_bookings_plan_fk";
+            columns: ["plan_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_plans";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_bookings_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_care_records: {
+        Row: {
+          alteration_id: string | null;
+          booking_id: string | null;
+          care_kind: string;
+          created_at: string;
+          customer_id: string;
+          id: string;
+          membership_id: string;
+          physical_garment_id: string | null;
+          recorded_by_staff_id: string | null;
+          retailer_id: string;
+          summary: string;
+          wardrobe_item_id: string | null;
+        };
+        Insert: {
+          alteration_id?: string | null;
+          booking_id?: string | null;
+          care_kind: string;
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          membership_id: string;
+          physical_garment_id?: string | null;
+          recorded_by_staff_id?: string | null;
+          retailer_id: string;
+          summary: string;
+          wardrobe_item_id?: string | null;
+        };
+        Update: {
+          alteration_id?: string | null;
+          booking_id?: string | null;
+          care_kind?: string;
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          membership_id?: string;
+          physical_garment_id?: string | null;
+          recorded_by_staff_id?: string | null;
+          retailer_id?: string;
+          summary?: string;
+          wardrobe_item_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_care_records_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_care_records_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_care_records_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "worker_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_care_records_booking_fk";
+            columns: ["booking_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_bookings";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_care_records_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_care_records_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_care_records_membership_fk";
+            columns: ["membership_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_memberships";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_care_records_physical_garment_id_fkey";
+            columns: ["physical_garment_id"];
+            isOneToOne: false;
+            referencedRelation: "physical_garments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_care_records_recorded_by_staff_id_fkey";
+            columns: ["recorded_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_care_records_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_care_records_wardrobe_item_id_fkey";
+            columns: ["wardrobe_item_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_cost_records: {
+        Row: {
+          amount_minor_units: number;
+          booking_id: string | null;
+          created_at: string;
+          currency: string;
+          customer_id: string;
+          id: string;
+          label: string;
+          membership_id: string;
+          notes: string | null;
+          recorded_by_staff_id: string | null;
+          retailer_id: string;
+        };
+        Insert: {
+          amount_minor_units: number;
+          booking_id?: string | null;
+          created_at?: string;
+          currency: string;
+          customer_id: string;
+          id?: string;
+          label: string;
+          membership_id: string;
+          notes?: string | null;
+          recorded_by_staff_id?: string | null;
+          retailer_id: string;
+        };
+        Update: {
+          amount_minor_units?: number;
+          booking_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          customer_id?: string;
+          id?: string;
+          label?: string;
+          membership_id?: string;
+          notes?: string | null;
+          recorded_by_staff_id?: string | null;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_cost_records_booking_fk";
+            columns: ["booking_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_bookings";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_cost_records_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_cost_records_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_cost_records_membership_fk";
+            columns: ["membership_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_memberships";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_cost_records_recorded_by_staff_id_fkey";
+            columns: ["recorded_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_cost_records_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_entitlement_entries: {
+        Row: {
+          booking_id: string | null;
+          created_at: string;
+          created_by_staff_id: string | null;
+          customer_id: string;
+          entitlement_id: string;
+          entry_kind: string;
+          id: string;
+          idempotency_key: string;
+          membership_id: string;
+          notes: string | null;
+          quantity: number;
+          retailer_id: string;
+        };
+        Insert: {
+          booking_id?: string | null;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          customer_id: string;
+          entitlement_id: string;
+          entry_kind: string;
+          id?: string;
+          idempotency_key: string;
+          membership_id: string;
+          notes?: string | null;
+          quantity: number;
+          retailer_id: string;
+        };
+        Update: {
+          booking_id?: string | null;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          customer_id?: string;
+          entitlement_id?: string;
+          entry_kind?: string;
+          id?: string;
+          idempotency_key?: string;
+          membership_id?: string;
+          notes?: string | null;
+          quantity?: number;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_entitlement_entries_booking_fk";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "service_bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_entitlement_entries_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_entitlement_entries_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_entitlement_entries_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_entitlement_entries_entitlement_fk";
+            columns: ["entitlement_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_entitlements";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_entitlement_entries_membership_fk";
+            columns: ["membership_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_memberships";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_entitlement_entries_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_entitlements: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          id: string;
+          kind: string;
+          membership_id: string;
+          remaining_quantity: number;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          kind: string;
+          membership_id: string;
+          remaining_quantity: number;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          kind?: string;
+          membership_id?: string;
+          remaining_quantity?: number;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_entitlements_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_entitlements_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_entitlements_membership_fk";
+            columns: ["membership_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_memberships";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_entitlements_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_fulfilment_events: {
+        Row: {
+          booking_id: string;
+          created_at: string;
+          customer_id: string;
+          id: string;
+          method: string;
+          notes: string | null;
+          recorded_by_staff_id: string | null;
+          retailer_id: string;
+          scheduled_for: string | null;
+          status: string;
+        };
+        Insert: {
+          booking_id: string;
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          method: string;
+          notes?: string | null;
+          recorded_by_staff_id?: string | null;
+          retailer_id: string;
+          scheduled_for?: string | null;
+          status?: string;
+        };
+        Update: {
+          booking_id?: string;
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          method?: string;
+          notes?: string | null;
+          recorded_by_staff_id?: string | null;
+          retailer_id?: string;
+          scheduled_for?: string | null;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_fulfilment_events_booking_fk";
+            columns: ["booking_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_bookings";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_fulfilment_events_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_fulfilment_events_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_fulfilment_events_recorded_by_staff_id_fkey";
+            columns: ["recorded_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_fulfilment_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_history_events: {
+        Row: {
+          booking_id: string | null;
+          created_at: string;
+          customer_id: string;
+          id: string;
+          kind: string;
+          membership_id: string | null;
+          recorded_by_staff_id: string | null;
+          retailer_id: string;
+          summary: string;
+        };
+        Insert: {
+          booking_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          kind: string;
+          membership_id?: string | null;
+          recorded_by_staff_id?: string | null;
+          retailer_id: string;
+          summary: string;
+        };
+        Update: {
+          booking_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          kind?: string;
+          membership_id?: string | null;
+          recorded_by_staff_id?: string | null;
+          retailer_id?: string;
+          summary?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_history_events_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_history_events_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_history_events_recorded_by_staff_id_fkey";
+            columns: ["recorded_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_history_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_memberships: {
+        Row: {
+          advisor_staff_id: string | null;
+          commitment_notes: string | null;
+          created_at: string;
+          customer_id: string;
+          ended_at: string | null;
+          id: string;
+          plan_id: string;
+          retailer_id: string;
+          started_at: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          advisor_staff_id?: string | null;
+          commitment_notes?: string | null;
+          created_at?: string;
+          customer_id: string;
+          ended_at?: string | null;
+          id?: string;
+          plan_id: string;
+          retailer_id: string;
+          started_at?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          advisor_staff_id?: string | null;
+          commitment_notes?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          ended_at?: string | null;
+          id?: string;
+          plan_id?: string;
+          retailer_id?: string;
+          started_at?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_memberships_advisor_staff_id_fkey";
+            columns: ["advisor_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_memberships_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_memberships_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_memberships_plan_fk";
+            columns: ["plan_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_plans";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_memberships_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_plans: {
+        Row: {
+          created_at: string;
+          created_by_staff_id: string | null;
+          explanation: string;
+          id: string;
+          kind: string;
+          retailer_id: string;
+          status: string;
+          summary: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          explanation: string;
+          id?: string;
+          kind: string;
+          retailer_id: string;
+          status?: string;
+          summary: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          explanation?: string;
+          id?: string;
+          kind?: string;
+          retailer_id?: string;
+          status?: string;
+          summary?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_plans_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_plans_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sms_outbox: {
         Row: {
           attempts: number;
@@ -8304,6 +9055,34 @@ export type Database = {
       };
     };
     Functions: {
+      _service_assert_staff_retailer: {
+        Args: { p_retailer_id: string };
+        Returns: string;
+      };
+      _service_booking_kind_allowed: {
+        Args: { p_booking_kind: string; p_plan_kind: string };
+        Returns: boolean;
+      };
+      _service_can_transition_booking: {
+        Args: { p_from: string; p_to: string };
+        Returns: boolean;
+      };
+      _service_entitlement_for_booking: {
+        Args: { p_booking_kind: string };
+        Returns: string;
+      };
+      _service_history_insert: {
+        Args: {
+          p_booking_id: string;
+          p_customer_id: string;
+          p_kind: string;
+          p_membership_id: string;
+          p_retailer_id: string;
+          p_staff_id?: string;
+          p_summary: string;
+        };
+        Returns: undefined;
+      };
       accept_platform_staff_invite: {
         Args: { p_staff_id: string };
         Returns: string;
@@ -8357,6 +9136,10 @@ export type Database = {
           p_workshop_id: string;
         };
         Returns: undefined;
+      };
+      assign_service_advisor: {
+        Args: { p_advisor_staff_id: string; p_membership_id: string };
+        Returns: string;
       };
       can_access_alteration_storage_object: {
         Args: { p_name: string };
@@ -8533,6 +9316,16 @@ export type Database = {
         };
         Returns: string;
       };
+      enroll_service_membership: {
+        Args: {
+          p_advisor_staff_id?: string;
+          p_commitment_notes?: string;
+          p_customer_id: string;
+          p_plan_id: string;
+          p_seed_default_entitlements?: boolean;
+        };
+        Returns: string;
+      };
       ensure_customer_style_profile: {
         Args: { p_customer_id: string };
         Returns: {
@@ -8596,6 +9389,16 @@ export type Database = {
         Args: { p_retailer_id: string; p_since?: string };
         Returns: Json;
       };
+      grant_service_entitlement: {
+        Args: {
+          p_idempotency_key: string;
+          p_kind: string;
+          p_membership_id: string;
+          p_notes?: string;
+          p_quantity: number;
+        };
+        Returns: string;
+      };
       hex_color_contrast_ratio: {
         Args: { p_first: string; p_second: string };
         Returns: number;
@@ -8639,6 +9442,10 @@ export type Database = {
         Returns: Json;
       };
       link_my_customer_accounts: { Args: never; Returns: undefined };
+      link_service_booking_appointment: {
+        Args: { p_appointment_id: string; p_booking_id: string };
+        Returns: string;
+      };
       loyalty_milestone_slug_matches: {
         Args: { p_hints: string[]; p_slug: string };
         Returns: boolean;
@@ -8786,6 +9593,39 @@ export type Database = {
         };
         Returns: string;
       };
+      record_service_care: {
+        Args: {
+          p_alteration_id?: string;
+          p_booking_id?: string;
+          p_care_kind: string;
+          p_membership_id: string;
+          p_physical_garment_id?: string;
+          p_summary: string;
+          p_wardrobe_item_id?: string;
+        };
+        Returns: string;
+      };
+      record_service_cost: {
+        Args: {
+          p_amount_minor_units: number;
+          p_booking_id?: string;
+          p_currency: string;
+          p_label: string;
+          p_membership_id: string;
+          p_notes?: string;
+        };
+        Returns: string;
+      };
+      record_service_fulfilment: {
+        Args: {
+          p_booking_id: string;
+          p_method: string;
+          p_notes?: string;
+          p_scheduled_for?: string;
+          p_status?: string;
+        };
+        Returns: string;
+      };
       record_stripe_payment_event: {
         Args: {
           p_amount_minor_units: number;
@@ -8899,6 +9739,16 @@ export type Database = {
         };
         Returns: string;
       };
+      request_service_booking: {
+        Args: {
+          p_idempotency_key: string;
+          p_kind: string;
+          p_membership_id: string;
+          p_notes?: string;
+          p_requested_for?: string;
+        };
+        Returns: string;
+      };
       restore_retailer_brand_theme: {
         Args: { p_retailer_id: string; p_version_number: number };
         Returns: number;
@@ -8982,6 +9832,10 @@ export type Database = {
         Args: { p_prospect_id: string; p_publish: boolean };
         Returns: undefined;
       };
+      set_service_membership_status: {
+        Args: { p_membership_id: string; p_status: string };
+        Returns: string;
+      };
       submit_commercial_inquiry: {
         Args: {
           p_company_name: string;
@@ -9037,6 +9891,15 @@ export type Database = {
           p_to_status: Database["public"]["Enums"]["alteration_work_order_status"];
         };
         Returns: undefined;
+      };
+      transition_service_booking: {
+        Args: {
+          p_booking_id: string;
+          p_commitment_notes?: string;
+          p_consume_entitlement?: boolean;
+          p_status: string;
+        };
+        Returns: string;
       };
       update_alteration_task_status: {
         Args: {

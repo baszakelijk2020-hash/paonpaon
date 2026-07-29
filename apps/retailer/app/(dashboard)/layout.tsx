@@ -143,12 +143,23 @@ export default async function DashboardLayout({
                       description: "Recognition and rewards",
                     },
                     {
+                      href: "/services",
+                      label: "Services",
+                      description: "Preferred Tailoring and HighMaintenance",
+                    },
+                    {
                       href: "/events",
                       label: "Events",
                       description: "Previews and RSVPs",
                     },
                   ]
-                : []),
+                : [
+                    {
+                      href: "/services",
+                      label: "Services",
+                      description: "Preferred Tailoring and HighMaintenance",
+                    },
+                  ]),
             ],
           },
         ]
