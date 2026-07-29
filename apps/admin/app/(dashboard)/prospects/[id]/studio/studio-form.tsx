@@ -54,23 +54,26 @@ export function StudioForm({
       ? configuration.featureKeys
       : selectedPlan.includedFeatureKeys;
   const input =
-    "mt-2 min-h-11 w-full rounded-md border border-stone-300 bg-white px-3 text-sm";
+    "mt-2 min-h-11 w-full rounded-md border border-[var(--color-stone-200)] bg-white px-3 text-sm";
 
   return (
     <form action={action} className="space-y-8">
       <div className="grid gap-8 xl:grid-cols-[1fr_0.8fr]">
         <div className="space-y-8">
-          <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+          <section className="rounded-[var(--radius-md)] border bg-white p-6 sm:p-8">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
               01 · Commercial frame
             </p>
-            <p className="mt-3 text-xs leading-5 text-stone-400">
+            <p className="mt-3 text-xs leading-5 text-[var(--color-stone-400)]">
               Pitch notes for the conversation — not applied to the live demo
               tenant yet.
             </p>
             <label className="mt-5 block text-sm">
               Recommended package
-              <span className="text-stone-400"> (pitch only)</span>
+              <span className="text-[var(--color-stone-400)]">
+                {" "}
+                (pitch only)
+              </span>
               <select
                 className={input}
                 name="planId"
@@ -104,8 +107,8 @@ export function StudioForm({
             </div>
           </section>
 
-          <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+          <section className="rounded-[var(--radius-md)] border bg-white p-6 sm:p-8">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
               02 · Retailer identity
             </p>
             <div className="mt-5 grid gap-5 sm:grid-cols-3">
@@ -199,8 +202,8 @@ export function StudioForm({
             </div>
           </section>
 
-          <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+          <section className="rounded-[var(--radius-md)] border bg-white p-6 sm:p-8">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
               03 · Story and assortment
             </p>
             <div className="mt-5 space-y-5">
@@ -225,7 +228,7 @@ export function StudioForm({
               </label>
               <label className="block text-sm">
                 Locations{" "}
-                <span className="text-stone-400">
+                <span className="text-[var(--color-stone-400)]">
                   (Name | City | optional https photo)
                 </span>
                 <textarea
@@ -267,7 +270,7 @@ export function StudioForm({
               </div>
               <label className="block text-sm">
                 Prospect garment photos{" "}
-                <span className="text-stone-400">
+                <span className="text-[var(--color-stone-400)]">
                   (one line: https URL | optional garment name | optional
                   description — up to 24. Uploads above append here
                   automatically. Leave blank to keep shared demo catalogue
@@ -298,12 +301,12 @@ export function StudioForm({
         </div>
 
         <aside className="xl:sticky xl:top-8 xl:self-start">
-          <p className="mb-3 text-xs uppercase tracking-[0.18em] text-stone-500">
+          <p className="mb-3 text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             Shared component preview
           </p>
           <RetailerTheme
             theme={theme}
-            className="overflow-hidden rounded-[1.25rem] border shadow-[var(--shadow-elevated)]"
+            className="overflow-hidden rounded-[var(--radius-md)] border shadow-[var(--shadow-elevated)]"
           >
             <div className="min-h-[38rem] p-6">
               <p className="text-xs uppercase tracking-[0.2em] opacity-50">
@@ -335,7 +338,7 @@ export function StudioForm({
       ) : null}
       {state.success ? (
         <p
-          className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-900"
+          className="bg-[var(--color-success-500)]/10 rounded-md p-3 text-sm text-[var(--color-stone-800)]"
           role="status"
         >
           {state.success}
@@ -344,7 +347,7 @@ export function StudioForm({
       <button
         type="submit"
         disabled={pending}
-        className="min-h-11 rounded-md bg-stone-900 px-6 text-sm text-white disabled:opacity-50"
+        className="min-h-11 rounded-md bg-[var(--color-stone-900)] px-6 text-sm text-white disabled:opacity-50"
       >
         {pending ? "Saving version…" : "Save Demo Studio version"}
       </button>

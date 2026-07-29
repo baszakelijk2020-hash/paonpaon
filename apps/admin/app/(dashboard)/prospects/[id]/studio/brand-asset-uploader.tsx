@@ -51,11 +51,11 @@ export function BrandAssetUploader({ prospectId }: { prospectId: string }) {
   }, [state.publicUrl, state.role]);
 
   return (
-    <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
-      <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+    <section className="rounded-[var(--radius-md)] border bg-white p-6 sm:p-8">
+      <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
         Brand asset library
       </p>
-      <p className="mt-3 text-sm text-stone-500">
+      <p className="mt-3 text-sm text-[var(--color-stone-500)]">
         Upload once, choose where it lands. Garment photos append to the list
         below; logo, favicon and hero fill the theme fields. Save the
         configuration after uploading.
@@ -93,13 +93,16 @@ export function BrandAssetUploader({ prospectId }: { prospectId: string }) {
         </button>
       </form>
       {state.error ? (
-        <p className="mt-3 text-sm text-red-700" role="alert">
+        <p className="mt-3 text-sm text-[var(--color-danger-500)]" role="alert">
           {state.error}
         </p>
       ) : null}
       {state.publicUrl ? (
-        <div className="mt-4 rounded-md bg-stone-100 p-4" role="status">
-          <p className="text-xs text-stone-500">
+        <div
+          className="mt-4 rounded-md bg-[var(--color-stone-100)] p-4"
+          role="status"
+        >
+          <p className="text-xs text-[var(--color-stone-500)]">
             Uploaded and wired into the form. Save the configuration to keep it
             on the next generate.
           </p>

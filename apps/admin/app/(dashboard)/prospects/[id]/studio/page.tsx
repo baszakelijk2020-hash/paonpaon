@@ -36,19 +36,24 @@ export default async function DemoStudioPage({
     <div className="space-y-8">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <Link href="/prospects" className="text-xs text-stone-500">
+          <Link
+            href="/prospects"
+            className="text-xs text-[var(--color-stone-500)]"
+          >
             ← Prospect workbench
           </Link>
-          <p className="mt-6 text-xs uppercase tracking-[0.18em] text-stone-500">
+          <p className="mt-6 text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             Demo Studio · Version {configuration?.currentVersion ?? 0}
           </p>
           <h1 className="font-display mt-2 text-5xl">{prospect.companyName}</h1>
-          <p className="mt-3 text-sm text-stone-500">
+          <p className="mt-3 text-sm text-[var(--color-stone-500)]">
             {prospect.primaryContactName} · {prospect.primaryContactEmail}
           </p>
         </div>
-        <div className="rounded-[1.25rem] border bg-white px-5 py-4">
-          <p className="text-xs text-stone-500">Environment status</p>
+        <div className="rounded-[var(--radius-md)] border bg-white px-5 py-4">
+          <p className="text-xs text-[var(--color-stone-500)]">
+            Environment status
+          </p>
           <p className="mt-1 text-sm font-medium">
             {configuration
               ? "Configuration saved · generate a real demo retailer"
@@ -73,7 +78,7 @@ export default async function DemoStudioPage({
         initialOutreachPack={environment?.founderOutreachPack}
       />
       {environment ? (
-        <section className="flex flex-col gap-5 rounded-[1.25rem] bg-stone-900 p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        <section className="flex flex-col gap-5 rounded-[var(--radius-md)] bg-[var(--color-stone-900)] p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-white/45">
               Publication boundary

@@ -103,23 +103,23 @@ export function EnvironmentPanel({
   }
 
   return (
-    <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
+    <section className="rounded-[var(--radius-md)] border bg-white p-6 sm:p-8">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+          <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             04 · Isolated environment
           </p>
           <h2 className="font-display mt-2 text-3xl">
             Generate, review, then publish.
           </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500">
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
             Generation creates a real seeded retailer tenant for this prospect —
             storefront, client book, staff personas — then hands back live links
             and one-click demo logins.
           </p>
         </div>
         {environment ? (
-          <span className="rounded-full border px-3 py-1 text-xs capitalize">
+          <span className="rounded-[var(--radius-md)] border px-3 py-1 text-xs capitalize">
             {environment.status}
           </span>
         ) : null}
@@ -127,7 +127,7 @@ export function EnvironmentPanel({
 
       <form
         action={formAction}
-        className="mt-7 grid gap-4 rounded-xl bg-stone-100 p-5 sm:grid-cols-[1fr_10rem_auto] sm:items-end"
+        className="mt-7 grid gap-4 rounded-[var(--radius-md)] bg-[var(--color-stone-100)] p-5 sm:grid-cols-[1fr_10rem_auto] sm:items-end"
       >
         <label className="text-sm">
           Private access code
@@ -154,7 +154,7 @@ export function EnvironmentPanel({
           </select>
         </label>
         <button
-          className="min-h-11 rounded-md bg-stone-900 px-5 text-sm text-white disabled:opacity-50"
+          className="min-h-11 rounded-md bg-[var(--color-stone-900)] px-5 text-sm text-white disabled:opacity-50"
           type="submit"
           disabled={pending}
         >
@@ -166,27 +166,27 @@ export function EnvironmentPanel({
         </button>
       </form>
       {state.error ? (
-        <p className="mt-3 text-sm text-red-700" role="alert">
+        <p className="mt-3 text-sm text-[var(--color-danger-500)]" role="alert">
           {state.error}
         </p>
       ) : null}
       {state.success ? (
-        <p className="mt-3 text-sm text-emerald-800" role="status">
+        <p className="mt-3 text-sm text-[var(--color-stone-800)]" role="status">
           {state.success}
         </p>
       ) : null}
       {outreachPack ? (
-        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        <div className="bg-[var(--color-success-500)]/10 mt-4 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-medium text-emerald-950">
+            <p className="text-sm font-medium text-[var(--color-stone-900)]">
               Outreach pack (includes the access code)
               {!state.outreachPack && !initialOutreachPack ? (
-                <span className="ml-2 text-xs font-normal text-emerald-800/70">
+                <span className="text-[var(--color-stone-800)]/70 ml-2 text-xs font-normal">
                   restored from this browser session
                 </span>
               ) : null}
               {!state.outreachPack && initialOutreachPack ? (
-                <span className="ml-2 text-xs font-normal text-emerald-800/70">
+                <span className="text-[var(--color-stone-800)]/70 ml-2 text-xs font-normal">
                   restored from last generate
                 </span>
               ) : null}
@@ -195,21 +195,21 @@ export function EnvironmentPanel({
               {state.prospectMailtoHref ? (
                 <a
                   href={state.prospectMailtoHref}
-                  className="inline-flex min-h-9 items-center rounded-md bg-emerald-900 px-3 text-xs text-white"
+                  className="inline-flex min-h-9 items-center rounded-md bg-[var(--color-stone-900)] px-3 text-xs text-white"
                 >
                   Email {contactEmail} →
                 </a>
               ) : null}
               <button
                 type="button"
-                className="inline-flex min-h-9 items-center rounded-md border border-emerald-300 bg-white px-3 text-xs"
+                className="inline-flex min-h-9 items-center rounded-md border border-[var(--color-stone-300)] bg-white px-3 text-xs"
                 onClick={() => copyOutreachPack(outreachPack)}
               >
                 {copied === "outreach" ? "Copied" : "Copy outreach pack"}
               </button>
             </div>
           </div>
-          <pre className="mt-3 overflow-x-auto whitespace-pre-wrap font-mono text-[11px] leading-5 text-emerald-950/80">
+          <pre className="text-[var(--color-stone-900)]/80 mt-3 overflow-x-auto whitespace-pre-wrap font-mono text-[11px] leading-5">
             {outreachPack}
           </pre>
         </div>
@@ -223,15 +223,15 @@ export function EnvironmentPanel({
                 href={storefrontUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-xl border p-5 transition hover:bg-stone-50"
+                className="rounded-[var(--radius-md)] border p-5 transition hover:bg-[var(--color-stone-50)]"
               >
-                <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+                <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
                   Live storefront
                 </p>
                 <p className="mt-2 font-medium">
                   /r/{environment.retailerSlug}
                 </p>
-                <p className="mt-1 break-all font-mono text-xs text-stone-500">
+                <p className="mt-1 break-all font-mono text-xs text-[var(--color-stone-500)]">
                   {storefrontUrl}
                 </p>
               </a>
@@ -241,15 +241,15 @@ export function EnvironmentPanel({
                 href={demoUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-xl border p-5 transition hover:bg-stone-50"
+                className="rounded-[var(--radius-md)] border p-5 transition hover:bg-[var(--color-stone-50)]"
               >
-                <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+                <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
                   Private demo link
                 </p>
                 <p className="mt-2 font-medium">
                   Expires {new Date(environment.expiresAt).toLocaleDateString()}
                 </p>
-                <p className="mt-1 break-all font-mono text-xs text-stone-500">
+                <p className="mt-1 break-all font-mono text-xs text-[var(--color-stone-500)]">
                   {demoUrl}
                 </p>
               </a>
@@ -257,10 +257,10 @@ export function EnvironmentPanel({
           </div>
 
           <div>
-            <p className="text-sm font-medium text-stone-900">
+            <p className="text-sm font-medium text-[var(--color-stone-900)]">
               One-click persona logins
             </p>
-            <p className="mt-1 text-xs text-stone-500">
+            <p className="mt-1 text-xs text-[var(--color-stone-500)]">
               Password for every seeded persona: {DEMO_PASSWORD}
             </p>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -269,19 +269,19 @@ export function EnvironmentPanel({
                 return (
                   <article
                     key={persona.key}
-                    className="flex flex-col justify-between rounded-xl border p-4"
+                    className="flex flex-col justify-between rounded-[var(--radius-md)] border p-4"
                   >
                     <div>
                       <p className="font-medium">{persona.label}</p>
-                      <p className="mt-1 text-xs text-stone-500">
+                      <p className="mt-1 text-xs text-[var(--color-stone-500)]">
                         {persona.attention}
                       </p>
                       {persona.email ? (
-                        <p className="mt-3 break-all font-mono text-[11px] text-stone-600">
+                        <p className="mt-3 break-all font-mono text-[11px] text-[var(--color-stone-600)]">
                           {persona.email}
                         </p>
                       ) : (
-                        <p className="mt-3 text-xs text-stone-400">
+                        <p className="mt-3 text-xs text-[var(--color-stone-400)]">
                           Regenerate to attach a seeded login email.
                         </p>
                       )}
@@ -291,7 +291,7 @@ export function EnvironmentPanel({
                         href={href}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex min-h-9 items-center rounded-md bg-stone-900 px-3 text-xs text-white"
+                        className="inline-flex min-h-9 items-center rounded-md bg-[var(--color-stone-900)] px-3 text-xs text-white"
                       >
                         {persona.primaryAction} →
                       </a>
@@ -312,11 +312,11 @@ export function EnvironmentPanel({
           </div>
         </div>
       ) : (
-        <div className="mt-8 rounded-xl border border-dashed p-8 text-center">
+        <div className="mt-8 rounded-[var(--radius-md)] border border-dashed p-8 text-center">
           <p className="font-display text-2xl">
             No demo retailer has been generated.
           </p>
-          <p className="mt-2 text-sm text-stone-500">
+          <p className="mt-2 text-sm text-[var(--color-stone-500)]">
             Save the configuration, then generate a real seeded tenant and a
             revocable private preview.
           </p>
