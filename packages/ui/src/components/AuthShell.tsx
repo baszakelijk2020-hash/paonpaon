@@ -43,7 +43,7 @@ export function AuthShell({
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.15)_0%,rgba(0,0,0,.05)_30%,rgba(0,0,0,.5)_70%,rgba(0,0,0,.85)_100%)]" />
 
-        <span className="absolute left-12 top-12 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.24em] text-white/80 backdrop-blur-2xl xl:left-16 xl:top-16">
+        <span className="absolute left-12 top-12 inline-flex w-fit items-center gap-2 rounded-[var(--radius-md)] border border-white/15 bg-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.24em] text-white/80 backdrop-blur-2xl xl:left-16 xl:top-16">
           PAON · {persona}
         </span>
 
@@ -79,7 +79,7 @@ export function AuthShell({
             <p className="font-display text-lg tracking-[0.16em] text-[var(--color-stone-900)]">
               PAON
             </p>
-            <span className="font-accent inline-flex items-center gap-1.5 rounded-full border border-[var(--color-stone-200)] bg-[var(--color-stone-100)] px-3 py-1 text-[9px] uppercase tracking-[0.18em] text-[var(--color-stone-600)] lg:hidden">
+            <span className="font-accent inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-100)] px-3 py-1 text-[9px] uppercase tracking-[0.18em] text-[var(--color-stone-600)] lg:hidden">
               {persona}
             </span>
           </div>
