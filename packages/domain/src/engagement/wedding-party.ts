@@ -27,6 +27,17 @@ export const WEDDING_PARTY_MEMBER_ROLES: readonly WeddingPartyMemberRole[] = [
   "other",
 ];
 
+export const WEDDING_PARTY_MEMBER_ROLE_LABELS: Record<
+  WeddingPartyMemberRole,
+  string
+> = {
+  groom: "Groom",
+  best_man: "Best man",
+  groomsman: "Groomsman",
+  father_of_groom: "Father of the groom",
+  other: "Other",
+};
+
 export type WeddingPartyMemberFittingStatus =
   "invited" | "scheduled" | "fitted" | "completed";
 

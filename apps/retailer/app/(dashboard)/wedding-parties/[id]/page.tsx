@@ -8,6 +8,7 @@ import {
 } from "@paon/database";
 import {
   WEDDING_PARTY_MEMBER_FITTING_STATUSES,
+  WEDDING_PARTY_MEMBER_ROLE_LABELS,
   WEDDING_PARTY_STATUSES,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
@@ -192,7 +193,7 @@ export default async function WeddingPartyDetailPage({
                   <div>
                     <p className="font-medium">{member.name}</p>
                     <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                      {member.role.replaceAll("_", " ")}
+                      {WEDDING_PARTY_MEMBER_ROLE_LABELS[member.role]}
                       {member.heightCm != null && member.weightKg != null
                         ? ` · ${member.heightCm} cm / ${member.weightKg} kg`
                         : ""}

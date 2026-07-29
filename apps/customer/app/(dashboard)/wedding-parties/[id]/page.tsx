@@ -3,6 +3,7 @@ import {
   RetailerRepository,
   WeddingPartyRepository,
 } from "@paon/database";
+import { WEDDING_PARTY_MEMBER_ROLE_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -168,7 +169,7 @@ export default async function WeddingPartyDetailPage({
               <div className="min-w-0">
                 <p className="font-medium">{member.name}</p>
                 <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                  {member.role.replaceAll("_", " ")}
+                  {WEDDING_PARTY_MEMBER_ROLE_LABELS[member.role]}
                   {member.heightCm != null && member.weightKg != null
                     ? ` · ${member.heightCm} cm / ${member.weightKg} kg`
                     : ""}

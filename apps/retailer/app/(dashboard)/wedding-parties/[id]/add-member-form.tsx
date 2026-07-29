@@ -1,6 +1,9 @@
 "use client";
 
-import { WEDDING_PARTY_MEMBER_ROLES } from "@paon/domain";
+import {
+  WEDDING_PARTY_MEMBER_ROLES,
+  WEDDING_PARTY_MEMBER_ROLE_LABELS,
+} from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
@@ -28,7 +31,7 @@ export function AddMemberForm({ weddingPartyId }: { weddingPartyId: string }) {
           <Select id="role" name="role" defaultValue="groomsman">
             {WEDDING_PARTY_MEMBER_ROLES.map((role) => (
               <option key={role} value={role}>
-                {role.replaceAll("_", " ")}
+                {WEDDING_PARTY_MEMBER_ROLE_LABELS[role]}
               </option>
             ))}
           </Select>
