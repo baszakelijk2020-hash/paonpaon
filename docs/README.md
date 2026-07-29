@@ -26,9 +26,10 @@ always beat every document** for what is actually implemented.
 | 7    | **Operations**                              | [DEPLOYMENT.md](./DEPLOYMENT.md), [TOOLING.md](./TOOLING.md)                                                                                                       | Live IDs, env, CLIs                                            |
 | 8    | **Destination (not shipped)**               | [vision/](./vision/)                                                                                                                                               | Lifelong wardrobe intelligence — ADR-056                       |
 | 9    | **As-built inventory**                      | [ai_snapshot/](./ai_snapshot/)                                                                                                                                     | Dated factual snapshot — regenerate when stale                 |
-| 10   | **Sequencing / sales reference**            | [ROADMAP.md](./ROADMAP.md), [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md), [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md)                                         | **Not work queues** during freeze                              |
-| 11   | **Status narrative**                        | [PROJECT_STATE.md](./PROJECT_STATE.md)                                                                                                                             | Historical “shipped” prose — **verify before trust** (ADR-051) |
-| 12   | **Archive**                                 | [archive/](./archive/)                                                                                                                                             | Obsolete — never a work queue                                  |
+| 10   | **Engineering audits**                      | [audits/](./audits/)                                                                                                                                               | Point-in-time takeover health checks — **not a work queue**    |
+| 11   | **Sequencing / sales reference**            | [ROADMAP.md](./ROADMAP.md), [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md), [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md)                                         | **Not work queues** during freeze                              |
+| 12   | **Status narrative**                        | [PROJECT_STATE.md](./PROJECT_STATE.md)                                                                                                                             | Historical “shipped” prose — **verify before trust** (ADR-051) |
+| 13   | **Archive**                                 | [archive/](./archive/)                                                                                                                                             | Obsolete — never a work queue                                  |
 
 ### Topic → single authoritative source
 
@@ -40,6 +41,7 @@ always beat every document** for what is actually implemented.
 | Entity shape (intended)    | DOMAIN_MODEL.md + `@paon/domain` code | Vision pillars                                   |
 | Tables / RLS               | migrations + DATABASE.md rules        | DOMAIN_MODEL alone                               |
 | As-built feature presence  | code + ai_snapshot (dated)            | PROJECT_STATE without verification               |
+| Point-in-time health check | audits/ (latest project-health.md)    | PROJECT_STATE, ROADMAP body                      |
 | Long-term category         | vision/ + VISION.md                   | PHASE                                            |
 | Founder HTML surfaces      | DESIGN_PORTS.md + committed HTML      | DESIGN_SYSTEM rewrite impulse                    |
 | Live deploy IDs            | DEPLOYMENT.md                         | Guessed URLs                                     |
@@ -81,16 +83,17 @@ If Tier 0 answers the question, stop and work.
 
 ## Tier 2 — search, never bulk-read
 
-| Document                                         | Role                                              |
-| ------------------------------------------------ | ------------------------------------------------- |
-| [DECISIONS.md](./DECISIONS.md)                   | ADRs                                              |
-| [ai_snapshot/](./ai_snapshot/)                   | As-built inventory                                |
-| [ROADMAP.md](./ROADMAP.md)                       | Sequencing / Horizons                             |
-| [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)     | Sales blockers                                    |
-| [NON_GOALS.md](./NON_GOALS.md)                   | Explicit deferrals                                |
-| [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md) | Experience acceptance (paused by freeze)          |
-| [PROJECT_STATE.md](./PROJECT_STATE.md)           | Unverified status log — prefer ai_snapshot + code |
-| [NIGHT_LOG.md](./NIGHT_LOG.md)                   | Overnight run trail                               |
+| Document                                         | Role                                                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| [DECISIONS.md](./DECISIONS.md)                   | ADRs                                                                                        |
+| [ai_snapshot/](./ai_snapshot/)                   | As-built inventory                                                                          |
+| [ROADMAP.md](./ROADMAP.md)                       | Sequencing / Horizons                                                                       |
+| [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)     | Sales blockers                                                                              |
+| [NON_GOALS.md](./NON_GOALS.md)                   | Explicit deferrals                                                                          |
+| [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md) | Experience acceptance (paused by freeze)                                                    |
+| [PROJECT_STATE.md](./PROJECT_STATE.md)           | Unverified status log — prefer ai_snapshot + code                                           |
+| [NIGHT_LOG.md](./NIGHT_LOG.md)                   | Overnight run trail                                                                         |
+| [audits/](./audits/)                             | Dated full-project health audits (start at [project-health.md](./audits/project-health.md)) |
 
 ## Orientation (read once)
 
@@ -112,6 +115,7 @@ If Tier 0 answers the question, stop and work.
 | Database                  | DATABASE, supabase/migrations (implementation)                  |
 | Operational / Deployment  | DEPLOYMENT, TOOLING                                             |
 | As-built / AI inventory   | ai_snapshot/\*                                                  |
+| Engineering audits        | audits/\*                                                       |
 | Sequencing                | ROADMAP, EXPERIENCE_REBUILD                                     |
 | Historical / unverified   | PROJECT_STATE, NIGHT_LOG                                        |
 | Obsolete                  | archive/\*\*                                                    |

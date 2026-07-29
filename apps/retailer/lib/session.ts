@@ -58,50 +58,6 @@ export async function requireSession(): Promise<
   );
 
   if (!staff || !staff.acceptedAt) {
-    const { createSupabaseAdminClient } = await import("@paon/database");
-    const { env } = await import("./env");
-    const adminClient = createSupabaseAdminClient(
-      env.supabaseUrl,
-      env.supabaseServiceRoleKey,
-    );
-    const { data: allRows } = await adminClient
-      .from("retailer_staff_members")
-      .select("id, retailer_id, user_id, role, accepted_at, deleted_at");
-    const { data: authUsers } = await adminClient.auth.admin.listUsers({
-      perPage: 1000,
-    });
-    const matchingAuthUsers = authUsers?.users.filter(
-      (u) => u.email === session.email,
-    );
-    const { count: totalStaffCount } = await adminClient
-      .from("retailer_staff_members")
-      .select("*", { count: "exact", head: true });
-    const { count: totalRetailerCount } = await adminClient
-      .from("retailers")
-      .select("*", { count: "exact", head: true });
-    console.warn(
-      "RETAILER_STAFF_DEBUG sessionUserId=" +
-        session.userId +
-        " sessionEmail=" +
-        session.email +
-        " supabaseUrl=" +
-        env.supabaseUrl +
-        " matchingAuthUserIds=" +
-        JSON.stringify(matchingAuthUsers?.map((u) => u.id)) +
-        " totalStaffCount=" +
-        totalStaffCount +
-        " totalRetailerCount=" +
-        totalRetailerCount +
-        " allStaffRows=" +
-        JSON.stringify(
-          allRows?.map((r) => ({
-            id: r.id,
-            user_id: r.user_id,
-            role: r.role,
-            accepted_at: r.accepted_at,
-          })),
-        ),
-    );
     redirect("/accept-invite");
   }
 
