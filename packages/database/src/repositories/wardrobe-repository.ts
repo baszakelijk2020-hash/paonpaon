@@ -53,17 +53,13 @@ function toItem(row: WardrobeItemRow): WardrobeItem {
     ...(row.description ? { description: row.description } : {}),
     ...(row.brand ? { brand: row.brand } : {}),
     ...(row.photo_url ? { photoUrl: row.photo_url } : {}),
-    ...(row.product_id
-      ? { productId: asId<"ProductId">(row.product_id) }
-      : {}),
+    ...(row.product_id ? { productId: asId<"ProductId">(row.product_id) } : {}),
     ...(row.order_line_id
       ? { orderLineId: asId<"OrderLineId">(row.order_line_id) }
       : {}),
     ...(row.physical_garment_id
       ? {
-          physicalGarmentId: asId<"PhysicalGarmentId">(
-            row.physical_garment_id,
-          ),
+          physicalGarmentId: asId<"PhysicalGarmentId">(row.physical_garment_id),
         }
       : {}),
     state: toState(row),
@@ -153,13 +149,15 @@ export class WardrobeRepository {
         p_retailer_id: retailerId,
         p_category_code: input.categoryCode,
         p_title: input.title,
-        p_description: input.description ?? null,
-        p_brand: input.brand ?? null,
-        p_photo_url: input.photoUrl ?? null,
         p_condition_state: input.conditionState ?? "good",
-        p_fit_notes: input.fitNotes ?? null,
-        p_care_notes: input.careNotes ?? null,
-        p_wear_frequency: input.wearFrequency ?? null,
+        ...(input.description ? { p_description: input.description } : {}),
+        ...(input.brand ? { p_brand: input.brand } : {}),
+        ...(input.photoUrl ? { p_photo_url: input.photoUrl } : {}),
+        ...(input.fitNotes ? { p_fit_notes: input.fitNotes } : {}),
+        ...(input.careNotes ? { p_care_notes: input.careNotes } : {}),
+        ...(input.wearFrequency
+          ? { p_wear_frequency: input.wearFrequency }
+          : {}),
       },
     );
     if (error) throw error;
@@ -176,16 +174,20 @@ export class WardrobeRepository {
         p_customer_id: customerId,
         p_category_code: input.categoryCode,
         p_title: input.title,
-        p_description: input.description ?? null,
-        p_brand: input.brand ?? null,
-        p_photo_url: input.photoUrl ?? null,
-        p_product_id: input.productId ?? null,
-        p_order_line_id: input.orderLineId ?? null,
-        p_physical_garment_id: input.physicalGarmentId ?? null,
         p_condition_state: input.conditionState ?? "good",
-        p_fit_notes: input.fitNotes ?? null,
-        p_care_notes: input.careNotes ?? null,
-        p_wear_frequency: input.wearFrequency ?? null,
+        ...(input.description ? { p_description: input.description } : {}),
+        ...(input.brand ? { p_brand: input.brand } : {}),
+        ...(input.photoUrl ? { p_photo_url: input.photoUrl } : {}),
+        ...(input.productId ? { p_product_id: input.productId } : {}),
+        ...(input.orderLineId ? { p_order_line_id: input.orderLineId } : {}),
+        ...(input.physicalGarmentId
+          ? { p_physical_garment_id: input.physicalGarmentId }
+          : {}),
+        ...(input.fitNotes ? { p_fit_notes: input.fitNotes } : {}),
+        ...(input.careNotes ? { p_care_notes: input.careNotes } : {}),
+        ...(input.wearFrequency
+          ? { p_wear_frequency: input.wearFrequency }
+          : {}),
       },
     );
     if (error) throw error;
@@ -196,14 +198,25 @@ export class WardrobeRepository {
     itemId: WardrobeItemId,
     input: UpdateWardrobeItemStateSchemaInput,
   ): Promise<WardrobeItem> {
-    const { data, error } = await this.client.rpc("update_wardrobe_item_state", {
-      p_wardrobe_item_id: itemId,
-      p_condition_state: input.conditionState ?? null,
-      p_fit_notes: input.fitNotes ?? null,
-      p_care_notes: input.careNotes ?? null,
-      p_wear_frequency: input.wearFrequency ?? null,
-      p_last_worn_at: input.lastWornAt ?? null,
-    });
+    const { data, error } = await this.client.rpc(
+      "update_wardrobe_item_state",
+      {
+        p_wardrobe_item_id: itemId,
+        ...(input.conditionState
+          ? { p_condition_state: input.conditionState }
+          : {}),
+        ...(input.fitNotes !== undefined
+          ? { p_fit_notes: input.fitNotes }
+          : {}),
+        ...(input.careNotes !== undefined
+          ? { p_care_notes: input.careNotes }
+          : {}),
+        ...(input.wearFrequency
+          ? { p_wear_frequency: input.wearFrequency }
+          : {}),
+        ...(input.lastWornAt ? { p_last_worn_at: input.lastWornAt } : {}),
+      },
+    );
     if (error) throw error;
     return toItem(data);
   }

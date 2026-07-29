@@ -7,8 +7,7 @@ import {
   WARDROBE_WEAR_FREQUENCIES,
 } from "./wardrobe";
 
-const trimmedText = (max: number) =>
-  z.string().trim().min(1).max(max);
+const trimmedText = (max: number) => z.string().trim().min(1).max(max);
 
 const optionalTrimmedText = (max: number) =>
   z.string().trim().max(max).optional();

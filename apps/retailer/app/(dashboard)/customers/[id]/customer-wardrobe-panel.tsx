@@ -42,7 +42,9 @@ function AdvisorWardrobeItemRow({
     addWardrobeAdvisorNote,
     initialState,
   );
-  const advisorNotes = history.filter((event) => event.eventType === "advisor_note");
+  const advisorNotes = history.filter(
+    (event) => event.eventType === "advisor_note",
+  );
 
   return (
     <Card className="flex flex-col gap-3">
@@ -113,9 +115,7 @@ function AdvisorWardrobeItemRow({
           {advisorNotes.map((event) => (
             <li key={event.id}>
               Advisor note ·{" "}
-              {typeof event.detail.note === "string"
-                ? event.detail.note
-                : "—"}
+              {typeof event.detail.note === "string" ? event.detail.note : "—"}
             </li>
           ))}
         </ul>
@@ -144,7 +144,12 @@ function AdvisorWardrobeItemRow({
             className="rounded-[var(--radius-sm)] border border-[var(--color-stone-200)] px-3 py-2"
           />
         </label>
-        <Button type="submit" size="sm" variant="outline" disabled={notePending}>
+        <Button
+          type="submit"
+          size="sm"
+          variant="outline"
+          disabled={notePending}
+        >
           Save note
         </Button>
       </form>
@@ -176,8 +181,8 @@ export function CustomerWardrobePanel({
           Customer wardrobe
         </h2>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Relationship-scoped garments the client owns or added. Official fitting
-          records remain under Garments &amp; fitting history.
+          Relationship-scoped garments the client owns or added. Official
+          fitting records remain under Garments &amp; fitting history.
         </p>
       </div>
 
@@ -204,12 +209,18 @@ export function CustomerWardrobePanel({
           Link retailer purchase
         </h3>
         {createState.formError ? (
-          <p role="alert" className="mt-2 text-sm text-[var(--color-danger-500)]">
+          <p
+            role="alert"
+            className="mt-2 text-sm text-[var(--color-danger-500)]"
+          >
             {createState.formError}
           </p>
         ) : null}
         {createState.success ? (
-          <p role="status" className="mt-2 text-sm text-[var(--color-success-500)]">
+          <p
+            role="status"
+            className="mt-2 text-sm text-[var(--color-success-500)]"
+          >
             Wardrobe item linked.
           </p>
         ) : null}
@@ -238,7 +249,9 @@ export function CustomerWardrobePanel({
             />
           </label>
           <label className="flex flex-col gap-1 text-sm sm:col-span-2">
-            <span className="font-medium">Physical garment (optional link)</span>
+            <span className="font-medium">
+              Physical garment (optional link)
+            </span>
             <select
               name="physicalGarmentId"
               defaultValue=""

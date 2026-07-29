@@ -51,7 +51,9 @@ function WardrobeItemCard({
             {item.title}
           </h2>
           {item.brand ? (
-            <p className="text-sm text-[var(--color-stone-500)]">{item.brand}</p>
+            <p className="text-sm text-[var(--color-stone-500)]">
+              {item.brand}
+            </p>
           ) : null}
           <p className="mt-1 text-sm text-[var(--color-stone-600)]">
             {wardrobeOwnershipLabel(item.ownershipSource)} ·{" "}
@@ -69,7 +71,9 @@ function WardrobeItemCard({
       </div>
 
       {item.description ? (
-        <p className="text-sm text-[var(--color-stone-600)]">{item.description}</p>
+        <p className="text-sm text-[var(--color-stone-600)]">
+          {item.description}
+        </p>
       ) : null}
 
       {updateState.formError ? (
@@ -179,7 +183,10 @@ export function WardrobeHousePanel({
   );
 
   return (
-    <section className="flex flex-col gap-4" aria-labelledby={`wardrobe-${retailerId}`}>
+    <section
+      className="flex flex-col gap-4"
+      aria-labelledby={`wardrobe-${retailerId}`}
+    >
       <div>
         <h2
           id={`wardrobe-${retailerId}`}
@@ -188,8 +195,8 @@ export function WardrobeHousePanel({
           {retailerName}
         </h2>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Garments you own with this house — purchased here or added by you.
-          Fit notes are self-reported and separate from official fitting records.
+          Garments you own with this house — purchased here or added by you. Fit
+          notes are self-reported and separate from official fitting records.
         </p>
       </div>
 

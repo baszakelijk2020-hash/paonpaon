@@ -4,10 +4,10 @@ import {
   WardrobeRepository,
 } from "@paon/database";
 
+import { WardrobeHousePanel } from "./wardrobe-panel";
+
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-
-import { WardrobeHousePanel } from "./wardrobe-panel";
 
 export default async function WardrobePage() {
   const session = await requireSession();
@@ -53,7 +53,7 @@ export default async function WardrobePage() {
             <WardrobeHousePanel
               key={customer.id}
               retailerId={retailer.id}
-              retailerName={retailer.name}
+              retailerName={retailer.displayName}
               items={items}
             />
           ) : null,

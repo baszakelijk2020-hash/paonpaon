@@ -18,7 +18,9 @@ describe("wardrobe database security contract", () => {
     expect(migration).toContain(
       "alter table public.wardrobe_ownership_events enable row level security",
     );
-    expect(migration).toMatch(/revoke all on table public\.wardrobe_items from anon/);
+    expect(migration).toMatch(
+      /revoke all on table public\.wardrobe_items from anon/,
+    );
     expect(migration).toMatch(
       /revoke all on table public\.wardrobe_ownership_events from anon/,
     );

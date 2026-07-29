@@ -4,6 +4,7 @@ import { CustomerRepository, WardrobeRepository } from "@paon/database";
 import {
   createExternalWardrobeItemInputSchema,
   updateWardrobeItemStateInputSchema,
+  type UserId,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -20,10 +21,7 @@ export interface WardrobeActionState {
 const retailerIdSchema = z.string().uuid();
 const itemIdSchema = z.string().uuid();
 
-async function requireCustomerForRetailer(
-  retailerId: string,
-  userId: string,
-) {
+async function requireCustomerForRetailer(retailerId: string, userId: UserId) {
   const supabase = await getSupabaseServerClient();
   const customers = await new CustomerRepository(supabase).findByUserId(userId);
   const customer = customers.find(

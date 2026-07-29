@@ -33,8 +33,7 @@ export const WARDROBE_CONDITION_STATES = [
   "needs_repair",
 ] as const;
 
-export type WardrobeConditionState =
-  (typeof WARDROBE_CONDITION_STATES)[number];
+export type WardrobeConditionState = (typeof WARDROBE_CONDITION_STATES)[number];
 
 export const WARDROBE_WEAR_FREQUENCIES = [
   "rarely",
@@ -43,8 +42,7 @@ export const WARDROBE_WEAR_FREQUENCIES = [
   "daily",
 ] as const;
 
-export type WardrobeWearFrequency =
-  (typeof WARDROBE_WEAR_FREQUENCIES)[number];
+export type WardrobeWearFrequency = (typeof WARDROBE_WEAR_FREQUENCIES)[number];
 
 export const WARDROBE_HISTORY_EVENT_TYPES = [
   "created",
@@ -150,7 +148,9 @@ export function isWardrobeConditionState(
   return (WARDROBE_CONDITION_STATES as readonly string[]).includes(value);
 }
 
-export function wardrobeOwnershipLabel(source: WardrobeOwnershipSource): string {
+export function wardrobeOwnershipLabel(
+  source: WardrobeOwnershipSource,
+): string {
   if (source === "retailer_purchase") return "Purchased here";
   return "Added by you";
 }

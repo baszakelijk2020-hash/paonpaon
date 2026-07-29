@@ -621,8 +621,9 @@ export default async function CustomerDetailPage({
             <p className="mt-2 text-sm leading-6 text-[var(--color-stone-600)]">
               No physical garments have been recorded yet. Fit observations are
               captured against a garment during intake or a fitting note — never
-              as a generic customer measurement. Before confirming a made-to-measure
-              order, record at minimum: chest, waist and sleeve length.
+              as a generic customer measurement. Before confirming a
+              made-to-measure order, record at minimum: chest, waist and sleeve
+              length.
             </p>
             {canManage ? (
               <Link
