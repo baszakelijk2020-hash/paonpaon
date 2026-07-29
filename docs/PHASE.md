@@ -133,18 +133,24 @@ show without restarting the customer app.
 
 **Also (workstream 1, founder-requested 2026-07-28 — chrome UX).**
 
-1. Favorites bookmark → real favorited items list (storefront localStorage
-   panel; wander without sign-in).
-2. Profile icon → customer portal environment straight away — no login /
-   fitting popup. Guests may browse the portal look; sign in when they wish.
+1. ~~Favorites bookmark → real favorited items list~~ **Done** — storefront
+   localStorage panel ships on the HTML route; swipe deck “See your favorites”
+   deep-links into it without sign-in.
+2. ~~Profile icon → customer portal environment straight away~~ **Done** —
+   header profile routes directly to `/dashboard?from=/r/[slug]`; guests may
+   browse the portal shell and sign in only when they choose.
 3. ~~Basket popup and Ask us anything: same grey-gradient / glass language as
    the rest of the chrome.~~ **Done** — panels use `rgba(0,0,0,0.1)` +
    `blur(20px)` + `6px` radius (matches the Ask-us toggle). Book Appointment
    also requires a store selection before Confirm enables.
-4. Book Appointment: **500px** wide, full height, slides in from the **left**
-   (not a full-width bottom sheet).
-5. Filters: SuitSupply-style — sort (newest / price low–high / high–low) plus
-   color, pattern, price range, season; Apply must actually filter the grid.
+4. ~~Book Appointment: **500px** wide, full height, slides in from the
+   **left**~~ **Done** — the appointment form now opens as a left drawer on
+   the storefront HTML route, capped at 500px and full-height.
+5. ~~Filters: SuitSupply-style — sort (newest / price low–high / high–low)
+   plus color, pattern, price range, season; Apply must actually filter the
+   grid.~~ **Done** — the HTML storefront filter panel now offers those
+   controls and Apply mutates the live product grid instead of acting as
+   decoration.
 
 **The bar:** the founder can produce a branded, working demo for a named
 prospect in under an hour without code changes. That is the original
