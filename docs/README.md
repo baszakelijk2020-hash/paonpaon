@@ -45,6 +45,7 @@ thing you need; do not load them into context wholesale.
 | [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)            | What blocks a sale. **Not a work queue** — see PHASE.md                      |
 | [NON_GOALS.md](./NON_GOALS.md)                          | What is deliberately not being built yet                                     |
 | [vision/](./vision/)                                    | Wardrobe intelligence destination (also Tier 1.5). **Not a work queue**      |
+| [ai_snapshot/](./ai_snapshot/)                          | As-built architecture inventory for engineers/AI. Code wins on conflict      |
 | [NIGHT_LOG.md](./NIGHT_LOG.md)                          | Trail from an explicitly authorized unattended overnight run                 |
 
 ## Tier 1.5 — strategic destination (orientation only)
