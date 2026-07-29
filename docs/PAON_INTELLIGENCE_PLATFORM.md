@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `2.2 Deterministic discovery engine`
-- **Current requirement IDs:** `EDU-002`, `ENG-002`
+- **Current queue item:** `2.3 Founder-storefront knowledge mounts`
+- **Current requirement IDs:** `EDU-003`, `ENG-004`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -20,37 +20,25 @@ requires it.
   metadata persistence, repositories, and RLS; `538c9da` added the review
   transition contract and PAON Admin canonical management; `8eaa834` added
   the Retailer Portal metadata review UI; `117fa8e` added exact product facts
-  and catalogue assignment UI; `b5827bc` adds knowledge contracts, persistence,
-  RLS, repositories, and reviewed canonical fixtures (PHASE 2.1 complete).
+  and catalogue assignment UI; `b5827bc` added knowledge contracts,
+  persistence, and fixtures; `353b737` adds the deterministic discovery engine
+  (PHASE 2.2 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables plus four
-  knowledge tables (`knowledge_objects`, `knowledge_object_concepts`,
-  `knowledge_object_relations`, `retailer_knowledge_overrides`), generated
-  database types, `MetadataRepository`, `ProductFabricProfileRepository`,
-  `KnowledgeRepository`, append-only terminal-review evidence, actor-derived
-  idempotent `review_metadata_assignment`, atomic `set_product_fabric_profile`,
-  operator-only canonical concept forms, Retailer Portal metadata review
-  under `apps/retailer/app/(dashboard)/metadata/`, product-management
-  fabric/assignment editors under
-  `apps/retailer/app/(dashboard)/products/[id]/`, and idempotent EDU-001
-  canonical knowledge fixtures now implement the landed Stage 1–2.1
-  contracts.
-- **Checks/deployment state:** a clean local database reset applies all 93
-  migrations; 57 live pgTAP authorization/invariant checks (18 new knowledge
-  foundation), 166 `@paon/domain` tests, and knowledge repository/security
-  unit coverage pass alongside the existing database suite. Lint, typecheck,
-  unit tests, build, and format check are green on the integrated 2.1 tip.
-- **Real blockers:** none for Stage 2 discovery. Missing optional provider
-  credentials do not block local/domain/database work. Reviewed production
-  copy/images do not block neutral knowledge fixtures already seeded inactive
-  where unapproved.
-- **Exact next files/tests:** implement queue item 2.2 deterministic discovery
-  engine per ADR-060: pure ranking/explanation in `@paon/domain` plus narrow
-  repository reads. Eligibility starts from accepted product-concept matches
-  and active knowledge-concept links; apply retailer hide/pin/priority
-  precedence; return three to six explainable, diverse cards. Cover golden
-  ranking fixtures, tie-breaking, diversity, hidden/pinned cases, and
-  explanation payloads. Do not mount storefront UI, embeddings, or AI
-  summarization.
+  knowledge tables, generated database types, `MetadataRepository`,
+  `ProductFabricProfileRepository`, `KnowledgeRepository` (including
+  `projectDiscoveryCandidates`), `rankKnowledgeDiscovery` pure ranking with
+  factor explanations, and idempotent EDU-001 canonical knowledge fixtures.
+- **Checks/deployment state:** 93 migrations; knowledge foundation pgTAP (18)
+  plus domain discovery golden tests are green with lint/typecheck on the 2.2
+  tip. Provider credentials remain optional for this stage.
+- **Real blockers:** none for storefront knowledge mounts beyond ADR-052
+  founder-surface preservation constraints on item 2.3 itself.
+- **Exact next files/tests:** implement queue item 2.3 founder-storefront
+  knowledge mounts per ADR-052/060: narrow serialization/runtime hooks in
+  `apps/customer/app/r/[slug]/route.ts` and canonical `paon-template.html`
+  so square image/title/copy cards appear in Archetype, Fabric, and Sizing
+  areas without redesigning founder HTML. Cover route serialization, DOM
+  allowlist, Playwright desktop/mobile, a11y, and no-data fallback.
 
 ## 1. Programme intent
 
@@ -115,7 +103,7 @@ above. Status changes only after the named acceptance criteria are verified.
 | CAT-003                | Retailer overrides, canonical ownership, and strict tenant isolation                                                                                                                                       | `metadata`                         | Canonical management and tenant-safe domain/database/repository/Admin/Retailer review boundaries exist                           | CAT-001                                   | 1.2–1.4              | Canonical rows are platform-owned; retailer rows/overrides cannot cross tenants or mutate canonical facts                        | Done (1.3)         |
 | CAT-004                | Provenance, source, confidence, evidence, review state, and auditable review                                                                                                                               | `metadata`                         | Pending proposals and actor-derived idempotent terminal reviews retain append-only evidence; Admin + Retailer + product UI exist | CAT-001                                   | 1.1–1.4              | Every proposal records authority and evidence; AI never bypasses pending review; review actor/time are retained                  | Done (1.4)         |
 | EDU-001                | Reusable commercial education for mills, fibres, fabrics, weaves, construction, collars, styling, care, performance, occasion, value, and tradeoffs                                                        | `knowledge`                        | Domain contracts, persistence/RLS, repositories, and reviewed canonical fixtures cover every named topic                         | CAT-001, CAT-004                          | 2.1                  | Reviewed reusable objects cover every named topic and explain why, fit, tradeoffs, and value                                     | Done (2.1)         |
-| EDU-002                | Automatic metadata-backed card selection with ranking and diversity                                                                                                                                        | `knowledge` + `discovery`          | No knowledge/discovery engine                                                                                                    | EDU-001                                   | 2.2                  | Accepted metadata selects three to six explainable, diverse cards under ADR-060 precedence                                       | Not started        |
+| EDU-002                | Automatic metadata-backed card selection with ranking and diversity                                                                                                                                        | `knowledge` + `discovery`          | Deterministic `rankKnowledgeDiscovery` plus repository candidate projection                                                      | EDU-001                                   | 2.2                  | Accepted metadata selects three to six explainable, diverse cards under ADR-060 precedence                                       | Done (2.2)         |
 | EDU-003                | Inject cards into existing desktop/mobile founder information areas without redesign                                                                                                                       | Customer founder storefront        | Canonical HTML has Archetype/Fabric/Sizing areas but no dynamic knowledge cards                                                  | EDU-002                                   | 2.3                  | Narrow hooks render square-image/title/copy cards accessibly with no unrelated visual or interaction drift                       | Not started        |
 | IMP-001                | CSV, XLSX, JSON, and future PDF-ready supplier ingestion                                                                                                                                                   | Catalogue import                   | No import model or parser                                                                                                        | CAT-004                                   | 2.5                  | Versioned CSV/XLSX/JSON contracts and fixtures work; source type permits a later PDF extractor without schema redesign           | Not started        |
 | IMP-002                | Preserve supplier SKU/reference/raw data; match main/swatches; map categories; validate and detect duplicates                                                                                              | Catalogue import                   | Product create/edit is individual; images and SKUs exist                                                                         | IMP-001                                   | 2.5–2.6              | Preview explains mappings/errors/duplicates; raw identifiers survive; assets match deterministically                             | Not started        |

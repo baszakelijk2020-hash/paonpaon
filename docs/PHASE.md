@@ -197,7 +197,7 @@ storefront redesign, or customer personalization.
   - **Hard blockers:** reviewed production copy/images do not block contracts
     or neutral fixtures; mark unapproved editorial content inactive.
 
-- [ ] **2.2 Deterministic discovery engine**
+- [x] **2.2 Deterministic discovery engine**
   - **Requirement IDs:** `EDU-002`, `ENG-002`.
   - **Dependencies:** `2.1`; ADR-060.
   - **Owner boundary:** pure ranking/explanation in `@paon/domain` plus

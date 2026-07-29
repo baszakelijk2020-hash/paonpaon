@@ -37,9 +37,10 @@ Snapshot: 2026-07-30.
   RPC, PAON Admin canonical management, the Retailer Portal metadata review
   UI, and product-management fabric/assignment editors exist.
 - Canonical/retailer knowledge objects, concept joins, relations, retailer
-  hide/presentation/priority/pin overrides, `KnowledgeRepository`, and
-  idempotent EDU-001 canonical fixtures exist. No catalogue-import, wardrobe,
-  roadmap, outfit, campaign, or concierge-service tables exist.
+  hide/presentation/priority/pin overrides, `KnowledgeRepository`,
+  `rankKnowledgeDiscovery`, and idempotent EDU-001 canonical fixtures exist.
+  No catalogue-import, wardrobe, roadmap, outfit, campaign, or
+  concierge-service tables exist.
 
 ## External systems
 
@@ -56,6 +57,7 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Knowledge contracts and persistence (PHASE 2.1) are complete. The
-authoritative Resume Protocol identifies the deterministic discovery engine
-(PHASE 2.2) as the exact continuation point.
+contracts. Knowledge contracts and persistence (PHASE 2.1) and the deterministic discovery
+engine (PHASE 2.2) are complete. The authoritative Resume Protocol identifies
+founder-storefront knowledge mounts (PHASE 2.3) as the exact continuation
+point.
