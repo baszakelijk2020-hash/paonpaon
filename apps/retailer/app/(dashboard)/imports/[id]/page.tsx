@@ -1,11 +1,21 @@
 import { requireRetailerRole } from "@paon/auth";
 import { CatalogueImportRepository } from "@paon/database";
-import { asId } from "@paon/domain";
+import {
+  asId,
+  isCatalogueImportRowPublishable,
+  summarizeCatalogueImportPublishProgress,
+} from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+
+import {
+  PublishReadyRowsButton,
+  PublishRowButton,
+  ReviewTaskActions,
+} from "../import-publish-actions";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -42,20 +52,25 @@ export default async function ImportPreviewPage({
     tasksByRowId.set(task.importRowId, [...existing, task]);
   }
 
+  const progress = summarizeCatalogueImportPublishProgress({
+    rows,
+    reviewTasks,
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
-            Catalogue import preview
+            Catalogue import
           </p>
           <h1 className="font-display mt-2 text-4xl text-[var(--color-stone-900)]">
             {job.sourceFilename}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
-            Raw supplier values are preserved. Category mappings, asset matches,
-            validation, and duplicates are explained below. No row is published
-            from preview.
+            Review metadata proposals, then publish valid reviewed rows
+            transactionally. Failures keep the source row and can be retried
+            without unreviewed bulk publish.
           </p>
         </div>
         <Link
@@ -73,11 +88,35 @@ export default async function ImportPreviewPage({
         <Badge>
           {rows.length} row{rows.length === 1 ? "" : "s"}
         </Badge>
-        <Badge>
-          {reviewTasks.length} review task
-          {reviewTasks.length === 1 ? "" : "s"}
-        </Badge>
+        <Badge>{progress.publishableRowCount} ready to publish</Badge>
+        <Badge>{progress.publishedRows} published</Badge>
+        {progress.failedPublishCount > 0 ? (
+          <Badge tone="danger">
+            {progress.failedPublishCount} publish error
+            {progress.failedPublishCount === 1 ? "" : "s"}
+          </Badge>
+        ) : null}
       </div>
+
+      <Card className="grid gap-3 p-5">
+        <div>
+          <h2 className="font-display text-2xl text-[var(--color-stone-900)]">
+            Publishing status
+          </h2>
+          <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+            {progress.pendingReviewTaskCount} pending review task
+            {progress.pendingReviewTaskCount === 1 ? "" : "s"}. Only valid rows
+            with every task resolved can publish.
+          </p>
+        </div>
+        <PublishReadyRowsButton
+          importId={job.id}
+          disabled={progress.publishableRowCount === 0}
+          label={`Publish ${progress.publishableRowCount} reviewed row${
+            progress.publishableRowCount === 1 ? "" : "s"
+          }`}
+        />
+      </Card>
 
       {rows.length === 0 ? (
         <Card className="border-dashed py-14 text-center">
@@ -96,6 +135,10 @@ export default async function ImportPreviewPage({
               (issue) => issue.severity !== "error",
             );
             const tasks = tasksByRowId.get(row.id) ?? [];
+            const publishable = isCatalogueImportRowPublishable({
+              row,
+              reviewTasks: tasks,
+            });
             return (
               <Card key={row.id} className="grid gap-4 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -108,10 +151,39 @@ export default async function ImportPreviewPage({
                       {row.proposedProduct?.name ?? "Unparsed product name"}
                     </p>
                   </div>
-                  <Badge tone={row.status === "valid" ? "success" : "warning"}>
+                  <Badge
+                    tone={
+                      row.status === "published"
+                        ? "success"
+                        : row.status === "valid"
+                          ? "success"
+                          : "warning"
+                    }
+                  >
                     {row.status}
                   </Badge>
                 </div>
+
+                {row.publishError ? (
+                  <p
+                    role="alert"
+                    className="text-sm text-[var(--color-danger-500)]"
+                  >
+                    Last publish error: {row.publishError}
+                  </p>
+                ) : null}
+
+                {row.publishedProductId ? (
+                  <p className="text-sm text-[var(--color-stone-500)]">
+                    Published product{" "}
+                    <Link
+                      className="underline"
+                      href={`/products/${row.publishedProductId}`}
+                    >
+                      {row.publishedProductId}
+                    </Link>
+                  </p>
+                ) : null}
 
                 {row.proposedProduct ? (
                   <dl className="grid gap-2 text-sm sm:grid-cols-2">
@@ -222,16 +294,40 @@ export default async function ImportPreviewPage({
                       No metadata review tasks for this row.
                     </p>
                   ) : (
-                    <ul className="mt-2 grid gap-2 text-sm">
+                    <ul className="mt-2 grid gap-3 text-sm">
                       {tasks.map((task) => (
-                        <li key={task.id}>
-                          <Badge tone="warning">{task.status}</Badge>{" "}
-                          {task.proposedValue}
+                        <li key={task.id} className="grid gap-2">
+                          <div>
+                            <Badge
+                              tone={
+                                task.status === "pending"
+                                  ? "warning"
+                                  : "success"
+                              }
+                            >
+                              {task.status}
+                            </Badge>{" "}
+                            {task.proposedValue}
+                          </div>
+                          {task.status === "pending" ? (
+                            <ReviewTaskActions
+                              importId={job.id}
+                              taskId={task.id}
+                            />
+                          ) : null}
                         </li>
                       ))}
                     </ul>
                   )}
                 </section>
+
+                {row.status !== "published" ? (
+                  <PublishRowButton
+                    importId={job.id}
+                    importRowId={row.id}
+                    disabled={!publishable}
+                  />
+                ) : null}
 
                 <details>
                   <summary className="cursor-pointer text-sm text-[var(--color-stone-700)]">
@@ -246,11 +342,6 @@ export default async function ImportPreviewPage({
           })}
         </div>
       )}
-
-      <Card className="border-dashed p-4 text-sm text-[var(--color-stone-500)]">
-        Publishing reviewed rows is reserved for a later queue item. This
-        preview retains source identifiers and never creates catalogue products.
-      </Card>
     </div>
   );
 }

@@ -48,6 +48,12 @@ const importRowRecord: CatalogueImportRowRecord = {
   },
   validation_errors: [],
   status: "valid",
+  published_product_id: null,
+  published_variant_id: null,
+  published_by_staff_id: null,
+  published_at: null,
+  last_publish_attempt_at: null,
+  publish_error: null,
   created_at: "2026-07-30T00:00:00.000Z",
   updated_at: "2026-07-30T00:00:00.000Z",
 };
@@ -181,5 +187,116 @@ describe("CatalogueImportRepository", () => {
         ],
       }),
     ).rejects.toThrow(/cannot persist published/);
+  });
+
+  it("maps publish RPC payloads and review task reloads", async () => {
+    const rpc = vi.fn(async (fn: string) => {
+      if (fn === "publish_catalogue_import_row") {
+        return {
+          data: {
+            ok: true,
+            productId: "66666666-6666-4666-8666-666666666666",
+            variantId: "77777777-7777-4777-8777-777777777777",
+            outcome: "created",
+          },
+          error: null,
+        };
+      }
+      if (fn === "review_catalogue_import_task") {
+        return { data: reviewTaskRow.id, error: null };
+      }
+      throw new Error(`unexpected rpc ${fn}`);
+    });
+    const reviewedTask = {
+      ...reviewTaskRow,
+      status: "dismissed" as const,
+      reviewed_by_staff_id: staffId,
+      reviewed_at: "2026-07-30T01:00:00.000Z",
+    };
+    const repository = new CatalogueImportRepository({
+      rpc,
+      from: (table: string) => {
+        if (table === "metadata_review_tasks") {
+          return fakeQueryBuilder({ data: reviewedTask, error: null });
+        }
+        throw new Error(`unexpected table ${table}`);
+      },
+    } as unknown as PaonSupabaseClient);
+
+    const published = await repository.publishRow(rowId as never);
+    expect(rpc).toHaveBeenCalledWith("publish_catalogue_import_row", {
+      p_import_row_id: rowId,
+    });
+    expect(published).toEqual({
+      ok: true,
+      productId: "66666666-6666-4666-8666-666666666666",
+      variantId: "77777777-7777-4777-8777-777777777777",
+      outcome: "created",
+    });
+
+    const reviewed = await repository.reviewTask(
+      reviewTaskRow.id as never,
+      "dismissed",
+    );
+    expect(rpc).toHaveBeenCalledWith("review_catalogue_import_task", {
+      p_task_id: reviewTaskRow.id,
+      p_status: "dismissed",
+    });
+    expect(reviewed.status).toBe("dismissed");
+    expect(reviewed.reviewedByStaffId).toBe(staffId);
+  });
+
+  it("publishes only reviewed valid rows and continues after failures", async () => {
+    const secondRowId = "44444444-4444-4444-8444-444444444445";
+    const secondRow = {
+      ...importRowRecord,
+      id: secondRowId,
+      row_number: 3,
+      external_sku: "LP-SUM-002",
+    };
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: {
+          ok: false,
+          code: "publish_failed",
+          error: "forced failure",
+        },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: {
+          ok: true,
+          productId: "66666666-6666-4666-8666-666666666666",
+          outcome: "created",
+        },
+        error: null,
+      });
+
+    const repository = new CatalogueImportRepository({
+      rpc,
+      from: (table: string) => {
+        if (table === "catalogue_import_rows") {
+          return fakeQueryBuilder({
+            data: [importRowRecord, secondRow],
+            error: null,
+          });
+        }
+        if (table === "metadata_review_tasks") {
+          return fakeQueryBuilder({ data: [], error: null });
+        }
+        throw new Error(`unexpected table ${table}`);
+      },
+    } as unknown as PaonSupabaseClient);
+
+    const batch = await repository.publishReadyRows({
+      retailerId: retailerId as never,
+      importId: importId as never,
+    });
+
+    expect(batch.results).toHaveLength(2);
+    expect(batch.results[0]?.result.ok).toBe(false);
+    expect(batch.results[1]?.result.ok).toBe(true);
+    expect(rpc).toHaveBeenCalledTimes(2);
   });
 });

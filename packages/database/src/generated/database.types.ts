@@ -1179,7 +1179,13 @@ export type Database = {
           external_sku: string | null;
           id: string;
           import_id: string;
+          last_publish_attempt_at: string | null;
           proposed_product: Json | null;
+          publish_error: string | null;
+          published_at: string | null;
+          published_by_staff_id: string | null;
+          published_product_id: string | null;
+          published_variant_id: string | null;
           raw_payload: Json;
           retailer_id: string;
           row_number: number;
@@ -1192,7 +1198,13 @@ export type Database = {
           external_sku?: string | null;
           id?: string;
           import_id: string;
+          last_publish_attempt_at?: string | null;
           proposed_product?: Json | null;
+          publish_error?: string | null;
+          published_at?: string | null;
+          published_by_staff_id?: string | null;
+          published_product_id?: string | null;
+          published_variant_id?: string | null;
           raw_payload?: Json;
           retailer_id: string;
           row_number: number;
@@ -1205,7 +1217,13 @@ export type Database = {
           external_sku?: string | null;
           id?: string;
           import_id?: string;
+          last_publish_attempt_at?: string | null;
           proposed_product?: Json | null;
+          publish_error?: string | null;
+          published_at?: string | null;
+          published_by_staff_id?: string | null;
+          published_product_id?: string | null;
+          published_variant_id?: string | null;
           raw_payload?: Json;
           retailer_id?: string;
           row_number?: number;
@@ -1219,6 +1237,27 @@ export type Database = {
             columns: ["import_id"];
             isOneToOne: false;
             referencedRelation: "catalogue_imports";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalogue_import_rows_published_by_staff_id_fkey";
+            columns: ["published_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalogue_import_rows_published_product_id_fkey";
+            columns: ["published_product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalogue_import_rows_published_variant_id_fkey";
+            columns: ["published_variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
             referencedColumns: ["id"];
           },
           {
@@ -6030,6 +6069,10 @@ export type Database = {
         };
         Returns: string;
       };
+      publish_catalogue_import_row: {
+        Args: { p_import_row_id: string };
+        Returns: Json;
+      };
       record_customer_ai_generation: {
         Args: {
           p_error_message?: string;
@@ -6096,6 +6139,13 @@ export type Database = {
       retailer_has_entitlement: {
         Args: { p_feature_key: string; p_retailer_id: string };
         Returns: boolean;
+      };
+      review_catalogue_import_task: {
+        Args: {
+          p_status: Database["public"]["Enums"]["metadata_review_task_status"];
+          p_task_id: string;
+        };
+        Returns: string;
       };
       review_metadata_assignment: {
         Args: {

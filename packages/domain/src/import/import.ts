@@ -117,6 +117,12 @@ export interface CatalogueImportRow {
   readonly proposedProduct?: CatalogueImportProposedProduct;
   readonly validationErrors: readonly CatalogueImportValidationIssue[];
   readonly status: CatalogueImportRowStatus;
+  readonly publishedProductId?: ProductId;
+  readonly publishedVariantId?: string;
+  readonly publishedByStaffId?: StaffId;
+  readonly publishedAt?: string;
+  readonly lastPublishAttemptAt?: string;
+  readonly publishError?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
 }

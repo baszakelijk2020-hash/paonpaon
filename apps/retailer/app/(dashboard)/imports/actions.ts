@@ -7,11 +7,15 @@ import {
   RetailerStaffRepository,
 } from "@paon/database";
 import {
+  asId,
   buildCatalogueImportPreview,
   CatalogueImportParseError,
   DEFAULT_CATALOGUE_IMPORT_LIMITS,
   parseCatalogueImportFile,
+  publishCatalogueImportRowInputSchema,
+  reviewCatalogueImportTaskInputSchema,
 } from "@paon/domain";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireSession } from "@/lib/session";
@@ -20,6 +24,11 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 export interface ImportUploadState {
   formError?: string;
   saved?: boolean;
+}
+
+export interface ImportPublishState {
+  formError?: string;
+  message?: string;
 }
 
 async function requireManagerSession() {
@@ -147,6 +156,138 @@ export async function previewCatalogueImport(
         error instanceof Error
           ? error.message
           : "Could not preview this import right now.",
+    };
+  }
+}
+
+export async function reviewImportTask(
+  _previous: ImportPublishState,
+  formData: FormData,
+): Promise<ImportPublishState> {
+  await requireManagerSession();
+  const parsed = reviewCatalogueImportTaskInputSchema.safeParse({
+    taskId: formData.get("taskId"),
+    status: formData.get("status"),
+  });
+  if (!parsed.success) {
+    return { formError: parsed.error.issues[0]?.message ?? "Invalid review." };
+  }
+
+  const importId = String(formData.get("importId") ?? "");
+  const supabase = await getSupabaseServerClient();
+  try {
+    await new CatalogueImportRepository(supabase).reviewTask(
+      asId<"MetadataReviewTaskId">(parsed.data.taskId),
+      parsed.data.status,
+    );
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not record the review decision.",
+    };
+  }
+
+  revalidatePath(`/imports/${importId}`);
+  return { message: `Review task marked ${parsed.data.status}.` };
+}
+
+export async function publishImportRow(
+  _previous: ImportPublishState,
+  formData: FormData,
+): Promise<ImportPublishState> {
+  await requireManagerSession();
+  const parsed = publishCatalogueImportRowInputSchema.safeParse({
+    importRowId: formData.get("importRowId"),
+  });
+  if (!parsed.success) {
+    return { formError: parsed.error.issues[0]?.message ?? "Invalid row." };
+  }
+
+  const importId = String(formData.get("importId") ?? "");
+  const supabase = await getSupabaseServerClient();
+  try {
+    const result = await new CatalogueImportRepository(supabase).publishRow(
+      asId<"CatalogueImportRowId">(parsed.data.importRowId),
+    );
+    revalidatePath(`/imports/${importId}`);
+    revalidatePath("/imports");
+    revalidatePath("/products");
+    if (!result.ok) {
+      return { formError: result.error };
+    }
+    return {
+      message:
+        result.outcome === "already_published"
+          ? "Row was already published."
+          : `Row published (${result.outcome}).`,
+    };
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not publish this import row.",
+    };
+  }
+}
+
+export async function publishImportReadyRows(
+  _previous: ImportPublishState,
+  formData: FormData,
+): Promise<ImportPublishState> {
+  const session = await requireManagerSession();
+  const importIdRaw = String(formData.get("importId") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(importIdRaw)) {
+    return { formError: "Import id is required." };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  try {
+    const { results } = await new CatalogueImportRepository(
+      supabase,
+    ).publishReadyRows({
+      retailerId: session.retailerId,
+      importId: asId<"CatalogueImportId">(importIdRaw),
+    });
+
+    revalidatePath(`/imports/${importIdRaw}`);
+    revalidatePath("/imports");
+    revalidatePath("/products");
+
+    if (results.length === 0) {
+      return {
+        formError:
+          "No reviewed valid rows are ready to publish. Resolve pending review tasks first.",
+      };
+    }
+
+    const published = results.filter((item) => item.result.ok).length;
+    const failed = results.length - published;
+    return {
+      message: `Published ${published} row${published === 1 ? "" : "s"}${
+        failed > 0 ? `; ${failed} failed and remain resumable.` : "."
+      }`,
+      ...(failed > 0
+        ? {
+            formError: results
+              .filter((item) => !item.result.ok)
+              .map((item) =>
+                item.result.ok ? "" : `Row ${item.rowId}: ${item.result.error}`,
+              )
+              .filter(Boolean)
+              .slice(0, 3)
+              .join(" "),
+          }
+        : {}),
+    };
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not publish reviewed import rows.",
     };
   }
 }

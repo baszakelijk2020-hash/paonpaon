@@ -16,14 +16,20 @@ import {
 } from "./import-parser";
 import { buildCatalogueImportPreview } from "./import-preview";
 import {
+  isCatalogueImportRowPublishable,
+  summarizeCatalogueImportPublishProgress,
+} from "./import-publish";
+import {
   buildCatalogueImportTemplateCsv,
   buildCatalogueImportTemplateJson,
   buildCatalogueImportTemplateXlsx,
 } from "./import-templates";
 import {
+  catalogueImportPublishResultSchema,
   createCatalogueImportInputSchema,
   createCatalogueImportRowInputSchema,
   createMetadataReviewTaskInputSchema,
+  reviewCatalogueImportTaskInputSchema,
 } from "./import.schema";
 
 function templateCsvWithRows(
@@ -251,5 +257,126 @@ describe("catalogue import preview", () => {
     expect(csvPreview.validRowCount).toBe(1);
     expect(jsonPreview.validRowCount).toBe(1);
     expect(xlsxPreview.validRowCount).toBe(1);
+  });
+});
+
+describe("catalogue import publish eligibility", () => {
+  it("blocks publish while review tasks remain pending", () => {
+    expect(
+      isCatalogueImportRowPublishable({
+        row: {
+          status: "valid",
+          proposedProduct: {
+            externalSku: "SKU-1",
+            name: "Jacket",
+            assetMatches: [],
+            categoryMappings: [],
+          },
+        },
+        reviewTasks: [{ status: "pending" }],
+      }),
+    ).toBe(false);
+  });
+
+  it("allows publish once every task is terminal and the row is valid", () => {
+    expect(
+      isCatalogueImportRowPublishable({
+        row: {
+          status: "valid",
+          proposedProduct: {
+            externalSku: "SKU-1",
+            name: "Jacket",
+            assetMatches: [],
+            categoryMappings: [],
+          },
+        },
+        reviewTasks: [{ status: "dismissed" }, { status: "accepted" }],
+      }),
+    ).toBe(true);
+  });
+
+  it("summarizes partial-batch publish progress", () => {
+    const progress = summarizeCatalogueImportPublishProgress({
+      rows: [
+        {
+          id: asId<"CatalogueImportRowId">(
+            "44444444-4444-4444-8444-444444444441",
+          ),
+          status: "published",
+          proposedProduct: {
+            externalSku: "A",
+            name: "A",
+            assetMatches: [],
+            categoryMappings: [],
+          },
+        },
+        {
+          id: asId<"CatalogueImportRowId">(
+            "44444444-4444-4444-8444-444444444442",
+          ),
+          status: "valid",
+          proposedProduct: {
+            externalSku: "B",
+            name: "B",
+            assetMatches: [],
+            categoryMappings: [],
+          },
+          publishError: "boom",
+        },
+        {
+          id: asId<"CatalogueImportRowId">(
+            "44444444-4444-4444-8444-444444444443",
+          ),
+          status: "valid",
+          proposedProduct: {
+            externalSku: "C",
+            name: "C",
+            assetMatches: [],
+            categoryMappings: [],
+          },
+        },
+      ],
+      reviewTasks: [
+        {
+          importRowId: asId<"CatalogueImportRowId">(
+            "44444444-4444-4444-8444-444444444443",
+          ),
+          status: "pending",
+        },
+      ],
+    });
+
+    expect(progress.publishedRows).toBe(1);
+    expect(progress.failedPublishCount).toBe(1);
+    expect(progress.publishableRowCount).toBe(1);
+    expect(progress.pendingReviewTaskCount).toBe(1);
+  });
+
+  it("parses publish RPC success and failure payloads", () => {
+    expect(
+      catalogueImportPublishResultSchema.parse({
+        ok: true,
+        productId: "11111111-1111-4111-8111-111111111111",
+        variantId: "22222222-2222-4222-8222-222222222222",
+        outcome: "created",
+      }).ok,
+    ).toBe(true);
+    expect(
+      catalogueImportPublishResultSchema.parse({
+        ok: false,
+        code: "not_reviewed",
+        error: "Resolve pending review tasks",
+      }),
+    ).toEqual({
+      ok: false,
+      code: "not_reviewed",
+      error: "Resolve pending review tasks",
+    });
+    expect(
+      reviewCatalogueImportTaskInputSchema.parse({
+        taskId: "55555555-5555-4555-8555-555555555555",
+        status: "dismissed",
+      }).status,
+    ).toBe("dismissed");
   });
 });

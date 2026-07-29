@@ -176,6 +176,46 @@ export type CreateMetadataReviewTaskInput = z.infer<
   typeof createMetadataReviewTaskInputSchema
 >;
 
+export const reviewCatalogueImportTaskInputSchema = z.object({
+  taskId: uuidSchema,
+  status: metadataReviewTaskStatusSchema.exclude(["pending"]),
+});
+
+export type ReviewCatalogueImportTaskInput = z.infer<
+  typeof reviewCatalogueImportTaskInputSchema
+>;
+
+export const publishCatalogueImportRowInputSchema = z.object({
+  importRowId: uuidSchema,
+});
+
+export type PublishCatalogueImportRowInput = z.infer<
+  typeof publishCatalogueImportRowInputSchema
+>;
+
+export const catalogueImportPublishResultSchema = z.discriminatedUnion("ok", [
+  z.object({
+    ok: z.literal(true),
+    productId: uuidSchema,
+    variantId: uuidSchema.optional(),
+    outcome: z.enum(["created", "updated", "already_published"]),
+  }),
+  z.object({
+    ok: z.literal(false),
+    code: z.enum([
+      "invalid_row",
+      "not_reviewed",
+      "publish_failed",
+      "unauthorized",
+    ]),
+    error: z.string().trim().min(1).max(1000),
+  }),
+]);
+
+export type CatalogueImportPublishResultParsed = z.infer<
+  typeof catalogueImportPublishResultSchema
+>;
+
 export const catalogueImportRawRowSchema = z.record(z.string());
 
 export const catalogueImportColumnSchema = z.enum(

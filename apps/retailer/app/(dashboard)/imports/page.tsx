@@ -33,8 +33,8 @@ export default async function ImportsPage() {
           Catalogue import
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
-          Download the PAON contract, upload a supplier file, and review the
-          explained preview. Publishing is intentionally unavailable here.
+          Download the PAON contract, upload a supplier file, review the
+          explained preview, then publish valid reviewed rows transactionally.
         </p>
       </div>
 
@@ -81,7 +81,7 @@ export default async function ImportsPage() {
             id="recent-imports-heading"
             className="font-display text-3xl text-[var(--color-stone-900)]"
           >
-            Recent previews
+            Recent imports
           </h2>
           <p className="text-sm text-[var(--color-stone-500)]">
             {imports.length} import{imports.length === 1 ? "" : "s"} retained
@@ -89,7 +89,7 @@ export default async function ImportsPage() {
         </div>
         {imports.length === 0 ? (
           <Card className="border-dashed py-14 text-center">
-            <p className="font-display text-2xl">No import previews yet.</p>
+            <p className="font-display text-2xl">No imports yet.</p>
             <p className="mt-2 text-sm text-[var(--color-stone-500)]">
               Upload a supplier file to create the first explained preview.
             </p>
@@ -112,12 +112,22 @@ export default async function ImportsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Badge tone="warning">{job.status}</Badge>
+                  <Badge
+                    tone={
+                      job.status === "completed"
+                        ? "success"
+                        : job.status === "failed"
+                          ? "danger"
+                          : "warning"
+                    }
+                  >
+                    {job.status}
+                  </Badge>
                   <Link
                     className={buttonVariants({ variant: "outline" })}
                     href={`/imports/${job.id}`}
                   >
-                    Open preview
+                    Open import
                   </Link>
                 </div>
               </Card>

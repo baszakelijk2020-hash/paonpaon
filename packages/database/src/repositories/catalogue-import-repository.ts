@@ -1,17 +1,21 @@
 import {
   asId,
   catalogueImportProposedProductSchema,
+  catalogueImportPublishResultSchema,
   catalogueImportValidationIssueSchema,
   type CatalogueImport,
   type CatalogueImportExistingCatalogue,
   type CatalogueImportId,
   type CatalogueImportProposedProduct,
+  type CatalogueImportPublishResult,
   type CatalogueImportRow,
+  type CatalogueImportRowId,
   type CatalogueImportRowStatus,
   type CatalogueImportSourceType,
   type CatalogueImportStatus,
   type CatalogueImportValidationIssue,
   type MetadataReviewTask,
+  type MetadataReviewTaskId,
   type MetadataReviewTaskStatus,
   type ProductId,
   type RetailerId,
@@ -162,6 +166,24 @@ function toImportRow(row: CatalogueImportRowRecord): CatalogueImportRow {
     ...(proposedProduct === undefined ? {} : { proposedProduct }),
     validationErrors: toValidationErrors(row.validation_errors),
     status: row.status,
+    ...(row.published_product_id === null
+      ? {}
+      : {
+          publishedProductId: asId<"ProductId">(row.published_product_id),
+        }),
+    ...(row.published_variant_id === null
+      ? {}
+      : { publishedVariantId: row.published_variant_id }),
+    ...(row.published_by_staff_id === null
+      ? {}
+      : {
+          publishedByStaffId: asId<"StaffId">(row.published_by_staff_id),
+        }),
+    ...(row.published_at === null ? {} : { publishedAt: row.published_at }),
+    ...(row.last_publish_attempt_at === null
+      ? {}
+      : { lastPublishAttemptAt: row.last_publish_attempt_at }),
+    ...(row.publish_error === null ? {} : { publishError: row.publish_error }),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -423,5 +445,105 @@ export class CatalogueImportRepository {
       rows: createdRows,
       reviewTasks: createdTasks,
     };
+  }
+
+  async reviewTask(
+    taskId: MetadataReviewTaskId,
+    status: Exclude<MetadataReviewTaskStatus, "pending">,
+  ): Promise<MetadataReviewTask> {
+    const { error } = await this.client.rpc("review_catalogue_import_task", {
+      p_task_id: taskId,
+      p_status: status,
+    });
+    if (error) throw error;
+
+    const { data, error: reloadError } = await this.client
+      .from("metadata_review_tasks")
+      .select("*")
+      .eq("id", taskId)
+      .single();
+    if (reloadError) throw reloadError;
+    return toReviewTask(data);
+  }
+
+  async publishRow(
+    importRowId: CatalogueImportRowId,
+  ): Promise<CatalogueImportPublishResult> {
+    const { data, error } = await this.client.rpc(
+      "publish_catalogue_import_row",
+      {
+        p_import_row_id: importRowId,
+      },
+    );
+    if (error) throw error;
+    const parsed = catalogueImportPublishResultSchema.parse(data);
+    if (parsed.ok) {
+      return {
+        ok: true as const,
+        productId: parsed.productId,
+        outcome: parsed.outcome,
+        ...(parsed.variantId === undefined
+          ? {}
+          : { variantId: parsed.variantId }),
+      };
+    }
+    return {
+      ok: false as const,
+      code: parsed.code,
+      error: parsed.error,
+    };
+  }
+
+  /**
+   * Publish every currently publishable row. Already-published rows are
+   * skipped by the RPC idempotently; failures retain publish_error and the
+   * loop continues so a partial batch can resume.
+   */
+  async publishReadyRows(params: {
+    readonly retailerId: RetailerId;
+    readonly importId: CatalogueImportId;
+    readonly rowIds?: readonly CatalogueImportRowId[];
+  }): Promise<{
+    readonly results: readonly {
+      readonly rowId: CatalogueImportRowId;
+      readonly result: CatalogueImportPublishResult;
+    }[];
+  }> {
+    const [rows, tasks] = await Promise.all([
+      this.findRows(params.retailerId, params.importId),
+      this.findReviewTasksForImport(params.retailerId, params.importId),
+    ]);
+    const tasksByRow = new Map<string, MetadataReviewTask[]>();
+    for (const task of tasks) {
+      if (!task.importRowId) continue;
+      const existing = tasksByRow.get(task.importRowId) ?? [];
+      tasksByRow.set(task.importRowId, [...existing, task]);
+    }
+
+    const selected = new Set(params.rowIds?.map(String) ?? []);
+    const candidates = rows.filter((row) => {
+      if (selected.size > 0 && !selected.has(row.id)) {
+        return false;
+      }
+      if (row.status === "published") {
+        return false;
+      }
+      const rowTasks = tasksByRow.get(row.id) ?? [];
+      return (
+        row.status === "valid" &&
+        row.proposedProduct !== undefined &&
+        rowTasks.every((task) => task.status !== "pending")
+      );
+    });
+
+    const results: {
+      rowId: CatalogueImportRowId;
+      result: CatalogueImportPublishResult;
+    }[] = [];
+    for (const row of candidates) {
+      const result = await this.publishRow(row.id);
+      results.push({ rowId: row.id, result });
+    }
+    return { results };
   }
 }
