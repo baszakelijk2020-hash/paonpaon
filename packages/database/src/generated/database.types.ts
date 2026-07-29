@@ -2062,6 +2062,168 @@ export type Database = {
           },
         ];
       };
+      knowledge_object_concepts: {
+        Row: {
+          concept_id: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          knowledge_object_id: string;
+          match_strength: number;
+          updated_at: string;
+        };
+        Insert: {
+          concept_id: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          knowledge_object_id: string;
+          match_strength?: number;
+          updated_at?: string;
+        };
+        Update: {
+          concept_id?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          knowledge_object_id?: string;
+          match_strength?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_object_concepts_concept_id_fkey";
+            columns: ["concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "knowledge_object_concepts_knowledge_object_id_fkey";
+            columns: ["knowledge_object_id"];
+            isOneToOne: false;
+            referencedRelation: "knowledge_objects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      knowledge_object_relations: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          kind: Database["public"]["Enums"]["knowledge_relation_kind"];
+          retailer_id: string | null;
+          source_knowledge_object_id: string;
+          target_knowledge_object_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          kind: Database["public"]["Enums"]["knowledge_relation_kind"];
+          retailer_id?: string | null;
+          source_knowledge_object_id: string;
+          target_knowledge_object_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          kind?: Database["public"]["Enums"]["knowledge_relation_kind"];
+          retailer_id?: string | null;
+          source_knowledge_object_id?: string;
+          target_knowledge_object_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_object_relations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "knowledge_object_relations_source_knowledge_object_id_fkey";
+            columns: ["source_knowledge_object_id"];
+            isOneToOne: false;
+            referencedRelation: "knowledge_objects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "knowledge_object_relations_target_knowledge_object_id_fkey";
+            columns: ["target_knowledge_object_id"];
+            isOneToOne: false;
+            referencedRelation: "knowledge_objects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      knowledge_objects: {
+        Row: {
+          active: boolean;
+          body: string | null;
+          commercial_intent: Database["public"]["Enums"]["knowledge_commercial_intent"];
+          created_at: string;
+          deleted_at: string | null;
+          display_types: Database["public"]["Enums"]["knowledge_display_type"][];
+          education_topic: Database["public"]["Enums"]["knowledge_education_topic"];
+          id: string;
+          image_url: string | null;
+          priority: number;
+          retailer_id: string | null;
+          slug: string;
+          summary: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          body?: string | null;
+          commercial_intent: Database["public"]["Enums"]["knowledge_commercial_intent"];
+          created_at?: string;
+          deleted_at?: string | null;
+          display_types: Database["public"]["Enums"]["knowledge_display_type"][];
+          education_topic: Database["public"]["Enums"]["knowledge_education_topic"];
+          id?: string;
+          image_url?: string | null;
+          priority?: number;
+          retailer_id?: string | null;
+          slug: string;
+          summary: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          body?: string | null;
+          commercial_intent?: Database["public"]["Enums"]["knowledge_commercial_intent"];
+          created_at?: string;
+          deleted_at?: string | null;
+          display_types?: Database["public"]["Enums"]["knowledge_display_type"][];
+          education_topic?: Database["public"]["Enums"]["knowledge_education_topic"];
+          id?: string;
+          image_url?: string | null;
+          priority?: number;
+          retailer_id?: string | null;
+          slug?: string;
+          summary?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_objects_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       legacy_alteration_updates: {
         Row: {
           alteration_id: string;
@@ -4091,6 +4253,66 @@ export type Database = {
           },
         ];
       };
+      retailer_knowledge_overrides: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          image_url_override: string | null;
+          is_hidden: boolean;
+          is_pinned: boolean;
+          knowledge_object_id: string;
+          priority_override: number | null;
+          retailer_id: string;
+          summary_override: string | null;
+          title_override: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          image_url_override?: string | null;
+          is_hidden?: boolean;
+          is_pinned?: boolean;
+          knowledge_object_id: string;
+          priority_override?: number | null;
+          retailer_id: string;
+          summary_override?: string | null;
+          title_override?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          image_url_override?: string | null;
+          is_hidden?: boolean;
+          is_pinned?: boolean;
+          knowledge_object_id?: string;
+          priority_override?: number | null;
+          retailer_id?: string;
+          summary_override?: string | null;
+          title_override?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_knowledge_overrides_knowledge_object_id_fkey";
+            columns: ["knowledge_object_id"];
+            isOneToOne: false;
+            referencedRelation: "knowledge_objects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "retailer_knowledge_overrides_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailer_events: {
         Row: {
           capacity: number | null;
@@ -5955,6 +6177,36 @@ export type Database = {
       metadata_review_status: "pending" | "accepted" | "rejected";
       metadata_source: "supplier" | "ai" | "retailer" | "paon";
       metadata_target_type: "product" | "product_variant" | "wardrobe_item";
+      knowledge_commercial_intent:
+        | "educate"
+        | "justify_premium"
+        | "upgrade"
+        | "cross_sell"
+        | "appointment";
+      knowledge_display_type:
+        | "information_card"
+        | "accordion"
+        | "tooltip"
+        | "comparison"
+        | "advisor_answer";
+      knowledge_education_topic:
+        | "mills"
+        | "fibres"
+        | "fabrics"
+        | "weaves"
+        | "construction"
+        | "collars"
+        | "styling"
+        | "care"
+        | "performance"
+        | "occasion"
+        | "value"
+        | "tradeoffs";
+      knowledge_relation_kind:
+        | "related"
+        | "prerequisite"
+        | "comparison"
+        | "follow_up";
       notification_category:
         | "order_update"
         | "production_update"
@@ -6302,6 +6554,40 @@ export const Constants = {
       metadata_review_status: ["pending", "accepted", "rejected"],
       metadata_source: ["supplier", "ai", "retailer", "paon"],
       metadata_target_type: ["product", "product_variant", "wardrobe_item"],
+      knowledge_commercial_intent: [
+        "educate",
+        "justify_premium",
+        "upgrade",
+        "cross_sell",
+        "appointment",
+      ],
+      knowledge_display_type: [
+        "information_card",
+        "accordion",
+        "tooltip",
+        "comparison",
+        "advisor_answer",
+      ],
+      knowledge_education_topic: [
+        "mills",
+        "fibres",
+        "fabrics",
+        "weaves",
+        "construction",
+        "collars",
+        "styling",
+        "care",
+        "performance",
+        "occasion",
+        "value",
+        "tradeoffs",
+      ],
+      knowledge_relation_kind: [
+        "related",
+        "prerequisite",
+        "comparison",
+        "follow_up",
+      ],
       notification_category: [
         "order_update",
         "production_update",
