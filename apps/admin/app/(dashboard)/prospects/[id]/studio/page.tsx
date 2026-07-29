@@ -77,12 +77,16 @@ export default async function DemoStudioPage({
               : !environment
                 ? "Configuration saved · generate a real demo retailer"
                 : environment.status === "published"
-                  ? `Private demo published · /r/${environment.retailerSlug}`
+                  ? environment.retailerSlug
+                    ? `Private demo published · /r/${environment.retailerSlug}`
+                    : "Private demo published"
                   : environment.status === "revoked"
                     ? "Private demo revoked · regenerate or republish when ready"
                     : environment.status === "expired"
                       ? "Demo expired · regenerate a fresh tenant for the next call"
-                      : `Demo retailer ready · /r/${environment.retailerSlug}`}
+                      : environment.retailerSlug
+                        ? `Demo retailer ready · /r/${environment.retailerSlug}`
+                        : "Demo retailer ready · walk the storefront, then publish"}
           </p>
         </div>
       </div>
