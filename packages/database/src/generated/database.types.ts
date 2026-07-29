@@ -6306,7 +6306,10 @@ export type Database = {
     };
     Enums: {
       ai_generation_kind:
-        "next_best_action" | "product_recommendation" | "communication_draft";
+        | "next_best_action"
+        | "product_recommendation"
+        | "communication_draft"
+        | "import_enrichment";
       ai_generation_status: "succeeded" | "failed";
       alteration_attachment_kind:
         "intake" | "label" | "evidence" | "progress" | "completion";
@@ -6662,6 +6665,7 @@ export const Constants = {
         "next_best_action",
         "product_recommendation",
         "communication_draft",
+        "import_enrichment",
       ],
       ai_generation_status: ["succeeded", "failed"],
       alteration_attachment_kind: [

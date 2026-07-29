@@ -1,7 +1,9 @@
 "use server";
 
+import { runCatalogueImportEnrichment } from "@paon/ai";
 import { requireRetailerRole } from "@paon/auth";
 import {
+  AIGenerationRepository,
   CatalogueImportRepository,
   MetadataRepository,
   RetailerStaffRepository,
@@ -9,8 +11,11 @@ import {
 import {
   asId,
   buildCatalogueImportPreview,
+  CATALOGUE_IMPORT_LLM_CONTRACT_MARKDOWN,
   CatalogueImportParseError,
+  catalogueImportEnrichmentIdempotencyKey,
   DEFAULT_CATALOGUE_IMPORT_LIMITS,
+  mergeEnrichmentIntoProposedProduct,
   parseCatalogueImportFile,
   publishCatalogueImportRowInputSchema,
   reviewCatalogueImportTaskInputSchema,
@@ -18,6 +23,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { getAIProvider } from "@/lib/ai";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -29,6 +35,50 @@ export interface ImportUploadState {
 export interface ImportPublishState {
   formError?: string;
   message?: string;
+}
+
+export interface ImportEnrichState {
+  formError?: string;
+  message?: string;
+}
+
+function rawPayloadToSupplierRow(
+  rawPayload: Readonly<Record<string, unknown>>,
+): Record<string, string> {
+  const row: Record<string, string> = {};
+  for (const [key, value] of Object.entries(rawPayload)) {
+    if (typeof value === "string") {
+      row[key] = value;
+    } else if (value !== null && value !== undefined) {
+      row[key] = String(value);
+    }
+  }
+  return row;
+}
+
+function buildTaxonomyLookup(
+  concepts: Awaited<ReturnType<MetadataRepository["findVisibleConcepts"]>>,
+) {
+  const index = new Map(
+    concepts.map((concept) => [`${concept.kind}:${concept.slug}`, concept]),
+  );
+  for (const concept of concepts) {
+    index.set(
+      `${concept.kind}:${concept.canonicalName.trim().toLowerCase()}`,
+      concept,
+    );
+  }
+  return {
+    isKnownConcept: (kind: string, slug: string) =>
+      index.has(`${kind}:${slug}`),
+    findConceptId: (kind: string, slug: string) =>
+      index.get(`${kind}:${slug}`)?.id ?? null,
+    entries: concepts.map((concept) => ({
+      kind: concept.kind,
+      slug: concept.slug,
+      label: concept.canonicalName,
+    })),
+  };
 }
 
 async function requireManagerSession() {
@@ -289,5 +339,140 @@ export async function publishImportReadyRows(
           ? error.message
           : "Could not publish reviewed import rows.",
     };
+  }
+}
+
+export async function enrichImportRow(
+  _previous: ImportEnrichState,
+  formData: FormData,
+): Promise<ImportEnrichState> {
+  const session = await requireManagerSession();
+  const importIdRaw = String(formData.get("importId") ?? "");
+  const importRowIdRaw = String(formData.get("importRowId") ?? "");
+  if (
+    !/^[0-9a-f-]{36}$/i.test(importIdRaw) ||
+    !/^[0-9a-f-]{36}$/i.test(importRowIdRaw)
+  ) {
+    return { formError: "Import row id is required." };
+  }
+
+  const provider = getAIProvider();
+  if (!provider) {
+    return {
+      formError:
+        'AI is not configured on this deployment — see docs/PROJECT_STATE.md "Credentials needed".',
+    };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const staff = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!staff) {
+    return { formError: "Your staff profile could not be resolved." };
+  }
+
+  const imports = new CatalogueImportRepository(supabase);
+  const importRowId = asId<"CatalogueImportRowId">(importRowIdRaw);
+  const rows = await imports.findRows(
+    session.retailerId,
+    asId<"CatalogueImportId">(importIdRaw),
+  );
+  const row = rows.find((candidate) => candidate.id === importRowId);
+  if (!row || !row.proposedProduct) {
+    return { formError: "Import row not found or not yet parsed." };
+  }
+  if (row.status === "published") {
+    return { formError: "Published rows cannot be enriched." };
+  }
+
+  const concepts = await new MetadataRepository(supabase).findVisibleConcepts(
+    session.retailerId,
+  );
+  const taxonomy = buildTaxonomyLookup(concepts);
+  const supplierRow = rawPayloadToSupplierRow(row.rawPayload);
+  const inputSummary = catalogueImportEnrichmentIdempotencyKey(importRowId);
+  const generationRepo = new AIGenerationRepository(supabase);
+  const startedAt = Date.now();
+
+  try {
+    const enrichment = await runCatalogueImportEnrichment({
+      provider,
+      context: {
+        contractMarkdown: CATALOGUE_IMPORT_LLM_CONTRACT_MARKDOWN,
+        supplierRow,
+        proposedProductSummary: `${row.proposedProduct.name} (${row.externalSku ?? "no sku"})`,
+        taxonomy: taxonomy.entries,
+      },
+      supplierRow,
+      taxonomy,
+    });
+
+    if (!enrichment.ok) {
+      await generationRepo.record({
+        retailerId: session.retailerId,
+        requestedByStaffId: staff.id,
+        kind: "import_enrichment",
+        status: "failed",
+        provider: provider.providerName,
+        model: provider.model,
+        inputSummary,
+        errorMessage: enrichment.error,
+        latencyMs: Date.now() - startedAt,
+      });
+      revalidatePath(`/imports/${importIdRaw}`);
+      return { formError: enrichment.error };
+    }
+
+    const merged = mergeEnrichmentIntoProposedProduct({
+      proposedProduct: row.proposedProduct,
+      proposal: enrichment.proposal,
+      supplierRow,
+      taxonomy,
+    });
+
+    await imports.applyEnrichment({
+      retailerId: session.retailerId,
+      importRowId,
+      proposedProduct: merged.proposedProduct,
+      reviewTasks: merged.reviewTasks,
+    });
+
+    await generationRepo.record({
+      retailerId: session.retailerId,
+      requestedByStaffId: staff.id,
+      kind: "import_enrichment",
+      status: "succeeded",
+      provider: enrichment.provider,
+      model: enrichment.model,
+      inputSummary,
+      output: {
+        taxonomyMappings: enrichment.proposal.taxonomyMappings.length,
+        derivedSuitability: enrichment.proposal.derivedSuitability.length,
+        reviewTasks: merged.reviewTasks.length,
+      },
+      latencyMs: Date.now() - startedAt,
+    });
+
+    revalidatePath(`/imports/${importIdRaw}`);
+    return {
+      message: `AI enrichment created ${merged.reviewTasks.length} pending review task${merged.reviewTasks.length === 1 ? "" : "s"}.`,
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Import enrichment failed";
+    await generationRepo.record({
+      retailerId: session.retailerId,
+      requestedByStaffId: staff.id,
+      kind: "import_enrichment",
+      status: "failed",
+      provider: provider.providerName,
+      model: provider.model,
+      inputSummary,
+      errorMessage: message,
+      latencyMs: Date.now() - startedAt,
+    });
+    revalidatePath(`/imports/${importIdRaw}`);
+    return { formError: message };
   }
 }

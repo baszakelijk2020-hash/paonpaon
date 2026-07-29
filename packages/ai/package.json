@@ -16,6 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@paon/domain": "workspace:*",
     "openai": "^6.48.0"
   },
   "devDependencies": {

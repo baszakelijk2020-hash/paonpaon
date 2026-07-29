@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `2.7 AI-assisted import enrichment`
-- **Current requirement IDs:** `IMP-003`, `IMP-004`, `ENG-002`
+- **Current queue item:** `3.1 Consent and interaction-event upgrade`
+- **Current requirement IDs:** `CUST-001`, `CUST-003`, `ENG-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -25,25 +25,27 @@ requires it.
   `7cd180f` mounts ranked knowledge cards in founder Archetype/Fabric/Sizing
   panels; `a0e03dd` adds accepted-metadata structured catalogue query;
   `dd2e274` adds catalogue import contracts and preview; `8aa10c6` adds
-  transactional reviewed import publishing (PHASE 2.6 complete).
+  transactional reviewed import publishing; PHASE 2.7 adds AI-assisted import
+  enrichment with pending review for every inference.
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, generated database types, `MetadataRepository`,
   `ProductFabricProfileRepository`, `KnowledgeRepository`,
   `CatalogueQueryRepository`, `CatalogueImportRepository` (preview + review +
-  publish), `publish_catalogue_import_row` /
+  publish + enrichment), `publish_catalogue_import_row` /
   `review_catalogue_import_task` RPCs, versioned import contract/parsers/
-  templates, storefront knowledge/catalogue mounts, and idempotent EDU-001
-  fixtures.
-- **Checks/deployment state:** 97 migrations; import publish/repo/RLS/pgTAP
-  and portal review/publish actions are green with lint/typecheck/test/build/
-  format on the 2.6 tip. Provider credentials remain optional for this stage.
-- **Real blockers:** none for AI-assisted import enrichment implementation;
-  missing AI key blocks live smoke only.
-- **Exact next files/tests:** implement queue item 2.7 AI-assisted import
-  enrichment: Admin-maintained external prompt/LLM contract first, then
-  provider-neutral `@paon/ai` job runner and audit repository with pending
-  review for every inference.
+  templates + enrichment JSON schema, `@paon/ai` import enrichment runner,
+  `import_enrichment` audit kind, storefront knowledge/catalogue mounts, and
+  idempotent EDU-001 fixtures.
+- **Checks/deployment state:** 98 migrations; import enrichment domain/AI/repo
+  tests and portal enrich action are green with lint/typecheck/test/build/
+  format on the 2.7 tip. Provider credentials remain optional for this stage.
+- **Real blockers:** none for Stage 3 consent/event upgrade; missing AI key
+  blocks live import-enrichment smoke only.
+- **Exact next files/tests:** implement queue item 3.1 consent and
+  interaction-event upgrade per ADR-021 and ADR-061: separate consent
+  purposes, typed interaction events with retention, and lawful anonymous
+  session support.
 
 ## 1. Programme intent
 

@@ -299,4 +299,63 @@ describe("CatalogueImportRepository", () => {
     expect(batch.results[1]?.result.ok).toBe(true);
     expect(rpc).toHaveBeenCalledTimes(2);
   });
+
+  it("applyEnrichment replaces pending AI review tasks idempotently", async () => {
+    const updatedRowRecord = {
+      ...importRowRecord,
+      proposed_product: {
+        externalSku: "LP-SUM-001",
+        name: "Summer hopsack jacket",
+        climate: "warm",
+        assetMatches: [],
+        categoryMappings: [],
+      },
+    };
+    const aiTaskRow = {
+      ...reviewTaskRow,
+      source: "ai" as const,
+      confidence: 0.84,
+      proposed_value: "climate: warm",
+    };
+
+    const from = vi.fn((table: string) => {
+      if (table === "catalogue_import_rows") {
+        return fakeQueryBuilder({ data: updatedRowRecord, error: null });
+      }
+      if (table === "metadata_review_tasks") {
+        return fakeQueryBuilder({ data: [aiTaskRow], error: null });
+      }
+      throw new Error(`unexpected table ${table}`);
+    });
+
+    const repository = new CatalogueImportRepository({
+      from,
+    } as unknown as PaonSupabaseClient);
+
+    const result = await repository.applyEnrichment({
+      retailerId: retailerId as never,
+      importRowId: rowId as never,
+      proposedProduct: {
+        externalSku: "LP-SUM-001",
+        name: "Summer hopsack jacket",
+        climate: "warm",
+        assetMatches: [],
+        categoryMappings: [],
+      },
+      reviewTasks: [
+        {
+          field: "climate",
+          proposedValue: "warm",
+          explanation: "Derived from hopsack weight.",
+          confidence: 0.84,
+        },
+      ],
+    });
+
+    expect(result.reviewTasks).toHaveLength(1);
+    expect(result.reviewTasks[0]?.source).toBe("ai");
+    expect(result.row.proposedProduct?.climate).toBe("warm");
+    expect(from).toHaveBeenCalledWith("catalogue_import_rows");
+    expect(from).toHaveBeenCalledWith("metadata_review_tasks");
+  });
 });

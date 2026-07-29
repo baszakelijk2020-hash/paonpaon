@@ -236,6 +236,9 @@ importers:
 
   packages/ai:
     dependencies:
+      '@paon/domain':
+        specifier: workspace:*
+        version: link:../domain
       openai:
         specifier: ^6.48.0
         version: 6.48.0(zod@3.25.76)

@@ -43,6 +43,23 @@ export interface ProductRecommendationResult {
   rationale: string;
 }
 
+export interface CatalogueImportEnrichmentTaxonomyEntry {
+  readonly kind: string;
+  readonly slug: string;
+  readonly label: string;
+}
+
+export interface CatalogueImportEnrichmentContext {
+  readonly contractMarkdown: string;
+  readonly supplierRow: Readonly<Record<string, string>>;
+  readonly proposedProductSummary: string;
+  readonly taxonomy: readonly CatalogueImportEnrichmentTaxonomyEntry[];
+}
+
+export interface CatalogueImportEnrichmentResult {
+  readonly proposal: Record<string, unknown>;
+}
+
 export interface AIProvider {
   readonly providerName: string;
   readonly model: string;
@@ -52,4 +69,7 @@ export interface AIProvider {
   generateProductRecommendation(
     context: ProductRecommendationContext,
   ): Promise<ProductRecommendationResult>;
+  enrichCatalogueImportRow(
+    context: CatalogueImportEnrichmentContext,
+  ): Promise<CatalogueImportEnrichmentResult>;
 }
