@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { METADATA_CONCEPT_KINDS } from "../metadata/metadata.schema";
+import type { MetadataConceptKind } from "../metadata/metadata";
 
 export const catalogueSearchSortSchema = z.enum([
   "newest",
@@ -33,9 +33,7 @@ export const catalogueSearchRangesSchema = z
     { message: "minPriceMinor cannot exceed maxPriceMinor" },
   );
 
-export type CatalogueSearchRanges = z.infer<
-  typeof catalogueSearchRangesSchema
->;
+export type CatalogueSearchRanges = z.infer<typeof catalogueSearchRangesSchema>;
 
 export const catalogueSearchRequestSchema = z.object({
   retailerId: z.string().uuid(),
@@ -82,5 +80,5 @@ export const CATALOGUE_FACET_TO_CONCEPT_KIND = {
   colour: "colour",
 } as const satisfies Record<
   Exclude<CatalogueFacetKind, "weight" | "price">,
-  (typeof METADATA_CONCEPT_KINDS)[number]
+  MetadataConceptKind
 >;

@@ -361,48 +361,52 @@ export async function GET(
       shouldIncludeStorefrontProduct(product.id, catalogueContext),
     )
     .map(({ product, variants }) => {
-    const collectionName = product.collectionIds
-      .map((id) => collectionNameById.get(id))
-      .find((name): name is string => Boolean(name));
-    const metadata = catalogueContext.metadataByProductId.get(product.id);
-    const heuristicColor = deriveColor(product.name, variants[0]?.color);
-    const heuristicPattern = derivePattern(product.name);
-    const heuristicSeason = deriveSeason(product.name, undefined);
-    const heuristicCategory = canonicalCategoryFor(
-      product.name,
-      collectionName,
-      product.primaryImageUrl ?? "",
-    );
-    return {
-      id: product.slug,
-      img: product.primaryImageUrl ?? "",
-      detailImg: toDetailImg(product),
-      name: product.name,
-      price: priceLabelFor(variants),
-      priceMinor: priceMinorFor(variants),
-      color: pickStorefrontFilterValue(metadata, "color", heuristicColor),
-      pattern: pickStorefrontFilterValue(metadata, "pattern", heuristicPattern),
-      season: pickStorefrontFilterValue(metadata, "season", heuristicSeason),
-      category: pickStorefrontFilterValue(
-        metadata,
-        "category",
-        heuristicCategory,
-      ),
-      metadataConceptIds: metadata?.conceptIds ?? [],
-      brand: retailer.displayName,
-      description: product.description,
-      material: product.isMadeToOrder ? "Made to order" : "In atelier",
-      variantName: variantNameFor(variants),
-      variantId: variants[0]?.id ?? null,
-      inventoryQuantity: variants[0]?.inventoryQuantity ?? 0,
-      // Made-to-order lines are never "sold out" — there is no fixed
-      // inventory to exhaust, only a lead time. A stocked line with
-      // nothing left is the one case this storefront should stop
-      // selling instead of quietly overselling (Critical 1).
-      soldOut:
-        !product.isMadeToOrder && (variants[0]?.inventoryQuantity ?? 0) <= 0,
-    };
-  });
+      const collectionName = product.collectionIds
+        .map((id) => collectionNameById.get(id))
+        .find((name): name is string => Boolean(name));
+      const metadata = catalogueContext.metadataByProductId.get(product.id);
+      const heuristicColor = deriveColor(product.name, variants[0]?.color);
+      const heuristicPattern = derivePattern(product.name);
+      const heuristicSeason = deriveSeason(product.name, undefined);
+      const heuristicCategory = canonicalCategoryFor(
+        product.name,
+        collectionName,
+        product.primaryImageUrl ?? "",
+      );
+      return {
+        id: product.slug,
+        img: product.primaryImageUrl ?? "",
+        detailImg: toDetailImg(product),
+        name: product.name,
+        price: priceLabelFor(variants),
+        priceMinor: priceMinorFor(variants),
+        color: pickStorefrontFilterValue(metadata, "color", heuristicColor),
+        pattern: pickStorefrontFilterValue(
+          metadata,
+          "pattern",
+          heuristicPattern,
+        ),
+        season: pickStorefrontFilterValue(metadata, "season", heuristicSeason),
+        category: pickStorefrontFilterValue(
+          metadata,
+          "category",
+          heuristicCategory,
+        ),
+        metadataConceptIds: metadata?.conceptIds ?? [],
+        brand: retailer.displayName,
+        description: product.description,
+        material: product.isMadeToOrder ? "Made to order" : "In atelier",
+        variantName: variantNameFor(variants),
+        variantId: variants[0]?.id ?? null,
+        inventoryQuantity: variants[0]?.inventoryQuantity ?? 0,
+        // Made-to-order lines are never "sold out" — there is no fixed
+        // inventory to exhaust, only a lead time. A stocked line with
+        // nothing left is the one case this storefront should stop
+        // selling instead of quietly overselling (Critical 1).
+        soldOut:
+          !product.isMadeToOrder && (variants[0]?.inventoryQuantity ?? 0) <= 0,
+      };
+    });
 
   // The category with the most matching products, so the first thing a
   // visitor sees is the fullest grid the catalog can show — not just

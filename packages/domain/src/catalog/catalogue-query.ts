@@ -1,9 +1,12 @@
 import type {
+  MetadataConcept,
+  MetadataConceptKind,
+} from "../metadata/metadata";
+import type {
   MetadataConceptId,
   ProductId,
   RetailerId,
 } from "../shared/branded-id";
-import type { MetadataConcept, MetadataConceptKind } from "../metadata/metadata";
 
 import {
   CATALOGUE_FACET_TO_CONCEPT_KIND,
@@ -59,10 +62,7 @@ export interface CatalogueSearchResult {
 
 /** Founder filter groups that metadata can drive when accepted assignments exist. */
 export type StorefrontCatalogueFilterGroup =
-  | "color"
-  | "pattern"
-  | "season"
-  | "category";
+  "color" | "pattern" | "season" | "category";
 
 export interface StorefrontCatalogueFilterValue {
   readonly group: StorefrontCatalogueFilterGroup;
@@ -218,8 +218,7 @@ function conceptMatchesPattern(
     pattern.conceptKinds !== undefined &&
     pattern.conceptKinds.includes(concept.kind)
   ) {
-    const haystack =
-      `${concept.slug} ${concept.canonicalName}`.toLowerCase();
+    const haystack = `${concept.slug} ${concept.canonicalName}`.toLowerCase();
     return pattern.triggers.some((trigger) => haystack.includes(trigger));
   }
   return false;
@@ -241,8 +240,7 @@ export function resolveCatalogueSearchIntent(
   const normalized = normalizeQuery(query);
   const pattern = INTENT_PATTERNS.find((candidate) =>
     candidate.triggers.some(
-      (trigger) =>
-        normalized.includes(trigger) || trigger.includes(normalized),
+      (trigger) => normalized.includes(trigger) || trigger.includes(normalized),
     ),
   );
 

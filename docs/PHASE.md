@@ -234,7 +234,7 @@ storefront redesign, or customer personalization.
     `__PAON_KNOWLEDGE_BY_PRODUCT_JSON__`, public storefront knowledge reads,
     founder fallback when no accepted concepts link.
 
-- [ ] **2.4 Structured catalogue query**
+- [x] **2.4 Structured catalogue query**
   - **Requirement IDs:** `SRCH-001`, `SRCH-002`, `ENG-002`, `ENG-003`.
   - **Dependencies:** `1.4`.
   - **Owner boundary:** `@paon/domain` query contract, indexed
@@ -250,6 +250,10 @@ storefront redesign, or customer personalization.
   - **Non-goals:** no embeddings, opaque relevance, public API, or removal of a
     heuristic before equivalent behavior is protected.
   - **Hard blockers:** none.
+  - **Landed:** structured catalogue query contracts, indexed
+    `search_catalogue_products` / `list_catalogue_facets` RPCs, repository
+    coverage, and founder hooks via `__PAON_CATALOGUE_JSON__` with metadata
+    facet precedence and heuristic fallback.
 
 - [ ] **2.5 Import contracts and preview**
   - **Requirement IDs:** `IMP-001`, `IMP-002`, `IMP-004`, `CAT-004`.

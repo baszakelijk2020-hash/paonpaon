@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `2.4 Structured catalogue query`
-- **Current requirement IDs:** `SRCH-001`, `SRCH-002`, `ENG-002`, `ENG-003`
+- **Current queue item:** `2.5 Import contracts and preview`
+- **Current requirement IDs:** `IMP-001`, `IMP-002`, `IMP-004`, `CAT-004`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -21,24 +21,26 @@ requires it.
   transition contract and PAON Admin canonical management; `8eaa834` added
   the Retailer Portal metadata review UI; `117fa8e` added exact product facts
   and catalogue assignment UI; `b5827bc` added knowledge contracts,
-  persistence, and fixtures; `353b737` adds the deterministic discovery engine;
-  `7cd180f` mounts ranked knowledge cards in founder Archetype/Fabric/Sizing
-  panels (PHASE 2.3 complete).
+  persistence, and fixtures; `353b737` added the deterministic discovery engine;
+  `7cd180f` mounted ranked knowledge cards in founder Archetype/Fabric/Sizing
+  panels; latest tip adds structured catalogue query contracts, indexed search
+  RPCs, and founder storefront metadata filter/search hooks (PHASE 2.4 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables plus four
   knowledge tables, generated database types, `MetadataRepository`,
   `ProductFabricProfileRepository`, `KnowledgeRepository` (including
-  `projectDiscoveryCandidates`), `rankKnowledgeDiscovery` /
+  `projectDiscoveryCandidates`), `CatalogueQueryRepository` (including
+  `search_catalogue_products` / `list_catalogue_facets`), `rankKnowledgeDiscovery` /
   `rankStorefrontKnowledgePanels`, storefront `__PAON_KNOWLEDGE_BY_PRODUCT_JSON__`
-  mounts, and idempotent EDU-001 canonical knowledge fixtures.
-- **Checks/deployment state:** 94 migrations; knowledge mount unit/DOM
-  allowlist tests and Playwright desktop/mobile e2e are green with
-  lint/typecheck/test/build/format on the 2.3 tip. Provider credentials remain
+  and `__PAON_CATALOGUE_JSON__` mounts, and idempotent EDU-001 canonical
+  knowledge fixtures.
+- **Checks/deployment state:** 95 migrations; catalogue query unit/migration
+  evidence tests and founder storefront DOM allowlist checks are green with
+  lint/typecheck/test/build/format on the 2.4 tip. Provider credentials remain
   optional for this stage.
-- **Real blockers:** none for structured catalogue query.
-- **Exact next files/tests:** implement queue item 2.4 structured catalogue
-  query: domain query contract, indexed repository facets/ranges/intent
-  mapping, and founder storefront filter/search hooks with parity coverage
-  before retiring heuristics.
+- **Real blockers:** none for import contracts and preview.
+- **Exact next files/tests:** implement queue item 2.5 import contracts and
+  preview: domain import schemas, CSV/XLSX/JSON parsers, migration/RLS/
+  repositories, downloadable templates, and Retailer Portal preview only.
 
 ## 1. Programme intent
 

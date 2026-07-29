@@ -11,7 +11,6 @@ import {
   type CatalogueFacetGroup,
   type CatalogueIntentResolution,
   type MetadataConcept,
-  type MetadataConceptId,
   type ProductId,
   type ProductVariantId,
   type RetailerId,

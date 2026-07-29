@@ -12,8 +12,6 @@ import {
   type CatalogueSearchHit,
   type CatalogueSearchRequest,
   type CatalogueSearchResult,
-  type MetadataConceptId,
-  type ProductId,
   type RetailerId,
   type StorefrontCatalogueIntentConcept,
 } from "@paon/domain";
@@ -102,7 +100,7 @@ export class CatalogueQueryRepository {
     const rows = (data ?? []) as SearchRow[];
     const totalCount = rows.length > 0 ? Number(rows[0]?.total_count ?? 0) : 0;
     const hits: CatalogueSearchHit[] = rows.map((row) => ({
-      productId: asId<ProductId>(row.product_id),
+      productId: asId<"ProductId">(row.product_id),
       relevanceScore: Number(row.relevance_score),
     }));
 

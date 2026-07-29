@@ -96,7 +96,9 @@ describe("resolveCatalogueSearchIntent", () => {
   });
 
   it("returns null for empty query", () => {
-    expect(resolveCatalogueSearchIntent(undefined, catalogueConcepts)).toBeNull();
+    expect(
+      resolveCatalogueSearchIntent(undefined, catalogueConcepts),
+    ).toBeNull();
     expect(resolveCatalogueSearchIntent("   ", catalogueConcepts)).toBeNull();
   });
 });
@@ -209,9 +211,8 @@ describe("mergeCatalogueConceptFilters", () => {
 
 describe("catalogueSearchRequestSchema", () => {
   it("rejects invalid weight and price ranges", async () => {
-    const { catalogueSearchRequestSchema } = await import(
-      "./catalogue-query.schema"
-    );
+    const { catalogueSearchRequestSchema } =
+      await import("./catalogue-query.schema");
 
     expect(() =>
       catalogueSearchRequestSchema.parse({
