@@ -36,20 +36,28 @@ If Tier 0 answers your question, stop there and start work.
 These are long append-only logs and inventories. Grep them for the specific
 thing you need; do not load them into context wholesale.
 
-| Document                                                | Use it to find                                                  |
-| ------------------------------------------------------- | --------------------------------------------------------------- |
-| [DECISIONS.md](./DECISIONS.md) (~2,200 lines)           | Why something is the way it is. Search by ADR number or keyword |
-| [PROJECT_STATE.md](./PROJECT_STATE.md) (~1,700)         | Whether a given feature is actually built                       |
-| [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md) (~700) | Per-route acceptance status for the rebuild                     |
-| [ROADMAP.md](./ROADMAP.md)                              | Sequencing intent. **Not a work queue** — see PHASE.md          |
-| [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)            | What blocks a sale. **Not a work queue** — see PHASE.md         |
-| [NON_GOALS.md](./NON_GOALS.md)                          | What is deliberately not being built yet                        |
-| [NIGHT_LOG.md](./NIGHT_LOG.md)                          | Trail from an explicitly authorized unattended overnight run    |
+| Document                                                | Use it to find                                                               |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [DECISIONS.md](./DECISIONS.md) (~2,200 lines)           | Why something is the way it is. Search by ADR number or keyword              |
+| [PROJECT_STATE.md](./PROJECT_STATE.md) (~1,700)         | Whether a given feature is actually built                                    |
+| [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md) (~700) | Per-route acceptance status for the rebuild                                  |
+| [ROADMAP.md](./ROADMAP.md)                              | Sequencing intent + post-pilot Horizons. **Not a work queue** — see PHASE.md |
+| [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)            | What blocks a sale. **Not a work queue** — see PHASE.md                      |
+| [NON_GOALS.md](./NON_GOALS.md)                          | What is deliberately not being built yet                                     |
+| [vision/](./vision/)                                    | Wardrobe intelligence destination (also Tier 1.5). **Not a work queue**      |
+| [NIGHT_LOG.md](./NIGHT_LOG.md)                          | Trail from an explicitly authorized unattended overnight run                 |
+
+## Tier 1.5 — strategic destination (orientation only)
+
+| Document             | What it gives you                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [vision/](./vision/) | Lifelong wardrobe intelligence pillars. Search or open one pillar — never bulk-read. **Never overrides PHASE.md.** |
 
 ## Why PAON exists
 
 [NORTH_STAR.md](./NORTH_STAR.md) and [VISION.md](./VISION.md). Read once,
-for orientation. Neither authorizes work — PHASE.md does that.
+for orientation. Neither authorizes work — PHASE.md does that. The
+category claim and pillar map are in [vision/](./vision/).
 
 ## Rules for this document set
 

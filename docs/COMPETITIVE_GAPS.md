@@ -10,6 +10,17 @@ feature wish list and not a roadmap.
 priority. Nothing here is a licence to start building — each Tier 1 item
 that gets picked up needs its own founder decision and, where it touches
 the domain model, its own entry in [DECISIONS.md](./DECISIONS.md).
+[PHASE.md](./PHASE.md) overrides everything during the freeze.
+
+## Category claim (differentiation, not a work queue)
+
+Against POS and generic e-commerce, PAON’s long-term differentiation is
+**personal wardrobe intelligence** for independent menswear clients —
+lifecycle of owned garments, explainable advisor, retailer clienteling
+cockpit — not feature parity on checkout. Destination specs:
+[vision/](./vision/) (ADR-056). This subsection does **not** authorize
+building those pillars; sales-blocker tiers below remain the inventory for
+pilot conversations.
 
 **The buyer, in two waves.** The segment is the independent menswear
 retailer — typically an owner-operator — who pays PAON directly. Nothing

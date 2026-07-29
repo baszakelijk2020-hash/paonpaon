@@ -109,3 +109,16 @@ order.
 See [ROADMAP.md](./ROADMAP.md) for the order these are built in. This
 document describes the full intended product surface; it is not a
 statement that all of it exists yet.
+
+## Future surfaces (wardrobe intelligence) — not built
+
+Labeled **future**. Specs in [vision/](./vision/). Do not implement during
+[PHASE.md](./PHASE.md) freeze (ADR-056).
+
+| Surface                                        | App                         | Pillar                                                                       |
+| ---------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------- |
+| Personal wardrobe / digital twin               | Customer                    | [03](./vision/03_wardrobe_intelligence.md)                                   |
+| Wardrobe roadmap & scores                      | Customer                    | [04](./vision/04_wardrobe_roadmap.md), [07](./vision/07_wardrobe_scoring.md) |
+| AI style advisor                               | Customer (+ retailer brief) | [06](./vision/06_ai_style_advisor.md)                                        |
+| Clienteling cockpit (gaps, events, likelihood) | Retailer                    | [09](./vision/09_clienteling_cockpit.md)                                     |
+| Metadata enrichment / import review            | Retailer / Admin            | [02](./vision/02_metadata_graph.md)                                          |

@@ -7,9 +7,49 @@
 > in one repository is the exact mechanism by which control over this build
 > was lost once already. In particular, the "Experience Rebuild" and its
 > eight-item commercialisation track below are **paused**, not in progress.
+> Horizons A–D (wardrobe intelligence) are post-pilot sequencing intent
+> only — see [vision/](./vision/) and ADR-056. **Not a work queue.**
 
 Phased by dependency order — each phase's data model and UI depend on
 the ones before it. Not date-committed; sequencing, not scheduling.
+
+## Horizons after pilot proof (not a work queue)
+
+```mermaid
+flowchart LR
+  pilot[PilotFreeze_3Paid]
+  hA[HorizonA_DiscoveryAndMetadata]
+  hB[HorizonB_WardrobeTwin]
+  hC[HorizonC_AdvisorAndCockpit]
+  hD[HorizonD_ColourAndDeepRecs]
+
+  pilot --> hA
+  hA --> hB
+  hB --> hC
+  hC --> hD
+```
+
+1. **Now (PHASE)** — conversion freeze: storefront, Demo Studio, marketing.
+2. **Horizon A — Discovery & Metadata** — Metadata Graph Phase 0–1 + Discovery
+   Commerce consumers (filters/knowledge on storefront via data hooks only;
+   ADR-052 intact). Specs: [vision/02](./vision/02_metadata_graph.md),
+   [vision/01](./vision/01_discovery_commerce.md).
+3. **Horizon B — Wardrobe Intelligence Platform** — wardrobe twin on
+   `PhysicalGarment` + lifestyle profile + scoring + roadmap.
+   Specs: [03](./vision/03_wardrobe_intelligence.md)–[05](./vision/05_lifestyle_intelligence.md),
+   [07](./vision/07_wardrobe_scoring.md), [04](./vision/04_wardrobe_roadmap.md),
+   [12](./vision/12_garment_lifecycle.md).
+4. **Horizon C — Advisor & Cockpit** — AI Style Advisor + Clienteling Cockpit
+   - Outfit Intelligence + AI Memory.
+     Specs: [06](./vision/06_ai_style_advisor.md), [08](./vision/08_outfit_intelligence.md),
+     [09](./vision/09_clienteling_cockpit.md), [13](./vision/13_ai_memory.md).
+5. **Horizon D — Colour & deep recommendations** — Colour Intelligence + full
+   multi-signal Recommendation Engine + supplier PDF/bulk enrichment at scale.
+   Specs: [11](./vision/11_colour_intelligence.md),
+   [10](./vision/10_recommendation_engine.md).
+
+Category map: [vision/14_long_term_product_vision.md](./vision/14_long_term_product_vision.md).
+Do not invent schema in DOMAIN_MODEL/DATABASE until PHASE authorizes a build.
 
 ## Immediate priority — Experience Rebuild (in progress)
 

@@ -457,9 +457,16 @@ because they serve this phase directly:
 Everything else — including work that fits the architecture perfectly,
 closes a documented gap, or completes a roadmap phase.
 
-`ROADMAP.md` and `COMPETITIVE_GAPS.md` are **not work queues during this
-phase.** They are reference. Reading them is not permission to build from
-them.
+`ROADMAP.md`, `COMPETITIVE_GAPS.md` and `vision/` are **not work queues
+during this phase.** They are reference. Reading them is not permission to
+build from them.
+
+**Vision system (2026-07-29).** [vision/](./vision/) documents lifelong
+wardrobe intelligence as the long-term destination (ADR-056). That set
+does **not** expand this freeze. Do not implement metadata graphs,
+wardrobe twins, import wizards, colour pipelines, or AI advisors from
+those specs until the pilot objective is met and this file explicitly
+lifts the freeze for that work.
 
 If asked to build outside the three workstreams: say it falls outside the
 freeze, and ask. Do not build it quietly because it seemed reasonable.

@@ -53,9 +53,18 @@ warns against.
 - Manufacturing execution, MTM measurement/fit profiles, garment
   specifications, production ordering and construction — GoCreate/supplier
   systems remain authoritative. PAON owns in-store garment fitting and
-  alteration work, not the factory floor.
+  alteration work, not the factory floor. A future **wardrobe twin**
+  ([vision/03_wardrobe_intelligence.md](./vision/03_wardrobe_intelligence.md))
+  is not a factory fit profile and must not revive archived
+  `CustomerFitProfile` under a new name without a new ADR (ADR-016 /
+  ADR-055).
 - Being a general-purpose CRM or e-commerce platform for non-luxury,
   high-volume retail — the product decisions throughout this document
   set (clienteling, production/alteration tracking, low-volume
   high-touch UX) are specifically for premium and luxury retail, and
   should not be diluted to serve a broader market.
+- **Implementing [vision/](./vision/) pillars during the PHASE freeze.**
+  Those docs are destination architecture (ADR-056). Native apps, public
+  API, and offline remain deferred as above; wardrobe/metadata/AI pillars
+  wait for an explicit PHASE lift after pilot proof — they are not a
+  side queue.

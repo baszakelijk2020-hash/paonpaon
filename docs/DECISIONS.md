@@ -2466,3 +2466,42 @@ already gated membership creation.
 member without polluting `Customer`. Any future "my measurements" portal
 feature still needs FittingObservation / garment-scoped data, not these
 columns.
+
+## ADR-056: Vision documents are destination architecture; PHASE authorizes build
+
+**Context.** PAON’s long-term category is lifelong wardrobe intelligence
+(RetailOS plus a customer-side wardrobe advisor loop). Specifying that as
+one mega-prompt invites shallow design and, worse, agents treating vision
+text as a build queue during the pilot freeze. Discovery Commerce and a
+Universal Metadata Graph are only part of the ambition; wardrobe twin,
+roadmap, scoring, outfit, advisor, clienteling cockpit, colour, lifecycle
+and memory need first-class pillar docs. Separately, storefront category /
+colour / pattern / season still come from keyword heuristics in
+`apps/customer/app/r/[slug]/route.ts` — that must eventually become graph
+data, but not during freeze and not by rewriting founder chrome (ADR-052).
+
+**Decision.**
+
+1. Author and maintain [docs/vision/](./vision/) as the architectural
+   destination for wardrobe intelligence (pillars 01–14 + README). Each
+   pillar is labeled **not shipped**; entities named there are intended,
+   not schema.
+2. **[PHASE.md](./PHASE.md) alone authorizes implementation.** Vision docs,
+   ROADMAP Horizons A–D, COMPETITIVE_GAPS and PRODUCT “future surfaces”
+   never expand the freeze by themselves.
+3. **Conflict rule:** if vision docs disagree with code or
+   [PROJECT_STATE.md](./PROJECT_STATE.md), code/PROJECT_STATE win — fix the
+   vision doc or supersede with a new ADR. Do not invent “shipped”
+   systems in vision prose.
+4. **Metadata Graph intent:** Horizon A (post-pilot) will displace
+   `route.ts` heuristics with concept assignments. Record that intent here;
+   do not implement the graph, embeddings, import wizard or advisor under
+   this ADR. Do not revive archived customer-level fit profiles (ADR-016 /
+   ADR-055) under a wardrobe-twin name without a new ADR. Do not treat
+   Collection as Brand.
+
+**Consequences.** Agents may plan against vision pillars after pilot proof
+using ROADMAP Horizons; they must refuse to build those pillars while
+PHASE freeze is active unless the founder explicitly expands PHASE. Schema
+landings still require DOMAIN_MODEL / DATABASE / migration ADR discipline
+when PHASE allows.

@@ -6,6 +6,11 @@
 lifetime relationship between an independent menswear retailer and their
 clients.**
 
+Long-term category ownership is **personal wardrobe intelligence** delivered
+through that RetailOS — not another POS or e-commerce stack with AI bolted
+on. The destination architecture is specified in [vision/](./vision/); those
+docs do not authorize work. What may be built today is only [PHASE.md](./PHASE.md).
+
 ## Who it is for
 
 An independent multi-brand menswear retailer, usually owner-operated, who
