@@ -65,7 +65,8 @@ Verified against code and 91 migrations on 2026-07-30:
   contracts, Retailer Portal preview, transactional reviewed-row publishing,
   and AI-assisted enrichment with pending review exist.
   StyleProfile tables, advisor briefs, and grounded TableService guidance
-  exist. No wardrobe, outfit, roadmap, service-plan, or campaign table exists.
+  exist. Wardrobe ownership tables, repositories, and Customer/Retailer Portal
+  wardrobe views exist. No outfit, roadmap, service-plan, or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -422,7 +423,7 @@ replacement of human advice for uncertain high-value decisions.
 
 ### Stage 4 — Wardrobe intelligence and MorningRoutine
 
-- [ ] **4.1 Wardrobe ownership and collaboration**
+- [x] **4.1 Wardrobe ownership and collaboration**
   - **Requirement IDs:** `WARD-001`, `WARD-002`, `WARD-003`, `ENG-003`.
   - **Dependencies:** `3.2`; ADR-063.
   - **Owner boundary:** wardrobe domain, forward migration/RLS, repositories,
@@ -438,6 +439,10 @@ replacement of human advice for uncertain high-value decisions.
   - **Non-goals:** no generic manufacturing fit profile, product clone,
     cross-retailer wardrobe, roadmap, recommendation, or marketplace item.
   - **Hard blockers:** none.
+  - **Landed:** wardrobe domain + migration/RLS/RPCs, `WardrobeRepository`,
+    metadata `wardrobe_item` target enablement, Customer Portal `/wardrobe`,
+    Retailer Portal customer wardrobe collaboration panel; `PhysicalGarment`
+    remains the service-garment aggregate on the relationship workspace.
 
 - [ ] **4.2 Wardrobe Roadmap, outfits, and sartorial rules**
   - **Requirement IDs:** `ROAD-001`, `ROAD-002`, `ENG-002`.

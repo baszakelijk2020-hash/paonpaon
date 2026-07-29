@@ -9,6 +9,8 @@ import {
   LoyaltyRepository,
   OrderRepository,
   PhysicalGarmentRepository,
+  WardrobeRepository,
+  wardrobeItemCountByCustomer,
 } from "@paon/database";
 import {
   asId,
@@ -31,6 +33,7 @@ import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 import { createClientelingNote, setPreferredCarrier } from "./actions";
 import { AdvisorPreparationBriefCard } from "./advisor-preparation-brief";
 import { AIInsights } from "./ai-insights";
+import { CustomerWardrobePanel } from "./customer-wardrobe-panel";
 import { SelfPortrait } from "./self-portrait";
 
 import { getAIProvider } from "@/lib/ai";
@@ -73,6 +76,7 @@ export default async function CustomerDetailPage({
     recentEvents,
     alterations,
     advisorBrief,
+    wardrobeItems,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -90,7 +94,22 @@ export default async function CustomerDetailPage({
       customerId: customer.id,
       advisorRetailerId: session.retailerId,
     }),
+    new WardrobeRepository(supabase).findByCustomer(
+      session.retailerId,
+      customer.id,
+    ),
   ]);
+  const wardrobeRepo = new WardrobeRepository(supabase);
+  const wardrobeHistoryEntries = await Promise.all(
+    wardrobeItems.map(async (item) => ({
+      itemId: item.id,
+      history: await wardrobeRepo.listHistory(item.id, 20),
+    })),
+  );
+  const historyByItemId = Object.fromEntries(
+    wardrobeHistoryEntries.map((entry) => [entry.itemId, entry.history]),
+  );
+  const activeWardrobeCount = wardrobeItemCountByCustomer(wardrobeItems);
   const garmentById = new Map(garments.map((garment) => [garment.id, garment]));
 
   /** Fit-tool values (Neiging, Kraag, Schouder R/L, etc.) are captured
@@ -225,6 +244,14 @@ export default async function CustomerDetailPage({
         </div>
         <div className="border-b border-r border-[var(--color-stone-200)] p-5 sm:p-6">
           <p className="text-xs text-[var(--color-stone-500)]">Wardrobe</p>
+          <p className="mt-2 text-lg">
+            {activeWardrobeCount} item{activeWardrobeCount === 1 ? "" : "s"}
+          </p>
+        </div>
+        <div className="border-b border-r border-[var(--color-stone-200)] p-5 sm:p-6">
+          <p className="text-xs text-[var(--color-stone-500)]">
+            Service garments
+          </p>
           <p className="mt-2 text-lg">
             {garments.length} garment{garments.length === 1 ? "" : "s"}
           </p>
@@ -386,6 +413,17 @@ export default async function CustomerDetailPage({
           }
         />
       </div>
+
+      {canManage ? (
+        <div className="paon-reveal" style={{ animationDelay: "280ms" }}>
+          <CustomerWardrobePanel
+            customerId={customer.id}
+            items={wardrobeItems}
+            garments={garments}
+            historyByItemId={historyByItemId}
+          />
+        </div>
+      ) : null}
 
       {canManage ? (
         <Card>
@@ -583,9 +621,8 @@ export default async function CustomerDetailPage({
             <p className="mt-2 text-sm leading-6 text-[var(--color-stone-600)]">
               No physical garments have been recorded yet. Fit observations are
               captured against a garment during intake or a fitting note — never
-              as a generic customer measurement (see Wardrobe above). Before
-              confirming a made-to-measure order, record at minimum: chest,
-              waist and sleeve length.
+              as a generic customer measurement. Before confirming a made-to-measure
+              order, record at minimum: chest, waist and sleeve length.
             </p>
             {canManage ? (
               <Link

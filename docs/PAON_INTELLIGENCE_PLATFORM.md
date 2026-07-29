@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `4.1 Wardrobe ownership and collaboration`
-- **Current requirement IDs:** `WARD-001`, `WARD-002`, `WARD-003`, `ENG-003`
+- **Current queue item:** `4.2 Wardrobe Roadmap, outfits, and sartorial rules`
+- **Current requirement IDs:** `ROAD-001`, `ROAD-002`, `ENG-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -30,7 +30,8 @@ requires it.
   events (PHASE 3.1 complete); `82f499c` adds StyleProfile evidence and
   deterministic recomputation (PHASE 3.2 complete); `6f5fac4` adds consented
   advisor preparation briefing (PHASE 3.3 complete); `ed2f0dc` adds grounded
-  TableService occasion guidance (PHASE 3.4 complete).
+  TableService occasion guidance (PHASE 3.4 complete); wardrobe ownership and
+  collaboration (PHASE 4.1 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -41,31 +42,36 @@ requires it.
   `customer_style_preference_evidence`, StyleProfile RPCs
   (`ensure_customer_style_profile`, `upsert_declared_style_preference`,
   `remove_inferred_style_preference`, `record_style_preference_evidence`,
-  `persist_style_profile_recompute`), `tableservice_grounded` AI generation
+  `persist_style_profile_recompute`), `wardrobe_items`,
+  `wardrobe_ownership_events`, wardrobe RPCs (`create_external_wardrobe_item`,
+  `create_retailer_purchase_wardrobe_item`, `update_wardrobe_item_state`,
+  `add_wardrobe_advisor_note`, `archive_wardrobe_item`), enabled
+  `wardrobe_item` metadata targets, `tableservice_grounded` AI generation
   kind + `record_customer_tableservice_grounded` RPC, generated database
   types, `MetadataRepository`, `ProductFabricProfileRepository`,
   `KnowledgeRepository`, `CatalogueQueryRepository`,
   `CatalogueImportRepository`, `ImportEnrichmentPromptRepository`,
   `CustomerConsentRepository`, `StyleProfileRepository`,
-  `AdvisorBriefRepository`, `TableServiceGuidanceRepository`, upgraded
+  `AdvisorBriefRepository`, `TableServiceGuidanceRepository`,
+  `WardrobeRepository`, upgraded
   `AnalyticsRepository`, `@paon/domain` intelligence
-  consent/interaction-event/StyleProfile/advisor-brief/grounded-answer
+  consent/interaction-event/StyleProfile/advisor-brief/grounded-answer/wardrobe
   contracts, `@paon/ai` `generateGroundedAnswer`, customer account consent +
   StyleProfile inspect/remove controls, consented storefront/swipe/
-  TableService producers, Retailer Portal advisor brief mounts, and
-  TableService occasion guidance with swipe/appointment conversion hooks.
-- **Checks/deployment state:** 101 migrations; grounded TableService domain/
-  AI/repo/surface and lint/typecheck/test/build/format are green on the 3.4
-  tip. Anonymous interaction persistence remains blocked pending jurisdiction
+  TableService producers, Customer Portal `/wardrobe`, Retailer Portal advisor
+  brief and wardrobe collaboration mounts, and TableService occasion guidance
+  with swipe/appointment conversion hooks.
+- **Checks/deployment state:** 102 migrations; wardrobe domain/migration/repo/
+  surfaces and lint/typecheck/test/build/format are green on the 4.1 tip.
+  Anonymous interaction persistence remains blocked pending jurisdiction
   documentation.
-- **Real blockers:** none for Stage 4.1 wardrobe ownership work; anonymous
-  persistence remains blocked for new anonymous producers only; missing AI
-  key blocks live TableService generation only (deterministic retrieval
-  remains available).
-- **Exact next files/tests:** implement queue item 4.1 Wardrobe ownership and
-  collaboration: wardrobe domain, forward migration/RLS, repositories, and
-  Customer/Retailer Portal wardrobe views; keep `PhysicalGarment` as the
-  official fitting/service aggregate.
+- **Real blockers:** none for Stage 4.2 roadmap work; anonymous persistence
+  remains blocked for new anonymous producers only; missing AI key blocks live
+  TableService generation only (deterministic retrieval remains available).
+- **Exact next files/tests:** implement queue item 4.2 Wardrobe Roadmap,
+  outfits, and sartorial rules: roadmap domain, forward migration/RLS,
+  repositories, advisor authoring, and customer approved-plan view; keep
+  wardrobe items as references, not parallel product facts.
 
 ## 1. Programme intent
 
