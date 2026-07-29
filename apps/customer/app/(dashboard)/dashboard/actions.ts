@@ -3,6 +3,7 @@
 import {
   AIGenerationRepository,
   AnalyticsRepository,
+  ConsentRepository,
   ProductRepository,
   RetailerRepository,
 } from "@paon/database";
@@ -57,7 +58,12 @@ export async function generateTodaysPick(
   const cId = asId<"CustomerId">(customerId);
 
   const [recentEvents, products, retailer] = await Promise.all([
-    new AnalyticsRepository(supabase).findRecentByCustomer(rId, cId, 20),
+    new AnalyticsRepository(supabase).findRecentByCustomerForAdvisor(
+      rId,
+      cId,
+      new ConsentRepository(supabase),
+      20,
+    ),
     new ProductRepository(supabase).findByRetailer(rId),
     new RetailerRepository(supabase).findById(rId),
   ]);

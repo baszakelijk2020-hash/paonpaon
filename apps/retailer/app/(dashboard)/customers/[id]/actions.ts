@@ -5,6 +5,7 @@ import {
   AIGenerationRepository,
   AnalyticsRepository,
   ClientelingRepository,
+  ConsentRepository,
   CustomerRepository,
   OrderRepository,
   RetailerRepository,
@@ -56,9 +57,10 @@ export async function generateNextBestAction(
   const [retailer, staff, events, orders] = await Promise.all([
     new RetailerRepository(client).findById(session.retailerId),
     new RetailerStaffRepository(client).findByUserId(session.userId),
-    new AnalyticsRepository(client).findRecentByCustomer(
+    new AnalyticsRepository(client).findRecentByCustomerForAdvisor(
       session.retailerId,
       customer.id,
+      new ConsentRepository(client),
       10,
     ),
     new OrderRepository(client).findByCustomer(customer.id),

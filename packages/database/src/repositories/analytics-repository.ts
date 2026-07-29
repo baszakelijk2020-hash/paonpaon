@@ -1,12 +1,24 @@
 import {
   asId,
+  assessCaptureEligibility,
+  buildConsentSnapshot,
+  buildLegacyConsentSnapshot,
+  computeRetentionExpiresAt,
+  isAdvisorVisibleEvent,
   type BehavioralEvent,
+  type ConsentPurpose,
   type CustomerId,
+  type InteractionEvent,
+  type InteractionEventType,
+  type RetentionClass,
   type RetailerId,
+  toBehavioralEventName,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database, Json } from "../generated/database.types";
+
+import type { ConsentRepository } from "./consent-repository";
 
 type Row = Database["public"]["Tables"]["behavioral_events"]["Row"];
 
@@ -36,31 +48,100 @@ export interface PlatformAnalytics {
   behavioralEvents: number;
 }
 
-const toDomain = (row: Row): BehavioralEvent => ({
+const toInteractionEvent = (row: Row): InteractionEvent => ({
   retailerId: asId<"RetailerId">(row.retailer_id),
   ...(row.customer_id
     ? { customerId: asId<"CustomerId">(row.customer_id) }
     : {}),
-  name: row.name,
+  ...(row.anonymous_session_id
+    ? { anonymousSessionId: row.anonymous_session_id }
+    : {}),
+  interactionType: row.interaction_type as InteractionEventType,
+  purpose: row.purpose as ConsentPurpose,
+  consentSnapshot:
+    row.consent_snapshot as unknown as InteractionEvent["consentSnapshot"],
+  retentionClass: row.retention_class as RetentionClass,
+  ...(row.retention_expires_at
+    ? { retentionExpiresAt: row.retention_expires_at }
+    : {}),
+  ...(row.anonymized_at ? { anonymizedAt: row.anonymized_at } : {}),
   properties: row.properties as Record<string, unknown>,
   occurredAt: row.occurred_at,
-  source: row.source as BehavioralEvent["source"],
+  source: row.source as InteractionEvent["source"],
 });
+
+const toDomain = (row: Row): BehavioralEvent => {
+  const event = toInteractionEvent(row);
+  return {
+    ...event,
+    name: toBehavioralEventName(event.interactionType),
+  };
+};
 
 export class AnalyticsRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
 
-  async capture(event: BehavioralEvent): Promise<string> {
+  async capture(event: InteractionEvent): Promise<string> {
+    const retentionExpiresAt =
+      event.retentionExpiresAt ??
+      computeRetentionExpiresAt(event.retentionClass, event.occurredAt);
+
     const { data, error } = await this.client.rpc("capture_behavioral_event", {
       p_retailer_id: event.retailerId,
-      p_name: event.name,
+      p_interaction_type: event.interactionType,
       p_properties: event.properties as Json,
       p_source: event.source,
       ...(event.customerId ? { p_customer_id: event.customerId } : {}),
       p_occurred_at: event.occurredAt,
+      p_purpose: event.purpose,
+      p_consent_snapshot: event.consentSnapshot as unknown as Json,
+      p_retention_class: event.retentionClass,
+      p_retention_expires_at: retentionExpiresAt,
+      ...(event.anonymousSessionId
+        ? { p_anonymous_session_id: event.anonymousSessionId }
+        : {}),
     });
     if (error) throw error;
     return data;
+  }
+
+  async captureWithConsent(
+    event: Omit<
+      InteractionEvent,
+      "consentSnapshot" | "retentionClass" | "retentionExpiresAt" | "purpose"
+    > & {
+      purpose?: ConsentPurpose;
+      retentionClass?: RetentionClass;
+    },
+    consentRepo: ConsentRepository,
+  ): Promise<string | null> {
+    if (!event.customerId) return null;
+
+    const records = await consentRepo.findByCustomer(
+      event.retailerId,
+      event.customerId,
+    );
+    const purpose = event.purpose ?? "personalization";
+    const capturedAt = event.occurredAt;
+    const eligibility = assessCaptureEligibility({
+      interactionType: event.interactionType,
+      consentRecords: records,
+      capturedAt,
+    });
+    if (!eligibility.allowed || !eligibility.consentSnapshot) {
+      return null;
+    }
+
+    return this.capture({
+      ...event,
+      purpose,
+      consentSnapshot: eligibility.consentSnapshot,
+      retentionClass: event.retentionClass ?? "personalization_standard",
+      retentionExpiresAt: computeRetentionExpiresAt(
+        event.retentionClass ?? "personalization_standard",
+        capturedAt,
+      ),
+    });
   }
 
   async findRecent(
@@ -77,7 +158,7 @@ export class AnalyticsRepository {
     return data.map(toDomain);
   }
 
-  /** Scoped to one customer — the context AI personalisation (`@paon/ai`) builds a prompt from, not the retailer-wide feed `findRecent` returns. */
+  /** Scoped to one customer — the context AI personalisation builds from. */
   async findRecentByCustomer(
     retailerId: RetailerId,
     customerId: CustomerId,
@@ -92,6 +173,23 @@ export class AnalyticsRepository {
       .limit(limit);
     if (error) throw error;
     return data.map(toDomain);
+  }
+
+  /** Advisor-safe projection: consented, non-anonymized, within retention. */
+  async findRecentByCustomerForAdvisor(
+    retailerId: RetailerId,
+    customerId: CustomerId,
+    consentRepo: ConsentRepository,
+    limit = 20,
+  ): Promise<BehavioralEvent[]> {
+    const [events, consentRecords] = await Promise.all([
+      this.findRecentByCustomer(retailerId, customerId, limit),
+      consentRepo.findByCustomer(retailerId, customerId),
+    ]);
+    const nowIso = new Date().toISOString();
+    return events.filter((event) =>
+      isAdvisorVisibleEvent(event, consentRecords, nowIso),
+    );
   }
 
   async summary(
@@ -114,3 +212,5 @@ export class AnalyticsRepository {
     return data as unknown as PlatformAnalytics;
   }
 }
+
+export { buildLegacyConsentSnapshot, buildConsentSnapshot };
