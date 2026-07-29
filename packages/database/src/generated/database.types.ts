@@ -1194,6 +1194,655 @@ export type Database = {
           },
         ];
       };
+      campaign_audience_rules: {
+        Row: {
+          active: boolean;
+          campaign_id: string;
+          concept_id: string | null;
+          created_at: string;
+          explanation: string;
+          id: string;
+          loyalty_tier: string | null;
+          product_id: string | null;
+          require_personalization_consent: boolean;
+          retailer_id: string;
+          rule_kind: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          campaign_id: string;
+          concept_id?: string | null;
+          created_at?: string;
+          explanation: string;
+          id?: string;
+          loyalty_tier?: string | null;
+          product_id?: string | null;
+          require_personalization_consent?: boolean;
+          retailer_id: string;
+          rule_kind: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          campaign_id?: string;
+          concept_id?: string | null;
+          created_at?: string;
+          explanation?: string;
+          id?: string;
+          loyalty_tier?: string | null;
+          product_id?: string | null;
+          require_personalization_consent?: boolean;
+          retailer_id?: string;
+          rule_kind?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaign_audience_rules_campaign_id_fkey";
+            columns: ["campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_audience_rules_campaign_retailer_fk";
+            columns: ["campaign_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "campaign_audience_rules_concept_id_fkey";
+            columns: ["concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_audience_rules_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_audience_rules_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      campaign_challenge_enrollments: {
+        Row: {
+          campaign_id: string;
+          completed_at: string | null;
+          created_at: string;
+          customer_id: string;
+          id: string;
+          retailer_id: string;
+          started_at: string;
+          status: string;
+          updated_at: string;
+          withdrawn_at: string | null;
+        };
+        Insert: {
+          campaign_id: string;
+          completed_at?: string | null;
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          retailer_id: string;
+          started_at?: string;
+          status?: string;
+          updated_at?: string;
+          withdrawn_at?: string | null;
+        };
+        Update: {
+          campaign_id?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          retailer_id?: string;
+          started_at?: string;
+          status?: string;
+          updated_at?: string;
+          withdrawn_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaign_challenge_enrollments_campaign_id_fkey";
+            columns: ["campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_challenge_enrollments_campaign_retailer_fk";
+            columns: ["campaign_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "campaign_challenge_enrollments_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_challenge_enrollments_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "campaign_challenge_enrollments_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      campaign_challenge_look_slots: {
+        Row: {
+          created_at: string;
+          display_order: number;
+          id: string;
+          look_id: string;
+          product_id: string;
+          retailer_id: string;
+          slot_kind: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          look_id: string;
+          product_id: string;
+          retailer_id: string;
+          slot_kind: string;
+        };
+        Update: {
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          look_id?: string;
+          product_id?: string;
+          retailer_id?: string;
+          slot_kind?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaign_challenge_look_slots_look_id_fkey";
+            columns: ["look_id"];
+            isOneToOne: false;
+            referencedRelation: "campaign_challenge_looks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_challenge_look_slots_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_challenge_look_slots_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      campaign_challenge_looks: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          day_index: number;
+          enrollment_id: string;
+          id: string;
+          retailer_id: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          day_index: number;
+          enrollment_id: string;
+          id?: string;
+          retailer_id: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          day_index?: number;
+          enrollment_id?: string;
+          id?: string;
+          retailer_id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaign_challenge_looks_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_challenge_looks_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "campaign_challenge_looks_enrollment_id_fkey";
+            columns: ["enrollment_id"];
+            isOneToOne: false;
+            referencedRelation: "campaign_challenge_enrollments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_challenge_looks_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      campaign_completions: {
+        Row: {
+          campaign_id: string;
+          completed_at: string;
+          customer_id: string;
+          enrollment_id: string;
+          id: string;
+          retailer_id: string;
+          reward_grant_id: string | null;
+        };
+        Insert: {
+          campaign_id: string;
+          completed_at?: string;
+          customer_id: string;
+          enrollment_id: string;
+          id?: string;
+          retailer_id: string;
+          reward_grant_id?: string | null;
+        };
+        Update: {
+          campaign_id?: string;
+          completed_at?: string;
+          customer_id?: string;
+          enrollment_id?: string;
+          id?: string;
+          retailer_id?: string;
+          reward_grant_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaign_completions_campaign_id_fkey";
+            columns: ["campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_completions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_completions_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "campaign_completions_enrollment_id_fkey";
+            columns: ["enrollment_id"];
+            isOneToOne: true;
+            referencedRelation: "campaign_challenge_enrollments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_completions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_completions_reward_grant_id_fkey";
+            columns: ["reward_grant_id"];
+            isOneToOne: false;
+            referencedRelation: "campaign_reward_grants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      campaign_delivery_audits: {
+        Row: {
+          campaign_id: string;
+          created_at: string;
+          customer_id: string;
+          explanation: string | null;
+          for_date: string;
+          id: string;
+          notification_id: string | null;
+          outcome: string;
+          personalization_consent: string | null;
+          retailer_id: string;
+          scheduled_for: string;
+          suppression_reason: string | null;
+        };
+        Insert: {
+          campaign_id: string;
+          created_at?: string;
+          customer_id: string;
+          explanation?: string | null;
+          for_date: string;
+          id?: string;
+          notification_id?: string | null;
+          outcome: string;
+          personalization_consent?: string | null;
+          retailer_id: string;
+          scheduled_for: string;
+          suppression_reason?: string | null;
+        };
+        Update: {
+          campaign_id?: string;
+          created_at?: string;
+          customer_id?: string;
+          explanation?: string | null;
+          for_date?: string;
+          id?: string;
+          notification_id?: string | null;
+          outcome?: string;
+          personalization_consent?: string | null;
+          retailer_id?: string;
+          scheduled_for?: string;
+          suppression_reason?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaign_delivery_audits_campaign_id_fkey";
+            columns: ["campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_delivery_audits_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_delivery_audits_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "campaign_delivery_audits_notification_id_fkey";
+            columns: ["notification_id"];
+            isOneToOne: false;
+            referencedRelation: "notifications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_delivery_audits_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      campaign_reward_grants: {
+        Row: {
+          campaign_id: string;
+          created_at: string;
+          customer_id: string;
+          enrollment_id: string;
+          expires_at: string | null;
+          id: string;
+          label: string;
+          loyalty_ledger_entry_id: string | null;
+          retailer_id: string;
+          reward_kind: string;
+        };
+        Insert: {
+          campaign_id: string;
+          created_at?: string;
+          customer_id: string;
+          enrollment_id: string;
+          expires_at?: string | null;
+          id?: string;
+          label: string;
+          loyalty_ledger_entry_id?: string | null;
+          retailer_id: string;
+          reward_kind: string;
+        };
+        Update: {
+          campaign_id?: string;
+          created_at?: string;
+          customer_id?: string;
+          enrollment_id?: string;
+          expires_at?: string | null;
+          id?: string;
+          label?: string;
+          loyalty_ledger_entry_id?: string | null;
+          retailer_id?: string;
+          reward_kind?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaign_reward_grants_campaign_id_fkey";
+            columns: ["campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_reward_grants_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_reward_grants_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "campaign_reward_grants_enrollment_id_fkey";
+            columns: ["enrollment_id"];
+            isOneToOne: true;
+            referencedRelation: "campaign_challenge_enrollments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_reward_grants_loyalty_ledger_entry_id_fkey";
+            columns: ["loyalty_ledger_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "loyalty_ledger_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_reward_grants_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      campaign_target_products: {
+        Row: {
+          active: boolean;
+          campaign_id: string;
+          created_at: string;
+          product_id: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          campaign_id: string;
+          created_at?: string;
+          product_id: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          campaign_id?: string;
+          created_at?: string;
+          product_id?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaign_target_products_campaign_id_fkey";
+            columns: ["campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_target_products_campaign_retailer_fk";
+            columns: ["campaign_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "campaign_target_products_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_target_products_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      campaigns: {
+        Row: {
+          created_at: string;
+          created_by_staff_id: string | null;
+          ends_at: string | null;
+          explanation: string;
+          frequency: string;
+          id: string;
+          kind: string;
+          preferred_local_hour: number;
+          quiet_end_minute: number | null;
+          quiet_start_minute: number | null;
+          retailer_id: string;
+          reward_cap_per_customer: number;
+          reward_kind: string | null;
+          reward_label: string | null;
+          short_lived_offer_hours: number;
+          starts_at: string | null;
+          status: string;
+          summary: string;
+          timezone: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          ends_at?: string | null;
+          explanation: string;
+          frequency?: string;
+          id?: string;
+          kind: string;
+          preferred_local_hour?: number;
+          quiet_end_minute?: number | null;
+          quiet_start_minute?: number | null;
+          retailer_id: string;
+          reward_cap_per_customer?: number;
+          reward_kind?: string | null;
+          reward_label?: string | null;
+          short_lived_offer_hours?: number;
+          starts_at?: string | null;
+          status?: string;
+          summary: string;
+          timezone?: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          ends_at?: string | null;
+          explanation?: string;
+          frequency?: string;
+          id?: string;
+          kind?: string;
+          preferred_local_hour?: number;
+          quiet_end_minute?: number | null;
+          quiet_start_minute?: number | null;
+          retailer_id?: string;
+          reward_cap_per_customer?: number;
+          reward_kind?: string | null;
+          reward_label?: string | null;
+          short_lived_offer_hours?: number;
+          starts_at?: string | null;
+          status?: string;
+          summary?: string;
+          timezone?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaigns_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       catalogue_import_rows: {
         Row: {
           created_at: string;
@@ -7634,6 +8283,10 @@ export type Database = {
       };
       clock_in: { Args: never; Returns: string };
       clock_out: { Args: never; Returns: undefined };
+      complete_campaign_challenge: {
+        Args: { p_enrollment_id: string };
+        Returns: string;
+      };
       convert_pilot_to_live_retailer: {
         Args: { p_prospect_id: string };
         Returns: string;
@@ -7676,6 +8329,17 @@ export type Database = {
         };
         Returns: undefined;
       };
+      enqueue_campaign_delivery_notification: {
+        Args: {
+          p_action_href?: string;
+          p_body: string;
+          p_channel?: string;
+          p_customer_id: string;
+          p_retailer_id: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
       enqueue_morning_routine_delivery_notification: {
         Args: {
           p_action_href?: string;
@@ -7684,6 +8348,14 @@ export type Database = {
           p_customer_id: string;
           p_retailer_id: string;
           p_title: string;
+        };
+        Returns: string;
+      };
+      enroll_campaign_challenge: {
+        Args: {
+          p_campaign_id: string;
+          p_customer_id: string;
+          p_retailer_id: string;
         };
         Returns: string;
       };
@@ -7868,6 +8540,21 @@ export type Database = {
       publish_catalogue_import_row: {
         Args: { p_import_row_id: string };
         Returns: Json;
+      };
+      record_campaign_delivery_audit: {
+        Args: {
+          p_campaign_id: string;
+          p_customer_id: string;
+          p_explanation?: string;
+          p_for_date: string;
+          p_notification_id?: string;
+          p_outcome: string;
+          p_personalization_consent?: string;
+          p_retailer_id: string;
+          p_scheduled_for: string;
+          p_suppression_reason?: string;
+        };
+        Returns: string;
       };
       record_customer_ai_generation: {
         Args: {
@@ -8222,6 +8909,15 @@ export type Database = {
           p_worker_id: string;
         };
         Returns: undefined;
+      };
+      upsert_campaign_challenge_look: {
+        Args: {
+          p_day_index: number;
+          p_enrollment_id: string;
+          p_slots: Json;
+          p_title: string;
+        };
+        Returns: string;
       };
       upsert_declared_style_preference: {
         Args: {

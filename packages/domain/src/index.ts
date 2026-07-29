@@ -107,3 +107,5 @@ export * from "./wardrobe/morning-routine";
 export * from "./wardrobe/morning-routine.schema";
 export * from "./wardrobe/morning-routine-delivery";
 export * from "./wardrobe/morning-routine-delivery.schema";
+export * from "./campaign/campaign";
+export * from "./campaign/campaign.schema";
