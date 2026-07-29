@@ -71,8 +71,10 @@ Customer 1───* WeddingParty (as organizer) 1───* WeddingPartyMember 
 ## Metadata ownership and review
 
 The Intelligence Platform metadata contracts live in
-`packages/domain/src/metadata/`. Persistence is not yet shipped; these
-contracts are the input to the next migration/repository slice.
+`packages/domain/src/metadata/`. Their persistence lives in the seven
+metadata/fabric tables created by
+`20260729174939_create_metadata_foundation.sql` and the typed
+`MetadataRepository` / `ProductFabricProfileRepository`.
 
 - `MetadataConcept.retailerId = null` means PAON canonical ownership. A
   retailer-owned concept carries that retailer's branded ID.
@@ -90,8 +92,9 @@ contracts are the input to the next migration/repository slice.
   composition outside the concept-label graph. Non-empty composition has
   unique fibre concepts and totals exactly 100%.
 
-Pure compatibility rules reject target/concept/edge ownership combinations
-that the Stage 1.2 database constraints and RLS must also enforce.
+Pure compatibility rules reject target/concept/edge ownership combinations;
+database triggers, RLS, explicit grants, and the atomic fabric-profile RPC
+enforce the same boundary for persisted data.
 
 ## Why a Customer is scoped to one Retailer
 

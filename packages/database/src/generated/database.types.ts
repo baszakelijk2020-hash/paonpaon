@@ -1814,6 +1814,82 @@ export type Database = {
           },
         ];
       };
+      entity_metadata_assignments: {
+        Row: {
+          concept_id: string;
+          confidence: number | null;
+          created_at: string;
+          deleted_at: string | null;
+          evidence: Json | null;
+          id: string;
+          retailer_id: string;
+          review_status: Database["public"]["Enums"]["metadata_review_status"];
+          reviewed_at: string | null;
+          reviewed_by_staff_id: string | null;
+          source: Database["public"]["Enums"]["metadata_source"];
+          supplier_value: string | null;
+          target_id: string;
+          target_type: Database["public"]["Enums"]["metadata_target_type"];
+          updated_at: string;
+        };
+        Insert: {
+          concept_id: string;
+          confidence?: number | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          evidence?: Json | null;
+          id?: string;
+          retailer_id: string;
+          review_status?: Database["public"]["Enums"]["metadata_review_status"];
+          reviewed_at?: string | null;
+          reviewed_by_staff_id?: string | null;
+          source: Database["public"]["Enums"]["metadata_source"];
+          supplier_value?: string | null;
+          target_id: string;
+          target_type: Database["public"]["Enums"]["metadata_target_type"];
+          updated_at?: string;
+        };
+        Update: {
+          concept_id?: string;
+          confidence?: number | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          evidence?: Json | null;
+          id?: string;
+          retailer_id?: string;
+          review_status?: Database["public"]["Enums"]["metadata_review_status"];
+          reviewed_at?: string | null;
+          reviewed_by_staff_id?: string | null;
+          source?: Database["public"]["Enums"]["metadata_source"];
+          supplier_value?: string | null;
+          target_id?: string;
+          target_type?: Database["public"]["Enums"]["metadata_target_type"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "entity_metadata_assignments_concept_id_fkey";
+            columns: ["concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "entity_metadata_assignments_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "entity_metadata_assignments_reviewed_by_staff_id_fkey";
+            columns: ["reviewed_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       event_rsvps: {
         Row: {
           created_at: string;
@@ -2476,6 +2552,181 @@ export type Database = {
           },
         ];
       };
+      metadata_assignment_reviews: {
+        Row: {
+          assignment_id: string;
+          confidence: number | null;
+          created_at: string;
+          evidence: Json | null;
+          id: string;
+          previous_status:
+            Database["public"]["Enums"]["metadata_review_status"] | null;
+          retailer_id: string;
+          review_status: Database["public"]["Enums"]["metadata_review_status"];
+          reviewed_by_staff_id: string;
+          source: Database["public"]["Enums"]["metadata_source"];
+          supplier_value: string | null;
+        };
+        Insert: {
+          assignment_id: string;
+          confidence?: number | null;
+          created_at?: string;
+          evidence?: Json | null;
+          id?: string;
+          previous_status?:
+            Database["public"]["Enums"]["metadata_review_status"] | null;
+          retailer_id: string;
+          review_status: Database["public"]["Enums"]["metadata_review_status"];
+          reviewed_by_staff_id: string;
+          source: Database["public"]["Enums"]["metadata_source"];
+          supplier_value?: string | null;
+        };
+        Update: {
+          assignment_id?: string;
+          confidence?: number | null;
+          created_at?: string;
+          evidence?: Json | null;
+          id?: string;
+          previous_status?:
+            Database["public"]["Enums"]["metadata_review_status"] | null;
+          retailer_id?: string;
+          review_status?: Database["public"]["Enums"]["metadata_review_status"];
+          reviewed_by_staff_id?: string;
+          source?: Database["public"]["Enums"]["metadata_source"];
+          supplier_value?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "metadata_assignment_reviews_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "entity_metadata_assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "metadata_assignment_reviews_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "metadata_assignment_reviews_reviewed_by_staff_id_fkey";
+            columns: ["reviewed_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      metadata_concept_edges: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          kind: Database["public"]["Enums"]["metadata_edge_kind"];
+          retailer_id: string | null;
+          source_concept_id: string;
+          target_concept_id: string;
+          updated_at: string;
+          weight: number;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          kind: Database["public"]["Enums"]["metadata_edge_kind"];
+          retailer_id?: string | null;
+          source_concept_id: string;
+          target_concept_id: string;
+          updated_at?: string;
+          weight?: number;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          kind?: Database["public"]["Enums"]["metadata_edge_kind"];
+          retailer_id?: string | null;
+          source_concept_id?: string;
+          target_concept_id?: string;
+          updated_at?: string;
+          weight?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "metadata_concept_edges_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "metadata_concept_edges_source_concept_id_fkey";
+            columns: ["source_concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "metadata_concept_edges_target_concept_id_fkey";
+            columns: ["target_concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      metadata_concepts: {
+        Row: {
+          active: boolean;
+          attributes: Json;
+          canonical_name: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          image_url: string | null;
+          kind: Database["public"]["Enums"]["metadata_concept_kind"];
+          retailer_id: string | null;
+          slug: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          attributes?: Json;
+          canonical_name: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          image_url?: string | null;
+          kind: Database["public"]["Enums"]["metadata_concept_kind"];
+          retailer_id?: string | null;
+          slug: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          attributes?: Json;
+          canonical_name?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          image_url?: string | null;
+          kind?: Database["public"]["Enums"]["metadata_concept_kind"];
+          retailer_id?: string | null;
+          slug?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "metadata_concepts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       newsletter_subscribers: {
         Row: {
           created_at: string;
@@ -3031,6 +3282,113 @@ export type Database = {
             columns: ["product_id"];
             isOneToOne: false;
             referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      product_fabric_composition: {
+        Row: {
+          created_at: string;
+          fibre_concept_id: string;
+          percentage: number;
+          profile_id: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          fibre_concept_id: string;
+          percentage: number;
+          profile_id: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          fibre_concept_id?: string;
+          percentage?: number;
+          profile_id?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_fabric_composition_fibre_concept_id_fkey";
+            columns: ["fibre_concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_fabric_composition_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "product_fabric_profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_fabric_composition_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      product_fabric_profiles: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          fabric_weight_grams_per_square_metre: number | null;
+          id: string;
+          product_id: string;
+          product_variant_id: string | null;
+          retailer_id: string;
+          supplier_reference: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          fabric_weight_grams_per_square_metre?: number | null;
+          id?: string;
+          product_id: string;
+          product_variant_id?: string | null;
+          retailer_id: string;
+          supplier_reference?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          fabric_weight_grams_per_square_metre?: number | null;
+          id?: string;
+          product_id?: string;
+          product_variant_id?: string | null;
+          retailer_id?: string;
+          supplier_reference?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_fabric_profiles_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_fabric_profiles_product_variant_id_fkey";
+            columns: ["product_variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "product_fabric_profiles_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];
@@ -3624,6 +3982,63 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "retailer_brand_theme_versions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      retailer_concept_overrides: {
+        Row: {
+          concept_id: string;
+          created_at: string;
+          deleted_at: string | null;
+          display_name: string | null;
+          id: string;
+          image_url_override: string | null;
+          is_hidden: boolean;
+          priority_override: number | null;
+          retailer_id: string;
+          summary_override: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          concept_id: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          display_name?: string | null;
+          id?: string;
+          image_url_override?: string | null;
+          is_hidden?: boolean;
+          priority_override?: number | null;
+          retailer_id: string;
+          summary_override?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          concept_id?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          display_name?: string | null;
+          id?: string;
+          image_url_override?: string | null;
+          is_hidden?: boolean;
+          priority_override?: number | null;
+          retailer_id?: string;
+          summary_override?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_concept_overrides_concept_id_fkey";
+            columns: ["concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "retailer_concept_overrides_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
@@ -5302,6 +5717,16 @@ export type Database = {
         };
         Returns: undefined;
       };
+      set_product_fabric_profile: {
+        Args: {
+          p_composition?: Json;
+          p_fabric_weight_grams_per_square_metre?: number;
+          p_product_id: string;
+          p_product_variant_id?: string;
+          p_supplier_reference?: string;
+        };
+        Returns: string;
+      };
       set_prospect_demo_publication: {
         Args: { p_prospect_id: string; p_publish: boolean };
         Returns: undefined;
@@ -5492,6 +5917,37 @@ export type Database = {
         | "adjustment_manual";
       loyalty_tier: "member" | "silver" | "gold" | "platinum";
       message_sender_type: "customer" | "staff" | "ai_assistant" | "guest";
+      metadata_concept_kind:
+        | "mill"
+        | "fabric_collection"
+        | "fibre"
+        | "weave"
+        | "weight_band"
+        | "pattern"
+        | "colour"
+        | "season"
+        | "garment_type"
+        | "construction"
+        | "fit"
+        | "formality"
+        | "climate"
+        | "performance"
+        | "care"
+        | "style"
+        | "occasion"
+        | "compatibility"
+        | "collar"
+        | "silhouette";
+      metadata_edge_kind:
+        | "parent"
+        | "related"
+        | "equivalent"
+        | "suggests"
+        | "compatible_with"
+        | "incompatible_with";
+      metadata_review_status: "pending" | "accepted" | "rejected";
+      metadata_source: "supplier" | "ai" | "retailer" | "paon";
+      metadata_target_type: "product" | "product_variant" | "wardrobe_item";
       notification_category:
         | "order_update"
         | "production_update"
@@ -5806,6 +6262,39 @@ export const Constants = {
       ],
       loyalty_tier: ["member", "silver", "gold", "platinum"],
       message_sender_type: ["customer", "staff", "ai_assistant", "guest"],
+      metadata_concept_kind: [
+        "mill",
+        "fabric_collection",
+        "fibre",
+        "weave",
+        "weight_band",
+        "pattern",
+        "colour",
+        "season",
+        "garment_type",
+        "construction",
+        "fit",
+        "formality",
+        "climate",
+        "performance",
+        "care",
+        "style",
+        "occasion",
+        "compatibility",
+        "collar",
+        "silhouette",
+      ],
+      metadata_edge_kind: [
+        "parent",
+        "related",
+        "equivalent",
+        "suggests",
+        "compatible_with",
+        "incompatible_with",
+      ],
+      metadata_review_status: ["pending", "accepted", "rejected"],
+      metadata_source: ["supplier", "ai", "retailer", "paon"],
+      metadata_target_type: ["product", "product_variant", "wardrobe_item"],
       notification_category: [
         "order_update",
         "production_update",

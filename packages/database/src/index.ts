@@ -12,6 +12,8 @@ export * from "./repositories/customer-preferences-repository";
 export * from "./repositories/collection-repository";
 export * from "./repositories/product-repository";
 export * from "./repositories/product-variant-repository";
+export * from "./repositories/metadata-repository";
+export * from "./repositories/product-fabric-profile-repository";
 export * from "./repositories/order-repository";
 export * from "./repositories/payment-repository";
 export * from "./repositories/retailer-stripe-account-repository";

@@ -25,22 +25,25 @@ founder-designed surfaces remain authoritative wherever they define the UI.
 
 ## As-built baseline
 
-Verified against code and 89 migrations on 2026-07-30:
+Verified against code and 90 migrations on 2026-07-30:
 
 - Three Next.js applications and shared domain/database/auth/UI/integration
   packages are established.
 - Product, variant, collection, storefront, cart/order, appointment,
   clienteling, behavioral-event, AI-generation, loyalty, wedding-party,
   alteration, and Demo Studio foundations exist.
-- Product facts are thin: name, description, status, made-to-order/alterable,
-  primary image, swatch image, collections; variant carries SKU, size, color,
-  price, stock, and lead time.
+- Product facts now include an exact, concept-linked fabric profile foundation
+  alongside name, description, status, made-to-order/alterable, primary image,
+  swatch image, and collections; variant carries SKU, size, color, price,
+  stock, and lead time.
 - Storefront category, color, pattern, and season filters are derived from
   product names, collection names, variant color, and founder image-number
   heuristics.
 - `behavioral_events` and `ai_generations` exist, but the new consent,
   evidence, retention, style-profile, and advisor-briefing model does not.
-- No metadata concept, knowledge object, catalogue import, style-profile,
+- Metadata concepts, edges, assignments, append-only review evidence,
+  retailer overrides, and exact product/variant fabric profiles now exist.
+  No metadata review UI, knowledge object, catalogue import, style-profile,
   wardrobe, outfit, roadmap, service-plan, or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
@@ -109,7 +112,7 @@ back-to-back sub-slices.
     free-form tag API.
   - **Hard blockers:** none.
 
-- [ ] **1.2 Metadata persistence, repositories, and RLS**
+- [x] **1.2 Metadata persistence, repositories, and RLS**
   - **Requirement IDs:** `CAT-003`, `CAT-004`, `ENG-001`, `ENG-003`.
   - **Dependencies:** `1.1`; ADR-059.
   - **Owner boundary:** forward Supabase migration, generated database types,

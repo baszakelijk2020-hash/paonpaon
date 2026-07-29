@@ -47,7 +47,7 @@ alter table public.customers enable row level security;
 
 create policy "retailer staff can read their retailer's customers"
   on public.customers for select
-  using (retailer_id = (auth.jwt() -> 'app_metadata' ->> 'retailer_id')::uuid);
+  using (retailer_id = (select public.current_retailer_id()));
 ```
 
 Conventions:
@@ -107,6 +107,32 @@ CHECK` never sees the pre-update row, so a column that must not
   Customers have no base-table policy on work orders, tasks, pricing, evidence
   or custody. Security-barrier views expose only approved work-order
   status/agreed totals, customer-visible history, and pickup/delivery fields.
+
+### Metadata foundation
+
+`20260729174939_create_metadata_foundation.sql` persists the Stage 1 metadata
+contracts in:
+
+- `metadata_concepts` and `metadata_concept_edges`;
+- `entity_metadata_assignments` and append-only
+  `metadata_assignment_reviews`;
+- `retailer_concept_overrides`; and
+- `product_fabric_profiles` with exact `product_fabric_composition`.
+
+Canonical concepts/edges have `retailer_id = null` and are platform-managed.
+Retailer staff may read canonical plus same-tenant concepts; managers and above
+may mutate only same-tenant concepts, edges, assignments, and overrides.
+Workshop, customer, and anonymous identities receive no metadata access.
+Cross-tenant target/concept references are rejected by database triggers in
+addition to RLS.
+
+Authenticated clients cannot write fabric profile tables directly.
+`set_product_fabric_profile` re-derives the product tenant and JWT authority,
+validates the optional variant, fibre concepts, precision, uniqueness, and an
+exact 100% non-empty composition, then replaces the profile atomically.
+Terminal assignment writes append reviewer/source/evidence snapshots through a
+non-callable audit trigger. The live contract is exercised by
+`supabase/tests/metadata_foundation_rls_test.sql`.
 
 ## Audit logging
 

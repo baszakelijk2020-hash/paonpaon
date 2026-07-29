@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 89 forward Supabase migrations plus generated TypeScript
+- Schema source: 90 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -26,14 +26,16 @@ Snapshot: 2026-07-30.
   behavioral analytics, AI generation audit, loyalty/referrals/events,
   wedding parties, physical garments/fittings/alterations, commercial plans,
   and Demo Studio foundations exist.
-- Product persistence has primary and swatch images but no structured fabric
-  profile or metadata assignments.
+- Product persistence has primary and swatch images plus exact product/variant
+  fabric profiles and reviewed metadata assignments.
 - Storefront category/color/pattern/season values still come from request-time
   heuristics in `apps/customer/app/r/[slug]/route.ts`.
 - `behavioral_events` and `ai_generations` exist; purpose-specific consent,
   StyleProfile evidence, and advisor briefing do not.
-- No metadata, knowledge, catalogue-import, wardrobe, roadmap, outfit,
-  campaign, or concierge-service tables exist.
+- Canonical/retailer metadata concepts, edges, assignments, append-only review
+  evidence, retailer overrides, and exact fabric profiles exist. No knowledge,
+  catalogue-import, wardrobe, roadmap, outfit, campaign, or concierge-service
+  tables exist.
 
 ## External systems
 
@@ -50,6 +52,6 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. No Intelligence Platform feature slice has landed. The next
-implementation area remains metadata domain contracts, as stated in the
-authoritative Resume Protocol.
+contracts. Metadata domain contracts and their tenant-safe persistence layer
+have landed. The authoritative Resume Protocol identifies the metadata review
+workflow as the next implementation area.
