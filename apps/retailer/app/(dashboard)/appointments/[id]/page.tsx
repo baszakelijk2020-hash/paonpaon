@@ -1,4 +1,5 @@
 import {
+  AdvisorBriefRepository,
   AppointmentRepository,
   ClientelingRepository,
   CustomerRepository,
@@ -18,6 +19,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { LifecycleBadge } from "../../customers/lifecycle-badge";
+import { AdvisorBriefPanel } from "../../customers/[id]/advisor-brief-panel";
 import { AppointmentStatusBadge } from "../status-badge";
 
 import { AppointmentActionsForm } from "./appointment-actions-form";
@@ -45,6 +47,14 @@ export default async function AppointmentDetailPage({
     new CustomerRepository(supabase).findById(appointment.customerId),
     new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
   ]);
+
+  const advisorBrief = customer
+    ? await new AdvisorBriefRepository(supabase).loadForCustomer({
+        retailerId: session.retailerId,
+        customerId: customer.id,
+        ...(appointment.notes ? { appointmentNotes: appointment.notes } : {}),
+      })
+    : null;
   const [notes, orders, garments] = customer
     ? await Promise.all([
         new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -155,6 +165,10 @@ export default async function AppointmentDetailPage({
               </div>
             ) : null}
           </Card>
+
+          {canManage && advisorBrief ? (
+            <AdvisorBriefPanel brief={advisorBrief} compact />
+          ) : null}
 
           {canManage ? (
             <Card className="rounded-[var(--radius-md)]">

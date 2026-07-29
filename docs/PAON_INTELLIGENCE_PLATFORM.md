@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `3.3 Advisor preparation brief`
-- **Current requirement IDs:** `ADV-003`, `CUST-003`
+- **Current queue item:** `3.4 Grounded TableService and guided preference capture`
+- **Current requirement IDs:** `ADV-001`, `ADV-002`, `ENG-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -28,7 +28,8 @@ requires it.
   transactional reviewed import publishing; `21297da` adds AI-assisted import
   enrichment; `02f106e` adds purpose-specific consent and typed interaction
   events (PHASE 3.1 complete); `82f499c` adds StyleProfile evidence and
-  deterministic recomputation (PHASE 3.2 complete).
+  deterministic recomputation (PHASE 3.2 complete); PHASE 3.3 adds the advisor
+  preparation brief projection and Retailer Portal client workspace mounts.
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -43,19 +44,23 @@ requires it.
   `MetadataRepository`, `ProductFabricProfileRepository`,
   `KnowledgeRepository`, `CatalogueQueryRepository`,
   `CatalogueImportRepository`, `ImportEnrichmentPromptRepository`,
-  `CustomerConsentRepository`, `StyleProfileRepository`, upgraded
+  `CustomerConsentRepository`, `StyleProfileRepository`,
+  `AdvisorBriefRepository`, upgraded
   `AnalyticsRepository`, `@paon/domain` intelligence consent/interaction-
-  event/StyleProfile contracts, customer account consent + StyleProfile
-  inspect/remove controls, and consented storefront/swipe producers.
-- **Checks/deployment state:** 100 migrations; StyleProfile domain/repo/
-  security and pgTAP foundation checks are green with
-  lint/typecheck/test/build/format on the 3.2 tip. Anonymous interaction
-  persistence remains blocked pending jurisdiction documentation.
-- **Real blockers:** none for Stage 3.3 advisor brief implementation;
+  event/StyleProfile/advisor-brief contracts, customer account consent +
+  StyleProfile inspect/remove controls, consented storefront/swipe producers,
+  and Retailer Portal advisor preparation brief panels on the relationship
+  and appointment workspaces.
+- **Checks/deployment state:** 100 migrations; StyleProfile and advisor-brief
+  domain/repo tests are green with lint/typecheck/test/build/format on the 3.3
+  slice. Anonymous interaction persistence remains blocked pending jurisdiction
+  documentation.
+- **Real blockers:** none for Stage 3.4 TableService orchestration;
   anonymous persistence remains blocked for new anonymous producers only.
-- **Exact next files/tests:** implement queue item 3.3 Advisor preparation
-  brief: retailer-scoped intelligence repository projection and the existing
-  Retailer Portal client workspace.
+- **Exact next files/tests:** implement queue item 3.4 Grounded TableService
+  and guided preference capture: TableService orchestration, approved-knowledge
+  retrieval, `@paon/ai` structured answer, existing conversation/swipe/
+  shortlist/appointment surfaces.
 
 ## 1. Programme intent
 

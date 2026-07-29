@@ -1,5 +1,6 @@
 import {
   AIGenerationRepository,
+  AdvisorBriefRepository,
   AlterationRepository,
   AnalyticsRepository,
   AppointmentRepository,
@@ -28,6 +29,7 @@ import { startConversation } from "../../messages/actions";
 import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 
 import { createClientelingNote, setPreferredCarrier } from "./actions";
+import { AdvisorBriefPanel } from "./advisor-brief-panel";
 import { AIInsights } from "./ai-insights";
 import { SelfPortrait } from "./self-portrait";
 
@@ -70,6 +72,7 @@ export default async function CustomerDetailPage({
     loyaltyAccount,
     recentEvents,
     alterations,
+    advisorBrief,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -82,6 +85,10 @@ export default async function CustomerDetailPage({
       customer.id,
     ),
     new AlterationRepository(supabase).findByCustomer(customer.id),
+    new AdvisorBriefRepository(supabase).loadForCustomer({
+      retailerId: session.retailerId,
+      customerId: customer.id,
+    }),
   ]);
   const garmentById = new Map(garments.map((garment) => [garment.id, garment]));
 
@@ -416,6 +423,10 @@ export default async function CustomerDetailPage({
             integration is connected yet.
           </p>
         </Card>
+      ) : null}
+
+      {canManage ? (
+        <AdvisorBriefPanel brief={advisorBrief} />
       ) : null}
 
       {canManage ? (
