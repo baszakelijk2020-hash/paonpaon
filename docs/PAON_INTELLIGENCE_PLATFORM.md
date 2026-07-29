@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `3.1 Consent and interaction-event upgrade`
-- **Current requirement IDs:** `CUST-001`, `CUST-003`, `ENG-002`
+- **Current queue item:** `3.2 StyleProfile evidence and recomputation`
+- **Current requirement IDs:** `CUST-002`, `CUST-003`, `ENG-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -26,27 +26,32 @@ requires it.
   panels; `a0e03dd` adds accepted-metadata structured catalogue query;
   `dd2e274` adds catalogue import contracts and preview; `8aa10c6` adds
   transactional reviewed import publishing; `21297da` adds AI-assisted import
-  enrichment (PHASE 2.7 complete).
+  enrichment; `02f106e` adds purpose-specific consent and typed interaction
+  events (PHASE 3.1 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
-  evidence/field_key, generated database types, `MetadataRepository`,
-  `ProductFabricProfileRepository`, `KnowledgeRepository`,
-  `CatalogueQueryRepository`, `CatalogueImportRepository` (preview + review +
-  publish + AI enrichment proposals), `ImportEnrichmentPromptRepository`,
-  `publish_catalogue_import_row` / `review_catalogue_import_task` RPCs,
-  `@paon/ai` import enrichment runner, versioned import contract/parsers/
-  templates, storefront knowledge/catalogue mounts, and idempotent EDU-001
-  fixtures.
-- **Checks/deployment state:** 98 migrations; import enrichment domain/
-  runner/repo/Admin/Portal and pgTAP foundation checks are green with
-  lint/typecheck/test/build/format on the 2.7 tip. Live OpenAI smoke remains
-  optional when `OPENAI_API_KEY` is unset.
-- **Real blockers:** none for Stage 3.1 consent/event upgrade implementation;
-  jurisdiction-specific anonymous tracking blocks anonymous persistence only.
-- **Exact next files/tests:** implement queue item 3.1 Consent and
-  interaction-event upgrade: consent/event domain, forward migration/RLS,
-  repositories, customer controls, and narrow event producers.
+  evidence/field_key, purpose-specific consent columns on
+  `customer_preferences`, append-only `customer_consent_events`, upgraded
+  `behavioral_events` (purpose/consent snapshot/retention/anonymous session/
+  anonymized_at), `set_customer_consent` /
+  `anonymize_behavioral_events_for_customer` /
+  `anonymize_expired_behavioral_events` RPCs, generated database types,
+  `MetadataRepository`, `ProductFabricProfileRepository`,
+  `KnowledgeRepository`, `CatalogueQueryRepository`,
+  `CatalogueImportRepository`, `ImportEnrichmentPromptRepository`,
+  `CustomerConsentRepository`, upgraded `AnalyticsRepository`,
+  `@paon/domain` intelligence consent/interaction-event contracts, customer
+  account consent controls, and consented storefront/swipe producers.
+- **Checks/deployment state:** 99 migrations; consent/event domain/repo/
+  security and pgTAP foundation checks are green with
+  lint/typecheck/test/build/format on the 3.1 tip. Anonymous interaction
+  persistence remains blocked pending jurisdiction documentation.
+- **Real blockers:** none for Stage 3.2 StyleProfile implementation;
+  anonymous persistence remains blocked for new anonymous producers only.
+- **Exact next files/tests:** implement queue item 3.2 StyleProfile evidence
+  and recomputation: intelligence domain pure rules, migration/RLS,
+  repositories, and customer preference controls.
 
 ## 1. Programme intent
 
@@ -121,9 +126,9 @@ above. Status changes only after the named acceptance criteria are verified.
 | IMP-004                | Retailer preview, bulk review, resumable transactional publishing, and documented PAON CSV/LLM contract                                                                                                    | Catalogue import + Retailer Portal | Preview, Admin-maintained LLM contract download, reviewed-row publish, enrichment proposals, and resumable retries exist         | IMP-001, IMP-002                          | 2.5–2.7              | Valid reviewed rows publish atomically; failed rows remain unpublished/resumable; contracts are downloadable                     | Done (2.5–2.7)     |
 | SRCH-001               | Accepted-metadata search/filter facets for mill, weave, weight, performance, climate, season, pattern, construction, occasion, formality, colour, and price                                                | Catalogue query                    | `CatalogueQueryRepository` facets/ranges/pagination over accepted assignments; heuristics remain as fallback                     | CAT-002, CAT-004                          | 2.4                  | Active accepted assignments drive indexed facets/ranges with pagination and parity tests                                         | Done (2.4)         |
 | SRCH-002               | Natural-language intent for travel, humidity, wrinkles, formality, weddings, softness, and approved concepts, with transparent fallback                                                                    | Catalogue query                    | `resolveCatalogueIntent` maps known phrases to concepts/ranges and reports unresolved tokens                                     | SRCH-001                                  | 2.4                  | Known intent resolves to explainable structured filters; unresolved language is reported without fabricated matches              | Done (2.4)         |
-| CUST-001               | Consent-aware signals for signed-in views, searches, filters, favourites, cart, knowledge, chat, swipes, appointment intent, and conversion                                                                | `intelligence` events              | Retailer-scoped `behavioral_events` exists without purpose/consent/retention shape                                               | SRCH-001                                  | 3.1                  | Typed events record purpose, consent snapshot, retention, and lawful anonymous session where applicable                          | Not started        |
+| CUST-001               | Consent-aware signals for signed-in views, searches, filters, favourites, cart, knowledge, chat, swipes, appointment intent, and conversion                                                                | `intelligence` events              | Typed interaction events with purpose, consent snapshot, retention, withdrawal anonymization, and blocked anonymous persistence  | SRCH-001                                  | 3.1                  | Typed events record purpose, consent snapshot, retention, and lawful anonymous session where applicable                          | Done (3.1)         |
 | CUST-002               | StyleProfile with explicit and inferred preferences, evidence, polarity, confidence, and recomputation                                                                                                     | `intelligence`                     | Customer preferences exist; no concept evidence or StyleProfile                                                                  | CUST-001                                  | 3.2                  | Declared and inferred fields cannot overwrite each other; every inference is explainable and reproducible                        | Not started        |
-| CUST-003               | Visible customer controls and advisor-safe, retailer-scoped access                                                                                                                                         | Customer + advisor intelligence    | Tenant-scoped CRM exists; no intelligence consent controls                                                                       | CUST-001, CUST-002                        | 3.1–3.3              | Withdrawal stops new use and invokes retention rules; advisors see only consented same-retailer evidence                         | Not started        |
+| CUST-003               | Visible customer controls and advisor-safe, retailer-scoped access                                                                                                                                         | Customer + advisor intelligence    | Purpose-specific account controls and advisor reads of usable same-retailer consented signals exist; StyleProfile brief later    | CUST-001, CUST-002                        | 3.1–3.3              | Withdrawal stops new use and invokes retention rules; advisors see only consented same-retailer evidence                         | Partial (3.1)      |
 | ADV-001                | Advisor-first TableService handoff and grounded AI answers from approved PAON knowledge only                                                                                                               | TableService + `@paon/ai`          | Basic TableService/conversations and audited AI generation exist                                                                 | EDU-002, CUST-002                         | 3.4                  | Human handoff is always available; answers cite approved objects, express uncertainty, and never invent facts                    | Partial foundation |
 | ADV-002                | Occasion guidance, preliminary shortlists, summer-wedding discovery, elegant swipe capture, and appointment conversion                                                                                     | TableService + discovery           | Conversation, wishlist, appointment, and legacy swipe UI foundations exist                                                       | ADV-001                                   | 3.4                  | Occasion flow yields traceable evidence, shortlist, explanations, and book-advisor action                                        | Partial foundation |
 | ADV-003                | Consented advisor preparation brief and continuation of the online conversation in store                                                                                                                   | Advisor workspace                  | CRM notes/conversations/appointments exist; no aggregated intelligence brief                                                     | CUST-002                                  | 3.3                  | Brief shows need, interests, questions, shortlist, evidence, and preparation without cross-tenant/withdrawn data                 | Not started        |

@@ -39,8 +39,10 @@ Verified against code and 91 migrations on 2026-07-30:
 - Storefront category, color, pattern, and season filters prefer accepted
   metadata when present and still fall back to product names, collection
   names, variant color, and founder image-number heuristics.
-- `behavioral_events` and `ai_generations` exist, but the new consent,
-  evidence, retention, style-profile, and advisor-briefing model does not.
+- `behavioral_events` and `ai_generations` exist. Purpose-specific consent,
+  typed interaction events with retention/withdrawal anonymization, and
+  customer consent controls now exist; StyleProfile evidence and advisor
+  briefing do not.
 - Metadata concepts, edges, assignments, append-only review evidence,
   retailer overrides, and exact product/variant fabric profiles now exist.
   PAON Admin can manage canonical concepts and terminal assignment decisions
@@ -330,7 +332,7 @@ unreviewed bulk publish.
 
 ### Stage 3 — Customer and advisor intelligence
 
-- [ ] **3.1 Consent and interaction-event upgrade**
+- [x] **3.1 Consent and interaction-event upgrade**
   - **Requirement IDs:** `CUST-001`, `CUST-003`, `ENG-002`.
   - **Dependencies:** `2.4`; ADR-021 and ADR-061.
   - **Owner boundary:** consent/event domain, forward migration/RLS,
@@ -346,6 +348,9 @@ unreviewed bulk publish.
     order/message duplication, StyleProfile inference, or required location.
   - **Hard blockers:** unresolved jurisdiction-specific anonymous tracking
     blocks anonymous persistence only; signed-in explicit-consent work remains.
+  - **Landed:** purpose-specific consent + typed interaction events with
+    retention/withdrawal/anonymization (`feat` commit on main); anonymous
+    persistence remains denied until a jurisdiction documents a lawful basis.
 
 - [ ] **3.2 StyleProfile evidence and recomputation**
   - **Requirement IDs:** `CUST-002`, `CUST-003`, `ENG-002`.

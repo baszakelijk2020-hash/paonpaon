@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 98 forward Supabase migrations plus generated TypeScript
+- Schema source: 99 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -31,8 +31,12 @@ Snapshot: 2026-07-30.
 - Storefront category/color/pattern/season values prefer accepted metadata
   when present and still fall back to request-time heuristics in
   `apps/customer/app/r/[slug]/route.ts`.
-- `behavioral_events` and `ai_generations` exist; purpose-specific consent,
-  StyleProfile evidence, and advisor briefing do not.
+- `behavioral_events` and `ai_generations` exist. Purpose-specific consent
+  (personalization/marketing/location), typed interaction events with
+  consent snapshot/retention/withdrawal anonymization, and customer account
+  consent controls now exist; anonymous persistence remains blocked pending
+  jurisdiction documentation. StyleProfile evidence and advisor briefing do
+  not.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
   evidence, retailer overrides, exact fabric profiles, an actor-derived review
   RPC, PAON Admin canonical management, the Retailer Portal metadata review
@@ -66,9 +70,6 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Knowledge contracts (2.1), discovery ranking (2.2), founder-storefront
-knowledge mounts (2.3), structured catalogue query (2.4), import contracts
-plus preview (2.5), transactional reviewed import publishing (2.6), and
-AI-assisted import enrichment (2.7) are complete. The authoritative Resume
-Protocol identifies consent and interaction-event upgrade (PHASE 3.1) as the
-exact continuation point.
+contracts. Stages 1–2 and PHASE 3.1 (consent and interaction-event upgrade)
+are complete. The authoritative Resume Protocol identifies StyleProfile
+evidence and recomputation (PHASE 3.2) as the exact continuation point.
