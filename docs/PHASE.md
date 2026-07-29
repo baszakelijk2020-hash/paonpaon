@@ -358,10 +358,11 @@ are an active polish stream until they match the `paon.html` aesthetic
 on mobile and desktop. Do not stop after one visual pass; fix P0/P1 gaps
 found, push, continue.
 
-**Active back-env polish (2026-07-29):** continuing — tablet dock/`lg`
-alignment, Badge radius-md, warm focus rings, inbox height above dock,
-wrapping page headers/composers. Residual founder-blocked: alterations
-invention, fit-tools/silhouette. Storefront front door untouched.
+**Also (2026-07-29 continuous — back-env + Studio):** tablet dock through
+`lg`, Badge/Input warm rings, inbox above dock, wrapping headers;
+Demo Studio cool `stone-*` / soft radii replaced with paon tokens
+(`36fba0a`, `dbaeb41`). Still skip Stripe / Resend / silhouette /
+inventing alterations.
 
 **Save vs Generate (Studio).** Save alone updates live storefront story
 fields that are read from the prospect configuration at request time

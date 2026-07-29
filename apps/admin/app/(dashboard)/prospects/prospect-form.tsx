@@ -21,7 +21,7 @@ export function ProspectForm({ plans }: { plans: SubscriptionPlan[] }) {
           {state.error}
         </p>
       ) : null}
-      <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
+      <section className="rounded-[var(--radius-md)] border bg-white p-6 sm:p-8">
         <h2 className="font-display text-2xl">Retail house</h2>
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           <label className="text-sm">
@@ -69,7 +69,7 @@ export function ProspectForm({ plans }: { plans: SubscriptionPlan[] }) {
           </label>
         </div>
       </section>
-      <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
+      <section className="rounded-[var(--radius-md)] border bg-white p-6 sm:p-8">
         <h2 className="font-display text-2xl">Commercial hypothesis</h2>
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           <label className="text-sm">
@@ -113,7 +113,7 @@ export function ProspectForm({ plans }: { plans: SubscriptionPlan[] }) {
         </div>
       </section>
       <button
-        className="min-h-11 rounded-md bg-stone-900 px-6 text-sm text-white disabled:opacity-50"
+        className="min-h-11 rounded-md bg-[var(--color-stone-900)] px-6 text-sm text-white disabled:opacity-50"
         type="submit"
         disabled={pending}
       >

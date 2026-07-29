@@ -32,7 +32,7 @@ export default async function ProspectsPage() {
 
   return (
     <div className="space-y-10">
-      <section className="rounded-[1.25rem] bg-stone-900 p-7 text-white sm:p-10">
+      <section className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] p-7 text-white sm:p-10">
         <p className="text-xs uppercase tracking-[0.2em] text-white/45">
           Founder commercial studio
         </p>
@@ -66,8 +66,11 @@ export default async function ProspectsPage() {
           ],
           ["Follow-ups overdue", overdue.length],
         ].map(([label, value]) => (
-          <div key={label} className="rounded-[1.25rem] border bg-white p-6">
-            <p className="text-xs text-stone-500">{label}</p>
+          <div
+            key={label}
+            className="rounded-[var(--radius-md)] border bg-white p-6"
+          >
+            <p className="text-xs text-[var(--color-stone-500)]">{label}</p>
             <p className="font-display mt-3 text-4xl">{value}</p>
           </div>
         ))}
@@ -76,7 +79,7 @@ export default async function ProspectsPage() {
       <section>
         <div className="mb-5 flex items-end justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
               Personalized environments
             </p>
             <h2 className="font-display mt-2 text-3xl">Prospect workbench</h2>
@@ -99,7 +102,7 @@ export default async function ProspectsPage() {
               return (
                 <article
                   key={prospect.id}
-                  className="rounded-[1.25rem] border bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-lifted)]"
+                  className="rounded-[var(--radius-md)] border bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-lifted)]"
                 >
                   <Link
                     href={`/prospects/${prospect.id}/studio`}
@@ -107,14 +110,14 @@ export default async function ProspectsPage() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs text-[var(--color-stone-500)]">
                           {STAGE_LABELS[prospect.stage]}
                           {demo ? ` · demo ${demo.status}` : ""}
                         </p>
                         <h3 className="font-display mt-2 text-3xl">
                           {prospect.companyName}
                         </h3>
-                        <p className="mt-2 text-sm text-stone-500">
+                        <p className="mt-2 text-sm text-[var(--color-stone-500)]">
                           {prospect.primaryContactName} ·{" "}
                           {prospect.primaryContactEmail}
                         </p>
@@ -122,7 +125,9 @@ export default async function ProspectsPage() {
                       <span className="text-xl">→</span>
                     </div>
                     <div className="mt-6 border-t pt-4">
-                      <p className="text-xs text-stone-500">Next action</p>
+                      <p className="text-xs text-[var(--color-stone-500)]">
+                        Next action
+                      </p>
                       <p className="mt-1 text-sm">
                         {prospect.nextAction ??
                           "Define the next commercial action"}
@@ -164,11 +169,11 @@ export default async function ProspectsPage() {
             })}
           </div>
         ) : (
-          <div className="rounded-[1.25rem] border border-dashed p-10 text-center">
+          <div className="rounded-[var(--radius-md)] border border-dashed p-10 text-center">
             <h3 className="font-display text-3xl">
               Start with one deliberately chosen retailer.
             </h3>
-            <p className="mx-auto mt-3 max-w-xl text-sm text-stone-500">
+            <p className="mx-auto mt-3 max-w-xl text-sm text-[var(--color-stone-500)]">
               Capture the research, configure their brand and generate a
               retailer-specific demonstration before the first call.
             </p>
