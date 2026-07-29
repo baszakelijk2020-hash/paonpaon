@@ -20,8 +20,8 @@ export default async function NotificationsPage() {
           Notifications
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Service and relationship updates. In-app only for now — transactional
-          email delivery is pending setup.
+          Service and house updates. In-app only for now — transactional email
+          delivery is pending setup.
         </p>
       </div>
       <Card className="divide-y overflow-hidden p-0 shadow-[var(--shadow-elevated)]">

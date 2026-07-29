@@ -383,9 +383,10 @@ export default async function DashboardPage() {
               <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
                 Your houses
               </p>
-              <h2 className="font-display text-4xl">
-                Relationships, not records.
-              </h2>
+              <h2 className="font-display text-4xl">Your houses.</h2>
+              <p className="mt-2 max-w-xl text-sm text-[var(--color-stone-500)]">
+                Each atelier you shop with keeps its own book — never mixed.
+              </p>
             </div>
             <Link
               href="/account"
