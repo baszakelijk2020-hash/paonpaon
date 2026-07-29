@@ -56,7 +56,7 @@ export function PrivateDemo({
             aria-hidden="true"
             className="absolute inset-0 -z-10 bg-gradient-to-b from-black/70 via-black/55 to-black/80"
           />
-          <section className="w-full max-w-lg rounded-[1.25rem] border border-white/15 bg-black/45 p-7 text-white backdrop-blur-xl sm:p-10">
+          <section className="w-full max-w-lg rounded-[var(--radius-md)] border border-white/15 bg-black/45 p-7 text-white backdrop-blur-xl sm:p-10">
             {preview?.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
