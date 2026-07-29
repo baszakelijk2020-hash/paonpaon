@@ -93,14 +93,11 @@ had none.
 
 ### A. Demo Studio — make a demo a real store, not a slideshow
 
-**The defect.** `generateDemoEnvironment` in
-`apps/admin/app/(dashboard)/prospects/[id]/studio/actions.ts` writes a
-**hardcoded `syntheticData` object** — the same invented names, orders and
-metrics for every prospect ("Isabelle Laurent", "PAON-1048", "€3,690").
-It never creates a `Retailer`, never seeds a catalog, never touches the
-product. Searching that file for `createRetailer`, `seedDemoData` or
-`RetailerRepository` returns nothing. A prospect opening a demo link sees a
-static mockup carrying a stranger's client names.
+**The defect (resolved).** `generateDemoEnvironment` previously wrote a
+hardcoded slideshow blob. It now calls `seedProspectDemoRetailer` and
+persists `retailerId` / `retailerSlug`; the remaining `syntheticData`
+field is a **handoff payload** (persona emails + live links), not the
+demo itself. Keep the sequence checkmarks below as history.
 
 **What it should do**, using machinery that already exists and is proven
 live: create a **real retailer tenant per prospect** — their name, logo,
