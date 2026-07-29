@@ -93,7 +93,7 @@ export function ExperiencePreview() {
             <p className="mt-5 max-w-xl text-sm leading-6 text-white/65">
               {view.note}
             </p>
-            <button className="mt-7 min-h-11 rounded-sm bg-white px-5 text-xs font-medium text-black">
+            <button className="mt-7 min-h-11 rounded-[var(--radius-md)] bg-white px-5 text-xs font-medium text-black">
               {view.action} →
             </button>
           </div>

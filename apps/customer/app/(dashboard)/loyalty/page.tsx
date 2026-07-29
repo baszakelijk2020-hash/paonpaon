@@ -61,8 +61,8 @@ export default async function LoyaltyPage() {
             className="paon-reveal flex flex-col gap-5"
             style={{ animationDelay: `${index * 120}ms` }}
           >
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
                 <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
                   {retailer?.displayName ?? "Retailer"}
                 </p>
@@ -76,7 +76,7 @@ export default async function LoyaltyPage() {
                   </p>
                 )}
               </div>
-              <p className="font-display text-4xl text-[var(--color-stone-900)]">
+              <p className="font-display shrink-0 text-4xl text-[var(--color-stone-900)]">
                 {account?.pointsBalance ?? 0}
                 <span className="ml-1 font-sans text-sm font-normal text-[var(--color-stone-500)]">
                   points
@@ -96,20 +96,21 @@ export default async function LoyaltyPage() {
                         <form
                           key={reward.id}
                           action={redeemReward}
-                          className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 transition-[border-color,box-shadow] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:border-[var(--color-stone-400)] hover:shadow-[var(--shadow-lifted)]"
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 transition-[border-color,box-shadow] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:border-[var(--color-stone-400)] hover:shadow-[var(--shadow-lifted)]"
                         >
                           <input
                             type="hidden"
                             name="rewardId"
                             value={reward.id}
                           />
-                          <span className="text-sm text-[var(--color-stone-800)]">
+                          <span className="min-w-0 text-sm text-[var(--color-stone-800)]">
                             {reward.name} · {reward.pointsCost} points
                           </span>
                           <Button
                             type="submit"
                             size="sm"
                             variant="outline"
+                            className="shrink-0"
                             disabled={account.pointsBalance < reward.pointsCost}
                           >
                             Redeem

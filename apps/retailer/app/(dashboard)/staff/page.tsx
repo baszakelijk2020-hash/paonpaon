@@ -55,9 +55,9 @@ export default async function StaffPage() {
           staff.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between px-6 py-4"
+              className="flex flex-wrap items-center justify-between gap-3 px-6 py-4"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="font-medium text-[var(--color-stone-900)]">
                   {member.fullName}
                 </p>
@@ -66,7 +66,10 @@ export default async function StaffPage() {
                   <span className="capitalize">{member.role}</span>
                 </p>
               </div>
-              <Badge tone={member.acceptedAt ? "success" : "warning"}>
+              <Badge
+                className="shrink-0"
+                tone={member.acceptedAt ? "success" : "warning"}
+              >
                 {member.acceptedAt ? "Active" : "Invited"}
               </Badge>
             </div>

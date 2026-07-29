@@ -312,7 +312,9 @@ export function StudioForm({
               <p className="text-xs uppercase tracking-[0.2em] opacity-50">
                 {selectedPlan.name}
               </p>
-              <h2 className="mt-16 text-5xl leading-none">{companyName}</h2>
+              <h2 className="font-display mt-16 break-words text-5xl leading-none">
+                {companyName}
+              </h2>
               <p className="mt-5 text-sm leading-7 opacity-60">
                 {configuration?.personalizedIntroduction ||
                   "A retailer-specific narrative will appear here using only safe, shared PAON components."}
@@ -344,7 +346,7 @@ export function StudioForm({
           {state.success}
         </p>
       ) : null}
-      <div className="bg-[var(--color-stone-50)]/95 sticky bottom-0 z-20 -mx-4 mt-6 border-t border-[var(--color-stone-200)] px-4 py-4 backdrop-blur xl:static xl:mx-0 xl:border-0 xl:bg-transparent xl:px-0 xl:py-0 xl:backdrop-blur-none">
+      <div className="bg-[var(--color-stone-50)]/95 sticky bottom-20 z-20 -mx-4 mt-6 border-t border-[var(--color-stone-200)] px-4 py-4 backdrop-blur xl:static xl:mx-0 xl:border-0 xl:bg-transparent xl:px-0 xl:py-0 xl:backdrop-blur-none">
         <button
           type="submit"
           disabled={pending}

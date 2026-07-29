@@ -364,6 +364,12 @@ Demo Studio cool `stone-*` / soft radii replaced with paon tokens
 (`36fba0a`, `dbaeb41`). Still skip Stripe / Resend / silhouette /
 inventing alterations.
 
+**Also (2026-07-29 continuous — mobile chrome):** marketing hamburger nav;
+Admin mobile dock (Prospects / Inquiries / Retailers); sticky Studio Save
+and message composers above the dock; list-row wrap across Private Client
+and Mission Control; private-demo + Studio leftovers on `--radius-md`
+(`bd22b47` and follow-ups).
+
 **Save vs Generate (Studio).** Save alone updates live storefront story
 fields that are read from the prospect configuration at request time
 (headline, introduction, location photos). Logo / favicon / hero,

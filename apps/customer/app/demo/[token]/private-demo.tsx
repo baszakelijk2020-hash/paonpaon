@@ -81,7 +81,7 @@ export function PrivateDemo({
               <label className="text-xs text-white/55">
                 Access code
                 <input
-                  className="mt-2 min-h-12 w-full rounded-md border border-white/20 bg-white/10 px-4 text-white"
+                  className="mt-2 min-h-12 w-full rounded-[var(--radius-md)] border border-white/20 bg-white/10 px-4 text-white"
                   name="accessCode"
                   type="text"
                   autoComplete="off"
@@ -96,7 +96,7 @@ export function PrivateDemo({
                 </p>
               ) : null}
               <button
-                className="mt-6 min-h-12 w-full rounded-md bg-white px-5 text-sm text-black disabled:opacity-50"
+                className="mt-6 min-h-12 w-full rounded-[var(--radius-md)] bg-white px-5 text-sm text-black disabled:opacity-50"
                 type="submit"
                 disabled={pending}
               >
@@ -164,7 +164,7 @@ export function PrivateDemo({
                     <img
                       src={location.imageUrl}
                       alt=""
-                      className="h-12 w-12 rounded-md object-cover"
+                      className="h-12 w-12 rounded-[var(--radius-md)] object-cover"
                     />
                   ) : null}
                   <span>

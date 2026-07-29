@@ -439,13 +439,15 @@ export default async function DashboardPage() {
                     {nextAppointment ? (
                       <Link
                         href={`/appointments/${nextAppointment.id}`}
-                        className="flex items-center justify-between border-t border-[var(--color-stone-100)] px-6 py-4 text-sm"
+                        className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-stone-100)] px-6 py-4 text-sm"
                       >
-                        <span>
+                        <span className="min-w-0">
                           Next: {humanise(nextAppointment.type)} ·{" "}
                           {formatDate(nextAppointment.startsAt, "en-US")}
                         </span>
-                        <span aria-hidden="true">→</span>
+                        <span aria-hidden="true" className="shrink-0">
+                          →
+                        </span>
                       </Link>
                     ) : null}
                     {aiConfigured && retailer ? (

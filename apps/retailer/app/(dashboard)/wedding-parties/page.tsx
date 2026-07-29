@@ -43,7 +43,7 @@ export default async function WeddingPartiesPage() {
           <Link
             key={party.id}
             href={`/wedding-parties/${party.id}`}
-            className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-[var(--color-stone-50)]"
+            className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 hover:bg-[var(--color-stone-50)]"
           >
             <div className="flex min-w-0 items-center gap-4">
               {party.coverPhotoUrl ? (
@@ -78,7 +78,9 @@ export default async function WeddingPartiesPage() {
                 </p>
               </div>
             </div>
-            <Badge tone={STATUS_TONE[party.status]}>{party.status}</Badge>
+            <Badge className="shrink-0" tone={STATUS_TONE[party.status]}>
+              {party.status}
+            </Badge>
           </Link>
         ))}
         {parties.length === 0 ? (
