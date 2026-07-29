@@ -90,3 +90,5 @@ export * from "./intelligence/style-profile";
 export * from "./intelligence/style-profile.schema";
 export * from "./intelligence/advisor-brief";
 export * from "./intelligence/grounded-answer";
+export * from "./wardrobe/wardrobe";
+export * from "./wardrobe/wardrobe.schema";

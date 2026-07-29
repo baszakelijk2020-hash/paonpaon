@@ -102,6 +102,10 @@ export type StylePreferenceEvidenceId = Brand<
   string,
   "StylePreferenceEvidenceId"
 >;
+export type WardrobeOwnershipEventId = Brand<
+  string,
+  "WardrobeOwnershipEventId"
+>;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;
