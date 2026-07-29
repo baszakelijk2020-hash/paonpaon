@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  ConsentRepository,
   CustomerPreferencesRepository,
   CustomerRepository,
 } from "@paon/database";
@@ -32,6 +33,8 @@ export async function savePreferences(
   const rawCommunicationChannels = formData.getAll("communicationChannels");
   const rawStyleNotes = formData.get("styleNotes");
   const marketingOptIn = formData.get("marketingOptIn") === "on";
+  const personalizationOptIn = formData.get("personalizationOptIn") === "on";
+  const locationOptIn = formData.get("locationOptIn") === "on";
 
   const values: Record<string, string | string[]> = {
     retailerId: typeof rawRetailerId === "string" ? rawRetailerId : "",
@@ -44,6 +47,8 @@ export async function savePreferences(
     ),
     styleNotes: typeof rawStyleNotes === "string" ? rawStyleNotes : "",
     marketingOptIn: marketingOptIn ? "on" : "",
+    personalizationOptIn: personalizationOptIn ? "on" : "",
+    locationOptIn: locationOptIn ? "on" : "",
   };
 
   const retailerId = retailerIdSchema.safeParse(rawRetailerId);
@@ -87,6 +92,22 @@ export async function savePreferences(
       customer.id,
       parsed.data,
     );
+
+    const consentRepo = new ConsentRepository(supabase);
+    await Promise.all([
+      consentRepo.upsert(customer.retailerId, customer.id, {
+        purpose: "personalization",
+        granted: personalizationOptIn,
+      }),
+      consentRepo.upsert(customer.retailerId, customer.id, {
+        purpose: "marketing",
+        granted: marketingOptIn,
+      }),
+      consentRepo.upsert(customer.retailerId, customer.id, {
+        purpose: "location",
+        granted: locationOptIn,
+      }),
+    ]);
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
     return { values, fieldErrors: {}, formError: message };

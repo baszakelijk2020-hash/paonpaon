@@ -1,16 +1,16 @@
-import type { CustomerId, RetailerId } from "../shared/branded-id";
+import type { InteractionEvent } from "../intelligence/interaction-event";
 
 /**
- * The single event shape fed into analytics and AI personalisation.
- * Every customer-facing interaction worth analyzing emits one of these
- * rather than a bespoke table — keeps the personalisation feature set
- * additive instead of requiring new schema per signal.
+ * Consent-aware interaction signal fed into analytics and advisor intelligence.
+ * Upgraded in PHASE 3.1 per ADR-061; `name` is retained as an alias of
+ * `interactionType` for backward-compatible aggregate counts.
  */
-export interface BehavioralEvent {
-  readonly retailerId: RetailerId;
-  readonly customerId?: CustomerId;
-  readonly name: string;
-  readonly properties: Record<string, unknown>;
-  readonly occurredAt: string;
-  readonly source: "customer_portal" | "retailer_portal" | "admin" | "server";
+export type BehavioralEvent = InteractionEvent & {
+  readonly name: InteractionEvent["interactionType"];
+};
+
+export function toBehavioralEventName(
+  interactionType: InteractionEvent["interactionType"],
+): string {
+  return interactionType;
 }

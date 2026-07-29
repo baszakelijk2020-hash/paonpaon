@@ -330,7 +330,7 @@ unreviewed bulk publish.
 
 ### Stage 3 — Customer and advisor intelligence
 
-- [ ] **3.1 Consent and interaction-event upgrade**
+- [x] **3.1 Consent and interaction-event upgrade**
   - **Requirement IDs:** `CUST-001`, `CUST-003`, `ENG-002`.
   - **Dependencies:** `2.4`; ADR-021 and ADR-061.
   - **Owner boundary:** consent/event domain, forward migration/RLS,
@@ -346,6 +346,10 @@ unreviewed bulk publish.
     order/message duplication, StyleProfile inference, or required location.
   - **Hard blockers:** unresolved jurisdiction-specific anonymous tracking
     blocks anonymous persistence only; signed-in explicit-consent work remains.
+  - **Landed:** `3.1` — `customer_consent_records`, consent-aware
+    `capture_behavioral_event`, `@paon/domain` intelligence rules,
+    `ConsentRepository`, advisor-safe event projection, Customer Portal
+    consent controls, and upgraded storefront/swipe producers.
 
 - [ ] **3.2 StyleProfile evidence and recomputation**
   - **Requirement IDs:** `CUST-002`, `CUST-003`, `ENG-002`.

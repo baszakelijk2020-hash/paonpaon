@@ -4,6 +4,7 @@ import {
   AnalyticsRepository,
   AppointmentRepository,
   ClientelingRepository,
+  ConsentRepository,
   CustomerRepository,
   LoyaltyRepository,
   OrderRepository,
@@ -77,9 +78,10 @@ export default async function CustomerDetailPage({
     new AppointmentRepository(supabase).findByCustomer(customer.id),
     new AIGenerationRepository(supabase).findByCustomer(customer.id, 5),
     new LoyaltyRepository(supabase).findAccountByCustomer(customer.id),
-    new AnalyticsRepository(supabase).findRecentByCustomer(
+    new AnalyticsRepository(supabase).findRecentByCustomerForAdvisor(
       session.retailerId,
       customer.id,
+      new ConsentRepository(supabase),
     ),
     new AlterationRepository(supabase).findByCustomer(customer.id),
   ]);

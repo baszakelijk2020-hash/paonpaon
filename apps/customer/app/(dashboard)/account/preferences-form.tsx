@@ -1,6 +1,7 @@
 "use client";
 
-import type { CustomerPreferences } from "@paon/domain";
+import type { CustomerConsentRecord, CustomerPreferences } from "@paon/domain";
+import { isConsentGranted } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { FormField } from "@paon/ui/components/FormField";
@@ -28,15 +29,35 @@ const CHANNELS = [
   { value: "in_app", label: "In-app" },
 ] as const;
 
+function consentGranted(
+  records: readonly CustomerConsentRecord[],
+  purpose: CustomerConsentRecord["purpose"],
+): boolean {
+  return isConsentGranted(
+    records.find((record) => record.purpose === purpose) ?? null,
+  );
+}
+
 export function PreferencesForm({
   retailerId,
   retailerName,
   preferences,
+  consentRecords,
 }: {
   retailerId: string;
   retailerName: string;
   preferences: CustomerPreferences | null;
+  consentRecords: readonly CustomerConsentRecord[];
 }) {
+  const personalizationOptIn = consentGranted(
+    consentRecords,
+    "personalization",
+  );
+  const marketingOptIn =
+    consentGranted(consentRecords, "marketing") ||
+    (preferences?.marketingOptIn ?? false);
+  const locationOptIn = consentGranted(consentRecords, "location");
+
   const initialState: PreferencesFormState = {
     fieldErrors: {},
     values: {
@@ -47,7 +68,9 @@ export function PreferencesForm({
         ? [...preferences.communicationChannels]
         : ["email"],
       styleNotes: preferences?.styleNotes ?? "",
-      marketingOptIn: preferences?.marketingOptIn ? "on" : "",
+      marketingOptIn: marketingOptIn ? "on" : "",
+      personalizationOptIn: personalizationOptIn ? "on" : "",
+      locationOptIn: locationOptIn ? "on" : "",
     },
   };
   const [state, formAction, isPending] = useActionState(
@@ -131,14 +154,49 @@ export function PreferencesForm({
           </div>
         </fieldset>
 
-        <label className="flex items-center gap-2 text-sm text-[var(--color-stone-700)]">
-          <input
-            type="checkbox"
-            name="marketingOptIn"
-            defaultChecked={v["marketingOptIn"] === "on"}
-          />
-          Send me marketing updates and offers
-        </label>
+        <fieldset className="flex flex-col gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-4">
+          <legend className="px-1 text-sm font-medium text-[var(--color-stone-900)]">
+            Intelligence and privacy
+          </legend>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            Personalization, marketing, and location are separate choices.
+            Turning off personalization stops new browsing signals and begins
+            the documented retention period for existing interaction evidence.
+          </p>
+          <label className="flex items-start gap-2 text-sm text-[var(--color-stone-700)]">
+            <input
+              type="checkbox"
+              name="personalizationOptIn"
+              defaultChecked={v["personalizationOptIn"] === "on"}
+              className="mt-0.5"
+            />
+            <span>
+              Personalize my experience using views, searches, favourites, and
+              similar interaction signals with this house.
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-[var(--color-stone-700)]">
+            <input
+              type="checkbox"
+              name="marketingOptIn"
+              defaultChecked={v["marketingOptIn"] === "on"}
+              className="mt-0.5"
+            />
+            <span>Send me marketing updates and offers from this house.</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-[var(--color-stone-700)]">
+            <input
+              type="checkbox"
+              name="locationOptIn"
+              defaultChecked={v["locationOptIn"] === "on"}
+              className="mt-0.5"
+            />
+            <span>
+              Use my location for weather-aware recommendations when available.
+              Location is optional and never required for service.
+            </span>
+          </label>
+        </fieldset>
 
         <FormField
           label="Style notes"

@@ -1127,32 +1127,53 @@ export type Database = {
       };
       behavioral_events: {
         Row: {
+          anonymized_at: string | null;
+          anonymous_session_id: string | null;
+          consent_snapshot: Json;
           created_at: string;
           customer_id: string | null;
           id: string;
+          interaction_type: Database["public"]["Enums"]["interaction_event_type"];
           name: string;
           occurred_at: string;
           properties: Json;
+          purpose: Database["public"]["Enums"]["consent_purpose"];
+          retention_class: Database["public"]["Enums"]["retention_class"];
+          retention_expires_at: string | null;
           retailer_id: string;
           source: string;
         };
         Insert: {
+          anonymized_at?: string | null;
+          anonymous_session_id?: string | null;
+          consent_snapshot: Json;
           created_at?: string;
           customer_id?: string | null;
           id?: string;
+          interaction_type: Database["public"]["Enums"]["interaction_event_type"];
           name: string;
           occurred_at?: string;
           properties?: Json;
+          purpose: Database["public"]["Enums"]["consent_purpose"];
+          retention_class: Database["public"]["Enums"]["retention_class"];
+          retention_expires_at?: string | null;
           retailer_id: string;
           source: string;
         };
         Update: {
+          anonymized_at?: string | null;
+          anonymous_session_id?: string | null;
+          consent_snapshot?: Json;
           created_at?: string;
           customer_id?: string | null;
           id?: string;
+          interaction_type?: Database["public"]["Enums"]["interaction_event_type"];
           name?: string;
           occurred_at?: string;
           properties?: Json;
+          purpose?: Database["public"]["Enums"]["consent_purpose"];
+          retention_class?: Database["public"]["Enums"]["retention_class"];
+          retention_expires_at?: string | null;
           retailer_id?: string;
           source?: string;
         };
@@ -1847,6 +1868,57 @@ export type Database = {
             columns: ["customer_id"];
             isOneToOne: true;
             referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_consent_records: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          granted_at: string | null;
+          id: string;
+          purpose: Database["public"]["Enums"]["consent_purpose"];
+          retention_deadline_at: string | null;
+          retailer_id: string;
+          updated_at: string;
+          withdrawn_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          granted_at?: string | null;
+          id?: string;
+          purpose: Database["public"]["Enums"]["consent_purpose"];
+          retention_deadline_at?: string | null;
+          retailer_id: string;
+          updated_at?: string;
+          withdrawn_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          granted_at?: string | null;
+          id?: string;
+          purpose?: Database["public"]["Enums"]["consent_purpose"];
+          retention_deadline_at?: string | null;
+          retailer_id?: string;
+          updated_at?: string;
+          withdrawn_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_consent_records_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_consent_records_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];
@@ -5947,14 +6019,23 @@ export type Database = {
       };
       capture_behavioral_event: {
         Args: {
+          p_anonymous_session_id?: string;
+          p_consent_snapshot?: Json;
           p_customer_id?: string;
-          p_name: string;
+          p_interaction_type: Database["public"]["Enums"]["interaction_event_type"];
           p_occurred_at?: string;
           p_properties?: Json;
+          p_purpose?: Database["public"]["Enums"]["consent_purpose"];
+          p_retention_class?: Database["public"]["Enums"]["retention_class"];
+          p_retention_expires_at?: string;
           p_retailer_id: string;
           p_source?: string;
         };
         Returns: string;
+      };
+      anonymize_expired_interaction_events: {
+        Args: { p_now?: string };
+        Returns: number;
       };
       checkout_cart: {
         Args: { p_order_id: string; p_shipping_address: Json };
@@ -6576,12 +6657,25 @@ export type Database = {
         | "delivery_complete";
       customer_lifecycle_stage:
         "prospect" | "first_purchase" | "returning" | "vip" | "lapsed";
+      consent_purpose: "personalization" | "marketing" | "location";
       demo_configuration_status: "draft" | "review_ready" | "published";
       event_rsvp_status: "invited" | "attending" | "declined" | "attended";
       event_status: "draft" | "published" | "cancelled" | "completed";
       event_visibility: "public" | "invite_only" | "vip_tier";
       garment_identification_state: "verified" | "needs_verification";
       garment_source_kind: "external" | "finished_mtm";
+      interaction_event_type:
+        | "product_viewed"
+        | "category_browsed"
+        | "search_performed"
+        | "filter_applied"
+        | "product_favorited"
+        | "product_skipped"
+        | "cart_item_added"
+        | "knowledge_opened"
+        | "advisor_question_asked"
+        | "swipe_choice"
+        | "appointment_intent";
       knowledge_commercial_intent:
         | "educate"
         | "justify_premium"
@@ -6686,6 +6780,10 @@ export type Database = {
       redemption_status: "issued" | "used" | "cancelled";
       referral_status:
         "invited" | "signed_up" | "first_purchase_completed" | "rewarded";
+      retention_class:
+        | "personalization_standard"
+        | "legacy_analytics"
+        | "anonymous_session";
       retailer_role:
         | "read_only"
         | "production_staff"
@@ -6965,12 +7063,26 @@ export const Constants = {
         "vip",
         "lapsed",
       ],
+      consent_purpose: ["personalization", "marketing", "location"],
       demo_configuration_status: ["draft", "review_ready", "published"],
       event_rsvp_status: ["invited", "attending", "declined", "attended"],
       event_status: ["draft", "published", "cancelled", "completed"],
       event_visibility: ["public", "invite_only", "vip_tier"],
       garment_identification_state: ["verified", "needs_verification"],
       garment_source_kind: ["external", "finished_mtm"],
+      interaction_event_type: [
+        "product_viewed",
+        "category_browsed",
+        "search_performed",
+        "filter_applied",
+        "product_favorited",
+        "product_skipped",
+        "cart_item_added",
+        "knowledge_opened",
+        "advisor_question_asked",
+        "swipe_choice",
+        "appointment_intent",
+      ],
       knowledge_commercial_intent: [
         "educate",
         "justify_premium",
@@ -7104,6 +7216,11 @@ export const Constants = {
         "signed_up",
         "first_purchase_completed",
         "rewarded",
+      ],
+      retention_class: [
+        "personalization_standard",
+        "legacy_analytics",
+        "anonymous_session",
       ],
       retailer_role: [
         "read_only",

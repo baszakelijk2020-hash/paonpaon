@@ -12,7 +12,20 @@ const row: Row = {
   id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
   retailer_id: "11111111-1111-1111-1111-111111111111",
   customer_id: "44444444-4444-4444-4444-444444444444",
-  name: "product.viewed",
+  name: "product_viewed",
+  interaction_type: "product_viewed",
+  purpose: "personalization",
+  consent_snapshot: {
+    purpose: "personalization",
+    granted: true,
+    basis: "explicit_opt_in",
+    recordedAt: "2026-07-20T00:00:00.000Z",
+    version: 1,
+  },
+  retention_class: "personalization_standard",
+  retention_expires_at: "2028-07-20T00:00:00.000Z",
+  anonymous_session_id: null,
+  anonymized_at: null,
   properties: { productId: "product-1" },
   source: "customer_portal",
   occurred_at: "2026-07-20T00:00:00.000Z",
@@ -28,7 +41,8 @@ describe("AnalyticsRepository", () => {
       row.retailer_id as never,
     );
     expect(events[0]).toMatchObject({
-      name: "product.viewed",
+      interactionType: "product_viewed",
+      name: "product_viewed",
       source: "customer_portal",
       properties: { productId: "product-1" },
     });
@@ -43,7 +57,32 @@ describe("AnalyticsRepository", () => {
       row.customer_id as never,
     );
     expect(events).toHaveLength(1);
-    expect(events[0]?.name).toBe("product.viewed");
+    expect(events[0]?.interactionType).toBe("product_viewed");
+  });
+
+  it("uses the consent-aware capture RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: row.id, error: null });
+    const repository = new AnalyticsRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+    await repository.capture({
+      retailerId: row.retailer_id as never,
+      customerId: row.customer_id as never,
+      interactionType: "product_viewed",
+      purpose: "personalization",
+      consentSnapshot: row.consent_snapshot as never,
+      retentionClass: "personalization_standard",
+      properties: { productId: "product-1" },
+      occurredAt: row.occurred_at,
+      source: "customer_portal",
+    });
+    expect(rpc).toHaveBeenCalledWith(
+      "capture_behavioral_event",
+      expect.objectContaining({
+        p_interaction_type: "product_viewed",
+        p_purpose: "personalization",
+      }),
+    );
   });
 
   it("uses the protected summary RPC", async () => {

@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `3.1 Consent and interaction-event upgrade`
-- **Current requirement IDs:** `CUST-001`, `CUST-003`, `ENG-002`
+- **Current queue item:** `3.2 StyleProfile evidence and recomputation`
+- **Current requirement IDs:** `CUST-002`, `CUST-003`, `ENG-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -26,27 +26,29 @@ requires it.
   panels; `a0e03dd` adds accepted-metadata structured catalogue query;
   `dd2e274` adds catalogue import contracts and preview; `8aa10c6` adds
   transactional reviewed import publishing; `21297da` adds AI-assisted import
-  enrichment (PHASE 2.7 complete).
+  enrichment; `9821c4c` closes PHASE 2.7; PHASE 3.1 adds consent and
+  interaction-event upgrade.
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
-  columns, `import_enrichment_prompt_contracts`, review-task
-  evidence/field_key, generated database types, `MetadataRepository`,
-  `ProductFabricProfileRepository`, `KnowledgeRepository`,
-  `CatalogueQueryRepository`, `CatalogueImportRepository` (preview + review +
-  publish + AI enrichment proposals), `ImportEnrichmentPromptRepository`,
+  columns, `import_enrichment_prompt_contracts`, `customer_consent_records`,
+  consent-aware `behavioral_events`, review-task evidence/field_key, generated
+  database types, `MetadataRepository`, `ProductFabricProfileRepository`,
+  `KnowledgeRepository`, `CatalogueQueryRepository`, `CatalogueImportRepository`
+  (preview + review + publish + AI enrichment proposals),
+  `ImportEnrichmentPromptRepository`, `ConsentRepository`,
+  `AnalyticsRepository` (consent-aware capture + advisor projection),
   `publish_catalogue_import_row` / `review_catalogue_import_task` RPCs,
   `@paon/ai` import enrichment runner, versioned import contract/parsers/
   templates, storefront knowledge/catalogue mounts, and idempotent EDU-001
   fixtures.
-- **Checks/deployment state:** 98 migrations; import enrichment domain/
-  runner/repo/Admin/Portal and pgTAP foundation checks are green with
-  lint/typecheck/test/build/format on the 2.7 tip. Live OpenAI smoke remains
-  optional when `OPENAI_API_KEY` is unset.
-- **Real blockers:** none for Stage 3.1 consent/event upgrade implementation;
-  jurisdiction-specific anonymous tracking blocks anonymous persistence only.
-- **Exact next files/tests:** implement queue item 3.1 Consent and
-  interaction-event upgrade: consent/event domain, forward migration/RLS,
-  repositories, customer controls, and narrow event producers.
+- **Checks/deployment state:** 100 migrations; consent/event domain, repos,
+  security contract tests, Customer Portal controls, and upgraded producers
+  are green with lint/typecheck/test/build/format on the 3.1 tip. Anonymous
+  session persistence remains deferred pending jurisdiction review.
+- **Real blockers:** none for Stage 3.2 StyleProfile evidence work.
+- **Exact next files/tests:** implement queue item 3.2 StyleProfile evidence
+  and recomputation: intelligence domain pure rules, migration/RLS,
+  repositories, and customer preference controls.
 
 ## 1. Programme intent
 

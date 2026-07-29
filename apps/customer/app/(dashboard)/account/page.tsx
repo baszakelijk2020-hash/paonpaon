@@ -1,4 +1,5 @@
 import {
+  ConsentRepository,
   CustomerPreferencesRepository,
   CustomerRepository,
   RetailerRepository,
@@ -18,12 +19,16 @@ export default async function AccountPage() {
   );
   const retailerRepo = new RetailerRepository(supabase);
   const preferencesRepo = new CustomerPreferencesRepository(supabase);
+  const consentRepo = new ConsentRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
-      const retailer = await retailerRepo.findById(customer.retailerId);
-      const preferences = await preferencesRepo.findByCustomer(customer.id);
-      return { customer, retailer, preferences };
+      const [retailer, preferences, consentRecords] = await Promise.all([
+        retailerRepo.findById(customer.retailerId),
+        preferencesRepo.findByCustomer(customer.id),
+        consentRepo.findByCustomer(customer.retailerId, customer.id),
+      ]);
+      return { customer, retailer, preferences, consentRecords };
     }),
   );
 
@@ -34,8 +39,8 @@ export default async function AccountPage() {
           Settings
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Language, currency, contact and style preferences with each retailer
-          you shop with.
+          Language, currency, contact, intelligence consent, and style
+          preferences with each retailer you shop with.
         </p>
       </div>
 
@@ -46,12 +51,13 @@ export default async function AccountPage() {
           </p>
         </div>
       ) : (
-        groups.map(({ customer, retailer, preferences }) => (
+        groups.map(({ customer, retailer, preferences, consentRecords }) => (
           <PreferencesForm
             key={customer.id}
             retailerId={customer.retailerId}
             retailerName={retailer?.displayName ?? "Retailer"}
             preferences={preferences}
+            consentRecords={consentRecords}
           />
         ))
       )}
