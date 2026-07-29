@@ -366,6 +366,14 @@ end-to-end on production admin (create → save → generate → storefront
 status reflects generate/publish state; Mission Control Relationship tile
 and notes use house language.
 
+**Also (2026-07-29 Founder Mode — label consolidation).** `APPOINTMENT_TYPE_LABELS`,
+`CUSTOMER_LIFECYCLE_STAGE_LABELS`, `RETAILER_ROLE_LABELS`, `ORDER_STATUS_LABELS`,
+and `WEDDING_PARTY_MEMBER_ROLE_LABELS` added to `@paon/domain` and used across all
+customer/retailer-visible surfaces. No more raw `.replaceAll("_", " ")` on any
+enum in the demo path. Customer portal "Notifications" H1 renamed "Updates" and
+"Account" renamed "Settings" to match dock/nav labels. Retailer layout
+`PERSONA_LABELS` deduped against domain constant.
+
 **Agent buildable freeze queue: exhausted** (2026-07-29) for the three
 freeze workstreams, aside from founder blockers. **Exception (founder
 2026-07-29):** customer + retailer **back environments** (Private Client
