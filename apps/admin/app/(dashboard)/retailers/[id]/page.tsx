@@ -4,7 +4,7 @@ import {
   RetailerSubscriptionRepository,
   SubscriptionPlanRepository,
 } from "@paon/database";
-import { asId } from "@paon/domain";
+import { asId, RETAILER_ROLE_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
@@ -137,8 +137,7 @@ export default async function RetailerDetailPage({
                     {member.fullName}
                   </p>
                   <p className="text-sm text-[var(--color-stone-500)]">
-                    {member.email} ·{" "}
-                    <span className="capitalize">{member.role}</span>
+                    {member.email} · {RETAILER_ROLE_LABELS[member.role]}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-2">
