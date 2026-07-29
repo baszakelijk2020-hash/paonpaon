@@ -37,6 +37,8 @@ export function AlterationForm({
   defaultCustomerId?: string;
   defaultAppointmentId?: string;
 }) {
+  const textareaClassName =
+    "min-h-24 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-3 text-sm text-[var(--color-stone-900)] transition-colors duration-150 ease-[var(--ease-out-quiet)] placeholder:text-[var(--color-stone-400)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2";
   const [state, formAction, isPending] = useActionState(createAlteration, {
     values: {},
     fieldErrors: {},
@@ -67,7 +69,7 @@ export function AlterationForm({
       {state.formError ? (
         <p
           role="alert"
-          className="bg-[var(--color-danger-500)]/10 rounded-[var(--radius-sm)] px-4 py-3 text-sm text-[var(--color-danger-500)]"
+          className="bg-[var(--color-danger-500)]/10 rounded-[var(--radius-md)] px-4 py-3 text-sm text-[var(--color-danger-500)]"
         >
           {state.formError}
         </p>
@@ -211,7 +213,7 @@ export function AlterationForm({
             name="description"
             defaultValue={v["description"]}
             required
-            className="min-h-24 w-full rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] bg-white p-3 text-sm"
+            className={textareaClassName}
           />
         </FormField>
         <FormField
@@ -224,7 +226,7 @@ export function AlterationForm({
             name="intakeCondition"
             defaultValue={v["intakeCondition"]}
             required
-            className="min-h-24 w-full rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] bg-white p-3 text-sm"
+            className={textareaClassName}
           />
         </FormField>
         <FormField
@@ -307,7 +309,7 @@ export function AlterationForm({
             name="observation"
             defaultValue={v["observation"]}
             required
-            className="min-h-24 w-full rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] bg-white p-3 text-sm"
+            className={textareaClassName}
           />
         </FormField>
         <div className="flex flex-col gap-4">
@@ -345,7 +347,7 @@ export function AlterationForm({
             id="futureOrderNote"
             name="futureOrderNote"
             defaultValue={v["futureOrderNote"]}
-            className="min-h-24 w-full rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] bg-white p-3 text-sm"
+            className={textareaClassName}
           />
         </FormField>
         <FormField label="Due date" htmlFor="dueDate" hint="Optional">

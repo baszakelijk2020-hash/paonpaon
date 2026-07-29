@@ -76,7 +76,7 @@ export function AmHouseHero({
         </div>
       </div>
 
-      <div className="absolute inset-x-3 bottom-3 flex items-center justify-between rounded-xl bg-white/10 px-5 py-3 backdrop-blur-lg">
+      <div className="absolute inset-x-3 bottom-3 flex items-center justify-between rounded-[var(--radius-md)] bg-white/10 px-5 py-3 backdrop-blur-lg">
         <NavIcon
           href="#"
           label="AM House"

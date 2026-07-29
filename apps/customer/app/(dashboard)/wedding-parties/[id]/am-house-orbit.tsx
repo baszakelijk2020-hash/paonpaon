@@ -165,7 +165,7 @@ export function AmHouseOrbit({
         AM House Party
       </p>
       <div
-        className="rounded-[24px] bg-[linear-gradient(180deg,#2a2925_0%,#111110_100%)] px-0 py-4"
+        className="rounded-[var(--radius-md)] bg-[linear-gradient(180deg,#2a2925_0%,#111110_100%)] px-0 py-4"
         style={{ minHeight: 380 }}
       >
         <style
