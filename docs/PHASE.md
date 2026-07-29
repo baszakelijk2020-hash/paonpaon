@@ -355,6 +355,17 @@ garment lines accept `url | name | description`, private-demo links unfurl
 and gate with prospect brand; outreach packs persist on the environment.
 Custom domain still deferred (ADR-014).
 
+**Also (2026-07-29 Founder Mode — deploy reliability).** Production updates
+run through CI `Deploy production` (ADR-058 / Deployments API) after verify.
+Hobby push/hooks remain unreliable; daily deploy cap soft-fails CI with a
+warning. Quota resets ~2026-07-30 07:21 UTC. Live Demo Studio path verified
+end-to-end on production admin (create → save → generate → storefront
+`/r/demo-atelier-verne-founder-verify-33f90c02`).
+
+**Also (2026-07-29 Founder Mode — conversion chrome).** Studio environment
+status reflects generate/publish state; Mission Control Relationship tile
+and notes use house language.
+
 **Agent buildable freeze queue: exhausted** (2026-07-29) for the three
 freeze workstreams, aside from founder blockers. **Exception (founder
 2026-07-29):** customer + retailer **back environments** (Private Client
