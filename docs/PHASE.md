@@ -71,7 +71,8 @@ Verified against code and 91 migrations on 2026-07-30:
   StyleProfile tables, advisor briefs, and grounded TableService guidance
   exist. Wardrobe ownership, sartorial rules, outfits, wardrobe roadmaps,
   lifecycle/self-scan/fit-freshness, MorningRoutine selection, and MorningRoutine
-  delivery/subscription tables exist; no service-plan or campaign table exists.
+  delivery/subscription tables exist; campaign and wardrobe-challenge tables
+  exist; no service-plan table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -547,7 +548,7 @@ explanation path.
 
 ### Stage 5 — Relationship programmes and concierge services
 
-- [ ] **5.1 Private offers and seven-day wardrobe campaigns**
+- [x] **5.1 Private offers and seven-day wardrobe campaigns**
   - **Requirement IDs:** `CAMP-001`, `CAMP-002`, `MR-003`, `MILE-002`.
   - **Dependencies:** `3.2`, `4.2`; ADR-061.
   - **Owner boundary:** campaign domain/migration/RLS/repositories, Retailer
@@ -565,6 +566,10 @@ explanation path.
   - **Hard blockers:** an unprovided founder visual blocks only a new
     founder-defined surface; domain/control work and existing-surface
     composition remain buildable.
+  - **Landed:** campaign domain/migration/RLS/repositories, Retailer Portal
+    `/settings/campaigns`, Customer `/private-offers` seven-day composer,
+    private-offer delivery orchestration with append-only audit and capped
+    idempotent rewards.
 
 - [ ] **5.2 Tailoring milestones and premium rewards**
   - **Requirement IDs:** `MILE-001`, `MILE-002`.

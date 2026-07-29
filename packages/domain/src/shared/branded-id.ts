@@ -77,6 +77,12 @@ export type MorningRoutineDeliveryAuditId = Brand<
   string,
   "MorningRoutineDeliveryAuditId"
 >;
+export type CampaignId = Brand<string, "CampaignId">;
+export type CampaignTargetId = Brand<string, "CampaignTargetId">;
+export type CampaignEnrollmentId = Brand<string, "CampaignEnrollmentId">;
+export type CampaignDayLookId = Brand<string, "CampaignDayLookId">;
+export type CampaignRewardGrantId = Brand<string, "CampaignRewardGrantId">;
+export type CampaignDeliveryAuditId = Brand<string, "CampaignDeliveryAuditId">;
 export type OrderId = Brand<string, "OrderId">;
 export type OrderLineId = Brand<string, "OrderLineId">;
 export type ProductionOrderId = Brand<string, "ProductionOrderId">;

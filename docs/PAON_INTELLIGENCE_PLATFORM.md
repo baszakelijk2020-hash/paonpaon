@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `5.1 Private offers and seven-day wardrobe campaigns`
-- **Current requirement IDs:** `CAMP-001`, `CAMP-002`, `MR-003`, `MILE-002`
+- **Current queue item:** `5.2 Tailoring milestones and premium rewards`
+- **Current requirement IDs:** `MILE-001`, `MILE-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -36,7 +36,8 @@ requires it.
   wardrobe lifecycle, self-scan, and fit freshness (PHASE 4.3 complete);
   `fcd0260` adds MorningRoutine selection and actions (PHASE 4.4 complete);
   `933ab1c` adds MorningRoutine delivery and retailer controls (PHASE 4.5
-  complete).
+  complete); campaign private offers and seven-day wardrobe challenge land in
+  PHASE 5.1 on this branch.
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -61,7 +62,14 @@ requires it.
   `persist_morning_routine_selection` / `mark_morning_routine_review` /
   `upsert_morning_routine_subscription` /
   `record_morning_routine_delivery_audit` /
-  `enqueue_morning_routine_delivery_notification`, generated database types,
+  `enqueue_morning_routine_delivery_notification`, `retailer_campaigns` /
+  `retailer_campaign_targets` / `wardrobe_challenge_enrollments` /
+  `wardrobe_challenge_day_looks` / `campaign_reward_grants` /
+  `campaign_delivery_audits`, RPCs `upsert_retailer_campaign` /
+  `set_campaign_target` / `start_wardrobe_challenge` /
+  `save_wardrobe_challenge_day_look` / `complete_wardrobe_challenge` /
+  `record_campaign_delivery_audit` / `enqueue_campaign_offer_notification`,
+  generated database types,
   `MetadataRepository`, `ProductFabricProfileRepository`,
   `KnowledgeRepository`, `CatalogueQueryRepository`,
   `CatalogueImportRepository`, `ImportEnrichmentPromptRepository`,
@@ -70,28 +78,27 @@ requires it.
   `WardrobeRepository`, `SartorialRuleRepository`, `OutfitRepository`,
   `WardrobeRoadmapRepository`, `WardrobeLifecycleRepository`,
   `MorningRoutineRepository`, `MorningRoutineDeliveryRepository`,
+  `CampaignRepository`, `orchestrateCampaignDeliveries`,
   `orchestrateMorningRoutineDeliveries`, upgraded `AnalyticsRepository`,
   `@paon/domain` intelligence consent/interaction-event/StyleProfile/
   advisor-brief/grounded-answer/wardrobe/sartorial/outfit/roadmap/lifecycle/
-  morning-routine/delivery contracts plus provider-neutral weather/calendar
+  morning-routine/delivery/campaign contracts plus provider-neutral weather/calendar
   ports, `@paon/ai` `generateGroundedAnswer`, customer account consent +
   StyleProfile + wardrobe + MorningRoutine selection/delivery controls,
   consented storefront/swipe/TableService producers, Retailer Portal advisor
-  brief/wardrobe/roadmap/lifecycle/MorningRoutine mounts, and TableService
+  brief/wardrobe/roadmap/lifecycle/MorningRoutine/campaign mounts, and TableService
   occasion guidance with swipe/appointment conversion hooks.
-- **Checks/deployment state:** 106 migrations; MorningRoutine delivery domain/
-  migration/repo/Customer+Retailer surfaces/cron enqueue and lint/typecheck/
-  test/build/format are green on the 4.5 tip. Anonymous interaction
-  persistence remains blocked pending jurisdiction documentation. Live
-  Resend/OpenWeather smoke still needs provider credentials.
-- **Real blockers:** none for Stage 5.1 beyond ordinary missing credentials
-  for live delivery smoke; anonymous persistence remains blocked for new
-  anonymous producers only; missing founder-authored fabric/colour/formality
-  sartorial rules still block only those exact claims.
-- **Exact next files/tests:** implement queue item 5.1 Private offers and
-  seven-day wardrobe campaigns: campaign domain/migration/RLS/repositories,
-  Retailer Portal rules, authenticated Customer private-offers and seven-look
-  experience, delivery/suppression audit.
+- **Checks/deployment state:** 107 migrations; campaign domain/migration/repo/
+  Retailer+Customer surfaces/delivery orchestration and lint/typecheck/test/
+  build/format are green on the 5.1 tip. Anonymous interaction persistence
+  remains blocked pending jurisdiction documentation. Live Resend/OpenWeather
+  smoke still needs provider credentials.
+- **Real blockers:** none for Stage 5.2; anonymous persistence remains blocked
+  for new anonymous producers only; missing founder-authored fabric/colour/
+  formality sartorial rules still block only those exact claims.
+- **Exact next files/tests:** implement queue item 5.2 Tailoring milestones
+  and premium rewards: pure eligibility rules and existing loyalty event/
+  ledger/reward repositories and customer/advisor projections.
 
 ## 1. Programme intent
 

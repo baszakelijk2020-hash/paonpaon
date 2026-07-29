@@ -1,6 +1,7 @@
 import {
   CommercialProspectRepository,
   EmailOutboxRepository,
+  orchestrateCampaignDeliveries,
   orchestrateMorningRoutineDeliveries,
 } from "@paon/database";
 import { sendEmail } from "@paon/email";
@@ -39,6 +40,7 @@ async function handleDispatch(request: Request): Promise<Response> {
   ).expireDueEnvironments();
 
   const morningRoutine = await orchestrateMorningRoutineDeliveries(admin);
+  const campaigns = await orchestrateCampaignDeliveries(admin);
 
   const resend = getResendClient();
   const fromEmail = env.resendFromEmail;
@@ -46,6 +48,7 @@ async function handleDispatch(request: Request): Promise<Response> {
     return NextResponse.json({
       demosExpired,
       morningRoutine,
+      campaigns,
       email: {
         skipped: true,
         reason: "Resend is not configured on this deployment.",
@@ -84,6 +87,7 @@ async function handleDispatch(request: Request): Promise<Response> {
     failed,
     demosExpired,
     morningRoutine,
+    campaigns,
   });
 }
 
