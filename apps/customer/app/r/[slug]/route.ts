@@ -480,14 +480,29 @@ ${
     .replaceAll("__PAON_OG_TITLE__", ogTitle)
     .replaceAll("__PAON_OG_DESCRIPTION__", ogDescription)
     .replaceAll("__PAON_OG_IMAGE__", escapeHtml(ogImage))
-    .replace("__PAON_BRAND_HEAD__", brandHead)
-    .replace("__PAON_BRAND_MARK__", brandMark)
-    .replace("__PAON_HERO_HTML__", heroHtml + storyHtml + catalogueNoteHtml)
-    .replace("__PAON_PRODUCTS_JSON__", JSON.stringify(entries))
-    .replace("__PAON_DEFAULT_CATEGORY_JSON__", JSON.stringify(defaultCategory))
-    .replace("__PAON_CATEGORY_NAMES_JSON__", JSON.stringify(resolvedCategories))
-    .replace("__PAON_LAND_ON_GRID__", landOnGrid ? "true" : "false")
-    .replace("__PAON_STORES_JSON__", JSON.stringify(stores));
+    .replaceAll("__PAON_BRAND_HEAD__", brandHead)
+    .replaceAll("__PAON_BRAND_MARK__", brandMark)
+    .replaceAll("__PAON_HERO_HTML__", heroHtml + storyHtml + catalogueNoteHtml)
+    .replaceAll("__PAON_PRODUCTS_JSON__", JSON.stringify(entries))
+    .replaceAll(
+      "__PAON_DEFAULT_CATEGORY_JSON__",
+      JSON.stringify(defaultCategory),
+    )
+    .replaceAll(
+      "__PAON_CATEGORY_NAMES_JSON__",
+      JSON.stringify(resolvedCategories),
+    )
+    .replaceAll("__PAON_LAND_ON_GRID__", landOnGrid ? "true" : "false")
+    .replaceAll("__PAON_STORES_JSON__", JSON.stringify(stores));
+
+  if (html.includes("__PAON_")) {
+    const leftovers = [...html.matchAll(/__PAON_[A-Z0-9_]+__/g)].map(
+      (match) => match[0],
+    );
+    throw new Error(
+      `Storefront template still contains unsubstituted placeholders: ${[...new Set(leftovers)].join(", ")}`,
+    );
+  }
 
   return new NextResponse(html, {
     headers: { "content-type": "text/html; charset=utf-8" },

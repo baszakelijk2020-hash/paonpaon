@@ -350,6 +350,12 @@ Custom domain still deferred (ADR-014).
 **Agent buildable freeze queue: exhausted** (2026-07-29). Remaining work is
 founder-blocked only.
 
+**Save vs Generate (Studio).** Save alone updates live storefront story
+fields that are read from the prospect configuration at request time
+(headline, introduction, location photos). Logo / favicon / hero,
+garment photography and names, and product-mix archive only land on the
+tenant after **Generate** (or Regenerate).
+
 **Blocked (skip in continuous mode until founder provisions):**
 
 - Stripe live (queue 1) — keys missing from env.

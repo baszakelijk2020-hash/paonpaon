@@ -14,6 +14,8 @@ const PUBLIC_PATHS = [
   "/discover",
   "/founder",
   "/demo",
+  "/sitemap.xml",
+  "/robots.txt",
   // Guest-browsable private-client shell — see how the portal looks
   // without a login wall; mutations still require a session.
   "/dashboard",
