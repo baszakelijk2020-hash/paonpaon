@@ -8,7 +8,9 @@ function polarityLabel(polarity: string): string {
   return "Neutral";
 }
 
-function personalizationMessage(status: AdvisorPreparationBrief["personalizationStatus"]): string {
+function personalizationMessage(
+  status: AdvisorPreparationBrief["personalizationStatus"],
+): string {
   if (status === "consent_withdrawn") {
     return "Personalization consent was withdrawn. Recent interests, shortlist, and inferred style signals are hidden. Orders, messages, and team notes remain available.";
   }
@@ -20,11 +22,11 @@ function personalizationMessage(status: AdvisorPreparationBrief["personalization
 
 function Section({
   title,
-  empty,
+  emptyMessage,
   children,
 }: {
   title: string;
-  empty?: string;
+  emptyMessage?: string | undefined;
   children: React.ReactNode;
 }) {
   return (
@@ -33,8 +35,8 @@ function Section({
         {title}
       </p>
       {children}
-      {empty ? (
-        <p className="text-sm text-[var(--color-stone-500)]">{empty}</p>
+      {emptyMessage ? (
+        <p className="text-sm text-[var(--color-stone-500)]">{emptyMessage}</p>
       ) : null}
     </div>
   );
@@ -93,12 +95,10 @@ export function AdvisorBriefPanel({
       <div className="grid gap-6 lg:grid-cols-2">
         <Section
           title="Recent interests"
-          empty={
-            withheld
-              ? undefined
-              : brief.interests.length === 0
-                ? "No consented activity yet."
-                : undefined
+          emptyMessage={
+            !withheld && brief.interests.length === 0
+              ? "No consented activity yet."
+              : undefined
           }
         >
           {brief.interests.length > 0 ? (
@@ -124,12 +124,10 @@ export function AdvisorBriefPanel({
 
         <Section
           title="Shortlist"
-          empty={
-            withheld
-              ? undefined
-              : brief.shortlist.length === 0
-                ? "Nothing saved yet."
-                : undefined
+          emptyMessage={
+            !withheld && brief.shortlist.length === 0
+              ? "Nothing saved yet."
+              : undefined
           }
         >
           {brief.shortlist.length > 0 ? (
@@ -154,12 +152,10 @@ export function AdvisorBriefPanel({
 
         <Section
           title="Knowledge explored"
-          empty={
-            withheld
-              ? undefined
-              : brief.knowledge.length === 0
-                ? "No knowledge cards opened yet."
-                : undefined
+          emptyMessage={
+            !withheld && brief.knowledge.length === 0
+              ? "No knowledge cards opened yet."
+              : undefined
           }
         >
           {brief.knowledge.length > 0 ? (
@@ -183,12 +179,10 @@ export function AdvisorBriefPanel({
 
         <Section
           title="Style signals"
-          empty={
-            withheld
-              ? undefined
-              : brief.stylePreferences.length === 0
-                ? "No declared or inferred preferences yet."
-                : undefined
+          emptyMessage={
+            !withheld && brief.stylePreferences.length === 0
+              ? "No declared or inferred preferences yet."
+              : undefined
           }
         >
           {brief.stylePreferences.length > 0 ? (
@@ -215,12 +209,10 @@ export function AdvisorBriefPanel({
 
         <Section
           title="Evidence highlights"
-          empty={
-            withheld
-              ? undefined
-              : brief.recentEvidence.length === 0
-                ? "No active evidence rows."
-                : undefined
+          emptyMessage={
+            !withheld && brief.recentEvidence.length === 0
+              ? "No active evidence rows."
+              : undefined
           }
         >
           {brief.recentEvidence.length > 0 ? (
@@ -243,8 +235,9 @@ export function AdvisorBriefPanel({
 
         <Section
           title="Questions & continuity"
-          empty={
-            brief.questions.length === 0 && brief.conversationContinuity.length === 0
+          emptyMessage={
+            brief.questions.length === 0 &&
+            brief.conversationContinuity.length === 0
               ? "No recent messages or advisor questions."
               : undefined
           }
@@ -258,8 +251,10 @@ export function AdvisorBriefPanel({
                 >
                   {question.body}
                   <span className="mt-1 block text-xs text-[var(--color-stone-500)]">
-                    {question.source === "message" ? "Message" : "Storefront question"} ·{" "}
-                    {formatDate(question.occurredAt, "en-US")}
+                    {question.source === "message"
+                      ? "Message"
+                      : "Storefront question"}{" "}
+                    · {formatDate(question.occurredAt, "en-US")}
                   </span>
                 </li>
               ))}

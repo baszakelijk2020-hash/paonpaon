@@ -18,8 +18,8 @@ import { formatDate } from "@paon/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { LifecycleBadge } from "../../customers/lifecycle-badge";
 import { AdvisorBriefPanel } from "../../customers/[id]/advisor-brief-panel";
+import { LifecycleBadge } from "../../customers/lifecycle-badge";
 import { AppointmentStatusBadge } from "../status-badge";
 
 import { AppointmentActionsForm } from "./appointment-actions-form";

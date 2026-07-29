@@ -14,7 +14,10 @@ import {
   type ConsentStatus,
   type CustomerConsentState,
 } from "./consent";
-import type { BehavioralEvent, InteractionEventName } from "./interaction-event";
+import type {
+  BehavioralEvent,
+  InteractionEventName,
+} from "./interaction-event";
 import type {
   CustomerStyleProfile,
   StyleEvidenceSource,
@@ -37,9 +40,7 @@ export const ADVISOR_BRIEF_INTEREST_EVENT_NAMES = [
 ] as const satisfies readonly InteractionEventName[];
 
 export type AdvisorBriefPersonalizationStatus =
-  | "available"
-  | "consent_denied"
-  | "consent_withdrawn";
+  "available" | "consent_denied" | "consent_withdrawn";
 
 export interface AdvisorBriefInterest {
   readonly label: string;
@@ -148,8 +149,8 @@ export function filterAdvisorVisibleEvents(args: {
     isAdvisorVisiblePersonalizationEvent({
       eventRetailerId: event.retailerId,
       advisorRetailerId: args.advisorRetailerId,
-      customerId: event.customerId,
-      anonymizedAt: event.anonymizedAt,
+      ...(event.customerId ? { customerId: event.customerId } : {}),
+      ...(event.anonymizedAt ? { anonymizedAt: event.anonymizedAt } : {}),
       retentionExpiresAt: event.retentionExpiresAt,
       now: args.now,
       personalizationConsent: args.personalizationConsent,
@@ -213,24 +214,19 @@ function buildInterests(args: {
       ).includes(event.name),
     )
     .slice(0, limit)
-    .map((event) => ({
-      label: ADVISOR_BRIEF_EVENT_LABELS[event.name],
-      eventName: event.name,
-      occurredAt: event.occurredAt,
-      ...(interestDetail({
+    .map((event) => {
+      const detail = interestDetail({
         event,
         productNames: args.productNames,
         knowledgeTitles: args.knowledgeTitles,
-      })
-        ? {
-            detail: interestDetail({
-              event,
-              productNames: args.productNames,
-              knowledgeTitles: args.knowledgeTitles,
-            }),
-          }
-        : {}),
-    }));
+      });
+      return {
+        label: ADVISOR_BRIEF_EVENT_LABELS[event.name],
+        eventName: event.name,
+        occurredAt: event.occurredAt,
+        ...(detail ? { detail } : {}),
+      };
+    });
 }
 
 function buildKnowledgeFromEvents(args: {
@@ -242,7 +238,10 @@ function buildKnowledgeFromEvents(args: {
   const items: AdvisorBriefKnowledgeItem[] = [];
   for (const event of args.events) {
     if (event.name !== "knowledge_opened") continue;
-    const knowledgeObjectId = stringProperty(event.properties, "knowledgeObjectId");
+    const knowledgeObjectId = stringProperty(
+      event.properties,
+      "knowledgeObjectId",
+    );
     const title =
       (knowledgeObjectId && args.knowledgeTitles[knowledgeObjectId]) ??
       "Knowledge card";
@@ -415,26 +414,25 @@ export function buildAdvisorPreparationBrief(
     .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
     .slice(0, 6);
 
+  const occasion = resolveOccasion({
+    ...(input.conversationIntent
+      ? { conversationIntent: input.conversationIntent }
+      : {}),
+    ...(input.appointmentNotes
+      ? { appointmentNotes: input.appointmentNotes }
+      : {}),
+    ...(input.styleNotes ? { styleNotes: input.styleNotes } : {}),
+  });
+
   return {
     retailerId: input.retailerId,
     customerId: input.customerId,
     generatedAt: input.now,
     personalizationStatus,
-    ...(resolveOccasion({
-      conversationIntent: input.conversationIntent,
-      appointmentNotes: input.appointmentNotes,
-      styleNotes: input.styleNotes,
-    })
-      ? {
-          occasion: resolveOccasion({
-            conversationIntent: input.conversationIntent,
-            appointmentNotes: input.appointmentNotes,
-            styleNotes: input.styleNotes,
-          }),
-        }
-      : {}),
+    ...(occasion ? { occasion } : {}),
     interests,
-    shortlist: personalizationStatus === "available" ? input.shortlistItems : [],
+    shortlist:
+      personalizationStatus === "available" ? input.shortlistItems : [],
     knowledge,
     questions,
     stylePreferences:

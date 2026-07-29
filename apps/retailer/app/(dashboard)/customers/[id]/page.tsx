@@ -425,9 +425,7 @@ export default async function CustomerDetailPage({
         </Card>
       ) : null}
 
-      {canManage ? (
-        <AdvisorBriefPanel brief={advisorBrief} />
-      ) : null}
+      {canManage ? <AdvisorBriefPanel brief={advisorBrief} /> : null}
 
       {canManage ? (
         <SelfPortrait

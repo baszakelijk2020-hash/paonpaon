@@ -9,8 +9,6 @@ import {
   type AdvisorPreparationBrief,
   type AdvisorBriefShortlistItem,
   type CustomerId,
-  type KnowledgeObjectId,
-  type ProductId,
   type RetailerId,
 } from "@paon/domain";
 
@@ -20,8 +18,8 @@ import { AnalyticsRepository } from "./analytics-repository";
 import { CustomerConsentRepository } from "./customer-consent-repository";
 import { CustomerPreferencesRepository } from "./customer-preferences-repository";
 import { KnowledgeRepository } from "./knowledge-repository";
-import { MetadataRepository } from "./metadata-repository";
 import { MessagingRepository } from "./messaging-repository";
+import { MetadataRepository } from "./metadata-repository";
 import { ProductRepository } from "./product-repository";
 import { ProductVariantRepository } from "./product-variant-repository";
 import { StyleProfileRepository } from "./style-profile-repository";
@@ -52,25 +50,19 @@ export class AdvisorBriefRepository {
     const metadataRepo = new MetadataRepository(this.client);
     const knowledgeRepo = new KnowledgeRepository(this.client);
 
-    const [
-      consent,
-      events,
-      profile,
-      evidence,
-      preferences,
-      conversation,
-    ] = await Promise.all([
-      consentRepo.getState(input.retailerId, input.customerId),
-      analyticsRepo.findRecentByCustomer(
-        input.retailerId,
-        input.customerId,
-        50,
-      ),
-      styleRepo.findByCustomer(input.retailerId, input.customerId),
-      styleRepo.listEvidence(input.customerId, { limit: 20 }),
-      preferencesRepo.findByCustomer(input.customerId),
-      messagingRepo.findByCustomer(input.customerId),
-    ]);
+    const [consent, events, profile, evidence, preferences, conversation] =
+      await Promise.all([
+        consentRepo.getState(input.retailerId, input.customerId),
+        analyticsRepo.findRecentByCustomer(
+          input.retailerId,
+          input.customerId,
+          50,
+        ),
+        styleRepo.findByCustomer(input.retailerId, input.customerId),
+        styleRepo.listEvidence(input.customerId, { limit: 20 }),
+        preferencesRepo.findByCustomer(input.customerId),
+        messagingRepo.findByCustomer(input.customerId),
+      ]);
 
     const messages = conversation
       ? await messagingRepo.findMessages(conversation.id)
@@ -120,9 +112,13 @@ export class AdvisorBriefRepository {
     }
 
     const [conceptLabels, productNames, knowledgeTitles] = await Promise.all([
-      this.resolveConceptLabels(metadataRepo, [...conceptIds]),
+      this.resolveConceptLabels(metadataRepo, input.retailerId, [
+        ...conceptIds,
+      ]),
       this.resolveProductNames(productRepo, [...productIds]),
-      this.resolveKnowledgeTitles(knowledgeRepo, [...knowledgeObjectIds]),
+      this.resolveKnowledgeTitles(knowledgeRepo, input.retailerId, [
+        ...knowledgeObjectIds,
+      ]),
     ]);
 
     return buildAdvisorPreparationBrief({
@@ -139,9 +135,15 @@ export class AdvisorBriefRepository {
       shortlistItems,
       customerMessages,
       staffMessages,
-      ...(conversation?.intent ? { conversationIntent: conversation.intent } : {}),
-      ...(preferences?.styleNotes ? { styleNotes: preferences.styleNotes } : {}),
-      ...(input.appointmentNotes ? { appointmentNotes: input.appointmentNotes } : {}),
+      ...(conversation?.intent
+        ? { conversationIntent: conversation.intent }
+        : {}),
+      ...(preferences?.styleNotes
+        ? { styleNotes: preferences.styleNotes }
+        : {}),
+      ...(input.appointmentNotes
+        ? { appointmentNotes: input.appointmentNotes }
+        : {}),
     });
   }
 
@@ -155,44 +157,42 @@ export class AdvisorBriefRepository {
     if (!wishlist) return [];
 
     const items = await wishlistRepo.findItems(wishlist.id);
-    const resolved = await Promise.all(
-      items.map(async (item) => {
-        const variant = await variantRepo.findById(item.productVariantId);
-        const product = variant
-          ? await productRepo.findById(variant.productId)
-          : null;
-        if (!variant || !product) return null;
+    const results: AdvisorBriefShortlistItem[] = [];
+    for (const item of items) {
+      const variant = await variantRepo.findById(item.productVariantId);
+      const product = variant
+        ? await productRepo.findById(variant.productId)
+        : null;
+      if (!variant || !product) continue;
 
-        const variantLabel = [variant.size, variant.color]
-          .filter(Boolean)
-          .join(" · ");
+      const variantLabel = [variant.size, variant.color]
+        .filter(Boolean)
+        .join(" · ");
 
-        return {
-          productId: product.id,
-          productName: product.name,
-          ...(variantLabel ? { variantLabel } : {}),
-          savedAt: item.addedAt,
-          source: "wishlist" as const,
-        };
-      }),
-    );
-
-    return resolved.filter(
-      (entry): entry is AdvisorBriefShortlistItem => entry !== null,
-    );
+      results.push({
+        productId: product.id,
+        productName: product.name,
+        ...(variantLabel ? { variantLabel } : {}),
+        savedAt: item.addedAt,
+        source: "wishlist",
+      });
+    }
+    return results;
   }
 
   private async resolveConceptLabels(
     metadataRepo: MetadataRepository,
+    retailerId: RetailerId,
     conceptIds: readonly string[],
   ): Promise<Record<string, string>> {
     const labels: Record<string, string> = {};
     await Promise.all(
       conceptIds.map(async (conceptId) => {
         const concept = await metadataRepo.findConceptById(
+          retailerId,
           asId<"MetadataConceptId">(conceptId),
         );
-        if (concept) labels[conceptId] = concept.label;
+        if (concept) labels[conceptId] = concept.canonicalName;
       }),
     );
     return labels;
@@ -205,7 +205,9 @@ export class AdvisorBriefRepository {
     const names: Record<string, string> = {};
     await Promise.all(
       productIds.map(async (productId) => {
-        const product = await productRepo.findById(asId<ProductId>(productId));
+        const product = await productRepo.findById(
+          asId<"ProductId">(productId),
+        );
         if (product) names[productId] = product.name;
       }),
     );
@@ -214,12 +216,14 @@ export class AdvisorBriefRepository {
 
   private async resolveKnowledgeTitles(
     knowledgeRepo: KnowledgeRepository,
+    retailerId: RetailerId,
     knowledgeObjectIds: readonly string[],
   ): Promise<Record<string, string>> {
     const titles: Record<string, string> = {};
     await Promise.all(
       knowledgeObjectIds.map(async (knowledgeObjectId) => {
         const object = await knowledgeRepo.findById(
+          retailerId,
           asId<"KnowledgeObjectId">(knowledgeObjectId),
         );
         if (object) titles[knowledgeObjectId] = object.title;

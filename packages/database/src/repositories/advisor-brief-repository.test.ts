@@ -22,16 +22,13 @@ describe("AdvisorBriefRepository", () => {
     const repository = new AdvisorBriefRepository(client);
 
     vi.spyOn(
-      (
-        await import("./customer-consent-repository")
-      ).CustomerConsentRepository.prototype,
+      (await import("./customer-consent-repository")).CustomerConsentRepository
+        .prototype,
       "getState",
     ).mockResolvedValue(consentState as never);
 
     vi.spyOn(
-      (
-        await import("./analytics-repository")
-      ).AnalyticsRepository.prototype,
+      (await import("./analytics-repository")).AnalyticsRepository.prototype,
       "findRecentByCustomer",
     ).mockResolvedValue([
       {
@@ -56,30 +53,25 @@ describe("AdvisorBriefRepository", () => {
     ] as never);
 
     vi.spyOn(
-      (
-        await import("./style-profile-repository")
-      ).StyleProfileRepository.prototype,
+      (await import("./style-profile-repository")).StyleProfileRepository
+        .prototype,
       "findByCustomer",
     ).mockResolvedValue(null);
 
     vi.spyOn(
-      (
-        await import("./style-profile-repository")
-      ).StyleProfileRepository.prototype,
+      (await import("./style-profile-repository")).StyleProfileRepository
+        .prototype,
       "listEvidence",
     ).mockResolvedValue([]);
 
     vi.spyOn(
-      (
-        await import("./customer-preferences-repository")
-      ).CustomerPreferencesRepository.prototype,
+      (await import("./customer-preferences-repository"))
+        .CustomerPreferencesRepository.prototype,
       "findByCustomer",
     ).mockResolvedValue(null);
 
     vi.spyOn(
-      (
-        await import("./messaging-repository")
-      ).MessagingRepository.prototype,
+      (await import("./messaging-repository")).MessagingRepository.prototype,
       "findByCustomer",
     ).mockResolvedValue({
       id: "conv-1",
@@ -92,9 +84,7 @@ describe("AdvisorBriefRepository", () => {
     } as never);
 
     vi.spyOn(
-      (
-        await import("./messaging-repository")
-      ).MessagingRepository.prototype,
+      (await import("./messaging-repository")).MessagingRepository.prototype,
       "findMessages",
     ).mockResolvedValue([
       {
@@ -109,16 +99,12 @@ describe("AdvisorBriefRepository", () => {
     ] as never);
 
     vi.spyOn(
-      (
-        await import("./wishlist-repository")
-      ).WishlistRepository.prototype,
+      (await import("./wishlist-repository")).WishlistRepository.prototype,
       "findByCustomer",
     ).mockResolvedValue(null);
 
     vi.spyOn(
-      (
-        await import("./product-repository")
-      ).ProductRepository.prototype,
+      (await import("./product-repository")).ProductRepository.prototype,
       "findById",
     ).mockResolvedValue({
       id: "product-1",

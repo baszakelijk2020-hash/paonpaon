@@ -38,9 +38,8 @@ function event(
   return {
     retailerId,
     customerId,
-    name: overrides.name,
-    properties: overrides.properties ?? {},
-    occurredAt: overrides.occurredAt ?? "2026-07-28T12:00:00.000Z",
+    properties: {},
+    occurredAt: "2026-07-28T12:00:00.000Z",
     source: "customer_portal",
     purpose: "personalization",
     consentBasis: "explicit_opt_in",
@@ -86,9 +85,9 @@ describe("advisor brief personalization gate", () => {
     expect(advisorBriefPersonalizationStatus(consentState("denied"))).toBe(
       "consent_denied",
     );
-    expect(
-      advisorBriefPersonalizationStatus(consentState("withdrawn")),
-    ).toBe("consent_withdrawn");
+    expect(advisorBriefPersonalizationStatus(consentState("withdrawn"))).toBe(
+      "consent_withdrawn",
+    );
   });
 
   it("withholds personalization slices when consent is withdrawn", () => {
@@ -252,7 +251,9 @@ describe("advisor brief projection completeness", () => {
     const longBody = "Need advice? ".repeat(40);
     const brief = buildAdvisorPreparationBrief(
       baseInput({
-        customerMessages: [{ body: longBody, createdAt: "2026-07-25T15:00:00.000Z" }],
+        customerMessages: [
+          { body: longBody, createdAt: "2026-07-25T15:00:00.000Z" },
+        ],
       }),
     );
 
