@@ -6,11 +6,18 @@ import {
   ProductRepository,
   ProductVariantRepository,
   RetailerRepository,
+  createSupabaseAdminClient,
 } from "@paon/database";
 import type { Product, ProductVariant } from "@paon/domain";
 import { formatMoney } from "@paon/utils";
 import { NextResponse } from "next/server";
 
+import {
+  buildStorefrontKnowledgeByProductSlug,
+  serializeStorefrontKnowledgeByProductSlug,
+} from "./storefront-knowledge";
+
+import { env } from "@/lib/env";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
@@ -478,6 +485,18 @@ ${
   const resolvedCategories =
     categoryNames.length > 0 ? categoryNames : [...UNAMBIGUOUS_CATEGORY_ORDER];
   const landOnGrid = slug !== "maison-dubois";
+  const adminClient = createSupabaseAdminClient(
+    env.supabaseUrl,
+    env.supabaseServiceRoleKey,
+  );
+  const knowledgeByProductSlug = await buildStorefrontKnowledgeByProductSlug({
+    client: adminClient,
+    retailerId: retailer.id,
+    products: activeProducts.map((product) => ({
+      id: product.id,
+      slug: product.slug,
+    })),
+  });
   const ogTitle = storyLine
     ? `${safeName} — ${escapeHtml(storyLine)}`
     : safeName;
@@ -510,7 +529,11 @@ ${
       JSON.stringify(resolvedCategories),
     )
     .replaceAll("__PAON_LAND_ON_GRID__", landOnGrid ? "true" : "false")
-    .replaceAll("__PAON_STORES_JSON__", JSON.stringify(stores));
+    .replaceAll("__PAON_STORES_JSON__", JSON.stringify(stores))
+    .replaceAll(
+      "__PAON_KNOWLEDGE_BY_PRODUCT_JSON__",
+      serializeStorefrontKnowledgeByProductSlug(knowledgeByProductSlug),
+    );
 
   if (html.includes("__PAON_")) {
     const leftovers = [...html.matchAll(/__PAON_[A-Z0-9_]+__/g)].map(

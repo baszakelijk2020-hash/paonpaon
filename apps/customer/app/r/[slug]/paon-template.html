@@ -1013,6 +1013,58 @@ __PAON_BRAND_HEAD__
         opacity: .9;
     }
 
+    .paon-knowledge-cards {
+        display: grid;
+        gap: 12px;
+        padding: 0 20px 14px;
+    }
+
+    .paon-knowledge-cards:empty {
+        display: none;
+    }
+
+    .paon-knowledge-card {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+        padding: 10px 0 0;
+        border-top: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .paon-knowledge-card:first-child {
+        border-top: 0;
+        padding-top: 0;
+    }
+
+    .paon-knowledge-card-img {
+        width: 72px;
+        height: 72px;
+        object-fit: cover;
+        border-radius: 4px;
+        display: block;
+        background: #222220;
+    }
+
+    .paon-knowledge-card-copy {
+        min-width: 0;
+    }
+
+    .paon-knowledge-card-title {
+        margin: 0 0 4px;
+        color: #ededea;
+        font-size: 12px;
+        line-height: 1.35;
+        letter-spacing: .02em;
+    }
+
+    .paon-knowledge-card-summary {
+        margin: 0;
+        color: #9a988f;
+        font-size: 11px;
+        line-height: 1.55;
+    }
+
     .archetype-cards {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -3848,6 +3900,7 @@ __PAON_HERO_HTML__
 <div class="archetype-lbl active">The Specialist</div>
 <div class="archetype-lbl">Your Profile</div>
 </div>
+<div class="paon-knowledge-cards" id="paon-knowledge-archetype" role="list" aria-label="Archetype education"></div>
 <button class="dr-customize">Customize</button>
 </div>
 <div class="dr-sep"></div>
@@ -3857,6 +3910,7 @@ __PAON_HERO_HTML__
 </div>
 <div class="dr-section-body closed" id="body-fabric">
 <p class="dr-body-text" id="dr-fabric-body">Select your preferred fabric from our curated mill collections.</p><img class="dr-lining-img" id="dr-lining-img" alt="Recommended lining">
+<div class="paon-knowledge-cards" id="paon-knowledge-fabric" role="list" aria-label="Fabric education"></div>
 </div>
 <div class="dr-sep"></div>
 <div class="dr-section" onclick="toggleSection('sizing')">
@@ -3865,6 +3919,7 @@ __PAON_HERO_HTML__
 </div>
 <div class="dr-section-body closed" id="body-sizing">
 <p class="dr-body-text">Book your complimentary fitting after checkout.</p>
+<div class="paon-knowledge-cards" id="paon-knowledge-sizing" role="list" aria-label="Sizing education"></div>
 </div>
 <div class="dr-sep"></div>
 </div>
@@ -4016,6 +4071,7 @@ __PAON_HERO_HTML__
        Suit and jacket swatches use /images/smaller/####_1.webp. Jackets shown: 9177, 9178, 9179, 9180, 9181, 9182, 9183, 9184, 9185, 9187, 9188, 9189, 9190, 9191, 9193, 9194, 9195, 9196, 9197, 9201, 9203, 9206, 9207, 9208.
     */
 const products = __PAON_PRODUCTS_JSON__;
+const knowledgeByProduct = __PAON_KNOWLEDGE_BY_PRODUCT_JSON__;
 
     // hardcoded exclusions and 9197 image override, applied statically to this build
     for (let i = products.length - 1; i >= 0; i--) {
@@ -5500,6 +5556,44 @@ function renderGrid() {
 
         if (window.paonRevealGridCards) window.paonRevealGridCards(grid, cols);
     }
+    function paonEscapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function renderStorefrontKnowledgeCards(productId) {
+        var sections = (knowledgeByProduct && knowledgeByProduct[String(productId)]) || null;
+        var targets = [
+            { key: 'archetype', id: 'paon-knowledge-archetype' },
+            { key: 'fabric', id: 'paon-knowledge-fabric' },
+            { key: 'sizing', id: 'paon-knowledge-sizing' }
+        ];
+
+        targets.forEach(function (target) {
+            var container = document.getElementById(target.id);
+            if (!container) return;
+            container.innerHTML = '';
+            var cards = sections && Array.isArray(sections[target.key]) ? sections[target.key] : [];
+            if (!cards.length) return;
+
+            cards.forEach(function (card) {
+                var item = document.createElement('article');
+                item.className = 'paon-knowledge-card';
+                item.setAttribute('role', 'listitem');
+                item.innerHTML =
+                    '<img class="paon-knowledge-card-img" src="' + paonEscapeHtml(card.imageUrl) + '" alt="' + paonEscapeHtml(card.title) + '" loading="lazy" decoding="async">' +
+                    '<div class="paon-knowledge-card-copy">' +
+                        '<p class="paon-knowledge-card-title">' + paonEscapeHtml(card.title) + '</p>' +
+                        '<p class="paon-knowledge-card-summary">' + paonEscapeHtml(card.summary) + '</p>' +
+                    '</div>';
+                container.appendChild(item);
+            });
+        });
+    }
+
     function getTrouserSwatchImage(img) {
         const trouserSwatches = {
             "broek1": "https://www.nebelspiegel.com/images/broeken-webp/broek1-1.webp",
@@ -5611,6 +5705,7 @@ function renderGrid() {
                         : '<div class="detail-img-item"><img src="' + detailMainImage + '" alt="' + detailTitle + '" loading="eager" decoding="async"></div><div class="detail-img-item swatch-item"><img src="' + detailFabricImage + '" alt="' + detailTitle + ' fabric swatch" loading="lazy" decoding="async"></div>';
 
         document.getElementById('detail-main').scrollTop = 0;
+        renderStorefrontKnowledgeCards(p.id);
         if (window.gsap) {
             var detailView = document.getElementById('view-detail');
             var detailMain = document.getElementById('detail-main');
