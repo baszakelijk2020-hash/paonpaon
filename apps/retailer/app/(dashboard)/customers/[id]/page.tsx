@@ -502,8 +502,8 @@ export default async function CustomerDetailPage({
               .sort((a, b) => b.at.localeCompare(a.at))
               .map((item) => (
                 <div key={item.id} className="py-3">
-                  <p className="font-medium capitalize">{item.title}</p>
-                  <p className="text-sm capitalize text-[var(--color-stone-500)]">
+                  <p className="font-medium">{item.title}</p>
+                  <p className="text-sm text-[var(--color-stone-500)]">
                     {formatDate(item.at, "en-US")} · {item.detail}
                   </p>
                 </div>
