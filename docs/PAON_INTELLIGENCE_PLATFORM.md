@@ -11,9 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `4.3 Lifecycle, longevity, self-scan, and fit freshness`
-- **Current requirement IDs:** `WARD-002`, `FIT-001`, `FIT-002`, `FIT-003`,
-  `LONG-001`
+- **Current queue item:** `4.4 MorningRoutine selection and actions`
+- **Current requirement IDs:** `MR-001`, `MR-002`, `ENG-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -33,7 +32,8 @@ requires it.
   advisor preparation briefing (PHASE 3.3 complete); `ed2f0dc` adds grounded
   TableService occasion guidance (PHASE 3.4 complete); `a407890` adds wardrobe
   ownership and collaboration (PHASE 4.1 complete); `92f7afe` adds wardrobe
-  roadmaps, outfits, and sartorial rules (PHASE 4.2 complete).
+  roadmaps, outfits, and sartorial rules (PHASE 4.2 complete); `bd22637` adds
+  wardrobe lifecycle, self-scan, and fit freshness (PHASE 4.3 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -48,33 +48,38 @@ requires it.
   kind + `record_customer_tableservice_grounded` RPC, `wardrobe_items`,
   `wardrobe_ownership_events`, wardrobe_item metadata target tenancy,
   `sartorial_rules`, `wardrobe_roadmaps` / goals / gaps / stages, `outfits` /
-  `outfit_slots`, generated database types, `MetadataRepository`,
-  `ProductFabricProfileRepository`, `KnowledgeRepository`,
-  `CatalogueQueryRepository`, `CatalogueImportRepository`,
-  `ImportEnrichmentPromptRepository`, `CustomerConsentRepository`,
-  `StyleProfileRepository`, `AdvisorBriefRepository`,
-  `TableServiceGuidanceRepository`, `WardrobeRepository`,
-  `SartorialRuleRepository`, `OutfitRepository`, `WardrobeRoadmapRepository`,
-  upgraded `AnalyticsRepository`, `@paon/domain` intelligence
+  `outfit_slots`, `wardrobe_lifecycle_events`, `wardrobe_self_scans`,
+  `wardrobe_attachments`, private `wardrobe-evidence` bucket, RPCs
+  `record_wardrobe_lifecycle_event` / `submit_wardrobe_self_scan` /
+  `record_wardrobe_attachment`, generated database types,
+  `MetadataRepository`, `ProductFabricProfileRepository`,
+  `KnowledgeRepository`, `CatalogueQueryRepository`,
+  `CatalogueImportRepository`, `ImportEnrichmentPromptRepository`,
+  `CustomerConsentRepository`, `StyleProfileRepository`,
+  `AdvisorBriefRepository`, `TableServiceGuidanceRepository`,
+  `WardrobeRepository`, `SartorialRuleRepository`, `OutfitRepository`,
+  `WardrobeRoadmapRepository`, `WardrobeLifecycleRepository`, upgraded
+  `AnalyticsRepository`, `@paon/domain` intelligence
   consent/interaction-event/StyleProfile/advisor-brief/grounded-answer/
-  wardrobe/sartorial/outfit/roadmap contracts, `@paon/ai`
+  wardrobe/sartorial/outfit/roadmap/lifecycle contracts, `@paon/ai`
   `generateGroundedAnswer`, customer account consent + StyleProfile + wardrobe
-  - roadmap controls, consented storefront/swipe/TableService producers,
-    Retailer Portal advisor brief/wardrobe/roadmap mounts, and TableService
-    occasion guidance with swipe/appointment conversion hooks.
-- **Checks/deployment state:** 103 migrations; wardrobe roadmap/outfit/
-  sartorial domain/migration/repo/surface and lint/typecheck/test/build/
-  format are green on the 4.2 tip. Anonymous interaction persistence remains
+  roadmap/lifecycle/self-scan/fit-freshness controls, consented
+  storefront/swipe/TableService producers, Retailer Portal advisor
+  brief/wardrobe/roadmap/lifecycle mounts, and TableService occasion guidance
+  with swipe/appointment conversion hooks.
+- **Checks/deployment state:** 104 migrations; wardrobe lifecycle/self-scan/
+  fit-freshness domain/migration/repo/surface and lint/typecheck/test/build/
+  format are green on the 4.3 tip. Anonymous interaction persistence remains
   blocked pending jurisdiction documentation.
-- **Real blockers:** none for Stage 4.3 lifecycle/fit work beyond ordinary
-  private attachment storage setup; anonymous persistence remains blocked for
-  new anonymous producers only; missing founder-authored fabric/colour/
-  formality sartorial rules still block only those exact claims (neutral
-  slot-compatibility fixtures remain available).
-- **Exact next files/tests:** implement queue item 4.3 Lifecycle, longevity,
-  self-scan, and fit freshness: wardrobe lifecycle/history, private attachment
-  storage, official-fitting projection, appointment/alteration handoff, and
-  customer/advisor service views.
+- **Real blockers:** none for Stage 4.4 MorningRoutine selection beyond
+  ordinary missing weather/calendar credentials for live smoke only; anonymous
+  persistence remains blocked for new anonymous producers only; missing
+  founder-authored fabric/colour/formality sartorial rules still block only
+  those exact claims (neutral slot-compatibility fixtures remain available).
+- **Exact next files/tests:** implement queue item 4.4 MorningRoutine
+  selection and actions: pure routine selection/explanation, provider-neutral
+  weather/calendar interfaces, repository projections, and Customer
+  Environment in-app view with save/review/book/buy where valid.
 
 ## 1. Programme intent
 
@@ -124,7 +129,8 @@ Verified from code and 91 migrations on 2026-07-30:
   AI-assisted enrichment with pending review also exist. StyleProfile evidence
   persistence and a consented advisor preparation brief projection exist.
   Relationship-scoped wardrobe items with ownership history, sartorial rules,
-  outfits, and wardrobe roadmaps exist. The repository still has no campaign or
+  outfits, wardrobe roadmaps, lifecycle events, private self-scans, and fit
+  freshness projections exist. The repository still has no campaign or
   concierge-service persistence.
 
 Names below describe intended persistence and later-stage types until their
@@ -158,17 +164,17 @@ above. Status changes only after the named acceptance criteria are verified.
 | ADV-002                | Occasion guidance, preliminary shortlists, summer-wedding discovery, elegant swipe capture, and appointment conversion                                                                                     | TableService + discovery           | Occasion guidance builds explainable shortlists, seeds swipe, and converts to appointments with consented evidence                          | ADV-001                                   | 3.4                  | Occasion flow yields traceable evidence, shortlist, explanations, and book-advisor action                                        | Done (3.4)                                                                                                |
 | ADV-003                | Consented advisor preparation brief and continuation of the online conversation in store                                                                                                                   | Advisor workspace                  | Deterministic consented brief projects interests/shortlist/evidence/questions/prep into customer and appointment workspaces                 | CUST-002                                  | 3.3                  | Brief shows need, interests, questions, shortlist, evidence, and preparation without cross-tenant/withdrawn data                 | Done (3.3)                                                                                                |
 | WARD-001               | Visual wardrobe containing retailer-bought and externally owned garments                                                                                                                                   | `wardrobe`                         | Physical garments exist for fitting/alteration, not customer wardrobe ownership                                                             | CUST-002, CAT-001                         | 4.1                  | Owned and external items are distinct, visually available, and can link to catalogue metadata without becoming products          | Landed (`a407890`)                                                                                        |
-| WARD-002               | Ownership history, condition, age, wear rotation, care, repair, fit notes, combinations, and gaps                                                                                                          | `wardrobe`                         | Garment fitting/alteration records cover only part of service history                                                                       | WARD-001                                  | 4.1–4.3              | Typed histories and current state support lifecycle, combinations, gaps, and service explanations                                | Partial (4.1 ownership/condition/fit-care; lifecycle remaining)                                           |
+| WARD-002               | Ownership history, condition, age, wear rotation, care, repair, fit notes, combinations, and gaps                                                                                                          | `wardrobe`                         | Ownership history, condition/fit/care, lifecycle events, longevity guidance, and roadmap gaps exist                                         | WARD-001                                  | 4.1–4.3              | Typed histories and current state support lifecycle, combinations, gaps, and service explanations                                | Done (4.1–4.3 / `bd22637`)                                                                                |
 | WARD-003               | Tenant-safe customer/advisor collaboration                                                                                                                                                                 | `wardrobe`                         | Existing customer/retailer RLS foundations                                                                                                  | WARD-001                                  | 4.1–4.3              | Customer and authorized advisor can collaborate inside one retailer relationship; no retailer-to-retailer sharing                | Landed for 4.1 ownership (`a407890`)                                                                      |
 | ROAD-001               | Advisor-built ideal wardrobe with ranked gaps and staged purchase priorities                                                                                                                               | Wardrobe Roadmap                   | Advisor-authored roadmaps with goals/ranked gaps/cited stages and customer approval exist                                                   | WARD-001                                  | 4.2                  | Advisor can author goals/gaps/stages; customer sees approved plan and how each purchase fills a gap                              | Done (4.2 / `92f7afe`)                                                                                    |
 | ROAD-002               | Complete looks and founder-authored rules for jacket/trouser/shirt/shoe/accessory/pocket-square/fabric/colour/formality/occasion compatibility                                                             | Sartorial knowledge + outfits      | Slot-compatibility rules seeded/accepted; outfits/slots + explainable evaluator; fabric/colour/formality founder nuance still proposal-only | EDU-001, WARD-001                         | 4.2                  | Recommendations link approved rules and owned/catalogue items, remain retailer-controlled, and explain every compatibility claim | Done for buildable slice (4.2 / `92f7afe`); founder fabric/colour/formality nuance remains proposal-gated |
 | MR-001                 | Opt-in location, weather, temperature, calendar/occasion, wardrobe, catalogue, and StyleProfile inputs                                                                                                     | MorningRoutine                     | No routine/location/weather model                                                                                                           | ROAD-001, CUST-003                        | 4.4                  | Each input has provenance/consent/fallback; location is optional and separately revocable                                        | Not started                                                                                               |
 | MR-002                 | Daily in-app/email recommendations with one-tap save, review, appointment, or purchase paths                                                                                                               | MorningRoutine                     | Notification/email outbox foundations exist; no daily selector                                                                              | MR-001                                    | 4.4–4.5              | Owned garments rank first; recommendations explain why; delivery is opt-in, scheduled, auditable, and unsubscribeable            | Not started                                                                                               |
 | MR-003                 | Retailer-controlled campaign selection and timely service rather than generic advertising                                                                                                                  | MorningRoutine + campaigns         | Newsletter tooling exists; no intelligence campaign controls                                                                                | MR-002, CAMP-002                          | 4.5, 5.1             | Retailer controls eligible products/audiences/schedule; suppression and service relevance are testable                           | Not started                                                                                               |
-| FIT-001                | Order-line self-scan photo upload and notes for purchased garments                                                                                                                                         | Customer wardrobe + fit service    | Order lines and garment attachments exist separately; no self-scan journey                                                                  | WARD-001                                  | 4.3                  | Eligible order line/garment accepts customer photo/notes with private storage and advisor handoff                                | Not started                                                                                               |
-| FIT-002                | Customer-reported change, fit freshness, last measured date, escalating stale state, fit-update appointment, and alteration handoff                                                                        | Fit relationship                   | Garment-scoped fitting observations and appointments exist; no freshness projection                                                         | FIT-001                                   | 4.3                  | Customer sees factual last official measurement, deterministic freshness, and service actions; advisor receives context          | Not started                                                                                               |
-| FIT-003                | Strict separation of self-reported information from official garment fitting observations                                                                                                                  | Fit relationship                   | ADR-016 garment-scoped official observations exist                                                                                          | FIT-001                                   | 4.3                  | Self reports never populate official measurements; provenance is visible in domain, repository, and UI tests                     | Partial foundation                                                                                        |
-| LONG-001               | Garment age, wear/rotation/rest, care, cleaning, repair, and sustainability-led longevity guidance without coercive obsolescence                                                                           | Wardrobe lifecycle                 | Alteration/garment service records exist; no wardrobe rotation model                                                                        | WARD-002                                  | 4.3                  | Guidance derives from actual state, is dismissible/explainable, and contains no forced replacement mechanic                      | Not started                                                                                               |
+| FIT-001                | Order-line self-scan photo upload and notes for purchased garments                                                                                                                                         | Customer wardrobe + fit service    | Eligible wardrobe items accept private self-scan photo/notes with advisor handoff                                                           | WARD-001                                  | 4.3                  | Eligible order line/garment accepts customer photo/notes with private storage and advisor handoff                                | Done (4.3 / `bd22637`)                                                                                    |
+| FIT-002                | Customer-reported change, fit freshness, last measured date, escalating stale state, fit-update appointment, and alteration handoff                                                                        | Fit relationship                   | Deterministic freshness from official observations; self-scan triggers fitting/alteration handoff                                           | FIT-001                                   | 4.3                  | Customer sees factual last official measurement, deterministic freshness, and service actions; advisor receives context          | Done (4.3 / `bd22637`)                                                                                    |
+| FIT-003                | Strict separation of self-reported information from official garment fitting observations                                                                                                                  | Fit relationship                   | Self-scan provenance constrained to `self_reported`; RPCs never write fitting_observations                                                  | FIT-001                                   | 4.3                  | Self reports never populate official measurements; provenance is visible in domain, repository, and UI tests                     | Done (4.3 / `bd22637`)                                                                                    |
+| LONG-001               | Garment age, wear/rotation/rest, care, cleaning, repair, and sustainability-led longevity guidance without coercive obsolescence                                                                           | Wardrobe lifecycle                 | Dismissible longevity guidance from age/wear/rest/care/cleaning/repair; no forced replacement                                               | WARD-002                                  | 4.3                  | Guidance derives from actual state, is dismissible/explainable, and contains no forced replacement mechanic                      | Done (4.3 / `bd22637`)                                                                                    |
 | MILE-001               | Recognition for first commission, repeat orders, new categories, premium construction, advanced fabric, and comparable tailoring achievements                                                              | Loyalty milestones                 | Loyalty ledger/rewards exist; no tailoring milestone rules                                                                                  | CAT-002                                   | 5.2                  | Auditable idempotent rules derive milestones from authoritative records without a second ledger                                  | Not started                                                                                               |
 | MILE-002               | Restrained premium rewards and loyalty progression without gambling or discount-retail presentation                                                                                                        | Loyalty milestones                 | General rewards exist                                                                                                                       | MILE-001                                  | 5.2                  | Reward eligibility/value is auditable, capped, premium in tone, and never chance-based                                           | Partial foundation                                                                                        |
 | SERV-001               | Preferred Tailoring advisor wardrobe planning and HighMaintenance pressing, cleaning, repair, collection/delivery, and checks                                                                              | Concierge services                 | Appointments, garments, alterations, and staff ownership foundations exist                                                                  | WARD-002                                  | 5.3                  | Dedicated service plans compose existing aggregates and expose customer/advisor workflows                                        | Not started                                                                                               |

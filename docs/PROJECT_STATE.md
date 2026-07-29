@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 103 forward Supabase migrations plus generated TypeScript
+- Schema source: 104 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -45,8 +45,10 @@ Snapshot: 2026-07-30.
   Retailer customer wardrobe collaboration exist; `PhysicalGarment` remains
   the fitting/service aggregate. Wardrobe roadmaps (goals/ranked gaps/cited
   stages), outfits/slots, and approved sartorial rules exist; customers approve
-  plans and compatibility fails closed without an approved rule. MorningRoutine
-  remains Stage 4.
+  plans and compatibility fails closed without an approved rule. Lifecycle
+  events, private self-scan attachments, dismissible longevity guidance, and
+  deterministic fit freshness from official observations exist; self-reports
+  never write fitting observations. MorningRoutine remains Stage 4.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
   evidence, retailer overrides, exact fabric profiles, an actor-derived review
   RPC, PAON Admin canonical management, the Retailer Portal metadata review
@@ -63,8 +65,8 @@ Snapshot: 2026-07-30.
   Retailer Portal preview/review, transactional reviewed-row publishing with
   rollback/resumable retries, and AI enrichment that persists only pending
   review proposals with field-level evidence/confidence. Wardrobe ownership,
-  sartorial rules, outfits, and wardrobe roadmap tables exist; no campaign or
-  concierge-service tables exist.
+  sartorial rules, outfits, wardrobe roadmap, lifecycle, self-scan, and
+  attachment tables exist; no campaign or concierge-service tables exist.
 
 ## External systems
 
@@ -81,7 +83,7 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Stages 1–3 and PHASE 4.1–4.2 (wardrobe ownership through roadmaps/
-outfits/sartorial rules) are complete. The authoritative Resume Protocol
-identifies lifecycle, longevity, self-scan, and fit freshness (PHASE 4.3) as
-the exact continuation point.
+contracts. Stages 1–3 and PHASE 4.1–4.3 (wardrobe ownership through lifecycle/
+self-scan/fit freshness) are complete. The authoritative Resume Protocol
+identifies MorningRoutine selection and actions (PHASE 4.4) as the exact
+continuation point.

@@ -47,7 +47,9 @@ Verified against code and 91 migrations on 2026-07-30:
   client and appointment workspaces; grounded TableService occasion guidance
   cites approved knowledge, seeds swipe shortlists, and converts to
   appointments. Wardrobe ownership and roadmaps/outfits/sartorial rules
-  landed in Stage 4.1–4.2; MorningRoutine remains a later Stage 4 item.
+  landed in Stage 4.1–4.2; lifecycle, longevity guidance, private self-scan,
+  and fit freshness landed in Stage 4.3; MorningRoutine remains a later
+  Stage 4 item.
 - Metadata concepts, edges, assignments, append-only review evidence,
   retailer overrides, and exact product/variant fabric profiles now exist.
   PAON Admin can manage canonical concepts and terminal assignment decisions
@@ -66,8 +68,9 @@ Verified against code and 91 migrations on 2026-07-30:
   contracts, Retailer Portal preview, transactional reviewed-row publishing,
   and AI-assisted enrichment with pending review exist.
   StyleProfile tables, advisor briefs, and grounded TableService guidance
-  exist. Wardrobe ownership, sartorial rules, outfits, and wardrobe roadmap
-  tables exist; no service-plan or campaign table exists.
+  exist. Wardrobe ownership, sartorial rules, outfits, wardrobe roadmaps,
+  lifecycle/self-scan/fit-freshness tables exist; no service-plan or campaign
+  table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -470,7 +473,7 @@ replacement of human advice for uncertain high-value decisions.
     reject, advisor-brief gap projection; fabric/colour/formality founder
     nuance remains proposal-only and fails closed when unapproved.
 
-- [ ] **4.3 Lifecycle, longevity, self-scan, and fit freshness**
+- [x] **4.3 Lifecycle, longevity, self-scan, and fit freshness**
   - **Requirement IDs:** `WARD-002`, `FIT-001`, `FIT-002`, `FIT-003`,
     `LONG-001`.
   - **Dependencies:** `4.1`; ADR-016, ADR-055, and ADR-063.
@@ -487,6 +490,11 @@ replacement of human advice for uncertain high-value decisions.
   - **Non-goals:** no coercive planned obsolescence, body measurement profile,
     medical judgement, automatic alteration, or public images.
   - **Hard blockers:** none.
+  - **Landed:** `bd22637` — wardrobe lifecycle events, private
+    `wardrobe-evidence` self-scan attachments, deterministic fit freshness from
+    official observations, longevity guidance without forced replacement,
+    appointment/alteration handoff; `PhysicalGarment` unchanged as fitting
+    aggregate.
 
 - [ ] **4.4 MorningRoutine selection and actions**
   - **Requirement IDs:** `MR-001`, `MR-002`, `ENG-002`.
