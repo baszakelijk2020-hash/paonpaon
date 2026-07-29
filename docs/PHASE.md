@@ -41,8 +41,9 @@ Verified against code and 91 migrations on 2026-07-30:
   names, variant color, and founder image-number heuristics.
 - `behavioral_events` and `ai_generations` exist. Purpose-specific consent,
   typed interaction events with retention/withdrawal anonymization, and
-  customer consent controls now exist; StyleProfile evidence and advisor
-  briefing do not.
+  customer consent controls now exist. StyleProfile declared/inferred
+  preferences with concept evidence and deterministic recomputation exist;
+  advisor preparation briefing does not.
 - Metadata concepts, edges, assignments, append-only review evidence,
   retailer overrides, and exact product/variant fabric profiles now exist.
   PAON Admin can manage canonical concepts and terminal assignment decisions
@@ -60,8 +61,8 @@ Verified against code and 91 migrations on 2026-07-30:
   Catalogue import jobs/rows/review tasks, CSV/XLSX/JSON parsers, downloadable
   contracts, Retailer Portal preview, transactional reviewed-row publishing,
   and AI-assisted enrichment with pending review exist.
-  No style-profile, wardrobe, outfit, roadmap, service-plan, or campaign table
-  exists.
+  StyleProfile tables and evidence exist. No wardrobe, outfit, roadmap,
+  service-plan, or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -352,7 +353,7 @@ unreviewed bulk publish.
     retention/withdrawal/anonymization (`feat` commit on main); anonymous
     persistence remains denied until a jurisdiction documents a lawful basis.
 
-- [ ] **3.2 StyleProfile evidence and recomputation**
+- [x] **3.2 StyleProfile evidence and recomputation**
   - **Requirement IDs:** `CUST-002`, `CUST-003`, `ENG-002`.
   - **Dependencies:** `3.1`; ADR-061.
   - **Owner boundary:** intelligence domain pure rules, migration/RLS,
@@ -367,6 +368,8 @@ unreviewed bulk publish.
   - **Non-goals:** no black-box personality score, cross-retailer profile,
     location inference, or AI overwrite of explicit preferences.
   - **Hard blockers:** none.
+  - **Landed:** `82f499c` — StyleProfile domain recompute, evidence tables/
+    RLS/RPCs, `StyleProfileRepository`, and customer account inspect/remove.
 
 - [ ] **3.3 Advisor preparation brief**
   - **Requirement IDs:** `ADV-003`, `CUST-003`.

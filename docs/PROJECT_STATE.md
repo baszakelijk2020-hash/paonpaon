@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 99 forward Supabase migrations plus generated TypeScript
+- Schema source: 100 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -35,8 +35,9 @@ Snapshot: 2026-07-30.
   (personalization/marketing/location), typed interaction events with
   consent snapshot/retention/withdrawal anonymization, and customer account
   consent controls now exist; anonymous persistence remains blocked pending
-  jurisdiction documentation. StyleProfile evidence and advisor briefing do
-  not.
+  jurisdiction documentation. StyleProfile declared/inferred preferences,
+  concept evidence, deterministic recomputation, and customer inspect/remove
+  exist; advisor preparation briefing does not.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
   evidence, retailer overrides, exact fabric profiles, an actor-derived review
   RPC, PAON Admin canonical management, the Retailer Portal metadata review
@@ -70,6 +71,6 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Stages 1–2 and PHASE 3.1 (consent and interaction-event upgrade)
-are complete. The authoritative Resume Protocol identifies StyleProfile
-evidence and recomputation (PHASE 3.2) as the exact continuation point.
+contracts. Stages 1–2 and PHASE 3.1–3.2 (consent/events and StyleProfile
+evidence) are complete. The authoritative Resume Protocol identifies the
+advisor preparation brief (PHASE 3.3) as the exact continuation point.
