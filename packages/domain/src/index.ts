@@ -47,6 +47,7 @@ export * from "./import/import-contract";
 export * from "./import/import-csv";
 export * from "./import/import-parser";
 export * from "./import/import-preview";
+export * from "./import/import-publish";
 export * from "./import/import-templates";
 
 export * from "./commerce/order";

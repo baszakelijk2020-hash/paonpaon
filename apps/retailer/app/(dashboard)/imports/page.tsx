@@ -33,8 +33,8 @@ export default async function ImportsPage() {
           Catalogue import
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
-          Download the PAON contract, upload a supplier file, and review the
-          explained preview. Publishing is intentionally unavailable here.
+          Download the PAON contract, upload a supplier file, review the preview,
+          and publish reviewed rows transactionally into the catalogue.
         </p>
       </div>
 

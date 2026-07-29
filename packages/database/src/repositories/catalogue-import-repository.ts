@@ -1,17 +1,21 @@
 import {
   asId,
+  assessCatalogueImportRowPublishEligibility,
   catalogueImportProposedProductSchema,
   catalogueImportValidationIssueSchema,
   type CatalogueImport,
   type CatalogueImportExistingCatalogue,
   type CatalogueImportId,
   type CatalogueImportProposedProduct,
+  type CatalogueImportPublishResult,
   type CatalogueImportRow,
+  type CatalogueImportRowId,
   type CatalogueImportRowStatus,
   type CatalogueImportSourceType,
   type CatalogueImportStatus,
   type CatalogueImportValidationIssue,
   type MetadataReviewTask,
+  type MetadataReviewTaskId,
   type MetadataReviewTaskStatus,
   type ProductId,
   type RetailerId,
@@ -162,6 +166,21 @@ function toImportRow(row: CatalogueImportRowRecord): CatalogueImportRow {
     ...(proposedProduct === undefined ? {} : { proposedProduct }),
     validationErrors: toValidationErrors(row.validation_errors),
     status: row.status,
+    ...(row.published_product_id === null
+      ? {}
+      : {
+          publishedProductId: asId<"ProductId">(row.published_product_id),
+        }),
+    ...(row.published_variant_id === null
+      ? {}
+      : { publishedVariantId: row.published_variant_id }),
+    ...(row.publish_error === null ? {} : { publishError: row.publish_error }),
+    ...(row.published_at === null ? {} : { publishedAt: row.published_at }),
+    ...(row.published_by_staff_id === null
+      ? {}
+      : {
+          publishedByStaffId: asId<"StaffId">(row.published_by_staff_id),
+        }),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -423,5 +442,157 @@ export class CatalogueImportRepository {
       rows: createdRows,
       reviewTasks: createdTasks,
     };
+  }
+
+  async reviewMetadataTask(params: {
+    readonly retailerId: RetailerId;
+    readonly taskId: MetadataReviewTaskId;
+    readonly status: Exclude<
+      MetadataReviewTaskStatus,
+      "pending"
+    >;
+    readonly proposedConceptId?: string;
+  }): Promise<MetadataReviewTask> {
+    const { data, error } = await this.client.rpc(
+      "review_catalogue_import_metadata_task",
+      {
+        p_task_id: params.taskId,
+        p_status: params.status,
+        p_proposed_concept_id: params.proposedConceptId ?? undefined,
+      },
+    );
+    if (error) {
+      throw error;
+    }
+
+    const { data: taskRow, error: reloadError } = await this.client
+      .from("metadata_review_tasks")
+      .select("*")
+      .eq("retailer_id", params.retailerId)
+      .eq("id", data)
+      .maybeSingle();
+    if (reloadError) {
+      throw reloadError;
+    }
+    if (taskRow === null) {
+      throw new Error("Reviewed metadata task could not be reloaded");
+    }
+    return toReviewTask(taskRow);
+  }
+
+  async publishRow(params: {
+    readonly retailerId: RetailerId;
+    readonly importRowId: CatalogueImportRowId;
+  }): Promise<CatalogueImportPublishResult> {
+    const { data: rowData, error: rowError } = await this.client
+      .from("catalogue_import_rows")
+      .select("*")
+      .eq("retailer_id", params.retailerId)
+      .eq("id", params.importRowId)
+      .maybeSingle();
+
+    if (rowError) {
+      throw rowError;
+    }
+    if (rowData === null) {
+      throw new Error("Catalogue import row is unavailable");
+    }
+
+    const importId = asId<"CatalogueImportId">(rowData.import_id);
+    const domainRow = toImportRow(rowData);
+    const reviewTasks = (
+      await this.findReviewTasksForImport(params.retailerId, importId)
+    ).filter((task) => task.importRowId === params.importRowId);
+
+    const eligibility = assessCatalogueImportRowPublishEligibility({
+      row: domainRow,
+      reviewTasks,
+    });
+    if (!eligibility.eligible && domainRow.status !== "published") {
+      throw new Error(
+        eligibility.blockers[0]?.message ?? "Row is not publishable",
+      );
+    }
+
+    try {
+      const { data, error } = await this.client.rpc(
+        "publish_catalogue_import_row",
+        { p_import_row_id: params.importRowId },
+      );
+      if (error) {
+        throw error;
+      }
+      const payload = data as {
+        productId: string;
+        variantId: string;
+        idempotent: boolean;
+      };
+      return {
+        productId: payload.productId,
+        variantId: payload.variantId,
+        idempotent: payload.idempotent,
+      };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Publish failed unexpectedly";
+      await this.client
+        .from("catalogue_import_rows")
+        .update({ publish_error: message.slice(0, 2000) })
+        .eq("retailer_id", params.retailerId)
+        .eq("id", params.importRowId);
+      throw error;
+    }
+  }
+
+  async publishEligibleRows(params: {
+    readonly retailerId: RetailerId;
+    readonly importId: CatalogueImportId;
+  }): Promise<{
+    readonly published: readonly CatalogueImportPublishResult[];
+    readonly failures: readonly { readonly rowId: CatalogueImportRowId; readonly message: string }[];
+  }> {
+    const [rows, reviewTasks] = await Promise.all([
+      this.findRows(params.retailerId, params.importId),
+      this.findReviewTasksForImport(params.retailerId, params.importId),
+    ]);
+
+    const tasksByRowId = new Map<string, MetadataReviewTask[]>();
+    for (const task of reviewTasks) {
+      if (!task.importRowId) continue;
+      const existing = tasksByRowId.get(task.importRowId) ?? [];
+      tasksByRowId.set(task.importRowId, [...existing, task]);
+    }
+
+    const published: CatalogueImportPublishResult[] = [];
+    const failures: { rowId: CatalogueImportRowId; message: string }[] = [];
+
+    for (const row of rows) {
+      if (row.status === "published") {
+        continue;
+      }
+      const eligibility = assessCatalogueImportRowPublishEligibility({
+        row,
+        reviewTasks: tasksByRowId.get(row.id) ?? [],
+      });
+      if (!eligibility.eligible) {
+        continue;
+      }
+      try {
+        published.push(
+          await this.publishRow({
+            retailerId: params.retailerId,
+            importRowId: row.id,
+          }),
+        );
+      } catch (error) {
+        failures.push({
+          rowId: row.id,
+          message:
+            error instanceof Error ? error.message : "Publish failed unexpectedly",
+        });
+      }
+    }
+
+    return { published, failures };
   }
 }
