@@ -445,7 +445,7 @@ export default async function DashboardPage() {
                         <p className="text-xs text-[var(--color-stone-500)]">
                           Order
                         </p>
-                        <p className="mt-1 text-sm font-medium capitalize">
+                        <p className="mt-1 text-sm font-medium">
                           {activeOrder
                             ? ORDER_STATUS_LABELS[activeOrder.status]
                             : "No order in motion"}{" "}

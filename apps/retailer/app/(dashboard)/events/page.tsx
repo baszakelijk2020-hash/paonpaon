@@ -1,5 +1,6 @@
 import { requireRetailerRole } from "@paon/auth";
 import { EventRepository } from "@paon/database";
+import { EVENT_STATUS_LABELS } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
@@ -74,7 +75,9 @@ export default async function EventsPage() {
                 {formatDate(event.startsAt, "en-US")} · {event.venueName}
               </p>
             </div>
-            <span className="shrink-0 text-sm capitalize">{event.status}</span>
+            <span className="shrink-0 text-sm">
+              {EVENT_STATUS_LABELS[event.status]}
+            </span>
           </Link>
         ))}
         {events.length === 0 ? (

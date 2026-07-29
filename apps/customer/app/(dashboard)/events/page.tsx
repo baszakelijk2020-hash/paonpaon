@@ -3,6 +3,7 @@ import {
   EventRepository,
   RetailerRepository,
 } from "@paon/database";
+import { EVENT_RSVP_STATUS_LABELS } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 
@@ -52,7 +53,11 @@ export default async function MyEventsPage() {
             </p>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <h2 className="min-w-0 text-lg font-medium">{event.name}</h2>
-              <span className="shrink-0 capitalize">{rsvp.status}</span>
+              <span className="shrink-0">
+                {EVENT_RSVP_STATUS_LABELS[
+                  rsvp.status as keyof typeof EVENT_RSVP_STATUS_LABELS
+                ] ?? rsvp.status}
+              </span>
             </div>
             <p className="mt-2 text-sm">{event.venueName}</p>
           </Card>

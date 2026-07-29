@@ -104,7 +104,7 @@ export default async function AppointmentPrintPage({
             <p className="mt-1 text-base font-medium">
               {assignedAdvisor?.fullName ?? "Unassigned"}
             </p>
-            <p className="text-sm capitalize text-[#1a1a1a]/70">
+            <p className="text-sm text-[#1a1a1a]/70">
               Status: {APPOINTMENT_STATUS_LABELS[appointment.status]}
             </p>
           </div>

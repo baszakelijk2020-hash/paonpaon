@@ -11,6 +11,7 @@ import {
   WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS,
   WEDDING_PARTY_MEMBER_ROLE_LABELS,
   WEDDING_PARTY_STATUSES,
+  WEDDING_PARTY_STATUS_LABELS,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
@@ -129,11 +130,11 @@ export default async function WeddingPartyDetailPage({
               name="status"
               aria-label="Party status"
               defaultValue={party.status}
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-1 text-sm capitalize"
+              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-1 text-sm"
             >
               {WEDDING_PARTY_STATUSES.map((status) => (
                 <option key={status} value={status}>
-                  {status}
+                  {WEDDING_PARTY_STATUS_LABELS[status]}
                 </option>
               ))}
             </select>
