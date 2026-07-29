@@ -69,8 +69,8 @@ Verified against code and 91 migrations on 2026-07-30:
   and AI-assisted enrichment with pending review exist.
   StyleProfile tables, advisor briefs, and grounded TableService guidance
   exist. Wardrobe ownership, sartorial rules, outfits, wardrobe roadmaps,
-  lifecycle/self-scan/fit-freshness tables exist; no service-plan or campaign
-  table exists.
+  lifecycle/self-scan/fit-freshness tables exist; MorningRoutine selection
+  and actions landed in Stage 4.4; no service-plan or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -496,7 +496,7 @@ replacement of human advice for uncertain high-value decisions.
     appointment/alteration handoff; `PhysicalGarment` unchanged as fitting
     aggregate.
 
-- [ ] **4.4 MorningRoutine selection and actions**
+- [x] **4.4 MorningRoutine selection and actions**
   - **Requirement IDs:** `MR-001`, `MR-002`, `ENG-002`.
   - **Dependencies:** `4.2`, `3.2`; ADR-061 and ADR-063.
   - **Owner boundary:** pure routine selection/explanation, provider-neutral
@@ -512,7 +512,11 @@ replacement of human advice for uncertain high-value decisions.
   - **Non-goals:** no native mobile app, required precise location, automatic
     purchase, generic ad insertion, or provider-specific domain logic.
   - **Hard blockers:** missing weather/calendar credentials blocks live smoke
-    verification only; interfaces, fixtures, and no-provider fallbacks remain.
+    verification only; interfaces, fixtures, and no-provider fallbacks remain
+    buildable.
+  - **Landed:** MorningRoutine domain selection/provenance/provider interfaces,
+    `MorningRoutineRepository` projection, Customer `/morning-routine` in-app
+    view with save/review/book/buy actions; OpenWeather live smoke optional.
 
 - [ ] **4.5 MorningRoutine delivery and retailer controls**
   - **Requirement IDs:** `MR-002`, `MR-003`, `CUST-003`.
