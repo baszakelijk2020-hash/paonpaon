@@ -391,7 +391,7 @@ unreviewed bulk publish.
     `AdvisorBriefRepository` projection, and Retailer Portal mounts on
     customer relationship + appointment prep workspaces.
 
-- [ ] **3.4 Grounded TableService and guided preference capture**
+- [x] **3.4 Grounded TableService and guided preference capture**
   - **Requirement IDs:** `ADV-001`, `ADV-002`, `ENG-002`.
   - **Dependencies:** `2.2`, `3.2`; ADR-060 and ADR-061.
   - **Owner boundary:** TableService orchestration, approved-knowledge
@@ -408,6 +408,10 @@ unreviewed bulk publish.
     uncited product facts, hidden persuasion, or mandatory AI provider.
   - **Hard blockers:** missing AI key blocks live generation only; deterministic
     retrieval, handoff, and mocked orchestration remain buildable.
+  - **Landed:** `bcd046c` — domain grounding validation, `TableServiceRepository`
+    occasion bundle, `@paon/ai` answer runner, widget occasion orchestration
+    with advisor handoff, occasion-scoped swipe shortlist with concept-linked
+    evidence, and appointment-intent tracking.
 
 **Stage 3 non-goals:** no covert tracking, no precise location without
 separate opt-in, no unexplained score, no advisor access across tenants, no raw

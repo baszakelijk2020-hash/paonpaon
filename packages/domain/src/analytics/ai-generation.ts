@@ -12,7 +12,8 @@ export type AIGenerationKind =
   | "next_best_action"
   | "product_recommendation"
   | "communication_draft"
-  | "import_enrichment";
+  | "import_enrichment"
+  | "table_service_answer";
 
 export type AIGenerationStatus = "succeeded" | "failed";
 
@@ -21,6 +22,7 @@ export const AI_GENERATION_KIND_LABELS: Record<AIGenerationKind, string> = {
   product_recommendation: "Product recommendation",
   communication_draft: "Communication draft",
   import_enrichment: "Import enrichment",
+  table_service_answer: "TableService answer",
 };
 
 export const AI_GENERATION_STATUS_LABELS: Record<AIGenerationStatus, string> = {

@@ -14,6 +14,11 @@ import {
   submitTableServiceInquiry,
   type TableServiceFormState,
 } from "./table-service-actions";
+import {
+  askGroundedTableServiceQuestion,
+  getOccasionGuidance,
+  slugFromPathname,
+} from "./table-service-orchestration-actions";
 
 /**
  * Exact port of pag1.html's `#gilda-chat-widget` ("TableService") — CSS,
@@ -107,6 +112,10 @@ export function TableServiceWidget({
   const [attachOpen, setAttachOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [occasionPhrase, setOccasionPhrase] = useState<string | null>(null);
+  const [swipeHref, setSwipeHref] = useState<string | null>(null);
+  const [appointmentsHref, setAppointmentsHref] = useState<string | null>(null);
+  const [loadingGuidance, setLoadingGuidance] = useState(false);
 
   const boundAction = submitTableServiceInquiry.bind(null, retailerId);
   const [state, formAction, isPending] = useActionState(boundAction, initial);
@@ -114,6 +123,7 @@ export function TableServiceWidget({
   const messageInputRef = useRef<HTMLInputElement>(null);
 
   const pathname = usePathname();
+  const slug = slugFromPathname(pathname);
   const isLandingPage = /^\/r\/[^/]+\/?$/.test(pathname ?? "");
   // Cart's mobile sticky "Place order" bar occupies the bottom edge;
   // keep Ask us above it so the two do not fight for the same tap target.
@@ -146,12 +156,38 @@ export function TableServiceWidget({
       setHistory((h) => [
         ...h,
         caption,
-        "Paste the invite token from your link (the long code after /join/), or ask the groom to send the full link. You can also leave us a message below.",
+        "Paste the invite token from your link (the long code after /join/), or ask the groom to send the full link. You can also explore our summer wedding shortlist below.",
       ]);
       setStep("invite_token");
+      void loadOccasionGuidance("summer wedding");
+      return;
+    }
+    if (caption === "How to find my style?") {
+      setHistory((h) => [...h, caption]);
+      void loadOccasionGuidance("style help");
+      setStep("name");
       return;
     }
     setHistory((h) => [...h, caption]);
+  }
+
+  async function loadOccasionGuidance(phrase: string) {
+    if (!slug) return;
+    setLoadingGuidance(true);
+    setOccasionPhrase(phrase);
+    try {
+      const guidance = await getOccasionGuidance(retailerId, phrase, slug);
+      setSwipeHref(guidance.swipeHref);
+      setAppointmentsHref(guidance.appointmentsHref);
+      setHistory((h) => [...h, ...guidance.welcomeLines]);
+    } catch {
+      setHistory((h) => [
+        ...h,
+        "We could not load occasion guidance right now — an advisor can help by message.",
+      ]);
+    } finally {
+      setLoadingGuidance(false);
+    }
   }
 
   function handleSend() {
@@ -188,6 +224,33 @@ export function TableServiceWidget({
       return;
     }
     if (step === "message") {
+      if (occasionPhrase && text.endsWith("?")) {
+        setInputValue("");
+        void (async () => {
+          try {
+            const result = await askGroundedTableServiceQuestion(
+              retailerId,
+              text,
+              occasionPhrase,
+            );
+            setHistory((h) =>
+              [
+                ...h,
+                result.answer.body,
+                result.answer.handoffRecommended
+                  ? "An advisor can continue this conversation in store or by message — send your details below to reach the team."
+                  : "",
+              ].filter(Boolean),
+            );
+          } catch {
+            setHistory((h) => [
+              ...h,
+              "I could not answer that from our approved guides — an advisor can help if you send a message below.",
+            ]);
+          }
+        })();
+        return;
+      }
       if (messageInputRef.current) messageInputRef.current.value = text;
       formRef.current?.requestSubmit();
     }
@@ -270,6 +333,28 @@ export function TableServiceWidget({
                   ))}
                 </div>
               ) : null}
+              {loadingGuidance ? (
+                <div className="gcw-message-wrapper">
+                  <div className="gcw-message">Loading approved guidance…</div>
+                </div>
+              ) : null}
+              {swipeHref || appointmentsHref ? (
+                <div className="gcw-message-wrapper">
+                  <div className="gcw-message">
+                    {swipeHref ? (
+                      <a href={swipeHref} className="underline">
+                        Swipe the occasion shortlist
+                      </a>
+                    ) : null}
+                    {swipeHref && appointmentsHref ? " · " : null}
+                    {appointmentsHref ? (
+                      <a href={appointmentsHref} className="underline">
+                        Book an appointment
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="gcw-input-container">
@@ -332,6 +417,19 @@ export function TableServiceWidget({
           {state.formError ? (
             <p role="alert" className="p-3 text-xs text-red-600">
               {state.formError}
+            </p>
+          ) : null}
+
+          {open && step !== "done" ? (
+            <p className="border-t border-black/5 px-3 py-2 text-center text-xs text-[var(--color-stone-600)]">
+              Prefer a person?{" "}
+              {signedInMessagesHref ? (
+                <a href={signedInMessagesHref} className="underline">
+                  Talk to an advisor
+                </a>
+              ) : (
+                "Complete the steps below to reach our team."
+              )}
             </p>
           ) : null}
 

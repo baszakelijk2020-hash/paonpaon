@@ -4,10 +4,14 @@ import {
   AnalyticsRepository,
   CustomerConsentRepository,
   CustomerRepository,
+  StyleProfileRepository,
+  TableServiceRepository,
   WishlistRepository,
 } from "@paon/database";
 import {
   asId,
+  defaultPolarityForEvidenceSource,
+  evidenceSourceFromEventName,
   mayCapturePersonalizationForCustomer,
   retentionExpiresAt,
 } from "@paon/domain";
@@ -54,6 +58,25 @@ async function captureSwipeSignal(args: {
     retentionClass: "personalization_signal",
     retentionExpiresAt: retentionExpiresAt({ occurredAt }),
   });
+
+  const conceptIds = args.properties.conceptIds;
+  if (Array.isArray(conceptIds) && conceptIds.length > 0) {
+    const styleRepo = new StyleProfileRepository(supabase);
+    const source = evidenceSourceFromEventName(args.name);
+    if (source) {
+      const polarity = defaultPolarityForEvidenceSource(source);
+      for (const rawId of conceptIds) {
+        if (typeof rawId !== "string") continue;
+        await styleRepo.recordEvidence(customer.id, {
+          conceptId: asId<"MetadataConceptId">(rawId),
+          source,
+          polarity,
+          confidence: 1,
+        });
+      }
+      await styleRepo.recompute(rId, customer.id, occurredAt);
+    }
+  }
 }
 
 /** A swipe-right: saves the variant and logs a consented favorite signal. */
@@ -65,17 +88,35 @@ export async function swipeRight(
   await requireSession();
   const supabase = await getSupabaseServerClient();
   const rId = asId<"RetailerId">(retailerId);
+  const pId = asId<"ProductId">(productId);
 
   await new WishlistRepository(supabase).toggleItem(
     rId,
     asId<"ProductVariantId">(productVariantId),
   );
 
+  let conceptIds: string[] = [];
+  try {
+    conceptIds = [
+      ...(await new TableServiceRepository(supabase).loadProductConceptIds(
+        rId,
+        pId,
+      )),
+    ].map(String);
+  } catch {
+    conceptIds = [];
+  }
+
   try {
     await captureSwipeSignal({
       retailerId,
       name: "product_favorited",
-      properties: { productId, productVariantId, via: "swipe" },
+      properties: {
+        productId,
+        productVariantId,
+        via: "swipe",
+        ...(conceptIds.length > 0 ? { conceptIds } : {}),
+      },
     });
   } catch {
     // Best-effort — a failed capture must never block the save.
@@ -88,11 +129,31 @@ export async function swipeLeft(
   productId: string,
 ): Promise<void> {
   await requireSession();
+  const supabase = await getSupabaseServerClient();
+  const rId = asId<"RetailerId">(retailerId);
+  const pId = asId<"ProductId">(productId);
+
+  let conceptIds: string[] = [];
+  try {
+    conceptIds = [
+      ...(await new TableServiceRepository(supabase).loadProductConceptIds(
+        rId,
+        pId,
+      )),
+    ].map(String);
+  } catch {
+    conceptIds = [];
+  }
+
   try {
     await captureSwipeSignal({
       retailerId,
       name: "product_skipped",
-      properties: { productId, via: "swipe" },
+      properties: {
+        productId,
+        via: "swipe",
+        ...(conceptIds.length > 0 ? { conceptIds } : {}),
+      },
     });
   } catch {
     // Best-effort.

@@ -7,6 +7,7 @@ import type {
   NextBestActionResult,
   ProductRecommendationContext,
   ProductRecommendationResult,
+  TableServiceAnswerProviderContext,
 } from "./provider";
 
 const DEFAULT_MODEL = "gpt-4o-mini";
@@ -172,6 +173,30 @@ export class OpenAIProvider implements AIProvider {
       return JSON.parse(content) as unknown;
     } catch {
       throw new Error("OpenAI import enrichment response was not valid JSON");
+    }
+  }
+
+  async generateTableServiceAnswer(
+    context: TableServiceAnswerProviderContext,
+  ): Promise<unknown> {
+    const response = await this.client.chat.completions.create({
+      model: this.model,
+      messages: [
+        { role: "system", content: context.systemPrompt },
+        { role: "user", content: context.userPayload },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const content = response.choices[0]?.message.content;
+    if (!content) {
+      throw new Error("OpenAI returned no content for TableService answer");
+    }
+
+    try {
+      return JSON.parse(content) as unknown;
+    } catch {
+      throw new Error("OpenAI TableService response was not valid JSON");
     }
   }
 }
