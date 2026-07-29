@@ -4,9 +4,13 @@ import {
   AnalyticsRepository,
   CustomerConsentRepository,
   CustomerRepository,
+  StyleProfileRepository,
 } from "@paon/database";
 import {
   asId,
+  conceptIdsFromEventProperties,
+  defaultPolarityForEvidenceSource,
+  evidenceSourceFromEventName,
   mayCapturePersonalizationForCustomer,
   retentionExpiresAt,
   type InteractionEventName,
@@ -33,6 +37,7 @@ export type StorefrontTrackedEvent = Extract<
  * Only fires for an identified, signed-in customer with personalization
  * consent. Anonymous storefront browsers are never tracked here (jurisdiction
  * gate). Best-effort: a failed capture must never break browsing.
+ * When properties include concept IDs, records StyleProfile evidence (3.2).
  */
 export async function trackStorefrontEvent(
   retailerId: string,
@@ -76,6 +81,22 @@ export async function trackStorefrontEvent(
       retentionClass: "personalization_signal",
       retentionExpiresAt: retentionExpiresAt({ occurredAt }),
     });
+
+    const source = evidenceSourceFromEventName(name);
+    const conceptIds = conceptIdsFromEventProperties(properties);
+    if (source && conceptIds.length > 0) {
+      const styleRepo = new StyleProfileRepository(supabase);
+      const polarity = defaultPolarityForEvidenceSource(source);
+      for (const conceptId of conceptIds) {
+        await styleRepo.recordEvidence(customer.id, {
+          conceptId,
+          source,
+          polarity,
+          confidence: 1,
+        });
+      }
+      await styleRepo.recompute(rId, customer.id, occurredAt);
+    }
   } catch {
     // Swallow — view tracking is not on the critical browsing path.
   }

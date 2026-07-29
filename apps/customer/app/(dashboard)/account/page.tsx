@@ -1,10 +1,14 @@
 import {
   CustomerPreferencesRepository,
   CustomerRepository,
+  MetadataRepository,
   RetailerRepository,
+  StyleProfileRepository,
 } from "@paon/database";
+import type { MetadataConceptId } from "@paon/domain";
 
 import { PreferencesForm } from "./preferences-form";
+import { StyleProfilePanel } from "./style-profile-panel";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -18,12 +22,46 @@ export default async function AccountPage() {
   );
   const retailerRepo = new RetailerRepository(supabase);
   const preferencesRepo = new CustomerPreferencesRepository(supabase);
+  const styleProfileRepo = new StyleProfileRepository(supabase);
+  const metadataRepo = new MetadataRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
       const retailer = await retailerRepo.findById(customer.retailerId);
       const preferences = await preferencesRepo.findByCustomer(customer.id);
-      return { customer, retailer, preferences };
+      const styleProfile = await styleProfileRepo.findByCustomer(
+        customer.retailerId,
+        customer.id,
+      );
+
+      const conceptIds = new Set<string>();
+      for (const row of styleProfile?.explicitPreferences ?? []) {
+        conceptIds.add(row.conceptId);
+      }
+      for (const row of styleProfile?.inferredPreferences ?? []) {
+        conceptIds.add(row.conceptId);
+      }
+
+      const conceptLabels: Record<string, string> = {};
+      await Promise.all(
+        [...conceptIds].map(async (conceptId) => {
+          const concept = await metadataRepo.findConceptById(
+            customer.retailerId,
+            conceptId as MetadataConceptId,
+          );
+          if (concept) {
+            conceptLabels[conceptId] = concept.canonicalName;
+          }
+        }),
+      );
+
+      return {
+        customer,
+        retailer,
+        preferences,
+        styleProfile,
+        conceptLabels,
+      };
     }),
   );
 
@@ -46,14 +84,29 @@ export default async function AccountPage() {
           </p>
         </div>
       ) : (
-        groups.map(({ customer, retailer, preferences }) => (
-          <PreferencesForm
-            key={customer.id}
-            retailerId={customer.retailerId}
-            retailerName={retailer?.displayName ?? "Retailer"}
-            preferences={preferences}
-          />
-        ))
+        groups.map(
+          ({
+            customer,
+            retailer,
+            preferences,
+            styleProfile,
+            conceptLabels,
+          }) => (
+            <div key={customer.id} className="flex flex-col gap-4">
+              <PreferencesForm
+                retailerId={customer.retailerId}
+                retailerName={retailer?.displayName ?? "Retailer"}
+                preferences={preferences}
+              />
+              <StyleProfilePanel
+                retailerId={customer.retailerId}
+                retailerName={retailer?.displayName ?? "Retailer"}
+                profile={styleProfile}
+                conceptLabels={conceptLabels}
+              />
+            </div>
+          ),
+        )
       )}
     </div>
   );
