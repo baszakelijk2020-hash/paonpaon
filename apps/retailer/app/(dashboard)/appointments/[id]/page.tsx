@@ -1,4 +1,5 @@
 import {
+  AdvisorBriefRepository,
   AppointmentRepository,
   ClientelingRepository,
   CustomerRepository,
@@ -17,6 +18,7 @@ import { formatDate } from "@paon/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AdvisorPreparationBriefCard } from "../../customers/[id]/advisor-preparation-brief";
 import { LifecycleBadge } from "../../customers/lifecycle-badge";
 import { AppointmentStatusBadge } from "../status-badge";
 
@@ -45,13 +47,19 @@ export default async function AppointmentDetailPage({
     new CustomerRepository(supabase).findById(appointment.customerId),
     new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
   ]);
-  const [notes, orders, garments] = customer
+  const [notes, orders, garments, advisorBrief] = customer
     ? await Promise.all([
         new ClientelingRepository(supabase).findByCustomer(customer.id),
         new OrderRepository(supabase).findByCustomer(customer.id),
         new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
+        new AdvisorBriefRepository(supabase).projectForCustomer({
+          retailerId: session.retailerId,
+          customerId: customer.id,
+          advisorRetailerId: session.retailerId,
+          ...(appointment.notes ? { appointmentNotes: appointment.notes } : {}),
+        }),
       ])
-    : [[], [], []];
+    : [[], [], [], null];
   const pinnedNote = notes.find((note) => note.pinned);
   const assignedAdvisor = staff.find(
     (member) => member.id === appointment.staffId,
@@ -155,6 +163,17 @@ export default async function AppointmentDetailPage({
               </div>
             ) : null}
           </Card>
+
+          {advisorBrief ? (
+            <AdvisorPreparationBriefCard
+              brief={advisorBrief}
+              conversationHref={
+                advisorBrief.conversation
+                  ? `/messages?c=${advisorBrief.conversation.conversationId}`
+                  : "/messages"
+              }
+            />
+          ) : null}
 
           {canManage ? (
             <Card className="rounded-[var(--radius-md)]">

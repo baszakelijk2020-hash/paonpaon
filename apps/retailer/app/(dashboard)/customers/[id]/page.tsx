@@ -1,4 +1,5 @@
 import {
+  AdvisorBriefRepository,
   AIGenerationRepository,
   AlterationRepository,
   AnalyticsRepository,
@@ -28,6 +29,7 @@ import { startConversation } from "../../messages/actions";
 import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 
 import { createClientelingNote, setPreferredCarrier } from "./actions";
+import { AdvisorPreparationBriefCard } from "./advisor-preparation-brief";
 import { AIInsights } from "./ai-insights";
 import { SelfPortrait } from "./self-portrait";
 
@@ -70,6 +72,7 @@ export default async function CustomerDetailPage({
     loyaltyAccount,
     recentEvents,
     alterations,
+    advisorBrief,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -82,6 +85,11 @@ export default async function CustomerDetailPage({
       customer.id,
     ),
     new AlterationRepository(supabase).findByCustomer(customer.id),
+    new AdvisorBriefRepository(supabase).projectForCustomer({
+      retailerId: session.retailerId,
+      customerId: customer.id,
+      advisorRetailerId: session.retailerId,
+    }),
   ]);
   const garmentById = new Map(garments.map((garment) => [garment.id, garment]));
 
@@ -367,6 +375,17 @@ export default async function CustomerDetailPage({
           ) : null}
         </Card>
       </section>
+
+      <div className="paon-reveal" style={{ animationDelay: "260ms" }}>
+        <AdvisorPreparationBriefCard
+          brief={advisorBrief}
+          conversationHref={
+            advisorBrief.conversation
+              ? `/messages?c=${advisorBrief.conversation.conversationId}`
+              : "/messages"
+          }
+        />
+      </div>
 
       {canManage ? (
         <Card>
