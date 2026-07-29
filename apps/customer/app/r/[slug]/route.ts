@@ -12,6 +12,11 @@ import { formatMoney } from "@paon/utils";
 import { NextResponse } from "next/server";
 
 import {
+  loadStorefrontCatalogueByProduct,
+  preferCatalogueFacetValue,
+  serializeStorefrontCatalogueJson,
+} from "./serialize-storefront-catalogue";
+import {
   loadStorefrontKnowledgeByProduct,
   serializeStorefrontKnowledgeJson,
 } from "./serialize-storefront-knowledge";
@@ -338,10 +343,21 @@ export async function GET(
     })),
   );
 
+  const catalogueByProduct = await loadStorefrontCatalogueByProduct(
+    supabase,
+    retailer.id,
+    productsWithVariants.map(({ product, variants }) => ({
+      id: product.id,
+      slug: product.slug,
+      variantIds: variants.map((variant) => variant.id),
+    })),
+  );
+
   const entries = productsWithVariants.map(({ product, variants }) => {
     const collectionName = product.collectionIds
       .map((id) => collectionNameById.get(id))
       .find((name): name is string => Boolean(name));
+    const catalogue = catalogueByProduct[product.slug];
     return {
       id: product.slug,
       img: product.primaryImageUrl ?? "",
@@ -349,9 +365,18 @@ export async function GET(
       name: product.name,
       price: priceLabelFor(variants),
       priceMinor: priceMinorFor(variants),
-      color: deriveColor(product.name, variants[0]?.color),
-      pattern: derivePattern(product.name),
-      season: deriveSeason(product.name, undefined),
+      color: preferCatalogueFacetValue(
+        catalogue?.color,
+        deriveColor(product.name, variants[0]?.color),
+      ),
+      pattern: preferCatalogueFacetValue(
+        catalogue?.pattern,
+        derivePattern(product.name),
+      ),
+      season: preferCatalogueFacetValue(
+        catalogue?.season,
+        deriveSeason(product.name, undefined),
+      ),
       category: canonicalCategoryFor(
         product.name,
         collectionName,
@@ -369,6 +394,11 @@ export async function GET(
       // selling instead of quietly overselling (Critical 1).
       soldOut:
         !product.isMadeToOrder && (variants[0]?.inventoryQuantity ?? 0) <= 0,
+      // SRCH-001 narrow metadata hooks — heuristics remain when absent.
+      conceptIds: catalogue?.conceptIds ?? [],
+      mill: catalogue?.mill ?? null,
+      weave: catalogue?.weave ?? null,
+      weightGsm: catalogue?.weightGsm ?? null,
     };
   });
 
@@ -533,6 +563,10 @@ ${
     .replaceAll(
       "__PAON_KNOWLEDGE_BY_PRODUCT_JSON__",
       serializeStorefrontKnowledgeJson(knowledgeByProduct),
+    )
+    .replaceAll(
+      "__PAON_CATALOGUE_BY_PRODUCT_JSON__",
+      serializeStorefrontCatalogueJson(catalogueByProduct),
     );
 
   if (html.includes("__PAON_")) {

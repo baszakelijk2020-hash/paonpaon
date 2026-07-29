@@ -26,6 +26,10 @@ export * from "./customer/wishlist.schema";
 
 export * from "./catalog/product";
 export * from "./catalog/product.schema";
+export * from "./catalog/catalogue-query";
+export * from "./catalog/catalogue-query.schema";
+export * from "./catalog/catalogue-intent";
+export * from "./catalog/catalogue-storefront";
 
 export * from "./metadata/metadata";
 export * from "./metadata/metadata.schema";

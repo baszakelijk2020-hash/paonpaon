@@ -4089,6 +4089,7 @@ __PAON_HERO_HTML__
     */
 const products = __PAON_PRODUCTS_JSON__;
 const PAON_KNOWLEDGE_BY_PRODUCT = __PAON_KNOWLEDGE_BY_PRODUCT_JSON__;
+const PAON_CATALOGUE_BY_PRODUCT = __PAON_CATALOGUE_BY_PRODUCT_JSON__;
 
     // hardcoded exclusions and 9197 image override, applied statically to this build
     for (let i = products.length - 1; i >= 0; i--) {
@@ -5430,7 +5431,8 @@ const PAON_KNOWLEDGE_BY_PRODUCT = __PAON_KNOWLEDGE_BY_PRODUCT_JSON__;
             colors: [],
             patterns: [],
             prices: [],
-            seasons: []
+            seasons: [],
+            conceptIds: []
         }
     };
     const categories = ['Suits', 'Jackets', 'Pants', 'Knits', 'Shoes', 'Shirts', 'Outerwear', 'Evening', 'Wedding', ''];
@@ -6503,7 +6505,8 @@ function renderGrid() {
             colors: [],
             patterns: [],
             prices: [],
-            seasons: []
+            seasons: [],
+            conceptIds: []
         };
         if (state.view === 'grid') renderGrid();
     }
@@ -6522,7 +6525,8 @@ function renderGrid() {
             colors: selectedFilterValues('color'),
             patterns: selectedFilterValues('pattern'),
             prices: selectedFilterValues('price'),
-            seasons: selectedFilterValues('season')
+            seasons: selectedFilterValues('season'),
+            conceptIds: (state.catalogFilters && state.catalogFilters.conceptIds) || []
         };
         if (state.view !== 'grid') {
             if (window.showCollectionGrid) window.showCollectionGrid(state.activeCat || 'Suits');
@@ -6547,6 +6551,15 @@ function renderGrid() {
                 return true;
             });
             if (!ok) return false;
+        }
+        // Optional concept-id filters (SRCH-001) — unused by founder chrome until
+        // parity coverage retires heuristics; keeps metadata hooks available.
+        if (f.conceptIds && f.conceptIds.length) {
+            var ids = Array.isArray(p.conceptIds) ? p.conceptIds : [];
+            var conceptOk = f.conceptIds.every(function(id) {
+                return ids.indexOf(id) !== -1;
+            });
+            if (!conceptOk) return false;
         }
         return true;
     }
