@@ -58,7 +58,7 @@ export function QuickDemoLogin({
             ) : null}
             <button
               type="submit"
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-300)] px-3 py-1.5 text-xs text-[var(--color-stone-700)] transition-colors hover:border-[var(--color-stone-500)]"
+              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-1.5 text-xs text-[var(--color-stone-700)] transition-colors hover:border-[var(--color-stone-500)]"
             >
               {login.persona}
               {"retailer" in login && login.retailer

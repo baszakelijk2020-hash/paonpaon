@@ -8,6 +8,11 @@ import type { Timestamps } from "../shared/timestamps";
 
 export type BillingInterval = "monthly" | "annual";
 
+export const BILLING_INTERVAL_LABELS: Record<BillingInterval, string> = {
+  monthly: "month",
+  annual: "year",
+};
+
 export const COMMERCIAL_FEATURE_KEYS = [
   "branded_website",
   "customer_accounts",

@@ -226,7 +226,7 @@ export function EnvironmentPanel({
               ) : null}
               <button
                 type="button"
-                className="inline-flex min-h-9 items-center rounded-[var(--radius-md)] border border-[var(--color-stone-300)] bg-white px-3 text-xs"
+                className="inline-flex min-h-9 items-center rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-xs"
                 onClick={() => copyOutreachPack(outreachPack)}
               >
                 {copied === "outreach" ? "Copied" : "Copy outreach pack"}

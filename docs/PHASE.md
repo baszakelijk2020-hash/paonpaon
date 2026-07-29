@@ -459,6 +459,12 @@ monitoring. Messages / Today's Pick / demo persona / alteration detail
 raw fields use `radius-md` house chrome (no workflow invent on
 alterations).
 
+**Also (2026-07-29 continuous — billing interval + shared outline).**
+`BILLING_INTERVAL_LABELS` for month/year display; Button outline and
+demo persona chips use `stone-200`; Studio outreach copy button border
+matched. Live Private Client + Mission Control dashboards verified
+locally after restart.
+
 **Also (2026-07-29 continuous — conversion chrome):** React PDP defaults to
 redirect onto the HTML storefront (ADR-052); portal Saved/Today’s Pick and
 appointment CTAs point at `/r/[slug]`; Alterations demoted from Private

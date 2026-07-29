@@ -1,7 +1,10 @@
 "use client";
 
 import type { RetailerSubscription, SubscriptionPlan } from "@paon/domain";
-import { SUBSCRIPTION_STATUS_LABELS } from "@paon/domain";
+import {
+  BILLING_INTERVAL_LABELS,
+  SUBSCRIPTION_STATUS_LABELS,
+} from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -38,7 +41,7 @@ export function BillingPanel({
             <span className="text-sm text-[var(--color-stone-600)]">
               {plan?.name ?? "Unknown plan"}
               {plan
-                ? ` · ${formatMoney(plan.price, "en-US")}/${plan.billingInterval}`
+                ? ` · ${formatMoney(plan.price, "en-US")}/${BILLING_INTERVAL_LABELS[plan.billingInterval]}`
                 : ""}
             </span>
           </div>

@@ -22,7 +22,7 @@ export const buttonVariants = cva(
         secondary:
           "bg-[var(--color-stone-100)] text-[var(--color-stone-900)] hover:bg-[var(--color-stone-200)] focus-visible:ring-[var(--color-stone-400)]",
         outline:
-          "border border-[var(--color-stone-300)] bg-transparent text-[var(--color-stone-900)] hover:bg-[var(--color-stone-50)] focus-visible:ring-[var(--color-stone-400)]",
+          "border border-[var(--color-stone-200)] bg-transparent text-[var(--color-stone-900)] hover:bg-[var(--color-stone-50)] focus-visible:ring-[var(--color-stone-400)]",
         ghost:
           "bg-transparent text-[var(--color-stone-900)] hover:bg-[var(--color-stone-100)] focus-visible:ring-[var(--color-stone-400)]",
         destructive:
