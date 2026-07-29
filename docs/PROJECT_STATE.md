@@ -37,7 +37,8 @@ Snapshot: 2026-07-30.
   consent controls now exist; anonymous persistence remains blocked pending
   jurisdiction documentation. StyleProfile declared/inferred preferences,
   concept evidence, deterministic recomputation, and customer inspect/remove
-  exist; advisor preparation briefing does not.
+  exist. Consented advisor preparation briefing projects into Retailer Portal
+  customer and appointment workspaces; wardrobe gaps remain Stage 4.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
   evidence, retailer overrides, exact fabric profiles, an actor-derived review
   RPC, PAON Admin canonical management, the Retailer Portal metadata review
@@ -71,6 +72,7 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Stages 1–2 and PHASE 3.1–3.2 (consent/events and StyleProfile
-evidence) are complete. The authoritative Resume Protocol identifies the
-advisor preparation brief (PHASE 3.3) as the exact continuation point.
+contracts. Stages 1–2 and PHASE 3.1–3.3 (consent/events, StyleProfile evidence, and
+advisor preparation brief) are complete. The authoritative Resume Protocol
+identifies grounded TableService and guided preference capture (PHASE 3.4)
+as the exact continuation point.
