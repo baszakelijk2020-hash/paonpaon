@@ -366,13 +366,18 @@ end-to-end on production admin (create → save → generate → storefront
 status reflects generate/publish state; Mission Control Relationship tile
 and notes use house language.
 
-**Also (2026-07-29 Founder Mode — label consolidation).** `APPOINTMENT_TYPE_LABELS`,
-`CUSTOMER_LIFECYCLE_STAGE_LABELS`, `RETAILER_ROLE_LABELS`, `ORDER_STATUS_LABELS`,
-and `WEDDING_PARTY_MEMBER_ROLE_LABELS` added to `@paon/domain` and used across all
-customer/retailer-visible surfaces. No more raw `.replaceAll("_", " ")` on any
-enum in the demo path. Customer portal "Notifications" H1 renamed "Updates" and
-"Account" renamed "Settings" to match dock/nav labels. Retailer layout
-`PERSONA_LABELS` deduped against domain constant.
+**Also (2026-07-29 Founder Mode — label consolidation, complete).** All typed
+enum label maps now live in `@paon/domain`: `APPOINTMENT_TYPE_LABELS`,
+`APPOINTMENT_STATUS_LABELS`, `CUSTOMER_LIFECYCLE_STAGE_LABELS`,
+`RETAILER_ROLE_LABELS`, `ORDER_STATUS_LABELS`, `WEDDING_PARTY_MEMBER_ROLE_LABELS`,
+`WEDDING_PARTY_STATUS_LABELS`, `ALTERATION_STATUS_LABELS`,
+`ALTERATION_TASK_STATUS_LABELS`, `WORK_CLASSIFICATION_LABELS`,
+`EVENT_STATUS_LABELS`, `EVENT_VISIBILITY_LABELS`, `EVENT_RSVP_STATUS_LABELS`,
+`REFERRAL_STATUS_LABELS`, `REWARD_TYPE_LABELS`. No more raw
+`.replaceAll("_", " ")` or `humaniseStatus` on any typed enum in the demo path.
+Customer portal "Notifications" H1 → "Updates"; "Account" → "Settings".
+Retailer `PERSONA_LABELS` deduped against domain constant. Status badge
+`capitalize` CSS class removed from timeline items already using label maps.
 
 **Agent buildable freeze queue: exhausted** (2026-07-29) for the three
 freeze workstreams, aside from founder blockers. **Exception (founder
