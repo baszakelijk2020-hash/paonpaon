@@ -40,7 +40,7 @@ export default async function PricingPage() {
         {publicPlans.map((plan, index) => (
           <article
             key={plan.id}
-            className={`flex flex-col rounded-[1.25rem] border p-7 sm:p-9 ${
+            className={`flex flex-col rounded-[var(--radius-xl)] border p-7 sm:p-9 ${
               index === 1
                 ? "border-[#1a1a1a] bg-[#1a1a1a] text-white shadow-[var(--shadow-elevated)]"
                 : "border-black/10 bg-white"
@@ -119,7 +119,7 @@ export default async function PricingPage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-24 max-w-[92rem] rounded-[1.25rem] bg-[#1a1a1a] p-8 text-white sm:p-12">
+      <section className="mx-auto mt-24 max-w-[92rem] rounded-[var(--radius-xl)] bg-[#1a1a1a] p-8 text-white sm:p-12">
         <h2 className="font-display max-w-3xl text-5xl leading-none sm:text-7xl">
           Begin with a paid pilot built around one real retailer objective.
         </h2>

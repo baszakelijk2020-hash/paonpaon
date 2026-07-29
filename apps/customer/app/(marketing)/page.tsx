@@ -118,7 +118,7 @@ export default async function MarketingHomePage() {
 
       <section className="bg-[#e8e4de] px-5 py-24 sm:px-8 sm:py-32">
         <div className="mx-auto grid max-w-[92rem] gap-5 lg:grid-cols-12">
-          <article className="relative min-h-[38rem] overflow-hidden rounded-[1.25rem] bg-black text-white lg:col-span-7">
+          <article className="relative min-h-[38rem] overflow-hidden rounded-[var(--radius-xl)] bg-black text-white lg:col-span-7">
             <div
               aria-hidden="true"
               className="absolute inset-0 bg-cover bg-center opacity-60"
@@ -148,7 +148,7 @@ export default async function MarketingHomePage() {
             </div>
           </article>
           <div className="grid gap-5 lg:col-span-5">
-            <article className="rounded-[1.25rem] bg-[#1a1a1a] p-8 text-white sm:p-10">
+            <article className="rounded-[var(--radius-xl)] bg-[#1a1a1a] p-8 text-white sm:p-10">
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/45">
                 Weddings and group fittings
               </p>
@@ -166,7 +166,7 @@ export default async function MarketingHomePage() {
                 See weddings and events →
               </Link>
             </article>
-            <article className="rounded-[1.25rem] border border-black/10 bg-white p-8 sm:p-10">
+            <article className="rounded-[var(--radius-xl)] border border-black/10 bg-white p-8 sm:p-10">
               <p className="text-[10px] uppercase tracking-[0.2em] text-black/40">
                 Retailer outcomes
               </p>
@@ -254,7 +254,7 @@ export default async function MarketingHomePage() {
               Compare every capability →
             </Link>
           </div>
-          <div className="mt-14 grid gap-px overflow-hidden rounded-[1.25rem] bg-white/15 lg:grid-cols-3">
+          <div className="mt-14 grid gap-px overflow-hidden rounded-[var(--radius-xl)] bg-white/15 lg:grid-cols-3">
             {plans.map((plan) => (
               <article key={plan.id} className="bg-[#1a1a1a] p-7 sm:p-9">
                 <p className="text-xs text-white/45">{plan.name}</p>

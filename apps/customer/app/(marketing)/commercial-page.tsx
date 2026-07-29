@@ -54,7 +54,7 @@ export function CommercialPage({
             <p className="text-sm leading-6 text-black/60">{copy.detail}</p>
           </div>
         </div>
-        <div className="rounded-[1.25rem] border border-black/10 bg-white/55 p-6 shadow-[var(--shadow-subtle)] sm:p-10">
+        <div className="rounded-[var(--radius-xl)] border border-black/10 bg-white/55 p-6 shadow-[var(--shadow-subtle)] sm:p-10">
           <p className="font-display mb-8 text-3xl">Tell us where to focus.</p>
           <CommercialInterestForm
             inquiryType={inquiryType}

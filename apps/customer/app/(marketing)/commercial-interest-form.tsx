@@ -36,7 +36,7 @@ export function CommercialInterestForm({
   if (state.inquiryId) {
     return (
       <div
-        className="rounded-[1.25rem] border border-[#547052]/25 bg-[#edf1e9] p-8 sm:p-10"
+        className="rounded-[var(--radius-xl)] border border-[#547052]/25 bg-[#edf1e9] p-8 sm:p-10"
         role="status"
       >
         <p className="text-[10px] uppercase tracking-[0.2em] text-[#547052]">

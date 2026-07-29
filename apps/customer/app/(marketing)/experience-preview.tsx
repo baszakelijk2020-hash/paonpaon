@@ -49,7 +49,7 @@ export function ExperiencePreview() {
   const view = VIEWS[active];
 
   return (
-    <div className="overflow-hidden rounded-[1.25rem] border border-black/10 bg-[#ededea] shadow-[0_20px_60px_rgba(0,0,0,.2)]">
+    <div className="overflow-hidden rounded-[var(--radius-xl)] border border-black/10 bg-[#ededea] shadow-[0_20px_60px_rgba(0,0,0,.2)]">
       <p className="border-b border-black/10 px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-black/45">
         Illustrative preview — not live customer data.{" "}
         <Link href="/r/maison-dubois" className="underline underline-offset-2">
@@ -83,7 +83,7 @@ export function ExperiencePreview() {
           </div>
         </aside>
         <div className="p-5 sm:p-8">
-          <div className="rounded-[1.25rem] bg-[#1a1a1a] p-7 text-white sm:p-9">
+          <div className="rounded-[var(--radius-xl)] bg-[#1a1a1a] p-7 text-white sm:p-9">
             <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-white/50">
               {view.eyebrow}
             </p>
