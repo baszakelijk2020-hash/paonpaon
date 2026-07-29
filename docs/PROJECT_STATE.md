@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 91 forward Supabase migrations plus generated TypeScript
+- Schema source: 93 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -35,9 +35,11 @@ Snapshot: 2026-07-30.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
   evidence, retailer overrides, exact fabric profiles, an actor-derived review
   RPC, PAON Admin canonical management, the Retailer Portal metadata review
-  UI, and product-management fabric/assignment editors exist. No knowledge,
-  catalogue-import, wardrobe, roadmap, outfit, campaign, or concierge-service
-  tables exist.
+  UI, and product-management fabric/assignment editors exist.
+- Canonical/retailer knowledge objects, concept joins, relations, retailer
+  hide/presentation/priority/pin overrides, `KnowledgeRepository`, and
+  idempotent EDU-001 canonical fixtures exist. No catalogue-import, wardrobe,
+  roadmap, outfit, campaign, or concierge-service tables exist.
 
 ## External systems
 
@@ -54,7 +56,6 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Stage 1 metadata foundation is complete through exact product
-facts and catalogue assignment UI (PHASE 1.4). The authoritative Resume
-Protocol identifies knowledge contracts and persistence (PHASE 2.1) as the
-exact continuation point.
+contracts. Knowledge contracts and persistence (PHASE 2.1) are complete. The
+authoritative Resume Protocol identifies the deterministic discovery engine
+(PHASE 2.2) as the exact continuation point.

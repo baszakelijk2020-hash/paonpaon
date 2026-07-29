@@ -11,45 +11,46 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `2.1 Knowledge contracts and persistence`
-- **Current requirement IDs:** `EDU-001`, `ENG-001`, `ENG-002`, `ENG-003`
+- **Current queue item:** `2.2 Deterministic discovery engine`
+- **Current requirement IDs:** `EDU-002`, `ENG-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
   `e05ac65` implemented metadata domain contracts; `65ed489` implemented
   metadata persistence, repositories, and RLS; `538c9da` added the review
   transition contract and PAON Admin canonical management; `8eaa834` added
-  the Retailer Portal metadata review UI; `HEAD` adds exact product facts and
-  catalogue assignment UI on Retailer Portal product management (PHASE 1.4
-  complete; Stage 1 complete).
-- **Available schema/interfaces:** seven metadata/fabric tables, generated
+  the Retailer Portal metadata review UI; `117fa8e` added exact product facts
+  and catalogue assignment UI; `b5827bc` adds knowledge contracts, persistence,
+  RLS, repositories, and reviewed canonical fixtures (PHASE 2.1 complete).
+- **Available schema/interfaces:** seven metadata/fabric tables plus four
+  knowledge tables (`knowledge_objects`, `knowledge_object_concepts`,
+  `knowledge_object_relations`, `retailer_knowledge_overrides`), generated
   database types, `MetadataRepository`, `ProductFabricProfileRepository`,
-  append-only terminal-review evidence, actor-derived idempotent
-  `review_metadata_assignment`, atomic `set_product_fabric_profile`,
+  `KnowledgeRepository`, append-only terminal-review evidence, actor-derived
+  idempotent `review_metadata_assignment`, atomic `set_product_fabric_profile`,
   operator-only canonical concept forms, Retailer Portal metadata review
-  under `apps/retailer/app/(dashboard)/metadata/`, and product-management
+  under `apps/retailer/app/(dashboard)/metadata/`, product-management
   fabric/assignment editors under
-  `apps/retailer/app/(dashboard)/products/[id]/` now implement the landed
-  Stage 1 contracts.
-- **Checks/deployment state:** a clean local database reset applies all 91
-  migrations; 39 live pgTAP authorization/invariant checks, 150
-  `@paon/domain` tests, and 127 `@paon/database` tests pass; database lint
-  reports only the pre-existing
-  `convert_pilot_to_live_retailer` warning; metadata/fabric tables produce no
-  Supabase advisor findings. Lint, typecheck, and unit tests are green on the
-  integrated Stage 1 main tip.
-- **Real blockers:** none for Stage 2 contracts. Missing optional provider
+  `apps/retailer/app/(dashboard)/products/[id]/`, and idempotent EDU-001
+  canonical knowledge fixtures now implement the landed Stage 1–2.1
+  contracts.
+- **Checks/deployment state:** a clean local database reset applies all 93
+  migrations; 57 live pgTAP authorization/invariant checks (18 new knowledge
+  foundation), 166 `@paon/domain` tests, and knowledge repository/security
+  unit coverage pass alongside the existing database suite. Lint, typecheck,
+  unit tests, build, and format check are green on the integrated 2.1 tip.
+- **Real blockers:** none for Stage 2 discovery. Missing optional provider
   credentials do not block local/domain/database work. Reviewed production
-  copy/images do not block knowledge contracts or neutral fixtures.
-- **Exact next files/tests:** implement queue item 2.1 knowledge contracts and
-  persistence per ADR-060: `@paon/domain` knowledge types, forward
-  migration/RLS, generated types, `@paon/database` repositories, and reviewed
-  canonical fixture data. Represent canonical/retailer knowledge objects,
-  concept joins, relations, display types, commercial intent, active state,
-  and local hide/presentation/priority/pin controls. Cover schema validation,
-  override precedence, RLS/cross-tenant denial, repository mapping, fixture
-  idempotency, and disabled/hidden eligibility. Do not mount storefront
-  discovery, ranking, embeddings, or retailer mutation of canonical copy.
+  copy/images do not block neutral knowledge fixtures already seeded inactive
+  where unapproved.
+- **Exact next files/tests:** implement queue item 2.2 deterministic discovery
+  engine per ADR-060: pure ranking/explanation in `@paon/domain` plus narrow
+  repository reads. Eligibility starts from accepted product-concept matches
+  and active knowledge-concept links; apply retailer hide/pin/priority
+  precedence; return three to six explainable, diverse cards. Cover golden
+  ranking fixtures, tie-breaking, diversity, hidden/pinned cases, and
+  explanation payloads. Do not mount storefront UI, embeddings, or AI
+  summarization.
 
 ## 1. Programme intent
 
@@ -91,12 +92,12 @@ Verified from code and 91 migrations on 2026-07-30:
   clienteling notes, loyalty, events, physical garments, fittings, alterations,
   and wedding parties exist.
 - Metadata concepts/edges/assignments, append-only review evidence, retailer
-  overrides, exact fabric profiles, generated types, typed repositories, and
-  PAON Admin canonical management now exist. Terminal assignment decisions use
-  an actor-derived idempotent RPC; the Retailer Portal review UI does not yet
-  exist. The repository still has no knowledge-object, catalogue-import,
-  StyleProfile, wardrobe-item, outfit, wardrobe-roadmap, campaign, or
-  concierge-service persistence.
+  overrides, exact fabric profiles, generated types, typed repositories, PAON
+  Admin canonical management, and the Retailer Portal review/product-facts UI
+  now exist. Knowledge objects, concept joins, relations, retailer knowledge
+  overrides, and reviewed EDU-001 fixtures also exist. The repository still
+  has no catalogue-import, StyleProfile, wardrobe-item, outfit,
+  wardrobe-roadmap, campaign, or concierge-service persistence.
 
 Names below describe intended persistence and later-stage types until their
 queue item lands. Documentation must not call them shipped early.
@@ -113,7 +114,7 @@ above. Status changes only after the named acceptance criteria are verified.
 | CAT-002                | Exact composition percentages, fabric weight, supplier reference, and variant-specific facts where genuinely different                                                                                     | `metadata` + `catalog`             | Exact validated facts persist atomically and are editable on Retailer Portal product management                                  | CAT-001                                   | 1.1, 1.4             | Composition validates to 100%; exact values persist without duplicating concept labels                                           | Done (1.4)         |
 | CAT-003                | Retailer overrides, canonical ownership, and strict tenant isolation                                                                                                                                       | `metadata`                         | Canonical management and tenant-safe domain/database/repository/Admin/Retailer review boundaries exist                           | CAT-001                                   | 1.2–1.4              | Canonical rows are platform-owned; retailer rows/overrides cannot cross tenants or mutate canonical facts                        | Done (1.3)         |
 | CAT-004                | Provenance, source, confidence, evidence, review state, and auditable review                                                                                                                               | `metadata`                         | Pending proposals and actor-derived idempotent terminal reviews retain append-only evidence; Admin + Retailer + product UI exist | CAT-001                                   | 1.1–1.4              | Every proposal records authority and evidence; AI never bypasses pending review; review actor/time are retained                  | Done (1.4)         |
-| EDU-001                | Reusable commercial education for mills, fibres, fabrics, weaves, construction, collars, styling, care, performance, occasion, value, and tradeoffs                                                        | `knowledge`                        | Static founder information content only                                                                                          | CAT-001, CAT-004                          | 2.1                  | Reviewed reusable objects cover every named topic and explain why, fit, tradeoffs, and value                                     | Not started        |
+| EDU-001                | Reusable commercial education for mills, fibres, fabrics, weaves, construction, collars, styling, care, performance, occasion, value, and tradeoffs                                                        | `knowledge`                        | Domain contracts, persistence/RLS, repositories, and reviewed canonical fixtures cover every named topic                         | CAT-001, CAT-004                          | 2.1                  | Reviewed reusable objects cover every named topic and explain why, fit, tradeoffs, and value                                     | Done (2.1)         |
 | EDU-002                | Automatic metadata-backed card selection with ranking and diversity                                                                                                                                        | `knowledge` + `discovery`          | No knowledge/discovery engine                                                                                                    | EDU-001                                   | 2.2                  | Accepted metadata selects three to six explainable, diverse cards under ADR-060 precedence                                       | Not started        |
 | EDU-003                | Inject cards into existing desktop/mobile founder information areas without redesign                                                                                                                       | Customer founder storefront        | Canonical HTML has Archetype/Fabric/Sizing areas but no dynamic knowledge cards                                                  | EDU-002                                   | 2.3                  | Narrow hooks render square-image/title/copy cards accessibly with no unrelated visual or interaction drift                       | Not started        |
 | IMP-001                | CSV, XLSX, JSON, and future PDF-ready supplier ingestion                                                                                                                                                   | Catalogue import                   | No import model or parser                                                                                                        | CAT-004                                   | 2.5                  | Versioned CSV/XLSX/JSON contracts and fixtures work; source type permits a later PDF extractor without schema redesign           | Not started        |
@@ -150,7 +151,7 @@ above. Status changes only after the named acceptance criteria are verified.
 | PAY-002                | MunroMonnaie-style provider/legal-approved order commitment and deposit; never custom credit/lending/direct debit/stored value/instalments                                                                 | Commerce compliance                | No approved deposit/commitment capability                                                                                        | Compliance gate                           | 6.1–6.2              | Dedicated ADR/provider design authorizes only supported capability; immutable payment/order history remains                      | Blocked by 6.1     |
 | TIE-001                | Mobile-first full-screen realistic-scale tie-fabric exploration with save, order, advisor handoff, catalogue, and stock integration                                                                        | Tie-Mate                           | No approved Tie-Mate surface                                                                                                     | EDU-003, ADV-001, approved founder design | 5.4                  | Phone-scale fabrics preserve stock truth and support swipe/save/order/handoff with mobile accessibility                          | Design blocker     |
 | MKT-001                | Separate retailer-owner marketplace for mannequins, bags, shoe displays, fixtures, custom furniture, and supplies                                                                                          | Business marketplace               | No marketplace context                                                                                                           | Marketplace ADR + stable programme        | 6.3                  | Separate tenant/customer/catalogue/order assumptions are proven; retailer products never enter customer retail facets            | Not started        |
-| ENG-001                | PAON owns canonical taxonomy/knowledge; retailers own tenant catalogue, review, and local overrides                                                                                                        | Metadata + knowledge governance    | Canonical management and Admin + Retailer review/assignment boundaries are enforced; knowledge contracts are next                | Direction                                 | 1.1–2.1              | ADR-059/060 ownership rules are enforced in types, database constraints, RLS, and repositories                                   | In progress (2.1)  |
+| ENG-001                | PAON owns canonical taxonomy/knowledge; retailers own tenant catalogue, review, and local overrides                                                                                                        | Metadata + knowledge governance    | Canonical management, review boundaries, and knowledge ownership/override rules are enforced                                     | Direction                                 | 1.1–2.1              | ADR-059/060 ownership rules are enforced in types, database constraints, RLS, and repositories                                   | Done (2.1)         |
 | ENG-002                | Recommendations and AI answers use accepted metadata/approved knowledge, explain why, and respect consent/retention                                                                                        | Intelligence governance            | Audited AI calls exist without the new grounding/consent model                                                                   | EDU-002, CUST-001                         | 2.2–4.5              | Every output exposes evidence/explanation and fails closed when approval or consent is absent                                    | Not started        |
 | ENG-003                | Extend branded-ID/domain/repository/Server-Action/RLS/migration/test architecture; do not create a parallel product                                                                                        | Engineering platform               | Architecture exists and is enforced in current code                                                                              | Direction                                 | All                  | Every slice follows package boundaries, strict TypeScript, forward migrations, generated types, and tenant tests                 | In force           |
 | ENG-004                | Preserve founder HTML and interaction behavior through narrow hooks rather than React/Tailwind/design-system rewrites                                                                                      | Founder surfaces                   | Founder route serves canonical HTML with narrow runtime injection                                                                | ADR-052                                   | 2.3, 5.4             | DOM/CSS diff and desktop/mobile/a11y checks show only authorized mounts changed                                                  | Partial foundation |
