@@ -465,6 +465,14 @@ demo persona chips use `stone-200`; Studio outreach copy button border
 matched. Live Private Client + Mission Control dashboards verified
 locally after restart.
 
+**Also (2026-07-29 continuous — back-env polish residual closed).**
+Static sweep of customer/retailer dashboards + Demo Studio: no remaining
+`capitalize` / `radius-sm` / cool Tailwind `stone-*` P0/P1 hits on typed
+enums or shared form chrome. Wedding party hero/orbit confirmed `8px`
+(`radius-md`) live. Agent-buildable back-env token/label queue empty;
+only hard blockers remain (Stripe / Resend / silhouette / alterations
+invent / Hobby deploy cap).
+
 **Also (2026-07-29 continuous — conversion chrome):** React PDP defaults to
 redirect onto the HTML storefront (ADR-052); portal Saved/Today’s Pick and
 appointment CTAs point at `/r/[slug]`; Alterations demoted from Private
