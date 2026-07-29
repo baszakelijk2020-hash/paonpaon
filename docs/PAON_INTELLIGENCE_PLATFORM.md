@@ -73,9 +73,9 @@ Verified from code and 91 migrations on 2026-07-30:
   collection membership, primary image, and swatch image.
 - `ProductVariant` has SKU, size, color, price, compare-at price, inventory,
   and lead time.
-- Storefront category, color, pattern, and season values are derived at request
-  time from names, collections, variant color, and founder image-number
-  heuristics in `apps/customer/app/r/[slug]/route.ts`.
+- Storefront category, color, pattern, and season values prefer accepted
+  metadata when present and still fall back to request-time heuristics in
+  `apps/customer/app/r/[slug]/route.ts`.
 - `behavioral_events` is an immutable retailer-scoped signal stream, and
   `ai_generations` records next-best-action/product-recommendation attempts.
 - Customer preferences, wishlist, orders, appointments, conversations,
@@ -85,9 +85,10 @@ Verified from code and 91 migrations on 2026-07-30:
   overrides, exact fabric profiles, generated types, typed repositories, PAON
   Admin canonical management, and the Retailer Portal review/product-facts UI
   now exist. Knowledge objects, concept joins, relations, retailer knowledge
-  overrides, and reviewed EDU-001 fixtures also exist. The repository still
-  has no catalogue-import, StyleProfile, wardrobe-item, outfit,
-  wardrobe-roadmap, campaign, or concierge-service persistence.
+  overrides, reviewed EDU-001 fixtures, and accepted-metadata catalogue query
+  (facets/ranges/intent/pagination) also exist. The repository still has no
+  catalogue-import, StyleProfile, wardrobe-item, outfit, wardrobe-roadmap,
+  campaign, or concierge-service persistence.
 
 Names below describe intended persistence and later-stage types until their
 queue item lands. Documentation must not call them shipped early.
