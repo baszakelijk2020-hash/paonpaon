@@ -3391,6 +3391,130 @@ export type Database = {
           },
         ];
       };
+      morning_routine_delivery_audits: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          for_date: string;
+          id: string;
+          notification_id: string | null;
+          outcome: string;
+          retailer_id: string;
+          scheduled_for: string;
+          selection_id: string | null;
+          suppression_reason: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          for_date: string;
+          id?: string;
+          notification_id?: string | null;
+          outcome: string;
+          retailer_id: string;
+          scheduled_for: string;
+          selection_id?: string | null;
+          suppression_reason?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          for_date?: string;
+          id?: string;
+          notification_id?: string | null;
+          outcome?: string;
+          retailer_id?: string;
+          scheduled_for?: string;
+          selection_id?: string | null;
+          suppression_reason?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "morning_routine_delivery_audits_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_delivery_audits_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "morning_routine_delivery_audits_notification_id_fkey";
+            columns: ["notification_id"];
+            isOneToOne: false;
+            referencedRelation: "notifications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_delivery_audits_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_delivery_audits_selection_id_fkey";
+            columns: ["selection_id"];
+            isOneToOne: false;
+            referencedRelation: "morning_routine_selections";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      morning_routine_eligible_products: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          created_by_staff_id: string | null;
+          product_id: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          product_id: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          product_id?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "morning_routine_eligible_products_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_eligible_products_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_eligible_products_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       morning_routine_recommendations: {
         Row: {
           actions: Json;
@@ -3504,6 +3628,32 @@ export type Database = {
           },
         ];
       };
+      morning_routine_retailer_settings: {
+        Row: {
+          paused: boolean;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          paused?: boolean;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          paused?: boolean;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "morning_routine_retailer_settings_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: true;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       morning_routine_selections: {
         Row: {
           calendar_status: string;
@@ -3579,6 +3729,79 @@ export type Database = {
           },
           {
             foreignKeyName: "morning_routine_selections_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      morning_routine_subscriptions: {
+        Row: {
+          channels: string[];
+          created_at: string;
+          customer_id: string;
+          frequency: string;
+          id: string;
+          opted_in: boolean;
+          opted_in_at: string | null;
+          opted_out_at: string | null;
+          preferred_local_hour: number;
+          quiet_end_minute: number | null;
+          quiet_start_minute: number | null;
+          retailer_id: string;
+          timezone: string;
+          updated_at: string;
+        };
+        Insert: {
+          channels?: string[];
+          created_at?: string;
+          customer_id: string;
+          frequency?: string;
+          id?: string;
+          opted_in?: boolean;
+          opted_in_at?: string | null;
+          opted_out_at?: string | null;
+          preferred_local_hour?: number;
+          quiet_end_minute?: number | null;
+          quiet_start_minute?: number | null;
+          retailer_id: string;
+          timezone?: string;
+          updated_at?: string;
+        };
+        Update: {
+          channels?: string[];
+          created_at?: string;
+          customer_id?: string;
+          frequency?: string;
+          id?: string;
+          opted_in?: boolean;
+          opted_in_at?: string | null;
+          opted_out_at?: string | null;
+          preferred_local_hour?: number;
+          quiet_end_minute?: number | null;
+          quiet_start_minute?: number | null;
+          retailer_id?: string;
+          timezone?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "morning_routine_subscriptions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: true;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "morning_routine_subscriptions_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "morning_routine_subscriptions_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
@@ -7453,6 +7676,17 @@ export type Database = {
         };
         Returns: undefined;
       };
+      enqueue_morning_routine_delivery_notification: {
+        Args: {
+          p_action_href?: string;
+          p_body: string;
+          p_channel?: string;
+          p_customer_id: string;
+          p_retailer_id: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
       ensure_customer_style_profile: {
         Args: { p_customer_id: string };
         Returns: {
@@ -7667,6 +7901,19 @@ export type Database = {
           p_mime_type: string;
           p_size_bytes: number;
           p_storage_path: string;
+        };
+        Returns: string;
+      };
+      record_morning_routine_delivery_audit: {
+        Args: {
+          p_customer_id: string;
+          p_for_date: string;
+          p_notification_id?: string;
+          p_outcome: string;
+          p_retailer_id: string;
+          p_scheduled_for: string;
+          p_selection_id?: string;
+          p_suppression_reason?: string;
         };
         Returns: string;
       };
@@ -8000,6 +8247,20 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      upsert_morning_routine_subscription: {
+        Args: {
+          p_channels?: string[];
+          p_customer_id: string;
+          p_frequency?: string;
+          p_opted_in: boolean;
+          p_preferred_local_hour?: number;
+          p_quiet_end_minute?: number;
+          p_quiet_start_minute?: number;
+          p_retailer_id: string;
+          p_timezone?: string;
+        };
+        Returns: string;
       };
       wardrobe_item_self_scan_eligible: {
         Args: { p_item: Database["public"]["Tables"]["wardrobe_items"]["Row"] };

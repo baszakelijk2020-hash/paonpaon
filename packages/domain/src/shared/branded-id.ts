@@ -69,6 +69,14 @@ export type MorningRoutineRecommendationId = Brand<
   string,
   "MorningRoutineRecommendationId"
 >;
+export type MorningRoutineSubscriptionId = Brand<
+  string,
+  "MorningRoutineSubscriptionId"
+>;
+export type MorningRoutineDeliveryAuditId = Brand<
+  string,
+  "MorningRoutineDeliveryAuditId"
+>;
 export type OrderId = Brand<string, "OrderId">;
 export type OrderLineId = Brand<string, "OrderLineId">;
 export type ProductionOrderId = Brand<string, "ProductionOrderId">;

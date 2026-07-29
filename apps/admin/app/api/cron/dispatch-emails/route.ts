@@ -1,6 +1,7 @@
 import {
   CommercialProspectRepository,
   EmailOutboxRepository,
+  orchestrateMorningRoutineDeliveries,
 } from "@paon/database";
 import { sendEmail } from "@paon/email";
 import { NextResponse } from "next/server";
@@ -15,13 +16,10 @@ import { getSupabaseAdminClient } from "@/lib/supabase-admin";
  * signature. Vercel Cron sends `Authorization: Bearer $CRON_SECRET`
  * automatically for any project with that env var set (see
  * `vercel.json`); the same header works for manual/local triggering.
- * `docs/DATABASE.md` "Row Level Security" explicitly names scheduled
- * jobs as one of the few contexts allowed to use the service-role
- * client — this is exactly that case.
  *
- * Also runs Demo Studio expiry teardown on the same tick (Hobby caps
- * cron jobs at two daily slots — see docs/DEPLOYMENT.md). The dedicated
- * `/api/cron/expire-demo-environments` route remains for manual runs.
+ * Also runs Demo Studio expiry teardown and MorningRoutine delivery
+ * enqueue on the same tick (Hobby caps cron jobs at two daily slots).
+ * MorningRoutine enqueue does not require Resend; email drain does.
  */
 async function handleDispatch(request: Request): Promise<Response> {
   const cronSecret = env.cronSecret;
@@ -40,16 +38,19 @@ async function handleDispatch(request: Request): Promise<Response> {
     admin,
   ).expireDueEnvironments();
 
+  const morningRoutine = await orchestrateMorningRoutineDeliveries(admin);
+
   const resend = getResendClient();
   const fromEmail = env.resendFromEmail;
   if (!resend || !fromEmail) {
-    return NextResponse.json(
-      {
-        error: "Resend is not configured on this deployment.",
-        demosExpired,
+    return NextResponse.json({
+      demosExpired,
+      morningRoutine,
+      email: {
+        skipped: true,
+        reason: "Resend is not configured on this deployment.",
       },
-      { status: 503 },
-    );
+    });
   }
 
   const outboxRepo = new EmailOutboxRepository(admin);
@@ -82,6 +83,7 @@ async function handleDispatch(request: Request): Promise<Response> {
     sent,
     failed,
     demosExpired,
+    morningRoutine,
   });
 }
 
