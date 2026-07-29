@@ -6023,6 +6023,37 @@ export type Database = {
         };
         Returns: undefined;
       };
+      search_catalogue_products: {
+        Args: {
+          p_concept_ids?: string[] | null;
+          p_max_price_minor?: number | null;
+          p_max_weight?: number | null;
+          p_min_price_minor?: number | null;
+          p_min_weight?: number | null;
+          p_page?: number;
+          p_page_size?: number;
+          p_query?: string | null;
+          p_retailer_id: string;
+          p_sort?: string;
+        };
+        Returns: {
+          product_id: string;
+          relevance_score: number;
+          total_count: number;
+        }[];
+      };
+      list_catalogue_facets: {
+        Args: {
+          p_retailer_id: string;
+        };
+        Returns: {
+          concept_id: string;
+          concept_kind: string;
+          concept_label: string;
+          concept_slug: string;
+          product_count: number;
+        }[];
+      };
       update_product_catalogue: {
         Args: {
           p_collection_ids?: string[];

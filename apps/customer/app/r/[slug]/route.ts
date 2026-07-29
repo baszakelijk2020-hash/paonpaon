@@ -12,6 +12,12 @@ import { formatMoney } from "@paon/utils";
 import { NextResponse } from "next/server";
 
 import {
+  loadStorefrontCatalogueContext,
+  pickStorefrontFilterValue,
+  serializeStorefrontCatalogueJson,
+  shouldIncludeStorefrontProduct,
+} from "./serialize-storefront-catalogue";
+import {
   loadStorefrontKnowledgeByProduct,
   serializeStorefrontKnowledgeJson,
 } from "./serialize-storefront-knowledge";
@@ -297,10 +303,11 @@ const CORNERS: Record<string, string> = {
 };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
+  const searchQuery = new URL(request.url).searchParams.get("q");
   const supabase = await getSupabaseServerClient();
 
   const retailer = await new RetailerRepository(supabase).findBySlug(slug);
@@ -338,10 +345,34 @@ export async function GET(
     })),
   );
 
-  const entries = productsWithVariants.map(({ product, variants }) => {
+  const catalogueContext = await loadStorefrontCatalogueContext(
+    supabase,
+    retailer.id,
+    productsWithVariants.map(({ product, variants }) => ({
+      id: product.id,
+      slug: product.slug,
+      variantIds: variants.map((variant) => variant.id),
+    })),
+    searchQuery,
+  );
+
+  const entries = productsWithVariants
+    .filter(({ product }) =>
+      shouldIncludeStorefrontProduct(product.id, catalogueContext),
+    )
+    .map(({ product, variants }) => {
     const collectionName = product.collectionIds
       .map((id) => collectionNameById.get(id))
       .find((name): name is string => Boolean(name));
+    const metadata = catalogueContext.metadataByProductId.get(product.id);
+    const heuristicColor = deriveColor(product.name, variants[0]?.color);
+    const heuristicPattern = derivePattern(product.name);
+    const heuristicSeason = deriveSeason(product.name, undefined);
+    const heuristicCategory = canonicalCategoryFor(
+      product.name,
+      collectionName,
+      product.primaryImageUrl ?? "",
+    );
     return {
       id: product.slug,
       img: product.primaryImageUrl ?? "",
@@ -349,14 +380,15 @@ export async function GET(
       name: product.name,
       price: priceLabelFor(variants),
       priceMinor: priceMinorFor(variants),
-      color: deriveColor(product.name, variants[0]?.color),
-      pattern: derivePattern(product.name),
-      season: deriveSeason(product.name, undefined),
-      category: canonicalCategoryFor(
-        product.name,
-        collectionName,
-        product.primaryImageUrl ?? "",
+      color: pickStorefrontFilterValue(metadata, "color", heuristicColor),
+      pattern: pickStorefrontFilterValue(metadata, "pattern", heuristicPattern),
+      season: pickStorefrontFilterValue(metadata, "season", heuristicSeason),
+      category: pickStorefrontFilterValue(
+        metadata,
+        "category",
+        heuristicCategory,
       ),
+      metadataConceptIds: metadata?.conceptIds ?? [],
       brand: retailer.displayName,
       description: product.description,
       material: product.isMadeToOrder ? "Made to order" : "In atelier",
@@ -533,6 +565,10 @@ ${
     .replaceAll(
       "__PAON_KNOWLEDGE_BY_PRODUCT_JSON__",
       serializeStorefrontKnowledgeJson(knowledgeByProduct),
+    )
+    .replaceAll(
+      "__PAON_CATALOGUE_JSON__",
+      serializeStorefrontCatalogueJson(catalogueContext),
     );
 
   if (html.includes("__PAON_")) {
