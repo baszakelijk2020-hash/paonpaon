@@ -52,7 +52,8 @@ const TOPICS = {
   },
   engagement: {
     eyebrow: "Customer engagement",
-    title: "Clienteling that feels personal because the context is real.",
+    title:
+      "Private client care that feels personal because the context is real.",
     introduction:
       "Advisors see preferences, recent behavior, appointments, pieces and private notes together—then continue the same relationship through messaging and invitations.",
     image: "https://www.nebelspiegel.com/images/smaller/6082.webp",
