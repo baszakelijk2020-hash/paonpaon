@@ -32,7 +32,9 @@ exists** — it signs anyone straight in.
 **Canonical path:** GitHub Actions `CI` → job `Deploy production` after
 `verify` is green on `main`. That job calls the Vercel Deployments API with
 an explicit `gitSource` (`github` + repo id + `ref: main`) for each
-`paonpaon-*` project. Secrets: `VERCEL_TOKEN`, `VERCEL_TEAM_ID`.
+`paonpaon-*` project, then blocks until the deployment reaches `READY` and
+verifies the deployment URL returns a healthy HTTP status. Secrets:
+`VERCEL_TOKEN`, `VERCEL_TEAM_ID`.
 
 **Why not rely on dashboard “deploy on push” or Deploy Hooks alone:**
 
