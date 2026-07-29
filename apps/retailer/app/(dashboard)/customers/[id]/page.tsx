@@ -351,7 +351,7 @@ export default async function CustomerDetailPage({
             </div>
             <div>
               <dt className="text-[var(--color-stone-500)]">Source</dt>
-              <dd className="mt-1 capitalize">
+              <dd className="mt-1">
                 {customer.acquisitionSource?.replaceAll("_", " ") ??
                   "Personal introduction"}
               </dd>

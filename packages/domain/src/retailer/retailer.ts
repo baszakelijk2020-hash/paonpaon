@@ -7,6 +7,19 @@ export type RetailerStatus =
 
 export type RetailerTier = "boutique" | "house" | "maison";
 
+export const RETAILER_TIER_LABELS: Record<RetailerTier, string> = {
+  boutique: "Boutique",
+  house: "House",
+  maison: "Maison",
+};
+
+export const RETAILER_STATUS_LABELS: Record<RetailerStatus, string> = {
+  pending_onboarding: "Pending onboarding",
+  active: "Active",
+  suspended: "Suspended",
+  churned: "Churned",
+};
+
 /**
  * The tenant root. Every tenant-scoped entity elsewhere in the domain
  * carries a retailerId that must resolve to a Retailer in "active"

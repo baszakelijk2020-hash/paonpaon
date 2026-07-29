@@ -445,6 +445,14 @@ retailer staff list uses `RETAILER_ROLE_LABELS`. Catalogue e2e spec
 (`apps/admin/e2e/commercials.spec.ts`) added. All six CI checks confirmed
 green on full build pass.
 
+**Also (2026-07-29 continuous — tier labels + form chrome).**
+`LOYALTY_TIER_LABELS` and `RETAILER_TIER_LABELS` /
+`RETAILER_STATUS_LABELS` live in `@paon/domain`. Mission Control / Private
+Client / Admin retailer surfaces use them instead of `capitalize`. Form
+feedback banners and admin billing plan fields aligned to `radius-md`
+house chrome. Wedding party hero/orbit + alteration intake textareas
+already shipped earlier the same day.
+
 **Also (2026-07-29 continuous — conversion chrome):** React PDP defaults to
 redirect onto the HTML storefront (ADR-052); portal Saved/Today’s Pick and
 appointment CTAs point at `/r/[slug]`; Alterations demoted from Private

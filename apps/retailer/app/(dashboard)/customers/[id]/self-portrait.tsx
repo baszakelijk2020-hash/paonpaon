@@ -3,6 +3,7 @@ import type {
   ClientelingNote,
   LoyaltyAccount,
 } from "@paon/domain";
+import { LOYALTY_TIER_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
@@ -67,7 +68,7 @@ export function SelfPortrait({
         {loyaltyAccount ? (
           <div className="text-right">
             <Badge tone={TIER_TONE[loyaltyAccount.tier]}>
-              {loyaltyAccount.tier}
+              {LOYALTY_TIER_LABELS[loyaltyAccount.tier]}
             </Badge>
             <p className="mt-1 text-sm text-[var(--color-stone-700)]">
               {loyaltyAccount.pointsBalance.toLocaleString("en-US")} pts
@@ -83,7 +84,7 @@ export function SelfPortrait({
       </div>
 
       {pinnedNote ? (
-        <div className="mb-4 rounded-[var(--radius-sm)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)] p-3">
+        <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)] p-3">
           <p className="text-sm text-[var(--color-stone-900)]">
             {pinnedNote.body}
           </p>
@@ -91,7 +92,7 @@ export function SelfPortrait({
       ) : null}
 
       {isRecent(recentEvents[0]?.occurredAt) ? (
-        <div className="border-[var(--color-warning-500)]/30 bg-[var(--color-warning-500)]/10 mb-4 flex items-center justify-between rounded-[var(--radius-sm)] border px-3 py-2">
+        <div className="border-[var(--color-warning-500)]/30 bg-[var(--color-warning-500)]/10 mb-4 flex items-center justify-between rounded-[var(--radius-md)] border px-3 py-2">
           <p className="text-sm text-[var(--color-stone-800)]">
             Active in the last few days — worth a note for the book?
           </p>
@@ -119,7 +120,7 @@ export function SelfPortrait({
                 key={`${event.name}-${event.occurredAt}-${index}`}
                 className="flex items-center justify-between text-sm"
               >
-                <span className="capitalize text-[var(--color-stone-800)]">
+                <span className="text-[var(--color-stone-800)]">
                   {eventLabel(event)}
                 </span>
                 <span className="text-xs text-[var(--color-stone-500)]">

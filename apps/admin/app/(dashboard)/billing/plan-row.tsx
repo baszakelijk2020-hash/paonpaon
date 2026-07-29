@@ -82,7 +82,7 @@ export function PlanRow({
             name="description"
             defaultValue={plan.description}
             maxLength={1000}
-            className="mt-1 min-h-24 w-full rounded-[var(--radius-sm)] border bg-white p-3 text-sm"
+            className="mt-1 min-h-24 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-3 text-sm text-[var(--color-stone-900)] transition-colors duration-150 ease-[var(--ease-out-quiet)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
           />
         </label>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -102,7 +102,7 @@ export function PlanRow({
             <select
               name="priceCurrency"
               defaultValue={plan.price.currency}
-              className="mt-1 h-10 w-full rounded-[var(--radius-sm)] border bg-white px-3 text-sm"
+              className="mt-1 h-10 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-sm text-[var(--color-stone-900)] transition-colors duration-150 ease-[var(--ease-out-quiet)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
             >
               {["EUR", "GBP", "USD", "CHF"].map((currency) => (
                 <option key={currency}>{currency}</option>
@@ -128,7 +128,7 @@ export function PlanRow({
             <select
               name="implementationFeeCurrency"
               defaultValue={plan.implementationFee.currency}
-              className="mt-1 h-10 w-full rounded-[var(--radius-sm)] border bg-white px-3 text-sm"
+              className="mt-1 h-10 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-sm text-[var(--color-stone-900)] transition-colors duration-150 ease-[var(--ease-out-quiet)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
             >
               {["EUR", "GBP", "USD", "CHF"].map((currency) => (
                 <option key={currency}>{currency}</option>
@@ -174,7 +174,7 @@ export function PlanRow({
             {features.map((feature) => (
               <label
                 key={feature.key}
-                className="flex min-h-11 items-center gap-3 rounded-[var(--radius-sm)] border px-3 py-2 text-sm"
+                className="flex min-h-11 items-center gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm"
               >
                 <input
                   type="checkbox"

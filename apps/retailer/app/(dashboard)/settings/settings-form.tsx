@@ -32,7 +32,7 @@ export function SettingsForm({ retailer }: { retailer: Retailer }) {
       {state.formError ? (
         <p
           role="alert"
-          className="bg-[var(--color-danger-500)]/10 rounded-[var(--radius-sm)] px-4 py-3 text-sm text-[var(--color-danger-500)]"
+          className="bg-[var(--color-danger-500)]/10 rounded-[var(--radius-md)] px-4 py-3 text-sm text-[var(--color-danger-500)]"
         >
           {state.formError}
         </p>
@@ -40,7 +40,7 @@ export function SettingsForm({ retailer }: { retailer: Retailer }) {
       {state.success ? (
         <p
           role="status"
-          className="bg-[var(--color-success-500)]/10 rounded-[var(--radius-sm)] px-4 py-3 text-sm text-[var(--color-success-500)]"
+          className="bg-[var(--color-success-500)]/10 rounded-[var(--radius-md)] px-4 py-3 text-sm text-[var(--color-success-500)]"
         >
           Settings saved.
         </p>

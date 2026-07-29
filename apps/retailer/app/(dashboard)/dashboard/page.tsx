@@ -12,6 +12,7 @@ import {
 } from "@paon/database";
 import {
   APPOINTMENT_TYPE_LABELS,
+  RETAILER_TIER_LABELS,
   retailerRoleAtLeast,
   retailerRoleHasAlterationsPermission,
   type RetailerRole,
@@ -677,7 +678,9 @@ export default async function DashboardPage() {
                 <dt className="text-xs text-[var(--color-stone-500)]">
                   Membership
                 </dt>
-                <dd className="mt-1 text-lg capitalize">{retailer.tier}</dd>
+                <dd className="mt-1 text-lg">
+                  {RETAILER_TIER_LABELS[retailer.tier]}
+                </dd>
               </div>
               <div className="border-r border-[var(--color-stone-100)] p-5">
                 <dt className="text-xs text-[var(--color-stone-500)]">

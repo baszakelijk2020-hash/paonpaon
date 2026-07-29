@@ -44,7 +44,7 @@ export function AIInsights({
           AI personalisation is not configured on this deployment.
         </p>
       ) : state.result ? (
-        <div className="rounded-[var(--radius-sm)] bg-[var(--color-stone-50)] p-4">
+        <div className="rounded-[var(--radius-md)] bg-[var(--color-stone-50)] p-4">
           <p className="text-sm font-medium text-[var(--color-stone-900)]">
             {state.result.action}
           </p>
@@ -53,7 +53,7 @@ export function AIInsights({
           </p>
         </div>
       ) : latestSucceeded?.output ? (
-        <div className="rounded-[var(--radius-sm)] bg-[var(--color-stone-50)] p-4">
+        <div className="rounded-[var(--radius-md)] bg-[var(--color-stone-50)] p-4">
           <p className="text-sm font-medium text-[var(--color-stone-900)]">
             {String(latestSucceeded.output["action"] ?? "")}
           </p>

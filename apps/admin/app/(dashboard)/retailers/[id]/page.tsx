@@ -4,7 +4,7 @@ import {
   RetailerSubscriptionRepository,
   SubscriptionPlanRepository,
 } from "@paon/database";
-import { asId, RETAILER_ROLE_LABELS } from "@paon/domain";
+import { asId, RETAILER_ROLE_LABELS, RETAILER_TIER_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
@@ -88,8 +88,8 @@ export default async function RetailerDetailPage({
           <p className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
             Tier
           </p>
-          <p className="capitalize text-[var(--color-stone-900)]">
-            {retailer.tier}
+          <p className="text-[var(--color-stone-900)]">
+            {RETAILER_TIER_LABELS[retailer.tier]}
           </p>
         </div>
         <div>

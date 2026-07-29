@@ -17,6 +17,12 @@ export interface ConversationListItem {
 const STATUS_FILTERS = ["all", "awaiting", "replied"] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
+const STATUS_FILTER_LABELS: Record<StatusFilter, string> = {
+  all: "All",
+  awaiting: "Awaiting",
+  replied: "Replied",
+};
+
 /**
  * Left pane of the 3-pane inbox. Filtering/search runs client-side over
  * the already-fetched conversation list (small enough per retailer that
@@ -71,13 +77,13 @@ export function ConversationList({
               role="tab"
               aria-selected={status === value}
               onClick={() => setStatus(value)}
-              className={`rounded-[var(--radius-md)] px-3 py-1 text-xs font-medium capitalize ${
+              className={`rounded-[var(--radius-md)] px-3 py-1 text-xs font-medium ${
                 status === value
                   ? "bg-[var(--color-stone-900)] text-white"
                   : "text-[var(--color-stone-500)] hover:bg-[var(--color-stone-100)]"
               }`}
             >
-              {value === "awaiting" ? "Awaiting" : value}
+              {STATUS_FILTER_LABELS[value]}
             </button>
           ))}
         </div>

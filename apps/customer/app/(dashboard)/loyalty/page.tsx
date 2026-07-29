@@ -3,7 +3,7 @@ import {
   LoyaltyRepository,
   RetailerRepository,
 } from "@paon/database";
-import { REFERRAL_STATUS_LABELS } from "@paon/domain";
+import { LOYALTY_TIER_LABELS, REFERRAL_STATUS_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -68,11 +68,8 @@ export default async function LoyaltyPage() {
                   {retailer?.displayName ?? "Retailer"}
                 </p>
                 {account ? (
-                  <Badge
-                    tone={TIER_TONE[account.tier]}
-                    className="mt-1 capitalize"
-                  >
-                    {account.tier}
+                  <Badge tone={TIER_TONE[account.tier]} className="mt-1">
+                    {LOYALTY_TIER_LABELS[account.tier]}
                   </Badge>
                 ) : (
                   <p className="mt-1 text-sm text-[var(--color-stone-500)]">

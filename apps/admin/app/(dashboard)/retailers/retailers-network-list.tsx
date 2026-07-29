@@ -1,6 +1,7 @@
 "use client";
 
-import type { RetailerStatus } from "@paon/domain";
+import type { RetailerStatus, RetailerTier } from "@paon/domain";
+import { RETAILER_TIER_LABELS } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import { SearchableCollection } from "@paon/ui/components/SearchableCollection";
 import { formatDate } from "@paon/utils";
@@ -13,7 +14,7 @@ export type RetailerNetworkRow = {
   displayName: string;
   slug: string;
   status: RetailerStatus;
-  tier: string;
+  tier: RetailerTier;
   defaultLocale: string;
   createdAt: string;
 };
@@ -64,7 +65,9 @@ export function RetailersNetworkList({
                     <dt className="text-[11px] text-[var(--color-stone-500)]">
                       Tier
                     </dt>
-                    <dd className="mt-1 text-sm capitalize">{retailer.tier}</dd>
+                    <dd className="mt-1 text-sm">
+                      {RETAILER_TIER_LABELS[retailer.tier]}
+                    </dd>
                   </div>
                   <div className="border-r border-[var(--color-stone-100)] p-4">
                     <dt className="text-[11px] text-[var(--color-stone-500)]">
