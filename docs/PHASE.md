@@ -44,7 +44,9 @@ Verified against code and 91 migrations on 2026-07-30:
   customer consent controls now exist. StyleProfile declared/inferred
   preferences with concept evidence and deterministic recomputation exist.
   Consented advisor preparation briefing projects into the Retailer Portal
-  client and appointment workspaces; wardrobe gaps remain Stage 4.
+  client and appointment workspaces; grounded TableService occasion guidance
+  cites approved knowledge, seeds swipe shortlists, and converts to
+  appointments. Wardrobe gaps remain Stage 4.
 - Metadata concepts, edges, assignments, append-only review evidence,
   retailer overrides, and exact product/variant fabric profiles now exist.
   PAON Admin can manage canonical concepts and terminal assignment decisions
@@ -62,8 +64,8 @@ Verified against code and 91 migrations on 2026-07-30:
   Catalogue import jobs/rows/review tasks, CSV/XLSX/JSON parsers, downloadable
   contracts, Retailer Portal preview, transactional reviewed-row publishing,
   and AI-assisted enrichment with pending review exist.
-  StyleProfile tables and evidence exist. No wardrobe, outfit, roadmap,
-  service-plan, or campaign table exists.
+  StyleProfile tables, advisor briefs, and grounded TableService guidance
+  exist. No wardrobe, outfit, roadmap, service-plan, or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -391,7 +393,7 @@ unreviewed bulk publish.
     `AdvisorBriefRepository` projection, and Retailer Portal mounts on
     customer relationship + appointment prep workspaces.
 
-- [ ] **3.4 Grounded TableService and guided preference capture**
+- [x] **3.4 Grounded TableService and guided preference capture**
   - **Requirement IDs:** `ADV-001`, `ADV-002`, `ENG-002`.
   - **Dependencies:** `2.2`, `3.2`; ADR-060 and ADR-061.
   - **Owner boundary:** TableService orchestration, approved-knowledge
@@ -408,6 +410,10 @@ unreviewed bulk publish.
     uncited product facts, hidden persuasion, or mandatory AI provider.
   - **Hard blockers:** missing AI key blocks live generation only; deterministic
     retrieval, handoff, and mocked orchestration remain buildable.
+  - **Landed:** `ed2f0dc` — grounded-answer domain + citation allowlist,
+    `generateGroundedAnswer` / mocks, `TableServiceGuidanceRepository`,
+    TableService Server Action + widget handoff/shortlist/swipe/appointment
+    hooks, consented `advisor_question` / `appointment_intent` producers.
 
 **Stage 3 non-goals:** no covert tracking, no precise location without
 separate opt-in, no unexplained score, no advisor access across tenants, no raw

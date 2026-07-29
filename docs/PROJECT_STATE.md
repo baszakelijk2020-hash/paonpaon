@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 100 forward Supabase migrations plus generated TypeScript
+- Schema source: 101 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -38,7 +38,9 @@ Snapshot: 2026-07-30.
   jurisdiction documentation. StyleProfile declared/inferred preferences,
   concept evidence, deterministic recomputation, and customer inspect/remove
   exist. Consented advisor preparation briefing projects into Retailer Portal
-  customer and appointment workspaces; wardrobe gaps remain Stage 4.
+  customer and appointment workspaces. Grounded TableService occasion guidance
+  cites approved knowledge, seeds swipe shortlists, and converts to
+  appointments; wardrobe gaps remain Stage 4.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
   evidence, retailer overrides, exact fabric profiles, an actor-derived review
   RPC, PAON Admin canonical management, the Retailer Portal metadata review
@@ -72,7 +74,6 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Stages 1–2 and PHASE 3.1–3.3 (consent/events, StyleProfile evidence, and
-advisor preparation brief) are complete. The authoritative Resume Protocol
-identifies grounded TableService and guided preference capture (PHASE 3.4)
-as the exact continuation point.
+contracts. Stages 1–3 (through grounded TableService / PHASE 3.4) are complete.
+The authoritative Resume Protocol identifies wardrobe ownership and
+collaboration (PHASE 4.1) as the exact continuation point.

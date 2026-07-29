@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `3.4 Grounded TableService and guided preference capture`
-- **Current requirement IDs:** `ADV-001`, `ADV-002`, `ENG-002`
+- **Current queue item:** `4.1 Wardrobe ownership and collaboration`
+- **Current requirement IDs:** `WARD-001`, `WARD-002`, `WARD-003`, `ENG-003`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -29,7 +29,8 @@ requires it.
   enrichment; `02f106e` adds purpose-specific consent and typed interaction
   events (PHASE 3.1 complete); `82f499c` adds StyleProfile evidence and
   deterministic recomputation (PHASE 3.2 complete); `6f5fac4` adds consented
-  advisor preparation briefing (PHASE 3.3 complete).
+  advisor preparation briefing (PHASE 3.3 complete); `ed2f0dc` adds grounded
+  TableService occasion guidance (PHASE 3.4 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -40,26 +41,31 @@ requires it.
   `customer_style_preference_evidence`, StyleProfile RPCs
   (`ensure_customer_style_profile`, `upsert_declared_style_preference`,
   `remove_inferred_style_preference`, `record_style_preference_evidence`,
-  `persist_style_profile_recompute`), generated database types,
-  `MetadataRepository`, `ProductFabricProfileRepository`,
+  `persist_style_profile_recompute`), `tableservice_grounded` AI generation
+  kind + `record_customer_tableservice_grounded` RPC, generated database
+  types, `MetadataRepository`, `ProductFabricProfileRepository`,
   `KnowledgeRepository`, `CatalogueQueryRepository`,
   `CatalogueImportRepository`, `ImportEnrichmentPromptRepository`,
   `CustomerConsentRepository`, `StyleProfileRepository`,
-  `AdvisorBriefRepository`, upgraded `AnalyticsRepository`, `@paon/domain`
-  intelligence consent/interaction-event/StyleProfile/advisor-brief
-  contracts, customer account consent + StyleProfile inspect/remove controls,
-  consented storefront/swipe producers, and Retailer Portal advisor brief
-  mounts on customer/appointment workspaces.
-- **Checks/deployment state:** 100 migrations; advisor-brief domain/repo and
-  lint/typecheck/test/build/format are green on the 3.3 tip. Anonymous
-  interaction persistence remains blocked pending jurisdiction documentation.
-- **Real blockers:** none for Stage 3.4 TableService grounding work;
-  missing AI key blocks live generation only; anonymous persistence remains
-  blocked for new anonymous producers only.
-- **Exact next files/tests:** implement queue item 3.4 Grounded TableService
-  and guided preference capture: TableService orchestration, approved-
-  knowledge retrieval, `@paon/ai` structured answers, and existing
-  conversation/swipe/shortlist/appointment surfaces.
+  `AdvisorBriefRepository`, `TableServiceGuidanceRepository`, upgraded
+  `AnalyticsRepository`, `@paon/domain` intelligence
+  consent/interaction-event/StyleProfile/advisor-brief/grounded-answer
+  contracts, `@paon/ai` `generateGroundedAnswer`, customer account consent +
+  StyleProfile inspect/remove controls, consented storefront/swipe/
+  TableService producers, Retailer Portal advisor brief mounts, and
+  TableService occasion guidance with swipe/appointment conversion hooks.
+- **Checks/deployment state:** 101 migrations; grounded TableService domain/
+  AI/repo/surface and lint/typecheck/test/build/format are green on the 3.4
+  tip. Anonymous interaction persistence remains blocked pending jurisdiction
+  documentation.
+- **Real blockers:** none for Stage 4.1 wardrobe ownership work; anonymous
+  persistence remains blocked for new anonymous producers only; missing AI
+  key blocks live TableService generation only (deterministic retrieval
+  remains available).
+- **Exact next files/tests:** implement queue item 4.1 Wardrobe ownership and
+  collaboration: wardrobe domain, forward migration/RLS, repositories, and
+  Customer/Retailer Portal wardrobe views; keep `PhysicalGarment` as the
+  official fitting/service aggregate.
 
 ## 1. Programme intent
 
@@ -138,8 +144,8 @@ above. Status changes only after the named acceptance criteria are verified.
 | CUST-001               | Consent-aware signals for signed-in views, searches, filters, favourites, cart, knowledge, chat, swipes, appointment intent, and conversion                                                                | `intelligence` events              | Typed interaction events with purpose, consent snapshot, retention, withdrawal anonymization, and blocked anonymous persistence             | SRCH-001                                  | 3.1                  | Typed events record purpose, consent snapshot, retention, and lawful anonymous session where applicable                          | Done (3.1)         |
 | CUST-002               | StyleProfile with explicit and inferred preferences, evidence, polarity, confidence, and recomputation                                                                                                     | `intelligence`                     | Declared/inferred StyleProfile, concept evidence, deterministic recompute, and customer inspect/remove exist                                | CUST-001                                  | 3.2                  | Declared and inferred fields cannot overwrite each other; every inference is explainable and reproducible                        | Done (3.2)         |
 | CUST-003               | Visible customer controls and advisor-safe, retailer-scoped access                                                                                                                                         | Customer + advisor intelligence    | Purpose-specific account controls, StyleProfile inspect/remove, and consented advisor preparation brief in Retailer Portal workspaces exist | CUST-001, CUST-002                        | 3.1–3.3              | Withdrawal stops new use and invokes retention rules; advisors see only consented same-retailer evidence                         | Done (3.3)         |
-| ADV-001                | Advisor-first TableService handoff and grounded AI answers from approved PAON knowledge only                                                                                                               | TableService + `@paon/ai`          | Basic TableService/conversations and audited AI generation exist                                                                            | EDU-002, CUST-002                         | 3.4                  | Human handoff is always available; answers cite approved objects, express uncertainty, and never invent facts                    | Partial foundation |
-| ADV-002                | Occasion guidance, preliminary shortlists, summer-wedding discovery, elegant swipe capture, and appointment conversion                                                                                     | TableService + discovery           | Conversation, wishlist, appointment, and legacy swipe UI foundations exist                                                                  | ADV-001                                   | 3.4                  | Occasion flow yields traceable evidence, shortlist, explanations, and book-advisor action                                        | Partial foundation |
+| ADV-001                | Advisor-first TableService handoff and grounded AI answers from approved PAON knowledge only                                                                                                               | TableService + `@paon/ai`          | Grounded answers cite approved knowledge/shortlist only; deterministic fallback when no AI key; advisor handoff always visible              | EDU-002, CUST-002                         | 3.4                  | Human handoff is always available; answers cite approved objects, express uncertainty, and never invent facts                    | Done (3.4)         |
+| ADV-002                | Occasion guidance, preliminary shortlists, summer-wedding discovery, elegant swipe capture, and appointment conversion                                                                                     | TableService + discovery           | Occasion guidance builds explainable shortlists, seeds swipe, and converts to appointments with consented evidence                          | ADV-001                                   | 3.4                  | Occasion flow yields traceable evidence, shortlist, explanations, and book-advisor action                                        | Done (3.4)         |
 | ADV-003                | Consented advisor preparation brief and continuation of the online conversation in store                                                                                                                   | Advisor workspace                  | Deterministic consented brief projects interests/shortlist/evidence/questions/prep into customer and appointment workspaces                 | CUST-002                                  | 3.3                  | Brief shows need, interests, questions, shortlist, evidence, and preparation without cross-tenant/withdrawn data                 | Done (3.3)         |
 | WARD-001               | Visual wardrobe containing retailer-bought and externally owned garments                                                                                                                                   | `wardrobe`                         | Physical garments exist for fitting/alteration, not customer wardrobe ownership                                                             | CUST-002, CAT-001                         | 4.1                  | Owned and external items are distinct, visually available, and can link to catalogue metadata without becoming products          | Not started        |
 | WARD-002               | Ownership history, condition, age, wear rotation, care, repair, fit notes, combinations, and gaps                                                                                                          | `wardrobe`                         | Garment fitting/alteration records cover only part of service history                                                                       | WARD-001                                  | 4.1–4.3              | Typed histories and current state support lifecycle, combinations, gaps, and service explanations                                | Not started        |
@@ -164,7 +170,7 @@ above. Status changes only after the named acceptance criteria are verified.
 | TIE-001                | Mobile-first full-screen realistic-scale tie-fabric exploration with save, order, advisor handoff, catalogue, and stock integration                                                                        | Tie-Mate                           | No approved Tie-Mate surface                                                                                                                | EDU-003, ADV-001, approved founder design | 5.4                  | Phone-scale fabrics preserve stock truth and support swipe/save/order/handoff with mobile accessibility                          | Design blocker     |
 | MKT-001                | Separate retailer-owner marketplace for mannequins, bags, shoe displays, fixtures, custom furniture, and supplies                                                                                          | Business marketplace               | No marketplace context                                                                                                                      | Marketplace ADR + stable programme        | 6.3                  | Separate tenant/customer/catalogue/order assumptions are proven; retailer products never enter customer retail facets            | Not started        |
 | ENG-001                | PAON owns canonical taxonomy/knowledge; retailers own tenant catalogue, review, and local overrides                                                                                                        | Metadata + knowledge governance    | Canonical management, review boundaries, and knowledge ownership/override rules are enforced                                                | Direction                                 | 1.1–2.1              | ADR-059/060 ownership rules are enforced in types, database constraints, RLS, and repositories                                   | Done (2.1)         |
-| ENG-002                | Recommendations and AI answers use accepted metadata/approved knowledge, explain why, and respect consent/retention                                                                                        | Intelligence governance            | Audited AI calls exist without the new grounding/consent model                                                                              | EDU-002, CUST-001                         | 2.2–4.5              | Every output exposes evidence/explanation and fails closed when approval or consent is absent                                    | Not started        |
+| ENG-002                | Recommendations and AI answers use accepted metadata/approved knowledge, explain why, and respect consent/retention                                                                                        | Intelligence governance            | Discovery ranking, catalogue intent, and TableService grounded answers cite approved objects; later MorningRoutine still pending            | EDU-002, CUST-001                         | 2.2–4.5              | Every output exposes evidence/explanation and fails closed when approval or consent is absent                                    | Partial (3.4)      |
 | ENG-003                | Extend branded-ID/domain/repository/Server-Action/RLS/migration/test architecture; do not create a parallel product                                                                                        | Engineering platform               | Architecture exists and is enforced in current code                                                                                         | Direction                                 | All                  | Every slice follows package boundaries, strict TypeScript, forward migrations, generated types, and tenant tests                 | In force           |
 | ENG-004                | Preserve founder HTML and interaction behavior through narrow hooks rather than React/Tailwind/design-system rewrites                                                                                      | Founder surfaces                   | Founder route serves canonical HTML with narrow runtime injection including knowledge mounts                                                | ADR-052                                   | 2.3, 5.4             | DOM/CSS diff and desktop/mobile/a11y checks show only authorized mounts changed                                                  | Partial foundation |
 | ENG-005                | Continuous inspect→implement→test→repair→state→commit→push loop without routine handoff                                                                                                                    | Delivery governance                | AGENTS/WORKING_AGREEMENT establish the loop                                                                                                 | Direction                                 | 0.1 and recurring    | Queue and Resume Protocol remain factual after every pushed slice; agent stops only at real blockers                             | In force           |
