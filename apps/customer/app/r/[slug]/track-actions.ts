@@ -13,6 +13,7 @@ import {
 } from "@paon/domain";
 
 import { getSession } from "@/lib/session";
+import { recordStyleEvidenceForInteraction } from "@/lib/style-profile-capture";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export type StorefrontTrackedEvent = Extract<
@@ -63,7 +64,7 @@ export async function trackStorefrontEvent(
       occurredAt,
     );
 
-    await new AnalyticsRepository(supabase).capture({
+    const eventId = await new AnalyticsRepository(supabase).capture({
       retailerId: rId,
       customerId: customer.id,
       name,
@@ -75,6 +76,16 @@ export async function trackStorefrontEvent(
       consentSnapshot,
       retentionClass: "personalization_signal",
       retentionExpiresAt: retentionExpiresAt({ occurredAt }),
+    });
+
+    await recordStyleEvidenceForInteraction({
+      supabase,
+      retailerId: rId,
+      customerId: customer.id,
+      personalizationGranted: true,
+      eventId,
+      name,
+      properties,
     });
   } catch {
     // Swallow — view tracking is not on the critical browsing path.

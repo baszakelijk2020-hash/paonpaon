@@ -50,6 +50,7 @@ export * from "./repositories/sms-outbox-repository";
 export * from "./repositories/newsletter-repository";
 export * from "./repositories/analytics-repository";
 export * from "./repositories/customer-consent-repository";
+export * from "./repositories/style-profile-repository";
 export * from "./repositories/ai-generation-repository";
 export * from "./repositories/wishlist-repository";
 export type { Database } from "./generated/database.types";

@@ -86,3 +86,7 @@ export * from "./analytics/behavioral-event";
 export * from "./intelligence/consent";
 export * from "./intelligence/consent.schema";
 export * from "./intelligence/interaction-event";
+export * from "./intelligence/style-profile";
+export * from "./intelligence/style-profile-recompute";
+export * from "./intelligence/style-profile-interaction";
+export * from "./intelligence/style-profile.schema";

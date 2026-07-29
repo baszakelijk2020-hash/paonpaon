@@ -41,8 +41,7 @@ Verified against code and 91 migrations on 2026-07-30:
   names, variant color, and founder image-number heuristics.
 - `behavioral_events` and `ai_generations` exist. Purpose-specific consent,
   typed interaction events with retention/withdrawal anonymization, and
-  customer consent controls now exist; StyleProfile evidence and advisor
-  briefing do not.
+  customer consent controls now exist; advisor briefing does not.
 - Metadata concepts, edges, assignments, append-only review evidence,
   retailer overrides, and exact product/variant fabric profiles now exist.
   PAON Admin can manage canonical concepts and terminal assignment decisions
@@ -352,7 +351,7 @@ unreviewed bulk publish.
     retention/withdrawal/anonymization (`feat` commit on main); anonymous
     persistence remains denied until a jurisdiction documents a lawful basis.
 
-- [ ] **3.2 StyleProfile evidence and recomputation**
+- [x] **3.2 StyleProfile evidence and recomputation**
   - **Requirement IDs:** `CUST-002`, `CUST-003`, `ENG-002`.
   - **Dependencies:** `3.1`; ADR-061.
   - **Owner boundary:** intelligence domain pure rules, migration/RLS,
@@ -367,6 +366,10 @@ unreviewed bulk publish.
   - **Non-goals:** no black-box personality score, cross-retailer profile,
     location inference, or AI overwrite of explicit preferences.
   - **Hard blockers:** none.
+  - **Landed:** StyleProfile domain recompute rules, `customer_style_profiles`
+    / `customer_style_preference_evidence` with tenant RLS and RPCs,
+    `StyleProfileRepository`, consented interaction evidence producers,
+    and Customer Portal inspect/remove inference controls.
 
 - [ ] **3.3 Advisor preparation brief**
   - **Requirement IDs:** `ADV-003`, `CUST-003`.
