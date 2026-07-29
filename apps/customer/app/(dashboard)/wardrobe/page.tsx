@@ -1,8 +1,10 @@
 import {
   CustomerRepository,
   RetailerRepository,
+  WardrobeLifecycleRepository,
   WardrobeRepository,
   WardrobeRoadmapRepository,
+  WardrobeSelfScanRepository,
 } from "@paon/database";
 import type { WardrobeOwnershipEvent } from "@paon/domain";
 
@@ -21,6 +23,8 @@ export default async function WardrobePage() {
   );
   const retailerRepo = new RetailerRepository(supabase);
   const wardrobeRepo = new WardrobeRepository(supabase);
+  const lifecycleRepo = new WardrobeLifecycleRepository(supabase);
+  const selfScanRepo = new WardrobeSelfScanRepository(supabase);
   const roadmapRepo = new WardrobeRoadmapRepository(supabase);
 
   const groups = await Promise.all(
@@ -35,10 +39,43 @@ export default async function WardrobePage() {
       );
       const historyByItemId: Record<string, readonly WardrobeOwnershipEvent[]> =
         Object.fromEntries(historyEntries);
+
+      const lifecycleEntries = await Promise.all(
+        items.map(async (item) => {
+          const [serviceView, selfReports] = await Promise.all([
+            lifecycleRepo.buildServiceView({ item }),
+            selfScanRepo.findByWardrobeItem(item.id),
+          ]);
+          const orderStatus = item.orderLineId
+            ? await selfScanRepo.findOrderStatusForLine(item.orderLineId)
+            : null;
+          return [
+            item.id,
+            {
+              guidance: serviceView.guidance,
+              fitFreshness: serviceView.fitFreshness,
+              selfReports: selfReports.map(({ report, signedUrl }) => ({
+                report,
+                ...(signedUrl ? { signedUrl } : {}),
+              })),
+              orderStatus,
+            },
+          ] as const;
+        }),
+      );
+      const lifecycleByItemId = Object.fromEntries(lifecycleEntries);
+
       const roadmaps = await roadmapRepo.findByCustomer(customer.id, {
         customerVisibleOnly: true,
       });
-      return { customer, retailer, items, historyByItemId, roadmaps };
+      return {
+        customer,
+        retailer,
+        items,
+        historyByItemId,
+        lifecycleByItemId,
+        roadmaps,
+      };
     }),
   );
 
@@ -49,9 +86,9 @@ export default async function WardrobePage() {
           Wardrobe
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          What you own with each house — purchases and external pieces, kept
-          separate from fitting garments — plus advisor roadmaps awaiting or
-          carrying your approval.
+          What you own with each house — purchases and external pieces, fit
+          freshness from official fittings, lifecycle guidance, and self-scan
+          notes that never become formal measurements.
         </p>
       </div>
 
@@ -66,14 +103,23 @@ export default async function WardrobePage() {
         </div>
       ) : (
         groups.map(
-          ({ customer, retailer, items, historyByItemId, roadmaps }) => (
+          ({
+            customer,
+            retailer,
+            items,
+            historyByItemId,
+            lifecycleByItemId,
+            roadmaps,
+          }) => (
             <div key={customer.id} className="flex flex-col gap-4">
               <WardrobeHousePanel
                 retailerId={customer.retailerId}
+                retailerSlug={retailer?.slug ?? "retailer"}
                 retailerName={retailer?.displayName ?? "Retailer"}
                 customerId={customer.id}
                 items={items}
                 historyByItemId={historyByItemId}
+                lifecycleByItemId={lifecycleByItemId}
               />
               <WardrobeRoadmapPanel
                 retailerName={retailer?.displayName ?? "Retailer"}

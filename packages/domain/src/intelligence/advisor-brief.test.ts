@@ -275,6 +275,7 @@ describe("buildAdvisorPreparationBrief", () => {
       ]),
     );
     expect(brief.wardrobeGaps).toEqual([]);
+    expect(brief.wardrobeSelfReports).toEqual([]);
     expect(brief.conversation?.intent).toBe("wedding");
     expect(brief.preparationSuggestions.length).toBeGreaterThan(0);
     expect(JSON.stringify(brief)).not.toMatch(/@|phone|ssn|password/i);

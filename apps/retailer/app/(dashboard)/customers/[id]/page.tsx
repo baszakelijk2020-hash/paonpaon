@@ -11,6 +11,8 @@ import {
   PhysicalGarmentRepository,
   ProductRepository,
   WardrobeRepository,
+  WardrobeLifecycleRepository,
+  WardrobeSelfScanRepository,
   WardrobeRoadmapRepository,
 } from "@paon/database";
 import {
@@ -114,6 +116,26 @@ export default async function CustomerDetailPage({
     string,
     readonly WardrobeOwnershipEvent[]
   > = Object.fromEntries(wardrobeHistoryEntries);
+
+  const lifecycleRepo = new WardrobeLifecycleRepository(supabase);
+  const selfScanRepo = new WardrobeSelfScanRepository(supabase);
+  const wardrobeServiceEntries = await Promise.all(
+    wardrobeItems.map(async (item) => {
+      const [serviceView, selfReports] = await Promise.all([
+        lifecycleRepo.buildServiceView({ item }),
+        selfScanRepo.findByWardrobeItem(item.id),
+      ]);
+      return [
+        item.id,
+        {
+          fitFreshness: serviceView.fitFreshness,
+          selfReports,
+        },
+      ] as const;
+    }),
+  );
+  const wardrobeServiceByItemId = Object.fromEntries(wardrobeServiceEntries);
+
   const garmentById = new Map(garments.map((garment) => [garment.id, garment]));
 
   /** Fit-tool values (Neiging, Kraag, Schouder R/L, etc.) are captured
@@ -598,6 +620,7 @@ export default async function CustomerDetailPage({
         customerId={customer.id}
         items={wardrobeItems}
         historyByItemId={wardrobeHistoryByItemId}
+        serviceByItemId={wardrobeServiceByItemId}
         catalogueProducts={catalogueProducts.map((product) => ({
           id: product.id,
           name: product.name,

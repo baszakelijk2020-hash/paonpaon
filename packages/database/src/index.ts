@@ -59,4 +59,6 @@ export * from "./repositories/wardrobe-repository";
 export * from "./repositories/sartorial-rule-repository";
 export * from "./repositories/outfit-repository";
 export * from "./repositories/wardrobe-roadmap-repository";
+export * from "./repositories/wardrobe-lifecycle-repository";
+export * from "./repositories/wardrobe-self-scan-repository";
 export type { Database } from "./generated/database.types";

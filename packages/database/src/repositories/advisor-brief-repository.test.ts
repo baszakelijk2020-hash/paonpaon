@@ -230,6 +230,12 @@ describe("AdvisorBriefRepository", () => {
           },
         ]),
       },
+      wardrobeSelfScan: {
+        findRecentByCustomer: vi.fn().mockResolvedValue([]),
+      },
+      wardrobe: {
+        findByCustomer: vi.fn().mockResolvedValue([]),
+      },
     };
 
     const repo = new AdvisorBriefRepository(
@@ -281,6 +287,12 @@ describe("AdvisorBriefRepository", () => {
         wardrobeRoadmaps: {
           findActiveApprovedGapsForBrief: vi.fn().mockResolvedValue([]),
         },
+        wardrobeSelfScan: {
+          findRecentByCustomer: vi.fn().mockResolvedValue([]),
+        },
+        wardrobe: {
+          findByCustomer: vi.fn().mockResolvedValue([]),
+        },
       } as never,
     );
 
@@ -323,6 +335,12 @@ describe("AdvisorBriefRepository", () => {
         knowledge: { findById: vi.fn() },
         wardrobeRoadmaps: {
           findActiveApprovedGapsForBrief: vi.fn().mockResolvedValue([]),
+        },
+        wardrobeSelfScan: {
+          findRecentByCustomer: vi.fn().mockResolvedValue([]),
+        },
+        wardrobe: {
+          findByCustomer: vi.fn().mockResolvedValue([]),
         },
       } as never,
     );

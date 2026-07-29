@@ -340,6 +340,40 @@ export function AdvisorPreparationBriefCard({
         </div>
       ) : null}
 
+      {brief.wardrobeSelfReports.length > 0 ? (
+        <div className="mt-5">
+          <Section
+            title="Wardrobe self-reports"
+            empty="No recent customer self-scan reports."
+          >
+            <ul className="flex flex-col gap-1.5">
+              {brief.wardrobeSelfReports
+                .slice(0, compact ? 3 : 6)
+                .map((report) => (
+                  <li
+                    key={`${report.wardrobeItemId}-${report.reportedAt}`}
+                    className="text-sm"
+                  >
+                    <span className="font-medium text-[var(--color-stone-800)]">
+                      {report.itemLabel}
+                    </span>
+                    <span className="text-xs text-[var(--color-stone-500)]">
+                      {" "}
+                      · {report.provenanceLabel} ·{" "}
+                      {formatDate(report.reportedAt, "en-US")}
+                    </span>
+                    {report.notes ? (
+                      <span className="mt-0.5 block text-xs text-[var(--color-stone-600)]">
+                        {report.notes}
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+            </ul>
+          </Section>
+        </div>
+      ) : null}
+
       {brief.wardrobeGaps.length > 0 ? (
         <div className="mt-5">
           <Section
