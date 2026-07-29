@@ -451,8 +451,15 @@ export default async function AlterationDetailPage({
               <div className="mb-4 divide-y divide-[var(--color-stone-100)]">
                 {fulfillment.map((event) => (
                   <div key={event.id} className="py-2 text-sm">
-                    <p className="font-medium capitalize">
-                      {event.method} · {event.status}
+                    <p className="font-medium">
+                      {event.method === "pickup" ? "Pick-up" : "Delivery"} ·{" "}
+                      {{
+                        scheduled: "Scheduled",
+                        ready: "Ready",
+                        dispatched: "Dispatched",
+                        completed: "Completed",
+                        canceled: "Cancelled",
+                      }[event.status] ?? event.status}
                     </p>
                     <p className="text-xs text-[var(--color-stone-500)]">
                       Recorded by {staffName(event.actorStaffId)} ·{" "}
