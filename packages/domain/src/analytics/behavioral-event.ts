@@ -11,6 +11,6 @@ export type BehavioralEvent = InteractionEvent & {
 
 export function toBehavioralEventName(
   interactionType: InteractionEvent["interactionType"],
-): string {
+): InteractionEvent["interactionType"] {
   return interactionType;
 }

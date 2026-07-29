@@ -1,7 +1,6 @@
 import {
   asId,
   buildConsentSnapshot,
-  computeRetentionExpiresAt,
   computeWithdrawalRetentionDeadline,
   type ConsentPurpose,
   type CustomerConsentRecord,
@@ -11,9 +10,12 @@ import {
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
-import type { Database, Json } from "../generated/database.types";
+import type { Database } from "../generated/database.types";
 
-type ConsentRow = Database["public"]["Tables"]["customer_consent_records"]["Row"];
+type ConsentRow =
+  Database["public"]["Tables"]["customer_consent_records"]["Row"];
+type ConsentInsert =
+  Database["public"]["Tables"]["customer_consent_records"]["Insert"];
 
 function toDomain(row: ConsentRow): CustomerConsentRecord {
   return {
@@ -55,7 +57,7 @@ export class ConsentRepository {
       return current ?? null;
     }
 
-    const payload = input.granted
+    const payload: ConsentInsert = input.granted
       ? {
           retailer_id: retailerId,
           customer_id: customerId,
@@ -95,7 +97,14 @@ export class ConsentRepository {
     if (current && !current.withdrawnAt) {
       return current;
     }
-    return this.upsert(retailerId, customerId, { purpose, granted: true });
+    const saved = await this.upsert(retailerId, customerId, {
+      purpose,
+      granted: true,
+    });
+    if (!saved) {
+      throw new Error("Failed to persist consent grant");
+    }
+    return saved;
   }
 
   buildSnapshotForCapture(

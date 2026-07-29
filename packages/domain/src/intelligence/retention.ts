@@ -1,8 +1,6 @@
 /** Retention classes governing interaction-event lifecycle per ADR-061. */
 export type RetentionClass =
-  | "personalization_standard"
-  | "legacy_analytics"
-  | "anonymous_session";
+  "personalization_standard" | "legacy_analytics" | "anonymous_session";
 
 export const RETENTION_CLASSES = [
   "personalization_standard",

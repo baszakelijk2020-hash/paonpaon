@@ -11,10 +11,7 @@ export const CONSENT_PURPOSES = [
 ] as const satisfies readonly ConsentPurpose[];
 
 export type ConsentBasis =
-  | "explicit_opt_in"
-  | "never_granted"
-  | "withdrawn"
-  | "legacy_implicit";
+  "explicit_opt_in" | "never_granted" | "withdrawn" | "legacy_implicit";
 
 /** Immutable snapshot embedded on each interaction event at capture time. */
 export interface ConsentSnapshot {

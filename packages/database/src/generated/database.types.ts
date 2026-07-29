@@ -6781,9 +6781,7 @@ export type Database = {
       referral_status:
         "invited" | "signed_up" | "first_purchase_completed" | "rewarded";
       retention_class:
-        | "personalization_standard"
-        | "legacy_analytics"
-        | "anonymous_session";
+        "personalization_standard" | "legacy_analytics" | "anonymous_session";
       retailer_role:
         | "read_only"
         | "production_staff"

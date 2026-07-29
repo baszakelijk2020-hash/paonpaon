@@ -48,10 +48,7 @@ export const PERSONALIZATION_INTERACTION_TYPES = [
 ] as const satisfies readonly InteractionEventType[];
 
 export type InteractionEventSource =
-  | "customer_portal"
-  | "retailer_portal"
-  | "admin"
-  | "server";
+  "customer_portal" | "retailer_portal" | "admin" | "server";
 
 export interface InteractionEvent {
   readonly retailerId: RetailerId;

@@ -29,7 +29,9 @@ describe("intelligence consent database security contract", () => {
   });
 
   it("limits customer consent writes to the owning customer relationship", () => {
-    expect(consentMigration).toContain("customers upsert their consent records");
+    expect(consentMigration).toContain(
+      "customers upsert their consent records",
+    );
     expect(consentMigration).toContain("c.user_id = auth.uid()");
     expect(consentMigration).toContain(
       "c.retailer_id = customer_consent_records.retailer_id",
@@ -59,9 +61,7 @@ describe("interaction event upgrade security contract", () => {
   });
 
   it("provides service-role anonymization without client grants", () => {
-    expect(eventsMigration).toContain(
-      "anonymize_expired_interaction_events",
-    );
+    expect(eventsMigration).toContain("anonymize_expired_interaction_events");
     expect(eventsMigration).toContain("to service_role");
     expect(eventsMigration).not.toMatch(
       /grant execute on function public\.anonymize_expired_interaction_events[\s\S]*authenticated/,

@@ -1,5 +1,8 @@
 import type { ConsentSnapshot, CustomerConsentRecord } from "./consent";
-import type { InteractionEvent, InteractionEventType } from "./interaction-event";
+import type {
+  InteractionEvent,
+  InteractionEventType,
+} from "./interaction-event";
 import {
   computeRetentionExpiresAt,
   computeWithdrawalRetentionDeadline,

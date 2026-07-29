@@ -4,7 +4,7 @@ import {
   buildConsentSnapshot,
   buildLegacyConsentSnapshot,
   computeRetentionExpiresAt,
-  filterAdvisorVisibleEvents,
+  isAdvisorVisibleEvent,
   type BehavioralEvent,
   type ConsentPurpose,
   type CustomerId,
@@ -16,8 +16,9 @@ import {
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
-import type { ConsentRepository } from "./consent-repository";
 import type { Database, Json } from "../generated/database.types";
+
+import type { ConsentRepository } from "./consent-repository";
 
 type Row = Database["public"]["Tables"]["behavioral_events"]["Row"];
 
@@ -57,7 +58,8 @@ const toInteractionEvent = (row: Row): InteractionEvent => ({
     : {}),
   interactionType: row.interaction_type as InteractionEventType,
   purpose: row.purpose as ConsentPurpose,
-  consentSnapshot: row.consent_snapshot as InteractionEvent["consentSnapshot"],
+  consentSnapshot:
+    row.consent_snapshot as unknown as InteractionEvent["consentSnapshot"],
   retentionClass: row.retention_class as RetentionClass,
   ...(row.retention_expires_at
     ? { retentionExpiresAt: row.retention_expires_at }
@@ -92,7 +94,7 @@ export class AnalyticsRepository {
       ...(event.customerId ? { p_customer_id: event.customerId } : {}),
       p_occurred_at: event.occurredAt,
       p_purpose: event.purpose,
-      p_consent_snapshot: event.consentSnapshot as Json,
+      p_consent_snapshot: event.consentSnapshot as unknown as Json,
       p_retention_class: event.retentionClass,
       p_retention_expires_at: retentionExpiresAt,
       ...(event.anonymousSessionId
@@ -184,15 +186,10 @@ export class AnalyticsRepository {
       this.findRecentByCustomer(retailerId, customerId, limit),
       consentRepo.findByCustomer(retailerId, customerId),
     ]);
-    const visible = filterAdvisorVisibleEvents(
-      events,
-      consentRecords,
-      new Date().toISOString(),
+    const nowIso = new Date().toISOString();
+    return events.filter((event) =>
+      isAdvisorVisibleEvent(event, consentRecords, nowIso),
     );
-    return visible.map((event) => ({
-      ...event,
-      name: toBehavioralEventName(event.interactionType),
-    }));
   }
 
   async summary(
