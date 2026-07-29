@@ -13,6 +13,8 @@ import {
 import {
   ALTERATION_STATUS_TRANSITIONS,
   ALTERATION_TASK_STATUS_LABELS,
+  CUSTODY_EVENT_TYPE_LABELS,
+  PRICING_EVENT_TYPE_LABELS,
   WORK_CLASSIFICATION_LABELS,
   asId,
   canRetailerRoleTransitionAlteration,
@@ -362,8 +364,8 @@ export default async function AlterationDetailPage({
               <div className="divide-y divide-[var(--color-stone-100)]">
                 {pricingHistory.map((entry) => (
                   <div key={entry.id} className="py-2 text-sm">
-                    <span className="font-medium capitalize">
-                      {entry.eventType.replaceAll("_", " ")}
+                    <span className="font-medium">
+                      {PRICING_EVENT_TYPE_LABELS[entry.eventType]}
                     </span>{" "}
                     · {(entry.amount.amountMinorUnits / 100).toFixed(2)}{" "}
                     {entry.amount.currency}
@@ -389,8 +391,8 @@ export default async function AlterationDetailPage({
         <Card className="flex flex-col gap-3">
           {custody.map((event) => (
             <div key={event.id}>
-              <p className="text-sm font-medium capitalize">
-                {event.eventType.replaceAll("_", " ")} ·{" "}
+              <p className="text-sm font-medium">
+                {CUSTODY_EVENT_TYPE_LABELS[event.eventType]} ·{" "}
                 {formatDate(event.occurredAt, "en-US")}
               </p>
               <p className="text-sm text-[var(--color-stone-500)]">

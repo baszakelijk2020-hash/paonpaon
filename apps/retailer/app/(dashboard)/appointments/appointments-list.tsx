@@ -1,6 +1,10 @@
 "use client";
 
-import { APPOINTMENT_TYPE_LABELS, type Appointment } from "@paon/domain";
+import {
+  APPOINTMENT_STATUS_LABELS,
+  APPOINTMENT_TYPE_LABELS,
+  type Appointment,
+} from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { SearchableCollection } from "@paon/ui/components/SearchableCollection";
@@ -100,8 +104,12 @@ export function AppointmentsList({
         ).toLowerCase();
         return (
           name.includes(query) ||
-          appointment.type.replaceAll("_", " ").toLowerCase().includes(query) ||
-          appointment.status.replaceAll("_", " ").toLowerCase().includes(query)
+          APPOINTMENT_TYPE_LABELS[appointment.type]
+            .toLowerCase()
+            .includes(query) ||
+          APPOINTMENT_STATUS_LABELS[appointment.status]
+            .toLowerCase()
+            .includes(query)
         );
       }}
       empty={

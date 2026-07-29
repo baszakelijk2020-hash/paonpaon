@@ -1,12 +1,13 @@
 "use client";
 
 import type { RetailerSubscription, SubscriptionPlan } from "@paon/domain";
+import { SUBSCRIPTION_STATUS_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { ConfirmSubmitButton } from "@paon/ui/components/ConfirmSubmitButton";
 import { Select } from "@paon/ui/components/Select";
-import { formatDate, formatMoney, humaniseStatus } from "@paon/utils";
+import { formatDate, formatMoney } from "@paon/utils";
 import { useActionState } from "react";
 
 import {
@@ -56,7 +57,7 @@ export function BillingPanel({
           <Badge
             tone={subscription.status === "active" ? "success" : "warning"}
           >
-            {humaniseStatus(subscription.status)}
+            {SUBSCRIPTION_STATUS_LABELS[subscription.status]}
           </Badge>
           <span className="text-sm text-[var(--color-stone-600)]">
             {plan?.name ?? "Unknown plan"}

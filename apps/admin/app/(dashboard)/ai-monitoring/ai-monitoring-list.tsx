@@ -3,7 +3,7 @@
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { SearchableCollection } from "@paon/ui/components/SearchableCollection";
-import { formatDate, humaniseStatus } from "@paon/utils";
+import { formatDate } from "@paon/utils";
 
 export type AIGenerationRow = {
   id: string;
@@ -50,12 +50,16 @@ export function AIMonitoringList({ rows }: { rows: AIGenerationRow[] }) {
                     generation.status === "succeeded" ? "success" : "danger"
                   }
                 >
-                  {humaniseStatus(generation.status)}
+                  {generation.status
+                    .replaceAll("_", " ")
+                    .replace(/^\w/, (c) => c.toUpperCase())}
                 </Badge>
               </div>
               <p className="text-sm text-[var(--color-stone-600)]">
-                {generation.kind.replaceAll("_", " ")} · {generation.provider}/
-                {generation.model}
+                {generation.kind
+                  .replaceAll("_", " ")
+                  .replace(/^\w/, (c) => c.toUpperCase())}{" "}
+                · {generation.provider}/{generation.model}
                 {generation.latencyMs !== undefined
                   ? ` · ${generation.latencyMs}ms`
                   : ""}

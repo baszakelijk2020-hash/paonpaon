@@ -466,3 +466,37 @@ export function canRetailerRoleTransitionAlteration(
   }
   return false;
 }
+
+export const PRICING_EVENT_TYPE_LABELS: Record<
+  | "original_quote"
+  | "proposal"
+  | "approval"
+  | "rejection"
+  | "withdrawal"
+  | "price_list_change",
+  string
+> = {
+  original_quote: "Original quote",
+  proposal: "Proposal",
+  approval: "Approval",
+  rejection: "Rejection",
+  withdrawal: "Withdrawal",
+  price_list_change: "Price list change",
+};
+
+export const CUSTODY_EVENT_TYPE_LABELS: Record<
+  | "received"
+  | "handed_to_workshop"
+  | "returned_to_retailer"
+  | "released_to_customer"
+  | "delivery_dispatch"
+  | "delivery_complete",
+  string
+> = {
+  received: "Received",
+  handed_to_workshop: "Handed to workshop",
+  returned_to_retailer: "Returned to retailer",
+  released_to_customer: "Released to client",
+  delivery_dispatch: "Dispatched",
+  delivery_complete: "Delivered",
+};

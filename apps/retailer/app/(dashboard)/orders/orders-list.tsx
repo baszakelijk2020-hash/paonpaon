@@ -1,6 +1,7 @@
 "use client";
 
 import type { Order } from "@paon/domain";
+import { ORDER_STATUS_LABELS } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import { SearchableCollection } from "@paon/ui/components/SearchableCollection";
 import { formatDate, formatMoney } from "@paon/utils";
@@ -17,7 +18,7 @@ export function OrdersList({ orders }: { orders: Order[] }) {
       predicate={(order, query) =>
         order.orderNumber.toLowerCase().includes(query) ||
         order.channel.toLowerCase().includes(query) ||
-        order.status.replaceAll("_", " ").toLowerCase().includes(query)
+        ORDER_STATUS_LABELS[order.status].toLowerCase().includes(query)
       }
       empty={
         <p className="text-sm text-[var(--color-stone-500)]">

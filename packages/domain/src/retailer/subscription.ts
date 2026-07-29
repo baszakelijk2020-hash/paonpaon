@@ -68,6 +68,17 @@ export type SubscriptionStatus =
   | "unpaid"
   | "paused";
 
+export const SUBSCRIPTION_STATUS_LABELS: Record<SubscriptionStatus, string> = {
+  trialing: "Trial",
+  active: "Active",
+  past_due: "Past due",
+  canceled: "Cancelled",
+  incomplete: "Incomplete",
+  incomplete_expired: "Expired",
+  unpaid: "Unpaid",
+  paused: "Paused",
+};
+
 export interface SubscriptionPlan extends Timestamps {
   readonly id: SubscriptionPlanId;
   readonly key: string;
