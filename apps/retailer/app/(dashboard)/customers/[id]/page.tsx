@@ -19,7 +19,7 @@ import { notFound } from "next/navigation";
 
 import { AlterationStatusBadge } from "../../alterations/status-badge";
 import { startConversation } from "../../messages/actions";
-import { LifecycleBadge } from "../lifecycle-badge";
+import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 
 import { createClientelingNote, setPreferredCarrier } from "./actions";
 import { AIInsights } from "./ai-insights";
@@ -196,8 +196,8 @@ export default async function CustomerDetailPage({
       >
         <div className="border-b border-r border-[var(--color-stone-200)] p-5 sm:p-6">
           <p className="text-xs text-[var(--color-stone-500)]">Relationship</p>
-          <p className="mt-2 text-lg capitalize">
-            {customer.lifecycleStage.replaceAll("_", " ")}
+          <p className="mt-2 text-lg">
+            {LIFECYCLE_STAGE_LABEL[customer.lifecycleStage]}
           </p>
         </div>
         <div className="border-b border-r border-[var(--color-stone-200)] p-5 sm:p-6">
