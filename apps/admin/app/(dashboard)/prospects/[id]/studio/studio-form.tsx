@@ -54,7 +54,7 @@ export function StudioForm({
       ? configuration.featureKeys
       : selectedPlan.includedFeatureKeys;
   const input =
-    "mt-2 min-h-11 w-full rounded-md border border-[var(--color-stone-200)] bg-white px-3 text-sm";
+    "mt-2 min-h-11 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-sm";
 
   return (
     <form action={action} className="space-y-8">
@@ -93,7 +93,7 @@ export function StudioForm({
               {features.map((feature) => (
                 <label
                   key={`${planId}-${feature.key}`}
-                  className="flex min-h-11 items-center gap-3 rounded-md border px-3 text-sm"
+                  className="flex min-h-11 items-center gap-3 rounded-[var(--radius-md)] border px-3 text-sm"
                 >
                   <input
                     type="checkbox"
@@ -122,7 +122,7 @@ export function StudioForm({
                 <label key={name} className="text-sm">
                   {label}
                   <input
-                    className="mt-2 h-12 w-full rounded-md border p-1"
+                    className="mt-2 h-12 w-full rounded-[var(--radius-md)] border p-1"
                     type="color"
                     name={name}
                     value={theme[name]}
@@ -252,7 +252,7 @@ export function StudioForm({
                   {PRODUCT_MIX.map(([key, label]) => (
                     <label
                       key={key}
-                      className="flex min-h-11 items-center gap-2 rounded-md border px-3 text-sm"
+                      className="flex min-h-11 items-center gap-2 rounded-[var(--radius-md)] border px-3 text-sm"
                     >
                       <input
                         type="checkbox"
@@ -330,7 +330,7 @@ export function StudioForm({
       </div>
       {state.error ? (
         <p
-          className="rounded-md bg-red-50 p-3 text-sm text-red-800"
+          className="bg-[var(--color-danger-500)]/10 rounded-[var(--radius-md)] p-3 text-sm text-[var(--color-danger-500)]"
           role="alert"
         >
           {state.error}
@@ -338,19 +338,21 @@ export function StudioForm({
       ) : null}
       {state.success ? (
         <p
-          className="bg-[var(--color-success-500)]/10 rounded-md p-3 text-sm text-[var(--color-stone-800)]"
+          className="bg-[var(--color-success-500)]/10 rounded-[var(--radius-md)] p-3 text-sm text-[var(--color-stone-800)]"
           role="status"
         >
           {state.success}
         </p>
       ) : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="min-h-11 rounded-md bg-[var(--color-stone-900)] px-6 text-sm text-white disabled:opacity-50"
-      >
-        {pending ? "Saving version…" : "Save Demo Studio version"}
-      </button>
+      <div className="bg-[var(--color-stone-50)]/95 sticky bottom-0 z-20 -mx-4 mt-6 border-t border-[var(--color-stone-200)] px-4 py-4 backdrop-blur xl:static xl:mx-0 xl:border-0 xl:bg-transparent xl:px-0 xl:py-0 xl:backdrop-blur-none">
+        <button
+          type="submit"
+          disabled={pending}
+          className="min-h-11 w-full rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-6 text-sm text-white disabled:opacity-50 xl:w-auto"
+        >
+          {pending ? "Saving version…" : "Save Demo Studio version"}
+        </button>
+      </div>
     </form>
   );
 }

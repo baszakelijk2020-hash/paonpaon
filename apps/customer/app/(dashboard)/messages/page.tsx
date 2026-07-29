@@ -57,7 +57,10 @@ export default async function MessagesPage() {
             ) : null}
           </div>
           {!conversation ? (
-            <form action={startConversation} className="mt-4 flex gap-2">
+            <form
+              action={startConversation}
+              className="mt-4 flex flex-col gap-2 sm:flex-row"
+            >
               <input
                 type="hidden"
                 name="retailerId"
@@ -70,7 +73,7 @@ export default async function MessagesPage() {
                 className="h-10 flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3"
                 placeholder="How may the team help?"
               />
-              <Button type="submit" size="sm">
+              <Button type="submit" size="sm" className="sm:self-end">
                 Start
               </Button>
             </form>

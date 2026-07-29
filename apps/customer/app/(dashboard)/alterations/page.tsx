@@ -51,9 +51,9 @@ export default async function AlterationsPage() {
             <Link
               key={alteration.id}
               href={`/alterations/${alteration.id}`}
-              className="flex items-center justify-between px-6 py-4 hover:bg-[var(--color-stone-50)]"
+              className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 hover:bg-[var(--color-stone-50)]"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="font-medium text-[var(--color-stone-900)]">
                   {retailers[index]?.displayName ?? "Unknown retailer"}
                 </p>

@@ -63,7 +63,7 @@ export function ExperiencePreview() {
             type="button"
             onClick={() => setActive(key)}
             aria-pressed={active === key}
-            className={`min-h-11 whitespace-nowrap rounded-md px-4 text-xs transition-colors ${
+            className={`min-h-11 whitespace-nowrap rounded-[var(--radius-md)] px-4 text-xs transition-colors ${
               active === key ? "bg-[#1a1a1a] text-white" : "bg-white/60"
             }`}
           >
@@ -97,7 +97,7 @@ export function ExperiencePreview() {
               {view.action} →
             </button>
           </div>
-          <div className="mt-4 grid grid-cols-3 overflow-hidden rounded-xl border border-black/10 bg-white">
+          <div className="mt-4 grid grid-cols-3 overflow-hidden rounded-[var(--radius-xl)] border border-black/10 bg-white">
             {view.metrics.map(([label, value]) => (
               <div key={label} className="border-r p-4 last:border-r-0">
                 <p className="text-[10px] text-black/45">{label}</p>
@@ -105,7 +105,7 @@ export function ExperiencePreview() {
               </div>
             ))}
           </div>
-          <div className="mt-4 rounded-xl border border-black/10 bg-white p-5">
+          <div className="mt-4 rounded-[var(--radius-xl)] border border-black/10 bg-white p-5">
             <div className="flex items-center justify-between text-xs">
               <span>Fitting captured</span>
               <span className="text-black/40">Workshop review</span>

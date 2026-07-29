@@ -132,7 +132,7 @@ export function EnvironmentPanel({
         <label className="text-sm">
           Private access code
           <input
-            className="mt-2 min-h-11 w-full rounded-md border bg-white px-3 font-mono text-sm"
+            className="mt-2 min-h-11 w-full rounded-[var(--radius-md)] border bg-white px-3 font-mono text-sm"
             name="accessCode"
             type="text"
             autoComplete="off"
@@ -143,7 +143,7 @@ export function EnvironmentPanel({
         <label className="text-sm">
           Expires
           <select
-            className="mt-2 min-h-11 w-full rounded-md border bg-white px-3"
+            className="mt-2 min-h-11 w-full rounded-[var(--radius-md)] border bg-white px-3"
             name="expiryDays"
             defaultValue="14"
           >
@@ -154,7 +154,7 @@ export function EnvironmentPanel({
           </select>
         </label>
         <button
-          className="min-h-11 rounded-md bg-[var(--color-stone-900)] px-5 text-sm text-white disabled:opacity-50"
+          className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-5 text-sm text-white disabled:opacity-50"
           type="submit"
           disabled={pending}
         >
@@ -195,14 +195,14 @@ export function EnvironmentPanel({
               {state.prospectMailtoHref ? (
                 <a
                   href={state.prospectMailtoHref}
-                  className="inline-flex min-h-9 items-center rounded-md bg-[var(--color-stone-900)] px-3 text-xs text-white"
+                  className="inline-flex min-h-9 items-center rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 text-xs text-white"
                 >
                   Email {contactEmail} →
                 </a>
               ) : null}
               <button
                 type="button"
-                className="inline-flex min-h-9 items-center rounded-md border border-[var(--color-stone-300)] bg-white px-3 text-xs"
+                className="inline-flex min-h-9 items-center rounded-[var(--radius-md)] border border-[var(--color-stone-300)] bg-white px-3 text-xs"
                 onClick={() => copyOutreachPack(outreachPack)}
               >
                 {copied === "outreach" ? "Copied" : "Copy outreach pack"}
@@ -291,14 +291,14 @@ export function EnvironmentPanel({
                         href={href}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex min-h-9 items-center rounded-md bg-[var(--color-stone-900)] px-3 text-xs text-white"
+                        className="inline-flex min-h-9 items-center rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 text-xs text-white"
                       >
                         {persona.primaryAction} →
                       </a>
                       {persona.email ? (
                         <button
                           type="button"
-                          className="inline-flex min-h-9 items-center rounded-md border px-3 text-xs"
+                          className="inline-flex min-h-9 items-center rounded-[var(--radius-md)] border px-3 text-xs"
                           onClick={() => copyLogin(persona.email!, href)}
                         >
                           {copied === persona.email ? "Copied" : "Copy login"}

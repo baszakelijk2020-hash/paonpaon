@@ -109,7 +109,7 @@ export default async function RetailersPage() {
                 Needs platform attention
               </h2>
             </div>
-            <span className="rounded-full bg-[var(--color-warning-500)] px-3 py-1 text-xs">
+            <span className="rounded-[var(--radius-md)] bg-[var(--color-warning-500)] px-3 py-1 text-xs">
               {attentionRetailers.length}
             </span>
           </div>

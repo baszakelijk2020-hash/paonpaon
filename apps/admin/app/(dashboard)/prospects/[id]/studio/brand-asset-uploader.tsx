@@ -67,7 +67,7 @@ export function BrandAssetUploader({ prospectId }: { prospectId: string }) {
         <label className="text-sm">
           Use as
           <select
-            className="mt-1 block min-h-11 w-full rounded-md border px-3 sm:w-48"
+            className="mt-1 block min-h-11 w-full rounded-[var(--radius-md)] border px-3 sm:w-48"
             name="assetRole"
             defaultValue="garment"
           >
@@ -85,7 +85,7 @@ export function BrandAssetUploader({ prospectId }: { prospectId: string }) {
           required
         />
         <button
-          className="min-h-11 rounded-md border px-4 text-sm disabled:opacity-50"
+          className="min-h-11 rounded-[var(--radius-md)] border px-4 text-sm disabled:opacity-50"
           type="submit"
           disabled={pending}
         >
@@ -99,7 +99,7 @@ export function BrandAssetUploader({ prospectId }: { prospectId: string }) {
       ) : null}
       {state.publicUrl ? (
         <div
-          className="mt-4 rounded-md bg-[var(--color-stone-100)] p-4"
+          className="mt-4 rounded-[var(--radius-md)] bg-[var(--color-stone-100)] p-4"
           role="status"
         >
           <p className="text-xs text-[var(--color-stone-500)]">

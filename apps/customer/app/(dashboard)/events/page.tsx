@@ -50,9 +50,9 @@ export default async function MyEventsPage() {
             <p className="text-sm text-[var(--color-stone-500)]">
               {retailer?.displayName} · {formatDate(event.startsAt, "en-US")}
             </p>
-            <div className="flex justify-between">
-              <h2 className="text-lg font-medium">{event.name}</h2>
-              <span className="capitalize">{rsvp.status}</span>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <h2 className="min-w-0 text-lg font-medium">{event.name}</h2>
+              <span className="shrink-0 capitalize">{rsvp.status}</span>
             </div>
             <p className="mt-2 text-sm">{event.venueName}</p>
           </Card>

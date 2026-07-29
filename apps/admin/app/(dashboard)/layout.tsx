@@ -78,6 +78,11 @@ export default async function DashboardLayout({
       persona={persona}
       email={session.email}
       navigation={navigation}
+      mobileDock={[
+        { href: "/prospects", label: "Prospects" },
+        { href: "/inquiries", label: "Inquiries" },
+        { href: "/retailers", label: "Retailers" },
+      ]}
       signOutControl={
         <form action={signOut}>
           <Button type="submit" variant="ghost" size="sm">

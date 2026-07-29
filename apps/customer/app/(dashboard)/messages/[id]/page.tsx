@@ -25,7 +25,7 @@ export default async function ConversationPage({
     new RetailerRepository(client).findById(conversation.retailerId),
   ]);
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex min-h-[calc(100dvh-10.5rem)] flex-col gap-5 lg:min-h-0">
       <div>
         <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
           {retailer?.displayName ?? "Retailer"}
@@ -34,7 +34,7 @@ export default async function ConversationPage({
           Private conversation
         </p>
       </div>
-      <Card className="flex max-h-[55vh] flex-col gap-3 overflow-y-auto">
+      <Card className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -47,7 +47,10 @@ export default async function ConversationPage({
           </div>
         ))}
       </Card>
-      <form action={sendMessage} className="flex flex-col gap-2 sm:flex-row">
+      <form
+        action={sendMessage}
+        className="bg-[var(--color-stone-50)]/95 sticky bottom-20 z-10 -mx-4 flex flex-col gap-2 border-t border-[var(--color-stone-200)] px-4 py-3 backdrop-blur sm:flex-row lg:static lg:bottom-auto lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none"
+      >
         <input type="hidden" name="conversationId" value={conversation.id} />
         <textarea
           name="body"

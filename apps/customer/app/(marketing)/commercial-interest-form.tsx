@@ -58,7 +58,7 @@ export function CommercialInterestForm({
   }
 
   const inputClass =
-    "mt-2 min-h-12 w-full rounded-[0.7rem] border border-black/15 bg-white/75 px-4 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10";
+    "mt-2 min-h-12 w-full rounded-[var(--radius-md)] border border-black/15 bg-white/75 px-4 text-sm outline-none transition focus:border-black focus:ring-2 focus:ring-black/10";
 
   return (
     <form action={formAction} className="space-y-6" noValidate>
@@ -121,7 +121,7 @@ export function CommercialInterestForm({
       </label>
       {state.error ? (
         <p
-          className="rounded-[0.7rem] bg-[#f4e5df] px-4 py-3 text-sm text-[#8d3028]"
+          className="rounded-[var(--radius-md)] bg-[#f4e5df] px-4 py-3 text-sm text-[#8d3028]"
           role="alert"
         >
           {state.error}
@@ -130,7 +130,7 @@ export function CommercialInterestForm({
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex min-h-12 w-full items-center justify-center rounded-[0.7rem] bg-[#1a1a1a] px-6 text-sm font-medium text-white transition hover:bg-black disabled:cursor-wait disabled:opacity-55 sm:w-auto"
+        className="inline-flex min-h-12 w-full items-center justify-center rounded-[var(--radius-md)] bg-[#1a1a1a] px-6 text-sm font-medium text-white transition hover:bg-black disabled:cursor-wait disabled:opacity-55 sm:w-auto"
       >
         {pending ? "Sending securely…" : "Send request"}
       </button>

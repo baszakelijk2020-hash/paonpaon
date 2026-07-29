@@ -10,12 +10,12 @@ const initialState: ProspectActionState = {};
 export function ProspectForm({ plans }: { plans: SubscriptionPlan[] }) {
   const [state, action, pending] = useActionState(createProspect, initialState);
   const input =
-    "mt-2 min-h-11 w-full rounded-md border border-stone-300 bg-white px-3 text-sm";
+    "mt-2 min-h-11 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-sm";
   return (
     <form action={action} className="space-y-8">
       {state.error ? (
         <p
-          className="rounded-md bg-red-50 p-3 text-sm text-red-800"
+          className="bg-[var(--color-danger-500)]/10 rounded-[var(--radius-md)] p-3 text-sm text-[var(--color-danger-500)]"
           role="alert"
         >
           {state.error}
@@ -113,7 +113,7 @@ export function ProspectForm({ plans }: { plans: SubscriptionPlan[] }) {
         </div>
       </section>
       <button
-        className="min-h-11 rounded-md bg-[var(--color-stone-900)] px-6 text-sm text-white disabled:opacity-50"
+        className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-6 text-sm text-white disabled:opacity-50"
         type="submit"
         disabled={pending}
       >

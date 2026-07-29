@@ -103,7 +103,7 @@ export default async function DemoStudioPage({
             />
             <button
               type="submit"
-              className="min-h-11 rounded-md bg-white px-5 text-sm text-black"
+              className="min-h-11 rounded-[var(--radius-md)] bg-white px-5 text-sm text-black"
             >
               {environment.status === "published"
                 ? "Revoke private demo"

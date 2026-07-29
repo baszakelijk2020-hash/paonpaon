@@ -66,15 +66,15 @@ export default async function EventsPage() {
           <Link
             key={event.id}
             href={`/events/${event.id}`}
-            className="flex justify-between px-6 py-4 hover:bg-[var(--color-stone-50)]"
+            className="flex flex-wrap items-start justify-between gap-3 px-6 py-4 hover:bg-[var(--color-stone-50)]"
           >
-            <div>
+            <div className="min-w-0">
               <p className="font-medium">{event.name}</p>
               <p className="text-sm text-[var(--color-stone-500)]">
                 {formatDate(event.startsAt, "en-US")} · {event.venueName}
               </p>
             </div>
-            <span className="text-sm capitalize">{event.status}</span>
+            <span className="shrink-0 text-sm capitalize">{event.status}</span>
           </Link>
         ))}
         {events.length === 0 ? (

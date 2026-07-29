@@ -223,7 +223,7 @@ export default async function MessagesPage({
 
             <form
               action={sendMessage}
-              className="flex flex-col gap-2 border-t border-[var(--color-stone-200)] bg-white p-4"
+              className="sticky bottom-20 z-10 flex flex-col gap-2 border-t border-[var(--color-stone-200)] bg-white/95 p-4 backdrop-blur lg:static lg:bottom-auto lg:bg-white lg:backdrop-blur-none"
             >
               <input
                 type="hidden"

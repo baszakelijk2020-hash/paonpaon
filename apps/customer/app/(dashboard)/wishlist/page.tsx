@@ -73,9 +73,9 @@ export default async function WishlistPage() {
               {items.map(({ item, variant, product }) => (
                 <div
                   key={`${item.wishlistId}-${item.productVariantId}`}
-                  className="flex items-center justify-between py-3"
+                  className="flex flex-wrap items-center justify-between gap-3 py-3"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <Link
                       href={`/r/${retailer?.slug}/products/${product.slug}`}
                       className="font-medium hover:underline"
@@ -89,7 +89,7 @@ export default async function WishlistPage() {
                       · {formatMoney(variant.price, "en-US")}
                     </p>
                   </div>
-                  <form action={removeFromWishlist}>
+                  <form action={removeFromWishlist} className="shrink-0">
                     <input
                       type="hidden"
                       name="retailerId"

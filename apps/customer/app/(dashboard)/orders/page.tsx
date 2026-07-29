@@ -37,9 +37,9 @@ export default async function OrdersPage() {
             <Link
               key={order.id}
               href={`/orders/${order.id}`}
-              className="flex items-center justify-between px-6 py-4 hover:bg-[var(--color-stone-50)]"
+              className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 hover:bg-[var(--color-stone-50)]"
             >
-              <div>
+              <div className="min-w-0">
                 <p className="font-medium text-[var(--color-stone-900)]">
                   {order.orderNumber}
                 </p>
@@ -48,7 +48,7 @@ export default async function OrdersPage() {
                   {formatDate(order.createdAt, "en-US")}
                 </p>
               </div>
-              <p className="font-medium text-[var(--color-stone-900)]">
+              <p className="shrink-0 font-medium text-[var(--color-stone-900)]">
                 {formatMoney(order.total, "en-US")}
               </p>
             </Link>
