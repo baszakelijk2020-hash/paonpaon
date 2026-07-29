@@ -43,7 +43,8 @@ Verified against code and 91 migrations on 2026-07-30:
   typed interaction events with retention/withdrawal anonymization, and
   customer consent controls now exist. StyleProfile declared/inferred
   preferences with concept evidence and deterministic recomputation exist;
-  advisor preparation briefing does not.
+  advisor preparation briefing exists on the Retailer Portal relationship and
+  appointment workspaces.
 - Metadata concepts, edges, assignments, append-only review evidence,
   retailer overrides, and exact product/variant fabric profiles now exist.
   PAON Admin can manage canonical concepts and terminal assignment decisions
@@ -371,7 +372,7 @@ unreviewed bulk publish.
   - **Landed:** `82f499c` — StyleProfile domain recompute, evidence tables/
     RLS/RPCs, `StyleProfileRepository`, and customer account inspect/remove.
 
-- [ ] **3.3 Advisor preparation brief**
+- [x] **3.3 Advisor preparation brief**
   - **Requirement IDs:** `ADV-003`, `CUST-003`.
   - **Dependencies:** `3.2`.
   - **Owner boundary:** retailer-scoped intelligence repository projection and
@@ -386,6 +387,9 @@ unreviewed bulk publish.
   - **Non-goals:** no autonomous outreach, staff performance scoring, customer
     sharing between retailers, or generated facts.
   - **Hard blockers:** none.
+  - **Landed:** advisor brief domain projection, `AdvisorBriefRepository`,
+    Retailer Portal relationship/appointment brief panels with consent-gated
+    interests/shortlist/knowledge/style evidence and durable message continuity.
 
 - [ ] **3.4 Grounded TableService and guided preference capture**
   - **Requirement IDs:** `ADV-001`, `ADV-002`, `ENG-002`.
