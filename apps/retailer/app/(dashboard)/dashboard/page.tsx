@@ -180,7 +180,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="paon-reveal relative isolate overflow-hidden rounded-[var(--radius-md)] bg-[#111110] px-6 py-8 text-[#d9d9d9] shadow-[var(--shadow-elevated)] sm:px-10 sm:py-11">
+      <section className="paon-reveal relative isolate overflow-hidden rounded-[var(--radius-md)] bg-[#111110] px-6 py-8 text-[var(--color-stone-100)] shadow-[var(--shadow-elevated)] sm:px-10 sm:py-11">
         <div
           aria-hidden="true"
           className="absolute inset-y-0 right-0 -z-10 w-2/5 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_68%)]"
@@ -243,7 +243,7 @@ export default async function DashboardPage() {
             <RetailerStatusBadge status={retailer.status} />
           </div>
           <div>
-            <h1 className="font-display max-w-2xl text-4xl leading-[0.98] sm:text-6xl">
+            <h1 className="font-display max-w-2xl text-4xl leading-[0.98] sm:text-5xl">
               {brief.title}
             </h1>
             <p className="mt-4 max-w-xl text-sm leading-6 text-white/65 sm:text-base">

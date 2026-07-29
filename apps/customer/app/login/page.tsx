@@ -63,7 +63,7 @@ export default async function LoginPage({
         </span>
 
         <div className="mx-auto w-full max-w-md">
-          <div className="rounded-[32px] border border-white/15 bg-white/10 p-6 backdrop-blur-2xl sm:p-8 [&_button[type='submit']]:!rounded-full [&_button[type='submit']]:!border [&_button[type='submit']]:!border-white/25 [&_button[type='submit']]:!bg-white/15 [&_button[type='submit']]:!text-white [&_button[type='submit']]:!backdrop-blur-xl hover:[&_button[type='submit']]:!bg-white/25 [&_input]:!rounded-full [&_input]:!border-white/25 [&_input]:!bg-white/90 [&_input]:!px-5 [&_input]:!text-[var(--color-stone-900)] [&_input]:!backdrop-blur-xl [&_label]:!text-white/85">
+          <div className="rounded-[var(--radius-md)] border border-white/15 bg-white/10 p-6 backdrop-blur-2xl sm:p-8 [&_button[type='submit']]:!rounded-[var(--radius-md)] [&_button[type='submit']]:!border [&_button[type='submit']]:!border-white/25 [&_button[type='submit']]:!bg-white/15 [&_button[type='submit']]:!text-white [&_button[type='submit']]:!backdrop-blur-xl hover:[&_button[type='submit']]:!bg-white/25 [&_input]:!rounded-[var(--radius-md)] [&_input]:!border-white/25 [&_input]:!bg-white/90 [&_input]:!px-5 [&_input]:!text-[var(--color-stone-900)] [&_input]:!backdrop-blur-xl [&_label]:!text-white/85">
             <h1 className="font-display text-4xl leading-none text-white">
               Welcome back.
             </h1>

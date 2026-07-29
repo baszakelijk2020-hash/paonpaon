@@ -27,7 +27,7 @@ export default async function ConversationPage({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-2xl font-medium">
+        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
           {retailer?.displayName ?? "Retailer"}
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
@@ -38,7 +38,7 @@ export default async function ConversationPage({
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`max-w-[85%] rounded-lg px-4 py-3 ${message.senderType === "customer" ? "ml-auto bg-[var(--color-stone-900)] text-white" : "bg-[var(--color-stone-100)]"}`}
+            className={`max-w-[85%] rounded-[var(--radius-md)] px-4 py-3 ${message.senderType === "customer" ? "ml-auto bg-[var(--color-stone-900)] text-white" : "bg-[var(--color-stone-100)]"}`}
           >
             <p className="text-sm">{message.body}</p>
             <p className="mt-1 text-xs opacity-60">
@@ -53,7 +53,7 @@ export default async function ConversationPage({
           name="body"
           required
           maxLength={5000}
-          className="min-h-20 flex-1 rounded border p-3"
+          className="min-h-20 flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
           placeholder="Write a message"
         />
         <Button type="submit">Send</Button>

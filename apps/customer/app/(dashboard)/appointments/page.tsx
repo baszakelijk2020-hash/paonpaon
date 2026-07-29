@@ -42,7 +42,7 @@ export default async function AppointmentsPage() {
       </h1>
 
       {appointments.length === 0 ? (
-        <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
+        <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
           <p className="text-[var(--color-stone-600)]">
             No appointments yet. Visit a retailer&rsquo;s storefront to request
             one.

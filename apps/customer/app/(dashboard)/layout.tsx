@@ -104,7 +104,7 @@ export default async function DashboardLayout({
   return (
     <AppShell
       brand="PAON"
-      product="Private client"
+      product="Client"
       homeHref="/dashboard"
       persona="Private client"
       email={session.email}

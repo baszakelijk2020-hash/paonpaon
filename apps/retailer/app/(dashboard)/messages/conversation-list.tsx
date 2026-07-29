@@ -57,7 +57,7 @@ export function ConversationList({
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search conversations…"
           aria-label="Search conversations"
-          className="w-full rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink-600)]"
+          className="w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink-600)]"
         />
         <div
           className="mt-2 flex gap-1"
@@ -71,7 +71,7 @@ export function ConversationList({
               role="tab"
               aria-selected={status === value}
               onClick={() => setStatus(value)}
-              className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
+              className={`rounded-[var(--radius-md)] px-3 py-1 text-xs font-medium capitalize ${
                 status === value
                   ? "bg-[var(--color-stone-900)] text-white"
                   : "text-[var(--color-stone-500)] hover:bg-[var(--color-stone-100)]"

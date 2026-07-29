@@ -45,7 +45,7 @@ export default async function AppointmentsPage() {
       </div>
 
       {appointments.length === 0 ? (
-        <div className="paon-reveal rounded-[var(--radius-lg)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
+        <div className="paon-reveal rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
           <p className="text-[var(--color-stone-600)]">No appointments yet.</p>
         </div>
       ) : (

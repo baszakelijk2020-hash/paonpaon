@@ -35,7 +35,7 @@ export default async function ProductsPage() {
       </div>
 
       {products.length === 0 ? (
-        <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
+        <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
           <p className="text-[var(--color-stone-600)]">
             No products yet. Add the first one to start building your catalog.
           </p>

@@ -147,7 +147,7 @@ export default async function CustomerDetailPage({
                 </p>
                 <LifecycleBadge stage={customer.lifecycleStage} />
               </div>
-              <h1 className="font-display text-5xl leading-none sm:text-6xl">
+              <h1 className="font-display text-3xl leading-none sm:text-4xl">
                 {customer.fullName}
               </h1>
               <p className="mt-4 text-sm text-white/65">
@@ -326,7 +326,7 @@ export default async function CustomerDetailPage({
                 <button
                   type="submit"
                   aria-pressed={customer.preferredCarrier === value}
-                  className={`rounded-full border px-3 py-1 text-xs transition-[background-color,color] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 ${
+                  className={`rounded-[var(--radius-md)] border px-3 py-1 text-xs transition-[background-color,color] duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 ${
                     customer.preferredCarrier === value
                       ? "border-[var(--color-stone-900)] bg-[var(--color-stone-900)] text-white"
                       : "border-[var(--color-stone-300)] text-[var(--color-stone-600)]"

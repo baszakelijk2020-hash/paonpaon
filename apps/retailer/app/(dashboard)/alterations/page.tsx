@@ -90,7 +90,7 @@ export default async function AlterationsPage() {
         </p>
         <div className="mt-4 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <h1 className="font-display text-5xl leading-none sm:text-6xl">
+            <h1 className="font-display text-3xl leading-none sm:text-4xl">
               {session.retailerRole === "worker"
                 ? "Your workbench."
                 : session.retailerRole === "workshop_manager"

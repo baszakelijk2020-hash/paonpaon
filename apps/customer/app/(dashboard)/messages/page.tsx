@@ -67,7 +67,7 @@ export default async function MessagesPage() {
                 name="body"
                 required
                 maxLength={5000}
-                className="h-10 flex-1 rounded border px-3"
+                className="h-10 flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3"
                 placeholder="How may the team help?"
               />
               <Button type="submit" size="sm">

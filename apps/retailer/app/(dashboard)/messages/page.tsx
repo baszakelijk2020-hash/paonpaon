@@ -10,6 +10,7 @@ import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
 import Image from "next/image";
+import Link from "next/link";
 
 import { LifecycleBadge } from "../customers/lifecycle-badge";
 
@@ -26,9 +27,9 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 /**
  * The staff inbox — a real 3-pane layout (conversation list, thread,
  * customer context), not the previous list-then-navigate-away pattern.
- * All three panes are wired to the actual repositories already used
- * elsewhere in the app (messaging, customers, orders, clienteling
- * notes) rather than any new/duplicated data layer.
+ * On small screens: list-only until `?c=` selects a thread; context
+ * pane appears from `xl` up. All three panes are wired to the actual
+ * repositories already used elsewhere in the app.
  */
 export default async function MessagesPage({
   searchParams,
@@ -40,6 +41,7 @@ export default async function MessagesPage({
   const client = await getSupabaseServerClient();
   const messagingRepo = new MessagingRepository(client);
   const customerRepo = new CustomerRepository(client);
+  const explicitSelection = Boolean(selectedId);
 
   const [conversations, customers] = await Promise.all([
     messagingRepo.findByRetailer(session.retailerId),
@@ -119,32 +121,56 @@ export default async function MessagesPage({
   }
 
   return (
-    <div className="grid h-[calc(100vh-6rem)] grid-cols-[320px_1fr_320px] gap-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] shadow-[var(--shadow-elevated)]">
-      {/* Left: conversation list */}
-      <div className="border-r border-[var(--color-stone-200)] bg-white">
+    <div className="grid h-[calc(100vh-6rem)] grid-cols-1 gap-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] shadow-[var(--shadow-elevated)] lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_20rem]">
+      <div
+        className={`border-[var(--color-stone-200)] bg-white lg:border-r ${
+          explicitSelection ? "max-lg:hidden" : ""
+        }`}
+      >
+        <div className="border-b border-[var(--color-stone-200)] px-4 py-3 lg:hidden">
+          <p className="font-accent text-[10px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            Inbox
+          </p>
+          <p className="font-display text-xl text-[var(--color-stone-900)]">
+            Conversations
+          </p>
+        </div>
         <ConversationList conversations={listItems} selectedId={activeId} />
       </div>
 
-      {/* Centre: message thread */}
-      <div className="flex flex-col bg-[var(--color-stone-50)]">
+      <div
+        className={`flex flex-col bg-[var(--color-stone-50)] ${
+          explicitSelection ? "" : "max-lg:hidden"
+        }`}
+      >
         {activeConversation ? (
           <>
             <div className="border-b border-[var(--color-stone-200)] bg-white px-5 py-3">
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-medium text-[var(--color-stone-900)]">
-                  {activeCustomer?.fullName ?? "Customer"}
-                </h1>
-                {activeConversation.intent ? (
-                  <Badge tone="neutral">
-                    {CONVERSATION_INTENT_LABELS[activeConversation.intent]}
-                  </Badge>
-                ) : null}
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/messages"
+                  className="font-accent text-[10px] uppercase tracking-[0.14em] text-[var(--color-stone-600)] underline-offset-4 hover:underline lg:hidden"
+                >
+                  ← Inbox
+                </Link>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="font-display text-lg text-[var(--color-stone-900)]">
+                      {activeCustomer?.fullName ?? "Customer"}
+                    </h1>
+                    {activeConversation.intent ? (
+                      <Badge tone="neutral">
+                        {CONVERSATION_INTENT_LABELS[activeConversation.intent]}
+                      </Badge>
+                    ) : null}
+                  </div>
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    {activeCustomer?.userId
+                      ? "Shared retailer conversation"
+                      : "Storefront inquiry — no portal account yet"}
+                  </p>
+                </div>
               </div>
-              <p className="text-xs text-[var(--color-stone-500)]">
-                {activeCustomer?.userId
-                  ? "Shared retailer conversation"
-                  : "Storefront inquiry — no portal account yet"}
-              </p>
             </div>
 
             <div className="flex-1 space-y-3 overflow-y-auto p-5">
@@ -153,7 +179,7 @@ export default async function MessagesPage({
                 return (
                   <div
                     key={msg.id}
-                    className={`max-w-[75%] rounded-lg px-4 py-3 ${
+                    className={`max-w-[75%] rounded-[var(--radius-md)] px-4 py-3 ${
                       msg.senderType === "staff"
                         ? "ml-auto bg-[var(--color-stone-900)] text-white"
                         : "bg-white"
@@ -210,7 +236,7 @@ export default async function MessagesPage({
                   required
                   maxLength={5000}
                   aria-label="Message"
-                  className="min-h-16 flex-1 resize-none rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink-600)] focus-visible:ring-offset-2"
+                  className="min-h-16 flex-1 resize-none rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink-600)] focus-visible:ring-offset-2"
                   placeholder="Write a reply — ⌘/Ctrl+Enter to send"
                 />
                 <Button type="submit">Send</Button>
@@ -225,8 +251,7 @@ export default async function MessagesPage({
         )}
       </div>
 
-      {/* Right: customer context panel */}
-      <div className="overflow-y-auto border-l border-[var(--color-stone-200)] bg-white p-5">
+      <div className="hidden overflow-y-auto border-l border-[var(--color-stone-200)] bg-white p-5 xl:block">
         {activeCustomer ? (
           <div className="flex flex-col gap-6">
             <div>

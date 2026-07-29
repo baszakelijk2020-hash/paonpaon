@@ -32,9 +32,9 @@ export function BrandThemeForm({
 
   return (
     <form action={action} className="grid gap-8 xl:grid-cols-[1fr_0.85fr]">
-      <div className="space-y-8 rounded-[1.25rem] border bg-white p-6 sm:p-8">
+      <div className="space-y-8 rounded-[var(--radius-md)] border bg-white p-6 sm:p-8">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+          <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             Curated assets
           </p>
           <div className="mt-5 grid gap-5">
@@ -42,14 +42,14 @@ export function BrandThemeForm({
               <label key={name} className="text-sm">
                 {label}
                 <input
-                  className="mt-2 min-h-11 w-full rounded-md border px-3"
+                  className="mt-2 min-h-11 w-full rounded-[var(--radius-md)] border px-3"
                   name={name}
                   type="url"
                   defaultValue={initialTheme[name] ?? ""}
                   placeholder="https://"
                 />
                 {state.fieldErrors?.[name]?.[0] ? (
-                  <span className="mt-1 block text-xs text-red-700">
+                  <span className="mt-1 block text-xs text-[var(--color-danger-500)]">
                     {state.fieldErrors[name]?.[0]}
                   </span>
                 ) : null}
@@ -58,7 +58,7 @@ export function BrandThemeForm({
           </div>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+          <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             Validated color tokens
           </p>
           <div className="mt-5 grid gap-5 sm:grid-cols-3">
@@ -66,7 +66,7 @@ export function BrandThemeForm({
               <label key={name} className="text-sm">
                 {label}
                 <input
-                  className="mt-2 h-12 w-full cursor-pointer rounded-md border p-1"
+                  className="mt-2 h-12 w-full cursor-pointer rounded-[var(--radius-md)] border p-1"
                   name={name}
                   type="color"
                   value={theme[name]}
@@ -80,7 +80,7 @@ export function BrandThemeForm({
           <label className="text-sm">
             Display typography
             <select
-              className="mt-2 min-h-11 w-full rounded-md border px-3"
+              className="mt-2 min-h-11 w-full rounded-[var(--radius-md)] border px-3"
               name="displayFont"
               value={theme.displayFont}
               onChange={(event) => field("displayFont", event.target.value)}
@@ -93,7 +93,7 @@ export function BrandThemeForm({
           <label className="text-sm">
             Body typography
             <select
-              className="mt-2 min-h-11 w-full rounded-md border px-3"
+              className="mt-2 min-h-11 w-full rounded-[var(--radius-md)] border px-3"
               name="bodyFont"
               value={theme.bodyFont}
               onChange={(event) => field("bodyFont", event.target.value)}
@@ -105,7 +105,7 @@ export function BrandThemeForm({
           <label className="text-sm">
             Corner character
             <select
-              className="mt-2 min-h-11 w-full rounded-md border px-3"
+              className="mt-2 min-h-11 w-full rounded-[var(--radius-md)] border px-3"
               name="cornerStyle"
               value={theme.cornerStyle}
               onChange={(event) => field("cornerStyle", event.target.value)}
@@ -119,20 +119,20 @@ export function BrandThemeForm({
         <label className="block text-sm">
           Version note
           <input
-            className="mt-2 min-h-11 w-full rounded-md border px-3"
+            className="mt-2 min-h-11 w-full rounded-[var(--radius-md)] border px-3"
             name="changeNote"
             placeholder="What changed and why"
             required
           />
           {state.fieldErrors?.["changeNote"]?.[0] ? (
-            <span className="mt-1 block text-xs text-red-700">
+            <span className="mt-1 block text-xs text-[var(--color-danger-500)]">
               {state.fieldErrors["changeNote"]?.[0]}
             </span>
           ) : null}
         </label>
         {state.error ? (
           <p
-            className="rounded-md bg-red-50 p-3 text-sm text-red-800"
+            className="bg-[var(--color-danger-500)]/10 rounded-[var(--radius-md)] p-3 text-sm text-[var(--color-danger-500)]"
             role="alert"
           >
             {state.error}
@@ -140,14 +140,14 @@ export function BrandThemeForm({
         ) : null}
         {state.success ? (
           <p
-            className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-900"
+            className="bg-[var(--color-success-500)]/10 rounded-[var(--radius-md)] p-3 text-sm text-[var(--color-stone-800)]"
             role="status"
           >
             {state.success}
           </p>
         ) : null}
         <button
-          className="min-h-11 rounded-md bg-stone-900 px-5 text-sm text-white disabled:opacity-50"
+          className="min-h-11 rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-5 text-sm text-white disabled:opacity-50"
           type="submit"
           disabled={pending}
         >
@@ -156,12 +156,12 @@ export function BrandThemeForm({
       </div>
 
       <div className="xl:sticky xl:top-8 xl:self-start">
-        <p className="mb-3 text-xs uppercase tracking-[0.18em] text-stone-500">
+        <p className="mb-3 text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
           Live token preview
         </p>
         <RetailerTheme
           theme={theme}
-          className="overflow-hidden rounded-[1.25rem] border shadow-[var(--shadow-elevated)]"
+          className="overflow-hidden rounded-[var(--radius-md)] border shadow-[var(--shadow-elevated)]"
         >
           <div
             className="min-h-[32rem] bg-cover bg-center p-7"

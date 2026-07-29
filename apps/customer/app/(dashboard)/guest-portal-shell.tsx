@@ -81,7 +81,7 @@ export function GuestPortalShell() {
   return (
     <AppShell
       brand="PAON"
-      product="Private client"
+      product="Client"
       homeHref={
         fromQuery
           ? `/dashboard?from=${encodeURIComponent(fromQuery)}`

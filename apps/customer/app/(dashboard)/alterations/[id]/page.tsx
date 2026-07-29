@@ -54,7 +54,7 @@ export default async function AlterationDetailPage({
     <div className="flex flex-col gap-6">
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-medium text-[var(--color-stone-900)]">
+          <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
             {retailer?.displayName ?? "Unknown retailer"}
           </h1>
           <AlterationStatusBadge status={alteration.status} />
@@ -71,7 +71,7 @@ export default async function AlterationDetailPage({
       </div>
 
       {alteration.status === "ready_for_pickup" ? (
-        <div className="bg-[var(--color-success-500)]/10 rounded-[var(--radius-lg)] px-6 py-4">
+        <div className="bg-[var(--color-success-500)]/10 rounded-[var(--radius-md)] px-6 py-4">
           <p className="font-medium text-[var(--color-success-500)]">
             Ready for pickup
           </p>

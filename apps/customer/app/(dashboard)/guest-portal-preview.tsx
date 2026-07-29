@@ -22,11 +22,11 @@ export function GuestPortalPreview({
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-1 pb-10 pt-2">
       <Card className="overflow-hidden border-0 bg-[#1a1a1a] p-0 text-white shadow-none">
-        <div className="relative min-h-[18rem] px-6 py-8 sm:px-10 sm:py-12">
-          <p className="text-[10px] uppercase tracking-[0.22em] text-white/45">
+        <div className="relative min-h-[16rem] px-6 py-7 sm:min-h-[18rem] sm:px-10 sm:py-12">
+          <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-white/45">
             Private client
           </p>
-          <h1 className="font-display mt-4 max-w-xl text-4xl leading-[0.95] tracking-[-0.03em] sm:text-5xl">
+          <h1 className="font-display mt-4 max-w-xl text-3xl leading-[0.95] tracking-[-0.03em] sm:text-5xl">
             Your wardrobe, beautifully in motion.
           </h1>
           <p className="mt-5 max-w-md text-sm leading-7 text-white/60">

@@ -75,7 +75,7 @@ export default async function AppointmentDetailPage({
               </p>
               <AppointmentStatusBadge status={appointment.status} />
             </div>
-            <h1 className="font-display mt-4 text-5xl leading-none sm:text-6xl">
+            <h1 className="font-display mt-4 text-3xl leading-none sm:text-4xl">
               {customer?.fullName ?? "Unknown customer"}
             </h1>
             <p className="mt-4 text-sm capitalize text-white/65">
@@ -133,7 +133,7 @@ export default async function AppointmentDetailPage({
               </p>
             )}
             {appointment.notes ? (
-              <div className="mt-6 rounded-[var(--radius-lg)] bg-[var(--color-stone-50)] p-5">
+              <div className="mt-6 rounded-[var(--radius-md)] bg-[var(--color-stone-50)] p-5">
                 <p className="text-xs uppercase tracking-wide text-[var(--color-stone-500)]">
                   Appointment request
                 </p>

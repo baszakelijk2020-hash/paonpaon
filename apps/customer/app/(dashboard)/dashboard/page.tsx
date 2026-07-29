@@ -124,7 +124,7 @@ export default async function DashboardPage() {
                 Good {new Date().getHours() < 12 ? "morning" : "afternoon"},{" "}
                 {firstName}
               </p>
-              <h1 className="font-display text-3xl leading-[0.94] sm:text-6xl lg:text-7xl">
+              <h1 className="font-display text-3xl leading-[0.94] sm:text-5xl lg:text-6xl">
                 Your wardrobe,
                 <br />
                 beautifully in motion.

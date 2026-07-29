@@ -25,11 +25,11 @@ export default async function BrandSettingsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-xs uppercase tracking-[0.18em] text-stone-500">
+        <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
           Retail identity
         </p>
         <h1 className="font-display mt-2 text-4xl">Brand configuration</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500">
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
           Curated tokens personalize storefront and operating surfaces without
           custom CSS, scripts or duplicated PAON components.
         </p>
@@ -38,7 +38,7 @@ export default async function BrandSettingsPage() {
         initialTheme={retailer.brandTheme}
         retailerName={retailer.displayName}
       />
-      <section className="rounded-[1.25rem] border bg-white p-6 sm:p-8">
+      <section className="rounded-[var(--radius-md)] border bg-white p-6 sm:p-8">
         <h2 className="font-display text-2xl">Version history</h2>
         {versions.length ? (
           <div className="mt-5 divide-y">
@@ -51,7 +51,7 @@ export default async function BrandSettingsPage() {
                   <p className="text-sm font-medium">
                     Version {version.versionNumber} · {version.changeNote}
                   </p>
-                  <p className="mt-1 text-xs text-stone-500">
+                  <p className="mt-1 text-xs text-[var(--color-stone-500)]">
                     {new Date(version.createdAt).toLocaleString()}
                   </p>
                 </div>
@@ -62,7 +62,7 @@ export default async function BrandSettingsPage() {
                     value={version.versionNumber}
                   />
                   <button
-                    className="min-h-11 rounded-md border px-4 text-sm"
+                    className="min-h-11 rounded-[var(--radius-md)] border px-4 text-sm"
                     type="submit"
                   >
                     Restore this version
@@ -72,7 +72,7 @@ export default async function BrandSettingsPage() {
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm text-stone-500">
+          <p className="mt-4 text-sm text-[var(--color-stone-500)]">
             Publish the first configuration to begin a restorable history.
           </p>
         )}
