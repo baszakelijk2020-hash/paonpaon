@@ -1,20 +1,19 @@
-import { CATALOGUE_IMPORT_ENRICHMENT_JSON_EXAMPLE } from "@paon/domain";
+import {
+  CATALOGUE_IMPORT_ENRICHMENT_JSON_EXAMPLE,
+  CATALOGUE_IMPORT_TEMPLATE_EXAMPLE_ROW,
+} from "@paon/domain";
 import { describe, expect, it } from "vitest";
 
 import { runCatalogueImportEnrichment } from "./import-enrichment-runner";
 import { MockAIProvider } from "./mock-provider";
 
-const supplierRow = {
-  external_sku: "LP-SUM-001",
-  name: "Summer hopsack jacket",
-  garment_type: "jacket",
-  mill: "Loro Piana",
-  weave: "hopsack",
-};
+const supplierRow = CATALOGUE_IMPORT_TEMPLATE_EXAMPLE_ROW;
 
 const taxonomy = {
   isKnownConcept: (kind: string, slug: string) =>
-    kind === "garment_type" && slug === "jacket",
+    (kind === "garment_type" && slug === "jacket") ||
+    (kind === "mill" && slug === "loro_piana") ||
+    (kind === "climate" && slug === "warm"),
   findConceptId: () => null,
 };
 

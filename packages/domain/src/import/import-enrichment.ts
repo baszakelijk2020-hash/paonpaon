@@ -79,6 +79,10 @@ function slugify(value: string): string {
     .slice(0, 120);
 }
 
+function normalizeConceptSlug(value: string): string {
+  return slugify(value).replace(/-/g, "_");
+}
+
 function supplierCell(
   supplierRow: Readonly<Record<string, string>>,
   field: string,
@@ -148,15 +152,6 @@ export function validateEnrichmentProposal(params: {
     }
     seenFields.add(`taxonomy:${mapping.field}`);
 
-    if (isProtectedField(mapping.field)) {
-      issues.push({
-        code: "invented_protected_fact",
-        field: mapping.field,
-        message: `Protected supplier field ${mapping.field} cannot be inferred.`,
-      });
-      continue;
-    }
-
     if (
       isSupplierOnlyCategoryField(mapping.field) &&
       mapping.source !== "supplier_text"
@@ -179,14 +174,16 @@ export function validateEnrichmentProposal(params: {
       continue;
     }
 
-    const supplierSlug = slugify(supplierValue);
-    const proposedSlug = slugify(mapping.conceptSlug);
+    const supplierSlug = normalizeConceptSlug(supplierValue);
+    const proposedSlug = normalizeConceptSlug(mapping.conceptSlug);
     if (
       isSupplierOnlyCategoryField(mapping.field) &&
       supplierSlug.length > 0 &&
       proposedSlug.length > 0 &&
       supplierSlug !== proposedSlug &&
-      !supplierValue.toLowerCase().includes(mapping.conceptSlug.toLowerCase())
+      !supplierValue
+        .toLowerCase()
+        .includes(mapping.conceptSlug.replace(/_/g, " ").toLowerCase())
     ) {
       issues.push({
         code: "invented_protected_fact",

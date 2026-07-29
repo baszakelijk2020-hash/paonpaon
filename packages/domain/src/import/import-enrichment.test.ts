@@ -12,13 +12,13 @@ const supplierRow = CATALOGUE_IMPORT_TEMPLATE_EXAMPLE_ROW;
 const taxonomy = {
   isKnownConcept: (kind: string, slug: string) =>
     (kind === "garment_type" && slug === "jacket") ||
-    (kind === "mill" && slug === "loro_piana") ||
+    (kind === "mill" && (slug === "loro_piana" || slug === "loro-piana")) ||
     (kind === "climate" && slug === "warm"),
   findConceptId: (kind: string, slug: string) => {
     if (kind === "garment_type" && slug === "jacket") {
       return "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" as never;
     }
-    if (kind === "mill" && slug === "loro_piana") {
+    if (kind === "mill" && (slug === "loro_piana" || slug === "loro-piana")) {
       return "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" as never;
     }
     if (kind === "climate" && slug === "warm") {
@@ -78,24 +78,27 @@ describe("validateEnrichmentProposal", () => {
     }
   });
 
-  it("rejects invented composition in derived suitability", () => {
+  it("rejects invalid schema for protected composition fields", () => {
     const result = validateEnrichmentProposal({
       raw: {
         taxonomyMappings: [],
         derivedSuitability: [
           {
-            field: "garment_type",
-            value: "jacket",
+            field: "composition",
+            value: "100% cotton",
             confidence: 0.5,
             source: "inferred",
             evidence: "Guess.",
           },
         ],
       },
-      supplierRow: { ...supplierRow, garment_type: "" },
+      supplierRow,
       taxonomy,
     });
     expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.issues[0]?.code).toBe("invalid_schema");
+    }
   });
 
   it("allows unknown taxonomy with informational issues only", () => {

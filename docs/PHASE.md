@@ -57,7 +57,8 @@ Verified against code and 91 migrations on 2026-07-30:
   ranges, intent mapping, and pagination with founder filter hooks.
   Catalogue import jobs/rows/review tasks, CSV/XLSX/JSON parsers, downloadable
   contracts, Retailer Portal preview, and transactional reviewed-row publishing
-  exist; AI enrichment does not.
+  exist; AI enrichment proposes taxonomy mappings and derived suitability
+  with pending review.
   No style-profile, wardrobe, outfit, roadmap, service-plan, or campaign table
   exists.
 
@@ -301,7 +302,7 @@ storefront redesign, or customer personalization.
     repository batch resume, Retailer Portal review/publish actions and status
     UI, plus pgTAP coverage for success/idempotency/rollback/RLS/audit.
 
-- [ ] **2.7 AI-assisted import enrichment**
+- [x] **2.7 AI-assisted import enrichment**
   - **Requirement IDs:** `IMP-003`, `IMP-004`, `ENG-002`.
   - **Dependencies:** `2.5`, `2.6`.
   - **Owner boundary:** Admin-maintained external prompt/LLM contract first,
@@ -316,6 +317,10 @@ storefront redesign, or customer personalization.
     publish, prompt PII, or model-authored canonical knowledge.
   - **Hard blockers:** missing AI key blocks live smoke verification only, not
     external-prompt or provider-neutral implementation.
+  - **Landed:** enrichment JSON contract in `import-contract.ts` /
+    `import-enrichment.ts`, `runCatalogueImportEnrichment` + `MockAIProvider`,
+    `import_enrichment` audit kind, `CatalogueImportRepository.applyEnrichment`,
+    and Retailer Portal per-row enrich action with pending AI review tasks.
 
 **Stage 2 non-goals:** no semantic/vector retrieval before accepted metadata
 and search/click evidence exist; no autonomous AI facts; no React rewrite of
