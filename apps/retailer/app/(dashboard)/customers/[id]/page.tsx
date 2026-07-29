@@ -10,8 +10,10 @@ import {
   OrderRepository,
   PhysicalGarmentRepository,
   ProductRepository,
+  WardrobeLifecycleRepository,
   WardrobeRepository,
   WardrobeRoadmapRepository,
+  type WardrobeItemServiceView,
 } from "@paon/database";
 import {
   asId,
@@ -104,6 +106,7 @@ export default async function CustomerDetailPage({
     new WardrobeRoadmapRepository(supabase).findByCustomer(customer.id),
   ]);
   const wardrobeRepo = new WardrobeRepository(supabase);
+  const wardrobeLifecycleRepo = new WardrobeLifecycleRepository(supabase);
   const wardrobeHistoryEntries = await Promise.all(
     wardrobeItems.map(async (item) => {
       const events = await wardrobeRepo.listOwnershipHistory(item.id);
@@ -114,6 +117,15 @@ export default async function CustomerDetailPage({
     string,
     readonly WardrobeOwnershipEvent[]
   > = Object.fromEntries(wardrobeHistoryEntries);
+  const wardrobeServiceViews = await Promise.all(
+    wardrobeItems.map((item) =>
+      wardrobeLifecycleRepo.projectItemServiceView(item),
+    ),
+  );
+  const wardrobeServiceViewsByItemId: Record<string, WardrobeItemServiceView> =
+    Object.fromEntries(
+      wardrobeServiceViews.map((view) => [view.item.id, view]),
+    );
   const garmentById = new Map(garments.map((garment) => [garment.id, garment]));
 
   /** Fit-tool values (Neiging, Kraag, Schouder R/L, etc.) are captured
@@ -598,6 +610,7 @@ export default async function CustomerDetailPage({
         customerId={customer.id}
         items={wardrobeItems}
         historyByItemId={wardrobeHistoryByItemId}
+        serviceViewsByItemId={wardrobeServiceViewsByItemId}
         catalogueProducts={catalogueProducts.map((product) => ({
           id: product.id,
           name: product.name,

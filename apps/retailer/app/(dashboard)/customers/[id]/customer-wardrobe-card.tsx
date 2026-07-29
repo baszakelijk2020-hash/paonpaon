@@ -1,8 +1,10 @@
 "use client";
 
+import type { WardrobeItemServiceView } from "@paon/database";
 import {
   GARMENT_CATEGORIES,
   WARDROBE_CONDITION_STATES,
+  fitFreshnessLabel,
   type WardrobeItem,
   type WardrobeOwnershipEvent,
 } from "@paon/domain";
@@ -26,12 +28,14 @@ export function CustomerWardrobeCard({
   customerId,
   items,
   historyByItemId,
+  serviceViewsByItemId,
   catalogueProducts,
   canManage,
 }: {
   customerId: string;
   items: readonly WardrobeItem[];
   historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
+  serviceViewsByItemId: Readonly<Record<string, WardrobeItemServiceView>>;
   catalogueProducts: readonly { id: string; name: string }[];
   canManage: boolean;
 }) {
@@ -53,8 +57,8 @@ export function CustomerWardrobeCard({
         </h2>
         <p className="text-sm text-[var(--color-stone-500)]">
           Owned pieces for this relationship. Distinct from physical garments
-          used for official fittings. External metadata stays reviewable and
-          never clones the catalogue.
+          used for official fittings. Self-scans and fit notes stay
+          self-reported; official freshness projects from garment fittings only.
         </p>
       </div>
 
@@ -100,6 +104,50 @@ export function CustomerWardrobeCard({
                 <p className="mt-1 text-xs text-[var(--color-stone-600)]">
                   Self-reported fit: {item.fitNotes}
                 </p>
+              ) : null}
+              {serviceViewsByItemId[item.id] ? (
+                <div className="mt-2 space-y-1 text-xs text-[var(--color-stone-600)]">
+                  <p>
+                    Official fit freshness:{" "}
+                    {fitFreshnessLabel(
+                      serviceViewsByItemId[item.id]!.fitFreshness.status,
+                    )}
+                    {serviceViewsByItemId[item.id]!.fitFreshness
+                      .lastOfficialMeasuredAt
+                      ? ` · measured ${new Date(
+                          serviceViewsByItemId[item.id]!.fitFreshness
+                            .lastOfficialMeasuredAt!,
+                        ).toLocaleDateString()}`
+                      : " · no official measurement"}
+                  </p>
+                  <p className="text-[var(--color-stone-500)]">
+                    {serviceViewsByItemId[item.id]!.fitFreshness.explanation}
+                  </p>
+                  {serviceViewsByItemId[item.id]!.selfScans[0] ? (
+                    <p>
+                      Latest self-scan (
+                      {serviceViewsByItemId[
+                        item.id
+                      ]!.selfScans[0]!.provenance.replaceAll("_", " ")}
+                      ): handoff{" "}
+                      {serviceViewsByItemId[
+                        item.id
+                      ]!.selfScans[0]!.serviceHandoffKind.replaceAll("_", " ")}
+                      {serviceViewsByItemId[item.id]!.selfScans[0]!.notes
+                        ? ` · ${serviceViewsByItemId[item.id]!.selfScans[0]!.notes}`
+                        : ""}
+                    </p>
+                  ) : null}
+                  {serviceViewsByItemId[item.id]!.longevityGuidance.length >
+                  0 ? (
+                    <p>
+                      Longevity:{" "}
+                      {serviceViewsByItemId[item.id]!.longevityGuidance.map(
+                        (guidance) => guidance.title,
+                      ).join(" · ")}
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
               {(historyByItemId[item.id] ?? []).length > 0 ? (
                 <details className="mt-1 text-xs text-[var(--color-stone-500)]">

@@ -55,6 +55,12 @@ export type WardrobeRoadmapId = Brand<string, "WardrobeRoadmapId">;
 export type WardrobeRoadmapGoalId = Brand<string, "WardrobeRoadmapGoalId">;
 export type WardrobeRoadmapGapId = Brand<string, "WardrobeRoadmapGapId">;
 export type WardrobeRoadmapStageId = Brand<string, "WardrobeRoadmapStageId">;
+export type WardrobeLifecycleEventId = Brand<
+  string,
+  "WardrobeLifecycleEventId"
+>;
+export type WardrobeSelfScanId = Brand<string, "WardrobeSelfScanId">;
+export type WardrobeAttachmentId = Brand<string, "WardrobeAttachmentId">;
 export type OrderId = Brand<string, "OrderId">;
 export type OrderLineId = Brand<string, "OrderLineId">;
 export type ProductionOrderId = Brand<string, "ProductionOrderId">;

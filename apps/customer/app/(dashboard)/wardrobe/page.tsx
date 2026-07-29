@@ -1,11 +1,14 @@
 import {
   CustomerRepository,
   RetailerRepository,
+  WardrobeLifecycleRepository,
   WardrobeRepository,
   WardrobeRoadmapRepository,
+  type WardrobeItemServiceView,
 } from "@paon/database";
 import type { WardrobeOwnershipEvent } from "@paon/domain";
 
+import { WardrobeLifecyclePanel } from "./lifecycle-panel";
 import { WardrobeRoadmapPanel } from "./roadmap-panel";
 import { WardrobeHousePanel } from "./wardrobe-panel";
 
@@ -22,6 +25,7 @@ export default async function WardrobePage() {
   const retailerRepo = new RetailerRepository(supabase);
   const wardrobeRepo = new WardrobeRepository(supabase);
   const roadmapRepo = new WardrobeRoadmapRepository(supabase);
+  const lifecycleRepo = new WardrobeLifecycleRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
@@ -38,7 +42,17 @@ export default async function WardrobePage() {
       const roadmaps = await roadmapRepo.findByCustomer(customer.id, {
         customerVisibleOnly: true,
       });
-      return { customer, retailer, items, historyByItemId, roadmaps };
+      const serviceViews: WardrobeItemServiceView[] = await Promise.all(
+        items.map((item) => lifecycleRepo.projectItemServiceView(item)),
+      );
+      return {
+        customer,
+        retailer,
+        items,
+        historyByItemId,
+        roadmaps,
+        serviceViews,
+      };
     }),
   );
 
@@ -50,8 +64,8 @@ export default async function WardrobePage() {
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           What you own with each house — purchases and external pieces, kept
-          separate from fitting garments — plus advisor roadmaps awaiting or
-          carrying your approval.
+          separate from fitting garments — plus fit freshness, longevity
+          guidance, self-scan, and advisor roadmaps.
         </p>
       </div>
 
@@ -66,7 +80,14 @@ export default async function WardrobePage() {
         </div>
       ) : (
         groups.map(
-          ({ customer, retailer, items, historyByItemId, roadmaps }) => (
+          ({
+            customer,
+            retailer,
+            items,
+            historyByItemId,
+            roadmaps,
+            serviceViews,
+          }) => (
             <div key={customer.id} className="flex flex-col gap-4">
               <WardrobeHousePanel
                 retailerId={customer.retailerId}
@@ -75,6 +96,7 @@ export default async function WardrobePage() {
                 items={items}
                 historyByItemId={historyByItemId}
               />
+              <WardrobeLifecyclePanel views={serviceViews} />
               <WardrobeRoadmapPanel
                 retailerName={retailer?.displayName ?? "Retailer"}
                 roadmaps={roadmaps}

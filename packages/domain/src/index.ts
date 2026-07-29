@@ -93,6 +93,8 @@ export * from "./intelligence/grounded-answer";
 
 export * from "./wardrobe/wardrobe";
 export * from "./wardrobe/wardrobe.schema";
+export * from "./wardrobe/lifecycle";
+export * from "./wardrobe/lifecycle.schema";
 export * from "./wardrobe/sartorial";
 export * from "./wardrobe/sartorial-fixtures";
 export * from "./wardrobe/outfit";
