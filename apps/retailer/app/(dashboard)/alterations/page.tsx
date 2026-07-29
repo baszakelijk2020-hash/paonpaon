@@ -209,7 +209,7 @@ export default async function AlterationsPage() {
                             {customerName}
                           </p>
                           {isDueSoon(alteration.dueDate) ? (
-                            <span className="bg-[var(--color-warning-500)]/20 rounded-full px-2 py-1 text-[10px] font-medium uppercase tracking-wide">
+                            <span className="bg-[var(--color-warning-500)]/20 rounded-[var(--radius-md)] px-2 py-1 text-[10px] font-medium uppercase tracking-wide">
                               Due soon
                             </span>
                           ) : null}

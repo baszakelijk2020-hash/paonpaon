@@ -164,7 +164,7 @@ export function AppShell({
         <main
           className={cn(
             "mx-auto w-full max-w-[92rem] px-4 py-7 sm:px-7 sm:py-10 lg:px-10 xl:px-14",
-            mobileDock ? "pb-24 md:pb-10" : "",
+            mobileDock ? "pb-24 lg:pb-10" : "",
           )}
         >
           {children}
@@ -174,14 +174,22 @@ export function AppShell({
       {mobileDock ? (
         <nav
           aria-label="Primary (mobile)"
-          className="fixed inset-x-0 bottom-0 z-50 grid border-t border-black/10 bg-[var(--color-stone-50)] pb-[env(safe-area-inset-bottom)] md:hidden"
+          className="fixed inset-x-0 bottom-0 z-50 grid border-t border-black/10 bg-[var(--color-stone-50)] pb-[env(safe-area-inset-bottom)] lg:hidden"
           style={{
             gridTemplateColumns: `repeat(${Math.min(mobileDock.length, 5)}, minmax(0, 1fr))`,
           }}
         >
           {mobileDock.map((item) => {
+            const longerMatch = mobileDock.some(
+              (other) =>
+                other.href !== item.href &&
+                other.href.length > item.href.length &&
+                (pathname === other.href ||
+                  pathname.startsWith(`${other.href}/`)),
+            );
             const active =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
+              !longerMatch &&
+              (pathname === item.href || pathname.startsWith(`${item.href}/`));
             return (
               <Link
                 key={`${item.href}:${item.label}`}

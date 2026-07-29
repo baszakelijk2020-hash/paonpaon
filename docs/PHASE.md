@@ -358,12 +358,10 @@ are an active polish stream until they match the `paon.html` aesthetic
 on mobile and desktop. Do not stop after one visual pass; fix P0/P1 gaps
 found, push, continue.
 
-**Active back-env polish (2026-07-29):** P0/P1 closed and pushed
-(`03d7b18`…`9998ee9`): mobile inbox list→thread, login/AuthShell radii,
-Client chrome labels, brand settings warm tokens, empty-state/list
-`radius-md`, hero scale, CTA/form chrome. Residual only: inventing
-alterations UI and fit-tools/silhouette (founder-blocked). Storefront
-front door untouched.
+**Active back-env polish (2026-07-29):** continuing — tablet dock/`lg`
+alignment, Badge radius-md, warm focus rings, inbox height above dock,
+wrapping page headers/composers. Residual founder-blocked: alterations
+invention, fit-tools/silhouette. Storefront front door untouched.
 
 **Save vs Generate (Studio).** Save alone updates live storefront story
 fields that are read from the prospect configuration at request time

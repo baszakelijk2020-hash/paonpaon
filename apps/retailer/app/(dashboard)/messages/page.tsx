@@ -121,7 +121,7 @@ export default async function MessagesPage({
   }
 
   return (
-    <div className="grid h-[calc(100vh-6rem)] grid-cols-1 gap-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] shadow-[var(--shadow-elevated)] lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_20rem]">
+    <div className="grid h-[calc(100dvh-10.5rem)] grid-cols-1 gap-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] shadow-[var(--shadow-elevated)] lg:h-[calc(100vh-6rem)] lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_20rem]">
       <div
         className={`border-[var(--color-stone-200)] bg-white lg:border-r ${
           explicitSelection ? "max-lg:hidden" : ""
@@ -230,16 +230,18 @@ export default async function MessagesPage({
                 name="conversationId"
                 value={activeConversation.id}
               />
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <textarea
                   name="body"
                   required
                   maxLength={5000}
                   aria-label="Message"
-                  className="min-h-16 flex-1 resize-none rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink-600)] focus-visible:ring-offset-2"
+                  className="min-h-16 flex-1 resize-none rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
                   placeholder="Write a reply — ⌘/Ctrl+Enter to send"
                 />
-                <Button type="submit">Send</Button>
+                <Button type="submit" className="sm:self-end">
+                  Send
+                </Button>
               </div>
               <AttachFileInput />
             </form>

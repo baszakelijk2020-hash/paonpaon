@@ -38,8 +38,8 @@ export default async function MessagesPage() {
       </div>
       {rows.map(({ customer, retailer, conversation }) => (
         <Card key={customer.id}>
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
               <h2 className="font-medium">
                 {retailer?.displayName ?? "Retailer"}
               </h2>

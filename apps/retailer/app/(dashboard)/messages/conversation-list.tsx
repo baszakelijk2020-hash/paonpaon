@@ -57,7 +57,7 @@ export function ConversationList({
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search conversations…"
           aria-label="Search conversations"
-          className="w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink-600)]"
+          className="w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)]"
         />
         <div
           className="mt-2 flex gap-1"
@@ -77,7 +77,7 @@ export function ConversationList({
                   : "text-[var(--color-stone-500)] hover:bg-[var(--color-stone-100)]"
               }`}
             >
-              {value === "awaiting" ? "Awaiting reply" : value}
+              {value === "awaiting" ? "Awaiting" : value}
             </button>
           ))}
         </div>
@@ -93,7 +93,7 @@ export function ConversationList({
             <Link
               href={`/messages?c=${item.id}`}
               aria-current={selectedId === item.id ? "true" : undefined}
-              className={`flex flex-col gap-1 border-b border-[var(--color-stone-100)] px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-ink-600)] ${
+              className={`flex flex-col gap-1 border-b border-[var(--color-stone-100)] px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-stone-900)] ${
                 selectedId === item.id
                   ? "bg-[var(--color-stone-100)]"
                   : "hover:bg-[var(--color-stone-50)]"

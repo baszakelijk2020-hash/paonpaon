@@ -12,7 +12,7 @@ export function InviteLink({ url }: { url: string }) {
         readOnly
         value={url}
         onFocus={(event) => event.currentTarget.select()}
-        className="flex-1 rounded-[var(--radius-sm)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)] px-3 py-2 text-sm text-[var(--color-stone-700)]"
+        className="flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)] px-3 py-2 text-sm text-[var(--color-stone-700)]"
       />
       <Button
         type="button"

@@ -35,7 +35,7 @@ export default async function SettingsPage() {
           Business profile and billing address. Slug, tier, subscription and
           currency are managed by PAON Admin.
         </p>
-        <div className="mt-2 flex gap-4">
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
           <Link href="/settings/brand" className="text-sm underline">
             Brand configuration →
           </Link>

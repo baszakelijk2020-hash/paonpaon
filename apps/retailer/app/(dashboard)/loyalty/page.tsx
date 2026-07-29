@@ -104,7 +104,7 @@ export default async function LoyaltyPage() {
           <Input name="name" placeholder="Complimentary alteration" required />
           <select
             name="type"
-            className="h-10 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 text-sm"
+            className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
           >
             <option value="gift">Gift</option>
             <option value="discount_fixed">Fixed discount</option>
@@ -120,7 +120,7 @@ export default async function LoyaltyPage() {
           />
           <select
             name="minimumTier"
-            className="h-10 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 text-sm"
+            className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
           >
             <option value="">All tiers</option>
             <option value="silver">Silver</option>
@@ -137,7 +137,7 @@ export default async function LoyaltyPage() {
             {rewards.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between rounded-[var(--radius-sm)] px-2 py-3 transition-colors duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:bg-[var(--color-stone-50)]"
+                className="flex items-center justify-between rounded-[var(--radius-md)] px-2 py-3 transition-colors duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] hover:bg-[var(--color-stone-50)]"
               >
                 <div>
                   <p className="font-medium text-[var(--color-stone-900)]">

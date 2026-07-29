@@ -24,7 +24,7 @@ export default async function StaffPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
             Staff
@@ -33,7 +33,7 @@ export default async function StaffPage() {
             {staff.length} staff member{staff.length === 1 ? "" : "s"}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link
             href="/staff/roster"
             className={buttonVariants({ variant: "outline" })}

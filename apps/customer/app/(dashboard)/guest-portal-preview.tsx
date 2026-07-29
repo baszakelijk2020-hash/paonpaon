@@ -24,7 +24,7 @@ export function GuestPortalPreview({
       <Card className="overflow-hidden border-0 bg-[#1a1a1a] p-0 text-white shadow-none">
         <div className="relative min-h-[16rem] px-6 py-7 sm:min-h-[18rem] sm:px-10 sm:py-12">
           <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-white/45">
-            Private client
+            Preview
           </p>
           <h1 className="font-display mt-4 max-w-xl text-3xl leading-[0.95] tracking-[-0.03em] sm:text-5xl">
             Your wardrobe, beautifully in motion.

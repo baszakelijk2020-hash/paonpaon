@@ -151,7 +151,7 @@ export function PreferencesForm({
             name="styleNotes"
             defaultValue={v["styleNotes"] as string}
             rows={3}
-            className="w-full rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] bg-white px-3 py-2 text-sm text-[var(--color-stone-900)] transition-colors duration-150 ease-[var(--ease-out-quiet)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ink-600)] focus-visible:ring-offset-2"
+            className="w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 py-2 text-sm text-[var(--color-stone-900)] transition-colors duration-150 ease-[var(--ease-out-quiet)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
           />
         </FormField>
 

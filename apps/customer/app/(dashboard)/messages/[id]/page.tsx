@@ -47,16 +47,18 @@ export default async function ConversationPage({
           </div>
         ))}
       </Card>
-      <form action={sendMessage} className="flex gap-2">
+      <form action={sendMessage} className="flex flex-col gap-2 sm:flex-row">
         <input type="hidden" name="conversationId" value={conversation.id} />
         <textarea
           name="body"
           required
           maxLength={5000}
-          className="min-h-20 flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
+          className="min-h-20 flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
           placeholder="Write a message"
         />
-        <Button type="submit">Send</Button>
+        <Button type="submit" className="sm:self-end">
+          Send
+        </Button>
       </form>
     </div>
   );

@@ -67,7 +67,7 @@ export default async function NewWeddingPartyPage({
               id="notes"
               name="notes"
               maxLength={2000}
-              className="min-h-24 rounded-[var(--radius-sm)] border border-[var(--color-stone-200)] p-3 text-sm"
+              className="min-h-24 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm"
             />
           </FormField>
           <Button type="submit" className="self-start">

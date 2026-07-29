@@ -23,14 +23,14 @@ export default async function NotificationsPage() {
           Service and relationship updates.
         </p>
       </div>
-      <Card className="divide-y p-0">
+      <Card className="divide-y overflow-hidden p-0 shadow-[var(--shadow-elevated)]">
         {items.map((item) => (
           <div
             key={item.id}
             className={`px-6 py-4 ${item.readAt ? "opacity-60" : ""}`}
           >
-            <div className="flex justify-between gap-4">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+              <div className="min-w-0">
                 <p className="font-medium">{item.title}</p>
                 <p className="text-sm text-[var(--color-stone-600)]">
                   {item.body}
