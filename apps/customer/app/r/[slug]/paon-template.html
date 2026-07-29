@@ -4089,6 +4089,7 @@ __PAON_HERO_HTML__
     */
 const products = __PAON_PRODUCTS_JSON__;
 const PAON_KNOWLEDGE_BY_PRODUCT = __PAON_KNOWLEDGE_BY_PRODUCT_JSON__;
+const PAON_CATALOGUE = __PAON_CATALOGUE_JSON__;
 
     // hardcoded exclusions and 9197 image override, applied statically to this build
     for (let i = products.length - 1; i >= 0; i--) {
@@ -5637,6 +5638,31 @@ function renderGrid() {
         return true;
     }
 
+    function paonMountCatalogueIntentNote() {
+        var catalogue = (typeof PAON_CATALOGUE !== 'undefined' && PAON_CATALOGUE) ? PAON_CATALOGUE : null;
+        if (!catalogue || !catalogue.searchQuery) return;
+        var hero = document.querySelector('.paon-retailer-hero') || document.querySelector('.paon-story') || document.getElementById('sidebar-logo');
+        if (!hero || !hero.parentNode) return;
+        var note = document.getElementById('paon-catalogue-intent-note');
+        if (!note) {
+            note = document.createElement('p');
+            note.id = 'paon-catalogue-intent-note';
+            note.className = 'paon-catalogue-note';
+            note.style.cssText = 'margin:6px 12px 0;font-size:10px;line-height:1.35;letter-spacing:.04em;text-transform:uppercase;opacity:.45;font-family:var(--font-retailer-body),system-ui,sans-serif;';
+            note.setAttribute('role', 'status');
+            hero.parentNode.insertBefore(note, hero.nextSibling);
+        }
+        var intent = catalogue.intent;
+        if (!intent) {
+            note.hidden = true;
+            return;
+        }
+        note.hidden = false;
+        note.textContent = intent.status === 'resolved'
+            ? intent.explanation
+            : (intent.fallbackReason || intent.explanation);
+    }
+
     function paonMountKnowledgePanels(productId) {
         var byProduct = (typeof PAON_KNOWLEDGE_BY_PRODUCT !== 'undefined' && PAON_KNOWLEDGE_BY_PRODUCT)
             ? PAON_KNOWLEDGE_BY_PRODUCT
@@ -6707,6 +6733,7 @@ function renderGrid() {
         initModernButtonHoverTransitions();
         renderCategories();
         renderGrid();
+        paonMountCatalogueIntentNote();
         var toggleBtn = document.getElementById('detail-toggle-btn');
         var toggleIcon = document.getElementById('detail-toggle-icon');
         var hideBtn = document.getElementById('detail-hide-btn');
