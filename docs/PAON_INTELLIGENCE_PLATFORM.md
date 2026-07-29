@@ -42,8 +42,8 @@ requires it.
   complete); `8e321ac` adds private offers and seven-day wardrobe campaigns
   (PHASE 5.1 complete); `36fecc5` adds tailoring milestones on the loyalty
   ledger (PHASE 5.2 complete); `437a49e` adds Preferred Tailoring and
-  HighMaintenance concierge operations (PHASE 5.3 complete); Tie-Mate domain
-  deck/photo/handoff contract under ADR-065 (PHASE 5.4 foundation).
+  HighMaintenance concierge operations (PHASE 5.3 complete); `6842fb5` adds
+  Tie-Mate domain deck/photo/handoff under ADR-065 (PHASE 5.4 foundation).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task

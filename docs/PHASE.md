@@ -637,14 +637,15 @@ explanation path.
     blocked until an approved mobile surface exists under ADR-052 (or the
     founder explicitly names an interim route). Stages 2–3 already shipped the
     reusable catalogue, discovery, stock, shortlist, and advisor foundations.
-  - **Landed (foundation):** `@paon/domain` `buildTieMateDeck` /
+  - **Landed (foundation):** `6842fb5` — `@paon/domain` `buildTieMateDeck` /
     `resolveTieMateFabricImage` / `buildTieMateActionPaths` /
     `resolveTieConceptIds` with unit coverage — swatch-preferred fabric
     photos, neckwear concept filter, stock truth, shortlist pin order, and
     handoffs into existing product/swipe/appointment/message paths.
-    **Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
-    duplicate loyalty ledger, service state hidden in generic order status, or
-    invented founder-designed surface.
+
+**Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
+duplicate loyalty ledger, service state hidden in generic order status, or
+invented founder-designed surface.
 
 ### Stage 6 — Later commerce capabilities
 
