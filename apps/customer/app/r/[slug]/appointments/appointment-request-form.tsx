@@ -1,6 +1,6 @@
 "use client";
 
-import { APPOINTMENT_TYPES } from "@paon/domain";
+import { APPOINTMENT_TYPES, APPOINTMENT_TYPE_LABELS } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { DateTimePicker } from "@paon/ui/components/DateTimePicker";
 import { FormField } from "@paon/ui/components/FormField";
@@ -45,7 +45,7 @@ export function AppointmentRequestForm({
         <Select id="type" name="type" defaultValue={APPOINTMENT_TYPES[0]}>
           {APPOINTMENT_TYPES.map((type) => (
             <option key={type} value={type}>
-              {type.replaceAll("_", " ")}
+              {APPOINTMENT_TYPE_LABELS[type]}
             </option>
           ))}
         </Select>

@@ -3,6 +3,7 @@ import {
   CustomerRepository,
   RetailerRepository,
 } from "@paon/database";
+import { APPOINTMENT_TYPE_LABELS } from "@paon/domain";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
@@ -74,8 +75,8 @@ export default async function AppointmentsPage() {
                 <p className="font-medium text-[var(--color-stone-900)]">
                   {retailers[index]?.displayName ?? "Unknown retailer"}
                 </p>
-                <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                  {appointment.type.replaceAll("_", " ")} ·{" "}
+                <p className="text-sm text-[var(--color-stone-500)]">
+                  {APPOINTMENT_TYPE_LABELS[appointment.type]} ·{" "}
                   {formatDate(appointment.startsAt, "en-US")}
                 </p>
               </div>

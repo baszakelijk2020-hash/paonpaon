@@ -12,6 +12,14 @@ export const APPOINTMENT_TYPES = [
 
 export const appointmentTypeSchema = z.enum(APPOINTMENT_TYPES);
 
+export const APPOINTMENT_TYPE_LABELS: Record<AppointmentType, string> = {
+  styling_consultation: "Styling consultation",
+  fitting: "Fitting",
+  alteration_fitting: "Alteration fitting",
+  personal_shopping: "Personal shopping",
+  event: "In-store event",
+};
+
 export const APPOINTMENT_STATUSES = [
   "requested",
   "confirmed",

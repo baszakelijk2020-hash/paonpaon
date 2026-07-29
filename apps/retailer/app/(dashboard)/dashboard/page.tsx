@@ -11,6 +11,7 @@ import {
   StaffRosterRepository,
 } from "@paon/database";
 import {
+  APPOINTMENT_TYPE_LABELS,
   retailerRoleAtLeast,
   retailerRoleHasAlterationsPermission,
   type RetailerRole,
@@ -591,8 +592,8 @@ export default async function DashboardPage() {
                             </span>
                           ) : null}
                         </p>
-                        <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                          {appointment.type.replaceAll("_", " ")}
+                        <p className="text-sm text-[var(--color-stone-500)]">
+                          {APPOINTMENT_TYPE_LABELS[appointment.type]}
                         </p>
                       </div>
                       <span aria-hidden="true">→</span>

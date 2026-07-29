@@ -6,7 +6,11 @@ import {
   PhysicalGarmentRepository,
   RetailerStaffRepository,
 } from "@paon/database";
-import { asId, retailerRoleAtLeast } from "@paon/domain";
+import {
+  asId,
+  APPOINTMENT_TYPE_LABELS,
+  retailerRoleAtLeast,
+} from "@paon/domain";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
@@ -78,8 +82,8 @@ export default async function AppointmentDetailPage({
             <h1 className="font-display mt-4 text-3xl leading-none sm:text-4xl">
               {customer?.fullName ?? "Unknown customer"}
             </h1>
-            <p className="mt-4 text-sm capitalize text-white/65">
-              {appointment.type.replaceAll("_", " ")} ·{" "}
+            <p className="mt-4 text-sm text-white/65">
+              {APPOINTMENT_TYPE_LABELS[appointment.type]} ·{" "}
               {formatDate(appointment.startsAt, "en-US")} ·{" "}
               {new Date(appointment.startsAt).toLocaleTimeString("en-US", {
                 hour: "numeric",

@@ -9,7 +9,11 @@ import {
   OrderRepository,
   PhysicalGarmentRepository,
 } from "@paon/database";
-import { asId, retailerRoleAtLeast } from "@paon/domain";
+import {
+  asId,
+  APPOINTMENT_TYPE_LABELS,
+  retailerRoleAtLeast,
+} from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -302,8 +306,9 @@ export default async function CustomerDetailPage({
           </p>
           {nextAppointment ? (
             <>
-              <h2 className="font-display mt-3 text-3xl capitalize">
-                Prepare the {nextAppointment.type.replaceAll("_", " ")}
+              <h2 className="font-display mt-3 text-3xl">
+                Prepare the{" "}
+                {APPOINTMENT_TYPE_LABELS[nextAppointment.type].toLowerCase()}
               </h2>
               <p className="mt-2 text-sm text-[var(--color-stone-500)]">
                 {formatDate(nextAppointment.startsAt, "en-US")} ·{" "}
@@ -482,7 +487,7 @@ export default async function CustomerDetailPage({
               ...appointments.map((item) => ({
                 id: `appointment-${item.id}`,
                 at: item.startsAt,
-                title: item.type.replaceAll("_", " "),
+                title: APPOINTMENT_TYPE_LABELS[item.type],
                 detail: item.status.replaceAll("_", " "),
               })),
               ...garments.map((item) => ({

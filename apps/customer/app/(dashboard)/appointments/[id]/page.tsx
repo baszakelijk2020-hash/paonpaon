@@ -1,5 +1,5 @@
 import { AppointmentRepository, RetailerRepository } from "@paon/database";
-import { asId } from "@paon/domain";
+import { asId, APPOINTMENT_TYPE_LABELS } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import { notFound } from "next/navigation";
@@ -38,8 +38,8 @@ export default async function AppointmentDetailPage({
           </h1>
           <AppointmentStatusBadge status={appointment.status} />
         </div>
-        <p className="text-sm capitalize text-[var(--color-stone-500)]">
-          {appointment.type.replaceAll("_", " ")}
+        <p className="text-sm text-[var(--color-stone-500)]">
+          {APPOINTMENT_TYPE_LABELS[appointment.type]}
         </p>
       </div>
 

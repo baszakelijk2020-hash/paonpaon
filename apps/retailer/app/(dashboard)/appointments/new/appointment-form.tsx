@@ -1,6 +1,6 @@
 "use client";
 
-import { APPOINTMENT_TYPES } from "@paon/domain";
+import { APPOINTMENT_TYPES, APPOINTMENT_TYPE_LABELS } from "@paon/domain";
 import type { Customer, RetailerStaffMember } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -78,7 +78,7 @@ export function AppointmentForm({
             >
               {APPOINTMENT_TYPES.map((type) => (
                 <option key={type} value={type}>
-                  {type.replaceAll("_", " ")}
+                  {APPOINTMENT_TYPE_LABELS[type]}
                 </option>
               ))}
             </Select>
