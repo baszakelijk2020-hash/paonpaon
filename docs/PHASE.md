@@ -364,6 +364,14 @@ Demo Studio cool `stone-*` / soft radii replaced with paon tokens
 (`36fba0a`, `dbaeb41`). Still skip Stripe / Resend / silhouette /
 inventing alterations.
 
+**Also (2026-07-29 continuous — UX audit close-out):** Demo access-code
+copy chip; marketing sample framing; store readiness checklist; in-app
+email honesty; empty-state Create CTAs; leftover Inbox/Catalogue/Staff
+copy. Agent-buildable UX audit Quick/Medium queue exhausted. Remaining
+Major items are hard blockers or out of freeze (POS, MTM, returns,
+offline, Stripe/Resend keys, alterations invent, day calendar redesign,
+guest wishlist invent, dual PDP).
+
 **Also (2026-07-29 continuous — UX audit Medium):** Prospect contact edit
 on Demo Studio; Mission Control next/due-soon appointment emphasis +
 low-stock attention tile; sticky submit on staff/client/product forms;

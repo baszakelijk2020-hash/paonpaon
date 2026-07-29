@@ -35,6 +35,8 @@ export interface DemoEnvironmentActionState {
   outreachPack?: string;
   /** Opens the founder's mail client with a cold-email draft (no Resend). */
   prospectMailtoHref?: string;
+  /** Echoed once after generate so the UI can offer Copy without re-reading the form. */
+  accessCode?: string;
 }
 
 const ALLOWED_ASSET_TYPES = [
@@ -292,6 +294,7 @@ export async function generateDemoEnvironment(
       success: `Branded demo retailer ready at /r/${seeded.slug}. Review the live storefront before publishing.`,
       outreachPack,
       prospectMailtoHref,
+      accessCode,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";

@@ -1,5 +1,11 @@
 import { requireRetailerRole } from "@paon/auth";
-import { RetailerRepository } from "@paon/database";
+import {
+  AvailabilityWindowRepository,
+  RetailerRepository,
+  RetailerStaffRepository,
+  RetailerStripeAccountRepository,
+} from "@paon/database";
+import { Card } from "@paon/ui/components/Card";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
@@ -25,6 +31,56 @@ export default async function SettingsPage() {
     notFound();
   }
 
+  const [stripeAccount, staff, availability] = await Promise.all([
+    new RetailerStripeAccountRepository(supabase).findByRetailer(
+      session.retailerId,
+    ),
+    new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
+    new AvailabilityWindowRepository(supabase).findByRetailer(
+      session.retailerId,
+    ),
+  ]);
+
+  const brandReady = Boolean(
+    retailer.brandTheme.logoUrl || retailer.brandTheme.heroImageUrl,
+  );
+  const paymentsReady = Boolean(stripeAccount?.chargesEnabled);
+  const teamReady = staff.some((member) => member.acceptedAt);
+  const hoursReady = availability.length > 0;
+
+  const checklist = [
+    {
+      label: "Brand",
+      detail: brandReady ? "Logo or theme set" : "Add logo and brand colours",
+      href: "/settings/brand",
+      done: brandReady,
+    },
+    {
+      label: "Payments",
+      detail: paymentsReady
+        ? "Charges enabled"
+        : "Connect Stripe to take online payment",
+      href: "/settings/payments",
+      done: paymentsReady,
+    },
+    {
+      label: "Team",
+      detail: teamReady
+        ? `${staff.filter((m) => m.acceptedAt).length} active`
+        : "Invite at least one teammate",
+      href: "/staff",
+      done: teamReady,
+    },
+    {
+      label: "Hours",
+      detail: hoursReady
+        ? `${availability.length} availability window${availability.length === 1 ? "" : "s"}`
+        : "Set appointment availability",
+      href: "/appointments/availability",
+      done: hoursReady,
+    },
+  ] as const;
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -47,6 +103,46 @@ export default async function SettingsPage() {
           </Link>
         </div>
       </div>
+
+      <Card className="overflow-hidden p-0">
+        <div className="border-b border-[var(--color-stone-100)] px-5 py-4">
+          <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            Store readiness
+          </p>
+          <p className="mt-1 text-sm text-[var(--color-stone-600)]">
+            Four checks before a prospect or client judges the house ready.
+          </p>
+        </div>
+        <ul className="divide-y divide-[var(--color-stone-100)]">
+          {checklist.map((item) => (
+            <li key={item.label}>
+              <Link
+                href={item.href}
+                className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-stone-50)]"
+              >
+                <div>
+                  <p className="font-medium text-[var(--color-stone-900)]">
+                    {item.label}
+                  </p>
+                  <p className="text-sm text-[var(--color-stone-500)]">
+                    {item.detail}
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 text-xs uppercase tracking-wide ${
+                    item.done
+                      ? "text-[var(--color-success-500)]"
+                      : "text-[var(--color-warning-500)]"
+                  }`}
+                >
+                  {item.done ? "Ready" : "Todo"}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
       <SettingsForm retailer={retailer} />
     </div>
   );

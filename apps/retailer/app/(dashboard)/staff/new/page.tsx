@@ -25,8 +25,9 @@ export default async function NewStaffPage() {
           Invite teammate
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          They&rsquo;ll receive an email invite to set a password and sign in to
-          the Retailer Portal.
+          They&rsquo;ll receive an Auth invite to set a password. If email
+          delivery is not configured yet, share the invite link from Supabase
+          Auth manually.
         </p>
       </div>
       <StaffForm workshops={workshops} />

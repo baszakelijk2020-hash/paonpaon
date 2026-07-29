@@ -3,6 +3,7 @@ import {
   CustomerRepository,
   RetailerRepository,
 } from "@paon/database";
+import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
@@ -35,6 +36,14 @@ export default async function AppointmentsPage() {
     ),
   );
 
+  const primaryCustomer = customers[0];
+  const primaryRetailer = primaryCustomer
+    ? await retailerRepo.findById(primaryCustomer.retailerId)
+    : null;
+  const bookHref = primaryRetailer
+    ? `/r/${primaryRetailer.slug}`
+    : "/r/maison-dubois";
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
@@ -44,9 +53,14 @@ export default async function AppointmentsPage() {
       {appointments.length === 0 ? (
         <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
           <p className="text-[var(--color-stone-600)]">
-            No appointments yet. Visit a retailer&rsquo;s storefront to request
-            one.
+            No appointments yet. Book a fitting from the storefront.
           </p>
+          <Link
+            href={bookHref}
+            className={buttonVariants({ className: "mt-6" })}
+          >
+            Book a fitting
+          </Link>
         </div>
       ) : (
         <Card className="divide-y divide-[var(--color-stone-100)] p-0">

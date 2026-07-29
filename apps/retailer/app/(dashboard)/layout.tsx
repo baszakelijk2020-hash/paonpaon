@@ -151,7 +151,7 @@ export default async function DashboardLayout({
                     {
                       href: "/events",
                       label: "Events",
-                      description: "Invitations and attendance",
+                      description: "Previews and RSVPs",
                     },
                   ]
                 : []),
@@ -167,12 +167,12 @@ export default async function DashboardLayout({
               {
                 href: "/products",
                 label: "Products",
-                description: "Catalogue, imagery and availability",
+                description: "Imagery and availability",
               },
               {
                 href: "/collections",
                 label: "Collections",
-                description: "Editorial product stories",
+                description: "Group products for storefront",
               },
               {
                 href: "/analytics",

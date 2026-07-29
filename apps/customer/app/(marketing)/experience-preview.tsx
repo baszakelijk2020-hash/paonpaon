@@ -51,7 +51,7 @@ export function ExperiencePreview() {
   return (
     <div className="overflow-hidden rounded-[var(--radius-xl)] border border-black/10 bg-[#ededea] shadow-[0_20px_60px_rgba(0,0,0,.2)]">
       <p className="border-b border-black/10 px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-black/45">
-        Illustrative preview — not live customer data.{" "}
+        Sample product story — illustrative metrics, not a live workspace.{" "}
         <Link href="/r/maison-dubois" className="underline underline-offset-2">
           Open the live store
         </Link>
@@ -93,14 +93,18 @@ export function ExperiencePreview() {
             <p className="mt-5 max-w-xl text-sm leading-6 text-white/65">
               {view.note}
             </p>
-            <button className="mt-7 min-h-11 rounded-[var(--radius-md)] bg-white px-5 text-xs font-medium text-black">
-              {view.action} →
+            <button
+              type="button"
+              disabled
+              className="mt-7 min-h-11 cursor-not-allowed rounded-[var(--radius-md)] bg-white/80 px-5 text-xs font-medium text-black/70"
+            >
+              {view.action} (sample)
             </button>
           </div>
           <div className="mt-4 grid grid-cols-3 overflow-hidden rounded-[var(--radius-xl)] border border-black/10 bg-white">
             {view.metrics.map(([label, value]) => (
               <div key={label} className="border-r p-4 last:border-r-0">
-                <p className="text-[10px] text-black/45">{label}</p>
+                <p className="text-[10px] text-black/45">Sample · {label}</p>
                 <p className="mt-2 text-xs font-medium sm:text-sm">{value}</p>
               </div>
             ))}

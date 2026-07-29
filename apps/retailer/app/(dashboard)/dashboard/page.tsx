@@ -221,7 +221,7 @@ export default async function DashboardPage() {
             </Link>
             <Link
               href="/messages"
-              aria-label="Inbox"
+              aria-label="Messages"
               className="relative text-white/60 hover:text-white"
             >
               <svg
@@ -397,7 +397,9 @@ export default async function DashboardPage() {
                 href: "/messages",
                 label: "Messages",
                 detail:
-                  unreadCount > 0 ? `${unreadCount} waiting` : "Client inbox",
+                  unreadCount > 0
+                    ? `${unreadCount} waiting`
+                    : "Client messages",
                 show: !["workshop_manager", "worker"].includes(
                   session.retailerRole,
                 ),
@@ -417,7 +419,7 @@ export default async function DashboardPage() {
                 detail:
                   lowStockCount > 0
                     ? `${lowStockCount} low stock`
-                    : "Catalogue and imagery",
+                    : "Imagery and availability",
                 show: retailerRoleAtLeast(session.retailerRole, "manager"),
               },
               {
@@ -429,13 +431,13 @@ export default async function DashboardPage() {
               {
                 href: "/loyalty",
                 label: "Loyalty",
-                detail: "Recognition and rewards",
+                detail: "Status and rewards",
                 show: retailerRoleAtLeast(session.retailerRole, "manager"),
               },
               {
                 href: "/events",
                 label: "Events",
-                detail: "Invitations",
+                detail: "Previews and RSVPs",
                 show: retailerRoleAtLeast(session.retailerRole, "manager"),
               },
               {

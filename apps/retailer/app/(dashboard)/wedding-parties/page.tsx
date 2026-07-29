@@ -1,5 +1,6 @@
 import { CustomerRepository, WeddingPartyRepository } from "@paon/database";
 import { Badge } from "@paon/ui/components/Badge";
+import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate, humaniseStatus } from "@paon/utils";
 import Image from "next/image";
@@ -84,9 +85,14 @@ export default async function WeddingPartiesPage() {
           </Link>
         ))}
         {parties.length === 0 ? (
-          <p className="p-6 text-sm text-[var(--color-stone-500)]">
-            No wedding parties yet — start one from a customer&rsquo;s record.
-          </p>
+          <div className="flex flex-col items-start gap-3 p-6">
+            <p className="text-sm text-[var(--color-stone-500)]">
+              No wedding parties yet — start one from a client record.
+            </p>
+            <Link href="/customers" className={buttonVariants()}>
+              Open Clients
+            </Link>
+          </div>
         ) : null}
       </Card>
     </div>

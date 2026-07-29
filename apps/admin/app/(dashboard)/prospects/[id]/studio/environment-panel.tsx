@@ -176,6 +176,29 @@ export function EnvironmentPanel({
           {state.success}
         </p>
       ) : null}
+      {state.accessCode ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
+              Access code (shown once here)
+            </p>
+            <p className="mt-1 font-mono text-lg text-[var(--color-stone-900)]">
+              {state.accessCode}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-4 text-sm"
+            onClick={() => {
+              void navigator.clipboard.writeText(state.accessCode ?? "");
+              setCopied("access-code");
+              window.setTimeout(() => setCopied(undefined), 1800);
+            }}
+          >
+            {copied === "access-code" ? "Copied" : "Copy access code"}
+          </button>
+        </div>
+      ) : null}
       {outreachPack ? (
         <div className="bg-[var(--color-success-500)]/10 mt-4 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">

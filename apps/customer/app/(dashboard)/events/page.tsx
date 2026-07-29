@@ -41,7 +41,7 @@ export default async function MyEventsPage() {
           Events
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Invitations you have received, and your responses.
+          Events you have been invited to, and your responses.
         </p>
       </div>
       {rows.map(({ rsvp, event, retailer }) =>
