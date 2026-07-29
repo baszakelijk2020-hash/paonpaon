@@ -50,17 +50,15 @@
 
 ## Archive (`docs/archive/`)
 
-`SUMMARY.md`, `PROPOSAL_GENERATION.md`, `CLAUDE_HANDOFF.md` — **obsolete /
-archived**; do not treat as current.
+All of `docs/archive/**` is **obsolete** ([archive/README.md](../archive/README.md)).
+Includes false proposals, Made-to-Munro root orphans, and dead Prisma/SQL
+scaffolds. Never treat as current guidance.
 
-## Root orphans (outside `docs/`)
+## Root orphans (resolved 2026-07-29, ADR-057)
 
-| File                   | Status                                                                     |
-| ---------------------- | -------------------------------------------------------------------------- |
-| `/ROADMAP.md`          | Stale Made-to-Munro plan — **duplicates/conflicts** with `docs/ROADMAP.md` |
-| `/CURRENT_STATE.md`    | Stale Phase 0 tracker — **obsolete**                                       |
-| `/AUDIT_LOG.md`        | Tiny stub — low value                                                      |
-| `prisma/schema.prisma` | Dead schema — not documentation but confuses architecture readers          |
+Former root `ROADMAP.md`, `CURRENT_STATE.md`, `AUDIT_LOG.md`, `prisma/`, and
+`combined_schema.sql` now live under `docs/archive/`. Live sequencing is
+only `docs/ROADMAP.md`. Documentation constitution: [docs/README.md](../README.md).
 
 ## Owner
 
@@ -69,10 +67,10 @@ maintain per WORKING_AGREEMENT / CLAUDE.md.
 
 ## Merge recommendations (documentation only)
 
-1. **Delete or clearly quarantine** root `ROADMAP.md` + `CURRENT_STATE.md` (or
-   move to `docs/archive/` with banner) — they contradict live docs.
+1. ~~Quarantine root Made-to-Munro trackers~~ **Done (ADR-057).**
 2. Treat `PROJECT_STATE` “Shipped:” sections as needing a verification pass
-   (ADR-051) rather than merging into VISION.
+   (ADR-051) rather than merging into VISION — still open; prefer
+   `ai_snapshot` + code.
 3. Keep `docs/vision/` separate from `docs/ai_snapshot/` (destination vs as-built).
 4. Do **not** merge ADRs; they are append-only by rule.
 5. EXPERIENCE_REBUILD vs PHASE: leave both; PHASE already subordinates rebuild.

@@ -1,3 +1,5 @@
+> **Obsolete / archived.** Not authoritative. See [README.md](./README.md). Live constitution: [../../README.md](../../README.md).
+
 # Adobe Muse Tools Implementation Plan
 
 ## Overview

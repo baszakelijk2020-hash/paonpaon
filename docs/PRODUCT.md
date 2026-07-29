@@ -77,8 +77,10 @@ explicitly rather than inferred:
 
 - An **Order** is the commercial record — what was bought, for how
   much, its fulfillment status.
-- A **ProductionOrder** tracks manufacturing of one made-to-order line
-  within an order. Not every order line has one.
+- A **ProductionOrder** is the _intended_ manufacturing-status projection
+  for a made-to-order line. The domain type exists; **persistence and
+  supplier connectors are not built yet** (see DOMAIN_MODEL persistence
+  note). Do not describe it as a live table.
 - An **Alteration** tracks a fit change, which may be tied to a
   fulfilled order line or requested independently, on a past purchase.
 

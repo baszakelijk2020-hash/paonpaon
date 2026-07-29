@@ -1,3 +1,5 @@
+> **Obsolete / archived.** Not authoritative. See [README.md](./README.md). Live constitution: [../../README.md](../../README.md).
+
 # Audit Log - Made to Munro Platform
 
 ## 2026-07-24 - Project Initialization

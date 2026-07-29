@@ -1506,7 +1506,7 @@ and route-by-route acceptance status). Summary of what's real and live:
   this environment at any point this document was written. Same
   disclosed limitation as every other slice in this file.
 - **Not real**: a documented "Private Proposal Generation Service"
-  (`docs/PROPOSAL_GENERATION.md`) — its implementation was broken
+  (`docs/archive/PROPOSAL_GENERATION.md`) — its implementation was broken
   (failed `tsc`, wrong import paths, a Jest-authored test in a Vitest
   project, zero references from any real route) and its UI lived in a
   duplicate `apps/customer/src/app/` tree that collided with the real

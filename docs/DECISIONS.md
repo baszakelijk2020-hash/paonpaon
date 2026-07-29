@@ -2505,3 +2505,39 @@ using ROADMAP Horizons; they must refuse to build those pillars while
 PHASE freeze is active unless the founder explicitly expands PHASE. Schema
 landings still require DOMAIN_MODEL / DATABASE / migration ADR discipline
 when PHASE allows.
+
+## ADR-057: Documentation constitution — one authority map, archive contradictions
+
+**Context.** The repository accumulated parallel “constitutions”: a working
+tiered `docs/README.md`, Tier 0 charters, vision/, ai_snapshot/, plus root
+Made-to-Munro `ROADMAP.md` / `CURRENT_STATE.md` / `AUDIT_LOG.md`, a dead
+`prisma/` schema, and archive files without obsolete banners. Agents and
+humans could pick the wrong source. ARCHITECTURE omitted real packages
+(`ai`, `email`, `payments`, `sms`). DOMAIN_MODEL / DATABASE / PRODUCT implied
+persisted `ProductionOrder` / `production_orders` that do not exist in
+migrations. Continuous-mode docs disagreed on when to emit “Test it.”
+
+**Decision.**
+
+1. **[docs/README.md](./README.md) is the documentation constitution** —
+   authority hierarchy, topic→source table, tiers, classification, archive
+   map. Every doc is indexed there or lives under `docs/archive/`.
+2. **Authority order:** code/migrations → PHASE → CLAUDE/WORKING_AGREEMENT/
+   PRINCIPLES → DECISIONS → product direction → architecture/domain docs →
+   ops → vision (destination) → ai_snapshot (as-built) → ROADMAP/gaps →
+   PROJECT_STATE (untrusted without verify) → archive.
+3. **Archive, don’t delete history:** Made-to-Munro root trackers, unused
+   Prisma schema, and `combined_schema.sql` move under `docs/archive/` with
+   obsolete banners. Design HTML in `downloaded_pages/` stays (ADR-052).
+4. **Drift fixes in place:** ARCHITECTURE lists all packages; ProductionOrder
+   documented as domain-only until migrated; “Test it” only when really
+   finished (align CLAUDE with WORKING_AGREEMENT).
+5. **No second constitution file.** Improve `docs/README.md` rather than
+   adding `CONSTITUTION.md`. Do not fork authority into PROJECT_STATE or
+   root READMEs beyond pointers.
+
+**Consequences.** Sessions start from PHASE + WORKING_AGREEMENT + docs/
+README authority map. Finding Made-to-Munro or Prisma at repo root is a
+regression. Future docs must declare design-vs-shipped on line one and take
+a single topic owner. ai_snapshot remains dated inventory, not a competing
+charter.

@@ -50,6 +50,11 @@ See `DESIGN_PORTS.md`.
 the single largest reason the portals did not look like the founder's design.
 Do not reintroduce that substitution.
 
+**Also done (2026-07-29).** Documentation constitution pass (ADR-057):
+`docs/README.md` is the authority map; Made-to-Munro root orphans and dead
+Prisma/SQL scaffolds moved under `docs/archive/`. Does **not** expand this
+freeze.
+
 **Blocked on founder design.** The alterations vertical. Everything under
 `/alterations/*` was invented by an engineering session and carries none of
 the founder's cues. The real product there is workshop work-order handling

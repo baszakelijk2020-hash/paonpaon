@@ -80,6 +80,14 @@ retailer," full stop.
 
 ## Why Order, ProductionOrder and Alteration are separate aggregates
 
+**Persistence note (2026-07-29).** `ProductionOrder` exists as a **domain
+type** in `@paon/domain` for the intended manufacturing-status projection.
+There is **no** `production_orders` table, repository, or generated DB type
+today. Supplier/connector work is not started ([ROADMAP.md](./ROADMAP.md),
+[ai_snapshot](./ai_snapshot/03_domain_map.md)). Do not treat ProductionOrder
+as shipped persistence. Order and Alteration aggregates below **are**
+persisted.
+
 Collapsing manufacturing and alteration status onto the `Order` would
 force every order to model a superset of every possible workflow,
 and would make it impossible to alter a purchase made months earlier

@@ -1,3 +1,5 @@
+> **Obsolete / archived.** Not authoritative. See [README.md](./README.md). Live constitution: [../../README.md](../../README.md).
+
 # Phase 2: Customer PWA & E-Commerce Shell
 
 ## Overview

@@ -19,10 +19,14 @@ paon/
 │   ├── auth/            @paon/auth            — session shape, role guards
 │   ├── ui/              @paon/ui              — design system: tokens + components
 │   ├── utils/            @paon/utils           — framework-agnostic formatting/helpers
+│   ├── payments/        @paon/payments        — Stripe Connect + Billing helpers
+│   ├── email/           @paon/email           — Resend send wrapper
+│   ├── sms/             @paon/sms             — Twilio SMS/WhatsApp send wrapper
+│   ├── ai/              @paon/ai              — OpenAI provider (thin personalisation)
 │   ├── typescript-config/ @paon/typescript-config — shared tsconfig bases
 │   └── eslint-config/    @paon/eslint-config    — shared flat ESLint configs
 ├── supabase/            — migrations, config, seed data (single Postgres project, all three apps)
-└── docs/                — this constitution
+└── docs/                — documentation constitution (docs/README.md)
 ```
 
 Why one repo for three apps: they share one Postgres schema, one domain
@@ -38,8 +42,14 @@ in [DECISIONS.md](./DECISIONS.md).
 Dependencies only ever point one direction:
 
 ```
-apps/*  →  @paon/auth, @paon/ui, @paon/utils  →  @paon/database  →  @paon/domain
+apps/*  →  @paon/auth, @paon/ui, @paon/utils, @paon/payments, @paon/email, @paon/sms, @paon/ai
+        →  @paon/database  →  @paon/domain
 ```
+
+Leaf integration packages (`payments`, `email`, `sms`, `ai`) take credentials
+as parameters and must not depend on Next.js. `@paon/payments` and
+`@paon/utils` may depend on `@paon/domain`; `ai` / `email` / `sms` are
+workspace leaves today.
 
 `@paon/domain` depends on nothing else in the workspace. It is pure
 TypeScript types and value objects — no React, no Supabase client, no

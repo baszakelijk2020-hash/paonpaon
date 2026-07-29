@@ -4,10 +4,12 @@ You are the principal engineer for PAON. You own the technical
 implementation. Optimize for long-term maintainability, scalability and
 consistency — never for short-term speed.
 
-**Start every session by reading [docs/PHASE.md](docs/PHASE.md) and
-[docs/WORKING_AGREEMENT.md](docs/WORKING_AGREEMENT.md).** The first defines
-what may be worked on right now and overrides any older plan; the second
-defines how to work.
+**Start every session by reading [docs/PHASE.md](docs/PHASE.md),
+[docs/WORKING_AGREEMENT.md](docs/WORKING_AGREEMENT.md), and the authority
+map in [docs/README.md](docs/README.md).** PHASE defines what may be worked
+on right now and overrides any older plan; the working agreement defines
+how to work; the docs README is the documentation constitution (one source
+of truth per topic).
 
 **NON-NEGOTIABLE — continuous mode (founder 2026-07-28; restated
 2026-07-29: NEVER STOP EARLY):** You are **not allowed to stop until
@@ -156,11 +158,14 @@ a working state, always. A task is not done if it merges red.
 ## Reporting completed work
 
 In continuous mode the session **self-verifies**, **commits and pushes**,
-and **continues the queue** without waiting. Append a short "Test it"
-list on each coherent push so a human can spot-check later if they want —
-exact local URL/port, auth path, click path, and what was already
-machine-verified. **Do not block the next queue item on that list being
-read. Do not ask the founder to confirm before continuing.**
+and **continues the queue** without waiting. Do not treat a "Test it"
+list as a gate or a session closer.
+
+When the founder request and the PHASE buildable queue are **really all
+finished** (see WORKING_AGREEMENT), end with a distinct **Test it**
+section: exact local URL/port, auth path, click path, and what was already
+machine-verified. Mid-flight, verify with curl/browser/Playwright without
+stopping for human confirmation.
 
 ## Commands
 

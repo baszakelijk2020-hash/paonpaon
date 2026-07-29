@@ -1,3 +1,5 @@
+> **Obsolete / archived.** Not authoritative. See [README.md](./README.md). Live constitution: [../README.md](../README.md).
+
 # Private Proposal Generation Service
 
 ## Overview
@@ -54,7 +56,7 @@ The Private Proposal Generation Service is a core component of PAON's Phase 5 (E
 
 #### SyntheticDemoService
 
-- **Location**: `packages/database/src/services/synthetic-demo-service.ts`
+- **Location**: `packages/database/src/services/synthetic-demo-service.ts (never existed — archived false claim)`
 - **Responsibilities**:
   - Generates synthetic demo data for proposals
   - Creates personas, customers, products, appointments, and alterations
@@ -267,7 +269,7 @@ For issues with the proposal generation service:
 
 ## References
 
-- [Phase 5 Roadmap](docs/ROADMAP.md)
-- [Commercial Prospector Documentation](docs/DOMAIN_MODEL.md)
-- [Demo Generation Service](packages/database/src/services/synthetic-demo-service.ts)
-- [API Security Guidelines](docs/API.md)
+- [Phase 5 Roadmap](../ROADMAP.md)
+- [Commercial Prospector Documentation](../DOMAIN_MODEL.md)
+- [Demo Generation Service](packages/database/src/services/synthetic-demo-service.ts "never existed — archived false claim")
+- [API Security Guidelines](../API.md)

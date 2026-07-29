@@ -133,11 +133,15 @@ record.
 
 ## Soft delete
 
-Entities with business history (`orders`, `production_orders`,
-`alterations`, `loyalty_ledger_entries`, ...) are never hard-deleted.
+Entities with business history (`orders`, `alteration_work_orders`,
+`loyalty_ledger_entries`, ...) are never hard-deleted.
 They carry `deleted_at` and are filtered out of default queries by the
 repository layer. Entities without retained history value (e.g. a draft
 wishlist item) may hard-delete.
+
+**Note:** a future `production_orders` table is **not** in the schema yet
+(domain-only `ProductionOrder`). Do not document it as a live soft-delete
+target until a migration lands.
 
 ## Realtime
 

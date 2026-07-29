@@ -3,7 +3,10 @@
 **Status: repository-derived inventory as of 2026-07-29.**  
 **Purpose:** factual context for senior engineers and AI systems.  
 **Not a work queue.** Does not override [PHASE.md](../PHASE.md).  
-**Authority:** if this folder disagrees with code or migrations, the code wins — update this snapshot.
+**Authority:** if this folder disagrees with code or migrations, the code wins —
+update this snapshot. Documentation constitution: [../README.md](../README.md)
+(ADR-057). This folder is **as-built inventory**, not a work queue and not a
+competing charter.
 
 This set inspects the monorepo as it exists today. It does not invent
 architecture. Vision destinations live in [../vision/](../vision/) and are

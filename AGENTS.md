@@ -3,13 +3,14 @@
 This file exists so Codex and any other agent that looks for `AGENTS.md`
 loads the same instructions Claude Code loads from `CLAUDE.md`.
 
-**Read [CLAUDE.md](./CLAUDE.md), [docs/PHASE.md](./docs/PHASE.md), and
-[docs/WORKING_AGREEMENT.md](./docs/WORKING_AGREEMENT.md) before doing
-anything.** They are the operating charter, the scope freeze, and the
-working mode. `CLAUDE.md` is the single source of truth for engineering
-rules — this file is a pointer only and must never accumulate rules of
-its own, because two charters that disagree is worse than one nobody
-reads.
+**Read [CLAUDE.md](./CLAUDE.md), [docs/PHASE.md](./docs/PHASE.md),
+[docs/WORKING_AGREEMENT.md](./docs/WORKING_AGREEMENT.md), and
+[docs/README.md](./docs/README.md) (documentation constitution) before
+doing anything.** They are the operating charter, the scope freeze, the
+working mode, and the authority map. `CLAUDE.md` is the single source of
+truth for engineering rules — this file is a pointer only and must never
+accumulate rules of its own, because two charters that disagree is worse
+than one nobody reads.
 
 If you have no MCP servers, you are not blocked — every deployment and
 database operation has a CLI equivalent, and the tokens are in the

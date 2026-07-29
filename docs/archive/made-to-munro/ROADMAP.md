@@ -1,3 +1,5 @@
+> **Obsolete / archived.** Not authoritative. See [README.md](./README.md). Live constitution: [../../README.md](../../README.md).
+
 # Roadmap for Building the Made to Munro Platform
 
 ## Phase 0: Initialization

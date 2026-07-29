@@ -1,3 +1,5 @@
+> **Obsolete / archived.** Not authoritative. See [README.md](./README.md). Live constitution: [../README.md](../README.md).
+
 # Secure Publication Controls for Demo Studio Workflows
 
 ## Overview

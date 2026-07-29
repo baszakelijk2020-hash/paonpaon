@@ -1,3 +1,5 @@
+> **Obsolete / archived.** Not authoritative. See [README.md](./README.md). Live constitution: [../../README.md](../../README.md).
+
 # Current State - Made to Munro Platform
 
 ## Active Phase: Phase 0 - Initialization

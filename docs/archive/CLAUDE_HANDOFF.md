@@ -1,3 +1,5 @@
+> **Obsolete / archived.** Not authoritative. See [README.md](./README.md). Live constitution: [../README.md](../README.md).
+
 # Active Engineering Handoff
 
 Updated from the actual repository state on 2026-07-20. This file supersedes every earlier chat handoff. The code, Git history, `CLAUDE.md`, `PROJECT_STATE.md`, `ROADMAP.md`, and ADRs remain the source of truth.

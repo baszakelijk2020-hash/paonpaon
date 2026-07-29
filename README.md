@@ -3,9 +3,12 @@
 RetailOS and customer engagement platform for premium and luxury
 retailers. Three applications, one domain model, one design system.
 
-Start with [docs/README.md](docs/README.md) — the full documentation
-index — before making changes. The root [CLAUDE.md](CLAUDE.md) is the
-operating charter for AI-assisted work in this repository.
+**Documentation constitution:** [docs/README.md](docs/README.md) — authority
+hierarchy and reading tiers. **Scope gate:** [docs/PHASE.md](docs/PHASE.md).
+**Agent charter:** [CLAUDE.md](CLAUDE.md) / [AGENTS.md](AGENTS.md).
+
+Do not follow archived Made-to-Munro files under `docs/archive/` — they
+contradict this product.
 
 ## Applications
 
