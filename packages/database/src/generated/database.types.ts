@@ -1945,6 +1945,136 @@ export type Database = {
           },
         ];
       };
+      customer_style_preference_evidence: {
+        Row: {
+          concept_id: string;
+          confidence: number;
+          created_at: string;
+          customer_id: string;
+          id: string;
+          polarity: string;
+          removed_at: string | null;
+          retailer_id: string;
+          source: string;
+          source_event_id: string | null;
+        };
+        Insert: {
+          concept_id: string;
+          confidence: number;
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          polarity: string;
+          removed_at?: string | null;
+          retailer_id: string;
+          source: string;
+          source_event_id?: string | null;
+        };
+        Update: {
+          concept_id?: string;
+          confidence?: number;
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          polarity?: string;
+          removed_at?: string | null;
+          retailer_id?: string;
+          source?: string;
+          source_event_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_style_preference_evidence_concept_id_fkey";
+            columns: ["concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_style_preference_evidence_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_style_preference_evidence_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "customer_style_preference_evidence_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_style_preference_evidence_source_event_id_fkey";
+            columns: ["source_event_id"];
+            isOneToOne: false;
+            referencedRelation: "behavioral_events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_style_profiles: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          explicit_preferences: Json;
+          id: string;
+          inferred_preferences: Json;
+          recomputed_at: string | null;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          explicit_preferences?: Json;
+          id?: string;
+          inferred_preferences?: Json;
+          recomputed_at?: string | null;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          explicit_preferences?: Json;
+          id?: string;
+          inferred_preferences?: Json;
+          recomputed_at?: string | null;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_style_profiles_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_style_profiles_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "customer_style_profiles_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customers: {
         Row: {
           acquisition_source: string | null;
@@ -6245,6 +6375,24 @@ export type Database = {
         };
         Returns: string;
       };
+      record_style_evidence_from_interaction: {
+        Args: {
+          p_confidence: number;
+          p_concept_id: string;
+          p_customer_id: string;
+          p_polarity: string;
+          p_source_event_id: string;
+        };
+        Returns: string;
+      };
+      recompute_customer_style_profile: {
+        Args: { p_customer_id: string };
+        Returns: string;
+      };
+      remove_style_preference_evidence: {
+        Args: { p_evidence_id: string };
+        Returns: string;
+      };
       record_stripe_payment_event: {
         Args: {
           p_amount_minor_units: number;
@@ -6350,6 +6498,14 @@ export type Database = {
           p_status: string;
         };
         Returns: undefined;
+      };
+      set_explicit_style_preference: {
+        Args: {
+          p_concept_id: string;
+          p_customer_id: string;
+          p_polarity: string;
+        };
+        Returns: string;
       };
       set_product_fabric_profile: {
         Args: {

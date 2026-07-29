@@ -1,10 +1,14 @@
 import {
+  CustomerConsentRepository,
   CustomerPreferencesRepository,
   CustomerRepository,
+  MetadataRepository,
   RetailerRepository,
+  StyleProfileRepository,
 } from "@paon/database";
 
 import { PreferencesForm } from "./preferences-form";
+import { StyleProfilePanel } from "./style-profile-panel";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -18,12 +22,55 @@ export default async function AccountPage() {
   );
   const retailerRepo = new RetailerRepository(supabase);
   const preferencesRepo = new CustomerPreferencesRepository(supabase);
+  const consentRepo = new CustomerConsentRepository(supabase);
+  const styleProfileRepo = new StyleProfileRepository(supabase);
+  const metadataRepo = new MetadataRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
       const retailer = await retailerRepo.findById(customer.retailerId);
       const preferences = await preferencesRepo.findByCustomer(customer.id);
-      return { customer, retailer, preferences };
+      const consent = await consentRepo.getState(
+        customer.retailerId,
+        customer.id,
+      );
+      const styleProfile =
+        consent.personalization.status === "granted"
+          ? await styleProfileRepo.findByCustomer(
+              customer.retailerId,
+              customer.id,
+            )
+          : null;
+
+      const conceptIds = new Set<string>();
+      for (const pref of styleProfile?.explicitPreferences ?? []) {
+        conceptIds.add(String(pref.conceptId));
+      }
+      for (const pref of styleProfile?.inferredPreferences ?? []) {
+        conceptIds.add(String(pref.conceptId));
+      }
+
+      const conceptNames: Record<string, string> = {};
+      await Promise.all(
+        [...conceptIds].map(async (conceptId) => {
+          const concept = await metadataRepo.findConceptById(
+            customer.retailerId,
+            conceptId as never,
+          );
+          if (concept) {
+            conceptNames[conceptId] = concept.canonicalName;
+          }
+        }),
+      );
+
+      return {
+        customer,
+        retailer,
+        preferences,
+        styleProfile,
+        conceptNames,
+        showStyleProfile: consent.personalization.status === "granted",
+      };
     }),
   );
 
@@ -46,14 +93,32 @@ export default async function AccountPage() {
           </p>
         </div>
       ) : (
-        groups.map(({ customer, retailer, preferences }) => (
-          <PreferencesForm
-            key={customer.id}
-            retailerId={customer.retailerId}
-            retailerName={retailer?.displayName ?? "Retailer"}
-            preferences={preferences}
-          />
-        ))
+        groups.map(
+          ({
+            customer,
+            retailer,
+            preferences,
+            styleProfile,
+            conceptNames,
+            showStyleProfile,
+          }) => (
+            <div key={customer.id} className="flex flex-col gap-4">
+              <PreferencesForm
+                retailerId={customer.retailerId}
+                retailerName={retailer?.displayName ?? "Retailer"}
+                preferences={preferences}
+              />
+              {showStyleProfile && styleProfile ? (
+                <StyleProfilePanel
+                  retailerId={customer.retailerId}
+                  retailerName={retailer?.displayName ?? "Retailer"}
+                  profile={styleProfile}
+                  conceptNames={conceptNames}
+                />
+              ) : null}
+            </div>
+          ),
+        )
       )}
     </div>
   );
