@@ -3,7 +3,11 @@ import {
   LoyaltyRepository,
   RetailerRepository,
 } from "@paon/database";
-import { LOYALTY_TIER_LABELS, REFERRAL_STATUS_LABELS } from "@paon/domain";
+import {
+  LOYALTY_TIER_LABELS,
+  milestonePresentation,
+  REFERRAL_STATUS_LABELS,
+} from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -43,6 +47,7 @@ export default async function LoyaltyPage() {
       account: await loyalty.findAccountByCustomer(customer.id),
       rewards: await loyalty.findRewards(customer.retailerId),
       referrals: await loyalty.findReferrals(customer.id),
+      milestones: await loyalty.findMilestoneAwardsForCustomer(customer.id),
     })),
   );
   return (
@@ -52,11 +57,14 @@ export default async function LoyaltyPage() {
           Loyalty &amp; rewards
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Your memberships, rewards and referrals across retailers.
+          Membership, considered milestones, and referrals across houses.
         </p>
       </div>
       {relationships.map(
-        ({ customer, retailer, account, rewards, referrals }, index) => (
+        (
+          { customer, retailer, account, rewards, referrals, milestones },
+          index,
+        ) => (
           <Card
             key={customer.id}
             className="paon-reveal flex flex-col gap-5"
@@ -86,6 +94,58 @@ export default async function LoyaltyPage() {
             </div>
             {account ? (
               <>
+                <section aria-labelledby={`milestones-${customer.id}`}>
+                  <h2
+                    id={`milestones-${customer.id}`}
+                    className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]"
+                  >
+                    Tailoring milestones
+                  </h2>
+                  {milestones.length ? (
+                    <ul className="grid gap-2">
+                      {milestones.map((award) => {
+                        const presentation = milestonePresentation({
+                          kind: award.kind,
+                          label: award.label,
+                          points: award.points,
+                          status: award.status,
+                        });
+                        return (
+                          <li
+                            key={award.id}
+                            className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-3"
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <p className="font-medium text-[var(--color-stone-900)]">
+                                {presentation.headline}
+                              </p>
+                              <Badge
+                                tone={
+                                  presentation.tone === "reversed"
+                                    ? "neutral"
+                                    : "success"
+                                }
+                              >
+                                {award.status === "awarded"
+                                  ? `${award.points} pts`
+                                  : "Corrected"}
+                              </Badge>
+                            </div>
+                            <p className="mt-1 text-sm text-[var(--color-stone-600)]">
+                              {presentation.detail}
+                            </p>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-[var(--color-stone-500)]">
+                      Milestones appear as meaningful stages — first commission,
+                      return orders, new categories, and considered cloth —
+                      without streaks or chance.
+                    </p>
+                  )}
+                </section>
                 <div>
                   <p className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
                     Available rewards

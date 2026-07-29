@@ -125,6 +125,11 @@ export type AvailabilityWindowId = Brand<string, "AvailabilityWindowId">;
 export type LoyaltyAccountId = Brand<string, "LoyaltyAccountId">;
 export type LoyaltyProgramId = Brand<string, "LoyaltyProgramId">;
 export type LoyaltyLedgerEntryId = Brand<string, "LoyaltyLedgerEntryId">;
+export type LoyaltyMilestoneDefinitionId = Brand<
+  string,
+  "LoyaltyMilestoneDefinitionId"
+>;
+export type LoyaltyMilestoneAwardId = Brand<string, "LoyaltyMilestoneAwardId">;
 export type RewardId = Brand<string, "RewardId">;
 export type RewardRedemptionId = Brand<string, "RewardRedemptionId">;
 export type ReferralId = Brand<string, "ReferralId">;

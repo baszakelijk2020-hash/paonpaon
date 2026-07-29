@@ -2,7 +2,13 @@
 
 import { requireRetailerRole } from "@paon/auth";
 import { LoyaltyRepository } from "@paon/database";
-import { loyaltyProgramSchema, rewardSchema } from "@paon/domain";
+import {
+  asId,
+  loyaltyMilestoneDefinitionSchema,
+  loyaltyProgramSchema,
+  rewardSchema,
+  upsertBuiltInMilestonePointsSchema,
+} from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
 import { requireSession } from "@/lib/session";
@@ -42,5 +48,55 @@ export async function createReward(formData: FormData) {
       ...(values.minimumTier ? { minimumTier: values.minimumTier } : {}),
     },
   );
+  revalidatePath("/loyalty");
+}
+
+export async function saveBuiltInMilestone(formData: FormData) {
+  const session = await requireSession();
+  requireRetailerRole(session.retailerRole, "manager");
+  const values = upsertBuiltInMilestonePointsSchema.parse({
+    kind: formData.get("kind"),
+    points: formData.get("points"),
+    active: formData.get("active") === "on",
+  });
+  await new LoyaltyRepository(
+    await getSupabaseServerClient(),
+  ).upsertBuiltInMilestoneDefinition(session.retailerId, {
+    kind: values.kind,
+    points: values.points,
+    active: values.active,
+  });
+  revalidatePath("/loyalty");
+}
+
+export async function createPeerMilestone(formData: FormData) {
+  const session = await requireSession();
+  requireRetailerRole(session.retailerRole, "manager");
+  const conceptRaw = String(formData.get("matchConceptIds") ?? "");
+  const matchConceptIds = conceptRaw
+    .split(/[\s,]+/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const values = loyaltyMilestoneDefinitionSchema.parse({
+    kind: "custom",
+    customKey: formData.get("customKey"),
+    label: formData.get("label"),
+    explanation: formData.get("explanation"),
+    points: formData.get("points"),
+    matchConceptIds,
+    active: true,
+  });
+  await new LoyaltyRepository(
+    await getSupabaseServerClient(),
+  ).createPeerMilestoneDefinition(session.retailerId, {
+    customKey: values.customKey!,
+    label: values.label,
+    explanation: values.explanation,
+    points: values.points,
+    matchConceptIds: values.matchConceptIds.map((id) =>
+      asId<"MetadataConceptId">(id),
+    ),
+    active: values.active,
+  });
   revalidatePath("/loyalty");
 }

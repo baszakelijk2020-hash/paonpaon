@@ -78,6 +78,7 @@ export default async function CustomerDetailPage({
     appointments,
     aiHistory,
     loyaltyAccount,
+    milestoneAwards,
     recentEvents,
     alterations,
     advisorBrief,
@@ -91,6 +92,7 @@ export default async function CustomerDetailPage({
     new AppointmentRepository(supabase).findByCustomer(customer.id),
     new AIGenerationRepository(supabase).findByCustomer(customer.id, 5),
     new LoyaltyRepository(supabase).findAccountByCustomer(customer.id),
+    new LoyaltyRepository(supabase).findMilestoneAwardsForCustomer(customer.id),
     new AnalyticsRepository(supabase).findRecentByCustomer(
       session.retailerId,
       customer.id,
@@ -475,6 +477,7 @@ export default async function CustomerDetailPage({
       {canManage ? (
         <SelfPortrait
           loyaltyAccount={loyaltyAccount}
+          milestoneAwards={milestoneAwards}
           recentEvents={recentEvents}
           pinnedNote={pinnedNote}
         />

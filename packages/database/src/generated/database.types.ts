@@ -3565,6 +3565,180 @@ export type Database = {
           },
         ];
       };
+      loyalty_milestone_awards: {
+        Row: {
+          awarded_at: string;
+          customer_id: string;
+          definition_id: string | null;
+          explanation: string;
+          id: string;
+          idempotency_key: string;
+          kind: Database["public"]["Enums"]["loyalty_milestone_kind"];
+          label: string;
+          loyalty_account_id: string;
+          loyalty_ledger_entry_id: string | null;
+          points: number;
+          related_concept_id: string | null;
+          related_order_id: string | null;
+          retailer_id: string;
+          reverse_ledger_entry_id: string | null;
+          reversed_at: string | null;
+          status: Database["public"]["Enums"]["loyalty_milestone_award_status"];
+        };
+        Insert: {
+          awarded_at?: string;
+          customer_id: string;
+          definition_id?: string | null;
+          explanation: string;
+          id?: string;
+          idempotency_key: string;
+          kind: Database["public"]["Enums"]["loyalty_milestone_kind"];
+          label: string;
+          loyalty_account_id: string;
+          loyalty_ledger_entry_id?: string | null;
+          points: number;
+          related_concept_id?: string | null;
+          related_order_id?: string | null;
+          retailer_id: string;
+          reverse_ledger_entry_id?: string | null;
+          reversed_at?: string | null;
+          status?: Database["public"]["Enums"]["loyalty_milestone_award_status"];
+        };
+        Update: {
+          awarded_at?: string;
+          customer_id?: string;
+          definition_id?: string | null;
+          explanation?: string;
+          id?: string;
+          idempotency_key?: string;
+          kind?: Database["public"]["Enums"]["loyalty_milestone_kind"];
+          label?: string;
+          loyalty_account_id?: string;
+          loyalty_ledger_entry_id?: string | null;
+          points?: number;
+          related_concept_id?: string | null;
+          related_order_id?: string | null;
+          retailer_id?: string;
+          reverse_ledger_entry_id?: string | null;
+          reversed_at?: string | null;
+          status?: Database["public"]["Enums"]["loyalty_milestone_award_status"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_milestone_awards_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loyalty_milestone_awards_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "loyalty_milestone_awards_definition_id_fkey";
+            columns: ["definition_id"];
+            isOneToOne: false;
+            referencedRelation: "loyalty_milestone_definitions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loyalty_milestone_awards_loyalty_account_id_fkey";
+            columns: ["loyalty_account_id"];
+            isOneToOne: false;
+            referencedRelation: "loyalty_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loyalty_milestone_awards_loyalty_ledger_entry_id_fkey";
+            columns: ["loyalty_ledger_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "loyalty_ledger_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loyalty_milestone_awards_related_concept_id_fkey";
+            columns: ["related_concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loyalty_milestone_awards_related_order_id_fkey";
+            columns: ["related_order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loyalty_milestone_awards_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loyalty_milestone_awards_reverse_ledger_entry_id_fkey";
+            columns: ["reverse_ledger_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "loyalty_ledger_entries";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      loyalty_milestone_definitions: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          custom_key: string | null;
+          explanation: string;
+          id: string;
+          kind: Database["public"]["Enums"]["loyalty_milestone_kind"];
+          label: string;
+          match_concept_ids: string[];
+          points: number;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          custom_key?: string | null;
+          explanation: string;
+          id?: string;
+          kind: Database["public"]["Enums"]["loyalty_milestone_kind"];
+          label: string;
+          match_concept_ids?: string[];
+          points: number;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          custom_key?: string | null;
+          explanation?: string;
+          id?: string;
+          kind?: Database["public"]["Enums"]["loyalty_milestone_kind"];
+          label?: string;
+          match_concept_ids?: string[];
+          points?: number;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_milestone_definitions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       loyalty_programs: {
         Row: {
           created_at: string;
@@ -8379,6 +8553,10 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      ensure_loyalty_milestone_definitions: {
+        Args: { p_retailer_id: string };
+        Returns: undefined;
+      };
       ensure_my_loyalty_account: {
         Args: { p_retailer_id: string };
         Returns: string;
@@ -8461,6 +8639,10 @@ export type Database = {
         Returns: Json;
       };
       link_my_customer_accounts: { Args: never; Returns: undefined };
+      loyalty_milestone_slug_matches: {
+        Args: { p_hints: string[]; p_slug: string };
+        Returns: boolean;
+      };
       mark_conversation_read: {
         Args: { p_conversation_id: string };
         Returns: undefined;
@@ -8839,6 +9021,10 @@ export type Database = {
         Args: { p_email: string; p_retailer_id: string };
         Returns: undefined;
       };
+      sync_loyalty_milestones_for_order: {
+        Args: { p_order_id: string };
+        Returns: number;
+      };
       toggle_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };
         Returns: boolean;
@@ -9088,6 +9274,14 @@ export type Database = {
         | "redeem_reward"
         | "adjustment_expiry"
         | "adjustment_manual";
+      loyalty_milestone_award_status: "awarded" | "reversed";
+      loyalty_milestone_kind:
+        | "first_commission"
+        | "repeat_order"
+        | "new_category"
+        | "premium_construction"
+        | "advanced_fabric"
+        | "custom";
       loyalty_tier: "member" | "silver" | "gold" | "platinum";
       message_sender_type: "customer" | "staff" | "ai_assistant" | "guest";
       metadata_concept_kind:
@@ -9479,6 +9673,15 @@ export const Constants = {
         "redeem_reward",
         "adjustment_expiry",
         "adjustment_manual",
+      ],
+      loyalty_milestone_award_status: ["awarded", "reversed"],
+      loyalty_milestone_kind: [
+        "first_commission",
+        "repeat_order",
+        "new_category",
+        "premium_construction",
+        "advanced_fabric",
+        "custom",
       ],
       loyalty_tier: ["member", "silver", "gold", "platinum"],
       message_sender_type: ["customer", "staff", "ai_assistant", "guest"],

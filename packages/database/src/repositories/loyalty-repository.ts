@@ -4,8 +4,14 @@ import {
   type LoyaltyAccount,
   type LoyaltyAccountId,
   type LoyaltyLedgerEntry,
+  type LoyaltyMilestoneAward,
+  type LoyaltyMilestoneAwardStatus,
+  type LoyaltyMilestoneDefinition,
+  type LoyaltyMilestoneKind,
   type LoyaltyProgram,
   type LoyaltyTier,
+  type MetadataConceptId,
+  type OrderId,
   type Referral,
   type RetailerId,
   type Reward,
@@ -22,6 +28,10 @@ type LedgerRow = Database["public"]["Tables"]["loyalty_ledger_entries"]["Row"];
 type RewardRow = Database["public"]["Tables"]["rewards"]["Row"];
 type RedemptionRow = Database["public"]["Tables"]["reward_redemptions"]["Row"];
 type ReferralRow = Database["public"]["Tables"]["referrals"]["Row"];
+type MilestoneDefinitionRow =
+  Database["public"]["Tables"]["loyalty_milestone_definitions"]["Row"];
+type MilestoneAwardRow =
+  Database["public"]["Tables"]["loyalty_milestone_awards"]["Row"];
 
 const program = (row: ProgramRow): LoyaltyProgram => ({
   id: asId<"LoyaltyProgramId">(row.id),
@@ -94,6 +104,60 @@ const referral = (row: ReferralRow): Referral => ({
   updatedAt: row.updated_at,
   deletedAt: row.deleted_at,
 });
+const milestoneDefinition = (
+  row: MilestoneDefinitionRow,
+): LoyaltyMilestoneDefinition => ({
+  id: asId<"LoyaltyMilestoneDefinitionId">(row.id),
+  retailerId: asId<"RetailerId">(row.retailer_id),
+  kind: row.kind,
+  ...(row.custom_key ? { customKey: row.custom_key } : {}),
+  label: row.label,
+  explanation: row.explanation,
+  points: row.points,
+  matchConceptIds: (row.match_concept_ids ?? []).map((id) =>
+    asId<"MetadataConceptId">(id),
+  ),
+  active: row.active,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+const milestoneAward = (row: MilestoneAwardRow): LoyaltyMilestoneAward => ({
+  id: asId<"LoyaltyMilestoneAwardId">(row.id),
+  retailerId: asId<"RetailerId">(row.retailer_id),
+  customerId: asId<"CustomerId">(row.customer_id),
+  loyaltyAccountId: asId<"LoyaltyAccountId">(row.loyalty_account_id),
+  ...(row.definition_id
+    ? { definitionId: asId<"LoyaltyMilestoneDefinitionId">(row.definition_id) }
+    : {}),
+  kind: row.kind,
+  idempotencyKey: row.idempotency_key,
+  ...(row.related_order_id
+    ? { relatedOrderId: asId<"OrderId">(row.related_order_id) }
+    : {}),
+  ...(row.related_concept_id
+    ? { relatedConceptId: asId<"MetadataConceptId">(row.related_concept_id) }
+    : {}),
+  points: row.points,
+  status: row.status,
+  ...(row.loyalty_ledger_entry_id
+    ? {
+        loyaltyLedgerEntryId: asId<"LoyaltyLedgerEntryId">(
+          row.loyalty_ledger_entry_id,
+        ),
+      }
+    : {}),
+  ...(row.reverse_ledger_entry_id
+    ? {
+        reverseLedgerEntryId: asId<"LoyaltyLedgerEntryId">(
+          row.reverse_ledger_entry_id,
+        ),
+      }
+    : {}),
+  label: row.label,
+  explanation: row.explanation,
+  awardedAt: row.awarded_at,
+  ...(row.reversed_at ? { reversedAt: row.reversed_at } : {}),
+});
 
 export class LoyaltyRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
@@ -132,6 +196,9 @@ export class LoyaltyRepository {
       .select("*")
       .single();
     if (error) throw error;
+    await this.client.rpc("ensure_loyalty_milestone_definitions", {
+      p_retailer_id: retailerId,
+    });
     return program(data);
   }
   async findAccountByCustomer(
@@ -243,5 +310,123 @@ export class LoyaltyRepository {
       p_reward_id: rewardId,
     });
     if (error) throw error;
+  }
+
+  async ensureMilestoneDefinitions(retailerId: RetailerId): Promise<void> {
+    const { error } = await this.client.rpc(
+      "ensure_loyalty_milestone_definitions",
+      { p_retailer_id: retailerId },
+    );
+    if (error) throw error;
+  }
+
+  async findMilestoneDefinitions(
+    retailerId: RetailerId,
+  ): Promise<LoyaltyMilestoneDefinition[]> {
+    await this.ensureMilestoneDefinitions(retailerId);
+    const { data, error } = await this.client
+      .from("loyalty_milestone_definitions")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .order("kind");
+    if (error) throw error;
+    return data.map(milestoneDefinition);
+  }
+
+  async upsertBuiltInMilestoneDefinition(
+    retailerId: RetailerId,
+    values: {
+      kind: Exclude<LoyaltyMilestoneKind, "custom">;
+      points: number;
+      active: boolean;
+      matchConceptIds?: readonly MetadataConceptId[];
+    },
+  ): Promise<LoyaltyMilestoneDefinition> {
+    await this.ensureMilestoneDefinitions(retailerId);
+    const existing = (await this.findMilestoneDefinitions(retailerId)).find(
+      (definition) => definition.kind === values.kind,
+    );
+    if (!existing) {
+      throw new Error(`Missing built-in milestone definition: ${values.kind}`);
+    }
+    const { data, error } = await this.client
+      .from("loyalty_milestone_definitions")
+      .update({
+        points: values.points,
+        active: values.active,
+        match_concept_ids: [
+          ...(values.matchConceptIds ?? existing.matchConceptIds),
+        ],
+      })
+      .eq("id", existing.id)
+      .eq("retailer_id", retailerId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return milestoneDefinition(data);
+  }
+
+  async createPeerMilestoneDefinition(
+    retailerId: RetailerId,
+    values: {
+      customKey: string;
+      label: string;
+      explanation: string;
+      points: number;
+      matchConceptIds: readonly MetadataConceptId[];
+      active: boolean;
+    },
+  ): Promise<LoyaltyMilestoneDefinition> {
+    const { data, error } = await this.client
+      .from("loyalty_milestone_definitions")
+      .insert({
+        retailer_id: retailerId,
+        kind: "custom",
+        custom_key: values.customKey,
+        label: values.label,
+        explanation: values.explanation,
+        points: values.points,
+        match_concept_ids: [...values.matchConceptIds],
+        active: values.active,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return milestoneDefinition(data);
+  }
+
+  async findMilestoneAwardsForCustomer(
+    customerId: CustomerId,
+  ): Promise<LoyaltyMilestoneAward[]> {
+    const { data, error } = await this.client
+      .from("loyalty_milestone_awards")
+      .select("*")
+      .eq("customer_id", customerId)
+      .order("awarded_at", { ascending: false });
+    if (error) throw error;
+    return data.map(milestoneAward);
+  }
+
+  async findMilestoneAwardsByStatus(
+    customerId: CustomerId,
+    status: LoyaltyMilestoneAwardStatus,
+  ): Promise<LoyaltyMilestoneAward[]> {
+    const { data, error } = await this.client
+      .from("loyalty_milestone_awards")
+      .select("*")
+      .eq("customer_id", customerId)
+      .eq("status", status)
+      .order("awarded_at", { ascending: false });
+    if (error) throw error;
+    return data.map(milestoneAward);
+  }
+
+  async syncMilestonesForOrder(orderId: OrderId): Promise<number> {
+    const { data, error } = await this.client.rpc(
+      "sync_loyalty_milestones_for_order",
+      { p_order_id: orderId },
+    );
+    if (error) throw error;
+    return data ?? 0;
   }
 }

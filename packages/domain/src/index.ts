@@ -65,6 +65,8 @@ export * from "./appointments/appointment.schema";
 
 export * from "./loyalty/loyalty";
 export * from "./loyalty/loyalty.schema";
+export * from "./loyalty/loyalty-milestones";
+export * from "./loyalty/loyalty-milestones.schema";
 
 export * from "./engagement/email-outbox";
 export * from "./engagement/sms-outbox";

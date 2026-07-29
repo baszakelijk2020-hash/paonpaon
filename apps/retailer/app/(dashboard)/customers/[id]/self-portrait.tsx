@@ -2,8 +2,9 @@ import type {
   BehavioralEvent,
   ClientelingNote,
   LoyaltyAccount,
+  LoyaltyMilestoneAward,
 } from "@paon/domain";
-import { LOYALTY_TIER_LABELS } from "@paon/domain";
+import { LOYALTY_TIER_LABELS, milestonePresentation } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
@@ -52,13 +53,18 @@ function isRecent(occurredAt: string | undefined): boolean {
  */
 export function SelfPortrait({
   loyaltyAccount,
+  milestoneAwards,
   recentEvents,
   pinnedNote,
 }: {
   loyaltyAccount: LoyaltyAccount | null;
+  milestoneAwards: LoyaltyMilestoneAward[];
   recentEvents: BehavioralEvent[];
   pinnedNote: ClientelingNote | null;
 }) {
+  const activeMilestones = milestoneAwards.filter(
+    (award) => award.status === "awarded",
+  );
   return (
     <Card>
       <div className="mb-4 flex items-center justify-between">
@@ -93,6 +99,37 @@ export function SelfPortrait({
           <p className="text-sm text-[var(--color-stone-900)]">
             {pinnedNote.body}
           </p>
+        </div>
+      ) : null}
+
+      {activeMilestones.length ? (
+        <div className="mb-4">
+          <p className="mb-2 text-xs font-medium uppercase text-[var(--color-stone-500)]">
+            Tailoring milestones
+          </p>
+          <ul className="flex flex-col gap-1.5">
+            {activeMilestones.slice(0, 5).map((award) => {
+              const presentation = milestonePresentation({
+                kind: award.kind,
+                label: award.label,
+                points: award.points,
+                status: award.status,
+              });
+              return (
+                <li
+                  key={award.id}
+                  className="flex items-center justify-between gap-3 text-sm"
+                >
+                  <span className="text-[var(--color-stone-800)]">
+                    {presentation.headline}
+                  </span>
+                  <span className="shrink-0 text-xs text-[var(--color-stone-500)]">
+                    {award.points} pts
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       ) : null}
 
