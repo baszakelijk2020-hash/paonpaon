@@ -179,6 +179,11 @@ export default async function DashboardLayout({
                 description: "Supplier preview without publishing",
               },
               {
+                href: "/morning-routine",
+                label: "MorningRoutine",
+                description: "Delivery controls and eligible products",
+              },
+              {
                 href: "/analytics",
                 label: "Performance",
                 description: "Commercial and service signals",

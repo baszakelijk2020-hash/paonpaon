@@ -16,6 +16,7 @@ export type NotificationCategory =
   | "loyalty_update"
   | "message"
   | "marketing"
+  | "morning_routine"
   | "system";
 
 export interface Notification extends Timestamps {

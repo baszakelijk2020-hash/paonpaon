@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `4.5 MorningRoutine delivery and retailer controls`
-- **Current requirement IDs:** `MR-002`, `MR-003`, `CUST-003`
+- **Current queue item:** `5.1 Private offers and seven-day wardrobe campaigns`
+- **Current requirement IDs:** `CAMP-001`, `CAMP-002`, `MR-003`, `MILE-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -34,7 +34,9 @@ requires it.
   ownership and collaboration (PHASE 4.1 complete); `92f7afe` adds wardrobe
   roadmaps, outfits, and sartorial rules (PHASE 4.2 complete); `bd22637` adds
   wardrobe lifecycle, self-scan, and fit freshness (PHASE 4.3 complete);
-  `fcd0260` adds MorningRoutine selection and actions (PHASE 4.4 complete).
+  `fcd0260` adds MorningRoutine selection and actions (PHASE 4.4 complete);
+  delivery slice adds MorningRoutine subscriptions, delivery audit, retailer
+  eligible-product controls, and scheduled dispatch (PHASE 4.5 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -54,7 +56,10 @@ requires it.
   `record_wardrobe_lifecycle_event` / `submit_wardrobe_self_scan` /
   `record_wardrobe_attachment`, `morning_routine_selections` /
   `morning_routine_recommendations`, RPCs `persist_morning_routine_selection`
-  / `mark_morning_routine_review`, generated database types,
+  / `mark_morning_routine_review`, `morning_routine_subscriptions` /
+  `morning_routine_deliveries` / `morning_routine_retailer_settings`, RPCs
+  `upsert_morning_routine_subscription` / `record_morning_routine_delivery` /
+  `upsert_morning_routine_retailer_settings`, generated database types,
   `MetadataRepository`, `ProductFabricProfileRepository`,
   `KnowledgeRepository`, `CatalogueQueryRepository`,
   `CatalogueImportRepository`, `ImportEnrichmentPromptRepository`,
@@ -62,29 +67,30 @@ requires it.
   `AdvisorBriefRepository`, `TableServiceGuidanceRepository`,
   `WardrobeRepository`, `SartorialRuleRepository`, `OutfitRepository`,
   `WardrobeRoadmapRepository`, `WardrobeLifecycleRepository`,
-  `MorningRoutineRepository`, upgraded `AnalyticsRepository`, `@paon/domain`
+  `MorningRoutineRepository`, `MorningRoutineDeliveryRepository`, upgraded `AnalyticsRepository`, `@paon/domain`
   intelligence consent/interaction-event/StyleProfile/advisor-brief/
   grounded-answer/wardrobe/sartorial/outfit/roadmap/lifecycle/
-  morning-routine contracts plus provider-neutral weather/calendar ports,
+  morning-routine contracts plus provider-neutral weather/calendar ports and
+  morning-routine-delivery scheduling/suppression/payload builders,
   `@paon/ai` `generateGroundedAnswer`, customer account consent + StyleProfile
   - wardrobe roadmap/lifecycle/self-scan/fit-freshness + MorningRoutine
     controls, consented storefront/swipe/TableService producers, Retailer Portal
     advisor brief/wardrobe/roadmap/lifecycle mounts, and TableService occasion
     guidance with swipe/appointment conversion hooks.
-- **Checks/deployment state:** 105 migrations; MorningRoutine selection domain/
-  migration/repo/Customer surface and lint/typecheck/test/build/format are
-  green on the 4.4 tip. Anonymous interaction persistence remains blocked
-  pending jurisdiction documentation. Live weather/calendar/email smoke still
-  needs provider credentials.
-- **Real blockers:** none for Stage 4.5 MorningRoutine delivery beyond
-  ordinary missing Resend key for live delivery smoke only; anonymous
-  persistence remains blocked for new anonymous producers only; missing
-  founder-authored fabric/colour/formality sartorial rules still block only
-  those exact claims (neutral slot-compatibility fixtures remain available).
-- **Exact next files/tests:** implement queue item 4.5 MorningRoutine delivery
-  and retailer controls: in-app notification/email outbox orchestration,
-  subscription/frequency/quiet-period controls, delivery audit, suppression,
-  and retailer eligible-product controls.
+- **Checks/deployment state:** 106 migrations; MorningRoutine delivery domain/
+  migration/repo/cron/Customer+Retailer controls and lint/typecheck/test/build/
+  format are green on the 4.5 tip. Anonymous interaction persistence remains
+  blocked pending jurisdiction documentation. Live weather/calendar/email smoke
+  still needs provider credentials.
+- **Real blockers:** none for Stage 5.1 private offers beyond ordinary campaign
+  design dependencies; anonymous persistence remains blocked for new anonymous
+  producers only; missing Resend key blocks live MorningRoutine email smoke only;
+  missing founder-authored fabric/colour/formality sartorial rules still block
+  only those exact claims (neutral slot-compatibility fixtures remain available).
+- **Exact next files/tests:** implement queue item 5.1 private offers and
+  seven-day wardrobe campaigns: campaign domain/migration/RLS/repositories,
+  Retailer Portal rules, authenticated Customer private-offers experience,
+  delivery/suppression audit.
 
 ## 1. Programme intent
 

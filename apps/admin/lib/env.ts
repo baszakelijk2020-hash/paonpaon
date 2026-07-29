@@ -85,4 +85,7 @@ export const env = {
   get twilioWhatsappFrom() {
     return optionalEnv("TWILIO_WHATSAPP_FROM");
   },
+  get openWeatherApiKey() {
+    return optionalEnv("OPENWEATHER_API_KEY");
+  },
 };
