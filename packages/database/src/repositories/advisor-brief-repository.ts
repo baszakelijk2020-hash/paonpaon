@@ -7,6 +7,7 @@
 import {
   asId,
   buildAdvisorPreparationBrief,
+  projectAdvisorBriefWardrobeGaps,
   type AdvisorBriefResolvedWishlistItem,
   type AdvisorPreparationBrief,
   type CustomerId,
@@ -23,6 +24,7 @@ import { MetadataRepository } from "./metadata-repository";
 import { ProductRepository } from "./product-repository";
 import { ProductVariantRepository } from "./product-variant-repository";
 import { StyleProfileRepository } from "./style-profile-repository";
+import { WardrobeRoadmapRepository } from "./wardrobe-roadmap-repository";
 import { WishlistRepository } from "./wishlist-repository";
 
 export interface AdvisorBriefRepositoryDeps {
@@ -35,6 +37,7 @@ export interface AdvisorBriefRepositoryDeps {
   readonly variants: ProductVariantRepository;
   readonly metadata: MetadataRepository;
   readonly knowledge: KnowledgeRepository;
+  readonly wardrobeRoadmap: WardrobeRoadmapRepository;
 }
 
 function asUuid(value: unknown): string | null {
@@ -66,6 +69,8 @@ export class AdvisorBriefRepository {
       variants: deps?.variants ?? new ProductVariantRepository(client),
       metadata: deps?.metadata ?? new MetadataRepository(client),
       knowledge: deps?.knowledge ?? new KnowledgeRepository(client),
+      wardrobeRoadmap:
+        deps?.wardrobeRoadmap ?? new WardrobeRoadmapRepository(client),
     };
   }
 
@@ -83,22 +88,30 @@ export class AdvisorBriefRepository {
   }): Promise<AdvisorPreparationBrief> {
     const now = args.now ?? new Date().toISOString();
 
-    const [consent, events, profile, evidence, wishlist, conversation] =
-      await Promise.all([
-        this.deps.consent.getState(args.retailerId, args.customerId),
-        this.deps.analytics.findRecentByCustomer(
-          args.retailerId,
-          args.customerId,
-          40,
-        ),
-        this.deps.styleProfile.findByCustomer(args.retailerId, args.customerId),
-        this.deps.styleProfile.listEvidence(args.customerId, {
-          includeSuppressed: false,
-          limit: 40,
-        }),
-        this.deps.wishlist.findByCustomer(args.customerId),
-        this.deps.messaging.findByCustomer(args.customerId),
-      ]);
+    const [
+      consent,
+      events,
+      profile,
+      evidence,
+      wishlist,
+      conversation,
+      roadmap,
+    ] = await Promise.all([
+      this.deps.consent.getState(args.retailerId, args.customerId),
+      this.deps.analytics.findRecentByCustomer(
+        args.retailerId,
+        args.customerId,
+        40,
+      ),
+      this.deps.styleProfile.findByCustomer(args.retailerId, args.customerId),
+      this.deps.styleProfile.listEvidence(args.customerId, {
+        includeSuppressed: false,
+        limit: 40,
+      }),
+      this.deps.wishlist.findByCustomer(args.customerId),
+      this.deps.messaging.findByCustomer(args.customerId),
+      this.deps.wardrobeRoadmap.findApprovedByCustomer(args.customerId),
+    ]);
 
     const wishlistItems = wishlist
       ? await this.deps.wishlist.findItems(wishlist.id)
@@ -136,6 +149,12 @@ export class AdvisorBriefRepository {
     }
     for (const row of evidence) {
       conceptIds.add(row.conceptId);
+    }
+    if (roadmap) {
+      for (const gap of roadmap.gaps) {
+        if (gap.productId) productIds.add(gap.productId);
+        if (gap.knowledgeObjectId) knowledgeIds.add(gap.knowledgeObjectId);
+      }
     }
     if (profile) {
       for (const row of profile.explicitPreferences) {
@@ -224,6 +243,11 @@ export class AdvisorBriefRepository {
       });
     }
 
+    const wardrobeGaps = projectAdvisorBriefWardrobeGaps(roadmap, {
+      ruleTitles: knowledgeLabels,
+      productLabels,
+    });
+
     return buildAdvisorPreparationBrief({
       retailerId: args.retailerId,
       customerId: args.customerId,
@@ -237,6 +261,7 @@ export class AdvisorBriefRepository {
       productLabels,
       knowledgeLabels,
       wishlistItems: resolvedWishlist,
+      wardrobeGaps,
       ...(conversation
         ? {
             conversationId: conversation.id,

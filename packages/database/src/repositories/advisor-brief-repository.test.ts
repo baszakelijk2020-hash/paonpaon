@@ -52,6 +52,12 @@ function withdrawnConsent() {
   };
 }
 
+function wardrobeRoadmapDeps() {
+  return {
+    findApprovedByCustomer: vi.fn().mockResolvedValue(null),
+  };
+}
+
 describe("AdvisorBriefRepository", () => {
   it("assembles a complete consented brief from repository sources", async () => {
     const deps = {
@@ -217,6 +223,7 @@ describe("AdvisorBriefRepository", () => {
           updatedAt: now,
         }),
       },
+      wardrobeRoadmap: wardrobeRoadmapDeps(),
     };
 
     const repo = new AdvisorBriefRepository(
@@ -264,6 +271,7 @@ describe("AdvisorBriefRepository", () => {
         variants: { findById: vi.fn() },
         metadata: { findConceptById: vi.fn() },
         knowledge: { findById: vi.fn() },
+        wardrobeRoadmap: wardrobeRoadmapDeps(),
       } as never,
     );
 
@@ -304,6 +312,7 @@ describe("AdvisorBriefRepository", () => {
         variants: { findById: vi.fn() },
         metadata: { findConceptById: vi.fn() },
         knowledge: { findById: vi.fn() },
+        wardrobeRoadmap: wardrobeRoadmapDeps(),
       } as never,
     );
 

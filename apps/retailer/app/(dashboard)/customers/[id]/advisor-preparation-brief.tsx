@@ -340,8 +340,38 @@ export function AdvisorPreparationBriefCard({
         </div>
       ) : null}
 
-      <p className="mt-5 text-xs text-[var(--color-stone-500)]">
-        Wardrobe gaps will appear here after wardrobe intelligence lands.
+      {brief.wardrobeGaps.length > 0 ? (
+        <div className="mt-5">
+          <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
+            Wardrobe gaps
+          </h3>
+          <ul className="mt-2 space-y-2 text-sm">
+            {brief.wardrobeGaps.map((gap) => (
+              <li
+                key={gap.gapId}
+                className="rounded border border-[var(--color-stone-100)] px-3 py-2"
+              >
+                <span className="font-medium">{gap.title}</span>
+                <span className="text-[var(--color-stone-500)]">
+                  {" "}
+                  · {gap.slotKind.replace("_", " ")} · stage {gap.stagePriority}
+                </span>
+                {gap.ruleTitle ? (
+                  <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                    Rule: {gap.ruleTitle}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p className="mt-5 text-xs text-[var(--color-stone-500)]">
+          No open wardrobe gaps on the approved roadmap yet.
+        </p>
+      )}
+
+      <p className="mt-3 text-xs text-[var(--color-stone-500)]">
         Generated {formatDate(brief.generatedAt, "en-US")}.
       </p>
     </Card>

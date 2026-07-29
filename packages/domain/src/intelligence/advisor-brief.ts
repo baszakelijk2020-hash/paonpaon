@@ -22,6 +22,7 @@ import type {
   StylePreferenceEvidenceId,
 } from "../shared/branded-id";
 import { asId } from "../shared/branded-id";
+import type { AdvisorBriefWardrobeGap } from "../wardrobe/wardrobe-roadmap";
 
 import {
   isAdvisorVisiblePersonalizationEvent,
@@ -163,8 +164,7 @@ export interface AdvisorPreparationBrief {
   readonly evidence: readonly AdvisorBriefEvidenceItem[];
   readonly questions: readonly AdvisorBriefQuestion[];
   readonly shortlist: readonly AdvisorBriefShortlistItem[];
-  /** Reserved for Stage 4 wardrobe gaps; always empty in 3.3. */
-  readonly wardrobeGaps: readonly never[];
+  readonly wardrobeGaps: readonly AdvisorBriefWardrobeGap[];
   readonly preparationSuggestions: readonly AdvisorBriefPreparationSuggestion[];
   readonly conversation?: AdvisorBriefConversation;
 }
@@ -200,6 +200,7 @@ export interface AdvisorBriefProjectionInput {
   readonly maxEvidence?: number;
   readonly maxQuestions?: number;
   readonly maxMessages?: number;
+  readonly wardrobeGaps?: readonly AdvisorBriefWardrobeGap[];
 }
 
 const INTEREST_EVENT_NAMES = new Set<InteractionEventName>([
@@ -860,7 +861,7 @@ export function buildAdvisorPreparationBrief(
     evidence,
     questions,
     shortlist,
-    wardrobeGaps: [],
+    wardrobeGaps: input.wardrobeGaps ?? [],
     preparationSuggestions,
     ...(conversation ? { conversation } : {}),
   };

@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `4.2 Wardrobe Roadmap, outfits, and sartorial rules`
-- **Current requirement IDs:** `ROAD-001`, `ROAD-002`, `ENG-002`
+- **Current queue item:** `4.3 Lifecycle, longevity, self-scan, and fit freshness`
+- **Current requirement IDs:** `WARD-002`, `FIT-001`, `FIT-002`, `FIT-003`, `LONG-001`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -31,7 +31,8 @@ requires it.
   deterministic recomputation (PHASE 3.2 complete); `6f5fac4` adds consented
   advisor preparation briefing (PHASE 3.3 complete); `ed2f0dc` adds grounded
   TableService occasion guidance (PHASE 3.4 complete); `a407890` adds wardrobe
-  ownership and collaboration (PHASE 4.1 complete).
+  ownership and collaboration (PHASE 4.1 complete); wardrobe roadmap, outfits,
+  and sartorial rules (PHASE 4.2 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -50,25 +51,27 @@ requires it.
   `CatalogueQueryRepository`, `CatalogueImportRepository`,
   `ImportEnrichmentPromptRepository`, `CustomerConsentRepository`,
   `StyleProfileRepository`, `AdvisorBriefRepository`,
-  `TableServiceGuidanceRepository`, `WardrobeRepository`, upgraded
+  `TableServiceGuidanceRepository`, `WardrobeRepository`,
+  `WardrobeRoadmapRepository`, wardrobe roadmap/outfit/slot/citation tables,
+  upgraded
   `AnalyticsRepository`, `@paon/domain` intelligence
   consent/interaction-event/StyleProfile/advisor-brief/grounded-answer/
-  wardrobe contracts, `@paon/ai` `generateGroundedAnswer`, customer account
+  wardrobe contracts, wardrobe roadmap/outfit/sartorial-compatibility
+  contracts, `@paon/ai` `generateGroundedAnswer`, customer account
   consent + StyleProfile + wardrobe controls, consented storefront/swipe/
-  TableService producers, Retailer Portal advisor brief and wardrobe mounts,
-  and TableService occasion guidance with swipe/appointment conversion hooks.
-- **Checks/deployment state:** 102 migrations; wardrobe ownership domain/
-  migration/repo/surface and lint/typecheck/test/build/format are green on the
-  4.1 tip. Anonymous interaction persistence remains blocked pending
+  TableService producers, Retailer Portal advisor brief, wardrobe, and roadmap
+  mounts, customer approved wardrobe roadmap view, and TableService occasion
+  guidance with swipe/appointment conversion hooks.
+- **Checks/deployment state:** 103 migrations; wardrobe roadmap/outfit domain/
+  migration/repo/surfaces and lint/typecheck/test/build/format are green on the
+  4.2 tip. Anonymous interaction persistence remains blocked pending
   jurisdiction documentation.
-- **Real blockers:** none for Stage 4.2 roadmap/outfit work; anonymous
-  persistence remains blocked for new anonymous producers only; missing
-  founder-authored sartorial rules blocks only claims that require those exact
-  rules (neutral data model and reviewed proposal workflow remain buildable).
-- **Exact next files/tests:** implement queue item 4.2 Wardrobe Roadmap,
-  outfits, and sartorial rules: wardrobe/knowledge domain, repositories,
-  advisor authoring, customer approved-plan view, and explainable pure
-  compatibility rules citing owned/catalogue facts and approved rules.
+- **Real blockers:** none for Stage 4.3 lifecycle/fit-freshness work; anonymous
+  persistence remains blocked for new anonymous producers only.
+- **Exact next files/tests:** implement queue item 4.3 Lifecycle, longevity,
+  self-scan, and fit freshness: wardrobe lifecycle/history, private attachment
+  storage, official-fitting projection, appointment/alteration handoff, and
+  customer/advisor service views.
 
 ## 1. Programme intent
 

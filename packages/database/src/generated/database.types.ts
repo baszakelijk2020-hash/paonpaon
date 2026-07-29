@@ -5689,6 +5689,255 @@ export type Database = {
           },
         ];
       };
+      wardrobe_roadmaps: {
+        Row: {
+          approved_at: string | null;
+          approved_by_staff_id: string | null;
+          created_at: string;
+          created_by_staff_id: string;
+          customer_id: string;
+          horizon_label: string | null;
+          id: string;
+          retailer_id: string;
+          status: string;
+          summary: string | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          created_by_staff_id: string;
+          customer_id: string;
+          horizon_label?: string | null;
+          id?: string;
+          retailer_id: string;
+          status?: string;
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          created_by_staff_id?: string;
+          customer_id?: string;
+          horizon_label?: string | null;
+          id?: string;
+          retailer_id?: string;
+          status?: string;
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      wardrobe_roadmap_goals: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          id: string;
+          rank: number;
+          retailer_id: string;
+          roadmap_id: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          rank: number;
+          retailer_id: string;
+          roadmap_id: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          rank?: number;
+          retailer_id?: string;
+          roadmap_id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      wardrobe_gaps: {
+        Row: {
+          concept_id: string | null;
+          created_at: string;
+          customer_id: string;
+          description: string | null;
+          id: string;
+          knowledge_object_id: string | null;
+          product_id: string | null;
+          rank: number;
+          retailer_id: string;
+          roadmap_id: string;
+          slot_kind: string;
+          stage_priority: number;
+          status: string;
+          title: string;
+          updated_at: string;
+          wardrobe_item_id: string | null;
+        };
+        Insert: {
+          concept_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          description?: string | null;
+          id?: string;
+          knowledge_object_id?: string | null;
+          product_id?: string | null;
+          rank: number;
+          retailer_id: string;
+          roadmap_id: string;
+          slot_kind: string;
+          stage_priority?: number;
+          status?: string;
+          title: string;
+          updated_at?: string;
+          wardrobe_item_id?: string | null;
+        };
+        Update: {
+          concept_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          description?: string | null;
+          id?: string;
+          knowledge_object_id?: string | null;
+          product_id?: string | null;
+          rank?: number;
+          retailer_id?: string;
+          roadmap_id?: string;
+          slot_kind?: string;
+          stage_priority?: number;
+          status?: string;
+          title?: string;
+          updated_at?: string;
+          wardrobe_item_id?: string | null;
+        };
+        Relationships: [];
+      };
+      outfits: {
+        Row: {
+          approved_at: string | null;
+          approved_by_staff_id: string | null;
+          created_at: string;
+          created_by_staff_id: string;
+          customer_id: string;
+          id: string;
+          occasion_label: string | null;
+          retailer_id: string;
+          roadmap_id: string | null;
+          status: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          created_by_staff_id: string;
+          customer_id: string;
+          id?: string;
+          occasion_label?: string | null;
+          retailer_id: string;
+          roadmap_id?: string | null;
+          status?: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          created_by_staff_id?: string;
+          customer_id?: string;
+          id?: string;
+          occasion_label?: string | null;
+          retailer_id?: string;
+          roadmap_id?: string | null;
+          status?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      outfit_slots: {
+        Row: {
+          created_at: string;
+          display_label: string;
+          id: string;
+          outfit_id: string;
+          product_id: string | null;
+          retailer_id: string;
+          slot_kind: string;
+          sort_order: number;
+          wardrobe_item_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          display_label: string;
+          id?: string;
+          outfit_id: string;
+          product_id?: string | null;
+          retailer_id: string;
+          slot_kind: string;
+          sort_order?: number;
+          wardrobe_item_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          display_label?: string;
+          id?: string;
+          outfit_id?: string;
+          product_id?: string | null;
+          retailer_id?: string;
+          slot_kind?: string;
+          sort_order?: number;
+          wardrobe_item_id?: string | null;
+        };
+        Relationships: [];
+      };
+      outfit_rule_citations: {
+        Row: {
+          created_at: string;
+          explanation: string;
+          id: string;
+          knowledge_object_id: string;
+          outfit_id: string;
+          retailer_id: string;
+          slot_kind_a: string | null;
+          slot_kind_b: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          explanation: string;
+          id?: string;
+          knowledge_object_id: string;
+          outfit_id: string;
+          retailer_id: string;
+          slot_kind_a?: string | null;
+          slot_kind_b?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          explanation?: string;
+          id?: string;
+          knowledge_object_id?: string;
+          outfit_id?: string;
+          retailer_id?: string;
+          slot_kind_a?: string | null;
+          slot_kind_b?: string | null;
+        };
+        Relationships: [];
+      };
       wedding_parties: {
         Row: {
           cover_photo_url: string | null;

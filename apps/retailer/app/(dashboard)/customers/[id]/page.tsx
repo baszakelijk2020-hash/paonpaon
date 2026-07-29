@@ -10,6 +10,8 @@ import {
   OrderRepository,
   PhysicalGarmentRepository,
   ProductRepository,
+  KnowledgeRepository,
+  WardrobeRoadmapRepository,
   WardrobeRepository,
 } from "@paon/database";
 import {
@@ -34,6 +36,7 @@ import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 import { createClientelingNote, setPreferredCarrier } from "./actions";
 import { AdvisorPreparationBriefCard } from "./advisor-preparation-brief";
 import { AIInsights } from "./ai-insights";
+import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
 import { SelfPortrait } from "./self-portrait";
 
@@ -79,6 +82,9 @@ export default async function CustomerDetailPage({
     advisorBrief,
     wardrobeItems,
     catalogueProducts,
+    wardrobeRoadmaps,
+    customerOutfits,
+    stylingRules,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -98,6 +104,15 @@ export default async function CustomerDetailPage({
     }),
     new WardrobeRepository(supabase).findByCustomer(customer.id),
     new ProductRepository(supabase).findByRetailer(session.retailerId),
+    new WardrobeRoadmapRepository(supabase).findByCustomerForAdvisor(
+      session.retailerId,
+      customer.id,
+    ),
+    new WardrobeRoadmapRepository(supabase).findOutfitsByCustomer(
+      session.retailerId,
+      customer.id,
+    ),
+    new KnowledgeRepository(supabase).findCanonical("styling"),
   ]);
   const wardrobeRepo = new WardrobeRepository(supabase);
   const wardrobeHistoryEntries = await Promise.all(
@@ -589,6 +604,16 @@ export default async function CustomerDetailPage({
           </Card>
         )}
       </div>
+
+      <CustomerRoadmapCard
+        customerId={customer.id}
+        roadmaps={wardrobeRoadmaps}
+        outfits={customerOutfits}
+        stylingRules={stylingRules.map((rule) => ({
+          id: rule.id,
+          title: rule.title,
+        }))}
+      />
 
       <CustomerWardrobeCard
         customerId={customer.id}

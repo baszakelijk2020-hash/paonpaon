@@ -66,8 +66,8 @@ Verified against code and 91 migrations on 2026-07-30:
   contracts, Retailer Portal preview, transactional reviewed-row publishing,
   and AI-assisted enrichment with pending review exist.
   StyleProfile tables, advisor briefs, and grounded TableService guidance
-  exist. Wardrobe ownership tables exist; no outfit, roadmap, service-plan, or
-  campaign table exists.
+  exist. Wardrobe ownership tables exist; outfit and wardrobe-roadmap tables exist;
+  no service-plan or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -445,7 +445,7 @@ replacement of human advice for uncertain high-value decisions.
     collaboration; `PhysicalGarment` unchanged as fitting/service aggregate;
     wardrobe_item metadata targets enabled for review.
 
-- [ ] **4.2 Wardrobe Roadmap, outfits, and sartorial rules**
+- [x] **4.2 Wardrobe Roadmap, outfits, and sartorial rules**
   - **Requirement IDs:** `ROAD-001`, `ROAD-002`, `ENG-002`.
   - **Dependencies:** `4.1`, `2.1`; ADR-060 and ADR-063.
   - **Owner boundary:** wardrobe/knowledge domain, repositories, advisor
@@ -463,6 +463,10 @@ replacement of human advice for uncertain high-value decisions.
   - **Hard blockers:** missing founder-authored rules blocks only claims that
     require those exact rules; neutral data model and reviewed proposal
     workflow remain buildable.
+  - **Landed:** wardrobe roadmap/outfit domain, migration/RLS,
+    `WardrobeRoadmapRepository`, explainable sartorial compatibility rules,
+    advisor roadmap authoring + customer approved-plan view, advisor brief
+    wardrobe gaps; neutral styling fixtures cite approved knowledge.
 
 - [ ] **4.3 Lifecycle, longevity, self-scan, and fit freshness**
   - **Requirement IDs:** `WARD-002`, `FIT-001`, `FIT-002`, `FIT-003`,
