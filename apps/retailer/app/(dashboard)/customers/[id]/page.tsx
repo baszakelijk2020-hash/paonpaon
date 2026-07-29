@@ -9,6 +9,8 @@ import {
   LoyaltyRepository,
   OrderRepository,
   PhysicalGarmentRepository,
+  ProductRepository,
+  WardrobeRepository,
 } from "@paon/database";
 import {
   asId,
@@ -16,6 +18,7 @@ import {
   APPOINTMENT_TYPE_LABELS,
   ORDER_STATUS_LABELS,
   retailerRoleAtLeast,
+  type WardrobeOwnershipEvent,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
@@ -31,6 +34,7 @@ import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 import { createClientelingNote, setPreferredCarrier } from "./actions";
 import { AdvisorPreparationBriefCard } from "./advisor-preparation-brief";
 import { AIInsights } from "./ai-insights";
+import { CustomerWardrobeCard } from "./customer-wardrobe-card";
 import { SelfPortrait } from "./self-portrait";
 
 import { getAIProvider } from "@/lib/ai";
@@ -73,6 +77,8 @@ export default async function CustomerDetailPage({
     recentEvents,
     alterations,
     advisorBrief,
+    wardrobeItems,
+    catalogueProducts,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -90,7 +96,20 @@ export default async function CustomerDetailPage({
       customerId: customer.id,
       advisorRetailerId: session.retailerId,
     }),
+    new WardrobeRepository(supabase).findByCustomer(customer.id),
+    new ProductRepository(supabase).findByRetailer(session.retailerId),
   ]);
+  const wardrobeRepo = new WardrobeRepository(supabase);
+  const wardrobeHistoryEntries = await Promise.all(
+    wardrobeItems.map(async (item) => {
+      const events = await wardrobeRepo.listOwnershipHistory(item.id);
+      return [item.id, events] as const;
+    }),
+  );
+  const wardrobeHistoryByItemId: Record<
+    string,
+    readonly WardrobeOwnershipEvent[]
+  > = Object.fromEntries(wardrobeHistoryEntries);
   const garmentById = new Map(garments.map((garment) => [garment.id, garment]));
 
   /** Fit-tool values (Neiging, Kraag, Schouder R/L, etc.) are captured
@@ -570,6 +589,17 @@ export default async function CustomerDetailPage({
           </Card>
         )}
       </div>
+
+      <CustomerWardrobeCard
+        customerId={customer.id}
+        items={wardrobeItems}
+        historyByItemId={wardrobeHistoryByItemId}
+        catalogueProducts={catalogueProducts.map((product) => ({
+          id: product.id,
+          name: product.name,
+        }))}
+        canManage={canManage}
+      />
 
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">

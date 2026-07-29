@@ -55,4 +55,5 @@ export * from "./repositories/advisor-brief-repository";
 export * from "./repositories/table-service-guidance-repository";
 export * from "./repositories/ai-generation-repository";
 export * from "./repositories/wishlist-repository";
+export * from "./repositories/wardrobe-repository";
 export type { Database } from "./generated/database.types";

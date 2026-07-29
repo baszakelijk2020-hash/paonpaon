@@ -5471,6 +5471,224 @@ export type Database = {
         };
         Relationships: [];
       };
+      wardrobe_items: {
+        Row: {
+          acquired_at: string | null;
+          brand: string | null;
+          care_notes: string | null;
+          care_state: string;
+          category_code: string;
+          condition: string;
+          created_at: string;
+          created_by_actor: string;
+          created_by_staff_id: string | null;
+          customer_id: string;
+          deleted_at: string | null;
+          description: string | null;
+          display_name: string;
+          fit_notes: string | null;
+          fit_perception: string;
+          id: string;
+          identifying_photo_url: string | null;
+          order_line_id: string | null;
+          ownership_kind: string;
+          physical_garment_id: string | null;
+          product_id: string | null;
+          provenance_source: string;
+          retailer_id: string;
+          retired_at: string | null;
+          updated_at: string;
+          wear_frequency: string | null;
+        };
+        Insert: {
+          acquired_at?: string | null;
+          brand?: string | null;
+          care_notes?: string | null;
+          care_state?: string;
+          category_code: string;
+          condition: string;
+          created_at?: string;
+          created_by_actor: string;
+          created_by_staff_id?: string | null;
+          customer_id: string;
+          deleted_at?: string | null;
+          description?: string | null;
+          display_name: string;
+          fit_notes?: string | null;
+          fit_perception?: string;
+          id?: string;
+          identifying_photo_url?: string | null;
+          order_line_id?: string | null;
+          ownership_kind: string;
+          physical_garment_id?: string | null;
+          product_id?: string | null;
+          provenance_source: string;
+          retailer_id: string;
+          retired_at?: string | null;
+          updated_at?: string;
+          wear_frequency?: string | null;
+        };
+        Update: {
+          acquired_at?: string | null;
+          brand?: string | null;
+          care_notes?: string | null;
+          care_state?: string;
+          category_code?: string;
+          condition?: string;
+          created_at?: string;
+          created_by_actor?: string;
+          created_by_staff_id?: string | null;
+          customer_id?: string;
+          deleted_at?: string | null;
+          description?: string | null;
+          display_name?: string;
+          fit_notes?: string | null;
+          fit_perception?: string;
+          id?: string;
+          identifying_photo_url?: string | null;
+          order_line_id?: string | null;
+          ownership_kind?: string;
+          physical_garment_id?: string | null;
+          product_id?: string | null;
+          provenance_source?: string;
+          retailer_id?: string;
+          retired_at?: string | null;
+          updated_at?: string;
+          wear_frequency?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_items_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_items_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_items_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "wardrobe_items_order_line_id_fkey";
+            columns: ["order_line_id"];
+            isOneToOne: false;
+            referencedRelation: "order_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_items_physical_garment_id_fkey";
+            columns: ["physical_garment_id"];
+            isOneToOne: false;
+            referencedRelation: "physical_garments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_items_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_items_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wardrobe_ownership_events: {
+        Row: {
+          actor_kind: string;
+          actor_staff_id: string | null;
+          created_at: string;
+          customer_id: string;
+          event_kind: string;
+          id: string;
+          note: string | null;
+          occurred_at: string;
+          ownership_kind: string;
+          provenance_source: string;
+          retailer_id: string;
+          wardrobe_item_id: string;
+        };
+        Insert: {
+          actor_kind: string;
+          actor_staff_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          event_kind: string;
+          id?: string;
+          note?: string | null;
+          occurred_at?: string;
+          ownership_kind: string;
+          provenance_source: string;
+          retailer_id: string;
+          wardrobe_item_id: string;
+        };
+        Update: {
+          actor_kind?: string;
+          actor_staff_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          event_kind?: string;
+          id?: string;
+          note?: string | null;
+          occurred_at?: string;
+          ownership_kind?: string;
+          provenance_source?: string;
+          retailer_id?: string;
+          wardrobe_item_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_ownership_events_actor_staff_id_fkey";
+            columns: ["actor_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_ownership_events_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_ownership_events_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "wardrobe_ownership_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_ownership_events_wardrobe_item_id_fkey";
+            columns: ["wardrobe_item_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       wedding_parties: {
         Row: {
           cover_photo_url: string | null;
