@@ -17,7 +17,7 @@ export default async function NotificationsPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Notifications
+          Updates
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Service and house updates. In-app only for now — transactional email

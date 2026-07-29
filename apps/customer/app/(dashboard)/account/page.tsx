@@ -31,7 +31,7 @@ export default async function AccountPage() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Account
+          Settings
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Language, currency, contact and style preferences with each retailer
