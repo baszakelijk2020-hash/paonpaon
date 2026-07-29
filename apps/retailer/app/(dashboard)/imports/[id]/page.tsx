@@ -11,6 +11,7 @@ import { Card } from "@paon/ui/components/Card";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { EnrichRowButton } from "../import-enrich-actions";
 import {
   PublishReadyRowsButton,
   PublishRowButton,
@@ -322,11 +323,18 @@ export default async function ImportPreviewPage({
                 </section>
 
                 {row.status !== "published" ? (
-                  <PublishRowButton
-                    importId={job.id}
-                    importRowId={row.id}
-                    disabled={!publishable}
-                  />
+                  <div className="flex flex-wrap items-center gap-3">
+                    <EnrichRowButton
+                      importId={job.id}
+                      importRowId={row.id}
+                      disabled={row.proposedProduct === undefined}
+                    />
+                    <PublishRowButton
+                      importId={job.id}
+                      importRowId={row.id}
+                      disabled={!publishable}
+                    />
+                  </div>
                 ) : null}
 
                 <details>

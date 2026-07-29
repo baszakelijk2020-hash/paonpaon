@@ -2,6 +2,8 @@ import type OpenAI from "openai";
 
 import type {
   AIProvider,
+  CatalogueImportEnrichmentContext,
+  CatalogueImportEnrichmentResult,
   NextBestActionContext,
   NextBestActionResult,
   ProductRecommendationContext,
@@ -26,6 +28,31 @@ function buildUserPrompt(context: NextBestActionContext): string {
 
 const RECOMMENDATION_SYSTEM_PROMPT =
   'You are a personal shopping assistant for a premium retailer. Given a customer\'s recent browsing activity, today\'s weather at the store (if given), and a short list of currently available products, pick exactly one product that best fits what they have been looking at — and the weather, when it\'s given and genuinely relevant to the choice — with a short one-sentence rationale written to the customer directly. Respond only as JSON: {"productId": string, "rationale": string}. productId must be exactly one of the given candidate ids.';
+
+const ENRICHMENT_SYSTEM_PROMPT =
+  "You are a catalogue metadata assistant for a premium menswear retailer. Given a supplier row and taxonomy allowlist, propose taxonomy mappings and derived suitability as JSON only. Never invent mills, composition, weight, construction, SKUs, or prices. Every inference must include confidence and evidence. Respond only as JSON matching the PAON enrichment schema from the contract.";
+
+function buildEnrichmentPrompt(
+  context: CatalogueImportEnrichmentContext,
+): string {
+  const taxonomyLines = context.taxonomy
+    .map((entry) => `- ${entry.kind}:${entry.slug} (${entry.label})`)
+    .join("\n");
+  const supplierLines = Object.entries(context.supplierRow)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join("\n");
+  return [
+    context.contractMarkdown,
+    "",
+    "Supplier row:",
+    supplierLines,
+    "",
+    `Proposed product summary: ${context.proposedProductSummary}`,
+    "",
+    "Known taxonomy slugs:",
+    taxonomyLines.length > 0 ? taxonomyLines : "none supplied",
+  ].join("\n");
+}
 
 function buildRecommendationPrompt(
   context: ProductRecommendationContext,
@@ -135,5 +162,35 @@ export class OpenAIProvider implements AIProvider {
       productId,
       rationale: (parsed as { rationale: string }).rationale,
     };
+  }
+
+  async enrichCatalogueImportRow(
+    context: CatalogueImportEnrichmentContext,
+  ): Promise<CatalogueImportEnrichmentResult> {
+    const response = await this.client.chat.completions.create({
+      model: this.model,
+      messages: [
+        { role: "system", content: ENRICHMENT_SYSTEM_PROMPT },
+        { role: "user", content: buildEnrichmentPrompt(context) },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const content = response.choices[0]?.message.content;
+    if (!content) {
+      throw new Error("OpenAI returned no content");
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      throw new Error("OpenAI enrichment response was not valid JSON");
+    }
+    if (typeof parsed !== "object" || parsed === null) {
+      throw new Error("OpenAI enrichment response was not a JSON object");
+    }
+
+    return { proposal: parsed as Record<string, unknown> };
   }
 }

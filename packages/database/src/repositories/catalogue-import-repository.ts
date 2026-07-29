@@ -546,4 +546,83 @@ export class CatalogueImportRepository {
     }
     return { results };
   }
+
+  /**
+   * Apply a validated enrichment proposal to one import row. Pending AI
+   * review tasks for the row are replaced idempotently; nothing is accepted.
+   */
+  async applyEnrichment(params: {
+    readonly retailerId: RetailerId;
+    readonly importRowId: CatalogueImportRowId;
+    readonly proposedProduct: CatalogueImportProposedProduct;
+    readonly reviewTasks: readonly {
+      readonly field: string;
+      readonly proposedValue: string;
+      readonly explanation: string;
+      readonly confidence: number;
+    }[];
+  }): Promise<{
+    readonly row: CatalogueImportRow;
+    readonly reviewTasks: readonly MetadataReviewTask[];
+  }> {
+    const { data: existingRow, error: rowError } = await this.client
+      .from("catalogue_import_rows")
+      .select("*")
+      .eq("retailer_id", params.retailerId)
+      .eq("id", params.importRowId)
+      .maybeSingle();
+    if (rowError) throw rowError;
+    if (!existingRow) {
+      throw new Error("Import row not found for this retailer");
+    }
+    if (existingRow.status === "published") {
+      throw new Error("Published import rows cannot be enriched");
+    }
+
+    const { error: deleteError } = await this.client
+      .from("metadata_review_tasks")
+      .delete()
+      .eq("retailer_id", params.retailerId)
+      .eq("import_row_id", params.importRowId)
+      .eq("source", "ai")
+      .eq("status", "pending");
+    if (deleteError) throw deleteError;
+
+    const { data: updatedRow, error: updateError } = await this.client
+      .from("catalogue_import_rows")
+      .update({
+        proposed_product: toJson(params.proposedProduct),
+      })
+      .eq("retailer_id", params.retailerId)
+      .eq("id", params.importRowId)
+      .select("*")
+      .single();
+    if (updateError) throw updateError;
+
+    let createdTasks: MetadataReviewTask[] = [];
+    if (params.reviewTasks.length > 0) {
+      const { data: taskData, error: taskError } = await this.client
+        .from("metadata_review_tasks")
+        .insert(
+          params.reviewTasks.map((task) => ({
+            retailer_id: params.retailerId,
+            import_row_id: params.importRowId,
+            assignment_id: null,
+            proposed_concept_id: null,
+            proposed_value: `${task.field}: ${task.proposedValue}`,
+            source: "ai" as const,
+            confidence: task.confidence,
+            status: "pending" as const satisfies MetadataReviewTaskStatus,
+          })),
+        )
+        .select("*");
+      if (taskError) throw taskError;
+      createdTasks = (taskData ?? []).map(toReviewTask);
+    }
+
+    return {
+      row: toImportRow(updatedRow),
+      reviewTasks: createdTasks,
+    };
+  }
 }

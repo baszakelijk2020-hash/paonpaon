@@ -273,6 +273,44 @@ ${CATALOGUE_IMPORT_OPTIONAL_COLUMNS.map((column) => `- \`${column}\``).join("\n"
 5. Never invent mill, composition, weight_gsm, or construction.
 6. Output must be UTF-8 CSV or a JSON array of objects using these keys.
 7. PDF extracts must eventually emit this same row shape without schema redesign.
+
+---
+
+## AI-assisted enrichment response (IMP-003)
+
+When PAON asks for **enrichment** of an already-parsed supplier row, respond
+with a single JSON object (not CSV) using this exact shape:
+
+\`\`\`json
+{
+  "taxonomyMappings": [
+    {
+      "field": "garment_type",
+      "conceptSlug": "jacket",
+      "confidence": 0.91,
+      "source": "supplier_text",
+      "evidence": "Quote or paraphrase the supplier text that supports the mapping."
+    }
+  ],
+  "derivedSuitability": [
+    {
+      "field": "climate",
+      "value": "warm",
+      "confidence": 0.84,
+      "source": "derived",
+      "evidence": "Explain why this suitability follows from accepted supplier facts."
+    }
+  ]
+}
+\`\`\`
+
+### Enrichment rules
+1. \`taxonomyMappings.field\` must be one of the category columns listed above.
+2. \`mill\` and \`construction\` mappings must use \`source: "supplier_text"\` and match the supplier cell exactly — never infer a different mill or construction.
+3. Never include protected facts (\`external_sku\`, \`composition\`, \`weight_gsm\`, \`supplier_reference\`, prices, URLs) in \`derivedSuitability\`.
+4. Every inference must include \`confidence\` between 0 and 1 and non-empty \`evidence\`.
+5. Use lowercase snake_case \`conceptSlug\` values that exist in the retailer taxonomy when possible; unknown slugs remain pending human review.
+6. Do not auto-publish — PAON stores every inference as a pending review task.
 `;
 
 export function isCatalogueImportColumn(
