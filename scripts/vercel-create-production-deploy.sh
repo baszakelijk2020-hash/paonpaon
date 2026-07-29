@@ -35,6 +35,9 @@ code = err.get("code", "")
 message = str(err.get("message", ""))
 if code == "payment_required" and "api-deployments-free-per-day" in message:
     print("QUOTA_BLOCKED=1")
+    reset_ms = ((err.get("limit") or {}).get("reset"))
+    if isinstance(reset_ms, (int, float)):
+        print(f"QUOTA_RESET_MS={int(reset_ms)}")
     sys.exit(0)
 sys.exit(1)
 PY
@@ -42,8 +45,24 @@ PY
 
 echo "${parse_output}"
 if printf "%s\n" "${parse_output}" | grep -q "^QUOTA_BLOCKED=1$"; then
+  reset_ms="$(printf "%s\n" "${parse_output}" | grep "^QUOTA_RESET_MS=" | cut -d= -f2-)"
+  reset_human=""
+  if [ -n "${reset_ms}" ]; then
+    reset_human="$(
+      python3 - "${reset_ms}" <<'PY'
+import datetime, sys
+ms = int(sys.argv[1])
+dt = datetime.datetime.fromtimestamp(ms / 1000, tz=datetime.timezone.utc)
+print(dt.strftime("%Y-%m-%d %H:%M UTC"))
+PY
+    )"
+  fi
   # Hobby daily deploy cap must not turn main red — verify already passed.
-  echo "::warning::Vercel Hobby deploy cap hit; production not updated. Retry after quota reset."
+  if [ -n "${reset_human}" ]; then
+    echo "::warning::Vercel Hobby deploy cap hit; production not updated. Reset: ${reset_human}."
+  else
+    echo "::warning::Vercel Hobby deploy cap hit; production not updated. Retry after quota reset."
+  fi
   exit 0
 fi
 
