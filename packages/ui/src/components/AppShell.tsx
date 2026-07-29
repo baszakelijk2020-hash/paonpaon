@@ -174,21 +174,24 @@ export function AppShell({
       {mobileDock ? (
         <nav
           aria-label="Primary (mobile)"
-          className="glass-panel fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 border-t border-black/10 pb-[env(safe-area-inset-bottom)] md:hidden"
+          className="fixed inset-x-0 bottom-0 z-50 grid border-t border-black/10 bg-[var(--color-stone-50)] pb-[env(safe-area-inset-bottom)] md:hidden"
+          style={{
+            gridTemplateColumns: `repeat(${Math.min(mobileDock.length, 5)}, minmax(0, 1fr))`,
+          }}
         >
           {mobileDock.map((item) => {
             const active =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
-                key={item.href}
+                key={`${item.href}:${item.label}`}
                 href={item.href}
                 {...(active ? { "aria-current": "page" as const } : {})}
                 className={cn(
-                  "relative flex min-h-14 items-center justify-center px-1 py-3 text-center text-[10px] transition-colors",
+                  "relative flex min-h-14 items-center justify-center px-1 py-3 text-center text-[10px] uppercase tracking-[0.12em] transition-colors",
                   active
-                    ? "text-[var(--color-stone-950)]"
-                    : "text-[var(--color-stone-500)]",
+                    ? "text-[var(--color-stone-900)]"
+                    : "text-[var(--color-stone-600)]",
                 )}
               >
                 {active ? (

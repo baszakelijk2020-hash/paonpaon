@@ -99,7 +99,7 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       {primary ? (
-        <section className="paon-reveal relative isolate min-h-[28rem] overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] text-white shadow-[var(--shadow-elevated)]">
+        <section className="paon-reveal relative isolate min-h-[18rem] overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-stone-900)] text-white shadow-[var(--shadow-elevated)] sm:min-h-[24rem]">
           <div
             aria-hidden="true"
             className="absolute inset-0 -z-20 bg-cover bg-[center_35%] opacity-55"
@@ -112,7 +112,7 @@ export default async function DashboardPage() {
             aria-hidden="true"
             className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/55 to-black/10"
           />
-          <div className="flex min-h-[28rem] max-w-2xl flex-col justify-between p-7 sm:p-11">
+          <div className="flex min-h-[18rem] max-w-2xl flex-col justify-between p-5 sm:min-h-[24rem] sm:p-10">
             <div className="flex items-center gap-3">
               <span className="h-px w-8 bg-white/60" />
               <p className="font-accent text-[11px] uppercase tracking-[0.24em] text-white/70">
@@ -124,7 +124,7 @@ export default async function DashboardPage() {
                 Good {new Date().getHours() < 12 ? "morning" : "afternoon"},{" "}
                 {firstName}
               </p>
-              <h1 className="font-display text-5xl leading-[0.94] sm:text-7xl">
+              <h1 className="font-display text-3xl leading-[0.94] sm:text-6xl lg:text-7xl">
                 Your wardrobe,
                 <br />
                 beautifully in motion.
@@ -171,7 +171,7 @@ export default async function DashboardPage() {
           </div>
         </section>
       ) : (
-        <section className="rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-8 text-white sm:p-12">
+        <section className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] p-8 text-white sm:p-12">
           <p className="font-accent text-[11px] uppercase tracking-[0.22em] text-white/60">
             Welcome to PAON
           </p>
@@ -188,7 +188,7 @@ export default async function DashboardPage() {
       {primary ? (
         <section
           aria-label="Your current moments"
-          className="paon-reveal grid overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] sm:grid-cols-3"
+          className="paon-reveal grid overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] sm:grid-cols-3"
           style={{ animationDelay: "120ms" }}
         >
           <Link
@@ -334,7 +334,7 @@ export default async function DashboardPage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white px-5 py-5 shadow-[var(--shadow-lifted)] transition-transform duration-[var(--duration-quiet)] hover:-translate-y-0.5"
+                className="group rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-5 py-5 shadow-[var(--shadow-lifted)] transition-transform duration-[var(--duration-quiet)] hover:-translate-y-0.5"
               >
                 <p className="font-display text-xl text-[var(--color-stone-900)]">
                   {item.label}
@@ -382,7 +382,7 @@ export default async function DashboardPage() {
                 return (
                   <Card
                     key={customer.id}
-                    className="paon-reveal overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-lifted)]"
+                    className="paon-reveal overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-lifted)]"
                     style={{ animationDelay: `${index * 120}ms` }}
                   >
                     <div className="flex items-start justify-between gap-4 border-b border-[var(--color-stone-100)] p-6">
@@ -395,7 +395,7 @@ export default async function DashboardPage() {
                         </p>
                       </div>
                       {unread > 0 ? (
-                        <span className="rounded-full bg-[var(--color-stone-900)] px-3 py-1 text-xs text-white">
+                        <span className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 py-1 text-xs text-white">
                           {unread} new
                         </span>
                       ) : null}

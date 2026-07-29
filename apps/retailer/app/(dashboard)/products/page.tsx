@@ -49,7 +49,7 @@ export default async function ProductsPage() {
             <li key={product.id}>
               <Link
                 href={`/products/${product.id}`}
-                className="group flex h-full min-h-44 flex-col overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-elevated)] transition duration-300 ease-[var(--ease-out-quiet)] hover:-translate-y-0.5 hover:border-[var(--color-stone-300)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
+                className="group flex h-full min-h-44 flex-col overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-elevated)] transition duration-300 ease-[var(--ease-out-quiet)] hover:-translate-y-0.5 hover:border-[var(--color-stone-300)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
               >
                 <div className="relative aspect-[16/10] overflow-hidden bg-[var(--color-stone-100)]">
                   {product.primaryImageUrl ? (

@@ -132,7 +132,7 @@ export default async function WeddingPartyDetailPage({
       ) : null}
 
       <Card
-        className="paon-reveal divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]"
+        className="paon-reveal divide-y overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-elevated)]"
         style={{ animationDelay: "120ms" }}
       >
         {members.map((member) => (

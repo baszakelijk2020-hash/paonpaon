@@ -110,10 +110,10 @@ export default async function DashboardLayout({
       email={session.email}
       navigation={navigation}
       mobileDock={[
-        { href: "/orders", label: "Orders" },
+        { href: "/dashboard", label: "World" },
         { href: "/appointments", label: "Appointments" },
         { href: "/messages", label: "Messages" },
-        { href: "/account", label: "Account" },
+        { href: "/orders", label: "Orders" },
       ]}
       signOutControl={
         <form action={signOut}>

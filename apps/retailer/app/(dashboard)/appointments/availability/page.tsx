@@ -73,7 +73,7 @@ export default async function AvailabilityPage() {
           </p>
         </div>
       ) : (
-        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
+        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-elevated)]">
           {visibleWindows.map((window) => (
             <div
               key={window.id}

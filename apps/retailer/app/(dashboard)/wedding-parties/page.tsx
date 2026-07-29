@@ -38,7 +38,7 @@ export default async function WeddingPartiesPage() {
         </div>
       </div>
 
-      <Card className="paon-reveal divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
+      <Card className="paon-reveal divide-y overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-elevated)]">
         {parties.map((party) => (
           <Link
             key={party.id}

@@ -180,7 +180,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="paon-reveal relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[#111110] px-6 py-8 text-[#d9d9d9] shadow-[var(--shadow-elevated)] sm:px-10 sm:py-11">
+      <section className="paon-reveal relative isolate overflow-hidden rounded-[var(--radius-md)] bg-[#111110] px-6 py-8 text-[#d9d9d9] shadow-[var(--shadow-elevated)] sm:px-10 sm:py-11">
         <div
           aria-hidden="true"
           className="absolute inset-y-0 right-0 -z-10 w-2/5 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_68%)]"
@@ -280,7 +280,7 @@ export default async function DashboardPage() {
             ) : null}
             <a
               href="#attention"
-              className="ml-auto rounded-full bg-white/10 px-5 py-2.5 text-xs uppercase tracking-[0.14em] text-white/80 backdrop-blur hover:bg-white/15"
+              className="ml-auto rounded-[var(--radius-md)] bg-white/10 px-5 py-2.5 text-xs uppercase tracking-[0.14em] text-white/80 backdrop-blur hover:bg-white/15"
             >
               Daily briefing{attentionCount > 0 ? ` · ${attentionCount}` : ""}
             </a>
@@ -290,7 +290,7 @@ export default async function DashboardPage() {
 
       <section
         aria-label="Today at a glance"
-        className="paon-reveal grid grid-cols-2 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] lg:grid-cols-4"
+        className="paon-reveal grid grid-cols-2 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] lg:grid-cols-4"
         style={{ animationDelay: "120ms" }}
       >
         {[
@@ -472,7 +472,7 @@ export default async function DashboardPage() {
                 {...("external" in item && item.external
                   ? { target: "_blank", rel: "noreferrer" }
                   : {})}
-                className="group rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white px-5 py-5 shadow-[var(--shadow-lifted)] transition-transform duration-[var(--duration-quiet)] hover:-translate-y-0.5"
+                className="group rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-5 py-5 shadow-[var(--shadow-lifted)] transition-transform duration-[var(--duration-quiet)] hover:-translate-y-0.5"
               >
                 <p className="font-display text-xl text-[var(--color-stone-900)]">
                   {item.label}
@@ -505,7 +505,7 @@ export default async function DashboardPage() {
                 Needs your attention
               </h2>
             </div>
-            <span className="rounded-full bg-[var(--color-stone-900)] px-3 py-1 text-xs text-white">
+            <span className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 py-1 text-xs text-white">
               {pendingProposals.length +
                 todaysAppointments.length +
                 unreadCount}

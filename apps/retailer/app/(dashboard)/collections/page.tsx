@@ -41,7 +41,7 @@ export default async function CollectionsPage() {
           <p className="text-[var(--color-stone-600)]">No collections yet.</p>
         </div>
       ) : (
-        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
+        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-elevated)]">
           {collections.map((collection) => (
             <div key={collection.id} className="px-6 py-4">
               <p className="font-medium text-[var(--color-stone-900)]">

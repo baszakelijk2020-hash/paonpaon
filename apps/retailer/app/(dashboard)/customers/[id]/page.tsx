@@ -130,7 +130,7 @@ export default async function CustomerDetailPage({
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="paon-reveal relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-7 text-white shadow-[var(--shadow-elevated)] sm:p-10">
+      <section className="paon-reveal relative isolate overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-stone-900)] p-7 text-white shadow-[var(--shadow-elevated)] sm:p-10">
         <div
           aria-hidden="true"
           className="absolute -right-24 -top-24 -z-10 h-80 w-80 rounded-full border border-white/10 bg-white/5"
@@ -191,7 +191,7 @@ export default async function CustomerDetailPage({
       </section>
 
       <section
-        className="paon-reveal grid grid-cols-2 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] lg:grid-cols-4"
+        className="paon-reveal grid grid-cols-2 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] lg:grid-cols-4"
         style={{ animationDelay: "120ms" }}
       >
         <div className="border-b border-r border-[var(--color-stone-200)] p-5 sm:p-6">
@@ -229,7 +229,7 @@ export default async function CustomerDetailPage({
         className="paon-reveal grid gap-5 lg:grid-cols-[1.2fr_0.8fr]"
         style={{ animationDelay: "240ms" }}
       >
-        <Card className="rounded-[var(--radius-xl)] border-l-4 border-l-[var(--color-stone-900)]">
+        <Card className="rounded-[var(--radius-md)] border-l-4 border-l-[var(--color-stone-900)]">
           <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             Next best moment
           </p>
@@ -264,7 +264,7 @@ export default async function CustomerDetailPage({
             </>
           )}
         </Card>
-        <Card className="rounded-[var(--radius-xl)]">
+        <Card className="rounded-[var(--radius-md)]">
           <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
             Relationship provenance
           </p>

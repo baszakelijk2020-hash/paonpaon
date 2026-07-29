@@ -777,7 +777,7 @@ export default async function AlterationDetailPage({
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
           Tasks
         </h2>
-        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
+        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-elevated)]">
           {tasks.map((task) => (
             <div key={task.id} className="px-6 py-4">
               <div className="flex items-center justify-between gap-3">
@@ -891,7 +891,7 @@ export default async function AlterationDetailPage({
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
           Updates
         </h2>
-        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
+        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-elevated)]">
           {updates.length === 0 ? (
             <p className="p-6 text-sm text-[var(--color-stone-500)]">
               No updates yet.

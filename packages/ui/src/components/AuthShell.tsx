@@ -84,7 +84,7 @@ export function AuthShell({
             </span>
           </div>
 
-          <div className="rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white p-6 shadow-[var(--shadow-elevated)] sm:p-8">
+          <div className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-6 shadow-[var(--shadow-elevated)] sm:p-8">
             <p className="font-accent hidden text-[8px] uppercase tracking-[0.2em] text-[var(--color-stone-500)] lg:block">
               {eyebrow}
             </p>

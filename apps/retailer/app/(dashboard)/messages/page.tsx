@@ -119,7 +119,7 @@ export default async function MessagesPage({
   }
 
   return (
-    <div className="grid h-[calc(100vh-6rem)] grid-cols-[320px_1fr_320px] gap-0 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] shadow-[var(--shadow-elevated)]">
+    <div className="grid h-[calc(100vh-6rem)] grid-cols-[320px_1fr_320px] gap-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] shadow-[var(--shadow-elevated)]">
       {/* Left: conversation list */}
       <div className="border-r border-[var(--color-stone-200)] bg-white">
         <ConversationList conversations={listItems} selectedId={activeId} />

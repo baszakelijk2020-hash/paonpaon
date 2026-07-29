@@ -204,6 +204,24 @@ export default async function DashboardLayout({
       : []),
   ];
 
+  const mobileDock = isWorkshopRole
+    ? [
+        { href: "/dashboard", label: "Brief" },
+        { href: "/alterations", label: "Queue" },
+        { href: "/notifications", label: "Updates" },
+        ...(canConfigureAlterations || canManageWorkshop
+          ? [{ href: "/alterations/catalogue", label: "Pricing" }]
+          : []),
+      ]
+    : [
+        { href: "/dashboard", label: "Brief" },
+        { href: "/appointments", label: "Diary" },
+        ...(canManageCustomers
+          ? [{ href: "/customers", label: "Clients" }]
+          : [{ href: "/orders", label: "Orders" }]),
+        { href: "/messages", label: "Inbox" },
+      ];
+
   return (
     <RetailerTheme theme={retailer.brandTheme}>
       <AppShell
@@ -213,6 +231,7 @@ export default async function DashboardLayout({
         persona={PERSONA_LABELS[session.retailerRole]}
         email={session.email}
         navigation={navigation}
+        mobileDock={mobileDock}
         signOutControl={
           <form action={signOut}>
             <Button type="submit" variant="ghost" size="sm">

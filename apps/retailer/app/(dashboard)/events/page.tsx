@@ -58,7 +58,7 @@ export default async function EventsPage() {
           <Button type="submit">Create draft</Button>
         </form>
       </Card>
-      <Card className="divide-y overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
+      <Card className="divide-y overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-elevated)]">
         {events.map((event) => (
           <Link
             key={event.id}

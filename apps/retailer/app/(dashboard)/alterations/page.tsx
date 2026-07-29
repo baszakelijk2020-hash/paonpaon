@@ -80,7 +80,7 @@ export default async function AlterationsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="relative isolate overflow-hidden rounded-[var(--radius-xl)] bg-[var(--color-stone-900)] p-7 text-white shadow-[var(--shadow-elevated)] sm:p-10">
+      <section className="relative isolate overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-stone-900)] p-7 text-white shadow-[var(--shadow-elevated)] sm:p-10">
         <div
           aria-hidden="true"
           className="absolute inset-y-0 right-0 -z-10 w-1/2 bg-[repeating-linear-gradient(135deg,transparent,transparent_18px,rgba(255,255,255,0.035)_18px,rgba(255,255,255,0.035)_19px)]"
@@ -134,7 +134,7 @@ export default async function AlterationsPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-3 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)]">
+      <section className="grid grid-cols-3 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)]">
         {[
           { value: active.length, label: "Active garments" },
           { value: dueSoon.length, label: "Due within 3 days" },
@@ -201,7 +201,7 @@ export default async function AlterationsPage() {
                   href={`/alterations/${alteration.id}`}
                   className="group"
                 >
-                  <Card className="overflow-hidden rounded-[var(--radius-xl)] p-0 transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lifted)]">
+                  <Card className="overflow-hidden rounded-[var(--radius-md)] p-0 transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lifted)]">
                     <div className="grid items-center gap-5 p-5 sm:grid-cols-[minmax(0,1.2fr)_minmax(180px,0.7fr)_auto] sm:p-6">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
