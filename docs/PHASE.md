@@ -616,7 +616,7 @@ explanation path.
 
 - [ ] **5.4 Tie-Mate**
   - **Requirement IDs:** `TIE-001`, `ENG-004`.
-  - **Dependencies:** `2.3`, `3.4`; ADR-052; approved founder surface/design.
+  - **Dependencies:** `2.3`, `3.4`; ADR-052; ADR-065; approved founder surface/design.
   - **Owner boundary:** dedicated mobile founder surface and narrow catalogue/
     stock/discovery/shortlist/order/advisor hooks; shared domain/repositories
     remain canonical.
@@ -627,19 +627,24 @@ explanation path.
     snapshots, stock changes, save/order/handoff integration, and cross-tenant
     denial.
   - **Non-goals:** no invented founder design, product stock copy, generic
-    Tinder styling, or separate catalogue.
+    Tinder styling, separate catalogue, Hermès branding/games, or customer-side
+    CV fabric recognition.
   - **Hard blockers:** no approved founder surface/design is a real blocker for
     the UI item; underlying reusable foundations must still ship first.
-  - **Status:** blocked — no Tie-Mate HTML/design exists under
-    `downloaded_pages/`, `apps/customer/app/r/[slug]/paon-template.html`, or
-    docs; Stages 2–3 already shipped the reusable catalogue, discovery, stock,
-    shortlist, and advisor foundations, so inventing a parallel Tie-Mate
-    domain/UI without an approved surface is forbidden. Programme pauses here
-    until the founder supplies that surface under ADR-052.
-
-**Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
-duplicate loyalty ledger, service state hidden in generic order status, or
-invented founder-designed surface.
+  - **Status:** partially unblocked — founder authorized the Hermès Tie Break–
+    like try-on discovery concept and retailer-fed sharp fabric close-ups
+    (ADR-065). Domain deck/photo/handoff contract landed; customer UI remains
+    blocked until an approved mobile surface exists under ADR-052 (or the
+    founder explicitly names an interim route). Stages 2–3 already shipped the
+    reusable catalogue, discovery, stock, shortlist, and advisor foundations.
+  - **Landed (foundation):** `@paon/domain` `buildTieMateDeck` /
+    `resolveTieMateFabricImage` / `buildTieMateActionPaths` /
+    `resolveTieConceptIds` with unit coverage — swatch-preferred fabric
+    photos, neckwear concept filter, stock truth, shortlist pin order, and
+    handoffs into existing product/swipe/appointment/message paths.
+    **Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
+    duplicate loyalty ledger, service state hidden in generic order status, or
+    invented founder-designed surface.
 
 ### Stage 6 — Later commerce capabilities
 

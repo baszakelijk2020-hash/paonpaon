@@ -2803,3 +2803,62 @@ primitives without contaminating the customer intelligence programme. PHASE
 6.3 remains blocked for money movement and operational claims until the
 separate commercial/provider decisions are recorded; no earlier queue item
 needs marketplace assumptions.
+
+---
+
+## ADR-065: Tie-Mate follows Hermès Tie Break's try-on discovery model; fabric photos are retailer-fed catalogue assets
+
+**Status: product/tech decision for PHASE 5.4 / TIE-001. Domain deck contract
+may land immediately; customer UI remains gated on an approved mobile surface
+under ADR-052 unless the founder authorizes an explicit interim surface.**
+
+**Context.** PHASE 5.4 paused because no Tie-Mate HTML exists under
+`downloaded_pages/`, founder storefront HTML, or docs, while catalogue,
+discovery, stock, shortlist, and advisor foundations already shipped. The
+founder authorized the product idea by pointing at Hermès Tie Break (2014
+iOS/Android app, later discontinued / removed from stores) and stating they
+will feed PAON sharp close-up photos of tie fabric.
+
+Public reporting on Tie Break (Fast Company, Out, WWD, LUXUO, Fashion Headline,
+AnOther, APK archives) shows it was **not** computer-vision fabric recognition.
+Its practical shopping loop was: browse the collection's patterns → enlarge a
+pattern to fill the phone screen → hold the phone against a shirt to judge the
+match → learn knots / be entertained → buy online. A special tie carried a
+barcode that launched the app. PAON's founder brief already asks for the same
+practical core: phone-scale fabrics, swipe while holding the phone in front of
+oneself, then save, order, or start an advisor conversation on live stock.
+
+**Decision.**
+
+1. Tie-Mate replicates Tie Break's **try-on discovery** behaviour, not CV
+   reverse-image search and not Hermès branding/games/comics.
+2. Sharp fabric close-ups are **ingest assets** owned by the retailer/founder.
+   They land on existing catalogue fields — preferentially
+   `products.swatch_image_url` / `Product.swatchImageUrl` (ADR-049) — via
+   product management, import, or future admin upload. Customers explore those
+   assets; they do not photograph unknown mills to identify stock.
+3. The domain owns a pure deck builder (`buildTieMateDeck`) that:
+   - includes only active products matching accepted neckwear/tie
+     `garment_type` concepts;
+   - requires a fabric image (swatch preferred, primary fallback);
+   - preserves stock truth (quantity or made-to-order);
+   - can pin shortlist/advisor products first;
+   - hands off to existing Customer paths (product/order, swipe/wishlist save,
+     appointments, messages) without a parallel catalogue.
+4. Customer UI still requires an approved founder mobile surface for an
+   ADR-052 verbatim port. This ADR authorizes the **concept and domain
+   contract** now. It does **not** authorize inventing founder HTML, Hermes-
+   branded chrome, generic Tinder restyling of swipe, or a second product
+   catalogue.
+5. Visual embeddings / AI matching are out of scope for TIE-001 unless a later
+   ADR explicitly adds a provider-neutral `@paon/ai` port for optional
+   similarity search. Tie Break did not need them; PAON's photo assumption is
+   content quality for phone-scale preview.
+
+**Consequences.** Agents may ship and extend the Tie-Mate domain/repository
+wiring while the UI hard blocker holds. PHASE 5.4 acceptance (viewport gestures,
+realistic-scale snapshots, save/order/handoff) remains incomplete until a
+founder surface exists or the founder explicitly authorizes a named interim
+mobile route. Existing swipe is a related gesture surface but is not Tie-Mate;
+Tie-Mate must prefer fabric close-ups and neckwear stock, not mixed catalogue
+heroes.

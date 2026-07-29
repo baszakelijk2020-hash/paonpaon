@@ -30,6 +30,7 @@ export * from "./catalog/catalogue-query";
 export * from "./catalog/catalogue-query.schema";
 export * from "./catalog/catalogue-intent";
 export * from "./catalog/catalogue-storefront";
+export * from "./catalog/tie-mate";
 
 export * from "./metadata/metadata";
 export * from "./metadata/metadata.schema";
