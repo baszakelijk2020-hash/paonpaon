@@ -6203,10 +6203,7 @@ export type Database = {
         | "value"
         | "tradeoffs";
       knowledge_relation_kind:
-        | "related"
-        | "prerequisite"
-        | "comparison"
-        | "follow_up";
+        "related" | "prerequisite" | "comparison" | "follow_up";
       notification_category:
         | "order_update"
         | "production_update"

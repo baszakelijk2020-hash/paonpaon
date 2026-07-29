@@ -5,15 +5,12 @@ import {
   type KnowledgeEducationTopic,
   type KnowledgeObject,
   type KnowledgeObjectConcept,
-  type KnowledgeObjectConceptId,
   type KnowledgeObjectId,
   type KnowledgeObjectRelation,
-  type KnowledgeObjectRelationId,
   type KnowledgeRelationKind,
   type MetadataConceptId,
   type RetailerId,
   type RetailerKnowledgeOverride,
-  type RetailerKnowledgeOverrideId,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
@@ -90,7 +87,9 @@ function toKnowledgeOverride(
     id: asId<"RetailerKnowledgeOverrideId">(row.id),
     retailerId: asId<"RetailerId">(row.retailer_id),
     knowledgeObjectId: asId<"KnowledgeObjectId">(row.knowledge_object_id),
-    ...(row.title_override === null ? {} : { titleOverride: row.title_override }),
+    ...(row.title_override === null
+      ? {}
+      : { titleOverride: row.title_override }),
     ...(row.summary_override === null
       ? {}
       : { summaryOverride: row.summary_override }),

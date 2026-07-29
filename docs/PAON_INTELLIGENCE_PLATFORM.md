@@ -11,45 +11,42 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `2.1 Knowledge contracts and persistence`
-- **Current requirement IDs:** `EDU-001`, `ENG-001`, `ENG-002`, `ENG-003`
+- **Current queue item:** `2.2 Deterministic discovery engine`
+- **Current requirement IDs:** `EDU-002`, `ENG-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
   `e05ac65` implemented metadata domain contracts; `65ed489` implemented
   metadata persistence, repositories, and RLS; `538c9da` added the review
   transition contract and PAON Admin canonical management; `8eaa834` added
-  the Retailer Portal metadata review UI; `HEAD` adds exact product facts and
-  catalogue assignment UI on Retailer Portal product management (PHASE 1.4
-  complete; Stage 1 complete).
-- **Available schema/interfaces:** seven metadata/fabric tables, generated
-  database types, `MetadataRepository`, `ProductFabricProfileRepository`,
-  append-only terminal-review evidence, actor-derived idempotent
+  the Retailer Portal metadata review UI; `117fa8e` added exact product facts
+  and catalogue assignment UI; `HEAD` adds knowledge contracts, persistence,
+  repositories, RLS, and reviewed canonical fixtures (PHASE 2.1 complete).
+- **Available schema/interfaces:** seven metadata/fabric tables plus four
+  knowledge tables, generated database types, `MetadataRepository`,
+  `ProductFabricProfileRepository`, `KnowledgeRepository`, append-only
+  terminal-review evidence, actor-derived idempotent
   `review_metadata_assignment`, atomic `set_product_fabric_profile`,
   operator-only canonical concept forms, Retailer Portal metadata review
-  under `apps/retailer/app/(dashboard)/metadata/`, and product-management
+  under `apps/retailer/app/(dashboard)/metadata/`, product-management
   fabric/assignment editors under
-  `apps/retailer/app/(dashboard)/products/[id]/` now implement the landed
-  Stage 1 contracts.
-- **Checks/deployment state:** a clean local database reset applies all 91
-  migrations; 39 live pgTAP authorization/invariant checks, 150
-  `@paon/domain` tests, and 127 `@paon/database` tests pass; database lint
+  `apps/retailer/app/(dashboard)/products/[id]/`, and canonical knowledge
+  fixtures covering every EDU-001 education topic bucket.
+- **Checks/deployment state:** a clean local database reset applies all 93
+  migrations; 51 live pgTAP authorization/invariant checks, 165
+  `@paon/domain` tests, and 134 `@paon/database` tests pass; database lint
   reports only the pre-existing
-  `convert_pilot_to_live_retailer` warning; metadata/fabric tables produce no
-  Supabase advisor findings. Lint, typecheck, and unit tests are green on the
-  integrated Stage 1 main tip.
-- **Real blockers:** none for Stage 2 contracts. Missing optional provider
-  credentials do not block local/domain/database work. Reviewed production
-  copy/images do not block knowledge contracts or neutral fixtures.
-- **Exact next files/tests:** implement queue item 2.1 knowledge contracts and
-  persistence per ADR-060: `@paon/domain` knowledge types, forward
-  migration/RLS, generated types, `@paon/database` repositories, and reviewed
-  canonical fixture data. Represent canonical/retailer knowledge objects,
-  concept joins, relations, display types, commercial intent, active state,
-  and local hide/presentation/priority/pin controls. Cover schema validation,
-  override precedence, RLS/cross-tenant denial, repository mapping, fixture
-  idempotency, and disabled/hidden eligibility. Do not mount storefront
-  discovery, ranking, embeddings, or retailer mutation of canonical copy.
+  `convert_pilot_to_live_retailer` warning; metadata/fabric/knowledge tables
+  produce no Supabase advisor findings. Lint, typecheck, unit tests, build,
+  and format check are green on the integrated Stage 2.1 tip.
+- **Real blockers:** none for Stage 2 discovery. Missing optional provider
+  credentials do not block local/domain/database work.
+- **Exact next files/tests:** implement queue item 2.2 deterministic discovery
+  engine per ADR-060: pure ranking/explanation in `@paon/domain`, repository
+  candidate projection, golden ranking fixtures, tie-breaking, diversity,
+  hidden/pinned precedence, viewed penalties, empty candidates, and
+  rejected/pending metadata exclusion. Do not mount storefront discovery,
+  embeddings, personalization without consent, or runtime content generation.
 
 ## 1. Programme intent
 
@@ -93,10 +90,11 @@ Verified from code and 91 migrations on 2026-07-30:
 - Metadata concepts/edges/assignments, append-only review evidence, retailer
   overrides, exact fabric profiles, generated types, typed repositories, and
   PAON Admin canonical management now exist. Terminal assignment decisions use
-  an actor-derived idempotent RPC; the Retailer Portal review UI does not yet
-  exist. The repository still has no knowledge-object, catalogue-import,
-  StyleProfile, wardrobe-item, outfit, wardrobe-roadmap, campaign, or
-  concierge-service persistence.
+  an actor-derived idempotent RPC; the Retailer Portal review UI and product
+  management fabric/assignment editors exist. Knowledge objects, concept links,
+  relations, retailer presentation overrides, and canonical fixtures now exist.
+  The repository still has no catalogue-import, StyleProfile, wardrobe-item,
+  outfit, wardrobe-roadmap, campaign, or concierge-service persistence.
 
 Names below describe intended persistence and later-stage types until their
 queue item lands. Documentation must not call them shipped early.

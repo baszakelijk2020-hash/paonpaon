@@ -16,17 +16,10 @@ export type KnowledgeDisplayType =
   | "advisor_answer";
 
 export type KnowledgeCommercialIntent =
-  | "educate"
-  | "justify_premium"
-  | "upgrade"
-  | "cross_sell"
-  | "appointment";
+  "educate" | "justify_premium" | "upgrade" | "cross_sell" | "appointment";
 
 export type KnowledgeRelationKind =
-  | "related"
-  | "prerequisite"
-  | "comparison"
-  | "follow_up";
+  "related" | "prerequisite" | "comparison" | "follow_up";
 
 /** Founder-named education topic buckets required by EDU-001. */
 export type KnowledgeEducationTopic =
@@ -122,7 +115,9 @@ export function isKnowledgeObjectEligible(
   object: KnowledgeObject,
   override: RetailerKnowledgeOverride | null,
 ): boolean {
-  return object.active && object.deletedAt == null && override?.isHidden !== true;
+  return (
+    object.active && object.deletedAt == null && override?.isHidden !== true
+  );
 }
 
 export interface KnowledgeObjectConceptTenancy {

@@ -4,7 +4,6 @@ import {
   asId,
   type KnowledgeObjectId,
   type MetadataConceptId,
-  type RetailerId,
 } from "../shared/branded-id";
 
 import {
@@ -76,15 +75,15 @@ describe("resolveEffectiveKnowledgePresentation", () => {
   });
 
   it("falls back to canonical presentation when no override exists", () => {
-    expect(resolveEffectiveKnowledgePresentation(canonicalObject, null)).toEqual(
-      {
-        title: "Understanding Hopsack",
-        summary: "Why hopsack weave breathes in warm weather.",
-        imageUrl: "https://example.com/hopsack.jpg",
-        priority: 10,
-        isPinned: false,
-      },
-    );
+    expect(
+      resolveEffectiveKnowledgePresentation(canonicalObject, null),
+    ).toEqual({
+      title: "Understanding Hopsack",
+      summary: "Why hopsack weave breathes in warm weather.",
+      imageUrl: "https://example.com/hopsack.jpg",
+      priority: 10,
+      isPinned: false,
+    });
   });
 });
 
