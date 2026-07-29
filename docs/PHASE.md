@@ -393,6 +393,10 @@ Commercials/Catalogue/Demo atelier asserts. Still skip Stripe keys /
 Resend / POS invent / offline / founder alterations redesign /
 paon-template rewrite.
 
+UX audit Critical–Low buildable mitigations executed; remaining hard
+blockers: Stripe keys, Resend, full POS RPC, returns table, multi-store,
+offline, founder alterations, dual PDP kill.
+
 **Save vs Generate (Studio).** Save alone updates live storefront story
 fields that are read from the prospect configuration at request time
 (headline, introduction, location photos). Logo / favicon / hero,

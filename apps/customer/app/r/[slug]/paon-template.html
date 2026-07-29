@@ -15017,23 +15017,41 @@ requestAnimationFrame(fixFeedImages);
    call the real cart Server Action instead of the original's decorative
    modal (see the added check at the top of openModal()). */
 (function () {
+    function paonShowFixedBanner(id, html) {
+        var banner = document.getElementById(id);
+        if (banner) return;
+        banner = document.createElement('div');
+        banner.id = id;
+        banner.setAttribute('role', 'status');
+        banner.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:600;max-width:min(26rem,calc(100vw - 24px));padding:14px 16px;border-radius:6px;background:rgba(0,0,0,0.1);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,0.08);font:13px OptimaKlein,serif;color:#1a1a1a;box-shadow:none;';
+        banner.innerHTML = html;
+        document.body.appendChild(banner);
+        window.setTimeout(function () { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 8000);
+    }
+
     window.paonAddToCart = function (product, kind) {
+        if (product && product.soldOut) {
+            // Nothing left to sell on a stocked (non made-to-order) line —
+            // both buttons now converge on booking a fitting rather than a
+            // cart add that would oversell (Critical 1).
+            paonShowFixedBanner('paon-sold-out-banner', 'Unavailable — book a consultation');
+            if (window.paonOpenAppointmentSheet) window.paonOpenAppointmentSheet();
+            return;
+        }
         fetch('/r/__PAON_SLUG__/api/cart-add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ variantId: product.variantId, kind: kind })
         }).then(function (res) {
             if (res.status === 401) {
-                var banner = document.getElementById('paon-guest-cart-banner');
-                if (!banner) {
-                    banner = document.createElement('div');
-                    banner.id = 'paon-guest-cart-banner';
-                    banner.setAttribute('role', 'status');
-                    banner.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:600;max-width:min(26rem,calc(100vw - 24px));padding:14px 16px;border-radius:6px;background:rgba(0,0,0,0.1);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(0,0,0,0.08);font:13px OptimaKlein,serif;color:#1a1a1a;box-shadow:none;';
-                    banner.innerHTML = 'Save your bag — <a href="/login?redirectTo=' + encodeURIComponent('/r/__PAON_SLUG__/cart') + '" style="text-decoration:underline">sign in</a> to continue, or keep browsing.';
-                    document.body.appendChild(banner);
-                    window.setTimeout(function () { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 8000);
-                }
+                // No guest cart schema exists yet, so the intent itself —
+                // not a synced line — is what survives the trip to sign-in;
+                // GuestCartRecovery on the cart page reads this key once a
+                // session exists and completes the real add server-side.
+                try {
+                    localStorage.setItem('paon-guest-cart:__PAON_SLUG__', JSON.stringify({ variantId: product.variantId, kind: kind, at: Date.now() }));
+                } catch (e) {}
+                paonShowFixedBanner('paon-guest-cart-banner', 'Saved for you — <a href="/login?redirectTo=' + encodeURIComponent('/r/__PAON_SLUG__/cart') + '" style="text-decoration:underline">sign in</a> and it will be waiting in your bag.');
                 return;
             }
             if (res.ok) {
@@ -15041,8 +15059,39 @@ requestAnimationFrame(fixFeedImages);
             }
         }).catch(function () {});
     };
+
+    // Prefer "Continue In-Store" over "Add to Bag" once the selected
+    // product is sold out — a narrow, non-destructive wrapper around the
+    // founder's own openDetail (same pattern as the mobile footer-stick
+    // and scroll-shim wrappers further down this file), not a rewrite of
+    // detail rendering.
+    function paonApplySoldOutButtonState(product) {
+        var soldOut = !!(product && product.soldOut);
+        document.querySelectorAll('[onclick="openModal(\'buy\')"]').forEach(function (btn) {
+            btn.classList.toggle('paon-sold-out-secondary', soldOut);
+            btn.textContent = soldOut ? 'Unavailable' : 'Add to Bag';
+        });
+        document.querySelectorAll('[onclick="openModal(\'consult\')"]').forEach(function (btn) {
+            btn.classList.toggle('paon-sold-out-primary', soldOut);
+        });
+    }
+
+    var originalOpenDetailForSoldOut = window.openDetail;
+    if (typeof originalOpenDetailForSoldOut === 'function' && !originalOpenDetailForSoldOut.__paonSoldOutBound) {
+        window.openDetail = function (id) {
+            var result = originalOpenDetailForSoldOut.apply(this, arguments);
+            var match = (typeof products !== 'undefined' ? products : []).find(function (item) { return item.id === id; });
+            paonApplySoldOutButtonState(match);
+            return result;
+        };
+        window.openDetail.__paonSoldOutBound = true;
+    }
 })();
 </script>
+<style id="paon-sold-out-btn-css">
+.paon-sold-out-secondary { opacity: .35; pointer-events: none; }
+.paon-sold-out-primary { font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+</style>
 
 <!-- paon-identical-all-category-grid-hover-final-v1 -->
 

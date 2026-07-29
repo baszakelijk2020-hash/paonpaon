@@ -1,5 +1,8 @@
 import { AnalyticsRepository } from "@paon/database";
 import { Card } from "@paon/ui/components/Card";
+import { formatDate } from "@paon/utils";
+
+import { ExportCsvButton } from "./export-csv-button";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -41,14 +44,38 @@ export default async function PlatformAnalyticsPage() {
           `${currency} ${(amount / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
       )
       .join(" · ") || "—";
+  const now = new Date();
+  const csvRows: [string, string][] = [
+    ["Retailers", String(summary.retailers)],
+    ["Active retailers", String(summary.activeRetailers)],
+    ["New retailers", String(summary.newRetailers)],
+    ["Customers", String(summary.customers)],
+    ["New customers", String(summary.newCustomers)],
+    ["Orders", String(summary.orders)],
+    ["GMV", gmv],
+    ["Appointments", String(summary.appointments)],
+    ["Open alterations", String(summary.openAlterations)],
+    ["Messages", String(summary.messages)],
+    ["Experience signals", String(summary.behavioralEvents)],
+  ];
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <p className="text-sm text-[var(--color-stone-500)]">Last 30 days</p>
-        <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
-          Analytics
-        </h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            {formatDate(since.toISOString(), "en-US")} –{" "}
+            {formatDate(now.toISOString(), "en-US")} (rolling 30 days, refreshed
+            on every visit — not a fixed reporting period)
+          </p>
+          <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
+            Analytics
+          </h1>
+        </div>
+        <ExportCsvButton
+          rows={csvRows}
+          since={since.toISOString().slice(0, 10)}
+        />
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Metric

@@ -22,10 +22,12 @@ export function AppointmentRequestForm({
   slug,
   retailerId,
   isSignedIn,
+  defaultNotes,
 }: {
   slug: string;
   retailerId: string;
   isSignedIn: boolean;
+  defaultNotes?: string;
 }) {
   const boundAction = requestAppointment.bind(null, slug, retailerId);
   const [state, formAction, isPending] = useActionState(
@@ -58,9 +60,17 @@ export function AppointmentRequestForm({
       <FormField
         label="Anything we should know?"
         htmlFor="notes"
-        hint="Optional — style preferences, occasion, sizing questions"
+        hint={
+          defaultNotes
+            ? "Prefilled from your saved style notes — edit as needed"
+            : "Optional — style preferences, occasion, sizing questions"
+        }
       >
-        <Input id="notes" name="notes" />
+        <Input
+          id="notes"
+          name="notes"
+          defaultValue={state.values["notes"] ?? defaultNotes}
+        />
       </FormField>
       {state.formError ? (
         <p role="alert" className="text-sm text-[var(--color-danger-500)]">

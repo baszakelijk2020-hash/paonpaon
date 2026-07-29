@@ -1,5 +1,6 @@
 import type { AlterationStatus } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
+import { humaniseStatus } from "@paon/utils";
 
 const STATUS_TONE: Record<AlterationStatus, "neutral" | "success" | "warning"> =
   {
@@ -21,9 +22,5 @@ export function AlterationStatusBadge({
 }: {
   status: AlterationStatus;
 }) {
-  return (
-    <Badge tone={STATUS_TONE[status]} className="capitalize">
-      {status.replaceAll("_", " ")}
-    </Badge>
-  );
+  return <Badge tone={STATUS_TONE[status]}>{humaniseStatus(status)}</Badge>;
 }

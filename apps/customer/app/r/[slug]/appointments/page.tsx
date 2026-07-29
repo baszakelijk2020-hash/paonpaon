@@ -1,4 +1,8 @@
-import { RetailerRepository } from "@paon/database";
+import {
+  CustomerPreferencesRepository,
+  CustomerRepository,
+  RetailerRepository,
+} from "@paon/database";
 import { Card } from "@paon/ui/components/Card";
 import { notFound } from "next/navigation";
 
@@ -21,6 +25,26 @@ export default async function StorefrontAppointmentsPage({
   }
 
   const session = await getSession();
+  const isSignedIn = !!session && session.accountType === "customer";
+
+  // Prefill "Anything we should know?" from the same style notes the
+  // customer already recorded in Settings — one less thing to retype at
+  // the exact moment they're asking for help with fit and occasion.
+  let styleNotes: string | undefined;
+  if (isSignedIn && session) {
+    const relationships = await new CustomerRepository(supabase).findByUserId(
+      session.userId,
+    );
+    const customer = relationships.find(
+      (item) => item.retailerId === retailer.id,
+    );
+    if (customer) {
+      const preferences = await new CustomerPreferencesRepository(
+        supabase,
+      ).findByCustomer(customer.id);
+      styleNotes = preferences?.styleNotes;
+    }
+  }
 
   return (
     <main className="mx-auto max-w-xl px-6 py-10">
@@ -34,7 +58,8 @@ export default async function StorefrontAppointmentsPage({
         <AppointmentRequestForm
           slug={slug}
           retailerId={retailer.id}
-          isSignedIn={!!session && session.accountType === "customer"}
+          isSignedIn={isSignedIn}
+          {...(styleNotes ? { defaultNotes: styleNotes } : {})}
         />
       </Card>
     </main>

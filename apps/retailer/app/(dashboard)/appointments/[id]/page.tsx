@@ -108,6 +108,16 @@ export default async function AppointmentDetailPage({
               >
                 Begin garment intake
               </Link>
+              <Link
+                href={`/appointments/${appointment.id}/print`}
+                className={buttonVariants({
+                  variant: "ghost",
+                  size: "lg",
+                  className: "text-white hover:bg-white/10",
+                })}
+              >
+                Print
+              </Link>
             </div>
           ) : null}
         </div>

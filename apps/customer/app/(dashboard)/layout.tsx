@@ -1,3 +1,4 @@
+import { CustomerRepository, WeddingPartyRepository } from "@paon/database";
 import { AppShell, type AppShellNavGroup } from "@paon/ui/components/AppShell";
 import { Button } from "@paon/ui/components/Button";
 import { Suspense } from "react";
@@ -6,6 +7,7 @@ import { signOut } from "./actions";
 import { GuestPortalShell } from "./guest-portal-shell";
 
 import { getSession } from "@/lib/session";
+import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const navigation: AppShellNavGroup[] = [
   {
@@ -101,6 +103,16 @@ export default async function DashboardLayout({
     );
   }
 
+  const supabase = await getSupabaseServerClient();
+  const customers = await new CustomerRepository(supabase).findByUserId(
+    session.userId,
+  );
+  const partyRepo = new WeddingPartyRepository(supabase);
+  const partyCounts = await Promise.all(
+    customers.map((customer) => partyRepo.findByCustomer(customer.id)),
+  );
+  const hasWeddingParties = partyCounts.some((parties) => parties.length > 0);
+
   return (
     <AppShell
       brand="PAON"
@@ -113,7 +125,9 @@ export default async function DashboardLayout({
         { href: "/dashboard", label: "Home" },
         { href: "/appointments", label: "Appointments" },
         { href: "/messages", label: "Messages" },
-        { href: "/orders", label: "Orders" },
+        hasWeddingParties
+          ? { href: "/wedding-parties", label: "Wedding" }
+          : { href: "/orders", label: "Orders" },
       ]}
       signOutControl={
         <form action={signOut}>

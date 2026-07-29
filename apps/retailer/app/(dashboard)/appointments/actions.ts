@@ -25,3 +25,26 @@ export async function quickUpdateAppointmentStatus(
   revalidatePath("/appointments");
   revalidatePath(`/appointments/${appointmentId}`);
 }
+
+/** Bulk row-select completion — a floor advisor clearing a full day of
+ * fittings one at a time was the friction; this is the same single-row
+ * `update` the quick-status form already uses, just fanned out. */
+export async function bulkCompleteAppointments(
+  formData: FormData,
+): Promise<void> {
+  const session = await requireSession();
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const appointmentIds = formData
+    .getAll("appointmentIds")
+    .map(String)
+    .filter(Boolean);
+  if (appointmentIds.length === 0) return;
+
+  const repository = new AppointmentRepository(await getSupabaseServerClient());
+  await Promise.all(
+    appointmentIds.map((id) =>
+      repository.update(asId<"AppointmentId">(id), { status: "completed" }),
+    ),
+  );
+  revalidatePath("/appointments");
+}

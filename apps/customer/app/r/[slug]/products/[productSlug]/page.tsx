@@ -93,6 +93,22 @@ export default async function StorefrontProductPage({
         ← Back to {retailer.displayName}
       </Link>
 
+      {/* High 12 mitigation: this React route exists mainly so a signed-in
+          customer's saved/order history can link somewhere stable, but the
+          founder's HTML storefront (paon-template.html, ADR-052) is the
+          actual shopping experience — same catalogue, richer fitting/basket
+          chrome. Never let a visitor mistake this plainer page for it. */}
+      <div className="mb-6 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)] px-4 py-3 text-sm text-[var(--color-stone-600)]">
+        This is a simplified product page.{" "}
+        <Link
+          href={`/r/${slug}`}
+          className="font-medium text-[var(--color-stone-900)] underline underline-offset-4"
+        >
+          View in the full storefront
+        </Link>{" "}
+        for the primary shopping experience.
+      </div>
+
       <div className="grid gap-10 lg:grid-cols-2">
         <div className="paon-reveal lg:sticky lg:top-10 lg:self-start">
           {product.primaryImageUrl ? (
@@ -143,6 +159,7 @@ export default async function StorefrontProductPage({
                   retailerId={retailer.id}
                   variants={variants}
                   isSignedIn={isSignedIn}
+                  isMadeToOrder={product.isMadeToOrder}
                 />
                 {isSignedIn ? (
                   <WishlistToggle

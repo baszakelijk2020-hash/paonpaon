@@ -88,6 +88,39 @@ export class RetailerSubscriptionRepository {
     return toDomain(data);
   }
 
+  /** Platform-operator-initiated plan change — mirrors the Stripe subscription update already applied in `changeSubscriptionPlan`. */
+  async updatePlan(
+    retailerId: RetailerId,
+    params: {
+      planId: SubscriptionPlanId;
+      status: SubscriptionStatus;
+      currentPeriodStart?: string;
+      currentPeriodEnd?: string;
+      cancelAtPeriodEnd: boolean;
+    },
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("retailer_subscriptions")
+      .update({
+        plan_id: params.planId,
+        status: params.status,
+        current_period_start: params.currentPeriodStart ?? null,
+        current_period_end: params.currentPeriodEnd ?? null,
+        cancel_at_period_end: params.cancelAtPeriodEnd,
+      })
+      .eq("retailer_id", retailerId);
+    if (error) throw error;
+  }
+
+  /** Platform-operator-initiated cancellation, applied right after the real Stripe subscription is cancelled. */
+  async markCanceled(retailerId: RetailerId): Promise<void> {
+    const { error } = await this.client
+      .from("retailer_subscriptions")
+      .update({ status: "canceled", cancel_at_period_end: true })
+      .eq("retailer_id", retailerId);
+    if (error) throw error;
+  }
+
   /** Service-role only, driven by `customer.subscription.updated`/`.deleted` — never client-triggered. */
   async syncFromWebhook(
     providerSubscriptionId: string,

@@ -342,6 +342,13 @@ export async function GET(
         material: product.isMadeToOrder ? "Made to order" : "In atelier",
         variantName: variantNameFor(variants),
         variantId: variants[0]?.id ?? null,
+        inventoryQuantity: variants[0]?.inventoryQuantity ?? 0,
+        // Made-to-order lines are never "sold out" — there is no fixed
+        // inventory to exhaust, only a lead time. A stocked line with
+        // nothing left is the one case this storefront should stop
+        // selling instead of quietly overselling (Critical 1).
+        soldOut:
+          !product.isMadeToOrder && (variants[0]?.inventoryQuantity ?? 0) <= 0,
       };
     }),
   );
@@ -439,6 +446,11 @@ ${
   const catalogueNoteHtml = usesSharedCataloguePhotography
     ? `<p class="paon-catalogue-note" style="margin:6px 12px 0;font-size:10px;line-height:1.35;letter-spacing:.04em;text-transform:uppercase;opacity:.45;font-family:var(--font-retailer-body),system-ui,sans-serif;">Shared catalogue photography · ${safeName}</p>`
     : "";
+  // Always shown, not only alongside shared photography (Critical 1):
+  // fabric/archetype naming on this grid is inspiration copy, not a
+  // confirmed mill or measurement — the advisor confirms both in the
+  // fitting. Same note style as the catalogue-photography disclosure.
+  const configHonestyNoteHtml = `<p class="paon-catalogue-note" style="margin:6px 12px 0;font-size:10px;line-height:1.35;letter-spacing:.04em;text-transform:uppercase;opacity:.45;font-family:var(--font-retailer-body),system-ui,sans-serif;">Fabric &amp; archetype are inspiration — your advisor confirms mill and measurements in fitting.</p>`;
 
   const template = await loadTemplate();
   const demoStory = await prospectDemoStoryFor(supabase, slug);
@@ -484,7 +496,10 @@ ${
     .replaceAll("__PAON_OG_IMAGE__", escapeHtml(ogImage))
     .replaceAll("__PAON_BRAND_HEAD__", brandHead)
     .replaceAll("__PAON_BRAND_MARK__", brandMark)
-    .replaceAll("__PAON_HERO_HTML__", heroHtml + storyHtml + catalogueNoteHtml)
+    .replaceAll(
+      "__PAON_HERO_HTML__",
+      heroHtml + storyHtml + catalogueNoteHtml + configHonestyNoteHtml,
+    )
     .replaceAll("__PAON_PRODUCTS_JSON__", JSON.stringify(entries))
     .replaceAll(
       "__PAON_DEFAULT_CATEGORY_JSON__",

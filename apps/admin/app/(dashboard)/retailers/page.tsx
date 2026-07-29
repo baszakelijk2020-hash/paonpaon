@@ -149,6 +149,11 @@ export default async function RetailersPage() {
               {retailers.length} operating house
               {retailers.length === 1 ? "" : "s"}
             </h2>
+            <p className="mt-2 max-w-xl text-sm text-[var(--color-stone-500)]">
+              Each row is a single-store `Retailer` tenant — PAON is a
+              single-store RetailOS today; multi-location grouping under one
+              brand is not built yet.
+            </p>
           </div>
           <Link
             href="/analytics"

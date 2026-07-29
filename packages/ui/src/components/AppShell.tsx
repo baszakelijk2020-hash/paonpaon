@@ -22,6 +22,8 @@ export interface AppShellProps {
   product: string;
   homeHref: string;
   persona: string;
+  /** Explains a shortened or non-obvious persona label (e.g. `sales_associate` displays as "Sales advisor") — rendered as a `title` attribute on the persona text. */
+  personaTitle?: string;
   email: string;
   navigation: AppShellNavGroup[];
   mobileDock?: AppShellNavItem[];
@@ -91,6 +93,7 @@ export function AppShell({
   product,
   homeHref,
   persona,
+  personaTitle,
   email,
   navigation,
   mobileDock,
@@ -121,7 +124,12 @@ export function AppShell({
           <p className="font-accent text-[7px] uppercase tracking-[0.16em] text-white/35">
             Signed in as
           </p>
-          <p className="font-display mt-2 text-sm text-white/90">{persona}</p>
+          <p
+            className="font-display mt-2 text-sm text-white/90"
+            {...(personaTitle ? { title: personaTitle } : {})}
+          >
+            {persona}
+          </p>
           <p className="mt-1 truncate text-[10px] text-white/40">{email}</p>
           <div className="mt-4 [&_button]:!h-8 [&_button]:!px-0 [&_button]:!text-white/55 hover:[&_button]:!bg-transparent hover:[&_button]:!text-white">
             {signOutControl}
@@ -150,7 +158,10 @@ export function AppShell({
                 <p className="font-accent text-[7px] uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
                   {product}
                 </p>
-                <p className="font-display text-sm text-[var(--color-stone-800)]">
+                <p
+                  className="font-display text-sm text-[var(--color-stone-800)]"
+                  {...(personaTitle ? { title: personaTitle } : {})}
+                >
                   {persona}
                 </p>
               </div>
@@ -248,7 +259,12 @@ export function AppShell({
               />
             </div>
             <div className="border-t border-white/10 px-6 py-5">
-              <p className="font-display text-sm">{persona}</p>
+              <p
+                className="font-display text-sm"
+                {...(personaTitle ? { title: personaTitle } : {})}
+              >
+                {persona}
+              </p>
               <p className="mt-1 truncate text-[10px] text-white/40">{email}</p>
               <div className="mt-3 [&_button]:!h-8 [&_button]:!px-0 [&_button]:!text-white/55">
                 {signOutControl}

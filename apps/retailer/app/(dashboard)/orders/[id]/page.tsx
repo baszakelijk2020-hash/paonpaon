@@ -6,10 +6,12 @@ import {
 import { asId, retailerRoleAtLeast } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { OrderStatusBadge } from "../status-badge";
 
+import { MarkPaidInStoreForm, RequestReturnForm } from "./order-actions";
 import { StatusForm } from "./status-form";
 
 import { requireSession } from "@/lib/session";
@@ -56,7 +58,10 @@ export default async function OrderDetailPage({
         </div>
         <p className="text-sm text-[var(--color-stone-500)]">
           {customer?.fullName ?? "Unknown customer"} ·{" "}
-          {formatDate(order.createdAt, "en-US")} · {order.channel}
+          {formatDate(order.createdAt, "en-US")} · {order.channel} ·{" "}
+          <Link href={`/orders/${order.id}/print`} className="underline">
+            Print
+          </Link>
         </p>
       </div>
 
@@ -95,6 +100,17 @@ export default async function OrderDetailPage({
 
       {canManageOrders ? (
         <StatusForm orderId={order.id} currentStatus={order.status} />
+      ) : null}
+
+      {canManageOrders ? (
+        <div className="flex flex-wrap items-start gap-3">
+          {order.status === "pending_payment" ? (
+            <MarkPaidInStoreForm orderId={order.id} />
+          ) : null}
+          {order.status !== "refunded" ? (
+            <RequestReturnForm orderId={order.id} />
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

@@ -48,3 +48,16 @@ export async function updateEventStatus(formData: FormData) {
   revalidatePath(`/events/${eventId}`);
   revalidatePath("/events");
 }
+
+export async function checkInGuest(formData: FormData) {
+  const session = await requireSession();
+  requireRetailerRole(session.retailerRole, "manager");
+  const eventId = String(formData.get("eventId"));
+  const customerId = String(formData.get("customerId"));
+  await new EventRepository(await getSupabaseServerClient()).setRsvpStatus(
+    eventId as never,
+    customerId as never,
+    "attended",
+  );
+  revalidatePath(`/events/${eventId}`);
+}

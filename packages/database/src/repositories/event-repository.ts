@@ -139,4 +139,19 @@ export class EventRepository {
     });
     if (error) throw error;
   }
+  /** Staff-side status write (check-in at the door), distinct from the
+   * customer-scoped `rsvp_to_event` RPC — RLS restricts this to
+   * retailer managers/admins/owners on the event's own retailer. */
+  async setRsvpStatus(
+    eventId: EventId,
+    customerId: CustomerId,
+    status: EventRsvp["status"],
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("event_rsvps")
+      .update({ status, responded_at: new Date().toISOString() })
+      .eq("event_id", eventId)
+      .eq("customer_id", customerId);
+    if (error) throw error;
+  }
 }

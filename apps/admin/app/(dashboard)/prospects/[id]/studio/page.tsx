@@ -2,6 +2,7 @@ import {
   CommercialProspectRepository,
   SubscriptionPlanRepository,
 } from "@paon/database";
+import { ConfirmSubmitButton } from "@paon/ui/components/ConfirmSubmitButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -117,14 +118,21 @@ export default async function DemoStudioPage({
               name="publish"
               value={environment.status === "published" ? "false" : "true"}
             />
-            <button
-              type="submit"
-              className="min-h-11 rounded-[var(--radius-md)] bg-white px-5 text-sm text-black"
-            >
-              {environment.status === "published"
-                ? "Revoke private demo"
-                : "Publish private demo"}
-            </button>
+            {environment.status === "published" ? (
+              <ConfirmSubmitButton
+                confirmMessage="Revoke this private demo? The link stops working immediately for the prospect."
+                className="min-h-11 rounded-[var(--radius-md)] bg-white px-5 text-sm text-black hover:bg-white/90"
+              >
+                Revoke private demo
+              </ConfirmSubmitButton>
+            ) : (
+              <button
+                type="submit"
+                className="min-h-11 rounded-[var(--radius-md)] bg-white px-5 text-sm text-black"
+              >
+                Publish private demo
+              </button>
+            )}
           </form>
         </section>
       ) : null}

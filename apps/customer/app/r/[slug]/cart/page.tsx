@@ -10,6 +10,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { CartClient } from "./cart-client";
+import { GuestCartRecovery } from "./guest-cart-recovery";
 
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -55,6 +56,7 @@ export default async function CartPage({
     <main
       className={`mx-auto max-w-5xl px-6 py-10 ${hasItems ? "pb-28 lg:pb-10" : ""}`}
     >
+      <GuestCartRecovery slug={slug} />
       <div className="mb-6 flex items-center justify-between">
         <div>
           <p className="font-accent text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">

@@ -181,4 +181,44 @@ export class ProductVariantRepository {
     if (error) throw error;
     return count ?? 0;
   }
+
+  /** Same scope as `countLowStockForRetailer`, with the rows a "Products
+   * running low" export needs — sku/name/quantity/productId, ordered
+   * lowest-stock-first so the most urgent lines lead the export. */
+  async findLowStockForRetailer(
+    retailerId: RetailerId,
+    threshold = 5,
+  ): Promise<
+    Array<{
+      sku: string;
+      productName: string;
+      inventoryQuantity: number;
+      productId: ProductId;
+    }>
+  > {
+    const { data, error } = await this.client
+      .from("product_variants")
+      .select(
+        "sku, inventory_quantity, product_id, products!inner(retailer_id, deleted_at, name)",
+      )
+      .eq("products.retailer_id", retailerId)
+      .is("products.deleted_at", null)
+      .lte("inventory_quantity", threshold)
+      .is("deleted_at", null)
+      .order("inventory_quantity", { ascending: true });
+    if (error) throw error;
+    return data.map((row) => {
+      const joined = row.products as unknown as
+        { name: string } | { name: string }[];
+      const productName = Array.isArray(joined)
+        ? (joined[0]?.name ?? "")
+        : joined.name;
+      return {
+        sku: row.sku,
+        productName,
+        inventoryQuantity: row.inventory_quantity,
+        productId: asId<"ProductId">(row.product_id),
+      };
+    });
+  }
 }

@@ -10,15 +10,18 @@ const initial: PayActionState = {};
 
 export function PayPanel({
   orderId,
+  orderNumber,
   paymentCanceled,
 }: {
   orderId: string;
+  orderNumber: string;
   paymentCanceled: boolean;
 }) {
   const [state, action, pending] = useActionState(
     createCheckoutSession,
     initial,
   );
+  const payInStorePrefill = `I'd like to arrange paying in store for order ${orderNumber}.`;
 
   return (
     <div className="flex flex-col gap-3">
@@ -36,7 +39,7 @@ export function PayPanel({
           </button>
         </form>
         <Link
-          href="/messages"
+          href={`/messages?prefill=${encodeURIComponent(payInStorePrefill)}`}
           className={buttonVariants({ variant: "outline" })}
         >
           Message advisor

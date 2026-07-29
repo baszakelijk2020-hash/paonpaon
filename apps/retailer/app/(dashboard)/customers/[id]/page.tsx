@@ -225,6 +225,73 @@ export default async function CustomerDetailPage({
         </div>
       </section>
 
+      {canManage ? (
+        <Card
+          className="paon-reveal rounded-[var(--radius-md)]"
+          style={{ animationDelay: "180ms" }}
+        >
+          <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            Floor visit
+          </p>
+          <h2 className="font-display mt-2 text-2xl">With them right now?</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
+            Add lines from the storefront while with the client — full POS visit
+            mode ships next.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href={`/appointments/new?customerId=${customer.id}`}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              New appointment
+            </Link>
+            <form action={startConversation}>
+              <input type="hidden" name="customerId" value={customer.id} />
+              <button
+                type="submit"
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Message
+              </button>
+            </form>
+            <Link
+              href="/products"
+              className={buttonVariants({ variant: "ghost" })}
+            >
+              Browse catalogue
+            </Link>
+          </div>
+          <form
+            action={createClientelingNote}
+            className="mt-5 flex flex-col gap-2 border-t border-[var(--color-stone-100)] pt-4 sm:flex-row sm:items-end"
+          >
+            <input type="hidden" name="customerId" value={customer.id} />
+            <div className="flex-1">
+              <label
+                htmlFor="interest-note"
+                className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--color-stone-500)]"
+              >
+                Log interest
+              </label>
+              <input
+                id="interest-note"
+                name="body"
+                required
+                maxLength={2000}
+                placeholder="What did they try on or ask about?"
+                className="h-10 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              className={buttonVariants({ size: "sm", className: "shrink-0" })}
+            >
+              Log interest
+            </button>
+          </form>
+        </Card>
+      ) : null}
+
       <section
         className="paon-reveal grid gap-5 lg:grid-cols-[1.2fr_0.8fr]"
         style={{ animationDelay: "240ms" }}
@@ -483,11 +550,29 @@ export default async function CustomerDetailPage({
           Garments & fitting history
         </h2>
         {garments.length === 0 ? (
-          <p className="mb-4 text-sm text-[var(--color-stone-500)]">
-            No physical garments have been recorded yet. Fit observations are
-            captured during garment intake, never as generic customer
-            measurements.
-          </p>
+          <Card className="mb-4 border-dashed">
+            <p className="text-sm font-medium text-[var(--color-stone-900)]">
+              Measurement intake
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-stone-600)]">
+              No physical garments have been recorded yet. Fit observations are
+              captured against a garment during intake or a fitting note — never
+              as a generic customer measurement (see Wardrobe above). Before
+              confirming a made-to-measure order, record at minimum: chest,
+              waist and sleeve length.
+            </p>
+            {canManage ? (
+              <Link
+                href={`/alterations/new?customerId=${customer.id}`}
+                className={buttonVariants({
+                  variant: "outline",
+                  className: "mt-4",
+                })}
+              >
+                Begin garment intake
+              </Link>
+            ) : null}
+          </Card>
         ) : (
           <Card className="mb-4 divide-y divide-[var(--color-stone-100)] p-0">
             {garments.map((garment) => {

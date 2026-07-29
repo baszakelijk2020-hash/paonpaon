@@ -20,9 +20,11 @@ const initialCreateAppointmentFormState: CreateAppointmentFormState = {
 export function AppointmentForm({
   customers,
   staff,
+  defaultCustomerId,
 }: {
   customers: readonly Customer[];
   staff: readonly RetailerStaffMember[];
+  defaultCustomerId?: string;
 }) {
   const [state, formAction, isPending] = useActionState(
     createAppointment,
@@ -51,7 +53,7 @@ export function AppointmentForm({
             <Select
               id="customerId"
               name="customerId"
-              defaultValue={v["customerId"]}
+              defaultValue={v["customerId"] ?? defaultCustomerId ?? ""}
               required
             >
               <option value="" disabled>

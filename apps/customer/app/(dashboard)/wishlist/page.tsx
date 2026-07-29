@@ -11,6 +11,8 @@ import { formatMoney } from "@paon/utils";
 import Link from "next/link";
 
 import { removeFromWishlist } from "./actions";
+import { buildVariantIdByProductSlug } from "./favorites-map";
+import { MergeFavorites, type FavoritesHouse } from "./merge-favorites";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -48,8 +50,26 @@ export default async function WishlistPage() {
   );
   const nonEmptyGroups = groups.filter((group) => group.items.length > 0);
 
+  const favoritesHouses: FavoritesHouse[] = await Promise.all(
+    groups.flatMap((group) => {
+      const retailer = group.retailer;
+      if (!retailer) return [];
+      return [
+        (async () => ({
+          slug: retailer.slug,
+          retailerId: retailer.id,
+          variantIdByProductSlug: await buildVariantIdByProductSlug(
+            supabase,
+            retailer.id,
+          ),
+        }))(),
+      ];
+    }),
+  );
+
   return (
     <div className="flex flex-col gap-6">
+      <MergeFavorites houses={favoritesHouses} />
       <div>
         <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
           Saved

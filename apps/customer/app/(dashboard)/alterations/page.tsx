@@ -3,6 +3,7 @@ import {
   CustomerRepository,
   RetailerRepository,
 } from "@paon/database";
+import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
@@ -11,6 +12,10 @@ import { AlterationStatusBadge } from "./status-badge";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+const REQUEST_ALTERATION_HREF = `/messages?prefill=${encodeURIComponent(
+  "I'd like to request an alteration for a garment.",
+)}`;
 
 export default async function AlterationsPage() {
   const session = await requireSession();
@@ -37,13 +42,27 @@ export default async function AlterationsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-        Alterations
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
+          Alterations
+        </h1>
+        <Link
+          href={REQUEST_ALTERATION_HREF}
+          className={buttonVariants({ variant: "outline" })}
+        >
+          Request alteration
+        </Link>
+      </div>
 
       {alterations.length === 0 ? (
         <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
           <p className="text-[var(--color-stone-600)]">No alterations yet.</p>
+          <Link
+            href={REQUEST_ALTERATION_HREF}
+            className={buttonVariants({ className: "mt-6" })}
+          >
+            Request alteration
+          </Link>
         </div>
       ) : (
         <Card className="divide-y divide-[var(--color-stone-100)] p-0">

@@ -7,7 +7,7 @@ import {
 import { asId } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate, formatMoney } from "@paon/utils";
+import { formatDate, formatMoney, humaniseStatus } from "@paon/utils";
 import { notFound } from "next/navigation";
 
 import { PayPanel } from "./pay-panel";
@@ -51,7 +51,7 @@ export default async function OrderDetailPage({
           <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
             {order.orderNumber}
           </h1>
-          <Badge tone="warning">{order.status.replaceAll("_", " ")}</Badge>
+          <Badge tone="warning">{humaniseStatus(order.status)}</Badge>
         </div>
         <p className="text-sm text-[var(--color-stone-500)]">
           {retailer?.displayName ?? "Unknown retailer"} ·{" "}
@@ -93,6 +93,30 @@ export default async function OrderDetailPage({
         </p>
       </Card>
 
+      {lines.some(
+        (line) => line.requiresProduction || line.requiresAlteration,
+      ) ? (
+        <Card
+          className="paon-reveal bg-[var(--color-stone-50)]"
+          style={{ animationDelay: "150ms" }}
+        >
+          <p className="text-sm font-medium text-[var(--color-stone-900)]">
+            Three separate timelines
+          </p>
+          <p className="mt-2 text-sm leading-6 text-[var(--color-stone-600)]">
+            This order&rsquo;s status above tracks payment and fulfilment.
+            {lines.some((line) => line.requiresProduction)
+              ? " Made-to-measure lines are cut and assembled on their own production schedule, "
+              : " "}
+            {lines.some((line) => line.requiresAlteration)
+              ? "and any tailoring is tracked as a separate alteration work order once the garment arrives."
+              : "."}{" "}
+            Your Style Advisor can tell you where a specific line stands in
+            either.
+          </p>
+        </Card>
+      ) : null}
+
       {order.status === "pending_payment" ? (
         payment === "success" ? (
           <p className="text-sm text-[var(--color-stone-500)]">
@@ -102,6 +126,7 @@ export default async function OrderDetailPage({
         ) : (
           <PayPanel
             orderId={order.id}
+            orderNumber={order.orderNumber}
             paymentCanceled={payment === "canceled"}
           />
         )

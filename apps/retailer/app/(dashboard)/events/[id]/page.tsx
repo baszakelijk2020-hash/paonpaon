@@ -1,11 +1,13 @@
 import { requireRetailerRole } from "@paon/auth";
 import { CustomerRepository, EventRepository } from "@paon/database";
-import { Button } from "@paon/ui/components/Button";
+import { Badge } from "@paon/ui/components/Badge";
+import { Button, buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate, humaniseStatus } from "@paon/utils";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { updateEventStatus } from "../actions";
+import { checkInGuest, updateEventStatus } from "../actions";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -70,17 +72,42 @@ export default async function EventPage({
         </div>
       </Card>
       <Card>
-        <h2 className="mb-3 text-lg font-medium">
-          Guests ({rsvps.filter((item) => item.status === "attending").length}{" "}
-          attending)
-        </h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-medium">
+            Guests ({rsvps.filter((item) => item.status === "attending").length}{" "}
+            attending)
+          </h2>
+          <Link
+            href={`/events/${event.id}/print`}
+            className={buttonVariants({ variant: "ghost", size: "sm" })}
+          >
+            Print guest list
+          </Link>
+        </div>
         {rsvps.map((rsvp) => (
           <div
             key={rsvp.customerId}
-            className="flex justify-between border-t py-3"
+            className="flex items-center justify-between gap-3 border-t py-3"
           >
             <span>{names.get(rsvp.customerId) ?? "Customer"}</span>
-            <span className="capitalize">{rsvp.status}</span>
+            <div className="flex items-center gap-2">
+              <Badge tone={rsvp.status === "attended" ? "success" : "neutral"}>
+                {humaniseStatus(rsvp.status)}
+              </Badge>
+              {rsvp.status !== "attended" ? (
+                <form action={checkInGuest}>
+                  <input type="hidden" name="eventId" value={event.id} />
+                  <input
+                    type="hidden"
+                    name="customerId"
+                    value={rsvp.customerId}
+                  />
+                  <Button type="submit" variant="outline" size="sm">
+                    Check in
+                  </Button>
+                </form>
+              ) : null}
+            </div>
           </div>
         ))}
         {rsvps.length === 0 ? (

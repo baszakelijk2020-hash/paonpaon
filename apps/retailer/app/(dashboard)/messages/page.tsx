@@ -20,6 +20,7 @@ import {
   ConversationList,
   type ConversationListItem,
 } from "./conversation-list";
+import { MessageTextarea } from "./message-textarea";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -28,7 +29,7 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
  * The staff inbox — a real 3-pane layout (conversation list, thread,
  * customer context), not the previous list-then-navigate-away pattern.
  * On small screens: list-only until `?c=` selects a thread; context
- * pane appears from `xl` up. All three panes are wired to the actual
+ * pane appears from `lg` up. All three panes are wired to the actual
  * repositories already used elsewhere in the app.
  */
 export default async function MessagesPage({
@@ -121,7 +122,7 @@ export default async function MessagesPage({
   }
 
   return (
-    <div className="grid h-[calc(100dvh-10.5rem)] grid-cols-1 gap-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] shadow-[var(--shadow-elevated)] lg:h-[calc(100vh-6rem)] lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)_20rem]">
+    <div className="grid h-[calc(100dvh-10.5rem)] grid-cols-1 gap-0 overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] shadow-[var(--shadow-elevated)] lg:h-[calc(100vh-6rem)] lg:grid-cols-[minmax(14rem,18rem)_minmax(0,1fr)_18rem]">
       <div
         className={`border-[var(--color-stone-200)] bg-white lg:border-r ${
           explicitSelection ? "max-lg:hidden" : ""
@@ -231,14 +232,7 @@ export default async function MessagesPage({
                 value={activeConversation.id}
               />
               <div className="flex flex-col gap-2 sm:flex-row">
-                <textarea
-                  name="body"
-                  required
-                  maxLength={5000}
-                  aria-label="Message"
-                  className="min-h-16 flex-1 resize-none rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
-                  placeholder="Write a reply — ⌘/Ctrl+Enter to send"
-                />
+                <MessageTextarea />
                 <Button type="submit" className="sm:self-end">
                   Send
                 </Button>
@@ -253,7 +247,7 @@ export default async function MessagesPage({
         )}
       </div>
 
-      <div className="hidden overflow-y-auto border-l border-[var(--color-stone-200)] bg-white p-5 xl:block">
+      <div className="hidden overflow-y-auto border-l border-[var(--color-stone-200)] bg-white p-5 lg:block">
         {activeCustomer ? (
           <div className="flex flex-col gap-6">
             <div>

@@ -6,6 +6,7 @@ import type {
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
+import Link from "next/link";
 
 const TIER_TONE = {
   member: "neutral",
@@ -71,6 +72,12 @@ export function SelfPortrait({
             <p className="mt-1 text-sm text-[var(--color-stone-700)]">
               {loyaltyAccount.pointsBalance.toLocaleString("en-US")} pts
             </p>
+            <Link
+              href="/loyalty"
+              className="mt-1 inline-block text-xs underline underline-offset-4"
+            >
+              Programme rules
+            </Link>
           </div>
         ) : null}
       </div>

@@ -9,6 +9,8 @@ import { RetailerTheme } from "@paon/ui/components/RetailerTheme";
 import { notFound } from "next/navigation";
 
 import { signOut } from "./actions";
+import { KeyboardShortcuts } from "./keyboard-shortcuts";
+import { OfflineBanner } from "./offline-banner";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -23,6 +25,14 @@ const PERSONA_LABELS = {
   worker: "Alteration specialist",
   read_only: "Read-only observer",
 } as const;
+
+/** Explains labels that don't read as an obvious rename of the underlying role key. */
+const PERSONA_TITLES: Partial<Record<keyof typeof PERSONA_LABELS, string>> = {
+  sales_associate: "Role: sales_associate",
+  production_staff: "Role: production_staff",
+  workshop_manager: "Role: workshop_manager",
+  read_only: "Role: read_only",
+};
 
 export default async function DashboardLayout({
   children,
@@ -229,6 +239,9 @@ export default async function DashboardLayout({
         product="PAON Retail"
         homeHref={homeHref}
         persona={PERSONA_LABELS[session.retailerRole]}
+        {...(PERSONA_TITLES[session.retailerRole]
+          ? { personaTitle: PERSONA_TITLES[session.retailerRole] }
+          : {})}
         email={session.email}
         navigation={navigation}
         mobileDock={mobileDock}
@@ -240,7 +253,13 @@ export default async function DashboardLayout({
           </form>
         }
       >
+        <OfflineBanner />
         {children}
+        <KeyboardShortcuts
+          {...(!isWorkshopRole && canManageCustomers
+            ? { newClientHref: "/customers/new" }
+            : {})}
+        />
       </AppShell>
     </RetailerTheme>
   );

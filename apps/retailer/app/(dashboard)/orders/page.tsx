@@ -1,9 +1,6 @@
 import { OrderRepository } from "@paon/database";
-import { Card } from "@paon/ui/components/Card";
-import { formatDate, formatMoney } from "@paon/utils";
-import Link from "next/link";
 
-import { OrderStatusBadge } from "./status-badge";
+import { OrdersList } from "./orders-list";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -31,30 +28,7 @@ export default async function OrdersPage() {
           <p className="text-[var(--color-stone-600)]">No orders yet.</p>
         </div>
       ) : (
-        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-md)] p-0 shadow-[var(--shadow-elevated)]">
-          {orders.map((order) => (
-            <Link
-              key={order.id}
-              href={`/orders/${order.id}`}
-              className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 hover:bg-[var(--color-stone-50)]"
-            >
-              <div className="min-w-0">
-                <p className="font-medium text-[var(--color-stone-900)]">
-                  {order.orderNumber}
-                </p>
-                <p className="text-sm text-[var(--color-stone-500)]">
-                  {formatDate(order.createdAt, "en-US")} · {order.channel}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <p className="font-medium text-[var(--color-stone-900)]">
-                  {formatMoney(order.total, "en-US")}
-                </p>
-                <OrderStatusBadge status={order.status} />
-              </div>
-            </Link>
-          ))}
-        </Card>
+        <OrdersList orders={orders} />
       )}
     </div>
   );

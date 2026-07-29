@@ -11,6 +11,12 @@ import { Card } from "@paon/ui/components/Card";
 import { formatDate, humaniseStatus } from "@paon/utils";
 import Link from "next/link";
 
+import { buildVariantIdByProductSlug } from "../wishlist/favorites-map";
+import {
+  MergeFavorites,
+  type FavoritesHouse,
+} from "../wishlist/merge-favorites";
+
 import { HouseSwitcher } from "./house-switcher";
 import { TodaysPick } from "./todays-pick";
 
@@ -85,6 +91,21 @@ export default async function DashboardPage() {
       (unreadByRetailer.get(notification.retailerId) ?? 0) + 1,
     );
   }
+  const favoritesHouses: FavoritesHouse[] = await Promise.all(
+    relationships.flatMap(({ retailer }) => {
+      if (!retailer) return [];
+      return [
+        (async () => ({
+          slug: retailer.slug,
+          retailerId: retailer.id,
+          variantIdByProductSlug: await buildVariantIdByProductSlug(
+            supabase,
+            retailer.id,
+          ),
+        }))(),
+      ];
+    }),
+  );
   const aiConfigured = !!getAIProvider();
   const primary = relationships[0];
   const firstName =
@@ -95,6 +116,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <MergeFavorites houses={favoritesHouses} />
       <HouseSwitcher
         houses={relationships.map(({ customer, retailer }) => ({
           id: customer.id,

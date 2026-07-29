@@ -64,6 +64,34 @@ export function toCreatedSubscription(
   };
 }
 
+/** Swaps the single subscription item to a different Price — plan changes stay a Stripe-side update rather than cancel-and-recreate, so proration and the existing payment method carry over. */
+export async function updatePlatformSubscriptionPlan(
+  stripe: Stripe,
+  params: { subscriptionId: string; priceId: string },
+): Promise<CreatedSubscription> {
+  const current = await stripe.subscriptions.retrieve(params.subscriptionId);
+  const itemId = current.items.data[0]?.id;
+  const subscription = await stripe.subscriptions.update(
+    params.subscriptionId,
+    {
+      items: itemId
+        ? [{ id: itemId, price: params.priceId }]
+        : [{ price: params.priceId }],
+      proration_behavior: "create_prorations",
+    },
+  );
+  return toCreatedSubscription(subscription);
+}
+
+/** Immediate cancellation, platform-operator-initiated — distinct from a retailer-side `cancel_at_period_end` toggle a customer portal would expose, which PAON does not have yet. */
+export async function cancelPlatformSubscription(
+  stripe: Stripe,
+  subscriptionId: string,
+): Promise<CreatedSubscription> {
+  const subscription = await stripe.subscriptions.cancel(subscriptionId);
+  return toCreatedSubscription(subscription);
+}
+
 /** The Stripe-hosted portal where a retailer manages their own payment method and views invoices — PAON never handles card details directly. */
 export async function createBillingPortalSession(
   stripe: Stripe,

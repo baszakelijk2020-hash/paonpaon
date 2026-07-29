@@ -24,6 +24,7 @@ import { notFound } from "next/navigation";
 import { RetailerStatusBadge } from "../status-badge";
 
 import { ClockWidget } from "./clock-widget";
+import { GlossaryBanner } from "./glossary-banner";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -189,6 +190,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <GlossaryBanner />
       <section className="paon-reveal relative isolate overflow-hidden rounded-[var(--radius-md)] bg-[#111110] px-6 py-8 text-[var(--color-stone-100)] shadow-[var(--shadow-elevated)] sm:px-10 sm:py-11">
         <div
           aria-hidden="true"

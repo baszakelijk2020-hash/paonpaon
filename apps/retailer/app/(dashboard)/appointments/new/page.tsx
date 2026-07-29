@@ -7,7 +7,11 @@ import { AppointmentForm } from "./appointment-form";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
-export default async function NewAppointmentPage() {
+export default async function NewAppointmentPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ customerId?: string }>;
+}) {
   const session = await requireSession();
   try {
     requireRetailerRole(session.retailerRole, "sales_associate");
@@ -15,6 +19,7 @@ export default async function NewAppointmentPage() {
     redirect("/appointments");
   }
 
+  const { customerId } = await searchParams;
   const supabase = await getSupabaseServerClient();
   const [customers, staff] = await Promise.all([
     new CustomerRepository(supabase).findByRetailer(session.retailerId),
@@ -32,7 +37,11 @@ export default async function NewAppointmentPage() {
           request.
         </p>
       </div>
-      <AppointmentForm customers={customers} staff={staff} />
+      <AppointmentForm
+        customers={customers}
+        staff={staff}
+        {...(customerId ? { defaultCustomerId: customerId } : {})}
+      />
     </div>
   );
 }
