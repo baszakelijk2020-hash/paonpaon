@@ -29,6 +29,7 @@ export * from "./catalog/product.schema";
 
 export * from "./metadata/metadata";
 export * from "./metadata/metadata.schema";
+export * from "./metadata/metadata-retailer-form";
 
 export * from "./commerce/order";
 export * from "./commerce/order.schema";

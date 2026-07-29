@@ -169,6 +169,11 @@ export default async function DashboardLayout({
                 description: "Group products for storefront",
               },
               {
+                href: "/metadata",
+                label: "Metadata",
+                description: "Review assignments and overrides",
+              },
+              {
                 href: "/analytics",
                 label: "Performance",
                 description: "Commercial and service signals",
