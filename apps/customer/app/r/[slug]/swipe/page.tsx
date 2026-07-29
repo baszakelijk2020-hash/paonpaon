@@ -50,15 +50,17 @@ export default async function SwipePage({
     productIdsInOrder = search.hits.map((hit) => hit.productId);
   }
 
-  const products = (
-    await productRepo.findByRetailer(retailer.id)
-  ).filter((product) => product.status === "active");
+  const products = (await productRepo.findByRetailer(retailer.id)).filter(
+    (product) => product.status === "active",
+  );
 
   const filteredProducts =
     productIdsInOrder.length > 0
       ? productIdsInOrder
           .map((id) => products.find((product) => product.id === id))
-          .filter((product): product is NonNullable<typeof product> => !!product)
+          .filter(
+            (product): product is NonNullable<typeof product> => !!product,
+          )
       : products;
 
   const cards = (

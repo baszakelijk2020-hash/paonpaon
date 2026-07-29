@@ -233,13 +233,15 @@ export function TableServiceWidget({
               text,
               occasionPhrase,
             );
-            setHistory((h) => [
-              ...h,
-              result.answer.body,
-              result.answer.handoffRecommended
-                ? "An advisor can continue this conversation in store or by message — send your details below to reach the team."
-                : "",
-            ].filter(Boolean));
+            setHistory((h) =>
+              [
+                ...h,
+                result.answer.body,
+                result.answer.handoffRecommended
+                  ? "An advisor can continue this conversation in store or by message — send your details below to reach the team."
+                  : "",
+              ].filter(Boolean),
+            );
           } catch {
             setHistory((h) => [
               ...h,

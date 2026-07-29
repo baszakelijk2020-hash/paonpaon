@@ -14,8 +14,6 @@ import {
   evidenceSourceFromEventName,
   mayCapturePersonalizationForCustomer,
   retentionExpiresAt,
-  type ProductId,
-  type MetadataConceptId,
 } from "@paon/domain";
 
 import { requireSession } from "@/lib/session";

@@ -10,9 +10,9 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
-import { swipeLeft, swipeRight } from "./actions";
-
 import { trackStorefrontEvent } from "../track-actions";
+
+import { swipeLeft, swipeRight } from "./actions";
 
 /**
  * Exact port of pag1.html's `#swipe-app-placeholder` ("munro-swipe-card")
@@ -205,7 +205,10 @@ export function SwipeDeck({
                 <div className="flex gap-2">
                   <Link
                     href={`/r/${slug}`}
-                    className={buttonVariants({ variant: "outline", size: "sm" })}
+                    className={buttonVariants({
+                      variant: "outline",
+                      size: "sm",
+                    })}
                   >
                     Browse the full shop
                   </Link>
@@ -218,12 +221,19 @@ export function SwipeDeck({
                 </div>
                 <Link
                   href={`/r/${slug}/appointments${occasionQuery ? `?occasion=${encodeURIComponent(occasionQuery.replace(/\s+/g, "-"))}` : ""}`}
-                  className={buttonVariants({ variant: "secondary", size: "sm" })}
+                  className={buttonVariants({
+                    variant: "secondary",
+                    size: "sm",
+                  })}
                   onClick={() => {
-                    void trackStorefrontEvent(retailerId, "appointment_intent", {
-                      via: "swipe",
-                      ...(occasionQuery ? { occasion: occasionQuery } : {}),
-                    });
+                    void trackStorefrontEvent(
+                      retailerId,
+                      "appointment_intent",
+                      {
+                        via: "swipe",
+                        ...(occasionQuery ? { occasion: occasionQuery } : {}),
+                      },
+                    );
                   }}
                 >
                   Book an appointment

@@ -3,6 +3,7 @@
  * Approved knowledge and catalogue facts only — AI output is validated here.
  */
 
+import type { CatalogueSearchHit } from "../catalog/catalogue-query";
 import type { KnowledgeDiscoveryResult } from "../knowledge/knowledge-discovery";
 import type {
   KnowledgeObjectId,
@@ -10,7 +11,6 @@ import type {
   ProductId,
   RetailerId,
 } from "../shared/branded-id";
-import type { CatalogueSearchHit } from "../catalog/catalogue-query";
 
 export const TABLE_SERVICE_UNCERTAINTY_LEVELS = [
   "low",
@@ -134,7 +134,8 @@ export function validateTableServiceGroundedAnswer(
   if (!refused && citationIds.length === 0 && productIds.length === 0) {
     return {
       ok: false,
-      reason: "Grounded answers must cite approved knowledge or shortlist items",
+      reason:
+        "Grounded answers must cite approved knowledge or shortlist items",
     };
   }
 
@@ -175,7 +176,8 @@ export function mapHitsToShortlist(
       productId: hit.productId,
       name: productNames.get(hit.productId) ?? "Catalogue item",
       score: hit.score,
-      explanation: factorSummary || "Matched accepted metadata for this occasion",
+      explanation:
+        factorSummary || "Matched accepted metadata for this occasion",
     };
   });
 }
@@ -194,8 +196,7 @@ export function buildDeterministicGroundedAnswer(args: {
 
   if (!hasKnowledge && !hasShortlist) {
     return {
-      body:
-        "I do not have enough approved guidance to answer that confidently. An advisor can help in store or by message.",
+      body: "I do not have enough approved guidance to answer that confidently. An advisor can help in store or by message.",
       citations: [],
       citedProductIds: [],
       uncertainty: "high",
@@ -211,9 +212,7 @@ export function buildDeterministicGroundedAnswer(args: {
     .slice(0, 4)
     .map((item) => `• ${item.name} — ${item.explanation}`);
 
-  const intro = bundle.intentExplanation
-    ? `${bundle.intentExplanation}. `
-    : "";
+  const intro = bundle.intentExplanation ? `${bundle.intentExplanation}. ` : "";
   const knowledgeBlock =
     knowledgeLines.length > 0
       ? `From our approved guides:\n${knowledgeLines.join("\n")}`
@@ -222,13 +221,19 @@ export function buildDeterministicGroundedAnswer(args: {
     shortlistLines.length > 0
       ? `Pieces that match this occasion:\n${shortlistLines.join("\n")}`
       : "";
-  const body = [intro + "Here is what we can share with confidence:", knowledgeBlock, shortlistBlock]
+  const body = [
+    intro + "Here is what we can share with confidence:",
+    knowledgeBlock,
+    shortlistBlock,
+  ]
     .filter((part) => part.length > 0)
     .join("\n\n");
 
   return {
     body,
-    citations: bundle.knowledge.slice(0, 3).map((item) => item.knowledgeObjectId),
+    citations: bundle.knowledge
+      .slice(0, 3)
+      .map((item) => item.knowledgeObjectId),
     citedProductIds: bundle.shortlist.slice(0, 4).map((item) => item.productId),
     uncertainty: hasKnowledge && hasShortlist ? "low" : "medium",
     refused: false,

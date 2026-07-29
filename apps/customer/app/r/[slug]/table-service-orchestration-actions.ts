@@ -1,11 +1,11 @@
 "use server";
 
+import { runTableServiceAnswerJob } from "@paon/ai";
 import {
   AIGenerationRepository,
   RetailerRepository,
   TableServiceRepository,
 } from "@paon/database";
-import { runTableServiceAnswerJob } from "@paon/ai";
 import {
   asId,
   buildDeterministicGroundedAnswer,
@@ -44,10 +44,9 @@ export async function getOccasionGuidance(
 ): Promise<OccasionGuidanceResult> {
   const supabase = await getSupabaseServerClient();
   const rId = asId<"RetailerId">(retailerId);
-  const bundle = await new TableServiceRepository(supabase).projectOccasionBundle(
-    rId,
-    occasionPhrase,
-  );
+  const bundle = await new TableServiceRepository(
+    supabase,
+  ).projectOccasionBundle(rId, occasionPhrase);
   const welcomeLines = buildOccasionWelcomeLines(bundle);
   const occasionParam = encodeURIComponent(
     occasionPhrase.trim().toLowerCase().replace(/\s+/g, "-"),

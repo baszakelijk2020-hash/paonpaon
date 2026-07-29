@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `3.4 Grounded TableService and guided preference capture`
-- **Current requirement IDs:** `ADV-001`, `ADV-002`, `ENG-002`
+- **Current queue item:** `4.1 Wardrobe ownership and collaboration`
+- **Current requirement IDs:** `WARD-001`, `WARD-002`, `WARD-003`, `ENG-003`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -29,7 +29,8 @@ requires it.
   enrichment; `02f106e` adds purpose-specific consent and typed interaction
   events (PHASE 3.1 complete); `82f499c` adds StyleProfile evidence and
   deterministic recomputation (PHASE 3.2 complete); `6f5fac4` adds consented
-  advisor preparation briefing (PHASE 3.3 complete).
+  advisor preparation briefing (PHASE 3.3 complete); `bcd046c` adds grounded
+  TableService and guided preference capture (PHASE 3.4 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -48,18 +49,19 @@ requires it.
   `AdvisorBriefRepository`, upgraded `AnalyticsRepository`, `@paon/domain`
   intelligence consent/interaction-event/StyleProfile/advisor-brief
   contracts, customer account consent + StyleProfile inspect/remove controls,
-  consented storefront/swipe producers, and Retailer Portal advisor brief
-  mounts on customer/appointment workspaces.
-- **Checks/deployment state:** 100 migrations; advisor-brief domain/repo and
-  lint/typecheck/test/build/format are green on the 3.3 tip. Anonymous
+  consented storefront/swipe producers, Retailer Portal advisor brief
+  mounts on customer/appointment workspaces, TableService occasion bundle
+  projection, grounded answer validation, `@paon/ai` answer runner, and
+  occasion-scoped swipe/appointment conversion hooks.
+- **Checks/deployment state:** 101 migrations; TableService grounding domain/
+  repo and lint/typecheck/test/build/format are green on the 3.4 tip. Anonymous
   interaction persistence remains blocked pending jurisdiction documentation.
-- **Real blockers:** none for Stage 3.4 TableService grounding work;
-  missing AI key blocks live generation only; anonymous persistence remains
+- **Real blockers:** none for Stage 4.1 wardrobe ownership work; missing AI
+  key blocks live TableService generation only; anonymous persistence remains
   blocked for new anonymous producers only.
-- **Exact next files/tests:** implement queue item 3.4 Grounded TableService
-  and guided preference capture: TableService orchestration, approved-
-  knowledge retrieval, `@paon/ai` structured answers, and existing
-  conversation/swipe/shortlist/appointment surfaces.
+- **Exact next files/tests:** implement queue item 4.1 Wardrobe ownership and
+  collaboration: wardrobe domain, forward migration/RLS, repositories, and
+  Customer/Retailer Portal wardrobe views per ADR-063.
 
 ## 1. Programme intent
 

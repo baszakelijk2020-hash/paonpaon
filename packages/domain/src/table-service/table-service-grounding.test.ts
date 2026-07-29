@@ -76,7 +76,10 @@ describe("validateTableServiceGroundedAnswer", () => {
         citations: [foreignId],
         uncertainty: "low",
       },
-      { knowledgeIds: new Set([knowledgeId]), productIds: new Set([productId]) },
+      {
+        knowledgeIds: new Set([knowledgeId]),
+        productIds: new Set([productId]),
+      },
     );
     expect(result.ok).toBe(false);
     expect(result.reason).toContain("allowlist");
@@ -85,7 +88,10 @@ describe("validateTableServiceGroundedAnswer", () => {
   it("requires citations when not refusing", () => {
     const result = validateTableServiceGroundedAnswer(
       { body: "No basis.", refused: false },
-      { knowledgeIds: new Set([knowledgeId]), productIds: new Set([productId]) },
+      {
+        knowledgeIds: new Set([knowledgeId]),
+        productIds: new Set([productId]),
+      },
     );
     expect(result.ok).toBe(false);
   });

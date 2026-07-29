@@ -50,8 +50,7 @@ export interface TableServiceAnswerJobFailure {
 }
 
 export type TableServiceAnswerJobResult =
-  | TableServiceAnswerJobSuccess
-  | TableServiceAnswerJobFailure;
+  TableServiceAnswerJobSuccess | TableServiceAnswerJobFailure;
 
 const TABLE_SERVICE_SYSTEM_PROMPT = `You are a premium menswear advisor assistant. Answer ONLY using the approved knowledge snippets and shortlist products provided. Never invent product facts, mills, composition, or styling rules.
 
@@ -163,4 +162,4 @@ export class MockTableServiceAnswerProvider implements AIProvider {
   }
 }
 
-export { TABLE_SERVICE_SYSTEM_PROMPT, buildUserPayload };
+export { TABLE_SERVICE_SYSTEM_PROMPT };
