@@ -39,6 +39,11 @@ const navigation: AppShellNavGroup[] = [
         description: "Members-only releases and seven looks",
       },
       {
+        href: "/services",
+        label: "Concierge",
+        description: "Preferred Tailoring and HighMaintenance",
+      },
+      {
         href: "/loyalty",
         label: "Loyalty",
         description: "Status, points and rewards",

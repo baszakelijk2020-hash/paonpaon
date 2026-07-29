@@ -5,11 +5,13 @@ import {
   AnalyticsRepository,
   AppointmentRepository,
   ClientelingRepository,
+  ConciergeServiceRepository,
   CustomerRepository,
   LoyaltyRepository,
   OrderRepository,
   PhysicalGarmentRepository,
   ProductRepository,
+  RetailerStaffRepository,
   WardrobeLifecycleRepository,
   WardrobeRepository,
   WardrobeRoadmapRepository,
@@ -37,6 +39,7 @@ import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 import { createClientelingNote, setPreferredCarrier } from "./actions";
 import { AdvisorPreparationBriefCard } from "./advisor-preparation-brief";
 import { AIInsights } from "./ai-insights";
+import { CustomerConciergeCard } from "./concierge-card";
 import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
 import { SelfPortrait } from "./self-portrait";
@@ -63,6 +66,10 @@ export default async function CustomerDetailPage({
   const { id } = await params;
   const supabase = await getSupabaseServerClient();
 
+  const staffMember = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+
   const customer = await new CustomerRepository(supabase).findById(
     asId<"CustomerId">(id),
   );
@@ -85,6 +92,9 @@ export default async function CustomerDetailPage({
     wardrobeItems,
     catalogueProducts,
     roadmaps,
+    conciergePlans,
+    conciergeEnrollments,
+    conciergeBookings,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -106,7 +116,32 @@ export default async function CustomerDetailPage({
     new WardrobeRepository(supabase).findByCustomer(customer.id),
     new ProductRepository(supabase).findByRetailer(session.retailerId),
     new WardrobeRoadmapRepository(supabase).findByCustomer(customer.id),
+    (async () => {
+      const repo = new ConciergeServiceRepository(supabase);
+      await repo.ensurePlanDefinitions(session.retailerId);
+      return repo.listPlanDefinitions(session.retailerId);
+    })(),
+    new ConciergeServiceRepository(supabase).listEnrollmentsByCustomer(
+      customer.id,
+    ),
+    new ConciergeServiceRepository(supabase).listBookingsByCustomer(
+      customer.id,
+    ),
   ]);
+  const conciergeEntitlementsEntries = await Promise.all(
+    conciergeEnrollments.map(
+      async (enrollment) =>
+        [
+          enrollment.id,
+          await new ConciergeServiceRepository(
+            supabase,
+          ).listEntitlementsForEnrollment(enrollment.id),
+        ] as const,
+    ),
+  );
+  const conciergeEntitlementsByEnrollment = new Map(
+    conciergeEntitlementsEntries,
+  );
   const wardrobeRepo = new WardrobeRepository(supabase);
   const wardrobeLifecycleRepo = new WardrobeLifecycleRepository(supabase);
   const wardrobeHistoryEntries = await Promise.all(
@@ -480,6 +515,17 @@ export default async function CustomerDetailPage({
           milestoneAwards={milestoneAwards}
           recentEvents={recentEvents}
           pinnedNote={pinnedNote}
+        />
+      ) : null}
+
+      {canManage ? (
+        <CustomerConciergeCard
+          customerId={customer.id}
+          staffId={staffMember?.id ?? ""}
+          plans={conciergePlans}
+          enrollments={conciergeEnrollments}
+          bookings={conciergeBookings}
+          entitlementsByEnrollment={conciergeEntitlementsByEnrollment}
         />
       ) : null}
 

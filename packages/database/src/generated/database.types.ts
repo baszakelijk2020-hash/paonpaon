@@ -2396,6 +2396,325 @@ export type Database = {
           },
         ];
       };
+
+      concierge_entitlement_consumptions: {
+        Row: {
+          booking_id: string;
+          consumed_at: string;
+          customer_id: string;
+          entitlement_id: string;
+          id: string;
+          idempotency_key: string;
+          retailer_id: string;
+          units: number;
+        };
+        Insert: {
+          booking_id: string;
+          consumed_at?: string;
+          customer_id: string;
+          entitlement_id: string;
+          id?: string;
+          idempotency_key: string;
+          retailer_id: string;
+          units?: number;
+        };
+        Update: {
+          booking_id?: string;
+          consumed_at?: string;
+          customer_id?: string;
+          entitlement_id?: string;
+          id?: string;
+          idempotency_key?: string;
+          retailer_id?: string;
+          units?: number;
+        };
+        Relationships: [];
+      };
+      concierge_service_booking_items: {
+        Row: {
+          booking_id: string;
+          created_at: string;
+          id: string;
+          label: string;
+          notes: string | null;
+          operation_kind: Database["public"]["Enums"]["concierge_operation_kind"];
+          physical_garment_id: string | null;
+          retailer_id: string;
+          wardrobe_item_id: string | null;
+        };
+        Insert: {
+          booking_id: string;
+          created_at?: string;
+          id?: string;
+          label: string;
+          notes?: string | null;
+          operation_kind: Database["public"]["Enums"]["concierge_operation_kind"];
+          physical_garment_id?: string | null;
+          retailer_id: string;
+          wardrobe_item_id?: string | null;
+        };
+        Update: {
+          booking_id?: string;
+          created_at?: string;
+          id?: string;
+          label?: string;
+          notes?: string | null;
+          operation_kind?: Database["public"]["Enums"]["concierge_operation_kind"];
+          physical_garment_id?: string | null;
+          retailer_id?: string;
+          wardrobe_item_id?: string | null;
+        };
+        Relationships: [];
+      };
+      concierge_service_bookings: {
+        Row: {
+          advisor_staff_id: string | null;
+          alteration_id: string | null;
+          appointment_id: string | null;
+          created_at: string;
+          customer_id: string;
+          enrollment_id: string;
+          id: string;
+          notes: string | null;
+          physical_garment_id: string | null;
+          retailer_id: string;
+          scheduled_at: string | null;
+          service_kind: Database["public"]["Enums"]["concierge_service_kind"];
+          status: Database["public"]["Enums"]["concierge_booking_status"];
+          title: string;
+          updated_at: string;
+          wardrobe_item_id: string | null;
+        };
+        Insert: {
+          advisor_staff_id?: string | null;
+          alteration_id?: string | null;
+          appointment_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          enrollment_id: string;
+          id?: string;
+          notes?: string | null;
+          physical_garment_id?: string | null;
+          retailer_id: string;
+          scheduled_at?: string | null;
+          service_kind: Database["public"]["Enums"]["concierge_service_kind"];
+          status?: Database["public"]["Enums"]["concierge_booking_status"];
+          title: string;
+          updated_at?: string;
+          wardrobe_item_id?: string | null;
+        };
+        Update: {
+          advisor_staff_id?: string | null;
+          alteration_id?: string | null;
+          appointment_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          enrollment_id?: string;
+          id?: string;
+          notes?: string | null;
+          physical_garment_id?: string | null;
+          retailer_id?: string;
+          scheduled_at?: string | null;
+          service_kind?: Database["public"]["Enums"]["concierge_service_kind"];
+          status?: Database["public"]["Enums"]["concierge_booking_status"];
+          title?: string;
+          updated_at?: string;
+          wardrobe_item_id?: string | null;
+        };
+        Relationships: [];
+      };
+      concierge_service_cost_records: {
+        Row: {
+          amount_minor: number;
+          booking_id: string;
+          currency: string;
+          customer_id: string;
+          description: string;
+          id: string;
+          recorded_at: string;
+          recorded_by_staff_id: string | null;
+          retailer_id: string;
+        };
+        Insert: {
+          amount_minor: number;
+          booking_id: string;
+          currency: string;
+          customer_id: string;
+          description: string;
+          id?: string;
+          recorded_at?: string;
+          recorded_by_staff_id?: string | null;
+          retailer_id: string;
+        };
+        Update: {
+          amount_minor?: number;
+          booking_id?: string;
+          currency?: string;
+          customer_id?: string;
+          description?: string;
+          id?: string;
+          recorded_at?: string;
+          recorded_by_staff_id?: string | null;
+          retailer_id?: string;
+        };
+        Relationships: [];
+      };
+      concierge_service_enrollments: {
+        Row: {
+          advisor_staff_id: string | null;
+          commitment_note: string | null;
+          created_at: string;
+          customer_id: string;
+          ended_at: string | null;
+          id: string;
+          plan_definition_id: string;
+          retailer_id: string;
+          service_kind: Database["public"]["Enums"]["concierge_service_kind"];
+          started_at: string | null;
+          status: Database["public"]["Enums"]["concierge_enrollment_status"];
+          updated_at: string;
+        };
+        Insert: {
+          advisor_staff_id?: string | null;
+          commitment_note?: string | null;
+          created_at?: string;
+          customer_id: string;
+          ended_at?: string | null;
+          id?: string;
+          plan_definition_id: string;
+          retailer_id: string;
+          service_kind: Database["public"]["Enums"]["concierge_service_kind"];
+          started_at?: string | null;
+          status?: Database["public"]["Enums"]["concierge_enrollment_status"];
+          updated_at?: string;
+        };
+        Update: {
+          advisor_staff_id?: string | null;
+          commitment_note?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          ended_at?: string | null;
+          id?: string;
+          plan_definition_id?: string;
+          retailer_id?: string;
+          service_kind?: Database["public"]["Enums"]["concierge_service_kind"];
+          started_at?: string | null;
+          status?: Database["public"]["Enums"]["concierge_enrollment_status"];
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      concierge_service_entitlements: {
+        Row: {
+          allowance: number;
+          consumed: number;
+          created_at: string;
+          customer_id: string;
+          enrollment_id: string;
+          id: string;
+          kind: Database["public"]["Enums"]["concierge_entitlement_kind"];
+          label: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          allowance: number;
+          consumed?: number;
+          created_at?: string;
+          customer_id: string;
+          enrollment_id: string;
+          id?: string;
+          kind: Database["public"]["Enums"]["concierge_entitlement_kind"];
+          label: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          allowance?: number;
+          consumed?: number;
+          created_at?: string;
+          customer_id?: string;
+          enrollment_id?: string;
+          id?: string;
+          kind?: Database["public"]["Enums"]["concierge_entitlement_kind"];
+          label?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      concierge_service_plan_definitions: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          id: string;
+          label: string;
+          retailer_id: string;
+          service_kind: Database["public"]["Enums"]["concierge_service_kind"];
+          summary: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          id?: string;
+          label: string;
+          retailer_id: string;
+          service_kind: Database["public"]["Enums"]["concierge_service_kind"];
+          summary: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          id?: string;
+          label?: string;
+          retailer_id?: string;
+          service_kind?: Database["public"]["Enums"]["concierge_service_kind"];
+          summary?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      concierge_service_status_history: {
+        Row: {
+          actor_kind: string;
+          actor_staff_id: string | null;
+          booking_id: string;
+          from_status:
+            Database["public"]["Enums"]["concierge_booking_status"] | null;
+          id: string;
+          note: string | null;
+          recorded_at: string;
+          retailer_id: string;
+          to_status: Database["public"]["Enums"]["concierge_booking_status"];
+        };
+        Insert: {
+          actor_kind: string;
+          actor_staff_id?: string | null;
+          booking_id: string;
+          from_status?:
+            Database["public"]["Enums"]["concierge_booking_status"] | null;
+          id?: string;
+          note?: string | null;
+          recorded_at?: string;
+          retailer_id: string;
+          to_status: Database["public"]["Enums"]["concierge_booking_status"];
+        };
+        Update: {
+          actor_kind?: string;
+          actor_staff_id?: string | null;
+          booking_id?: string;
+          from_status?:
+            Database["public"]["Enums"]["concierge_booking_status"] | null;
+          id?: string;
+          note?: string | null;
+          recorded_at?: string;
+          retailer_id?: string;
+          to_status?: Database["public"]["Enums"]["concierge_booking_status"];
+        };
+        Relationships: [];
+      };
       conversations: {
         Row: {
           created_at: string;
@@ -8553,6 +8872,54 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      consume_concierge_entitlements_for_booking: {
+        Args: { p_booking_id: string };
+        Returns: number;
+      };
+      enroll_concierge_service: {
+        Args: {
+          p_advisor_staff_id?: string;
+          p_commitment_note?: string;
+          p_customer_id: string;
+          p_plan_definition_id: string;
+          p_retailer_id: string;
+          p_status?: Database["public"]["Enums"]["concierge_enrollment_status"];
+        };
+        Returns: string;
+      };
+      ensure_concierge_service_plan_definitions: {
+        Args: { p_retailer_id: string };
+        Returns: undefined;
+      };
+      record_concierge_service_cost: {
+        Args: {
+          p_amount_minor: number;
+          p_booking_id: string;
+          p_currency: string;
+          p_description: string;
+        };
+        Returns: string;
+      };
+      request_concierge_service_booking: {
+        Args: {
+          p_enrollment_id: string;
+          p_notes?: string;
+          p_operations?: Json;
+          p_physical_garment_id?: string;
+          p_title: string;
+          p_wardrobe_item_id?: string;
+        };
+        Returns: string;
+      };
+      transition_concierge_service_booking: {
+        Args: {
+          p_booking_id: string;
+          p_note?: string;
+          p_scheduled_at?: string;
+          p_transition: string;
+        };
+        Returns: Database["public"]["Enums"]["concierge_booking_status"];
+      };
       ensure_loyalty_milestone_definitions: {
         Args: { p_retailer_id: string };
         Returns: undefined;
@@ -9267,6 +9634,28 @@ export type Database = {
         | "occasion"
         | "value"
         | "tradeoff";
+      concierge_booking_status:
+        | "requested"
+        | "scheduled"
+        | "in_progress"
+        | "fulfilled"
+        | "completed"
+        | "canceled";
+      concierge_enrollment_status: "draft" | "active" | "paused" | "ended";
+      concierge_entitlement_kind:
+        | "planning_sessions"
+        | "pressing_visits"
+        | "collection_trips"
+        | "repair_credits";
+      concierge_operation_kind:
+        | "planning_session"
+        | "pressing"
+        | "cleaning"
+        | "repair"
+        | "collection"
+        | "delivery"
+        | "size_check";
+      concierge_service_kind: "preferred_tailoring" | "high_maintenance";
       loyalty_entry_type:
         | "earn_purchase"
         | "earn_referral"
@@ -9666,6 +10055,31 @@ export const Constants = {
         "value",
         "tradeoff",
       ],
+      concierge_booking_status: [
+        "requested",
+        "scheduled",
+        "in_progress",
+        "fulfilled",
+        "completed",
+        "canceled",
+      ],
+      concierge_enrollment_status: ["draft", "active", "paused", "ended"],
+      concierge_entitlement_kind: [
+        "planning_sessions",
+        "pressing_visits",
+        "collection_trips",
+        "repair_credits",
+      ],
+      concierge_operation_kind: [
+        "planning_session",
+        "pressing",
+        "cleaning",
+        "repair",
+        "collection",
+        "delivery",
+        "size_check",
+      ],
+      concierge_service_kind: ["preferred_tailoring", "high_maintenance"],
       loyalty_entry_type: [
         "earn_purchase",
         "earn_referral",

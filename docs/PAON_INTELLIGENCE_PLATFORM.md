@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `5.3 Preferred Tailoring and HighMaintenance operations`
-- **Current requirement IDs:** `SERV-001`, `SERV-002`, `LONG-001`
+- **Current queue item:** `5.4 Tie-Mate`
+- **Current requirement IDs:** `TIE-001`, `ENG-004`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -38,7 +38,8 @@ requires it.
   `933ab1c` adds MorningRoutine delivery and retailer controls (PHASE 4.5
   complete); `8e321ac` adds private offers and seven-day wardrobe campaigns
   (PHASE 5.1 complete); `36fecc5` adds tailoring milestones on the loyalty
-  ledger (PHASE 5.2 complete).
+  ledger (PHASE 5.2 complete); `492bed9` adds Preferred Tailoring and
+  HighMaintenance concierge operations (PHASE 5.3 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -82,31 +83,33 @@ requires it.
   `WardrobeRoadmapRepository`, `WardrobeLifecycleRepository`,
   `MorningRoutineRepository`, `MorningRoutineDeliveryRepository`,
   `CampaignRepository`, upgraded `LoyaltyRepository` milestone APIs,
+  `ConciergeServiceRepository`, concierge service plan/enrollment/entitlement/
+  booking/status/cost tables with tenant RLS and RPCs,
   `orchestrateMorningRoutineDeliveries`, `orchestrateCampaignDeliveries`,
   upgraded `AnalyticsRepository`, `@paon/domain` intelligence
   consent/interaction-event/StyleProfile/advisor-brief/grounded-answer/
   wardrobe/sartorial/outfit/roadmap/lifecycle/morning-routine/delivery/
-  campaign/loyalty-milestone contracts plus provider-neutral weather/calendar
+  campaign/loyalty-milestone/concierge contracts plus provider-neutral weather/calendar
   ports, `@paon/ai` `generateGroundedAnswer`, customer account consent +
   StyleProfile + wardrobe + MorningRoutine selection/delivery +
-  private-offers/seven-look + milestone controls, consented
+  private-offers/seven-look + milestone + concierge controls, consented
   storefront/swipe/TableService producers, Retailer Portal advisor
-  brief/wardrobe/roadmap/lifecycle/MorningRoutine/campaign/milestone mounts,
+  brief/wardrobe/roadmap/lifecycle/MorningRoutine/campaign/milestone/concierge mounts,
   and TableService occasion guidance with swipe/appointment conversion hooks.
-- **Checks/deployment state:** 108 migrations; loyalty milestone
+- **Checks/deployment state:** 109 migrations; concierge service
   domain/migration/repo/Customer+Retailer surfaces and
-  lint/typecheck/test/build/format are green on the 5.2 tip. Anonymous
+  lint/typecheck/test/build/format are green on the 5.3 tip. Anonymous
   interaction persistence remains blocked pending jurisdiction documentation.
   Live Resend/OpenWeather smoke still needs provider credentials.
-- **Real blockers:** none for Stage 5.3 operations without payment; anonymous
+- **Real blockers:** none for Stage 5.4 Tie-Mate UI pending approved founder
+  surface/design; anonymous
   persistence remains blocked for new anonymous producers only; missing
   founder-authored fabric/colour/formality sartorial rules still block only
   those exact claims; live delivery smoke still needs credentials; payment
   blocks money collection only (ADR-062).
-- **Exact next files/tests:** implement queue item 5.3 Preferred Tailoring and
-  HighMaintenance operations: dedicated concierge service plans,
-  entitlements/non-monetary credits, bookings, fulfilment, care/repair,
-  collection/delivery, and advisor ownership composing appointments/alterations.
+- **Exact next files/tests:** implement queue item 5.4 Tie-Mate: dedicated
+  mobile founder surface with fabric-scale swipe, save, order, and advisor
+  handoff hooks per ADR-052 once approved design is available.
 
 ## 1. Programme intent
 

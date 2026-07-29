@@ -111,3 +111,5 @@ export * from "./wardrobe/morning-routine-delivery";
 export * from "./wardrobe/morning-routine-delivery.schema";
 export * from "./campaign/campaign";
 export * from "./campaign/campaign.schema";
+export * from "./concierge/concierge";
+export * from "./concierge/concierge.schema";

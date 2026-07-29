@@ -189,6 +189,11 @@ export default async function DashboardLayout({
                 description: "Private offers and seven-day challenges",
               },
               {
+                href: "/settings/services",
+                label: "Concierge",
+                description: "Preferred Tailoring and HighMaintenance",
+              },
+              {
                 href: "/analytics",
                 label: "Performance",
                 description: "Commercial and service signals",
