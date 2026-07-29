@@ -104,4 +104,4 @@
 
 **Production: Internally testable / demo-ready.**  
 **Local: restart required.**  
-**Critical repair:** remove `RETAILER_STAFF_DEBUG` before treating retailer portal as safe under real staff accounts.
+**Critical repair applied after snapshot:** `RETAILER_STAFF_DEBUG` removed.
