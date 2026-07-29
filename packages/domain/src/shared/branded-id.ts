@@ -40,6 +40,9 @@ export type RetailerKnowledgeOverrideId = Brand<
   string,
   "RetailerKnowledgeOverrideId"
 >;
+export type CatalogueImportId = Brand<string, "CatalogueImportId">;
+export type CatalogueImportRowId = Brand<string, "CatalogueImportRowId">;
+export type MetadataReviewTaskId = Brand<string, "MetadataReviewTaskId">;
 export type WardrobeItemId = Brand<string, "WardrobeItemId">;
 export type OrderId = Brand<string, "OrderId">;
 export type OrderLineId = Brand<string, "OrderLineId">;
