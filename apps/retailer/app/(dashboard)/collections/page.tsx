@@ -28,7 +28,8 @@ export default async function CollectionsPage() {
           Collections
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          {collections.length} collection{collections.length === 1 ? "" : "s"}
+          Collections group products for the storefront. {collections.length}{" "}
+          collection{collections.length === 1 ? "" : "s"}.
         </p>
       </div>
 

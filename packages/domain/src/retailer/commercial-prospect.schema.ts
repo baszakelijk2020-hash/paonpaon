@@ -40,6 +40,25 @@ export const createCommercialProspectInputSchema = z.object({
     .transform((value) => value || undefined),
 });
 
+export const updateCommercialProspectContactInputSchema = z.object({
+  companyName: z.string().trim().min(2).max(160),
+  websiteUrl: optionalHttpsUrl,
+  primaryContactName: z.string().trim().min(2).max(160),
+  primaryContactEmail: z.string().trim().toLowerCase().email().max(320),
+  primaryContactPhone: z
+    .string()
+    .trim()
+    .max(50)
+    .optional()
+    .transform((value) => value || undefined),
+  nextAction: z
+    .string()
+    .trim()
+    .max(240)
+    .optional()
+    .transform((value) => value || undefined),
+});
+
 export const saveProspectDemoConfigurationInputSchema = z.object({
   prospectId: z.string().uuid(),
   planId: z.string().uuid(),

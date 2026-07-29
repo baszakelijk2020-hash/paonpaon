@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { setDemoPublication } from "./actions";
 import { BrandAssetUploader } from "./brand-asset-uploader";
 import { EnvironmentPanel } from "./environment-panel";
+import { ProspectContactForm } from "./prospect-contact-form";
 import { StudioForm } from "./studio-form";
 
 import { env } from "@/lib/env";
@@ -49,6 +50,21 @@ export default async function DemoStudioPage({
           <p className="mt-3 text-sm text-[var(--color-stone-500)]">
             {prospect.primaryContactName} · {prospect.primaryContactEmail}
           </p>
+          <ProspectContactForm
+            prospectId={prospect.id}
+            companyName={prospect.companyName}
+            {...(prospect.websiteUrl
+              ? { websiteUrl: prospect.websiteUrl }
+              : {})}
+            primaryContactName={prospect.primaryContactName}
+            primaryContactEmail={prospect.primaryContactEmail}
+            {...(prospect.primaryContactPhone
+              ? { primaryContactPhone: prospect.primaryContactPhone }
+              : {})}
+            {...(prospect.nextAction
+              ? { nextAction: prospect.nextAction }
+              : {})}
+          />
         </div>
         <div className="rounded-[var(--radius-md)] border bg-white px-5 py-4">
           <p className="text-xs text-[var(--color-stone-500)]">

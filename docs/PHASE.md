@@ -364,6 +364,13 @@ Demo Studio cool `stone-*` / soft radii replaced with paon tokens
 (`36fba0a`, `dbaeb41`). Still skip Stripe / Resend / silhouette /
 inventing alterations.
 
+**Also (2026-07-29 continuous — UX audit Medium):** Prospect contact edit
+on Demo Studio; Mission Control next/due-soon appointment emphasis +
+low-stock attention tile; sticky submit on staff/client/product forms;
+Collections help line; AI monitoring search. Still skip Stripe / Resend /
+POS / offline / alterations invent / wishlist localStorage (no guest store)
+/ paon-template rewrite.
+
 **Also (2026-07-29 continuous — UX audit execution):** Naming unified
 (Home/Messages/Loyalty/Saved/Clients/Appointments/Products/Team/Billing/
 Analytics); list search on Clients/Prospects/Retailers/Inquiries/

@@ -102,7 +102,7 @@ export function StaffForm({ workshops }: { workshops: readonly Workshop[] }) {
         </div>
       </Card>
 
-      <div className="flex justify-end">
+      <div className="bg-[var(--color-stone-50)]/95 sticky bottom-20 z-20 -mx-4 mt-6 flex justify-end border-t border-[var(--color-stone-200)] px-4 py-4 backdrop-blur xl:static xl:mx-0 xl:border-0 xl:bg-transparent xl:px-0 xl:py-0 xl:backdrop-blur-none">
         <Button type="submit" disabled={isPending}>
           {isPending ? "Sending invite…" : "Send invite"}
         </Button>

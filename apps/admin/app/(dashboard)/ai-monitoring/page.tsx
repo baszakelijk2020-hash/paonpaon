@@ -1,7 +1,7 @@
 import { AIGenerationRepository, RetailerRepository } from "@paon/database";
-import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate, humaniseStatus } from "@paon/utils";
+
+import { AIMonitoringList } from "./ai-monitoring-list";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -22,6 +22,21 @@ export default async function AIMonitoringPage() {
 
   const succeeded = generations.filter((g) => g.status === "succeeded").length;
   const failed = generations.length - succeeded;
+  const rows = generations.map((generation) => ({
+    id: generation.id,
+    retailerName: retailerNameById.get(generation.retailerId) ?? "Retailer",
+    status: generation.status,
+    kind: generation.kind,
+    provider: generation.provider,
+    model: generation.model,
+    ...(generation.latencyMs !== undefined
+      ? { latencyMs: generation.latencyMs }
+      : {}),
+    createdAt: generation.createdAt,
+    ...(generation.errorMessage
+      ? { errorMessage: generation.errorMessage }
+      : {}),
+  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -69,39 +84,7 @@ export default async function AIMonitoringPage() {
           </p>
         </Card>
       ) : (
-        <Card className="divide-y divide-[var(--color-stone-100)] overflow-hidden rounded-[var(--radius-xl)] p-0 shadow-[var(--shadow-elevated)]">
-          {generations.map((generation) => (
-            <div key={generation.id} className="px-6 py-4">
-              <div className="flex items-center justify-between">
-                <p className="font-medium text-[var(--color-stone-900)]">
-                  {retailerNameById.get(generation.retailerId)}
-                </p>
-                <Badge
-                  tone={
-                    generation.status === "succeeded" ? "success" : "danger"
-                  }
-                >
-                  {humaniseStatus(generation.status)}
-                </Badge>
-              </div>
-              <p className="text-sm text-[var(--color-stone-600)]">
-                {generation.kind.replaceAll("_", " ")} · {generation.provider}/
-                {generation.model}
-                {generation.latencyMs !== undefined
-                  ? ` · ${generation.latencyMs}ms`
-                  : ""}
-              </p>
-              <p className="text-xs text-[var(--color-stone-500)]">
-                {formatDate(generation.createdAt, "en-US")}
-              </p>
-              {generation.errorMessage ? (
-                <p className="mt-1 text-sm text-[var(--color-danger-500)]">
-                  {generation.errorMessage}
-                </p>
-              ) : null}
-            </div>
-          ))}
-        </Card>
+        <AIMonitoringList rows={rows} />
       )}
     </div>
   );

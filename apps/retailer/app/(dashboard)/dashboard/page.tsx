@@ -5,6 +5,7 @@ import {
   CustomerRepository,
   NotificationRepository,
   OrderRepository,
+  ProductVariantRepository,
   RetailerRepository,
   RetailerStaffRepository,
   StaffRosterRepository,
@@ -124,6 +125,7 @@ export default async function DashboardPage() {
     notifications,
     orders,
     alterations,
+    lowStockCount,
   ] = await Promise.all([
     new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
     new RetailerStaffRepository(supabase).findByUserId(session.userId),
@@ -136,6 +138,12 @@ export default async function DashboardPage() {
     new NotificationRepository(supabase).findByUser(session.userId),
     new OrderRepository(supabase).findByRetailer(session.retailerId),
     new AlterationRepository(supabase).findByRetailer(session.retailerId),
+    retailerRoleAtLeast(session.retailerRole, "manager")
+      ? new ProductVariantRepository(supabase).countLowStockForRetailer(
+          session.retailerId,
+          5,
+        )
+      : Promise.resolve(0),
   ]);
 
   const openEntry = myStaffRow
@@ -169,7 +177,8 @@ export default async function DashboardPage() {
   const hasAttentionItems =
     pendingProposals.length > 0 ||
     todaysAppointments.length > 0 ||
-    unreadCount > 0;
+    unreadCount > 0 ||
+    lowStockCount > 0;
   const todayLabel = new Date().toLocaleDateString("en-US", {
     weekday: "short",
     day: "numeric",
@@ -405,13 +414,16 @@ export default async function DashboardPage() {
               {
                 href: "/products",
                 label: "Products",
-                detail: "Catalogue and imagery",
+                detail:
+                  lowStockCount > 0
+                    ? `${lowStockCount} low stock`
+                    : "Catalogue and imagery",
                 show: retailerRoleAtLeast(session.retailerRole, "manager"),
               },
               {
                 href: "/collections",
                 label: "Collections",
-                detail: "Editorial stories",
+                detail: "Group products for storefront",
                 show: retailerRoleAtLeast(session.retailerRole, "manager"),
               },
               {
@@ -507,7 +519,8 @@ export default async function DashboardPage() {
             <span className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 py-1 text-xs text-white">
               {pendingProposals.length +
                 todaysAppointments.length +
-                unreadCount}
+                unreadCount +
+                (lowStockCount > 0 ? 1 : 0)}
             </span>
           </div>
           {hasAttentionItems ? (
@@ -534,28 +547,55 @@ export default async function DashboardPage() {
                   </Card>
                 </Link>
               ))}
-              {todaysAppointments.map((appointment, index) => (
-                <Link
-                  key={appointment.id}
-                  href={`/appointments/${appointment.id}`}
-                  className="group"
-                >
-                  <Card className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-4 transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lifted)]">
-                    <p className="font-display text-2xl">
-                      {formatTime(appointment.startsAt)}
-                    </p>
-                    <div>
-                      <p className="font-medium">
-                        {appointmentCustomers[index]?.fullName ?? "Customer"}
+              {todaysAppointments.map((appointment, index) => {
+                const startsMs = new Date(appointment.startsAt).getTime();
+                const nowMs = Date.now();
+                const dueSoon =
+                  startsMs >= nowMs && startsMs - nowMs <= 30 * 60 * 1000;
+                const isNext =
+                  index === 0 &&
+                  startsMs >= nowMs &&
+                  !["completed", "canceled", "no_show"].includes(
+                    appointment.status,
+                  );
+                return (
+                  <Link
+                    key={appointment.id}
+                    href={`/appointments/${appointment.id}`}
+                    className="group"
+                  >
+                    <Card
+                      className={`grid grid-cols-[4.5rem_1fr_auto] items-center gap-4 transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lifted)] ${
+                        isNext || dueSoon
+                          ? "border-l-4 border-l-[var(--color-stone-900)] bg-[var(--color-stone-50)]"
+                          : ""
+                      }`}
+                    >
+                      <p className="font-display text-2xl">
+                        {formatTime(appointment.startsAt)}
                       </p>
-                      <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                        {appointment.type.replaceAll("_", " ")}
-                      </p>
-                    </div>
-                    <span aria-hidden="true">→</span>
-                  </Card>
-                </Link>
-              ))}
+                      <div>
+                        <p className="font-medium">
+                          {appointmentCustomers[index]?.fullName ?? "Customer"}
+                          {dueSoon ? (
+                            <span className="ml-2 text-xs font-normal uppercase tracking-wide text-[var(--color-warning-500)]">
+                              Due soon
+                            </span>
+                          ) : isNext ? (
+                            <span className="ml-2 text-xs font-normal uppercase tracking-wide text-[var(--color-stone-500)]">
+                              Next
+                            </span>
+                          ) : null}
+                        </p>
+                        <p className="text-sm capitalize text-[var(--color-stone-500)]">
+                          {appointment.type.replaceAll("_", " ")}
+                        </p>
+                      </div>
+                      <span aria-hidden="true">→</span>
+                    </Card>
+                  </Link>
+                );
+              })}
               {unreadCount > 0 ? (
                 <Link href="/messages" className="group">
                   <Card className="flex items-center justify-between gap-3 transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lifted)]">
@@ -567,6 +607,23 @@ export default async function DashboardPage() {
                       </p>
                       <p className="text-sm text-[var(--color-stone-500)]">
                         Reply while the client’s context is fresh.
+                      </p>
+                    </div>
+                    <span aria-hidden="true">→</span>
+                  </Card>
+                </Link>
+              ) : null}
+              {lowStockCount > 0 ? (
+                <Link href="/products" className="group">
+                  <Card className="flex items-center justify-between gap-3 border-l-4 border-l-[var(--color-warning-500)] transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lifted)]">
+                    <div>
+                      <p className="font-medium">
+                        {lowStockCount === 1
+                          ? "1 variant at or below 5 units"
+                          : `${lowStockCount} variants at or below 5 units`}
+                      </p>
+                      <p className="text-sm text-[var(--color-stone-500)]">
+                        Review Products before a client asks for what’s gone.
                       </p>
                     </div>
                     <span aria-hidden="true">→</span>
@@ -588,7 +645,7 @@ export default async function DashboardPage() {
                   className: "mt-5",
                 })}
               >
-                Open client book
+                Open Clients
               </Link>
             </Card>
           )}

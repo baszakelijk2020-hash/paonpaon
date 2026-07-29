@@ -2,7 +2,10 @@
 
 import { requirePlatformOperator } from "@paon/auth";
 import { CommercialProspectRepository } from "@paon/database";
-import { createCommercialProspectInputSchema } from "@paon/domain";
+import {
+  createCommercialProspectInputSchema,
+  updateCommercialProspectContactInputSchema,
+} from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -76,4 +79,37 @@ export async function updateProspectStage(formData: FormData): Promise<void> {
   ).updateStage(prospectId, stage as (typeof STAGES)[number]);
   revalidatePath("/prospects");
   revalidatePath(`/prospects/${prospectId}/studio`);
+}
+
+export interface ProspectContactActionState {
+  error?: string;
+  saved?: boolean;
+}
+
+export async function updateProspectContact(
+  _previous: ProspectContactActionState,
+  formData: FormData,
+): Promise<ProspectContactActionState> {
+  requirePlatformOperator(await getSession());
+  const prospectId = String(formData.get("prospectId") ?? "");
+  if (!prospectId) return { error: "Missing prospect." };
+
+  const parsed = updateCommercialProspectContactInputSchema.safeParse({
+    companyName: formData.get("companyName"),
+    websiteUrl: formData.get("websiteUrl"),
+    primaryContactName: formData.get("primaryContactName"),
+    primaryContactEmail: formData.get("primaryContactEmail"),
+    primaryContactPhone: formData.get("primaryContactPhone"),
+    nextAction: formData.get("nextAction"),
+  });
+  if (!parsed.success) {
+    return { error: "Review the contact details." };
+  }
+
+  await new CommercialProspectRepository(
+    await getSupabaseServerClient(),
+  ).updateContact(prospectId, parsed.data);
+  revalidatePath("/prospects");
+  revalidatePath(`/prospects/${prospectId}/studio`);
+  return { saved: true };
 }

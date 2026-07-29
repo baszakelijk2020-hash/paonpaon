@@ -5,6 +5,7 @@ import {
   type ProductId,
   type ProductVariant,
   type ProductVariantId,
+  type RetailerId,
 } from "@paon/domain";
 import type { PostgrestError } from "@supabase/supabase-js";
 
@@ -160,5 +161,24 @@ export class ProductVariantRepository {
       throw error;
     }
     return toDomain(data);
+  }
+
+  /** Variants at or below threshold for a retailer (active products only). */
+  async countLowStockForRetailer(
+    retailerId: RetailerId,
+    threshold = 5,
+  ): Promise<number> {
+    const { count, error } = await this.client
+      .from("product_variants")
+      .select("id, products!inner(retailer_id, deleted_at)", {
+        count: "exact",
+        head: true,
+      })
+      .eq("products.retailer_id", retailerId)
+      .is("products.deleted_at", null)
+      .lte("inventory_quantity", threshold)
+      .is("deleted_at", null);
+    if (error) throw error;
+    return count ?? 0;
   }
 }

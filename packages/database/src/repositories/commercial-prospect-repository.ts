@@ -352,6 +352,31 @@ export class CommercialProspectRepository {
     if (error) throw error;
   }
 
+  async updateContact(
+    id: string,
+    params: {
+      companyName: string;
+      primaryContactName: string;
+      primaryContactEmail: string;
+      primaryContactPhone?: string | undefined;
+      websiteUrl?: string | undefined;
+      nextAction?: string | undefined;
+    },
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("commercial_prospects")
+      .update({
+        company_name: params.companyName,
+        primary_contact_name: params.primaryContactName,
+        primary_contact_email: params.primaryContactEmail,
+        primary_contact_phone: params.primaryContactPhone ?? null,
+        website_url: params.websiteUrl ?? null,
+        next_action: params.nextAction ?? null,
+      })
+      .eq("id", id);
+    if (error) throw error;
+  }
+
   private configurationToDomain(
     row: ConfigurationRow,
     featureKeys: string[],
