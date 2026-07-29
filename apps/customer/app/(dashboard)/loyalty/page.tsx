@@ -68,7 +68,10 @@ export default async function LoyaltyPage() {
                   {retailer?.displayName ?? "Retailer"}
                 </p>
                 {account ? (
-                  <Badge tone={TIER_TONE[account.tier]} className="mt-1">
+                  <Badge
+                    tone={TIER_TONE[account.tier]}
+                    className="mt-1 capitalize"
+                  >
                     {account.tier}
                   </Badge>
                 ) : (
@@ -125,30 +128,35 @@ export default async function LoyaltyPage() {
                     ) : null}
                   </div>
                 </div>
-                <form
-                  id="referrals"
-                  action={inviteFriend}
-                  className="flex scroll-mt-24 flex-col gap-2 border-t border-[var(--color-stone-100)] pt-5 sm:flex-row"
-                >
-                  <input
-                    type="hidden"
-                    name="retailerId"
-                    value={customer.retailerId}
-                  />
-                  <Input
-                    name="referredEmail"
-                    type="email"
-                    placeholder="Friend's email"
-                    required
-                  />
-                  <Button type="submit" variant="outline">
-                    Invite friend
-                  </Button>
-                </form>
+                <div className="border-t border-[var(--color-stone-100)] pt-5">
+                  <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
+                    Introduce a friend
+                  </p>
+                  <form
+                    id="referrals"
+                    action={inviteFriend}
+                    className="flex scroll-mt-24 flex-col gap-2 sm:flex-row"
+                  >
+                    <input
+                      type="hidden"
+                      name="retailerId"
+                      value={customer.retailerId}
+                    />
+                    <Input
+                      name="referredEmail"
+                      type="email"
+                      placeholder="Their email address"
+                      required
+                    />
+                    <Button type="submit" variant="outline">
+                      Send invitation
+                    </Button>
+                  </form>
+                </div>
                 {referrals.length ? (
                   <div>
                     <p className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
-                      {referrals.length} referral
+                      {referrals.length} introduction
                       {referrals.length === 1 ? "" : "s"} sent
                     </p>
                     <ul className="flex flex-col gap-1.5">
