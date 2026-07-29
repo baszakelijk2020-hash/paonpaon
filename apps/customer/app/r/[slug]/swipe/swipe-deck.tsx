@@ -12,6 +12,8 @@ import {
 
 import { swipeLeft, swipeRight } from "./actions";
 
+import { trackStorefrontEvent } from "../track-actions";
+
 /**
  * Exact port of pag1.html's `#swipe-app-placeholder` ("munro-swipe-card")
  * widget — CSS values (card radius, container/button dimensions, the
@@ -52,11 +54,13 @@ export function SwipeDeck({
   retailerId,
   cards,
   savedVariantIds,
+  occasionQuery,
 }: {
   slug: string;
   retailerId: string;
   cards: SwipeCard[];
   savedVariantIds: string[];
+  occasionQuery?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [liked, setLiked] = useState<SwipeCard[]>([]);
@@ -197,18 +201,32 @@ export function SwipeDeck({
           <div className="swipe-container">
             <div className="munro-swipe-card munro-final-card">
               <p>You&rsquo;ve seen everything for now.</p>
-              <div className="flex gap-2">
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex gap-2">
+                  <Link
+                    href={`/r/${slug}`}
+                    className={buttonVariants({ variant: "outline", size: "sm" })}
+                  >
+                    Browse the full shop
+                  </Link>
+                  <Link
+                    href={`/r/${slug}?favorites=1`}
+                    className={buttonVariants({ size: "sm" })}
+                  >
+                    See your favorites
+                  </Link>
+                </div>
                 <Link
-                  href={`/r/${slug}`}
-                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                  href={`/r/${slug}/appointments${occasionQuery ? `?occasion=${encodeURIComponent(occasionQuery.replace(/\s+/g, "-"))}` : ""}`}
+                  className={buttonVariants({ variant: "secondary", size: "sm" })}
+                  onClick={() => {
+                    void trackStorefrontEvent(retailerId, "appointment_intent", {
+                      via: "swipe",
+                      ...(occasionQuery ? { occasion: occasionQuery } : {}),
+                    });
+                  }}
                 >
-                  Browse the full shop
-                </Link>
-                <Link
-                  href={`/r/${slug}?favorites=1`}
-                  className={buttonVariants({ size: "sm" })}
-                >
-                  See your favorites
+                  Book an appointment
                 </Link>
               </div>
             </div>

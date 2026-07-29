@@ -146,6 +146,12 @@ export class MockImportEnrichmentProvider implements AIProvider {
     }
     return this.output;
   }
+
+  async generateTableServiceAnswer(): Promise<never> {
+    throw new Error(
+      "MockImportEnrichmentProvider does not support TableService answers",
+    );
+  }
 }
 
 export { buildUserPayload };

@@ -58,6 +58,11 @@ export interface CatalogueImportEnrichmentContext {
   }[];
 }
 
+export interface TableServiceAnswerProviderContext {
+  readonly systemPrompt: string;
+  readonly userPayload: string;
+}
+
 export interface AIProvider {
   readonly providerName: string;
   readonly model: string;
@@ -73,5 +78,12 @@ export interface AIProvider {
    */
   enrichCatalogueImportRow(
     context: CatalogueImportEnrichmentContext,
+  ): Promise<unknown>;
+  /**
+   * Grounded TableService answer (PHASE 3.4). Domain validates citations
+   * against the approved retrieval bundle before any message is shown.
+   */
+  generateTableServiceAnswer(
+    context: TableServiceAnswerProviderContext,
   ): Promise<unknown>;
 }

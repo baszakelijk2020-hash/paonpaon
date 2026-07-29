@@ -6731,7 +6731,8 @@ export type Database = {
         | "next_best_action"
         | "product_recommendation"
         | "communication_draft"
-        | "import_enrichment";
+        | "import_enrichment"
+        | "table_service_answer";
       ai_generation_status: "succeeded" | "failed";
       alteration_attachment_kind:
         "intake" | "label" | "evidence" | "progress" | "completion";
@@ -7088,6 +7089,7 @@ export const Constants = {
         "product_recommendation",
         "communication_draft",
         "import_enrichment",
+        "table_service_answer",
       ],
       ai_generation_status: ["succeeded", "failed"],
       alteration_attachment_kind: [
