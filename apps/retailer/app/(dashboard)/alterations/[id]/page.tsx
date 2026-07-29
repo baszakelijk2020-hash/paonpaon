@@ -403,7 +403,7 @@ export default async function AlterationDetailPage({
               <select
                 name="eventType"
                 aria-label="Custody event"
-                className="h-10 rounded border px-2 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 text-sm"
               >
                 {custodyEventOptions.map(([value, label]) => (
                   <option key={value} value={value}>
@@ -415,19 +415,19 @@ export default async function AlterationDetailPage({
                 name="fromParty"
                 aria-label="Custody from party"
                 placeholder="From"
-                className="h-10 rounded border px-3 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
               />
               <input
                 name="toParty"
                 aria-label="Custody to party"
                 placeholder="To"
-                className="h-10 rounded border px-3 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
               />
               <input
                 name="conditionNote"
                 aria-label="Custody condition or verification note"
                 placeholder="Condition / verification note"
-                className="h-10 rounded border px-3 text-sm sm:col-span-4"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm sm:col-span-4"
               />
             </WorkflowActionForm>
           ) : null}
@@ -474,7 +474,7 @@ export default async function AlterationDetailPage({
               <select
                 name="method"
                 aria-label="Fulfillment method"
-                className="h-10 rounded border px-2 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 text-sm"
               >
                 <option value="pickup">Pickup</option>
                 <option value="delivery">Delivery</option>
@@ -482,7 +482,7 @@ export default async function AlterationDetailPage({
               <select
                 name="fulfillmentStatus"
                 aria-label="Fulfillment status"
-                className="h-10 rounded border px-2 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 text-sm"
               >
                 <option value="scheduled">Scheduled</option>
                 <option value="ready">Ready</option>
@@ -494,37 +494,37 @@ export default async function AlterationDetailPage({
                 name="scheduledAt"
                 type="datetime-local"
                 aria-label="Scheduled date and time"
-                className="h-10 rounded border px-2 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 text-sm"
               />
               <input
                 name="deliveryLine1"
                 aria-label="Delivery address line 1"
                 placeholder="Delivery address line 1"
-                className="h-10 rounded border px-3 text-sm sm:col-span-2"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm sm:col-span-2"
               />
               <input
                 name="deliveryLine2"
                 aria-label="Delivery address line 2"
                 placeholder="Address line 2 (optional)"
-                className="h-10 rounded border px-3 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
               />
               <input
                 name="deliveryCity"
                 aria-label="Delivery city"
                 placeholder="City"
-                className="h-10 rounded border px-3 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
               />
               <input
                 name="deliveryRegion"
                 aria-label="Delivery region"
                 placeholder="Region (optional)"
-                className="h-10 rounded border px-3 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
               />
               <input
                 name="deliveryPostalCode"
                 aria-label="Delivery postal code"
                 placeholder="Postal code"
-                className="h-10 rounded border px-3 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
               />
               <input
                 name="deliveryCountryCode"
@@ -532,19 +532,19 @@ export default async function AlterationDetailPage({
                 placeholder="Country code"
                 minLength={2}
                 maxLength={2}
-                className="h-10 rounded border px-3 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
               />
               <input
                 name="releasedToName"
                 aria-label="Released to"
                 placeholder="Released to"
-                className="h-10 rounded border px-3 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
               />
               <input
                 name="verificationNote"
                 aria-label="Fulfillment verification note"
                 placeholder="Verification note"
-                className="h-10 rounded border px-3 text-sm sm:col-span-2"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm sm:col-span-2"
               />
             </WorkflowActionForm>
           </Card>
@@ -643,12 +643,12 @@ export default async function AlterationDetailPage({
                 aria-label="Evidence image"
                 accept="image/jpeg,image/png,image/webp"
                 required
-                className="rounded border px-2 py-2 text-sm sm:col-span-2"
+                className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-2 text-sm sm:col-span-2"
               />
               <select
                 name="attachmentKind"
                 aria-label="Evidence kind"
-                className="h-10 rounded border px-2 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 text-sm"
               >
                 {session.retailerRole !== "worker" ? (
                   <option value="intake">Intake</option>
@@ -660,7 +660,7 @@ export default async function AlterationDetailPage({
               <select
                 name="attachmentTaskId"
                 aria-label="Evidence task"
-                className="h-10 rounded border px-2 text-sm"
+                className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 text-sm"
               >
                 <option value="">Whole work order</option>
                 {tasks.map((task) => (

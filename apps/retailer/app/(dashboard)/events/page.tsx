@@ -44,14 +44,17 @@ export default async function EventsPage() {
             min="1"
             placeholder="Capacity (optional)"
           />
-          <select name="visibility" className="h-10 rounded border px-3">
+          <select
+            name="visibility"
+            className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3"
+          >
             <option value="public">Public</option>
             <option value="invite_only">Invite only</option>
             <option value="vip_tier">Gold & platinum members</option>
           </select>
           <textarea
             name="description"
-            className="min-h-24 rounded border p-3 sm:col-span-2"
+            className="min-h-24 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 sm:col-span-2"
             placeholder="Event description"
             required
           />

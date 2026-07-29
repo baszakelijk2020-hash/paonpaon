@@ -358,10 +358,12 @@ are an active polish stream until they match the `paon.html` aesthetic
 on mobile and desktop. Do not stop after one visual pass; fix P0/P1 gaps
 found, push, continue.
 
-**Active back-env polish (2026-07-29, continuous):** mobile messages
-layout, login radii (no pills), duplicate Private Client chrome, brand
-settings cool-stone/radius, empty-state `radius-lg` → `md`, hero scale,
-non-chip CTA pills. Skip fit-tools / silhouette / inventing alterations.
+**Active back-env polish (2026-07-29, continuous):** ~~mobile messages
+layout~~, ~~login radii (no pills)~~, ~~duplicate Private Client chrome~~,
+~~brand settings cool-stone/radius~~, ~~empty-state `radius-lg` → `md`~~,
+~~hero scale~~, ~~non-chip CTA pills~~, ~~form chrome stone borders~~.
+Skip fit-tools / silhouette / inventing alterations. Continue any residual
+P2 until mobile+desktop back envs are visually coherent with `paon.html`.
 
 **Save vs Generate (Studio).** Save alone updates live storefront story
 fields that are read from the prospect configuration at request time

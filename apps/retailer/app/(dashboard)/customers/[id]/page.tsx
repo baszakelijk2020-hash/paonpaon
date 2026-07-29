@@ -373,7 +373,7 @@ export default async function CustomerDetailPage({
                 name="body"
                 required
                 maxLength={5000}
-                className="min-h-24 rounded border p-3 text-sm"
+                className="min-h-24 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm"
                 placeholder="Preferences, personal context, follow-up…"
               />
               <label className="flex items-center gap-2 text-sm">
