@@ -1,10 +1,10 @@
 "use client";
 
-import type { Appointment } from "@paon/domain";
+import { APPOINTMENT_TYPE_LABELS, type Appointment } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { SearchableCollection } from "@paon/ui/components/SearchableCollection";
-import { formatDate, humaniseStatus } from "@paon/utils";
+import { formatDate } from "@paon/utils";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 
@@ -173,7 +173,7 @@ export function AppointmentsList({
                               "Unknown client"}
                           </p>
                           <p className="text-sm text-[var(--color-stone-500)]">
-                            {humaniseStatus(appointment.type)} ·{" "}
+                            {APPOINTMENT_TYPE_LABELS[appointment.type]} ·{" "}
                             {formatDate(appointment.startsAt, "en-US")}
                           </p>
                         </Link>
