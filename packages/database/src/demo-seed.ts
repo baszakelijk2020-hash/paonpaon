@@ -1322,7 +1322,7 @@ async function applyProspectProductImages(
   const overlays = urls
     .map((line) => decodeProspectProductImageLine(line))
     .filter(
-      (item) => item.url.startsWith("https://") && item.url.length <= 1000,
+      (item) => item.url.startsWith("https://") && item.url.length <= 2000,
     )
     .slice(0, 24);
   if (overlays.length === 0) return;
