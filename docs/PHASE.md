@@ -72,7 +72,9 @@ Verified against code and 91 migrations on 2026-07-30:
   exist. Wardrobe ownership, sartorial rules, outfits, wardrobe roadmaps,
   lifecycle/self-scan/fit-freshness, MorningRoutine selection, and MorningRoutine
   delivery/subscription tables exist; campaign/private-offer and seven-day
-  wardrobe-challenge tables exist; no concierge service-plan table exists yet.
+  wardrobe-challenge tables exist; loyalty milestone definition/award tables
+  exist and award through the existing loyalty ledger; no concierge
+  service-plan table exists yet.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -570,7 +572,7 @@ explanation path.
     Customer `/private-offers` seven-look composer, delivery/suppression audit
     and cron enqueue.
 
-- [ ] **5.2 Tailoring milestones and premium rewards**
+- [x] **5.2 Tailoring milestones and premium rewards**
   - **Requirement IDs:** `MILE-001`, `MILE-002`.
   - **Dependencies:** `1.4`; existing loyalty ledger.
   - **Owner boundary:** pure eligibility rules and existing loyalty
@@ -584,6 +586,9 @@ explanation path.
   - **Non-goals:** no gambling, streak pressure, random reward, shadow points
     balance, or unaudited manual grant.
   - **Hard blockers:** none.
+  - **Landed:** `36fecc5` — pure eligibility rules, milestone definition/award
+    migration/RLS, ledger-backed awards with refund corrections, Customer and
+    Retailer/advisor projections.
 
 - [ ] **5.3 Preferred Tailoring and HighMaintenance operations**
   - **Requirement IDs:** `SERV-001`, `SERV-002`, `LONG-001`.

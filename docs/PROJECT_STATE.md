@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 107 forward Supabase migrations plus generated TypeScript
+- Schema source: 108 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -71,8 +71,9 @@ Snapshot: 2026-07-30.
   review proposals with field-level evidence/confidence. Wardrobe ownership,
   sartorial rules, outfits, wardrobe roadmap, lifecycle, self-scan,
   attachment, MorningRoutine selection, MorningRoutine delivery, campaign,
-  private-offer, and seven-day wardrobe-challenge tables exist; no concierge
-  service-plan tables exist.
+  private-offer, and seven-day wardrobe-challenge tables exist; loyalty
+  milestone definition/award tables exist and write through the existing
+  loyalty ledger; no concierge service-plan tables exist.
 
 ## External systems
 
@@ -90,5 +91,6 @@ The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
 contracts. Stages 1–4 and PHASE 5.1 (private offers / seven-day wardrobe campaigns) are
-complete. The authoritative Resume Protocol identifies tailoring milestones
-and premium rewards (PHASE 5.2) as the exact continuation point.
+and PHASE 5.2 (tailoring milestones / premium rewards on the loyalty ledger)
+are complete. The authoritative Resume Protocol identifies Preferred Tailoring
+and HighMaintenance operations (PHASE 5.3) as the exact continuation point.
