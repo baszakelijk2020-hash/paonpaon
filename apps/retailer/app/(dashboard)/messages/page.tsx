@@ -195,7 +195,7 @@ export default async function MessagesPage({
                             href={signedUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="block overflow-hidden rounded-[var(--radius-sm)]"
+                            className="block overflow-hidden rounded-[var(--radius-md)]"
                           >
                             <Image
                               src={signedUrl}
@@ -314,7 +314,7 @@ export default async function MessagesPage({
                   {notes.slice(0, 5).map((note) => (
                     <div
                       key={note.id}
-                      className="rounded-[var(--radius-sm)] bg-[var(--color-stone-50)] p-2 text-sm"
+                      className="rounded-[var(--radius-md)] bg-[var(--color-stone-50)] p-2 text-sm"
                     >
                       <p>{note.body}</p>
                       <p className="mt-1 text-xs text-[var(--color-stone-400)]">

@@ -59,7 +59,7 @@ export function DemoPersonaDirectory({
               href={persona.href}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex h-9 items-center rounded-[var(--radius-sm)] bg-[var(--color-ink-600)] px-4 text-xs font-medium text-white"
+              className="inline-flex h-9 items-center rounded-[var(--radius-md)] bg-[var(--color-ink-600)] px-4 text-xs font-medium text-white"
             >
               Open environment
             </a>

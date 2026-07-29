@@ -622,7 +622,7 @@ export default async function AlterationDetailPage({
                   href={signedUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-stone-200)]"
+                  className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)]"
                 >
                   <Image
                     src={signedUrl}
@@ -734,7 +734,7 @@ export default async function AlterationDetailPage({
               name="workshopId"
               aria-label="Workshop"
               required
-              className="h-10 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 text-sm"
+              className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-sm text-[var(--color-stone-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
             >
               <option value="">Choose workshop</option>
               {workshops.map((workshop) => (
@@ -747,7 +747,7 @@ export default async function AlterationDetailPage({
               name="targetCompletionDate"
               type="date"
               aria-label="Target completion date"
-              className="h-10 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 text-sm"
+              className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-sm text-[var(--color-stone-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
             />
           </WorkflowActionForm>
         </Card>
@@ -766,7 +766,7 @@ export default async function AlterationDetailPage({
               name="workerId"
               aria-label="Assigned worker"
               defaultValue={assignment.assigned_worker_id ?? ""}
-              className="h-10 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 text-sm"
+              className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-sm text-[var(--color-stone-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
             >
               <option value="">Unassigned worker</option>
               {staff
@@ -785,7 +785,7 @@ export default async function AlterationDetailPage({
               type="date"
               aria-label="Target completion date"
               defaultValue={assignment.target_completion_date ?? ""}
-              className="h-10 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 text-sm"
+              className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-sm text-[var(--color-stone-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
             />
           </WorkflowActionForm>
         </Card>
@@ -841,7 +841,7 @@ export default async function AlterationDetailPage({
                     <select
                       name="taskStatus"
                       aria-label={`${task.title} status`}
-                      className="h-9 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 text-sm"
+                      className="h-9 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-2 text-sm text-[var(--color-stone-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
                     >
                       <option value="in_progress">Start / resume work</option>
                       <option value="review_ready">Mark review-ready</option>
@@ -851,7 +851,7 @@ export default async function AlterationDetailPage({
                       aria-label={`${task.title} transition note`}
                       placeholder="Transition note (optional)"
                       maxLength={2000}
-                      className="h-9 min-w-48 flex-1 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 text-sm"
+                      className="h-9 min-w-48 flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-sm text-[var(--color-stone-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
                     />
                   </WorkflowActionForm>
                   {!["completed", "canceled"].includes(task.status) ? (
@@ -867,7 +867,7 @@ export default async function AlterationDetailPage({
                         placeholder="Append a work note"
                         maxLength={2000}
                         required
-                        className="h-9 min-w-48 flex-1 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-3 text-sm"
+                        className="h-9 min-w-48 flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-3 text-sm text-[var(--color-stone-900)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-stone-900)] focus-visible:ring-offset-2"
                       />
                     </WorkflowActionForm>
                   ) : null}

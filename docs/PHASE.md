@@ -453,6 +453,12 @@ feedback banners and admin billing plan fields aligned to `radius-md`
 house chrome. Wedding party hero/orbit + alteration intake textareas
 already shipped earlier the same day.
 
+**Also (2026-07-29 continuous — AI labels + residual chrome).**
+`AI_GENERATION_KIND_LABELS` / `AI_GENERATION_STATUS_LABELS` on Admin AI
+monitoring. Messages / Today's Pick / demo persona / alteration detail
+raw fields use `radius-md` house chrome (no workflow invent on
+alterations).
+
 **Also (2026-07-29 continuous — conversion chrome):** React PDP defaults to
 redirect onto the HTML storefront (ADR-052); portal Saved/Today’s Pick and
 appointment CTAs point at `/r/[slug]`; Alterations demoted from Private

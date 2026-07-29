@@ -13,6 +13,17 @@ export type AIGenerationKind =
 
 export type AIGenerationStatus = "succeeded" | "failed";
 
+export const AI_GENERATION_KIND_LABELS: Record<AIGenerationKind, string> = {
+  next_best_action: "Next best action",
+  product_recommendation: "Product recommendation",
+  communication_draft: "Communication draft",
+};
+
+export const AI_GENERATION_STATUS_LABELS: Record<AIGenerationStatus, string> = {
+  succeeded: "Succeeded",
+  failed: "Failed",
+};
+
 export interface AIGeneration {
   readonly id: string;
   readonly retailerId: RetailerId;

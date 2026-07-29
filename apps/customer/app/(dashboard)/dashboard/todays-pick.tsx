@@ -86,7 +86,7 @@ export function TodaysPick({
               {state.result.rationale}
             </p>
             {state.result.productImageUrl ? (
-              <div className="relative mt-3 aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-sm)] bg-[var(--color-stone-100)]">
+              <div className="relative mt-3 aspect-[4/5] w-full overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-stone-100)]">
                 <Image
                   src={state.result.productImageUrl}
                   alt={state.result.productName}
