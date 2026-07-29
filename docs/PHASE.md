@@ -176,8 +176,10 @@ replacement of human advice for uncertain high-value decisions.
       gaps, complete-look combinations, staged purchase priorities, explanation
       links, and customer-visible approval state. Dependency: 4.1.
 - [ ] **4.3 Lifecycle and care intelligence.** Add wear rotation, garment age,
-      care, repair, fit-update reminders, and customer-submitted current-wear
-      photo/notes tied to a wardrobe item and appointment handoff. Dependency: 4.1.
+      care, repair, fit-update reminders, customer-submitted current-wear
+      photo/notes tied to a wardrobe item and appointment handoff, plus visible fit
+      freshness (last measured date, escalating stale state, appointment action).
+      Dependency: 4.1.
 - [ ] **4.4 MorningRoutine.** Select owned garments and, secondarily, catalogue
       recommendations from wardrobe availability, accepted preferences, occasion,
       weather, and separately consented location. Provide explanations and direct
@@ -194,10 +196,11 @@ explanation path.
 
 ### Stage 5 — Relationship programmes and concierge services
 
-- [ ] **5.1 Campaigns.** Add premium, consent-aware weekly offers,
-      member-only releases, and the seven-day wardrobe challenge with audience
-      criteria, scheduling, delivery audit, and suppression controls. Dependency:
-      3.2.
+- [ ] **5.1 Campaigns.** Add a private-offers area; premium consent-aware
+      weekly/daily offers; member-only releases; controls by fabric, category,
+      product, audience, and schedule; and a seven-day catalogue look-composition
+      challenge with restrained tie/shirt/short-lived rewards. Include delivery
+      audit and suppression controls. Dependency: 3.2.
 - [ ] **5.2 Milestones.** Extend the existing loyalty ledger/events with
       auditable eligibility rules for first commission, repeat orders, new
       categories, premium construction, and advanced fabrics. Dependency: 1.4.
@@ -218,10 +221,12 @@ invented founder-designed surface.
 ### Stage 6 — Later commerce capabilities
 
 - [ ] **6.1 Payment/compliance design gate.** Before deposits, stored value,
-      one-click payment, instalments, service subscriptions, or membership billing,
-      record provider capabilities, merchant-of-record, VAT/accounting, refunds,
-      custody, SCA, consent, retention, and jurisdictional review. Dependency:
-      business/legal decisions and provider configuration. ADRs: 030, 031, 050, 062.
+      one-click payment, payment-eligibility status, the MunroMonnaie
+      order-commitment/deposit journey, instalments, service subscriptions, or
+      membership billing, record provider capabilities, merchant-of-record,
+      VAT/accounting, refunds, custody, SCA, consent, retention, and jurisdictional
+      review. Dependency: business/legal decisions and provider configuration.
+      ADRs: 030, 031, 050, 062.
 - [ ] **6.2 Approved commerce primitives.** Implement only the capabilities
       authorized by 6.1 using provider-hosted/tokenized payment methods; preserve
       immutable order/payment/ledger history and existing Stripe boundaries.

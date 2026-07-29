@@ -345,6 +345,10 @@ TableService becomes hybrid: early human handoff remains available; AI answers
 only from approved knowledge, expresses uncertainty, cites its basis, and can
 produce a shortlist or appointment handoff. The existing swipe interaction
 becomes guided preference evidence for an occasion, not an isolated novelty.
+PAON's recommendation knowledge must progressively encode founder/advisor
+sartorial judgement—fabric and colour compatibility, jacket/trouser/shirt/shoe/
+accessory relationships, formality, occasion, climate, and complete looks—while
+remaining explainable, retailer-controlled, and grounded in approved data.
 
 ## 9. Wardrobe intelligence and MorningRoutine
 
@@ -374,15 +378,22 @@ unsubscribeable.
 Care, rotation, age, and fit-update reminders attach to owned garments. A
 customer may submit a current-wear photo and notes against a wardrobe item,
 prompting a fit-update appointment and giving the advisor relevant context.
+The Customer Environment shows fit freshness: the last real measured/fitting
+date, a progressively more urgent stale status, and a clear appointment action.
+Self-reported photos/notes can trigger service but never become formal
+measurements.
 This does not recreate the archived generic manufacturing fit profile: real
 fitting observations remain garment-scoped (ADRs 016 and 055).
 
 ## 10. Relationship programmes and concierge services
 
-Campaigns support refined weekly private offers, limited member releases, and
-the seven-day wardrobe challenge. Audiences are consent-aware and explainable;
-delivery and suppression are auditable. PAON does not use mass-retail
-discount gamification.
+Campaigns support refined weekly/daily private offers, limited member releases,
+and an authenticated private-offers area. Retailers control eligible fabric,
+category, product, audience, and schedule. The seven-day wardrobe challenge
+lets a client compose ideal catalogue looks for each day and may lead to a
+restrained reward such as a personalized tie, shirt, or short-lived controlled
+offer. Audiences are consent-aware and explainable; delivery and suppression
+are auditable. PAON does not use mass-retail discount gamification.
 
 Milestones extend existing loyalty events/ledger through auditable eligibility
 rules: first commission, repeat orders, new categories, premium construction,
@@ -393,9 +404,10 @@ entitlements/credits, bookings, fulfilment, care/repair records, collection/
 delivery, and advisor-managed commitments. They compose existing appointments,
 alterations, and garments without overloading the Order aggregate.
 
-Tie-Mate is a dedicated mobile-first tie-fabric discovery surface that uses the
-metadata/discovery foundation and ends in a shortlist, order, or advisor
-conversation.
+Tie-Mate is a dedicated mobile-first tie-fabric discovery surface. Fabrics
+appear at a true-feeling phone-screen scale so a client can hold the phone in
+front of themselves while swiping, then save, order, or start an advisor
+conversation through the metadata/discovery foundation.
 
 ## 11. Later commerce boundaries
 
@@ -410,9 +422,16 @@ retention, jurisdiction, and merchant-of-record must be explicit. PAON never
 stores raw payment credentials, becomes an unlicensed payment processor, or
 implements custom lending.
 
-The retailer-owner marketplace for fixtures, packaging, displays, and
-furnishings is a separate catalogue/commerce context. It must not share
-customer-retail catalogue assumptions merely to reuse code.
+The Customer Environment may show a payment-eligibility journey and status
+only after that gate. The founder's MunroMonnaie intent means a trusted,
+provider/legal-approved order commitment and deposit experience—not PAON-issued
+credit. Eligible one-click purchase reuses provider-authorized payment data and
+existing account information.
+
+The retailer-owner marketplace for mannequins, packaging, shoe displays,
+fixtures, custom furniture, and other retail supplies is a separate
+catalogue/commerce context. The founder may populate it later. It must not
+share customer-retail catalogue assumptions merely to reuse code.
 
 ## 12. Verification standard
 
@@ -451,9 +470,9 @@ missing.
 Keep this block compact and update it after every completed slice.
 
 - **Current queue item:** `1.1 Domain contracts`
-- **Completed programme commits:** `HEAD` — documentation consolidation and
-  programme authorization; no Intelligence Platform feature slice has landed
-  yet.
+- **Completed programme commits:** `dd695d5` — documentation consolidation and
+  programme authorization; `HEAD` — concurrent founder brief folded into the
+  same authority map. No Intelligence Platform feature slice has landed yet.
 - **Verification status:** documentation consistency and repository checks are
   recorded in the consolidation commit/CI; metadata feature verification has
   not started.
