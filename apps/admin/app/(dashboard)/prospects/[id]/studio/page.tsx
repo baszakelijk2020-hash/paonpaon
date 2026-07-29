@@ -72,9 +72,17 @@ export default async function DemoStudioPage({
             Environment status
           </p>
           <p className="mt-1 text-sm font-medium">
-            {configuration
-              ? "Configuration saved · generate a real demo retailer"
-              : "Research captured · configuration not saved"}
+            {!configuration
+              ? "Research captured · configuration not saved"
+              : !environment
+                ? "Configuration saved · generate a real demo retailer"
+                : environment.status === "published"
+                  ? `Private demo published · /r/${environment.retailerSlug}`
+                  : environment.status === "revoked"
+                    ? "Private demo revoked · regenerate or republish when ready"
+                    : environment.status === "expired"
+                      ? "Demo expired · regenerate a fresh tenant for the next call"
+                      : `Demo retailer ready · /r/${environment.retailerSlug}`}
           </p>
         </div>
       </div>
