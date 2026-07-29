@@ -51,19 +51,19 @@ export default async function DashboardLayout({
   const isWorkshopRole = ["workshop_manager", "worker"].includes(
     session.retailerRole,
   );
-  const homeHref = isWorkshopRole ? "/alterations" : "/dashboard";
+  const homeHref = "/dashboard";
 
   const navigation: AppShellNavGroup[] = [
-    ...(!isWorkshopRole
-      ? [
-          {
-            label: "Today",
-            items: [
-              {
-                href: "/dashboard",
-                label: "Daily brief",
-                description: "Attention, appointments and pace",
-              },
+    {
+      label: "Today",
+      items: [
+        {
+          href: "/dashboard",
+          label: "Daily brief",
+          description: "Attention, appointments and pace",
+        },
+        ...(!isWorkshopRole
+          ? [
               {
                 href: "/appointments",
                 label: "Appointments",
@@ -84,10 +84,16 @@ export default async function DashboardLayout({
                 label: "Updates",
                 description: "Activity across the atelier",
               },
-            ],
-          },
-        ]
-      : []),
+            ]
+          : [
+              {
+                href: "/notifications",
+                label: "Updates",
+                description: "Activity across the atelier",
+              },
+            ]),
+      ],
+    },
     {
       label: isWorkshopRole ? "Workshop floor" : "Fitting room",
       items: [

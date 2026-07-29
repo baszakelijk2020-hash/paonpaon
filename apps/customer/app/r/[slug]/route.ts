@@ -437,7 +437,7 @@ ${
       (entry) => !entry.img || entry.img.includes("nebelspiegel.com/images/"),
     );
   const catalogueNoteHtml = usesSharedCataloguePhotography
-    ? `<p class="paon-catalogue-note" style="margin:8px 12px 0;font-size:11px;line-height:1.4;opacity:.55;font-family:var(--font-retailer-body),system-ui,sans-serif;">Demonstration photography from the shared PAON catalogue, shown under ${safeName}'s brand.</p>`
+    ? `<p class="paon-catalogue-note" style="margin:6px 12px 0;font-size:10px;line-height:1.35;letter-spacing:.04em;text-transform:uppercase;opacity:.45;font-family:var(--font-retailer-body),system-ui,sans-serif;">Shared catalogue photography · ${safeName}</p>`
     : "";
 
   const template = await loadTemplate();
@@ -448,26 +448,28 @@ ${
     heroUrl,
     demoStory?.locations,
   );
-  const storyHtml = [
-    demoStory?.marketingHeadline
-      ? `<p class="paon-marketing-headline" style="margin:12px 12px 0;font-size:15px;line-height:1.45;letter-spacing:.01em;font-family:var(--font-retailer-display),Georgia,serif;">${escapeHtml(demoStory.marketingHeadline)}</p>`
-      : "",
-    demoStory?.personalizedIntroduction
-      ? `<p class="paon-marketing-intro" style="margin:8px 12px 0;max-width:42rem;font-size:12px;line-height:1.55;opacity:.72;font-family:var(--font-retailer-body),system-ui,sans-serif;">${escapeHtml(demoStory.personalizedIntroduction)}</p>`
-      : "",
-  ].join("");
+  // One short line only — long Studio introductions belong on the private
+  // demo gate, not above the founder collection grid (ADR-052: data hook,
+  // founder chrome vocabulary).
+  const storyLine = (demoStory?.marketingHeadline ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 72);
+  const storyHtml = storyLine
+    ? `<div class="paon-story" style="margin:10px 12px 2px;padding:0 0 10px;border-bottom:1px solid color-mix(in srgb, var(--paon-ink) 12%, transparent);">
+<p style="margin:0;font-family:var(--font-retailer-display),Georgia,serif;font-size:13px;line-height:1.3;letter-spacing:.01em;color:var(--paon-ink);">${escapeHtml(storyLine)}</p>
+</div>`
+    : "";
   const categoryNames = UNAMBIGUOUS_CATEGORY_ORDER.filter((category) =>
     entries.some((entry) => entry.category === category),
   );
   const resolvedCategories =
     categoryNames.length > 0 ? categoryNames : [...UNAMBIGUOUS_CATEGORY_ORDER];
   const landOnGrid = slug !== "maison-dubois";
-  const ogTitle = demoStory?.marketingHeadline
-    ? `${safeName} — ${escapeHtml(demoStory.marketingHeadline)}`
+  const ogTitle = storyLine
+    ? `${safeName} — ${escapeHtml(storyLine)}`
     : safeName;
-  const ogDescription = demoStory?.personalizedIntroduction
-    ? escapeHtml(demoStory.personalizedIntroduction.slice(0, 200))
-    : `Explore ${safeName} on PAON.`;
+  const ogDescription = `Explore ${safeName} on PAON.`;
   const ogImage =
     heroUrl ??
     entries.find((entry) => entry.img)?.img ??

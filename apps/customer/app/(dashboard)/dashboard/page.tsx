@@ -250,6 +250,104 @@ export default async function DashboardPage() {
         </section>
       ) : null}
 
+      {primary?.retailer ? (
+        <section
+          aria-label="Everything in your house"
+          className="paon-reveal"
+          style={{ animationDelay: "180ms" }}
+        >
+          <div className="mb-5">
+            <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
+              The house
+            </p>
+            <h2 className="font-display text-4xl">Everything in one place.</h2>
+            <p className="mt-2 max-w-xl text-sm text-[var(--color-stone-500)]">
+              Shop, book, follow garments, and speak with your advisor — without
+              hunting through menus.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {(
+              [
+                {
+                  href: `/r/${primary.retailer.slug}`,
+                  label: "Shop the collection",
+                  detail: primary.retailer.displayName,
+                },
+                {
+                  href: "/appointments",
+                  label: "Appointments",
+                  detail: "Fittings and consultations",
+                },
+                {
+                  href: "/orders",
+                  label: "Orders",
+                  detail: primary.activeOrder
+                    ? humanise(primary.activeOrder.status)
+                    : "Purchases and delivery",
+                },
+                {
+                  href: "/alterations",
+                  label: "Alterations",
+                  detail: "Garment progress and pickup",
+                },
+                {
+                  href: "/wishlist",
+                  label: "Saved pieces",
+                  detail: "Your considered selection",
+                },
+                {
+                  href: "/loyalty",
+                  label: "Recognition",
+                  detail: "Status, points and rewards",
+                },
+                {
+                  href: "/messages",
+                  label: "Your advisors",
+                  detail:
+                    primaryUnread > 0
+                      ? `${primaryUnread} waiting`
+                      : "Private conversations",
+                },
+                {
+                  href: "/wedding-parties",
+                  label: "Wedding parties",
+                  detail: "Group fittings and plans",
+                },
+                {
+                  href: "/events",
+                  label: "Invitations",
+                  detail: "Private previews and events",
+                },
+                {
+                  href: "/notifications",
+                  label: "Updates",
+                  detail: "Everything worth knowing",
+                },
+                {
+                  href: "/account",
+                  label: "Preferences",
+                  detail: "Contact, delivery and privacy",
+                },
+              ] as const
+            ).map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white px-5 py-5 shadow-[var(--shadow-lifted)] transition-transform duration-[var(--duration-quiet)] hover:-translate-y-0.5"
+              >
+                <p className="font-display text-xl text-[var(--color-stone-900)]">
+                  {item.label}
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-stone-500)] group-hover:text-[var(--color-stone-800)]">
+                  {item.detail} →
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {relationships.length > 0 ? (
         <section>
           <div className="mb-5 flex flex-wrap items-end justify-between gap-4">

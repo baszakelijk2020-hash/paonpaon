@@ -10,6 +10,7 @@ import {
   StaffRosterRepository,
 } from "@paon/database";
 import {
+  retailerRoleAtLeast,
   retailerRoleHasAlterationsPermission,
   type RetailerRole,
 } from "@paon/domain";
@@ -17,7 +18,7 @@ import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatMoney } from "@paon/utils";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { RetailerStatusBadge } from "../status-badge";
 
@@ -104,9 +105,6 @@ function formatTime(isoDate: string): string {
 
 export default async function DashboardPage() {
   const session = await requireSession();
-  if (["workshop_manager", "worker"].includes(session.retailerRole)) {
-    redirect("/alterations");
-  }
   const supabase = await getSupabaseServerClient();
 
   const retailer = await new RetailerRepository(supabase).findById(
@@ -300,36 +298,191 @@ export default async function DashboardPage() {
             value: todaysAppointments.length,
             label: "Client moments today",
             href: "/appointments",
+            hide: ["workshop_manager", "worker"].includes(session.retailerRole),
           },
           {
             value: activeOrders.length,
             label: "Orders in motion",
             href: "/orders",
+            hide: ["workshop_manager", "worker"].includes(session.retailerRole),
           },
           {
             value: openAlterations.length,
             label: "Open garments",
             href: "/alterations",
+            hide: false,
           },
           {
             value: unreadCount,
             label: "Unread updates",
             href: "/notifications",
+            hide: false,
           },
-        ].map((metric) => (
-          <Link
-            key={metric.label}
-            href={metric.href}
-            className="group border-b border-r border-[var(--color-stone-200)] px-5 py-5 last:border-r-0 sm:px-6"
-          >
-            <p className="font-display text-4xl text-[var(--color-stone-900)]">
-              {metric.value}
-            </p>
-            <p className="mt-1 text-xs text-[var(--color-stone-500)] group-hover:text-[var(--color-stone-900)]">
-              {metric.label} →
-            </p>
-          </Link>
-        ))}
+        ]
+          .filter((metric) => !metric.hide)
+          .map((metric) => (
+            <Link
+              key={metric.label}
+              href={metric.href}
+              className="group border-b border-r border-[var(--color-stone-200)] px-5 py-5 last:border-r-0 sm:px-6"
+            >
+              <p className="font-display text-4xl text-[var(--color-stone-900)]">
+                {metric.value}
+              </p>
+              <p className="mt-1 text-xs text-[var(--color-stone-500)] group-hover:text-[var(--color-stone-900)]">
+                {metric.label} →
+              </p>
+            </Link>
+          ))}
+      </section>
+
+      <section
+        aria-label="Operate the house"
+        className="paon-reveal"
+        style={{ animationDelay: "160ms" }}
+      >
+        <div className="mb-5">
+          <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            Mission Control
+          </p>
+          <h2 className="font-display text-3xl">Every surface, one landing.</h2>
+          <p className="mt-2 max-w-xl text-sm text-[var(--color-stone-500)]">
+            Open the work that matters for your role — without walking the
+            sidebar first.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {(
+            [
+              {
+                href: "/alterations",
+                label: "Alterations",
+                detail: `${openAlterations.length} open`,
+                show: true,
+              },
+              {
+                href: "/appointments",
+                label: "Appointments",
+                detail: `${todaysAppointments.length} today`,
+                show: !["workshop_manager", "worker"].includes(
+                  session.retailerRole,
+                ),
+              },
+              {
+                href: "/orders",
+                label: "Orders",
+                detail: `${activeOrders.length} in motion`,
+                show: !["workshop_manager", "worker"].includes(
+                  session.retailerRole,
+                ),
+              },
+              {
+                href: "/customers",
+                label: "Client book",
+                detail: "Profiles and next actions",
+                show: retailerRoleAtLeast(
+                  session.retailerRole,
+                  "sales_associate",
+                ),
+              },
+              {
+                href: "/messages",
+                label: "Conversations",
+                detail:
+                  unreadCount > 0 ? `${unreadCount} waiting` : "Client inbox",
+                show: !["workshop_manager", "worker"].includes(
+                  session.retailerRole,
+                ),
+              },
+              {
+                href: "/wedding-parties",
+                label: "Wedding parties",
+                detail: "Group fittings",
+                show: retailerRoleAtLeast(
+                  session.retailerRole,
+                  "sales_associate",
+                ),
+              },
+              {
+                href: "/products",
+                label: "Catalogue",
+                detail: "Products and imagery",
+                show: retailerRoleAtLeast(session.retailerRole, "manager"),
+              },
+              {
+                href: "/collections",
+                label: "Collections",
+                detail: "Editorial stories",
+                show: retailerRoleAtLeast(session.retailerRole, "manager"),
+              },
+              {
+                href: "/loyalty",
+                label: "Loyalty",
+                detail: "Recognition and rewards",
+                show: retailerRoleAtLeast(session.retailerRole, "manager"),
+              },
+              {
+                href: "/events",
+                label: "Events",
+                detail: "Invitations",
+                show: retailerRoleAtLeast(session.retailerRole, "manager"),
+              },
+              {
+                href: "/analytics",
+                label: "Performance",
+                detail: "Commercial signals",
+                show: retailerRoleAtLeast(session.retailerRole, "manager"),
+              },
+              {
+                href: "/staff",
+                label: "Team",
+                detail: `${activeStaffCount} active`,
+                show: retailerRoleAtLeast(session.retailerRole, "admin"),
+              },
+              {
+                href: "/settings",
+                label: "Settings",
+                detail: "Brand, billing, payments",
+                show: retailerRoleAtLeast(session.retailerRole, "admin"),
+              },
+              {
+                href: "/notifications",
+                label: "Updates",
+                detail: "House activity",
+                show: true,
+              },
+              {
+                href: `/r/${retailer.slug}`,
+                label: "Live storefront",
+                detail: "See what clients see",
+                show: true,
+                external: true,
+              },
+            ] as const
+          )
+            .filter((item) => item.show)
+            .map((item) => (
+              <Link
+                key={item.href}
+                href={
+                  "external" in item && item.external
+                    ? `${process.env["NEXT_PUBLIC_CUSTOMER_APP_URL"]?.replace(/\/$/, "") ?? "http://localhost:3002"}${item.href}`
+                    : item.href
+                }
+                {...("external" in item && item.external
+                  ? { target: "_blank", rel: "noreferrer" }
+                  : {})}
+                className="group rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white px-5 py-5 shadow-[var(--shadow-lifted)] transition-transform duration-[var(--duration-quiet)] hover:-translate-y-0.5"
+              >
+                <p className="font-display text-xl text-[var(--color-stone-900)]">
+                  {item.label}
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-stone-500)] group-hover:text-[var(--color-stone-800)]">
+                  {item.detail} →
+                </p>
+              </Link>
+            ))}
+        </div>
       </section>
 
       {myStaffRow ? (
@@ -409,8 +562,9 @@ export default async function DashboardPage() {
                   <Card className="flex items-center justify-between gap-3 transition-transform duration-[var(--duration-quiet)] ease-[var(--ease-out-quiet)] group-hover:-translate-y-0.5 group-hover:shadow-[var(--shadow-lifted)]">
                     <div>
                       <p className="font-medium">
-                        {unreadCount} conversation
-                        {unreadCount === 1 ? "" : "s"} waiting
+                        {unreadCount === 1
+                          ? "1 conversation waiting"
+                          : `${unreadCount} conversations waiting`}
                       </p>
                       <p className="text-sm text-[var(--color-stone-500)]">
                         Reply while the client’s context is fresh.
