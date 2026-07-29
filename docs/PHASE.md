@@ -51,9 +51,10 @@ Verified against code and 91 migrations on 2026-07-30:
   concept-linked composition, and product/variant catalogue assignments.
   Canonical and retailer knowledge objects, concept joins, relations, and
   local hide/presentation/priority/pin overrides now exist with reviewed
-  neutral fixtures covering every EDU-001 topic. No catalogue import,
-  style-profile, wardrobe, outfit, roadmap, service-plan, or campaign table
-  exists.
+  neutral fixtures covering every EDU-001 topic. Founder storefront PDP
+  mounts ranked knowledge cards into Archetype/Fabric/Sizing panels. No
+  catalogue import, style-profile, wardrobe, outfit, roadmap, service-plan,
+  or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -213,7 +214,7 @@ storefront redesign, or customer personalization.
     consent, or runtime content generation.
   - **Hard blockers:** none.
 
-- [ ] **2.3 Founder-storefront knowledge mounts**
+- [x] **2.3 Founder-storefront knowledge mounts**
   - **Requirement IDs:** `EDU-003`, `ENG-004`.
   - **Dependencies:** `2.2`; ADR-052 and ADR-060.
   - **Owner boundary:** narrow data serialization/runtime hooks in
@@ -229,6 +230,9 @@ storefront redesign, or customer personalization.
     language, or unrelated founder HTML cleanup.
   - **Hard blockers:** an indispensable mount that cannot preserve the founder
     surface under ADR-052 blocks this item only.
+  - **Landed:** `7cd180f` — per-panel ADR-060 ranking mounts via
+    `__PAON_KNOWLEDGE_BY_PRODUCT_JSON__`, public storefront knowledge reads,
+    founder fallback when no accepted concepts link.
 
 - [ ] **2.4 Structured catalogue query**
   - **Requirement IDs:** `SRCH-001`, `SRCH-002`, `ENG-002`, `ENG-003`.

@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 93 forward Supabase migrations plus generated TypeScript
+- Schema source: 94 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -38,7 +38,9 @@ Snapshot: 2026-07-30.
   UI, and product-management fabric/assignment editors exist.
 - Canonical/retailer knowledge objects, concept joins, relations, retailer
   hide/presentation/priority/pin overrides, `KnowledgeRepository`,
-  `rankKnowledgeDiscovery`, and idempotent EDU-001 canonical fixtures exist.
+  `rankKnowledgeDiscovery`, `rankStorefrontKnowledgePanels`, founder PDP
+  knowledge mounts, and idempotent EDU-001 canonical fixtures exist. Public
+  storefront can read active knowledge and accepted catalogue assignments.
   No catalogue-import, wardrobe, roadmap, outfit, campaign, or
   concierge-service tables exist.
 
@@ -57,7 +59,7 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Knowledge contracts and persistence (PHASE 2.1) and the deterministic discovery
-engine (PHASE 2.2) are complete. The authoritative Resume Protocol identifies
-founder-storefront knowledge mounts (PHASE 2.3) as the exact continuation
-point.
+contracts. Knowledge contracts (2.1), discovery ranking (2.2), and
+founder-storefront knowledge mounts (2.3) are complete. The authoritative
+Resume Protocol identifies structured catalogue query (PHASE 2.4) as the exact
+continuation point.
