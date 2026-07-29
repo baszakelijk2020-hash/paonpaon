@@ -116,8 +116,19 @@ export default async function AlterationDetailPage({
             Pickup or delivery
           </h2>
           <Card>
-            <p className="capitalize text-[var(--color-stone-900)]">
-              {latestFulfillment.method} · {latestFulfillment.status}
+            <p className="text-[var(--color-stone-900)]">
+              {latestFulfillment.method === "pickup" ? "Pick-up" : "Delivery"} ·{" "}
+              {latestFulfillment.status
+                ? ((
+                    {
+                      scheduled: "Scheduled",
+                      ready: "Ready",
+                      dispatched: "Dispatched",
+                      completed: "Completed",
+                      canceled: "Cancelled",
+                    } as Record<string, string>
+                  )[latestFulfillment.status] ?? latestFulfillment.status)
+                : null}
             </p>
             {latestFulfillment.scheduled_at ? (
               <p className="text-sm text-[var(--color-stone-500)]">

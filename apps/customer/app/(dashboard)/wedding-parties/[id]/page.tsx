@@ -171,7 +171,7 @@ export default async function WeddingPartyDetailPage({
               )}
               <div className="min-w-0">
                 <p className="font-medium">{member.name}</p>
-                <p className="text-sm capitalize text-[var(--color-stone-500)]">
+                <p className="text-sm text-[var(--color-stone-500)]">
                   {WEDDING_PARTY_MEMBER_ROLE_LABELS[member.role]}
                   {member.heightCm != null && member.weightKg != null
                     ? ` · ${member.heightCm} cm / ${member.weightKg} kg`

@@ -53,7 +53,7 @@ export default async function EventPage({
       </div>
       <Card>
         <p>{event.description}</p>
-        <p className="mt-3 text-sm capitalize text-[var(--color-stone-500)]">
+        <p className="mt-3 text-sm text-[var(--color-stone-500)]">
           {EVENT_VISIBILITY_LABELS[event.visibility]} ·{" "}
           {event.capacity ? `${event.capacity} places` : "No capacity limit"}
         </p>

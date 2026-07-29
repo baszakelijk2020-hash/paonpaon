@@ -68,10 +68,7 @@ export default async function StaffPage() {
                   {member.fullName}
                 </p>
                 <p className="text-sm text-[var(--color-stone-500)]">
-                  {member.email} ·{" "}
-                  <span className="capitalize">
-                    {RETAILER_ROLE_LABELS[member.role]}
-                  </span>
+                  {member.email} · {RETAILER_ROLE_LABELS[member.role]}
                 </p>
               </div>
               <Badge
