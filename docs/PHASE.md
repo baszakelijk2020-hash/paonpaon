@@ -175,14 +175,17 @@ most, and it does not exist.
 
 Founder decision 2026-07-27: finish the build to a demonstrable state.
 Ordered by what a prospect sees first. **Continuous mode (ADR-054,
-reinforced 2026-07-28 evening, again 2026-07-29):** build, self-verify,
-commit, push, and advance this queue **without stopping to check with
-the founder and without ending an agent turn between finished batches.**
-Push all the way until this queue is exhausted or only hard blockers
-remain. Still one coherent commit at a time — the batching pause is
-gone; the small-commit discipline is not. Skipping a blocked item is
-required; pausing the session for review is forbidden. Ending a reply
-after shipping a batch while freeze work remains is a process failure.
+reinforced 2026-07-28 evening, restated 2026-07-29: NEVER STOP EARLY):**
+you are **not allowed to stop until REALLY ALL FINISHED** — founder
+request complete, buildable queue empty, only hard blockers, pushed.
+Build, self-verify, commit, push, and advance **without stopping to
+check with the founder and without ending an agent turn between finished
+batches.** A stale "queue exhausted" note does not authorize stopping
+while the founder's latest message still has open work. Still one
+coherent commit at a time — the batching pause is gone; the small-commit
+discipline is not. Skipping a blocked item is required; pausing for
+review is forbidden. Ending a reply after one batch, one audit, or a
+progress summary while work remains is a process failure.
 
 1. **Stripe live.** Blocked — `STRIPE_SECRET_KEY` (and related) are not
    in `.env.local` / hosted env; no session can provision them. Once set,
@@ -347,8 +350,18 @@ garment lines accept `url | name | description`, private-demo links unfurl
 and gate with prospect brand; outreach packs persist on the environment.
 Custom domain still deferred (ADR-014).
 
-**Agent buildable freeze queue: exhausted** (2026-07-29). Remaining work is
-founder-blocked only.
+**Agent buildable freeze queue: exhausted** (2026-07-29) for the three
+freeze workstreams, aside from founder blockers. **Exception (founder
+2026-07-29):** customer + retailer **back environments** (Private Client
+and Mission Control dashboards / chrome — **not** `paon-template.html`)
+are an active polish stream until they match the `paon.html` aesthetic
+on mobile and desktop. Do not stop after one visual pass; fix P0/P1 gaps
+found, push, continue.
+
+**Active back-env polish (2026-07-29, continuous):** mobile messages
+layout, login radii (no pills), duplicate Private Client chrome, brand
+settings cool-stone/radius, empty-state `radius-lg` → `md`, hero scale,
+non-chip CTA pills. Skip fit-tools / silhouette / inventing alterations.
 
 **Save vs Generate (Studio).** Save alone updates live storefront story
 fields that are read from the prospect configuration at request time
@@ -427,25 +440,29 @@ apply in full.
 
 ## Stop and ask (hard stops only — everything else is keep going)
 
-**Founder (2026-07-28, reiterated same day): do NOT stop and check. Push
-all the way to finish.** Build, self-verify, commit, push, advance this
-queue immediately. Ending after one increment to wait for review is a
-process failure. Skip Stripe / Resend / silhouette — one-line note below,
-continue.
+**Founder (2026-07-28; restated 2026-07-29): you are NOT allowed to stop
+until you are REALLY ALL FINISHED.** Do NOT stop and check. Push all the
+way. Build, self-verify, commit, push, advance immediately. Ending after
+one increment, one visual audit, or a progress summary while actionable
+work remains is a process failure. Skip Stripe / Resend / silhouette —
+one-line note below, continue. Founder-requested back-env polish counts
+as unfinished until P0/P1 gaps are fixed and pushed.
 
 **Stop and ask — and wait — only when:**
 
-- The work would touch anything outside the three workstreams.
+- The work would touch anything outside the three workstreams **and**
+  the founder has not explicitly authorized that exception.
 - You are about to contradict an ADR in `DECISIONS.md` without recording
   a new ADR.
 - A founder-designed surface cannot be ported verbatim (ADR-052).
 
 **Not hard stops:** missing API keys, blocked silhouette mount, visual
-preference uncertainty, finishing one queue item, or wanting a human to
-read a "Test it" list before the next change.
+preference uncertainty, finishing one queue item, wanting a human to
+read a "Test it" list, or a PHASE note that says "exhausted" while the
+latest founder message still has open follow-through.
 
-Autonomy inside the freeze until the queue is done is the goal.
-Uncommitted finished work is not.
+Autonomy until REALLY ALL FINISHED is the goal. Uncommitted finished
+work is not.
 
 ## End every session committable and pushed
 

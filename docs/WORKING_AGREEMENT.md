@@ -5,26 +5,43 @@ or any other) work together on PAON. **Tier 0 — read every session.**
 
 ---
 
-## NON-NEGOTIABLE (founder, 2026-07-28 — reiterated 2026-07-29)
+## NON-NEGOTIABLE (founder, 2026-07-28 — restated 2026-07-29: NEVER STOP EARLY)
 
-**Do not stop and check. Do not pause for review. Do not end a turn
-between finished batches. Push all the way to finish.**
+**You are not allowed to stop until you are REALLY ALL FINISHED.**
+
+"Really all finished" means **every** of the following is true:
+
+1. The active founder request for this session is complete (not half-audited,
+   not "shipped one polish pass and reported"), **and**
+2. The PHASE.md buildable queue has no remaining agent-doable items, **and**
+3. Only hard blockers remain (Stripe / Resend / silhouette / missing founder
+   design / out-of-freeze ask), **and**
+4. Finished work is committed **and** pushed to `origin/main`.
+
+Anything less is unfinished. Do not stop and check. Do not pause for
+review. Do not end a turn between finished batches. Do not treat a visual
+verdict, a progress summary, or a "Test it" list as a session closer while
+actionable polish or queue work remains. Push all the way to finish.
 
 This is not optional soft guidance. Sessions that stop after one
 increment, ask "please review," wait for a click-through, end with
-"Test it / tell me when to continue," or **close a reply after shipping
-a batch while in-scope work remains** are **violating this agreement.**
+"Test it / tell me when to continue," **close a reply after shipping a
+batch while work remains**, or declare "queue exhausted" while the
+founder's latest instruction still has open follow-through, are
+**violating this agreement.**
 
-| Forbidden                                                          | Required                                                                                                        |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| Stop after a commit to wait for founder confirmation               | Commit → push → immediately start the next in-scope item                                                        |
-| End the agent turn / reply after a finished batch or feature       | Chain the next unfinished PHASE item in the **same turn** until blockers only                                   |
-| "Please review" / "does this look right?" / "ready for your check" | Self-verify with curl / browser / Playwright, then keep going                                                   |
-| Ending the session because one queue item shipped                  | Keep going until the PHASE queue is exhausted or only hard blockers remain                                      |
-| Treating a "Test it" section as a gate or a session closer         | Write "Test it" only when the whole queue is done or only blockers remain; never as the last act before waiting |
-| Halting the whole session on Stripe / Resend / silhouette          | Note the block in PHASE.md in one line, **skip**, take the next item                                            |
-| Leaving finished work uncommitted or unpushed                      | Every coherent increment is committed and pushed before the next begins                                         |
-| Summarizing progress and stopping while freeze work remains        | Progress notes are fine mid-flight; stopping is not                                                             |
+| Forbidden                                                          | Required                                                                                    |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Stop after a commit to wait for founder confirmation               | Commit → push → immediately start the next in-scope item                                    |
+| End the agent turn / reply after a finished batch or feature       | Chain the next unfinished item in the **same turn** until truly finished                    |
+| "Please review" / "does this look right?" / "ready for your check" | Self-verify with curl / browser / Playwright, then keep going                               |
+| Ending because one queue item or one audit shipped                 | Keep going until the founder request + PHASE buildable queue are both done                  |
+| Treating "queue exhausted" as done while founder work remains      | Founder-requested in-scope work overrides a stale "exhausted" note — finish that work first |
+| Treating a "Test it" section as a gate or a session closer         | Write "Test it" only when REALLY ALL FINISHED; never as the last act before waiting         |
+| Halting the whole session on Stripe / Resend / silhouette          | Note the block in PHASE.md in one line, **skip**, take the next item                        |
+| Leaving finished work uncommitted or unpushed                      | Every coherent increment is committed and pushed before the next begins                     |
+| Summarizing progress and stopping while work remains               | Progress notes are fine mid-flight; stopping is not                                         |
+| Reporting a visual audit without fixing the P0/P1 gaps found       | Audit → fix → verify → commit → push → next gap, in the same turn                           |
 
 The earlier stop-and-wait rule fixed a real failure (21 unpushed commits,
 130 uncommitted files, no CI). Continuous mode keeps that **discipline**
@@ -35,15 +52,18 @@ never by waiting for the founder between tasks.
 If you are about to write a message whose purpose is to get permission,
 a visual check, or a "continue?" before the next in-scope change: **do
 not send it — do the next change instead.** Finishing a batch is not
-permission to idle.
+permission to idle. Declaring yourself done when P0/P1 gaps from the
+same request are still open is a process failure.
 
 ---
 
-## The loop (continuous — run to the end)
+## The loop (continuous — run until REALLY ALL FINISHED)
 
-Every piece of work follows the same cycle. **Chain until the PHASE.md
-queue is done** (or only founder-blocked items remain). Do not stop
-between increments.
+Every piece of work follows the same cycle. **Chain until the founder
+request and the PHASE.md buildable queue are both done** (or only
+founder-blocked items remain). Do not stop between increments. Do not
+end the reply early to "hand off" or summarize while actionable work
+remains.
 
 **1. Orient.** Read [PHASE.md](./PHASE.md). Take the next unfinished
 in-scope item. If it is blocked on founder credentials or missing design
@@ -80,8 +100,10 @@ Deploy is push-to-`main` (Hobby Vercel).
 
 **6. Advance without asking.** Update PHASE.md if an item finished.
 **Immediately** start the next in-scope item in the same session. Repeat
-until the queue is exhausted or only hard blockers remain. That is what
-"push all the way to finish" means.
+until REALLY ALL FINISHED (founder request done + buildable queue empty +
+only hard blockers + pushed). That is what "push all the way to finish"
+means. A PHASE note that says "queue exhausted" does **not** authorize
+stopping while the founder's latest message still has open work.
 
 ---
 

@@ -17,13 +17,14 @@ repository-root `.env.local`. See [docs/TOOLING.md](./docs/TOOLING.md).
 
 Short version, so a session that ignores the links still behaves:
 
-- **NON-NEGOTIABLE:** Do **not** stop and check with the founder. Do
-  **not** end a turn between finished batches. Push **all the way**
-  through the PHASE queue. Build → self-verify → commit → push → next
-  item **in the same turn**. No "please review." No waiting after one
-  increment or one batch. Skip Stripe / Resend / silhouette (note +
-  continue). "Test it" only when the queue is exhausted — never as a
-  pause. See `docs/WORKING_AGREEMENT.md`.
+- **NON-NEGOTIABLE:** You are **not allowed to stop until REALLY ALL
+  FINISHED** (founder request done + buildable queue empty + only hard
+  blockers + pushed). Do **not** stop and check. Do **not** end a turn
+  between batches. Do **not** close after a visual audit without fixing
+  the gaps. Push **all the way**. Build → self-verify → commit → push →
+  next item **in the same turn**. No "please review." Skip Stripe /
+  Resend / silhouette (note + continue). "Test it" only when truly
+  finished — never as a pause. See `docs/WORKING_AGREEMENT.md`.
 - Only three workstreams are in scope right now: the storefront template,
   the prospect Demo Studio, and the marketing site. See `docs/PHASE.md`.
 - Anything outside those: say so and ask. Do not build it quietly.

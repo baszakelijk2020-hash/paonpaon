@@ -2425,6 +2425,16 @@ work remains is a process failure — chain the next item in the same
 turn. "Test it" is only for when the queue is exhausted or only hard
 blockers remain, never a pause after one batch.
 
+**Restatement (2026-07-29, stronger):** You are **not allowed to stop
+until you are REALLY ALL FINISHED** — the active founder request is
+complete, the buildable queue has no agent-doable items, only hard
+blockers remain, and finished work is pushed. A stale "queue exhausted"
+note does not authorize stopping while the founder's latest instruction
+still has open follow-through (e.g. back-env aesthetic polish). Closing
+on a visual audit verdict without fixing the P0/P1 gaps found is a
+process failure. Operational wording lives in `WORKING_AGREEMENT.md`,
+`CLAUDE.md`, `AGENTS.md`, and `PHASE.md`.
+
 **Consequences.** Sessions ship more often and must leave the tree clean
 after every coherent change. Risk of drift returns if sessions skip
 self-verify or leave unpushed work — continuous mode commits _more_
