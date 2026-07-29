@@ -36,9 +36,9 @@ Verified against code and 91 migrations on 2026-07-30:
   alongside name, description, status, made-to-order/alterable, primary image,
   swatch image, and collections; variant carries SKU, size, color, price,
   stock, and lead time.
-- Storefront category, color, pattern, and season filters are derived from
-  product names, collection names, variant color, and founder image-number
-  heuristics.
+- Storefront category, color, pattern, and season filters prefer accepted
+  metadata when present and still fall back to product names, collection
+  names, variant color, and founder image-number heuristics.
 - `behavioral_events` and `ai_generations` exist, but the new consent,
   evidence, retention, style-profile, and advisor-briefing model does not.
 - Metadata concepts, edges, assignments, append-only review evidence,
@@ -52,8 +52,10 @@ Verified against code and 91 migrations on 2026-07-30:
   Canonical and retailer knowledge objects, concept joins, relations, and
   local hide/presentation/priority/pin overrides now exist with reviewed
   neutral fixtures covering every EDU-001 topic. Founder storefront PDP
-  mounts ranked knowledge cards into Archetype/Fabric/Sizing panels. No
-  catalogue import, style-profile, wardrobe, outfit, roadmap, service-plan,
+  mounts ranked knowledge cards into Archetype/Fabric/Sizing panels.
+  Accepted-metadata catalogue query supports named facets, weight/price
+  ranges, intent mapping, and pagination with founder filter hooks.
+  No catalogue import, style-profile, wardrobe, outfit, roadmap, service-plan,
   or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
@@ -234,7 +236,7 @@ storefront redesign, or customer personalization.
     `__PAON_KNOWLEDGE_BY_PRODUCT_JSON__`, public storefront knowledge reads,
     founder fallback when no accepted concepts link.
 
-- [ ] **2.4 Structured catalogue query**
+- [x] **2.4 Structured catalogue query**
   - **Requirement IDs:** `SRCH-001`, `SRCH-002`, `ENG-002`, `ENG-003`.
   - **Dependencies:** `1.4`.
   - **Owner boundary:** `@paon/domain` query contract, indexed
@@ -250,6 +252,10 @@ storefront redesign, or customer personalization.
   - **Non-goals:** no embeddings, opaque relevance, public API, or removal of a
     heuristic before equivalent behavior is protected.
   - **Hard blockers:** none.
+  - **Landed:** `a0e03dd` — `CatalogueSearchRequest` / intent resolver /
+    `CatalogueQueryRepository`, price/weight/status indexes, public concept
+    and fabric-profile reads, and narrow `__PAON_CATALOGUE_BY_PRODUCT_JSON__`
+    founder hooks; heuristics retained until parity retires them.
 
 - [ ] **2.5 Import contracts and preview**
   - **Requirement IDs:** `IMP-001`, `IMP-002`, `IMP-004`, `CAT-004`.

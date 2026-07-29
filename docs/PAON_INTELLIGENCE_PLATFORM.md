@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `2.4 Structured catalogue query`
-- **Current requirement IDs:** `SRCH-001`, `SRCH-002`, `ENG-002`, `ENG-003`
+- **Current queue item:** `2.5 Import contracts and preview`
+- **Current requirement IDs:** `IMP-001`, `IMP-002`, `IMP-004`, `CAT-004`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -23,22 +23,24 @@ requires it.
   and catalogue assignment UI; `b5827bc` added knowledge contracts,
   persistence, and fixtures; `353b737` adds the deterministic discovery engine;
   `7cd180f` mounts ranked knowledge cards in founder Archetype/Fabric/Sizing
-  panels (PHASE 2.3 complete).
+  panels; `a0e03dd` adds accepted-metadata structured catalogue query
+  (PHASE 2.4 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables plus four
   knowledge tables, generated database types, `MetadataRepository`,
   `ProductFabricProfileRepository`, `KnowledgeRepository` (including
-  `projectDiscoveryCandidates`), `rankKnowledgeDiscovery` /
-  `rankStorefrontKnowledgePanels`, storefront `__PAON_KNOWLEDGE_BY_PRODUCT_JSON__`
+  `projectDiscoveryCandidates`), `CatalogueQueryRepository`,
+  `CatalogueSearchRequest` / `resolveCatalogueIntent` /
+  `projectStorefrontCatalogueFacets`, storefront
+  `__PAON_KNOWLEDGE_BY_PRODUCT_JSON__` and `__PAON_CATALOGUE_BY_PRODUCT_JSON__`
   mounts, and idempotent EDU-001 canonical knowledge fixtures.
-- **Checks/deployment state:** 94 migrations; knowledge mount unit/DOM
-  allowlist tests and Playwright desktop/mobile e2e are green with
-  lint/typecheck/test/build/format on the 2.3 tip. Provider credentials remain
-  optional for this stage.
-- **Real blockers:** none for structured catalogue query.
-- **Exact next files/tests:** implement queue item 2.4 structured catalogue
-  query: domain query contract, indexed repository facets/ranges/intent
-  mapping, and founder storefront filter/search hooks with parity coverage
-  before retiring heuristics.
+- **Checks/deployment state:** 95 migrations; catalogue-query unit/index/DOM
+  allowlist tests are green with lint/typecheck/test/build/format on the 2.4
+  tip. Provider credentials remain optional for this stage.
+- **Real blockers:** none for import contracts and preview.
+- **Exact next files/tests:** implement queue item 2.5 import contracts and
+  preview: import domain schemas, CSV/XLSX/JSON parsers, migration/RLS/
+  repositories, downloadable templates/contracts, and Retailer Portal preview
+  without publishing.
 
 ## 1. Programme intent
 
@@ -109,8 +111,8 @@ above. Status changes only after the named acceptance criteria are verified.
 | IMP-002                | Preserve supplier SKU/reference/raw data; match main/swatches; map categories; validate and detect duplicates                                                                                              | Catalogue import                   | Product create/edit is individual; images and SKUs exist                                                                         | IMP-001                                   | 2.5–2.6              | Preview explains mappings/errors/duplicates; raw identifiers survive; assets match deterministically                             | Not started        |
 | IMP-003                | AI-assisted structured extraction with taxonomy validation, evidence/confidence, no invented facts, and pending review                                                                                     | `@paon/ai` + import                | Generic AI generation audit exists; no import enrichment                                                                         | IMP-001, CAT-004                          | 2.7                  | External prompt and provider-neutral schema return validated proposals; unsupported facts fail closed                            | Not started        |
 | IMP-004                | Retailer preview, bulk review, resumable transactional publishing, and documented PAON CSV/LLM contract                                                                                                    | Catalogue import + Retailer Portal | No import UI/job/review state                                                                                                    | IMP-001, IMP-002                          | 2.5–2.7              | Valid reviewed rows publish atomically; failed rows remain unpublished/resumable; contracts are downloadable                     | Not started        |
-| SRCH-001               | Accepted-metadata search/filter facets for mill, weave, weight, performance, climate, season, pattern, construction, occasion, formality, colour, and price                                                | Catalogue query                    | Keyword/collection/variant-colour/image-number heuristics                                                                        | CAT-002, CAT-004                          | 2.4                  | Active accepted assignments drive indexed facets/ranges with pagination and parity tests                                         | Not started        |
-| SRCH-002               | Natural-language intent for travel, humidity, wrinkles, formality, weddings, softness, and approved concepts, with transparent fallback                                                                    | Catalogue query                    | Name/description substring search only                                                                                           | SRCH-001                                  | 2.4                  | Known intent resolves to explainable structured filters; unresolved language is reported without fabricated matches              | Not started        |
+| SRCH-001               | Accepted-metadata search/filter facets for mill, weave, weight, performance, climate, season, pattern, construction, occasion, formality, colour, and price                                                | Catalogue query                    | `CatalogueQueryRepository` facets/ranges/pagination over accepted assignments; heuristics remain as fallback                     | CAT-002, CAT-004                          | 2.4                  | Active accepted assignments drive indexed facets/ranges with pagination and parity tests                                         | Done (2.4)         |
+| SRCH-002               | Natural-language intent for travel, humidity, wrinkles, formality, weddings, softness, and approved concepts, with transparent fallback                                                                    | Catalogue query                    | `resolveCatalogueIntent` maps known phrases to concepts/ranges and reports unresolved tokens                                     | SRCH-001                                  | 2.4                  | Known intent resolves to explainable structured filters; unresolved language is reported without fabricated matches              | Done (2.4)         |
 | CUST-001               | Consent-aware signals for signed-in views, searches, filters, favourites, cart, knowledge, chat, swipes, appointment intent, and conversion                                                                | `intelligence` events              | Retailer-scoped `behavioral_events` exists without purpose/consent/retention shape                                               | SRCH-001                                  | 3.1                  | Typed events record purpose, consent snapshot, retention, and lawful anonymous session where applicable                          | Not started        |
 | CUST-002               | StyleProfile with explicit and inferred preferences, evidence, polarity, confidence, and recomputation                                                                                                     | `intelligence`                     | Customer preferences exist; no concept evidence or StyleProfile                                                                  | CUST-001                                  | 3.2                  | Declared and inferred fields cannot overwrite each other; every inference is explainable and reproducible                        | Not started        |
 | CUST-003               | Visible customer controls and advisor-safe, retailer-scoped access                                                                                                                                         | Customer + advisor intelligence    | Tenant-scoped CRM exists; no intelligence consent controls                                                                       | CUST-001, CUST-002                        | 3.1–3.3              | Withdrawal stops new use and invokes retention rules; advisors see only consented same-retailer evidence                         | Not started        |

@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 94 forward Supabase migrations plus generated TypeScript
+- Schema source: 95 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -28,8 +28,9 @@ Snapshot: 2026-07-30.
   and Demo Studio foundations exist.
 - Product persistence has primary and swatch images plus exact product/variant
   fabric profiles and reviewed metadata assignments.
-- Storefront category/color/pattern/season values still come from request-time
-  heuristics in `apps/customer/app/r/[slug]/route.ts`.
+- Storefront category/color/pattern/season values prefer accepted metadata
+  when present and still fall back to request-time heuristics in
+  `apps/customer/app/r/[slug]/route.ts`.
 - `behavioral_events` and `ai_generations` exist; purpose-specific consent,
   StyleProfile evidence, and advisor briefing do not.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
@@ -39,10 +40,11 @@ Snapshot: 2026-07-30.
 - Canonical/retailer knowledge objects, concept joins, relations, retailer
   hide/presentation/priority/pin overrides, `KnowledgeRepository`,
   `rankKnowledgeDiscovery`, `rankStorefrontKnowledgePanels`, founder PDP
-  knowledge mounts, and idempotent EDU-001 canonical fixtures exist. Public
-  storefront can read active knowledge and accepted catalogue assignments.
-  No catalogue-import, wardrobe, roadmap, outfit, campaign, or
-  concierge-service tables exist.
+  knowledge mounts, `CatalogueQueryRepository`, intent resolution, and
+  idempotent EDU-001 canonical fixtures exist. Public storefront can read
+  active knowledge, accepted catalogue assignments, active concepts, and
+  fabric profiles for active products. No catalogue-import, wardrobe,
+  roadmap, outfit, campaign, or concierge-service tables exist.
 
 ## External systems
 
@@ -59,7 +61,7 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Knowledge contracts (2.1), discovery ranking (2.2), and
-founder-storefront knowledge mounts (2.3) are complete. The authoritative
-Resume Protocol identifies structured catalogue query (PHASE 2.4) as the exact
-continuation point.
+contracts. Knowledge contracts (2.1), discovery ranking (2.2), founder-storefront
+knowledge mounts (2.3), and structured catalogue query (2.4) are complete.
+The authoritative Resume Protocol identifies import contracts and preview
+(PHASE 2.5) as the exact continuation point.
