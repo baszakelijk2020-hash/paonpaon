@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `2.5 Import contracts and preview`
-- **Current requirement IDs:** `IMP-001`, `IMP-002`, `IMP-004`, `CAT-004`
+- **Current queue item:** `2.6 Transactional reviewed import publishing`
+- **Current requirement IDs:** `IMP-002`, `IMP-004`, `CAT-002`, `CAT-004`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -23,24 +23,22 @@ requires it.
   and catalogue assignment UI; `b5827bc` added knowledge contracts,
   persistence, and fixtures; `353b737` adds the deterministic discovery engine;
   `7cd180f` mounts ranked knowledge cards in founder Archetype/Fabric/Sizing
-  panels; `a0e03dd` adds accepted-metadata structured catalogue query
-  (PHASE 2.4 complete).
-- **Available schema/interfaces:** seven metadata/fabric tables plus four
-  knowledge tables, generated database types, `MetadataRepository`,
-  `ProductFabricProfileRepository`, `KnowledgeRepository` (including
-  `projectDiscoveryCandidates`), `CatalogueQueryRepository`,
-  `CatalogueSearchRequest` / `resolveCatalogueIntent` /
-  `projectStorefrontCatalogueFacets`, storefront
-  `__PAON_KNOWLEDGE_BY_PRODUCT_JSON__` and `__PAON_CATALOGUE_BY_PRODUCT_JSON__`
-  mounts, and idempotent EDU-001 canonical knowledge fixtures.
-- **Checks/deployment state:** 95 migrations; catalogue-query unit/index/DOM
-  allowlist tests are green with lint/typecheck/test/build/format on the 2.4
+  panels; `a0e03dd` adds accepted-metadata structured catalogue query;
+  `dd2e274` adds catalogue import contracts and preview (PHASE 2.5 complete).
+- **Available schema/interfaces:** seven metadata/fabric tables, four
+  knowledge tables, three catalogue-import tables, generated database types,
+  `MetadataRepository`, `ProductFabricProfileRepository`,
+  `KnowledgeRepository`, `CatalogueQueryRepository`,
+  `CatalogueImportRepository`, versioned import contract/parsers/templates,
+  storefront knowledge/catalogue mounts, and idempotent EDU-001 fixtures.
+- **Checks/deployment state:** 96 migrations; import parser/repo/RLS and
+  portal routes are green with lint/typecheck/test/build/format on the 2.5
   tip. Provider credentials remain optional for this stage.
-- **Real blockers:** none for import contracts and preview.
-- **Exact next files/tests:** implement queue item 2.5 import contracts and
-  preview: import domain schemas, CSV/XLSX/JSON parsers, migration/RLS/
-  repositories, downloadable templates/contracts, and Retailer Portal preview
-  without publishing.
+- **Real blockers:** none for transactional reviewed import publishing.
+- **Exact next files/tests:** implement queue item 2.6 transactional
+  reviewed import publishing: database transaction/RPC, repositories,
+  authorized Server Action, and import status UI that atomically publishes
+  reviewed rows without unreviewed bulk publish.
 
 ## 1. Programme intent
 
@@ -85,10 +83,12 @@ Verified from code and 91 migrations on 2026-07-30:
   overrides, exact fabric profiles, generated types, typed repositories, PAON
   Admin canonical management, and the Retailer Portal review/product-facts UI
   now exist. Knowledge objects, concept joins, relations, retailer knowledge
-  overrides, reviewed EDU-001 fixtures, and accepted-metadata catalogue query
-  (facets/ranges/intent/pagination) also exist. The repository still has no
-  catalogue-import, StyleProfile, wardrobe-item, outfit, wardrobe-roadmap,
-  campaign, or concierge-service persistence.
+  overrides, reviewed EDU-001 fixtures, accepted-metadata catalogue query
+  (facets/ranges/intent/pagination), and catalogue-import preview
+  (jobs/rows/review tasks, parsers, templates) also exist. Publishing from
+  import preview does not. The repository still has no StyleProfile,
+  wardrobe-item, outfit, wardrobe-roadmap, campaign, or concierge-service
+  persistence.
 
 Names below describe intended persistence and later-stage types until their
 queue item lands. Documentation must not call them shipped early.
@@ -108,10 +108,10 @@ above. Status changes only after the named acceptance criteria are verified.
 | EDU-001                | Reusable commercial education for mills, fibres, fabrics, weaves, construction, collars, styling, care, performance, occasion, value, and tradeoffs                                                        | `knowledge`                        | Domain contracts, persistence/RLS, repositories, and reviewed canonical fixtures cover every named topic                         | CAT-001, CAT-004                          | 2.1                  | Reviewed reusable objects cover every named topic and explain why, fit, tradeoffs, and value                                     | Done (2.1)         |
 | EDU-002                | Automatic metadata-backed card selection with ranking and diversity                                                                                                                                        | `knowledge` + `discovery`          | Deterministic `rankKnowledgeDiscovery` plus repository candidate projection                                                      | EDU-001                                   | 2.2                  | Accepted metadata selects three to six explainable, diverse cards under ADR-060 precedence                                       | Done (2.2)         |
 | EDU-003                | Inject cards into existing desktop/mobile founder information areas without redesign                                                                                                                       | Customer founder storefront        | Narrow `__PAON_KNOWLEDGE_BY_PRODUCT_JSON__` mounts render ranked cards in Archetype/Fabric/Sizing with no-data fallback          | EDU-002                                   | 2.3                  | Narrow hooks render square-image/title/copy cards accessibly with no unrelated visual or interaction drift                       | Done (2.3)         |
-| IMP-001                | CSV, XLSX, JSON, and future PDF-ready supplier ingestion                                                                                                                                                   | Catalogue import                   | No import model or parser                                                                                                        | CAT-004                                   | 2.5                  | Versioned CSV/XLSX/JSON contracts and fixtures work; source type permits a later PDF extractor without schema redesign           | Not started        |
-| IMP-002                | Preserve supplier SKU/reference/raw data; match main/swatches; map categories; validate and detect duplicates                                                                                              | Catalogue import                   | Product create/edit is individual; images and SKUs exist                                                                         | IMP-001                                   | 2.5–2.6              | Preview explains mappings/errors/duplicates; raw identifiers survive; assets match deterministically                             | Not started        |
+| IMP-001                | CSV, XLSX, JSON, and future PDF-ready supplier ingestion                                                                                                                                                   | Catalogue import                   | Versioned `v1` CSV/XLSX/JSON parsers, templates, and `source_type` including `pdf`                                               | CAT-004                                   | 2.5                  | Versioned CSV/XLSX/JSON contracts and fixtures work; source type permits a later PDF extractor without schema redesign           | Done (2.5)         |
+| IMP-002                | Preserve supplier SKU/reference/raw data; match main/swatches; map categories; validate and detect duplicates                                                                                              | Catalogue import                   | Preview explains mappings/errors/duplicates and retains raw payloads; publishing not yet shipped                                 | IMP-001                                   | 2.5–2.6              | Preview explains mappings/errors/duplicates; raw identifiers survive; assets match deterministically                             | Partial (2.5)      |
 | IMP-003                | AI-assisted structured extraction with taxonomy validation, evidence/confidence, no invented facts, and pending review                                                                                     | `@paon/ai` + import                | Generic AI generation audit exists; no import enrichment                                                                         | IMP-001, CAT-004                          | 2.7                  | External prompt and provider-neutral schema return validated proposals; unsupported facts fail closed                            | Not started        |
-| IMP-004                | Retailer preview, bulk review, resumable transactional publishing, and documented PAON CSV/LLM contract                                                                                                    | Catalogue import + Retailer Portal | No import UI/job/review state                                                                                                    | IMP-001, IMP-002                          | 2.5–2.7              | Valid reviewed rows publish atomically; failed rows remain unpublished/resumable; contracts are downloadable                     | Not started        |
+| IMP-004                | Retailer preview, bulk review, resumable transactional publishing, and documented PAON CSV/LLM contract                                                                                                    | Catalogue import + Retailer Portal | Preview UI, downloadable CSV/XLSX/JSON/LLM contracts, and persisted preview jobs exist; publishing does not                      | IMP-001, IMP-002                          | 2.5–2.7              | Valid reviewed rows publish atomically; failed rows remain unpublished/resumable; contracts are downloadable                     | Partial (2.5)      |
 | SRCH-001               | Accepted-metadata search/filter facets for mill, weave, weight, performance, climate, season, pattern, construction, occasion, formality, colour, and price                                                | Catalogue query                    | `CatalogueQueryRepository` facets/ranges/pagination over accepted assignments; heuristics remain as fallback                     | CAT-002, CAT-004                          | 2.4                  | Active accepted assignments drive indexed facets/ranges with pagination and parity tests                                         | Done (2.4)         |
 | SRCH-002               | Natural-language intent for travel, humidity, wrinkles, formality, weddings, softness, and approved concepts, with transparent fallback                                                                    | Catalogue query                    | `resolveCatalogueIntent` maps known phrases to concepts/ranges and reports unresolved tokens                                     | SRCH-001                                  | 2.4                  | Known intent resolves to explainable structured filters; unresolved language is reported without fabricated matches              | Done (2.4)         |
 | CUST-001               | Consent-aware signals for signed-in views, searches, filters, favourites, cart, knowledge, chat, swipes, appointment intent, and conversion                                                                | `intelligence` events              | Retailer-scoped `behavioral_events` exists without purpose/consent/retention shape                                               | SRCH-001                                  | 3.1                  | Typed events record purpose, consent snapshot, retention, and lawful anonymous session where applicable                          | Not started        |

@@ -55,8 +55,10 @@ Verified against code and 91 migrations on 2026-07-30:
   mounts ranked knowledge cards into Archetype/Fabric/Sizing panels.
   Accepted-metadata catalogue query supports named facets, weight/price
   ranges, intent mapping, and pagination with founder filter hooks.
-  No catalogue import, style-profile, wardrobe, outfit, roadmap, service-plan,
-  or campaign table exists.
+  Catalogue import jobs/rows/review tasks, CSV/XLSX/JSON parsers, downloadable
+  contracts, and Retailer Portal preview exist; publishing does not.
+  No style-profile, wardrobe, outfit, roadmap, service-plan, or campaign table
+  exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -257,7 +259,7 @@ storefront redesign, or customer personalization.
     and fabric-profile reads, and narrow `__PAON_CATALOGUE_BY_PRODUCT_JSON__`
     founder hooks; heuristics retained until parity retires them.
 
-- [ ] **2.5 Import contracts and preview**
+- [x] **2.5 Import contracts and preview**
   - **Requirement IDs:** `IMP-001`, `IMP-002`, `IMP-004`, `CAT-004`.
   - **Dependencies:** `1.3`.
   - **Owner boundary:** import domain schemas, CSV/XLSX/JSON parsers,
@@ -274,6 +276,10 @@ storefront redesign, or customer personalization.
     creation, or publishing.
   - **Hard blockers:** none for CSV/XLSX/JSON; a future PDF extraction provider
     is explicitly not required.
+  - **Landed:** `dd2e274` — versioned `v1` CSV/XLSX/JSON contract and parsers,
+    `catalogue_imports` / `catalogue_import_rows` / `metadata_review_tasks`
+    with RLS, `CatalogueImportRepository`, downloadable templates/LLM
+    contract, and Retailer Portal `/imports` preview without publishing.
 
 - [ ] **2.6 Transactional reviewed import publishing**
   - **Requirement IDs:** `IMP-002`, `IMP-004`, `CAT-002`, `CAT-004`.
