@@ -37,13 +37,13 @@ export function JoinForm({
         <div className="flex flex-col gap-2 sm:flex-row">
           <Link
             href={storeHref}
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-[var(--color-stone-900)] px-4 text-sm text-white"
+            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-4 text-sm text-white"
           >
             Back to the storefront
           </Link>
           <Link
             href={signInHref}
-            className="inline-flex min-h-11 items-center justify-center rounded-md border px-4 text-sm"
+            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] border px-4 text-sm"
           >
             Sign in with the email you used
           </Link>
