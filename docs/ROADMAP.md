@@ -1,19 +1,16 @@
 # Roadmap
 
-> **Subordinate to [PHASE.md](./PHASE.md) (ADR-051, 2026-07-27).** During
-> the current scope freeze this document is sequencing _history_, not a work
-> queue. Nothing here authorises work. If this document and `PHASE.md`
-> disagree about what should be built, `PHASE.md` wins — two competing plans
-> in one repository is the exact mechanism by which control over this build
-> was lost once already. In particular, the "Experience Rebuild" and its
-> eight-item commercialisation track below are **paused**, not in progress.
-> Horizons A–D (wardrobe intelligence) are post-pilot sequencing intent
-> only — see [vision/](./vision/) and ADR-056. **Not a work queue.**
+> **Historical sequencing reference; never a work queue.** The pilot freeze
+> and Horizons A–D below were superseded by the founder-authorized
+> [Intelligence Platform programme](./PAON_INTELLIGENCE_PLATFORM.md) on
+> 2026-07-30. Use [PHASE.md](./PHASE.md) for the only current order. This
+> document remains to preserve earlier rationale, not to authorize, block, or
+> reorder work.
 
 Phased by dependency order — each phase's data model and UI depend on
 the ones before it. Not date-committed; sequencing, not scheduling.
 
-## Horizons after pilot proof (not a work queue)
+## Historical horizons (superseded, not a work queue)
 
 ```mermaid
 flowchart LR
@@ -29,7 +26,7 @@ flowchart LR
   hC --> hD
 ```
 
-1. **Now (PHASE)** — conversion freeze: storefront, Demo Studio, marketing.
+1. **Former pilot phase** — storefront, Demo Studio, marketing.
 2. **Horizon A — Discovery & Metadata** — Metadata Graph Phase 0–1 + Discovery
    Commerce consumers (filters/knowledge on storefront via data hooks only;
    ADR-052 intact). Specs: [vision/02](./vision/02_metadata_graph.md),

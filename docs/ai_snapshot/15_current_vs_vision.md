@@ -55,7 +55,8 @@ Describes gaps only — no solution design.
 - Fit/silhouette tools ported but supplier-blocked (PHASE)
 - Provider credentials historically unset
 
-## Freeze interaction
+## Superseded phase note
 
-Vision is **destination only**. Current PHASE freeze intentionally prevents
-closing most of the above gaps until pilot proof + PHASE lift.
+The 2026-07-29 snapshot recorded a freeze that was lifted on 2026-07-30.
+Use `PHASE.md` and `PAON_INTELLIGENCE_PLATFORM.md`; this file does not block or
+authorize work.

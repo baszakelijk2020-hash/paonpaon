@@ -1,6 +1,7 @@
 # 01 — Project overview
 
-**Snapshot date: 2026-07-29. Factual, repository-derived.**
+**Snapshot date: 2026-07-29. Factual for that date and superseded for current
+phase/queue claims by `PHASE.md` on 2026-07-30.**
 
 ## Overall purpose
 
@@ -21,7 +22,7 @@ Documented product framing: [docs/VISION.md](../VISION.md),
 | Domain breadth         | Large: catalog, commerce, alterations, loyalty, messaging, commercial/Demo Studio, wedding parties, etc.                                                                                                                                            |
 | Paying pilots          | Documented objective is three paid commitments ([PHASE.md](../PHASE.md)); repository does not prove live paid pilots                                                                                                                                |
 | Provider execution     | ADR-051 records five subsystems never executed against real credentials at audit time: Stripe payments, Stripe billing, Resend, Twilio, OpenAI — code exists; live verification depends on env provisioning (see [DEPLOYMENT.md](../DEPLOYMENT.md)) |
-| Active phase           | Scope freeze: storefront template, Demo Studio, marketing ([PHASE.md](../PHASE.md))                                                                                                                                                                 |
+| Active phase           | Snapshot recorded the former pilot freeze; current phase is the Intelligence Platform programme in [PHASE.md](../PHASE.md)                                                                                                                          |
 | Doc trust              | [PROJECT_STATE.md](../PROJECT_STATE.md) self-disclaims unverified “shipped” language; prefer code + migrations                                                                                                                                      |
 
 Maturity is **broad and uneven**: many surfaces exist in UI/domain/DB;

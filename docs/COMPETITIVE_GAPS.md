@@ -1,16 +1,13 @@
 # Competitive Gaps
 
-**What this document is.** A prioritized analysis of what the initial
-target retailer needs from PAON before they can adopt it, and of where
-PAON currently cannot serve them. It is a _sales-blocker inventory_, not a
-feature wish list and not a roadmap.
+**What this document is.** A dated sales and market-analysis reference from
+the pilot period. It explains objections and commercial context that may inform
+implementation, but its “current state” claims require code verification.
 
-**What this document is not.** It does not reorder
-[ROADMAP.md](./ROADMAP.md). The Experience Rebuild remains the immediate
-priority. Nothing here is a licence to start building — each Tier 1 item
-that gets picked up needs its own founder decision and, where it touches
-the domain model, its own entry in [DECISIONS.md](./DECISIONS.md).
-[PHASE.md](./PHASE.md) overrides everything during the freeze.
+**What this document is not.** It is not a queue, scope gate, current
+programme specification, or current-state inventory. The authoritative order
+is [PHASE.md](./PHASE.md); the active specification is
+[PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md).
 
 ## Category claim (differentiation, not a work queue)
 
@@ -22,16 +19,16 @@ cockpit — not feature parity on checkout. Destination specs:
 building those pillars; sales-blocker tiers below remain the inventory for
 pilot conversations.
 
-**The buyer, in two waves.** The segment is the independent menswear
+**Historical pilot segmentation (not the active queue).** The segment is the independent menswear
 retailer — typically an owner-operator — who pays PAON directly. Nothing
 here requires a brand-over-retailer hierarchy in the tenancy model.
 
-- **Wave one, now:** retailers who sell **only their own made-to-measure**.
-  One label, no third-party stock. Chosen deliberately to keep the first
-  sale reachable — see "Multi-brand, deferred" below.
+- **Pilot wave one:** retailers who sell **only their own made-to-measure**.
+  One label, no third-party stock. This narrowed the 2026-07 pilot approach;
+  it does not constrain the Intelligence Platform programme.
 - **Wave two, later:** multi-brand houses carrying private-label MTM
-  alongside several other labels. Larger market, more infrastructure,
-  addressed only once wave one has produced paying pilots.
+  alongside several other labels. This remains relevant market context, while
+  actual metadata/catalogue sequencing comes only from `PHASE.md`.
 
 Conclusions are specific to this segment and should not be generalized to
 broader retail — see [NON_GOALS.md](./NON_GOALS.md), "Explicitly out of

@@ -35,9 +35,11 @@ digital twin of what a client owns, how it fits and ages, what the wardrobe
 needs next, and an explainable advisor that improves over a lifetime —
 analogous to how Apple Health owns health data, not “software to sell
 clothes.” Commercial consequence (better retail relationships, better
-recommendations) follows from wardrobe quality; it is not the sole
-objective. The pillar specs live in [vision/](./vision/) — architectural
-destination only; [PHASE.md](./PHASE.md) alone authorizes build.
+recommendations) follows from wardrobe quality; it is not the sole objective.
+The active programme is specified in
+[PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md) and sequenced
+only by [PHASE.md](./PHASE.md). The older [vision/](./vision/) pillars are
+reference inputs, not parallel specifications or queues.
 
 It is delivered as three purpose-built applications
 ([PRODUCT.md](./PRODUCT.md)) sharing one domain model

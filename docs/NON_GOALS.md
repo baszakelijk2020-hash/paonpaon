@@ -63,8 +63,11 @@ warns against.
   set (clienteling, production/alteration tracking, low-volume
   high-touch UX) are specifically for premium and luxury retail, and
   should not be diluted to serve a broader market.
-- **Implementing [vision/](./vision/) pillars during the PHASE freeze.**
-  Those docs are destination architecture (ADR-056). Native apps, public
-  API, and offline remain deferred as above; wardrobe/metadata/AI pillars
-  wait for an explicit PHASE lift after pilot proof — they are not a
-  side queue.
+- **Building Intelligence Platform stages out of order.** Metadata, knowledge,
+  consent, wardrobe, and commerce now have explicit authorization in
+  [PHASE.md](./PHASE.md), but later-stage authorization is not permission to
+  skip dependencies. [vision/](./vision/), ROADMAP, audits, and gap analysis
+  remain reference rather than side queues. Native apps, public API, offline,
+  unreviewed AI publishing, vector retrieval without evidence, and custom
+  payment/credit infrastructure remain deferred as specified here and in the
+  active programme.

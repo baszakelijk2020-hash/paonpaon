@@ -2566,3 +2566,152 @@ Sessions must not assume a push alone updated Vercel. Native GitHub→Vercel
 or a plan upgrade remains desirable ops debt; CI is the sellable path until
 then. Three deploys per push consume Hobby quota — keep the matrix to these
 three apps only.
+
+## ADR-059: Canonical metadata is platform-owned; assignments and review are tenant-bound
+
+**Status: authorized design; implementation begins at PHASE 1.1.**
+
+**Context.** Product discovery currently derives category, color, pattern, and
+season from product names, variant color, collection names, and founder image
+numbers. The Intelligence Platform needs reusable menswear concepts without
+creating either a cross-tenant data leak or an ungoverned tag system. Supplier
+facts, retailer judgement, PAON canonical knowledge, and AI inference have
+different authority and cannot be flattened into one string.
+
+**Decision.**
+
+1. PAON canonical concepts are platform-owned rows with `retailer_id = null`.
+   A retailer may create retailer-owned concepts and presentation overrides but
+   cannot mutate the canonical row.
+2. Every entity assignment is tenant-bound even when it references a canonical
+   concept. Database constraints/RLS must prove that the target belongs to the
+   assignment retailer and that a retailer-owned concept belongs to the same
+   retailer.
+3. Assignments record source, supplier value, confidence/evidence where
+   applicable, and `pending | accepted | rejected` review state. Supplier and
+   retailer facts may follow an explicit retailer review policy; AI inference
+   never bypasses pending review.
+4. Exact numeric facts such as grams per metre and composition percentages
+   remain typed product facts linked to concepts. Accepted concepts replace
+   duplicate descriptive strings; raw supplier input is retained for
+   provenance.
+5. Unknown values create reviewable proposals. They do not become free-form
+   tags or silently expand the canonical taxonomy.
+
+**Consequences.** Canonical knowledge can be reused without sharing retailer
+catalogue or customer data. RLS and cross-tenant constraint tests are mandatory
+for every metadata table. Review state becomes a dependency for discovery,
+facets, imports, and inference; those consumers use accepted assignments only.
+`Collection` remains merchandising and is not overloaded as Brand. This ADR
+supersedes ADR-056's prohibition on implementing the metadata graph because
+`PHASE.md` now explicitly authorizes it; ADR-056's warning that vision prose
+alone does not authorize work remains valid.
+
+## ADR-060: Approved metadata gates discovery; retailer presentation overrides canonical knowledge
+
+**Status: authorized design; implementation begins at PHASE 2.1.**
+
+**Context.** PAON needs reusable education cards and grounded advisor answers,
+but five generic cards or model-generated product prose would be repetitive,
+unverifiable, and commercially unsafe. PAON owns canonical expertise while a
+retailer must control local tone, visibility, and sales emphasis.
+
+**Decision.**
+
+1. A knowledge object is eligible only through accepted concept assignments
+   and active knowledge-concept links. AI output is not an eligibility source.
+2. Precedence is: safety/active/accepted gates; retailer hide and explicit pin;
+   retailer presentation/priority override; PAON canonical content and
+   priority; deterministic journey, novelty, proximity, and diversity scores.
+3. A retailer override changes local presentation and priority without
+   mutating canonical content. A hidden object is ineligible for that retailer;
+   a pin still must pass safety and accepted-concept gates.
+4. Discovery returns three to six results, penalizes already-viewed and
+   repeated concept kinds, and includes an explanation of the matched concepts
+   and score factors.
+5. Grounded AI may summarize or answer from the approved result set, cite its
+   basis, and express uncertainty. It may not invent product facts, publish
+   knowledge, or outrank a retailer hide.
+
+**Consequences.** Ranking is deterministic and unit-testable before an AI
+provider is configured. Retailer autonomy does not fork canonical content.
+Storefront integration is a narrow data mount into founder-authored HTML under
+ADR-052. Semantic retrieval may later generate candidates, but it cannot bypass
+the same eligibility and precedence rules.
+
+## ADR-061: Personalization requires purpose-specific consent and explainable evidence
+
+**Status: authorized design; implementation begins at PHASE 3.1.**
+
+**Context.** ADR-021 created immutable retailer-scoped behavioral signals and
+ADR-033 uses a small subset for AI next-best-action. The current event shape has
+no purpose/consent snapshot, anonymous-session identifier, retention class,
+StyleProfile evidence, or withdrawal behavior. Advisor intelligence and
+MorningRoutine cannot safely build on an implicit “event exists, therefore use
+it” rule.
+
+**Decision.**
+
+1. Operational records and interaction signals remain separate. Orders,
+   appointments, messages, fittings, and other durable business records stay
+   authoritative; behavioral events never duplicate them.
+2. Personalization consent and marketing consent are distinct, explicit, and
+   revocable. Location is a third, separately opt-in purpose and is never
+   required for baseline service.
+3. New interaction evidence records purpose, consent basis/snapshot, source,
+   time, and retention class. Anonymous-session signals may be used only under
+   the documented consent basis and are not retroactively linked to a customer
+   without authorization.
+4. StyleProfile keeps declared preferences separate from inferred
+   preferences. Every inference links to concept evidence, source, polarity,
+   confidence, and recency; advisors and customers can see why it exists.
+5. Advisor views are restricted to the same retailer relationship and to
+   consented purposes. Withdrawal stops new personalization and starts the
+   documented deletion/anonymization process while legally required commercial
+   records remain.
+
+**Consequences.** Existing `behavioral_events` must be upgraded by forward
+migration rather than treated as sufficient. Recommendations and advisor briefs
+fail closed when consent/evidence is absent. Retention and withdrawal tests are
+part of the data model, not deferred privacy copy. This decision narrows
+ADR-033: model context must also satisfy consent and evidence rules, not merely
+be small and structured.
+
+## ADR-062: Regulated commerce stays provider-hosted and behind a compliance design gate
+
+**Status: boundary decision; no new commerce capability is authorized before
+PHASE 6.1 completes.**
+
+**Context.** ADR-030 makes each retailer merchant of record for customer
+payments through Stripe Connect direct charges. ADR-031 separates retailer
+subscription billing to PAON. ADR-050 designs pricing adjustments and stored
+value but is explicitly unimplemented. The Intelligence Platform later needs
+deposits, one-click payment, instalments, memberships, service credits, and
+possibly stored value; treating those as ordinary feature flags would create
+payment, tax, custody, credit, and consumer-protection risk.
+
+**Decision.**
+
+1. PAON does not become a payment processor, lender, stored-card vault, or
+   silent merchant of record. Payment credentials remain provider-hosted and
+   tokenized.
+2. Before implementing a new money capability, PHASE 6.1 must record provider
+   support, merchant-of-record, fund custody, VAT/accounting, refund/dispute
+   treatment, SCA, consent/retention, supported jurisdictions, and required
+   legal review.
+3. Stored value is tender/liability, not a discount (ADR-050). Instalments use
+   an approved regulated provider; PAON does not implement custom credit.
+   One-click payment means reuse of a provider-authorized payment method, never
+   storage of raw credentials.
+4. Preferred Tailoring/HighMaintenance service plans, entitlements, bookings,
+   fulfilment, and care records are domain concepts separate from payments.
+   Billing may fund them but does not own their operational state.
+5. The retailer-owner marketplace requires a separate catalogue/commerce ADR
+   and cannot inherit customer-retail assumptions by convenience.
+
+**Consequences.** Metadata, knowledge, advisor, wardrobe, campaigns, milestones,
+and non-payment concierge work can proceed independently. Live provider keys do
+not block those stages. Deposits, stored value, instalments, one-click payment,
+and new membership billing are real hard blockers until their boundary review
+is complete. Existing Stripe code and ADRs remain authoritative where they
+already apply.

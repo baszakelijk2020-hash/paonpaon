@@ -105,12 +105,14 @@ flowchart TB
 5. Data ownership and tenancy (`retailerId`, customer privacy)
 6. AI contracts (inputs, outputs, explainability, confidence)
 7. Phased delivery (P0 conceptual → P1 schema → P2 thin UI → P3 intelligence)
-8. Dependencies and freeze blockers
+8. Dependencies and former freeze context
 9. Open research questions
 
-## Horizon sequencing (see ROADMAP.md)
+## Historical horizon sequencing
 
-Not a work queue during freeze. Dependency order after pilot proof:
+This order was an input to the active
+[Intelligence Platform specification](../PAON_INTELLIGENCE_PLATFORM.md).
+It is not a parallel queue; use [PHASE.md](../PHASE.md):
 
 - **Horizon A** — Metadata Graph + Discovery Commerce consumers
 - **Horizon B** — Wardrobe twin + Lifestyle + Scoring + Roadmap

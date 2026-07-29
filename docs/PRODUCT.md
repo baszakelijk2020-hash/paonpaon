@@ -108,14 +108,16 @@ order.
 
 ## Phasing
 
-See [ROADMAP.md](./ROADMAP.md) for the order these are built in. This
-document describes the full intended product surface; it is not a
-statement that all of it exists yet.
+See [PHASE.md](./PHASE.md) for the only authorized build order and
+[PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md) for the
+active programme specification. This document describes product surfaces; it
+is not a statement that every surface exists.
 
-## Future surfaces (wardrobe intelligence) — not built
+## Intelligence Platform surfaces — staged, not yet built
 
-Labeled **future**. Specs in [vision/](./vision/). Do not implement during
-[PHASE.md](./PHASE.md) freeze (ADR-056).
+The table below remains factual until code lands. `PHASE.md` now authorizes
+these surfaces in dependency order; their detailed acceptance belongs to the
+active programme specification, not to the older vision drafts.
 
 | Surface                                        | App                         | Pillar                                                                       |
 | ---------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------- |

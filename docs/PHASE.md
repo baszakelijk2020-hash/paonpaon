@@ -1,621 +1,264 @@
-# Current Phase
-
-**Read this first, every session. It overrides any older plan.**
-
-Last set: 2026-07-27. If today is far past that date, ask before assuming
-this is still current.
-
-## The objective
-
-Three paid pilot commitments from independent menswear retailers who sell
-**only their own made-to-measure** — one label, no third-party stock. Money
-down, not letters of intent, not enthusiasm.
-
-Multi-brand retailers are the larger market and come second. Targeting
-single-label MTM first is a deliberate choice to remove the biggest
-prerequisite from the critical path: PAON has no `Brand` entity, and a
-single-label retailer does not need one. Multi-brand is a roadmap item shown
-to prospects, not infrastructure built before the first sale. See
-`COMPETITIVE_GAPS.md`, "Multi-brand, deferred."
-
-Everything else is subordinate to that. PAON already has more capability
-than it has evidence anyone will pay for. The constraint is not engineering
-capacity — it is proof.
-
-## In scope — only these three
-
-| #   | Workstream                                                       | Why it exists                                                  |
-| --- | ---------------------------------------------------------------- | -------------------------------------------------------------- |
-| 1   | Storefront template — `apps/customer/app/r/[slug]`               | What a prospect actually judges                                |
-| 2   | Demo Studio — `apps/admin/app/(dashboard)/prospects/[id]/studio` | The conversion instrument: their store, their name, in an hour |
-| 3   | Marketing site — `apps/customer/app/(marketing)`                 | Survives the Google search after a cold email                  |
-
-## Where things stand (2026-07-27)
-
-**Done today.** Repository brought back under control: 21 stranded commits
-and 130 uncommitted files pushed; CI switched on for the first time and made
-green (stale Node pin, prettier parsing verbatim HTML, e2e gated to manual);
-docs tiered so a session reads ~500 lines instead of 6,000; `AGENTS.md`
-added so Codex loads the same charter as Claude; a stale handoff file that
-told agents "do not stop" archived. Then the build audit (ADR-051) and the
-verbatim-porting rule (ADR-052).
-
-**Parked.** Fit tools — the `vox-` slider is ported correctly but the
-feature needs an integration with each retailer's supplier ordering system.
-See `DESIGN_PORTS.md`.
-
-**Also done.** Design tokens now use `paon.html`'s real warm palette
-(`#f4f1ec` / `#cdc9c2` / `#2a2925`) and OptimaKlein as the **body** face at
-13px — an earlier version substituted a pure grey ramp and Inter, which is
-the single largest reason the portals did not look like the founder's design.
-Do not reintroduce that substitution.
-
-**Also done (2026-07-29).** Documentation constitution pass (ADR-057):
-`docs/README.md` is the authority map; Made-to-Munro root orphans and dead
-Prisma/SQL scaffolds moved under `docs/archive/`. Does **not** expand this
-freeze.
-
-**Blocked on founder design.** The alterations vertical. Everything under
-`/alterations/*` was invented by an engineering session and carries none of
-the founder's cues. The real product there is workshop work-order handling
-and owner cost control, not fit correction. Do not build or extend it until
-that design exists.
-
-## Live right now
-
-All three apps are deployed and confirmed responding (2026-07-28):
-
-- <https://paonpaon-customer.vercel.app/r/maison-dubois> — founder's
-  template, seeded production data.
-- <https://paonpaon-admin.vercel.app/login>
-- <https://paonpaon-retailer.vercel.app/login>
-
-All connected to the hosted Supabase project. **Production updates run
-through GitHub Actions after CI verify** (Deployments API), not solely via
-Vercel “deploy on push” — that path is intermittent on Hobby; see
-[DEPLOYMENT.md](./DEPLOYMENT.md). All three have `NEXT_PUBLIC_DEMO_LOGIN=1`
-set for one-click persona login. Full details, IDs and runbook:
-[DEPLOYMENT.md](./DEPLOYMENT.md), including a footgun discovered while
-bringing these up (a stale root-level Vercel link that redeployed the wrong
-project) and the stale duplicate `paon-*` projects the founder has said to
-leave alone.
-
-Queue item "a retailer logged into Mission Control alongside the
-storefront" is done — the prerequisite for item 3 below is now just
-populating the demo data, not deploying anything.
-
-## Focus from 2026-07-28: workstreams 2 and 3
-
-Workstream 1 is far enough. Ten demo-path screens carry the design language,
-all three apps are live, the storefront works on real data. Almost all effort
-so far went to workstream 1; the two that actually convert a prospect have
-had none.
-
-### A. Demo Studio — make a demo a real store, not a slideshow
-
-**The defect (resolved).** `generateDemoEnvironment` previously wrote a
-hardcoded slideshow blob. It now calls `seedProspectDemoRetailer` and
-persists `retailerId` / `retailerSlug`; the remaining `syntheticData`
-field is a **handoff payload** (persona emails + live links), not the
-demo itself. Keep the sequence checkmarks below as history.
-
-**What it should do**, using machinery that already exists and is proven
-live: create a **real retailer tenant per prospect** — their name, logo,
-colours and product photography via the existing
-`RetailerBrandTheme` and `uploadBrandAsset` — seeded through
-`seedDemoData`, and hand back two links: their storefront at `/r/{slug}`
-and a one-click login to their Retailer Portal. `maison-dubois` is already
-exactly this and is live; the Studio's job is to produce one per prospect,
-under an access code and expiry.
-
-**Sequence, one increment each:**
-
-1. ~~Replace the `syntheticData` blob with a real seeded retailer tenant~~
-   **Done** — real retailer per prospect from Studio config.
-2. ~~Brand it: apply the prospect's `RetailerBrandTheme` and uploaded assets~~
-   **Done** — theme applied on generate.
-3. ~~Rework `/demo/[token]` to gate on access code and expiry, then route
-   into the real storefront~~ **Done** — live `/r/{slug}` after access code.
-4. ~~Teardown: expiring or unpublishing a demo must remove or disable its
-   tenant~~ **Done** — linked retailer is `suspended` on unpublish and on
-   expiry (daily via `/api/cron/dispatch-emails` + `open_prospect_demo`
-   side-effect; Hobby has no spare cron slot); re-publish reactivates.
-   `/r/{slug}` still only checks `status === "active"` — one gate, no
-   demo logic on the storefront route.
-
-**Also (workstream 1, founder-requested 2026-07-28).** Storefront chrome
-fidelity vs `paon.html`: fabric swatches fill their container (`cover`),
-favorites + basket sit in the retracting blur top bar (no floating bottom
-basket), and **Book Appointment** slides up the same PDP fitting form
-(location / date / time / name / email / message) instead of the old modal.
-Dev: `route.ts` re-reads `paon-template.html` each request so template edits
-show without restarting the customer app.
-
-**Also (workstream 1, founder-requested 2026-07-28 — chrome UX).**
-
-1. ~~Favorites bookmark → real favorited items list~~ **Done** — storefront
-   localStorage panel ships on the HTML route; swipe deck “See your favorites”
-   deep-links into it without sign-in.
-2. ~~Profile icon → customer portal environment straight away~~ **Done** —
-   header profile routes directly to `/dashboard?from=/r/[slug]`; guests may
-   browse the portal shell and sign in only when they choose.
-3. ~~Basket popup and Ask us anything: same grey-gradient / glass language as
-   the rest of the chrome.~~ **Done** — panels use `rgba(0,0,0,0.1)` +
-   `blur(20px)` + `6px` radius (matches the Ask-us toggle). Book Appointment
-   also requires a store selection before Confirm enables.
-4. ~~Book Appointment: **500px** wide, full height, slides in from the
-   **left**~~ **Done** — the appointment form now opens as a left drawer on
-   the storefront HTML route, capped at 500px and full-height.
-5. ~~Filters: SuitSupply-style — sort (newest / price low–high / high–low)
-   plus color, pattern, price range, season; Apply must actually filter the
-   grid.~~ **Done** — the HTML storefront filter panel now offers those
-   controls and Apply mutates the live product grid instead of acting as
-   decoration.
-
-**The bar:** the founder can produce a branded, working demo for a named
-prospect in under an hour without code changes. That is the original
-commercialisation promise in `ROADMAP.md` and it is still unmet.
-
-### B. Marketing site — proof, not a funnel
-
-Correction to an earlier assessment: this is **not** three stub pages. The
-homepage is a real commercial site with published pricing (Fused €349,
-Half Canvas €749, Full Canvas from €1,750, plus implementation), role
-explanations and working inquiry journeys. `consultation`, `pilot` and
-`demo-request` are thin wrappers over a shared `commercial-page` and
-interest form, not empty.
-
-What it is missing is the thing `COMPETITIVE_GAPS.md` calls the most
-convertible asset PAON has: **the founder**. There is no page saying who
-built this, that he ran a private-label made-to-measure business inside
-this exact segment, and that he spent a career in menswear. For a cold
-approach to a 55-year-old owner-operator, that is the page that matters
-most, and it does not exist.
-
-1. ~~A founder page — who built PAON and why, in his own voice.~~ **Done** —
-   `/founder` with the founder’s verbatim essay; cream / OptimaKlein prose
-   column; CTA to demo-request and consultation. No invented social proof.
-2. ~~Surface it from the homepage, above the feature sections.~~ **Done** —
-   pull-quote strip before the feature grid; Founder in nav and footer.
-3. Honest proof only. No invented testimonials, no logo wall, no "trusted
-   by" — an empty social-proof section reads as "nobody uses this."
-   Still open for any later proof work; the founder page deliberately
-   ships without fake trust signals.
-
-## The queue
-
-Founder decision 2026-07-27: finish the build to a demonstrable state.
-Ordered by what a prospect sees first. **Continuous mode (ADR-054,
-reinforced 2026-07-28 evening, restated 2026-07-29: NEVER STOP EARLY):**
-you are **not allowed to stop until REALLY ALL FINISHED** — founder
-request complete, buildable queue empty, only hard blockers, pushed.
-Build, self-verify, commit, push, and advance **without stopping to
-check with the founder and without ending an agent turn between finished
-batches.** A stale "queue exhausted" note does not authorize stopping
-while the founder's latest message still has open work. Still one
-coherent commit at a time — the batching pause is gone; the small-commit
-discipline is not. Skipping a blocked item is required; pausing for
-review is forbidden. Ending a reply after one batch, one audit, or a
-progress summary while work remains is a process failure.
-
-1. **Stripe live.** Blocked — `STRIPE_SECRET_KEY` (and related) are not
-   in `.env.local` / hosted env; no session can provision them. Once set,
-   verify Connect onboarding and a real charge end to end. ADR-030 code is
-   complete and has never executed.
-2. **Resend live.** Same shape — `RESEND_API_KEY` missing. Set it, then
-   verify the outbox actually delivers.
-3. ~~**A demo retailer that looks like a real store.**~~ **Done (local +
-   production).** 68-SKU catalog with real photography; client-book history
-   (orders/notes/appointments across the book); placeholder Broek/Shoes/Knit
-   names replaced with retail copy; `seed-production.sh` re-run 2026-07-28
-   so hosted Maison Dubois matches.
-4. ~~**Walk the whole flow on a phone and fix what breaks.**~~ **Done
-   (2026-07-28).** Storefront → account → appointment → order → loyalty
-   walked on a 390×844 viewport. **Fixed:** photo-matched SKU names;
-   mobile cart sticky “Place order” no longer covered by TableService
-   “Ask us anything” (lifted on `/cart`); cart quantity/remove tap
-   targets locked to 44 CSS px. Cart→checkout verified by Playwright
-   (`mobile-ux` sticky bar + `storefront` full checkout). Stripe payment
-   collection remains blocked on founder credentials (queue item 1).
-5. ~~**Demo-path visual and motion pass.**~~ **Done** — all ten screens
-   logged in `NIGHT_LOG.md` (`372dbb9`…`5f3f5e7`); primary Button is
-   `paon.html` black (`3444a2c`). Design vocabulary remains
-   `paon-template.html` (cream / OptimaKlein / 6–8px radii /
-   `paon-reveal` / day-strip appointment pattern). Do not expand to the
-   other 83 routes without a new founder decision.
-
-6. ~~**AM House Party — customer-owned party planning.**~~ **Done
-   (2026-07-28).** Create, share link, Mission Control, time/fitting
-   location, photos, join prep (ADR-055), and `#ow` orbit all shipped.
-   Demo seed now fills Villa Aurelia with schedule, cover, groom +
-   attendants, avatars and height/weight so the orbit is demonstrable.
-
-   **The journey.** A customer opens "Wedding parties" in the Customer
-   Portal sidebar (already there), creates a party — participant names and
-   photos, date, time, store location — then shares a public link. Whoever
-   opens that link runs their own onboarding: their details, measurements,
-   photo, everything needed to arrive prepared for the fitting party at the
-   store. Staff manage the whole party from Mission Control.
-
-   **Already built — do not rebuild:** `WeddingParty` (organizer,
-   `eventDate`, `venueName`, status, notes, `inviteToken`),
-   `WeddingPartyMember` (real `Customer` per member, role, fitting status),
-   the public join route `/r/[slug]/wedding-parties/join/[token]`, the
-   customer list and detail pages, the sidebar entry, and the full retailer
-   management screens.
-
-   **Genuinely missing:**
-   - ~~**The customer cannot create a party.**~~ **Done** — customer
-     `/wedding-parties/new` (steps 1–3 landed; see `b961198`).
-   - ~~**Photos.**~~ **Done** — cover + member `photoUrl`, `party-photos`
-     bucket, organizer upload on the customer party page.
-   - ~~**Time and store location.**~~ **Done** — `eventTime` +
-     `fittingLocation` columns and create/list/detail surfaces.
-   - ~~**Member onboarding depth.**~~ **Done** — join form captures role,
-     contact, photo, and party-scoped height/weight (ADR-055).
-
-   **Architectural conflict to resolve before building the onboarding —
-   surface it, do not work around it.** The founder's spec includes weight
-   and height. ADR-016 deliberately _removed_ the generic customer
-   measurement aggregate (`CustomerFitProfileEntry` is archived) on the
-   grounds that fit data belongs to a `PhysicalGarment` via a
-   `FittingObservation`, never to a customer record. Capturing weight and
-   height on a wedding-party member reintroduces exactly what that ADR
-   removed.
-
-   **Resolved 2026-07-28.** Both hold, because they are not the same thing:
-   self-reported height and weight given to prepare for a group fitting are
-   **party-scoped coordination data**, not a fit profile. They exist so the
-   store can pull roughly-right sample garments before six people walk in,
-   and the real `FittingObservation` supersedes them the moment anyone is
-   measured. So put them on `WeddingPartyMember`, never on `Customer`, and
-   read them nowhere outside the party. ADR-016 stays intact — no
-   customer-level measurement record is reintroduced. Record this reasoning
-   as a short ADR in the same increment.
-
-   **Sequence — decided, one increment each, in this order.** Continuous
-   mode (ADR-054) ships each domain step without pausing between them.
-
-   1. ~~**Customer-side create.**~~ **Done**
-   2. ~~**Share the link.**~~ **Done**
-   3. ~~**Mission Control pass.**~~ **Done**
-   4. ~~**Time and store location.**~~ **Done** — `event_time` +
-      `fitting_location` on `wedding_parties`; create forms and list/detail
-      surfaces show both. Venue remains the ceremony; fitting location is
-      the shop (free text until `Location` exists).
-   5. ~~**Photos.**~~ **Done** — cover + member photo URLs, `party-photos`
-      bucket, organizer upload UI on the customer party page.
-   6. ~~**Join-flow onboarding depth.**~~ **Done** — join captures role,
-      contact, photo, height/weight; ADR-055 records the party-scoped
-      measurement decision.
-   7. ~~**The orbit.**~~ **Done** — `#ow` animation on the customer party
-      page, driven by real member photos (initials fallback).
-   8. ~~**Join invite preview + schedule edit.**~~ **Done** —
-      `preview_wedding_party_invite` shows date/time/venue/fitting on the
-      public join page (slug-scoped); organizers and staff can edit the
-      schedule after create. Marketing outcomes/roles cards link through.
-      Retailer party list shows cover thumbnails.
-
-7. **Re-port the wrong widgets** — swipe deck is already **Done**
-   (DESIGN_PORTS #3). Silhouette carousel remains **Wrong** but its only
-   mount is `/alterations/*`, which is founder-blocked (do not extend).
-   **Hard stop:** need a founder-designed home for silhouette before a
-   real port; do not re-port onto the invented alterations screens.
-
-**Also (Demo Studio honesty, 2026-07-28).** Storefront HTML now applies
-`Retailer.brandTheme` — accent/ink on the sidebar logo bar, optional logo
-mark, optional hero banner above the grid, document title. Studio-saved
-themes finally show on `/r/{slug}`, not only React child routes.
-
-**Also (Demo Studio garments, 2026-07-28).** Studio accepts up to 24
-prospect product image URLs; generate overlays them onto the seeded
-catalogue so `/r/{demo-slug}` shows their photography, not only Maison
-Dubois stock.
-
-**Also (Demo Studio honesty, 2026-07-28 evening).** Private demo Mission
-Control prefills the seeded owner email; Studio `productMix` archives
-out-of-mix SKUs on generate; Studio locations render on the private demo
-gate; HTML storefront applies theme fonts/corners/favicon; dead fitting
-`#modal` removed; guest portal returns to the originating `/r/{slug}`;
-Ask-us wedding create routes through login; marketing drops the invented
-62% figure and links Weddings in the nav.
-
-**Also (Demo Studio walkthrough, 2026-07-28 night).** Book Appointment
-stores come from Studio locations (Maison keeps Antwerp/Amsterdam);
-selected store lands in appointment notes; private demo opens wedding
-parties; outreach pack survives refresh in sessionStorage; access code
-field is visible text; marketing Weddings page deep-links the live party
-demo; syntheticData shrinks to personas only.
-
-**Also (Mission Control + marketing honesty, 2026-07-28 late).** Prospect
-demo seed now applies the same lived-in client histories as Maison;
-marketing nav demotes founder-blocked Alterations in favour of Weddings;
-homepage card follows; private-demo access code is visible text; guest
-portal demo CTA opens the wedding-party walk.
-
-**Also (tenant isolation, 2026-07-28).** Prospect-demo customer emails are
-slug-scoped (`contact+{slug}-isabelle@…`) so wedding/client walks stay on
-the prospect tenant. Studio copy is explicit that blank product photos keep
-shared catalogue photography under their brand.
-
-**Also (continuous mode hardened 2026-07-29).** Controlling docs forbid
-ending an agent turn between finished batches. Guest portal nav no longer
-hits `requireSession` walls; wedding CTA is slug-scoped; Book Appointment
-uses local wall time; filters stop dumping unknowns into beige; marketing
-preview labeled illustrative; wedding join success has next steps; Ask-us
-guest accepts invite token; prospect storefront discloses shared catalogue
-photography.
-
-**Also (2026-07-29 continuous push).** Private demo distinguishes expired /
-revoked / wrong code; storefront chrome lives inside `<body>`; guest Add
-to Bag offers sign-in without a hard redirect yank.
-
-**Also (2026-07-29 continuous push, residual conversion).** Studio uploads
-wire into logo / favicon / hero / garments by role; demo headline and
-introduction land on `/r/{slug}`; location lines accept optional photo URLs
-for Book Appointment; marketing Open Graph + sitemap/robots; bag CTA leads
-with Book appointment until Stripe keys exist; Admin `/inquiries` lists
-marketing form submissions while Resend is blocked. Prospect demos land on
-the collection grid (Maison keeps Home), empty Collection tabs are hidden,
-garment lines accept `url | name | description`, private-demo links unfurl
-and gate with prospect brand; outreach packs persist on the environment.
-Custom domain still deferred (ADR-014).
-
-**Also (2026-07-29 Founder Mode — deploy reliability).** Production updates
-run through CI `Deploy production` (ADR-058 / Deployments API) after verify.
-Hobby push/hooks remain unreliable; daily deploy cap soft-fails CI with a
-warning. Quota resets ~2026-07-30 07:21 UTC. Live Demo Studio path verified
-end-to-end on production admin (create → save → generate → storefront
-`/r/demo-atelier-verne-founder-verify-33f90c02`).
-
-**Also (2026-07-29 Founder Mode — conversion chrome).** Studio environment
-status reflects generate/publish state; Mission Control Relationship tile
-and notes use house language.
-
-**Also (2026-07-29 Founder Mode — label consolidation, complete).** All typed
-enum label maps now live in `@paon/domain`: `APPOINTMENT_TYPE_LABELS`,
-`APPOINTMENT_STATUS_LABELS`, `CUSTOMER_LIFECYCLE_STAGE_LABELS`,
-`RETAILER_ROLE_LABELS`, `ORDER_STATUS_LABELS`, `WEDDING_PARTY_MEMBER_ROLE_LABELS`,
-`WEDDING_PARTY_STATUS_LABELS`, `ALTERATION_STATUS_LABELS`,
-`ALTERATION_TASK_STATUS_LABELS`, `WORK_CLASSIFICATION_LABELS`,
-`EVENT_STATUS_LABELS`, `EVENT_VISIBILITY_LABELS`, `EVENT_RSVP_STATUS_LABELS`,
-`REFERRAL_STATUS_LABELS`, `REWARD_TYPE_LABELS`. No more raw
-`.replaceAll("_", " ")` or `humaniseStatus` on any typed enum in the demo path.
-Customer portal "Notifications" H1 → "Updates"; "Account" → "Settings".
-Retailer `PERSONA_LABELS` deduped against domain constant. Status badge
-`capitalize` CSS class removed from timeline items already using label maps.
-
-**Agent buildable freeze queue: exhausted** (2026-07-29) for the three
-freeze workstreams, aside from founder blockers. **Exception (founder
-2026-07-29):** customer + retailer **back environments** (Private Client
-and Mission Control dashboards / chrome — **not** `paon-template.html`)
-are an active polish stream until they match the `paon.html` aesthetic
-on mobile and desktop. Do not stop after one visual pass; fix P0/P1 gaps
-found, push, continue.
-
-**Also (2026-07-29 continuous — back-env + Studio):** tablet dock through
-`lg`, Badge/Input warm rings, inbox above dock, wrapping headers;
-Demo Studio cool `stone-*` / soft radii replaced with paon tokens
-(`36fba0a`, `dbaeb41`). Still skip Stripe / Resend / silhouette /
-inventing alterations.
-
-**Also (2026-07-29 continuous — UX audit close-out):** Demo access-code
-copy chip; marketing sample framing; store readiness checklist; in-app
-email honesty; empty-state Create CTAs; leftover Inbox/Catalogue/Staff
-copy. Agent-buildable UX audit Quick/Medium queue exhausted. Remaining
-Major items are hard blockers or out of freeze (POS, MTM, returns,
-offline, Stripe/Resend keys, alterations invent, day calendar redesign,
-guest wishlist invent, dual PDP).
-
-**Also (2026-07-29 continuous — UX audit Medium):** Prospect contact edit
-on Demo Studio; Mission Control next/due-soon appointment emphasis +
-low-stock attention tile; sticky submit on staff/client/product forms;
-Collections help line; AI monitoring search. Still skip Stripe / Resend /
-POS / offline / alterations invent / wishlist localStorage (no guest store)
-/ paon-template rewrite.
-
-**Also (2026-07-29 continuous — UX audit execution):** Naming unified
-(Home/Messages/Loyalty/Saved/Clients/Appointments/Products/Team/Billing/
-Analytics); list search on Clients/Prospects/Retailers/Inquiries/
-Appointments; inquiry triage + create-prospect link; prospect stage
-writes + empty CTA; retailer suspend/activate + resend invite; guest
-portal three CTAs; payment fail escapes; house switcher; duplicate
-client guard; appointment row status updates; Save vs Generate
-explainer. Follow-on: H1 leftovers (Events/Saved/Team/Performance/
-Seed data); Billing on admin dock; Ask-us → Messages when signed in;
-`humaniseStatus` / demo Live labels; Referrals house tile; e2e
-Commercials/Catalogue/Demo atelier asserts. Still skip Stripe keys /
-Resend / POS invent / offline / founder alterations redesign /
-paon-template rewrite.
-
-UX audit Critical–Low buildable mitigations executed; remaining hard
-blockers: Stripe keys, Resend, full POS RPC, returns table, multi-store,
-offline, founder alterations.
-
-**Also (2026-07-29 continuous — label and display polish, complete).** All
-remaining raw `.status}`, `.type}`, `.role}` JSX renders in customer and
-retailer portals replaced with domain label maps. Redundant `capitalize` CSS
-removed from elements that use explicit label strings.
-`WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS` added; fitting status badge and
-select fixed. Workshop/proposal/fulfillment event display fixed with inline
-maps. Loyalty tile: tier badge capitalised; referral section header →
-"Introduce a friend"; CTA → "Send invitation"; count → "introductions". Admin
-retailer staff list uses `RETAILER_ROLE_LABELS`. Catalogue e2e spec
-(`apps/customer/e2e/catalogue.spec.ts`) and Commercials e2e spec
-(`apps/admin/e2e/commercials.spec.ts`) added. All six CI checks confirmed
-green on full build pass.
-
-**Also (2026-07-29 continuous — tier labels + form chrome).**
-`LOYALTY_TIER_LABELS` and `RETAILER_TIER_LABELS` /
-`RETAILER_STATUS_LABELS` live in `@paon/domain`. Mission Control / Private
-Client / Admin retailer surfaces use them instead of `capitalize`. Form
-feedback banners and admin billing plan fields aligned to `radius-md`
-house chrome. Wedding party hero/orbit + alteration intake textareas
-already shipped earlier the same day.
-
-**Also (2026-07-29 continuous — AI labels + residual chrome).**
-`AI_GENERATION_KIND_LABELS` / `AI_GENERATION_STATUS_LABELS` on Admin AI
-monitoring. Messages / Today's Pick / demo persona / alteration detail
-raw fields use `radius-md` house chrome (no workflow invent on
-alterations).
-
-**Also (2026-07-29 continuous — billing interval + shared outline).**
-`BILLING_INTERVAL_LABELS` for month/year display; Button outline and
-demo persona chips use `stone-200`; Studio outreach copy button border
-matched. Live Private Client + Mission Control dashboards verified
-locally after restart.
-
-**Also (2026-07-29 continuous — back-env polish residual closed).**
-Static sweep of customer/retailer dashboards + Demo Studio: no remaining
-`capitalize` / `radius-sm` / cool Tailwind `stone-*` P0/P1 hits on typed
-enums or shared form chrome. Wedding party hero/orbit confirmed `8px`
-(`radius-md`) live. Agent-buildable back-env token/label queue empty;
-only hard blockers remain (Stripe / Resend / silhouette / alterations
-invent / Hobby deploy cap).
-
-**Also (2026-07-29 continuous — conversion chrome):** React PDP defaults to
-redirect onto the HTML storefront (ADR-052); portal Saved/Today’s Pick and
-appointment CTAs point at `/r/[slug]`; Alterations demoted from Private
-Client nav (routes remain); CRM jargon softened on Mission Control client
-create + lifecycle badges; Ask-us CTA uses stone-900 / radius-md; scratch
-`_tmp-verify-login` e2e specs removed.
-
-**Save vs Generate (Studio).** Save alone updates live storefront story
-fields that are read from the prospect configuration at request time
-(headline, introduction, location photos). Logo / favicon / hero,
-garment photography and names, and product-mix archive only land on the
-tenant after **Generate** (or Regenerate).
-
-**Blocked (skip in continuous mode until founder provisions):**
-
-- Stripe live (queue 1) — keys missing from env.
-- Resend live (queue 2) — API key missing.
-- Silhouette carousel (queue 7) — no founder-designed mount.
-- Prospect garment photography — upload path + role wiring exist; still
-  needs founder-provided images. Leave blank only when shared catalogue
-  disclosure is acceptable.
-- **Vercel Hobby deploy cap (2026-07-29):** CLI/API prod deploys hit
-  `api-deployments-free-per-day` (~100/day). Customer was redeployed and
-  verified; retailer/admin may lag until quota resets. Do not spam CLI.
-  Canonical update path is CI `Deploy production` (see `DEPLOYMENT.md`).
-  Deploy Hooks that return `PENDING` without a deployment are a known
-  Hobby failure mode — do not treat them as success.
-
-Not in the queue and not to be started: fit tools (parked), the alterations
-vertical (awaiting founder design), and the four presentation modules —
-globe, lapel configurator, gift-card booklet, pag2 vouchers.
-
-## Two questions to answer before building
-
-Both come from the build audit in `DECISIONS.md` ADR-051. Neither is
-rhetorical; work is gated on them.
-
-**1. Is `paon-template.html` a demo artifact or the product? — ANSWERED
-2026-07-27: it is the product.** It is the retailer's digital front door,
-the thing PAON sells on subscription, and the artifact that started this
-venture. It is therefore maintained as canonical design source, ported
-verbatim, and never re-expressed in `@paon/ui` — see
-[DESIGN_PORTS.md](./DESIGN_PORTS.md) and ADR-052. The same applies to every
-surface designed in `downloaded_pages/pag1–3.html`.
-
-**1b. Which design language does the staff app use? — ANSWERED 2026-07-27:
-`paon.html`, for the entire product.** pag1's Mission Control is not the
-target. See queue item 5 for the sampled vocabulary.
-
-**2. Which wedge is actually being sold?** A prettier storefront is
-aesthetic. Control over third-party alteration cost — the alterations
-vertical, already the deepest thing built — is financial. Neither has been
-tested with a real retailer. Two phone calls asking which they would pay
-for costs nothing and could redirect the whole build.
-
-## Foundation work, in scope by exception
-
-These are not one of the three workstreams but are authorised by ADR-051
-because they serve this phase directly:
-
-- **Provision Stripe.** The objective is retailers with money down. PAON
-  cannot currently accept money — the payment code (ADR-030) exists but has
-  never run, because credentials were never provisioned.
-- **Connect Vercel to git / reliable prospect links.** Git is linked on
-  all three `paonpaon-*` projects, but Hobby push→deploy and Deploy Hooks
-  are unreliable (`sourceless` links, hooks stuck `PENDING`). **Done as of
-  2026-07-29 for the conversion need:** CI deploys production from `main`
-  via the Deployments API after verify (see `DEPLOYMENT.md`). Remaining
-  ops debt: upgrade off Hobby before pilot volume, or re-install the
-  Vercel GitHub App so native push deploys work again.
-
-## Out of scope
-
-Everything else — including work that fits the architecture perfectly,
-closes a documented gap, or completes a roadmap phase.
-
-`ROADMAP.md`, `COMPETITIVE_GAPS.md` and `vision/` are **not work queues
-during this phase.** They are reference. Reading them is not permission to
-build from them.
-
-**Vision system (2026-07-29).** [vision/](./vision/) documents lifelong
-wardrobe intelligence as the long-term destination (ADR-056). That set
-does **not** expand this freeze. Do not implement metadata graphs,
-wardrobe twins, import wizards, colour pipelines, or AI advisors from
-those specs until the pilot objective is met and this file explicitly
-lifts the freeze for that work.
-
-If asked to build outside the three workstreams: say it falls outside the
-freeze, and ask. Do not build it quietly because it seemed reasonable.
-
-## The test for any change
-
-> Does this make a retailer more likely to put money down?
-
-If not, it waits. This narrows what gets built. It does not lower the
-quality bar for what does — the rules in `CLAUDE.md` and `PRINCIPLES.md`
-apply in full.
-
-## Stop and ask (hard stops only — everything else is keep going)
-
-**Founder (2026-07-28; restated 2026-07-29): you are NOT allowed to stop
-until you are REALLY ALL FINISHED.** Do NOT stop and check. Push all the
-way. Build, self-verify, commit, push, advance immediately. Ending after
-one increment, one visual audit, or a progress summary while actionable
-work remains is a process failure. Skip Stripe / Resend / silhouette —
-one-line note below, continue. Founder-requested back-env polish counts
-as unfinished until P0/P1 gaps are fixed and pushed.
-
-**Stop and ask — and wait — only when:**
-
-- The work would touch anything outside the three workstreams **and**
-  the founder has not explicitly authorized that exception.
-- You are about to contradict an ADR in `DECISIONS.md` without recording
-  a new ADR.
-- A founder-designed surface cannot be ported verbatim (ADR-052).
-
-**Not hard stops:** missing API keys, blocked silhouette mount, visual
-preference uncertainty, finishing one queue item, wanting a human to
-read a "Test it" list, or a PHASE note that says "exhausted" while the
-latest founder message still has open follow-through.
-
-Autonomy until REALLY ALL FINISHED is the goal. Uncommitted finished
-work is not.
-
-## End every session committable and pushed
-
-No throwaway spec files, no temporary routes, no scratch artifacts. Name
-temporary files `_tmp-*` so `.gitignore` catches them. Commit and push what
-was worth writing; delete what was scaffolding.
-
-Uncommitted work is unreviewable and unrevertable. At the point this phase
-began there were 21 unpushed commits and 130 uncommitted files. Continuous
-mode fixes that by shipping smaller commits more often — not by leaving a
-pile on the laptop.
-
-## Definition of done, this phase
-
-```
-pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
+# Current Phase — PAON Intelligence Platform Programme
+
+**This is the only authorized work queue.** It supersedes the 2026-07-27
+pilot-only freeze and every queue in ROADMAP, COMPETITIVE_GAPS,
+EXPERIENCE_REBUILD, vision documents, audits, and old handoffs.
+
+Set by the founder on 2026-07-30.
+
+## Objective
+
+Turn PAON's existing RetailOS into an explainable intelligence platform for
+independent premium menswear retailers:
+
+1. establish a reviewed, metadata-driven catalogue and reusable knowledge
+   system;
+2. use it for discovery, search, filters, imports, and client education;
+3. add consented customer signals and advisor intelligence;
+4. build wardrobe intelligence and MorningRoutine on the same concepts; and
+5. add campaigns, milestones, concierge services, and compliant commerce only
+   after their foundations exist.
+
+The complete product and technical specification is
+[PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md). Existing
+founder-designed surfaces remain authoritative wherever they define the UI.
+
+## As-built baseline
+
+Verified against code and 89 migrations on 2026-07-30:
+
+- Three Next.js applications and shared domain/database/auth/UI/integration
+  packages are established.
+- Product, variant, collection, storefront, cart/order, appointment,
+  clienteling, behavioral-event, AI-generation, loyalty, wedding-party,
+  alteration, and Demo Studio foundations exist.
+- Product facts are thin: name, description, status, made-to-order/alterable,
+  primary image, swatch image, collections; variant carries SKU, size, color,
+  price, stock, and lead time.
+- Storefront category, color, pattern, and season filters are derived from
+  product names, collection names, variant color, and founder image-number
+  heuristics.
+- `behavioral_events` and `ai_generations` exist, but the new consent,
+  evidence, retention, style-profile, and advisor-briefing model does not.
+- No metadata concept, knowledge object, catalogue import, style-profile,
+  wardrobe, outfit, roadmap, service-plan, or campaign table exists.
+
+Do not rebuild shipped foundations. Extend them through additive domain types,
+forward migrations, repositories, and narrow founder-surface mounts.
+
+## Dependency graph
+
+```text
+Metadata contracts
+  → metadata persistence/review
+  → catalogue assignments
+  → knowledge library
+  → discovery + search/filter
+  → import + enrichment
+  → customer evidence + advisor intelligence
+  → wardrobe + roadmap
+  → MorningRoutine
+  → relationship programmes + concierge
+  → later regulated commerce
 ```
 
-All six green — this is exactly what CI runs. Stop `pnpm dev` first;
-rebuilding `.next` under a live dev server has corrupted it before.
+Independent verification, documentation, and operational repairs may land when
+they do not reorder these product dependencies.
 
-Then report a **Test it** section per `CLAUDE.md`: exact local URL, port,
-prerequisites, auth path, and what was already verified automatically.
+## Ordered build queue
+
+Take the first unchecked item whose dependencies are complete. One item is one
+coherent pushed slice unless its acceptance criteria explicitly require
+back-to-back sub-slices.
+
+### Stage 0 — Direction
+
+- [x] **0.1 Documentation consolidation.** Establish this queue,
+      `PAON_INTELLIGENCE_PLATFORM.md`, the four programme ADRs, the cross-agent
+      loop, the authority map, factual project state, and Resume Protocol. No
+      feature implementation.
+
+### Stage 1 — Metadata foundation
+
+- [ ] **1.1 Domain contracts.** Add branded IDs, concept/edge/assignment/
+      override types, enums, validation schemas, `ProductFabricProfile`, and pure
+      validation tests in `@paon/domain`. Update DOMAIN_MODEL only after code
+      lands. Dependency: 0.1. ADR: 059.
+- [ ] **1.2 Metadata persistence and RLS.** Add canonical and retailer-owned
+      concept rows, edges, entity assignments, retailer overrides, indexes,
+      generated database types, and repositories. Verify platform/retailer
+      tenancy, nullable canonical ownership, and cross-tenant denial. Dependency:
+      1.1. ADR: 059.
+- [ ] **1.3 Review workflow.** Add Admin canonical-concept management and
+      retailer assignment review/accept/reject flows with provenance, confidence,
+      evidence, reviewer, and timestamps. Unknown concepts remain proposals until
+      accepted. Dependency: 1.2. ADR: 059.
+- [ ] **1.4 Product facts and catalogue assignment UI.** Persist exact fabric
+      weight, supplier reference, and composition percentages without duplicating
+      concept labels; let retailer staff manage product/variant assignments through
+      repositories and Server Actions. Dependency: 1.3.
+
+**Stage 1 non-goals:** no embeddings, vector search, autonomous publishing,
+free-form tag bag, global Brand registry, Collection-as-Brand shortcut,
+storefront redesign, or customer personalization.
+
+### Stage 2 — Knowledge, discovery, search, and import
+
+- [ ] **2.1 Knowledge contracts and persistence.** Add canonical/retailer
+      knowledge objects, concept joins, relations, display types, commercial
+      intent, active state, retailer override/pin controls, RLS, repositories, and
+      initial reviewed menswear fixtures. Dependency: 1.3. ADR: 060.
+- [ ] **2.2 Deterministic discovery engine.** Implement and test ranking from
+      accepted metadata, journey relevance, retailer priority/pins, commercial
+      intent, novelty, relationship proximity, diversity, and viewed penalties.
+      Return three to six explainable cards. Dependency: 2.1. ADR: 060.
+- [ ] **2.3 Founder-storefront mounts.** Inject discovery results into the
+      existing Archetype, Fabric, and Sizing information areas of
+      `paon-template.html` through narrow data hooks. Verify desktop/mobile,
+      accessibility, and no unrelated markup/CSS/interaction drift. Dependency:
+      2.2. ADRs: 052, 060.
+- [ ] **2.4 Structured catalogue query.** Add repository-backed search,
+      accepted-metadata facets, numeric weight/price ranges, relevance ordering,
+      pagination, and transparent unresolved-query fallback. Replace the current
+      keyword/image heuristics only when equivalent storefront behavior is covered
+      by tests. Dependency: 1.4.
+- [ ] **2.5 Import contracts and preview.** Publish the PAON CSV/XLSX template,
+      import job/row/review-task domain and persistence, parser fixtures, duplicate
+      checks, asset matching, validation errors, raw supplier preservation, and a
+      retailer preview. Dependency: 1.3.
+- [ ] **2.6 Transactional reviewed publishing.** Publish product, variants,
+      assets, exact facts, and accepted assignments atomically; failed rows remain
+      unpublished and resumable. Dependency: 2.5.
+- [ ] **2.7 AI-assisted enrichment.** First ship the Admin-maintained external
+      ChatGPT enrichment prompt and structured import workflow. Then add a
+      provider-neutral job-runner path that returns schema-validated JSON with
+      field confidence/evidence and never invents supplier facts. All inference
+      remains pending review. Dependencies: 2.5 and 2.6.
+
+**Stage 2 non-goals:** no semantic/vector retrieval before accepted metadata
+and search/click evidence exist; no autonomous AI facts; no React rewrite of
+the founder storefront; no public API; no supplier-specific dependency; no
+unreviewed bulk publish.
+
+### Stage 3 — Customer and advisor intelligence
+
+- [ ] **3.1 Consent and event upgrade.** Define personalization and marketing
+      consent separately, add anonymous-session support where lawful, purpose and
+      retention metadata, consent withdrawal/deletion behavior, and event types for
+      view/search/filter/favorite/cart/knowledge/advisor/swipe/appointment. Preserve
+      durable business records as their own sources of truth. Dependency: 2.4.
+      ADRs: 021, 061.
+- [ ] **3.2 StyleProfile evidence.** Add explicit preferences, inferred
+      preferences, per-concept evidence, polarity, confidence, and explainable
+      recomputation. Never write inference into explicit preference fields.
+      Dependency: 3.1. ADR: 061.
+- [ ] **3.3 Advisor briefing.** Add a retailer-scoped repository and client
+      workspace view for recent interests, saved products, knowledge consumed,
+      declared occasion, evidence, questions, wardrobe gaps when available, and
+      appointment preparation. Show only consented information. Dependency: 3.2.
+- [ ] **3.4 Grounded TableService and guided preference capture.** Ground AI
+      answers in approved knowledge with citations/uncertainty, hand off early to
+      an advisor, convert chats/swipes into traceable evidence, a shortlist, or an
+      appointment. Dependencies: 2.2 and 3.2.
+
+**Stage 3 non-goals:** no covert tracking, no precise location without
+separate opt-in, no unexplained score, no advisor access across tenants, no raw
+prompt/PII duplication, no AI answer that outranks approved knowledge, and no
+replacement of human advice for uncertain high-value decisions.
+
+### Stage 4 — Wardrobe intelligence and MorningRoutine
+
+- [ ] **4.1 Wardrobe ownership.** Add retailer-purchased and customer-added
+      wardrobe items linked to products and the metadata assignment mechanism,
+      plus ownership history, condition, fit notes, wear/care state, provenance,
+      tenant/customer access, and external-garment review. Dependency: 3.2.
+- [ ] **4.2 Wardrobe Roadmap and outfits.** Add advisor-authored goals, ranked
+      gaps, complete-look combinations, staged purchase priorities, explanation
+      links, and customer-visible approval state. Dependency: 4.1.
+- [ ] **4.3 Lifecycle and care intelligence.** Add wear rotation, garment age,
+      care, repair, fit-update reminders, and customer-submitted current-wear
+      photo/notes tied to a wardrobe item and appointment handoff. Dependency: 4.1.
+- [ ] **4.4 MorningRoutine.** Select owned garments and, secondarily, catalogue
+      recommendations from wardrobe availability, accepted preferences, occasion,
+      weather, and separately consented location. Provide explanations and direct
+      save/book/buy actions. Dependency: 4.2.
+- [ ] **4.5 MorningRoutine delivery.** Add opt-in in-app and email delivery,
+      frequency controls, quiet periods, delivery audit, and unsubscribe. Verify
+      that service content is timely rather than generic promotion. Dependency:
+      4.4.
+
+**Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
+and 055 remain), no retailer sharing of wardrobe data, no required location,
+no native mobile app, no automatic purchase, and no recommendation without an
+explanation path.
+
+### Stage 5 — Relationship programmes and concierge services
+
+- [ ] **5.1 Campaigns.** Add premium, consent-aware weekly offers,
+      member-only releases, and the seven-day wardrobe challenge with audience
+      criteria, scheduling, delivery audit, and suppression controls. Dependency:
+      3.2.
+- [ ] **5.2 Milestones.** Extend the existing loyalty ledger/events with
+      auditable eligibility rules for first commission, repeat orders, new
+      categories, premium construction, and advanced fabrics. Dependency: 1.4.
+- [ ] **5.3 Concierge service model.** Add Preferred Tailoring and
+      HighMaintenance service plans, entitlements/credits, bookings, fulfilment,
+      cleaning/repair/care records, collection/delivery, commitments, and advisor
+      ownership without overloading orders or alterations. Dependencies: 4.3 and
+      existing appointment/alteration foundations.
+- [ ] **5.4 Tie-Mate.** Build the dedicated mobile-first tie-fabric discovery
+      surface on metadata, discovery, shortlist, order, and advisor-handoff
+      foundations. Dependencies: 2.3 and 3.4; requires founder surface or an
+      approved design.
+
+**Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
+duplicate loyalty ledger, service state hidden in generic order status, or
+invented founder-designed surface.
+
+### Stage 6 — Later commerce capabilities
+
+- [ ] **6.1 Payment/compliance design gate.** Before deposits, stored value,
+      one-click payment, instalments, service subscriptions, or membership billing,
+      record provider capabilities, merchant-of-record, VAT/accounting, refunds,
+      custody, SCA, consent, retention, and jurisdictional review. Dependency:
+      business/legal decisions and provider configuration. ADRs: 030, 031, 050, 062.
+- [ ] **6.2 Approved commerce primitives.** Implement only the capabilities
+      authorized by 6.1 using provider-hosted/tokenized payment methods; preserve
+      immutable order/payment/ledger history and existing Stripe boundaries.
+      Dependency: 6.1.
+- [ ] **6.3 Retailer-owner marketplace.** Model the fixture/packaging/display/
+      furnishing marketplace as a distinct catalogue and commerce context. It
+      must not reuse customer-retail catalogue assumptions or leak tenant data.
+      Dependencies: stable intelligence programme and a separate marketplace ADR.
+
+**Stage 6 non-goals:** no PAON-built payment processor, credit underwriting,
+custom stored-card vault, silent merchant-of-record change, unapproved stored
+value, or marketplace squeezed into the customer catalogue.
+
+## Real hard blockers
+
+A hard blocker stops only the affected item. Continue with the next independent
+queue item when possible.
+
+- A requested change contradicts an ADR and the reversal cannot be safely
+  recorded.
+- A founder-defined surface is required but cannot be ported or no approved
+  design exists.
+- A production-data operation is destructive/irreversible and not covered by
+  an approved migration or runbook.
+- A regulated payment/stored-value/instalment capability lacks the business,
+  legal, accounting, or provider decision required by Stage 6.1.
+- Required external credentials or provider accounts are unavailable for live
+  verification. Build and test provider-neutral/local work where possible,
+  record live verification as blocked, and continue.
+
+Routine review, uncertainty that can be resolved from code/ADRs, completion of
+one slice, and optional credentials for a later stage are not global blockers.
+
+## Per-slice completion
+
+A queue item is complete only when its acceptance criteria are implemented,
+focused tests and the full repository checks pass, tenancy/accessibility/
+founder-surface verification is complete where relevant, authoritative state
+is updated, and the commit is pushed. Then immediately take the next buildable
+item.

@@ -1,145 +1,82 @@
-# PAON Documentation Constitution
+# PAON Documentation Authority Map
 
-**This file is the single navigation and authority map for the document
-set.** Do not read the docs end to end (~6,000+ lines). Read by tier and
-by authority. An unindexed document is unconstitutional — add it here or
-archive it.
+This file maps each topic to one authority. It is navigation, not a plan.
+Code and migrations always win for what is implemented.
 
-Last constitution pass: 2026-07-29 (ADR-057).
+## Minimum reading path
 
----
+Every coding session follows:
 
-## Authority hierarchy (one source per topic)
+```text
+AGENTS.md
+  → PHASE.md
+  → PAON_INTELLIGENCE_PLATFORM.md
+  → relevant ADR
+  → current code and migrations
+```
 
-Higher rows beat lower rows when they conflict. **Code and migrations
-always beat every document** for what is actually implemented.
+Read another document only when the active slice needs its topic.
 
-| Rank | Authority                                   | Documents                                                                                                                                                          | Decides                                                        |
-| ---- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| 0    | **Implementation**                          | `apps/`, `packages/`, `supabase/migrations/`, generated types                                                                                                      | What exists                                                    |
-| 1    | **Scope gate**                              | [PHASE.md](./PHASE.md)                                                                                                                                             | What may be built _right now_                                  |
-| 2    | **Engineering constitution**                | [../CLAUDE.md](../CLAUDE.md), [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md), [PRINCIPLES.md](./PRINCIPLES.md), [AGENTS.md](../AGENTS.md)                          | How to work; hard rules                                        |
-| 3    | **Decisions**                               | [DECISIONS.md](./DECISIONS.md) (append-only ADRs)                                                                                                                  | Why the system is shaped this way                              |
-| 4    | **Company / product direction**             | [NORTH_STAR.md](./NORTH_STAR.md), [VISION.md](./VISION.md), [PRODUCT.md](./PRODUCT.md), [NON_GOALS.md](./NON_GOALS.md)                                             | Mission, surfaces, deferrals — **do not authorize build**      |
-| 5    | **Architecture & domain (intended design)** | [ARCHITECTURE.md](./ARCHITECTURE.md), [DOMAIN_MODEL.md](./DOMAIN_MODEL.md), [DATABASE.md](./DATABASE.md), [API.md](./API.md), [ACCESS_MODEL.md](./ACCESS_MODEL.md) | How the system _should_ be layered — verify vs Rank 0          |
-| 6    | **Experience & design**                     | [DESIGN_PORTS.md](./DESIGN_PORTS.md), [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md)                                               | Founder ports + portal design                                  |
-| 7    | **Operations**                              | [DEPLOYMENT.md](./DEPLOYMENT.md), [TOOLING.md](./TOOLING.md)                                                                                                       | Live IDs, env, CLIs                                            |
-| 8    | **Destination (not shipped)**               | [vision/](./vision/)                                                                                                                                               | Lifelong wardrobe intelligence — ADR-056                       |
-| 9    | **As-built inventory**                      | [ai_snapshot/](./ai_snapshot/)                                                                                                                                     | Dated factual snapshot — regenerate when stale                 |
-| 10   | **Engineering audits**                      | [audits/](./audits/)                                                                                                                                               | Point-in-time takeover health checks — **not a work queue**    |
-| 11   | **Sequencing / sales reference**            | [ROADMAP.md](./ROADMAP.md), [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md), [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md)                                         | **Not work queues** during freeze                              |
-| 12   | **Status narrative**                        | [PROJECT_STATE.md](./PROJECT_STATE.md)                                                                                                                             | Historical “shipped” prose — **verify before trust** (ADR-051) |
-| 13   | **Archive**                                 | [archive/](./archive/)                                                                                                                                             | Obsolete — never a work queue                                  |
+## Authority hierarchy
 
-### Topic → single authoritative source
+| Rank | Authority                      | Source                                                                                                                   | Decides                                         |
+| ---- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| 0    | Implementation                 | `apps/`, `packages/`, `supabase/migrations/`, generated types                                                            | What exists                                     |
+| 1    | Active queue                   | [PHASE.md](./PHASE.md)                                                                                                   | What is authorized and what comes next          |
+| 2    | Active programme specification | [PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md)                                                         | Product intent, target architecture, acceptance |
+| 3    | Decisions                      | [DECISIONS.md](./DECISIONS.md)                                                                                           | Why load-bearing choices were made              |
+| 4    | Agent process                  | [../AGENTS.md](../AGENTS.md), [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)                                             | How work advances                               |
+| 5    | Standing engineering rules     | [PRINCIPLES.md](./PRINCIPLES.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [DATABASE.md](./DATABASE.md), [API.md](./API.md) | Cross-program invariants                        |
+| 6    | Current domain description     | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) and `@paon/domain`                                                                  | Current bounded contexts and relationships      |
+| 7    | Product direction              | [NORTH_STAR.md](./NORTH_STAR.md), [VISION.md](./VISION.md), [PRODUCT.md](./PRODUCT.md), [NON_GOALS.md](./NON_GOALS.md)   | Durable mission and exclusions                  |
+| 8    | Design and experience          | [DESIGN_PORTS.md](./DESIGN_PORTS.md), [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md)     | Visual authorities and interaction rules        |
+| 9    | Operations                     | [DEPLOYMENT.md](./DEPLOYMENT.md), [TOOLING.md](./TOOLING.md)                                                             | Live environments, CLIs, and runbooks           |
+| 10   | Reference and history          | `vision/`, `ai_snapshot/`, `audits/`, [ROADMAP.md](./ROADMAP.md), [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)           | Inputs and dated analysis; never queues         |
+| 11   | Factual handoff                | [PROJECT_STATE.md](./PROJECT_STATE.md)                                                                                   | Compact verified snapshot; never authority      |
+| 12   | Archive                        | [archive/](./archive/)                                                                                                   | Obsolete material                               |
 
-| Topic                      | Authoritative source                  | Not authoritative                                |
-| -------------------------- | ------------------------------------- | ------------------------------------------------ |
-| What to build today        | PHASE.md                              | ROADMAP, vision, COMPETITIVE_GAPS, PROJECT_STATE |
-| Agent/engineer process     | CLAUDE.md + WORKING_AGREEMENT         | archive handoffs                                 |
-| Why a past choice was made | DECISIONS.md (specific ADR)           | PROJECT_STATE narrative                          |
-| Entity shape (intended)    | DOMAIN_MODEL.md + `@paon/domain` code | Vision pillars                                   |
-| Tables / RLS               | migrations + DATABASE.md rules        | DOMAIN_MODEL alone                               |
-| As-built feature presence  | code + ai_snapshot (dated)            | PROJECT_STATE without verification               |
-| Point-in-time health check | audits/ (latest project-health.md)    | PROJECT_STATE, ROADMAP body                      |
-| Long-term category         | vision/ + VISION.md                   | PHASE                                            |
-| Founder HTML surfaces      | DESIGN_PORTS.md + committed HTML      | DESIGN_SYSTEM rewrite impulse                    |
-| Live deploy IDs            | DEPLOYMENT.md                         | Guessed URLs                                     |
+When two documents conflict, the higher-ranked source wins. Fix the lower
+source in the same documentation slice instead of preserving ambiguity.
 
----
+## Topic owners
 
-## Tier 0 — every session, always
-
-| Document                                       | Role                      |
-| ---------------------------------------------- | ------------------------- |
-| [PHASE.md](./PHASE.md)                         | Scope freeze / work queue |
-| [../CLAUDE.md](../CLAUDE.md)                   | Operating charter         |
-| [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md) | Continuous mode           |
-| [PRINCIPLES.md](./PRINCIPLES.md)               | Engineering principles    |
-
-If Tier 0 answers the question, stop and work.
-
-## Tier 1 — read only what you touch
-
-| Touching...                    | Read                                                 |
-| ------------------------------ | ---------------------------------------------------- |
-| Entities, business logic       | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) + code          |
-| Repo shape, layering           | [ARCHITECTURE.md](./ARCHITECTURE.md)                 |
-| Schema, RLS, migrations        | [DATABASE.md](./DATABASE.md) + `supabase/migrations` |
-| Components, tokens             | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)               |
-| Interaction, layout            | [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md)               |
-| Server Actions, Route Handlers | [API.md](./API.md)                                   |
-| Roles, permissions             | [ACCESS_MODEL.md](./ACCESS_MODEL.md)                 |
-| Product surfaces               | [PRODUCT.md](./PRODUCT.md)                           |
-| Founder-designed screens       | [DESIGN_PORTS.md](./DESIGN_PORTS.md)                 |
-| Deploy / env                   | [DEPLOYMENT.md](./DEPLOYMENT.md)                     |
-| CLIs / MCP                     | [TOOLING.md](./TOOLING.md)                           |
-
-## Tier 1.5 — destination (orientation only)
-
-| Document             | Role                                                      |
-| -------------------- | --------------------------------------------------------- |
-| [vision/](./vision/) | Wardrobe intelligence pillars. **Never overrides PHASE.** |
-
-## Tier 2 — search, never bulk-read
-
-| Document                                         | Role                                                                                        |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| [DECISIONS.md](./DECISIONS.md)                   | ADRs                                                                                        |
-| [ai_snapshot/](./ai_snapshot/)                   | As-built inventory                                                                          |
-| [ROADMAP.md](./ROADMAP.md)                       | Sequencing / Horizons                                                                       |
-| [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)     | Sales blockers                                                                              |
-| [NON_GOALS.md](./NON_GOALS.md)                   | Explicit deferrals                                                                          |
-| [EXPERIENCE_REBUILD.md](./EXPERIENCE_REBUILD.md) | Experience acceptance (paused by freeze)                                                    |
-| [PROJECT_STATE.md](./PROJECT_STATE.md)           | Unverified status log — prefer ai_snapshot + code                                           |
-| [NIGHT_LOG.md](./NIGHT_LOG.md)                   | Overnight run trail                                                                         |
-| [audits/](./audits/)                             | Dated full-project health audits (start at [project-health.md](./audits/project-health.md)) |
-
-## Orientation (read once)
-
-[NORTH_STAR.md](./NORTH_STAR.md) · [VISION.md](./VISION.md) · root [README.md](../README.md)
-
----
-
-## Classification of the document set
-
-| Category                  | Documents                                                       |
-| ------------------------- | --------------------------------------------------------------- |
-| Constitutional            | This file, PHASE, CLAUDE, AGENTS, WORKING_AGREEMENT, PRINCIPLES |
-| Architecture              | ARCHITECTURE, API, ACCESS_MODEL, DESIGN_PORTS                   |
-| Engineering               | PRINCIPLES, TOOLING, UX_PHILOSOPHY, DESIGN_SYSTEM               |
-| Product                   | PRODUCT, NON_GOALS, COMPETITIVE_GAPS                            |
-| Vision / destination      | VISION, NORTH_STAR, vision/\*                                   |
-| ADR                       | DECISIONS                                                       |
-| Domain                    | DOMAIN_MODEL                                                    |
-| Database                  | DATABASE, supabase/migrations (implementation)                  |
-| Operational / Deployment  | DEPLOYMENT, TOOLING                                             |
-| As-built / AI inventory   | ai_snapshot/\*                                                  |
-| Engineering audits        | audits/\*                                                       |
-| Sequencing                | ROADMAP, EXPERIENCE_REBUILD                                     |
-| Historical / unverified   | PROJECT_STATE, NIGHT_LOG                                        |
-| Obsolete                  | archive/\*\*                                                    |
-| Design sources (not docs) | downloaded_pages/\*.html                                        |
-
----
+| Topic                                                  | Authority                                          |
+| ------------------------------------------------------ | -------------------------------------------------- |
+| Current queue, dependencies, stage non-goals, blockers | `PHASE.md`                                         |
+| Intelligence Platform product and technical design     | `PAON_INTELLIGENCE_PLATFORM.md`                    |
+| Agent operating loop                                   | `AGENTS.md`; detail in `WORKING_AGREEMENT.md`      |
+| Architectural decisions and reversals                  | `DECISIONS.md`                                     |
+| Current entity shapes                                  | code, then `DOMAIN_MODEL.md`                       |
+| Tables, migrations, RLS                                | migrations, then `DATABASE.md`                     |
+| Server Actions and Route Handlers                      | `API.md`                                           |
+| Founder-authored HTML surfaces                         | committed HTML + `DESIGN_PORTS.md`                 |
+| Deployment and provider setup                          | `DEPLOYMENT.md`                                    |
+| Compact resume state                                   | Resume Protocol in `PAON_INTELLIGENCE_PLATFORM.md` |
 
 ## Constitution rules
 
-1. **Code wins.** Fix the document; do not “fix” reality in prose.
-2. **DECISIONS.md is append-only.** Supersede with a new ADR; never rewrite history.
-3. **Design ≠ shipped.** First line must say if a doc is destination-only (vision, some ADRs).
-4. **No document without an index row here.** Orphans become archive or get deleted.
-5. **One source of truth per topic** (table above). Improve the existing doc; do not fork.
-6. **PHASE subordinates** ROADMAP, vision, COMPETITIVE_GAPS, EXPERIENCE_REBUILD, ai_snapshot recommendations.
-7. **Archive, don’t confuse.** Obsolete material lives under `archive/` with an obsolete banner.
-8. **As-built snapshots age.** Prefer regenerating `ai_snapshot/` over treating it as eternal truth.
+1. Code and migrations are factual truth; documents never declare unbuilt
+   schema shipped.
+2. `PHASE.md` is the only work queue.
+3. `PAON_INTELLIGENCE_PLATFORM.md` is the only active programme specification.
+4. `DECISIONS.md` is append-only. Supersede an ADR with a newer ADR.
+5. `PROJECT_STATE.md` is concise factual context, not a queue, plan, or
+   authority.
+6. Reference documents may inform a slice but cannot authorize it.
+7. Every maintained document is indexed here; obsolete material belongs in
+   `archive/`.
+8. Do not duplicate the continuous-build contract or product plan into new
+   files.
 
----
+## On-demand references
 
-## Archive map
-
-| Path                                                 | Contents                                                                              |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [archive/](./archive/)                               | Early false “implemented” proposals; old handoff                                      |
-| [archive/made-to-munro/](./archive/made-to-munro/)   | Root Made-to-Munro ROADMAP / CURRENT_STATE / AUDIT_LOG / plans that contradicted PAON |
-| [archive/dead-scaffolds/](./archive/dead-scaffolds/) | Unused Prisma schema + SQL dump — **not** the live database                           |
+| Working on                  | Read                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| Domain types and validation | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md), relevant `packages/domain/src`           |
+| Schema or tenancy           | [DATABASE.md](./DATABASE.md), relevant migrations                              |
+| App/repository boundaries   | [ARCHITECTURE.md](./ARCHITECTURE.md), [API.md](./API.md)                       |
+| Roles and permissions       | [ACCESS_MODEL.md](./ACCESS_MODEL.md)                                           |
+| Founder-designed surfaces   | [DESIGN_PORTS.md](./DESIGN_PORTS.md), canonical HTML                           |
+| UI primitives               | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md) |
+| Deployments or credentials  | [DEPLOYMENT.md](./DEPLOYMENT.md), [TOOLING.md](./TOOLING.md)                   |
+| Historical rationale        | [DECISIONS.md](./DECISIONS.md), then git history                               |

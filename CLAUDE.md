@@ -1,186 +1,23 @@
-# PAON — Operating Charter
+# PAON — Claude Code Entry Point
 
-You are the principal engineer for PAON. You own the technical
-implementation. Optimize for long-term maintainability, scalability and
-consistency — never for short-term speed.
+`AGENTS.md` is PAON's single cross-agent operating charter. Read it first and
+follow it in full. This file exists because Claude Code loads `CLAUDE.md`
+automatically; it must not become a competing rule set.
 
-**Start every session by reading [docs/PHASE.md](docs/PHASE.md),
-[docs/WORKING_AGREEMENT.md](docs/WORKING_AGREEMENT.md), and the authority
-map in [docs/README.md](docs/README.md).** PHASE defines what may be worked
-on right now and overrides any older plan; the working agreement defines
-how to work; the docs README is the documentation constitution (one source
-of truth per topic).
+Then read:
 
-**NON-NEGOTIABLE — continuous mode (founder 2026-07-28; restated
-2026-07-29: NEVER STOP EARLY):** You are **not allowed to stop until
-you are REALLY ALL FINISHED** — founder request complete, PHASE
-buildable queue empty, only hard blockers left, and finished work
-pushed. Do **not** stop and check. Do **not** pause for review. Do
-**not** end an agent turn between finished batches while work remains.
-Do **not** close on a visual verdict, progress summary, or "Test it"
-list while P0/P1 gaps from the same request are still open. Push **all
-the way**. Build → self-verify → commit → push → **immediately** start
-the next item **in the same turn**. Skip Stripe / Resend / silhouette
-(note in PHASE.md, continue). Ending after one increment or one audit
-pass to wait for confirmation is a process failure. Hard stops only:
-out-of-freeze work, ADR conflicts you cannot ADR, or a founder surface
-that cannot be ported verbatim (ADR-052). Full rules:
-`docs/WORKING_AGREEMENT.md`.
+1. `docs/PHASE.md` — the ordered, authorized queue.
+2. `docs/PAON_INTELLIGENCE_PLATFORM.md` — the active product and technical
+   specification.
+3. The ADR named by the current queue item.
+4. The relevant code and migrations, which are the truth for what exists.
 
-Then read only what the change requires. [docs/README.md](docs/README.md)
-is a tiered router, not a reading list — the document set is ~6,000 lines
-and loading it wholesale is the habit that wasted the most time in earlier
-sessions. Tier 0 is this file, `PHASE.md` and `PRINCIPLES.md`. Everything
-else is read on demand or searched, not read.
+The mandatory loop is:
 
-## What PAON is
+> inspect → implement one coherent slice → test → repair → update
+> authoritative state → commit → push → immediately take the next queue item
 
-A RetailOS and customer engagement platform for premium and luxury
-retailers, delivered as three Next.js apps (`apps/admin`,
-`apps/retailer`, `apps/customer`) sharing one domain model
-(`packages/domain`) and one design system (`packages/ui`). Full detail:
-[docs/VISION.md](docs/VISION.md), [docs/PRODUCT.md](docs/PRODUCT.md).
-
-## Current phase — scope freeze (2026-07-27)
-
-Feature building is paused. PAON has more capability than it has evidence
-that anyone will pay for it, and the current priority is market validation:
-paid pilot commitments from independent multi-brand menswear retailers,
-reached by cold outreach on the founder's own credibility in menswear. PAON
-is independent of any brand — see `docs/COMPETITIVE_GAPS.md`, "The buyer."
-
-**Only three workstreams are in scope:**
-
-1. The storefront template (`apps/customer/app/r/[slug]`) — the thing a
-   prospect actually judges.
-2. The prospect Demo Studio (`apps/admin/.../prospects/[id]/studio`) and
-   demo publication — the conversion instrument for a cold approach.
-3. The public marketing site (`apps/customer/app/(marketing)`) — proof that
-   the founder and the product are real, not a self-serve funnel.
-
-**Everything else is out of scope**, including work that fits the
-architecture perfectly, closes a known gap, or completes a roadmap phase.
-`docs/COMPETITIVE_GAPS.md` is a sales-blocker inventory and
-`docs/ROADMAP.md` is a sequencing document; **neither is a work queue during
-this phase.** If asked to build outside the three workstreams, say that it
-falls outside the freeze and ask before proceeding — do not quietly build it
-because it seemed reasonable.
-
-**The test for any change:** does it make a retailer more likely to put money
-down? If not, it waits. Architectural quality standards below still apply in
-full to whatever _is_ built — the freeze narrows scope, it never lowers the
-bar.
-
-**Leave the tree committable.** No throwaway spec files, no temporary routes,
-no scratch artifacts left behind at the end of a session. If something was
-worth writing it gets committed; if it was scaffolding it gets deleted before
-the session ends. Uncommitted work is unreviewable and unrevertable, which is
-how control over this build was lost once already.
-
-## Before touching code
-
-1. Identify which bounded context ([docs/DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md))
-   and which layer ([docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)) the
-   change belongs to.
-2. Check whether the capability already exists in `@paon/domain`,
-   `@paon/database`, `@paon/auth`, `@paon/ui` or `@paon/utils` before
-   writing new logic. Never duplicate a component or a business rule
-   across apps or packages.
-3. If the change conflicts with [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
-   [docs/PRINCIPLES.md](docs/PRINCIPLES.md) or an entry in
-   [docs/DECISIONS.md](docs/DECISIONS.md), preserve the documented
-   architecture rather than taking a shortcut — surface the conflict
-   instead of silently working around it.
-4. If the change is genuinely architectural (new shared package, new
-   cross-cutting pattern, a reversal of a past ADR), add an entry to
-   [docs/DECISIONS.md](docs/DECISIONS.md) as part of the same change.
-
-## Hard rules
-
-- Never introduce technical debt knowingly. If a shortcut is
-  unavoidable, write down why in [docs/DECISIONS.md](docs/DECISIONS.md)
-  or a tracked follow-up — never leave it silent.
-- Never duplicate a component (`@paon/ui`) or business logic
-  (`@paon/domain`). If two apps need the same thing, it belongs in
-  `packages/*`. **Exception: founder-designed surfaces — see the porting
-  rule below. That exception is deliberate and overrides this rule.**
-- **Founder-designed surfaces are ported verbatim, never re-expressed.**
-  `downloaded_pages/pag1.html`, `pag2.html`, `pag3.html` and
-  `apps/customer/app/r/[slug]/paon-template.html` are canonical design
-  sources, committed to this repository. When implementing any surface they
-  define, copy the original CSS, markup and JS byte-for-byte into an
-  isolated component and wire data through the narrowest possible hook.
-  Do **not** rebuild it in Tailwind or `@paon/ui`, do not "modernise" it,
-  do not approximate it. Three sessions did exactly that and produced work
-  the founder could not use — see `docs/DESIGN_PORTS.md` and ADR-052.
-  If a surface genuinely cannot be ported verbatim, stop and ask.
-- Every tenant-scoped entity is scoped by `retailerId` and enforced by
-  Postgres RLS, not application code alone — see
-  [docs/DATABASE.md](docs/DATABASE.md).
-- Use the branded ID types in `@paon/domain` (`CustomerId`,
-  `RetailerId`, ...) at every boundary that handles more than one
-  entity type. Never widen one back to a bare `string`.
-- `strict` TypeScript, no `any` (it's an ESLint error, not a style
-  preference).
-- Data access goes through a `@paon/database` repository. No inline
-  Supabase queries in app code.
-- Mutations are Server Actions; Route Handlers are only for webhooks,
-  the future public API, and non-browser callers — see
-  [docs/API.md](docs/API.md).
-- Mobile-first, accessible (WCAG 2.1 AA), Server-Components-by-default.
-  See [docs/UX_PHILOSOPHY.md](docs/UX_PHILOSOPHY.md) and
-  [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
-- Don't build ahead of [docs/ROADMAP.md](docs/ROADMAP.md) or
-  [docs/NON_GOALS.md](docs/NON_GOALS.md) — no speculative abstraction
-  for a phase that hasn't started.
-
-## Definition of done
-
-Before considering any task complete, run exactly what CI runs — in one
-line, so a failure stops the chain:
-
-```
-pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
-```
-
-All six must pass. `format:check` and `--frozen-lockfile` are part of this
-list because CI runs them and an earlier four-command version of this
-section let two real CI failures through unseen.
-
-Stop `pnpm dev` before this runs — `pnpm build` rebuilds `.next` and has
-corrupted a live dev server twice.
-
-**Local green does not mean CI green.** CI pins Node from `.nvmrc`; a
-developer machine is usually far ahead of it. If CI fails where local
-passed, suspect the Node gap before anything else. Leave the repository in
-a working state, always. A task is not done if it merges red.
-
-## Reporting completed work
-
-In continuous mode the session **self-verifies**, **commits and pushes**,
-and **continues the queue** without waiting. Do not treat a "Test it"
-list as a gate or a session closer.
-
-When the founder request and the PHASE buildable queue are **really all
-finished** (see WORKING_AGREEMENT), end with a distinct **Test it**
-section: exact local URL/port, auth path, click path, and what was already
-machine-verified. Mid-flight, verify with curl/browser/Playwright without
-stopping for human confirmation.
-
-## Commands
-
-| Command                                       | Effect                                                           |
-| --------------------------------------------- | ---------------------------------------------------------------- |
-| `pnpm dev`                                    | Run all three apps (admin :3000, retailer :3001, customer :3002) |
-| `pnpm build` / `lint` / `typecheck` / `test`  | Turborepo tasks, scoped to affected packages                     |
-| `pnpm format`                                 | Prettier, repo-wide                                              |
-| `supabase start`                              | Local Supabase stack (Postgres, Auth, Storage, Realtime)         |
-| `supabase migration new <name>`               | New migration in `supabase/migrations`                           |
-| `pnpm --filter @paon/database generate-types` | Regenerate DB types after a migration                            |
-
-## Style
-
-No comments explaining _what_ code does — name things well instead.
-Comment only a non-obvious _why_ (a constraint, an invariant, a
-deliberate trade-off) — see the existing comments in `packages/domain`
-for the calibration to match.
+Do not stop for routine review, confirmation, strategy reopening, or an
+intermediate handoff. Continue until the active founder request and every
+buildable queue item are finished and pushed, or only real hard blockers from
+`docs/PHASE.md` remain.

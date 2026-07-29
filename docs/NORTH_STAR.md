@@ -7,9 +7,10 @@ lifetime relationship between an independent menswear retailer and their
 clients.**
 
 Long-term category ownership is **personal wardrobe intelligence** delivered
-through that RetailOS — not another POS or e-commerce stack with AI bolted
-on. The destination architecture is specified in [vision/](./vision/); those
-docs do not authorize work. What may be built today is only [PHASE.md](./PHASE.md).
+through that RetailOS — not another POS or e-commerce stack with AI bolted on.
+The active architecture and product programme is
+[PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md); what is built
+next is ordered only by [PHASE.md](./PHASE.md).
 
 ## Who it is for
 
@@ -68,9 +69,9 @@ Built for years, not for a demo. See [PRINCIPLES.md](./PRINCIPLES.md) for
 how that is applied day to day, and [NON_GOALS.md](./NON_GOALS.md) for what
 is deliberately deferred.
 
-## The current objective is narrower than the mission
+## The current objective
 
-The mission above is the multi-year destination. It is **not** a licence to
-build toward it today. What may be worked on right now is defined solely by
-[PHASE.md](./PHASE.md), and it is currently three workstreams aimed at
-winning paid pilots. Read that before starting anything.
+The Intelligence Platform programme now turns this mission into an ordered
+implementation path: catalogue intelligence first, then advisor intelligence,
+wardrobe/MorningRoutine, relationship programmes, concierge, and compliant
+commerce. `PHASE.md` remains the sole queue; this mission does not reorder it.

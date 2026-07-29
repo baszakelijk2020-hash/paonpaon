@@ -51,14 +51,9 @@ still gates implementation.
 3. Remove or rename `_tmp-*` e2e specs.
 4. Static check for accidental inline Supabase queries outside repositories.
 
-## Complete before major new feature platforms
+## Superseded gate
 
-Before Metadata Graph / wardrobe twin / advisor platform work:
-
-1. Pilot objective progress per PHASE (paid commitments).
-2. Explicit PHASE lift naming the authorized horizon.
-3. Honest inventory of live vs fake provider paths on demo tenants.
-4. Decision on ADR-050 pricing primitives.
-5. Founder design for alterations if that vertical is in scope for the lift.
-
-Until then, prefer conversion quality over new domains.
+The pilot-proof and PHASE-lift prerequisites in the 2026-07-29 snapshot were
+satisfied by the founder's 2026-07-30 programme authorization. They no longer
+block Metadata Graph, wardrobe, or advisor work. The only current dependencies
+and blockers are in `PHASE.md`.
