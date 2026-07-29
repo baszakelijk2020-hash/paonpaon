@@ -94,6 +94,9 @@ export type WeddingPartyId = Brand<string, "WeddingPartyId">;
 export type WeddingPartyMemberId = Brand<string, "WeddingPartyMemberId">;
 export type StaffShiftId = Brand<string, "StaffShiftId">;
 export type StaffTimeEntryId = Brand<string, "StaffTimeEntryId">;
+export type BehavioralEventId = Brand<string, "BehavioralEventId">;
+export type AnonymousSessionId = Brand<string, "AnonymousSessionId">;
+export type CustomerConsentEventId = Brand<string, "CustomerConsentEventId">;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

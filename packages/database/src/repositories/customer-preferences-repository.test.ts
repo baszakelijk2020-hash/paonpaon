@@ -16,6 +16,11 @@ const preferencesRow: CustomerPreferencesRow = {
   communication_channels: ["email"],
   style_notes: null,
   marketing_opt_in: false,
+  personalization_opt_in: false,
+  location_opt_in: false,
+  personalization_withdrawn_at: null,
+  marketing_withdrawn_at: null,
+  location_withdrawn_at: null,
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
 };
@@ -64,8 +69,12 @@ describe("CustomerPreferencesRepository", () => {
       communicationChannels: ["email"],
       styleNotes: "Prefers wool over cashmere.",
       marketingOptIn: true,
+      personalizationOptIn: false,
+      locationOptIn: false,
     });
     expect(preferences.styleNotes).toBe("Prefers wool over cashmere.");
     expect(preferences.marketingOptIn).toBe(true);
+    expect(preferences.personalizationOptIn).toBe(false);
+    expect(preferences.locationOptIn).toBe(false);
   });
 });

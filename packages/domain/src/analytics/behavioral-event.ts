@@ -1,16 +1,21 @@
-import type { CustomerId, RetailerId } from "../shared/branded-id";
-
 /**
- * The single event shape fed into analytics and AI personalisation.
- * Every customer-facing interaction worth analyzing emits one of these
- * rather than a bespoke table — keeps the personalisation feature set
- * additive instead of requiring new schema per signal.
+ * @deprecated Prefer `InteractionEvent` from `../intelligence/interaction-event`.
+ * Re-exported so existing analytics imports keep compiling during the PHASE 3.1
+ * upgrade; the runtime shape now requires consent/retention fields.
  */
-export interface BehavioralEvent {
-  readonly retailerId: RetailerId;
-  readonly customerId?: CustomerId;
-  readonly name: string;
-  readonly properties: Record<string, unknown>;
-  readonly occurredAt: string;
-  readonly source: "customer_portal" | "retailer_portal" | "admin" | "server";
-}
+export type {
+  BehavioralEvent,
+  InteractionEvent,
+  InteractionEventName,
+  InteractionEventSource,
+  RetentionClass,
+} from "../intelligence/interaction-event";
+export {
+  DEFAULT_INTERACTION_PURPOSE,
+  DEFAULT_RETENTION_CLASS,
+  INTERACTION_EVENT_NAMES,
+  INTERACTION_EVENT_SOURCES,
+  RETENTION_CLASSES,
+  isInteractionEventName,
+  validateCaptureInteractionEvent,
+} from "../intelligence/interaction-event";

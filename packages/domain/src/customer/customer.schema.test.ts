@@ -52,6 +52,8 @@ describe("upsertCustomerPreferencesInputSchema", () => {
       preferredCurrency: "USD",
       communicationChannels: ["email"],
       marketingOptIn: false,
+      personalizationOptIn: false,
+      locationOptIn: false,
     });
   });
 

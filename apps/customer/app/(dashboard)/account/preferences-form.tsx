@@ -48,6 +48,8 @@ export function PreferencesForm({
         : ["email"],
       styleNotes: preferences?.styleNotes ?? "",
       marketingOptIn: preferences?.marketingOptIn ? "on" : "",
+      personalizationOptIn: preferences?.personalizationOptIn ? "on" : "",
+      locationOptIn: preferences?.locationOptIn ? "on" : "",
     },
   };
   const [state, formAction, isPending] = useActionState(
@@ -131,14 +133,45 @@ export function PreferencesForm({
           </div>
         </fieldset>
 
-        <label className="flex items-center gap-2 text-sm text-[var(--color-stone-700)]">
-          <input
-            type="checkbox"
-            name="marketingOptIn"
-            defaultChecked={v["marketingOptIn"] === "on"}
-          />
-          Send me marketing updates and offers
-        </label>
+        <fieldset className="flex flex-col gap-3">
+          <legend className="text-sm font-medium text-[var(--color-stone-700)]">
+            Privacy and personalisation
+          </legend>
+          <label className="flex items-start gap-2 text-sm text-[var(--color-stone-700)]">
+            <input
+              type="checkbox"
+              name="personalizationOptIn"
+              className="mt-1"
+              defaultChecked={v["personalizationOptIn"] === "on"}
+            />
+            <span>
+              Allow personalised recommendations and advisor preparation from my
+              browsing and saved items with this retailer. Turning this off
+              stops new use and removes personalisation signals.
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-[var(--color-stone-700)]">
+            <input
+              type="checkbox"
+              name="marketingOptIn"
+              className="mt-1"
+              defaultChecked={v["marketingOptIn"] === "on"}
+            />
+            <span>Send me marketing updates and offers</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-[var(--color-stone-700)]">
+            <input
+              type="checkbox"
+              name="locationOptIn"
+              className="mt-1"
+              defaultChecked={v["locationOptIn"] === "on"}
+            />
+            <span>
+              Allow optional location for weather-aware routines later. Not
+              required for personalisation.
+            </span>
+          </label>
+        </fieldset>
 
         <FormField
           label="Style notes"

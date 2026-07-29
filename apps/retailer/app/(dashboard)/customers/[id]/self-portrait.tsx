@@ -19,10 +19,15 @@ const TIER_TONE = {
 const EVENT_LABELS: Record<string, string> = {
   product_viewed: "Viewed a product",
   product_favorited: "Favorited a product",
+  product_skipped: "Skipped a product",
   category_browsed: "Browsed a category",
-  wishlist_added: "Added to wishlist",
-  appointment_booked: "Booked an appointment",
-  order_placed: "Placed an order",
+  search_performed: "Searched the catalogue",
+  filter_applied: "Applied a filter",
+  cart_updated: "Updated the cart",
+  knowledge_opened: "Opened a knowledge card",
+  advisor_question: "Asked an advisor question",
+  appointment_intent: "Showed appointment intent",
+  conversion_recorded: "Recorded a conversion signal",
 };
 
 function eventLabel(event: BehavioralEvent): string {

@@ -1127,33 +1127,54 @@ export type Database = {
       };
       behavioral_events: {
         Row: {
+          anonymized_at: string | null;
+          anonymous_session_id: string | null;
+          consent_basis: string;
+          consent_snapshot: Json;
           created_at: string;
           customer_id: string | null;
           id: string;
           name: string;
           occurred_at: string;
           properties: Json;
+          purpose: string;
           retailer_id: string;
+          retention_class: string;
+          retention_expires_at: string;
           source: string;
         };
         Insert: {
+          anonymized_at?: string | null;
+          anonymous_session_id?: string | null;
+          consent_basis?: string;
+          consent_snapshot?: Json;
           created_at?: string;
           customer_id?: string | null;
           id?: string;
           name: string;
           occurred_at?: string;
           properties?: Json;
+          purpose?: string;
           retailer_id: string;
+          retention_class?: string;
+          retention_expires_at?: string;
           source: string;
         };
         Update: {
+          anonymized_at?: string | null;
+          anonymous_session_id?: string | null;
+          consent_basis?: string;
+          consent_snapshot?: Json;
           created_at?: string;
           customer_id?: string | null;
           id?: string;
           name?: string;
           occurred_at?: string;
           properties?: Json;
+          purpose?: string;
           retailer_id?: string;
+          retention_class?: string;
+          retention_expires_at?: string;
           source?: string;
         };
         Relationships: [
@@ -1810,12 +1831,75 @@ export type Database = {
           },
         ];
       };
+      customer_consent_events: {
+        Row: {
+          actor_user_id: string | null;
+          created_at: string;
+          customer_id: string;
+          id: string;
+          previous_status: string | null;
+          purpose: string;
+          reason: string | null;
+          retailer_id: string;
+          status: string;
+        };
+        Insert: {
+          actor_user_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          previous_status?: string | null;
+          purpose: string;
+          reason?: string | null;
+          retailer_id: string;
+          status: string;
+        };
+        Update: {
+          actor_user_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          previous_status?: string | null;
+          purpose?: string;
+          reason?: string | null;
+          retailer_id?: string;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_consent_events_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_consent_events_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "customer_consent_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customer_preferences: {
         Row: {
           communication_channels: string[];
           created_at: string;
           customer_id: string;
+          location_opt_in: boolean;
+          location_withdrawn_at: string | null;
           marketing_opt_in: boolean;
+          marketing_withdrawn_at: string | null;
+          personalization_opt_in: boolean;
+          personalization_withdrawn_at: string | null;
           preferred_currency: string;
           preferred_locale: string;
           style_notes: string | null;
@@ -1825,7 +1909,12 @@ export type Database = {
           communication_channels?: string[];
           created_at?: string;
           customer_id: string;
+          location_opt_in?: boolean;
+          location_withdrawn_at?: string | null;
           marketing_opt_in?: boolean;
+          marketing_withdrawn_at?: string | null;
+          personalization_opt_in?: boolean;
+          personalization_withdrawn_at?: string | null;
           preferred_currency?: string;
           preferred_locale?: string;
           style_notes?: string | null;
@@ -1835,7 +1924,12 @@ export type Database = {
           communication_channels?: string[];
           created_at?: string;
           customer_id?: string;
+          location_opt_in?: boolean;
+          location_withdrawn_at?: string | null;
           marketing_opt_in?: boolean;
+          marketing_withdrawn_at?: string | null;
+          personalization_opt_in?: boolean;
+          personalization_withdrawn_at?: string | null;
           preferred_currency?: string;
           preferred_locale?: string;
           style_notes?: string | null;
@@ -5692,45 +5786,6 @@ export type Database = {
           },
         ];
       };
-      pg_all_foreign_keys: {
-        Row: {
-          fk_columns: unknown[] | null;
-          fk_constraint_name: unknown;
-          fk_schema_name: unknown;
-          fk_table_name: unknown;
-          fk_table_oid: unknown;
-          is_deferrable: boolean | null;
-          is_deferred: boolean | null;
-          match_type: string | null;
-          on_delete: string | null;
-          on_update: string | null;
-          pk_columns: unknown[] | null;
-          pk_constraint_name: unknown;
-          pk_index_name: unknown;
-          pk_schema_name: unknown;
-          pk_table_name: unknown;
-          pk_table_oid: unknown;
-        };
-        Relationships: [];
-      };
-      tap_funky: {
-        Row: {
-          args: string | null;
-          is_definer: boolean | null;
-          is_strict: boolean | null;
-          is_visible: boolean | null;
-          kind: unknown;
-          langoid: unknown;
-          name: unknown;
-          oid: unknown;
-          owner: unknown;
-          returns: string | null;
-          returns_set: boolean | null;
-          schema: unknown;
-          volatility: string | null;
-        };
-        Relationships: [];
-      };
       worker_alteration_tasks: {
         Row: {
           alteration_id: string | null;
@@ -5855,22 +5910,6 @@ export type Database = {
       };
     };
     Functions: {
-      _cleanup: { Args: never; Returns: boolean };
-      _contract_on: { Args: { "": string }; Returns: unknown };
-      _currtest: { Args: never; Returns: number };
-      _db_privs: { Args: never; Returns: unknown[] };
-      _extensions: { Args: never; Returns: unknown[] };
-      _get: { Args: { "": string }; Returns: number };
-      _get_latest: { Args: { "": string }; Returns: number[] };
-      _get_note: { Args: { "": string }; Returns: string };
-      _is_verbose: { Args: never; Returns: boolean };
-      _prokind: { Args: { p_oid: unknown }; Returns: unknown };
-      _query: { Args: { "": string }; Returns: string };
-      _refine_vol: { Args: { "": string }; Returns: string };
-      _retval: { Args: { "": string }; Returns: string };
-      _table_privs: { Args: never; Returns: unknown[] };
-      _temptypes: { Args: { "": string }; Returns: string };
-      _todo: { Args: never; Returns: string };
       accept_platform_staff_invite: {
         Args: { p_staff_id: string };
         Returns: string;
@@ -5908,6 +5947,14 @@ export type Database = {
           p_wedding_party_id: string;
         };
         Returns: string;
+      };
+      anonymize_behavioral_events_for_customer: {
+        Args: { p_customer_id: string; p_retailer_id: string };
+        Returns: number;
+      };
+      anonymize_expired_behavioral_events: {
+        Args: { p_limit?: number };
+        Returns: number;
       };
       assign_alteration_work_order: {
         Args: {
@@ -5947,11 +5994,17 @@ export type Database = {
       };
       capture_behavioral_event: {
         Args: {
+          p_anonymous_session_id?: string;
+          p_consent_basis?: string;
+          p_consent_snapshot?: Json;
           p_customer_id?: string;
           p_name: string;
           p_occurred_at?: string;
           p_properties?: Json;
+          p_purpose?: string;
           p_retailer_id: string;
+          p_retention_class?: string;
+          p_retention_expires_at?: string;
           p_source?: string;
         };
         Returns: string;
@@ -6006,42 +6059,6 @@ export type Database = {
       };
       clock_in: { Args: never; Returns: string };
       clock_out: { Args: never; Returns: undefined };
-      col_is_null:
-        | {
-            Args: {
-              column_name: unknown;
-              description?: string;
-              schema_name: unknown;
-              table_name: unknown;
-            };
-            Returns: string;
-          }
-        | {
-            Args: {
-              column_name: unknown;
-              description?: string;
-              table_name: unknown;
-            };
-            Returns: string;
-          };
-      col_not_null:
-        | {
-            Args: {
-              column_name: unknown;
-              description?: string;
-              schema_name: unknown;
-              table_name: unknown;
-            };
-            Returns: string;
-          }
-        | {
-            Args: {
-              column_name: unknown;
-              description?: string;
-              table_name: unknown;
-            };
-            Returns: string;
-          };
       convert_pilot_to_live_retailer: {
         Args: { p_prospect_id: string };
         Returns: string;
@@ -6084,34 +6101,11 @@ export type Database = {
         };
         Returns: undefined;
       };
-      diag:
-        | {
-            Args: { msg: unknown };
-            Returns: {
-              error: true;
-            } & "Could not choose the best candidate function between: public.diag(msg => text), public.diag(msg => anyelement). Try renaming the parameters or the function itself in the database so function overloading can be resolved";
-          }
-        | {
-            Args: { msg: string };
-            Returns: {
-              error: true;
-            } & "Could not choose the best candidate function between: public.diag(msg => text), public.diag(msg => anyelement). Try renaming the parameters or the function itself in the database so function overloading can be resolved";
-          };
-      diag_test_name: { Args: { "": string }; Returns: string };
-      do_tap:
-        | { Args: never; Returns: string[] }
-        | { Args: { "": string }; Returns: string[] };
       ensure_my_loyalty_account: {
         Args: { p_retailer_id: string };
         Returns: string;
       };
       expire_due_prospect_demo_environments: { Args: never; Returns: number };
-      fail:
-        | { Args: never; Returns: string }
-        | { Args: { "": string }; Returns: string };
-      findfuncs: { Args: { "": string }; Returns: string[] };
-      finish: { Args: { exception_on_failure?: boolean }; Returns: string[] };
-      format_type_string: { Args: { "": string }; Returns: string };
       generate_prospect_demo_environment: {
         Args: {
           p_access_code: string;
@@ -6146,7 +6140,6 @@ export type Database = {
         Args: { p_retailer_id: string; p_since?: string };
         Returns: Json;
       };
-      has_unique: { Args: { "": string }; Returns: string };
       hex_color_contrast_ratio: {
         Args: { p_first: string; p_second: string };
         Returns: number;
@@ -6155,10 +6148,8 @@ export type Database = {
         Args: { p_hex: string };
         Returns: number;
       };
-      in_todo: { Args: never; Returns: boolean };
       is_alterations_advisor: { Args: never; Returns: boolean };
       is_alterations_management: { Args: never; Returns: boolean };
-      is_empty: { Args: { "": string }; Returns: string };
       is_my_event_invitation: {
         Args: { p_event_id: string };
         Returns: boolean;
@@ -6179,7 +6170,6 @@ export type Database = {
         Args: { p_wedding_party_id: string };
         Returns: boolean;
       };
-      isnt_empty: { Args: { "": string }; Returns: string };
       join_wedding_party: {
         Args: {
           p_email: string;
@@ -6193,26 +6183,16 @@ export type Database = {
         Returns: Json;
       };
       link_my_customer_accounts: { Args: never; Returns: undefined };
-      lives_ok: { Args: { "": string }; Returns: string };
       mark_conversation_read: {
         Args: { p_conversation_id: string };
         Returns: undefined;
       };
       next_alteration_work_order_number: { Args: never; Returns: string };
       next_order_number: { Args: never; Returns: string };
-      no_plan: { Args: never; Returns: boolean[] };
-      num_failed: { Args: never; Returns: number };
       open_prospect_demo: {
         Args: { p_access_code: string; p_public_token: string };
         Returns: Json;
       };
-      os_name: { Args: never; Returns: string };
-      pass:
-        | { Args: never; Returns: string }
-        | { Args: { "": string }; Returns: string };
-      pg_version: { Args: never; Returns: string };
-      pg_version_num: { Args: never; Returns: number };
-      pgtap_version: { Args: never; Returns: number };
       place_order: {
         Args: {
           p_quantity: number;
@@ -6331,9 +6311,6 @@ export type Database = {
         };
         Returns: undefined;
       };
-      runtests:
-        | { Args: never; Returns: string[] }
-        | { Args: { "": string }; Returns: string[] };
       save_prospect_demo_configuration: {
         Args: {
           p_change_note: string;
@@ -6365,6 +6342,15 @@ export type Database = {
         };
         Returns: undefined;
       };
+      set_customer_consent: {
+        Args: {
+          p_customer_id: string;
+          p_purpose: string;
+          p_reason?: string;
+          p_status: string;
+        };
+        Returns: undefined;
+      };
       set_product_fabric_profile: {
         Args: {
           p_composition?: Json;
@@ -6379,9 +6365,6 @@ export type Database = {
         Args: { p_prospect_id: string; p_publish: boolean };
         Returns: undefined;
       };
-      skip:
-        | { Args: { "": string }; Returns: string }
-        | { Args: { how_many: number; why: string }; Returns: string };
       submit_commercial_inquiry: {
         Args: {
           p_company_name: string;
@@ -6408,16 +6391,6 @@ export type Database = {
         Args: { p_email: string; p_retailer_id: string };
         Returns: undefined;
       };
-      throws_ok: { Args: { "": string }; Returns: string };
-      todo:
-        | { Args: { how_many: number }; Returns: boolean[] }
-        | { Args: { how_many: number; why: string }; Returns: boolean[] }
-        | { Args: { why: string }; Returns: boolean[] }
-        | { Args: { how_many: number; why: string }; Returns: boolean[] };
-      todo_end: { Args: never; Returns: boolean[] };
-      todo_start:
-        | { Args: never; Returns: boolean[] }
-        | { Args: { "": string }; Returns: boolean[] };
       toggle_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };
         Returns: boolean;
@@ -6719,9 +6692,7 @@ export type Database = {
       workshop_status: "active" | "inactive";
     };
     CompositeTypes: {
-      _time_trial_type: {
-        a_time: number | null;
-      };
+      [_ in never]: never;
     };
   };
 };

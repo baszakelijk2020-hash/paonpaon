@@ -1,7 +1,13 @@
 import {
   asId,
+  parseConsentSnapshot,
   type BehavioralEvent,
+  type ConsentBasis,
+  type ConsentPurpose,
   type CustomerId,
+  type InteractionEventName,
+  type InteractionEventSource,
+  type RetentionClass,
   type RetailerId,
 } from "@paon/domain";
 
@@ -37,14 +43,28 @@ export interface PlatformAnalytics {
 }
 
 const toDomain = (row: Row): BehavioralEvent => ({
+  id: asId<"BehavioralEventId">(row.id),
   retailerId: asId<"RetailerId">(row.retailer_id),
   ...(row.customer_id
     ? { customerId: asId<"CustomerId">(row.customer_id) }
     : {}),
-  name: row.name,
+  ...(row.anonymous_session_id
+    ? {
+        anonymousSessionId: asId<"AnonymousSessionId">(
+          row.anonymous_session_id,
+        ),
+      }
+    : {}),
+  name: row.name as InteractionEventName,
   properties: row.properties as Record<string, unknown>,
   occurredAt: row.occurred_at,
-  source: row.source as BehavioralEvent["source"],
+  source: row.source as InteractionEventSource,
+  purpose: row.purpose as ConsentPurpose,
+  consentBasis: row.consent_basis as ConsentBasis,
+  consentSnapshot: parseConsentSnapshot(row.consent_snapshot),
+  retentionClass: row.retention_class as RetentionClass,
+  retentionExpiresAt: row.retention_expires_at,
+  ...(row.anonymized_at ? { anonymizedAt: row.anonymized_at } : {}),
 });
 
 export class AnalyticsRepository {
@@ -58,6 +78,14 @@ export class AnalyticsRepository {
       p_source: event.source,
       ...(event.customerId ? { p_customer_id: event.customerId } : {}),
       p_occurred_at: event.occurredAt,
+      p_purpose: event.purpose,
+      p_consent_basis: event.consentBasis,
+      p_consent_snapshot: event.consentSnapshot as unknown as Json,
+      p_retention_class: event.retentionClass,
+      p_retention_expires_at: event.retentionExpiresAt,
+      ...(event.anonymousSessionId
+        ? { p_anonymous_session_id: event.anonymousSessionId }
+        : {}),
     });
     if (error) throw error;
     return data;
@@ -77,7 +105,10 @@ export class AnalyticsRepository {
     return data.map(toDomain);
   }
 
-  /** Scoped to one customer — the context AI personalisation (`@paon/ai`) builds a prompt from, not the retailer-wide feed `findRecent` returns. */
+  /**
+   * Advisor/customer-visible personalization signals: same retailer,
+   * still linked to the customer, not anonymized, and not past retention.
+   */
   async findRecentByCustomer(
     retailerId: RetailerId,
     customerId: CustomerId,
@@ -88,6 +119,8 @@ export class AnalyticsRepository {
       .select("*")
       .eq("retailer_id", retailerId)
       .eq("customer_id", customerId)
+      .is("anonymized_at", null)
+      .gt("retention_expires_at", new Date().toISOString())
       .order("occurred_at", { ascending: false })
       .limit(limit);
     if (error) throw error;

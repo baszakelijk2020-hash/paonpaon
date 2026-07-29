@@ -64,6 +64,8 @@ export const upsertCustomerPreferencesInputSchema = z.object({
   communicationChannels: z.array(communicationChannelSchema).default(["email"]),
   styleNotes: z.string().trim().max(2000).optional(),
   marketingOptIn: z.boolean().default(false),
+  personalizationOptIn: z.boolean().default(false),
+  locationOptIn: z.boolean().default(false),
 });
 
 export type UpsertCustomerPreferencesInput = z.infer<

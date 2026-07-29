@@ -65,5 +65,13 @@ export interface CustomerPreferences {
     "email" | "sms" | "push" | "in_app"
   )[];
   readonly styleNotes?: string;
+  /** Marketing purpose only — never implies personalization or location. */
   readonly marketingOptIn: boolean;
+  /** Personalization / StyleProfile signals (ADR-061). Default denied. */
+  readonly personalizationOptIn: boolean;
+  /** Precise location for MorningRoutine etc. Separate opt-in; not required. */
+  readonly locationOptIn: boolean;
+  readonly personalizationWithdrawnAt?: string;
+  readonly marketingWithdrawnAt?: string;
+  readonly locationWithdrawnAt?: string;
 }
