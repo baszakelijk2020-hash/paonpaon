@@ -63,4 +63,6 @@ export * from "./repositories/wardrobe-roadmap-repository";
 export * from "./repositories/morning-routine-repository";
 export * from "./repositories/morning-routine-delivery-repository";
 export * from "./morning-routine-delivery-orchestrator";
+export * from "./repositories/campaign-repository";
+export * from "./campaign-delivery-orchestrator";
 export type { Database } from "./generated/database.types";

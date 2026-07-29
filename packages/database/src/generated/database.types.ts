@@ -1194,6 +1194,84 @@ export type Database = {
           },
         ];
       };
+      campaign_delivery_audits: {
+        Row: {
+          campaign_id: string;
+          created_at: string;
+          customer_id: string;
+          for_date: string;
+          id: string;
+          notification_id: string | null;
+          outcome: string;
+          retailer_id: string;
+          scheduled_for: string;
+          suppression_reason: string | null;
+        };
+        Insert: {
+          campaign_id: string;
+          created_at?: string;
+          customer_id: string;
+          for_date: string;
+          id?: string;
+          notification_id?: string | null;
+          outcome: string;
+          retailer_id: string;
+          scheduled_for: string;
+          suppression_reason?: string | null;
+        };
+        Update: {
+          campaign_id?: string;
+          created_at?: string;
+          customer_id?: string;
+          for_date?: string;
+          id?: string;
+          notification_id?: string | null;
+          outcome?: string;
+          retailer_id?: string;
+          scheduled_for?: string;
+          suppression_reason?: string | null;
+        };
+        Relationships: [];
+      };
+      campaign_reward_grants: {
+        Row: {
+          campaign_id: string;
+          code: string;
+          created_at: string;
+          customer_id: string;
+          enrollment_id: string | null;
+          expires_at: string | null;
+          id: string;
+          retailer_id: string;
+          reward_kind: string;
+          status: string;
+        };
+        Insert: {
+          campaign_id: string;
+          code: string;
+          created_at?: string;
+          customer_id: string;
+          enrollment_id?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          retailer_id: string;
+          reward_kind: string;
+          status?: string;
+        };
+        Update: {
+          campaign_id?: string;
+          code?: string;
+          created_at?: string;
+          customer_id?: string;
+          enrollment_id?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          retailer_id?: string;
+          reward_kind?: string;
+          status?: string;
+        };
+        Relationships: [];
+      };
       catalogue_import_rows: {
         Row: {
           created_at: string;
@@ -5016,6 +5094,189 @@ export type Database = {
           },
         ];
       };
+      retailer_campaigns: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          created_by_staff_id: string | null;
+          description: string | null;
+          ends_at: string | null;
+          id: string;
+          kind: string;
+          minimum_loyalty_tier: string | null;
+          paused: boolean;
+          requires_personalization_consent: boolean;
+          retailer_id: string;
+          reward_cap_per_customer: number;
+          reward_expires_days: number | null;
+          reward_kind: string | null;
+          schedule_frequency: string;
+          starts_at: string | null;
+          timezone: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          description?: string | null;
+          ends_at?: string | null;
+          id?: string;
+          kind: string;
+          minimum_loyalty_tier?: string | null;
+          paused?: boolean;
+          requires_personalization_consent?: boolean;
+          retailer_id: string;
+          reward_cap_per_customer?: number;
+          reward_expires_days?: number | null;
+          reward_kind?: string | null;
+          schedule_frequency?: string;
+          starts_at?: string | null;
+          timezone?: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          description?: string | null;
+          ends_at?: string | null;
+          id?: string;
+          kind?: string;
+          minimum_loyalty_tier?: string | null;
+          paused?: boolean;
+          requires_personalization_consent?: boolean;
+          retailer_id?: string;
+          reward_cap_per_customer?: number;
+          reward_expires_days?: number | null;
+          reward_kind?: string | null;
+          schedule_frequency?: string;
+          starts_at?: string | null;
+          timezone?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      retailer_campaign_targets: {
+        Row: {
+          campaign_id: string;
+          created_at: string;
+          id: string;
+          label: string;
+          retailer_id: string;
+          target_id: string;
+          target_type: string;
+        };
+        Insert: {
+          campaign_id: string;
+          created_at?: string;
+          id?: string;
+          label: string;
+          retailer_id: string;
+          target_id: string;
+          target_type: string;
+        };
+        Update: {
+          campaign_id?: string;
+          created_at?: string;
+          id?: string;
+          label?: string;
+          retailer_id?: string;
+          target_id?: string;
+          target_type?: string;
+        };
+        Relationships: [];
+      };
+      wardrobe_challenge_day_looks: {
+        Row: {
+          accessories_product_id: string | null;
+          created_at: string;
+          customer_id: string;
+          day_index: number;
+          enrollment_id: string;
+          id: string;
+          jacket_product_id: string | null;
+          pocket_square_product_id: string | null;
+          retailer_id: string;
+          saved_at: string;
+          shirt_product_id: string | null;
+          shoes_product_id: string | null;
+          trousers_product_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          accessories_product_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          day_index: number;
+          enrollment_id: string;
+          id?: string;
+          jacket_product_id?: string | null;
+          pocket_square_product_id?: string | null;
+          retailer_id: string;
+          saved_at?: string;
+          shirt_product_id?: string | null;
+          shoes_product_id?: string | null;
+          trousers_product_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          accessories_product_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          day_index?: number;
+          enrollment_id?: string;
+          id?: string;
+          jacket_product_id?: string | null;
+          pocket_square_product_id?: string | null;
+          retailer_id?: string;
+          saved_at?: string;
+          shirt_product_id?: string | null;
+          shoes_product_id?: string | null;
+          trousers_product_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      wardrobe_challenge_enrollments: {
+        Row: {
+          campaign_id: string;
+          completed_at: string | null;
+          created_at: string;
+          customer_id: string;
+          id: string;
+          retailer_id: string;
+          started_at: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          campaign_id: string;
+          completed_at?: string | null;
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          retailer_id: string;
+          started_at?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          campaign_id?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          retailer_id?: string;
+          started_at?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       referrals: {
         Row: {
           code: string;
@@ -8247,6 +8508,87 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      complete_wardrobe_challenge: {
+        Args: { p_enrollment_id: string };
+        Returns: string;
+      };
+      enqueue_campaign_offer_notification: {
+        Args: {
+          p_action_href?: string;
+          p_body: string;
+          p_campaign_id: string;
+          p_customer_id: string;
+          p_retailer_id: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
+      record_campaign_delivery_audit: {
+        Args: {
+          p_campaign_id: string;
+          p_customer_id: string;
+          p_for_date: string;
+          p_notification_id?: string;
+          p_outcome: string;
+          p_retailer_id: string;
+          p_scheduled_for: string;
+          p_suppression_reason?: string;
+        };
+        Returns: string;
+      };
+      save_wardrobe_challenge_day_look: {
+        Args: {
+          p_accessories_product_id?: string;
+          p_day_index: number;
+          p_enrollment_id: string;
+          p_jacket_product_id?: string;
+          p_pocket_square_product_id?: string;
+          p_shirt_product_id?: string;
+          p_shoes_product_id?: string;
+          p_trousers_product_id?: string;
+        };
+        Returns: string;
+      };
+      set_campaign_target: {
+        Args: {
+          p_campaign_id: string;
+          p_label: string;
+          p_remove?: boolean;
+          p_retailer_id: string;
+          p_target_id: string;
+          p_target_type: string;
+        };
+        Returns: string;
+      };
+      start_wardrobe_challenge: {
+        Args: {
+          p_campaign_id: string;
+          p_customer_id: string;
+          p_retailer_id: string;
+        };
+        Returns: string;
+      };
+      upsert_retailer_campaign: {
+        Args: {
+          p_active?: boolean;
+          p_campaign_id?: string;
+          p_description?: string;
+          p_ends_at?: string;
+          p_kind: string;
+          p_minimum_loyalty_tier?: string;
+          p_paused?: boolean;
+          p_requires_personalization_consent?: boolean;
+          p_retailer_id: string;
+          p_reward_cap_per_customer?: number;
+          p_reward_expires_days?: number;
+          p_reward_kind?: string;
+          p_schedule_frequency?: string;
+          p_starts_at?: string;
+          p_timezone?: string;
+          p_title: string;
+        };
+        Returns: string;
       };
       upsert_morning_routine_subscription: {
         Args: {

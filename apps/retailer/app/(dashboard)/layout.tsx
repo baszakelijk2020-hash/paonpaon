@@ -184,6 +184,11 @@ export default async function DashboardLayout({
                 description: "Delivery pause and eligible products",
               },
               {
+                href: "/settings/campaigns",
+                label: "Campaigns",
+                description: "Private offers and wardrobe challenges",
+              },
+              {
                 href: "/analytics",
                 label: "Performance",
                 description: "Commercial and service signals",
