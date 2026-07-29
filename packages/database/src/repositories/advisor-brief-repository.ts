@@ -23,7 +23,9 @@ import { MetadataRepository } from "./metadata-repository";
 import { ProductRepository } from "./product-repository";
 import { ProductVariantRepository } from "./product-variant-repository";
 import { StyleProfileRepository } from "./style-profile-repository";
+import { WardrobeRepository } from "./wardrobe-repository";
 import { WardrobeRoadmapRepository } from "./wardrobe-roadmap-repository";
+import { WardrobeSelfScanRepository } from "./wardrobe-self-scan-repository";
 import { WishlistRepository } from "./wishlist-repository";
 
 export interface AdvisorBriefRepositoryDeps {
@@ -37,6 +39,8 @@ export interface AdvisorBriefRepositoryDeps {
   readonly metadata: MetadataRepository;
   readonly knowledge: KnowledgeRepository;
   readonly wardrobeRoadmaps?: WardrobeRoadmapRepository;
+  readonly wardrobe?: WardrobeRepository;
+  readonly wardrobeSelfScan?: WardrobeSelfScanRepository;
 }
 
 function asUuid(value: unknown): string | null {
@@ -70,6 +74,9 @@ export class AdvisorBriefRepository {
       knowledge: deps?.knowledge ?? new KnowledgeRepository(client),
       wardrobeRoadmaps:
         deps?.wardrobeRoadmaps ?? new WardrobeRoadmapRepository(client),
+      wardrobe: deps?.wardrobe ?? new WardrobeRepository(client),
+      wardrobeSelfScan:
+        deps?.wardrobeSelfScan ?? new WardrobeSelfScanRepository(client),
     };
   }
 
@@ -233,6 +240,31 @@ export class AdvisorBriefRepository {
         args.customerId,
       );
 
+    const selfReports = await this.deps.wardrobeSelfScan!.findRecentByCustomer(
+      args.customerId,
+      5,
+    );
+    const wardrobeItems = await this.deps.wardrobe!.findByCustomer(
+      args.customerId,
+    );
+    const itemsById = new Map(wardrobeItems.map((item) => [item.id, item]));
+    const wardrobeSelfReports = selfReports.map((report) => {
+      const item = itemsById.get(report.wardrobeItemId);
+      const label = item
+        ? `${item.brand ? `${item.brand} · ` : ""}${item.displayName}`
+        : "Wardrobe item";
+      return {
+        wardrobeItemId: report.wardrobeItemId,
+        itemLabel: label,
+        reportedAt: report.reportedAt,
+        ...(report.notes ? { notes: report.notes } : {}),
+        ...(report.fitPerception
+          ? { fitPerception: report.fitPerception }
+          : {}),
+        provenanceLabel: "Customer self-report" as const,
+      };
+    });
+
     return buildAdvisorPreparationBrief({
       retailerId: args.retailerId,
       customerId: args.customerId,
@@ -247,6 +279,7 @@ export class AdvisorBriefRepository {
       knowledgeLabels,
       wishlistItems: resolvedWishlist,
       wardrobeGaps,
+      wardrobeSelfReports,
       ...(conversation
         ? {
             conversationId: conversation.id,

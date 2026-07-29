@@ -20,9 +20,11 @@ import type {
   ProductVariantId,
   RetailerId,
   StylePreferenceEvidenceId,
+  WardrobeItemId,
 } from "../shared/branded-id";
 import { asId } from "../shared/branded-id";
 import type { AdvisorBriefWardrobeGap } from "../wardrobe/roadmap";
+import type { WardrobeFitPerception } from "../wardrobe/wardrobe";
 
 import {
   isAdvisorVisiblePersonalizationEvent,
@@ -117,6 +119,15 @@ export interface AdvisorBriefOccasion {
   readonly occurredAt: string;
 }
 
+export interface AdvisorBriefWardrobeSelfReport {
+  readonly wardrobeItemId: WardrobeItemId;
+  readonly itemLabel: string;
+  readonly reportedAt: string;
+  readonly notes?: string;
+  readonly fitPerception?: WardrobeFitPerception;
+  readonly provenanceLabel: "Customer self-report";
+}
+
 export interface AdvisorBriefLikelyNeed {
   readonly summary: string;
   readonly source: string;
@@ -166,6 +177,8 @@ export interface AdvisorPreparationBrief {
   readonly shortlist: readonly AdvisorBriefShortlistItem[];
   /** Ranked wardrobe gaps from the active roadmap when Stage 4.2 data exists. */
   readonly wardrobeGaps: readonly AdvisorBriefWardrobeGap[];
+  /** Recent customer self-scan reports — never official measurements (4.3). */
+  readonly wardrobeSelfReports: readonly AdvisorBriefWardrobeSelfReport[];
   readonly preparationSuggestions: readonly AdvisorBriefPreparationSuggestion[];
   readonly conversation?: AdvisorBriefConversation;
 }
@@ -203,6 +216,8 @@ export interface AdvisorBriefProjectionInput {
   readonly maxMessages?: number;
   /** Optional ranked gaps from the customer's wardrobe roadmap (PHASE 4.2). */
   readonly wardrobeGaps?: readonly AdvisorBriefWardrobeGap[];
+  /** Optional recent self-scan reports for advisor context (PHASE 4.3). */
+  readonly wardrobeSelfReports?: readonly AdvisorBriefWardrobeSelfReport[];
 }
 
 const INTEREST_EVENT_NAMES = new Set<InteractionEventName>([
@@ -313,6 +328,7 @@ function emptyBrief(
     questions: [],
     shortlist: [],
     wardrobeGaps: [],
+    wardrobeSelfReports: [],
     preparationSuggestions: suggestions,
     ...(conversation ? { conversation } : {}),
   };
@@ -864,6 +880,7 @@ export function buildAdvisorPreparationBrief(
     questions,
     shortlist,
     wardrobeGaps: input.wardrobeGaps ?? [],
+    wardrobeSelfReports: input.wardrobeSelfReports ?? [],
     preparationSuggestions,
     ...(conversation ? { conversation } : {}),
   };

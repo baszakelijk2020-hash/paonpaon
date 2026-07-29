@@ -1,9 +1,17 @@
 "use server";
 
-import { CustomerRepository, WardrobeRepository } from "@paon/database";
+import {
+  CustomerRepository,
+  WardrobeLifecycleRepository,
+  WardrobeRepository,
+  WardrobeSelfScanRepository,
+} from "@paon/database";
 import {
   createExternalWardrobeItemInputSchema,
+  dismissWardrobeGuidanceInputSchema,
+  logWardrobeLifecycleEventInputSchema,
   retireWardrobeItemInputSchema,
+  submitWardrobeSelfScanInputSchema,
   updateWardrobeItemStateInputSchema,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
@@ -181,6 +189,215 @@ export async function retireWardrobeItem(
       fieldErrors: {},
       formError:
         error instanceof Error ? error.message : "Could not retire item.",
+    };
+  }
+
+  revalidatePath("/wardrobe");
+  return { fieldErrors: {}, success: true };
+}
+
+export async function logWardrobeLifecycleEvent(
+  _prevState: WardrobeActionState,
+  formData: FormData,
+): Promise<WardrobeActionState> {
+  const session = await requireSession();
+  const retailerId = z.string().uuid().safeParse(formData.get("retailerId"));
+  const parsed = logWardrobeLifecycleEventInputSchema.safeParse({
+    wardrobeItemId: formData.get("wardrobeItemId"),
+    eventKind: formData.get("eventKind"),
+    note: optionalString(formData.get("note")),
+  });
+
+  if (!retailerId.success || !parsed.success) {
+    return {
+      fieldErrors: {
+        ...(!retailerId.success ? { retailerId: "Invalid retailer." } : {}),
+        ...(!parsed.success ? zodFieldErrors(parsed.error) : {}),
+      },
+    };
+  }
+
+  const customer = await resolveCustomer(session.userId, retailerId.data);
+  if (!customer) {
+    return {
+      fieldErrors: {},
+      formError: "No relationship with this retailer.",
+    };
+  }
+
+  try {
+    const supabase = await getSupabaseServerClient();
+    const wardrobeRepo = new WardrobeRepository(supabase);
+    const existing = await wardrobeRepo.findById(
+      parsed.data.wardrobeItemId as never,
+    );
+    if (
+      !existing ||
+      existing.customerId !== customer.id ||
+      existing.retailerId !== customer.retailerId
+    ) {
+      return { fieldErrors: {}, formError: "Wardrobe item not found." };
+    }
+    await new WardrobeLifecycleRepository(supabase).logLifecycleEvent(
+      parsed.data,
+    );
+  } catch (error) {
+    return {
+      fieldErrors: {},
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not log lifecycle event.",
+    };
+  }
+
+  revalidatePath("/wardrobe");
+  return { fieldErrors: {}, success: true };
+}
+
+export async function dismissWardrobeGuidance(
+  _prevState: WardrobeActionState,
+  formData: FormData,
+): Promise<WardrobeActionState> {
+  const session = await requireSession();
+  const retailerId = z.string().uuid().safeParse(formData.get("retailerId"));
+  const parsed = dismissWardrobeGuidanceInputSchema.safeParse({
+    wardrobeItemId: formData.get("wardrobeItemId"),
+    guidanceKey: formData.get("guidanceKey"),
+  });
+
+  if (!retailerId.success || !parsed.success) {
+    return {
+      fieldErrors: {
+        ...(!retailerId.success ? { retailerId: "Invalid retailer." } : {}),
+        ...(!parsed.success ? zodFieldErrors(parsed.error) : {}),
+      },
+    };
+  }
+
+  const customer = await resolveCustomer(session.userId, retailerId.data);
+  if (!customer) {
+    return {
+      fieldErrors: {},
+      formError: "No relationship with this retailer.",
+    };
+  }
+
+  try {
+    const supabase = await getSupabaseServerClient();
+    const wardrobeRepo = new WardrobeRepository(supabase);
+    const existing = await wardrobeRepo.findById(
+      parsed.data.wardrobeItemId as never,
+    );
+    if (
+      !existing ||
+      existing.customerId !== customer.id ||
+      existing.retailerId !== customer.retailerId
+    ) {
+      return { fieldErrors: {}, formError: "Wardrobe item not found." };
+    }
+    await new WardrobeLifecycleRepository(supabase).dismissGuidance(
+      parsed.data,
+    );
+  } catch (error) {
+    return {
+      fieldErrors: {},
+      formError:
+        error instanceof Error ? error.message : "Could not dismiss guidance.",
+    };
+  }
+
+  revalidatePath("/wardrobe");
+  return { fieldErrors: {}, success: true };
+}
+
+export async function submitWardrobeSelfScan(
+  _prevState: WardrobeActionState,
+  formData: FormData,
+): Promise<WardrobeActionState> {
+  const session = await requireSession();
+  const retailerId = z.string().uuid().safeParse(formData.get("retailerId"));
+  const parsed = submitWardrobeSelfScanInputSchema.safeParse({
+    wardrobeItemId: formData.get("wardrobeItemId"),
+    notes: optionalString(formData.get("notes")),
+    fitPerception: optionalString(formData.get("fitPerception")),
+  });
+
+  if (!retailerId.success || !parsed.success) {
+    return {
+      fieldErrors: {
+        ...(!retailerId.success ? { retailerId: "Invalid retailer." } : {}),
+        ...(!parsed.success ? zodFieldErrors(parsed.error) : {}),
+      },
+    };
+  }
+
+  const customer = await resolveCustomer(session.userId, retailerId.data);
+  if (!customer) {
+    return {
+      fieldErrors: {},
+      formError: "No relationship with this retailer.",
+    };
+  }
+
+  const photo = formData.get("photo");
+  let file:
+    | {
+        content: ArrayBuffer;
+        fileName: string;
+        mimeType: "image/jpeg" | "image/png" | "image/webp";
+        sizeBytes: number;
+      }
+    | undefined;
+
+  if (photo instanceof File && photo.size > 0) {
+    const mimeType = photo.type;
+    if (
+      mimeType !== "image/jpeg" &&
+      mimeType !== "image/png" &&
+      mimeType !== "image/webp"
+    ) {
+      return {
+        fieldErrors: {},
+        formError: "Photo must be JPEG, PNG, or WebP.",
+      };
+    }
+    if (photo.size > 10_485_760) {
+      return { fieldErrors: {}, formError: "Photo must be 10 MB or smaller." };
+    }
+    file = {
+      content: await photo.arrayBuffer(),
+      fileName: photo.name,
+      mimeType,
+      sizeBytes: photo.size,
+    };
+  }
+
+  try {
+    const supabase = await getSupabaseServerClient();
+    const wardrobeRepo = new WardrobeRepository(supabase);
+    const existing = await wardrobeRepo.findById(
+      parsed.data.wardrobeItemId as never,
+    );
+    if (
+      !existing ||
+      existing.customerId !== customer.id ||
+      existing.retailerId !== customer.retailerId
+    ) {
+      return { fieldErrors: {}, formError: "Wardrobe item not found." };
+    }
+
+    await new WardrobeSelfScanRepository(supabase).submitSelfScan({
+      retailerId: customer.retailerId,
+      customerId: customer.id,
+      input: parsed.data,
+      ...(file ? { file } : {}),
+    });
+  } catch (error) {
+    return {
+      fieldErrors: {},
+      formError:
+        error instanceof Error ? error.message : "Could not submit self-scan.",
     };
   }
 

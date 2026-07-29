@@ -470,7 +470,7 @@ replacement of human advice for uncertain high-value decisions.
     reject, advisor-brief gap projection; fabric/colour/formality founder
     nuance remains proposal-only and fails closed when unapproved.
 
-- [ ] **4.3 Lifecycle, longevity, self-scan, and fit freshness**
+- [x] **4.3 Lifecycle, longevity, self-scan, and fit freshness**
   - **Requirement IDs:** `WARD-002`, `FIT-001`, `FIT-002`, `FIT-003`,
     `LONG-001`.
   - **Dependencies:** `4.1`; ADR-016, ADR-055, and ADR-063.
@@ -487,6 +487,11 @@ replacement of human advice for uncertain high-value decisions.
   - **Non-goals:** no coercive planned obsolescence, body measurement profile,
     medical judgement, automatic alteration, or public images.
   - **Hard blockers:** none.
+  - **Landed:** wardrobe lifecycle events, guidance dismissals, customer
+    self-scan with private `wardrobe-private` attachments, deterministic fit
+    freshness from official fitting sessions, Customer/Retailer service views,
+    and advisor-brief self-report projection; self reports never write
+    `fitting_observations`.
 
 - [ ] **4.4 MorningRoutine selection and actions**
   - **Requirement IDs:** `MR-001`, `MR-002`, `ENG-002`.

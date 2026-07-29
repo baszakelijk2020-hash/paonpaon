@@ -11,9 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `4.3 Lifecycle, longevity, self-scan, and fit freshness`
-- **Current requirement IDs:** `WARD-002`, `FIT-001`, `FIT-002`, `FIT-003`,
-  `LONG-001`
+- **Current queue item:** `4.4 MorningRoutine selection and actions`
+- **Current requirement IDs:** `MR-001`, `MR-002`, `ENG-002`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -33,7 +32,9 @@ requires it.
   advisor preparation briefing (PHASE 3.3 complete); `ed2f0dc` adds grounded
   TableService occasion guidance (PHASE 3.4 complete); `a407890` adds wardrobe
   ownership and collaboration (PHASE 4.1 complete); `92f7afe` adds wardrobe
-  roadmaps, outfits, and sartorial rules (PHASE 4.2 complete).
+  roadmaps, outfits, and sartorial rules (PHASE 4.2 complete); `a7ac358` adds
+  wardrobe lifecycle, self-scan, fit freshness, and longevity guidance (PHASE
+  4.3 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -55,26 +56,26 @@ requires it.
   `StyleProfileRepository`, `AdvisorBriefRepository`,
   `TableServiceGuidanceRepository`, `WardrobeRepository`,
   `SartorialRuleRepository`, `OutfitRepository`, `WardrobeRoadmapRepository`,
+  `WardrobeLifecycleRepository`, `WardrobeSelfScanRepository`,
   upgraded `AnalyticsRepository`, `@paon/domain` intelligence
   consent/interaction-event/StyleProfile/advisor-brief/grounded-answer/
-  wardrobe/sartorial/outfit/roadmap contracts, `@paon/ai`
+  wardrobe/sartorial/outfit/roadmap/lifecycle/fit-freshness/self-scan contracts, `@paon/ai`
   `generateGroundedAnswer`, customer account consent + StyleProfile + wardrobe
   - roadmap controls, consented storefront/swipe/TableService producers,
     Retailer Portal advisor brief/wardrobe/roadmap mounts, and TableService
     occasion guidance with swipe/appointment conversion hooks.
-- **Checks/deployment state:** 103 migrations; wardrobe roadmap/outfit/
-  sartorial domain/migration/repo/surface and lint/typecheck/test/build/
-  format are green on the 4.2 tip. Anonymous interaction persistence remains
+- **Checks/deployment state:** 104 migrations; wardrobe lifecycle/self-scan/
+  fit-freshness domain/migration/repo/surface and lint/typecheck/test/build/
+  format are green on the 4.3 tip. Anonymous interaction persistence remains
   blocked pending jurisdiction documentation.
-- **Real blockers:** none for Stage 4.3 lifecycle/fit work beyond ordinary
-  private attachment storage setup; anonymous persistence remains blocked for
-  new anonymous producers only; missing founder-authored fabric/colour/
-  formality sartorial rules still block only those exact claims (neutral
+- **Real blockers:** none for Stage 4.4 MorningRoutine work beyond optional
+  weather/calendar credentials for live smoke; anonymous persistence remains
+  blocked for new anonymous producers only; missing founder-authored fabric/
+  colour/formality sartorial rules still block only those exact claims (neutral
   slot-compatibility fixtures remain available).
-- **Exact next files/tests:** implement queue item 4.3 Lifecycle, longevity,
-  self-scan, and fit freshness: wardrobe lifecycle/history, private attachment
-  storage, official-fitting projection, appointment/alteration handoff, and
-  customer/advisor service views.
+- **Exact next files/tests:** implement queue item 4.4 MorningRoutine selection
+  and actions: pure routine selection/explanation, provider-neutral weather/
+  calendar interfaces, repository projections, and Customer Environment view.
 
 ## 1. Programme intent
 

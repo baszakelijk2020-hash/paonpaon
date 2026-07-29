@@ -98,3 +98,7 @@ export * from "./wardrobe/sartorial-fixtures";
 export * from "./wardrobe/outfit";
 export * from "./wardrobe/roadmap";
 export * from "./wardrobe/roadmap.schema";
+export * from "./wardrobe/lifecycle";
+export * from "./wardrobe/lifecycle.schema";
+export * from "./wardrobe/fit-freshness";
+export * from "./wardrobe/self-scan";

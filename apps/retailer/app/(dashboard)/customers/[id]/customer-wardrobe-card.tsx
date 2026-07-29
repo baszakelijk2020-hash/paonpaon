@@ -3,8 +3,10 @@
 import {
   GARMENT_CATEGORIES,
   WARDROBE_CONDITION_STATES,
+  type FitFreshnessProjection,
   type WardrobeItem,
   type WardrobeOwnershipEvent,
+  type WardrobeSelfReport,
 } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -26,12 +28,25 @@ export function CustomerWardrobeCard({
   customerId,
   items,
   historyByItemId,
+  serviceByItemId,
   catalogueProducts,
   canManage,
 }: {
   customerId: string;
   items: readonly WardrobeItem[];
   historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
+  serviceByItemId: Readonly<
+    Record<
+      string,
+      {
+        fitFreshness: FitFreshnessProjection;
+        selfReports: readonly {
+          report: WardrobeSelfReport;
+          signedUrl?: string;
+        }[];
+      }
+    >
+  >;
   catalogueProducts: readonly { id: string; name: string }[];
   canManage: boolean;
 }) {
@@ -100,6 +115,50 @@ export function CustomerWardrobeCard({
                 <p className="mt-1 text-xs text-[var(--color-stone-600)]">
                   Self-reported fit: {item.fitNotes}
                 </p>
+              ) : null}
+              {serviceByItemId[item.id] ? (
+                <div className="mt-2 space-y-1 text-xs">
+                  <p className="text-[var(--color-stone-600)]">
+                    <span className="font-medium">Official fit: </span>
+                    {serviceByItemId[item.id]!.fitFreshness.label}
+                    {serviceByItemId[item.id]!.fitFreshness
+                      .lastOfficialMeasuredAt
+                      ? ` · last measured ${new Date(
+                          serviceByItemId[item.id]!.fitFreshness
+                            .lastOfficialMeasuredAt!,
+                        ).toLocaleDateString()}`
+                      : ""}
+                  </p>
+                  {serviceByItemId[item.id]!.selfReports.length > 0 ? (
+                    <details className="text-[var(--color-stone-500)]">
+                      <summary className="cursor-pointer">
+                        Customer self-reports (
+                        {serviceByItemId[item.id]!.selfReports.length})
+                      </summary>
+                      <ul className="mt-1 space-y-1 pl-3">
+                        {serviceByItemId[item.id]!.selfReports.map(
+                          ({ report, signedUrl }) => (
+                            <li key={report.id}>
+                              Self-reported ·{" "}
+                              {new Date(report.reportedAt).toLocaleDateString()}
+                              {report.notes ? ` — ${report.notes}` : ""}
+                              {signedUrl ? (
+                                <a
+                                  href={signedUrl}
+                                  className="ml-2 underline"
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  Photo
+                                </a>
+                              ) : null}
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </details>
+                  ) : null}
+                </div>
               ) : null}
               {(historyByItemId[item.id] ?? []).length > 0 ? (
                 <details className="mt-1 text-xs text-[var(--color-stone-500)]">

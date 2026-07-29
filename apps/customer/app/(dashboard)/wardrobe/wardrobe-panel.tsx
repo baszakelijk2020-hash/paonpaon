@@ -6,8 +6,11 @@ import {
   WARDROBE_CONDITION_STATES,
   WARDROBE_FIT_PERCEPTIONS,
   WARDROBE_WEAR_FREQUENCIES,
+  type FitFreshnessProjection,
+  type WardrobeGuidanceItem,
   type WardrobeItem,
   type WardrobeOwnershipEvent,
+  type WardrobeSelfReport,
 } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -18,6 +21,7 @@ import {
   retireWardrobeItem,
   type WardrobeActionState,
 } from "./actions";
+import { WardrobeItemLifecyclePanel } from "./wardrobe-lifecycle-panel";
 
 function ownershipLabel(item: WardrobeItem): string {
   if (item.ownershipKind === "retailer_purchased") {
@@ -41,16 +45,33 @@ function provenanceLabel(item: WardrobeItem): string {
 
 export function WardrobeHousePanel({
   retailerId,
+  retailerSlug,
   retailerName,
   customerId,
   items,
   historyByItemId,
+  lifecycleByItemId,
 }: {
   retailerId: string;
+  retailerSlug: string;
   retailerName: string;
   customerId: string;
   items: readonly WardrobeItem[];
   historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
+  lifecycleByItemId: Readonly<
+    Record<
+      string,
+      {
+        guidance: readonly WardrobeGuidanceItem[];
+        fitFreshness: FitFreshnessProjection;
+        selfReports: readonly {
+          report: WardrobeSelfReport;
+          signedUrl?: string;
+        }[];
+        orderStatus?: string | null;
+      }
+    >
+  >;
 }) {
   const initialState: WardrobeActionState = { fieldErrors: {} };
   const [addState, addAction, addPending] = useActionState(
@@ -171,6 +192,21 @@ export function WardrobeHousePanel({
                     ))}
                   </ul>
                 </details>
+              ) : null}
+              {(lifecycleByItemId[item.id] ?? null) ? (
+                <WardrobeItemLifecyclePanel
+                  retailerId={retailerId}
+                  retailerSlug={retailerSlug}
+                  item={item}
+                  guidance={lifecycleByItemId[item.id]!.guidance}
+                  fitFreshness={lifecycleByItemId[item.id]!.fitFreshness}
+                  selfReports={lifecycleByItemId[item.id]!.selfReports}
+                  {...(lifecycleByItemId[item.id]!.orderStatus !== undefined
+                    ? {
+                        orderStatus: lifecycleByItemId[item.id]!.orderStatus,
+                      }
+                    : {})}
+                />
               ) : null}
             </li>
           ))}
