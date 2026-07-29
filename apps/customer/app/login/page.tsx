@@ -21,10 +21,9 @@ const ERROR_MESSAGES: Record<string, string> = {
  * `MagicLinkForm`/`DemoLoginForm`/`QuickDemoLogin` are unmodified — same
  * labels, same accessible names, same Server Actions — only restyled from
  * the outside via arbitrary-variant descendant selectors on the wrapping
- * div (`[&_input]:...`, `[&_label]:...`), so the glass pill treatment
+ * div (`[&_input]:...`, `[&_label]:...`), so the glass treatment
  * reaches the actual input/button instead of hiding the form in an opaque
- * card. `@paon/ui`'s `Input`/`Label`/`Button` are not changed — this is a
- * page-local visual override, not a new shared component variant.
+ * card. Inputs and submit use `--radius-md` (paon.html), not pill chrome.
  */
 export default async function LoginPage({
   searchParams,
@@ -58,7 +57,7 @@ export default async function LoginPage({
       <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/75" />
 
       <div className="relative flex min-h-screen flex-col justify-between px-5 pb-8 pt-12 sm:px-10 sm:pt-16">
-        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.24em] text-white/80 backdrop-blur-2xl">
+        <span className="inline-flex w-fit items-center gap-2 rounded-[var(--radius-md)] border border-white/15 bg-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.24em] text-white/80 backdrop-blur-2xl">
           PAON · {isDemo ? "Showcase access" : "Private client"}
         </span>
 

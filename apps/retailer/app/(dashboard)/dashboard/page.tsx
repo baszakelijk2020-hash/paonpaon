@@ -185,15 +185,14 @@ export default async function DashboardPage() {
           aria-hidden="true"
           className="absolute inset-y-0 right-0 -z-10 w-2/5 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_68%)]"
         />
-        <div className="mb-8 flex items-center justify-between border-b border-white/10 pb-5">
+        <div className="mb-8 flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-white/10 pb-5">
           <div className="flex items-center gap-2 text-xs text-white/50">
-            <span aria-hidden="true">☼</span>
             <span>{todayLabel}</span>
           </div>
-          <p className="font-accent text-sm uppercase tracking-[0.28em] text-white/85">
+          <p className="font-accent text-sm uppercase tracking-[0.28em] text-white/85 sm:mx-auto">
             {retailer.displayName}
           </p>
-          <div className="flex items-center gap-4">
+          <div className="ml-auto flex items-center gap-4">
             <Link
               href="/appointments"
               aria-label="Calendar"
