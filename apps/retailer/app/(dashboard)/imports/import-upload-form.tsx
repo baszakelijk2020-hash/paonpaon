@@ -21,8 +21,8 @@ export function ImportUploadForm() {
           Upload for preview
         </h2>
         <p className="mt-1 text-sm text-[var(--color-stone-500)]">
-          CSV, XLSX, or JSON only. Preview explains mappings, duplicates, and asset
-          matches before transactional publishing.
+          CSV, XLSX, or JSON only. Preview explains mappings, duplicates, and
+          asset matches before transactional publishing.
         </p>
       </div>
       <form action={action} className="grid gap-4">

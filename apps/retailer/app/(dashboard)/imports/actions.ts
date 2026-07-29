@@ -232,7 +232,8 @@ export async function publishCatalogueImportAction(
     revalidatePath("/products");
     if (batch.failures.length > 0) {
       return {
-        formError: `${batch.failures.length} row(s) failed to publish. ${batch.failures[0]?.message ?? ""}`.trim(),
+        formError:
+          `${batch.failures.length} row(s) failed to publish. ${batch.failures[0]?.message ?? ""}`.trim(),
       };
     }
     if (batch.published.length === 0) {
@@ -245,7 +246,9 @@ export async function publishCatalogueImportAction(
   } catch (error) {
     return {
       formError:
-        error instanceof Error ? error.message : "Could not publish this import.",
+        error instanceof Error
+          ? error.message
+          : "Could not publish this import.",
     };
   }
 }

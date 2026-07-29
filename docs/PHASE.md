@@ -56,8 +56,8 @@ Verified against code and 91 migrations on 2026-07-30:
   Accepted-metadata catalogue query supports named facets, weight/price
   ranges, intent mapping, and pagination with founder filter hooks.
   Catalogue import jobs/rows/review tasks, CSV/XLSX/JSON parsers, downloadable
-  contracts, and Retailer Portal preview exist; transactional reviewed publishing
-  does not.
+  contracts, and Retailer Portal preview and transactional publish exist; AI-assisted
+  enrichment does not.
   No style-profile, wardrobe, outfit, roadmap, service-plan, or campaign table
   exists.
 

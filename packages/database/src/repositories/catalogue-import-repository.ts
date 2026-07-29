@@ -257,6 +257,20 @@ export class CatalogueImportRepository {
     return (data ?? []).map(toImportRow);
   }
 
+  async findReviewTasksForRow(
+    retailerId: RetailerId,
+    importRowId: CatalogueImportRowId,
+  ): Promise<readonly MetadataReviewTask[]> {
+    const { data, error } = await this.client
+      .from("metadata_review_tasks")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .eq("import_row_id", importRowId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(toReviewTask);
+  }
+
   async findReviewTasksForImport(
     retailerId: RetailerId,
     importId: CatalogueImportId,
@@ -447,19 +461,23 @@ export class CatalogueImportRepository {
   async reviewMetadataTask(params: {
     readonly retailerId: RetailerId;
     readonly taskId: MetadataReviewTaskId;
-    readonly status: Exclude<
-      MetadataReviewTaskStatus,
-      "pending"
-    >;
+    readonly status: Exclude<MetadataReviewTaskStatus, "pending">;
     readonly proposedConceptId?: string;
   }): Promise<MetadataReviewTask> {
+    const rpcArgs: {
+      p_task_id: string;
+      p_status: typeof params.status;
+      p_proposed_concept_id?: string;
+    } = {
+      p_task_id: params.taskId,
+      p_status: params.status,
+    };
+    if (params.proposedConceptId !== undefined) {
+      rpcArgs.p_proposed_concept_id = params.proposedConceptId;
+    }
     const { data, error } = await this.client.rpc(
       "review_catalogue_import_metadata_task",
-      {
-        p_task_id: params.taskId,
-        p_status: params.status,
-        p_proposed_concept_id: params.proposedConceptId ?? undefined,
-      },
+      rpcArgs,
     );
     if (error) {
       throw error;
@@ -498,11 +516,11 @@ export class CatalogueImportRepository {
       throw new Error("Catalogue import row is unavailable");
     }
 
-    const importId = asId<"CatalogueImportId">(rowData.import_id);
     const domainRow = toImportRow(rowData);
-    const reviewTasks = (
-      await this.findReviewTasksForImport(params.retailerId, importId)
-    ).filter((task) => task.importRowId === params.importRowId);
+    const reviewTasks = await this.findReviewTasksForRow(
+      params.retailerId,
+      params.importRowId,
+    );
 
     const eligibility = assessCatalogueImportRowPublishEligibility({
       row: domainRow,
@@ -549,7 +567,10 @@ export class CatalogueImportRepository {
     readonly importId: CatalogueImportId;
   }): Promise<{
     readonly published: readonly CatalogueImportPublishResult[];
-    readonly failures: readonly { readonly rowId: CatalogueImportRowId; readonly message: string }[];
+    readonly failures: readonly {
+      readonly rowId: CatalogueImportRowId;
+      readonly message: string;
+    }[];
   }> {
     const [rows, reviewTasks] = await Promise.all([
       this.findRows(params.retailerId, params.importId),
@@ -588,7 +609,9 @@ export class CatalogueImportRepository {
         failures.push({
           rowId: row.id,
           message:
-            error instanceof Error ? error.message : "Publish failed unexpectedly",
+            error instanceof Error
+              ? error.message
+              : "Publish failed unexpectedly",
         });
       }
     }

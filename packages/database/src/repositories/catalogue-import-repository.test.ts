@@ -230,9 +230,9 @@ describe("CatalogueImportRepository", () => {
     const rpc = vi
       .fn()
       .mockResolvedValue({ data: null, error: { message: "blocked" } });
-    const update = vi.fn().mockReturnValue(
-      fakeQueryBuilder({ data: null, error: null }),
-    );
+    const update = vi
+      .fn()
+      .mockReturnValue(fakeQueryBuilder({ data: null, error: null }));
     const from = vi.fn((table: string) => {
       if (table === "catalogue_import_rows") {
         const builder = fakeQueryBuilder({

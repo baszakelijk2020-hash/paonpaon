@@ -11,13 +11,13 @@ import { Card } from "@paon/ui/components/Card";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { requireSession } from "@/lib/session";
-import { getSupabaseServerClient } from "@/lib/supabase-server";
-
 import {
   ImportPublishControls,
   ImportReviewTaskControls,
 } from "../import-publish-controls";
+
+import { requireSession } from "@/lib/session";
+import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function ImportPreviewPage({
   params,
@@ -73,9 +73,9 @@ export default async function ImportPreviewPage({
             {job.sourceFilename}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
-            Raw supplier values are preserved. Resolve review tasks, then publish
-            reviewed rows transactionally into the catalogue without losing source
-            state or audit attribution.
+            Raw supplier values are preserved. Resolve review tasks, then
+            publish reviewed rows transactionally into the catalogue without
+            losing source state or audit attribution.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -152,7 +152,10 @@ export default async function ImportPreviewPage({
                       </p>
                     ) : null}
                     {row.publishError ? (
-                      <p className="mt-1 text-sm text-[var(--color-danger-500)]" role="alert">
+                      <p
+                        className="mt-1 text-sm text-[var(--color-danger-500)]"
+                        role="alert"
+                      >
                         Last publish error: {row.publishError}
                       </p>
                     ) : null}
@@ -333,10 +336,10 @@ export default async function ImportPreviewPage({
       )}
 
       <Card className="border-dashed p-4 text-sm text-[var(--color-stone-500)]">
-        Publishing is transactional: each eligible row creates or updates products,
-        variants, assets, exact facts, and accepted metadata assignments in one
-        database transaction. Failed rows retain their source payload and can be
-        retried after review.
+        Publishing is transactional: each eligible row creates or updates
+        products, variants, assets, exact facts, and accepted metadata
+        assignments in one database transaction. Failed rows retain their source
+        payload and can be retried after review.
       </Card>
     </div>
   );
