@@ -27,6 +27,19 @@ export type RetailerConceptOverrideId = Brand<
   string,
   "RetailerConceptOverrideId"
 >;
+export type KnowledgeObjectId = Brand<string, "KnowledgeObjectId">;
+export type KnowledgeObjectConceptId = Brand<
+  string,
+  "KnowledgeObjectConceptId"
+>;
+export type KnowledgeObjectRelationId = Brand<
+  string,
+  "KnowledgeObjectRelationId"
+>;
+export type RetailerKnowledgeOverrideId = Brand<
+  string,
+  "RetailerKnowledgeOverrideId"
+>;
 export type WardrobeItemId = Brand<string, "WardrobeItemId">;
 export type OrderId = Brand<string, "OrderId">;
 export type OrderLineId = Brand<string, "OrderLineId">;

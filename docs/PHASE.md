@@ -25,7 +25,7 @@ founder-designed surfaces remain authoritative wherever they define the UI.
 
 ## As-built baseline
 
-Verified against code and 91 migrations on 2026-07-30:
+Verified against code and 93 migrations on 2026-07-30:
 
 - Three Next.js applications and shared domain/database/auth/UI/integration
   packages are established.
@@ -48,9 +48,12 @@ Verified against code and 91 migrations on 2026-07-30:
   Portal metadata review UI lets managers propose/accept/reject tenant
   assignments, create local concepts, and apply presentation overrides.
   Product management now edits exact fabric weight, supplier reference,
-  concept-linked composition, and product/variant catalogue assignments. No
-  knowledge object, catalogue import, style-profile, wardrobe, outfit,
-  roadmap, service-plan, or campaign table exists.
+  concept-linked composition, and product/variant catalogue assignments.
+  Canonical/retailer knowledge objects, concept joins, relations, display
+  types, commercial intent, active state, and local hide/presentation/
+  priority/pin controls now exist with reviewed canonical fixtures. No
+  catalogue import, style-profile, wardrobe, outfit, roadmap, service-plan,
+  or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -178,7 +181,7 @@ storefront redesign, or customer personalization.
 
 ### Stage 2 — Knowledge, discovery, search, and import
 
-- [ ] **2.1 Knowledge contracts and persistence**
+- [x] **2.1 Knowledge contracts and persistence**
   - **Requirement IDs:** `EDU-001`, `ENG-001`, `ENG-002`, `ENG-003`.
   - **Dependencies:** `1.3`; ADR-060.
   - **Owner boundary:** `@paon/domain`, forward migration/RLS, generated types,

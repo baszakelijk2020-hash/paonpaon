@@ -31,6 +31,9 @@ export * from "./metadata/metadata";
 export * from "./metadata/metadata.schema";
 export * from "./metadata/metadata-retailer-form";
 
+export * from "./knowledge/knowledge";
+export * from "./knowledge/knowledge.schema";
+
 export * from "./commerce/order";
 export * from "./commerce/order.schema";
 export * from "./commerce/payment";
