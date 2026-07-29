@@ -15,6 +15,7 @@ export * from "./repositories/product-variant-repository";
 export * from "./repositories/metadata-repository";
 export * from "./repositories/catalogue-query-repository";
 export * from "./repositories/catalogue-import-repository";
+export * from "./repositories/import-enrichment-prompt-repository";
 export * from "./repositories/knowledge-repository";
 export * from "./repositories/product-fabric-profile-repository";
 export * from "./repositories/order-repository";

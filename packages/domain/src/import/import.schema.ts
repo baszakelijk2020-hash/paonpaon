@@ -169,6 +169,8 @@ export const createMetadataReviewTaskInputSchema = z.object({
       "Confidence supports at most 4 decimal places",
     )
     .optional(),
+  evidence: z.string().trim().min(1).max(1000).optional(),
+  fieldKey: z.string().trim().min(1).max(80).optional(),
   status: metadataReviewTaskStatusSchema.default("pending"),
 });
 

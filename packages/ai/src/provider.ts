@@ -43,6 +43,21 @@ export interface ProductRecommendationResult {
   rationale: string;
 }
 
+export interface CatalogueImportEnrichmentContext {
+  readonly systemPrompt: string;
+  readonly row: {
+    readonly externalSku?: string;
+    readonly name?: string;
+    readonly description?: string;
+    readonly supplierFacts: Readonly<Record<string, string>>;
+  };
+  readonly knownTaxonomy: readonly {
+    readonly kind: string;
+    readonly slug: string;
+    readonly canonicalName: string;
+  }[];
+}
+
 export interface AIProvider {
   readonly providerName: string;
   readonly model: string;
@@ -52,4 +67,11 @@ export interface AIProvider {
   generateProductRecommendation(
     context: ProductRecommendationContext,
   ): Promise<ProductRecommendationResult>;
+  /**
+   * Returns parsed JSON from the model. Domain validation and pending
+   * review persistence happen outside this package (IMP-003).
+   */
+  enrichCatalogueImportRow(
+    context: CatalogueImportEnrichmentContext,
+  ): Promise<unknown>;
 }

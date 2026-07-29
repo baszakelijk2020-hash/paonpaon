@@ -4,6 +4,7 @@ import { Button } from "@paon/ui/components/Button";
 import { useActionState } from "react";
 
 import {
+  enrichImportRows,
   publishImportReadyRows,
   publishImportRow,
   reviewImportTask,
@@ -12,6 +13,39 @@ import {
 
 const initialState: ImportPublishState = {};
 
+export function EnrichImportButton({
+  importId,
+  disabled,
+}: {
+  importId: string;
+  disabled?: boolean;
+}) {
+  const [state, action, pending] = useActionState(
+    enrichImportRows,
+    initialState,
+  );
+
+  return (
+    <div className="grid gap-2">
+      <form action={action}>
+        <input type="hidden" name="importId" value={importId} />
+        <Button type="submit" variant="outline" disabled={disabled || pending}>
+          {pending ? "Running AI enrichment…" : "Run AI enrichment"}
+        </Button>
+      </form>
+      {state.formError ? (
+        <p role="alert" className="text-sm text-[var(--color-danger-500)]">
+          {state.formError}
+        </p>
+      ) : null}
+      {state.message ? (
+        <p role="status" className="text-sm text-[var(--color-stone-500)]">
+          {state.message}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 export function ReviewTaskActions({
   importId,
   taskId,

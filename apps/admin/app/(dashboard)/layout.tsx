@@ -46,6 +46,11 @@ const navigation: AppShellNavGroup[] = [
         description: "Generation quality and failures",
       },
       {
+        href: "/import-enrichment",
+        label: "Import enrichment",
+        description: "External LLM prompt contract",
+      },
+      {
         href: "/metadata",
         label: "Metadata",
         description: "Canonical menswear concepts",

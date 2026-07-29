@@ -136,6 +136,10 @@ export interface MetadataReviewTask {
   readonly proposedValue: string;
   readonly source: MetadataSource;
   readonly confidence?: number;
+  /** Field-level evidence retained for AI proposals (IMP-003). */
+  readonly evidence?: string;
+  /** Stable field key used for AI enrichment idempotency. */
+  readonly fieldKey?: string;
   readonly status: MetadataReviewTaskStatus;
   readonly reviewedByStaffId?: StaffId;
   readonly reviewedAt?: string;

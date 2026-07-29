@@ -1,4 +1,5 @@
 import { requireRetailerRole } from "@paon/auth";
+import { ImportEnrichmentPromptRepository } from "@paon/database";
 import {
   buildCatalogueImportTemplate,
   catalogueImportTemplateContentType,
@@ -7,6 +8,7 @@ import {
 } from "@paon/domain";
 
 import { requireSession } from "@/lib/session";
+import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const FORMATS = new Set<CatalogueImportTemplateFormat>([
   "csv",
@@ -31,7 +33,16 @@ export async function GET(
     return new Response("Unknown template format", { status: 404 });
   }
   const format = rawFormat as CatalogueImportTemplateFormat;
-  const body = buildCatalogueImportTemplate(format);
+
+  let promptMarkdown: string | undefined;
+  if (format === "llm") {
+    const prompt = await new ImportEnrichmentPromptRepository(
+      await getSupabaseServerClient(),
+    ).findActive();
+    promptMarkdown = prompt?.promptMarkdown;
+  }
+
+  const body = buildCatalogueImportTemplate(format, promptMarkdown);
   const payload =
     typeof body === "string"
       ? body

@@ -2218,6 +2218,42 @@ export type Database = {
           },
         ];
       };
+      import_enrichment_prompt_contracts: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          id: string;
+          prompt_markdown: string;
+          response_schema_version: string;
+          slug: string;
+          title: string;
+          updated_at: string;
+          updated_by_user_id: string | null;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          id?: string;
+          prompt_markdown: string;
+          response_schema_version?: string;
+          slug: string;
+          title: string;
+          updated_at?: string;
+          updated_by_user_id?: string | null;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          id?: string;
+          prompt_markdown?: string;
+          response_schema_version?: string;
+          slug?: string;
+          title?: string;
+          updated_at?: string;
+          updated_by_user_id?: string | null;
+        };
+        Relationships: [];
+      };
       knowledge_object_concepts: {
         Row: {
           concept_id: string;
@@ -3037,6 +3073,8 @@ export type Database = {
           assignment_id: string | null;
           confidence: number | null;
           created_at: string;
+          evidence: string | null;
+          field_key: string | null;
           id: string;
           import_row_id: string | null;
           proposed_concept_id: string | null;
@@ -3052,6 +3090,8 @@ export type Database = {
           assignment_id?: string | null;
           confidence?: number | null;
           created_at?: string;
+          evidence?: string | null;
+          field_key?: string | null;
           id?: string;
           import_row_id?: string | null;
           proposed_concept_id?: string | null;
@@ -3067,6 +3107,8 @@ export type Database = {
           assignment_id?: string | null;
           confidence?: number | null;
           created_at?: string;
+          evidence?: string | null;
+          field_key?: string | null;
           id?: string;
           import_row_id?: string | null;
           proposed_concept_id?: string | null;
@@ -5650,6 +5692,45 @@ export type Database = {
           },
         ];
       };
+      pg_all_foreign_keys: {
+        Row: {
+          fk_columns: unknown[] | null;
+          fk_constraint_name: unknown;
+          fk_schema_name: unknown;
+          fk_table_name: unknown;
+          fk_table_oid: unknown;
+          is_deferrable: boolean | null;
+          is_deferred: boolean | null;
+          match_type: string | null;
+          on_delete: string | null;
+          on_update: string | null;
+          pk_columns: unknown[] | null;
+          pk_constraint_name: unknown;
+          pk_index_name: unknown;
+          pk_schema_name: unknown;
+          pk_table_name: unknown;
+          pk_table_oid: unknown;
+        };
+        Relationships: [];
+      };
+      tap_funky: {
+        Row: {
+          args: string | null;
+          is_definer: boolean | null;
+          is_strict: boolean | null;
+          is_visible: boolean | null;
+          kind: unknown;
+          langoid: unknown;
+          name: unknown;
+          oid: unknown;
+          owner: unknown;
+          returns: string | null;
+          returns_set: boolean | null;
+          schema: unknown;
+          volatility: string | null;
+        };
+        Relationships: [];
+      };
       worker_alteration_tasks: {
         Row: {
           alteration_id: string | null;
@@ -5774,6 +5855,22 @@ export type Database = {
       };
     };
     Functions: {
+      _cleanup: { Args: never; Returns: boolean };
+      _contract_on: { Args: { "": string }; Returns: unknown };
+      _currtest: { Args: never; Returns: number };
+      _db_privs: { Args: never; Returns: unknown[] };
+      _extensions: { Args: never; Returns: unknown[] };
+      _get: { Args: { "": string }; Returns: number };
+      _get_latest: { Args: { "": string }; Returns: number[] };
+      _get_note: { Args: { "": string }; Returns: string };
+      _is_verbose: { Args: never; Returns: boolean };
+      _prokind: { Args: { p_oid: unknown }; Returns: unknown };
+      _query: { Args: { "": string }; Returns: string };
+      _refine_vol: { Args: { "": string }; Returns: string };
+      _retval: { Args: { "": string }; Returns: string };
+      _table_privs: { Args: never; Returns: unknown[] };
+      _temptypes: { Args: { "": string }; Returns: string };
+      _todo: { Args: never; Returns: string };
       accept_platform_staff_invite: {
         Args: { p_staff_id: string };
         Returns: string;
@@ -5909,6 +6006,42 @@ export type Database = {
       };
       clock_in: { Args: never; Returns: string };
       clock_out: { Args: never; Returns: undefined };
+      col_is_null:
+        | {
+            Args: {
+              column_name: unknown;
+              description?: string;
+              schema_name: unknown;
+              table_name: unknown;
+            };
+            Returns: string;
+          }
+        | {
+            Args: {
+              column_name: unknown;
+              description?: string;
+              table_name: unknown;
+            };
+            Returns: string;
+          };
+      col_not_null:
+        | {
+            Args: {
+              column_name: unknown;
+              description?: string;
+              schema_name: unknown;
+              table_name: unknown;
+            };
+            Returns: string;
+          }
+        | {
+            Args: {
+              column_name: unknown;
+              description?: string;
+              table_name: unknown;
+            };
+            Returns: string;
+          };
       convert_pilot_to_live_retailer: {
         Args: { p_prospect_id: string };
         Returns: string;
@@ -5951,11 +6084,34 @@ export type Database = {
         };
         Returns: undefined;
       };
+      diag:
+        | {
+            Args: { msg: unknown };
+            Returns: {
+              error: true;
+            } & "Could not choose the best candidate function between: public.diag(msg => text), public.diag(msg => anyelement). Try renaming the parameters or the function itself in the database so function overloading can be resolved";
+          }
+        | {
+            Args: { msg: string };
+            Returns: {
+              error: true;
+            } & "Could not choose the best candidate function between: public.diag(msg => text), public.diag(msg => anyelement). Try renaming the parameters or the function itself in the database so function overloading can be resolved";
+          };
+      diag_test_name: { Args: { "": string }; Returns: string };
+      do_tap:
+        | { Args: never; Returns: string[] }
+        | { Args: { "": string }; Returns: string[] };
       ensure_my_loyalty_account: {
         Args: { p_retailer_id: string };
         Returns: string;
       };
       expire_due_prospect_demo_environments: { Args: never; Returns: number };
+      fail:
+        | { Args: never; Returns: string }
+        | { Args: { "": string }; Returns: string };
+      findfuncs: { Args: { "": string }; Returns: string[] };
+      finish: { Args: { exception_on_failure?: boolean }; Returns: string[] };
+      format_type_string: { Args: { "": string }; Returns: string };
       generate_prospect_demo_environment: {
         Args: {
           p_access_code: string;
@@ -5990,6 +6146,7 @@ export type Database = {
         Args: { p_retailer_id: string; p_since?: string };
         Returns: Json;
       };
+      has_unique: { Args: { "": string }; Returns: string };
       hex_color_contrast_ratio: {
         Args: { p_first: string; p_second: string };
         Returns: number;
@@ -5998,8 +6155,10 @@ export type Database = {
         Args: { p_hex: string };
         Returns: number;
       };
+      in_todo: { Args: never; Returns: boolean };
       is_alterations_advisor: { Args: never; Returns: boolean };
       is_alterations_management: { Args: never; Returns: boolean };
+      is_empty: { Args: { "": string }; Returns: string };
       is_my_event_invitation: {
         Args: { p_event_id: string };
         Returns: boolean;
@@ -6020,6 +6179,7 @@ export type Database = {
         Args: { p_wedding_party_id: string };
         Returns: boolean;
       };
+      isnt_empty: { Args: { "": string }; Returns: string };
       join_wedding_party: {
         Args: {
           p_email: string;
@@ -6033,16 +6193,26 @@ export type Database = {
         Returns: Json;
       };
       link_my_customer_accounts: { Args: never; Returns: undefined };
+      lives_ok: { Args: { "": string }; Returns: string };
       mark_conversation_read: {
         Args: { p_conversation_id: string };
         Returns: undefined;
       };
       next_alteration_work_order_number: { Args: never; Returns: string };
       next_order_number: { Args: never; Returns: string };
+      no_plan: { Args: never; Returns: boolean[] };
+      num_failed: { Args: never; Returns: number };
       open_prospect_demo: {
         Args: { p_access_code: string; p_public_token: string };
         Returns: Json;
       };
+      os_name: { Args: never; Returns: string };
+      pass:
+        | { Args: never; Returns: string }
+        | { Args: { "": string }; Returns: string };
+      pg_version: { Args: never; Returns: string };
+      pg_version_num: { Args: never; Returns: number };
+      pgtap_version: { Args: never; Returns: number };
       place_order: {
         Args: {
           p_quantity: number;
@@ -6161,6 +6331,9 @@ export type Database = {
         };
         Returns: undefined;
       };
+      runtests:
+        | { Args: never; Returns: string[] }
+        | { Args: { "": string }; Returns: string[] };
       save_prospect_demo_configuration: {
         Args: {
           p_change_note: string;
@@ -6206,6 +6379,9 @@ export type Database = {
         Args: { p_prospect_id: string; p_publish: boolean };
         Returns: undefined;
       };
+      skip:
+        | { Args: { "": string }; Returns: string }
+        | { Args: { how_many: number; why: string }; Returns: string };
       submit_commercial_inquiry: {
         Args: {
           p_company_name: string;
@@ -6232,6 +6408,16 @@ export type Database = {
         Args: { p_email: string; p_retailer_id: string };
         Returns: undefined;
       };
+      throws_ok: { Args: { "": string }; Returns: string };
+      todo:
+        | { Args: { how_many: number }; Returns: boolean[] }
+        | { Args: { how_many: number; why: string }; Returns: boolean[] }
+        | { Args: { why: string }; Returns: boolean[] }
+        | { Args: { how_many: number; why: string }; Returns: boolean[] };
+      todo_end: { Args: never; Returns: boolean[] };
+      todo_start:
+        | { Args: never; Returns: boolean[] }
+        | { Args: { "": string }; Returns: boolean[] };
       toggle_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };
         Returns: boolean;
@@ -6306,7 +6492,10 @@ export type Database = {
     };
     Enums: {
       ai_generation_kind:
-        "next_best_action" | "product_recommendation" | "communication_draft";
+        | "next_best_action"
+        | "product_recommendation"
+        | "communication_draft"
+        | "import_enrichment";
       ai_generation_status: "succeeded" | "failed";
       alteration_attachment_kind:
         "intake" | "label" | "evidence" | "progress" | "completion";
@@ -6530,7 +6719,9 @@ export type Database = {
       workshop_status: "active" | "inactive";
     };
     CompositeTypes: {
-      [_ in never]: never;
+      _time_trial_type: {
+        a_time: number | null;
+      };
     };
   };
 };
@@ -6662,6 +6853,7 @@ export const Constants = {
         "next_best_action",
         "product_recommendation",
         "communication_draft",
+        "import_enrichment",
       ],
       ai_generation_status: ["succeeded", "failed"],
       alteration_attachment_kind: [

@@ -49,6 +49,8 @@ export * from "./import/import-parser";
 export * from "./import/import-preview";
 export * from "./import/import-publish";
 export * from "./import/import-templates";
+export * from "./import/import-enrichment";
+export * from "./import/import-enrichment.schema";
 
 export * from "./commerce/order";
 export * from "./commerce/order.schema";

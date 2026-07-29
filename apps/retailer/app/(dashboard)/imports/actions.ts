@@ -1,8 +1,11 @@
 "use server";
 
+import { runImportEnrichmentJob } from "@paon/ai";
 import { requireRetailerRole } from "@paon/auth";
 import {
+  AIGenerationRepository,
   CatalogueImportRepository,
+  ImportEnrichmentPromptRepository,
   MetadataRepository,
   RetailerStaffRepository,
 } from "@paon/database";
@@ -11,13 +14,17 @@ import {
   buildCatalogueImportPreview,
   CatalogueImportParseError,
   DEFAULT_CATALOGUE_IMPORT_LIMITS,
+  DEFAULT_IMPORT_ENRICHMENT_PROMPT_MARKDOWN,
+  importEnrichmentIdempotencyKey,
   parseCatalogueImportFile,
   publishCatalogueImportRowInputSchema,
   reviewCatalogueImportTaskInputSchema,
+  validateImportEnrichmentOutput,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { getAIProvider } from "@/lib/ai";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -288,6 +295,217 @@ export async function publishImportReadyRows(
         error instanceof Error
           ? error.message
           : "Could not publish reviewed import rows.",
+    };
+  }
+}
+
+function supplierFactsFromRow(
+  rawPayload: Readonly<Record<string, unknown>>,
+  proposed?: {
+    readonly mill?: string;
+    readonly composition?: string;
+    readonly weightGsm?: number;
+    readonly construction?: string;
+    readonly description?: string;
+    readonly name?: string;
+    readonly externalSku?: string;
+    readonly supplierReference?: string;
+  },
+): Record<string, string> {
+  const facts: Record<string, string> = {};
+  for (const [key, value] of Object.entries(rawPayload)) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      facts[key] = value;
+    }
+  }
+  if (proposed?.mill) facts["mill"] = proposed.mill;
+  if (proposed?.composition) facts["composition"] = proposed.composition;
+  if (proposed?.weightGsm !== undefined) {
+    facts["weight_gsm"] = String(proposed.weightGsm);
+  }
+  if (proposed?.construction) facts["construction"] = proposed.construction;
+  if (proposed?.supplierReference) {
+    facts["supplier_reference"] = proposed.supplierReference;
+  }
+  if (proposed?.externalSku) facts["external_sku"] = proposed.externalSku;
+  return facts;
+}
+
+/**
+ * Run provider-neutral AI enrichment for unpublished import rows.
+ * Every accepted proposal is stored as a pending review task — never auto-published.
+ */
+export async function enrichImportRows(
+  _previous: ImportPublishState,
+  formData: FormData,
+): Promise<ImportPublishState> {
+  const session = await requireManagerSession();
+  const importIdRaw = String(formData.get("importId") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(importIdRaw)) {
+    return { formError: "Import id is required." };
+  }
+
+  const provider = getAIProvider();
+  if (!provider) {
+    return {
+      formError:
+        "AI enrichment is not configured on this deployment (missing OPENAI_API_KEY). The Admin LLM contract remains downloadable for offline use.",
+    };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const staff = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!staff) {
+    return { formError: "Your staff profile could not be resolved." };
+  }
+
+  const importId = asId<"CatalogueImportId">(importIdRaw);
+  const imports = new CatalogueImportRepository(supabase);
+  const audit = new AIGenerationRepository(supabase);
+
+  try {
+    const [job, rows, concepts, prompt] = await Promise.all([
+      imports.findById(session.retailerId, importId),
+      imports.findRows(session.retailerId, importId),
+      new MetadataRepository(supabase).findVisibleConcepts(session.retailerId),
+      new ImportEnrichmentPromptRepository(supabase).findActive(),
+    ]);
+    if (!job) {
+      return { formError: "Import job not found." };
+    }
+
+    const systemPrompt =
+      prompt?.promptMarkdown ?? DEFAULT_IMPORT_ENRICHMENT_PROMPT_MARKDOWN;
+    const promptVersion = prompt?.responseSchemaVersion ?? "v1";
+    const knownTaxonomy = concepts.map((concept) => ({
+      kind: concept.kind,
+      slug: concept.slug,
+      canonicalName: concept.canonicalName,
+    }));
+
+    let createdCount = 0;
+    let skippedCount = 0;
+    let failedRows = 0;
+
+    for (const row of rows) {
+      if (row.status === "published" || row.status === "rejected") {
+        continue;
+      }
+
+      const enrichmentInput = {
+        ...(row.externalSku === undefined
+          ? {}
+          : { externalSku: row.externalSku }),
+        ...(row.proposedProduct?.name === undefined
+          ? {}
+          : { name: row.proposedProduct.name }),
+        ...(row.proposedProduct?.description === undefined
+          ? {}
+          : { description: row.proposedProduct.description }),
+        supplierFacts: supplierFactsFromRow(
+          row.rawPayload,
+          row.proposedProduct,
+        ),
+      };
+
+      const idempotencyKey = importEnrichmentIdempotencyKey({
+        importRowId: row.id,
+        promptVersion,
+      });
+
+      const jobResult = await runImportEnrichmentJob(provider, {
+        idempotencyKey,
+        systemPrompt,
+        row: enrichmentInput,
+        knownTaxonomy,
+      });
+
+      if (!jobResult.ok) {
+        failedRows += 1;
+        await audit.record({
+          retailerId: session.retailerId,
+          requestedByStaffId: staff.id,
+          kind: "import_enrichment",
+          status: "failed",
+          provider: jobResult.provider,
+          model: jobResult.model,
+          inputSummary: `import=${importId} row=${row.id} sku=${row.externalSku ?? "n/a"}`,
+          errorMessage: jobResult.errorMessage,
+          latencyMs: jobResult.latencyMs,
+        });
+        continue;
+      }
+
+      const validated = validateImportEnrichmentOutput({
+        raw: jobResult.rawOutput,
+        row: enrichmentInput,
+        knownTaxonomy,
+      });
+
+      if (!validated.ok && validated.proposals.length === 0) {
+        failedRows += 1;
+        await audit.record({
+          retailerId: session.retailerId,
+          requestedByStaffId: staff.id,
+          kind: "import_enrichment",
+          status: "failed",
+          provider: jobResult.provider,
+          model: jobResult.model,
+          inputSummary: `import=${importId} row=${row.id} sku=${row.externalSku ?? "n/a"}`,
+          output: {
+            rejections: validated.rejections,
+          },
+          errorMessage: "Model output failed enrichment validation",
+          latencyMs: jobResult.latencyMs,
+        });
+        continue;
+      }
+
+      const applied = await imports.applyAiEnrichmentProposals({
+        retailerId: session.retailerId,
+        importRowId: row.id,
+        proposals: validated.proposals,
+      });
+      createdCount += applied.created.length;
+      skippedCount += applied.skippedFieldKeys.length;
+
+      await audit.record({
+        retailerId: session.retailerId,
+        requestedByStaffId: staff.id,
+        kind: "import_enrichment",
+        status: "succeeded",
+        provider: jobResult.provider,
+        model: jobResult.model,
+        inputSummary: `import=${importId} row=${row.id} sku=${row.externalSku ?? "n/a"} proposals=${validated.proposals.length}`,
+        output: {
+          created: applied.created.length,
+          skipped: applied.skippedFieldKeys,
+          rejections: validated.rejections,
+        },
+        latencyMs: jobResult.latencyMs,
+      });
+    }
+
+    revalidatePath(`/imports/${importIdRaw}`);
+    revalidatePath("/ai-monitoring");
+
+    return {
+      message: `AI enrichment created ${createdCount} pending review proposal${
+        createdCount === 1 ? "" : "s"
+      }${skippedCount > 0 ? ` (${skippedCount} idempotent skips)` : ""}${
+        failedRows > 0
+          ? `; ${failedRows} row(s) failed validation or provider.`
+          : "."
+      }`,
+    };
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not run AI import enrichment.",
     };
   }
 }

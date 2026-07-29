@@ -3,10 +3,10 @@ import * as XLSX from "xlsx";
 import {
   CATALOGUE_IMPORT_COLUMNS,
   CATALOGUE_IMPORT_CONTRACT_VERSION,
-  CATALOGUE_IMPORT_LLM_CONTRACT_MARKDOWN,
   CATALOGUE_IMPORT_TEMPLATE_EXAMPLE_ROW,
 } from "./import-contract";
 import { serializeCsv } from "./import-csv";
+import { DEFAULT_IMPORT_ENRICHMENT_PROMPT_MARKDOWN } from "./import-enrichment";
 
 export type CatalogueImportTemplateFormat = "csv" | "xlsx" | "json" | "llm";
 
@@ -41,8 +41,15 @@ export function buildCatalogueImportTemplateXlsx(): Uint8Array {
   return new Uint8Array(buffer);
 }
 
-export function buildCatalogueImportLlmContract(): string {
-  return CATALOGUE_IMPORT_LLM_CONTRACT_MARKDOWN;
+/**
+ * Offline / downloadable LLM contract. Prefer the Admin-maintained
+ * `import_enrichment_prompt_contracts` row when available; this default
+ * remains the fallback and seed source.
+ */
+export function buildCatalogueImportLlmContract(
+  promptMarkdown?: string,
+): string {
+  return promptMarkdown?.trim() || DEFAULT_IMPORT_ENRICHMENT_PROMPT_MARKDOWN;
 }
 
 export function catalogueImportTemplateFilename(
@@ -77,6 +84,7 @@ export function catalogueImportTemplateContentType(
 
 export function buildCatalogueImportTemplate(
   format: CatalogueImportTemplateFormat,
+  promptMarkdown?: string,
 ): Uint8Array | string {
   switch (format) {
     case "csv":
@@ -86,6 +94,6 @@ export function buildCatalogueImportTemplate(
     case "json":
       return buildCatalogueImportTemplateJson();
     case "llm":
-      return buildCatalogueImportLlmContract();
+      return buildCatalogueImportLlmContract(promptMarkdown);
   }
 }

@@ -67,6 +67,8 @@ const reviewTaskRow: MetadataReviewTaskRow = {
   proposed_value: "garment_type: overcoat",
   source: "supplier",
   confidence: null,
+  evidence: null,
+  field_key: null,
   status: "pending",
   reviewed_by_staff_id: null,
   reviewed_at: null,
@@ -298,5 +300,78 @@ describe("CatalogueImportRepository", () => {
     expect(batch.results[0]?.result.ok).toBe(false);
     expect(batch.results[1]?.result.ok).toBe(true);
     expect(rpc).toHaveBeenCalledTimes(2);
+  });
+
+  it("applies AI enrichment proposals as pending tasks and skips duplicates", async () => {
+    const existingAiTask = {
+      ...reviewTaskRow,
+      source: "ai" as const,
+      proposed_value: "weave: hopsack",
+      confidence: 0.9,
+      evidence: "Lightweight hopsack",
+      field_key: "weave",
+    };
+    const createdTask = {
+      ...existingAiTask,
+      id: "55555555-5555-4555-8555-555555555556",
+      proposed_value: "climate: warm",
+      field_key: "climate",
+      evidence: "warm-weather",
+      confidence: 0.8,
+    };
+    const insert = vi.fn(() =>
+      fakeQueryBuilder({ data: [createdTask], error: null }),
+    );
+    const from = vi.fn(() =>
+      fakeQueryBuilder({ data: [existingAiTask], error: null }),
+    );
+    // Override insert on the builder returned by from().
+    from.mockImplementation(() => {
+      const builder = fakeQueryBuilder({
+        data: [existingAiTask],
+        error: null,
+      });
+      return { ...builder, insert };
+    });
+    const repository = new CatalogueImportRepository({
+      from,
+    } as unknown as PaonSupabaseClient);
+
+    const result = await repository.applyAiEnrichmentProposals({
+      retailerId: retailerId as never,
+      importRowId: rowId as never,
+      proposals: [
+        {
+          field: "weave",
+          proposedValue: "hopsack",
+          confidence: 0.9,
+          evidence: "Lightweight hopsack",
+          source: "ai",
+        },
+        {
+          field: "climate",
+          proposedValue: "warm",
+          confidence: 0.8,
+          evidence: "warm-weather",
+          source: "ai",
+        },
+      ],
+    });
+
+    expect(result.skippedFieldKeys).toEqual(["weave"]);
+    expect(result.created).toHaveLength(1);
+    expect(result.created[0]).toMatchObject({
+      source: "ai",
+      fieldKey: "climate",
+      evidence: "warm-weather",
+      status: "pending",
+    });
+    expect(insert).toHaveBeenCalledWith([
+      expect.objectContaining({
+        source: "ai",
+        field_key: "climate",
+        status: "pending",
+      }),
+    ]);
   });
 });

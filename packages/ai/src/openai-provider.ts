@@ -2,6 +2,7 @@ import type OpenAI from "openai";
 
 import type {
   AIProvider,
+  CatalogueImportEnrichmentContext,
   NextBestActionContext,
   NextBestActionResult,
   ProductRecommendationContext,
@@ -45,6 +46,19 @@ function buildRecommendationPrompt(
     `Candidates:\n${candidateLines}`,
   ];
   return lines.join("\n");
+}
+
+function buildEnrichmentUserPrompt(
+  context: CatalogueImportEnrichmentContext,
+): string {
+  return JSON.stringify(
+    {
+      row: context.row,
+      knownTaxonomy: context.knownTaxonomy,
+    },
+    null,
+    2,
+  );
 }
 
 export class OpenAIProvider implements AIProvider {
@@ -135,5 +149,29 @@ export class OpenAIProvider implements AIProvider {
       productId,
       rationale: (parsed as { rationale: string }).rationale,
     };
+  }
+
+  async enrichCatalogueImportRow(
+    context: CatalogueImportEnrichmentContext,
+  ): Promise<unknown> {
+    const response = await this.client.chat.completions.create({
+      model: this.model,
+      messages: [
+        { role: "system", content: context.systemPrompt },
+        { role: "user", content: buildEnrichmentUserPrompt(context) },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const content = response.choices[0]?.message.content;
+    if (!content) {
+      throw new Error("OpenAI returned no content for import enrichment");
+    }
+
+    try {
+      return JSON.parse(content) as unknown;
+    } catch {
+      throw new Error("OpenAI import enrichment response was not valid JSON");
+    }
   }
 }

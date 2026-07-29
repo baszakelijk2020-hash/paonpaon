@@ -12,6 +12,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import {
+  EnrichImportButton,
   PublishReadyRowsButton,
   PublishRowButton,
   ReviewTaskActions,
@@ -106,16 +107,20 @@ export default async function ImportPreviewPage({
           <p className="mt-1 text-sm text-[var(--color-stone-500)]">
             {progress.pendingReviewTaskCount} pending review task
             {progress.pendingReviewTaskCount === 1 ? "" : "s"}. Only valid rows
-            with every task resolved can publish.
+            with every task resolved can publish. AI enrichment proposes pending
+            review tasks only — never auto-accepts.
           </p>
         </div>
-        <PublishReadyRowsButton
-          importId={job.id}
-          disabled={progress.publishableRowCount === 0}
-          label={`Publish ${progress.publishableRowCount} reviewed row${
-            progress.publishableRowCount === 1 ? "" : "s"
-          }`}
-        />
+        <div className="flex flex-wrap gap-3">
+          <EnrichImportButton importId={job.id} />
+          <PublishReadyRowsButton
+            importId={job.id}
+            disabled={progress.publishableRowCount === 0}
+            label={`Publish ${progress.publishableRowCount} reviewed row${
+              progress.publishableRowCount === 1 ? "" : "s"
+            }`}
+          />
+        </div>
       </Card>
 
       {rows.length === 0 ? (
@@ -307,7 +312,18 @@ export default async function ImportPreviewPage({
                             >
                               {task.status}
                             </Badge>{" "}
+                            <Badge>
+                              {task.source}
+                              {task.confidence !== undefined
+                                ? ` · ${task.confidence}`
+                                : ""}
+                            </Badge>{" "}
                             {task.proposedValue}
+                            {task.evidence ? (
+                              <p className="mt-1 text-[var(--color-stone-500)]">
+                                Evidence: {task.evidence}
+                              </p>
+                            ) : null}
                           </div>
                           {task.status === "pending" ? (
                             <ReviewTaskActions

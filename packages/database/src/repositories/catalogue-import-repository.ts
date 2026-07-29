@@ -14,6 +14,7 @@ import {
   type CatalogueImportSourceType,
   type CatalogueImportStatus,
   type CatalogueImportValidationIssue,
+  type ImportEnrichmentFieldProposal,
   type MetadataReviewTask,
   type MetadataReviewTaskId,
   type MetadataReviewTaskStatus,
@@ -204,7 +205,9 @@ function toReviewTask(row: MetadataReviewTaskRow): MetadataReviewTask {
         }),
     proposedValue: row.proposed_value,
     source: row.source,
-    ...(row.confidence === null ? {} : { confidence: row.confidence }),
+    ...(row.confidence === null ? {} : { confidence: Number(row.confidence) }),
+    ...(row.evidence === null ? {} : { evidence: row.evidence }),
+    ...(row.field_key === null ? {} : { fieldKey: row.field_key }),
     status: row.status,
     ...(row.reviewed_by_staff_id === null
       ? {}
@@ -545,5 +548,73 @@ export class CatalogueImportRepository {
       results.push({ rowId: row.id, result });
     }
     return { results };
+  }
+
+  /**
+   * Persist validated AI enrichment proposals as pending review tasks.
+   * Idempotent on (import_row_id, field_key) for source=ai pending rows.
+   * Never auto-accepts inferences.
+   */
+  async applyAiEnrichmentProposals(params: {
+    readonly retailerId: RetailerId;
+    readonly importRowId: CatalogueImportRowId;
+    readonly proposals: readonly ImportEnrichmentFieldProposal[];
+  }): Promise<{
+    readonly created: readonly MetadataReviewTask[];
+    readonly skippedFieldKeys: readonly string[];
+  }> {
+    if (params.proposals.length === 0) {
+      return { created: [], skippedFieldKeys: [] };
+    }
+
+    const { data: existing, error: existingError } = await this.client
+      .from("metadata_review_tasks")
+      .select("*")
+      .eq("retailer_id", params.retailerId)
+      .eq("import_row_id", params.importRowId)
+      .eq("source", "ai")
+      .eq("status", "pending");
+    if (existingError) throw existingError;
+
+    const existingKeys = new Set(
+      (existing ?? [])
+        .map((row) => row.field_key)
+        .filter((key): key is string => typeof key === "string"),
+    );
+
+    const toInsert = params.proposals.filter(
+      (proposal) => !existingKeys.has(proposal.field),
+    );
+    const skippedFieldKeys = params.proposals
+      .filter((proposal) => existingKeys.has(proposal.field))
+      .map((proposal) => proposal.field);
+
+    if (toInsert.length === 0) {
+      return { created: [], skippedFieldKeys };
+    }
+
+    const { data, error } = await this.client
+      .from("metadata_review_tasks")
+      .insert(
+        toInsert.map((proposal) => ({
+          retailer_id: params.retailerId,
+          import_row_id: params.importRowId,
+          assignment_id: null,
+          proposed_concept_id: null,
+          proposed_value: `${proposal.field}: ${proposal.proposedValue}`,
+          source: "ai" as const,
+          confidence: proposal.confidence,
+          evidence: proposal.evidence,
+          field_key: proposal.field,
+          status: "pending" as const satisfies MetadataReviewTaskStatus,
+        })),
+      )
+      .select("*");
+    if (error) throw error;
+
+    return {
+      created: (data ?? []).map(toReviewTask),
+      skippedFieldKeys,
+    };
   }
 }
