@@ -101,10 +101,10 @@ export function TodaysPick({
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link
-                href={`/r/${slug}/products/${state.result.productSlug}`}
+                href={`/r/${slug}`}
                 className={buttonVariants({ size: "sm" })}
               >
-                View it
+                View in the store
               </Link>
               <form action={startConversation}>
                 <input type="hidden" name="retailerId" value={retailerId} />
@@ -124,7 +124,7 @@ export function TodaysPick({
                 </button>
               </form>
               <Link
-                href={`/r/${slug}/appointments`}
+                href={`/r/${slug}`}
                 className={buttonVariants({ variant: "ghost", size: "sm" })}
               >
                 Book a fitting

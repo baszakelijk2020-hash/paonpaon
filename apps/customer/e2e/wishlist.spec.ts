@@ -78,7 +78,9 @@ test("a signed-in shopper saves and removes a product from their wishlist", asyn
   );
   await expect(page).toHaveURL(/\/dashboard$/);
 
-  await page.goto(`/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`);
+  await page.goto(
+    `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}?legacy=1`,
+  );
   const toggleButton = page.getByRole("button", {
     name: /Save to wishlist|Saved to wishlist/,
   });

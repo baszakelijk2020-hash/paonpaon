@@ -97,7 +97,9 @@ export default async function WishlistPage() {
                 >
                   <div className="min-w-0">
                     <Link
-                      href={`/r/${retailer?.slug}/products/${product.slug}`}
+                      href={
+                        retailer?.slug ? `/r/${retailer.slug}` : "/dashboard"
+                      }
                       className="font-medium hover:underline"
                     >
                       {product.name}

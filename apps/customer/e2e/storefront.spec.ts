@@ -13,7 +13,9 @@ test("browsing the storefront requires no sign-in", async ({ page }) => {
   await expect(page.getByText(TEST_RETAILER_DISPLAY_NAME)).toBeVisible();
   await expect(page.getByText("E2E Storefront Overcoat")).toBeVisible();
 
-  await page.goto(`/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`);
+  await page.goto(
+    `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}?legacy=1`,
+  );
   await expect(
     page.getByRole("heading", { name: "E2E Storefront Overcoat" }),
   ).toBeVisible();
@@ -74,7 +76,9 @@ test("a signed-in shopper builds a cart, updates a line, checks out, and sees th
   await expect(page).toHaveURL(/\/dashboard$/);
 
   // add_to_cart: a persisted draft Order is created from the storefront.
-  await page.goto(`/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`);
+  await page.goto(
+    `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}?legacy=1`,
+  );
   await page.getByLabel("Qty").fill("1");
   await page.getByRole("button", { name: "Add to cart" }).click();
 
@@ -154,7 +158,9 @@ test("storefront shows an uploaded product image", async ({ page }) => {
     page.locator('img[src*="product-images"]').first(),
   ).toBeVisible();
 
-  await page.goto(`/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`);
+  await page.goto(
+    `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}?legacy=1`,
+  );
   await expect(
     page.locator('img[src*="product-images"]').first(),
   ).toBeVisible();

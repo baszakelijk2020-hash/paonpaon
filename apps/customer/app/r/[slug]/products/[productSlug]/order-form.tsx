@@ -55,7 +55,7 @@ export function OrderForm({
   if (!isSignedIn) {
     return (
       <Link
-        href={`/login?redirectTo=${encodeURIComponent(`/r/${slug}/products/${productSlug}`)}`}
+        href={`/login?redirectTo=${encodeURIComponent(`/r/${slug}/products/${productSlug}?legacy=1`)}`}
         className={buttonVariants({ className: "w-full justify-center" })}
       >
         Sign in to purchase

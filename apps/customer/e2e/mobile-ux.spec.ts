@@ -124,7 +124,9 @@ test.describe("mobile cart", () => {
     }
 
     await signIn(page);
-    await page.goto(`/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`);
+    await page.goto(
+      `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}?legacy=1`,
+    );
     await page.getByLabel("Qty").fill("1");
     await page.getByRole("button", { name: "Add to cart" }).click();
     await expect(page).toHaveURL(new RegExp(`/r/${TEST_RETAILER_SLUG}/cart$`));

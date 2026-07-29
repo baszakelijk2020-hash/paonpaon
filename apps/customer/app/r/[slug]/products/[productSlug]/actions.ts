@@ -27,7 +27,7 @@ export async function addToCart(
 ): Promise<PlaceOrderFormState> {
   const session = await getSession();
   if (!session || session.accountType !== "customer") {
-    redirect(`/login?redirectTo=/r/${slug}/products/${productSlug}`);
+    redirect(`/login?redirectTo=/r/${slug}/products/${productSlug}?legacy=1`);
   }
 
   const parsed = placeOrderInputSchema.safeParse({
@@ -66,7 +66,7 @@ export async function toggleWishlist(
 ): Promise<ToggleWishlistState> {
   const session = await getSession();
   if (!session || session.accountType !== "customer") {
-    redirect(`/login?redirectTo=/r/${slug}/products/${productSlug}`);
+    redirect(`/login?redirectTo=/r/${slug}/products/${productSlug}?legacy=1`);
   }
 
   const parsed = toggleWishlistItemInputSchema.safeParse({

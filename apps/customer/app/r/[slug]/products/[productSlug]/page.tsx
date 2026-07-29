@@ -8,7 +8,7 @@ import {
 import { formatMoney } from "@paon/utils";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { TrackView } from "../../track-view";
 
@@ -18,12 +18,24 @@ import { WishlistToggle } from "./wishlist-toggle";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
+/**
+ * Canonical shopping is the founder HTML storefront (`/r/[slug]`, ADR-052).
+ * This React PDP redirects there so prospects never land on a plainer twin.
+ * `?legacy=1` keeps the page for e2e / rare signed-in action targets only.
+ */
 export default async function StorefrontProductPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string; productSlug: string }>;
+  searchParams: Promise<{ legacy?: string }>;
 }) {
   const { slug, productSlug } = await params;
+  const { legacy } = await searchParams;
+  if (legacy !== "1") {
+    redirect(`/r/${slug}`);
+  }
+
   const supabase = await getSupabaseServerClient();
 
   const retailer = await new RetailerRepository(supabase).findBySlug(slug);
@@ -93,18 +105,13 @@ export default async function StorefrontProductPage({
         ← Back to {retailer.displayName}
       </Link>
 
-      {/* High 12 mitigation: this React route exists mainly so a signed-in
-          customer's saved/order history can link somewhere stable, but the
-          founder's HTML storefront (paon-template.html, ADR-052) is the
-          actual shopping experience — same catalogue, richer fitting/basket
-          chrome. Never let a visitor mistake this plainer page for it. */}
       <div className="mb-6 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)] px-4 py-3 text-sm text-[var(--color-stone-600)]">
-        This is a simplified product page.{" "}
+        Legacy action page for signed-in cart and wishlist flows.{" "}
         <Link
           href={`/r/${slug}`}
           className="font-medium text-[var(--color-stone-900)] underline underline-offset-4"
         >
-          View in the full storefront
+          Open the full storefront
         </Link>{" "}
         for the primary shopping experience.
       </div>
@@ -178,10 +185,10 @@ export default async function StorefrontProductPage({
             <p className="text-sm text-[var(--color-stone-600)]">
               Prefer to try it on first?{" "}
               <Link
-                href={`/r/${slug}/appointments`}
+                href={`/r/${slug}`}
                 className="underline underline-offset-4"
               >
-                Book a complimentary fitting
+                Book a complimentary fitting in the storefront
               </Link>
               .
             </p>

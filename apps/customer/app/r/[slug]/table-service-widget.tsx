@@ -356,7 +356,7 @@ export function TableServiceWidget({
         }}
         aria-expanded={open}
         aria-label="Contact us"
-        className="rounded-full bg-[var(--color-ink-600)] px-5 py-3 text-sm font-medium text-white shadow-lg"
+        className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-5 py-3 text-sm font-medium text-white shadow-lg"
       >
         {open ? "Close" : "Ask us anything"}
       </button>

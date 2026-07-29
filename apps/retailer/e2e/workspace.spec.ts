@@ -62,7 +62,7 @@ test("owner edits the retailer's business profile", async ({ page }) => {
   await expect(page.getByRole("status")).toContainText("Settings saved");
 });
 
-test("owner adds a customer CRM record", async ({ page }) => {
+test("owner adds a client to the book", async ({ page }) => {
   const unique = Date.now();
 
   await page.getByRole("link", { name: /^Clients/ }).click();
@@ -85,10 +85,10 @@ test("owner adds a customer CRM record", async ({ page }) => {
     page.getByRole("heading", { name: "Create the next reason to return." }),
   ).toBeVisible();
 
-  // No OPENAI_API_KEY in this environment — the AI Insights card must
+  // No OPENAI_API_KEY in this environment — the suggestion card must
   // degrade gracefully, not crash the page (docs/DECISIONS.md ADR-033).
   await expect(
-    page.getByRole("heading", { name: "AI insights" }),
+    page.getByRole("heading", { name: "Suggested next step" }),
   ).toBeVisible();
   await expect(
     page.getByText("AI personalisation is not configured on this deployment."),

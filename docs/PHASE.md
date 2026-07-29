@@ -400,7 +400,14 @@ paon-template rewrite.
 
 UX audit Critical–Low buildable mitigations executed; remaining hard
 blockers: Stripe keys, Resend, full POS RPC, returns table, multi-store,
-offline, founder alterations, dual PDP kill.
+offline, founder alterations.
+
+**Also (2026-07-29 continuous — conversion chrome):** React PDP defaults to
+redirect onto the HTML storefront (ADR-052); portal Saved/Today’s Pick and
+appointment CTAs point at `/r/[slug]`; Alterations demoted from Private
+Client nav (routes remain); CRM jargon softened on Mission Control client
+create + lifecycle badges; Ask-us CTA uses stone-900 / radius-md; scratch
+`_tmp-verify-login` e2e specs removed.
 
 **Save vs Generate (Studio).** Save alone updates live storefront story
 fields that are read from the prospect configuration at request time

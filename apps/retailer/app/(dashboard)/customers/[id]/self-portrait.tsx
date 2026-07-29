@@ -93,7 +93,7 @@ export function SelfPortrait({
       {isRecent(recentEvents[0]?.occurredAt) ? (
         <div className="border-[var(--color-warning-500)]/30 bg-[var(--color-warning-500)]/10 mb-4 flex items-center justify-between rounded-[var(--radius-sm)] border px-3 py-2">
           <p className="text-sm text-[var(--color-stone-800)]">
-            Active in the last few days — worth a clienteling note?
+            Active in the last few days — worth a note for the book?
           </p>
           <a
             href="#clienteling-notes"

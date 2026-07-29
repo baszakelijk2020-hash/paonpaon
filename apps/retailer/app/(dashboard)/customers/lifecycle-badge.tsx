@@ -2,11 +2,11 @@ import type { CustomerLifecycleStage } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 
 const STAGE_LABEL: Record<CustomerLifecycleStage, string> = {
-  prospect: "Prospect",
-  first_purchase: "First purchase",
-  returning: "Returning",
-  vip: "VIP",
-  lapsed: "Lapsed",
+  prospect: "New acquaintance",
+  first_purchase: "First commission",
+  returning: "Returning client",
+  vip: "Private client",
+  lapsed: "Quiet for a while",
 };
 
 const STAGE_TONE: Record<

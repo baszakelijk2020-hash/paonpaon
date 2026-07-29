@@ -20,8 +20,8 @@ export default async function NewCustomerPage() {
           New customer
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Adds a CRM record for this retailer. If they later sign in to Customer
-          Portal with the same email, their account links to this record
+          Opens a client book entry for this house. If they later sign in to the
+          Private Client portal with the same email, their account links here
           automatically.
         </p>
       </div>

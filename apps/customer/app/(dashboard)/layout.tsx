@@ -43,11 +43,6 @@ const navigation: AppShellNavGroup[] = [
         label: "Appointments",
         description: "Fittings and consultations",
       },
-      {
-        href: "/alterations",
-        label: "Alterations",
-        description: "Garment progress and pickup",
-      },
     ],
   },
   {

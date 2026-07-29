@@ -33,7 +33,7 @@ const TOPICS = {
       ["Confidence", "Progress and responsibility remain visible"],
       [
         "Growth",
-        "Recognition, events and clienteling create relevant return moments",
+        "Recognition, events and thoughtful follow-up create relevant return moments",
       ],
     ],
   },

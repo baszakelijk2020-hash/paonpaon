@@ -29,7 +29,7 @@ export function AIInsights({
   return (
     <Card>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-lg font-medium">AI insights</h2>
+        <h2 className="text-lg font-medium">Suggested next step</h2>
         {aiConfigured ? (
           <form action={action}>
             <Button type="submit" size="sm" disabled={pending}>

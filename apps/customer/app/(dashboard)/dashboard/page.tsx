@@ -172,7 +172,7 @@ export default async function DashboardPage() {
                   </Link>
                 ) : (
                   <Link
-                    href={`/r/${primary.retailer?.slug ?? ""}/appointments`}
+                    href={`/r/${primary.retailer?.slug ?? ""}`}
                     className={buttonVariants({
                       variant: "secondary",
                       size: "lg",
@@ -241,9 +241,9 @@ export default async function DashboardPage() {
           </Link>
           <Link
             href={
-              primary.activeAlteration
-                ? `/alterations/${primary.activeAlteration.id}`
-                : "/alterations"
+              primary.retailer?.slug
+                ? `/r/${primary.retailer.slug}`
+                : "/appointments"
             }
             className="border-b border-[var(--color-stone-200)] p-6 sm:border-b-0 sm:border-r"
           >
@@ -256,7 +256,10 @@ export default async function DashboardPage() {
                 : "Nothing away"}
             </p>
             <p className="mt-1 text-sm text-[var(--color-stone-500)]">
-              {primary.activeAlteration?.garmentType ?? "View garment care"} →
+              {primary.activeAlteration
+                ? (primary.activeAlteration.garmentType ?? "In the atelier")
+                : "Visit the house when you need a fitting"}{" "}
+              →
             </p>
           </Link>
           <Link href="/messages" className="p-6">
@@ -310,11 +313,6 @@ export default async function DashboardPage() {
                   detail: primary.activeOrder
                     ? humaniseStatus(primary.activeOrder.status)
                     : "Purchases and delivery",
-                },
-                {
-                  href: "/alterations",
-                  label: "Alterations",
-                  detail: "Garment progress and pickup",
                 },
                 {
                   href: "/wishlist",
@@ -421,8 +419,8 @@ export default async function DashboardPage() {
                         <p className="font-display text-3xl">
                           {retailer?.displayName ?? "Your atelier"}
                         </p>
-                        <p className="mt-1 text-sm capitalize text-[var(--color-stone-500)]">
-                          {humaniseStatus(customer.lifecycleStage)} relationship
+                        <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+                          Private client of this house
                         </p>
                       </div>
                       {unread > 0 ? (
@@ -450,9 +448,9 @@ export default async function DashboardPage() {
                       </Link>
                       <Link
                         href={
-                          activeAlteration
-                            ? `/alterations/${activeAlteration.id}`
-                            : "/alterations"
+                          retailer?.slug
+                            ? `/r/${retailer.slug}`
+                            : "/appointments"
                         }
                         className="p-5"
                       >
