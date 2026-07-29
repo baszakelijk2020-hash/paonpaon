@@ -95,5 +95,7 @@ the sole dependency-ordered queue with per-item acceptance/test/boundary
 contracts. Stages 1–4 and PHASE 5.1–5.3 (campaigns, loyalty milestones, and
 Preferred Tailoring / HighMaintenance operations) are complete. The
 authoritative Resume Protocol identifies Tie-Mate (PHASE 5.4) as the next
-queue item; it is blocked for UI until an approved founder mobile surface
-exists. Stage 6 remains behind the payment/compliance design gate.
+queue item; the programme is paused there because no approved founder mobile
+surface exists and reusable catalogue/discovery foundations already shipped.
+Stage 6.1–6.3 are not independently buildable (compliance gate; marketplace
+not explicitly activated).

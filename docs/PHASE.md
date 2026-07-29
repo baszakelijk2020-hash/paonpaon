@@ -630,6 +630,12 @@ explanation path.
     Tinder styling, or separate catalogue.
   - **Hard blockers:** no approved founder surface/design is a real blocker for
     the UI item; underlying reusable foundations must still ship first.
+  - **Status:** blocked — no Tie-Mate HTML/design exists under
+    `downloaded_pages/`, `apps/customer/app/r/[slug]/paon-template.html`, or
+    docs; Stages 2–3 already shipped the reusable catalogue, discovery, stock,
+    shortlist, and advisor foundations, so inventing a parallel Tie-Mate
+    domain/UI without an approved surface is forbidden. Programme pauses here
+    until the founder supplies that surface under ADR-052.
 
 **Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
 duplicate loyalty ledger, service state hidden in generic order status, or
@@ -655,6 +661,8 @@ invented founder-designed surface.
   - **Hard blockers:** missing founder business choice, legal/accounting
     approval, provider account/capability, or jurisdiction decision blocks only
     the affected money capability.
+  - **Status:** blocked — not independently buildable while those decisions are
+    missing; agents must not invent the decision matrix.
 
 - [ ] **6.2 Approved commerce primitives**
   - **Requirement IDs:** `PAY-001`, `PAY-002`, `SERV-002`.
@@ -674,6 +682,8 @@ invented founder-designed surface.
   - **Hard blockers:** missing production provider credentials/capability or
     live compliance approval blocks the affected implementation and live
     verification.
+  - **Status:** blocked — depends on completed `6.1`; no commerce code until
+    that gate names exact capabilities.
 
 - [ ] **6.3 Retailer-owner marketplace**
   - **Requirement IDs:** `MKT-001`.
@@ -696,6 +706,9 @@ invented founder-designed surface.
   - **Hard blockers:** missing marketplace commercial/payment decisions or
     approved surface blocks those portions; isolated domain modelling can
     proceed only when explicitly activated after prior stages.
+  - **Status:** blocked — not independently activated; do not start marketplace
+    domain modelling while 5.4 and 6.1 remain unresolved and this item has not
+    been explicitly unlocked.
 
 **Stage 6 non-goals:** no PAON-built payment processor, credit underwriting,
 custom stored-card vault, silent merchant-of-record change, unapproved stored

@@ -11,7 +11,10 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `5.4 Tie-Mate`
+- **Programme status:** paused on documented hard blockers only. No
+  agent-buildable queue item remains after PHASE 5.3.
+- **Current queue item:** `5.4 Tie-Mate` (blocked — awaiting approved founder
+  mobile surface under ADR-052)
 - **Current requirement IDs:** `TIE-001`, `ENG-004`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
@@ -109,16 +112,21 @@ requires it.
   lint/typecheck/test/build/format are green on the 5.3 tip. Anonymous
   interaction persistence remains blocked pending jurisdiction documentation.
   Live Resend/OpenWeather smoke still needs provider credentials.
-- **Real blockers:** no approved founder Tie-Mate surface/design blocks only
-  the 5.4 UI item (reusable catalogue/discovery foundations already exist);
+- **Real blockers:** no approved founder Tie-Mate surface/design blocks 5.4
+  entirely for agent work (reusable catalogue/discovery/stock/shortlist/
+  advisor foundations already exist; inventing Tie-Mate domain or HTML is
+  forbidden); Stage 6.1 is blocked on founder business/legal/accounting/
+  provider decisions; 6.2 depends on 6.1; 6.3 marketplace modelling is not
+  explicitly activated and remains gated on commercial/payment design;
   anonymous persistence remains blocked for new anonymous producers only;
   missing founder-authored fabric/colour/formality sartorial rules still block
   only those exact claims; live delivery smoke still needs credentials;
   payment blocks money collection only (ADR-062).
-- **Exact next files/tests:** implement queue item 5.4 Tie-Mate only after an
-  approved founder mobile surface exists; until then skip the invented UI and
-  do not invent a parallel catalogue. Next independent Stage 6 items remain
-  behind the payment/compliance design gate.
+- **Exact next files/tests:** none agent-buildable. Resume 5.4 only after the
+  founder supplies an approved Tie-Mate mobile surface for an ADR-052
+  verbatim port with narrow catalogue/stock/discovery/shortlist/order/advisor
+  hooks. Do not invent founder HTML, a parallel Tie-Mate catalogue, payment
+  code, or marketplace domain while those gates hold.
 
 ## 1. Programme intent
 
