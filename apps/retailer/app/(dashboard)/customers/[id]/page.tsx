@@ -11,6 +11,7 @@ import {
   PhysicalGarmentRepository,
   ProductRepository,
   WardrobeRepository,
+  WardrobeRoadmapRepository,
 } from "@paon/database";
 import {
   asId,
@@ -34,6 +35,7 @@ import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 import { createClientelingNote, setPreferredCarrier } from "./actions";
 import { AdvisorPreparationBriefCard } from "./advisor-preparation-brief";
 import { AIInsights } from "./ai-insights";
+import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
 import { SelfPortrait } from "./self-portrait";
 
@@ -79,6 +81,7 @@ export default async function CustomerDetailPage({
     advisorBrief,
     wardrobeItems,
     catalogueProducts,
+    roadmaps,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -98,6 +101,7 @@ export default async function CustomerDetailPage({
     }),
     new WardrobeRepository(supabase).findByCustomer(customer.id),
     new ProductRepository(supabase).findByRetailer(session.retailerId),
+    new WardrobeRoadmapRepository(supabase).findByCustomer(customer.id),
   ]);
   const wardrobeRepo = new WardrobeRepository(supabase);
   const wardrobeHistoryEntries = await Promise.all(
@@ -594,6 +598,16 @@ export default async function CustomerDetailPage({
         customerId={customer.id}
         items={wardrobeItems}
         historyByItemId={wardrobeHistoryByItemId}
+        catalogueProducts={catalogueProducts.map((product) => ({
+          id: product.id,
+          name: product.name,
+        }))}
+        canManage={canManage}
+      />
+
+      <CustomerRoadmapCard
+        customerId={customer.id}
+        roadmaps={roadmaps}
         catalogueProducts={catalogueProducts.map((product) => ({
           id: product.id,
           name: product.name,

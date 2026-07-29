@@ -3622,6 +3622,152 @@ export type Database = {
           },
         ];
       };
+      outfit_slots: {
+        Row: {
+          available: boolean;
+          created_at: string;
+          display_order: number;
+          id: string;
+          label: string;
+          outfit_id: string;
+          product_id: string | null;
+          retailer_id: string;
+          slot_kind: string;
+          wardrobe_item_id: string | null;
+        };
+        Insert: {
+          available?: boolean;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          label: string;
+          outfit_id: string;
+          product_id?: string | null;
+          retailer_id: string;
+          slot_kind: string;
+          wardrobe_item_id?: string | null;
+        };
+        Update: {
+          available?: boolean;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          label?: string;
+          outfit_id?: string;
+          product_id?: string | null;
+          retailer_id?: string;
+          slot_kind?: string;
+          wardrobe_item_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "outfit_slots_outfit_id_fkey";
+            columns: ["outfit_id"];
+            isOneToOne: false;
+            referencedRelation: "outfits";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "outfit_slots_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "outfit_slots_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "outfit_slots_wardrobe_item_id_fkey";
+            columns: ["wardrobe_item_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      outfits: {
+        Row: {
+          created_at: string;
+          created_by_staff_id: string;
+          customer_id: string;
+          deleted_at: string | null;
+          id: string;
+          notes: string | null;
+          occasion_label: string | null;
+          retailer_id: string;
+          roadmap_id: string | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by_staff_id: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          id?: string;
+          notes?: string | null;
+          occasion_label?: string | null;
+          retailer_id: string;
+          roadmap_id?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by_staff_id?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          id?: string;
+          notes?: string | null;
+          occasion_label?: string | null;
+          retailer_id?: string;
+          roadmap_id?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "outfits_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "outfits_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "outfits_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "outfits_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "outfits_roadmap_id_fkey";
+            columns: ["roadmap_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_roadmaps";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       payments: {
         Row: {
           amount_minor_units: number;
@@ -5181,6 +5327,121 @@ export type Database = {
           },
         ];
       };
+      sartorial_rules: {
+        Row: {
+          created_at: string;
+          created_by_staff_id: string | null;
+          deleted_at: string | null;
+          explanation: string;
+          id: string;
+          knowledge_object_id: string | null;
+          object_concept_id: string | null;
+          object_slot_kind: string | null;
+          ownership_kind: string;
+          relation: string;
+          retailer_id: string | null;
+          review_status: string;
+          reviewed_at: string | null;
+          reviewed_by_staff_id: string | null;
+          rule_kind: string;
+          slug: string;
+          subject_concept_id: string | null;
+          subject_slot_kind: string | null;
+          summary: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          deleted_at?: string | null;
+          explanation: string;
+          id?: string;
+          knowledge_object_id?: string | null;
+          object_concept_id?: string | null;
+          object_slot_kind?: string | null;
+          ownership_kind: string;
+          relation: string;
+          retailer_id?: string | null;
+          review_status?: string;
+          reviewed_at?: string | null;
+          reviewed_by_staff_id?: string | null;
+          rule_kind: string;
+          slug: string;
+          subject_concept_id?: string | null;
+          subject_slot_kind?: string | null;
+          summary: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          deleted_at?: string | null;
+          explanation?: string;
+          id?: string;
+          knowledge_object_id?: string | null;
+          object_concept_id?: string | null;
+          object_slot_kind?: string | null;
+          ownership_kind?: string;
+          relation?: string;
+          retailer_id?: string | null;
+          review_status?: string;
+          reviewed_at?: string | null;
+          reviewed_by_staff_id?: string | null;
+          rule_kind?: string;
+          slug?: string;
+          subject_concept_id?: string | null;
+          subject_slot_kind?: string | null;
+          summary?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sartorial_rules_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sartorial_rules_knowledge_object_id_fkey";
+            columns: ["knowledge_object_id"];
+            isOneToOne: false;
+            referencedRelation: "knowledge_objects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sartorial_rules_object_concept_id_fkey";
+            columns: ["object_concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sartorial_rules_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sartorial_rules_reviewed_by_staff_id_fkey";
+            columns: ["reviewed_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sartorial_rules_subject_concept_id_fkey";
+            columns: ["subject_concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sms_outbox: {
         Row: {
           attempts: number;
@@ -5685,6 +5946,292 @@ export type Database = {
             columns: ["wardrobe_item_id"];
             isOneToOne: false;
             referencedRelation: "wardrobe_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wardrobe_roadmap_gaps: {
+        Row: {
+          category_code: string | null;
+          created_at: string;
+          description: string | null;
+          filled_by_product_id: string | null;
+          filled_by_wardrobe_item_id: string | null;
+          how_purchase_fills_gap: string | null;
+          id: string;
+          rank: number;
+          retailer_id: string;
+          roadmap_id: string;
+          slot_kind: string | null;
+          title: string;
+        };
+        Insert: {
+          category_code?: string | null;
+          created_at?: string;
+          description?: string | null;
+          filled_by_product_id?: string | null;
+          filled_by_wardrobe_item_id?: string | null;
+          how_purchase_fills_gap?: string | null;
+          id?: string;
+          rank: number;
+          retailer_id: string;
+          roadmap_id: string;
+          slot_kind?: string | null;
+          title: string;
+        };
+        Update: {
+          category_code?: string | null;
+          created_at?: string;
+          description?: string | null;
+          filled_by_product_id?: string | null;
+          filled_by_wardrobe_item_id?: string | null;
+          how_purchase_fills_gap?: string | null;
+          id?: string;
+          rank?: number;
+          retailer_id?: string;
+          roadmap_id?: string;
+          slot_kind?: string | null;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_roadmap_gaps_filled_by_product_id_fkey";
+            columns: ["filled_by_product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gaps_filled_by_wardrobe_item_id_fkey";
+            columns: ["filled_by_wardrobe_item_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gaps_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_gaps_roadmap_id_fkey";
+            columns: ["roadmap_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_roadmaps";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wardrobe_roadmap_goals: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          display_order: number;
+          id: string;
+          retailer_id: string;
+          roadmap_id: string;
+          title: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          display_order?: number;
+          id?: string;
+          retailer_id: string;
+          roadmap_id: string;
+          title: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          display_order?: number;
+          id?: string;
+          retailer_id?: string;
+          roadmap_id?: string;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_roadmap_goals_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_goals_roadmap_id_fkey";
+            columns: ["roadmap_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_roadmaps";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wardrobe_roadmap_stages: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          explanation: string;
+          fact_citations: Json;
+          gap_id: string | null;
+          id: string;
+          retailer_id: string;
+          roadmap_id: string;
+          rule_citations: Json;
+          stage_order: number;
+          suggested_product_id: string | null;
+          suggested_wardrobe_item_id: string | null;
+          title: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          explanation: string;
+          fact_citations?: Json;
+          gap_id?: string | null;
+          id?: string;
+          retailer_id: string;
+          roadmap_id: string;
+          rule_citations?: Json;
+          stage_order: number;
+          suggested_product_id?: string | null;
+          suggested_wardrobe_item_id?: string | null;
+          title: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          explanation?: string;
+          fact_citations?: Json;
+          gap_id?: string | null;
+          id?: string;
+          retailer_id?: string;
+          roadmap_id?: string;
+          rule_citations?: Json;
+          stage_order?: number;
+          suggested_product_id?: string | null;
+          suggested_wardrobe_item_id?: string | null;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_roadmap_stages_gap_id_fkey";
+            columns: ["gap_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_roadmap_gaps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_stages_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_stages_roadmap_id_fkey";
+            columns: ["roadmap_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_roadmaps";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_stages_suggested_product_id_fkey";
+            columns: ["suggested_product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmap_stages_suggested_wardrobe_item_id_fkey";
+            columns: ["suggested_wardrobe_item_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wardrobe_roadmaps: {
+        Row: {
+          authored_by_staff_id: string;
+          created_at: string;
+          customer_decision_note: string | null;
+          customer_id: string;
+          decided_at: string | null;
+          decided_by_actor: string | null;
+          deleted_at: string | null;
+          horizon_label: string | null;
+          id: string;
+          retailer_id: string;
+          status: string;
+          submitted_at: string | null;
+          summary: string | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          authored_by_staff_id: string;
+          created_at?: string;
+          customer_decision_note?: string | null;
+          customer_id: string;
+          decided_at?: string | null;
+          decided_by_actor?: string | null;
+          deleted_at?: string | null;
+          horizon_label?: string | null;
+          id?: string;
+          retailer_id: string;
+          status?: string;
+          submitted_at?: string | null;
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          authored_by_staff_id?: string;
+          created_at?: string;
+          customer_decision_note?: string | null;
+          customer_id?: string;
+          decided_at?: string | null;
+          decided_by_actor?: string | null;
+          deleted_at?: string | null;
+          horizon_label?: string | null;
+          id?: string;
+          retailer_id?: string;
+          status?: string;
+          submitted_at?: string | null;
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_roadmaps_authored_by_staff_id_fkey";
+            columns: ["authored_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmaps_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmaps_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "wardrobe_roadmaps_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];

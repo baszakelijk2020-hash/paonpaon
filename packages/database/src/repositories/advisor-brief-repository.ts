@@ -23,6 +23,7 @@ import { MetadataRepository } from "./metadata-repository";
 import { ProductRepository } from "./product-repository";
 import { ProductVariantRepository } from "./product-variant-repository";
 import { StyleProfileRepository } from "./style-profile-repository";
+import { WardrobeRoadmapRepository } from "./wardrobe-roadmap-repository";
 import { WishlistRepository } from "./wishlist-repository";
 
 export interface AdvisorBriefRepositoryDeps {
@@ -35,6 +36,7 @@ export interface AdvisorBriefRepositoryDeps {
   readonly variants: ProductVariantRepository;
   readonly metadata: MetadataRepository;
   readonly knowledge: KnowledgeRepository;
+  readonly wardrobeRoadmaps?: WardrobeRoadmapRepository;
 }
 
 function asUuid(value: unknown): string | null {
@@ -66,6 +68,8 @@ export class AdvisorBriefRepository {
       variants: deps?.variants ?? new ProductVariantRepository(client),
       metadata: deps?.metadata ?? new MetadataRepository(client),
       knowledge: deps?.knowledge ?? new KnowledgeRepository(client),
+      wardrobeRoadmaps:
+        deps?.wardrobeRoadmaps ?? new WardrobeRoadmapRepository(client),
     };
   }
 
@@ -224,6 +228,11 @@ export class AdvisorBriefRepository {
       });
     }
 
+    const wardrobeGaps =
+      await this.deps.wardrobeRoadmaps!.findActiveApprovedGapsForBrief(
+        args.customerId,
+      );
+
     return buildAdvisorPreparationBrief({
       retailerId: args.retailerId,
       customerId: args.customerId,
@@ -237,6 +246,7 @@ export class AdvisorBriefRepository {
       productLabels,
       knowledgeLabels,
       wishlistItems: resolvedWishlist,
+      wardrobeGaps,
       ...(conversation
         ? {
             conversationId: conversation.id,

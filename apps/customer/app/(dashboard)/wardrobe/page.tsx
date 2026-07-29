@@ -2,9 +2,11 @@ import {
   CustomerRepository,
   RetailerRepository,
   WardrobeRepository,
+  WardrobeRoadmapRepository,
 } from "@paon/database";
 import type { WardrobeOwnershipEvent } from "@paon/domain";
 
+import { WardrobeRoadmapPanel } from "./roadmap-panel";
 import { WardrobeHousePanel } from "./wardrobe-panel";
 
 import { requireSession } from "@/lib/session";
@@ -19,6 +21,7 @@ export default async function WardrobePage() {
   );
   const retailerRepo = new RetailerRepository(supabase);
   const wardrobeRepo = new WardrobeRepository(supabase);
+  const roadmapRepo = new WardrobeRoadmapRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
@@ -32,7 +35,10 @@ export default async function WardrobePage() {
       );
       const historyByItemId: Record<string, readonly WardrobeOwnershipEvent[]> =
         Object.fromEntries(historyEntries);
-      return { customer, retailer, items, historyByItemId };
+      const roadmaps = await roadmapRepo.findByCustomer(customer.id, {
+        customerVisibleOnly: true,
+      });
+      return { customer, retailer, items, historyByItemId, roadmaps };
     }),
   );
 
@@ -44,7 +50,8 @@ export default async function WardrobePage() {
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           What you own with each house — purchases and external pieces, kept
-          separate from fitting garments.
+          separate from fitting garments — plus advisor roadmaps awaiting or
+          carrying your approval.
         </p>
       </div>
 
@@ -58,16 +65,23 @@ export default async function WardrobePage() {
           </p>
         </div>
       ) : (
-        groups.map(({ customer, retailer, items, historyByItemId }) => (
-          <WardrobeHousePanel
-            key={customer.id}
-            retailerId={customer.retailerId}
-            retailerName={retailer?.displayName ?? "Retailer"}
-            customerId={customer.id}
-            items={items}
-            historyByItemId={historyByItemId}
-          />
-        ))
+        groups.map(
+          ({ customer, retailer, items, historyByItemId, roadmaps }) => (
+            <div key={customer.id} className="flex flex-col gap-4">
+              <WardrobeHousePanel
+                retailerId={customer.retailerId}
+                retailerName={retailer?.displayName ?? "Retailer"}
+                customerId={customer.id}
+                items={items}
+                historyByItemId={historyByItemId}
+              />
+              <WardrobeRoadmapPanel
+                retailerName={retailer?.displayName ?? "Retailer"}
+                roadmaps={roadmaps}
+              />
+            </div>
+          ),
+        )
       )}
     </div>
   );

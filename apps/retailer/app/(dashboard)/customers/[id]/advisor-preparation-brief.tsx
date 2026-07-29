@@ -340,8 +340,42 @@ export function AdvisorPreparationBriefCard({
         </div>
       ) : null}
 
-      <p className="mt-5 text-xs text-[var(--color-stone-500)]">
-        Wardrobe gaps will appear here after wardrobe intelligence lands.
+      {brief.wardrobeGaps.length > 0 ? (
+        <div className="mt-5">
+          <Section
+            title="Wardrobe gaps"
+            empty="No ranked gaps on the approved plan."
+          >
+            <ul className="flex flex-col gap-1.5">
+              {brief.wardrobeGaps.slice(0, compact ? 4 : 8).map((gap) => (
+                <li
+                  key={gap.gapId}
+                  className="flex items-start justify-between gap-3 text-sm"
+                >
+                  <span className="text-[var(--color-stone-800)]">
+                    #{gap.rank} {gap.title}
+                    {gap.howPurchaseFillsGap ? (
+                      <span className="mt-0.5 block text-xs text-[var(--color-stone-500)]">
+                        {gap.howPurchaseFillsGap}
+                      </span>
+                    ) : null}
+                  </span>
+                  {gap.slotKind ? (
+                    <span className="shrink-0 text-xs text-[var(--color-stone-500)]">
+                      {gap.slotKind.replaceAll("_", " ")}
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </Section>
+        </div>
+      ) : (
+        <p className="mt-5 text-xs text-[var(--color-stone-500)]">
+          No approved wardrobe roadmap gaps for this relationship yet.
+        </p>
+      )}
+      <p className="mt-3 text-xs text-[var(--color-stone-500)]">
         Generated {formatDate(brief.generatedAt, "en-US")}.
       </p>
     </Card>

@@ -48,6 +48,13 @@ export type WardrobeOwnershipEventId = Brand<
   string,
   "WardrobeOwnershipEventId"
 >;
+export type SartorialRuleId = Brand<string, "SartorialRuleId">;
+export type OutfitId = Brand<string, "OutfitId">;
+export type OutfitSlotId = Brand<string, "OutfitSlotId">;
+export type WardrobeRoadmapId = Brand<string, "WardrobeRoadmapId">;
+export type WardrobeRoadmapGoalId = Brand<string, "WardrobeRoadmapGoalId">;
+export type WardrobeRoadmapGapId = Brand<string, "WardrobeRoadmapGapId">;
+export type WardrobeRoadmapStageId = Brand<string, "WardrobeRoadmapStageId">;
 export type OrderId = Brand<string, "OrderId">;
 export type OrderLineId = Brand<string, "OrderLineId">;
 export type ProductionOrderId = Brand<string, "ProductionOrderId">;

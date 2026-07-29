@@ -55,6 +55,8 @@ export const GARMENT_CATEGORIES = [
   "knitwear",
   "leather",
   "accessories",
+  "shoes",
+  "pocket_square",
   "other",
 ] as const;
 

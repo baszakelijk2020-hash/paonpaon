@@ -217,6 +217,19 @@ describe("AdvisorBriefRepository", () => {
           updatedAt: now,
         }),
       },
+      wardrobeRoadmaps: {
+        findActiveApprovedGapsForBrief: vi.fn().mockResolvedValue([
+          {
+            gapId: asId<"WardrobeRoadmapGapId">(
+              "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+            ),
+            title: "Missing navy jacket",
+            rank: 1,
+            howPurchaseFillsGap: "Anchors weekday looks.",
+            slotKind: "jacket" as const,
+          },
+        ]),
+      },
     };
 
     const repo = new AdvisorBriefRepository(
@@ -237,6 +250,7 @@ describe("AdvisorBriefRepository", () => {
     expect(brief.questions[0]?.body).toContain("linen");
     expect(brief.conversation?.intent).toBe("wedding");
     expect(brief.evidence[0]?.conceptLabel).toBe("Summer wedding");
+    expect(brief.wardrobeGaps[0]?.title).toBe("Missing navy jacket");
     expect(JSON.stringify(brief)).not.toMatch(/password|ssn/i);
   });
 
@@ -264,6 +278,9 @@ describe("AdvisorBriefRepository", () => {
         variants: { findById: vi.fn() },
         metadata: { findConceptById: vi.fn() },
         knowledge: { findById: vi.fn() },
+        wardrobeRoadmaps: {
+          findActiveApprovedGapsForBrief: vi.fn().mockResolvedValue([]),
+        },
       } as never,
     );
 
@@ -304,6 +321,9 @@ describe("AdvisorBriefRepository", () => {
         variants: { findById: vi.fn() },
         metadata: { findConceptById: vi.fn() },
         knowledge: { findById: vi.fn() },
+        wardrobeRoadmaps: {
+          findActiveApprovedGapsForBrief: vi.fn().mockResolvedValue([]),
+        },
       } as never,
     );
 
