@@ -31,6 +31,12 @@ export * from "./catalog/catalogue-query.schema";
 export * from "./catalog/catalogue-intent";
 export * from "./catalog/catalogue-storefront";
 
+export * from "./import/import";
+export * from "./import/import-contract";
+export * from "./import/import.schema";
+export * from "./import/import-parser";
+export * from "./import/import-preview";
+
 export * from "./metadata/metadata";
 export * from "./metadata/metadata.schema";
 export * from "./metadata/metadata-retailer-form";

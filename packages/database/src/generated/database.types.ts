@@ -1303,6 +1303,117 @@ export type Database = {
           },
         ];
       };
+      catalogue_import_rows: {
+        Row: {
+          created_at: string;
+          external_sku: string;
+          id: string;
+          import_id: string;
+          proposed_product: Json | null;
+          raw_payload: Json;
+          retailer_id: string;
+          row_number: number;
+          status: Database["public"]["Enums"]["catalogue_import_row_status"];
+          updated_at: string;
+          validation_errors: Json;
+        };
+        Insert: {
+          created_at?: string;
+          external_sku: string;
+          id?: string;
+          import_id: string;
+          proposed_product?: Json | null;
+          raw_payload: Json;
+          retailer_id: string;
+          row_number: number;
+          status?: Database["public"]["Enums"]["catalogue_import_row_status"];
+          updated_at?: string;
+          validation_errors?: Json;
+        };
+        Update: {
+          created_at?: string;
+          external_sku?: string;
+          id?: string;
+          import_id?: string;
+          proposed_product?: Json | null;
+          raw_payload?: Json;
+          retailer_id?: string;
+          row_number?: number;
+          status?: Database["public"]["Enums"]["catalogue_import_row_status"];
+          updated_at?: string;
+          validation_errors?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "catalogue_import_rows_import_id_fkey";
+            columns: ["import_id"];
+            isOneToOne: false;
+            referencedRelation: "catalogue_imports";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalogue_import_rows_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      catalogue_imports: {
+        Row: {
+          completed_at: string | null;
+          contract_version: string;
+          created_at: string;
+          id: string;
+          retailer_id: string;
+          row_count: number;
+          source_filename: string;
+          source_type: Database["public"]["Enums"]["catalogue_import_source_type"];
+          status: Database["public"]["Enums"]["catalogue_import_status"];
+          uploaded_by_staff_id: string;
+        };
+        Insert: {
+          completed_at?: string | null;
+          contract_version: string;
+          created_at?: string;
+          id?: string;
+          retailer_id: string;
+          row_count: number;
+          source_filename: string;
+          source_type: Database["public"]["Enums"]["catalogue_import_source_type"];
+          status?: Database["public"]["Enums"]["catalogue_import_status"];
+          uploaded_by_staff_id: string;
+        };
+        Update: {
+          completed_at?: string | null;
+          contract_version?: string;
+          created_at?: string;
+          id?: string;
+          retailer_id?: string;
+          row_count?: number;
+          source_filename?: string;
+          source_type?: Database["public"]["Enums"]["catalogue_import_source_type"];
+          status?: Database["public"]["Enums"]["catalogue_import_status"];
+          uploaded_by_staff_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "catalogue_imports_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "catalogue_imports_uploaded_by_staff_id_fkey";
+            columns: ["uploaded_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       collections: {
         Row: {
           created_at: string;
@@ -2761,6 +2872,96 @@ export type Database = {
           },
           {
             foreignKeyName: "metadata_assignment_reviews_reviewed_by_staff_id_fkey";
+            columns: ["reviewed_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      metadata_review_tasks: {
+        Row: {
+          assignment_id: string | null;
+          confidence: number | null;
+          created_at: string;
+          id: string;
+          import_row_id: string | null;
+          proposed_concept_id: string | null;
+          proposed_kind:
+            Database["public"]["Enums"]["metadata_concept_kind"] | null;
+          proposed_value: string;
+          retailer_id: string;
+          reviewed_at: string | null;
+          reviewed_by_staff_id: string | null;
+          source: Database["public"]["Enums"]["metadata_source"];
+          status: Database["public"]["Enums"]["metadata_review_task_status"];
+          updated_at: string;
+        };
+        Insert: {
+          assignment_id?: string | null;
+          confidence?: number | null;
+          created_at?: string;
+          id?: string;
+          import_row_id?: string | null;
+          proposed_concept_id?: string | null;
+          proposed_kind?:
+            Database["public"]["Enums"]["metadata_concept_kind"] | null;
+          proposed_value: string;
+          retailer_id: string;
+          reviewed_at?: string | null;
+          reviewed_by_staff_id?: string | null;
+          source?: Database["public"]["Enums"]["metadata_source"];
+          status?: Database["public"]["Enums"]["metadata_review_task_status"];
+          updated_at?: string;
+        };
+        Update: {
+          assignment_id?: string | null;
+          confidence?: number | null;
+          created_at?: string;
+          id?: string;
+          import_row_id?: string | null;
+          proposed_concept_id?: string | null;
+          proposed_kind?:
+            Database["public"]["Enums"]["metadata_concept_kind"] | null;
+          proposed_value?: string;
+          retailer_id?: string;
+          reviewed_at?: string | null;
+          reviewed_by_staff_id?: string | null;
+          source?: Database["public"]["Enums"]["metadata_source"];
+          status?: Database["public"]["Enums"]["metadata_review_task_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "metadata_review_tasks_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "entity_metadata_assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "metadata_review_tasks_import_row_id_fkey";
+            columns: ["import_row_id"];
+            isOneToOne: false;
+            referencedRelation: "catalogue_import_rows";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "metadata_review_tasks_proposed_concept_id_fkey";
+            columns: ["proposed_concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "metadata_review_tasks_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "metadata_review_tasks_reviewed_by_staff_id_fkey";
             columns: ["reviewed_by_staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
@@ -6103,6 +6304,10 @@ export type Database = {
         | "alteration_fitting"
         | "personal_shopping"
         | "event";
+      catalogue_import_row_status:
+        "pending" | "valid" | "rejected" | "published";
+      catalogue_import_source_type: "csv" | "xlsx" | "json" | "pdf";
+      catalogue_import_status: "preview" | "failed";
       commercial_inquiry_type:
         "personalized_demo" | "consultation" | "paid_pilot";
       commercial_prospect_stage:
@@ -6195,6 +6400,7 @@ export type Database = {
         | "compatible_with"
         | "incompatible_with";
       metadata_review_status: "pending" | "accepted" | "rejected";
+      metadata_review_task_status: "pending" | "accepted" | "rejected";
       metadata_source: "supplier" | "ai" | "retailer" | "paon";
       metadata_target_type: "product" | "product_variant" | "wardrobe_item";
       notification_category:
@@ -6462,6 +6668,14 @@ export const Constants = {
         "personal_shopping",
         "event",
       ],
+      catalogue_import_row_status: [
+        "pending",
+        "valid",
+        "rejected",
+        "published",
+      ],
+      catalogue_import_source_type: ["csv", "xlsx", "json", "pdf"],
+      catalogue_import_status: ["preview", "failed"],
       commercial_inquiry_type: [
         "personalized_demo",
         "consultation",
@@ -6570,6 +6784,7 @@ export const Constants = {
         "incompatible_with",
       ],
       metadata_review_status: ["pending", "accepted", "rejected"],
+      metadata_review_task_status: ["pending", "accepted", "rejected"],
       metadata_source: ["supplier", "ai", "retailer", "paon"],
       metadata_target_type: ["product", "product_variant", "wardrobe_item"],
       notification_category: [

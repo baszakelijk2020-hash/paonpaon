@@ -174,6 +174,11 @@ export default async function DashboardLayout({
                 description: "Review assignments and overrides",
               },
               {
+                href: "/imports",
+                label: "Import preview",
+                description: "Supplier file validation and mapping",
+              },
+              {
                 href: "/analytics",
                 label: "Performance",
                 description: "Commercial and service signals",
