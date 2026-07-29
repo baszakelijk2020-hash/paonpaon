@@ -31,6 +31,19 @@ export type OrderStatus =
   | "canceled"
   | "refunded";
 
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  draft: "In bag",
+  pending_payment: "Awaiting payment",
+  placed: "Confirmed",
+  in_production: "In production",
+  ready_for_fulfillment: "Ready for collection",
+  shipped: "On its way",
+  delivered: "Delivered",
+  completed: "Complete",
+  canceled: "Cancelled",
+  refunded: "Refunded",
+};
+
 export type OrderChannel = "online" | "in_store" | "clienteling" | "phone";
 
 /**

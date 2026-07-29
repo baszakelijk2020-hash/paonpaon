@@ -6,6 +6,7 @@ import {
   OrderRepository,
   RetailerRepository,
 } from "@paon/database";
+import { APPOINTMENT_TYPE_LABELS, ORDER_STATUS_LABELS } from "@paon/domain";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate, humaniseStatus } from "@paon/utils";
@@ -156,7 +157,7 @@ export default async function DashboardPage() {
               </h1>
               <p className="mt-5 max-w-lg text-sm leading-6 text-white/70 sm:text-base">
                 {primary.nextAppointment
-                  ? `${primary.retailer?.displayName ?? "Your atelier"} is preparing for your ${humaniseStatus(primary.nextAppointment.type)}.`
+                  ? `${primary.retailer?.displayName ?? "Your atelier"} is preparing for your ${APPOINTMENT_TYPE_LABELS[primary.nextAppointment.type].toLowerCase()}.`
                   : `${primary.retailer?.displayName ?? "Your atelier"} is here when you are ready for the next conversation.`}
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
@@ -232,9 +233,9 @@ export default async function DashboardPage() {
                 ? formatDate(primary.nextAppointment.startsAt, "en-US")
                 : "Whenever you’re ready"}
             </p>
-            <p className="mt-1 text-sm capitalize text-[var(--color-stone-500)]">
+            <p className="mt-1 text-sm text-[var(--color-stone-500)]">
               {primary.nextAppointment
-                ? humaniseStatus(primary.nextAppointment.type)
+                ? APPOINTMENT_TYPE_LABELS[primary.nextAppointment.type]
                 : "Your advisor is a message away"}{" "}
               →
             </p>
@@ -311,7 +312,7 @@ export default async function DashboardPage() {
                   href: "/orders",
                   label: "Orders",
                   detail: primary.activeOrder
-                    ? humaniseStatus(primary.activeOrder.status)
+                    ? ORDER_STATUS_LABELS[primary.activeOrder.status]
                     : "Purchases and delivery",
                 },
                 {
@@ -442,7 +443,7 @@ export default async function DashboardPage() {
                         </p>
                         <p className="mt-1 text-sm font-medium capitalize">
                           {activeOrder
-                            ? humaniseStatus(activeOrder.status)
+                            ? ORDER_STATUS_LABELS[activeOrder.status]
                             : "No order in motion"}{" "}
                           →
                         </p>
@@ -472,8 +473,8 @@ export default async function DashboardPage() {
                         className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-stone-100)] px-6 py-4 text-sm"
                       >
                         <span className="min-w-0">
-                          Next: {humaniseStatus(nextAppointment.type)} ·{" "}
-                          {formatDate(nextAppointment.startsAt, "en-US")}
+                          Next: {APPOINTMENT_TYPE_LABELS[nextAppointment.type]}{" "}
+                          · {formatDate(nextAppointment.startsAt, "en-US")}
                         </span>
                         <span aria-hidden="true" className="shrink-0">
                           →

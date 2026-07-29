@@ -1,4 +1,5 @@
 import { CustomerRepository, OrderRepository } from "@paon/database";
+import { ORDER_STATUS_LABELS } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
@@ -43,8 +44,8 @@ export default async function OrdersPage() {
                 <p className="font-medium text-[var(--color-stone-900)]">
                   {order.orderNumber}
                 </p>
-                <p className="text-sm capitalize text-[var(--color-stone-500)]">
-                  {order.status.replaceAll("_", " ")} ·{" "}
+                <p className="text-sm text-[var(--color-stone-500)]">
+                  {ORDER_STATUS_LABELS[order.status]} ·{" "}
                   {formatDate(order.createdAt, "en-US")}
                 </p>
               </div>
