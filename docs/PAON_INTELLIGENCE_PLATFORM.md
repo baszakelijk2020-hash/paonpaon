@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `4.4 MorningRoutine selection and actions`
-- **Current requirement IDs:** `MR-001`, `MR-002`, `ENG-002`
+- **Current queue item:** `4.5 MorningRoutine delivery and retailer controls`
+- **Current requirement IDs:** `MR-002`, `MR-003`, `CUST-003`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -33,7 +33,8 @@ requires it.
   TableService occasion guidance (PHASE 3.4 complete); `a407890` adds wardrobe
   ownership and collaboration (PHASE 4.1 complete); `92f7afe` adds wardrobe
   roadmaps, outfits, and sartorial rules (PHASE 4.2 complete); `bd22637` adds
-  wardrobe lifecycle, self-scan, and fit freshness (PHASE 4.3 complete).
+  wardrobe lifecycle, self-scan, and fit freshness (PHASE 4.3 complete);
+  `fcd0260` adds MorningRoutine selection and actions (PHASE 4.4 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -51,35 +52,39 @@ requires it.
   `outfit_slots`, `wardrobe_lifecycle_events`, `wardrobe_self_scans`,
   `wardrobe_attachments`, private `wardrobe-evidence` bucket, RPCs
   `record_wardrobe_lifecycle_event` / `submit_wardrobe_self_scan` /
-  `record_wardrobe_attachment`, generated database types,
+  `record_wardrobe_attachment`, `morning_routine_selections` /
+  `morning_routine_recommendations`, RPCs `persist_morning_routine_selection`
+  / `mark_morning_routine_review`, generated database types,
   `MetadataRepository`, `ProductFabricProfileRepository`,
   `KnowledgeRepository`, `CatalogueQueryRepository`,
   `CatalogueImportRepository`, `ImportEnrichmentPromptRepository`,
   `CustomerConsentRepository`, `StyleProfileRepository`,
   `AdvisorBriefRepository`, `TableServiceGuidanceRepository`,
   `WardrobeRepository`, `SartorialRuleRepository`, `OutfitRepository`,
-  `WardrobeRoadmapRepository`, `WardrobeLifecycleRepository`, upgraded
-  `AnalyticsRepository`, `@paon/domain` intelligence
-  consent/interaction-event/StyleProfile/advisor-brief/grounded-answer/
-  wardrobe/sartorial/outfit/roadmap/lifecycle contracts, `@paon/ai`
-  `generateGroundedAnswer`, customer account consent + StyleProfile + wardrobe
-  roadmap/lifecycle/self-scan/fit-freshness controls, consented
-  storefront/swipe/TableService producers, Retailer Portal advisor
-  brief/wardrobe/roadmap/lifecycle mounts, and TableService occasion guidance
-  with swipe/appointment conversion hooks.
-- **Checks/deployment state:** 104 migrations; wardrobe lifecycle/self-scan/
-  fit-freshness domain/migration/repo/surface and lint/typecheck/test/build/
-  format are green on the 4.3 tip. Anonymous interaction persistence remains
-  blocked pending jurisdiction documentation.
-- **Real blockers:** none for Stage 4.4 MorningRoutine selection beyond
-  ordinary missing weather/calendar credentials for live smoke only; anonymous
+  `WardrobeRoadmapRepository`, `WardrobeLifecycleRepository`,
+  `MorningRoutineRepository`, upgraded `AnalyticsRepository`, `@paon/domain`
+  intelligence consent/interaction-event/StyleProfile/advisor-brief/
+  grounded-answer/wardrobe/sartorial/outfit/roadmap/lifecycle/
+  morning-routine contracts plus provider-neutral weather/calendar ports,
+  `@paon/ai` `generateGroundedAnswer`, customer account consent + StyleProfile
+  - wardrobe roadmap/lifecycle/self-scan/fit-freshness + MorningRoutine
+    controls, consented storefront/swipe/TableService producers, Retailer Portal
+    advisor brief/wardrobe/roadmap/lifecycle mounts, and TableService occasion
+    guidance with swipe/appointment conversion hooks.
+- **Checks/deployment state:** 105 migrations; MorningRoutine selection domain/
+  migration/repo/Customer surface and lint/typecheck/test/build/format are
+  green on the 4.4 tip. Anonymous interaction persistence remains blocked
+  pending jurisdiction documentation. Live weather/calendar/email smoke still
+  needs provider credentials.
+- **Real blockers:** none for Stage 4.5 MorningRoutine delivery beyond
+  ordinary missing Resend key for live delivery smoke only; anonymous
   persistence remains blocked for new anonymous producers only; missing
   founder-authored fabric/colour/formality sartorial rules still block only
   those exact claims (neutral slot-compatibility fixtures remain available).
-- **Exact next files/tests:** implement queue item 4.4 MorningRoutine
-  selection and actions: pure routine selection/explanation, provider-neutral
-  weather/calendar interfaces, repository projections, and Customer
-  Environment in-app view with save/review/book/buy where valid.
+- **Exact next files/tests:** implement queue item 4.5 MorningRoutine delivery
+  and retailer controls: in-app notification/email outbox orchestration,
+  subscription/frequency/quiet-period controls, delivery audit, suppression,
+  and retailer eligible-product controls.
 
 ## 1. Programme intent
 
@@ -168,8 +173,8 @@ above. Status changes only after the named acceptance criteria are verified.
 | WARD-003               | Tenant-safe customer/advisor collaboration                                                                                                                                                                 | `wardrobe`                         | Existing customer/retailer RLS foundations                                                                                                  | WARD-001                                  | 4.1–4.3              | Customer and authorized advisor can collaborate inside one retailer relationship; no retailer-to-retailer sharing                | Landed for 4.1 ownership (`a407890`)                                                                      |
 | ROAD-001               | Advisor-built ideal wardrobe with ranked gaps and staged purchase priorities                                                                                                                               | Wardrobe Roadmap                   | Advisor-authored roadmaps with goals/ranked gaps/cited stages and customer approval exist                                                   | WARD-001                                  | 4.2                  | Advisor can author goals/gaps/stages; customer sees approved plan and how each purchase fills a gap                              | Done (4.2 / `92f7afe`)                                                                                    |
 | ROAD-002               | Complete looks and founder-authored rules for jacket/trouser/shirt/shoe/accessory/pocket-square/fabric/colour/formality/occasion compatibility                                                             | Sartorial knowledge + outfits      | Slot-compatibility rules seeded/accepted; outfits/slots + explainable evaluator; fabric/colour/formality founder nuance still proposal-only | EDU-001, WARD-001                         | 4.2                  | Recommendations link approved rules and owned/catalogue items, remain retailer-controlled, and explain every compatibility claim | Done for buildable slice (4.2 / `92f7afe`); founder fabric/colour/formality nuance remains proposal-gated |
-| MR-001                 | Opt-in location, weather, temperature, calendar/occasion, wardrobe, catalogue, and StyleProfile inputs                                                                                                     | MorningRoutine                     | No routine/location/weather model                                                                                                           | ROAD-001, CUST-003                        | 4.4                  | Each input has provenance/consent/fallback; location is optional and separately revocable                                        | Not started                                                                                               |
-| MR-002                 | Daily in-app/email recommendations with one-tap save, review, appointment, or purchase paths                                                                                                               | MorningRoutine                     | Notification/email outbox foundations exist; no daily selector                                                                              | MR-001                                    | 4.4–4.5              | Owned garments rank first; recommendations explain why; delivery is opt-in, scheduled, auditable, and unsubscribeable            | Not started                                                                                               |
+| MR-001                 | Opt-in location, weather, temperature, calendar/occasion, wardrobe, catalogue, and StyleProfile inputs                                                                                                     | MorningRoutine                     | Pure selection + consent/weather/calendar provenance; OpenWeather/appointment adapters; no precise location stored                          | ROAD-001, CUST-003                        | 4.4                  | Each input has provenance/consent/fallback; location is optional and separately revocable                                        | Complete (`fcd0260`)                                                                                      |
+| MR-002                 | Daily in-app/email recommendations with one-tap save, review, appointment, or purchase paths                                                                                                               | MorningRoutine                     | In-app owned-first selection with save/review/book/buy; email delivery/outbox remains 4.5                                                   | MR-001                                    | 4.4–4.5              | Owned garments rank first; recommendations explain why; delivery is opt-in, scheduled, auditable, and unsubscribeable            | Partial (4.4 in-app; 4.5 delivery pending)                                                                |
 | MR-003                 | Retailer-controlled campaign selection and timely service rather than generic advertising                                                                                                                  | MorningRoutine + campaigns         | Newsletter tooling exists; no intelligence campaign controls                                                                                | MR-002, CAMP-002                          | 4.5, 5.1             | Retailer controls eligible products/audiences/schedule; suppression and service relevance are testable                           | Not started                                                                                               |
 | FIT-001                | Order-line self-scan photo upload and notes for purchased garments                                                                                                                                         | Customer wardrobe + fit service    | Eligible wardrobe items accept private self-scan photo/notes with advisor handoff                                                           | WARD-001                                  | 4.3                  | Eligible order line/garment accepts customer photo/notes with private storage and advisor handoff                                | Done (4.3 / `bd22637`)                                                                                    |
 | FIT-002                | Customer-reported change, fit freshness, last measured date, escalating stale state, fit-update appointment, and alteration handoff                                                                        | Fit relationship                   | Deterministic freshness from official observations; self-scan triggers fitting/alteration handoff                                           | FIT-001                                   | 4.3                  | Customer sees factual last official measurement, deterministic freshness, and service actions; advisor receives context          | Done (4.3 / `bd22637`)                                                                                    |
@@ -186,7 +191,7 @@ above. Status changes only after the named acceptance criteria are verified.
 | TIE-001                | Mobile-first full-screen realistic-scale tie-fabric exploration with save, order, advisor handoff, catalogue, and stock integration                                                                        | Tie-Mate                           | No approved Tie-Mate surface                                                                                                                | EDU-003, ADV-001, approved founder design | 5.4                  | Phone-scale fabrics preserve stock truth and support swipe/save/order/handoff with mobile accessibility                          | Design blocker                                                                                            |
 | MKT-001                | Separate retailer-owner marketplace for mannequins, bags, shoe displays, fixtures, custom furniture, and supplies                                                                                          | Business marketplace               | No marketplace context                                                                                                                      | Marketplace ADR + stable programme        | 6.3                  | Separate tenant/customer/catalogue/order assumptions are proven; retailer products never enter customer retail facets            | Not started                                                                                               |
 | ENG-001                | PAON owns canonical taxonomy/knowledge; retailers own tenant catalogue, review, and local overrides                                                                                                        | Metadata + knowledge governance    | Canonical management, review boundaries, and knowledge ownership/override rules are enforced                                                | Direction                                 | 1.1–2.1              | ADR-059/060 ownership rules are enforced in types, database constraints, RLS, and repositories                                   | Done (2.1)                                                                                                |
-| ENG-002                | Recommendations and AI answers use accepted metadata/approved knowledge, explain why, and respect consent/retention                                                                                        | Intelligence governance            | Discovery ranking, catalogue intent, and TableService grounded answers cite approved objects; later MorningRoutine still pending            | EDU-002, CUST-001                         | 2.2–4.5              | Every output exposes evidence/explanation and fails closed when approval or consent is absent                                    | Partial (3.4)                                                                                             |
+| ENG-002                | Recommendations and AI answers use accepted metadata/approved knowledge, explain why, and respect consent/retention                                                                                        | Intelligence governance            | Discovery ranking, catalogue intent, TableService grounded answers, and MorningRoutine selection cite consented/approved inputs             | EDU-002, CUST-001                         | 2.2–4.5              | Every output exposes evidence/explanation and fails closed when approval or consent is absent                                    | Partial (4.4; delivery 4.5)                                                                               |
 | ENG-003                | Extend branded-ID/domain/repository/Server-Action/RLS/migration/test architecture; do not create a parallel product                                                                                        | Engineering platform               | Architecture exists and is enforced in current code                                                                                         | Direction                                 | All                  | Every slice follows package boundaries, strict TypeScript, forward migrations, generated types, and tenant tests                 | In force                                                                                                  |
 | ENG-004                | Preserve founder HTML and interaction behavior through narrow hooks rather than React/Tailwind/design-system rewrites                                                                                      | Founder surfaces                   | Founder route serves canonical HTML with narrow runtime injection including knowledge mounts                                                | ADR-052                                   | 2.3, 5.4             | DOM/CSS diff and desktop/mobile/a11y checks show only authorized mounts changed                                                  | Partial foundation                                                                                        |
 | ENG-005                | Continuous inspect→implement→test→repair→state→commit→push loop without routine handoff                                                                                                                    | Delivery governance                | AGENTS/WORKING_AGREEMENT establish the loop                                                                                                 | Direction                                 | 0.1 and recurring    | Queue and Resume Protocol remain factual after every pushed slice; agent stops only at real blockers                             | In force                                                                                                  |

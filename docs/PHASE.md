@@ -48,8 +48,9 @@ Verified against code and 91 migrations on 2026-07-30:
   cites approved knowledge, seeds swipe shortlists, and converts to
   appointments. Wardrobe ownership and roadmaps/outfits/sartorial rules
   landed in Stage 4.1–4.2; lifecycle, longevity guidance, private self-scan,
-  and fit freshness landed in Stage 4.3; MorningRoutine remains a later
-  Stage 4 item.
+  and fit freshness landed in Stage 4.3; MorningRoutine in-app selection and
+  save/review/book/buy actions landed in Stage 4.4; delivery/retailer
+  controls remain Stage 4.5.
 - Metadata concepts, edges, assignments, append-only review evidence,
   retailer overrides, and exact product/variant fabric profiles now exist.
   PAON Admin can manage canonical concepts and terminal assignment decisions
@@ -69,8 +70,8 @@ Verified against code and 91 migrations on 2026-07-30:
   and AI-assisted enrichment with pending review exist.
   StyleProfile tables, advisor briefs, and grounded TableService guidance
   exist. Wardrobe ownership, sartorial rules, outfits, wardrobe roadmaps,
-  lifecycle/self-scan/fit-freshness tables exist; no service-plan or campaign
-  table exists.
+  lifecycle/self-scan/fit-freshness, and MorningRoutine selection tables
+  exist; no service-plan or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -496,7 +497,7 @@ replacement of human advice for uncertain high-value decisions.
     appointment/alteration handoff; `PhysicalGarment` unchanged as fitting
     aggregate.
 
-- [ ] **4.4 MorningRoutine selection and actions**
+- [x] **4.4 MorningRoutine selection and actions**
   - **Requirement IDs:** `MR-001`, `MR-002`, `ENG-002`.
   - **Dependencies:** `4.2`, `3.2`; ADR-061 and ADR-063.
   - **Owner boundary:** pure routine selection/explanation, provider-neutral
@@ -513,6 +514,10 @@ replacement of human advice for uncertain high-value decisions.
     purchase, generic ad insertion, or provider-specific domain logic.
   - **Hard blockers:** missing weather/calendar credentials blocks live smoke
     verification only; interfaces, fixtures, and no-provider fallbacks remain.
+  - **Landed:** `fcd0260` — pure owned-first MorningRoutine selection with
+    consent/weather/calendar/StyleProfile provenance, provider-neutral weather
+    and calendar ports with OpenWeather + appointment adapters, selection
+    persistence/RLS, and Customer `/morning-routine` save/review/book/buy.
 
 - [ ] **4.5 MorningRoutine delivery and retailer controls**
   - **Requirement IDs:** `MR-002`, `MR-003`, `CUST-003`.
