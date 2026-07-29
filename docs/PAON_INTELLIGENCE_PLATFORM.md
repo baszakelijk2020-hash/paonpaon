@@ -45,7 +45,7 @@ requires it.
   ledger (PHASE 5.2 complete); `437a49e` adds Preferred Tailoring and
   HighMaintenance concierge operations (PHASE 5.3 complete); `6842fb5` adds
   Tie-Mate domain deck/photo/handoff under ADR-065 (PHASE 5.4 foundation);
-  `36acce3` adds TieMateRepository catalogue projection and deck composition
+  `6bc4de4` adds TieMateRepository catalogue projection and deck composition
   (PHASE 5.4 repository wiring).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
