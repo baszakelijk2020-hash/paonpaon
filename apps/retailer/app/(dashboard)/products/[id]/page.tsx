@@ -1,16 +1,23 @@
 import { requireRetailerRole } from "@paon/auth";
 import {
   CollectionRepository,
+  MetadataRepository,
+  ProductFabricProfileRepository,
   ProductRepository,
   ProductVariantRepository,
 } from "@paon/database";
-import { asId } from "@paon/domain";
+import { asId, type EntityMetadataAssignment } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import { notFound } from "next/navigation";
 
 import { ProductStatusBadge } from "../status-badge";
 
 import { ProductEditor, VariantEditor } from "./catalogue-editor";
+import {
+  ProductCatalogueAssignments,
+  ProductFabricEditor,
+  VariantFabricEditor,
+} from "./product-facts-editor";
 import { ProductImageUploader } from "./product-image-uploader";
 
 import { requireSession } from "@/lib/session";
@@ -34,11 +41,42 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const variants = await new ProductVariantRepository(supabase).findByProduct(
-    product.id,
+  const metadata = new MetadataRepository(supabase);
+  const fabricRepo = new ProductFabricProfileRepository(supabase);
+  const [variants, collections, concepts, productAssignments, productFabric] =
+    await Promise.all([
+      new ProductVariantRepository(supabase).findByProduct(product.id),
+      new CollectionRepository(supabase).findByRetailer(session.retailerId),
+      metadata.findVisibleConcepts(session.retailerId),
+      metadata.findAssignmentsForTarget(session.retailerId, {
+        targetType: "product",
+        targetId: product.id,
+      }),
+      fabricRepo.findForProduct(session.retailerId, product.id),
+    ]);
+
+  const fibreConcepts = concepts.filter((concept) => concept.kind === "fibre");
+  const variantAssignments = await Promise.all(
+    variants.map(async (variant) => {
+      const [assignments, fabric] = await Promise.all([
+        metadata.findAssignmentsForTarget(session.retailerId, {
+          targetType: "product_variant",
+          targetId: variant.id,
+        }),
+        fabricRepo.findForVariant(session.retailerId, product.id, variant.id),
+      ]);
+      return { variant, assignments, fabric };
+    }),
   );
-  const collections = await new CollectionRepository(supabase).findByRetailer(
-    session.retailerId,
+
+  const assignmentsByVariantId = new Map<
+    string,
+    readonly EntityMetadataAssignment[]
+  >(
+    variantAssignments.map(({ variant, assignments }) => [
+      variant.id,
+      assignments,
+    ]),
   );
 
   return (
@@ -71,6 +109,20 @@ export default async function ProductDetailPage({
 
       <ProductEditor product={product} collections={collections} />
 
+      <ProductFabricEditor
+        productId={product.id}
+        profile={productFabric}
+        fibreConcepts={fibreConcepts}
+      />
+
+      <ProductCatalogueAssignments
+        productId={product.id}
+        concepts={concepts}
+        productAssignments={productAssignments}
+        variants={variants}
+        assignmentsByVariantId={assignmentsByVariantId}
+      />
+
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
           Variants
@@ -89,6 +141,27 @@ export default async function ProductDetailPage({
           )}
         </div>
       </div>
+
+      {variantAssignments.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+            Variant fabric overrides
+          </h2>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            Leave these empty unless a size, colour, or SKU genuinely has
+            different fabric facts.
+          </p>
+          {variantAssignments.map(({ variant, fabric }) => (
+            <VariantFabricEditor
+              key={variant.id}
+              productId={product.id}
+              variant={variant}
+              profile={fabric}
+              fibreConcepts={fibreConcepts}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

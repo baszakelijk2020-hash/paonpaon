@@ -2,10 +2,12 @@ import {
   createEntityMetadataAssignmentInputSchema,
   createMetadataConceptInputSchema,
   createRetailerConceptOverrideInputSchema,
+  productFabricProfileSchema,
   reviewMetadataAssignmentInputSchema,
   type CreateEntityMetadataAssignmentInput,
   type CreateMetadataConceptInput,
   type CreateRetailerConceptOverrideInput,
+  type ProductFabricProfileInput,
   type ReviewMetadataAssignmentInput,
 } from "./metadata.schema";
 
@@ -143,6 +145,62 @@ export function parseRetailerOverrideForm(
     imageUrlOverride: optionalTrimmed(values["imageUrlOverride"]),
     isHidden: values["isHidden"] === "on",
     priorityOverride: optionalNumber(values["priorityOverride"]),
+  });
+
+  if (!parsed.success) {
+    return { success: false, fieldErrors: fieldErrors(parsed.error.issues) };
+  }
+
+  return { success: true, data: parsed.data };
+}
+
+export interface ProductFabricProfileFormValues {
+  readonly fabricWeightGramsPerSquareMetre?: string;
+  readonly supplierReference?: string;
+  readonly fibreConceptIds?: readonly string[];
+  readonly percentages?: readonly string[];
+}
+
+/**
+ * Parses exact fabric facts from product-management forms. Composition is
+ * concept-linked only — there is no parallel free-text fibre/label field.
+ * Incomplete totals fail closed before any repository write.
+ */
+export function parseProductFabricProfileForm(
+  values: ProductFabricProfileFormValues,
+): MetadataFormParseResult<ProductFabricProfileInput> {
+  const fibreConceptIds = values.fibreConceptIds ?? [];
+  const percentages = values.percentages ?? [];
+
+  if (fibreConceptIds.length !== percentages.length) {
+    return {
+      success: false,
+      fieldErrors: {
+        composition: "Each fibre concept needs a matching percentage",
+      },
+    };
+  }
+
+  const composition = fibreConceptIds.flatMap((fibreConceptId, index) => {
+    const fibre = optionalTrimmed(fibreConceptId);
+    const percentageRaw = optionalTrimmed(percentages[index]);
+    if (fibre === undefined && percentageRaw === undefined) {
+      return [];
+    }
+    return [
+      {
+        fibreConceptId: fibre,
+        percentage: percentageRaw === undefined ? NaN : Number(percentageRaw),
+      },
+    ];
+  });
+
+  const parsed = productFabricProfileSchema.safeParse({
+    fabricWeightGramsPerSquareMetre: optionalNumber(
+      values.fabricWeightGramsPerSquareMetre,
+    ),
+    supplierReference: optionalTrimmed(values.supplierReference),
+    composition,
   });
 
   if (!parsed.success) {

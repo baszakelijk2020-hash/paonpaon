@@ -136,6 +136,18 @@ export interface ProductFabricProfile {
   readonly supplierReference?: string;
 }
 
+/**
+ * Variant fabric facts apply only when a real variant-level profile exists.
+ * Otherwise catalogue consumers inherit the product-level profile. An empty
+ * product profile is still authoritative over a missing product profile.
+ */
+export function resolveEffectiveFabricProfile(
+  productProfile: ProductFabricProfile | null,
+  variantProfile: ProductFabricProfile | null,
+): ProductFabricProfile | null {
+  return variantProfile ?? productProfile;
+}
+
 export interface MetadataAssignmentTenancy {
   readonly assignmentRetailerId: RetailerId;
   readonly targetRetailerId: RetailerId;

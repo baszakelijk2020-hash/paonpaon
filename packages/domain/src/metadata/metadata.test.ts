@@ -12,11 +12,28 @@ import {
 import {
   isMetadataAssignmentTenantCompatible,
   isMetadataEdgeTenantCompatible,
+  resolveEffectiveFabricProfile,
   type MetadataTarget,
+  type ProductFabricProfile,
 } from "./metadata";
 
 const retailerA = asId<"RetailerId">("00000000-0000-4000-8000-000000000001");
 const retailerB = asId<"RetailerId">("00000000-0000-4000-8000-000000000002");
+const fibreId = asId<"MetadataConceptId">(
+  "00000000-0000-4000-8000-000000000010",
+);
+
+const productProfile: ProductFabricProfile = {
+  fabricWeightGramsPerSquareMetre: 280,
+  composition: [{ fibreConceptId: fibreId, percentage: 100 }],
+  supplierReference: "PRODUCT-MILL",
+};
+
+const variantProfile: ProductFabricProfile = {
+  fabricWeightGramsPerSquareMetre: 320,
+  composition: [{ fibreConceptId: fibreId, percentage: 100 }],
+  supplierReference: "VARIANT-MILL",
+};
 
 describe("metadata branded IDs and targets", () => {
   it("keeps entity and concept IDs nominally distinct", () => {
@@ -114,6 +131,18 @@ describe("isMetadataEdgeTenantCompatible", () => {
         targetConceptRetailerId: retailerB,
       }),
     ).toBe(false);
+  });
+});
+
+describe("resolveEffectiveFabricProfile", () => {
+  it("uses variant facts only when a variant profile exists", () => {
+    expect(
+      resolveEffectiveFabricProfile(productProfile, variantProfile),
+    ).toEqual(variantProfile);
+    expect(resolveEffectiveFabricProfile(productProfile, null)).toEqual(
+      productProfile,
+    );
+    expect(resolveEffectiveFabricProfile(null, null)).toBeNull();
   });
 });
 

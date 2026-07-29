@@ -34,8 +34,8 @@ Snapshot: 2026-07-30.
   StyleProfile evidence, and advisor briefing do not.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
   evidence, retailer overrides, exact fabric profiles, an actor-derived review
-  RPC, PAON Admin canonical management, and the Retailer Portal metadata
-  review UI exist. No product-management fabric/assignment UI, knowledge,
+  RPC, PAON Admin canonical management, the Retailer Portal metadata review
+  UI, and product-management fabric/assignment editors exist. No knowledge,
   catalogue-import, wardrobe, roadmap, outfit, campaign, or concierge-service
   tables exist.
 
@@ -54,8 +54,7 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Metadata domain contracts, tenant-safe persistence, the review
-transition boundary, PAON Admin canonical management, and the Retailer Portal
-metadata review UI have landed (PHASE 1.3). The authoritative Resume Protocol
-identifies exact product facts and catalogue assignment UI on product
-management (PHASE 1.4) as the exact continuation point.
+contracts. Stage 1 metadata foundation is complete through exact product
+facts and catalogue assignment UI (PHASE 1.4). The authoritative Resume
+Protocol identifies knowledge contracts and persistence (PHASE 2.1) as the
+exact continuation point.

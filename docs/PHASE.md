@@ -46,10 +46,11 @@ Verified against code and 91 migrations on 2026-07-30:
   PAON Admin can manage canonical concepts and terminal assignment decisions
   now pass through an actor-derived, tenant-safe review boundary. The Retailer
   Portal metadata review UI lets managers propose/accept/reject tenant
-  assignments, create local concepts, and apply presentation overrides. No
-  product-management fabric/assignment UI, knowledge object, catalogue import,
-  style-profile, wardrobe, outfit, roadmap, service-plan, or campaign table
-  exists.
+  assignments, create local concepts, and apply presentation overrides.
+  Product management now edits exact fabric weight, supplier reference,
+  concept-linked composition, and product/variant catalogue assignments. No
+  knowledge object, catalogue import, style-profile, wardrobe, outfit,
+  roadmap, service-plan, or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -155,7 +156,7 @@ back-to-back sub-slices.
     metadata review UI (`8eaa834`) — propose/accept/reject, tenant-local
     concepts, presentation overrides, and pending/empty/error/saved states.
 
-- [ ] **1.4 Exact product facts and catalogue assignment UI**
+- [x] **1.4 Exact product facts and catalogue assignment UI**
   - **Requirement IDs:** `CAT-001`, `CAT-002`, `CAT-004`, `ENG-003`.
   - **Dependencies:** `1.3`; ADR-059.
   - **Owner boundary:** catalogue domain/repositories and Retailer Portal

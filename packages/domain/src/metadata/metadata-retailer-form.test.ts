@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   parseCreateRetailerConceptForm,
+  parseProductFabricProfileForm,
   parseProposeAssignmentForm,
   parseRetailerOverrideForm,
   parseReviewAssignmentForm,
@@ -9,6 +10,7 @@ import {
 
 const retailerId = "00000000-0000-4000-8000-000000000001";
 const conceptId = "00000000-0000-4000-8000-000000000002";
+const secondConceptId = "00000000-0000-4000-8000-000000000003";
 const targetId = "00000000-0000-4000-8000-000000000004";
 const assignmentId = "00000000-0000-4000-8000-000000000006";
 
@@ -134,5 +136,68 @@ describe("parseRetailerOverrideForm", () => {
       isHidden: true,
       priorityOverride: 10,
     });
+  });
+});
+
+describe("parseProductFabricProfileForm", () => {
+  it("parses concept-linked composition, weight, and supplier reference", () => {
+    const result = parseProductFabricProfileForm({
+      fabricWeightGramsPerSquareMetre: "285.5",
+      supplierReference: "MILL-2026-42",
+      fibreConceptIds: [conceptId, secondConceptId],
+      percentages: ["90", "10"],
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+    expect(result.data).toEqual({
+      fabricWeightGramsPerSquareMetre: 285.5,
+      supplierReference: "MILL-2026-42",
+      composition: [
+        { fibreConceptId: conceptId, percentage: 90 },
+        { fibreConceptId: secondConceptId, percentage: 10 },
+      ],
+    });
+  });
+
+  it("fails closed on incomplete totals before any write", () => {
+    const result = parseProductFabricProfileForm({
+      fibreConceptIds: [conceptId, secondConceptId],
+      percentages: ["90", "5"],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      return;
+    }
+    expect(result.fieldErrors["composition"]).toMatch(/exactly 100/);
+  });
+
+  it("ignores blank composition rows and allows empty profile facts", () => {
+    const result = parseProductFabricProfileForm({
+      supplierReference: "MILL-EMPTY",
+      fibreConceptIds: ["", conceptId, ""],
+      percentages: ["", "100", ""],
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+    expect(result.data).toEqual({
+      supplierReference: "MILL-EMPTY",
+      composition: [{ fibreConceptId: conceptId, percentage: 100 }],
+    });
+  });
+
+  it("rejects mismatched fibre and percentage lists", () => {
+    expect(
+      parseProductFabricProfileForm({
+        fibreConceptIds: [conceptId],
+        percentages: ["60", "40"],
+      }).success,
+    ).toBe(false);
   });
 });
