@@ -27,6 +27,40 @@ persona buttons (confirmed present in the rendered HTML on all three).
 **Remove that variable on every project before any real retailer data
 exists** — it signs anyone straight in.
 
+## How production actually updates (2026-07-29)
+
+**Canonical path:** GitHub Actions `CI` → job `Deploy production` after
+`verify` is green on `main`. That job calls the Vercel Deployments API with
+an explicit `gitSource` (`github` + repo id + `ref: main`) for each
+`paonpaon-*` project. Secrets: `VERCEL_TOKEN`, `VERCEL_TEAM_ID`.
+
+**Why not rely on dashboard “deploy on push” or Deploy Hooks alone:**
+
+| Mechanism                                    | Observed behaviour (Hobby, 2026-07-29)                                                                                                                                                                                      |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Git push → Vercel                            | Intermittent. Customer/admin often show `link.sourceless: true`. Recent `main` commits sometimes never create a deployment. GitHub repo webhooks list can be empty even while the project “looks” linked.                   |
+| Deploy Hooks (`/v1/integrations/deploy/...`) | Accept the request (`job.state: PENDING`) and **never create a deployment** — same class of failure reported widely on Hobby. Hooks still exist on all three projects (`main-production`); treat them as non-authoritative. |
+| CLI `vercel --prod` from repo root           | Works when the daily quota allows. Burns the same Hobby pool (`api-deployments-free-per-day`, ~100).                                                                                                                        |
+| Deployments API + `gitSource`                | Creates a real deployment when quota remains. This is what CI uses.                                                                                                                                                         |
+
+**Hobby deploy cap.** When the account hits `api-deployments-free-per-day`,
+API/CLI/hooks all refuse new production deploys until reset (~24h). CI
+treats that specific error as a **warning**, not a red `main` — verify
+already passed. Do not spam CLI deploys to “catch up”; wait for reset, then
+one push (or one API call per app) is enough.
+
+**Manual emergency deploy** (quota permitting), from the **repository
+root** after linking the intended project:
+
+```
+vercel link --yes --scope baszakelijk2020-hashs-projects --project paonpaon-<customer|retailer|admin>
+vercel --prod --yes --scope baszakelijk2020-hashs-projects
+rm -rf .vercel   # leave the root clean so the next session cannot miss-target
+```
+
+Never deploy from `apps/<app>` (double-applies `rootDirectory`). Never
+deploy to the stale `paon-*` (single `paon`) projects.
+
 ### Stale duplicate projects — leave alone
 
 `paon-admin`, `paon-retailer`, `paon-customer` (single `paon-`, no double)

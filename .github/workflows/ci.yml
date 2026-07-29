@@ -51,6 +51,66 @@ jobs:
       - name: Format check
         run: pnpm format:check
 
+  # Production deploy after green verify on `main`.
+  #
+  # Why not "git connected deploy-on-push" or Deploy Hooks alone:
+  # Vercel Hobby projects can accept hook jobs (`state: PENDING`) and never
+  # create a deployment, and GitHub→Vercel push triggers are intermittent
+  # (`link.sourceless` on customer/admin). The Deployments API with an
+  # explicit `gitSource` is the reliable path — see docs/DEPLOYMENT.md.
+  #
+  # Requires repo secrets: VERCEL_TOKEN, VERCEL_TEAM_ID.
+  # Hobby caps ~100 deployments/day across the account — do not add
+  # preview-deploy spam or matrix fan-out beyond these three apps.
+  deploy:
+    name: Deploy production
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: customer
+            project_id: prj_LZi3NMbuRGmmjpX7oWzeFjbFeFHk
+          - app: retailer
+            project_id: prj_z2yJPrlzEyOBhkStN4cf9fCi1bEg
+          - app: admin
+            project_id: prj_wdpo4BZUignmmufUovwuEWW4xVMO
+    steps:
+      - name: Create production deployment from main
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          PROJECT_ID: ${{ matrix.project_id }}
+          APP: ${{ matrix.app }}
+          REPO_ID: "1311595139"
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN:-}" ] || [ -z "${VERCEL_TEAM_ID:-}" ]; then
+            echo "Missing VERCEL_TOKEN or VERCEL_TEAM_ID secret — skipping deploy."
+            exit 1
+          fi
+          resp=$(curl -sS -X POST \
+            "https://api.vercel.com/v13/deployments?teamId=${VERCEL_TEAM_ID}&forceNew=1" \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"name\":\"paonpaon-${APP}\",\"project\":\"${PROJECT_ID}\",\"target\":\"production\",\"gitSource\":{\"type\":\"github\",\"repoId\":${REPO_ID},\"ref\":\"main\"}}")
+          echo "$resp" | python3 -c '
+import sys, json
+d = json.load(sys.stdin)
+err = d.get("error")
+if not err:
+    print(json.dumps({k: d.get(k) for k in ("id", "url", "readyState", "inspectorUrl") if k in d}, indent=2))
+    sys.exit(0)
+print(json.dumps(err, indent=2))
+# Hobby daily deploy cap must not turn main red — verify already passed.
+if err.get("code") == "payment_required" and "api-deployments-free-per-day" in str(err.get("message", "")):
+    print("::warning::Vercel Hobby deploy cap hit; production not updated. Retry after quota reset.")
+    sys.exit(0)
+sys.exit(1)
+'
+
   # Manual-trigger only, deliberately (2026-07-27).
   #
   # This job had never run until CI was first switched on. It fails at

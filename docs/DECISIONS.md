@@ -2541,3 +2541,28 @@ README authority map. Finding Made-to-Munro or Prisma at repo root is a
 regression. Future docs must declare design-vs-shipped on line one and take
 a single topic owner. ai_snapshot remains dated inventory, not a competing
 charter.
+
+## ADR-058: Production deploys via CI Deployments API (not hooks / push alone)
+
+**Context.** All three `paonpaon-*` Vercel projects are Git-linked to
+`baszakelijk2020-hash/paonpaon`, but Hobby deploy-on-push is intermittent
+(customer/admin often `link.sourceless: true`; GitHub repo webhooks can be
+empty). Deploy Hooks accept POSTs with `job.state: PENDING` and never
+create deployments — a known Hobby failure mode. Manual CLI deploys work
+but share the same `api-deployments-free-per-day` (~100) pool and were
+exhausted mid-session. Prospect conversion depends on production URLs
+matching `main` after CI is green.
+
+**Decision.** After `verify` succeeds on `main`, CI job `Deploy production`
+creates one production deployment per app via `POST /v13/deployments` with
+explicit `gitSource` (`github`, repo id, `ref: main`). Secrets:
+`VERCEL_TOKEN`, `VERCEL_TEAM_ID`. The Hobby daily-cap error is a CI
+**warning**, not a red `main`. Document the runbook in
+[DEPLOYMENT.md](./DEPLOYMENT.md). Treat Deploy Hooks as non-authoritative.
+Do not spam CLI to “catch up.”
+
+**Consequences.** Production tracks green `main` when quota remains.
+Sessions must not assume a push alone updated Vercel. Native GitHub→Vercel
+or a plan upgrade remains desirable ops debt; CI is the sellable path until
+then. Three deploys per push consume Hobby quota — keep the matrix to these
+three apps only.

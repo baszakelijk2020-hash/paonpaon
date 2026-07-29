@@ -70,12 +70,15 @@ All three apps are deployed and confirmed responding (2026-07-28):
 - <https://paonpaon-admin.vercel.app/login>
 - <https://paonpaon-retailer.vercel.app/login>
 
-All connected to the hosted Supabase project, all deploy-on-push to `main`,
-all have `NEXT_PUBLIC_DEMO_LOGIN=1` set for one-click persona login. Full
-details, IDs and runbook: [DEPLOYMENT.md](./DEPLOYMENT.md), including a
-footgun discovered while bringing these up (a stale root-level Vercel link
-that redeployed the wrong project) and the stale duplicate `paon-*`
-projects the founder has said to leave alone.
+All connected to the hosted Supabase project. **Production updates run
+through GitHub Actions after CI verify** (Deployments API), not solely via
+Vercel “deploy on push” — that path is intermittent on Hobby; see
+[DEPLOYMENT.md](./DEPLOYMENT.md). All three have `NEXT_PUBLIC_DEMO_LOGIN=1`
+set for one-click persona login. Full details, IDs and runbook:
+[DEPLOYMENT.md](./DEPLOYMENT.md), including a footgun discovered while
+bringing these up (a stale root-level Vercel link that redeployed the wrong
+project) and the stale duplicate `paon-*` projects the founder has said to
+leave alone.
 
 Queue item "a retailer logged into Mission Control alongside the
 storefront" is done — the prerequisite for item 3 below is now just
@@ -423,10 +426,12 @@ tenant after **Generate** (or Regenerate).
 - Prospect garment photography — upload path + role wiring exist; still
   needs founder-provided images. Leave blank only when shared catalogue
   disclosure is acceptable.
-- **Vercel Hobby deploy cap (2026-07-29):** CLI prod deploys hit
-  `api-deployments-free-per-day` (>100/day). Customer was redeployed and
-  verified; retailer/admin wait for quota reset or git-integration push
-  if still connected. Prefer git-connected deploy-on-push over CLI spam.
+- **Vercel Hobby deploy cap (2026-07-29):** CLI/API prod deploys hit
+  `api-deployments-free-per-day` (~100/day). Customer was redeployed and
+  verified; retailer/admin may lag until quota resets. Do not spam CLI.
+  Canonical update path is CI `Deploy production` (see `DEPLOYMENT.md`).
+  Deploy Hooks that return `PENDING` without a deployment are a known
+  Hobby failure mode — do not treat them as success.
 
 Not in the queue and not to be started: fit tools (parked), the alterations
 vertical (awaiting founder design), and the four presentation modules —
@@ -463,10 +468,13 @@ because they serve this phase directly:
 - **Provision Stripe.** The objective is retailers with money down. PAON
   cannot currently accept money — the payment code (ADR-030) exists but has
   never run, because credentials were never provisioned.
-- **Connect Vercel to git.** Deploys are currently manual CLI archive
-  uploads with no git integration, so there is no per-change preview URL.
-  The conversion instrument is sending a prospect a link; this is the
-  infrastructure that makes that routine.
+- **Connect Vercel to git / reliable prospect links.** Git is linked on
+  all three `paonpaon-*` projects, but Hobby push→deploy and Deploy Hooks
+  are unreliable (`sourceless` links, hooks stuck `PENDING`). **Done as of
+  2026-07-29 for the conversion need:** CI deploys production from `main`
+  via the Deployments API after verify (see `DEPLOYMENT.md`). Remaining
+  ops debt: upgrade off Hobby before pilot volume, or re-install the
+  Vercel GitHub App so native push deploys work again.
 
 ## Out of scope
 
