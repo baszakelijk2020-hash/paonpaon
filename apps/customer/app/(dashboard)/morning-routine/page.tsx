@@ -1,9 +1,11 @@
 import {
   CustomerRepository,
+  MorningRoutineDeliveryRepository,
   MorningRoutineRepository,
   RetailerRepository,
 } from "@paon/database";
 
+import { MorningRoutineDeliverySettingsPanel } from "./delivery-settings-panel";
 import { MorningRoutinePanel } from "./routine-panel";
 
 import { requireSession } from "@/lib/session";
@@ -23,6 +25,7 @@ export default async function MorningRoutinePage() {
   );
   const retailerRepo = new RetailerRepository(supabase);
   const routineRepo = new MorningRoutineRepository(supabase);
+  const deliveryRepo = new MorningRoutineDeliveryRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
@@ -31,7 +34,11 @@ export default async function MorningRoutinePage() {
         customer.id,
         forDate,
       );
-      return { customer, retailer, latest };
+      const subscription = await deliveryRepo.findSubscription(
+        customer.retailerId,
+        customer.id,
+      );
+      return { customer, retailer, latest, subscription };
     }),
   );
 
@@ -57,38 +64,61 @@ export default async function MorningRoutinePage() {
           </p>
         </div>
       ) : (
-        groups.map(({ customer, retailer, latest }) => (
-          <MorningRoutinePanel
-            key={customer.id}
-            retailerId={customer.retailerId}
-            retailerName={retailer?.displayName ?? "Retailer"}
-            retailerSlug={retailer?.slug ?? "store"}
-            customerId={customer.id}
-            forDate={forDate}
-            view={
-              latest
-                ? {
-                    selectionId: latest.selection.id,
-                    summary: latest.selection.summary,
-                    reviewStatus: latest.selection.reviewStatus,
-                    provenance: latest.selection.provenance,
-                    recommendations: latest.recommendations.map(
-                      (recommendation) => ({
-                        id: recommendation.id,
-                        rank: recommendation.rank,
-                        source: recommendation.source,
-                        displayName: recommendation.displayName,
-                        ...(recommendation.categoryCode
-                          ? { categoryCode: recommendation.categoryCode }
-                          : {}),
-                        explanation: recommendation.explanation,
-                        actions: recommendation.actions,
-                      }),
-                    ),
-                  }
-                : null
-            }
-          />
+        groups.map(({ customer, retailer, latest, subscription }) => (
+          <div key={customer.id} className="flex flex-col gap-4">
+            <MorningRoutineDeliverySettingsPanel
+              retailerId={customer.retailerId}
+              customerId={customer.id}
+              subscription={
+                subscription
+                  ? {
+                      deliveryOptIn: subscription.deliveryOptIn,
+                      frequency: subscription.frequency,
+                      channels: subscription.channels,
+                      timezone: subscription.timezone,
+                      deliveryHourLocal: subscription.deliveryHourLocal,
+                      quietStartHour: subscription.quietStartHour,
+                      quietEndHour: subscription.quietEndHour,
+                      weeklyAnchorDow: subscription.weeklyAnchorDow,
+                      ...(subscription.unsubscribedAt
+                        ? { unsubscribedAt: subscription.unsubscribedAt }
+                        : {}),
+                    }
+                  : null
+              }
+            />
+            <MorningRoutinePanel
+              key={customer.id}
+              retailerId={customer.retailerId}
+              retailerName={retailer?.displayName ?? "Retailer"}
+              retailerSlug={retailer?.slug ?? "store"}
+              customerId={customer.id}
+              forDate={forDate}
+              view={
+                latest
+                  ? {
+                      selectionId: latest.selection.id,
+                      summary: latest.selection.summary,
+                      reviewStatus: latest.selection.reviewStatus,
+                      provenance: latest.selection.provenance,
+                      recommendations: latest.recommendations.map(
+                        (recommendation) => ({
+                          id: recommendation.id,
+                          rank: recommendation.rank,
+                          source: recommendation.source,
+                          displayName: recommendation.displayName,
+                          ...(recommendation.categoryCode
+                            ? { categoryCode: recommendation.categoryCode }
+                            : {}),
+                          explanation: recommendation.explanation,
+                          actions: recommendation.actions,
+                        }),
+                      ),
+                    }
+                  : null
+              }
+            />
+          </div>
         ))
       )}
     </div>

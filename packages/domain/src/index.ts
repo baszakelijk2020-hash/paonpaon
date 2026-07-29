@@ -105,3 +105,5 @@ export * from "./wardrobe/roadmap";
 export * from "./wardrobe/roadmap.schema";
 export * from "./wardrobe/morning-routine";
 export * from "./wardrobe/morning-routine.schema";
+export * from "./wardrobe/morning-routine-delivery";
+export * from "./wardrobe/morning-routine-delivery.schema";

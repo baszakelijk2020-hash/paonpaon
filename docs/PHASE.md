@@ -49,9 +49,9 @@ Verified against code and 91 migrations on 2026-07-30:
   appointments. Wardrobe ownership and roadmaps/outfits/sartorial rules
   landed in Stage 4.1–4.2; lifecycle, longevity guidance, private self-scan,
   and fit freshness landed in Stage 4.3; MorningRoutine in-app selection and
-  save/review/book/buy actions landed in Stage 4.4; delivery/retailer
-  controls remain Stage 4.5.
-- Metadata concepts, edges, assignments, append-only review evidence,
+  save/review/book/buy actions landed in Stage 4.4; MorningRoutine delivery,
+  subscription controls, and retailer eligible-product settings landed in
+  Stage 4.5. Metadata concepts, edges, assignments, append-only review evidence,
   retailer overrides, and exact product/variant fabric profiles now exist.
   PAON Admin can manage canonical concepts and terminal assignment decisions
   now pass through an actor-derived, tenant-safe review boundary. The Retailer
@@ -70,8 +70,8 @@ Verified against code and 91 migrations on 2026-07-30:
   and AI-assisted enrichment with pending review exist.
   StyleProfile tables, advisor briefs, and grounded TableService guidance
   exist. Wardrobe ownership, sartorial rules, outfits, wardrobe roadmaps,
-  lifecycle/self-scan/fit-freshness, and MorningRoutine selection tables
-  exist; no service-plan or campaign table exists.
+  lifecycle/self-scan/fit-freshness, MorningRoutine selection, and delivery
+  subscription/audit tables exist; no service-plan or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -519,7 +519,7 @@ replacement of human advice for uncertain high-value decisions.
     and calendar ports with OpenWeather + appointment adapters, selection
     persistence/RLS, and Customer `/morning-routine` save/review/book/buy.
 
-- [ ] **4.5 MorningRoutine delivery and retailer controls**
+- [x] **4.5 MorningRoutine delivery and retailer controls**
   - **Requirement IDs:** `MR-002`, `MR-003`, `CUST-003`.
   - **Dependencies:** `4.4`; ADR-061.
   - **Owner boundary:** in-app notification/email outbox orchestration,
@@ -535,6 +535,10 @@ replacement of human advice for uncertain high-value decisions.
     guaranteed live email without credentials, or mass campaign engine.
   - **Hard blockers:** missing Resend key blocks live delivery verification
     only; outbox and mocked delivery remain buildable.
+  - **Landed:** `feat` — delivery subscriptions/audit/retailer settings
+    migration, pure scheduling/suppression domain, `MorningRoutineDeliveryRepository`,
+    admin `/api/cron/dispatch-morning-routine`, Customer delivery controls +
+    unsubscribe, Retailer eligible-product controls.
 
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain), no retailer sharing of wardrobe data, no required location,
