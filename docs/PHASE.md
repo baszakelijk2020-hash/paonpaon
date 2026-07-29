@@ -91,7 +91,7 @@ back-to-back sub-slices.
 
 ### Stage 1 — Metadata foundation
 
-- [ ] **1.1 Metadata domain contracts**
+- [x] **1.1 Metadata domain contracts**
   - **Requirement IDs:** `CAT-001`, `CAT-002`, `CAT-003`, `CAT-004`,
     `ENG-001`, `ENG-003`.
   - **Dependencies:** `0.1`; ADR-059.

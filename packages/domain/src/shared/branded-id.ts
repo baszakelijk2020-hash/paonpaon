@@ -13,6 +13,17 @@ export type UserId = Brand<string, "UserId">;
 export type ProductId = Brand<string, "ProductId">;
 export type ProductVariantId = Brand<string, "ProductVariantId">;
 export type CollectionId = Brand<string, "CollectionId">;
+export type MetadataConceptId = Brand<string, "MetadataConceptId">;
+export type MetadataConceptEdgeId = Brand<string, "MetadataConceptEdgeId">;
+export type EntityMetadataAssignmentId = Brand<
+  string,
+  "EntityMetadataAssignmentId"
+>;
+export type RetailerConceptOverrideId = Brand<
+  string,
+  "RetailerConceptOverrideId"
+>;
+export type WardrobeItemId = Brand<string, "WardrobeItemId">;
 export type OrderId = Brand<string, "OrderId">;
 export type OrderLineId = Brand<string, "OrderLineId">;
 export type ProductionOrderId = Brand<string, "ProductionOrderId">;

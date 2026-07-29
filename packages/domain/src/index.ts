@@ -27,6 +27,9 @@ export * from "./customer/wishlist.schema";
 export * from "./catalog/product";
 export * from "./catalog/product.schema";
 
+export * from "./metadata/metadata";
+export * from "./metadata/metadata.schema";
+
 export * from "./commerce/order";
 export * from "./commerce/order.schema";
 export * from "./commerce/payment";

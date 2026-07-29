@@ -35,6 +35,7 @@ correct and this document is stale and should be fixed.
 | Retailer     | `retailer/`     | `Retailer` (the tenant root), `RetailerSubscription`, `SubscriptionPlan`, `FeatureFlagOverride`                                                                                                    |
 | Customer     | `customer/`     | `Customer` (incl. `preferredCarrier`), `CustomerAccountLink`, `CustomerPreferences`, `Wishlist`                                                                                                    |
 | Catalog      | `catalog/`      | `Product`, `ProductVariant`, `Collection`                                                                                                                                                          |
+| Metadata     | `metadata/`     | Canonical/retailer concepts, edges, entity assignments, provenance/review, retailer overrides, exact product fabric profiles, and pure tenancy compatibility rules                                 |
 | Commerce     | `commerce/`     | `Order`, `OrderLine`, `Payment`                                                                                                                                                                    |
 | Production   | `production/`   | Physical garments, fittings/observations, alteration work orders/tasks, workshops, pricing, handoffs and fulfillment                                                                               |
 | Appointments | `appointments/` | `Appointment`, `AvailabilityWindow`                                                                                                                                                                |
@@ -48,6 +49,9 @@ correct and this document is stale and should be fixed.
 Retailer 1───* RetailerStaffMember ──1 User
 Retailer 1───* Customer ──0..1 User (via CustomerAccountLink, many-to-one from the User side)
 Retailer 1───* Product 1───* ProductVariant
+MetadataConcept 1───* MetadataConceptEdge
+MetadataConcept 1───* EntityMetadataAssignment *───1 Product / ProductVariant / future WardrobeItem
+Retailer 1───* RetailerConceptOverride *───1 MetadataConcept
 Customer 1───* Order 1───* OrderLine ──1 ProductVariant
 OrderLine 0..1─── ProductionOrder
 Customer 1───* PhysicalGarment 0..1─── OrderLine
@@ -63,6 +67,31 @@ RetailerStaffMember 1───* AvailabilityWindow
 Customer 1───1 Conversation 1───* Message
 Customer 1───* WeddingParty (as organizer) 1───* WeddingPartyMember ──1 Customer (each member is also a Customer)
 ```
+
+## Metadata ownership and review
+
+The Intelligence Platform metadata contracts live in
+`packages/domain/src/metadata/`. Persistence is not yet shipped; these
+contracts are the input to the next migration/repository slice.
+
+- `MetadataConcept.retailerId = null` means PAON canonical ownership. A
+  retailer-owned concept carries that retailer's branded ID.
+- `MetadataConceptEdge` has the same nullable ownership boundary. A canonical
+  edge can join canonical concepts only; a retailer edge can join canonical
+  concepts and that retailer's own concepts.
+- `EntityMetadataAssignment` is always retailer-owned and targets exactly one
+  discriminated `Product`, `ProductVariant`, or future `WardrobeItem`. It
+  records source, review state, raw supplier value, confidence/evidence, and
+  completed-review provenance.
+- AI assignments require confidence and evidence. Supplier assignments retain
+  the supplier's raw value. Accepted/rejected assignments require reviewer and
+  time; pending assignments cannot pretend review already occurred.
+- `ProductFabricProfile` keeps numeric fabric weight and concept-linked
+  composition outside the concept-label graph. Non-empty composition has
+  unique fibre concepts and totals exactly 100%.
+
+Pure compatibility rules reject target/concept/edge ownership combinations
+that the Stage 1.2 database constraints and RLS must also enforce.
 
 ## Why a Customer is scoped to one Retailer
 

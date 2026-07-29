@@ -11,23 +11,25 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `1.1 Metadata domain contracts`
-- **Current requirement IDs:** `CAT-001`, `CAT-002`, `CAT-003`, `CAT-004`,
-  `ENG-001`, `ENG-003`
+- **Current queue item:** `1.2 Metadata persistence, repositories, and RLS`
+- **Current requirement IDs:** `CAT-003`, `CAT-004`, `ENG-001`, `ENG-003`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
-  programme. No Intelligence Platform feature slice has landed.
-- **Available schema/interfaces:** current `Product`, `ProductVariant`, branded
-  IDs, catalogue repositories, 89 migrations, `behavioral_events`, and
-  `ai_generations`; no metadata tables or contracts exist yet.
+  programme; `f61e53a` added stable traceability and queue contracts; `HEAD`
+  implements metadata domain contracts.
+- **Available schema/interfaces:** metadata concept/edge/assignment/override/
+  target branded types, validation schemas, `ProductFabricProfile`, and pure
+  assignment/edge tenancy rules are exported by `@paon/domain`; no metadata
+  table or repository exists yet.
 - **Checks/deployment state:** the full local repository definition of done
-  passed on 2026-07-30; CI for the consolidation commit starts after push. No
-  metadata deployment exists.
+  passes, including 137 `@paon/domain` tests, strict typecheck, lint, all three
+  app builds, and formatting. No metadata deployment exists.
 - **Real blockers:** none for Stage 1. Missing optional provider credentials do
   not block local/domain/database work.
-- **Exact next files/tests:** add `packages/domain/src/metadata/metadata.ts`,
-  `metadata.schema.ts`, and focused schema/pure-rule tests; export them from
-  `packages/domain/src/index.ts`; then synchronize `docs/DOMAIN_MODEL.md`.
+- **Exact next files/tests:** add the forward metadata migration under
+  `supabase/migrations/`, regenerate
+  `packages/database/src/generated/database.types.ts`, then add metadata
+  repositories and cross-tenant repository/RLS tests.
 
 ## 1. Programme intent
 
@@ -68,12 +70,12 @@ Verified from code and migrations on 2026-07-30:
 - Customer preferences, wishlist, orders, appointments, conversations,
   clienteling notes, loyalty, events, physical garments, fittings, alterations,
   and wedding parties exist.
-- The repository has no metadata concept, knowledge object, catalogue import,
-  StyleProfile, wardrobe item, outfit, wardrobe roadmap, campaign, or
-  concierge-service persistence.
+- Metadata domain contracts now exist, but the repository has no metadata,
+  knowledge-object, catalogue-import, StyleProfile, wardrobe-item, outfit,
+  wardrobe-roadmap, campaign, or concierge-service persistence.
 
-Names below describe intended types and tables until their queue item lands.
-Documentation must not call them shipped early.
+Names below describe intended persistence and later-stage types until their
+queue item lands. Documentation must not call them shipped early.
 
 ## Requirement traceability
 
@@ -83,10 +85,10 @@ above. Status changes only after the named acceptance criteria are verified.
 
 | Founder requirement ID | Founder requirement                                                                                                                                                                                        | PAON module                        | Current implementation                                                              | Dependency                                | Implementation phase | Acceptance criteria                                                                                                              | Status             |
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| CAT-001                | Universal catalogue graph for mills, collections, fibres, weaves, patterns, colours, seasons, garment types, construction, fit, formality, climate, performance, care, style, occasions, and compatibility | `metadata`                         | Product/variant strings and collection links only                                   | Direction                                 | 1.1–1.3              | Typed concepts/edges exist; accepted assignments cover every named kind; unknowns remain reviewable proposals                    | Not started        |
-| CAT-002                | Exact composition percentages, fabric weight, supplier reference, and variant-specific facts where genuinely different                                                                                     | `metadata` + `catalog`             | Variant colour/price/stock/lead time exist; no fabric profile                       | CAT-001                                   | 1.1, 1.4             | Composition validates to 100%; exact values persist without duplicating concept labels                                           | Not started        |
-| CAT-003                | Retailer overrides, canonical ownership, and strict tenant isolation                                                                                                                                       | `metadata`                         | Existing catalogue is retailer-scoped; no canonical metadata layer                  | CAT-001                                   | 1.2–1.4              | Canonical rows are platform-owned; retailer rows/overrides cannot cross tenants or mutate canonical facts                        | Not started        |
-| CAT-004                | Provenance, source, confidence, evidence, review state, and auditable review                                                                                                                               | `metadata`                         | No assignment/review model                                                          | CAT-001                                   | 1.1–1.3              | Every proposal records authority and evidence; AI never bypasses pending review; review actor/time are retained                  | Not started        |
+| CAT-001                | Universal catalogue graph for mills, collections, fibres, weaves, patterns, colours, seasons, garment types, construction, fit, formality, climate, performance, care, style, occasions, and compatibility | `metadata`                         | Domain concepts, edges, targets, enums, and schemas exist; no persistence           | Direction                                 | 1.1–1.3              | Typed concepts/edges exist; accepted assignments cover every named kind; unknowns remain reviewable proposals                    | In progress (1.1)  |
+| CAT-002                | Exact composition percentages, fabric weight, supplier reference, and variant-specific facts where genuinely different                                                                                     | `metadata` + `catalog`             | Validated `ProductFabricProfile` contract exists; no persistence                    | CAT-001                                   | 1.1, 1.4             | Composition validates to 100%; exact values persist without duplicating concept labels                                           | In progress (1.1)  |
+| CAT-003                | Retailer overrides, canonical ownership, and strict tenant isolation                                                                                                                                       | `metadata`                         | Domain ownership/target compatibility rules exist; no database enforcement          | CAT-001                                   | 1.2–1.4              | Canonical rows are platform-owned; retailer rows/overrides cannot cross tenants or mutate canonical facts                        | In progress (1.1)  |
+| CAT-004                | Provenance, source, confidence, evidence, review state, and auditable review                                                                                                                               | `metadata`                         | Assignment/review provenance schemas exist; no review persistence                   | CAT-001                                   | 1.1–1.3              | Every proposal records authority and evidence; AI never bypasses pending review; review actor/time are retained                  | In progress (1.1)  |
 | EDU-001                | Reusable commercial education for mills, fibres, fabrics, weaves, construction, collars, styling, care, performance, occasion, value, and tradeoffs                                                        | `knowledge`                        | Static founder information content only                                             | CAT-001, CAT-004                          | 2.1                  | Reviewed reusable objects cover every named topic and explain why, fit, tradeoffs, and value                                     | Not started        |
 | EDU-002                | Automatic metadata-backed card selection with ranking and diversity                                                                                                                                        | `knowledge` + `discovery`          | No knowledge/discovery engine                                                       | EDU-001                                   | 2.2                  | Accepted metadata selects three to six explainable, diverse cards under ADR-060 precedence                                       | Not started        |
 | EDU-003                | Inject cards into existing desktop/mobile founder information areas without redesign                                                                                                                       | Customer founder storefront        | Canonical HTML has Archetype/Fabric/Sizing areas but no dynamic knowledge cards     | EDU-002                                   | 2.3                  | Narrow hooks render square-image/title/copy cards accessibly with no unrelated visual or interaction drift                       | Not started        |
@@ -124,7 +126,7 @@ above. Status changes only after the named acceptance criteria are verified.
 | PAY-002                | MunroMonnaie-style provider/legal-approved order commitment and deposit; never custom credit/lending/direct debit/stored value/instalments                                                                 | Commerce compliance                | No approved deposit/commitment capability                                           | Compliance gate                           | 6.1–6.2              | Dedicated ADR/provider design authorizes only supported capability; immutable payment/order history remains                      | Blocked by 6.1     |
 | TIE-001                | Mobile-first full-screen realistic-scale tie-fabric exploration with save, order, advisor handoff, catalogue, and stock integration                                                                        | Tie-Mate                           | No approved Tie-Mate surface                                                        | EDU-003, ADV-001, approved founder design | 5.4                  | Phone-scale fabrics preserve stock truth and support swipe/save/order/handoff with mobile accessibility                          | Design blocker     |
 | MKT-001                | Separate retailer-owner marketplace for mannequins, bags, shoe displays, fixtures, custom furniture, and supplies                                                                                          | Business marketplace               | No marketplace context                                                              | Marketplace ADR + stable programme        | 6.3                  | Separate tenant/customer/catalogue/order assumptions are proven; retailer products never enter customer retail facets            | Not started        |
-| ENG-001                | PAON owns canonical taxonomy/knowledge; retailers own tenant catalogue, review, and local overrides                                                                                                        | Metadata + knowledge governance    | Retailer catalogue exists; canonical layers do not                                  | Direction                                 | 1.1–2.1              | ADR-059/060 ownership rules are enforced in types, database constraints, RLS, and repositories                                   | Not started        |
+| ENG-001                | PAON owns canonical taxonomy/knowledge; retailers own tenant catalogue, review, and local overrides                                                                                                        | Metadata + knowledge governance    | Metadata ownership is enforced in domain types/rules; persistence is next           | Direction                                 | 1.1–2.1              | ADR-059/060 ownership rules are enforced in types, database constraints, RLS, and repositories                                   | In progress (1.1)  |
 | ENG-002                | Recommendations and AI answers use accepted metadata/approved knowledge, explain why, and respect consent/retention                                                                                        | Intelligence governance            | Audited AI calls exist without the new grounding/consent model                      | EDU-002, CUST-001                         | 2.2–4.5              | Every output exposes evidence/explanation and fails closed when approval or consent is absent                                    | Not started        |
 | ENG-003                | Extend branded-ID/domain/repository/Server-Action/RLS/migration/test architecture; do not create a parallel product                                                                                        | Engineering platform               | Architecture exists and is enforced in current code                                 | Direction                                 | All                  | Every slice follows package boundaries, strict TypeScript, forward migrations, generated types, and tenant tests                 | In force           |
 | ENG-004                | Preserve founder HTML and interaction behavior through narrow hooks rather than React/Tailwind/design-system rewrites                                                                                      | Founder surfaces                   | Founder route serves canonical HTML with narrow runtime injection                   | ADR-052                                   | 2.3, 5.4             | DOM/CSS diff and desktop/mobile/a11y checks show only authorized mounts changed                                                  | Partial foundation |
@@ -170,28 +172,35 @@ design-system rewrite of those surfaces.
 ```ts
 type MetadataConceptKind =
   | "mill"
-  | "collection"
+  | "fabric_collection"
   | "fibre"
-  | "composition"
   | "weave"
   | "weight_band"
-  | "season"
-  | "colour"
   | "pattern"
+  | "colour"
+  | "season"
   | "garment_type"
   | "construction"
-  | "collar"
-  | "performance"
+  | "fit"
   | "formality"
-  | "occasion"
   | "climate"
+  | "performance"
   | "care"
   | "style"
+  | "occasion"
+  | "compatibility"
+  | "collar"
   | "silhouette";
 
 type MetadataSource = "supplier" | "ai" | "retailer" | "paon";
 type MetadataReviewStatus = "accepted" | "pending" | "rejected";
-type MetadataEdgeKind = "parent" | "related" | "equivalent" | "suggests";
+type MetadataEdgeKind =
+  | "parent"
+  | "related"
+  | "equivalent"
+  | "suggests"
+  | "compatible_with"
+  | "incompatible_with";
 type MetadataTargetType = "product" | "product_variant" | "wardrobe_item";
 ```
 
@@ -203,13 +212,14 @@ metadata_concepts
 - attributes jsonb, image_url nullable, active, timestamps
 
 metadata_concept_edges
-- id, source_concept_id, target_concept_id, kind, weight, timestamps
+- id, retailer_id nullable, source_concept_id, target_concept_id
+- kind, weight, timestamps
 
 entity_metadata_assignments
 - id, retailer_id, target_type, target_id, concept_id
 - source, confidence nullable, review_status
 - supplier_value nullable, evidence nullable
-- accepted_by_staff_id nullable, accepted_at nullable, timestamps
+- reviewed_by_staff_id nullable, reviewed_at nullable, timestamps
 
 retailer_concept_overrides
 - id, retailer_id, concept_id
@@ -230,7 +240,7 @@ typed values:
 
 ```ts
 interface ProductFabricProfile {
-  readonly fabricWeightGramsPerMetre?: number;
+  readonly fabricWeightGramsPerSquareMetre?: number;
   readonly composition: readonly {
     readonly fibreConceptId: MetadataConceptId;
     readonly percentage: number;
