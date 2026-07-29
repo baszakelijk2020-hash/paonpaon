@@ -642,6 +642,10 @@ explanation path.
     `resolveTieConceptIds` with unit coverage — swatch-preferred fabric
     photos, neckwear concept filter, stock truth, shortlist pin order, and
     handoffs into existing product/swipe/appointment/message paths.
+  - **Landed (repository):** `TieMateRepository` projects active catalogue
+    rows into `TieMateFabricCandidate` and composes `buildTieMateDeck` with
+    accepted neckwear concepts; customer UI acceptance remains blocked on an
+    approved founder mobile surface.
 
 **Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
 duplicate loyalty ledger, service state hidden in generic order status, or

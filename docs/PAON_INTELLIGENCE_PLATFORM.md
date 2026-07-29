@@ -12,7 +12,8 @@ implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
 - **Programme status:** paused on documented hard blockers only after the
-  Tie-Mate domain foundation. Customer Tie-Mate UI and Stage 6 remain gated.
+  Tie-Mate domain/repository foundation. Customer Tie-Mate UI and Stage 6 remain
+  gated.
 - **Current queue item:** `5.4 Tie-Mate` (UI blocked — awaiting approved founder
   mobile surface under ADR-052; concept + domain deck authorized by ADR-065)
 - **Current requirement IDs:** `TIE-001`, `ENG-004`
@@ -43,7 +44,9 @@ requires it.
   (PHASE 5.1 complete); `36fecc5` adds tailoring milestones on the loyalty
   ledger (PHASE 5.2 complete); `437a49e` adds Preferred Tailoring and
   HighMaintenance concierge operations (PHASE 5.3 complete); `6842fb5` adds
-  Tie-Mate domain deck/photo/handoff under ADR-065 (PHASE 5.4 foundation).
+  Tie-Mate domain deck/photo/handoff under ADR-065 (PHASE 5.4 foundation);
+  `6bc4de4` adds TieMateRepository catalogue projection and deck composition
+  (PHASE 5.4 repository wiring).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -96,7 +99,7 @@ requires it.
   `WardrobeRoadmapRepository`, `WardrobeLifecycleRepository`,
   `MorningRoutineRepository`, `MorningRoutineDeliveryRepository`,
   `CampaignRepository`, upgraded `LoyaltyRepository` milestone APIs,
-  `ServicePlanRepository`, `orchestrateMorningRoutineDeliveries`,
+  `ServicePlanRepository`, `TieMateRepository`, `orchestrateMorningRoutineDeliveries`,
   `orchestrateCampaignDeliveries`, upgraded `AnalyticsRepository`,
   `@paon/domain` intelligence consent/interaction-event/StyleProfile/
   advisor-brief/grounded-answer/wardrobe/sartorial/outfit/roadmap/lifecycle/
@@ -112,9 +115,9 @@ requires it.
   swatch-preferred fabric images, neckwear concept filter, existing-path
   handoffs).
 - **Checks/deployment state:** 109 migrations; Tie-Mate domain foundation and
-  lint/typecheck/test/build/format are green on the 5.4-foundation tip.
-  Anonymous interaction persistence remains blocked pending jurisdiction
-  documentation. Live Resend/OpenWeather smoke still needs provider
+  repository projection; lint/typecheck/test/build/format are green on the 5.4
+  repository tip. Anonymous interaction persistence remains blocked pending
+  jurisdiction documentation. Live Resend/OpenWeather smoke still needs provider
   credentials.
 - **Real blockers:** no approved founder Tie-Mate surface/design still blocks
   the 5.4 UI acceptance criteria (ADR-065 authorizes the Tie Break–like concept
@@ -127,12 +130,11 @@ requires it.
   live delivery smoke still needs credentials; payment blocks money collection
   only (ADR-062).
 - **Exact next files/tests:** feed sharp fabric close-ups into
-  `swatch_image_url` for neckwear SKUs; optionally wire a repository query that
-  projects catalogue rows into `TieMateFabricCandidate`. Resume the 5.4 customer
-  surface only after the founder supplies an approved Tie-Mate mobile design for
-  an ADR-052 verbatim port (or explicitly names an interim route). Do not invent
-  founder HTML, a parallel Tie-Mate catalogue, payment code, or marketplace
-  domain while those gates hold.
+  `swatch_image_url` for neckwear SKUs. Resume the 5.4 customer surface only
+  after the founder supplies an approved Tie-Mate mobile design for an ADR-052
+  verbatim port (or explicitly names an interim route). Do not invent founder
+  HTML, a parallel Tie-Mate catalogue, payment code, or marketplace domain
+  while those gates hold.
 
 ## 1. Programme intent
 
