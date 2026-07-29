@@ -130,6 +130,26 @@ export type LoyaltyMilestoneDefinitionId = Brand<
   "LoyaltyMilestoneDefinitionId"
 >;
 export type LoyaltyMilestoneAwardId = Brand<string, "LoyaltyMilestoneAwardId">;
+export type ConciergePlanDefinitionId = Brand<
+  string,
+  "ConciergePlanDefinitionId"
+>;
+export type ConciergeServiceEnrollmentId = Brand<
+  string,
+  "ConciergeServiceEnrollmentId"
+>;
+export type ConciergeEntitlementId = Brand<string, "ConciergeEntitlementId">;
+export type ConciergeEntitlementConsumptionId = Brand<
+  string,
+  "ConciergeEntitlementConsumptionId"
+>;
+export type ConciergeBookingId = Brand<string, "ConciergeBookingId">;
+export type ConciergeBookingItemId = Brand<string, "ConciergeBookingItemId">;
+export type ConciergeStatusHistoryId = Brand<
+  string,
+  "ConciergeStatusHistoryId"
+>;
+export type ConciergeCostRecordId = Brand<string, "ConciergeCostRecordId">;
 export type RewardId = Brand<string, "RewardId">;
 export type RewardRedemptionId = Brand<string, "RewardRedemptionId">;
 export type ReferralId = Brand<string, "ReferralId">;

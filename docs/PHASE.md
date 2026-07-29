@@ -73,8 +73,8 @@ Verified against code and 91 migrations on 2026-07-30:
   lifecycle/self-scan/fit-freshness, MorningRoutine selection, and MorningRoutine
   delivery/subscription tables exist; campaign/private-offer and seven-day
   wardrobe-challenge tables exist; loyalty milestone definition/award tables
-  exist and award through the existing loyalty ledger; no concierge
-  service-plan table exists yet.
+  loyalty ledger; concierge service-plan tables, enrollments, entitlements,
+  bookings, status history, and cost records exist with tenant RLS.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -590,7 +590,7 @@ explanation path.
     migration/RLS, ledger-backed awards with refund corrections, Customer and
     Retailer/advisor projections.
 
-- [ ] **5.3 Preferred Tailoring and HighMaintenance operations**
+- [x] **5.3 Preferred Tailoring and HighMaintenance operations**
   - **Requirement IDs:** `SERV-001`, `SERV-002`, `LONG-001`.
   - **Dependencies:** `4.3`; existing appointments/alterations; ADR-062 for
     later billing only.
@@ -609,6 +609,10 @@ explanation path.
     generic order statuses, automatic collection routing, or provider lock-in.
   - **Hard blockers:** payment/compliance blocks money collection only, not
     service operations.
+  - **Landed:** concierge domain/migration/RLS, `ConciergeServiceRepository`,
+    Preferred Tailoring and HighMaintenance plan definitions, enrollments,
+    entitlements, booking lifecycle with idempotent consumption and operational
+    cost recording, Customer `/services` and Retailer settings/advisor mounts.
 
 - [ ] **5.4 Tie-Mate**
   - **Requirement IDs:** `TIE-001`, `ENG-004`.
