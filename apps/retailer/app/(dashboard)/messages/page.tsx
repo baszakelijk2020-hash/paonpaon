@@ -4,7 +4,7 @@ import {
   MessagingRepository,
   OrderRepository,
 } from "@paon/database";
-import { CONVERSATION_INTENT_LABELS } from "@paon/domain";
+import { CONVERSATION_INTENT_LABELS, ORDER_STATUS_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -291,8 +291,8 @@ export default async function MessagesPage({
                   {orders.slice(0, 5).map((order) => (
                     <div key={order.id} className="px-3 py-2 text-sm">
                       <p className="font-medium">{order.orderNumber}</p>
-                      <p className="text-xs capitalize text-[var(--color-stone-500)]">
-                        {order.status.replaceAll("_", " ")} ·{" "}
+                      <p className="text-xs text-[var(--color-stone-500)]">
+                        {ORDER_STATUS_LABELS[order.status]} ·{" "}
                         {formatMoney(order.total, "en-US")}
                       </p>
                     </div>

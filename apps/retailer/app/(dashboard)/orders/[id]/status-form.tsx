@@ -1,6 +1,10 @@
 "use client";
 
-import { ORDER_STATUSES, type OrderStatus } from "@paon/domain";
+import {
+  ORDER_STATUSES,
+  ORDER_STATUS_LABELS,
+  type OrderStatus,
+} from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Select } from "@paon/ui/components/Select";
 import { useActionState } from "react";
@@ -34,7 +38,7 @@ export function StatusForm({
         <Select id="status" name="status" defaultValue={currentStatus}>
           {ORDER_STATUSES.map((status) => (
             <option key={status} value={status}>
-              {status.replaceAll("_", " ")}
+              {ORDER_STATUS_LABELS[status]}
             </option>
           ))}
         </Select>
