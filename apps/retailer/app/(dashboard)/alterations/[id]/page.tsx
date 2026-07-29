@@ -282,9 +282,16 @@ export default async function AlterationDetailPage({
                   key={proposal.id}
                   className="border-b border-[var(--color-stone-100)] pb-4 last:border-0"
                 >
-                  <p className="font-medium capitalize">
-                    {proposal.status} ·{" "}
-                    {proposal.originalAmount.amountMinorUnits / 100} →{" "}
+                  <p className="font-medium">
+                    {(
+                      {
+                        pending: "Pending",
+                        approved: "Approved",
+                        rejected: "Rejected",
+                        withdrawn: "Withdrawn",
+                      } as Record<string, string>
+                    )[proposal.status] ?? proposal.status}{" "}
+                    · {proposal.originalAmount.amountMinorUnits / 100} →{" "}
                     {proposal.proposedAmount.amountMinorUnits / 100}{" "}
                     {proposal.proposedAmount.currency}
                   </p>

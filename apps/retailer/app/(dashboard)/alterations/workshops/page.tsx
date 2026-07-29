@@ -40,7 +40,8 @@ export default async function WorkshopsPage() {
             <div key={workshop.id} className="px-6 py-4">
               <p className="font-medium">{workshop.name}</p>
               <p className="text-sm text-[var(--color-stone-500)]">
-                {workshop.email ?? "No email"} · {workshop.status}
+                {workshop.email ?? "No email"} ·{" "}
+                {workshop.status === "active" ? "Active" : "Inactive"}
               </p>
             </div>
           ))
