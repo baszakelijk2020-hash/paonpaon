@@ -44,9 +44,12 @@ Verified against code and 91 migrations on 2026-07-30:
 - Metadata concepts, edges, assignments, append-only review evidence,
   retailer overrides, and exact product/variant fabric profiles now exist.
   PAON Admin can manage canonical concepts and terminal assignment decisions
-  now pass through an actor-derived, tenant-safe review boundary. No Retailer
-  Portal metadata review UI, knowledge object, catalogue import, style-profile,
-  wardrobe, outfit, roadmap, service-plan, or campaign table exists.
+  now pass through an actor-derived, tenant-safe review boundary. The Retailer
+  Portal metadata review UI lets managers propose/accept/reject tenant
+  assignments, create local concepts, and apply presentation overrides. No
+  product-management fabric/assignment UI, knowledge object, catalogue import,
+  style-profile, wardrobe, outfit, roadmap, service-plan, or campaign table
+  exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,
 forward migrations, repositories, and narrow founder-surface mounts.
@@ -133,7 +136,7 @@ back-to-back sub-slices.
     migration/RLS verification; implement pure/repository work and continue
     independent verification where possible.
 
-- [ ] **1.3 Metadata review workflow**
+- [x] **1.3 Metadata review workflow**
   - **Requirement IDs:** `CAT-003`, `CAT-004`, `ENG-001`.
   - **Dependencies:** `1.2`; ADR-059.
   - **Owner boundary:** PAON Admin canonical management plus Retailer Portal
@@ -148,6 +151,9 @@ back-to-back sub-slices.
   - **Non-goals:** no bulk import UI, autonomous AI approval, knowledge
     authoring, storefront redesign, or semantic retrieval.
   - **Hard blockers:** none.
+  - **Landed:** Admin canonical management (`538c9da`) plus Retailer Portal
+    metadata review UI (`8eaa834`) — propose/accept/reject, tenant-local
+    concepts, presentation overrides, and pending/empty/error/saved states.
 
 - [ ] **1.4 Exact product facts and catalogue assignment UI**
   - **Requirement IDs:** `CAT-001`, `CAT-002`, `CAT-004`, `ENG-003`.
