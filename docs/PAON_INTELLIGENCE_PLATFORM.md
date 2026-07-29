@@ -11,8 +11,8 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Current queue item:** `5.3 Preferred Tailoring and HighMaintenance operations`
-- **Current requirement IDs:** `SERV-001`, `SERV-002`, `LONG-001`
+- **Current queue item:** `5.4 Tie-Mate`
+- **Current requirement IDs:** `TIE-001`, `ENG-004`
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -38,7 +38,8 @@ requires it.
   `933ab1c` adds MorningRoutine delivery and retailer controls (PHASE 4.5
   complete); `8e321ac` adds private offers and seven-day wardrobe campaigns
   (PHASE 5.1 complete); `36fecc5` adds tailoring milestones on the loyalty
-  ledger (PHASE 5.2 complete).
+  ledger (PHASE 5.2 complete); `437a49e` adds Preferred Tailoring and
+  HighMaintenance concierge operations (PHASE 5.3 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -72,8 +73,17 @@ requires it.
   `complete_campaign_challenge` / `record_campaign_delivery_audit` /
   `enqueue_campaign_delivery_notification`, `loyalty_milestone_definitions` /
   `loyalty_milestone_awards`, RPCs `ensure_loyalty_milestone_definitions` /
-  `sync_loyalty_milestones_for_order`, generated database types,
-  `MetadataRepository`, `ProductFabricProfileRepository`,
+  `sync_loyalty_milestones_for_order`, `service_plans` /
+  `service_memberships` / `service_entitlements` /
+  `service_entitlement_entries` / `service_bookings` /
+  `service_fulfilment_events` / `service_care_records` /
+  `service_cost_records` / `service_history_events`, RPCs
+  `enroll_service_membership` / `grant_service_entitlement` /
+  `request_service_booking` / `transition_service_booking` /
+  `link_service_booking_appointment` / `record_service_fulfilment` /
+  `record_service_care` / `record_service_cost` /
+  `set_service_membership_status` / `assign_service_advisor`, generated
+  database types, `MetadataRepository`, `ProductFabricProfileRepository`,
   `KnowledgeRepository`, `CatalogueQueryRepository`,
   `CatalogueImportRepository`, `ImportEnrichmentPromptRepository`,
   `CustomerConsentRepository`, `StyleProfileRepository`,
@@ -82,31 +92,33 @@ requires it.
   `WardrobeRoadmapRepository`, `WardrobeLifecycleRepository`,
   `MorningRoutineRepository`, `MorningRoutineDeliveryRepository`,
   `CampaignRepository`, upgraded `LoyaltyRepository` milestone APIs,
-  `orchestrateMorningRoutineDeliveries`, `orchestrateCampaignDeliveries`,
-  upgraded `AnalyticsRepository`, `@paon/domain` intelligence
-  consent/interaction-event/StyleProfile/advisor-brief/grounded-answer/
-  wardrobe/sartorial/outfit/roadmap/lifecycle/morning-routine/delivery/
-  campaign/loyalty-milestone contracts plus provider-neutral weather/calendar
-  ports, `@paon/ai` `generateGroundedAnswer`, customer account consent +
-  StyleProfile + wardrobe + MorningRoutine selection/delivery +
-  private-offers/seven-look + milestone controls, consented
-  storefront/swipe/TableService producers, Retailer Portal advisor
-  brief/wardrobe/roadmap/lifecycle/MorningRoutine/campaign/milestone mounts,
-  and TableService occasion guidance with swipe/appointment conversion hooks.
-- **Checks/deployment state:** 108 migrations; loyalty milestone
+  `ServicePlanRepository`, `orchestrateMorningRoutineDeliveries`,
+  `orchestrateCampaignDeliveries`, upgraded `AnalyticsRepository`,
+  `@paon/domain` intelligence consent/interaction-event/StyleProfile/
+  advisor-brief/grounded-answer/wardrobe/sartorial/outfit/roadmap/lifecycle/
+  morning-routine/delivery/campaign/loyalty-milestone/concierge service-plan
+  contracts plus provider-neutral weather/calendar ports, `@paon/ai`
+  `generateGroundedAnswer`, customer account consent + StyleProfile +
+  wardrobe + MorningRoutine selection/delivery + private-offers/seven-look +
+  milestone + concierge service controls, consented storefront/swipe/
+  TableService producers, Retailer Portal advisor brief/wardrobe/roadmap/
+  lifecycle/MorningRoutine/campaign/milestone/services mounts, and
+  TableService occasion guidance with swipe/appointment conversion hooks.
+- **Checks/deployment state:** 109 migrations; concierge service-plan
   domain/migration/repo/Customer+Retailer surfaces and
-  lint/typecheck/test/build/format are green on the 5.2 tip. Anonymous
+  lint/typecheck/test/build/format are green on the 5.3 tip. Anonymous
   interaction persistence remains blocked pending jurisdiction documentation.
   Live Resend/OpenWeather smoke still needs provider credentials.
-- **Real blockers:** none for Stage 5.3 operations without payment; anonymous
-  persistence remains blocked for new anonymous producers only; missing
-  founder-authored fabric/colour/formality sartorial rules still block only
-  those exact claims; live delivery smoke still needs credentials; payment
-  blocks money collection only (ADR-062).
-- **Exact next files/tests:** implement queue item 5.3 Preferred Tailoring and
-  HighMaintenance operations: dedicated concierge service plans,
-  entitlements/non-monetary credits, bookings, fulfilment, care/repair,
-  collection/delivery, and advisor ownership composing appointments/alterations.
+- **Real blockers:** no approved founder Tie-Mate surface/design blocks only
+  the 5.4 UI item (reusable catalogue/discovery foundations already exist);
+  anonymous persistence remains blocked for new anonymous producers only;
+  missing founder-authored fabric/colour/formality sartorial rules still block
+  only those exact claims; live delivery smoke still needs credentials;
+  payment blocks money collection only (ADR-062).
+- **Exact next files/tests:** implement queue item 5.4 Tie-Mate only after an
+  approved founder mobile surface exists; until then skip the invented UI and
+  do not invent a parallel catalogue. Next independent Stage 6 items remain
+  behind the payment/compliance design gate.
 
 ## 1. Programme intent
 
@@ -158,8 +170,9 @@ Verified from code and 91 migrations on 2026-07-30:
   Relationship-scoped wardrobe items with ownership history, sartorial rules,
   outfits, wardrobe roadmaps, lifecycle events, private self-scans, and fit
   freshness projections exist. Campaign/private-offer and seven-day wardrobe
-  challenge persistence now exist. The repository still has no concierge
-  service-plan persistence.
+  challenge persistence now exist. Preferred Tailoring / HighMaintenance
+  concierge service-plan, membership, entitlement, booking, fulfilment, care,
+  cost, and history persistence now exist.
 
 Names below describe intended persistence and later-stage types until their
 queue item lands. Documentation must not call them shipped early.
@@ -205,8 +218,8 @@ above. Status changes only after the named acceptance criteria are verified.
 | LONG-001               | Garment age, wear/rotation/rest, care, cleaning, repair, and sustainability-led longevity guidance without coercive obsolescence                                                                           | Wardrobe lifecycle                 | Dismissible longevity guidance from age/wear/rest/care/cleaning/repair; no forced replacement                                               | WARD-002                                  | 4.3                  | Guidance derives from actual state, is dismissible/explainable, and contains no forced replacement mechanic                      | Done (4.3 / `bd22637`)                                                                                    |
 | MILE-001               | Recognition for first commission, repeat orders, new categories, premium construction, advanced fabric, and comparable tailoring achievements                                                              | Loyalty milestones                 | Loyalty ledger/rewards exist; no tailoring milestone rules                                                                                  | CAT-002                                   | 5.2                  | Auditable idempotent rules derive milestones from authoritative records without a second ledger                                  | Complete (`36fecc5`)                                                                                      |
 | MILE-002               | Restrained premium rewards and loyalty progression without gambling or discount-retail presentation                                                                                                        | Loyalty milestones                 | General rewards exist; campaign completion grants capped tie/shirt/short-lived offers                                                       | MILE-001                                  | 5.1, 5.2             | Reward eligibility/value is auditable, capped, premium in tone, and never chance-based                                           | Complete (5.1 campaign rewards; 5.2 milestones / `36fecc5`)                                               |
-| SERV-001               | Preferred Tailoring advisor wardrobe planning and HighMaintenance pressing, cleaning, repair, collection/delivery, and checks                                                                              | Concierge services                 | Appointments, garments, alterations, and staff ownership foundations exist                                                                  | WARD-002                                  | 5.3                  | Dedicated service plans compose existing aggregates and expose customer/advisor workflows                                        | Not started                                                                                               |
-| SERV-002               | Service bookings, fulfilment, credits, subscriptions, operational costs, and approved billing boundary                                                                                                     | Concierge services                 | Appointment/alteration/payment/subscription primitives exist separately                                                                     | SERV-001, PAY-002 for money movement      | 5.3, 6.1–6.2         | Operational state works without payment; credits/billing activate only through approved provider/compliance design               | Not started                                                                                               |
+| SERV-001               | Preferred Tailoring advisor wardrobe planning and HighMaintenance pressing, cleaning, repair, collection/delivery, and checks                                                                              | Concierge services                 | Appointments, garments, alterations, and staff ownership foundations exist                                                                  | WARD-002                                  | 5.3                  | Dedicated service plans compose existing aggregates and expose customer/advisor workflows                                        | Complete (`437a49e`)                                                                                      |
+| SERV-002               | Service bookings, fulfilment, credits, subscriptions, operational costs, and approved billing boundary                                                                                                     | Concierge services                 | Appointment/alteration/payment/subscription primitives exist separately                                                                     | SERV-001, PAY-002 for money movement      | 5.3, 6.1–6.2         | Operational state works without payment; credits/billing activate only through approved provider/compliance design               | Operations complete without payment (`437a49e`); billing remains Stage 6                                  |
 | CAMP-001               | Guided seven-day catalogue wardrobe/look creation with elegant tie/shirt/short-lived rewards                                                                                                               | Campaigns                          | Challenge enrollments, seven catalogue looks, idempotent completion, capped rewards                                                         | CUST-002, ROAD-002                        | 5.1                  | Authenticated customer composes seven complete looks; deterministic completion and restrained reward are auditable               | Complete                                                                                                  |
 | CAMP-002               | Authenticated private offers with retailer-controlled daily/weekly fabric/category/product/audience/schedule rules                                                                                         | Campaigns                          | Private-offers area, audience rules, schedule/delivery audit                                                                                | CUST-003, CAT-002                         | 5.1                  | Consent-aware offers are scheduled, suppressible, explainable, tenant-scoped, and premium in presentation                        | Complete                                                                                                  |
 | PAY-001                | Visible payment eligibility and approved one-click purchase using provider-authorized payment data                                                                                                         | Commerce compliance                | Stripe Connect payment foundation exists; no eligibility or reusable-method journey                                                         | Compliance gate                           | 6.1–6.2              | Provider/legal design documents eligibility, SCA, custody, refund, accounting, and consent before implementation                 | Blocked by 6.1                                                                                            |

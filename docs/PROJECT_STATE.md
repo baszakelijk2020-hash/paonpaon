@@ -73,7 +73,9 @@ Snapshot: 2026-07-30.
   attachment, MorningRoutine selection, MorningRoutine delivery, campaign,
   private-offer, and seven-day wardrobe-challenge tables exist; loyalty
   milestone definition/award tables exist and write through the existing
-  loyalty ledger; no concierge service-plan tables exist.
+  loyalty ledger; Preferred Tailoring / HighMaintenance service-plan,
+  membership, entitlement, booking, fulfilment, care, cost, and history
+  tables exist.
 
 ## External systems
 
@@ -90,7 +92,8 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Stages 1–4 and PHASE 5.1 (private offers / seven-day wardrobe campaigns) are
-and PHASE 5.2 (tailoring milestones / premium rewards on the loyalty ledger)
-are complete. The authoritative Resume Protocol identifies Preferred Tailoring
-and HighMaintenance operations (PHASE 5.3) as the exact continuation point.
+contracts. Stages 1–4 and PHASE 5.1–5.3 (campaigns, loyalty milestones, and
+Preferred Tailoring / HighMaintenance operations) are complete. The
+authoritative Resume Protocol identifies Tie-Mate (PHASE 5.4) as the next
+queue item; it is blocked for UI until an approved founder mobile surface
+exists. Stage 6 remains behind the payment/compliance design gate.
