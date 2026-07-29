@@ -46,8 +46,8 @@ requires it.
   ledger (PHASE 5.2 complete); `437a49e` adds Preferred Tailoring and
   HighMaintenance concierge operations (PHASE 5.3 complete); `6842fb5` adds
   Tie-Mate domain deck/photo/handoff under ADR-065 (PHASE 5.4 foundation);
-  Tie-Mate catalogue projection repository wires live products/stock/accepted
-  neckwear concepts into `buildTieMateDeck` (PHASE 5.4 repository wiring).
+  `345ea4d` wires Tie-Mate catalogue projection via `TieMateRepository`
+  (PHASE 5.4 repository wiring).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task

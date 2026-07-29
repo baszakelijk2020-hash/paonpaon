@@ -643,12 +643,13 @@ explanation path.
     `resolveTieConceptIds` with unit coverage — swatch-preferred fabric
     photos, neckwear concept filter, stock truth, shortlist pin order, and
     handoffs into existing product/swipe/appointment/message paths.
-  - **Landed (repository):** `@paon/database` `TieMateRepository` projects
-    live tenant products + variants/stock + accepted metadata assignments
-    into `TieMateFabricCandidate`, resolves neckwear `garment_type` concept
-    IDs, and feeds `buildTieMateDeck` (`projectFabricCandidates` /
-    `resolveTieConceptIdsForRetailer` / `buildDeck`) with unit + storefront
-    read-security coverage. No customer UI / founder HTML.
+  - **Landed (repository):** `345ea4d` — `@paon/database` `TieMateRepository`
+    projects live tenant products + variants/stock + accepted metadata
+    assignments into `TieMateFabricCandidate`, resolves neckwear
+    `garment_type` concept IDs, and feeds `buildTieMateDeck`
+    (`projectFabricCandidates` / `resolveTieConceptIdsForRetailer` /
+    `buildDeck`) with unit + storefront read-security coverage. No customer
+    UI / founder HTML.
 
 **Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
 duplicate loyalty ledger, service state hidden in generic order status, or
