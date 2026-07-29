@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 105 forward Supabase migrations plus generated TypeScript
+- Schema source: 106 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -50,8 +50,9 @@ Snapshot: 2026-07-30.
   deterministic fit freshness from official observations exist; self-reports
   never write fitting observations. MorningRoutine in-app owned-first
   selection with consent-aware weather/calendar/StyleProfile provenance and
-  save/review/book/buy actions exists; opt-in email delivery remains Stage
-  4.5.
+  save/review/book/buy actions exists; explicit opt-in delivery with
+  frequency/quiet hours, append-only audit, and retailer pause/eligible-product
+  controls exist.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
   evidence, retailer overrides, exact fabric profiles, an actor-derived review
   RPC, PAON Admin canonical management, the Retailer Portal metadata review
@@ -69,8 +70,8 @@ Snapshot: 2026-07-30.
   rollback/resumable retries, and AI enrichment that persists only pending
   review proposals with field-level evidence/confidence. Wardrobe ownership,
   sartorial rules, outfits, wardrobe roadmap, lifecycle, self-scan,
-  attachment, and MorningRoutine selection tables exist; no campaign or
-  concierge-service tables exist.
+  attachment, MorningRoutine selection, and MorningRoutine delivery tables
+  exist; no campaign or concierge-service tables exist.
 
 ## External systems
 
@@ -87,7 +88,6 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Stages 1–3 and PHASE 4.1–4.4 (wardrobe ownership through
-MorningRoutine selection/actions) are complete. The authoritative Resume
-Protocol identifies MorningRoutine delivery and retailer controls (PHASE 4.5)
-as the exact continuation point.
+contracts. Stages 1–4 (through MorningRoutine delivery/retailer controls) are
+complete. The authoritative Resume Protocol identifies private offers and
+seven-day wardrobe campaigns (PHASE 5.1) as the exact continuation point.
