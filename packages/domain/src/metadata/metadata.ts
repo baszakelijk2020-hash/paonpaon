@@ -1,5 +1,6 @@
 import type {
   EntityMetadataAssignmentId,
+  MetadataAssignmentReviewId,
   MetadataConceptEdgeId,
   MetadataConceptId,
   ProductId,
@@ -35,6 +36,7 @@ export type MetadataConceptKind =
 
 export type MetadataSource = "supplier" | "ai" | "retailer" | "paon";
 export type MetadataReviewStatus = "pending" | "accepted" | "rejected";
+export type MetadataReviewDecision = Exclude<MetadataReviewStatus, "pending">;
 export type MetadataEdgeKind =
   | "parent"
   | "related"
@@ -96,6 +98,20 @@ export interface EntityMetadataAssignment extends Timestamps {
   readonly evidence?: MetadataEvidence;
   readonly reviewedByStaffId?: StaffId;
   readonly reviewedAt?: string;
+}
+
+export interface MetadataAssignmentReview {
+  readonly id: MetadataAssignmentReviewId;
+  readonly retailerId: RetailerId;
+  readonly assignmentId: EntityMetadataAssignmentId;
+  readonly previousStatus: MetadataReviewStatus | null;
+  readonly reviewStatus: MetadataReviewDecision;
+  readonly reviewedByStaffId: StaffId;
+  readonly source: MetadataSource;
+  readonly confidence?: number;
+  readonly supplierValue?: string;
+  readonly evidence?: MetadataEvidence;
+  readonly createdAt: string;
 }
 
 export interface RetailerConceptOverride extends Timestamps {

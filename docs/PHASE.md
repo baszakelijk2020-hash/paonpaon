@@ -25,7 +25,7 @@ founder-designed surfaces remain authoritative wherever they define the UI.
 
 ## As-built baseline
 
-Verified against code and 90 migrations on 2026-07-30:
+Verified against code and 91 migrations on 2026-07-30:
 
 - Three Next.js applications and shared domain/database/auth/UI/integration
   packages are established.
@@ -43,7 +43,9 @@ Verified against code and 90 migrations on 2026-07-30:
   evidence, retention, style-profile, and advisor-briefing model does not.
 - Metadata concepts, edges, assignments, append-only review evidence,
   retailer overrides, and exact product/variant fabric profiles now exist.
-  No metadata review UI, knowledge object, catalogue import, style-profile,
+  PAON Admin can manage canonical concepts and terminal assignment decisions
+  now pass through an actor-derived, tenant-safe review boundary. No Retailer
+  Portal metadata review UI, knowledge object, catalogue import, style-profile,
   wardrobe, outfit, roadmap, service-plan, or campaign table exists.
 
 Do not rebuild shipped foundations. Extend them through additive domain types,

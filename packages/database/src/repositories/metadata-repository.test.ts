@@ -10,6 +10,8 @@ type MetadataConceptRow =
   Database["public"]["Tables"]["metadata_concepts"]["Row"];
 type EntityMetadataAssignmentRow =
   Database["public"]["Tables"]["entity_metadata_assignments"]["Row"];
+type MetadataAssignmentReviewRow =
+  Database["public"]["Tables"]["metadata_assignment_reviews"]["Row"];
 
 const retailerId = "11111111-1111-1111-1111-111111111111";
 const conceptId = "22222222-2222-2222-2222-222222222222";
@@ -49,6 +51,23 @@ const assignmentRow: EntityMetadataAssignmentRow = {
   created_at: "2026-07-29T00:00:00.000Z",
   updated_at: "2026-07-29T01:00:00.000Z",
   deleted_at: null,
+};
+
+const reviewRow: MetadataAssignmentReviewRow = {
+  id: "66666666-6666-6666-6666-666666666666",
+  retailer_id: retailerId,
+  assignment_id: assignmentRow.id,
+  previous_status: "pending",
+  review_status: "accepted",
+  reviewed_by_staff_id: staffId,
+  source: "ai",
+  confidence: 0.92,
+  supplier_value: null,
+  evidence: {
+    summary: "Supplier composition and product copy agree",
+    sourceReference: "supplier-feed:42",
+  },
+  created_at: "2026-07-29T01:00:00.000Z",
 };
 
 describe("MetadataRepository", () => {
@@ -168,5 +187,62 @@ describe("MetadataRepository", () => {
         targetId: productId as never,
       }),
     ).rejects.toThrow();
+  });
+
+  it("reviews through the actor-derived RPC and reloads in explicit tenant scope", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: assignmentRow.id,
+      error: null,
+    });
+    const repository = new MetadataRepository({
+      from: () =>
+        fakeQueryBuilder({
+          data: assignmentRow,
+          error: null,
+        }),
+      rpc,
+    } as unknown as PaonSupabaseClient);
+
+    const assignment = await repository.reviewAssignment(
+      retailerId as never,
+      assignmentRow.id as never,
+      "accepted",
+    );
+
+    expect(rpc).toHaveBeenCalledWith("review_metadata_assignment", {
+      p_assignment_id: assignmentRow.id,
+      p_review_status: "accepted",
+    });
+    expect(assignment.reviewStatus).toBe("accepted");
+    expect(assignment.reviewedByStaffId).toBe(staffId);
+  });
+
+  it("maps append-only review history with previous state and evidence", async () => {
+    const repository = new MetadataRepository({
+      from: () =>
+        fakeQueryBuilder({
+          data: [reviewRow],
+          error: null,
+        }),
+    } as unknown as PaonSupabaseClient);
+
+    const reviews = await repository.findAssignmentReviews(
+      retailerId as never,
+      assignmentRow.id as never,
+    );
+
+    expect(reviews).toEqual([
+      expect.objectContaining({
+        id: reviewRow.id,
+        assignmentId: assignmentRow.id,
+        previousStatus: "pending",
+        reviewStatus: "accepted",
+        reviewedByStaffId: staffId,
+        evidence: {
+          summary: "Supplier composition and product copy agree",
+          sourceReference: "supplier-feed:42",
+        },
+      }),
+    ]);
   });
 });

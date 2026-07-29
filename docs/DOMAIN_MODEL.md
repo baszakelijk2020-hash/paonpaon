@@ -51,6 +51,7 @@ Retailer 1───* Customer ──0..1 User (via CustomerAccountLink, many-to-
 Retailer 1───* Product 1───* ProductVariant
 MetadataConcept 1───* MetadataConceptEdge
 MetadataConcept 1───* EntityMetadataAssignment *───1 Product / ProductVariant / future WardrobeItem
+EntityMetadataAssignment 1───* MetadataAssignmentReview (append-only decisions)
 Retailer 1───* RetailerConceptOverride *───1 MetadataConcept
 Customer 1───* Order 1───* OrderLine ──1 ProductVariant
 OrderLine 0..1─── ProductionOrder
@@ -73,7 +74,8 @@ Customer 1───* WeddingParty (as organizer) 1───* WeddingPartyMember 
 The Intelligence Platform metadata contracts live in
 `packages/domain/src/metadata/`. Their persistence lives in the seven
 metadata/fabric tables created by
-`20260729174939_create_metadata_foundation.sql` and the typed
+`20260729174939_create_metadata_foundation.sql`, the review transition in
+`20260729181443_add_metadata_review_workflow.sql`, and the typed
 `MetadataRepository` / `ProductFabricProfileRepository`.
 
 - `MetadataConcept.retailerId = null` means PAON canonical ownership. A
@@ -88,6 +90,10 @@ metadata/fabric tables created by
 - AI assignments require confidence and evidence. Supplier assignments retain
   the supplier's raw value. Accepted/rejected assignments require reviewer and
   time; pending assignments cannot pretend review already occurred.
+- `MetadataAssignmentReview` is an append-only decision snapshot. Terminal
+  decisions are submitted through `review_metadata_assignment`, which derives
+  the reviewer and time, rejects cross-tenant callers, and makes a repeated
+  identical decision a no-op rather than duplicate audit evidence.
 - `ProductFabricProfile` keeps numeric fabric weight and concept-linked
   composition outside the concept-label graph. Non-empty composition has
   unique fibre concepts and totals exactly 100%.

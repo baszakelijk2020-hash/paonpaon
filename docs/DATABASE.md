@@ -134,6 +134,15 @@ Terminal assignment writes append reviewer/source/evidence snapshots through a
 non-callable audit trigger. The live contract is exercised by
 `supabase/tests/metadata_foundation_rls_test.sql`.
 
+`20260729181443_add_metadata_review_workflow.sql` narrows assignment mutation:
+authenticated managers may insert pending proposals but cannot update or delete
+assignments directly. `review_metadata_assignment` accepts only `accepted` or
+`rejected`, re-derives the accepted staff identity and tenant from the session,
+locks the assignment, and records actor/time through the existing append-only
+trigger. Repeating the same decision is idempotent; changing a decision appends
+another event with its previous state. The live authorization and transition
+matrix is exercised by `supabase/tests/metadata_review_workflow_test.sql`.
+
 ## Audit logging
 
 Privileged mutations (anything a `AuditLogEntry` — see

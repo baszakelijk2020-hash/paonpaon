@@ -1,5 +1,5 @@
 begin;
-select plan(22);
+select plan(23);
 
 insert into public.retailers (
   id,
@@ -48,9 +48,30 @@ insert into public.products (
     'active'
   );
 
+insert into auth.users (
+  id,
+  aud,
+  role,
+  email,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at
+) values (
+  '60000000-0000-0000-0000-000000000001',
+  'authenticated',
+  'authenticated',
+  'metadata-manager-a@example.test',
+  '{}'::jsonb,
+  '{}'::jsonb,
+  now(),
+  now()
+);
+
 insert into public.retailer_staff_members (
   id,
   retailer_id,
+  user_id,
   full_name,
   email,
   role,
@@ -58,6 +79,7 @@ insert into public.retailer_staff_members (
 ) values (
   '30000000-0000-0000-0000-000000000001',
   '10000000-0000-0000-0000-000000000001',
+  '60000000-0000-0000-0000-000000000001',
   'Tenant A Manager',
   'metadata-manager-a@example.test',
   'manager',
@@ -121,6 +143,8 @@ select is(
 
 set local role authenticated;
 set local request.jwt.claims = '{
+  "sub": "60000000-0000-0000-0000-000000000001",
+  "role": "authenticated",
   "app_metadata": {
     "retailer_id": "10000000-0000-0000-0000-000000000001",
     "retailer_role": "manager"
@@ -274,8 +298,7 @@ select lives_ok(
       concept_id,
       source,
       review_status,
-      reviewed_by_staff_id,
-      reviewed_at
+      reviewed_by_staff_id
     ) values (
       '50000000-0000-0000-0000-000000000001',
       '10000000-0000-0000-0000-000000000001',
@@ -283,9 +306,18 @@ select lives_ok(
       '20000000-0000-0000-0000-000000000001',
       '40000000-0000-0000-0000-000000000001',
       'retailer',
-      'accepted',
-      '30000000-0000-0000-0000-000000000001',
-      now()
+      'pending',
+      null
+    )
+  $$,
+  'a manager can propose a valid tenant assignment'
+);
+
+select lives_ok(
+  $$
+    select public.review_metadata_assignment(
+      '50000000-0000-0000-0000-000000000001',
+      'accepted'
     )
   $$,
   'a manager can accept a valid tenant assignment'

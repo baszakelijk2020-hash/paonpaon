@@ -5679,6 +5679,13 @@ export type Database = {
         Args: { p_feature_key: string; p_retailer_id: string };
         Returns: boolean;
       };
+      review_metadata_assignment: {
+        Args: {
+          p_assignment_id: string;
+          p_review_status: Database["public"]["Enums"]["metadata_review_status"];
+        };
+        Returns: string;
+      };
       rsvp_to_event: {
         Args: {
           p_event_id: string;

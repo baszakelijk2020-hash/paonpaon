@@ -3,17 +3,18 @@ import {
   metadataEvidenceSchema,
   type EntityMetadataAssignment,
   type EntityMetadataAssignmentId,
+  type MetadataAssignmentReview,
   type MetadataConcept,
   type MetadataConceptEdge,
   type MetadataConceptId,
   type MetadataEdgeKind,
   type MetadataEvidence,
+  type MetadataReviewDecision,
   type MetadataReviewStatus,
   type MetadataSource,
   type MetadataTarget,
   type RetailerConceptOverride,
   type RetailerId,
-  type StaffId,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
@@ -25,6 +26,8 @@ type MetadataConceptEdgeRow =
   Database["public"]["Tables"]["metadata_concept_edges"]["Row"];
 type EntityMetadataAssignmentRow =
   Database["public"]["Tables"]["entity_metadata_assignments"]["Row"];
+type MetadataAssignmentReviewRow =
+  Database["public"]["Tables"]["metadata_assignment_reviews"]["Row"];
 type RetailerConceptOverrideRow =
   Database["public"]["Tables"]["retailer_concept_overrides"]["Row"];
 
@@ -33,6 +36,10 @@ function toAttributes(value: Json): Readonly<Record<string, unknown>> {
     throw new Error("Metadata concept attributes must be a JSON object");
   }
   return value;
+}
+
+function toJsonAttributes(value: Readonly<Record<string, unknown>>): Json {
+  return JSON.parse(JSON.stringify(value)) as Json;
 }
 
 function toEvidence(value: Json | null): MetadataEvidence | undefined {
@@ -130,6 +137,28 @@ function toAssignment(
   };
 }
 
+function toReview(row: MetadataAssignmentReviewRow): MetadataAssignmentReview {
+  if (row.review_status === "pending") {
+    throw new Error("Persisted metadata reviews cannot be pending");
+  }
+  const evidence = toEvidence(row.evidence);
+  return {
+    id: asId<"MetadataAssignmentReviewId">(row.id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    assignmentId: asId<"EntityMetadataAssignmentId">(row.assignment_id),
+    previousStatus: row.previous_status,
+    reviewStatus: row.review_status,
+    reviewedByStaffId: asId<"StaffId">(row.reviewed_by_staff_id),
+    source: row.source,
+    ...(row.confidence === null ? {} : { confidence: row.confidence }),
+    ...(row.supplier_value === null
+      ? {}
+      : { supplierValue: row.supplier_value }),
+    ...(evidence === undefined ? {} : { evidence }),
+    createdAt: row.created_at,
+  };
+}
+
 function toOverride(row: RetailerConceptOverrideRow): RetailerConceptOverride {
   return {
     id: asId<"RetailerConceptOverrideId">(row.id),
@@ -157,7 +186,7 @@ export interface CreateMetadataConceptParams {
   kind: MetadataConcept["kind"];
   slug: string;
   canonicalName: string;
-  attributes?: Readonly<Record<string, Json | undefined>>;
+  attributes?: Readonly<Record<string, unknown>>;
   imageUrl?: string;
   active?: boolean;
 }
@@ -176,11 +205,15 @@ export interface CreateEntityMetadataAssignmentParams {
   conceptId: MetadataConceptId;
   source: MetadataSource;
   confidence?: number;
-  reviewStatus?: MetadataReviewStatus;
   supplierValue?: string;
   evidence?: MetadataEvidence;
-  reviewedByStaffId?: StaffId;
-  reviewedAt?: string;
+}
+
+export interface UpdateMetadataConceptParams {
+  canonicalName: string;
+  attributes?: Readonly<Record<string, unknown>>;
+  imageUrl?: string;
+  active: boolean;
 }
 
 export interface UpsertRetailerConceptOverrideParams {
@@ -244,6 +277,28 @@ export class MetadataRepository {
     return data.map(toConcept);
   }
 
+  async findCanonicalConcepts(
+    kind?: MetadataConcept["kind"],
+  ): Promise<MetadataConcept[]> {
+    let query = this.client
+      .from("metadata_concepts")
+      .select("*")
+      .is("retailer_id", null)
+      .is("deleted_at", null);
+
+    if (kind !== undefined) {
+      query = query.eq("kind", kind);
+    }
+
+    const { data, error } = await query.order("canonical_name", {
+      ascending: true,
+    });
+    if (error) {
+      throw error;
+    }
+    return data.map(toConcept);
+  }
+
   async createConcept(
     params: CreateMetadataConceptParams,
   ): Promise<MetadataConcept> {
@@ -254,10 +309,34 @@ export class MetadataRepository {
         kind: params.kind,
         slug: params.slug,
         canonical_name: params.canonicalName,
-        attributes: params.attributes ?? {},
+        attributes: toJsonAttributes(params.attributes ?? {}),
         image_url: params.imageUrl ?? null,
         active: params.active ?? true,
       })
+      .select("*")
+      .single();
+
+    if (error) {
+      throw error;
+    }
+    return toConcept(data);
+  }
+
+  async updateCanonicalConcept(
+    conceptId: MetadataConceptId,
+    params: UpdateMetadataConceptParams,
+  ): Promise<MetadataConcept> {
+    const { data, error } = await this.client
+      .from("metadata_concepts")
+      .update({
+        canonical_name: params.canonicalName,
+        attributes: toJsonAttributes(params.attributes ?? {}),
+        image_url: params.imageUrl ?? null,
+        active: params.active,
+      })
+      .eq("id", conceptId)
+      .is("retailer_id", null)
+      .is("deleted_at", null)
       .select("*")
       .single();
 
@@ -325,6 +404,47 @@ export class MetadataRepository {
     return data.map(toAssignment);
   }
 
+  async findAssignmentsForReview(
+    retailerId: RetailerId,
+    reviewStatus?: MetadataReviewStatus,
+  ): Promise<EntityMetadataAssignment[]> {
+    let query = this.client
+      .from("entity_metadata_assignments")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .is("deleted_at", null);
+
+    if (reviewStatus !== undefined) {
+      query = query.eq("review_status", reviewStatus);
+    }
+
+    const { data, error } = await query.order("created_at", {
+      ascending: false,
+    });
+    if (error) {
+      throw error;
+    }
+    return data.map(toAssignment);
+  }
+
+  async findAssignmentById(
+    retailerId: RetailerId,
+    assignmentId: EntityMetadataAssignmentId,
+  ): Promise<EntityMetadataAssignment | null> {
+    const { data, error } = await this.client
+      .from("entity_metadata_assignments")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .eq("id", assignmentId)
+      .is("deleted_at", null)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+    return data === null ? null : toAssignment(data);
+  }
+
   async createAssignment(
     params: CreateEntityMetadataAssignmentParams,
   ): Promise<EntityMetadataAssignment> {
@@ -337,7 +457,7 @@ export class MetadataRepository {
         concept_id: params.conceptId,
         source: params.source,
         confidence: params.confidence ?? null,
-        review_status: params.reviewStatus ?? "pending",
+        review_status: "pending",
         supplier_value: params.supplierValue ?? null,
         evidence:
           params.evidence === undefined
@@ -348,8 +468,8 @@ export class MetadataRepository {
                   ? {}
                   : { sourceReference: params.evidence.sourceReference }),
               },
-        reviewed_by_staff_id: params.reviewedByStaffId ?? null,
-        reviewed_at: params.reviewedAt ?? null,
+        reviewed_by_staff_id: null,
+        reviewed_at: null,
       })
       .select("*")
       .single();
@@ -358,6 +478,43 @@ export class MetadataRepository {
       throw error;
     }
     return toAssignment(data);
+  }
+
+  async reviewAssignment(
+    retailerId: RetailerId,
+    assignmentId: EntityMetadataAssignmentId,
+    decision: MetadataReviewDecision,
+  ): Promise<EntityMetadataAssignment> {
+    const { error } = await this.client.rpc("review_metadata_assignment", {
+      p_assignment_id: assignmentId,
+      p_review_status: decision,
+    });
+    if (error) {
+      throw error;
+    }
+
+    const assignment = await this.findAssignmentById(retailerId, assignmentId);
+    if (assignment === null) {
+      throw new Error("Reviewed metadata assignment could not be reloaded");
+    }
+    return assignment;
+  }
+
+  async findAssignmentReviews(
+    retailerId: RetailerId,
+    assignmentId: EntityMetadataAssignmentId,
+  ): Promise<MetadataAssignmentReview[]> {
+    const { data, error } = await this.client
+      .from("metadata_assignment_reviews")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .eq("assignment_id", assignmentId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+    return data.map(toReview);
   }
 
   async findOverrides(
@@ -401,21 +558,5 @@ export class MetadataRepository {
       throw error;
     }
     return toOverride(data);
-  }
-
-  async softDeleteAssignment(
-    retailerId: RetailerId,
-    assignmentId: EntityMetadataAssignmentId,
-  ): Promise<void> {
-    const { error } = await this.client
-      .from("entity_metadata_assignments")
-      .update({ deleted_at: new Date().toISOString() })
-      .eq("retailer_id", retailerId)
-      .eq("id", assignmentId)
-      .is("deleted_at", null);
-
-    if (error) {
-      throw error;
-    }
   }
 }

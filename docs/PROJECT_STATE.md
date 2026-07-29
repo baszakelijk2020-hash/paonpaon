@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 90 forward Supabase migrations plus generated TypeScript
+- Schema source: 91 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -33,9 +33,10 @@ Snapshot: 2026-07-30.
 - `behavioral_events` and `ai_generations` exist; purpose-specific consent,
   StyleProfile evidence, and advisor briefing do not.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
-  evidence, retailer overrides, and exact fabric profiles exist. No knowledge,
-  catalogue-import, wardrobe, roadmap, outfit, campaign, or concierge-service
-  tables exist.
+  evidence, retailer overrides, exact fabric profiles, an actor-derived review
+  RPC, and PAON Admin canonical management exist. No Retailer Portal metadata
+  review UI, knowledge, catalogue-import, wardrobe, roadmap, outfit, campaign,
+  or concierge-service tables exist.
 
 ## External systems
 
@@ -52,6 +53,7 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Metadata domain contracts and their tenant-safe persistence layer
-have landed. The authoritative Resume Protocol identifies the metadata review
-workflow as the next implementation area.
+contracts. Metadata domain contracts, tenant-safe persistence, the review
+transition boundary, and PAON Admin canonical management have landed. The
+authoritative Resume Protocol identifies the Retailer Portal portion of the
+metadata review workflow as the exact continuation point.

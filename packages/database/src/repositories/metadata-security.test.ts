@@ -9,6 +9,13 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const reviewWorkflowMigration = readFileSync(
+  new URL(
+    "../../../../supabase/migrations/20260729181443_add_metadata_review_workflow.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 const metadataTables = [
   "metadata_concepts",
@@ -99,6 +106,30 @@ describe("metadata database security contract", () => {
     );
     expect(migration).toContain(
       "Fabric composition percentages must total exactly 100",
+    );
+  });
+
+  it("routes terminal metadata decisions through one actor-derived boundary", () => {
+    expect(reviewWorkflowMigration).toContain("review_status = 'pending'");
+    expect(reviewWorkflowMigration).toContain("reviewed_by_staff_id is null");
+    expect(reviewWorkflowMigration).toContain("reviewed_at is null");
+    expect(reviewWorkflowMigration).toContain(
+      "revoke update, delete on table public.entity_metadata_assignments",
+    );
+    expect(reviewWorkflowMigration).toContain(
+      "create or replace function public.review_metadata_assignment",
+    );
+    expect(reviewWorkflowMigration).toContain(
+      "v_staff_id := public.current_staff_id()",
+    );
+    expect(reviewWorkflowMigration).toContain(
+      "v_assignment.retailer_id <> public.current_retailer_id()",
+    );
+    expect(reviewWorkflowMigration).toContain(
+      "if v_assignment.review_status = p_review_status then",
+    );
+    expect(reviewWorkflowMigration).toContain(
+      "revoke all on function public.review_metadata_assignment",
     );
   });
 });

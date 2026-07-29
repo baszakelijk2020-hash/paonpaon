@@ -19,6 +19,10 @@ export type EntityMetadataAssignmentId = Brand<
   string,
   "EntityMetadataAssignmentId"
 >;
+export type MetadataAssignmentReviewId = Brand<
+  string,
+  "MetadataAssignmentReviewId"
+>;
 export type RetailerConceptOverrideId = Brand<
   string,
   "RetailerConceptOverrideId"

@@ -55,6 +55,7 @@ export const METADATA_EDGE_KINDS = [
 export const metadataConceptKindSchema = z.enum(METADATA_CONCEPT_KINDS);
 export const metadataSourceSchema = z.enum(METADATA_SOURCES);
 export const metadataReviewStatusSchema = z.enum(METADATA_REVIEW_STATUSES);
+export const metadataReviewDecisionSchema = z.enum(["accepted", "rejected"]);
 export const metadataEdgeKindSchema = z.enum(METADATA_EDGE_KINDS);
 
 const metadataSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -98,6 +99,18 @@ export const createMetadataConceptInputSchema = z.object({
 
 export type CreateMetadataConceptInput = z.infer<
   typeof createMetadataConceptInputSchema
+>;
+
+export const updateMetadataConceptInputSchema = z.object({
+  conceptId: uuidSchema,
+  canonicalName: z.string().trim().min(1).max(200),
+  attributes: z.record(z.string(), z.unknown()).default({}),
+  imageUrl: z.string().trim().url().max(2000).optional(),
+  active: z.boolean(),
+});
+
+export type UpdateMetadataConceptInput = z.infer<
+  typeof updateMetadataConceptInputSchema
 >;
 
 export const createMetadataConceptEdgeInputSchema = z
@@ -200,6 +213,15 @@ export const createEntityMetadataAssignmentInputSchema = z
 
 export type CreateEntityMetadataAssignmentInput = z.infer<
   typeof createEntityMetadataAssignmentInputSchema
+>;
+
+export const reviewMetadataAssignmentInputSchema = z.object({
+  assignmentId: uuidSchema,
+  decision: metadataReviewDecisionSchema,
+});
+
+export type ReviewMetadataAssignmentInput = z.infer<
+  typeof reviewMetadataAssignmentInputSchema
 >;
 
 export const createRetailerConceptOverrideInputSchema = z.object({

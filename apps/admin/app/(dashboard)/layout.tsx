@@ -45,6 +45,11 @@ const navigation: AppShellNavGroup[] = [
         label: "AI monitoring",
         description: "Generation quality and failures",
       },
+      {
+        href: "/metadata",
+        label: "Metadata",
+        description: "Canonical menswear concepts",
+      },
     ],
   },
   {

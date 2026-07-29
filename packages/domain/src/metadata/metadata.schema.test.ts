@@ -6,8 +6,11 @@ import {
   createMetadataConceptInputSchema,
   createRetailerConceptOverrideInputSchema,
   METADATA_CONCEPT_KINDS,
+  metadataReviewDecisionSchema,
   metadataTargetSchema,
   productFabricProfileSchema,
+  reviewMetadataAssignmentInputSchema,
+  updateMetadataConceptInputSchema,
 } from "./metadata.schema";
 
 const retailerId = "00000000-0000-4000-8000-000000000001";
@@ -99,9 +102,38 @@ describe("metadata concept contracts", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("validates canonical concept updates", () => {
+    expect(
+      updateMetadataConceptInputSchema.parse({
+        conceptId,
+        canonicalName: "Refined wool",
+        active: false,
+      }),
+    ).toEqual({
+      conceptId,
+      canonicalName: "Refined wool",
+      attributes: {},
+      active: false,
+    });
+  });
 });
 
 describe("metadata target and assignment contracts", () => {
+  it("accepts terminal review decisions but not pending", () => {
+    expect(metadataReviewDecisionSchema.parse("accepted")).toBe("accepted");
+    expect(metadataReviewDecisionSchema.parse("rejected")).toBe("rejected");
+    expect(metadataReviewDecisionSchema.safeParse("pending").success).toBe(
+      false,
+    );
+    expect(
+      reviewMetadataAssignmentInputSchema.safeParse({
+        assignmentId: conceptId,
+        decision: "pending",
+      }).success,
+    ).toBe(false);
+  });
+
   it.each(["product", "product_variant", "wardrobe_item"] as const)(
     "accepts a %s target with a UUID",
     (targetType) => {
