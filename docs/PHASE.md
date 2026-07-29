@@ -426,6 +426,19 @@ UX audit Critical–Low buildable mitigations executed; remaining hard
 blockers: Stripe keys, Resend, full POS RPC, returns table, multi-store,
 offline, founder alterations.
 
+**Also (2026-07-29 continuous — label and display polish, complete).** All
+remaining raw `.status}`, `.type}`, `.role}` JSX renders in customer and
+retailer portals replaced with domain label maps. Redundant `capitalize` CSS
+removed from elements that use explicit label strings.
+`WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS` added; fitting status badge and
+select fixed. Workshop/proposal/fulfillment event display fixed with inline
+maps. Loyalty tile: tier badge capitalised; referral section header →
+"Introduce a friend"; CTA → "Send invitation"; count → "introductions". Admin
+retailer staff list uses `RETAILER_ROLE_LABELS`. Catalogue e2e spec
+(`apps/customer/e2e/catalogue.spec.ts`) and Commercials e2e spec
+(`apps/admin/e2e/commercials.spec.ts`) added. All six CI checks confirmed
+green on full build pass.
+
 **Also (2026-07-29 continuous — conversion chrome):** React PDP defaults to
 redirect onto the HTML storefront (ADR-052); portal Saved/Today’s Pick and
 appointment CTAs point at `/r/[slug]`; Alterations demoted from Private
