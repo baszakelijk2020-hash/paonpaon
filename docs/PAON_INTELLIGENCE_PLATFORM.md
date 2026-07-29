@@ -32,9 +32,9 @@ requires it.
   advisor preparation briefing (PHASE 3.3 complete); `ed2f0dc` adds grounded
   TableService occasion guidance (PHASE 3.4 complete); `a407890` adds wardrobe
   ownership and collaboration (PHASE 4.1 complete); `92f7afe` adds wardrobe
-  roadmaps, outfits, and sartorial rules (PHASE 4.2 complete); wardrobe
-  lifecycle, self-scan, fit freshness, and longevity guidance (PHASE 4.3
-  complete).
+  roadmaps, outfits, and sartorial rules (PHASE 4.2 complete); `a7ac358` adds
+  wardrobe lifecycle, self-scan, fit freshness, and longevity guidance (PHASE
+  4.3 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
