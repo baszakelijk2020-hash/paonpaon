@@ -1,6 +1,5 @@
-import type { AlterationStatus } from "@paon/domain";
+import { ALTERATION_STATUS_LABELS, type AlterationStatus } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
-import { humaniseStatus } from "@paon/utils";
 
 const STATUS_TONE: Record<AlterationStatus, "neutral" | "success" | "warning"> =
   {
@@ -22,5 +21,7 @@ export function AlterationStatusBadge({
 }: {
   status: AlterationStatus;
 }) {
-  return <Badge tone={STATUS_TONE[status]}>{humaniseStatus(status)}</Badge>;
+  return (
+    <Badge tone={STATUS_TONE[status]}>{ALTERATION_STATUS_LABELS[status]}</Badge>
+  );
 }

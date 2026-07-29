@@ -16,6 +16,13 @@ export const WEDDING_PARTY_STATUSES: readonly WeddingPartyStatus[] = [
   "cancelled",
 ];
 
+export const WEDDING_PARTY_STATUS_LABELS: Record<WeddingPartyStatus, string> = {
+  planning: "Planning",
+  confirmed: "Confirmed",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
 export type WeddingPartyMemberRole =
   "groom" | "best_man" | "groomsman" | "father_of_groom" | "other";
 

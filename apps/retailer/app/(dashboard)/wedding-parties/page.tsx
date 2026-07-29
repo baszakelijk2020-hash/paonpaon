@@ -1,8 +1,9 @@
 import { CustomerRepository, WeddingPartyRepository } from "@paon/database";
+import { WEDDING_PARTY_STATUS_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate, humaniseStatus } from "@paon/utils";
+import { formatDate } from "@paon/utils";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -80,7 +81,7 @@ export default async function WeddingPartiesPage() {
               </div>
             </div>
             <Badge className="shrink-0" tone={STATUS_TONE[party.status]}>
-              {humaniseStatus(party.status)}
+              {WEDDING_PARTY_STATUS_LABELS[party.status]}
             </Badge>
           </Link>
         ))}

@@ -3,11 +3,11 @@ import {
   LoyaltyRepository,
   RetailerRepository,
 } from "@paon/database";
+import { REFERRAL_STATUS_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
-import { humaniseStatus } from "@paon/utils";
 
 import { inviteFriend, joinLoyalty, redeemReward } from "./actions";
 
@@ -161,7 +161,7 @@ export default async function LoyaltyPage() {
                             {referral.referredEmail}
                           </span>
                           <Badge tone={REFERRAL_TONE[referral.status]}>
-                            {humaniseStatus(referral.status)}
+                            {REFERRAL_STATUS_LABELS[referral.status]}
                           </Badge>
                         </li>
                       ))}

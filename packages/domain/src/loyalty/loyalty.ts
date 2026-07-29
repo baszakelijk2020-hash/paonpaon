@@ -84,6 +84,13 @@ export interface RewardRedemption {
 export type ReferralStatus =
   "invited" | "signed_up" | "first_purchase_completed" | "rewarded";
 
+export const REFERRAL_STATUS_LABELS: Record<ReferralStatus, string> = {
+  invited: "Invited",
+  signed_up: "Signed up",
+  first_purchase_completed: "First commission placed",
+  rewarded: "Reward issued",
+};
+
 export interface Referral extends Timestamps {
   readonly id: ReferralId;
   readonly retailerId: RetailerId;

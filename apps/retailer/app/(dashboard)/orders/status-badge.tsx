@@ -1,6 +1,5 @@
-import type { OrderStatus } from "@paon/domain";
+import { ORDER_STATUS_LABELS, type OrderStatus } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
-import { humaniseStatus } from "@paon/utils";
 
 const STATUS_TONE: Record<
   OrderStatus,
@@ -19,5 +18,7 @@ const STATUS_TONE: Record<
 };
 
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {
-  return <Badge tone={STATUS_TONE[status]}>{humaniseStatus(status)}</Badge>;
+  return (
+    <Badge tone={STATUS_TONE[status]}>{ORDER_STATUS_LABELS[status]}</Badge>
+  );
 }

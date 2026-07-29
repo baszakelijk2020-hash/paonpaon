@@ -1,10 +1,14 @@
 import { requireRetailerRole } from "@paon/auth";
 import { CustomerRepository, EventRepository } from "@paon/database";
-import { EVENT_VISIBILITY_LABELS } from "@paon/domain";
+import {
+  EVENT_RSVP_STATUS_LABELS,
+  EVENT_STATUS_LABELS,
+  EVENT_VISIBILITY_LABELS,
+} from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button, buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate, humaniseStatus } from "@paon/utils";
+import { formatDate } from "@paon/utils";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
@@ -40,7 +44,7 @@ export default async function EventPage({
     <div className="flex flex-col gap-6">
       <div>
         <p className="text-sm uppercase tracking-wide text-[var(--color-stone-500)]">
-          {humaniseStatus(event.status)}
+          {EVENT_STATUS_LABELS[event.status]}
         </p>
         <h1 className="font-display text-2xl">{event.name}</h1>
         <p className="text-sm text-[var(--color-stone-500)]">
@@ -93,7 +97,7 @@ export default async function EventPage({
             <span>{names.get(rsvp.customerId) ?? "Customer"}</span>
             <div className="flex items-center gap-2">
               <Badge tone={rsvp.status === "attended" ? "success" : "neutral"}>
-                {humaniseStatus(rsvp.status)}
+                {EVENT_RSVP_STATUS_LABELS[rsvp.status]}
               </Badge>
               {rsvp.status !== "attended" ? (
                 <form action={checkInGuest}>

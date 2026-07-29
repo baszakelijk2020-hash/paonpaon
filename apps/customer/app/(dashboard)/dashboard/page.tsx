@@ -6,10 +6,14 @@ import {
   OrderRepository,
   RetailerRepository,
 } from "@paon/database";
-import { APPOINTMENT_TYPE_LABELS, ORDER_STATUS_LABELS } from "@paon/domain";
+import {
+  ALTERATION_STATUS_LABELS,
+  APPOINTMENT_TYPE_LABELS,
+  ORDER_STATUS_LABELS,
+} from "@paon/domain";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate, humaniseStatus } from "@paon/utils";
+import { formatDate } from "@paon/utils";
 import Link from "next/link";
 
 import { buildVariantIdByProductSlug } from "../wishlist/favorites-map";
@@ -251,9 +255,9 @@ export default async function DashboardPage() {
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
               At the workroom
             </p>
-            <p className="font-display mt-3 text-2xl capitalize">
+            <p className="font-display mt-3 text-2xl">
               {primary.activeAlteration
-                ? humaniseStatus(primary.activeAlteration.status)
+                ? ALTERATION_STATUS_LABELS[primary.activeAlteration.status]
                 : "Nothing away"}
             </p>
             <p className="mt-1 text-sm text-[var(--color-stone-500)]">
@@ -459,9 +463,9 @@ export default async function DashboardPage() {
                         <p className="text-xs text-[var(--color-stone-500)]">
                           Garment
                         </p>
-                        <p className="mt-1 text-sm font-medium capitalize">
+                        <p className="mt-1 text-sm font-medium">
                           {activeAlteration
-                            ? humaniseStatus(activeAlteration.status)
+                            ? ALTERATION_STATUS_LABELS[activeAlteration.status]
                             : "Safely with you"}{" "}
                           →
                         </p>

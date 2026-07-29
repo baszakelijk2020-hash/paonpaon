@@ -4,10 +4,10 @@ import {
   ProductVariantRepository,
   RetailerRepository,
 } from "@paon/database";
-import { asId } from "@paon/domain";
+import { asId, ORDER_STATUS_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate, formatMoney, humaniseStatus } from "@paon/utils";
+import { formatDate, formatMoney } from "@paon/utils";
 import { notFound } from "next/navigation";
 
 import { PayPanel } from "./pay-panel";
@@ -51,7 +51,7 @@ export default async function OrderDetailPage({
           <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
             {order.orderNumber}
           </h1>
-          <Badge tone="warning">{humaniseStatus(order.status)}</Badge>
+          <Badge tone="warning">{ORDER_STATUS_LABELS[order.status]}</Badge>
         </div>
         <p className="text-sm text-[var(--color-stone-500)]">
           {retailer?.displayName ?? "Unknown retailer"} ·{" "}

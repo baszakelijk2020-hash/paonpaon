@@ -4,6 +4,13 @@ import type { Timestamps } from "../shared/timestamps";
 export type EventVisibility = "public" | "invite_only" | "vip_tier";
 export type EventStatus = "draft" | "published" | "cancelled" | "completed";
 
+export const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
+  draft: "Draft",
+  published: "Published",
+  cancelled: "Cancelled",
+  completed: "Completed",
+};
+
 export const EVENT_VISIBILITY_LABELS: Record<EventVisibility, string> = {
   public: "Public",
   invite_only: "Invite only",
