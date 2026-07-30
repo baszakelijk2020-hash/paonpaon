@@ -10,7 +10,7 @@ Snapshot: 2026-07-30.
 ## Repository
 
 - Branch: `main`; remote: `origin` (`baszakelijk2020-hash/paonpaon`).
-- Schema source: 116 forward Supabase migrations plus generated TypeScript
+- Schema source: 117 forward Supabase migrations plus generated TypeScript
   database types.
 
 ## Implemented baseline relevant to the programme
@@ -19,13 +19,12 @@ Snapshot: 2026-07-30.
 - Stage 7.0–7.8 complete (ADR-066 intelligence/clienteling programme).
 - Stage 8.0 complete (ADR-067 expanded operating-system authority and
   canonical Stages 8–16 queue).
-- Stage 8.1 complete locally: the customer wardrobe presents six ordered,
-  responsive visual rails while preserving existing ownership, history,
-  lifecycle, roadmap and actions. Customer lint/typecheck/production build
-  pass; authenticated populated/empty screenshots remain a seeded-data gap.
+- Stage 8.1 complete: customer wardrobe six visual rails.
+- Stage 8.2 complete locally: source-authority/external-identity registry,
+  Faden read-only ingest + deep-link fixture (no write-back claim), RLS
+  migration, repository, Retailer/Admin connection-health surfaces.
 
 ## Current handoff
 
-Stage 8.2 is the next dependency-complete tranche: source-authority and external
-identity registry exercised by a Faden read-only ingest/deep-link fixture.
-Stage 6 remains blocked; skip it.
+Stage 8.3 is the next dependency-complete tranche: versioned workflow and
+familiarity presets. Stage 6 remains blocked; skip it.

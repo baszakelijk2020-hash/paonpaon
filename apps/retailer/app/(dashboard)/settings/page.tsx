@@ -101,6 +101,9 @@ export default async function SettingsPage() {
           <Link href="/settings/billing" className="text-sm underline">
             Billing →
           </Link>
+          <Link href="/settings/integrations" className="text-sm underline">
+            Source connections →
+          </Link>
         </div>
       </div>
 

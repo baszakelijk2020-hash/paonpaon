@@ -3456,6 +3456,88 @@ export type Database = {
           },
         ];
       };
+      external_identities: {
+        Row: {
+          canonical_id: string;
+          canonical_object_type: string;
+          conflict_summary: string | null;
+          connection_id: string;
+          created_at: string;
+          deleted_at: string | null;
+          domain: string;
+          external_id: string;
+          external_object_type: string;
+          external_updated_at: string | null;
+          external_version: string | null;
+          id: string;
+          mapping_version: string;
+          raw_event_id: string | null;
+          reconciliation_status: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          canonical_id: string;
+          canonical_object_type: string;
+          conflict_summary?: string | null;
+          connection_id: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          domain: string;
+          external_id: string;
+          external_object_type: string;
+          external_updated_at?: string | null;
+          external_version?: string | null;
+          id?: string;
+          mapping_version: string;
+          raw_event_id?: string | null;
+          reconciliation_status?: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          canonical_id?: string;
+          canonical_object_type?: string;
+          conflict_summary?: string | null;
+          connection_id?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          domain?: string;
+          external_id?: string;
+          external_object_type?: string;
+          external_updated_at?: string | null;
+          external_version?: string | null;
+          id?: string;
+          mapping_version?: string;
+          raw_event_id?: string | null;
+          reconciliation_status?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "external_identities_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "external_identities_raw_event_id_fkey";
+            columns: ["raw_event_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_raw_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "external_identities_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       fitting_observations: {
         Row: {
           area: string;
@@ -3624,6 +3706,173 @@ export type Database = {
           updated_by_user_id?: string | null;
         };
         Relationships: [];
+      };
+      integration_connections: {
+        Row: {
+          created_at: string;
+          deep_link_base_url: string | null;
+          deleted_at: string | null;
+          display_name: string;
+          health_status: string;
+          id: string;
+          lag_seconds: number;
+          last_error_at: string | null;
+          last_error_summary: string | null;
+          last_success_at: string | null;
+          provider: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deep_link_base_url?: string | null;
+          deleted_at?: string | null;
+          display_name: string;
+          health_status?: string;
+          id?: string;
+          lag_seconds?: number;
+          last_error_at?: string | null;
+          last_error_summary?: string | null;
+          last_success_at?: string | null;
+          provider: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deep_link_base_url?: string | null;
+          deleted_at?: string | null;
+          display_name?: string;
+          health_status?: string;
+          id?: string;
+          lag_seconds?: number;
+          last_error_at?: string | null;
+          last_error_summary?: string | null;
+          last_success_at?: string | null;
+          provider?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integration_connections_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      integration_handoff_tasks: {
+        Row: {
+          connection_id: string;
+          created_at: string;
+          deep_link_url: string;
+          external_id: string;
+          external_object_type: string;
+          id: string;
+          instruction: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+          write_back_claimed: boolean;
+        };
+        Insert: {
+          connection_id: string;
+          created_at?: string;
+          deep_link_url: string;
+          external_id: string;
+          external_object_type: string;
+          id?: string;
+          instruction: string;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+          write_back_claimed?: boolean;
+        };
+        Update: {
+          connection_id?: string;
+          created_at?: string;
+          deep_link_url?: string;
+          external_id?: string;
+          external_object_type?: string;
+          id?: string;
+          instruction?: string;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+          write_back_claimed?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integration_handoff_tasks_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_handoff_tasks_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      integration_raw_events: {
+        Row: {
+          connection_id: string;
+          created_at: string;
+          direction: string;
+          id: string;
+          mapping_version: string;
+          payload: Json;
+          payload_hash: string;
+          provider_event_id: string;
+          received_at: string;
+          retailer_id: string;
+        };
+        Insert: {
+          connection_id: string;
+          created_at?: string;
+          direction: string;
+          id?: string;
+          mapping_version: string;
+          payload?: Json;
+          payload_hash: string;
+          provider_event_id: string;
+          received_at?: string;
+          retailer_id: string;
+        };
+        Update: {
+          connection_id?: string;
+          created_at?: string;
+          direction?: string;
+          id?: string;
+          mapping_version?: string;
+          payload?: Json;
+          payload_hash?: string;
+          provider_event_id?: string;
+          received_at?: string;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integration_raw_events_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_raw_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       intelligence_policy_configs: {
         Row: {
@@ -8185,6 +8434,63 @@ export type Database = {
             columns: ["notification_id"];
             isOneToOne: false;
             referencedRelation: "notifications";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      source_authority_policies: {
+        Row: {
+          allowed_directions: string[];
+          authority: string;
+          connection_id: string;
+          created_at: string;
+          deleted_at: string | null;
+          domain: string;
+          field_group: string;
+          id: string;
+          mapping_version: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          allowed_directions?: string[];
+          authority: string;
+          connection_id: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          domain: string;
+          field_group: string;
+          id?: string;
+          mapping_version: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          allowed_directions?: string[];
+          authority?: string;
+          connection_id?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          domain?: string;
+          field_group?: string;
+          id?: string;
+          mapping_version?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "source_authority_policies_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "source_authority_policies_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];

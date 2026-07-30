@@ -51,6 +51,11 @@ const navigation: AppShellNavGroup[] = [
         description: "Projectors, policy, explainability",
       },
       {
+        href: "/integration-health",
+        label: "Integration health",
+        description: "Source authority and connection status",
+      },
+      {
         href: "/import-enrichment",
         label: "Import enrichment",
         description: "External LLM prompt contract",
