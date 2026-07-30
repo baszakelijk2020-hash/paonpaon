@@ -1,6 +1,7 @@
 import type {
   BehavioralEvent,
   ClientelingNote,
+  CustomerInterestProjection,
   LoyaltyAccount,
   LoyaltyMilestoneAward,
 } from "@paon/domain";
@@ -44,6 +45,12 @@ function isRecent(occurredAt: string | undefined): boolean {
   );
 }
 
+function interestWindowLabel(projection: CustomerInterestProjection): string {
+  const start = formatDate(projection.windowStart, "en-US");
+  const end = formatDate(projection.windowEnd, "en-US");
+  return `${start} – ${end}`;
+}
+
 /**
  * The one place staff read the customer as a whole rather than
  * per-record — loyalty standing, what they've been doing, and what the
@@ -56,15 +63,22 @@ export function SelfPortrait({
   milestoneAwards,
   recentEvents,
   pinnedNote,
+  interestProjection,
 }: {
   loyaltyAccount: LoyaltyAccount | null;
   milestoneAwards: LoyaltyMilestoneAward[];
   recentEvents: BehavioralEvent[];
   pinnedNote: ClientelingNote | null;
+  interestProjection: CustomerInterestProjection;
 }) {
   const activeMilestones = milestoneAwards.filter(
     (award) => award.status === "awarded",
   );
+  const usableInterests =
+    interestProjection.visibility === "usable"
+      ? interestProjection.insights
+      : [];
+
   return (
     <Card>
       <div className="mb-4 flex items-center justify-between">
@@ -146,6 +160,43 @@ export function SelfPortrait({
           </a>
         </div>
       ) : null}
+
+      <div className="mb-4">
+        <p className="mb-1 text-xs font-medium uppercase text-[var(--color-stone-500)]">
+          Recent interests
+        </p>
+        <p className="mb-2 text-xs text-[var(--color-stone-500)]">
+          Why we think this · {interestWindowLabel(interestProjection)}
+          {interestProjection.visibility === "usable"
+            ? " · session counts unavailable until session instrumentation"
+            : null}
+        </p>
+        {usableInterests.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            {interestProjection.emptyStateCopy}
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {usableInterests.map((insight) => (
+              <li
+                key={`${insight.scopeConceptId}-${insight.attributeConceptId}-${insight.polarity}`}
+                className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)] px-3 py-2"
+              >
+                <p className="text-sm text-[var(--color-stone-900)]">
+                  {insight.statement}
+                </p>
+                <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                  {insight.numerator}/{insight.denominator} unique products ·{" "}
+                  {Math.round(insight.share * 100)}% · {insight.eventCount}{" "}
+                  events · confidence {insight.confidence.toFixed(2)} · latest{" "}
+                  {formatDate(insight.latestEvidenceAt, "en-US")} ·{" "}
+                  {insight.evidenceEventIds.length} evidence refs
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <div>
         <p className="mb-2 text-xs font-medium uppercase text-[var(--color-stone-500)]">

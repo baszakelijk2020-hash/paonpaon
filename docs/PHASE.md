@@ -766,7 +766,7 @@ capability with policy as a separate eligibility plane (ADR-066).
     traceability, ADR-066, PHASE Stage 7 queue, factual `PROJECT_STATE`
     resume at 7.1. Stage 6 gates unchanged.
 
-- [ ] **7.1 Evidence-cited interest insight**
+- [x] **7.1 Evidence-cited interest insight**
   - **Requirement IDs:** `CLI-001`, `CLI-002`, `ENG-002`, `ENG-006`.
   - **Dependencies:** `7.0`; existing `behavioral_events`, accepted metadata,
     consent, Self-Portrait; ADR-066.
@@ -785,6 +785,10 @@ capability with policy as a separate eligibility plane (ADR-066).
   - **Non-goals:** no session schema, opportunity engine, For You ranking,
     calendar, or Stage 6 work.
   - **Hard blockers:** none.
+  - **Landed:** `@paon/domain` `projectCustomerInterestInsights` +
+    `@paon/database` `CustomerInterestRepository` + Self-Portrait "Recent
+    interests / Why we think this" mount. Session counts explicitly null
+    until 7.2. No migration required.
 
 - [ ] **7.2 Session/event context foundation and instrumentation**
   - **Requirement IDs:** `CLI-001`, `CUST-001`.

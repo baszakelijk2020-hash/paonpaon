@@ -21,67 +21,13 @@ Snapshot: 2026-07-30.
 
 ## Implemented baseline relevant to the programme
 
-- Tenant, staff/customer identity, RLS, catalogue, variants, collections,
-  storefront, cart/orders/payments, appointments, clienteling/messaging,
-  behavioral analytics, AI generation audit, loyalty/referrals/events,
-  wedding parties, physical garments/fittings/alterations, commercial plans,
-  and Demo Studio foundations exist.
-- Product persistence has primary and swatch images plus exact product/variant
-  fabric profiles and reviewed metadata assignments.
-- Storefront category/color/pattern/season values prefer accepted metadata
-  when present and still fall back to request-time heuristics in
-  `apps/customer/app/r/[slug]/route.ts`.
-- `behavioral_events` and `ai_generations` exist. Purpose-specific consent
-  (personalization/marketing/location), typed interaction events with
-  consent snapshot/retention/withdrawal anonymization, and customer account
-  consent controls now exist; anonymous persistence remains blocked pending
-  jurisdiction documentation. StyleProfile declared/inferred preferences,
-  concept evidence, deterministic recomputation, and customer inspect/remove
-  exist. Consented advisor preparation briefing projects into Retailer Portal
-  customer and appointment workspaces. Grounded TableService occasion guidance
-  cites approved knowledge, seeds swipe shortlists, and converts to
-  appointments. Relationship-scoped wardrobe ownership (retailer-purchased and
-  external) with append-only ownership history, Customer `/wardrobe`, and
-  Retailer customer wardrobe collaboration exist; `PhysicalGarment` remains
-  the fitting/service aggregate. Wardrobe roadmaps (goals/ranked gaps/cited
-  stages), outfits/slots, and approved sartorial rules exist; customers approve
-  plans and compatibility fails closed without an approved rule. Lifecycle
-  events, private self-scan attachments, dismissible longevity guidance, and
-  deterministic fit freshness from official observations exist; self-reports
-  never write fitting observations. MorningRoutine in-app owned-first
-  selection with consent-aware weather/calendar/StyleProfile provenance and
-  save/review/book/buy actions exist; explicit opt-in delivery with
-  frequency/quiet hours, append-only audit, and retailer pause/eligible-product
-  controls exist.
-- Canonical/retailer metadata concepts, edges, assignments, append-only review
-  evidence, retailer overrides, exact fabric profiles, an actor-derived review
-  RPC, PAON Admin canonical management, the Retailer Portal metadata review
-  UI, and product-management fabric/assignment editors exist.
-- Canonical/retailer knowledge objects, concept joins, relations, retailer
-  hide/presentation/priority/pin overrides, `KnowledgeRepository`,
-  `rankKnowledgeDiscovery`, `rankStorefrontKnowledgePanels`, founder PDP
-  knowledge mounts, `CatalogueQueryRepository`, intent resolution, and
-  idempotent EDU-001 canonical fixtures exist. Public storefront can read
-  active knowledge, accepted catalogue assignments, active concepts, and
-  fabric profiles for active products.
-- Catalogue import jobs, rows, and metadata review tasks exist with RLS,
-  versioned CSV/XLSX/JSON parsers, downloadable Admin-maintained LLM contract,
-  Retailer Portal preview/review, transactional reviewed-row publishing with
-  rollback/resumable retries, and AI enrichment that persists only pending
-  review proposals with field-level evidence/confidence. Wardrobe ownership,
-  sartorial rules, outfits, wardrobe roadmap, lifecycle, self-scan,
-  attachment, MorningRoutine selection, MorningRoutine delivery, campaign,
-  private-offer, and seven-day wardrobe-challenge tables exist; loyalty
-  milestone definition/award tables exist and write through the existing
-  loyalty ledger; Preferred Tailoring / HighMaintenance service-plan,
-  membership, entitlement, booking, fulfilment, care, cost, and history
-  tables exist.
-- Interim Tie-Mate Customer route `/r/[slug]/tie-mate` exists (ADR-065) with
-  domain deck/photo/handoff, catalogue projection, and local unit verification.
-- Stage 7 authority (ADR-066, founder brief §15, programme §11, PHASE Stage 7
-  queue) is recorded; evidence-cited interest insight (7.1) is the next
-  implementation tranche. Stage 6 payment/compliance/marketplace gates remain
-  blocked and unchanged.
+- Stages 0–5 complete through Tie-Mate interim Customer UI.
+- Stage 6 payment/compliance/marketplace gates remain blocked.
+- Stage 7.0 authority recorded (`4a3881b`, ADR-066).
+- Stage 7.1 evidence-cited interest insight: pure
+  `projectCustomerInterestInsights`, `CustomerInterestRepository`, and
+  Retailer Self-Portrait "Recent interests / Why we think this" (session counts
+  null until 7.2). No migration required.
 
 ## External systems
 
@@ -90,15 +36,9 @@ Snapshot: 2026-07-30.
 - Local root environment does not currently contain Stripe, Resend, OpenAI,
   Twilio, or OpenWeatherMap credentials. Provider-dependent code must not be
   described as live-verified without separate evidence.
-- Existing provider unit tests verify integration shape with mocks, not live
-  provider operation.
 
 ## Current handoff
 
-Stages 1–5 are complete through Tie-Mate interim UI. Stage 6.1–6.3 remain
-blocked. Stage 7 is independently authorized (ADR-066). Next buildable item:
-PHASE `7.1 Evidence-cited interest insight` — pure `@paon/domain` customer
-interest projector, `@paon/database` bounded projection, Self-Portrait
-"Recent interests / Why we think this" mount, focused tests. Resume from
-`packages/domain/src/intelligence/` and
-`apps/retailer/app/(dashboard)/customers/[id]/self-portrait.tsx`.
+Next buildable item: PHASE `7.2 Session/event context foundation and
+instrumentation`. Resume from `packages/domain/src/intelligence/interaction-event.ts`
+and storefront/Tie-Mate capture paths. Skip Stage 6.

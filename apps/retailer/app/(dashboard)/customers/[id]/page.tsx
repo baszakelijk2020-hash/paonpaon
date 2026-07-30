@@ -5,6 +5,7 @@ import {
   AnalyticsRepository,
   AppointmentRepository,
   ClientelingRepository,
+  CustomerInterestRepository,
   CustomerRepository,
   LoyaltyRepository,
   OrderRepository,
@@ -82,6 +83,7 @@ export default async function CustomerDetailPage({
     recentEvents,
     alterations,
     advisorBrief,
+    interestProjection,
     wardrobeItems,
     catalogueProducts,
     roadmaps,
@@ -102,6 +104,11 @@ export default async function CustomerDetailPage({
       retailerId: session.retailerId,
       customerId: customer.id,
       advisorRetailerId: session.retailerId,
+    }),
+    new CustomerInterestRepository(supabase).projectForCustomer({
+      retailerId: session.retailerId,
+      customerId: customer.id,
+      viewerRetailerId: session.retailerId,
     }),
     new WardrobeRepository(supabase).findByCustomer(customer.id),
     new ProductRepository(supabase).findByRetailer(session.retailerId),
@@ -480,6 +487,7 @@ export default async function CustomerDetailPage({
           milestoneAwards={milestoneAwards}
           recentEvents={recentEvents}
           pinnedNote={pinnedNote}
+          interestProjection={interestProjection}
         />
       ) : null}
 
