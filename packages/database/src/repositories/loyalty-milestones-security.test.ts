@@ -58,3 +58,18 @@ describe("loyalty tailoring milestones database security contract", () => {
     expect(migration).toContain("status = 'reversed'");
   });
 });
+
+describe("loyalty advanced fabric concept kind fix", () => {
+  const fixMigration = readFileSync(
+    new URL(
+      "../../../../supabase/migrations/20260730350000_fix_loyalty_advanced_fabric_concept_kind.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  it("replaces invalid metadata_concept_kind fabric with fabric_collection", () => {
+    expect(fixMigration).toContain("c.kind in ('fibre', 'fabric_collection')");
+    expect(fixMigration).not.toContain("('fibre', 'fabric')");
+  });
+});
