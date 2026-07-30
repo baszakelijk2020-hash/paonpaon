@@ -6,6 +6,7 @@ import {
   DEFAULT_PRESENCE_TTL_MS,
   DASHBOARD_PROJECTOR_VERSION,
   projectCustomerPresence,
+  projectDashboardOutcomeFunnel,
   projectHourlyHeatmap,
   projectOpportunityFunnel,
   type ClientelingDashboardProjection,
@@ -71,6 +72,7 @@ export class ClientelingDashboardRepository {
         })),
       }),
       opportunityFunnel: projectOpportunityFunnel(opportunities),
+      outcomeFunnel: projectDashboardOutcomeFunnel(opportunities),
       hourlyHeatmap: projectHourlyHeatmap(localHours),
     };
   }

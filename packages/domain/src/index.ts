@@ -102,6 +102,10 @@ export * from "./intelligence/clienteling-opportunity";
 export * from "./intelligence/for-you";
 export * from "./intelligence/clienteling-dashboard";
 export * from "./intelligence/grounded-answer";
+export * from "./intelligence/intelligence-policy";
+export * from "./intelligence/intelligence-correction";
+export * from "./intelligence/outcome-funnel";
+export * from "./intelligence/intelligence-observability";
 
 export * from "./integrations/weather";
 export * from "./integrations/calendar";

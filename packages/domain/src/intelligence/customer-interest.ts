@@ -21,6 +21,12 @@ import {
   type ConsentStatus,
   type CustomerConsentState,
 } from "./consent";
+import { excludeCorrectedEvents } from "./intelligence-correction";
+import {
+  buildDefaultPlatformPolicyConfig,
+  evaluatePolicyEligibility,
+  isPolicyAllowed,
+} from "./intelligence-policy";
 import type { BehavioralEvent } from "./interaction-event";
 
 export const CUSTOMER_INTEREST_PROJECTOR_VERSION = "customer-interest-v1";
@@ -147,6 +153,8 @@ export interface CustomerInterestProjectionInput {
   readonly windowDays?: number;
   readonly minScopeUniqueProducts?: number;
   readonly maxInsights?: number;
+  /** Event ids removed by correction/deletion replay (7.8). */
+  readonly excludedEventIds?: readonly BehavioralEventId[];
 }
 
 function isScopeKind(kind: MetadataConceptKind): kind is InterestScopeKind {
@@ -405,7 +413,21 @@ export function projectCustomerInterestInsights(
     return emptyProjection(input, visibility, windowStart);
   }
 
-  const events = eligibleEvents(input, windowStart);
+  const projectionPolicy = evaluatePolicyEligibility({
+    plane: "projection",
+    purpose: "personalization",
+    config: buildDefaultPlatformPolicyConfig({ now: input.now }),
+    consent: input.consent,
+  });
+  if (!isPolicyAllowed(projectionPolicy)) {
+    return emptyProjection(input, "consent_denied", windowStart);
+  }
+
+  const excluded = new Set(input.excludedEventIds ?? []);
+  const events = excludeCorrectedEvents(
+    eligibleEvents(input, windowStart),
+    excluded,
+  );
   const scopeProductCounts = new Map<string, Set<string>>();
   const buckets = new Map<string, ScopeBucket>();
 
