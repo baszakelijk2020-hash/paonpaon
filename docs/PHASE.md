@@ -814,7 +814,7 @@ capability with policy as a separate eligibility plane (ADR-066).
     and stamp idempotency. Anonymous persistence still blocked. Interest
     projector reports `sessionCount` when session ids exist.
 
-- [ ] **7.3 Structured facts and advisor rectangles**
+- [x] **7.3 Structured facts and advisor rectangles**
   - **Requirement IDs:** `CLI-002`, `CLI-003`, `CUST-002`.
   - **Dependencies:** `7.1`; ADR-066.
   - **Owner boundary:** Self-Portrait knowledge-graph domain/persistence for
@@ -827,6 +827,9 @@ capability with policy as a separate eligibility plane (ADR-066).
     rectangle → fact mapping.
   - **Non-goals:** no autonomous salary/bonus inference.
   - **Hard blockers:** none.
+  - **Landed:** `customer_facts` / `customer_fact_corrections` + domain
+    provenance guards; `record_advisor_rectangle_facts`; Retailer advisor
+    rectangle capture and Self-Portrait structured facts section.
 
 - [ ] **7.4 Moments, opportunities, and contact pressure**
   - **Requirement IDs:** `CLI-004`, `CLI-005`.

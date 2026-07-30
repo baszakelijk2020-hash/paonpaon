@@ -5,9 +5,11 @@ import {
   AnalyticsRepository,
   AppointmentRepository,
   ClientelingRepository,
+  CustomerFactRepository,
   CustomerInterestRepository,
   CustomerRepository,
   LoyaltyRepository,
+  MetadataRepository,
   OrderRepository,
   PhysicalGarmentRepository,
   ProductRepository,
@@ -37,6 +39,7 @@ import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 
 import { createClientelingNote, setPreferredCarrier } from "./actions";
 import { AdvisorPreparationBriefCard } from "./advisor-preparation-brief";
+import { AdvisorRectangleCapture } from "./advisor-rectangle-capture";
 import { AIInsights } from "./ai-insights";
 import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
@@ -84,6 +87,8 @@ export default async function CustomerDetailPage({
     alterations,
     advisorBrief,
     interestProjection,
+    customerFacts,
+    rectangleConcepts,
     wardrobeItems,
     catalogueProducts,
     roadmaps,
@@ -110,6 +115,11 @@ export default async function CustomerDetailPage({
       customerId: customer.id,
       viewerRetailerId: session.retailerId,
     }),
+    new CustomerFactRepository(supabase).listForCustomer(
+      session.retailerId,
+      customer.id,
+    ),
+    new MetadataRepository(supabase).findVisibleConcepts(session.retailerId),
     new WardrobeRepository(supabase).findByCustomer(customer.id),
     new ProductRepository(supabase).findByRetailer(session.retailerId),
     new WardrobeRoadmapRepository(supabase).findByCustomer(customer.id),
@@ -488,6 +498,14 @@ export default async function CustomerDetailPage({
           recentEvents={recentEvents}
           pinnedNote={pinnedNote}
           interestProjection={interestProjection}
+          customerFacts={customerFacts}
+        />
+      ) : null}
+
+      {canManage ? (
+        <AdvisorRectangleCapture
+          customerId={customer.id}
+          concepts={rectangleConcepts}
         />
       ) : null}
 

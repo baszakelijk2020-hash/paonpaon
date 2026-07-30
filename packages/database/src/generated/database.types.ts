@@ -2563,6 +2563,209 @@ export type Database = {
           },
         ];
       };
+      customer_fact_corrections: {
+        Row: {
+          actor_customer_id: string | null;
+          actor_staff_id: string | null;
+          created_at: string;
+          customer_id: string;
+          fact_id: string;
+          id: string;
+          previous_snapshot: Json;
+          reason: string;
+          retailer_id: string;
+        };
+        Insert: {
+          actor_customer_id?: string | null;
+          actor_staff_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          fact_id: string;
+          id?: string;
+          previous_snapshot: Json;
+          reason: string;
+          retailer_id: string;
+        };
+        Update: {
+          actor_customer_id?: string | null;
+          actor_staff_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          fact_id?: string;
+          id?: string;
+          previous_snapshot?: Json;
+          reason?: string;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_fact_corrections_actor_customer_id_fkey";
+            columns: ["actor_customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_fact_corrections_actor_staff_id_fkey";
+            columns: ["actor_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_fact_corrections_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_fact_corrections_fact_id_fkey";
+            columns: ["fact_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_facts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_fact_corrections_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_facts: {
+        Row: {
+          author_customer_id: string | null;
+          author_staff_id: string | null;
+          confidence: number;
+          correction_of_fact_id: string | null;
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          evidence: Json;
+          expires_at: string | null;
+          fact_type: string;
+          id: string;
+          observed_at: string;
+          provenance_class: string;
+          retailer_id: string;
+          review_by: string | null;
+          sensitivity: string;
+          superseded_by_fact_id: string | null;
+          updated_at: string;
+          valid_from: string | null;
+          valid_until: string | null;
+          value_concept_id: string | null;
+          value_label: string;
+          value_text: string | null;
+          visibility: string;
+        };
+        Insert: {
+          author_customer_id?: string | null;
+          author_staff_id?: string | null;
+          confidence?: number;
+          correction_of_fact_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          evidence?: Json;
+          expires_at?: string | null;
+          fact_type: string;
+          id?: string;
+          observed_at: string;
+          provenance_class: string;
+          retailer_id: string;
+          review_by?: string | null;
+          sensitivity?: string;
+          superseded_by_fact_id?: string | null;
+          updated_at?: string;
+          valid_from?: string | null;
+          valid_until?: string | null;
+          value_concept_id?: string | null;
+          value_label: string;
+          value_text?: string | null;
+          visibility?: string;
+        };
+        Update: {
+          author_customer_id?: string | null;
+          author_staff_id?: string | null;
+          confidence?: number;
+          correction_of_fact_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          evidence?: Json;
+          expires_at?: string | null;
+          fact_type?: string;
+          id?: string;
+          observed_at?: string;
+          provenance_class?: string;
+          retailer_id?: string;
+          review_by?: string | null;
+          sensitivity?: string;
+          superseded_by_fact_id?: string | null;
+          updated_at?: string;
+          valid_from?: string | null;
+          valid_until?: string | null;
+          value_concept_id?: string | null;
+          value_label?: string;
+          value_text?: string | null;
+          visibility?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_facts_author_customer_id_fkey";
+            columns: ["author_customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_facts_author_staff_id_fkey";
+            columns: ["author_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_facts_correction_of_fact_id_fkey";
+            columns: ["correction_of_fact_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_facts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_facts_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_facts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_facts_superseded_by_fact_id_fkey";
+            columns: ["superseded_by_fact_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_facts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_facts_value_concept_id_fkey";
+            columns: ["value_concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customer_preferences: {
         Row: {
           communication_channels: string[];
@@ -9638,6 +9841,48 @@ export type Database = {
       publish_catalogue_import_row: {
         Args: { p_import_row_id: string };
         Returns: Json;
+      };
+      record_advisor_rectangle_facts: {
+        Args: {
+          p_customer_id: string;
+          p_freeform_note?: string;
+          p_observed_at: string;
+          p_retailer_id: string;
+          p_selections: Json;
+          p_staff_id: string;
+        };
+        Returns: {
+          author_customer_id: string | null;
+          author_staff_id: string | null;
+          confidence: number;
+          correction_of_fact_id: string | null;
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          evidence: Json;
+          expires_at: string | null;
+          fact_type: string;
+          id: string;
+          observed_at: string;
+          provenance_class: string;
+          retailer_id: string;
+          review_by: string | null;
+          sensitivity: string;
+          superseded_by_fact_id: string | null;
+          updated_at: string;
+          valid_from: string | null;
+          valid_until: string | null;
+          value_concept_id: string | null;
+          value_label: string;
+          value_text: string | null;
+          visibility: string;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "customer_facts";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       record_campaign_delivery_audit: {
         Args: {

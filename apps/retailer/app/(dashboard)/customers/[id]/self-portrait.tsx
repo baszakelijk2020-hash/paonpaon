@@ -1,6 +1,7 @@
 import type {
   BehavioralEvent,
   ClientelingNote,
+  CustomerFact,
   CustomerInterestProjection,
   LoyaltyAccount,
   LoyaltyMilestoneAward,
@@ -30,6 +31,18 @@ const EVENT_LABELS: Record<string, string> = {
   advisor_question: "Asked an advisor question",
   appointment_intent: "Showed appointment intent",
   conversion_recorded: "Recorded a conversion signal",
+  page_viewed: "Viewed a page",
+  tie_mate_impressed: "Saw a Tie-Mate fabric",
+  session_started: "Started a session",
+  session_heartbeat: "Session heartbeat",
+  session_ended: "Ended a session",
+};
+
+const PROVENANCE_LABELS: Record<CustomerFact["provenanceClass"], string> = {
+  customer_declared: "Declared",
+  advisor_observed: "Advisor observed",
+  transactional: "Transactional",
+  behaviour_inferred: "Inferred",
 };
 
 function eventLabel(event: BehavioralEvent): string {
@@ -54,9 +67,7 @@ function interestWindowLabel(projection: CustomerInterestProjection): string {
 /**
  * The one place staff read the customer as a whole rather than
  * per-record — loyalty standing, what they've been doing, and what the
- * team already knows about them. Everything here is composed from
- * data already captured elsewhere (loyalty accrual, behavioral
- * tracking, clienteling notes); this card adds no new domain state.
+ * team already knows about them.
  */
 export function SelfPortrait({
   loyaltyAccount,
@@ -64,12 +75,14 @@ export function SelfPortrait({
   recentEvents,
   pinnedNote,
   interestProjection,
+  customerFacts,
 }: {
   loyaltyAccount: LoyaltyAccount | null;
   milestoneAwards: LoyaltyMilestoneAward[];
   recentEvents: BehavioralEvent[];
   pinnedNote: ClientelingNote | null;
   interestProjection: CustomerInterestProjection;
+  customerFacts: readonly CustomerFact[];
 }) {
   const activeMilestones = milestoneAwards.filter(
     (award) => award.status === "awarded",
@@ -163,17 +176,41 @@ export function SelfPortrait({
 
       <div className="mb-4">
         <p className="mb-1 text-xs font-medium uppercase text-[var(--color-stone-500)]">
+          Structured facts
+        </p>
+        {customerFacts.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No provenance-tagged facts yet. Use advisor rectangles to log
+            observed interests.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1.5">
+            {customerFacts.slice(0, 8).map((fact) => (
+              <li
+                key={fact.id}
+                className="flex items-start justify-between gap-3 text-sm"
+              >
+                <span className="text-[var(--color-stone-800)]">
+                  {fact.valueLabel}
+                  <span className="ml-2 text-xs text-[var(--color-stone-500)]">
+                    {PROVENANCE_LABELS[fact.provenanceClass]} · {fact.factType}
+                  </span>
+                </span>
+                <span className="shrink-0 text-xs text-[var(--color-stone-500)]">
+                  {formatDate(fact.observedAt, "en-US")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="mb-4">
+        <p className="mb-1 text-xs font-medium uppercase text-[var(--color-stone-500)]">
           Recent interests
         </p>
         <p className="mb-2 text-xs text-[var(--color-stone-500)]">
           Why we think this · {interestWindowLabel(interestProjection)}
-          {interestProjection.visibility === "usable"
-            ? interestProjection.insights.some(
-                (insight) => insight.sessionCount !== null,
-              )
-              ? " · session counts when session ids are present"
-              : " · session counts unavailable until session instrumentation covers this window"
-            : null}
         </p>
         {usableInterests.length === 0 ? (
           <p className="text-sm text-[var(--color-stone-500)]">
@@ -192,7 +229,11 @@ export function SelfPortrait({
                 <p className="mt-1 text-xs text-[var(--color-stone-500)]">
                   {insight.numerator}/{insight.denominator} unique products ·{" "}
                   {Math.round(insight.share * 100)}% · {insight.eventCount}{" "}
-                  events · confidence {insight.confidence.toFixed(2)} · latest{" "}
+                  events
+                  {insight.sessionCount !== null
+                    ? ` · ${insight.sessionCount} sessions`
+                    : ""}{" "}
+                  · confidence {insight.confidence.toFixed(2)} · latest{" "}
                   {formatDate(insight.latestEvidenceAt, "en-US")} ·{" "}
                   {insight.evidenceEventIds.length} evidence refs
                 </p>
