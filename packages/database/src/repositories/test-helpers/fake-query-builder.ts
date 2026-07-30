@@ -25,6 +25,7 @@ export function fakeQueryBuilder<T>(result: FakeQueryResult<T>) {
     or: () => chain,
     in: () => chain,
     is: () => chain,
+    not: () => chain,
     order: () => chain,
     limit: () => chain,
     range: () => chain,

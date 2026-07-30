@@ -2154,6 +2154,149 @@ export type Database = {
           },
         ];
       };
+      clienteling_opportunities: {
+        Row: {
+          assigned_staff_id: string | null;
+          confidence: number;
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          due_at: string;
+          evidence: Json;
+          expires_at: string;
+          feedback_note: string | null;
+          hook_kind: string;
+          id: string;
+          outcome_appointment_id: string | null;
+          outcome_message_id: string | null;
+          outcome_order_id: string | null;
+          outcome_recorded_at: string | null;
+          outcome_staff_id: string | null;
+          outcome_type: string | null;
+          priority: number;
+          projector_key: string;
+          projector_version: string;
+          retailer_id: string;
+          status: string;
+          suggested_action: string;
+          suggested_at: string;
+          suggested_channel: string;
+          title: string;
+          updated_at: string;
+          why_now: string;
+        };
+        Insert: {
+          assigned_staff_id?: string | null;
+          confidence: number;
+          created_at?: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          due_at: string;
+          evidence?: Json;
+          expires_at: string;
+          feedback_note?: string | null;
+          hook_kind: string;
+          id?: string;
+          outcome_appointment_id?: string | null;
+          outcome_message_id?: string | null;
+          outcome_order_id?: string | null;
+          outcome_recorded_at?: string | null;
+          outcome_staff_id?: string | null;
+          outcome_type?: string | null;
+          priority: number;
+          projector_key: string;
+          projector_version: string;
+          retailer_id: string;
+          status?: string;
+          suggested_action: string;
+          suggested_at: string;
+          suggested_channel: string;
+          title: string;
+          updated_at?: string;
+          why_now: string;
+        };
+        Update: {
+          assigned_staff_id?: string | null;
+          confidence?: number;
+          created_at?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          due_at?: string;
+          evidence?: Json;
+          expires_at?: string;
+          feedback_note?: string | null;
+          hook_kind?: string;
+          id?: string;
+          outcome_appointment_id?: string | null;
+          outcome_message_id?: string | null;
+          outcome_order_id?: string | null;
+          outcome_recorded_at?: string | null;
+          outcome_staff_id?: string | null;
+          outcome_type?: string | null;
+          priority?: number;
+          projector_key?: string;
+          projector_version?: string;
+          retailer_id?: string;
+          status?: string;
+          suggested_action?: string;
+          suggested_at?: string;
+          suggested_channel?: string;
+          title?: string;
+          updated_at?: string;
+          why_now?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clienteling_opportunities_assigned_staff_id_fkey";
+            columns: ["assigned_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_outcome_appointment_id_fkey";
+            columns: ["outcome_appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_outcome_message_id_fkey";
+            columns: ["outcome_message_id"];
+            isOneToOne: false;
+            referencedRelation: "messages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_outcome_order_id_fkey";
+            columns: ["outcome_order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_outcome_staff_id_fkey";
+            columns: ["outcome_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       collections: {
         Row: {
           created_at: string;
@@ -9842,6 +9985,10 @@ export type Database = {
         Args: { p_import_row_id: string };
         Returns: Json;
       };
+      assign_clienteling_opportunity: {
+        Args: { p_opportunity_id: string; p_staff_id: string };
+        Returns: Database["public"]["Tables"]["clienteling_opportunities"]["Row"];
+      };
       record_advisor_rectangle_facts: {
         Args: {
           p_customer_id: string;
@@ -9883,6 +10030,18 @@ export type Database = {
           isOneToOne: false;
           isSetofReturn: true;
         };
+      };
+      record_clienteling_opportunity_outcome: {
+        Args: {
+          p_appointment_id?: string;
+          p_feedback_note?: string;
+          p_message_id?: string;
+          p_opportunity_id: string;
+          p_order_id?: string;
+          p_outcome_type: string;
+          p_staff_id: string;
+        };
+        Returns: Database["public"]["Tables"]["clienteling_opportunities"]["Row"];
       };
       record_campaign_delivery_audit: {
         Args: {
@@ -10229,6 +10388,14 @@ export type Database = {
         Args: { p_email: string; p_retailer_id: string };
         Returns: undefined;
       };
+      sync_clienteling_opportunity_drafts: {
+        Args: {
+          p_customer_id: string;
+          p_drafts: Json;
+          p_retailer_id: string;
+        };
+        Returns: Database["public"]["Tables"]["clienteling_opportunities"]["Row"][];
+      };
       sync_loyalty_milestones_for_order: {
         Args: { p_order_id: string };
         Returns: number;
@@ -10283,6 +10450,14 @@ export type Database = {
           p_seat_limit: number;
         };
         Returns: undefined;
+      };
+      update_clienteling_opportunity_status: {
+        Args: {
+          p_feedback_note?: string;
+          p_opportunity_id: string;
+          p_status: string;
+        };
+        Returns: Database["public"]["Tables"]["clienteling_opportunities"]["Row"];
       };
       update_product_catalogue: {
         Args: {

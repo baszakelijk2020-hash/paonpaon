@@ -166,6 +166,10 @@ export type BehavioralEventId = Brand<string, "BehavioralEventId">;
 export type AnonymousSessionId = Brand<string, "AnonymousSessionId">;
 export type InteractionSessionId = Brand<string, "InteractionSessionId">;
 export type CustomerFactId = Brand<string, "CustomerFactId">;
+export type ClientelingOpportunityId = Brand<
+  string,
+  "ClientelingOpportunityId"
+>;
 export type CustomerConsentEventId = Brand<string, "CustomerConsentEventId">;
 export type CustomerStyleProfileId = Brand<string, "CustomerStyleProfileId">;
 export type StylePreferenceEvidenceId = Brand<

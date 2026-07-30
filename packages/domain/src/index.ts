@@ -95,6 +95,7 @@ export * from "./intelligence/style-profile.schema";
 export * from "./intelligence/advisor-brief";
 export * from "./intelligence/customer-interest";
 export * from "./intelligence/customer-fact";
+export * from "./intelligence/clienteling-opportunity";
 export * from "./intelligence/grounded-answer";
 
 export * from "./integrations/weather";

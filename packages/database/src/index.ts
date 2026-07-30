@@ -42,6 +42,7 @@ export * from "./repositories/workshop-repository";
 export * from "./repositories/loyalty-repository";
 export * from "./repositories/event-repository";
 export * from "./repositories/clienteling-repository";
+export * from "./repositories/clienteling-opportunity-repository";
 export * from "./repositories/wedding-party-repository";
 export * from "./repositories/staff-roster-repository";
 export * from "./repositories/messaging-repository";
