@@ -12,19 +12,19 @@ implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
 - **Programme status:** Stages 0–5 complete. Stage 6 blocked. Stage 7 and
-  8.0–8.3 complete. Stage 8.4 is `implemented_unverified` (harness not yet
-  browser-proven). Stage 9.1 write-through landed but stays
-  `implemented_unverified` until dependency 8.4 is verified once. Stage 9.2
-  and 10.1 remain `implemented_unverified` under ADR-068; Stage 9.3 is
-  demand-led blocked.
-- **Current queue item:** Stage 6 / 9.3 blocked — skip. Next dependency-
-  complete item waits on Stage 8.4 (`completion-harness.spec.ts` after
-  demo-seed `metadata_concept_kind`/`fabric` fix). Parallel 9.1/9.2/10.1
-  implementation is allowed; do not check or `verified_*` them over unmet
-  dependencies.
-- **Current requirement IDs:** `AUD-001`–`AUD-005` then `INT-002`–`INT-004`;
-  Stage 6 gates remain; Stage 8.4 blocker is local seed
-  `metadata_concept_kind`/`fabric`.
+  8.0–8.3 complete. Stage 8.4 is `verified_local` (completion harness +
+  `docs/evidence/runs/8.4.json` `status=passed`). Stage 9.1 write-through is
+  landed; its verification status follows `PHASE.md` / tranche evidence after
+  the seal pass of `migration-write-through.spec.ts`. Stage 9.2 and 10.1
+  remain `implemented_unverified` under ADR-068; Stage 9.3 is demand-led
+  blocked. Stage 10.2 WIP lives on `wip/stage-10-2-honeymoon`, not `main`.
+- **Current queue item:** Stage 6 / 9.3 blocked — skip. After sealing 9.1
+  verification (or recording its exact blocker), the next dependency-complete
+  buildable item is Stage 9.2 foundations toward ADR-068 proof (do not claim
+  `verified_*` without a current passed run artifact). Preserve
+  `wip/stage-10-2-honeymoon`; do not absorb unfinished 10.2 into `main`.
+- **Current requirement IDs:** `INT-002`–`INT-004` (9.1 then 9.2); Stage 6
+  gates remain. Stage 8.4 is no longer a harness/seed blocker.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -150,11 +150,10 @@ requires it.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next work:** repair Stage 8.4 demo-seed
-  `metadata_concept_kind`/`fabric` and pass
-  `apps/retailer/e2e/completion-harness.spec.ts` once, then mark 8.4 and
-  (only then) 9.1 `verified_local`. Parallel implementation of 9.2/10.1 is
-  allowed without completion claims. Do not invent Stage 6 payment behavior.
+- **Exact next work:** after this seal, Stage 9.2 is the next buildable
+  queue item on `main` (provider adapters / ADR-068 proof — do not claim
+  `verified_*` without a current passed run artifact). Preserve
+  `wip/stage-10-2-honeymoon`. Do not invent Stage 6 payment behavior.
 
 ## 1. Programme intent
 

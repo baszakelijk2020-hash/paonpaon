@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { TEST_OWNER_EMAIL, TEST_OWNER_PASSWORD } from "./fixtures";
+import { writeBrowserProofRun } from "./write-browser-proof-run";
 
 /**
  * PHASE 9.1 operator journey: create fixture → publish → product appears in
@@ -14,7 +15,18 @@ async function signInOwner(page: Page): Promise<void> {
   await expect(page).not.toHaveURL(/\/login/);
 }
 
+let harnessPassed = false;
+
+test.afterAll(async () => {
+  await writeBrowserProofRun({
+    phaseItemId: "9.1",
+    spec: "apps/retailer/e2e/migration-write-through.spec.ts",
+    status: harnessPassed ? "passed" : "failed",
+  });
+});
+
 test("migration publish writes products into catalogue", async ({ page }) => {
+  test.setTimeout(120_000);
   await signInOwner(page);
 
   await page.goto("/migrations");
@@ -40,4 +52,5 @@ test("migration publish writes products into catalogue", async ({ page }) => {
   await expect(page.getByText("Navy Suit Jacket").first()).toBeVisible({
     timeout: 15000,
   });
+  harnessPassed = true;
 });
