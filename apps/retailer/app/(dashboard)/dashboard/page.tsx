@@ -2,6 +2,7 @@ import {
   AlterationRepository,
   AlterationWorkflowRepository,
   AppointmentRepository,
+  ClientelingOpportunityRepository,
   CustomerRepository,
   NotificationRepository,
   OrderRepository,
@@ -129,6 +130,7 @@ export default async function DashboardPage() {
     orders,
     alterations,
     lowStockCount,
+    draftOpportunities,
   ] = await Promise.all([
     new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
     new RetailerStaffRepository(supabase).findByUserId(session.userId),
@@ -147,6 +149,12 @@ export default async function DashboardPage() {
           5,
         )
       : Promise.resolve(0),
+    retailerRoleAtLeast(session.retailerRole, "sales_associate")
+      ? new ClientelingOpportunityRepository(supabase).listDraftInbox(
+          session.retailerId,
+          8,
+        )
+      : Promise.resolve([]),
   ]);
 
   const openEntry = myStaffRow
@@ -181,14 +189,18 @@ export default async function DashboardPage() {
     pendingProposals.length > 0 ||
     todaysAppointments.length > 0 ||
     unreadCount > 0 ||
-    lowStockCount > 0;
+    lowStockCount > 0 ||
+    draftOpportunities.length > 0;
   const todayLabel = new Date().toLocaleDateString("en-US", {
     weekday: "short",
     day: "numeric",
     month: "short",
   });
   const attentionCount =
-    pendingProposals.length + todaysAppointments.length + unreadCount;
+    pendingProposals.length +
+    todaysAppointments.length +
+    unreadCount +
+    draftOpportunities.length;
 
   return (
     <div className="flex flex-col gap-8">
@@ -506,6 +518,52 @@ export default async function DashboardPage() {
         <ClockWidget
           {...(openEntry ? { clockedInAt: openEntry.clockInAt } : {})}
         />
+      ) : null}
+
+      {draftOpportunities.length > 0 ? (
+        <section className="paon-reveal" style={{ animationDelay: "200ms" }}>
+          <Card>
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+                  Today inbox
+                </p>
+                <h2 className="font-display text-2xl text-[var(--color-stone-900)]">
+                  Draft clienteling opportunities
+                </h2>
+                <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+                  Sparse why-now hooks — accept from the customer card before
+                  any outbound touch.
+                </p>
+              </div>
+              <span className="text-xs text-[var(--color-stone-500)]">
+                {draftOpportunities.length} draft
+                {draftOpportunities.length === 1 ? "" : "s"}
+              </span>
+            </div>
+            <ul className="flex flex-col gap-3">
+              {draftOpportunities.map((opportunity) => (
+                <li key={opportunity.id}>
+                  <Link
+                    href={`/customers/${opportunity.customerId}`}
+                    className="block rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-4 py-3 hover:bg-[var(--color-stone-50)]"
+                  >
+                    <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                      {opportunity.contactPressure
+                        ? "Contact pressure"
+                        : "Interest follow-up"}
+                      {" · "}
+                      {opportunity.whyNow}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                      {opportunity.suggestedAction} →
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </section>
       ) : null}
 
       <div

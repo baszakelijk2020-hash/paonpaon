@@ -4,6 +4,7 @@ import {
   AlterationRepository,
   AnalyticsRepository,
   AppointmentRepository,
+  ClientelingOpportunityRepository,
   ClientelingRepository,
   CustomerFactRepository,
   CustomerInterestRepository,
@@ -41,6 +42,7 @@ import { createClientelingNote, setPreferredCarrier } from "./actions";
 import { AdvisorPreparationBriefCard } from "./advisor-preparation-brief";
 import { AdvisorRectangleCapture } from "./advisor-rectangle-capture";
 import { AIInsights } from "./ai-insights";
+import { ClientelingOpportunityInbox } from "./clienteling-opportunity-inbox";
 import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
 import { SelfPortrait } from "./self-portrait";
@@ -171,6 +173,16 @@ export default async function CustomerDetailPage({
     session.retailerRole,
     "sales_associate",
   );
+  const opportunities = canManage
+    ? await new ClientelingOpportunityRepository(
+        supabase,
+      ).syncInterestDraftsForCustomer({
+        retailerId: session.retailerId,
+        customerId: customer.id,
+        viewerRetailerId: session.retailerId,
+        recentTouchCount: 0,
+      })
+    : [];
   const pinnedNote = notes.find((note) => note.pinned) ?? null;
   const now = Date.now();
   const nextAppointment = appointments
@@ -499,6 +511,13 @@ export default async function CustomerDetailPage({
           pinnedNote={pinnedNote}
           interestProjection={interestProjection}
           customerFacts={customerFacts}
+        />
+      ) : null}
+
+      {canManage ? (
+        <ClientelingOpportunityInbox
+          customerId={customer.id}
+          opportunities={opportunities}
         />
       ) : null}
 

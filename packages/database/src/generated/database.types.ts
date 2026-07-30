@@ -2154,6 +2154,112 @@ export type Database = {
           },
         ];
       };
+      clienteling_opportunities: {
+        Row: {
+          assigned_staff_id: string | null;
+          best_time_window: string | null;
+          branch_label: string | null;
+          channel: string;
+          confidence: number;
+          contact_pressure: boolean;
+          cooldown_until: string | null;
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          due_at: string | null;
+          evidence: Json;
+          expires_at: string | null;
+          id: string;
+          opportunity_type: string;
+          outcome_appointment_id: string | null;
+          outcome_message_id: string | null;
+          outcome_order_id: string | null;
+          priority: number;
+          projector_version: string;
+          retailer_id: string;
+          status: string;
+          suggested_action: string;
+          updated_at: string;
+          why_now: string;
+        };
+        Insert: {
+          assigned_staff_id?: string | null;
+          best_time_window?: string | null;
+          branch_label?: string | null;
+          channel: string;
+          confidence?: number;
+          contact_pressure?: boolean;
+          cooldown_until?: string | null;
+          created_at?: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          due_at?: string | null;
+          evidence?: Json;
+          expires_at?: string | null;
+          id?: string;
+          opportunity_type: string;
+          outcome_appointment_id?: string | null;
+          outcome_message_id?: string | null;
+          outcome_order_id?: string | null;
+          priority?: number;
+          projector_version: string;
+          retailer_id: string;
+          status?: string;
+          suggested_action: string;
+          updated_at?: string;
+          why_now: string;
+        };
+        Update: {
+          assigned_staff_id?: string | null;
+          best_time_window?: string | null;
+          branch_label?: string | null;
+          channel?: string;
+          confidence?: number;
+          contact_pressure?: boolean;
+          cooldown_until?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          due_at?: string | null;
+          evidence?: Json;
+          expires_at?: string | null;
+          id?: string;
+          opportunity_type?: string;
+          outcome_appointment_id?: string | null;
+          outcome_message_id?: string | null;
+          outcome_order_id?: string | null;
+          priority?: number;
+          projector_version?: string;
+          retailer_id?: string;
+          status?: string;
+          suggested_action?: string;
+          updated_at?: string;
+          why_now?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clienteling_opportunities_assigned_staff_id_fkey";
+            columns: ["assigned_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       collections: {
         Row: {
           created_at: string;
