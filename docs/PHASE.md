@@ -744,6 +744,149 @@ invented founder-designed surface.
 custom stored-card vault, silent merchant-of-record change, unapproved stored
 value, or marketplace squeezed into the customer catalogue.
 
+### Stage 7 — Evidence-cited Self-Portrait and clienteling intelligence
+
+Independently authorized after Stage 5. Does **not** resolve or pretend to
+resolve Stage 6 payment/compliance/marketplace gates. Builds first-party PAON
+capability with policy as a separate eligibility plane (ADR-066).
+
+- [x] **7.0 Authority and ADR**
+  - **Requirement IDs:** `CLI-001`–`CLI-009`, `ENG-005`, `ENG-006`.
+  - **Dependencies:** Stages 0–5 complete; ADR-061; ADR-066.
+  - **Owner boundary:** documentation authorities only — founder brief,
+    programme, append-only ADR-066, this queue, factual `PROJECT_STATE.md`.
+  - **Acceptance:** Stage 7 queue exists with stable IDs; architecture,
+    provenance, policy separation, and resume point are recorded; Stage 6
+    gates remain blocked and unchanged.
+  - **Tests:** authority consistency, no duplicate roadmap files, Stage 6
+    status preserved.
+  - **Non-goals:** no product feature or schema in this tranche.
+  - **Hard blockers:** none.
+  - **Landed:** founder brief §15, programme §11 + `CLI-*`/`ENG-006`
+    traceability, ADR-066, PHASE Stage 7 queue, factual `PROJECT_STATE`
+    resume at 7.1. Stage 6 gates unchanged.
+
+- [ ] **7.1 Evidence-cited interest insight**
+  - **Requirement IDs:** `CLI-001`, `CLI-002`, `ENG-002`, `ENG-006`.
+  - **Dependencies:** `7.0`; existing `behavioral_events`, accepted metadata,
+    consent, Self-Portrait; ADR-066.
+  - **Owner boundary:** `@paon/domain` interest projector, `@paon/database`
+    projection repository, Retailer Portal Self-Portrait mount.
+  - **Acceptance:** deterministic projector produces statements such as
+    "8 of 10 suit views were brown" with numerator/denominator/share,
+    event/session/unique-product counts (session unavailable until 7.2),
+    window, confidence, evidence IDs, accepted-metadata-only joins, positive/
+    negative separation, low-sample suppression, and honest empty state on
+    Self-Portrait; no black-box prose persistence; no migration unless current
+    persistence cannot support a correct bounded projection.
+  - **Tests:** domain fixtures for accepted-only metadata, dedupe, eligibility,
+    negative vs positive, ratios/thresholds, deterministic ordering, copy;
+    repository tenant/fail-closed/bounded-window tests.
+  - **Non-goals:** no session schema, opportunity engine, For You ranking,
+    calendar, or Stage 6 work.
+  - **Hard blockers:** none.
+
+- [ ] **7.2 Session/event context foundation and instrumentation**
+  - **Requirement IDs:** `CLI-001`, `CUST-001`.
+  - **Dependencies:** `7.1`; ADR-066.
+  - **Owner boundary:** domain event taxonomy extensions, forward migration
+    only if required, capture instrumentation on at least one real customer
+    journey, repository loads.
+  - **Acceptance:** authenticated/anonymous-first-party sessions with
+    start/resume/heartbeat/end, visibility/idle, route/product/card impressions,
+    dwell/scroll thresholds, Tie-Mate/favourite/cart/appointment/For You
+    semantic events where already present in journeys; idempotency keys;
+    never capture passwords/payment/credentials/arbitrary form contents.
+  - **Tests:** capture validation, idempotency, consent/policy eligibility,
+    retention class, at least one instrumented journey.
+  - **Non-goals:** no third-party site tracking; no mousemove firehose.
+  - **Hard blockers:** anonymous persistence remains jurisdiction-gated as
+    today; signed-in instrumentation remains buildable.
+
+- [ ] **7.3 Structured facts and advisor rectangles**
+  - **Requirement IDs:** `CLI-002`, `CLI-003`, `CUST-002`.
+  - **Dependencies:** `7.1`; ADR-066.
+  - **Owner boundary:** Self-Portrait knowledge-graph domain/persistence for
+    declared/advisor/transactional/inferred facts with provenance; advisor
+    metadata-driven rectangle capture.
+  - **Acceptance:** facts carry type/value, source/evidence, observed/
+    valid/review/expiry dates, confidence, sensitivity/visibility, author,
+    correction/conflict history; inferences never silently become facts.
+  - **Tests:** provenance class isolation, conflict/correction, visibility,
+    rectangle → fact mapping.
+  - **Non-goals:** no autonomous salary/bonus inference.
+  - **Hard blockers:** none.
+
+- [ ] **7.4 Moments, opportunities, and contact pressure**
+  - **Requirement IDs:** `CLI-004`, `CLI-005`.
+  - **Dependencies:** `7.1`, `7.3`; ADR-066.
+  - **Owner boundary:** opportunity projector, draft tasks, advisor Today
+    inbox, contact-pressure/cooldown rules, outcome references.
+  - **Acceptance:** sparse high-quality hooks with why-now, cited evidence,
+    suggested action/channel/time, assignment, priority/confidence, due/
+    expiry, status, feedback, and outcome links; draft by default; no
+    autonomous customer spam.
+  - **Tests:** ranking sparsity, cooldown, eligibility, outcome linkage.
+  - **Non-goals:** no marketing blast engine.
+  - **Hard blockers:** none.
+
+- [ ] **7.5 Branches, shared calendar, and post-appointment closeout**
+  - **Requirement IDs:** `CLI-006`.
+  - **Dependencies:** `7.3`, `7.4`; existing appointments.
+  - **Owner boundary:** branch/store timezone, branch calendar, assignment/
+    coverage, recurring customer moments, structured closeout rectangles.
+  - **Acceptance:** manager-controlled branch calendar; closeout feeds
+    provenance-aware Self-Portrait and For You; customer-card-backed
+    participants.
+  - **Tests:** timezone honesty, RLS, closeout → fact projection, coverage.
+  - **Non-goals:** no external calendar vendor lock-in required for local
+    build.
+  - **Hard blockers:** none for local build.
+
+- [ ] **7.6 Unified For You**
+  - **Requirement IDs:** `CLI-007`, `ENG-002`.
+  - **Dependencies:** `7.1`, `7.3`; catalogue/wishlist/Tie-Mate/wardrobe.
+  - **Owner boundary:** customer For You page, deterministic candidate/ranking
+    contract, impression/click/dismiss/correction capture.
+  - **Acceptance:** combines quiz, favourites, Tie-Mate, purchases, wardrobe
+    gaps, advisor facts, occasions, recent behaviour; reason codes and human
+    copy; diversity; suppress owned/rejected/irrelevant; inventory-aware.
+  - **Tests:** ranking fixtures, reason codes, suppression, consent.
+  - **Non-goals:** no opaque black-box recommender as sole authority.
+  - **Hard blockers:** none.
+
+- [ ] **7.7 Live/temporal owner-manager-advisor dashboards**
+  - **Requirement IDs:** `CLI-008`.
+  - **Dependencies:** `7.2`, `7.4`, `7.5`.
+  - **Owner boundary:** role-specific dashboard projections and UI for
+    presence, aggregate demand, heatmaps, opportunity funnel, workload,
+    contact pressure, ingestion/data-quality.
+  - **Acceptance:** honest presence TTL / last-seen semantics; never imply
+    online after heartbeat expiry; owner views are not vanity event counts.
+  - **Tests:** TTL honesty, role gating, aggregation anonymization where
+    required.
+  - **Non-goals:** no unrestricted PAON-admin browsing of retailer customer
+    content.
+  - **Hard blockers:** none for local build.
+
+- [ ] **7.8 Correction, outcomes, policy, and admin hardening**
+  - **Requirement IDs:** `CLI-009`, `ENG-006`.
+  - **Dependencies:** `7.1`–`7.7`; ADR-066.
+  - **Owner boundary:** correction/deletion recomputation, outcome funnel
+    integrity, typed policy configuration, admin observability (ingestion,
+    schema registry, projection versions, explainability health).
+  - **Acceptance:** corrections recompute/expire conclusions; policy
+    decisions are testable at capture/projection/display/export/activation;
+    admin surfaces exclude unrestricted customer-content browsing.
+  - **Tests:** correction replay, policy matrices, tenant isolation evidence.
+  - **Non-goals:** no production unlawful configuration; no Stage 6 unlock.
+  - **Hard blockers:** hosted-only verification gaps are recorded, not faked.
+
+**Stage 7 non-goals:** no Stage 6 payment/compliance implementation, no
+marketplace, no hard-coded jurisdiction branches in core projectors, no
+unrelated-site tracking, no autonomous customer spam, no black-box prose as
+evidence authority.
+
 ## Real hard blockers
 
 A hard blocker stops only the affected item. Continue with the next independent

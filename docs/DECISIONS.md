@@ -2864,3 +2864,57 @@ related gesture surface but is not Tie-Mate; Tie-Mate must prefer fabric
 close-ups and neckwear stock, not mixed catalogue heroes. A later ADR-052
 verbatim founder-HTML port may supersede the interim chrome without changing
 the deck/handoff contracts.
+
+## ADR-066: Evidence-cited Self-Portrait and clienteling intelligence
+
+**Status: accepted for Stage 7 / requirement IDs `CLI-001`–`CLI-009`,
+`ENG-006`. Independently authorized after Stage 5; does not unlock Stage 6
+payment/compliance or marketplace work.**
+
+**Context.** Stages 0–5 shipped catalogue metadata, consented interaction
+events, StyleProfile, advisor briefs, wardrobe, MorningRoutine, campaigns,
+milestones, concierge operations, and interim Tie-Mate. Stage 6 remains blocked
+on founder business/legal/accounting/provider decisions. The founder product
+north star now requires turning first-party PAON touchpoints into
+evidence-cited Self-Portrait facts, sparse clienteling opportunities, shared
+branch calendars, and a deterministic For You experience — without inventing
+jurisdiction hard-coding in core derivation logic and without pretending
+payment gates are resolved.
+
+**Decision.**
+
+1. **One raw evidence layer.** Interaction/session events and durable business
+   records are the only sources of truth. Projectors cite event IDs and durable
+   record IDs; they never persist black-box prose as authority.
+2. **Four provenance classes.** Customer-declared, advisor-observed,
+   transactional, and behaviour-derived inferences remain distinct. An
+   inference must never silently become a declared or transactional fact.
+   Employer/industry/bonus month are declared-only; salary/bonus are never
+   inferred from occupation.
+3. **Accepted metadata only.** Pending/rejected concepts cannot drive customer
+   conclusions. Negative evidence (skips/dismissals) is preserved separately
+   from positive evidence.
+4. **Deterministic-first projectors.** Concept affinity, intent acceleration,
+   temporal affinity, occasion readiness, wardrobe gap, purchase follow-up,
+   dormancy, contact pressure, and data-quality signals are versioned pure
+   functions with explicit numerator/denominator, confidence, freshness, low-
+   sample suppression, and evidence citations. AI may summarize or rank
+   eligible facts; it may not invent them.
+5. **Human-reviewable opportunities.** Opportunity hooks are sparse draft
+   tasks with why-now, suggested action/channel/time, assignment, cooldown,
+   and outcome links. The system does not autonomously spam customers.
+6. **Policy as a separate eligibility plane.** Capture, projection, display,
+   export, and activation accept typed eligibility decisions. Core domain
+   logic must not embed scattered state-law branches. Capability is built
+   broadly; jurisdiction/tenant narrowing is configuration later.
+7. **Engineering invariants remain non-optional.** Tenant isolation, RLS,
+   authentication, provenance, auditability, correction/deletion hooks, field
+   masking, and exclusion of passwords/payment/credentials/arbitrary form
+   contents are always enforced.
+
+**Consequences.** Stage 7 proceeds independently of Stage 6. Existing
+`behavioral_events`, StyleProfile, advisor briefs, appointments, wishlist,
+Tie-Mate, and Self-Portrait mounts are extended rather than replaced. Session
+IDs and richer event taxonomy land when persistence requires them (7.2+).
+Tranche 7.1 ships the first end-to-end cited interest insight over current
+events and accepted metadata before introducing a giant schema.

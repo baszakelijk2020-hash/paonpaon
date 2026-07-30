@@ -220,6 +220,79 @@ PAON catalogue but modelled as distinct business commerce. Retailers can buy
 mannequins, paper bags, shoe displays, custom furniture, fixtures, and other
 retail supplies. The founder will populate products later.
 
+## 15. Self-Portrait, evidence-cited clienteling, and For You
+
+Turn every meaningful customer touchpoint inside PAON and retailer PAON
+storefronts/apps into an evidence-cited, timely, assignable clienteling
+opportunity and a better customer For You experience. This is first-party
+activity only. Do not design around unrelated-site browsing or browser history.
+
+### Product north star
+
+The system must derive conclusions such as:
+
+- "Viewed 10 suits in 30 days; 8 were brown"
+- "Usually active Sunday mornings and weekday evenings"
+- "Started exploring shoes after a suit purchase"
+- "Saved two linen checks in Tie-Mate"
+- "Wedding anniversary is in 30 days"
+- "One month since purchase: ask about fit and care"
+
+Every conclusion must show why, source window, numerator/denominator where
+relevant, confidence, freshness, and the raw/durable evidence references needed
+to verify or correct it. AI may summarize or rank eligible facts; it may not
+invent them.
+
+### Market lesson
+
+Deep evidence must become sparse action, not raw surveillance dashboards.
+Competitor patterns already prove the shape without copying vendors: Shopify
+semantic commerce events and segments, Salesforce/Tulip/NewStore clienteling
+tasks and follow-ups, and SevenRooms/OPERA preference/occasion profiles all
+convert signals into assignable work and better service. PAON must do the same
+with accepted menswear metadata, consent, and explainability.
+
+### Who sees what
+
+1. **Customer environment** — transparent My Style/Self-Portrait, declared
+   preferences, inferred preferences with explanations, favourites, Tie-Mate
+   results, appointments, corrections, and one obvious For You page populated
+   from quiz rectangles, accepted product metadata, favourites, purchases,
+   wardrobe gaps, advisor observations, occasions, and recent behaviour.
+2. **Individual salesperson** — Today/opportunity inbox, assigned and recent
+   customers, why-now hooks, recommended action/channel/time, contact-pressure
+   warning, appointment prep and post-appointment closeout, and the full
+   customer relationship workspace.
+3. **Branch manager** — branch-shared appointment calendar, recurring events,
+   coverage/assignment, named authenticated active/recent customers where
+   available, aggregate anonymous demand, hourly/day/week/month/year hotspot
+   heatmaps, unattended opportunities, advisor follow-through, and outcome
+   funnel.
+4. **Retail owner** — enterprise and branch rollups, demand/category/concept
+   trends, customer cohorts, clienteling touchpoints and outcomes,
+   opportunity-to-appointment/order attribution, contact fatigue, For You
+   performance, data quality, and adoption. Never reduce this to vanity event
+   counts.
+5. **PAON admin/operations** — ingestion lag/failures, event-schema registry,
+   tenant isolation evidence, data quality, projection versions, policy
+   configuration, model/version audit, correction rates, and explainability
+   health — not unrestricted browsing of retailer customer content.
+
+### Capability first, policy second
+
+Build the deepest useful first-party PAON technical capability. Do not hard-code
+California, another US state, or EU limitations into the core event, projection,
+profile, ranking, or UI architecture. Put collection/retention/visibility/
+consent rules behind a configurable policy/eligibility layer so capability can
+later be narrowed per tenant and jurisdiction without redesign. Security,
+tenant isolation, authentication, provenance, auditability, correction,
+deletion hooks, field masking, and secrets/payment/password exclusion are
+engineering invariants, not optional policy. This is a local build programme;
+do not deploy or enable an unlawful production configuration.
+
+Payment/compliance Stage 6 gates remain unresolved and must not be pretended
+resolved by this stage.
+
 ## Product and engineering requirements
 
 - PAON owns the canonical menswear taxonomy and knowledge library.

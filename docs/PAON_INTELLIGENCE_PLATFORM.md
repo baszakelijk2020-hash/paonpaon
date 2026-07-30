@@ -12,12 +12,13 @@ implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
 - **Programme status:** Stages 0–5 complete through Tie-Mate interim Customer
-  UI. Programme paused on Stage 6 hard blockers only (compliance/marketplace).
-- **Current queue item:** `6.1 Payment and compliance design gate` (blocked —
-  founder business/legal/accounting/provider decisions required; do not invent
-  the matrix). Skip to later items only when independently unlocked — `6.2`
-  depends on `6.1`; `6.3` is not activated.
-- **Current requirement IDs:** `PAY-001`, `PAY-002`, `SERV-002` (gated)
+  UI. Stage 6 remains blocked (compliance/marketplace). Stage 7
+  (evidence-cited Self-Portrait / clienteling intelligence, ADR-066) is
+  independently authorized and locally buildable.
+- **Current queue item:** `7.1 Evidence-cited interest insight`. Skip Stage 6
+  while blocked.
+- **Current requirement IDs:** `CLI-001`–`CLI-009`, `ENG-006` (Stage 7);
+  Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -48,7 +49,8 @@ requires it.
   Tie-Mate domain deck/photo/handoff under ADR-065 (PHASE 5.4 foundation);
   `345ea4d` wires Tie-Mate catalogue projection via `TieMateRepository`
   (PHASE 5.4 repository wiring); `7b684ff` ships interim Customer
-  `/r/[slug]/tie-mate` UI (PHASE 5.4 complete).
+  `/r/[slug]/tie-mate` UI (PHASE 5.4 complete); `f7ce3be` hardens Tie-Mate
+  local verification evidence.
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -118,8 +120,8 @@ requires it.
   handoffs, keyboard map) plus `@paon/database` `TieMateRepository` catalogue
   projection and Customer interim `/r/[slug]/tie-mate` surface.
 - **Checks/deployment state:** 109 migrations; Tie-Mate interim UI (`7b684ff`)
-  - domain/repository wiring; lint/typecheck/test/build/format green on the
-    5.4 tip. Anonymous interaction persistence remains blocked pending
+  - verification harden (`f7ce3be`); lint/typecheck/test/build/format green on
+    the 5.4 tip. Anonymous interaction persistence remains blocked pending
     jurisdiction documentation. Live Resend/OpenWeather smoke still needs
     provider credentials.
 - **Real blockers:** Stage 6.1 is blocked on founder business/legal/accounting/
@@ -128,15 +130,13 @@ requires it.
   anonymous persistence remains blocked for new anonymous producers only;
   missing founder-authored fabric/colour/formality sartorial rules still block
   only those exact claims; live delivery smoke still needs credentials;
-  payment blocks money collection only (ADR-062). Optional later ADR-052
-  verbatim Tie-Mate founder-HTML port may replace interim chrome — not a
-  programme blocker.
-- **Exact next files/tests:** stop — Stage 6.1 requires founder
-  business/legal/accounting/provider decisions recorded as a design gate.
-  Do not invent payment/marketplace code. Operational follow-ups that do not
-  reorder the queue: feed sharp fabric close-ups into `swatch_image_url` for
-  neckwear SKUs and accept/assign neckwear `garment_type` concepts so
-  Tie-Mate decks populate in live catalogues.
+  payment blocks money collection only (ADR-062). Stage 7 is not blocked by
+  Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
+  replace interim chrome — not a programme blocker.
+- **Exact next files/tests:** implement `7.1` `@paon/domain` customer-interest
+  projector + `@paon/database` projection + Self-Portrait "Recent interests /
+  Why we think this" mount with focused domain/repository tests. Do not invent
+  Stage 6 payment/marketplace code.
 
 ## 1. Programme intent
 
@@ -249,6 +249,16 @@ above. Status changes only after the named acceptance criteria are verified.
 | ENG-003                | Extend branded-ID/domain/repository/Server-Action/RLS/migration/test architecture; do not create a parallel product                                                                                        | Engineering platform               | Architecture exists and is enforced in current code                                                                                         | Direction                                       | All                  | Every slice follows package boundaries, strict TypeScript, forward migrations, generated types, and tenant tests                 | In force                                                                                                  |
 | ENG-004                | Preserve founder HTML and interaction behavior through narrow hooks rather than React/Tailwind/design-system rewrites                                                                                      | Founder surfaces                   | Founder route serves canonical HTML with narrow runtime injection including knowledge mounts                                                | ADR-052                                         | 2.3, 5.4             | DOM/CSS diff and desktop/mobile/a11y checks show only authorized mounts changed                                                  | Partial foundation                                                                                        |
 | ENG-005                | Continuous inspect→implement→test→repair→state→commit→push loop without routine handoff                                                                                                                    | Delivery governance                | AGENTS/WORKING_AGREEMENT establish the loop                                                                                                 | Direction                                       | 0.1 and recurring    | Queue and Resume Protocol remain factual after every pushed slice; agent stops only at real blockers                             | In force                                                                                                  |
+| CLI-001                | Semantic first-party activity ledger and sessions for PAON/storefront touchpoints with idempotency, consent/policy snapshot, and retention class                                                           | `intelligence` events              | Typed interaction events exist; session/heartbeat/dwell taxonomy and richer context scheduled for 7.2                                       | CUST-001, ADR-066                               | 7.1–7.2              | Events cite products/concepts without passwords/payment/credentials; retries dedupe; ineligible/anonymized/expired excluded      | Partial (7.1 uses current events; 7.2 extends)                                                            |
+| CLI-002                | Evidence-cited Self-Portrait conclusions over accepted metadata with numerator/denominator, confidence, freshness, and evidence IDs                                                                        | Self-Portrait projectors           | StyleProfile/advisor brief exist; dedicated interest-ratio projector lands in 7.1                                                           | CLI-001, CAT-004, ADR-066                       | 7.1, 7.3             | Statements such as "8 of 10 suit views were brown" are deterministic, accepted-metadata-only, and explainable                    | Not started                                                                                               |
+| CLI-003                | Four provenance classes for declared, advisor-observed, transactional, and behaviour-derived facts with correction/conflict history                                                                        | Self-Portrait knowledge graph      | Declared/inferred StyleProfile separation exists; structured fact graph and advisor rectangles scheduled for 7.3                            | CLI-002, CUST-002, ADR-066                      | 7.3                  | Inferences never silently become facts; employer/bonus are declared-only                                                         | Not started                                                                                               |
+| CLI-004                | Deterministic insight projectors (affinity, intent, temporal, occasion, wardrobe gap, follow-up, dormancy, contact pressure, data quality)                                                                 | Insight engine                     | StyleProfile recompute and advisor brief projectors exist; broader projector suite scheduled for 7.1–7.4                                    | CLI-002, ADR-066                                | 7.1–7.4              | Versioned projectors cite evidence, suppress low samples, recompute after correction/deletion                                    | Partial foundation                                                                                        |
+| CLI-005                | Sparse human-reviewable clienteling opportunities with why-now, action/channel/time, assignment, cooldown, feedback, and outcomes                                                                          | Opportunity engine                 | Advisor brief prep suggestions exist; opportunity inbox/outcomes scheduled for 7.4                                                          | CLI-004, ADR-066                                | 7.4                  | Draft tasks by default; no autonomous customer spam; outcomes link message/appointment/sale/no-response                          | Not started                                                                                               |
+| CLI-006                | Branches/stores, shared calendar, recurring moments, and post-appointment closeout rectangles feeding Self-Portrait                                                                                        | Calendar + closeout                | Appointments exist; branch calendar/closeout scheduled for 7.5                                                                              | CLI-003, CLI-005, appointments                  | 7.5                  | Manager-controlled branch calendar; closeout answers become provenance-aware facts                                               | Not started                                                                                               |
+| CLI-007                | Unified customer For You page with deterministic ranking, reason codes, diversity, inventory awareness, and learning events                                                                                | For You                            | Discovery/wishlist/Tie-Mate/wardrobe foundations exist; dedicated For You page scheduled for 7.6                                            | CLI-002, CLI-003, EDU-002                       | 7.6                  | Every recommendation exposes human reason copy and evidence; owned/rejected/irrelevant items suppressed                          | Not started                                                                                               |
+| CLI-008                | Role-specific live/temporal dashboards with honest presence TTL, heatmaps, opportunity funnel, workload, and data-quality status                                                                           | Dashboards                         | Retailer analytics summary exists; live presence/heatmap/funnel surfaces scheduled for 7.7                                                  | CLI-001, CLI-005, CLI-006                       | 7.7                  | Presence never implies online after heartbeat expiry; owner views are not vanity event counts                                    | Not started                                                                                               |
+| CLI-009                | Typed capability/policy eligibility plane plus correction, outcomes, and admin observability hardening                                                                                                     | Policy + admin ops                 | Consent helpers exist; typed policy configuration and admin health scheduled for 7.8                                                        | CLI-001–CLI-008, ADR-066                        | 7.8                  | Core projectors accept eligibility decisions; admin cannot freely browse retailer customer content                               | Not started                                                                                               |
+| ENG-006                | Capability-first intelligence with policy as a separate eligibility plane; no hard-coded jurisdiction branches in core derivation                                                                          | Intelligence governance            | Consent/eligibility helpers exist; Stage 7 ADR-066 authorizes the separation                                                                | ENG-002, ADR-066                                | 7.0–7.8              | Capture/projection/display/export/activation remain testable against typed policy without redesigning projectors                 | Authorized (7.0)                                                                                          |
 
 ## 3. Architecture and bounded contexts
 
@@ -628,7 +638,83 @@ phone-screen scale from retailer-fed sharp close-ups (prefer
 while swiping, then save, order, or start an advisor conversation through the
 metadata/discovery foundation. It is not customer-side fabric CV recognition.
 
-## 11. Later commerce boundaries
+## 11. Stage 7 — Evidence-cited clienteling architecture
+
+Independently authorized after Stage 5 under ADR-066. Stage 6 payment/
+compliance/marketplace gates remain blocked and unchanged.
+
+### Layered architecture
+
+```text
+Capture (instrumented journeys)
+  → raw evidence ledger (events + durable records)
+  → eligibility/policy plane (consent, retention, visibility, purpose)
+  → deterministic projectors (insights)
+  → opportunity drafts (sparse, human-reviewable)
+  → role surfaces (customer / advisor / manager / owner / PAON admin)
+```
+
+### Event taxonomy (target)
+
+Session start/resume/heartbeat/end; active/idle and page visibility;
+route/page/component impressions; product/card/image/variant views; dwell and
+scroll thresholds; category/search/filter/sort/compare; favourites;
+Tie-Mate impression/swipe/save/dismiss; cart/checkout/conversion references;
+appointment intent/booking/attendance; messages; For You impression/click/
+dismiss/correction; content/knowledge engagement; advisor-entered
+observations. Every event carries UUID/idempotency key, session and
+correlation IDs where available, monotonic sequence, occurred/received times,
+timezone/local hour, page/route/context, product/variant/concept references,
+referrer/UTM where present, device class/viewport/locale, retailer/store/
+branch, actor/source, consent/policy snapshot, and retention class. Semantic
+thresholds only — never passwords, payment fields, credentials, or arbitrary
+form contents.
+
+### Provenance classes
+
+1. Customer-declared
+2. Advisor-observed
+3. Transactional
+4. Behaviour-derived inference
+
+### Projector and opportunity contracts
+
+Projectors are versioned pure functions. Each insight exposes statement copy,
+numerator/denominator/share where relevant, event/session/unique-product
+counts, window, latest evidence time, confidence, suppression reason, polarity,
+source/version, and evidence IDs. Opportunities are sparse draft tasks with
+why-now, suggested action/channel/time, assignment, cooldown/contact pressure,
+status, feedback, and outcome references. AI may summarize or rank eligible
+facts; it may not invent them.
+
+### Capability vs policy
+
+Instrumentation and derivation stay broadly capable. Typed policy decides
+eligibility at capture, projection, display, export, and activation. Do not
+hard-code jurisdiction branches into core projectors.
+
+### Competitor pattern synthesis (not vendor copies)
+
+- Shopify-style semantic commerce events and segments → typed first-party
+  activity with durable meaning.
+- Salesforce / Tulip / NewStore clienteling → assignable follow-up tasks with
+  outcomes, not vanity dashboards.
+- SevenRooms / OPERA preference/occasion profiles → provenance-aware
+  Self-Portrait facts and recurring moments.
+
+### Rollout and observability
+
+Ship vertical slices (7.1 interest insight first). Observe ingestion lag,
+schema registry health, tenant isolation evidence, projection versions,
+correction rates, and explainability health in PAON admin without unrestricted
+retailer-customer browsing.
+
+### Traceability
+
+Requirement IDs `CLI-001`–`CLI-009` and `ENG-006` map to PHASE Stage 7
+tranches. Mark status only after verified acceptance.
+
+## 12. Later commerce boundaries
 
 Existing Stripe Connect makes the retailer merchant of record for customer
 payments; Stripe Billing handles retailer subscriptions to PAON. Neither
@@ -654,7 +740,7 @@ share customer-retail catalogue assumptions merely to reuse code. ADR-064
 requires distinct listing, buyer, order, fulfilment, access, and payment
 boundaries while permitting reuse of context-neutral platform primitives.
 
-## 12. Verification standard
+## 13. Verification standard
 
 Each relevant slice includes:
 
@@ -674,7 +760,7 @@ Provider unit tests prove integration shape, not live operation. Live provider
 verification is recorded separately and never claimed when credentials are
 missing.
 
-## 13. Programme assumptions
+## 14. Programme assumptions
 
 - PAON maintains canonical menswear taxonomy and knowledge.
 - Retailers curate their own catalogue and local overrides.
@@ -684,4 +770,7 @@ missing.
 - Catalogue Intelligence is the first implementation release; advisor,
   wardrobe, MorningRoutine, campaigns, milestones, concierge, and commerce are
   sequenced dependencies, not discarded ideas.
+- Stage 7 clienteling intelligence extends those foundations with
+  evidence-cited Self-Portrait, opportunities, calendar closeout, and For You
+  without unlocking Stage 6.
 - Code/migrations win for shipped state; `PHASE.md` wins for order.

@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 108 forward Supabase migrations plus generated TypeScript
+- Schema source: 109 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -50,7 +50,7 @@ Snapshot: 2026-07-30.
   deterministic fit freshness from official observations exist; self-reports
   never write fitting observations. MorningRoutine in-app owned-first
   selection with consent-aware weather/calendar/StyleProfile provenance and
-  save/review/book/buy actions exists; explicit opt-in delivery with
+  save/review/book/buy actions exist; explicit opt-in delivery with
   frequency/quiet hours, append-only audit, and retailer pause/eligible-product
   controls exist.
 - Canonical/retailer metadata concepts, edges, assignments, append-only review
@@ -76,6 +76,12 @@ Snapshot: 2026-07-30.
   loyalty ledger; Preferred Tailoring / HighMaintenance service-plan,
   membership, entitlement, booking, fulfilment, care, cost, and history
   tables exist.
+- Interim Tie-Mate Customer route `/r/[slug]/tie-mate` exists (ADR-065) with
+  domain deck/photo/handoff, catalogue projection, and local unit verification.
+- Stage 7 authority (ADR-066, founder brief §15, programme §11, PHASE Stage 7
+  queue) is recorded; evidence-cited interest insight (7.1) is the next
+  implementation tranche. Stage 6 payment/compliance/marketplace gates remain
+  blocked and unchanged.
 
 ## External systems
 
@@ -89,11 +95,10 @@ Snapshot: 2026-07-30.
 
 ## Current handoff
 
-The founder brief is the complete product-intent authority. The technical
-programme traces it through stable requirement IDs, and `PHASE.md` contains
-the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Stages 1–5 are complete through Tie-Mate interim Customer UI at
-`/r/[slug]/tie-mate` (domain, repository, PAON-tokened phone-scale deck).
-Stage 6.1–6.3 are not independently buildable (compliance gate; marketplace
-not explicitly activated). Optional later ADR-052 founder-HTML Tie-Mate port
-is not a programme blocker.
+Stages 1–5 are complete through Tie-Mate interim UI. Stage 6.1–6.3 remain
+blocked. Stage 7 is independently authorized (ADR-066). Next buildable item:
+PHASE `7.1 Evidence-cited interest insight` — pure `@paon/domain` customer
+interest projector, `@paon/database` bounded projection, Self-Portrait
+"Recent interests / Why we think this" mount, focused tests. Resume from
+`packages/domain/src/intelligence/` and
+`apps/retailer/app/(dashboard)/customers/[id]/self-portrait.tsx`.
