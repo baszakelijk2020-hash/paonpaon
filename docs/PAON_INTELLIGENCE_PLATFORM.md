@@ -15,8 +15,8 @@ requires it.
   UI. Stage 6 remains blocked (compliance/marketplace). Stage 7
   (evidence-cited Self-Portrait / clienteling intelligence, ADR-066) is
   independently authorized and locally buildable.
-- **Current queue item:** `7.2 Session/event context foundation and
-instrumentation`. Skip Stage 6 while blocked.
+- **Current queue item:** `7.3 Structured facts and advisor rectangles`. Skip
+  Stage 6 while blocked.
 - **Current requirement IDs:** `CLI-001`–`CLI-009`, `ENG-006` (Stage 7);
   Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
@@ -51,7 +51,8 @@ instrumentation`. Skip Stage 6 while blocked.
   (PHASE 5.4 repository wiring); `7b684ff` ships interim Customer
   `/r/[slug]/tie-mate` UI (PHASE 5.4 complete); `f7ce3be` hardens Tie-Mate
   local verification evidence; `4a3881b` authorizes Stage 7 / ADR-066
-  (PHASE 7.0 complete).
+  (PHASE 7.0 complete); `673ce59` ships evidence-cited interest insights
+  (PHASE 7.1 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -136,9 +137,9 @@ instrumentation`. Skip Stage 6 while blocked.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next files/tests:** after 7.1 lands, implement `7.2` session/event
-  context foundation and instrument at least one real customer journey. Do not
-  invent Stage 6 payment/marketplace code.
+- **Exact next files/tests:** implement `7.3` structured Self-Portrait facts
+  and advisor metadata rectangles. Do not invent Stage 6 payment/marketplace
+  code.
 
 ## 1. Programme intent
 
@@ -251,7 +252,7 @@ above. Status changes only after the named acceptance criteria are verified.
 | ENG-003                | Extend branded-ID/domain/repository/Server-Action/RLS/migration/test architecture; do not create a parallel product                                                                                        | Engineering platform               | Architecture exists and is enforced in current code                                                                                         | Direction                                       | All                  | Every slice follows package boundaries, strict TypeScript, forward migrations, generated types, and tenant tests                 | In force                                                                                                  |
 | ENG-004                | Preserve founder HTML and interaction behavior through narrow hooks rather than React/Tailwind/design-system rewrites                                                                                      | Founder surfaces                   | Founder route serves canonical HTML with narrow runtime injection including knowledge mounts                                                | ADR-052                                         | 2.3, 5.4             | DOM/CSS diff and desktop/mobile/a11y checks show only authorized mounts changed                                                  | Partial foundation                                                                                        |
 | ENG-005                | Continuous inspect→implement→test→repair→state→commit→push loop without routine handoff                                                                                                                    | Delivery governance                | AGENTS/WORKING_AGREEMENT establish the loop                                                                                                 | Direction                                       | 0.1 and recurring    | Queue and Resume Protocol remain factual after every pushed slice; agent stops only at real blockers                             | In force                                                                                                  |
-| CLI-001                | Semantic first-party activity ledger and sessions for PAON/storefront touchpoints with idempotency, consent/policy snapshot, and retention class                                                           | `intelligence` events              | Typed interaction events exist; session/heartbeat/dwell taxonomy and richer context scheduled for 7.2                                       | CUST-001, ADR-066                               | 7.1–7.2              | Events cite products/concepts without passwords/payment/credentials; retries dedupe; ineligible/anonymized/expired excluded      | Partial (7.1 uses current events; 7.2 extends)                                                            |
+| CLI-001                | Semantic first-party activity ledger and sessions for PAON/storefront touchpoints with idempotency, consent/policy snapshot, and retention class                                                           | `intelligence` events              | `interaction_sessions` + event context columns; storefront/Tie-Mate journeys ensure sessions and stamp idempotency; anonymous still blocked | CUST-001, ADR-066                               | 7.1–7.2              | Events cite products/concepts without passwords/payment/credentials; retries dedupe; ineligible/anonymized/expired excluded      | Done (7.2 signed-in); anonymous remains gated                                                             |
 | CLI-002                | Evidence-cited Self-Portrait conclusions over accepted metadata with numerator/denominator, confidence, freshness, and evidence IDs                                                                        | Self-Portrait projectors           | `projectCustomerInterestInsights` + `CustomerInterestRepository` + Self-Portrait "Recent interests" mount                                   | CLI-001, CAT-004, ADR-066                       | 7.1, 7.3             | Statements such as "8 of 10 suit views were brown" are deterministic, accepted-metadata-only, and explainable                    | Done (7.1); structured fact graph remains 7.3                                                             |
 | CLI-003                | Four provenance classes for declared, advisor-observed, transactional, and behaviour-derived facts with correction/conflict history                                                                        | Self-Portrait knowledge graph      | Declared/inferred StyleProfile separation exists; structured fact graph and advisor rectangles scheduled for 7.3                            | CLI-002, CUST-002, ADR-066                      | 7.3                  | Inferences never silently become facts; employer/bonus are declared-only                                                         | Not started                                                                                               |
 | CLI-004                | Deterministic insight projectors (affinity, intent, temporal, occasion, wardrobe gap, follow-up, dormancy, contact pressure, data quality)                                                                 | Insight engine                     | StyleProfile recompute and advisor brief projectors exist; broader projector suite scheduled for 7.1–7.4                                    | CLI-002, ADR-066                                | 7.1–7.4              | Versioned projectors cite evidence, suppress low samples, recompute after correction/deletion                                    | Partial foundation                                                                                        |

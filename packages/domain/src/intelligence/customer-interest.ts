@@ -245,6 +245,9 @@ export function productVariantIdFromEventProperties(
  * id, then a composite of name/product/occurredAt.
  */
 export function interestEventDedupeKey(event: BehavioralEvent): string {
+  if (event.idempotencyKey && event.idempotencyKey.trim().length > 0) {
+    return `idempotency:${event.idempotencyKey.trim()}`;
+  }
   const key = event.properties.idempotencyKey;
   if (typeof key === "string" && key.trim().length > 0) {
     return `idempotency:${key.trim()}`;
@@ -331,6 +334,7 @@ interface ScopeBucket {
   readonly polarity: InterestEvidencePolarity;
   readonly productIds: Set<string>;
   readonly eventIds: BehavioralEventId[];
+  readonly sessionIds: Set<string>;
   latestEvidenceAt: string;
 }
 
@@ -442,6 +446,7 @@ export function projectCustomerInterestInsights(
         if (existing) {
           existing.productIds.add(productId);
           existing.eventIds.push(eventId);
+          if (event.sessionId) existing.sessionIds.add(event.sessionId);
           if (
             Date.parse(event.occurredAt) > Date.parse(existing.latestEvidenceAt)
           ) {
@@ -454,6 +459,7 @@ export function projectCustomerInterestInsights(
             polarity,
             productIds: new Set([productId]),
             eventIds: [eventId],
+            sessionIds: new Set(event.sessionId ? [event.sessionId] : []),
             latestEvidenceAt: event.occurredAt,
           });
         }
@@ -491,7 +497,7 @@ export function projectCustomerInterestInsights(
       share,
       eventCount,
       uniqueProductCount: numerator,
-      sessionCount: null,
+      sessionCount: bucket.sessionIds.size > 0 ? bucket.sessionIds.size : null,
       windowStart,
       windowEnd: input.now,
       latestEvidenceAt: bucket.latestEvidenceAt,

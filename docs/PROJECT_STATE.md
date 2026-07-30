@@ -14,7 +14,7 @@ Snapshot: 2026-07-30.
 - Applications: PAON Admin, Retailer Portal, Customer Portal.
 - Shared packages include domain, database, auth, UI, utils, payments, email,
   SMS, and AI.
-- Schema source: 109 forward Supabase migrations plus generated TypeScript
+- Schema source: 110 forward Supabase migrations plus generated TypeScript
   database types.
 - CI definition of done: frozen install, lint, typecheck, unit tests, build,
   and format check.
@@ -23,22 +23,19 @@ Snapshot: 2026-07-30.
 
 - Stages 0–5 complete through Tie-Mate interim Customer UI.
 - Stage 6 payment/compliance/marketplace gates remain blocked.
-- Stage 7.0 authority recorded (`4a3881b`, ADR-066).
-- Stage 7.1 evidence-cited interest insight: pure
-  `projectCustomerInterestInsights`, `CustomerInterestRepository`, and
-  Retailer Self-Portrait "Recent interests / Why we think this" (session counts
-  null until 7.2). No migration required.
+- Stage 7.0–7.2 landed: ADR-066 authority; evidence-cited interest insights on
+  Self-Portrait; `interaction_sessions` + event context/idempotency; storefront
+  and Tie-Mate journeys ensure sessions. Anonymous persistence still blocked.
 
 ## External systems
 
 - Deployment architecture and live project identifiers are documented only in
   `DEPLOYMENT.md`.
 - Local root environment does not currently contain Stripe, Resend, OpenAI,
-  Twilio, or OpenWeatherMap credentials. Provider-dependent code must not be
-  described as live-verified without separate evidence.
+  Twilio, or OpenWeatherMap credentials.
 
 ## Current handoff
 
-Next buildable item: PHASE `7.2 Session/event context foundation and
-instrumentation`. Resume from `packages/domain/src/intelligence/interaction-event.ts`
-and storefront/Tie-Mate capture paths. Skip Stage 6.
+Next buildable item: PHASE `7.3 Structured facts and advisor rectangles`.
+Resume from `packages/domain/src/intelligence/` and Self-Portrait / advisor
+closeout surfaces. Skip Stage 6.

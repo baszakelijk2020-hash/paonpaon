@@ -4,6 +4,7 @@ import {
   AnalyticsRepository,
   CustomerConsentRepository,
   CustomerRepository,
+  InteractionSessionRepository,
   StyleProfileRepository,
 } from "@paon/database";
 import {
@@ -13,6 +14,7 @@ import {
   evidenceSourceFromEventName,
   mayCapturePersonalizationForCustomer,
   retentionExpiresAt,
+  type InteractionDeviceClass,
   type InteractionEventName,
 } from "@paon/domain";
 
@@ -21,6 +23,7 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export type StorefrontTrackedEvent = Extract<
   InteractionEventName,
+  | "page_viewed"
   | "product_viewed"
   | "category_browsed"
   | "search_performed"
@@ -32,12 +35,26 @@ export type StorefrontTrackedEvent = Extract<
   | "conversion_recorded"
 >;
 
+function resolveDeviceClass(
+  value: unknown,
+): InteractionDeviceClass | undefined {
+  if (
+    value === "mobile" ||
+    value === "tablet" ||
+    value === "desktop" ||
+    value === "unknown"
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
 /**
- * Feeds consented personalization signals (ADR-061 / PHASE 3.1).
+ * Feeds consented personalization signals (ADR-061 / PHASE 3.1 / 7.2).
  * Only fires for an identified, signed-in customer with personalization
  * consent. Anonymous storefront browsers are never tracked here (jurisdiction
  * gate). Best-effort: a failed capture must never break browsing.
- * When properties include concept IDs, records StyleProfile evidence (3.2).
+ * Ensures an interaction session and stamps idempotency when provided.
  */
 export async function trackStorefrontEvent(
   retailerId: string,
@@ -68,12 +85,42 @@ export async function trackStorefrontEvent(
       occurredAt,
     );
 
+    const deviceClass = resolveDeviceClass(properties.deviceClass);
+    const pagePath =
+      typeof properties.pagePath === "string" ? properties.pagePath : undefined;
+    const idempotencyKey =
+      typeof properties.idempotencyKey === "string"
+        ? properties.idempotencyKey
+        : undefined;
+
+    const interactionSession = await new InteractionSessionRepository(
+      supabase,
+    ).ensureForCustomer({
+      retailerId: rId,
+      customerId: customer.id,
+      now: occurredAt,
+      ...(deviceClass ? { deviceClass } : {}),
+    });
+
+    const captureProperties = { ...properties };
+    delete captureProperties.password;
+    delete captureProperties.cardNumber;
+    delete captureProperties.cvv;
+    delete captureProperties.credentials;
+    delete captureProperties.rawForm;
+    delete captureProperties.formValues;
+
     await new AnalyticsRepository(supabase).capture({
       retailerId: rId,
       customerId: customer.id,
+      sessionId: interactionSession.id,
       name,
-      properties,
+      properties: captureProperties,
       occurredAt,
+      receivedAt: occurredAt,
+      ...(pagePath ? { pagePath } : {}),
+      ...(deviceClass ? { deviceClass } : {}),
+      ...(idempotencyKey ? { idempotencyKey } : {}),
       source: "customer_portal",
       purpose: "personalization",
       consentBasis: "explicit_opt_in",

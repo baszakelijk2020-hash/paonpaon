@@ -89,6 +89,7 @@ export * from "./analytics/behavioral-event";
 export * from "./intelligence/consent";
 export * from "./intelligence/consent.schema";
 export * from "./intelligence/interaction-event";
+export * from "./intelligence/interaction-session";
 export * from "./intelligence/style-profile";
 export * from "./intelligence/style-profile.schema";
 export * from "./intelligence/advisor-brief";

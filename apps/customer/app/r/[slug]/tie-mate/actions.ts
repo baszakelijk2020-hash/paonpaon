@@ -4,6 +4,7 @@ import {
   AnalyticsRepository,
   CustomerConsentRepository,
   CustomerRepository,
+  InteractionSessionRepository,
   WishlistRepository,
 } from "@paon/database";
 import {
@@ -18,8 +19,9 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 async function captureTieMateSignal(args: {
   readonly retailerId: string;
-  readonly name: "product_favorited" | "product_skipped";
+  readonly name: "product_favorited" | "product_skipped" | "tie_mate_impressed";
   readonly properties: Record<string, unknown>;
+  readonly idempotencyKey?: string;
 }): Promise<void> {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
@@ -42,12 +44,26 @@ async function captureTieMateSignal(args: {
     occurredAt,
   );
 
+  const interactionSession = await new InteractionSessionRepository(
+    supabase,
+  ).ensureForCustomer({
+    retailerId: rId,
+    customerId: customer.id,
+    now: occurredAt,
+    deviceClass: "mobile",
+  });
+
   await new AnalyticsRepository(supabase).capture({
     retailerId: rId,
     customerId: customer.id,
+    sessionId: interactionSession.id,
     name: args.name,
     properties: args.properties,
     occurredAt,
+    receivedAt: occurredAt,
+    pagePath: "/tie-mate",
+    deviceClass: "mobile",
+    ...(args.idempotencyKey ? { idempotencyKey: args.idempotencyKey } : {}),
     source: "customer_portal",
     purpose: "personalization",
     consentBasis: "explicit_opt_in",
@@ -91,6 +107,7 @@ export async function saveTieMateFabric(args: {
         productVariantId: args.productVariantId,
         via: "tie_mate",
       },
+      idempotencyKey: `tie-mate:save:${args.productVariantId}:${args.retailerId}`,
     });
   } catch {
     // Best-effort — a failed capture must never block the save.
@@ -112,6 +129,7 @@ export async function skipTieMateFabric(args: {
       retailerId: args.retailerId,
       name: "product_skipped",
       properties: { productId: args.productId, via: "tie_mate" },
+      idempotencyKey: `tie-mate:skip:${args.productId}:${Date.now()}`,
     });
   } catch {
     // Best-effort.

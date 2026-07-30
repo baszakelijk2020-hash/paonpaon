@@ -8,6 +8,7 @@ import type {
   AnonymousSessionId,
   BehavioralEventId,
   CustomerId,
+  InteractionSessionId,
   RetailerId,
 } from "../shared/branded-id";
 
@@ -16,8 +17,13 @@ import {
   mayLinkAnonymousSessionToCustomer,
   retentionExpiresAt,
 } from "./consent";
+import type { InteractionDeviceClass } from "./interaction-session";
 
 export const INTERACTION_EVENT_NAMES = [
+  "session_started",
+  "session_heartbeat",
+  "session_ended",
+  "page_viewed",
   "product_viewed",
   "category_browsed",
   "search_performed",
@@ -29,6 +35,7 @@ export const INTERACTION_EVENT_NAMES = [
   "advisor_question",
   "appointment_intent",
   "conversion_recorded",
+  "tie_mate_impressed",
 ] as const;
 
 export type InteractionEventName = (typeof INTERACTION_EVENT_NAMES)[number];
@@ -64,9 +71,15 @@ export interface InteractionEvent {
   readonly retailerId: RetailerId;
   readonly customerId?: CustomerId;
   readonly anonymousSessionId?: AnonymousSessionId;
+  readonly sessionId?: InteractionSessionId;
+  readonly correlationId?: string;
+  readonly idempotencyKey?: string;
   readonly name: InteractionEventName;
   readonly properties: Readonly<Record<string, unknown>>;
   readonly occurredAt: string;
+  readonly receivedAt?: string;
+  readonly pagePath?: string;
+  readonly deviceClass?: InteractionDeviceClass;
   readonly source: InteractionEventSource;
   readonly purpose: ConsentPurpose;
   readonly consentBasis: ConsentBasis;
@@ -86,9 +99,15 @@ export interface CaptureInteractionEventInput {
   readonly retailerId: RetailerId;
   readonly customerId?: CustomerId;
   readonly anonymousSessionId?: AnonymousSessionId;
+  readonly sessionId?: InteractionSessionId;
+  readonly correlationId?: string;
+  readonly idempotencyKey?: string;
   readonly name: InteractionEventName;
   readonly properties?: Readonly<Record<string, unknown>>;
   readonly occurredAt: string;
+  readonly receivedAt?: string;
+  readonly pagePath?: string;
+  readonly deviceClass?: InteractionDeviceClass;
   readonly source: InteractionEventSource;
   readonly purpose?: ConsentPurpose;
   readonly consentBasis: ConsentBasis;
@@ -105,7 +124,9 @@ export type InteractionEventValidationError =
   | "consent_required"
   | "anonymous_persistence_blocked"
   | "invalid_properties"
-  | "durable_record_duplication";
+  | "sensitive_property_forbidden"
+  | "durable_record_duplication"
+  | "invalid_idempotency_key";
 
 export interface InteractionEventValidationResult {
   readonly ok: boolean;
@@ -120,10 +141,35 @@ const DURABLE_DUPLICATION_KEYS = [
   "rawPrompt",
 ] as const;
 
+/** Never capture credentials, payment fields, or arbitrary form contents. */
+export const FORBIDDEN_EVENT_PROPERTY_KEYS = [
+  "password",
+  "passwd",
+  "secret",
+  "token",
+  "apiKey",
+  "api_key",
+  "cardNumber",
+  "card_number",
+  "cvv",
+  "cvc",
+  "expiry",
+  "paymentMethodId",
+  "rawForm",
+  "formValues",
+  "credentials",
+] as const;
+
 export function isInteractionEventName(
   value: string,
 ): value is InteractionEventName {
   return (INTERACTION_EVENT_NAMES as readonly string[]).includes(value);
+}
+
+export function hasForbiddenEventProperty(
+  properties: Readonly<Record<string, unknown>>,
+): boolean {
+  return FORBIDDEN_EVENT_PROPERTY_KEYS.some((key) => key in properties);
 }
 
 export function validateCaptureInteractionEvent(
@@ -170,6 +216,15 @@ export function validateCaptureInteractionEvent(
     }
   }
 
+  if (
+    input.idempotencyKey !== undefined &&
+    (typeof input.idempotencyKey !== "string" ||
+      input.idempotencyKey.trim().length === 0 ||
+      input.idempotencyKey.trim().length > 200)
+  ) {
+    errors.push("invalid_idempotency_key");
+  }
+
   const properties = input.properties ?? {};
   if (typeof properties !== "object" || Array.isArray(properties)) {
     errors.push("invalid_properties");
@@ -179,6 +234,9 @@ export function validateCaptureInteractionEvent(
         errors.push("durable_record_duplication");
         break;
       }
+    }
+    if (hasForbiddenEventProperty(properties)) {
+      errors.push("sensitive_property_forbidden");
     }
   }
 
@@ -193,9 +251,17 @@ export function validateCaptureInteractionEvent(
     ...(input.anonymousSessionId
       ? { anonymousSessionId: input.anonymousSessionId }
       : {}),
+    ...(input.sessionId ? { sessionId: input.sessionId } : {}),
+    ...(input.correlationId ? { correlationId: input.correlationId } : {}),
+    ...(input.idempotencyKey
+      ? { idempotencyKey: input.idempotencyKey.trim() }
+      : {}),
     name: input.name,
     properties: properties as Readonly<Record<string, unknown>>,
     occurredAt: input.occurredAt,
+    ...(input.receivedAt ? { receivedAt: input.receivedAt } : {}),
+    ...(input.pagePath ? { pagePath: input.pagePath } : {}),
+    ...(input.deviceClass ? { deviceClass: input.deviceClass } : {}),
     source: input.source,
     purpose,
     consentBasis: input.consentBasis,

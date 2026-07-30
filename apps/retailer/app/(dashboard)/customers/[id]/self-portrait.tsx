@@ -168,7 +168,11 @@ export function SelfPortrait({
         <p className="mb-2 text-xs text-[var(--color-stone-500)]">
           Why we think this · {interestWindowLabel(interestProjection)}
           {interestProjection.visibility === "usable"
-            ? " · session counts unavailable until session instrumentation"
+            ? interestProjection.insights.some(
+                (insight) => insight.sessionCount !== null,
+              )
+              ? " · session counts when session ids are present"
+              : " · session counts unavailable until session instrumentation covers this window"
             : null}
         </p>
         {usableInterests.length === 0 ? (

@@ -5,6 +5,7 @@ import {
   type ConsentBasis,
   type ConsentPurpose,
   type CustomerId,
+  type InteractionDeviceClass,
   type InteractionEventName,
   type InteractionEventSource,
   type RetentionClass,
@@ -55,9 +56,19 @@ const toDomain = (row: Row): BehavioralEvent => ({
         ),
       }
     : {}),
+  ...(row.session_id
+    ? { sessionId: asId<"InteractionSessionId">(row.session_id) }
+    : {}),
+  ...(row.correlation_id ? { correlationId: row.correlation_id } : {}),
+  ...(row.idempotency_key ? { idempotencyKey: row.idempotency_key } : {}),
   name: row.name as InteractionEventName,
   properties: row.properties as Record<string, unknown>,
   occurredAt: row.occurred_at,
+  ...(row.received_at ? { receivedAt: row.received_at } : {}),
+  ...(row.page_path ? { pagePath: row.page_path } : {}),
+  ...(row.device_class
+    ? { deviceClass: row.device_class as InteractionDeviceClass }
+    : {}),
   source: row.source as InteractionEventSource,
   purpose: row.purpose as ConsentPurpose,
   consentBasis: row.consent_basis as ConsentBasis,
@@ -86,6 +97,14 @@ export class AnalyticsRepository {
       ...(event.anonymousSessionId
         ? { p_anonymous_session_id: event.anonymousSessionId }
         : {}),
+      ...(event.sessionId ? { p_session_id: event.sessionId } : {}),
+      ...(event.correlationId ? { p_correlation_id: event.correlationId } : {}),
+      ...(event.idempotencyKey
+        ? { p_idempotency_key: event.idempotencyKey }
+        : {}),
+      ...(event.receivedAt ? { p_received_at: event.receivedAt } : {}),
+      ...(event.pagePath ? { p_page_path: event.pagePath } : {}),
+      ...(event.deviceClass ? { p_device_class: event.deviceClass } : {}),
     });
     if (error) throw error;
     return data;

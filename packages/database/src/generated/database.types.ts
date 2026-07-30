@@ -1131,16 +1131,22 @@ export type Database = {
           anonymous_session_id: string | null;
           consent_basis: string;
           consent_snapshot: Json;
+          correlation_id: string | null;
           created_at: string;
           customer_id: string | null;
+          device_class: string | null;
           id: string;
+          idempotency_key: string | null;
           name: string;
           occurred_at: string;
+          page_path: string | null;
           properties: Json;
           purpose: string;
+          received_at: string | null;
           retailer_id: string;
           retention_class: string;
           retention_expires_at: string;
+          session_id: string | null;
           source: string;
         };
         Insert: {
@@ -1148,16 +1154,22 @@ export type Database = {
           anonymous_session_id?: string | null;
           consent_basis?: string;
           consent_snapshot?: Json;
+          correlation_id?: string | null;
           created_at?: string;
           customer_id?: string | null;
+          device_class?: string | null;
           id?: string;
+          idempotency_key?: string | null;
           name: string;
           occurred_at?: string;
+          page_path?: string | null;
           properties?: Json;
           purpose?: string;
+          received_at?: string | null;
           retailer_id: string;
           retention_class?: string;
           retention_expires_at?: string;
+          session_id?: string | null;
           source: string;
         };
         Update: {
@@ -1165,16 +1177,22 @@ export type Database = {
           anonymous_session_id?: string | null;
           consent_basis?: string;
           consent_snapshot?: Json;
+          correlation_id?: string | null;
           created_at?: string;
           customer_id?: string | null;
+          device_class?: string | null;
           id?: string;
+          idempotency_key?: string | null;
           name?: string;
           occurred_at?: string;
+          page_path?: string | null;
           properties?: Json;
           purpose?: string;
+          received_at?: string | null;
           retailer_id?: string;
           retention_class?: string;
           retention_expires_at?: string;
+          session_id?: string | null;
           source?: string;
         };
         Relationships: [
@@ -1190,6 +1208,13 @@ export type Database = {
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "behavioral_events_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "interaction_sessions";
             referencedColumns: ["id"];
           },
         ];
@@ -3135,6 +3160,72 @@ export type Database = {
           updated_by_user_id?: string | null;
         };
         Relationships: [];
+      };
+      interaction_sessions: {
+        Row: {
+          anonymous_session_id: string | null;
+          created_at: string;
+          customer_id: string | null;
+          device_class: string;
+          ended_at: string | null;
+          id: string;
+          last_seen_at: string;
+          locale: string | null;
+          retailer_id: string;
+          started_at: string;
+          state: string;
+          timezone: string | null;
+          updated_at: string;
+          user_agent_class: string | null;
+        };
+        Insert: {
+          anonymous_session_id?: string | null;
+          created_at?: string;
+          customer_id?: string | null;
+          device_class?: string;
+          ended_at?: string | null;
+          id?: string;
+          last_seen_at?: string;
+          locale?: string | null;
+          retailer_id: string;
+          started_at?: string;
+          state?: string;
+          timezone?: string | null;
+          updated_at?: string;
+          user_agent_class?: string | null;
+        };
+        Update: {
+          anonymous_session_id?: string | null;
+          created_at?: string;
+          customer_id?: string | null;
+          device_class?: string;
+          ended_at?: string | null;
+          id?: string;
+          last_seen_at?: string;
+          locale?: string | null;
+          retailer_id?: string;
+          started_at?: string;
+          state?: string;
+          timezone?: string | null;
+          updated_at?: string;
+          user_agent_class?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "interaction_sessions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "interaction_sessions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       knowledge_object_concepts: {
         Row: {
@@ -9178,14 +9269,20 @@ export type Database = {
           p_anonymous_session_id?: string;
           p_consent_basis?: string;
           p_consent_snapshot?: Json;
+          p_correlation_id?: string;
           p_customer_id?: string;
+          p_device_class?: string;
+          p_idempotency_key?: string;
           p_name: string;
           p_occurred_at?: string;
+          p_page_path?: string;
           p_properties?: Json;
           p_purpose?: string;
+          p_received_at?: string;
           p_retailer_id: string;
           p_retention_class?: string;
           p_retention_expires_at?: string;
+          p_session_id?: string;
           p_source?: string;
         };
         Returns: string;
@@ -9345,6 +9442,18 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      ensure_interaction_session: {
+        Args: {
+          p_customer_id: string;
+          p_device_class?: string;
+          p_idle_minutes?: number;
+          p_locale?: string;
+          p_now?: string;
+          p_retailer_id: string;
+          p_timezone?: string;
+        };
+        Returns: string;
       };
       ensure_loyalty_milestone_definitions: {
         Args: { p_retailer_id: string };
