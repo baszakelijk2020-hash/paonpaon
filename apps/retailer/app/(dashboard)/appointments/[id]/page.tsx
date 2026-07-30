@@ -1,8 +1,10 @@
 import {
   AdvisorBriefRepository,
+  AppointmentCloseoutRepository,
   AppointmentRepository,
   ClientelingRepository,
   CustomerRepository,
+  MetadataRepository,
   OrderRepository,
   PhysicalGarmentRepository,
   RetailerStaffRepository,
@@ -23,6 +25,7 @@ import { LifecycleBadge } from "../../customers/lifecycle-badge";
 import { AppointmentStatusBadge } from "../status-badge";
 
 import { AppointmentActionsForm } from "./appointment-actions-form";
+import { AppointmentCloseoutForm } from "./appointment-closeout-form";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -47,7 +50,8 @@ export default async function AppointmentDetailPage({
     new CustomerRepository(supabase).findById(appointment.customerId),
     new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
   ]);
-  const [notes, orders, garments, advisorBrief] = customer
+  const [notes, orders, garments, advisorBrief, closeout, closeoutConcepts] =
+    customer
     ? await Promise.all([
         new ClientelingRepository(supabase).findByCustomer(customer.id),
         new OrderRepository(supabase).findByCustomer(customer.id),
@@ -58,8 +62,14 @@ export default async function AppointmentDetailPage({
           advisorRetailerId: session.retailerId,
           ...(appointment.notes ? { appointmentNotes: appointment.notes } : {}),
         }),
+        new AppointmentCloseoutRepository(supabase).findByAppointment(
+          appointment.id,
+        ),
+        new MetadataRepository(supabase).findVisibleConcepts(
+          session.retailerId,
+        ),
       ])
-    : [[], [], [], null];
+    : [[], [], [], null, null, []];
   const pinnedNote = notes.find((note) => note.pinned);
   const assignedAdvisor = staff.find(
     (member) => member.id === appointment.staffId,
@@ -194,6 +204,30 @@ export default async function AppointmentDetailPage({
                 staff={staff}
               />
             </Card>
+          ) : null}
+
+          {canManage &&
+          customer &&
+          (appointment.status === "completed" ||
+            appointment.status === "checked_in") ? (
+            closeout ? (
+              <Card className="rounded-[var(--radius-md)]">
+                <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+                  Closeout recorded
+                </p>
+                <p className="mt-2 text-sm text-[var(--color-stone-700)]">
+                  Outcome: {closeout.outcome.replaceAll("_", " ")} ·{" "}
+                  {closeout.selections.length} structured fact
+                  {closeout.selections.length === 1 ? "" : "s"}
+                </p>
+              </Card>
+            ) : (
+              <AppointmentCloseoutForm
+                appointmentId={appointment.id}
+                customerId={customer.id}
+                concepts={closeoutConcepts}
+              />
+            )
           ) : null}
         </div>
 

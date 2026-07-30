@@ -172,6 +172,9 @@ export type StylePreferenceEvidenceId = Brand<
   string,
   "StylePreferenceEvidenceId"
 >;
+export type BranchId = Brand<string, "BranchId">;
+export type BranchCalendarEntryId = Brand<string, "BranchCalendarEntryId">;
+export type AppointmentCloseoutId = Brand<string, "AppointmentCloseoutId">;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

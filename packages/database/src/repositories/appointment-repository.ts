@@ -3,6 +3,7 @@ import {
   type Appointment,
   type AppointmentId,
   type AppointmentType,
+  type BranchId,
   type CustomerId,
   type RetailerId,
   type StaffId,
@@ -23,6 +24,7 @@ function toDomain(row: AppointmentRow): Appointment {
     status: row.status,
     startsAt: row.starts_at,
     endsAt: row.ends_at,
+    ...(row.branch_id ? { branchId: asId<"BranchId">(row.branch_id) } : {}),
     ...(row.location_id ? { locationId: row.location_id } : {}),
     ...(row.notes ? { notes: row.notes } : {}),
     createdAt: row.created_at,
@@ -38,12 +40,14 @@ export interface CreateAppointmentParams {
   startsAt: string;
   endsAt: string;
   staffId?: StaffId;
+  branchId?: BranchId;
   notes?: string;
 }
 
 export interface UpdateAppointmentParams {
   status?: Appointment["status"];
   staffId?: StaffId;
+  branchId?: BranchId;
 }
 
 /**
@@ -110,6 +114,7 @@ export class AppointmentRepository {
         starts_at: params.startsAt,
         ends_at: params.endsAt,
         staff_id: params.staffId ?? null,
+        branch_id: params.branchId ?? null,
         notes: params.notes ?? null,
       })
       .select("*")
@@ -131,6 +136,7 @@ export class AppointmentRepository {
       .update({
         ...(params.status !== undefined ? { status: params.status } : {}),
         ...(params.staffId !== undefined ? { staff_id: params.staffId } : {}),
+        ...(params.branchId !== undefined ? { branch_id: params.branchId } : {}),
       })
       .eq("id", id)
       .select("*")

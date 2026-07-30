@@ -56,6 +56,8 @@ export * from "./repositories/advisor-brief-repository";
 export * from "./repositories/customer-interest-repository";
 export * from "./repositories/customer-fact-repository";
 export * from "./repositories/clienteling-opportunity-repository";
+export * from "./repositories/branch-calendar-repository";
+export * from "./repositories/appointment-closeout-repository";
 export * from "./repositories/interaction-session-repository";
 export * from "./repositories/table-service-guidance-repository";
 export * from "./repositories/ai-generation-repository";

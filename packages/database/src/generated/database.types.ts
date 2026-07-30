@@ -953,8 +953,77 @@ export type Database = {
           },
         ];
       };
+      appointment_closeouts: {
+        Row: {
+          appointment_id: string;
+          author_staff_id: string;
+          created_at: string;
+          customer_id: string;
+          follow_up_at: string | null;
+          follow_up_notes: string | null;
+          id: string;
+          outcome: string;
+          rectangle_selections: Json;
+          retailer_id: string;
+        };
+        Insert: {
+          appointment_id: string;
+          author_staff_id: string;
+          created_at?: string;
+          customer_id: string;
+          follow_up_at?: string | null;
+          follow_up_notes?: string | null;
+          id?: string;
+          outcome: string;
+          rectangle_selections?: Json;
+          retailer_id: string;
+        };
+        Update: {
+          appointment_id?: string;
+          author_staff_id?: string;
+          created_at?: string;
+          customer_id?: string;
+          follow_up_at?: string | null;
+          follow_up_notes?: string | null;
+          id?: string;
+          outcome?: string;
+          rectangle_selections?: Json;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "appointment_closeouts_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: true;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointment_closeouts_author_staff_id_fkey";
+            columns: ["author_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointment_closeouts_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointment_closeouts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       appointments: {
         Row: {
+          branch_id: string | null;
           created_at: string;
           customer_id: string;
           deleted_at: string | null;
@@ -970,6 +1039,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          branch_id?: string | null;
           created_at?: string;
           customer_id: string;
           deleted_at?: string | null;
@@ -985,6 +1055,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          branch_id?: string | null;
           created_at?: string;
           customer_id?: string;
           deleted_at?: string | null;
@@ -1000,6 +1071,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "appointments_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "appointments_customer_id_fkey";
             columns: ["customer_id"];
@@ -1121,6 +1199,89 @@ export type Database = {
             columns: ["staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      branch_calendar_entries: {
+        Row: {
+          assigned_staff_ids: string[];
+          branch_id: string;
+          created_at: string;
+          created_by_staff_id: string | null;
+          customer_id: string | null;
+          deleted_at: string | null;
+          ends_at: string;
+          entry_type: string;
+          id: string;
+          notes: string | null;
+          recurrence: string;
+          retailer_id: string;
+          starts_at: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          assigned_staff_ids?: string[];
+          branch_id: string;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          customer_id?: string | null;
+          deleted_at?: string | null;
+          ends_at: string;
+          entry_type: string;
+          id?: string;
+          notes?: string | null;
+          recurrence?: string;
+          retailer_id: string;
+          starts_at: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          assigned_staff_ids?: string[];
+          branch_id?: string;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          customer_id?: string | null;
+          deleted_at?: string | null;
+          ends_at?: string;
+          entry_type?: string;
+          id?: string;
+          notes?: string | null;
+          recurrence?: string;
+          retailer_id?: string;
+          starts_at?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "branch_calendar_entries_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "branch_calendar_entries_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "branch_calendar_entries_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "branch_calendar_entries_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];
@@ -6822,6 +6983,47 @@ export type Database = {
           },
         ];
       };
+      retailer_branches: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          is_primary: boolean;
+          name: string;
+          retailer_id: string;
+          timezone: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_primary?: boolean;
+          name: string;
+          retailer_id: string;
+          timezone: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_primary?: boolean;
+          name?: string;
+          retailer_id?: string;
+          timezone?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_branches_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailers: {
         Row: {
           billing_address: Json;
@@ -9947,6 +10149,18 @@ export type Database = {
       publish_catalogue_import_row: {
         Args: { p_import_row_id: string };
         Returns: Json;
+      };
+      record_appointment_closeout: {
+        Args: {
+          p_appointment_id: string;
+          p_follow_up_at?: string;
+          p_follow_up_notes?: string;
+          p_outcome: string;
+          p_retailer_id: string;
+          p_selections: Json;
+          p_staff_id: string;
+        };
+        Returns: Database["public"]["Tables"]["customer_facts"]["Row"][];
       };
       record_advisor_rectangle_facts: {
         Args: {
