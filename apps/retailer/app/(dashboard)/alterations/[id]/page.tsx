@@ -8,11 +8,14 @@ import {
   CustomerRepository,
   PhysicalGarmentRepository,
   RetailerStaffRepository,
+  WorkflowDefinitionRepository,
   WorkshopRepository,
 } from "@paon/database";
 import {
+  ALTERATION_STATUS_LABELS,
   ALTERATION_STATUS_TRANSITIONS,
   ALTERATION_TASK_STATUS_LABELS,
+  applyTerminologyLabels,
   CUSTODY_EVENT_TYPE_LABELS,
   PRICING_EVENT_TYPE_LABELS,
   WORK_CLASSIFICATION_LABELS,
@@ -45,6 +48,7 @@ import { WorkflowActionForm } from "./workflow-action-form";
 
 import { FitToolPanel } from "@/components/fit-tools/fit-tool-panel";
 import { requireSession } from "@/lib/session";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function AlterationDetailPage({
@@ -67,6 +71,24 @@ export default async function AlterationDetailPage({
   const fullAlteration =
     "customerId" in alteration ? (alteration as Alteration) : null;
   const workerAlteration = "garmentType" in alteration ? alteration : null;
+
+  // Pin this garment work order to the active workflow definition version.
+  // Later publishes must not mutate the pinned snapshot.
+  const workflowBinding = await new WorkflowDefinitionRepository(
+    getSupabaseAdminClient(),
+  ).bindInstance({
+    retailerId: session.retailerId,
+    subjectType: "alteration",
+    subjectId: alteration.id,
+    definitionKey: "alteration_work_order",
+  });
+  const familiarity = await new WorkflowDefinitionRepository(
+    supabase,
+  ).getRetailerPreset(session.retailerId);
+  const statusLabels = applyTerminologyLabels(
+    ALTERATION_STATUS_LABELS,
+    familiarity.terminology,
+  );
 
   const handoffRepository = new AlterationHandoffRepository(supabase);
   const taskRepository = new AlterationTaskRepository(supabase);
@@ -243,7 +265,10 @@ export default async function AlterationDetailPage({
               {customer?.fullName ??
                 (isWorker ? "Assigned garment" : "Customer")}
             </h1>
-            <AlterationStatusBadge status={alteration.status} />
+            <AlterationStatusBadge
+              status={alteration.status}
+              label={statusLabels[alteration.status]}
+            />
           </div>
           <a
             href={`/alterations/${alteration.id}/print`}
@@ -259,6 +284,8 @@ export default async function AlterationDetailPage({
           {workerAlteration
             ? `${workerAlteration.brand ? `${workerAlteration.brand} ` : ""}${workerAlteration.garmentType}`
             : `${garment?.brand ? `${garment.brand} ` : ""}${garment?.garmentType ?? "Garment"}`}
+          {" · "}
+          workflow pinned {workflowBinding.definitionVersionId.slice(0, 8)}
         </p>
         {alteration.dueDate ? (
           <p className="text-sm text-[var(--color-stone-500)]">
@@ -924,7 +951,10 @@ export default async function AlterationDetailPage({
             updates.map((update) => (
               <div key={update.id} className="px-6 py-4">
                 <div className="flex items-center gap-2">
-                  <AlterationStatusBadge status={update.toStatus} />
+                  <AlterationStatusBadge
+                    status={update.toStatus}
+                    label={statusLabels[update.toStatus]}
+                  />
                   <span className="text-xs text-[var(--color-stone-500)]">
                     {staffName(update.actorStaffId)} ·{" "}
                     {formatDate(update.createdAt, "en-US")}

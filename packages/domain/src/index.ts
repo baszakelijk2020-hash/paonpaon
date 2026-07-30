@@ -109,6 +109,8 @@ export * from "./integrations/calendar";
 export * from "./integrations/source-authority";
 export * from "./integrations/faden-readonly-fixture";
 
+export * from "./workflow/workflow-definition";
+
 export * from "./wardrobe/wardrobe";
 export * from "./wardrobe/wardrobe.schema";
 export * from "./wardrobe/lifecycle";

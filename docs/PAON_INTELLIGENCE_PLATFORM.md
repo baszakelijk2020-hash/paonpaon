@@ -14,14 +14,13 @@ requires it.
 - **Programme status:** Stages 0–5 complete through Tie-Mate interim Customer
   UI. Stage 6 remains blocked (compliance/marketplace). Stage 7
   (evidence-cited Self-Portrait / clienteling intelligence, ADR-066) is
-  complete through 7.8. Stage 8.0 (ADR-067 expanded OS programme) and Stage
-  8.1 (six wardrobe visual rails) are complete. Stage 8.2 (source-authority /
-  external-identity registry) is complete.
+  complete through 7.8. Stage 8.0–8.3 are complete (ADR-067 expanded OS:
+  wardrobe rails, source-authority registry, versioned workflow + familiarity
+  presets).
 - **Current queue item:** Stage 6 remains blocked — skip. Next dependency-
-  complete item is Stage 8.3 (versioned workflow and familiarity presets).
-- **Current requirement IDs:** Stage 8 `INT-001`–`INT-005`, `WFM-103`,
-  `WRD-101` family under ADR-067; Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/
-  `MKT-001` remain gated.
+  complete item is Stage 9.1 (generic staged-file migration).
+- **Current requirement IDs:** Stage 9 `INT-002`/`INT-003` under ADR-067;
+  Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;

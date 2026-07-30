@@ -18,10 +18,14 @@ const STATUS_TONE: Record<AlterationStatus, "neutral" | "success" | "warning"> =
 
 export function AlterationStatusBadge({
   status,
+  label,
 }: {
   status: AlterationStatus;
+  label?: string;
 }) {
   return (
-    <Badge tone={STATUS_TONE[status]}>{ALTERATION_STATUS_LABELS[status]}</Badge>
+    <Badge tone={STATUS_TONE[status]}>
+      {label ?? ALTERATION_STATUS_LABELS[status]}
+    </Badge>
   );
 }

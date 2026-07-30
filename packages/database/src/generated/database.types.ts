@@ -3538,6 +3538,33 @@ export type Database = {
           },
         ];
       };
+      familiarity_presets: {
+        Row: {
+          created_at: string;
+          display_name: string;
+          key: string;
+          navigation: Json;
+          terminology: Json;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_name: string;
+          key: string;
+          navigation: Json;
+          terminology: Json;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          display_name?: string;
+          key?: string;
+          navigation?: Json;
+          terminology?: Json;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       fitting_observations: {
         Row: {
           area: string;
@@ -7155,6 +7182,42 @@ export type Database = {
           },
         ];
       };
+      retailer_familiarity_settings: {
+        Row: {
+          created_at: string;
+          preset_key: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          preset_key: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          preset_key?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_familiarity_settings_preset_key_fkey";
+            columns: ["preset_key"];
+            isOneToOne: false;
+            referencedRelation: "familiarity_presets";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "retailer_familiarity_settings_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: true;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailer_knowledge_overrides: {
         Row: {
           created_at: string;
@@ -9773,6 +9836,122 @@ export type Database = {
             columns: ["workshop_id"];
             isOneToOne: false;
             referencedRelation: "workshops";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workflow_definition_versions: {
+        Row: {
+          activated_at: string | null;
+          created_at: string;
+          definition_id: string;
+          id: string;
+          snapshot: Json;
+          status: string;
+          updated_at: string;
+          version_number: number;
+        };
+        Insert: {
+          activated_at?: string | null;
+          created_at?: string;
+          definition_id: string;
+          id?: string;
+          snapshot: Json;
+          status: string;
+          updated_at?: string;
+          version_number: number;
+        };
+        Update: {
+          activated_at?: string | null;
+          created_at?: string;
+          definition_id?: string;
+          id?: string;
+          snapshot?: Json;
+          status?: string;
+          updated_at?: string;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workflow_definition_versions_definition_id_fkey";
+            columns: ["definition_id"];
+            isOneToOne: false;
+            referencedRelation: "workflow_definitions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workflow_definitions: {
+        Row: {
+          created_at: string;
+          display_name: string;
+          id: string;
+          key: string;
+          subject_type: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_name: string;
+          id?: string;
+          key: string;
+          subject_type: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          display_name?: string;
+          id?: string;
+          key?: string;
+          subject_type?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      workflow_instance_bindings: {
+        Row: {
+          created_at: string;
+          definition_version_id: string;
+          id: string;
+          pinned_at: string;
+          retailer_id: string;
+          subject_id: string;
+          subject_type: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          definition_version_id: string;
+          id?: string;
+          pinned_at?: string;
+          retailer_id: string;
+          subject_id: string;
+          subject_type: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          definition_version_id?: string;
+          id?: string;
+          pinned_at?: string;
+          retailer_id?: string;
+          subject_id?: string;
+          subject_type?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workflow_instance_bindings_definition_version_id_fkey";
+            columns: ["definition_version_id"];
+            isOneToOne: false;
+            referencedRelation: "workflow_definition_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "workflow_instance_bindings_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];

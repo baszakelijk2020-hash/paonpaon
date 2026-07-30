@@ -1,5 +1,9 @@
-import { RetailerRepository } from "@paon/database";
 import {
+  RetailerRepository,
+  WorkflowDefinitionRepository,
+} from "@paon/database";
+import {
+  applyNavigationLabel,
   RETAILER_ROLE_LABELS,
   retailerRoleAtLeast,
   retailerRoleHasAlterationsPermission,
@@ -24,10 +28,14 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSession();
-  const retailer = await new RetailerRepository(
-    await getSupabaseServerClient(),
-  ).findById(session.retailerId);
+  const supabase = await getSupabaseServerClient();
+  const retailer = await new RetailerRepository(supabase).findById(
+    session.retailerId,
+  );
   if (!retailer) notFound();
+  const familiarity = await new WorkflowDefinitionRepository(
+    supabase,
+  ).getRetailerPreset(session.retailerId);
   const canManageRetailer = retailerRoleAtLeast(session.retailerRole, "admin");
   const canManageCustomers = retailerRoleAtLeast(
     session.retailerRole,
@@ -89,11 +97,19 @@ export default async function DashboardLayout({
       ],
     },
     {
-      label: isWorkshopRole ? "Workshop floor" : "Fitting room",
+      label: isWorkshopRole
+        ? "Workshop floor"
+        : (familiarity.navigation.groupLabels.fitting_room ?? "Fitting room"),
       items: [
         {
           href: "/alterations",
-          label: isWorkshopRole ? "Work queue" : "Alterations",
+          label: isWorkshopRole
+            ? "Work queue"
+            : applyNavigationLabel(
+                "/alterations",
+                "Alterations",
+                familiarity.navigation,
+              ),
           description: isWorkshopRole
             ? "Assigned garments and due dates"
             : "Fitting-to-workshop progress",
@@ -104,7 +120,11 @@ export default async function DashboardLayout({
                 href: "/alterations/catalogue",
                 label: canManageWorkshop
                   ? "Workshop pricing"
-                  : "Service catalogue",
+                  : applyNavigationLabel(
+                      "/alterations/catalogue",
+                      "Service catalogue",
+                      familiarity.navigation,
+                    ),
                 description: "Operations and agreed costs",
               },
             ]
@@ -113,7 +133,11 @@ export default async function DashboardLayout({
           ? [
               {
                 href: "/alterations/workshops",
-                label: "Workshop network",
+                label: applyNavigationLabel(
+                  "/alterations/workshops",
+                  "Workshop network",
+                  familiarity.navigation,
+                ),
                 description: "Partners, assignments and access",
               },
             ]
