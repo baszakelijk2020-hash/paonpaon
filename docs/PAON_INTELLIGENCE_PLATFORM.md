@@ -11,13 +11,14 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Programme status:** Stages 0–5 complete. Stage 6 blocked. Stage 7–8
-  complete. Stage 9.1–9.2 complete (9.3 demand-led blocked). Stage 10.1
-  (versioned campaign library) is complete.
+- **Programme status:** Stages 0–5 complete. Stage 6 blocked. Stage 7 and
+  8.0–8.4 complete. Stage 9.1, 9.2 and 10.1 have material
+  `implemented_unverified` foundations and are reopened under ADR-068; Stage
+  9.3 is demand-led blocked.
 - **Current queue item:** Stage 6 / 9.3 blocked — skip. Next dependency-
-  complete item is Stage 10.2.
-- **Current requirement IDs:** Stage 10 `CMP-105`/`CMP-106`/`WRD-104`; Stage 6
-  gates remain.
+  complete item is Stage 9.1 completion (canonical write-through + browser
+  journey) under ADR-068; then 9.2 and 10.1 before 10.2.
+- **Current requirement IDs:** `INT-002`, `INT-003`; Stage 6 gates remain.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -129,10 +130,11 @@ requires it.
   Stage 7.1 adds `@paon/domain` `projectCustomerInterestInsights` and
   `@paon/database` `CustomerInterestRepository`, mounted on Retailer
   Self-Portrait as "Recent interests / Why we think this".
-- **Checks/deployment state:** 109 migrations; Stage 7.0 authority at
-  `4a3881b`; 7.1 interest insight pending push after DoD. Anonymous
-  interaction persistence remains blocked pending jurisdiction documentation.
-  Live Resend/OpenWeather smoke still needs provider credentials.
+- **Checks/deployment state:** 120 forward migrations at the 10.1 foundation
+  commit. Anonymous interaction persistence remains blocked pending
+  jurisdiction documentation. Live Resend/OpenWeather/Faden/Shopify smoke
+  still needs applicable provider credentials. Local/provider-neutral proof
+  must follow ADR-068.
 - **Real blockers:** Stage 6.1 is blocked on founder business/legal/accounting/
   provider decisions; 6.2 depends on 6.1; 6.3 marketplace modelling is not
   explicitly activated and remains gated on commercial/payment design;
@@ -142,8 +144,10 @@ requires it.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next files/tests:** Stage 7 queue exhausted. Do not invent Stage 6
-  payment/marketplace code. Stop unless a new PHASE item is authorised.
+- **Exact next work:** finish Stage 9.1 accepted gaps from PHASE (canonical
+  catalogue/product/stock/order write-through and operator-to-downstream
+  browser journey) under ADR-068. Then close 9.2 and 10.1 before 10.2. Do not
+  invent Stage 6 payment behavior.
 
 ## 1. Programme intent
 

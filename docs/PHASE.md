@@ -1016,17 +1016,69 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     publish; Retailer `/settings/workflows` + layout/nav label overlays;
     alteration detail pins work orders and remaps status labels.
 
+### Stage 8.4 — Delivery integrity and connected-product proof
+
+- [x] **8.4 Machine-enforced completion and multi-role journey gate**
+  - **Status:** `verified_local`.
+  - **Requirement IDs:** `AUD-001`–`AUD-005`.
+  - **Dependencies:** `8.3`; ADR-068; the common-sense and traceability audits.
+  - **Owner boundary:** honest status vocabulary; machine-readable tranche
+    evidence; validator; deterministic linked retailer/customer/advisor/
+    manager seed; reusable browser proof for originating role, receiving role,
+    persisted state, exception and downstream handoff; UI state checklist.
+  - **Acceptance:** a PHASE item cannot be changed to complete unless an
+    evidence record names its applicable domain/persistence/service/origin UI/
+    receiver UI/RLS/exception/browser/operations proofs and any live-only gap;
+    validator rejects missing applicable evidence, missing referenced
+    repository artifacts, a non-executable browser spec and unexplained
+    `n_a`; the validator is part of root/CI definition of done rather than an
+    optional command; one seeded multi-role flow proves the harness; docs
+    distinguish `implemented_unverified`, `verified_local`, `verified_live`
+    and `blocked_external`.
+  - **Tests:** validator pass/fail/lying-path/unexplained-`n_a` fixtures,
+    deterministic seed rerun and one actually executed browser flow in which
+    the originating role performs a mutation through UI, the receiving role
+    sees it, a direct forbidden route/RLS attempt is denied, and canonical
+    database state is asserted. Merely reading objects already created by the
+    seed or hiding a navigation link is not sufficient.
+  - **UI/UX:** standard loading/empty/error/denied/stale/conflict/success
+    states, role orientation, task continuation, phone/tablet/desktop and
+    keyboard/a11y checklist are assessed for applicability, not mechanically
+    rebuilt in every tranche. One-line `n_a` rationale is enough where a state
+    or device is genuinely unaffected.
+  - **Efficiency:** reuse one linked seed/harness; keep evidence to terse paths
+    and test names; run focused checks during implementation and the full DoD
+    once before commit. Do not retroactively manufacture exhaustive browser
+    tests for completed stages or require every device/state in every slice.
+    Non-blocking visual/copy/secondary-device defects go to the stage-end
+    `docs/evidence/STAGE_REPAIR_LEDGER.md`. Data loss, source-authority, RLS,
+    migration, broken build and dead-end primary-flow defects may not be
+    deferred.
+  - **Non-goals:** no retroactive claim that all old work is browser verified;
+    no screenshot-only acceptance.
+  - **Hard blockers:** none.
+  - **Landed:** domain completion-evidence + PHASE gate (8.4+; earlier stages
+    grandfathered); path/n_a/browser-spec validation; `pnpm test` runs
+    `validate:completion`; `docs/evidence/tranches/8.4.json`; linked Maison
+    Dubois proof seed; Playwright mutation harness advisor→manager note +
+    worker RLS denial + admin DB assert
+    (`apps/retailer/e2e/completion-harness.spec.ts`).
+
 ### Stage 9 — Migration Cockpit and connectors
 
-- [x] **9.1 Generic staged-file migration**
+- [ ] **9.1 Generic staged-file migration**
+  - **Status:** `implemented_unverified`; foundation exists, but the accepted
+    canonical write-through and browser journey do not.
   - **Requirement IDs:** `INT-002`, `INT-003`.
-  - **Dependencies:** `8.2`; extend existing import foundations.
+  - **Dependencies:** `8.2`, `8.4`; extend existing import foundations.
   - **Owner boundary:** immutable raw upload, profiling/mapping/dedupe/review,
     dry run, dependency-ordered publish, reconcile, dead-letter/resume and
     rollback references for CSV/XLSX/JSON.
   - **Acceptance:** realistic products/customers/orders/stock fixture imports
-    idempotently; counts and money reconcile; passwords/payment credentials and
-    ambiguous identity merges are rejected.
+    into the actual canonical tables idempotently; imported records appear in
+    normal catalogue/customer/order/inventory consumers; counts and money
+    reconcile; passwords/payment credentials and ambiguous identity merges are
+    rejected.
   - **Tests:** rerun/delta/failure/resume, cross-tenant denial and operator
     browser journey.
   - **Non-goals:** no silent AI identity merge.
@@ -1035,26 +1087,34 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     `20260730320000_add_staged_file_migration_foundation.sql`;
     `MigrationJobRepository` dry-run/publish/reconcile/resume; Retailer
     `/migrations` cockpit. Product/stock/order publish receipts reconcile
-    money/units; customers are created for real. Full catalogue/product
-    write-through and Playwright journey remain follow-ons; provider adapters
-    are Stage 9.2.
+    money/units and customers are created for real, but full catalogue/product/
+    stock/order write-through and the Playwright operator-to-downstream journey
+    remain missing. Those are completion work for this item, not optional
+    follow-ons; provider adapters are Stage 9.2.
 
-- [x] **9.2 Shopify and Faden adapters**
+- [ ] **9.2 Shopify and Faden executable adapters**
+  - **Status:** `implemented_unverified`; contracts/fixtures exist, but the
+    running connector lifecycle does not.
   - **Requirement IDs:** `INT-002`, `INT-003`, `INT-004`.
-  - **Dependencies:** `9.1`.
-  - **Owner boundary:** current official export/API/webhook contracts, raw
-    adapters, mappings, health and reconciliation.
-  - **Acceptance:** Shopify fixture covers catalogue/customer/order/stock
-    deltas; Faden fixture covers documented read-only API and signed webhooks;
-    unsupported writes become source tasks/deep links.
+  - **Dependencies:** `9.1`, `8.4`.
+  - **Owner boundary:** current official export/API/webhook contracts,
+    connection configuration/secrets boundary, scheduled/webhook execution,
+    cursor/checkpoint, immutable raw events, mappings, dead letters, pause/
+    resume/disconnect, health and reconciliation.
+  - **Acceptance:** an operator can configure a local/mock connection and run
+    initial plus delta ingest; Shopify covers catalogue/customer/order/stock
+    deltas; Faden covers documented read-only API and signed webhooks;
+    signature/replay/cursor/failure/retry/reconcile are observable; unsupported
+    writes become source tasks/deep links. Provider keys block only live smoke.
   - **Tests:** signatures/replay, cursors, rate/failure, idempotency,
     reconciliation and stale state.
   - **Non-goals:** no undocumented endpoint or browser-automation connector.
   - **Hard blockers:** provider keys block only live smoke tests.
   - **Landed:** domain Shopify delta fixture mapped into 9.1 staged rows;
     Faden signed-webhook fixture verifier + read-only ingest/deep-link plan
-    (no write-back); Admin integration-health lists adapter versions. Live
-    provider smoke remains blocked without credentials.
+    (no write-back); Admin integration-health lists adapter versions. Missing:
+    executable connection/scheduling/webhook lifecycle and multi-role browser
+    proof. Live provider smoke remains `blocked_external` without credentials.
 
 - [ ] **9.3 Demand-led connector expansion**
   - **Requirement IDs:** `INT-002`–`INT-005`.
@@ -1069,14 +1129,21 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 10 — Clienteling, campaign, and remote-selling parity
 
-- [x] **10.1 Versioned campaign library**
+- [ ] **10.1 Versioned campaign library**
+  - **Status:** `implemented_unverified`; pinned library/copy foundation
+    exists, but the accepted deployment-to-outcome loop does not.
   - **Requirement IDs:** `CMP-101`–`CMP-104`.
-  - **Dependencies:** `8.3`; existing campaign/private-offer foundations.
+  - **Dependencies:** `8.3`, `8.4`; existing campaign/private-offer
+    foundations.
   - **Owner boundary:** PAON library object, retailer copy/version,
     prerequisites/mapping/preview, staff mission, customer in-app placement and
     outcome.
-  - **Acceptance:** one campaign can be previewed, cloned, mapped, rehearsed,
-    activated and measured without silently changing with library updates.
+  - **Acceptance:** one campaign can be previewed in customer and staff views,
+    cloned, mapped to real products/content/locations, rehearsed with
+    prerequisites/exclusions/contact pressure, activated into shared staff
+    missions and customer placements, continued to appointment/proposal/cart/
+    order or decline, and measured/corrected without silently changing with
+    library updates.
   - **Tests:** version pin, eligibility/exclusion/contact pressure, role/RLS,
     empty prerequisite and browser states.
   - **Non-goals:** no generic drag-and-drop email editor.
@@ -1084,8 +1151,10 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Landed:** domain library snapshot + pin/prereq rules; migration
     `20260730330000_add_versioned_campaign_library.sql`;
     `CampaignLibraryRepository` ensure/clone with `library_version_id` pin;
-    Retailer campaigns settings shows library preview and clone. Full mapping
-    wizard, rehearsal, and CMP-104 funnel metrics remain follow-ons.
+    Retailer campaigns settings shows library preview and clone. Missing:
+    mapping wizard, rehearsal, shared mission/customer placement, downstream
+    outcome/correction funnel and multi-role browser proof. Those are required
+    completion work for 10.1, not optional follow-ons.
 
 - [ ] **10.2 Seven-Day Wardrobe and Honeymoon Phase**
   - **Requirement IDs:** `CMP-105`, `CMP-106`, `WRD-104`.
@@ -1094,7 +1163,9 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     advisor surfaces.
   - **Acceptance:** editable owned-first seven-day outfits identify cited
     gaps; order-to-delivery tracker creates useful preparation/collection/
-    aftercare actions with stock/lead-time truth and pressure limits.
+    aftercare actions with stock/lead-time truth and pressure limits; the
+    responsive month/season roadmap visualizes real owned/planned/service
+    events rather than decorative timing.
   - **Tests:** owned/suggested separation, campaign timing, suppression,
     correction and outcomes.
   - **Non-goals:** no fabricated scarcity or unapproved one-click payment.
@@ -1111,6 +1182,22 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Tests:** provider mocks, consent, grounding, failure/retry, RLS/browser.
   - **Non-goals:** no autonomous customer spam or invented facts.
   - **Hard blockers:** live channel credentials block only live smoke test.
+
+- [ ] **10.4 Relationship-calendar campaign packages**
+  - **Requirement IDs:** `CMP-107`, `REL-20`.
+  - **Dependencies:** `10.1`; relationship event/fact foundations.
+  - **Owner boundary:** executable Valentine/reservation-rescue and overcoat,
+    Mother’s/Father’s Day, coming-of-age, Race Sunday, annual event, client
+    event, dating/single-again, referral and anniversary packages.
+  - **Acceptance:** packages are published versions with assets, eligibility,
+    timing, prerequisites, retailer mappings, staff/customer surfaces,
+    suppression and attributable outcomes; sensitive-context packages require
+    confirmed context and human rehearsal.
+  - **Tests:** recurrence/timezone, eligibility/exclusion, pressure,
+    mapping-empty, opt-out/correction and customer-to-advisor browser outcome.
+  - **Non-goals:** no static campaign gallery or fictional scarcity.
+  - **Hard blockers:** media rights or external channel credentials block only
+    affected assets/sends.
 
 ### Stage 11 — Workforce Mission Control and coaching
 
@@ -1152,6 +1239,23 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Non-goals:** no fully autonomous scheduling.
   - **Hard blockers:** none.
 
+- [ ] **11.4 Internal community, contribution and support**
+  - **Requirement IDs:** `WFM-107`.
+  - **Dependencies:** `11.2`, `16.1`.
+  - **Owner boundary:** branch/HQ announcements and discussions, onboarding,
+    moderated employee training contributions, cross-location learning-session
+    links, service-budget requests and confidential external support-resource
+    handoff.
+  - **Acceptance:** an employee can find a relevant announcement/resource,
+    submit a reviewable learning contribution and request an approved service
+    recovery budget; managers moderate/acknowledge without exposing private
+    support use or creating activity leaderboards.
+  - **Tests:** audience/branch/RLS, moderation/versioning, budget approval and
+    confidential-resource visibility.
+  - **Non-goals:** no replacement social network, clinical service, keystroke
+    or screenshot monitoring.
+  - **Hard blockers:** external support contracts block only direct booking.
+
 ### Stage 12 — MTM, fit, production, and service network
 
 - [ ] **12.1 MeasurementMonitor decision gate**
@@ -1186,12 +1290,29 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Requirement IDs:** `SRV-101`–`SRV-103`, `INV-103`.
   - **Dependencies:** `8.1`; inventory identity foundation.
   - **Owner boundary:** per-location partners, capability/SLA, wardrobe intake,
-    custody, work/quality, costs/invoices/reconciliation.
+    service plans, custody, work/quality/customer feedback, costs/invoices/
+    reconciliation and a real wardrobe service calendar.
   - **Acceptance:** one alteration and one dry-cleaning flow from booking and
     pickup through return; partner sees minimum data; costs reconcile.
   - **Tests:** custody, partner scope/RLS, SLA/exception, accounting export.
   - **Non-goals:** no partner payout without approved money design.
   - **Hard blockers:** payment decision blocks charging/payout only.
+
+- [ ] **12.4 Supplier/atelier intelligence and support operations**
+  - **Requirement IDs:** `MTM-101`.
+  - **Dependencies:** `12.2`, `8.2`.
+  - **Owner boundary:** supplier/PDM/PLM authority mappings, catalogue/material/
+    trim availability, fabric-button pairing rules, outstanding-order/delay/
+    shortage exceptions and complaint/support cases across retailer, factory
+    and supplier.
+  - **Acceptance:** one supplier fixture updates versioned material data;
+    a shortage/delay creates a cited exception and owner; a complaint links
+    evidence, customer recovery, supplier/workroom action and final outcome.
+  - **Tests:** source authority/version, stale/conflict, material/order joins,
+    minimized partner access, correction and browser exception closure.
+  - **Non-goals:** no invented supplier data, undocumented factory write-back
+    or black-box “MinorityReport” claim.
+  - **Hard blockers:** live supplier API blocks only live sync proof.
 
 ### Stage 13 — Inventory, POS, and loss prevention
 
@@ -1300,10 +1421,12 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Requirement IDs:** `KNW-101`–`KNW-104`.
   - **Dependencies:** existing knowledge; `8.3`, `11.2`.
   - **Owner boundary:** separate customer/staff/owner/media libraries, guided
-    MTM package versions, DailyBriefing and MunroMentor.
-  - **Acceptance:** an article launches an audit/template; customer selects a
-    coherent tier; employee completes context lesson and evidence-cited
-    roleplay/coaching loop.
+    MTM package versions, DailyBriefing, MunroMentor and an AMAM consultancy
+    request/project/milestone/deliverable workflow.
+  - **Acceptance:** an article launches an audit/template or scoped
+    consultancy project; customer selects a coherent tier; employee completes
+    context lesson and evidence-cited roleplay/coaching loop; project
+    deliverables and approvals are visible to the retailer.
   - **Tests:** content approval/version/rights, package spec mapping, rubric
     grounding and role/RLS.
   - **Non-goals:** no unreviewed AI publication.
@@ -1312,8 +1435,9 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 - [ ] **16.2 Media and future-products incubation**
   - **Requirement IDs:** `KNW-105`, `NET-103`.
   - **Dependencies:** `16.1`, `15.1`.
-  - **Owner boundary:** rights-aware retailer media activation and gated
-    product incubation register.
+  - **Owner boundary:** rights-aware contributor/review/retailer media
+    activation and gated product incubation register including remnant/
+    upcycled-drop hypotheses.
   - **Acceptance:** retailer activates approved expiring article/feed; future
     product remains a hypothesis until demand/margin/supplier/quality evidence.
   - **Tests:** rights/territory/expiry, attribution and catalogue separation.
@@ -1331,6 +1455,43 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     field access.
   - **Non-goals:** no simultaneous speculative multi-vertical build.
   - **Hard blockers:** no qualified pilot prospect defers vertical selection.
+
+- [ ] **16.4 Instrumented physical-store and selling experience**
+  - **Requirement IDs:** `EXP-101`.
+  - **Dependencies:** `11.3`, `13.1`, `16.1`.
+  - **Owner boundary:** store zone/playbook definitions, privacy-safe
+    observation adapters, smart-display/mirror sessions, guided product
+    comparison and optional local hospitality task/stock packages.
+  - **Acceptance:** one in-store appointment links zone/display/garment/
+    advisor actions to a customer-approved look and outcome; half/full/
+    handmade comparison records learning; device failure has a normal manual
+    fallback.
+  - **Tests:** device/session isolation, consent/anonymous boundary, offline/
+    retry, asset/stock links, role/RLS and tablet browser flow.
+  - **Non-goals:** no fake virtual-fit precision, covert biometric identity or
+    camera-derived employee accusation.
+  - **Hard blockers:** display/RFID/camera hardware blocks live-device proof
+    only.
+
+- [ ] **16.5 Moonstruck wedding-party apparel pack**
+  - **Requirement IDs:** `WED-101`.
+  - **Dependencies:** `16.3`, `10.1`, `12.2`; actual occasionwear pilot
+    evidence.
+  - **Owner boundary:** extend the existing wedding-party/member/RLS/invite/
+    photo/height/weight/fitting-state aggregate with inspiration board, group
+    fitting capacity, coordinated design choices, order/fitting/delivery
+    readiness, guest dress-code looks/vouchers, garment aftercare and
+    anniversary continuation; never create a second party model.
+  - **Acceptance:** a couple plus three party members completes invite →
+    inspiration/design → fitting → order readiness → collection/aftercare;
+    each participant sees only their data; retailer sees group exceptions and
+    the anniversary becomes a relationship moment.
+  - **Tests:** group/individual permissions, invitation expiry, fitting/
+    production status, asset rights, responsive multi-role browser journey.
+  - **Non-goals:** no full venue, accommodation, invitations, dietary RSVP,
+    lost-and-found or unlicensed escrow wedding-planning platform.
+  - **Hard blockers:** no qualified occasionwear pilot defers live vertical
+    proof, not the reusable pack contracts.
 
 ## Real hard blockers
 

@@ -122,8 +122,20 @@ product, order or balance into every module.
 8. Provider activation and technical capability are separate planes.
 9. All user-facing data is tenant/relationship scoped and RLS protected.
 10. Workflow definitions are versioned; active instances do not drift.
+11. A capability is not complete until its originating role, receiving role,
+    persisted outcome, exception behavior and downstream handoff are proven.
+12. Fixture-only, receipt-only and local-only work is labelled honestly and
+    never silently promoted to live or end-to-end complete.
 
 ## Requirements
+
+### Delivery integrity
+
+- `AUD-001` honest target/implemented/verified/blocked status vocabulary.
+- `AUD-002` machine-readable per-tranche evidence and completion validator.
+- `AUD-003` deterministic linked multi-role seed and browser proof.
+- `AUD-004` originating/receiving role and downstream-handoff verification.
+- `AUD-005` UI state, responsive and accessibility completion matrix.
 
 ### Interoperability
 
@@ -151,6 +163,8 @@ product, order or balance into every module.
 - `WFM-104` closeout and I AM/extra-mile recognition.
 - `WFM-105` explainable demand/coverage recommendation.
 - `WFM-106` selling ceremony, learning and coaching.
+- `WFM-107` internal communication, moderated contribution, service budget
+  and confidential support-resource handoff.
 
 ### Inventory
 
@@ -179,6 +193,7 @@ product, order or balance into every module.
 - `CMP-106` Honeymoon Phase.
 - `CMP-107` relationship calendar packages including Valentine/overcoat,
   milestone, family, annual-event and referral.
+- `REL-20` customer voice, service recovery and persisted outcome.
 
 ### Services and ecosystem
 
@@ -197,6 +212,15 @@ product, order or balance into every module.
 - `KNW-103` contextual DailyBriefing.
 - `KNW-104` MunroMentor roleplay/rubric/coaching.
 - `KNW-105` future proprietary-product incubation register.
+
+### Expanded source-derived operations
+
+- `MTM-101` supplier/PDM/PLM authority, material availability, order
+  exceptions and complaint-resolution loop.
+- `EXP-101` instrumented physical-store sessions, guided comparison and
+  hospitality packages with manual fallback.
+- `WED-101` wedding-party apparel coordination from invitation and inspiration
+  through fitting, delivery, aftercare and anniversary.
 
 ## Dependency order
 
@@ -237,28 +261,36 @@ One tranche is one complete, user-visible vertical behavior. It includes:
 - factual docs;
 - one intentional commit and push.
 
+Completion also requires the applicable evidence fields defined in
+[PAON_COMMON_SENSE_COHERENCE_AND_UX_AUDIT.md](./PAON_COMMON_SENSE_COHERENCE_AND_UX_AUDIT.md).
+The exhaustive source mapping and deliberate exclusions are recorded in
+[PAON_NEBELSPIEGEL_FEATURE_TRACEABILITY_AND_OMISSION_LEDGER.md](./PAON_NEBELSPIEGEL_FEATURE_TRACEABILITY_AND_OMISSION_LEDGER.md).
+
 Cursor continues to the next dependency-complete tranche without asking for a
 new prompt. It stops only the affected operation for a real blocker and then
 continues independent work.
 
-## First authorized tranche sequence
+## Current integrity-first sequence
 
-1. `WRD-101` six-section wardrobe over the shipped wardrobe foundation.
-2. `INT-001` authority registry exercised by a Faden/staged-file fixture.
-3. `WFM-101` time exception/approval/pay-period foundation over existing roster.
-4. `CMP-101` versioned library + one tenant copy and in-app preview.
-5. `INV-101` ledger exercised by barcode receiving/count.
-6. `CORP-101`–`CORP-103` thin corporate employee pilot.
-7. `SRV-101`–`SRV-102` partner directory and wardrobe service custody.
-8. Continue target Stages 9–16 as dependencies become complete.
+1. `AUD-001`–`AUD-005` completion evidence and deterministic multi-role proof.
+2. Finish `INT-002`/`INT-003` canonical migration write-through.
+3. Finish executable Shopify/Faden connector lifecycle around the existing
+   adapter fixtures.
+4. Finish `CMP-101`–`CMP-104` deployment-to-outcome behavior around the pinned
+   campaign-copy foundation.
+5. Continue the first dependency-complete PHASE item without asking for a new
+   prompt.
 
 ## What is implemented now
 
-At authoring time, PAON already has material foundations for catalogue,
+PAON already has material foundations for catalogue,
 customers, appointments, orders, loyalty, wardrobe, MorningRoutine,
 clienteling intelligence, branches, campaigns, concierge and roster/time
-entries. The six-section wardrobe is the first implementation in this expanded
-programme.
+entries. The six-section wardrobe, source-authority/workflow foundations,
+staged migration cockpit, adapter fixtures and pinned campaign-library copies
+are material implementations. The migration, connector and campaign items are
+still `implemented_unverified` until their missing connected behavior in
+PHASE is proven.
 
 Everything else in this document is a target until `PROJECT_STATE.md` records
 verified code, migration and test evidence.
@@ -273,3 +305,8 @@ verified code, migration and test evidence.
 - A technical reward ledger is not approved stored value.
 - A partner listing is not an executed commercial partnership.
 - A target screen described here is not shipped software.
+- A published import receipt is not canonical product/stock/order
+  write-through.
+- An adapter fixture is not an installed running connector.
+- A pinned campaign copy is not an activated staff-to-customer-to-outcome
+  campaign.

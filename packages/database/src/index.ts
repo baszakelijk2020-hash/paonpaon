@@ -79,5 +79,6 @@ export * from "./morning-routine-delivery-orchestrator";
 export * from "./repositories/campaign-repository";
 export * from "./repositories/campaign-library-repository";
 export * from "./campaign-delivery-orchestrator";
+export * from "./programme-proof-seed";
 export * from "./repositories/service-plan-repository";
 export type { Database } from "./generated/database.types";

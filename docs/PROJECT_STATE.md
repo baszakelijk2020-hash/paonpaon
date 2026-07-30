@@ -16,12 +16,23 @@ Snapshot: 2026-07-30.
 ## Implemented baseline relevant to the programme
 
 - Stages 0–5 complete. Stage 6 blocked.
-- Stage 7–8 complete under ADR-066/067.
-- Stage 9.1–9.2 complete; 9.3 demand-led blocked.
-- Stage 10.1 complete locally: versioned campaign library with pinned retailer
-  copies.
+- Stage 7 and Stage 8.0–8.3 complete under ADR-066/067.
+- Stage 9.1 is `implemented_unverified`: staged migration/domain/repository/UI
+  foundations exist; canonical catalogue/product/stock/order write-through and
+  the operator-to-downstream browser journey are missing.
+- Stage 9.2 is `implemented_unverified`: Shopify/Faden mapping, signature and
+  read-only fixture foundations exist; executable connection/scheduling/
+  webhook lifecycle and multi-role browser proof are missing. Live provider
+  proof is additionally blocked on credentials.
+- Stage 9.3 is demand-led and blocked on prospect evidence.
+- Stage 10.1 is `implemented_unverified`: versioned library and pinned retailer
+  copies exist; mapping/rehearsal, staff/customer activation, outcome/
+  correction and multi-role browser proof are missing.
 
 ## Current handoff
 
-Stage 10.2 is next (Seven-Day Wardrobe / Honeymoon Phase; depends on 8.1 and
-10.1). Stage 6 and 9.3 remain blocked; skip them.
+Stage 8.4 is `verified_local`: completion evidence contract, PHASE gate from
+8.4+, linked Maison Dubois proof seed and retailer multi-role harness. Next:
+finish reopened Stage 9.1 (canonical write-through + operator browser
+journey), then 9.2 and 10.1 before Stage 10.2. Stage 6 and 9.3 remain
+blocked; skip them.

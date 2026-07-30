@@ -2975,3 +2975,67 @@ large replacement modules. Target documents must keep target/as-built language
 honest. A missing provider write API, payroll account, RFID reader or payment
 decision blocks only that activation/live proof; provider-neutral and
 independent product work continues.
+
+## ADR-068: Completion requires connected multi-role proof, not landed scaffolding
+
+**Status: accepted for Stage 8.4 and every later PHASE item / requirement IDs
+`AUD-001`–`AUD-005`.**
+
+**Context.** The expanded programme has landed material foundations quickly:
+six-section wardrobe presentation, source authority, workflow versions,
+staged migration, provider fixtures and pinned campaign copies. However,
+several PHASE items were checked complete while their own landed descriptions
+listed missing acceptance behavior. Examples include migration receipts
+without full canonical catalogue/stock/order write-through, adapter fixtures
+without a running connector lifecycle, and campaign copies without the
+activation-to-outcome loop. Green compilation and unit checks cannot establish
+whether the product works logically across roles and modules.
+
+The founder requires PAON to be a real connected operating system, not static
+demo surfaces or convincing isolated scaffolding, and does not intend to
+manually inspect every tranche.
+
+**Decision.**
+
+1. Programme status uses `target`, `implemented_unverified`,
+   `verified_local`, `verified_live`, `blocked_external`, `deferred` and
+   `excluded`. A checked PHASE box means verified, not merely implemented.
+2. Every applicable tranche records machine-readable evidence for domain
+   rules, canonical persistence, service/repository, originating UI, receiving
+   UI, RLS/permissions, exception/correction behavior, deterministic browser
+   proof, operational recovery and any live-only gap.
+3. A validator prevents completion when applicable evidence is absent. Stage
+   8.4 establishes the evidence contract, deterministic linked multi-role seed
+   and reusable browser harness before the reopened Stage 9/10 items continue.
+4. A vertical slice follows:
+   `real evidence -> authoritative state -> originating role -> receiving
+role -> persisted outcome/exception -> downstream handoff`.
+   A receipt, toast, screenshot, component render or fixture returned directly
+   to UI is not a complete end-to-end path.
+5. UI/UX proof covers role orientation, task continuation, responsive
+   operating contexts, accessibility and applicable loading/empty/error/
+   denied/stale/conflict/success states. New capabilities compose into role
+   homes and shared object pages rather than each becoming a top-level app.
+6. Missing live credentials, commercial agreements or hardware may leave
+   `verified_live` as `blocked_external` while independently verified local
+   work continues. That boundary may not conceal missing local connector,
+   workflow or recovery behavior.
+7. The source-feature and omission ledger is canonical traceability input.
+   Full wedding planning, named customer-data sale, invasive employee
+   surveillance, custom payroll/tax, unlicensed money holding and technically
+   false measurement claims remain explicit non-goals; wedding-party apparel,
+   supplier operations, internal community and instrumented-store capabilities
+   are explicitly sequenced targets.
+8. Verification is risk-proportionate. Agents reuse one linked seed, run
+   focused checks while iterating and full DoD once per tranche. Cross-role and
+   authority/stock/money/time/fit flows require browser-plus-database proof;
+   pure infrastructure may cite focused proof and its later consumer. Minor
+   copy, spacing, secondary-device and rare-state defects may be consolidated
+   into a stage-end repair ledger. Data-loss, source-authority, RLS, migration,
+   build and primary-flow defects may not be deferred.
+
+**Consequences.** Stage 9.1, 9.2 and 10.1 return to unchecked
+`implemented_unverified` status until their listed connected behavior is
+proven. Cursor first implements Stage 8.4, then closes those gaps before
+building Honeymoon/Seven-Day and later stages. Future green checks remain
+necessary but cannot by themselves authorize a completion claim.
