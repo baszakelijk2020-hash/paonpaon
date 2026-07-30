@@ -11,6 +11,8 @@ import {
   type CustomerFactSensitivity,
   type CustomerFactType,
   type CustomerFactVisibility,
+  type CustomerFactId,
+  type BehavioralEventId,
   type CustomerId,
   type RetailerId,
   type StaffId,
@@ -111,6 +113,34 @@ export class CustomerFactRepository {
       .limit(limit);
     if (error) throw error;
     return data.map(toDomain);
+  }
+
+  async recordCorrection(args: {
+    readonly retailerId: RetailerId;
+    readonly customerId: CustomerId;
+    readonly factId: CustomerFactId;
+    readonly staffId?: StaffId;
+    readonly customerActorId?: CustomerId;
+    readonly reason: string;
+    readonly excludedEventIds?: readonly BehavioralEventId[];
+  }): Promise<CustomerFact> {
+    const { data, error } = await this.client.rpc(
+      "record_customer_fact_correction",
+      {
+        p_retailer_id: args.retailerId,
+        p_customer_id: args.customerId,
+        p_fact_id: args.factId,
+        p_reason: args.reason,
+        ...(args.staffId ? { p_actor_staff_id: args.staffId } : {}),
+        ...(args.customerActorId
+          ? { p_actor_customer_id: args.customerActorId }
+          : {}),
+        p_excluded_event_ids: [...(args.excludedEventIds ?? [])],
+      },
+    );
+    if (error) throw error;
+    if (!data) throw new Error("Correction did not return fact snapshot");
+    return toDomain(data);
   }
 
   async recordAdvisorRectangles(args: {

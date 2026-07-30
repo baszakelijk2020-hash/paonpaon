@@ -6,6 +6,10 @@
 import type { CustomerId, RetailerId, StaffId } from "../shared/branded-id";
 
 import type { ClientelingOpportunityStatus } from "./clienteling-opportunity";
+import {
+  projectOutcomeFunnel,
+  type OutcomeFunnelCounts,
+} from "./outcome-funnel";
 
 export const DASHBOARD_PROJECTOR_VERSION = "clienteling-dashboard-v1";
 
@@ -156,6 +160,18 @@ export interface ClientelingDashboardProjection {
   readonly presenceTtlMs: number;
   readonly presence: readonly CustomerPresenceRow[];
   readonly opportunityFunnel: OpportunityFunnelCounts;
+  readonly outcomeFunnel: OutcomeFunnelCounts;
   readonly hourlyHeatmap: readonly HourlyHeatCell[];
   readonly assignedStaffId?: StaffId;
+}
+
+export function projectDashboardOutcomeFunnel(
+  opportunities: readonly {
+    readonly status: ClientelingOpportunityStatus;
+    readonly outcomeMessageId?: string;
+    readonly outcomeAppointmentId?: string;
+    readonly outcomeOrderId?: string;
+  }[],
+): OutcomeFunnelCounts {
+  return projectOutcomeFunnel(opportunities);
 }

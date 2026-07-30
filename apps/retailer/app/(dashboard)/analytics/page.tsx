@@ -96,6 +96,7 @@ export default async function AnalyticsPage() {
     ...clienteling.hourlyHeatmap.map((cell) => cell.count),
   );
   const funnel = clienteling.opportunityFunnel;
+  const outcomes = clienteling.outcomeFunnel;
   const ttlSeconds = Math.round(clienteling.presenceTtlMs / 1000);
 
   return (
@@ -190,7 +191,7 @@ export default async function AnalyticsPage() {
           </p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
           <Card>
             <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
               Signed-in presence
@@ -252,6 +253,34 @@ export default async function AnalyticsPage() {
                   ["Dismissed", funnel.dismissed],
                   ["Incorrect", funnel.incorrect],
                   ["Expired", funnel.expired],
+                ] as const
+              ).map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-[var(--color-stone-500)]">{label}</dt>
+                  <dd className="font-display text-2xl text-[var(--color-stone-900)]">
+                    {value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Card>
+
+          <Card>
+            <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
+              Outcome funnel
+            </h3>
+            <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+              Completed touches linked to message, appointment, sale, or honest
+              no-response.
+            </p>
+            <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+              {(
+                [
+                  ["Message", outcomes.message],
+                  ["Appointment", outcomes.appointment],
+                  ["Sale", outcomes.sale],
+                  ["No response", outcomes.noResponse],
+                  ["Pending", outcomes.pending],
                 ] as const
               ).map(([label, value]) => (
                 <div key={label}>

@@ -15,8 +15,8 @@ requires it.
   UI. Stage 6 remains blocked (compliance/marketplace). Stage 7
   (evidence-cited Self-Portrait / clienteling intelligence, ADR-066) is
   independently authorized and locally buildable.
-- **Current queue item:** `7.8 Correction, outcomes, policy, and admin
-hardening`. Skip Stage 6 while blocked.
+- **Current queue item:** Stage 7 complete. Next buildable work awaits a new
+  queue item or Stage 6 unblock. Skip Stage 6 while blocked.
 - **Current requirement IDs:** `CLI-001`–`CLI-009`, `ENG-006` (Stage 7);
   Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
@@ -57,7 +57,9 @@ hardening`. Skip Stage 6 while blocked.
   (PHASE 7.3 complete); `9dda99d` adds sparse clienteling opportunities
   (PHASE 7.4 complete); `2942822` / `6b66dc3` land branches and closeout
   (PHASE 7.5 complete); `891bae1` lands unified For You (PHASE 7.6 complete);
-  Stage 7.7 lands presence/funnel/heatmap dashboards.
+  Stage 7.7 lands presence/funnel/heatmap dashboards;
+  Stage 7.8 lands correction replay, typed policy configs, outcome funnel, and
+  admin intelligence-health observability.
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -142,9 +144,8 @@ hardening`. Skip Stage 6 while blocked.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next files/tests:** implement `7.8` correction/deletion recomputation,
-  outcome funnel integrity, typed policy configuration, and admin
-  observability without unrestricted customer-content browsing.
+- **Exact next files/tests:** Stage 7 is complete. Await Stage 6 unblock or a
+  newly authorized queue item before starting further product slices.
 
 ## 1. Programme intent
 

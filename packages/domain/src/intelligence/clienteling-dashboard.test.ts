@@ -4,6 +4,7 @@ import { asId } from "../shared/branded-id";
 
 import {
   projectCustomerPresence,
+  projectDashboardOutcomeFunnel,
   projectHourlyHeatmap,
   projectOpportunityFunnel,
 } from "./clienteling-dashboard";
@@ -62,5 +63,18 @@ describe("clienteling dashboard projectors", () => {
     expect(heat[9]?.count).toBe(2);
     expect(heat[18]?.count).toBe(1);
     expect(heat).toHaveLength(24);
+  });
+
+  it("includes outcome funnel counts on dashboard projection helper", () => {
+    const outcomes = projectDashboardOutcomeFunnel([
+      {
+        status: "completed",
+        outcomeMessageId: "msg-1",
+      },
+      { status: "accepted" },
+    ]);
+    expect(outcomes.message).toBe(1);
+    expect(outcomes.pending).toBe(1);
+    expect(projectOpportunityFunnel([]).draft).toBe(0);
   });
 });
