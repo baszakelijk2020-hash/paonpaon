@@ -8,6 +8,7 @@ import {
   buildTieMateDeck,
   resolveTieConceptIds,
   resolveTieMateFabricImage,
+  resolveTieMateKeyboardAction,
   TIE_MATE_FABRIC_PHOTO_GUIDANCE,
   type TieMateFabricCandidate,
 } from "./tie-mate";
@@ -269,5 +270,13 @@ describe("TIE_MATE_FABRIC_PHOTO_GUIDANCE", () => {
     expect(TIE_MATE_FABRIC_PHOTO_GUIDANCE.requirements.length).toBeGreaterThan(
       0,
     );
+  });
+});
+
+describe("resolveTieMateKeyboardAction", () => {
+  it("maps arrow keys for skip and save", () => {
+    expect(resolveTieMateKeyboardAction("ArrowLeft")).toBe("skip");
+    expect(resolveTieMateKeyboardAction("ArrowRight")).toBe("save");
+    expect(resolveTieMateKeyboardAction("Enter")).toBeNull();
   });
 });

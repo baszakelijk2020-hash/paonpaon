@@ -34,6 +34,12 @@ export function ProductImageUploader({
       <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
         Product image
       </h2>
+      <p className="text-sm text-[var(--color-stone-500)]">
+        Tie-Mate phone-scale try-on prefers a sharp, evenly lit fabric close-up
+        on the product swatch field (<code>swatch_image_url</code>), usually set
+        via catalogue import. This primary image is only a fallback when no
+        swatch exists.
+      </p>
       {imageUrl ? (
         <Image
           src={imageUrl}

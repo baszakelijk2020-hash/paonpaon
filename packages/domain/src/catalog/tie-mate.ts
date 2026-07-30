@@ -253,6 +253,20 @@ export function buildTieMateActionPaths(args: {
 }
 
 /**
+ * Keyboard map for the interim Tie-Mate deck (ArrowLeft skip / ArrowRight
+ * save). Kept pure so a11y behaviour can be unit-tested without a browser.
+ */
+export type TieMateKeyboardAction = "skip" | "save" | null;
+
+export function resolveTieMateKeyboardAction(
+  key: string,
+): TieMateKeyboardAction {
+  if (key === "ArrowLeft") return "skip";
+  if (key === "ArrowRight") return "save";
+  return null;
+}
+
+/**
  * Resolve neckwear/tie concept IDs from an accepted concept catalogue by
  * garment_type slug/label heuristics. Callers pass reviewed concepts only.
  */

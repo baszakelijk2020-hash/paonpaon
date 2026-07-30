@@ -92,12 +92,8 @@ Snapshot: 2026-07-30.
 The founder brief is the complete product-intent authority. The technical
 programme traces it through stable requirement IDs, and `PHASE.md` contains
 the sole dependency-ordered queue with per-item acceptance/test/boundary
-contracts. Stages 1–4 and PHASE 5.1–5.3 (campaigns, loyalty milestones, and
-Preferred Tailoring / HighMaintenance operations) are complete. The
-authoritative Resume Protocol identifies Tie-Mate (PHASE 5.4) as the next
-queue item. The Hermès Tie Break–like concept, domain deck/photo/handoff
-contract, and catalogue projection repository (`TieMateRepository`) are
-authorized (ADR-065); the customer UI remains paused until an
-approved founder mobile surface exists under ADR-052. Stage 6.1–6.3 are not
-independently buildable (compliance gate; marketplace not explicitly
-activated).
+contracts. Stages 1–5 are complete through Tie-Mate interim Customer UI at
+`/r/[slug]/tie-mate` (domain, repository, PAON-tokened phone-scale deck).
+Stage 6.1–6.3 are not independently buildable (compliance gate; marketplace
+not explicitly activated). Optional later ADR-052 founder-HTML Tie-Mate port
+is not a programme blocker.

@@ -2809,8 +2809,8 @@ needs marketplace assumptions.
 ## ADR-065: Tie-Mate follows Hermès Tie Break's try-on discovery model; fabric photos are retailer-fed catalogue assets
 
 **Status: product/tech decision for PHASE 5.4 / TIE-001. Domain deck contract
-may land immediately; customer UI remains gated on an approved mobile surface
-under ADR-052 unless the founder authorizes an explicit interim surface.**
+and interim Customer route `/r/[slug]/tie-mate` are authorized. A later
+ADR-052 verbatim founder-HTML port may still replace the interim surface.**
 
 **Context.** PHASE 5.4 paused because no Tie-Mate HTML exists under
 `downloaded_pages/`, founder storefront HTML, or docs, while catalogue,
@@ -2845,20 +2845,22 @@ oneself, then save, order, or start an advisor conversation on live stock.
    - can pin shortlist/advisor products first;
    - hands off to existing Customer paths (product/order, swipe/wishlist save,
      appointments, messages) without a parallel catalogue.
-4. Customer UI still requires an approved founder mobile surface for an
-   ADR-052 verbatim port. This ADR authorizes the **concept and domain
-   contract** now. It does **not** authorize inventing founder HTML, Hermes-
-   branded chrome, generic Tinder restyling of swipe, or a second product
-   catalogue.
+4. Customer UI originally required an approved founder mobile surface for an
+   ADR-052 verbatim port. On 2026-07-30 the founder authorized an **interim**
+   Customer route at `/r/[slug]/tie-mate` using existing PAON storefront
+   patterns/tokens (not Hermès branding, not invented founder HTML, not
+   discontinued Tie Break chrome). This ADR still forbids inventing founder
+   HTML, Hermes-branded chrome, generic Tinder restyling of swipe, or a
+   second product catalogue. A later founder-HTML port may replace the
+   interim surface under ADR-052.
 5. Visual embeddings / AI matching are out of scope for TIE-001 unless a later
    ADR explicitly adds a provider-neutral `@paon/ai` port for optional
    similarity search. Tie Break did not need them; PAON's photo assumption is
    content quality for phone-scale preview.
 
 **Consequences.** Agents may ship and extend the Tie-Mate domain/repository
-wiring while the UI hard blocker holds. PHASE 5.4 acceptance (viewport gestures,
-realistic-scale snapshots, save/order/handoff) remains incomplete until a
-founder surface exists or the founder explicitly authorizes a named interim
-mobile route. Existing swipe is a related gesture surface but is not Tie-Mate;
-Tie-Mate must prefer fabric close-ups and neckwear stock, not mixed catalogue
-heroes.
+wiring and the founder-authorized interim Customer route. Existing swipe is a
+related gesture surface but is not Tie-Mate; Tie-Mate must prefer fabric
+close-ups and neckwear stock, not mixed catalogue heroes. A later ADR-052
+verbatim founder-HTML port may supersede the interim chrome without changing
+the deck/handoff contracts.

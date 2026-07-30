@@ -614,7 +614,7 @@ explanation path.
     `ServicePlanRepository`, Customer `/services` and Retailer `/services`
     operational surfaces composing appointments/alterations without payment.
 
-- [ ] **5.4 Tie-Mate**
+- [x] **5.4 Tie-Mate**
   - **Requirement IDs:** `TIE-001`, `ENG-004`.
   - **Dependencies:** `2.3`, `3.4`; ADR-052; ADR-065; approved founder surface/design.
   - **Owner boundary:** dedicated mobile founder surface and narrow catalogue/
@@ -631,13 +631,11 @@ explanation path.
     CV fabric recognition.
   - **Hard blockers:** no approved founder surface/design is a real blocker for
     the UI item; underlying reusable foundations must still ship first.
-  - **Status:** partially unblocked — founder authorized the Hermès Tie Break–
-    like try-on discovery concept and retailer-fed sharp fabric close-ups
-    (ADR-065). Domain deck/photo/handoff contract and catalogue projection
-    repository landed; customer UI remains blocked until an approved mobile
-    surface exists under ADR-052 (or the founder explicitly names an interim
-    route). Stages 2–3 already shipped the reusable catalogue, discovery,
-    stock, shortlist, and advisor foundations.
+  - **Status:** complete for TIE-001 interim acceptance — founder authorized
+    `/r/[slug]/tie-mate` using existing PAON storefront patterns/tokens
+    (ADR-065 interim clause). Domain deck/photo/handoff, catalogue projection,
+    and Customer interim UI with swipe/save/buy/advisor handoffs landed. A
+    later ADR-052 verbatim founder-HTML port may replace interim chrome.
   - **Landed (foundation):** `6842fb5` — `@paon/domain` `buildTieMateDeck` /
     `resolveTieMateFabricImage` / `buildTieMateActionPaths` /
     `resolveTieConceptIds` with unit coverage — swatch-preferred fabric
@@ -648,8 +646,13 @@ explanation path.
     assignments into `TieMateFabricCandidate`, resolves neckwear
     `garment_type` concept IDs, and feeds `buildTieMateDeck`
     (`projectFabricCandidates` / `resolveTieConceptIdsForRetailer` /
-    `buildDeck`) with unit + storefront read-security coverage. No customer
-    UI / founder HTML.
+    `buildDeck`) with unit + storefront read-security coverage.
+  - **Landed (interim UI):** Customer `/r/[slug]/tie-mate` mounts
+    `TieMateRepository.buildDeck` + `buildTieMateActionPaths`; phone-scale
+    full-bleed fabric (swatch preferred), pointer swipe + ArrowLeft/Right,
+    wishlist save, PDP buy, appointment/messages/swipe handoffs; empty-deck
+    guidance; retailer product-image guidance for sharp `swatch_image_url`
+    close-ups. Keyboard map unit-tested via `resolveTieMateKeyboardAction`.
 
 **Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
 duplicate loyalty ledger, service state hidden in generic order status, or
@@ -721,8 +724,8 @@ invented founder-designed surface.
     approved surface blocks those portions; isolated domain modelling can
     proceed only when explicitly activated after prior stages.
   - **Status:** blocked — not independently activated; do not start marketplace
-    domain modelling while 5.4 and 6.1 remain unresolved and this item has not
-    been explicitly unlocked.
+    domain modelling while 6.1 remains unresolved and this item has not been
+    explicitly unlocked.
 
 **Stage 6 non-goals:** no PAON-built payment processor, credit underwriting,
 custom stored-card vault, silent merchant-of-record change, unapproved stored
