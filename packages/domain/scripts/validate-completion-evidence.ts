@@ -36,7 +36,7 @@ function currentGitSha(): string {
 }
 
 const EVIDENCE_ONLY_PATH_RE =
-  /^(docs\/evidence\/|docs\/PHASE\.md$|docs\/evidence\/STAGE_REPAIR_LEDGER\.md$)/;
+  /^(docs\/evidence\/|docs\/PHASE\.md$|docs\/PROJECT_STATE\.md$|docs\/PAON_INTELLIGENCE_PLATFORM\.md$|docs\/evidence\/STAGE_REPAIR_LEDGER\.md$)/;
 
 function isCurrentGitSha(artifactGitSha: string): boolean {
   const head = currentGitSha();
