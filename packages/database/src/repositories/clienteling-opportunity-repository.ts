@@ -220,4 +220,32 @@ export class ClientelingOpportunityRepository {
       .eq("id", args.opportunityId);
     if (error) throw error;
   }
+
+  async linkOutcome(args: {
+    readonly retailerId: RetailerId;
+    readonly opportunityId: string;
+    readonly outcomeMessageId?: string;
+    readonly outcomeAppointmentId?: string;
+    readonly outcomeOrderId?: string;
+    readonly status?: ClientelingOpportunityStatus;
+  }): Promise<void> {
+    const { error } = await this.client
+      .from("clienteling_opportunities")
+      .update({
+        ...(args.outcomeMessageId
+          ? { outcome_message_id: args.outcomeMessageId }
+          : {}),
+        ...(args.outcomeAppointmentId
+          ? { outcome_appointment_id: args.outcomeAppointmentId }
+          : {}),
+        ...(args.outcomeOrderId
+          ? { outcome_order_id: args.outcomeOrderId }
+          : {}),
+        status: args.status ?? "completed",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("retailer_id", args.retailerId)
+      .eq("id", args.opportunityId);
+    if (error) throw error;
+  }
 }

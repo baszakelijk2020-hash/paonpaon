@@ -505,6 +505,7 @@ export default async function CustomerDetailPage({
 
       {canManage ? (
         <SelfPortrait
+          customerId={customer.id}
           loyaltyAccount={loyaltyAccount}
           milestoneAwards={milestoneAwards}
           recentEvents={recentEvents}

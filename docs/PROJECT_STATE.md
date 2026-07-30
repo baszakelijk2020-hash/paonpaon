@@ -10,15 +10,15 @@ Snapshot: 2026-07-30.
 ## Repository
 
 - Branch: `main`; remote: `origin` (`baszakelijk2020-hash/paonpaon`).
-- Schema source: 115 forward Supabase migrations plus generated TypeScript
+- Schema source: 116 forward Supabase migrations plus generated TypeScript
   database types.
 
 ## Implemented baseline relevant to the programme
 
 - Stages 0–5 complete. Stage 6 blocked.
-- Stage 7.0–7.7 landed through presence/funnel/heatmap manager dashboards.
+- Stage 7.0–7.8 complete (ADR-066 intelligence/clienteling programme).
 
 ## Current handoff
 
-Next: PHASE `7.8 Correction, outcomes, policy, and admin hardening`. Skip
-Stage 6.
+Stage 7 queue exhausted. Next buildable work requires a new authorised PHASE
+item or Stage 6 founder unlock. Skip Stage 6 while blocked.

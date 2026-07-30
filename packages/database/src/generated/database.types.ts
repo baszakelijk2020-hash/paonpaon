@@ -3625,6 +3625,115 @@ export type Database = {
         };
         Relationships: [];
       };
+      intelligence_policy_configs: {
+        Row: {
+          allow_activation: boolean;
+          allow_advisor_display: boolean;
+          allow_anonymous_capture: boolean;
+          allow_customer_display: boolean;
+          allow_export: boolean;
+          allow_personalization_projection: boolean;
+          created_at: string;
+          deleted_at: string | null;
+          field_mask: string[];
+          id: string;
+          jurisdiction_tag: string | null;
+          policy_version: string;
+          retailer_id: string | null;
+          retention_days_personalization: number;
+          updated_at: string;
+        };
+        Insert: {
+          allow_activation?: boolean;
+          allow_advisor_display?: boolean;
+          allow_anonymous_capture?: boolean;
+          allow_customer_display?: boolean;
+          allow_export?: boolean;
+          allow_personalization_projection?: boolean;
+          created_at?: string;
+          deleted_at?: string | null;
+          field_mask?: string[];
+          id?: string;
+          jurisdiction_tag?: string | null;
+          policy_version?: string;
+          retailer_id?: string | null;
+          retention_days_personalization?: number;
+          updated_at?: string;
+        };
+        Update: {
+          allow_activation?: boolean;
+          allow_advisor_display?: boolean;
+          allow_anonymous_capture?: boolean;
+          allow_customer_display?: boolean;
+          allow_export?: boolean;
+          allow_personalization_projection?: boolean;
+          created_at?: string;
+          deleted_at?: string | null;
+          field_mask?: string[];
+          id?: string;
+          jurisdiction_tag?: string | null;
+          policy_version?: string;
+          retailer_id?: string | null;
+          retention_days_personalization?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_policy_configs_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      intelligence_projection_health: {
+        Row: {
+          correction_rate: number;
+          created_at: string;
+          explainability_ok: boolean;
+          id: string;
+          lag_seconds: number;
+          notes: string | null;
+          observed_at: string;
+          projector_version: string;
+          retailer_id: string | null;
+          status: string;
+        };
+        Insert: {
+          correction_rate?: number;
+          created_at?: string;
+          explainability_ok?: boolean;
+          id?: string;
+          lag_seconds?: number;
+          notes?: string | null;
+          observed_at?: string;
+          projector_version: string;
+          retailer_id?: string | null;
+          status: string;
+        };
+        Update: {
+          correction_rate?: number;
+          created_at?: string;
+          explainability_ok?: boolean;
+          id?: string;
+          lag_seconds?: number;
+          notes?: string | null;
+          observed_at?: string;
+          projector_version?: string;
+          retailer_id?: string | null;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "intelligence_projection_health_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       interaction_sessions: {
         Row: {
           anonymous_session_id: string | null;

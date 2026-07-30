@@ -12,6 +12,8 @@ import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
 
+import { correctCustomerFact } from "./fact-correction-actions";
+
 const TIER_TONE = {
   member: "neutral",
   silver: "neutral",
@@ -70,6 +72,7 @@ function interestWindowLabel(projection: CustomerInterestProjection): string {
  * team already knows about them.
  */
 export function SelfPortrait({
+  customerId,
   loyaltyAccount,
   milestoneAwards,
   recentEvents,
@@ -77,6 +80,7 @@ export function SelfPortrait({
   interestProjection,
   customerFacts,
 }: {
+  customerId: string;
   loyaltyAccount: LoyaltyAccount | null;
   milestoneAwards: LoyaltyMilestoneAward[];
   recentEvents: BehavioralEvent[];
@@ -196,9 +200,22 @@ export function SelfPortrait({
                     {PROVENANCE_LABELS[fact.provenanceClass]} · {fact.factType}
                   </span>
                 </span>
-                <span className="shrink-0 text-xs text-[var(--color-stone-500)]">
-                  {formatDate(fact.observedAt, "en-US")}
-                </span>
+                <form action={correctCustomerFact} className="shrink-0">
+                  <input type="hidden" name="factId" value={fact.id} />
+                  <input type="hidden" name="customerId" value={customerId} />
+                  <input type="hidden" name="factType" value={fact.factType} />
+                  <input
+                    type="hidden"
+                    name="reason"
+                    value="Advisor marked incorrect"
+                  />
+                  <button
+                    type="submit"
+                    className="text-xs text-[var(--color-stone-500)] underline underline-offset-2"
+                  >
+                    Correct
+                  </button>
+                </form>
               </li>
             ))}
           </ul>

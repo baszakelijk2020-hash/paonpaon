@@ -14,9 +14,9 @@ requires it.
 - **Programme status:** Stages 0–5 complete through Tie-Mate interim Customer
   UI. Stage 6 remains blocked (compliance/marketplace). Stage 7
   (evidence-cited Self-Portrait / clienteling intelligence, ADR-066) is
-  independently authorized and locally buildable.
-- **Current queue item:** `7.8 Correction, outcomes, policy, and admin
-hardening`. Skip Stage 6 while blocked.
+  complete through 7.8; continue only if new Stage 7 follow-ons are queued.
+- **Current queue item:** Stage 6 remains blocked — skip. No further Stage 7
+  queue items. Resume only on a new authorised item or Stage 6 unlock.
 - **Current requirement IDs:** `CLI-001`–`CLI-009`, `ENG-006` (Stage 7);
   Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
@@ -57,7 +57,8 @@ hardening`. Skip Stage 6 while blocked.
   (PHASE 7.3 complete); `9dda99d` adds sparse clienteling opportunities
   (PHASE 7.4 complete); `2942822` / `6b66dc3` land branches and closeout
   (PHASE 7.5 complete); `891bae1` lands unified For You (PHASE 7.6 complete);
-  Stage 7.7 lands presence/funnel/heatmap dashboards.
+  Stage 7.7 lands presence/funnel/heatmap dashboards; Stage 7.8 lands policy/
+  correction/admin health (Stage 7 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -142,9 +143,8 @@ hardening`. Skip Stage 6 while blocked.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next files/tests:** implement `7.8` correction/deletion recomputation,
-  outcome funnel integrity, typed policy configuration, and admin
-  observability without unrestricted customer-content browsing.
+- **Exact next files/tests:** Stage 7 queue exhausted. Do not invent Stage 6
+  payment/marketplace code. Stop unless a new PHASE item is authorised.
 
 ## 1. Programme intent
 
@@ -265,8 +265,8 @@ above. Status changes only after the named acceptance criteria are verified.
 | CLI-006                | Branches/stores, shared calendar, recurring moments, and post-appointment closeout rectangles feeding Self-Portrait                                                                                        | Calendar + closeout                | `retailer_branches`, appointment branch link, timezone-aware booking, closeout rectangles → facts, `customer_moments`                       | CLI-003, CLI-005, appointments                  | 7.5                  | Manager-controlled branch calendar; closeout answers become provenance-aware facts                                               | Done (7.5); week-grid calendar deferred                                                                   |
 | CLI-007                | Unified customer For You page with deterministic ranking, reason codes, diversity, inventory awareness, and learning events                                                                                | For You                            | `rankForYouCandidates` + `ForYouRepository` + `/for-you` with `for_you_*` feedback events                                                   | CLI-002, CLI-003, EDU-002                       | 7.6                  | Every recommendation exposes human reason copy and evidence; owned/rejected/irrelevant items suppressed                          | Done (7.6); Tie-Mate/gap joins remain thin                                                                |
 | CLI-008                | Role-specific live/temporal dashboards with honest presence TTL, heatmaps, opportunity funnel, workload, and data-quality status                                                                           | Dashboards                         | Presence TTL projector + opportunity funnel + hourly heatmap on Retailer Analytics                                                          | CLI-001, CLI-005, CLI-006                       | 7.7                  | Presence never implies online after heartbeat expiry; owner views are not vanity event counts                                    | Done (7.7)                                                                                                |
-| CLI-009                | Typed capability/policy eligibility plane plus correction, outcomes, and admin observability hardening                                                                                                     | Policy + admin ops                 | Consent helpers exist; typed policy configuration and admin health scheduled for 7.8                                                        | CLI-001–CLI-008, ADR-066                        | 7.8                  | Core projectors accept eligibility decisions; admin cannot freely browse retailer customer content                               | Not started                                                                                               |
-| ENG-006                | Capability-first intelligence with policy as a separate eligibility plane; no hard-coded jurisdiction branches in core derivation                                                                          | Intelligence governance            | Consent/eligibility helpers exist; Stage 7 ADR-066 authorizes the separation                                                                | ENG-002, ADR-066                                | 7.0–7.8              | Capture/projection/display/export/activation remain testable against typed policy without redesigning projectors                 | Authorized (7.0)                                                                                          |
+| CLI-009                | Typed capability/policy eligibility plane plus correction, outcomes, and admin observability hardening                                                                                                     | Policy + admin ops                 | `intelligence_policy_configs` + eligibility helpers; fact correction; opportunity outcomes; admin Intelligence health page                  | CLI-001–CLI-008, ADR-066                        | 7.8                  | Core projectors accept eligibility decisions; admin cannot freely browse retailer customer content                               | Done (7.8)                                                                                                |
+| ENG-006                | Capability-first intelligence with policy as a separate eligibility plane; no hard-coded jurisdiction branches in core derivation                                                                          | Intelligence governance            | Default capability-first policy + evaluateIntelligenceEligibility; activation remains draft-only                                            | ENG-002, ADR-066                                | 7.0–7.8              | Capture/projection/display/export/activation remain testable against typed policy without redesigning projectors                 | Done (7.8)                                                                                                |
 
 ## 3. Architecture and bounded contexts
 

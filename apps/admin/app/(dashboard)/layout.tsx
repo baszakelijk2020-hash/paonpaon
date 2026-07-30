@@ -46,6 +46,11 @@ const navigation: AppShellNavGroup[] = [
         description: "Generation quality and failures",
       },
       {
+        href: "/intelligence-health",
+        label: "Intelligence health",
+        description: "Projectors, policy, explainability",
+      },
+      {
         href: "/import-enrichment",
         label: "Import enrichment",
         description: "External LLM prompt contract",

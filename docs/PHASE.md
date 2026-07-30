@@ -898,7 +898,7 @@ capability with policy as a separate eligibility plane (ADR-066).
   - **Landed:** presence/funnel/hourly heatmap projectors + manager Analytics
     mount; vanity event-count metric replaced with opportunity drafts.
 
-- [ ] **7.8 Correction, outcomes, policy, and admin hardening**
+- [x] **7.8 Correction, outcomes, policy, and admin hardening**
   - **Requirement IDs:** `CLI-009`, `ENG-006`.
   - **Dependencies:** `7.1`–`7.7`; ADR-066.
   - **Owner boundary:** correction/deletion recomputation, outcome funnel
@@ -910,6 +910,9 @@ capability with policy as a separate eligibility plane (ADR-066).
   - **Tests:** correction replay, policy matrices, tenant isolation evidence.
   - **Non-goals:** no production unlawful configuration; no Stage 6 unlock.
   - **Hard blockers:** hosted-only verification gaps are recorded, not faked.
+  - **Landed:** intelligence policy eligibility plane; fact correction +
+    recompute contract; opportunity outcome linkage; admin Intelligence health
+    page (projectors/policy/health, no customer browsing). Stage 7 complete.
 
 **Stage 7 non-goals:** no Stage 6 payment/compliance implementation, no
 marketplace, no hard-coded jurisdiction branches in core projectors, no

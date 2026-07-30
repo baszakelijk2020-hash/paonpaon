@@ -140,4 +140,45 @@ export class CustomerFactRepository {
     if (error) throw error;
     return (data ?? []).map(toDomain);
   }
+
+  async markCorrected(args: {
+    readonly retailerId: RetailerId;
+    readonly factId: string;
+    readonly staffId: StaffId;
+    readonly reason: string;
+  }): Promise<void> {
+    const now = new Date().toISOString();
+    const { data: existing, error: loadError } = await this.client
+      .from("customer_facts")
+      .select("*")
+      .eq("retailer_id", args.retailerId)
+      .eq("id", args.factId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (loadError) throw loadError;
+    if (!existing) throw new Error("Fact not found");
+
+    const { error: correctionError } = await this.client
+      .from("customer_fact_corrections")
+      .insert({
+        retailer_id: args.retailerId,
+        customer_id: existing.customer_id,
+        fact_id: args.factId,
+        actor_staff_id: args.staffId,
+        reason: args.reason.slice(0, 500),
+        previous_snapshot: existing as unknown as Json,
+        created_at: now,
+      });
+    if (correctionError) throw correctionError;
+
+    const { error: updateError } = await this.client
+      .from("customer_facts")
+      .update({
+        deleted_at: now,
+        updated_at: now,
+      })
+      .eq("retailer_id", args.retailerId)
+      .eq("id", args.factId);
+    if (updateError) throw updateError;
+  }
 }
