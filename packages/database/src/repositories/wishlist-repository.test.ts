@@ -81,4 +81,30 @@ describe("WishlistRepository", () => {
     });
     expect(saved).toBe(true);
   });
+
+  it("surfaces cross-retailer wishlist denial from toggle_wishlist_item", async () => {
+    // Tie-Mate save delegates to this RPC. A variant that does not belong to
+    // the requested retailer must fail closed (same message as the SQL guard).
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "Product is not available from this retailer" },
+    });
+    const repo = new WishlistRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+
+    await expect(
+      repo.toggleItem(
+        "11111111-1111-1111-1111-111111111111" as never,
+        "99999999-9999-4999-8999-999999999999" as never,
+      ),
+    ).rejects.toMatchObject({
+      message: "Product is not available from this retailer",
+    });
+
+    expect(rpc).toHaveBeenCalledWith("toggle_wishlist_item", {
+      p_retailer_id: "11111111-1111-1111-1111-111111111111",
+      p_variant_id: "99999999-9999-4999-8999-999999999999",
+    });
+  });
 });

@@ -623,19 +623,28 @@ explanation path.
   - **Acceptance:** fabrics render at true-feeling phone-screen scale with
     mobile swipe, save, order, and advisor handoff; stock and retailer tenancy
     are live; desktop fallback and accessibility are intentional.
-  - **Tests:** viewport/gesture/keyboard/screen-reader, realistic-scale visual
-    snapshots, stock changes, save/order/handoff integration, and cross-tenant
-    denial.
+  - **Tests (local unit — implemented):** empty/out-of-stock deck projection
+    (drives empty guidance), ArrowLeft/ArrowRight keyboard map, retailer-scoped
+    catalogue projection, wishlist save RPC args for authenticated
+    retailer/variant, and fail-closed propagation of cross-retailer wishlist
+    denial (`Product is not available from this retailer`).
+  - **Tests (still requiring hosted verification):** anonymous browser browse
+    without mutation authority, signed-in wishlist save/order/handoff
+    integration, viewport/gesture/screen-reader and realistic-scale visual
+    snapshots, live stock-change UX, and runtime RLS/pgTAP denial against a
+    real database. `pnpm test` does not run Playwright or pgTAP.
   - **Non-goals:** no invented founder design, product stock copy, generic
     Tinder styling, separate catalogue, Hermès branding/games, or customer-side
     CV fabric recognition.
   - **Hard blockers:** no approved founder surface/design is a real blocker for
     the UI item; underlying reusable foundations must still ship first.
-  - **Status:** complete for TIE-001 interim acceptance — founder authorized
-    `/r/[slug]/tie-mate` using existing PAON storefront patterns/tokens
-    (ADR-065 interim clause). Domain deck/photo/handoff, catalogue projection,
-    and Customer interim UI with swipe/save/buy/advisor handoffs landed. A
-    later ADR-052 verbatim founder-HTML port may replace interim chrome.
+  - **Status:** complete for TIE-001 interim acceptance under ADR-065 with
+    local unit evidence above — founder authorized `/r/[slug]/tie-mate` using
+    existing PAON storefront patterns/tokens. Domain deck/photo/handoff,
+    catalogue projection, and Customer interim UI with swipe/save/buy/advisor
+    handoffs landed. Hosted browser/RLS/a11y verification remains an open gap
+    (not a Stage 6 unlock). A later ADR-052 verbatim founder-HTML port may
+    replace interim chrome.
   - **Landed (foundation):** `6842fb5` — `@paon/domain` `buildTieMateDeck` /
     `resolveTieMateFabricImage` / `buildTieMateActionPaths` /
     `resolveTieConceptIds` with unit coverage — swatch-preferred fabric
@@ -646,13 +655,17 @@ explanation path.
     assignments into `TieMateFabricCandidate`, resolves neckwear
     `garment_type` concept IDs, and feeds `buildTieMateDeck`
     (`projectFabricCandidates` / `resolveTieConceptIdsForRetailer` /
-    `buildDeck`) with unit + storefront read-security coverage.
+    `buildDeck`) with unit coverage including empty OOS/photo-less decks.
   - **Landed (interim UI):** `7b684ff` — Customer `/r/[slug]/tie-mate` mounts
     `TieMateRepository.buildDeck` + `buildTieMateActionPaths`; phone-scale
     full-bleed fabric (swatch preferred), pointer swipe + ArrowLeft/Right,
     wishlist save, PDP buy, appointment/messages/swipe handoffs; empty-deck
     guidance; retailer product-image guidance for sharp `swatch_image_url`
     close-ups. Keyboard map unit-tested via `resolveTieMateKeyboardAction`.
+  - **Landed (verification harden):** unit evidence for empty/OOS decks,
+    keyboard map, wishlist RPC retailer/variant args, and cross-retailer
+    wishlist denial propagation; PHASE test language split into local vs
+    hosted gaps.
 
 **Stage 5 non-goals:** no mass-discount gamification, opaque audiences,
 duplicate loyalty ledger, service state hidden in generic order status, or

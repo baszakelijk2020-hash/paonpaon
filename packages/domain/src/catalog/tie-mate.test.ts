@@ -152,6 +152,39 @@ describe("buildTieMateDeck", () => {
     expect(deck.skippedOutOfStock).toBe(1);
   });
 
+  it("returns an empty deck with out-of-stock skip counts when no sellable ties remain", () => {
+    const deck = buildTieMateDeck(
+      [
+        candidate({
+          productId: productA,
+          variantId: variantA,
+          name: "Sold-out grenadine",
+          inventoryQuantity: 0,
+          swatchImageUrl: "https://cdn.example/oos-swatch.jpg",
+        }),
+        candidate({
+          productId: productB,
+          variantId: variantB,
+          name: "Jacket only",
+          acceptedConceptIds: [jacketConcept],
+          swatchImageUrl: "https://cdn.example/jacket.jpg",
+        }),
+      ],
+      {
+        retailerId,
+        slug: "maison-demo",
+        tieConceptIds: new Set([tieConcept]),
+      },
+    );
+
+    // Empty projection drives the Customer empty-guidance UI (no Save/Buy
+    // controls until a stocked neckwear swatch is available).
+    expect(deck.cards).toEqual([]);
+    expect(deck.skippedOutOfStock).toBe(1);
+    expect(deck.skippedNotTie).toBe(1);
+    expect(deck.skippedWithoutPhoto).toBe(0);
+  });
+
   it("skips ties without fabric photos and inactive products", () => {
     const noPhoto: TieMateFabricCandidate = {
       productId: productA,
@@ -274,9 +307,13 @@ describe("TIE_MATE_FABRIC_PHOTO_GUIDANCE", () => {
 });
 
 describe("resolveTieMateKeyboardAction", () => {
-  it("maps arrow keys for skip and save", () => {
+  it("maps ArrowLeft to skip and ArrowRight to save only", () => {
     expect(resolveTieMateKeyboardAction("ArrowLeft")).toBe("skip");
     expect(resolveTieMateKeyboardAction("ArrowRight")).toBe("save");
+    expect(resolveTieMateKeyboardAction("ArrowUp")).toBeNull();
+    expect(resolveTieMateKeyboardAction("ArrowDown")).toBeNull();
     expect(resolveTieMateKeyboardAction("Enter")).toBeNull();
+    expect(resolveTieMateKeyboardAction(" ")).toBeNull();
+    expect(resolveTieMateKeyboardAction("s")).toBeNull();
   });
 });

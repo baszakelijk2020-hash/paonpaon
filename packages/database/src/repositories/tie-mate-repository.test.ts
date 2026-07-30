@@ -328,4 +328,52 @@ describe("TieMateRepository", () => {
     const ids = await repo.resolveTieConceptIdsForRetailer(retailerId as never);
     expect([...ids]).toEqual([tieConceptId, pendingConceptId]);
   });
+
+  it("builds an empty deck when neckwear is only out of stock or photo-less", async () => {
+    const repo = new TieMateRepository(
+      clientWith({
+        products: [
+          product({
+            id: outOfStockTie,
+            slug: "sold-out-tie",
+            name: "Sold Out Tie",
+            swatch_image_url: "https://cdn.example/oos.jpg",
+          }),
+          product({
+            id: noPhotoTie,
+            slug: "no-photo-tie",
+            name: "No Photo Tie",
+          }),
+        ],
+        product_variants: [
+          variant(oosVariant, outOfStockTie, 0),
+          variant(noPhotoVariant, noPhotoTie, 3),
+        ],
+        entity_metadata_assignments: [
+          assignment(
+            "20000000-0000-4000-8000-000000000004",
+            outOfStockTie,
+            tieConceptId,
+            "accepted",
+          ),
+          assignment(
+            "20000000-0000-4000-8000-000000000005",
+            noPhotoTie,
+            tieConceptId,
+            "accepted",
+          ),
+        ],
+        metadata_concepts: concepts,
+      }),
+    );
+
+    const deck = await repo.buildDeck({
+      retailerId: retailerId as never,
+      slug: "maison-demo",
+    });
+
+    expect(deck.cards).toEqual([]);
+    expect(deck.skippedOutOfStock).toBe(1);
+    expect(deck.skippedWithoutPhoto).toBe(1);
+  });
 });
