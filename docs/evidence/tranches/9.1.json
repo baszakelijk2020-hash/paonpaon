@@ -1,7 +1,7 @@
 {
   "phaseItemId": "9.1",
   "requirementIds": ["INT-002", "INT-003"],
-  "status": "implemented_unverified",
+  "status": "verified_local",
   "title": "Generic staged-file migration",
   "applicability": {
     "domain": "required",
@@ -23,9 +23,9 @@
     "receiver_ui": "apps/retailer/app/(dashboard)/products/page.tsx",
     "rls": "packages/database/src/repositories/migration-job-repository.test.ts",
     "exceptions": "packages/domain/src/migration/staged-file-migration.ts secret/ambiguous rejection",
-    "browser": "apps/retailer/e2e/migration-write-through.spec.ts — passed locally 2026-07-30, but PHASE verification deferred until dependency 8.4 is verified once",
+    "browser": "apps/retailer/e2e/migration-write-through.spec.ts + docs/evidence/runs/9.1.json status=passed",
     "operations": "packages/domain/scripts/validate-completion-evidence.ts",
-    "live_gap": "No hosted provider credentials required for staged-file fixture; completion claim blocked only by unmet PHASE dependency 8.4"
+    "live_gap": "No hosted provider credentials required for staged-file fixture"
   },
   "uiChecklist": {
     "loading": "n_a",
@@ -44,5 +44,5 @@
   },
   "linkedSeedId": "e2e-retailer-workspace",
   "browserProofSpec": "apps/retailer/e2e/migration-write-through.spec.ts",
-  "assertedAt": "2026-07-30T11:06:00.000Z"
+  "assertedAt": "2026-07-30T11:40:36.437Z"
 }
