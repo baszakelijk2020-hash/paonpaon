@@ -18,10 +18,13 @@ Snapshot: 2026-07-30.
 - Stages 0–5 complete. Stage 6 blocked.
 - Stage 7.0–7.8 complete (ADR-066).
 - Stage 8.0–8.3 complete (ADR-067).
-- Stage 9.1 complete locally: staged-file migration cockpit with dry-run,
-  dependency-ordered publish, reconcile, dead-letter rejection, and resume.
+- Stage 9.1–9.2 complete locally: staged-file migration cockpit plus Shopify
+  delta and Faden signed-webhook adapter fixtures (live keys not required).
 
 ## Current handoff
 
-Stage 9.2 is the next dependency-complete tranche: Shopify and Faden adapters.
-Stage 6 remains blocked; skip it.
+Stage 9.3 is demand-led and blocked on live prospect evidence — skip when
+blocked. Next independently buildable item after that gate is Stage 10.1
+(workforce Mission Control foundations) if its dependencies are met; otherwise
+continue the first dependency-complete unchecked PHASE item. Stage 6 remains
+blocked; skip it.

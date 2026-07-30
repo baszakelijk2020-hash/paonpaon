@@ -1,6 +1,8 @@
 import {
+  FADEN_ADAPTER_VERSION,
   FADEN_FIXTURE_MAPPING_VERSION,
   INTEGRATION_CONNECTION_PROJECTOR_VERSION,
+  SHOPIFY_ADAPTER_VERSION,
 } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 
@@ -45,6 +47,8 @@ export default async function IntegrationHealthPage() {
         <ul className="mt-3 flex flex-col gap-1 text-sm text-[var(--color-stone-700)]">
           <li>{INTEGRATION_CONNECTION_PROJECTOR_VERSION}</li>
           <li>{FADEN_FIXTURE_MAPPING_VERSION}</li>
+          <li>{SHOPIFY_ADAPTER_VERSION}</li>
+          <li>{FADEN_ADAPTER_VERSION}</li>
         </ul>
       </Card>
 

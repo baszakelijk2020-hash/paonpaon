@@ -13,12 +13,14 @@ requires it.
 
 - **Programme status:** Stages 0–5 complete through Tie-Mate interim Customer
   UI. Stage 6 remains blocked (compliance/marketplace). Stage 7 complete
-  through 7.8. Stage 8.0–8.3 complete. Stage 9.1 (staged-file migration
-  cockpit) is complete.
-- **Current queue item:** Stage 6 remains blocked — skip. Next dependency-
-  complete item is Stage 9.2 (Shopify and Faden adapters).
-- **Current requirement IDs:** Stage 9 `INT-002`–`INT-004` under ADR-067;
-  Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
+  through 7.8. Stage 8.0–8.3 complete. Stage 9.1–9.2 complete (staged-file
+  cockpit + Shopify/Faden adapter fixtures).
+- **Current queue item:** Stage 6 remains blocked — skip. Stage 9.3 is
+  demand-led (live prospect evidence) — skip while blocked. Resume the next
+  dependency-complete unchecked item in `PHASE.md` (likely Stage 10.x when
+  its deps are met).
+- **Current requirement IDs:** Stage 10 `WFM-*` family under ADR-067 when
+  unblocked; Stage 6 gates remain.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;

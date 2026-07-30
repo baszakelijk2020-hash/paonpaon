@@ -1039,7 +1039,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     write-through and Playwright journey remain follow-ons; provider adapters
     are Stage 9.2.
 
-- [ ] **9.2 Shopify and Faden adapters**
+- [x] **9.2 Shopify and Faden adapters**
   - **Requirement IDs:** `INT-002`, `INT-003`, `INT-004`.
   - **Dependencies:** `9.1`.
   - **Owner boundary:** current official export/API/webhook contracts, raw
@@ -1051,6 +1051,10 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     reconciliation and stale state.
   - **Non-goals:** no undocumented endpoint or browser-automation connector.
   - **Hard blockers:** provider keys block only live smoke tests.
+  - **Landed:** domain Shopify delta fixture mapped into 9.1 staged rows;
+    Faden signed-webhook fixture verifier + read-only ingest/deep-link plan
+    (no write-back); Admin integration-health lists adapter versions. Live
+    provider smoke remains blocked without credentials.
 
 - [ ] **9.3 Demand-led connector expansion**
   - **Requirement IDs:** `INT-002`–`INT-005`.
