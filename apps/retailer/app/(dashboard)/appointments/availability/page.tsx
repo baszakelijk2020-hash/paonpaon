@@ -54,8 +54,8 @@ export default async function AvailabilityPage() {
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           {canManageAnyone
-            ? "Recurring bookable hours for your team."
-            : "Your recurring bookable hours."}
+            ? "Recurring bookable hours for your team. Slot walls are interpreted in each appointment's branch timezone when booking."
+            : "Your recurring bookable hours. Slot walls follow the branch timezone at booking time."}
         </p>
       </div>
 

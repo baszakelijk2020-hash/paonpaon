@@ -1,8 +1,15 @@
 "use server";
 
 import { requireRetailerRole } from "@paon/auth";
-import { AppointmentRepository } from "@paon/database";
-import { asId, createAppointmentInputSchema } from "@paon/domain";
+import {
+  AppointmentRepository,
+  RetailerBranchRepository,
+} from "@paon/database";
+import {
+  asId,
+  createAppointmentInputSchema,
+  wallTimeInZoneToUtcIso,
+} from "@paon/domain";
 import { redirect } from "next/navigation";
 
 import { requireSession } from "@/lib/session";
@@ -15,15 +22,21 @@ export interface CreateAppointmentFormState {
 }
 
 /**
- * `datetime-local` inputs submit a value with no timezone offset
- * ("2026-08-01T14:00") — interpreted as UTC here, matching the same
- * deliberate simplification `computeAvailableSlots` (@paon/domain)
- * documents; per-retailer timezone handling is a real future need, not
- * built yet.
+ * `datetime-local` submits an offset-less wall clock. Interpret it in the
+ * selected branch timezone (fallback UTC) via domain helper.
  */
-function toIsoUtc(datetimeLocalValue: string): string | null {
-  const date = new Date(`${datetimeLocalValue}Z`);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+function toIsoInZone(
+  datetimeLocalValue: string,
+  timeZone: string,
+): string | null {
+  const [date, time] = datetimeLocalValue.split("T");
+  if (!date || !time) return null;
+  const hhmm = time.slice(0, 5);
+  try {
+    return wallTimeInZoneToUtcIso(date, hhmm, timeZone);
+  } catch {
+    return null;
+  }
 }
 
 export async function createAppointment(
@@ -34,9 +47,18 @@ export async function createAppointment(
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
+  const supabase = await getSupabaseServerClient();
+  const branchRepo = new RetailerBranchRepository(supabase);
+  const branches = await branchRepo.listByRetailer(session.retailerId);
+  const selectedBranch =
+    branches.find((branch) => branch.id === raw["branchId"]) ??
+    branches.find((branch) => branch.isDefault) ??
+    branches[0] ??
+    null;
+  const timeZone = selectedBranch?.timezone ?? "UTC";
 
-  const startsAt = toIsoUtc(raw["startsAt"] ?? "");
-  const endsAt = toIsoUtc(raw["endsAt"] ?? "");
+  const startsAt = toIsoInZone(raw["startsAt"] ?? "", timeZone);
+  const endsAt = toIsoInZone(raw["endsAt"] ?? "", timeZone);
 
   const parsed = createAppointmentInputSchema.safeParse({
     customerId: raw["customerId"],
@@ -44,6 +66,7 @@ export async function createAppointment(
     startsAt: startsAt ?? raw["startsAt"],
     endsAt: endsAt ?? raw["endsAt"],
     staffId: raw["staffId"] || undefined,
+    branchId: (selectedBranch?.id ?? raw["branchId"]) || undefined,
     notes: raw["notes"] || undefined,
   });
 
@@ -63,7 +86,6 @@ export async function createAppointment(
     };
   }
 
-  const supabase = await getSupabaseServerClient();
   const appointment = await new AppointmentRepository(supabase).create({
     retailerId: session.retailerId,
     customerId: asId<"CustomerId">(parsed.data.customerId),
@@ -72,6 +94,9 @@ export async function createAppointment(
     endsAt: parsed.data.endsAt,
     ...(parsed.data.staffId
       ? { staffId: asId<"StaffId">(parsed.data.staffId) }
+      : {}),
+    ...(parsed.data.branchId
+      ? { branchId: asId<"RetailerBranchId">(parsed.data.branchId) }
       : {}),
     ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
   });

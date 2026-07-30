@@ -2,6 +2,7 @@ import type {
   AppointmentId,
   AvailabilityWindowId,
   CustomerId,
+  RetailerBranchId,
   RetailerId,
   StaffId,
 } from "../shared/branded-id";
@@ -27,6 +28,7 @@ export interface Appointment extends Timestamps {
   readonly retailerId: RetailerId;
   readonly customerId: CustomerId;
   readonly staffId?: StaffId;
+  readonly branchId?: RetailerBranchId;
   readonly type: AppointmentType;
   readonly status: AppointmentStatus;
   readonly startsAt: string;
@@ -65,20 +67,55 @@ function parseTimeOfDay(time: string): { hour: number; minute: number } {
 }
 
 /**
+ * Convert a calendar date + HH:MM wall clock in `timeZone` to UTC ISO.
+ * Uses Intl offset iteration so DST transitions stay honest.
+ */
+export function wallTimeInZoneToUtcIso(
+  date: string,
+  time: string,
+  timeZone: string,
+): string {
+  const { year, month, day } = parseDateOnly(date);
+  const { hour, minute } = parseTimeOfDay(time);
+  let guess = Date.UTC(year, month - 1, day, hour, minute, 0);
+  for (let i = 0; i < 3; i += 1) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(new Date(guess));
+    const get = (type: Intl.DateTimeFormatPartTypes): number =>
+      Number(parts.find((part) => part.type === type)?.value ?? "0");
+    const asUtc = Date.UTC(
+      get("year"),
+      get("month") - 1,
+      get("day"),
+      get("hour"),
+      get("minute"),
+      get("second"),
+    );
+    const desired = Date.UTC(year, month - 1, day, hour, minute, 0);
+    const diff = desired - asUtc;
+    if (diff === 0) break;
+    guess += diff;
+  }
+  return new Date(guess).toISOString();
+}
+
+/**
  * Generates bookable start times for `date` from a staff member's
  * recurring `AvailabilityWindow`s, in `durationMinutes` increments,
  * excluding any time that overlaps an existing (non-canceled)
- * `Appointment`. Pure — no I/O, no knowledge of how windows/appointments
- * were fetched, so it works the same in a Server Component (Retailer
- * Portal calendar) and in the public storefront booking page.
+ * `Appointment`. Pure — no I/O.
  *
- * `date`/`startTime`/`endTime` are interpreted as UTC explicitly (via
- * `Date.UTC`, never the platform-default `new Date("...")` string
- * parse, which resolves an offset-less date-time as *local* time and
- * would silently shift every slot by the server's timezone). Per-
- * retailer timezone handling is a real future need, not built here —
- * `docs/PROJECT_STATE.md` tracks it as a deliberate gap, not a silent
- * one.
+ * Without `timeZone`, window walls are interpreted as UTC (legacy
+ * behaviour). With `timeZone`, walls are interpreted in that IANA zone
+ * and emitted as UTC ISO strings.
  */
 export function computeAvailableSlots(params: {
   windows: readonly AvailabilityWindow[];
@@ -88,8 +125,10 @@ export function computeAvailableSlots(params: {
   >[];
   date: string;
   durationMinutes: number;
+  timeZone?: string;
 }): string[] {
-  const { windows, existingAppointments, date, durationMinutes } = params;
+  const { windows, existingAppointments, date, durationMinutes, timeZone } =
+    params;
   const { year, month, day } = parseDateOnly(date);
   const dayOfWeek = new Date(Date.UTC(year, month - 1, day)).getUTCDay() as
     0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -111,8 +150,24 @@ export function computeAvailableSlots(params: {
 
     const start = parseTimeOfDay(window.startTime);
     const end = parseTimeOfDay(window.endTime);
-    let cursor = Date.UTC(year, month - 1, day, start.hour, start.minute);
-    const windowEnd = Date.UTC(year, month - 1, day, end.hour, end.minute);
+    let cursor = timeZone
+      ? Date.parse(
+          wallTimeInZoneToUtcIso(
+            date,
+            `${String(start.hour).padStart(2, "0")}:${String(start.minute).padStart(2, "0")}`,
+            timeZone,
+          ),
+        )
+      : Date.UTC(year, month - 1, day, start.hour, start.minute);
+    const windowEnd = timeZone
+      ? Date.parse(
+          wallTimeInZoneToUtcIso(
+            date,
+            `${String(end.hour).padStart(2, "0")}:${String(end.minute).padStart(2, "0")}`,
+            timeZone,
+          ),
+        )
+      : Date.UTC(year, month - 1, day, end.hour, end.minute);
 
     while (cursor + stepMs <= windowEnd) {
       const slotStart = cursor;

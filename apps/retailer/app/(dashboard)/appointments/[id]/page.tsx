@@ -1,10 +1,13 @@
 import {
   AdvisorBriefRepository,
+  AppointmentCloseoutRepository,
   AppointmentRepository,
   ClientelingRepository,
   CustomerRepository,
+  MetadataRepository,
   OrderRepository,
   PhysicalGarmentRepository,
+  RetailerBranchRepository,
   RetailerStaffRepository,
 } from "@paon/database";
 import {
@@ -23,6 +26,7 @@ import { LifecycleBadge } from "../../customers/lifecycle-badge";
 import { AppointmentStatusBadge } from "../status-badge";
 
 import { AppointmentActionsForm } from "./appointment-actions-form";
+import { AppointmentCloseoutCapture } from "./appointment-closeout-capture";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -43,10 +47,17 @@ export default async function AppointmentDetailPage({
     notFound();
   }
 
-  const [customer, staff] = await Promise.all([
-    new CustomerRepository(supabase).findById(appointment.customerId),
-    new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
-  ]);
+  const [customer, staff, branches, closeout, rectangleConcepts] =
+    await Promise.all([
+      new CustomerRepository(supabase).findById(appointment.customerId),
+      new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
+      new RetailerBranchRepository(supabase).listByRetailer(session.retailerId),
+      new AppointmentCloseoutRepository(supabase).findByAppointment(
+        session.retailerId,
+        appointment.id,
+      ),
+      new MetadataRepository(supabase).findVisibleConcepts(session.retailerId),
+    ]);
   const [notes, orders, garments, advisorBrief] = customer
     ? await Promise.all([
         new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -64,6 +75,7 @@ export default async function AppointmentDetailPage({
   const assignedAdvisor = staff.find(
     (member) => member.id === appointment.staffId,
   );
+  const branch = branches.find((item) => item.id === appointment.branchId);
 
   const canManage = retailerRoleAtLeast(
     session.retailerRole,
@@ -96,7 +108,11 @@ export default async function AppointmentDetailPage({
               {new Date(appointment.startsAt).toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "2-digit",
+                ...(branch
+                  ? { timeZone: branch.timezone, timeZoneName: "short" }
+                  : {}),
               })}
+              {branch ? ` · ${branch.name}` : ""}
             </p>
           </div>
           {customer && canManage ? (
@@ -194,6 +210,15 @@ export default async function AppointmentDetailPage({
                 staff={staff}
               />
             </Card>
+          ) : null}
+
+          {canManage && customer ? (
+            <AppointmentCloseoutCapture
+              appointmentId={appointment.id}
+              customerId={customer.id}
+              concepts={rectangleConcepts}
+              alreadyClosedOut={Boolean(closeout)}
+            />
           ) : null}
         </div>
 

@@ -1,5 +1,9 @@
 import { requireRetailerRole } from "@paon/auth";
-import { CustomerRepository, RetailerStaffRepository } from "@paon/database";
+import {
+  CustomerRepository,
+  RetailerBranchRepository,
+  RetailerStaffRepository,
+} from "@paon/database";
 import { redirect } from "next/navigation";
 
 import { AppointmentForm } from "./appointment-form";
@@ -21,10 +25,21 @@ export default async function NewAppointmentPage({
 
   const { customerId } = await searchParams;
   const supabase = await getSupabaseServerClient();
-  const [customers, staff] = await Promise.all([
+  const branchRepo = new RetailerBranchRepository(supabase);
+  const [customers, staff, branches] = await Promise.all([
     new CustomerRepository(supabase).findByRetailer(session.retailerId),
     new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
+    branchRepo.listByRetailer(session.retailerId),
   ]);
+  const ensuredBranches =
+    branches.length > 0
+      ? branches
+      : [
+          await branchRepo.ensureDefaultBranch({
+            retailerId: session.retailerId,
+            timezone: "Europe/Amsterdam",
+          }),
+        ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -34,12 +49,13 @@ export default async function NewAppointmentPage({
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
           Book directly for an existing customer — e.g. a walk-in or phone
-          request.
+          request. Start/end times use the selected branch timezone.
         </p>
       </div>
       <AppointmentForm
         customers={customers}
         staff={staff}
+        branches={ensuredBranches}
         {...(customerId ? { defaultCustomerId: customerId } : {})}
       />
     </div>

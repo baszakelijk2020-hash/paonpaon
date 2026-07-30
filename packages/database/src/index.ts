@@ -29,6 +29,8 @@ export * from "./repositories/commercial-prospect-repository";
 export * from "./repositories/retailer-subscription-repository";
 export * from "./repositories/availability-window-repository";
 export * from "./repositories/appointment-repository";
+export * from "./repositories/retailer-branch-repository";
+export * from "./repositories/customer-moment-repository";
 export * from "./repositories/alteration-repository";
 export * from "./repositories/alteration-update-repository";
 export * from "./repositories/alteration-catalogue-repository";

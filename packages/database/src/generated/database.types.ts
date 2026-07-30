@@ -953,8 +953,74 @@ export type Database = {
           },
         ];
       };
+      appointment_closeouts: {
+        Row: {
+          appointment_id: string;
+          created_at: string;
+          customer_id: string;
+          follow_up_date: string | null;
+          freeform_note: string | null;
+          id: string;
+          next_step: string | null;
+          retailer_id: string;
+          staff_id: string;
+        };
+        Insert: {
+          appointment_id: string;
+          created_at?: string;
+          customer_id: string;
+          follow_up_date?: string | null;
+          freeform_note?: string | null;
+          id?: string;
+          next_step?: string | null;
+          retailer_id: string;
+          staff_id: string;
+        };
+        Update: {
+          appointment_id?: string;
+          created_at?: string;
+          customer_id?: string;
+          follow_up_date?: string | null;
+          freeform_note?: string | null;
+          id?: string;
+          next_step?: string | null;
+          retailer_id?: string;
+          staff_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "appointment_closeouts_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: true;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointment_closeouts_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointment_closeouts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointment_closeouts_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       appointments: {
         Row: {
+          branch_id: string | null;
           created_at: string;
           customer_id: string;
           deleted_at: string | null;
@@ -970,6 +1036,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          branch_id?: string | null;
           created_at?: string;
           customer_id: string;
           deleted_at?: string | null;
@@ -985,6 +1052,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          branch_id?: string | null;
           created_at?: string;
           customer_id?: string;
           deleted_at?: string | null;
@@ -1000,6 +1068,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "appointments_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "appointments_customer_id_fkey";
             columns: ["customer_id"];
@@ -2868,6 +2943,86 @@ export type Database = {
             columns: ["value_concept_id"];
             isOneToOne: false;
             referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_moments: {
+        Row: {
+          appointment_id: string | null;
+          branch_id: string | null;
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          id: string;
+          label: string;
+          moment_type: string;
+          notes: string | null;
+          occurs_on: string;
+          recurrence: string;
+          retailer_id: string;
+          timezone: string;
+          updated_at: string;
+        };
+        Insert: {
+          appointment_id?: string | null;
+          branch_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          id?: string;
+          label: string;
+          moment_type: string;
+          notes?: string | null;
+          occurs_on: string;
+          recurrence?: string;
+          retailer_id: string;
+          timezone: string;
+          updated_at?: string;
+        };
+        Update: {
+          appointment_id?: string | null;
+          branch_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          id?: string;
+          label?: string;
+          moment_type?: string;
+          notes?: string | null;
+          occurs_on?: string;
+          recurrence?: string;
+          retailer_id?: string;
+          timezone?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_moments_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_moments_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_moments_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_moments_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];
@@ -6398,6 +6553,47 @@ export type Database = {
             columns: ["updated_by_staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      retailer_branches: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          is_default: boolean;
+          name: string;
+          retailer_id: string;
+          timezone: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_default?: boolean;
+          name: string;
+          retailer_id: string;
+          timezone: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          is_default?: boolean;
+          name?: string;
+          retailer_id?: string;
+          timezone?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_branches_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];

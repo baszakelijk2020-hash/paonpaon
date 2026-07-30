@@ -73,6 +73,7 @@ export const createAppointmentInputSchema = z.object({
   startsAt: z.string().datetime(),
   endsAt: z.string().datetime(),
   staffId: z.string().uuid().optional(),
+  branchId: z.string().uuid().optional(),
   notes: z.string().trim().max(2000).optional(),
 });
 

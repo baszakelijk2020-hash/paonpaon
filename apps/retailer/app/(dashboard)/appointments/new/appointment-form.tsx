@@ -1,7 +1,11 @@
 "use client";
 
 import { APPOINTMENT_TYPES, APPOINTMENT_TYPE_LABELS } from "@paon/domain";
-import type { Customer, RetailerStaffMember } from "@paon/domain";
+import type {
+  Customer,
+  RetailerBranch,
+  RetailerStaffMember,
+} from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { DateTimePicker } from "@paon/ui/components/DateTimePicker";
@@ -20,10 +24,12 @@ const initialCreateAppointmentFormState: CreateAppointmentFormState = {
 export function AppointmentForm({
   customers,
   staff,
+  branches,
   defaultCustomerId,
 }: {
   customers: readonly Customer[];
   staff: readonly RetailerStaffMember[];
+  branches: readonly RetailerBranch[];
   defaultCustomerId?: string;
 }) {
   const [state, formAction, isPending] = useActionState(
@@ -31,6 +37,8 @@ export function AppointmentForm({
     initialCreateAppointmentFormState,
   );
   const v = state.values;
+  const defaultBranchId =
+    branches.find((branch) => branch.isDefault)?.id ?? branches[0]?.id ?? "";
 
   return (
     <form action={formAction} className="flex flex-col gap-8">
@@ -84,9 +92,31 @@ export function AppointmentForm({
             </Select>
           </FormField>
           <FormField
+            label="Branch"
+            htmlFor="branchId"
+            hint="Times are interpreted in this branch timezone"
+            error={state.fieldErrors["branchId"]}
+          >
+            <Select
+              id="branchId"
+              name="branchId"
+              defaultValue={v["branchId"] ?? defaultBranchId}
+            >
+              {branches.length === 0 ? (
+                <option value="">No branch (UTC)</option>
+              ) : (
+                branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name} · {branch.timezone}
+                  </option>
+                ))
+              )}
+            </Select>
+          </FormField>
+          <FormField
             label="Starts"
             htmlFor="startsAt"
-            hint="Store local time"
+            hint="Branch local time"
             error={state.fieldErrors["startsAt"]}
           >
             <DateTimePicker name="startsAt" defaultValue={v["startsAt"]} />

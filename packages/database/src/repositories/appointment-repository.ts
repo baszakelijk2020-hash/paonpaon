@@ -4,6 +4,7 @@ import {
   type AppointmentId,
   type AppointmentType,
   type CustomerId,
+  type RetailerBranchId,
   type RetailerId,
   type StaffId,
 } from "@paon/domain";
@@ -19,6 +20,9 @@ function toDomain(row: AppointmentRow): Appointment {
     retailerId: asId<"RetailerId">(row.retailer_id),
     customerId: asId<"CustomerId">(row.customer_id),
     ...(row.staff_id ? { staffId: asId<"StaffId">(row.staff_id) } : {}),
+    ...(row.branch_id
+      ? { branchId: asId<"RetailerBranchId">(row.branch_id) }
+      : {}),
     type: row.type,
     status: row.status,
     startsAt: row.starts_at,
@@ -38,12 +42,14 @@ export interface CreateAppointmentParams {
   startsAt: string;
   endsAt: string;
   staffId?: StaffId;
+  branchId?: RetailerBranchId;
   notes?: string;
 }
 
 export interface UpdateAppointmentParams {
   status?: Appointment["status"];
   staffId?: StaffId;
+  branchId?: RetailerBranchId | null;
 }
 
 /**
@@ -110,6 +116,7 @@ export class AppointmentRepository {
         starts_at: params.startsAt,
         ends_at: params.endsAt,
         staff_id: params.staffId ?? null,
+        branch_id: params.branchId ?? null,
         notes: params.notes ?? null,
       })
       .select("*")
@@ -131,6 +138,9 @@ export class AppointmentRepository {
       .update({
         ...(params.status !== undefined ? { status: params.status } : {}),
         ...(params.staffId !== undefined ? { staff_id: params.staffId } : {}),
+        ...(params.branchId !== undefined
+          ? { branch_id: params.branchId }
+          : {}),
       })
       .eq("id", id)
       .select("*")
