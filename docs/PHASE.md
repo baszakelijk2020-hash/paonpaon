@@ -953,7 +953,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     service, fit, campaigns, lifestyle network and knowledge/consultancy
     specifications; updated continuous Cursor handoff and vision index.
 
-- [ ] **8.1 Six-section digital wardrobe**
+- [x] **8.1 Six-section digital wardrobe**
   - **Requirement IDs:** `WRD-101`.
   - **Dependencies:** existing Stage 4 wardrobe; ADR-063.
   - **Owner boundary:** Customer wardrobe presentation only; existing
@@ -970,6 +970,13 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Non-goals:** no new wardrobe schema, AI tagging, outfit engine rewrite or
     global cross-retailer wardrobe.
   - **Hard blockers:** hosted data blocks live screenshot only, not local UI.
+  - **Landed:** customer wardrobe now renders the six ordered visual rails with
+    responsive snap scrolling, image/fallback cards, existing provenance/
+    fit/care/condition/wear/history and retirement actions, explicit empty
+    rails and retained lifecycle/roadmap panels. Customer lint, typecheck and
+    production build pass. The local route/auth redirect was browser-checked;
+    populated/empty authenticated screenshots remain a hosted/seeded-data gap
+    because the configured demo credentials were rejected locally.
 
 - [ ] **8.2 Source-authority and external-identity registry**
   - **Requirement IDs:** `INT-001`, `INT-003`, `INT-004`.
