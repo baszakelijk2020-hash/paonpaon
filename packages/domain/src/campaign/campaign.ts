@@ -24,6 +24,7 @@ import type {
   ProductId,
   RetailerId,
   StaffId,
+  WardrobeItemId,
 } from "../shared/branded-id";
 import {
   isValidIanaTimezone,
@@ -46,7 +47,11 @@ export {
   isInQuietHours,
 };
 
-export const CAMPAIGN_KINDS = ["private_offer", "wardrobe_challenge"] as const;
+export const CAMPAIGN_KINDS = [
+  "private_offer",
+  "wardrobe_challenge",
+  "order_journey",
+] as const;
 
 export type CampaignKind = (typeof CAMPAIGN_KINDS)[number];
 
@@ -212,13 +217,27 @@ export interface CampaignChallengeEnrollment {
   readonly updatedAt: string;
 }
 
+export const CAMPAIGN_SLOT_SOURCE_KINDS = ["owned", "catalogue_suggested"] as const;
+
+export type CampaignSlotSourceKind =
+  (typeof CAMPAIGN_SLOT_SOURCE_KINDS)[number];
+
 export interface CampaignChallengeLookSlot {
   readonly id: CampaignChallengeLookSlotId;
   readonly lookId: CampaignChallengeLookId;
   readonly retailerId: RetailerId;
   readonly slotKind: OutfitSlotKind;
-  readonly productId: ProductId;
+  readonly sourceKind: CampaignSlotSourceKind;
+  readonly wardrobeItemId?: WardrobeItemId;
+  readonly productId?: ProductId;
   readonly displayOrder: number;
+}
+
+export interface CampaignChallengeLookGapCitation {
+  readonly slotKind: OutfitSlotKind;
+  readonly explanation: string;
+  readonly factCitation?: string;
+  readonly ruleCitation?: string;
 }
 
 export interface CampaignChallengeLook {
@@ -228,6 +247,8 @@ export interface CampaignChallengeLook {
   readonly customerId: CustomerId;
   readonly dayIndex: number;
   readonly title: string;
+  readonly occasionLabel?: string;
+  readonly gapCitations: readonly CampaignChallengeLookGapCitation[];
   readonly slots: readonly CampaignChallengeLookSlot[];
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -283,20 +304,31 @@ export function toMorningRoutineFrequency(
   return frequency;
 }
 
+export function slotHasReference(slot: {
+  readonly productId?: ProductId | string | null;
+  readonly wardrobeItemId?: WardrobeItemId | string | null;
+}): boolean {
+  const hasProduct =
+    slot.productId !== undefined &&
+    slot.productId !== null &&
+    slot.productId !== "";
+  const hasWardrobe =
+    slot.wardrobeItemId !== undefined &&
+    slot.wardrobeItemId !== null &&
+    slot.wardrobeItemId !== "";
+  return hasProduct || hasWardrobe;
+}
+
 export function isLookComplete(args: {
   readonly slots: readonly {
     readonly slotKind: OutfitSlotKind;
     readonly productId?: ProductId | string | null;
+    readonly wardrobeItemId?: WardrobeItemId | string | null;
   }[];
 }): boolean {
   for (const required of CAMPAIGN_REQUIRED_LOOK_SLOTS) {
     const slot = args.slots.find((entry) => entry.slotKind === required);
-    if (
-      !slot ||
-      slot.productId === undefined ||
-      slot.productId === null ||
-      slot.productId === ""
-    ) {
+    if (!slot || !slotHasReference(slot)) {
       return false;
     }
   }
@@ -309,6 +341,7 @@ export function challengeCompleteness(args: {
     readonly slots: readonly {
       readonly slotKind: OutfitSlotKind;
       readonly productId?: ProductId | string | null;
+      readonly wardrobeItemId?: WardrobeItemId | string | null;
     }[];
   }[];
 }): {

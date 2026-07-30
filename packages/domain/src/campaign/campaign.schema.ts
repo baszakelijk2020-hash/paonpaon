@@ -139,12 +139,46 @@ export const upsertCampaignChallengeLookInputSchema = z
     enrollmentId: z.string().uuid(),
     dayIndex: z.number().int(),
     title: z.string().trim().min(1).max(120),
-    slots: z
+    occasionLabel: z.string().trim().min(1).max(80).optional(),
+    gapCitations: z
       .array(
         z.object({
           slotKind: outfitSlotKindSchema,
-          productId: z.string().uuid(),
+          explanation: z.string().trim().min(1).max(500),
+          factCitation: z.string().trim().min(1).max(500).optional(),
+          ruleCitation: z.string().trim().min(1).max(500).optional(),
         }),
+      )
+      .optional(),
+    slots: z
+      .array(
+        z
+          .object({
+            slotKind: outfitSlotKindSchema,
+            sourceKind: z.enum(["owned", "catalogue_suggested"]).default(
+              "catalogue_suggested",
+            ),
+            productId: z.string().uuid().optional(),
+            wardrobeItemId: z.string().uuid().optional(),
+          })
+          .superRefine((slot, ctx) => {
+            const hasProduct = Boolean(slot.productId);
+            const hasWardrobe = Boolean(slot.wardrobeItemId);
+            if (hasProduct === hasWardrobe) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message:
+                  "Each slot requires exactly one of productId or wardrobeItemId.",
+              });
+            }
+            if (slot.sourceKind === "owned" && !slot.wardrobeItemId) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Owned slots require wardrobeItemId.",
+                path: ["wardrobeItemId"],
+              });
+            }
+          }),
       )
       .min(1)
       .max(OUTFIT_SLOT_KINDS.length),

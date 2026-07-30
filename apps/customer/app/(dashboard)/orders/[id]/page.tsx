@@ -10,6 +10,10 @@ import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
 import { notFound } from "next/navigation";
 
+import {
+  HoneymoonTrackerPanel,
+  loadHoneymoonMilestones,
+} from "./honeymoon-panel";
 import { PayPanel } from "./pay-panel";
 
 import { requireSession } from "@/lib/session";
@@ -43,6 +47,31 @@ export default async function OrderDetailPage({
   const variants = await Promise.all(
     lines.map((line) => variantRepo.findById(line.productVariantId)),
   );
+
+  const lineContexts = lines.map((line, index) => {
+    const variant = variants[index];
+    return {
+      productVariantId: line.productVariantId,
+      quantity: line.quantity,
+      requiresProduction: line.requiresProduction,
+      requiresAlteration: line.requiresAlteration,
+      ...(variant?.sku ? { sku: variant.sku } : {}),
+      ...(variant?.leadTimeDays !== undefined
+        ? { leadTimeDays: variant.leadTimeDays ?? null }
+        : {}),
+      ...(variant?.inventoryQuantity !== undefined
+        ? { inventoryQuantity: variant.inventoryQuantity ?? null }
+        : {}),
+    };
+  });
+
+  const honeymoonMilestones = await loadHoneymoonMilestones({
+    orderId: order.id,
+    orderStatus: order.status,
+    ...(order.placedAt ? { placedAt: order.placedAt } : {}),
+    lines: lineContexts,
+    supabase,
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -116,6 +145,11 @@ export default async function OrderDetailPage({
           </p>
         </Card>
       ) : null}
+
+      <HoneymoonTrackerPanel
+        orderId={order.id}
+        milestones={honeymoonMilestones}
+      />
 
       {order.status === "pending_payment" ? (
         payment === "success" ? (

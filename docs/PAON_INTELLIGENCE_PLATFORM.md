@@ -12,11 +12,11 @@ implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
 - **Programme status:** Stages 0–5 complete. Stage 6 blocked. Stage 7–8
-  complete. Stage 9.1–9.2 complete (9.3 demand-led blocked). Stage 10.1
-  (versioned campaign library) is complete.
+  complete. Stage 9.1–9.2 complete (9.3 demand-led blocked). Stage 10.1–10.2
+  complete (Seven-Day Wardrobe + Honeymoon Phase).
 - **Current queue item:** Stage 6 / 9.3 blocked — skip. Next dependency-
-  complete item is Stage 10.2.
-- **Current requirement IDs:** Stage 10 `CMP-105`/`CMP-106`/`WRD-104`; Stage 6
+  complete item is Stage 10.3.
+- **Current requirement IDs:** Stage 10 `CMP-103` clienteling parity; Stage 6
   gates remain.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
@@ -142,8 +142,9 @@ requires it.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next files/tests:** Stage 7 queue exhausted. Do not invent Stage 6
-  payment/marketplace code. Stop unless a new PHASE item is authorised.
+- **Exact next files/tests:** Stage 10.3 unified communication and remote
+  proposals (`CMP-103`, clienteling parity). Do not invent Stage 6 payment/
+  marketplace code.
 
 ## 1. Programme intent
 

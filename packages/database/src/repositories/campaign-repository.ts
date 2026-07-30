@@ -19,6 +19,7 @@ import {
   type CampaignRewardGrant,
   type CampaignRewardKind,
   type CampaignScheduleFrequency,
+  type CampaignSlotSourceKind,
   type CampaignStatus,
   type CampaignSuppressionReason,
   type ConsentStatus,
@@ -140,9 +141,43 @@ function toSlot(row: SlotRow): CampaignChallengeLookSlot {
     lookId: asId<"CampaignChallengeLookId">(row.look_id),
     retailerId: asId<"RetailerId">(row.retailer_id),
     slotKind: row.slot_kind as OutfitSlotKind,
-    productId: asId<"ProductId">(row.product_id),
+    sourceKind: (row.source_kind ??
+      "catalogue_suggested") as CampaignSlotSourceKind,
+    ...(row.product_id ? { productId: asId<"ProductId">(row.product_id) } : {}),
+    ...(row.wardrobe_item_id
+      ? { wardrobeItemId: asId<"WardrobeItemId">(row.wardrobe_item_id) }
+      : {}),
     displayOrder: row.display_order,
   };
+}
+
+function parseGapCitations(value: Json): CampaignChallengeLook["gapCitations"] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) return [];
+    const record = entry as Record<string, unknown>;
+    const slotKind = record.slotKind ?? record.slot_kind;
+    const explanation = record.explanation;
+    if (typeof slotKind !== "string" || typeof explanation !== "string") {
+      return [];
+    }
+    return [
+      {
+        slotKind: slotKind as OutfitSlotKind,
+        explanation,
+        ...(typeof record.factCitation === "string"
+          ? { factCitation: record.factCitation }
+          : typeof record.fact_citation === "string"
+            ? { factCitation: record.fact_citation }
+            : {}),
+        ...(typeof record.ruleCitation === "string"
+          ? { ruleCitation: record.ruleCitation }
+          : typeof record.rule_citation === "string"
+            ? { ruleCitation: record.rule_citation }
+            : {}),
+      },
+    ];
+  });
 }
 
 function toLook(row: LookRow, slots: SlotRow[]): CampaignChallengeLook {
@@ -153,6 +188,8 @@ function toLook(row: LookRow, slots: SlotRow[]): CampaignChallengeLook {
     customerId: asId<"CustomerId">(row.customer_id),
     dayIndex: row.day_index,
     title: row.title,
+    ...(row.occasion_label ? { occasionLabel: row.occasion_label } : {}),
+    gapCitations: parseGapCitations(row.gap_citations ?? []),
     slots: slots.map(toSlot),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -477,8 +514,19 @@ export class CampaignRepository {
   ): Promise<string> {
     const slotsJson: Json = input.slots.map((slot) => ({
       slot_kind: slot.slotKind,
-      product_id: slot.productId,
+      source_kind:
+        slot.sourceKind ??
+        (slot.wardrobeItemId ? "owned" : "catalogue_suggested"),
+      ...(slot.productId ? { product_id: slot.productId } : {}),
+      ...(slot.wardrobeItemId ? { wardrobe_item_id: slot.wardrobeItemId } : {}),
     }));
+    const gapJson: Json =
+      input.gapCitations?.map((gap) => ({
+        slot_kind: gap.slotKind,
+        explanation: gap.explanation,
+        ...(gap.factCitation ? { fact_citation: gap.factCitation } : {}),
+        ...(gap.ruleCitation ? { rule_citation: gap.ruleCitation } : {}),
+      })) ?? [];
     const { data, error } = await this.client.rpc(
       "upsert_campaign_challenge_look",
       {
@@ -486,6 +534,10 @@ export class CampaignRepository {
         p_day_index: input.dayIndex,
         p_title: input.title,
         p_slots: slotsJson,
+        p_gap_citations: gapJson,
+        ...(input.occasionLabel
+          ? { p_occasion_label: input.occasionLabel }
+          : {}),
       },
     );
     if (error) throw error;

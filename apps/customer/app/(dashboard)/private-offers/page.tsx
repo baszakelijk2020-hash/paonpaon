@@ -5,17 +5,20 @@ import {
   ProductRepository,
   RetailerRepository,
   StyleProfileRepository,
+  WardrobeRepository,
 } from "@paon/database";
 import {
   asId,
   CAMPAIGN_REQUIRED_LOOK_SLOTS,
   challengeCompleteness,
   evaluateAudienceRules,
+  garmentCategoryToOutfitSlot,
   isLookComplete,
   type Campaign,
   type CampaignChallengeEnrollment,
   type CampaignChallengeLook,
   type CampaignRewardGrant,
+  type OutfitSlotKind,
 } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import Link from "next/link";
@@ -23,6 +26,7 @@ import Link from "next/link";
 import {
   completeCampaignChallenge,
   enrollCampaignChallenge,
+  proposeSevenDayCapsule,
   saveCampaignChallengeLook,
 } from "./actions";
 
@@ -50,12 +54,23 @@ export default async function PrivateOffersPage() {
   const consentRepo = new CustomerConsentRepository(supabase);
   const styleRepo = new StyleProfileRepository(supabase);
   const productRepo = new ProductRepository(supabase);
+  const wardrobeRepo = new WardrobeRepository(supabase);
+
+  function wardrobeForSlot(
+    items: Awaited<ReturnType<WardrobeRepository["findByCustomer"]>>,
+    slotKind: OutfitSlotKind,
+  ) {
+    return items.filter((item) => {
+      if (item.retiredAt) return false;
+      return garmentCategoryToOutfitSlot(item.categoryCode) === slotKind;
+    });
+  }
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
       const retailerId = asId<"RetailerId">(customer.retailerId);
       const customerId = asId<"CustomerId">(customer.id);
-      const [retailer, campaigns, consent, conceptIds, products, grants] =
+      const [retailer, campaigns, consent, conceptIds, products, grants, wardrobeItems] =
         await Promise.all([
           retailerRepo.findById(customer.retailerId),
           campaignRepo.listActiveByRetailer(customer.retailerId),
@@ -63,6 +78,7 @@ export default async function PrivateOffersPage() {
           styleRepo.findInferredConceptIds(retailerId, customerId),
           productRepo.findByRetailer(customer.retailerId as never),
           campaignRepo.listRewardGrantsForCustomer(customer.id),
+          wardrobeRepo.findByCustomer(customerId),
         ]);
       const profile = await styleRepo.findByCustomer(retailerId, customerId);
       const declared =
@@ -119,6 +135,7 @@ export default async function PrivateOffersPage() {
         offers,
         challenges,
         products: products.filter((product) => product.status === "active"),
+        wardrobeItems,
         audits: await campaignRepo.listDeliveryAuditsForCustomer(
           customer.id,
           5,
@@ -158,6 +175,7 @@ export default async function PrivateOffersPage() {
             offers,
             challenges,
             products,
+            wardrobeItems,
             audits,
           }) => (
             <section
@@ -297,6 +315,36 @@ export default async function PrivateOffersPage() {
                               </p>
                             ) : null}
 
+                            {enrollment.status === "in_progress" ? (
+                              <form
+                                action={proposeSevenDayCapsule}
+                                className="flex flex-wrap items-center gap-3"
+                              >
+                                <input
+                                  type="hidden"
+                                  name="enrollmentId"
+                                  value={enrollment.id}
+                                />
+                                <input
+                                  type="hidden"
+                                  name="customerId"
+                                  value={customer.id}
+                                />
+                                <input
+                                  type="hidden"
+                                  name="retailerId"
+                                  value={customer.retailerId}
+                                />
+                                <Button type="submit" size="sm" variant="outline">
+                                  Propose owned-first week
+                                </Button>
+                                <p className="text-xs text-[var(--color-stone-500)]">
+                                  Uses your wardrobe first, then in-stock
+                                  catalogue suggestions with cited gaps.
+                                </p>
+                              </form>
+                            ) : null}
+
                             {enrollment.status === "in_progress"
                               ? DAY_LABELS.map((label, index) => {
                                   const dayIndex = index + 1;
@@ -316,6 +364,21 @@ export default async function PrivateOffersPage() {
                                           ? " · complete"
                                           : ""}
                                       </summary>
+                                      {look && look.gapCitations.length > 0 ? (
+                                        <ul className="mt-2 space-y-1 text-xs text-[var(--color-stone-600)]">
+                                          {look.gapCitations.map((gap) => (
+                                            <li key={gap.slotKind}>
+                                              <span className="font-medium">
+                                                {gap.slotKind} gap:
+                                              </span>{" "}
+                                              {gap.explanation}
+                                              {gap.factCitation
+                                                ? ` · ${gap.factCitation}`
+                                                : ""}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      ) : null}
                                       <form
                                         action={saveCampaignChallengeLook}
                                         className="mt-3 grid gap-2 md:grid-cols-2"
@@ -347,33 +410,64 @@ export default async function PrivateOffersPage() {
                                               (slot) =>
                                                 slot.slotKind === slotKind,
                                             );
+                                            const ownedOptions = wardrobeForSlot(
+                                              wardrobeItems,
+                                              slotKind,
+                                            );
                                             return (
-                                              <label
+                                              <div
                                                 key={slotKind}
-                                                className="flex flex-col gap-1 text-sm"
+                                                className="flex flex-col gap-2 text-sm"
                                               >
-                                                {slotKind}
-                                                <select
-                                                  name={`slot_${slotKind}`}
-                                                  required
-                                                  defaultValue={
-                                                    existing?.productId ?? ""
-                                                  }
-                                                  className="rounded border border-[var(--color-stone-200)] px-3 py-2"
-                                                >
-                                                  <option value="">
-                                                    Choose catalogue piece
-                                                  </option>
-                                                  {products.map((product) => (
-                                                    <option
-                                                      key={product.id}
-                                                      value={product.id}
-                                                    >
-                                                      {product.name}
+                                                <span className="font-medium capitalize">
+                                                  {slotKind}
+                                                </span>
+                                                <label className="flex flex-col gap-1">
+                                                  Owned wardrobe
+                                                  <select
+                                                    name={`wardrobe_${slotKind}`}
+                                                    defaultValue={
+                                                      existing?.wardrobeItemId ??
+                                                      ""
+                                                    }
+                                                    className="rounded border border-[var(--color-stone-200)] px-3 py-2"
+                                                  >
+                                                    <option value="">
+                                                      No owned piece
                                                     </option>
-                                                  ))}
-                                                </select>
-                                              </label>
+                                                    {ownedOptions.map((item) => (
+                                                      <option
+                                                        key={item.id}
+                                                        value={item.id}
+                                                      >
+                                                        {item.displayName}
+                                                      </option>
+                                                    ))}
+                                                  </select>
+                                                </label>
+                                                <label className="flex flex-col gap-1">
+                                                  Catalogue suggestion
+                                                  <select
+                                                    name={`slot_${slotKind}`}
+                                                    defaultValue={
+                                                      existing?.productId ?? ""
+                                                    }
+                                                    className="rounded border border-[var(--color-stone-200)] px-3 py-2"
+                                                  >
+                                                    <option value="">
+                                                      No catalogue piece
+                                                    </option>
+                                                    {products.map((product) => (
+                                                      <option
+                                                        key={product.id}
+                                                        value={product.id}
+                                                      >
+                                                        {product.name}
+                                                      </option>
+                                                    ))}
+                                                  </select>
+                                                </label>
+                                              </div>
                                             );
                                           },
                                         )}

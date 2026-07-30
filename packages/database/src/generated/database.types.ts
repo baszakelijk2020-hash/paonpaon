@@ -1456,27 +1456,33 @@ export type Database = {
           display_order: number;
           id: string;
           look_id: string;
-          product_id: string;
+          product_id: string | null;
           retailer_id: string;
           slot_kind: string;
+          source_kind: string;
+          wardrobe_item_id: string | null;
         };
         Insert: {
           created_at?: string;
           display_order?: number;
           id?: string;
           look_id: string;
-          product_id: string;
+          product_id?: string | null;
           retailer_id: string;
           slot_kind: string;
+          source_kind?: string;
+          wardrobe_item_id?: string | null;
         };
         Update: {
           created_at?: string;
           display_order?: number;
           id?: string;
           look_id?: string;
-          product_id?: string;
+          product_id?: string | null;
           retailer_id?: string;
           slot_kind?: string;
+          source_kind?: string;
+          wardrobe_item_id?: string | null;
         };
         Relationships: [
           {
@@ -1508,7 +1514,9 @@ export type Database = {
           customer_id: string;
           day_index: number;
           enrollment_id: string;
+          gap_citations: Json;
           id: string;
+          occasion_label: string | null;
           retailer_id: string;
           title: string;
           updated_at: string;
@@ -1518,7 +1526,9 @@ export type Database = {
           customer_id: string;
           day_index: number;
           enrollment_id: string;
+          gap_citations?: Json;
           id?: string;
+          occasion_label?: string | null;
           retailer_id: string;
           title: string;
           updated_at?: string;
@@ -1528,7 +1538,9 @@ export type Database = {
           customer_id?: string;
           day_index?: number;
           enrollment_id?: string;
+          gap_citations?: Json;
           id?: string;
+          occasion_label?: string | null;
           retailer_id?: string;
           title?: string;
           updated_at?: string;
@@ -5995,6 +6007,121 @@ export type Database = {
             columns: ["product_variant_id"];
             isOneToOne: false;
             referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      order_honeymoon_enrollments: {
+        Row: {
+          campaign_id: string | null;
+          created_at: string;
+          customer_id: string;
+          id: string;
+          library_version_id: string | null;
+          order_id: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          campaign_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          library_version_id?: string | null;
+          order_id: string;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          campaign_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          library_version_id?: string | null;
+          order_id?: string;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_honeymoon_enrollments_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: true;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      order_honeymoon_milestones: {
+        Row: {
+          action_href: string | null;
+          action_kind: string;
+          completed_at: string | null;
+          created_at: string;
+          dismissed_at: string | null;
+          display_order: number;
+          due_at: string | null;
+          enrollment_id: string;
+          explanation: string;
+          id: string;
+          kind: string;
+          lead_time_truth: string | null;
+          retailer_id: string;
+          status: string;
+          stock_truth: string | null;
+          suppress_reason: string | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          action_href?: string | null;
+          action_kind: string;
+          completed_at?: string | null;
+          created_at?: string;
+          dismissed_at?: string | null;
+          display_order?: number;
+          due_at?: string | null;
+          enrollment_id: string;
+          explanation: string;
+          id?: string;
+          kind: string;
+          lead_time_truth?: string | null;
+          retailer_id: string;
+          status?: string;
+          stock_truth?: string | null;
+          suppress_reason?: string | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          action_href?: string | null;
+          action_kind?: string;
+          completed_at?: string | null;
+          created_at?: string;
+          dismissed_at?: string | null;
+          display_order?: number;
+          due_at?: string | null;
+          enrollment_id?: string;
+          explanation?: string;
+          id?: string;
+          kind?: string;
+          lead_time_truth?: string | null;
+          retailer_id?: string;
+          status?: string;
+          stock_truth?: string | null;
+          suppress_reason?: string | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "order_honeymoon_milestones_enrollment_id_fkey";
+            columns: ["enrollment_id"];
+            isOneToOne: false;
+            referencedRelation: "order_honeymoon_enrollments";
             referencedColumns: ["id"];
           },
         ];
@@ -10708,6 +10835,10 @@ export type Database = {
       };
       clock_in: { Args: never; Returns: string };
       clock_out: { Args: never; Returns: undefined };
+      complete_honeymoon_milestone: {
+        Args: { p_milestone_id: string };
+        Returns: undefined;
+      };
       complete_campaign_challenge: {
         Args: { p_enrollment_id: string };
         Returns: string;
@@ -11401,6 +11532,10 @@ export type Database = {
         Args: { p_order_id: string };
         Returns: number;
       };
+      sync_order_honeymoon_milestones: {
+        Args: { p_milestones: Json; p_order_id: string };
+        Returns: string;
+      };
       toggle_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };
         Returns: boolean;
@@ -11485,6 +11620,8 @@ export type Database = {
         Args: {
           p_day_index: number;
           p_enrollment_id: string;
+          p_gap_citations?: Json;
+          p_occasion_label?: string;
           p_slots: Json;
           p_title: string;
         };

@@ -1087,7 +1087,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     Retailer campaigns settings shows library preview and clone. Full mapping
     wizard, rehearsal, and CMP-104 funnel metrics remain follow-ons.
 
-- [ ] **10.2 Seven-Day Wardrobe and Honeymoon Phase**
+- [x] **10.2 Seven-Day Wardrobe and Honeymoon Phase**
   - **Requirement IDs:** `CMP-105`, `CMP-106`, `WRD-104`.
   - **Dependencies:** `8.1`, `10.1`; wardrobe/MorningRoutine/order foundations.
   - **Owner boundary:** executable campaign packages and required customer/
@@ -1099,6 +1099,13 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     correction and outcomes.
   - **Non-goals:** no fabricated scarcity or unapproved one-click payment.
   - **Hard blockers:** payment eligibility blocks only payment action.
+  - **Landed:** domain `buildSevenDayCapsule` + `projectHoneymoonMilestones`;
+    migration `20260730340000_add_seven_day_honeymoon_campaign_packages.sql`
+    (owned/catalogue XOR challenge slots, gap citations, honeymoon
+    enrollments/milestones); library entries `seven_day_wardrobe_v1` and
+    `honeymoon_phase_v1`; Customer `/private-offers` owned-first composer +
+    `/orders/[id]` Honeymoon tracker; Retailer library clone for all packages.
+    WRD-104 wear/calendar coverage projector remains a follow-on.
 
 - [ ] **10.3 Unified communication and remote proposals**
   - **Requirement IDs:** clienteling parity target; `CLI-004`, `CMP-103`.
