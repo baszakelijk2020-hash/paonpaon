@@ -190,6 +190,11 @@ export default async function DashboardLayout({
                 description: "Supplier preview without publishing",
               },
               {
+                href: "/settings/connections",
+                label: "Connections",
+                description: "Source authority and connector health",
+              },
+              {
                 href: "/settings/morning-routine",
                 label: "MorningRoutine",
                 description: "Delivery pause and eligible products",

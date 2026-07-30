@@ -8189,6 +8189,317 @@ export type Database = {
           },
         ];
       };
+      connector_health_events: {
+        Row: {
+          connection_id: string;
+          created_at: string;
+          id: string;
+          lag_seconds: number;
+          notes: string | null;
+          observed_at: string;
+          open_conflict_count: number;
+          retailer_id: string;
+          status: Database["public"]["Enums"]["connector_health_status"];
+        };
+        Insert: {
+          connection_id: string;
+          created_at?: string;
+          id?: string;
+          lag_seconds?: number;
+          notes?: string | null;
+          observed_at?: string;
+          open_conflict_count?: number;
+          retailer_id: string;
+          status: Database["public"]["Enums"]["connector_health_status"];
+        };
+        Update: {
+          connection_id?: string;
+          created_at?: string;
+          id?: string;
+          lag_seconds?: number;
+          notes?: string | null;
+          observed_at?: string;
+          open_conflict_count?: number;
+          retailer_id?: string;
+          status?: Database["public"]["Enums"]["connector_health_status"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "connector_health_events_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "source_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "connector_health_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      external_identities: {
+        Row: {
+          canonical_id: string;
+          canonical_type: string;
+          connection_id: string;
+          created_at: string;
+          domain: Database["public"]["Enums"]["source_domain"];
+          external_id: string;
+          external_object_type: string;
+          external_version: string;
+          id: string;
+          last_seen_at: string;
+          mapping_version: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          canonical_id: string;
+          canonical_type: string;
+          connection_id: string;
+          created_at?: string;
+          domain: Database["public"]["Enums"]["source_domain"];
+          external_id: string;
+          external_object_type: string;
+          external_version: string;
+          id?: string;
+          last_seen_at?: string;
+          mapping_version: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          canonical_id?: string;
+          canonical_type?: string;
+          connection_id?: string;
+          created_at?: string;
+          domain?: Database["public"]["Enums"]["source_domain"];
+          external_id?: string;
+          external_object_type?: string;
+          external_version?: string;
+          id?: string;
+          last_seen_at?: string;
+          mapping_version?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "external_identities_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "source_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "external_identities_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      source_authority_policies: {
+        Row: {
+          allowed_directions: Database["public"]["Enums"]["sync_direction"][];
+          authority_mode: Database["public"]["Enums"]["source_authority_mode"];
+          connection_id: string | null;
+          created_at: string;
+          domain: Database["public"]["Enums"]["source_domain"];
+          field_group: string;
+          id: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          allowed_directions: Database["public"]["Enums"]["sync_direction"][];
+          authority_mode: Database["public"]["Enums"]["source_authority_mode"];
+          connection_id?: string | null;
+          created_at?: string;
+          domain: Database["public"]["Enums"]["source_domain"];
+          field_group: string;
+          id?: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          allowed_directions?: Database["public"]["Enums"]["sync_direction"][];
+          authority_mode?: Database["public"]["Enums"]["source_authority_mode"];
+          connection_id?: string | null;
+          created_at?: string;
+          domain?: Database["public"]["Enums"]["source_domain"];
+          field_group?: string;
+          id?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "source_authority_policies_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "source_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "source_authority_policies_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      source_connections: {
+        Row: {
+          allowed_directions: Database["public"]["Enums"]["sync_direction"][];
+          config: Json;
+          created_at: string;
+          cursor: string | null;
+          id: string;
+          label: string;
+          last_sync_at: string | null;
+          mapping_version: string;
+          provider: Database["public"]["Enums"]["connector_provider"];
+          retailer_id: string;
+          status: Database["public"]["Enums"]["connection_status"];
+          updated_at: string;
+        };
+        Insert: {
+          allowed_directions?: Database["public"]["Enums"]["sync_direction"][];
+          config?: Json;
+          created_at?: string;
+          cursor?: string | null;
+          id?: string;
+          label: string;
+          last_sync_at?: string | null;
+          mapping_version?: string;
+          provider: Database["public"]["Enums"]["connector_provider"];
+          retailer_id: string;
+          status?: Database["public"]["Enums"]["connection_status"];
+          updated_at?: string;
+        };
+        Update: {
+          allowed_directions?: Database["public"]["Enums"]["sync_direction"][];
+          config?: Json;
+          created_at?: string;
+          cursor?: string | null;
+          id?: string;
+          label?: string;
+          last_sync_at?: string | null;
+          mapping_version?: string;
+          provider?: Database["public"]["Enums"]["connector_provider"];
+          retailer_id?: string;
+          status?: Database["public"]["Enums"]["connection_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "source_connections_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      source_reconciliations: {
+        Row: {
+          conflict_reason: string | null;
+          created_at: string;
+          external_identity_id: string;
+          id: string;
+          observed_at: string;
+          resolved_at: string | null;
+          retailer_id: string;
+          state: Database["public"]["Enums"]["reconciliation_state"];
+        };
+        Insert: {
+          conflict_reason?: string | null;
+          created_at?: string;
+          external_identity_id: string;
+          id?: string;
+          observed_at?: string;
+          resolved_at?: string | null;
+          retailer_id: string;
+          state: Database["public"]["Enums"]["reconciliation_state"];
+        };
+        Update: {
+          conflict_reason?: string | null;
+          created_at?: string;
+          external_identity_id?: string;
+          id?: string;
+          observed_at?: string;
+          resolved_at?: string | null;
+          retailer_id?: string;
+          state?: Database["public"]["Enums"]["reconciliation_state"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "source_reconciliations_external_identity_id_fkey";
+            columns: ["external_identity_id"];
+            isOneToOne: false;
+            referencedRelation: "external_identities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "source_reconciliations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      source_snapshots: {
+        Row: {
+          connection_id: string;
+          id: string;
+          ingested_at: string;
+          payload_hash: string;
+          provider_event_id: string;
+          raw_payload: Json;
+          retailer_id: string;
+        };
+        Insert: {
+          connection_id: string;
+          id?: string;
+          ingested_at?: string;
+          payload_hash: string;
+          provider_event_id: string;
+          raw_payload: Json;
+          retailer_id: string;
+        };
+        Update: {
+          connection_id?: string;
+          id?: string;
+          ingested_at?: string;
+          payload_hash?: string;
+          provider_event_id?: string;
+          raw_payload?: Json;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "source_snapshots_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "source_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "source_snapshots_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       staff_shifts: {
         Row: {
           created_at: string;
@@ -10069,6 +10380,22 @@ export type Database = {
         };
         Returns: string;
       };
+      ingest_source_snapshot: {
+        Args: {
+          p_canonical_id: string;
+          p_canonical_type: string;
+          p_connection_id: string;
+          p_domain: Database["public"]["Enums"]["source_domain"];
+          p_external_id: string;
+          p_external_object_type: string;
+          p_external_version: string;
+          p_mapping_version: string;
+          p_payload_hash: string;
+          p_provider_event_id: string;
+          p_raw_payload: Json;
+        };
+        Returns: Json;
+      };
       ensure_loyalty_milestone_definitions: {
         Args: { p_retailer_id: string };
         Returns: undefined;
@@ -10854,6 +11181,9 @@ export type Database = {
         | "pilot"
         | "converted"
         | "lost";
+      connection_status: "active" | "paused" | "disconnected" | "fixture";
+      connector_health_status: "healthy" | "degraded" | "failed" | "stale";
+      connector_provider: "faden" | "shopify" | "staged_file";
       completion_review_status: "pending" | "approved" | "changes_requested";
       custody_event_type:
         | "received"
@@ -10996,6 +11326,20 @@ export type Database = {
       retailer_tier: "boutique" | "house" | "maison";
       reward_type:
         "discount_percent" | "discount_fixed" | "gift" | "early_access";
+      reconciliation_state:
+        "matched" | "conflict" | "stale" | "unmapped" | "pending";
+      source_authority_mode: "paon" | "external" | "co_managed";
+      source_domain:
+        | "catalogue"
+        | "inventory"
+        | "customer"
+        | "order"
+        | "payment"
+        | "production"
+        | "appointment"
+        | "message"
+        | "payroll";
+      sync_direction: "ingest" | "export" | "write_api";
       subscription_status:
         | "trialing"
         | "active"
@@ -11244,6 +11588,9 @@ export const Constants = {
         "converted",
         "lost",
       ],
+      connection_status: ["active", "paused", "disconnected", "fixture"],
+      connector_health_status: ["healthy", "degraded", "failed", "stale"],
+      connector_provider: ["faden", "shopify", "staged_file"],
       completion_review_status: ["pending", "approved", "changes_requested"],
       custody_event_type: [
         "received",
@@ -11427,6 +11774,26 @@ export const Constants = {
         "gift",
         "early_access",
       ],
+      reconciliation_state: [
+        "matched",
+        "conflict",
+        "stale",
+        "unmapped",
+        "pending",
+      ],
+      source_authority_mode: ["paon", "external", "co_managed"],
+      source_domain: [
+        "catalogue",
+        "inventory",
+        "customer",
+        "order",
+        "payment",
+        "production",
+        "appointment",
+        "message",
+        "payroll",
+      ],
+      sync_direction: ["ingest", "export", "write_api"],
       subscription_status: [
         "trialing",
         "active",

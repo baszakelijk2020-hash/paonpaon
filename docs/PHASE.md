@@ -978,7 +978,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     populated/empty authenticated screenshots remain a hosted/seeded-data gap
     because the configured demo credentials were rejected locally.
 
-- [ ] **8.2 Source-authority and external-identity registry**
+- [x] **8.2 Source-authority and external-identity registry**
   - **Requirement IDs:** `INT-001`, `INT-003`, `INT-004`.
   - **Dependencies:** `8.0`; ADR-067.
   - **Owner boundary:** domain contracts, forward migration/RLS, repository,
@@ -991,6 +991,12 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     conflict and stale-source behavior.
   - **Non-goals:** no universal connector UI or claim of live Faden credentials.
   - **Hard blockers:** live keys block only live provider proof.
+  - **Landed:** `@paon/domain` source-authority contracts + Faden read-only
+    fixture/deep-link; migration/RLS for connections, policies, external
+    identities, immutable snapshots, reconciliations, and connector health;
+    `SourceAuthorityRepository` + `ingest_source_snapshot` RPC; Admin
+    `/connections` and Retailer `/settings/connections` health with fixture
+    ingest exercise. Live Faden credentials remain optional.
 
 - [ ] **8.3 Versioned workflow and familiarity presets**
   - **Requirement IDs:** `INT-005`, `WFM-103`.

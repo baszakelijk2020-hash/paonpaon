@@ -175,6 +175,12 @@ export type StylePreferenceEvidenceId = Brand<
   string,
   "StylePreferenceEvidenceId"
 >;
+export type SourceConnectionId = Brand<string, "SourceConnectionId">;
+export type SourceAuthorityPolicyId = Brand<string, "SourceAuthorityPolicyId">;
+export type ExternalIdentityId = Brand<string, "ExternalIdentityId">;
+export type SourceSnapshotId = Brand<string, "SourceSnapshotId">;
+export type SourceReconciliationId = Brand<string, "SourceReconciliationId">;
+export type ConnectorHealthEventId = Brand<string, "ConnectorHealthEventId">;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;
