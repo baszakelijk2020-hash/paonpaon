@@ -114,6 +114,21 @@ export class ClientelingOpportunityRepository {
     return data.map(toDomain);
   }
 
+  async listForRetailer(
+    retailerId: RetailerId,
+    limit = 200,
+  ): Promise<ClientelingOpportunity[]> {
+    const { data, error } = await this.client
+      .from("clienteling_opportunities")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data.map(toDomain);
+  }
+
   /**
    * Project interest insights into draft opportunities and persist new drafts
    * when the customer has no open draft of the same why_now text.

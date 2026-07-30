@@ -79,4 +79,20 @@ export class InteractionSessionRepository {
     }
     return toDomain(row);
   }
+
+  async listRecentForRetailer(
+    retailerId: RetailerId,
+    sinceIso: string,
+    limit = 100,
+  ): Promise<InteractionSession[]> {
+    const { data, error } = await this.client
+      .from("interaction_sessions")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .gte("last_seen_at", sinceIso)
+      .order("last_seen_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data.map(toDomain);
+  }
 }

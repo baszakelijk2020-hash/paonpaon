@@ -59,6 +59,7 @@ export * from "./repositories/customer-interest-repository";
 export * from "./repositories/for-you-repository";
 export * from "./repositories/customer-fact-repository";
 export * from "./repositories/clienteling-opportunity-repository";
+export * from "./repositories/clienteling-dashboard-repository";
 export * from "./repositories/interaction-session-repository";
 export * from "./repositories/table-service-guidance-repository";
 export * from "./repositories/ai-generation-repository";

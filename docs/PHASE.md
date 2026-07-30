@@ -882,7 +882,7 @@ capability with policy as a separate eligibility plane (ADR-066).
     (`for_you_*` in capture allowlist). Tie-Mate/wardrobe-gap matching remains
     thin until richer catalogue concept joins.
 
-- [ ] **7.7 Live/temporal owner-manager-advisor dashboards**
+- [x] **7.7 Live/temporal owner-manager-advisor dashboards**
   - **Requirement IDs:** `CLI-008`.
   - **Dependencies:** `7.2`, `7.4`, `7.5`.
   - **Owner boundary:** role-specific dashboard projections and UI for
@@ -895,6 +895,8 @@ capability with policy as a separate eligibility plane (ADR-066).
   - **Non-goals:** no unrestricted PAON-admin browsing of retailer customer
     content.
   - **Hard blockers:** none for local build.
+  - **Landed:** presence/funnel/hourly heatmap projectors + manager Analytics
+    mount; vanity event-count metric replaced with opportunity drafts.
 
 - [ ] **7.8 Correction, outcomes, policy, and admin hardening**
   - **Requirement IDs:** `CLI-009`, `ENG-006`.
