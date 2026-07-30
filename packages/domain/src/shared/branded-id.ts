@@ -163,6 +163,10 @@ export type WeddingPartyMemberId = Brand<string, "WeddingPartyMemberId">;
 export type StaffShiftId = Brand<string, "StaffShiftId">;
 export type StaffTimeEntryId = Brand<string, "StaffTimeEntryId">;
 export type BehavioralEventId = Brand<string, "BehavioralEventId">;
+export type CustomerInteractionSessionId = Brand<
+  string,
+  "CustomerInteractionSessionId"
+>;
 export type AnonymousSessionId = Brand<string, "AnonymousSessionId">;
 export type CustomerConsentEventId = Brand<string, "CustomerConsentEventId">;
 export type CustomerStyleProfileId = Brand<string, "CustomerStyleProfileId">;

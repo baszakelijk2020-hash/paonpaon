@@ -9,6 +9,7 @@ import type { MetadataConceptKind } from "../metadata/metadata";
 import type {
   BehavioralEventId,
   CustomerId,
+  CustomerInteractionSessionId,
   MetadataConceptId,
   ProductId,
   ProductVariantId,
@@ -21,6 +22,7 @@ import {
   type ConsentStatus,
   type CustomerConsentState,
 } from "./consent";
+import { sessionIdFromEventProperties } from "./customer-session";
 import type { BehavioralEvent } from "./interaction-event";
 
 export const CUSTOMER_INTEREST_PROJECTOR_VERSION = "customer-interest-v1";
@@ -101,8 +103,8 @@ export interface CustomerInterestInsight {
   readonly eventCount: number;
   readonly uniqueProductCount: number;
   /**
-   * Session counts require 7.2 session IDs. Represent as null rather than
-   * inventing values from current event rows.
+   * Distinct signed-in interaction sessions cited by eligible events. Null
+   * when no session ids are present on the evidence window.
    */
   readonly sessionCount: number | null;
   readonly windowStart: string;
@@ -241,6 +243,26 @@ export function productVariantIdFromEventProperties(
 }
 
 /**
+ * Resolve session id from the typed event column or properties payload.
+ */
+export function sessionIdFromEvent(
+  event: BehavioralEvent,
+): CustomerInteractionSessionId | null {
+  return event.sessionId ?? sessionIdFromEventProperties(event.properties);
+}
+
+export function countDistinctSessionIds(
+  events: readonly BehavioralEvent[],
+): number | null {
+  const sessionIds = new Set<string>();
+  for (const event of events) {
+    const sessionId = sessionIdFromEvent(event);
+    if (sessionId) sessionIds.add(sessionId);
+  }
+  return sessionIds.size > 0 ? sessionIds.size : null;
+}
+
+/**
  * Stable dedupe key for retries. Prefer explicit idempotencyKey, then event
  * id, then a composite of name/product/occurredAt.
  */
@@ -331,6 +353,7 @@ interface ScopeBucket {
   readonly polarity: InterestEvidencePolarity;
   readonly productIds: Set<string>;
   readonly eventIds: BehavioralEventId[];
+  readonly sessionIds: Set<string>;
   latestEvidenceAt: string;
 }
 
@@ -426,6 +449,7 @@ export function projectCustomerInterestInsights(
     const eventId =
       event.id ??
       asId<"BehavioralEventId">("00000000-0000-4000-8000-000000000000");
+    const sessionId = sessionIdFromEvent(event);
 
     for (const scope of scopes) {
       if (!isScopeKind(scope.kind)) continue;
@@ -442,6 +466,7 @@ export function projectCustomerInterestInsights(
         if (existing) {
           existing.productIds.add(productId);
           existing.eventIds.push(eventId);
+          if (sessionId) existing.sessionIds.add(sessionId);
           if (
             Date.parse(event.occurredAt) > Date.parse(existing.latestEvidenceAt)
           ) {
@@ -454,6 +479,7 @@ export function projectCustomerInterestInsights(
             polarity,
             productIds: new Set([productId]),
             eventIds: [eventId],
+            sessionIds: sessionId ? new Set([sessionId]) : new Set(),
             latestEvidenceAt: event.occurredAt,
           });
         }
@@ -475,6 +501,8 @@ export function projectCustomerInterestInsights(
 
     const share = Math.round((numerator / denominator) * 1000) / 1000;
     const eventCount = bucket.eventIds.length;
+    const sessionCount =
+      bucket.sessionIds.size > 0 ? bucket.sessionIds.size : null;
     const suppressed = denominator < minSample;
     const uniqueIds = [...new Set(bucket.eventIds)];
 
@@ -491,7 +519,7 @@ export function projectCustomerInterestInsights(
       share,
       eventCount,
       uniqueProductCount: numerator,
-      sessionCount: null,
+      sessionCount,
       windowStart,
       windowEnd: input.now,
       latestEvidenceAt: bucket.latestEvidenceAt,

@@ -32,6 +32,8 @@ const row: Row = {
   retention_class: "personalization_signal",
   retention_expires_at: "2027-07-20T00:00:00.000Z",
   anonymized_at: null,
+  session_id: null,
+  idempotency_key: null,
 };
 
 describe("AnalyticsRepository", () => {

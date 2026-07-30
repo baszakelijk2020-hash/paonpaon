@@ -29,7 +29,16 @@ const EVENT_LABELS: Record<string, string> = {
   knowledge_opened: "Opened a knowledge card",
   advisor_question: "Asked an advisor question",
   appointment_intent: "Showed appointment intent",
-  conversion_recorded: "Recorded a conversion signal",
+  tie_mate_impression: "Tie-Mate fabric impression",
+  session_started: "Session started",
+  session_resumed: "Session resumed",
+  session_heartbeat: "Session heartbeat",
+  session_ended: "Session ended",
+  page_visibility_changed: "Page visibility changed",
+  route_impression: "Route impression",
+  product_card_impression: "Product card impression",
+  product_dwell_threshold: "Product dwell threshold",
+  scroll_depth_threshold: "Scroll depth threshold",
 };
 
 function eventLabel(event: BehavioralEvent): string {
@@ -167,9 +176,6 @@ export function SelfPortrait({
         </p>
         <p className="mb-2 text-xs text-[var(--color-stone-500)]">
           Why we think this · {interestWindowLabel(interestProjection)}
-          {interestProjection.visibility === "usable"
-            ? " · session counts unavailable until session instrumentation"
-            : null}
         </p>
         {usableInterests.length === 0 ? (
           <p className="text-sm text-[var(--color-stone-500)]">
@@ -188,7 +194,11 @@ export function SelfPortrait({
                 <p className="mt-1 text-xs text-[var(--color-stone-500)]">
                   {insight.numerator}/{insight.denominator} unique products ·{" "}
                   {Math.round(insight.share * 100)}% · {insight.eventCount}{" "}
-                  events · confidence {insight.confidence.toFixed(2)} · latest{" "}
+                  events
+                  {insight.sessionCount !== null
+                    ? ` · ${insight.sessionCount} sessions`
+                    : null}{" "}
+                  · confidence {insight.confidence.toFixed(2)} · latest{" "}
                   {formatDate(insight.latestEvidenceAt, "en-US")} ·{" "}
                   {insight.evidenceEventIds.length} evidence refs
                 </p>

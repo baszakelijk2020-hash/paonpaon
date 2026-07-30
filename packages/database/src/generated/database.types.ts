@@ -1134,6 +1134,7 @@ export type Database = {
           created_at: string;
           customer_id: string | null;
           id: string;
+          idempotency_key: string | null;
           name: string;
           occurred_at: string;
           properties: Json;
@@ -1141,6 +1142,7 @@ export type Database = {
           retailer_id: string;
           retention_class: string;
           retention_expires_at: string;
+          session_id: string | null;
           source: string;
         };
         Insert: {
@@ -1151,6 +1153,7 @@ export type Database = {
           created_at?: string;
           customer_id?: string | null;
           id?: string;
+          idempotency_key?: string | null;
           name: string;
           occurred_at?: string;
           properties?: Json;
@@ -1158,6 +1161,7 @@ export type Database = {
           retailer_id: string;
           retention_class?: string;
           retention_expires_at?: string;
+          session_id?: string | null;
           source: string;
         };
         Update: {
@@ -1168,6 +1172,7 @@ export type Database = {
           created_at?: string;
           customer_id?: string | null;
           id?: string;
+          idempotency_key?: string | null;
           name?: string;
           occurred_at?: string;
           properties?: Json;
@@ -1175,6 +1180,7 @@ export type Database = {
           retailer_id?: string;
           retention_class?: string;
           retention_expires_at?: string;
+          session_id?: string | null;
           source?: string;
         };
         Relationships: [
@@ -2531,6 +2537,67 @@ export type Database = {
           },
           {
             foreignKeyName: "customer_consent_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_interaction_sessions: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          ended_at: string | null;
+          id: string;
+          idle_since: string | null;
+          last_heartbeat_at: string;
+          retailer_id: string;
+          route: string;
+          started_at: string;
+          visibility_state: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          ended_at?: string | null;
+          id?: string;
+          idle_since?: string | null;
+          last_heartbeat_at?: string;
+          retailer_id: string;
+          route: string;
+          started_at?: string;
+          visibility_state?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          ended_at?: string | null;
+          id?: string;
+          idle_since?: string | null;
+          last_heartbeat_at?: string;
+          retailer_id?: string;
+          route?: string;
+          started_at?: string;
+          visibility_state?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_interaction_sessions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_interaction_sessions_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "customer_interaction_sessions_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
@@ -9179,6 +9246,7 @@ export type Database = {
           p_consent_basis?: string;
           p_consent_snapshot?: Json;
           p_customer_id?: string;
+          p_idempotency_key?: string;
           p_name: string;
           p_occurred_at?: string;
           p_properties?: Json;
@@ -9186,8 +9254,13 @@ export type Database = {
           p_retailer_id: string;
           p_retention_class?: string;
           p_retention_expires_at?: string;
+          p_session_id?: string;
           p_source?: string;
         };
+        Returns: string;
+      };
+      end_customer_interaction_session: {
+        Args: { p_session_id: string };
         Returns: string;
       };
       checkout_cart: {
@@ -9388,6 +9461,14 @@ export type Database = {
       get_retailer_analytics: {
         Args: { p_retailer_id: string; p_since?: string };
         Returns: Json;
+      };
+      heartbeat_customer_interaction_session: {
+        Args: {
+          p_route?: string;
+          p_session_id: string;
+          p_visibility_state?: string;
+        };
+        Returns: string;
       };
       grant_service_entitlement: {
         Args: {
@@ -9868,6 +9949,14 @@ export type Database = {
           p_request_service_handoff?: boolean;
           p_size_change_reported?: boolean;
           p_wardrobe_item_id: string;
+        };
+        Returns: string;
+      };
+      start_customer_interaction_session: {
+        Args: {
+          p_resume_session_id?: string;
+          p_retailer_id: string;
+          p_route: string;
         };
         Returns: string;
       };
