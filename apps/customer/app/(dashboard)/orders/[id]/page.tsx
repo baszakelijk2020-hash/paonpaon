@@ -10,8 +10,11 @@ import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
 import { notFound } from "next/navigation";
 
+import {
+  HoneymoonTrackerPanel,
+  loadHoneymoonMilestones,
+} from "./honeymoon-panel";
 import { PayPanel } from "./pay-panel";
-import { HoneymoonTrackerPanel, loadHoneymoonMilestones } from "./honeymoon-panel";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -49,12 +52,16 @@ export default async function OrderDetailPage({
     const variant = variants[index];
     return {
       productVariantId: line.productVariantId,
-      sku: variant?.sku,
       quantity: line.quantity,
       requiresProduction: line.requiresProduction,
       requiresAlteration: line.requiresAlteration,
-      leadTimeDays: variant?.leadTimeDays ?? null,
-      inventoryQuantity: variant?.inventoryQuantity ?? null,
+      ...(variant?.sku ? { sku: variant.sku } : {}),
+      ...(variant?.leadTimeDays !== undefined
+        ? { leadTimeDays: variant.leadTimeDays ?? null }
+        : {}),
+      ...(variant?.inventoryQuantity !== undefined
+        ? { inventoryQuantity: variant.inventoryQuantity ?? null }
+        : {}),
     };
   });
 

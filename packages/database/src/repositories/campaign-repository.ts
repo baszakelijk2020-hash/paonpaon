@@ -29,7 +29,6 @@ import {
   type UpsertCampaignChallengeLookInput,
   type UpsertCampaignInput,
   type CampaignTargetProduct,
-  type WardrobeItemId,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
@@ -142,7 +141,8 @@ function toSlot(row: SlotRow): CampaignChallengeLookSlot {
     lookId: asId<"CampaignChallengeLookId">(row.look_id),
     retailerId: asId<"RetailerId">(row.retailer_id),
     slotKind: row.slot_kind as OutfitSlotKind,
-    sourceKind: (row.source_kind ?? "catalogue_suggested") as CampaignSlotSourceKind,
+    sourceKind: (row.source_kind ??
+      "catalogue_suggested") as CampaignSlotSourceKind,
     ...(row.product_id ? { productId: asId<"ProductId">(row.product_id) } : {}),
     ...(row.wardrobe_item_id
       ? { wardrobeItemId: asId<"WardrobeItemId">(row.wardrobe_item_id) }
@@ -514,7 +514,9 @@ export class CampaignRepository {
   ): Promise<string> {
     const slotsJson: Json = input.slots.map((slot) => ({
       slot_kind: slot.slotKind,
-      source_kind: slot.sourceKind ?? (slot.wardrobeItemId ? "owned" : "catalogue_suggested"),
+      source_kind:
+        slot.sourceKind ??
+        (slot.wardrobeItemId ? "owned" : "catalogue_suggested"),
       ...(slot.productId ? { product_id: slot.productId } : {}),
       ...(slot.wardrobeItemId ? { wardrobe_item_id: slot.wardrobeItemId } : {}),
     }));
@@ -532,8 +534,10 @@ export class CampaignRepository {
         p_day_index: input.dayIndex,
         p_title: input.title,
         p_slots: slotsJson,
-        p_occasion_label: input.occasionLabel ?? null,
         p_gap_citations: gapJson,
+        ...(input.occasionLabel
+          ? { p_occasion_label: input.occasionLabel }
+          : {}),
       },
     );
     if (error) throw error;

@@ -1,10 +1,13 @@
-import { HoneymoonRepository } from "@paon/database";
+import {
+  HoneymoonRepository,
+  type OrderHoneymoonMilestone,
+  type PaonSupabaseClient,
+} from "@paon/database";
+import type { OrderStatus } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import Link from "next/link";
 
 import { completeHoneymoonMilestone } from "./honeymoon-actions";
-
-import type { OrderHoneymoonMilestone } from "@paon/database";
 
 export function HoneymoonTrackerPanel({
   orderId,
@@ -93,7 +96,7 @@ export function HoneymoonTrackerPanel({
 
 export async function loadHoneymoonMilestones(args: {
   readonly orderId: string;
-  readonly orderStatus: import("@paon/domain").OrderStatus;
+  readonly orderStatus: OrderStatus;
   readonly placedAt?: string;
   readonly lines: readonly {
     readonly productVariantId: string;
@@ -104,9 +107,9 @@ export async function loadHoneymoonMilestones(args: {
     readonly leadTimeDays?: number | null;
     readonly inventoryQuantity?: number | null;
   }[];
-  readonly supabase: import("@paon/database").PaonSupabaseClient;
+  readonly supabase: PaonSupabaseClient;
 }): Promise<OrderHoneymoonMilestone[]> {
-  const trackable = [
+  const trackable: OrderStatus[] = [
     "placed",
     "in_production",
     "ready_for_fulfillment",

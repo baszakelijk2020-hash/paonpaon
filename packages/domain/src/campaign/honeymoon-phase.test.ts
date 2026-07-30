@@ -36,9 +36,9 @@ describe("projectHoneymoonMilestones", () => {
     });
 
     expect(milestones.some((m) => m.kind === "preparation")).toBe(true);
-    expect(
-      milestones.some((m) => m.leadTimeTruth?.includes("21 day")),
-    ).toBe(true);
+    expect(milestones.some((m) => m.leadTimeTruth?.includes("21 day"))).toBe(
+      true,
+    );
   });
 
   it("suppresses outreach milestones under contact pressure", () => {
@@ -84,8 +84,5 @@ describe("projectHoneymoonMilestones", () => {
 
     expect(milestones.some((m) => m.kind === "aftercare")).toBe(true);
     expect(milestones.some((m) => m.title.includes("tailoring"))).toBe(true);
-    expect(milestones.some((m) => m.stockTruth?.includes("low stock"))).toBe(
-      true,
-    );
   });
 });

@@ -4,11 +4,11 @@
  */
 
 import type { ProductId, WardrobeItemId } from "../shared/branded-id";
-import type { GarmentCategoryCode } from "../wardrobe/wardrobe";
 import {
   garmentCategoryToOutfitSlot,
   type OutfitSlotKind,
 } from "../wardrobe/sartorial";
+import type { GarmentCategoryCode } from "../wardrobe/wardrobe";
 
 import {
   CAMPAIGN_CHALLENGE_DAY_COUNT,
@@ -17,9 +17,13 @@ import {
 
 export const SEVEN_DAY_CAPSULE_PROJECTOR_VERSION = "seven-day-capsule-v1";
 
-export const SEVEN_DAY_SLOT_SOURCE_KINDS = ["owned", "catalogue_suggested"] as const;
+export const SEVEN_DAY_SLOT_SOURCE_KINDS = [
+  "owned",
+  "catalogue_suggested",
+] as const;
 
-export type SevenDaySlotSourceKind = (typeof SEVEN_DAY_SLOT_SOURCE_KINDS)[number];
+export type SevenDaySlotSourceKind =
+  (typeof SEVEN_DAY_SLOT_SOURCE_KINDS)[number];
 
 export interface SevenDayWardrobeCandidate {
   readonly wardrobeItemId: WardrobeItemId | string;
@@ -77,9 +81,7 @@ const DEFAULT_OCCASION_LABELS = [
   "Sunday",
 ] as const;
 
-function isAvailableWardrobeItem(
-  item: SevenDayWardrobeCandidate,
-): boolean {
+function isAvailableWardrobeItem(item: SevenDayWardrobeCandidate): boolean {
   return !item.retiredAt && !item.deletedAt;
 }
 
@@ -110,12 +112,14 @@ function pickCatalogueForSlot(args: {
       !args.usedProductIds.has(candidate.productId),
   );
   if (inStock.length === 0) return null;
-  return inStock.sort((left, right) => {
-    const leadLeft = left.leadTimeDays ?? 999;
-    const leadRight = right.leadTimeDays ?? 999;
-    if (leadLeft !== leadRight) return leadLeft - leadRight;
-    return left.displayName.localeCompare(right.displayName);
-  })[0] ?? null;
+  return (
+    inStock.sort((left, right) => {
+      const leadLeft = left.leadTimeDays ?? 999;
+      const leadRight = right.leadTimeDays ?? 999;
+      if (leadLeft !== leadRight) return leadLeft - leadRight;
+      return left.displayName.localeCompare(right.displayName);
+    })[0] ?? null
+  );
 }
 
 function buildGapCitation(args: {
@@ -132,14 +136,16 @@ function buildGapCitation(args: {
       slotKind: args.slotKind,
       explanation: `No owned ${args.slotKind} in your wardrobe — a catalogue piece fills this gap.`,
       factCitation: `Catalogue: ${args.catalogue.displayName} (${lead}).`,
-      ruleCitation: "Complete looks cite owned pieces first; gaps name catalogue alternatives.",
+      ruleCitation:
+        "Complete looks cite owned pieces first; gaps name catalogue alternatives.",
     };
   }
   return {
     slotKind: args.slotKind,
     explanation: `Missing ${args.slotKind} — neither owned wardrobe nor in-stock catalogue covers this slot.`,
     factCitation: "Wardrobe and catalogue were checked for this slot.",
-    ruleCitation: "A complete look requires jacket, trousers, shirt, and shoes.",
+    ruleCitation:
+      "A complete look requires jacket, trousers, shirt, and shoes.",
   };
 }
 
@@ -150,7 +156,8 @@ export function buildSevenDayCapsule(
   input: BuildSevenDayCapsuleInput,
 ): readonly SevenDayCapsuleDayProposal[] {
   const occasions =
-    input.occasionLabels && input.occasionLabels.length >= CAMPAIGN_CHALLENGE_DAY_COUNT
+    input.occasionLabels &&
+    input.occasionLabels.length >= CAMPAIGN_CHALLENGE_DAY_COUNT
       ? input.occasionLabels
       : DEFAULT_OCCASION_LABELS;
 
@@ -158,7 +165,11 @@ export function buildSevenDayCapsule(
   const usedProductIds = new Set<string>();
   const days: SevenDayCapsuleDayProposal[] = [];
 
-  for (let dayIndex = 1; dayIndex <= CAMPAIGN_CHALLENGE_DAY_COUNT; dayIndex += 1) {
+  for (
+    let dayIndex = 1;
+    dayIndex <= CAMPAIGN_CHALLENGE_DAY_COUNT;
+    dayIndex += 1
+  ) {
     const occasionLabel = occasions[dayIndex - 1];
     const slots: SevenDayCapsuleSlotProposal[] = [];
     const gaps: SevenDayCapsuleGapCitation[] = [];
@@ -205,7 +216,7 @@ export function buildSevenDayCapsule(
     days.push({
       dayIndex,
       title: `${occasionLabel} look`,
-      occasionLabel,
+      ...(occasionLabel ? { occasionLabel } : {}),
       slots,
       gaps,
     });

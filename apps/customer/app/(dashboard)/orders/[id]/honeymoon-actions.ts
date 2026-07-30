@@ -22,9 +22,8 @@ export async function completeHoneymoonMilestone(
 export async function syncHoneymoonMilestones(orderId: string): Promise<void> {
   await requireSession();
   const supabase = await getSupabaseServerClient();
-  const { OrderRepository, ProductVariantRepository } = await import(
-    "@paon/database"
-  );
+  const { OrderRepository, ProductVariantRepository } =
+    await import("@paon/database");
   const orderRepo = new OrderRepository(supabase);
   const order = await orderRepo.findById(asId<"OrderId">(orderId));
   if (!order) return;
@@ -36,12 +35,16 @@ export async function syncHoneymoonMilestones(orderId: string): Promise<void> {
       const variant = await variantRepo.findById(line.productVariantId);
       return {
         productVariantId: line.productVariantId,
-        sku: variant?.sku,
         quantity: line.quantity,
         requiresProduction: line.requiresProduction,
         requiresAlteration: line.requiresAlteration,
-        leadTimeDays: variant?.leadTimeDays ?? null,
-        inventoryQuantity: variant?.inventoryQuantity ?? null,
+        ...(variant?.sku ? { sku: variant.sku } : {}),
+        ...(variant?.leadTimeDays !== undefined
+          ? { leadTimeDays: variant.leadTimeDays ?? null }
+          : {}),
+        ...(variant?.inventoryQuantity !== undefined
+          ? { inventoryQuantity: variant.inventoryQuantity ?? null }
+          : {}),
       };
     }),
   );
