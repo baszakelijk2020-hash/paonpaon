@@ -65,6 +65,7 @@ function viewEvent(args: {
   readonly anonymizedAt?: string;
   readonly retentionExpiresAt?: string;
   readonly name?: BehavioralEvent["name"];
+  readonly sessionId?: string;
 }): BehavioralEvent {
   const productId = asId<"ProductId">(
     `aaaaaaaa-aaaa-4aaa-8aaa-${String(args.productNum).padStart(12, "0")}`,
@@ -91,6 +92,11 @@ function viewEvent(args: {
     },
     retentionClass: "personalization_signal",
     retentionExpiresAt: args.retentionExpiresAt ?? "2027-07-30T12:00:00.000Z",
+    ...(args.sessionId
+      ? {
+          sessionId: asId<"CustomerInteractionSessionId">(args.sessionId),
+        }
+      : {}),
     ...(args.anonymizedAt ? { anonymizedAt: args.anonymizedAt } : {}),
   };
 }
@@ -174,6 +180,44 @@ describe("projectCustomerInterestInsights", () => {
         polarity: "negative",
       }),
     ).toBe("3 of 6 tie skips were linen");
+  });
+
+  it("counts distinct sessions when session ids are present", () => {
+    const events = Array.from({ length: 10 }, (_, index) =>
+      viewEvent({
+        id: `bbbbbbbb-bbbb-4bbb-8bbb-${String(index + 1).padStart(12, "0")}`,
+        productNum: index + 1,
+        occurredAt: `2026-07-${String(10 + (index % 5)).padStart(2, "0")}T10:00:00.000Z`,
+        sessionId:
+          index < 5
+            ? "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+            : "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      }),
+    );
+
+    const result = projectCustomerInterestInsights(
+      baseInput({
+        events,
+        productMetadata: new Map(
+          Array.from({ length: 10 }, (_, index) => {
+            const meta = productMeta(index + 1, [
+              { conceptId: suitId, kind: "garment_type", label: "Suit" },
+              {
+                conceptId: index % 2 === 0 ? brownId : navyId,
+                kind: "colour",
+                label: index % 2 === 0 ? "Brown" : "Navy",
+              },
+            ]);
+            return [meta.productId, meta] as const;
+          }),
+        ),
+      }),
+    );
+
+    const brown = result.insights.find(
+      (insight) => insight.attributeConceptId === brownId,
+    );
+    expect(brown?.sessionCount).toBe(2);
   });
 
   it("dedupes retries by idempotency key", () => {

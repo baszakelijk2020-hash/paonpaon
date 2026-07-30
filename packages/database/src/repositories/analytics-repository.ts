@@ -55,6 +55,10 @@ const toDomain = (row: Row): BehavioralEvent => ({
         ),
       }
     : {}),
+  ...(row.session_id
+    ? { sessionId: asId<"CustomerInteractionSessionId">(row.session_id) }
+    : {}),
+  ...(row.idempotency_key ? { idempotencyKey: row.idempotency_key } : {}),
   name: row.name as InteractionEventName,
   properties: row.properties as Record<string, unknown>,
   occurredAt: row.occurred_at,
@@ -85,6 +89,10 @@ export class AnalyticsRepository {
       p_retention_expires_at: event.retentionExpiresAt,
       ...(event.anonymousSessionId
         ? { p_anonymous_session_id: event.anonymousSessionId }
+        : {}),
+      ...(event.sessionId ? { p_session_id: event.sessionId } : {}),
+      ...(event.idempotencyKey
+        ? { p_idempotency_key: event.idempotencyKey }
         : {}),
     });
     if (error) throw error;

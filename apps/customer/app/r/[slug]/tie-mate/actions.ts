@@ -1,61 +1,12 @@
 "use server";
 
-import {
-  AnalyticsRepository,
-  CustomerConsentRepository,
-  CustomerRepository,
-  WishlistRepository,
-} from "@paon/database";
-import {
-  asId,
-  mayCapturePersonalizationForCustomer,
-  retentionExpiresAt,
-} from "@paon/domain";
+import { WishlistRepository } from "@paon/database";
+import { asId } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
+import { captureSignedInInteractionEvent } from "@/lib/capture-interaction-event";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-
-async function captureTieMateSignal(args: {
-  readonly retailerId: string;
-  readonly name: "product_favorited" | "product_skipped";
-  readonly properties: Record<string, unknown>;
-}): Promise<void> {
-  const session = await requireSession();
-  const supabase = await getSupabaseServerClient();
-  const rId = asId<"RetailerId">(args.retailerId);
-
-  const customers = await new CustomerRepository(supabase).findByUserId(
-    session.userId,
-  );
-  const customer = customers.find((c) => c.retailerId === rId);
-  if (!customer) return;
-
-  const consentRepo = new CustomerConsentRepository(supabase);
-  const consentState = await consentRepo.getState(rId, customer.id);
-  if (!mayCapturePersonalizationForCustomer(consentState)) return;
-
-  const occurredAt = new Date().toISOString();
-  const consentSnapshot = await consentRepo.snapshotForCapture(
-    rId,
-    customer.id,
-    occurredAt,
-  );
-
-  await new AnalyticsRepository(supabase).capture({
-    retailerId: rId,
-    customerId: customer.id,
-    name: args.name,
-    properties: args.properties,
-    occurredAt,
-    source: "customer_portal",
-    purpose: "personalization",
-    consentBasis: "explicit_opt_in",
-    consentSnapshot,
-    retentionClass: "personalization_signal",
-    retentionExpiresAt: retentionExpiresAt({ occurredAt }),
-  });
-}
 
 /** Save the current fabric to the wishlist (Tie-Mate swipe-right / Save). */
 export async function saveTieMateFabric(args: {
@@ -63,6 +14,7 @@ export async function saveTieMateFabric(args: {
   readonly slug: string;
   readonly productVariantId: string;
   readonly productId: string;
+  readonly sessionId?: string;
 }): Promise<
   { readonly ok: true } | { readonly ok: false; readonly error: string }
 > {
@@ -82,19 +34,21 @@ export async function saveTieMateFabric(args: {
     };
   }
 
-  try {
-    await captureTieMateSignal({
-      retailerId: args.retailerId,
-      name: "product_favorited",
-      properties: {
-        productId: args.productId,
-        productVariantId: args.productVariantId,
-        via: "tie_mate",
-      },
-    });
-  } catch {
-    // Best-effort — a failed capture must never block the save.
-  }
+  const idempotencyKey = args.sessionId
+    ? `${args.sessionId}:tie_mate_save:${args.productVariantId}`
+    : `tie_mate_save:${args.productVariantId}:${Date.now()}`;
+
+  await captureSignedInInteractionEvent({
+    retailerId: args.retailerId,
+    name: "product_favorited",
+    idempotencyKey,
+    properties: {
+      productId: args.productId,
+      productVariantId: args.productVariantId,
+      via: "tie_mate",
+    },
+    ...(args.sessionId ? { sessionId: args.sessionId } : {}),
+  });
 
   revalidatePath(`/r/${args.slug}/tie-mate`);
   revalidatePath("/wishlist");
@@ -105,15 +59,18 @@ export async function saveTieMateFabric(args: {
 export async function skipTieMateFabric(args: {
   readonly retailerId: string;
   readonly productId: string;
+  readonly sessionId?: string;
 }): Promise<void> {
   await requireSession();
-  try {
-    await captureTieMateSignal({
-      retailerId: args.retailerId,
-      name: "product_skipped",
-      properties: { productId: args.productId, via: "tie_mate" },
-    });
-  } catch {
-    // Best-effort.
-  }
+  const idempotencyKey = args.sessionId
+    ? `${args.sessionId}:tie_mate_skip:${args.productId}`
+    : `tie_mate_skip:${args.productId}:${Date.now()}`;
+
+  await captureSignedInInteractionEvent({
+    retailerId: args.retailerId,
+    name: "product_skipped",
+    idempotencyKey,
+    properties: { productId: args.productId, via: "tie_mate" },
+    ...(args.sessionId ? { sessionId: args.sessionId } : {}),
+  });
 }

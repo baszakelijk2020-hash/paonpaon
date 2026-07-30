@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  DEFAULT_PRODUCT_DWELL_THRESHOLD_MS,
+  DEFAULT_SESSION_HEARTBEAT_INTERVAL_MS,
   resolveTieMateKeyboardAction,
   type Money,
   type TieMateFabricPhotoRole,
@@ -17,6 +19,12 @@ import {
 } from "react";
 
 import { saveTieMateFabric, skipTieMateFabric } from "./actions";
+import {
+  endTieMateSession,
+  heartbeatTieMateSession,
+  startTieMateSession,
+  trackTieMateContextEvent,
+} from "./session-actions";
 
 export interface TieMateDeckCard {
   readonly productId: string;
@@ -37,6 +45,7 @@ export interface TieMateDeckCard {
 
 const SWIPE_THRESHOLD = 80;
 const EXIT_DURATION_MS = 320;
+const SESSION_STORAGE_KEY = "paon.tieMate.sessionId";
 
 /**
  * Interim Tie-Mate surface (founder-authorized): PAON storefront tokens,
@@ -66,6 +75,9 @@ export function TieMateDeck({
   const dragging = useRef(false);
   const startX = useRef(0);
   const stageRef = useRef<HTMLDivElement>(null);
+  const sessionIdRef = useRef<string | null>(null);
+  const impressionKeysRef = useRef<Set<string>>(new Set());
+  const dwellTimersRef = useRef<Map<string, number>>(new Map());
 
   const current = cards[index];
   const remaining = Math.max(cards.length - index, 0);
@@ -75,6 +87,128 @@ export function TieMateDeck({
     setExiting(null);
     setIndex((i) => i + 1);
   }, []);
+
+  const emitCardContext = useCallback(
+    (card: TieMateDeckCard) => {
+      const sessionId = sessionIdRef.current;
+      if (!sessionId) return;
+
+      const impressionKey = `${sessionId}:tie_mate_impression:${card.variantId}`;
+      if (!impressionKeysRef.current.has(impressionKey)) {
+        impressionKeysRef.current.add(impressionKey);
+        void trackTieMateContextEvent({
+          retailerId,
+          slug,
+          sessionId,
+          name: "tie_mate_impression",
+          idempotencyKey: impressionKey,
+          context: {
+            productId: card.productId,
+            productVariantId: card.variantId,
+          },
+        });
+        void trackTieMateContextEvent({
+          retailerId,
+          slug,
+          sessionId,
+          name: "product_card_impression",
+          idempotencyKey: `${sessionId}:product_card:${card.variantId}`,
+          context: {
+            productId: card.productId,
+            productVariantId: card.variantId,
+          },
+        });
+      }
+
+      if (dwellTimersRef.current.has(card.variantId)) return;
+      const timer = window.setTimeout(() => {
+        void trackTieMateContextEvent({
+          retailerId,
+          slug,
+          sessionId,
+          name: "product_dwell_threshold",
+          idempotencyKey: `${sessionId}:dwell:${card.variantId}`,
+          context: {
+            productId: card.productId,
+            productVariantId: card.variantId,
+            dwellMs: DEFAULT_PRODUCT_DWELL_THRESHOLD_MS,
+          },
+        });
+      }, DEFAULT_PRODUCT_DWELL_THRESHOLD_MS);
+      dwellTimersRef.current.set(card.variantId, timer);
+    },
+    [retailerId, slug],
+  );
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+
+    let cancelled = false;
+    const resumeSessionId =
+      window.sessionStorage.getItem(SESSION_STORAGE_KEY) ?? undefined;
+
+    void startTieMateSession({
+      retailerId,
+      slug,
+      ...(resumeSessionId ? { resumeSessionId } : {}),
+    }).then((result) => {
+      if (cancelled || !result.ok) return;
+      sessionIdRef.current = result.sessionId;
+      window.sessionStorage.setItem(SESSION_STORAGE_KEY, result.sessionId);
+    });
+
+    const heartbeat = window.setInterval(() => {
+      const sessionId = sessionIdRef.current;
+      if (!sessionId) return;
+      const visibilityState =
+        document.visibilityState === "visible" ? "visible" : "hidden";
+      void heartbeatTieMateSession({
+        retailerId,
+        slug,
+        sessionId,
+        visibilityState,
+      });
+    }, DEFAULT_SESSION_HEARTBEAT_INTERVAL_MS);
+
+    const onVisibilityChange = () => {
+      const sessionId = sessionIdRef.current;
+      if (!sessionId) return;
+      const visibilityState =
+        document.visibilityState === "visible" ? "visible" : "hidden";
+      void heartbeatTieMateSession({
+        retailerId,
+        slug,
+        sessionId,
+        visibilityState,
+      });
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(heartbeat);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      const sessionId = sessionIdRef.current;
+      if (sessionId) {
+        void endTieMateSession({ retailerId, slug, sessionId });
+        window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
+      }
+    };
+  }, [isSignedIn, retailerId, slug]);
+
+  useEffect(() => {
+    if (!current || !isSignedIn) return;
+    const variantId = current.variantId;
+    const timers = dwellTimersRef.current;
+    emitCardContext(current);
+    return () => {
+      const timer = timers.get(variantId);
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+        timers.delete(variantId);
+      }
+    };
+  }, [current, emitCardContext, isSignedIn]);
 
   const commit = useCallback(
     (direction: "left" | "right") => {
@@ -100,6 +234,9 @@ export function TieMateDeck({
             slug,
             productVariantId: card.variantId,
             productId: card.productId,
+            ...(sessionIdRef.current
+              ? { sessionId: sessionIdRef.current }
+              : {}),
           }).then((result) => {
             if (!result.ok) setActionError(result.error);
           });
@@ -108,6 +245,7 @@ export function TieMateDeck({
         void skipTieMateFabric({
           retailerId,
           productId: card.productId,
+          ...(sessionIdRef.current ? { sessionId: sessionIdRef.current } : {}),
         });
       }
 

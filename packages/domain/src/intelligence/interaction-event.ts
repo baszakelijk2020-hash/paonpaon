@@ -8,6 +8,7 @@ import type {
   AnonymousSessionId,
   BehavioralEventId,
   CustomerId,
+  CustomerInteractionSessionId,
   RetailerId,
 } from "../shared/branded-id";
 
@@ -29,6 +30,16 @@ export const INTERACTION_EVENT_NAMES = [
   "advisor_question",
   "appointment_intent",
   "conversion_recorded",
+  "session_started",
+  "session_resumed",
+  "session_heartbeat",
+  "session_ended",
+  "page_visibility_changed",
+  "route_impression",
+  "product_card_impression",
+  "product_dwell_threshold",
+  "scroll_depth_threshold",
+  "tie_mate_impression",
 ] as const;
 
 export type InteractionEventName = (typeof INTERACTION_EVENT_NAMES)[number];
@@ -64,6 +75,8 @@ export interface InteractionEvent {
   readonly retailerId: RetailerId;
   readonly customerId?: CustomerId;
   readonly anonymousSessionId?: AnonymousSessionId;
+  readonly sessionId?: CustomerInteractionSessionId;
+  readonly idempotencyKey?: string;
   readonly name: InteractionEventName;
   readonly properties: Readonly<Record<string, unknown>>;
   readonly occurredAt: string;
@@ -86,6 +99,8 @@ export interface CaptureInteractionEventInput {
   readonly retailerId: RetailerId;
   readonly customerId?: CustomerId;
   readonly anonymousSessionId?: AnonymousSessionId;
+  readonly sessionId?: CustomerInteractionSessionId;
+  readonly idempotencyKey?: string;
   readonly name: InteractionEventName;
   readonly properties?: Readonly<Record<string, unknown>>;
   readonly occurredAt: string;
@@ -105,7 +120,8 @@ export type InteractionEventValidationError =
   | "consent_required"
   | "anonymous_persistence_blocked"
   | "invalid_properties"
-  | "durable_record_duplication";
+  | "durable_record_duplication"
+  | "forbidden_sensitive_property";
 
 export interface InteractionEventValidationResult {
   readonly ok: boolean;
@@ -118,6 +134,16 @@ const DURABLE_DUPLICATION_KEYS = [
   "appointmentPayload",
   "messagePayload",
   "rawPrompt",
+] as const;
+
+const FORBIDDEN_CAPTURE_KEYS = [
+  "password",
+  "payment",
+  "credential",
+  "credentials",
+  "cardNumber",
+  "cvv",
+  "formContents",
 ] as const;
 
 export function isInteractionEventName(
@@ -180,6 +206,12 @@ export function validateCaptureInteractionEvent(
         break;
       }
     }
+    for (const key of FORBIDDEN_CAPTURE_KEYS) {
+      if (key in properties) {
+        errors.push("forbidden_sensitive_property");
+        break;
+      }
+    }
   }
 
   if (errors.length > 0) {
@@ -193,6 +225,8 @@ export function validateCaptureInteractionEvent(
     ...(input.anonymousSessionId
       ? { anonymousSessionId: input.anonymousSessionId }
       : {}),
+    ...(input.sessionId ? { sessionId: input.sessionId } : {}),
+    ...(input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : {}),
     name: input.name,
     properties: properties as Readonly<Record<string, unknown>>,
     occurredAt: input.occurredAt,

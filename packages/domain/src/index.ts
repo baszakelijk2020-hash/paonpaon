@@ -93,6 +93,7 @@ export * from "./intelligence/style-profile";
 export * from "./intelligence/style-profile.schema";
 export * from "./intelligence/advisor-brief";
 export * from "./intelligence/customer-interest";
+export * from "./intelligence/customer-session";
 export * from "./intelligence/grounded-answer";
 
 export * from "./integrations/weather";

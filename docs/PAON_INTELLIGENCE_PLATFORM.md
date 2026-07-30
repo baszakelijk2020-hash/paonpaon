@@ -15,8 +15,8 @@ requires it.
   UI. Stage 6 remains blocked (compliance/marketplace). Stage 7
   (evidence-cited Self-Portrait / clienteling intelligence, ADR-066) is
   independently authorized and locally buildable.
-- **Current queue item:** `7.2 Session/event context foundation and
-instrumentation`. Skip Stage 6 while blocked.
+- **Current queue item:** `7.3 Structured facts and advisor rectangles`.
+  Skip Stage 6 while blocked.
 - **Current requirement IDs:** `CLI-001`–`CLI-009`, `ENG-006` (Stage 7);
   Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
@@ -51,7 +51,8 @@ instrumentation`. Skip Stage 6 while blocked.
   (PHASE 5.4 repository wiring); `7b684ff` ships interim Customer
   `/r/[slug]/tie-mate` UI (PHASE 5.4 complete); `f7ce3be` hardens Tie-Mate
   local verification evidence; `4a3881b` authorizes Stage 7 / ADR-066
-  (PHASE 7.0 complete).
+  (PHASE 7.0 complete); `673ce59` ships evidence-cited Self-Portrait interest
+  insights (PHASE 7.1 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -122,11 +123,15 @@ instrumentation`. Skip Stage 6 while blocked.
   projection and Customer interim `/r/[slug]/tie-mate` surface.
   Stage 7.1 adds `@paon/domain` `projectCustomerInterestInsights` and
   `@paon/database` `CustomerInterestRepository`, mounted on Retailer
-  Self-Portrait as "Recent interests / Why we think this".
-- **Checks/deployment state:** 109 migrations; Stage 7.0 authority at
-  `4a3881b`; 7.1 interest insight pending push after DoD. Anonymous
-  interaction persistence remains blocked pending jurisdiction documentation.
-  Live Resend/OpenWeather smoke still needs provider credentials.
+  Self-Portrait as "Recent interests / Why we think this". Stage 7.2 adds
+  `customer_interaction_sessions`, session-scoped/idempotent behavioral capture,
+  `@paon/domain` session/context taxonomy, `@paon/database`
+  `CustomerSessionRepository`, shared signed-in capture helper, and Tie-Mate
+  journey instrumentation with session counts on interest insights.
+- **Checks/deployment state:** 110 migrations; Stage 7.1 at `673ce59`; 7.2
+  session instrumentation pending push after DoD. Anonymous interaction
+  persistence remains blocked pending jurisdiction documentation. Live
+  Resend/OpenWeather smoke still needs provider credentials.
 - **Real blockers:** Stage 6.1 is blocked on founder business/legal/accounting/
   provider decisions; 6.2 depends on 6.1; 6.3 marketplace modelling is not
   explicitly activated and remains gated on commercial/payment design;
@@ -136,9 +141,9 @@ instrumentation`. Skip Stage 6 while blocked.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next files/tests:** after 7.1 lands, implement `7.2` session/event
-  context foundation and instrument at least one real customer journey. Do not
-  invent Stage 6 payment/marketplace code.
+- **Exact next files/tests:** implement `7.3` structured Self-Portrait facts
+  and advisor metadata-driven rectangle capture. Do not invent Stage 6
+  payment/marketplace code.
 
 ## 1. Programme intent
 

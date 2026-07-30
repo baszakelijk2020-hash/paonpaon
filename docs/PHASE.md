@@ -790,7 +790,7 @@ capability with policy as a separate eligibility plane (ADR-066).
     interests / Why we think this" mount. Session counts explicitly null
     until 7.2. No migration required.
 
-- [ ] **7.2 Session/event context foundation and instrumentation**
+- [x] **7.2 Session/event context foundation and instrumentation**
   - **Requirement IDs:** `CLI-001`, `CUST-001`.
   - **Dependencies:** `7.1`; ADR-066.
   - **Owner boundary:** domain event taxonomy extensions, forward migration
@@ -806,6 +806,13 @@ capability with policy as a separate eligibility plane (ADR-066).
   - **Non-goals:** no third-party site tracking; no mousemove firehose.
   - **Hard blockers:** anonymous persistence remains jurisdiction-gated as
     today; signed-in instrumentation remains buildable.
+  - **Landed:** `@paon/domain` session/context taxonomy +
+    `CustomerSessionRepository`, migration `20260730240000` with
+    `customer_interaction_sessions`, session-scoped/idempotent
+    `capture_behavioral_event`, shared signed-in capture helper, and Tie-Mate
+    journey instrumentation (session lifecycle, route/card impressions, dwell,
+    save/skip with session ids). Interest projector now emits session counts
+    when session ids are present. Anonymous persistence remains blocked.
 
 - [ ] **7.3 Structured facts and advisor rectangles**
   - **Requirement IDs:** `CLI-002`, `CLI-003`, `CUST-002`.
