@@ -7155,6 +7155,35 @@ export type Database = {
           },
         ];
       };
+      retailer_familiarity_presets: {
+        Row: {
+          created_at: string;
+          preset_key: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          preset_key: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          preset_key?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_familiarity_presets_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: true;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailer_knowledge_overrides: {
         Row: {
           created_at: string;
@@ -9688,6 +9717,188 @@ export type Database = {
           },
         ];
       };
+      workflow_definitions: {
+        Row: {
+          active_version: number;
+          created_at: string;
+          display_name: string;
+          id: string;
+          key: string;
+          retailer_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          active_version: number;
+          created_at?: string;
+          display_name: string;
+          id?: string;
+          key: string;
+          retailer_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          active_version?: number;
+          created_at?: string;
+          display_name?: string;
+          id?: string;
+          key?: string;
+          retailer_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workflow_definitions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workflow_definition_versions: {
+        Row: {
+          created_at: string;
+          definition_id: string;
+          id: string;
+          key: string;
+          retailer_id: string | null;
+          snapshot: Json;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          created_at?: string;
+          definition_id: string;
+          id?: string;
+          key: string;
+          retailer_id?: string | null;
+          snapshot: Json;
+          updated_at?: string;
+          version: number;
+        };
+        Update: {
+          created_at?: string;
+          definition_id?: string;
+          id?: string;
+          key?: string;
+          retailer_id?: string | null;
+          snapshot?: Json;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workflow_definition_versions_definition_id_fkey";
+            columns: ["definition_id"];
+            isOneToOne: false;
+            referencedRelation: "workflow_definitions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "workflow_definition_versions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workflow_events: {
+        Row: {
+          actor_staff_id: string | null;
+          created_at: string;
+          from_state: string;
+          id: string;
+          instance_id: string;
+          reason: string | null;
+          retailer_id: string;
+          to_state: string;
+        };
+        Insert: {
+          actor_staff_id?: string | null;
+          created_at?: string;
+          from_state: string;
+          id?: string;
+          instance_id: string;
+          reason?: string | null;
+          retailer_id: string;
+          to_state: string;
+        };
+        Update: {
+          actor_staff_id?: string | null;
+          created_at?: string;
+          from_state?: string;
+          id?: string;
+          instance_id?: string;
+          reason?: string | null;
+          retailer_id?: string;
+          to_state?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workflow_events_instance_id_fkey";
+            columns: ["instance_id"];
+            isOneToOne: false;
+            referencedRelation: "workflow_instances";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "workflow_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      workflow_instances: {
+        Row: {
+          created_at: string;
+          current_state: string;
+          definition_version_id: string;
+          id: string;
+          retailer_id: string;
+          subject_id: string;
+          subject_type: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          current_state: string;
+          definition_version_id: string;
+          id?: string;
+          retailer_id: string;
+          subject_id: string;
+          subject_type: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          current_state?: string;
+          definition_version_id?: string;
+          id?: string;
+          retailer_id?: string;
+          subject_id?: string;
+          subject_type?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "workflow_instances_definition_version_id_fkey";
+            columns: ["definition_version_id"];
+            isOneToOne: false;
+            referencedRelation: "workflow_definition_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "workflow_instances_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       work_order_assignments: {
         Row: {
           active: boolean;
@@ -10363,6 +10574,10 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      ensure_appointment_workflow_instance: {
+        Args: { p_appointment_id: string };
+        Returns: string;
+      };
       ensure_interaction_session: {
         Args: {
           p_customer_id: string;
@@ -10953,6 +11168,22 @@ export type Database = {
       toggle_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };
         Returns: boolean;
+      };
+      transition_appointment_workflow: {
+        Args: {
+          p_appointment_id: string;
+          p_branch_id?: string | null;
+          p_reason?: string | null;
+          p_staff_id?: string | null;
+          p_to_state: string;
+        };
+        Returns: Database["public"]["Tables"]["appointments"]["Row"];
+        SetofOptions: {
+          from: "*";
+          to: "appointments";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       transition_alteration_work_order: {
         Args: {

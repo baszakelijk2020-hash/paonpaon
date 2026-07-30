@@ -62,6 +62,8 @@ export * from "./repositories/clienteling-opportunity-repository";
 export * from "./repositories/clienteling-dashboard-repository";
 export * from "./repositories/intelligence-policy-repository";
 export * from "./repositories/source-authority-repository";
+export * from "./repositories/workflow-repository";
+export * from "./repositories/familiarity-preset-repository";
 export * from "./repositories/interaction-session-repository";
 export * from "./repositories/table-service-guidance-repository";
 export * from "./repositories/ai-generation-repository";

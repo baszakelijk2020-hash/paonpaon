@@ -104,6 +104,9 @@ export default async function SettingsPage() {
           <Link href="/settings/integrations" className="text-sm underline">
             Source connections →
           </Link>
+          <Link href="/settings/familiarity" className="text-sm underline">
+            Familiarity preset →
+          </Link>
         </div>
       </div>
 

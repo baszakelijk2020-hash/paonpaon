@@ -12,6 +12,10 @@ import Link from "next/link";
 import { AppointmentsList } from "./appointments-list";
 import { ensureDefaultBranchAction } from "./branch-actions";
 
+import {
+  appointmentStatusLabelsForPreset,
+  loadRetailerFamiliarityPresetKey,
+} from "@/lib/familiarity-preset";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -37,14 +41,16 @@ export default async function AppointmentsPage({
     branches = await branchRepo.listByRetailer(session.retailerId);
   }
 
-  const [appointments, customers, moments] = await Promise.all([
+  const [appointments, customers, moments, presetKey] = await Promise.all([
     new AppointmentRepository(supabase).findByRetailer(session.retailerId),
     new CustomerRepository(supabase).findByRetailer(session.retailerId),
     new CustomerMomentRepository(supabase).listByRetailer(
       session.retailerId,
       12,
     ),
+    loadRetailerFamiliarityPresetKey(session.retailerId),
   ]);
+  const statusLabels = appointmentStatusLabelsForPreset(presetKey);
 
   const filtered =
     branchFilter && branchFilter !== "all"
@@ -166,6 +172,7 @@ export default async function AppointmentsPage({
         <AppointmentsList
           appointments={filtered}
           customerNameById={customerNameById}
+          statusLabels={statusLabels}
         />
       )}
     </div>
