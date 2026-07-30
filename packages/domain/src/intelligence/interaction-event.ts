@@ -36,6 +36,10 @@ export const INTERACTION_EVENT_NAMES = [
   "appointment_intent",
   "conversion_recorded",
   "tie_mate_impressed",
+  "for_you_impressed",
+  "for_you_clicked",
+  "for_you_dismissed",
+  "for_you_correction",
 ] as const;
 
 export type InteractionEventName = (typeof INTERACTION_EVENT_NAMES)[number];

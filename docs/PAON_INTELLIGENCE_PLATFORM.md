@@ -15,7 +15,7 @@ requires it.
   UI. Stage 6 remains blocked (compliance/marketplace). Stage 7
   (evidence-cited Self-Portrait / clienteling intelligence, ADR-066) is
   independently authorized and locally buildable.
-- **Current queue item:** `7.6 Unified For You`. Skip Stage 6 while blocked.
+- **Current queue item:** `7.7 Live/temporal owner-manager-advisor dashboards`. Skip Stage 6 while blocked.
 - **Current requirement IDs:** `CLI-001`–`CLI-009`, `ENG-006` (Stage 7);
   Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
@@ -54,7 +54,8 @@ requires it.
   (PHASE 7.1 complete); `ebf2742` adds interaction sessions and event context
   (PHASE 7.2 complete); `95b236c` adds provenance-aware Self-Portrait facts
   (PHASE 7.3 complete); `9dda99d` adds sparse clienteling opportunities
-  (PHASE 7.4 complete); Stage 7.5 lands branches, closeout, and moments.
+  (PHASE 7.4 complete); Stage 7.5 lands branches, closeout, and moments;
+  Stage 7.6 lands unified For You ranking and Customer `/for-you`.
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -126,7 +127,10 @@ requires it.
   Stage 7.1 adds `@paon/domain` `projectCustomerInterestInsights` and
   `@paon/database` `CustomerInterestRepository`, mounted on Retailer
   Self-Portrait as "Recent interests / Why we think this".
-- **Checks/deployment state:** 109 migrations; Stage 7.0 authority at
+  Stage 7.6 adds `@paon/domain` `rankForYouRecommendations` and
+  `@paon/database` `ForYouRepository` with Customer `/for-you` learning
+  events (`for_you_impressed` / `clicked` / `dismissed` / `correction`).
+- **Checks/deployment state:** 110 migrations; Stage 7.0 authority at
   `4a3881b`; 7.1 interest insight pending push after DoD. Anonymous
   interaction persistence remains blocked pending jurisdiction documentation.
   Live Resend/OpenWeather smoke still needs provider credentials.
@@ -139,9 +143,9 @@ requires it.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next files/tests:** implement `7.6` customer For You page with
-  deterministic candidate/ranking contract and impression/click/dismiss/
-  correction capture. Do not invent Stage 6 payment/marketplace code.
+- **Exact next files/tests:** implement `7.7` role-specific dashboard
+  projections for presence, demand, opportunity funnel, workload, contact
+  pressure, and ingestion/data-quality. Do not invent Stage 6 payment/marketplace code.
 
 ## 1. Programme intent
 
