@@ -1,6 +1,7 @@
 "use client";
 
-import { Button } from "@paon/ui/components/Button";
+import { Button, buttonVariants } from "@paon/ui/components/Button";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useTransition } from "react";
 
@@ -88,7 +89,10 @@ export function ForYouPanel({
 
       <div className="flex flex-col gap-4 p-5">
         {consentBlocked ? (
-          <div className="rounded-[var(--radius-sm)] border border-dashed border-[var(--color-stone-300)] px-4 py-8 text-center" role="status">
+          <div
+            className="rounded-[var(--radius-sm)] border border-dashed border-[var(--color-stone-300)] px-4 py-8 text-center"
+            role="status"
+          >
             <p className="text-sm text-[var(--color-stone-600)]">
               Enable personalization in{" "}
               <Link href="/account" className="underline">
@@ -98,10 +102,13 @@ export function ForYouPanel({
             </p>
           </div>
         ) : recommendations.length === 0 ? (
-          <div className="rounded-[var(--radius-sm)] border border-dashed border-[var(--color-stone-300)] px-4 py-8 text-center" role="status">
+          <div
+            className="rounded-[var(--radius-sm)] border border-dashed border-[var(--color-stone-300)] px-4 py-8 text-center"
+            role="status"
+          >
             <p className="text-sm text-[var(--color-stone-600)]">
-              Nothing to suggest right now — browse the house catalogue or update
-              your wardrobe roadmap with your advisor.
+              Nothing to suggest right now — browse the house catalogue or
+              update your wardrobe roadmap with your advisor.
             </p>
           </div>
         ) : (
@@ -113,11 +120,15 @@ export function ForYouPanel({
                 className="flex flex-col gap-3 rounded-[var(--radius-sm)] border border-[var(--color-stone-100)] p-4 sm:flex-row"
               >
                 {recommendation.primaryImageUrl ? (
-                  <img
-                    src={recommendation.primaryImageUrl}
-                    alt=""
-                    className="h-36 w-full shrink-0 rounded-[var(--radius-sm)] object-cover sm:h-28 sm:w-28"
-                  />
+                  <div className="relative h-36 w-full shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-[var(--color-stone-100)] sm:h-28 sm:w-28">
+                    <Image
+                      src={recommendation.primaryImageUrl}
+                      alt={recommendation.displayName}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                    />
+                  </div>
                 ) : (
                   <div
                     className="flex h-36 w-full shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--color-stone-100)] text-xs text-[var(--color-stone-500)] sm:h-28 sm:w-28"
@@ -149,21 +160,20 @@ export function ForYouPanel({
                       ))}
                   </ul>
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <Button asChild size="sm">
-                      <Link
-                        href={productHref}
-                        onClick={() => {
-                          void recordForYouClick({
-                            retailerId,
-                            customerId,
-                            productId: recommendation.productId,
-                            productSlug: recommendation.productSlug,
-                          });
-                        }}
-                      >
-                        View piece
-                      </Link>
-                    </Button>
+                    <Link
+                      href={productHref}
+                      className={buttonVariants({ size: "sm" })}
+                      onClick={() => {
+                        void recordForYouClick({
+                          retailerId,
+                          customerId,
+                          productId: recommendation.productId,
+                          productSlug: recommendation.productSlug,
+                        });
+                      }}
+                    >
+                      View piece
+                    </Link>
                     {recommendation.productVariantId ? (
                       <Button
                         type="button"
@@ -174,7 +184,8 @@ export function ForYouPanel({
                           startTransition(async () => {
                             await saveForYouRecommendation({
                               retailerId,
-                              productVariantId: recommendation.productVariantId!,
+                              productVariantId:
+                                recommendation.productVariantId!,
                             });
                           });
                         }}

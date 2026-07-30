@@ -139,16 +139,17 @@ export class ForYouRepository {
     for (const order of orders) {
       const lines = await this.deps.orders.findLinesByOrder(order.id);
       for (const line of lines) {
-        const variant = await this.deps.variants.findById(line.productVariantId);
+        const variant = await this.deps.variants.findById(
+          line.productVariantId,
+        );
         if (variant) purchasedProductIds.add(String(variant.productId));
       }
     }
 
-    const ownedProductIds = new Set(
+    const ownedProductIds = new Set<string>(
       wardrobeItems
-        .filter((item) => !item.deletedAt && !item.retiredAt)
-        .map((item) => item.productId)
-        .filter((productId): productId is string => Boolean(productId)),
+        .filter((item) => !item.deletedAt && !item.retiredAt && item.productId)
+        .map((item) => String(item.productId)),
     );
 
     const eventSignals = forYouRecentProductIdsFromEvents(events);
@@ -224,7 +225,9 @@ export class ForYouRepository {
         ...(metadata?.garmentTypeConceptId
           ? { garmentTypeConceptId: metadata.garmentTypeConceptId }
           : {}),
-        ...(metadata?.categoryCode ? { categoryCode: metadata.categoryCode } : {}),
+        ...(metadata?.categoryCode
+          ? { categoryCode: metadata.categoryCode }
+          : {}),
         available: Boolean(inStock && inStock.inventoryQuantity > 0),
       });
     }

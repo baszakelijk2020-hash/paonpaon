@@ -19,10 +19,8 @@ import {
   isPurposeGranted,
   mayCapturePersonalizationForCustomer,
 } from "./consent";
-import {
-  productIdFromEventProperties,
-  type BehavioralEvent,
-} from "./interaction-event";
+import { productIdFromEventProperties } from "./customer-interest";
+import type { BehavioralEvent } from "./interaction-event";
 
 export const FOR_YOU_PROJECTOR_VERSION = "for-you-v1";
 
@@ -361,7 +359,8 @@ export function rankForYouRecommendations(
   const personalizationAllowed = mayCapturePersonalizationForCustomer(
     input.consent,
   );
-  const maxResults = input.maxRecommendations ?? DEFAULT_FOR_YOU_MAX_RECOMMENDATIONS;
+  const maxResults =
+    input.maxRecommendations ?? DEFAULT_FOR_YOU_MAX_RECOMMENDATIONS;
 
   const signalsUsed: string[] = [];
   if (personalizationAllowed) signalsUsed.push("style_profile");
@@ -452,7 +451,8 @@ export function rankForYouRecommendations(
       factors.push({
         code: "category_diversity",
         delta: -4,
-        detail: "Diversity — another piece from this category is already shown.",
+        detail:
+          "Diversity — another piece from this category is already shown.",
       });
     }
 
@@ -526,10 +526,18 @@ export function forYouRecentProductIdsFromEvents(
 
   for (const event of events) {
     const productId = productIdFromEventProperties(event.properties);
-    if (event.name === "product_viewed" && productId && viewed.length < viewedLimit) {
+    if (
+      event.name === "product_viewed" &&
+      productId &&
+      viewed.length < viewedLimit
+    ) {
       viewed.push(productId);
     }
-    if (event.name === "product_skipped" && productId && skipped.length < skippedLimit) {
+    if (
+      event.name === "product_skipped" &&
+      productId &&
+      skipped.length < skippedLimit
+    ) {
       skipped.push(productId);
     }
     if (
