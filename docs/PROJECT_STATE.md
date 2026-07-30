@@ -31,9 +31,8 @@ Snapshot: 2026-07-30.
 
 ## Current handoff
 
-Stage 8.4 is `implemented_unverified`: evidence contract, PHASE gate, and
-harness exist, but the one local Playwright run failed in demo seed
-(`metadata_concept_kind` rejects `"fabric"`) before any UI mutation. Next:
-Stage 9.1 canonical write-through + operator browser journey. Then 9.2 and
-10.1. Preserve untracked Stage 10.2 WIP. Stage 6 and 9.3 remain blocked; skip
-them.
+Stage 9.1 is `verified_local` (canonical write-through + one local operator
+browser pass). Stage 8.4 remains `implemented_unverified` (demo-seed
+`metadata_concept_kind`/`fabric` blocks its harness). Next: Stage 9.2
+executable connector lifecycle. Preserve untracked Stage 10.2 WIP. Stage 6
+and 9.3 remain blocked; skip them.

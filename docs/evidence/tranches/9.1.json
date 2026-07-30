@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "9.1",
+  "requirementIds": ["INT-002", "INT-003"],
+  "status": "verified_local",
+  "title": "Generic staged-file migration",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/migration/staged-file-migration.ts",
+    "persistence": "supabase/migrations/20260730320000_add_staged_file_migration_foundation.sql",
+    "service": "packages/database/src/repositories/migration-job-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/migrations/page.tsx",
+    "receiver_ui": "apps/retailer/app/(dashboard)/products/page.tsx",
+    "rls": "packages/database/src/repositories/migration-job-repository.test.ts",
+    "exceptions": "packages/domain/src/migration/staged-file-migration.ts secret/ambiguous rejection",
+    "browser": "apps/retailer/e2e/migration-write-through.spec.ts — passed 2026-07-30 local (Load fixture → Publish → Navy Suit Jacket on /products)",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "No hosted provider credentials required for staged-file fixture"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/migration-write-through.spec.ts",
+  "assertedAt": "2026-07-30T11:03:59.000Z"
+}

@@ -1070,9 +1070,8 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 9 — Migration Cockpit and connectors
 
-- [ ] **9.1 Generic staged-file migration**
-  - **Status:** `implemented_unverified`; foundation exists, but the accepted
-    canonical write-through and browser journey do not.
+- [x] **9.1 Generic staged-file migration**
+  - **Status:** `verified_local`.
   - **Requirement IDs:** `INT-002`, `INT-003`.
   - **Dependencies:** `8.2`, `8.4`; extend existing import foundations.
   - **Owner boundary:** immutable raw upload, profiling/mapping/dedupe/review,
@@ -1089,12 +1088,12 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Hard blockers:** none.
   - **Landed:** domain staged-file contracts + fixture; migration
     `20260730320000_add_staged_file_migration_foundation.sql`;
-    `MigrationJobRepository` dry-run/publish/reconcile/resume; Retailer
-    `/migrations` cockpit. Product/stock/order publish receipts reconcile
-    money/units and customers are created for real, but full catalogue/product/
-    stock/order write-through and the Playwright operator-to-downstream journey
-    remain missing. Those are completion work for this item, not optional
-    follow-ons; provider adapters are Stage 9.2.
+    `MigrationJobRepository` publish now writes customers, products+variants,
+    stock (`inventory_quantity`), and orders+lines into canonical tables;
+    `/migrations` revalidates `/products`/`customers`/`orders`; Playwright
+    `migration-write-through.spec.ts` passed locally 2026-07-30 (fixture →
+    publish → Navy Suit Jacket on `/products`). Evidence
+    `docs/evidence/tranches/9.1.json`. Provider adapters remain Stage 9.2.
 
 - [ ] **9.2 Shopify and Faden executable adapters**
   - **Status:** `implemented_unverified`; contracts/fixtures exist, but the

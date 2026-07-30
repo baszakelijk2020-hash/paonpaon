@@ -22,6 +22,8 @@ import type { PaonSupabaseClient } from "../client-type";
 import type { Database, Json } from "../generated/database.types";
 
 import { CustomerRepository } from "./customer-repository";
+import { ProductRepository } from "./product-repository";
+import { ProductVariantRepository } from "./product-variant-repository";
 
 function newId(): string {
   return globalThis.crypto.randomUUID();
@@ -223,6 +225,11 @@ export class MigrationJobRepository {
       .eq("retailer_id", args.retailerId);
 
     const customerRepo = new CustomerRepository(this.client);
+    const productRepo = new ProductRepository(this.client);
+    const variantRepo = new ProductVariantRepository(this.client);
+    const customerIdsByExternal = new Map<string, string>();
+    const productIdsByExternal = new Map<string, string>();
+    const variantIdsBySku = new Map<string, string>();
 
     for (const row of plan.toPublish) {
       let canonicalId: string = newId();
@@ -236,6 +243,115 @@ export class MigrationJobRepository {
           acquisitionSource: "staged_file_migration",
         });
         canonicalId = created.id;
+        customerIdsByExternal.set(row.externalId, created.id);
+      } else if (row.entityKind === "product") {
+        const sku = row.payload.sku || row.externalId;
+        const slug = `mig-${row.externalId}`
+          .toLowerCase()
+          .replace(/[^a-z0-9-]+/g, "-")
+          .slice(0, 80);
+        const product = await productRepo.create({
+          retailerId: args.retailerId,
+          name: row.payload.name || row.externalId,
+          slug,
+          description: `Imported via staged-file migration (${row.externalId})`,
+          status: "active",
+          isMadeToOrder: false,
+          isAlterable: true,
+        });
+        const priceMinor = Number(row.payload.price_minor ?? 0);
+        const currency = row.payload.currency || "EUR";
+        const variant = await variantRepo.create({
+          productId: product.id,
+          sku,
+          price: { amountMinorUnits: priceMinor, currency },
+          inventoryQuantity: 0,
+        });
+        canonicalId = product.id;
+        productIdsByExternal.set(row.externalId, product.id);
+        variantIdsBySku.set(sku, variant.id);
+      } else if (row.entityKind === "stock") {
+        const sku = row.payload.sku || row.externalId;
+        let variantId = variantIdsBySku.get(sku);
+        if (!variantId) {
+          const { data: variantRow, error: variantError } = await this.client
+            .from("product_variants")
+            .select("id, product_id, products!inner(retailer_id)")
+            .eq("sku", sku)
+            .eq("products.retailer_id", args.retailerId)
+            .is("deleted_at", null)
+            .maybeSingle();
+          if (variantError) throw variantError;
+          if (!variantRow) {
+            throw new Error(`Stock publish missing variant for SKU ${sku}`);
+          }
+          variantId = variantRow.id;
+          variantIdsBySku.set(sku, variantId);
+        }
+        const quantity = Number(row.payload.quantity ?? 0);
+        const { error: stockError } = await this.client
+          .from("product_variants")
+          .update({ inventory_quantity: quantity })
+          .eq("id", variantId);
+        if (stockError) throw stockError;
+        canonicalId = variantId;
+      } else if (row.entityKind === "order") {
+        const customerExternal = row.payload.customer_external_id ?? "";
+        let customerId = customerIdsByExternal.get(customerExternal);
+        if (!customerId) {
+          const { data: stagedCustomer, error: stagedError } = await this.client
+            .from("migration_staged_rows")
+            .select("canonical_id")
+            .eq("job_id", args.jobId)
+            .eq("retailer_id", args.retailerId)
+            .eq("entity_kind", "customer")
+            .eq("external_id", customerExternal)
+            .maybeSingle();
+          if (stagedError) throw stagedError;
+          if (!stagedCustomer?.canonical_id) {
+            throw new Error(
+              `Order publish missing customer ${customerExternal}`,
+            );
+          }
+          customerId = stagedCustomer.canonical_id;
+        }
+        const totalMinor = Number(row.payload.total_minor ?? 0);
+        const currency = row.payload.currency || "EUR";
+        const status =
+          row.payload.status === "completed" ? "completed" : "placed";
+        const { data: order, error: orderError } = await this.client
+          .from("orders")
+          .insert({
+            retailer_id: args.retailerId,
+            customer_id: customerId,
+            order_number: `MIG-${row.externalId}`,
+            status,
+            channel: "in_store",
+            currency,
+            subtotal_amount_minor_units: totalMinor,
+            total_amount_minor_units: totalMinor,
+            placed_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+        if (orderError) throw orderError;
+        canonicalId = order.id;
+
+        // Attach one line from the first published variant when available so
+        // order consumers see a real line, not a receipt-only shell.
+        const firstVariantId = variantIdsBySku.values().next().value;
+        if (firstVariantId) {
+          const { error: lineError } = await this.client
+            .from("order_lines")
+            .insert({
+              order_id: order.id,
+              product_variant_id: firstVariantId,
+              quantity: 1,
+              unit_price_amount_minor_units: totalMinor,
+              unit_price_currency: currency,
+            });
+          if (lineError) throw lineError;
+        }
       }
 
       await this.recordReceipt({

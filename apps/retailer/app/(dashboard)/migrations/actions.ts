@@ -28,4 +28,7 @@ export async function publishMigrationJobAction(
     jobId,
   });
   revalidatePath("/migrations");
+  revalidatePath("/products");
+  revalidatePath("/customers");
+  revalidatePath("/orders");
 }
