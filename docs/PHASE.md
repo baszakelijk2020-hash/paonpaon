@@ -866,7 +866,7 @@ capability with policy as a separate eligibility plane (ADR-066).
     `appointment_closeouts` + rectangle closeout UI; `customer_moments`
     for follow-up/recurring moments. Week-grid calendar deferred.
 
-- [ ] **7.6 Unified For You**
+- [x] **7.6 Unified For You**
   - **Requirement IDs:** `CLI-007`, `ENG-002`.
   - **Dependencies:** `7.1`, `7.3`; catalogue/wishlist/Tie-Mate/wardrobe.
   - **Owner boundary:** customer For You page, deterministic candidate/ranking
@@ -877,6 +877,10 @@ capability with policy as a separate eligibility plane (ADR-066).
   - **Tests:** ranking fixtures, reason codes, suppression, consent.
   - **Non-goals:** no opaque black-box recommender as sole authority.
   - **Hard blockers:** none.
+  - **Landed:** `@paon/domain` `rankForYouRecommendations` with reason codes
+    and suppression; `@paon/database` `ForYouRepository`; Customer `/for-you`
+    page with impression/click/dismiss/correction capture; migration extends
+    interaction event names for For You learning loop.
 
 - [ ] **7.7 Live/temporal owner-manager-advisor dashboards**
   - **Requirement IDs:** `CLI-008`.
