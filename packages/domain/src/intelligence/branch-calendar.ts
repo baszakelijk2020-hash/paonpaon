@@ -11,6 +11,7 @@ import type {
   StaffId,
 } from "../shared/branded-id";
 import type { Timestamps } from "../shared/timestamps";
+import { isValidIanaTimezone } from "../wardrobe/morning-routine-delivery";
 
 export const BRANCH_CALENDAR_ENTRY_TYPES = [
   "coverage",
@@ -60,15 +61,6 @@ export type BranchCalendarValidationError =
   | "ends_before_starts"
   | "recurring_moment_requires_customer"
   | "coverage_requires_staff";
-
-export function isValidIanaTimezone(timezone: string): boolean {
-  try {
-    Intl.DateTimeFormat(undefined, { timeZone: timezone });
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 export function formatInstantInBranchTimezone(args: {
   readonly instant: string;
@@ -164,7 +156,12 @@ export function findBranchCoverageGaps(args: {
   readonly branchId: BranchId;
   readonly entries: readonly Pick<
     BranchCalendarEntry,
-    "branchId" | "entryType" | "startsAt" | "endsAt" | "title" | "assignedStaffIds"
+    | "branchId"
+    | "entryType"
+    | "startsAt"
+    | "endsAt"
+    | "title"
+    | "assignedStaffIds"
   >[];
 }): readonly BranchCoverageGap[] {
   const gaps: BranchCoverageGap[] = [];

@@ -5,7 +5,7 @@ import { Card } from "@paon/ui/components/Card";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { createBranch } from "../branch-calendar-actions";
+import { createBranch } from "../../appointments/branch-calendar-actions";
 
 const COMMON_TIMEZONES = [
   "America/New_York",
@@ -87,7 +87,11 @@ export function BranchSetupForm() {
         <p className="mt-2 text-sm text-[var(--color-danger-600)]">{error}</p>
       ) : null}
       <div className="mt-4">
-        <Button type="button" onClick={onSubmit} disabled={pending || !name.trim()}>
+        <Button
+          type="button"
+          onClick={onSubmit}
+          disabled={pending || !name.trim()}
+        >
           {pending ? "Saving…" : "Create branch"}
         </Button>
       </div>

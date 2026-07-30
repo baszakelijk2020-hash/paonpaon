@@ -849,7 +849,7 @@ capability with policy as a separate eligibility plane (ADR-066).
     message/appointment/sale linkage columns exist; richer outcome funnel
     remains 7.8.
 
-- [ ] **7.5 Branches, shared calendar, and post-appointment closeout**
+- [x] **7.5 Branches, shared calendar, and post-appointment closeout**
   - **Requirement IDs:** `CLI-006`.
   - **Dependencies:** `7.3`, `7.4`; existing appointments.
   - **Owner boundary:** branch/store timezone, branch calendar, assignment/
@@ -861,6 +861,11 @@ capability with policy as a separate eligibility plane (ADR-066).
   - **Non-goals:** no external calendar vendor lock-in required for local
     build.
   - **Hard blockers:** none for local build.
+  - **Landed:** `retailer_branches` / `branch_calendar_entries` with IANA
+    timezone and manager RLS; `/settings/branches` + `/appointments/calendar`
+    with coverage gaps and recurring customer moments; `appointment_closeouts`
+    - `record_appointment_closeout` RPC projecting advisor-observed facts
+      with appointment provenance; Retailer appointment closeout rectangles UI.
 
 - [ ] **7.6 Unified For You**
   - **Requirement IDs:** `CLI-007`, `ENG-002`.

@@ -74,9 +74,7 @@ export interface AppointmentCloseoutInput {
 }
 
 export type AppointmentCloseoutValidationError =
-  | CustomerFactValidationError
-  | "empty_closeout"
-  | "invalid_outcome";
+  CustomerFactValidationError | "empty_closeout" | "invalid_outcome";
 
 export function factsFromAppointmentCloseout(input: AppointmentCloseoutInput): {
   readonly ok: boolean;

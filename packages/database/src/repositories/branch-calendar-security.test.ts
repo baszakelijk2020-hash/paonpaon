@@ -45,7 +45,9 @@ describe("branch calendar and closeout database security contract", () => {
   });
 
   it("requires customer for recurring moments and emits advisor-observed facts", () => {
-    expect(migration).toContain("branch_calendar_entries_recurring_customer_chk");
+    expect(migration).toContain(
+      "branch_calendar_entries_recurring_customer_chk",
+    );
     expect(migration).toContain("'advisor_observed'");
     expect(migration).toContain("'appointment_closeout'");
   });

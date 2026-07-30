@@ -24,7 +24,9 @@ export async function createBranch(args: {
   readonly name: string;
   readonly timezone: string;
   readonly isPrimary?: boolean;
-}): Promise<{ readonly ok: true } | { readonly ok: false; readonly error: string }> {
+}): Promise<
+  { readonly ok: true } | { readonly ok: false; readonly error: string }
+> {
   const session = await requireSession();
   if (!retailerRoleAtLeast(session.retailerRole, "manager")) {
     return { ok: false, error: "Manager access required" };
@@ -54,7 +56,9 @@ export async function createBranchCalendarEntry(args: {
   readonly assignedStaffIds?: readonly string[];
   readonly customerId?: string;
   readonly notes?: string;
-}): Promise<{ readonly ok: true } | { readonly ok: false; readonly error: string }> {
+}): Promise<
+  { readonly ok: true } | { readonly ok: false; readonly error: string }
+> {
   const session = await requireSession();
   if (!retailerRoleAtLeast(session.retailerRole, "manager")) {
     return { ok: false, error: "Manager access required" };
@@ -108,7 +112,9 @@ export async function recordAppointmentCloseout(args: {
     readonly polarity: "positive" | "negative";
   }[];
   readonly followUpNotes?: string;
-}): Promise<{ readonly ok: true } | { readonly ok: false; readonly error: string }> {
+}): Promise<
+  { readonly ok: true } | { readonly ok: false; readonly error: string }
+> {
   const session = await requireSession();
   if (!retailerRoleAtLeast(session.retailerRole, "sales_associate")) {
     return { ok: false, error: "Sales access required" };

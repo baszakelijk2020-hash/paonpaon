@@ -136,7 +136,9 @@ export class AppointmentRepository {
       .update({
         ...(params.status !== undefined ? { status: params.status } : {}),
         ...(params.staffId !== undefined ? { staff_id: params.staffId } : {}),
-        ...(params.branchId !== undefined ? { branch_id: params.branchId } : {}),
+        ...(params.branchId !== undefined
+          ? { branch_id: params.branchId }
+          : {}),
       })
       .eq("id", id)
       .select("*")

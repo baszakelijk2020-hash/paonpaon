@@ -14,7 +14,10 @@ export function BranchCalendarEntryForm({
   customerOptions,
 }: {
   readonly branchId: string;
-  readonly staffOptions: readonly { readonly id: string; readonly name: string }[];
+  readonly staffOptions: readonly {
+    readonly id: string;
+    readonly name: string;
+  }[];
   readonly customerOptions: readonly {
     readonly id: string;
     readonly name: string;

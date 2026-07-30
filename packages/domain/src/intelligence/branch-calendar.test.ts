@@ -6,9 +6,9 @@ import {
   branchLocalDayUtcBounds,
   findBranchCoverageGaps,
   formatInstantInBranchTimezone,
-  isValidIanaTimezone,
   validateBranchCalendarEntryDraft,
 } from "./branch-calendar";
+import { isValidIanaTimezone } from "../wardrobe/morning-routine-delivery";
 
 const branchId = asId<"BranchId">("aaaaaaaa-aaaa-4aaa-8aaa-000000000001");
 const customerId = asId<"CustomerId">("33333333-3333-4333-8333-333333333333");

@@ -52,24 +52,26 @@ export default async function AppointmentDetailPage({
   ]);
   const [notes, orders, garments, advisorBrief, closeout, closeoutConcepts] =
     customer
-    ? await Promise.all([
-        new ClientelingRepository(supabase).findByCustomer(customer.id),
-        new OrderRepository(supabase).findByCustomer(customer.id),
-        new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
-        new AdvisorBriefRepository(supabase).projectForCustomer({
-          retailerId: session.retailerId,
-          customerId: customer.id,
-          advisorRetailerId: session.retailerId,
-          ...(appointment.notes ? { appointmentNotes: appointment.notes } : {}),
-        }),
-        new AppointmentCloseoutRepository(supabase).findByAppointment(
-          appointment.id,
-        ),
-        new MetadataRepository(supabase).findVisibleConcepts(
-          session.retailerId,
-        ),
-      ])
-    : [[], [], [], null, null, []];
+      ? await Promise.all([
+          new ClientelingRepository(supabase).findByCustomer(customer.id),
+          new OrderRepository(supabase).findByCustomer(customer.id),
+          new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
+          new AdvisorBriefRepository(supabase).projectForCustomer({
+            retailerId: session.retailerId,
+            customerId: customer.id,
+            advisorRetailerId: session.retailerId,
+            ...(appointment.notes
+              ? { appointmentNotes: appointment.notes }
+              : {}),
+          }),
+          new AppointmentCloseoutRepository(supabase).findByAppointment(
+            appointment.id,
+          ),
+          new MetadataRepository(supabase).findVisibleConcepts(
+            session.retailerId,
+          ),
+        ])
+      : [[], [], [], null, null, []];
   const pinnedNote = notes.find((note) => note.pinned);
   const assignedAdvisor = staff.find(
     (member) => member.id === appointment.staffId,

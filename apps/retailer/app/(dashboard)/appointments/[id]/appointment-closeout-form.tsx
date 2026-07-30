@@ -10,7 +10,7 @@ import { Card } from "@paon/ui/components/Card";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { recordAppointmentCloseout } from "./branch-calendar-actions";
+import { recordAppointmentCloseout } from "../branch-calendar-actions";
 
 const OUTCOMES: readonly {
   readonly value: AppointmentCloseoutOutcome;
@@ -42,8 +42,9 @@ export function AppointmentCloseoutForm({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [outcome, setOutcome] =
-    useState<AppointmentCloseoutOutcome>("completed_with_interest");
+  const [outcome, setOutcome] = useState<AppointmentCloseoutOutcome>(
+    "completed_with_interest",
+  );
   const [selected, setSelected] = useState<
     Record<string, { kind: CloseoutRectangleKind; label: string }>
   >({});

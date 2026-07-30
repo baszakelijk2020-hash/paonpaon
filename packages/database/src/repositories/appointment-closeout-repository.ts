@@ -129,15 +129,20 @@ export class AppointmentCloseoutRepository {
     readonly followUpNotes?: string;
     readonly followUpAt?: string;
   }): Promise<CustomerFact[]> {
-    const { data, error } = await this.client.rpc("record_appointment_closeout", {
-      p_retailer_id: args.retailerId,
-      p_appointment_id: args.appointmentId,
-      p_staff_id: args.staffId,
-      p_outcome: args.outcome,
-      p_selections: args.selections as unknown as Json,
-      ...(args.followUpNotes ? { p_follow_up_notes: args.followUpNotes } : {}),
-      ...(args.followUpAt ? { p_follow_up_at: args.followUpAt } : {}),
-    });
+    const { data, error } = await this.client.rpc(
+      "record_appointment_closeout",
+      {
+        p_retailer_id: args.retailerId,
+        p_appointment_id: args.appointmentId,
+        p_staff_id: args.staffId,
+        p_outcome: args.outcome,
+        p_selections: args.selections as unknown as Json,
+        ...(args.followUpNotes
+          ? { p_follow_up_notes: args.followUpNotes }
+          : {}),
+        ...(args.followUpAt ? { p_follow_up_at: args.followUpAt } : {}),
+      },
+    );
     if (error) throw error;
     return (data ?? []).map((row) => factToDomain(row as FactRow));
   }

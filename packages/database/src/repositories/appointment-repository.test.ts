@@ -10,6 +10,7 @@ type AppointmentRow = Database["public"]["Tables"]["appointments"]["Row"];
 
 const row: AppointmentRow = {
   id: "dddddddd-dddd-dddd-dddd-dddddddddddd",
+  branch_id: null,
   retailer_id: "11111111-1111-1111-1111-111111111111",
   customer_id: "44444444-4444-4444-4444-444444444444",
   staff_id: null,

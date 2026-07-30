@@ -104,7 +104,10 @@ export default async function BranchCalendarPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link href="/appointments" className={buttonVariants({ variant: "ghost" })}>
+          <Link
+            href="/appointments"
+            className={buttonVariants({ variant: "ghost" })}
+          >
             Appointments list
           </Link>
           {canManage ? (
