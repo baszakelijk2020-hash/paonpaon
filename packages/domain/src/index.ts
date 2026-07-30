@@ -99,6 +99,7 @@ export * from "./intelligence/advisor-brief";
 export * from "./intelligence/customer-interest";
 export * from "./intelligence/customer-fact";
 export * from "./intelligence/clienteling-opportunity";
+export * from "./intelligence/for-you";
 export * from "./intelligence/grounded-answer";
 
 export * from "./integrations/weather";

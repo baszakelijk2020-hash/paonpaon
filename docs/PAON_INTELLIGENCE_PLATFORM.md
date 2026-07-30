@@ -15,7 +15,8 @@ requires it.
   UI. Stage 6 remains blocked (compliance/marketplace). Stage 7
   (evidence-cited Self-Portrait / clienteling intelligence, ADR-066) is
   independently authorized and locally buildable.
-- **Current queue item:** `7.6 Unified For You`. Skip Stage 6 while blocked.
+- **Current queue item:** `7.7 Live/temporal owner-manager-advisor dashboards`.
+  Skip Stage 6 while blocked.
 - **Current requirement IDs:** `CLI-001`–`CLI-009`, `ENG-006` (Stage 7);
   Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
@@ -54,7 +55,8 @@ requires it.
   (PHASE 7.1 complete); `ebf2742` adds interaction sessions and event context
   (PHASE 7.2 complete); `95b236c` adds provenance-aware Self-Portrait facts
   (PHASE 7.3 complete); `9dda99d` adds sparse clienteling opportunities
-  (PHASE 7.4 complete); Stage 7.5 lands branches, closeout, and moments.
+  (PHASE 7.4 complete); `2942822` / `6b66dc3` land branches and closeout
+  (PHASE 7.5 complete); Stage 7.6 lands unified For You.
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -139,9 +141,9 @@ requires it.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next files/tests:** implement `7.6` customer For You page with
-  deterministic candidate/ranking contract and impression/click/dismiss/
-  correction capture. Do not invent Stage 6 payment/marketplace code.
+- **Exact next files/tests:** implement `7.7` role-specific live/temporal
+  dashboards with honest presence TTL, heatmaps, and opportunity funnel.
+  Do not invent Stage 6 payment/marketplace code.
 
 ## 1. Programme intent
 
@@ -260,7 +262,7 @@ above. Status changes only after the named acceptance criteria are verified.
 | CLI-004                | Deterministic insight projectors (affinity, intent, temporal, occasion, wardrobe gap, follow-up, dormancy, contact pressure, data quality)                                                                 | Insight engine                     | Interest insights + contact-pressure opportunity projector; broader suite continues through 7.8                                             | CLI-002, ADR-066                                | 7.1–7.4              | Versioned projectors cite evidence, suppress low samples, recompute after correction/deletion                                    | Partial (interest + contact pressure)                                                                     |
 | CLI-005                | Sparse human-reviewable clienteling opportunities with why-now, action/channel/time, assignment, cooldown, feedback, and outcomes                                                                          | Opportunity engine                 | `clienteling_opportunities` + customer inbox + Today draft list; draft-only; outcome columns reserved                                       | CLI-004, ADR-066                                | 7.4                  | Draft tasks by default; no autonomous customer spam; outcomes link message/appointment/sale/no-response                          | Done (7.4); rich outcome funnel remains 7.8                                                               |
 | CLI-006                | Branches/stores, shared calendar, recurring moments, and post-appointment closeout rectangles feeding Self-Portrait                                                                                        | Calendar + closeout                | `retailer_branches`, appointment branch link, timezone-aware booking, closeout rectangles → facts, `customer_moments`                       | CLI-003, CLI-005, appointments                  | 7.5                  | Manager-controlled branch calendar; closeout answers become provenance-aware facts                                               | Done (7.5); week-grid calendar deferred                                                                   |
-| CLI-007                | Unified customer For You page with deterministic ranking, reason codes, diversity, inventory awareness, and learning events                                                                                | For You                            | Discovery/wishlist/Tie-Mate/wardrobe foundations exist; dedicated For You page scheduled for 7.6                                            | CLI-002, CLI-003, EDU-002                       | 7.6                  | Every recommendation exposes human reason copy and evidence; owned/rejected/irrelevant items suppressed                          | Not started                                                                                               |
+| CLI-007                | Unified customer For You page with deterministic ranking, reason codes, diversity, inventory awareness, and learning events                                                                                | For You                            | `rankForYouCandidates` + `ForYouRepository` + `/for-you` with `for_you_*` feedback events                                                   | CLI-002, CLI-003, EDU-002                       | 7.6                  | Every recommendation exposes human reason copy and evidence; owned/rejected/irrelevant items suppressed                          | Done (7.6); Tie-Mate/gap joins remain thin                                                                |
 | CLI-008                | Role-specific live/temporal dashboards with honest presence TTL, heatmaps, opportunity funnel, workload, and data-quality status                                                                           | Dashboards                         | Retailer analytics summary exists; live presence/heatmap/funnel surfaces scheduled for 7.7                                                  | CLI-001, CLI-005, CLI-006                       | 7.7                  | Presence never implies online after heartbeat expiry; owner views are not vanity event counts                                    | Not started                                                                                               |
 | CLI-009                | Typed capability/policy eligibility plane plus correction, outcomes, and admin observability hardening                                                                                                     | Policy + admin ops                 | Consent helpers exist; typed policy configuration and admin health scheduled for 7.8                                                        | CLI-001–CLI-008, ADR-066                        | 7.8                  | Core projectors accept eligibility decisions; admin cannot freely browse retailer customer content                               | Not started                                                                                               |
 | ENG-006                | Capability-first intelligence with policy as a separate eligibility plane; no hard-coded jurisdiction branches in core derivation                                                                          | Intelligence governance            | Consent/eligibility helpers exist; Stage 7 ADR-066 authorizes the separation                                                                | ENG-002, ADR-066                                | 7.0–7.8              | Capture/projection/display/export/activation remain testable against typed policy without redesigning projectors                 | Authorized (7.0)                                                                                          |

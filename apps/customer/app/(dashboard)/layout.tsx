@@ -19,6 +19,11 @@ const navigation: AppShellNavGroup[] = [
         description: "What is happening now",
       },
       {
+        href: "/for-you",
+        label: "For You",
+        description: "Cited picks from your house activity",
+      },
+      {
         href: "/wishlist",
         label: "Saved",
         description: "Your considered selection",
