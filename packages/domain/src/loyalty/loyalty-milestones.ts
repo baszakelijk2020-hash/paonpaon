@@ -254,7 +254,7 @@ export function isAdvancedFabricConcept(
   concept: Pick<MilestoneConceptRef, "kind" | "slug">,
 ): boolean {
   return (
-    (concept.kind === "fibre" || concept.kind === "fabric") &&
+    (concept.kind === "fibre" || concept.kind === "fabric_collection") &&
     matchesSlugHints(concept.slug, ADVANCED_FABRIC_SLUG_HINTS)
   );
 }
@@ -460,7 +460,7 @@ export function evaluateLoyaltyMilestones(args: {
     const matches = conceptsMatching(args.currentOrder, (concept) => {
       if (configured.size > 0) {
         return (
-          (concept.kind === "fibre" || concept.kind === "fabric") &&
+          (concept.kind === "fibre" || concept.kind === "fabric_collection") &&
           configured.has(concept.conceptId)
         );
       }

@@ -12,17 +12,16 @@ implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
 - **Programme status:** Stages 0–5 complete. Stage 6 blocked. Stage 7 and
-  8.0–8.3 complete. Stage 8.4 is `implemented_unverified` (harness not yet
-  browser-proven). Stage 9.1, 9.2 and 10.1 have material
-  `implemented_unverified` foundations and are reopened under ADR-068; Stage
-  9.3 is demand-led blocked.
+  8.0–8.3 complete. Stage 8.4 is `implemented_unverified` (loyalty enum seed
+  blocker fixed; one harness browser proof still pending). Stage 9.1, 9.2 and
+  10.1 have material `implemented_unverified` foundations and are reopened
+  under ADR-068; Stage 9.3 is demand-led blocked.
 - **Current queue item:** Stage 6 / 9.3 blocked — skip. Next dependency-
-  complete item is Stage 9.1 completion (canonical write-through + browser
-  journey) under ADR-068; then 9.2 and 10.1 before 10.2. Stage 8.4 remains
-  open until demo-seed enum mismatch is fixed and
-  `completion-harness.spec.ts` passes once.
-- **Current requirement IDs:** `INT-002`, `INT-003`; Stage 6 gates remain;
-  Stage 8.4 blocker is local seed `metadata_concept_kind`/`fabric`.
+  complete item is Stage 8.4 harness proof, then Stage 9.1 completion
+  (canonical write-through + browser journey) under ADR-068; then 9.2 and
+  10.1 before 10.2.
+- **Current requirement IDs:** `AUD-001`–`AUD-005` for 8.4 harness;
+  `INT-002`, `INT-003` for 9.1; Stage 6 gates remain.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -148,12 +147,13 @@ requires it.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next work:** finish Stage 9.1 accepted gaps from PHASE (canonical
-  catalogue/product/stock/order write-through and operator-to-downstream
-  browser journey) under ADR-068. Stage 8.4 stays open until one local
-  `completion-harness.spec.ts` pass after demo-seed
-  `metadata_concept_kind`/`fabric` fix. Then close 9.2 and 10.1 before 10.2.
-  Do not invent Stage 6 payment behavior.
+- **Exact next work:** finish Stage 8.4 with one local seeded-stack pass of
+  `apps/retailer/e2e/completion-harness.spec.ts` (enum blocker fixed in
+  `20260730350000_fix_loyalty_advanced_fabric_concept_kind`). Then finish
+  Stage 9.1 accepted gaps from PHASE (canonical catalogue/product/stock/order
+  write-through and operator-to-downstream browser journey) under ADR-068.
+  Then close 9.2 and 10.1 before 10.2. Do not invent Stage 6 payment
+  behavior.
 
 ## 1. Programme intent
 

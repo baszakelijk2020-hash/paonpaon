@@ -1061,12 +1061,11 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     grandfathered); path/n_a/browser-spec validation; `pnpm test` runs
     `validate:completion`; `docs/evidence/tranches/8.4.json`; linked Maison
     Dubois proof seed descriptor; Playwright harness
-    `apps/retailer/e2e/completion-harness.spec.ts` exists. One attempted local
-    run failed before UI mutation: demo seed raises
-    `invalid input value for enum public.metadata_concept_kind: "fabric"`.
-    Browser proof therefore not executed; status remains
-    `implemented_unverified` until that seed/enum mismatch is fixed and the
-    single harness passes.
+    `apps/retailer/e2e/completion-harness.spec.ts` exists. Demo-seed enum
+    mismatch fixed in `20260730350000_fix_loyalty_advanced_fabric_concept_kind`
+    (`sync_loyalty_milestones_for_order` now uses `fabric_collection` not
+    invalid `fabric`); domain loyalty detector aligned. Browser proof still
+    pending one local seeded-stack run of `completion-harness.spec.ts`.
 
 ### Stage 9 — Migration Cockpit and connectors
 
