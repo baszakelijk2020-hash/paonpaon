@@ -831,7 +831,7 @@ capability with policy as a separate eligibility plane (ADR-066).
     provenance guards; `record_advisor_rectangle_facts`; Retailer advisor
     rectangle capture and Self-Portrait structured facts section.
 
-- [ ] **7.4 Moments, opportunities, and contact pressure**
+- [x] **7.4 Moments, opportunities, and contact pressure**
   - **Requirement IDs:** `CLI-004`, `CLI-005`.
   - **Dependencies:** `7.1`, `7.3`; ADR-066.
   - **Owner boundary:** opportunity projector, draft tasks, advisor Today
@@ -843,6 +843,10 @@ capability with policy as a separate eligibility plane (ADR-066).
   - **Tests:** ranking sparsity, cooldown, eligibility, outcome linkage.
   - **Non-goals:** no marketing blast engine.
   - **Hard blockers:** none.
+  - **Landed:** `@paon/domain` `projectClientelingOpportunityDrafts` with
+    contact-pressure cooldown and sparse ranking; `clienteling_opportunities`
+    migration/RPCs; `ClientelingOpportunityRepository`; Retailer Portal
+    Brief opportunity inbox with assign/dismiss/outcome actions.
 
 - [ ] **7.5 Branches, shared calendar, and post-appointment closeout**
   - **Requirement IDs:** `CLI-006`.

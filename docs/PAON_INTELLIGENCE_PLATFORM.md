@@ -15,7 +15,7 @@ requires it.
   UI. Stage 6 remains blocked (compliance/marketplace). Stage 7
   (evidence-cited Self-Portrait / clienteling intelligence, ADR-066) is
   independently authorized and locally buildable.
-- **Current queue item:** `7.4 Moments, opportunities, and contact pressure`.
+- **Current queue item:** `7.5 Branches, shared calendar, and post-appointment closeout`.
   Skip Stage 6 while blocked.
 - **Current requirement IDs:** `CLI-001`–`CLI-009`, `ENG-006` (Stage 7);
   Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
@@ -52,7 +52,9 @@ requires it.
   `/r/[slug]/tie-mate` UI (PHASE 5.4 complete); `f7ce3be` hardens Tie-Mate
   local verification evidence; `4a3881b` authorizes Stage 7 / ADR-066
   (PHASE 7.0 complete); `673ce59` ships evidence-cited interest insights
-  (PHASE 7.1 complete).
+  (PHASE 7.1 complete); `95b236c` adds provenance-aware Self-Portrait facts
+  (PHASE 7.3 complete); PHASE 7.4 clienteling opportunities lands on this
+  branch.
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -123,9 +125,13 @@ requires it.
   projection and Customer interim `/r/[slug]/tie-mate` surface.
   Stage 7.1 adds `@paon/domain` `projectCustomerInterestInsights` and
   `@paon/database` `CustomerInterestRepository`, mounted on Retailer
-  Self-Portrait as "Recent interests / Why we think this".
-- **Checks/deployment state:** 109 migrations; Stage 7.0 authority at
-  `4a3881b`; 7.1 interest insight pending push after DoD. Anonymous
+  Self-Portrait as "Recent interests / Why we think this". Stage 7.4 adds
+  `@paon/domain` `projectClientelingOpportunityDrafts` and
+  `@paon/database` `ClientelingOpportunityRepository` with
+  `clienteling_opportunities` persistence, contact-pressure cooldown, and
+  Retailer Brief opportunity inbox (draft-by-default; assign/dismiss/outcome).
+- **Checks/deployment state:** 110 migrations; Stage 7.0 authority at
+  `4a3881b`; 7.1–7.4 clienteling slices buildable locally. Anonymous
   interaction persistence remains blocked pending jurisdiction documentation.
   Live Resend/OpenWeather smoke still needs provider credentials.
 - **Real blockers:** Stage 6.1 is blocked on founder business/legal/accounting/
@@ -137,9 +143,9 @@ requires it.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next files/tests:** implement `7.3` structured Self-Portrait facts
-  and advisor metadata rectangles. Do not invent Stage 6 payment/marketplace
-  code.
+- **Exact next files/tests:** implement `7.5` branch calendar and
+  post-appointment closeout rectangles feeding provenance-aware Self-Portrait.
+  Do not invent Stage 6 payment/marketplace code.
 
 ## 1. Programme intent
 

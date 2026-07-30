@@ -2,6 +2,7 @@ import {
   AlterationRepository,
   AlterationWorkflowRepository,
   AppointmentRepository,
+  ClientelingOpportunityRepository,
   CustomerRepository,
   NotificationRepository,
   OrderRepository,
@@ -27,6 +28,7 @@ import { RetailerStatusBadge } from "../status-badge";
 
 import { ClockWidget } from "./clock-widget";
 import { GlossaryBanner } from "./glossary-banner";
+import { OpportunityInbox } from "./opportunity-inbox";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -120,6 +122,17 @@ export default async function DashboardPage() {
     session.retailerRole,
     "approve_pricing",
   );
+  const canManageCustomers = retailerRoleAtLeast(
+    session.retailerRole,
+    "sales_associate",
+  );
+  const opportunityRepo = new ClientelingOpportunityRepository(supabase);
+  if (canManageCustomers) {
+    await opportunityRepo.syncDraftsForRetailer({
+      retailerId: session.retailerId,
+      viewerRetailerId: session.retailerId,
+    });
+  }
   const [
     staff,
     myStaffRow,
@@ -129,6 +142,7 @@ export default async function DashboardPage() {
     orders,
     alterations,
     lowStockCount,
+    customers,
   ] = await Promise.all([
     new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
     new RetailerStaffRepository(supabase).findByUserId(session.userId),
@@ -147,7 +161,22 @@ export default async function DashboardPage() {
           5,
         )
       : Promise.resolve(0),
+    canManageCustomers
+      ? new CustomerRepository(supabase).findByRetailer(session.retailerId)
+      : Promise.resolve([]),
   ]);
+
+  const inboxOpportunities = canManageCustomers
+    ? opportunityRepo.withCustomerNames(
+        myStaffRow
+          ? await opportunityRepo.listInboxForStaff({
+              retailerId: session.retailerId,
+              staffId: myStaffRow.id,
+            })
+          : await opportunityRepo.listOpenForRetailer(session.retailerId),
+        new Map(customers.map((customer) => [customer.id, customer])),
+      )
+    : [];
 
   const openEntry = myStaffRow
     ? await new StaffRosterRepository(supabase).findOpenTimeEntry(myStaffRow.id)
@@ -698,6 +727,32 @@ export default async function DashboardPage() {
           </Card>
         </aside>
       </div>
+
+      {canManageCustomers ? (
+        <section className="paon-reveal" style={{ animationDelay: "320ms" }}>
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <div>
+              <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+                Opportunity inbox
+              </p>
+              <h2 className="font-display text-3xl text-[var(--color-stone-900)]">
+                Clienteling hooks
+              </h2>
+              <p className="mt-1 max-w-xl text-sm text-[var(--color-stone-500)]">
+                Sparse draft tasks with cited evidence. Review and act — nothing
+                is sent to clients automatically.
+              </p>
+            </div>
+            <span className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 py-1 text-xs text-white">
+              {inboxOpportunities.length}
+            </span>
+          </div>
+          <OpportunityInbox
+            opportunities={inboxOpportunities}
+            canAct={canManageCustomers}
+          />
+        </section>
+      ) : null}
     </div>
   );
 }
