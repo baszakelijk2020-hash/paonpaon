@@ -1018,8 +1018,8 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 8.4 — Delivery integrity and connected-product proof
 
-- [x] **8.4 Machine-enforced completion and multi-role journey gate**
-  - **Status:** `verified_local`.
+- [ ] **8.4 Machine-enforced completion and multi-role journey gate**
+  - **Status:** `implemented_unverified`.
   - **Requirement IDs:** `AUD-001`–`AUD-005`.
   - **Dependencies:** `8.3`; ADR-068; the common-sense and traceability audits.
   - **Owner boundary:** honest status vocabulary; machine-readable tranche
@@ -1060,9 +1060,13 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Landed:** domain completion-evidence + PHASE gate (8.4+; earlier stages
     grandfathered); path/n_a/browser-spec validation; `pnpm test` runs
     `validate:completion`; `docs/evidence/tranches/8.4.json`; linked Maison
-    Dubois proof seed; Playwright mutation harness advisor→manager note +
-    worker RLS denial + admin DB assert
-    (`apps/retailer/e2e/completion-harness.spec.ts`).
+    Dubois proof seed descriptor; Playwright harness
+    `apps/retailer/e2e/completion-harness.spec.ts` exists. One attempted local
+    run failed before UI mutation: demo seed raises
+    `invalid input value for enum public.metadata_concept_kind: "fabric"`.
+    Browser proof therefore not executed; status remains
+    `implemented_unverified` until that seed/enum mismatch is fixed and the
+    single harness passes.
 
 ### Stage 9 — Migration Cockpit and connectors
 

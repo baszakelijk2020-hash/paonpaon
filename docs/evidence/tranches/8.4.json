@@ -1,7 +1,7 @@
 {
   "phaseItemId": "8.4",
   "requirementIds": ["AUD-001", "AUD-002", "AUD-003", "AUD-004", "AUD-005"],
-  "status": "verified_local",
+  "status": "implemented_unverified",
   "title": "Machine-enforced completion and multi-role journey gate",
   "applicability": {
     "domain": "required",
@@ -23,26 +23,26 @@
     "receiver_ui": "apps/retailer/app/(dashboard)/customers/[id]/page.tsx",
     "rls": "supabase/migrations/20260720000003_create_clienteling_notes.sql",
     "exceptions": "apps/retailer/e2e/completion-harness.spec.ts worker forbidden note read",
-    "browser": "apps/retailer/e2e/completion-harness.spec.ts",
+    "browser": "apps/retailer/e2e/completion-harness.spec.ts — local run 2026-07-30 failed in ensureProgrammeProofSeed/demo seed: invalid input value for enum public.metadata_concept_kind: \"fabric\". No UI mutation executed.",
     "operations": "packages/domain/scripts/validate-completion-evidence.ts",
-    "live_gap": "Local demo seed and Playwright only; no hosted live credential gap for this tranche"
+    "live_gap": "Not a hosted-credential gap; local seeded stack demo-seed enum mismatch blocks the one harness proof"
   },
   "uiChecklist": {
     "loading": "n_a",
-    "empty": "proven",
+    "empty": "missing",
     "error": "n_a",
-    "denied": "proven",
+    "denied": "missing",
     "stale": "n_a",
     "conflict": "n_a",
-    "success": "proven",
-    "role_orientation": "proven",
-    "task_continuation": "proven",
+    "success": "missing",
+    "role_orientation": "missing",
+    "task_continuation": "missing",
     "phone": "n_a",
     "tablet": "n_a",
-    "desktop": "proven",
+    "desktop": "missing",
     "keyboard_a11y": "n_a"
   },
   "linkedSeedId": "paon-proof-maison-dubois-v1",
   "browserProofSpec": "apps/retailer/e2e/completion-harness.spec.ts",
-  "assertedAt": "2026-07-30T12:00:00.000Z"
+  "assertedAt": "2026-07-30T12:55:00.000Z"
 }
