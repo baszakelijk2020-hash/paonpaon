@@ -1,6 +1,10 @@
 "use server";
 
-import { CampaignRepository } from "@paon/database";
+import {
+  CampaignLibraryRepository,
+  CampaignRepository,
+  RetailerStaffRepository,
+} from "@paon/database";
 import {
   setCampaignTargetProductInputSchema,
   upsertCampaignAudienceRuleInputSchema,
@@ -10,6 +14,7 @@ import {
 import { revalidatePath } from "next/cache";
 
 import { requireSession } from "@/lib/session";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function upsertCampaign(formData: FormData): Promise<void> {
@@ -90,5 +95,21 @@ export async function setCampaignTargetProduct(
   await new CampaignRepository(
     await getSupabaseServerClient(),
   ).setTargetProduct(session.retailerId, parsed);
+  revalidatePath("/settings/campaigns");
+}
+
+export async function cloneCampaignFromLibrary(): Promise<void> {
+  const session = await requireSession();
+  const supabase = await getSupabaseServerClient();
+  const staff = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  const admin = getSupabaseAdminClient();
+  await new CampaignLibraryRepository(admin).ensureMemberFabricV1();
+  await new CampaignLibraryRepository(admin).cloneActiveToRetailer({
+    retailerId: session.retailerId,
+    key: "private_offer_member_fabric",
+    ...(staff?.id ? { createdByStaffId: staff.id } : {}),
+  });
   revalidatePath("/settings/campaigns");
 }

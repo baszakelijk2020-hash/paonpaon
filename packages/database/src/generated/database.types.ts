@@ -1718,6 +1718,71 @@ export type Database = {
           },
         ];
       };
+      campaign_library_entries: {
+        Row: {
+          created_at: string;
+          display_name: string;
+          id: string;
+          key: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_name: string;
+          id?: string;
+          key: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          display_name?: string;
+          id?: string;
+          key?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      campaign_library_versions: {
+        Row: {
+          activated_at: string | null;
+          created_at: string;
+          entry_id: string;
+          id: string;
+          snapshot: Json;
+          status: string;
+          updated_at: string;
+          version_number: number;
+        };
+        Insert: {
+          activated_at?: string | null;
+          created_at?: string;
+          entry_id: string;
+          id?: string;
+          snapshot: Json;
+          status: string;
+          updated_at?: string;
+          version_number: number;
+        };
+        Update: {
+          activated_at?: string | null;
+          created_at?: string;
+          entry_id?: string;
+          id?: string;
+          snapshot?: Json;
+          status?: string;
+          updated_at?: string;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "campaign_library_versions_entry_id_fkey";
+            columns: ["entry_id"];
+            isOneToOne: false;
+            referencedRelation: "campaign_library_entries";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       campaign_reward_grants: {
         Row: {
           campaign_id: string;
@@ -1865,6 +1930,9 @@ export type Database = {
           frequency: string;
           id: string;
           kind: string;
+          library_entry_id: string | null;
+          library_pinned_at: string | null;
+          library_version_id: string | null;
           preferred_local_hour: number;
           quiet_end_minute: number | null;
           quiet_start_minute: number | null;
@@ -1888,6 +1956,9 @@ export type Database = {
           frequency?: string;
           id?: string;
           kind: string;
+          library_entry_id?: string | null;
+          library_pinned_at?: string | null;
+          library_version_id?: string | null;
           preferred_local_hour?: number;
           quiet_end_minute?: number | null;
           quiet_start_minute?: number | null;
@@ -1911,6 +1982,9 @@ export type Database = {
           frequency?: string;
           id?: string;
           kind?: string;
+          library_entry_id?: string | null;
+          library_pinned_at?: string | null;
+          library_version_id?: string | null;
           preferred_local_hour?: number;
           quiet_end_minute?: number | null;
           quiet_start_minute?: number | null;
@@ -1932,6 +2006,20 @@ export type Database = {
             columns: ["created_by_staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaigns_library_entry_id_fkey";
+            columns: ["library_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "campaign_library_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaigns_library_version_id_fkey";
+            columns: ["library_version_id"];
+            isOneToOne: false;
+            referencedRelation: "campaign_library_versions";
             referencedColumns: ["id"];
           },
           {

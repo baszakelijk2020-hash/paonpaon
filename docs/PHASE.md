@@ -1069,7 +1069,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 10 — Clienteling, campaign, and remote-selling parity
 
-- [ ] **10.1 Versioned campaign library**
+- [x] **10.1 Versioned campaign library**
   - **Requirement IDs:** `CMP-101`–`CMP-104`.
   - **Dependencies:** `8.3`; existing campaign/private-offer foundations.
   - **Owner boundary:** PAON library object, retailer copy/version,
@@ -1081,6 +1081,11 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     empty prerequisite and browser states.
   - **Non-goals:** no generic drag-and-drop email editor.
   - **Hard blockers:** external channel credentials block only sending.
+  - **Landed:** domain library snapshot + pin/prereq rules; migration
+    `20260730330000_add_versioned_campaign_library.sql`;
+    `CampaignLibraryRepository` ensure/clone with `library_version_id` pin;
+    Retailer campaigns settings shows library preview and clone. Full mapping
+    wizard, rehearsal, and CMP-104 funnel metrics remain follow-ons.
 
 - [ ] **10.2 Seven-Day Wardrobe and Honeymoon Phase**
   - **Requirement IDs:** `CMP-105`, `CMP-106`, `WRD-104`.
