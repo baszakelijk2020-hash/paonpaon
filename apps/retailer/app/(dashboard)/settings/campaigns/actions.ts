@@ -98,17 +98,19 @@ export async function setCampaignTargetProduct(
   revalidatePath("/settings/campaigns");
 }
 
-export async function cloneCampaignFromLibrary(): Promise<void> {
+export async function cloneCampaignFromLibrary(
+  formData: FormData,
+): Promise<void> {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(supabase).findByUserId(
     session.userId,
   );
+  const key = String(formData.get("libraryKey") ?? "private_offer_member_fabric");
   const admin = getSupabaseAdminClient();
-  await new CampaignLibraryRepository(admin).ensureMemberFabricV1();
   await new CampaignLibraryRepository(admin).cloneActiveToRetailer({
     retailerId: session.retailerId,
-    key: "private_offer_member_fabric",
+    key: key as "private_offer_member_fabric" | "seven_day_wardrobe_v1" | "honeymoon_phase_v1",
     ...(staff?.id ? { createdByStaffId: staff.id } : {}),
   });
   revalidatePath("/settings/campaigns");

@@ -130,6 +130,8 @@ export * from "./wardrobe/morning-routine-delivery.schema";
 export * from "./campaign/campaign";
 export * from "./campaign/campaign.schema";
 export * from "./campaign/campaign-library";
+export * from "./campaign/seven-day-capsule";
+export * from "./campaign/honeymoon-phase";
 
 export * from "./concierge/service-plan";
 export * from "./concierge/service-plan.schema";

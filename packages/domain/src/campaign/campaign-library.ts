@@ -6,13 +6,17 @@
 
 export const CAMPAIGN_LIBRARY_PROJECTOR_VERSION = "campaign-library-v1";
 
-export const CAMPAIGN_LIBRARY_KEYS = ["private_offer_member_fabric"] as const;
+export const CAMPAIGN_LIBRARY_KEYS = [
+  "private_offer_member_fabric",
+  "seven_day_wardrobe_v1",
+  "honeymoon_phase_v1",
+] as const;
 
 export type CampaignLibraryKey = (typeof CAMPAIGN_LIBRARY_KEYS)[number];
 
 export interface CampaignLibrarySnapshot {
   readonly versionLabel: string;
-  readonly kind: "private_offer" | "wardrobe_challenge";
+  readonly kind: "private_offer" | "wardrobe_challenge" | "order_journey";
   readonly title: string;
   readonly summary: string;
   readonly prerequisites: readonly string[];
@@ -60,6 +64,60 @@ export const MEMBER_FABRIC_LIBRARY_V1: CampaignLibrarySnapshot = {
   audienceTemplate: {
     consent: "personalization",
     lifecycle: "returning_or_vip",
+  },
+};
+
+export const SEVEN_DAY_WARDROBE_LIBRARY_V1: CampaignLibrarySnapshot = {
+  versionLabel: "seven-day-wardrobe-v1",
+  kind: "wardrobe_challenge",
+  title: "Seven-Day Wardrobe",
+  summary:
+    "Owned-first seven complete looks with cited gaps and restrained completion reward.",
+  prerequisites: [
+    "personalization_consent",
+    "wardrobe_items_or_catalogue",
+    "advisor_coverage",
+  ],
+  placementHints: ["private_offers", "morning_routine", "wardrobe"],
+  staffMission:
+    "Review proposed owned-first looks, confirm cited gaps, and coach alternatives.",
+  outcomeMetrics: [
+    "enrolled",
+    "days_complete",
+    "gaps_cited",
+    "reward_granted",
+    "appointment_booked",
+  ],
+  audienceTemplate: {
+    consent: "personalization",
+    lifecycle: "active_relationship",
+  },
+};
+
+export const HONEYMOON_PHASE_LIBRARY_V1: CampaignLibrarySnapshot = {
+  versionLabel: "honeymoon-phase-v1",
+  kind: "order_journey",
+  title: "Honeymoon Phase",
+  summary:
+    "Transparent order-to-delivery tracker with preparation, collection, and aftercare actions.",
+  prerequisites: [
+    "personalization_consent",
+    "order_placed",
+    "advisor_coverage",
+  ],
+  placementHints: ["order_detail", "advisor_today"],
+  staffMission:
+    "Prepare collection, confirm lead-time truth, and respect contact-pressure limits.",
+  outcomeMetrics: [
+    "enrolled",
+    "preparation_complete",
+    "collected",
+    "aftercare_viewed",
+    "repeat_purchase",
+  ],
+  audienceTemplate: {
+    consent: "personalization",
+    trigger: "order_placed",
   },
 };
 

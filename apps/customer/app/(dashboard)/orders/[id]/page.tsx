@@ -11,6 +11,7 @@ import { formatDate, formatMoney } from "@paon/utils";
 import { notFound } from "next/navigation";
 
 import { PayPanel } from "./pay-panel";
+import { HoneymoonTrackerPanel, loadHoneymoonMilestones } from "./honeymoon-panel";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -43,6 +44,27 @@ export default async function OrderDetailPage({
   const variants = await Promise.all(
     lines.map((line) => variantRepo.findById(line.productVariantId)),
   );
+
+  const lineContexts = lines.map((line, index) => {
+    const variant = variants[index];
+    return {
+      productVariantId: line.productVariantId,
+      sku: variant?.sku,
+      quantity: line.quantity,
+      requiresProduction: line.requiresProduction,
+      requiresAlteration: line.requiresAlteration,
+      leadTimeDays: variant?.leadTimeDays ?? null,
+      inventoryQuantity: variant?.inventoryQuantity ?? null,
+    };
+  });
+
+  const honeymoonMilestones = await loadHoneymoonMilestones({
+    orderId: order.id,
+    orderStatus: order.status,
+    ...(order.placedAt ? { placedAt: order.placedAt } : {}),
+    lines: lineContexts,
+    supabase,
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -116,6 +138,11 @@ export default async function OrderDetailPage({
           </p>
         </Card>
       ) : null}
+
+      <HoneymoonTrackerPanel
+        orderId={order.id}
+        milestones={honeymoonMilestones}
+      />
 
       {order.status === "pending_payment" ? (
         payment === "success" ? (

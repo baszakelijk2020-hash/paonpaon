@@ -30,13 +30,8 @@ export default async function CampaignSettingsPage() {
 
   const supabase = await getSupabaseServerClient();
   const campaignRepo = new CampaignRepository(supabase);
-  const libraryVersion = await new CampaignLibraryRepository(
-    getSupabaseAdminClient(),
-  ).ensureMemberFabricV1();
-  const missingPrereqs = emptyPrerequisitesBlockActivation(
-    libraryVersion.snapshot,
-    new Set(["personalization_consent"]),
-  );
+  const libraryRepo = new CampaignLibraryRepository(getSupabaseAdminClient());
+  const libraryPackages = await libraryRepo.listActiveVersions();
   const [campaigns, products] = await Promise.all([
     campaignRepo.listByRetailer(session.retailerId),
     new ProductRepository(supabase).findByRetailer(session.retailerId as never),
@@ -72,26 +67,48 @@ export default async function CampaignSettingsPage() {
           PAON campaign library
         </h2>
         <p className="mt-1 text-sm text-[var(--color-stone-500)]">
-          {libraryVersion.snapshot.title} · pinned label{" "}
-          {libraryVersion.snapshot.versionLabel} · v
-          {libraryVersion.versionNumber}
+          Clone a version-pinned package — active retailer copies do not change
+          when the library publishes a newer version.
         </p>
-        <p className="mt-2 text-sm text-[var(--color-stone-600)]">
-          Staff mission: {libraryVersion.snapshot.staffMission}
-        </p>
-        <p className="mt-1 text-sm text-[var(--color-stone-600)]">
-          Preview placements:{" "}
-          {libraryVersion.snapshot.placementHints.join(", ")}
-        </p>
-        {missingPrereqs.length > 0 ? (
-          <p className="mt-2 text-sm text-[var(--color-warning-500)]">
-            Empty/unsatisfied prerequisites block activation:{" "}
-            {missingPrereqs.join(", ")}
-          </p>
-        ) : null}
-        <form action={cloneCampaignFromLibrary} className="mt-3">
-          <Button type="submit">Clone library package (pin version)</Button>
-        </form>
+        <ul className="mt-4 space-y-4">
+          {libraryPackages.map(({ entry, version }) => {
+            const missingPrereqs = emptyPrerequisitesBlockActivation(
+              version.snapshot,
+              new Set(["personalization_consent"]),
+            );
+            return (
+              <li
+                key={entry.id}
+                className="border-t border-[var(--color-stone-100)] pt-4 first:border-t-0 first:pt-0"
+              >
+                <p className="text-base text-[var(--color-stone-900)]">
+                  {version.snapshot.title}
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+                  {entry.displayName} · {version.snapshot.versionLabel} · v
+                  {version.versionNumber}
+                </p>
+                <p className="mt-2 text-sm text-[var(--color-stone-600)]">
+                  Staff mission: {version.snapshot.staffMission}
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-stone-600)]">
+                  Placements: {version.snapshot.placementHints.join(", ")}
+                </p>
+                {missingPrereqs.length > 0 ? (
+                  <p className="mt-2 text-sm text-[var(--color-warning-500)]">
+                    Unsatisfied prerequisites: {missingPrereqs.join(", ")}
+                  </p>
+                ) : null}
+                <form action={cloneCampaignFromLibrary} className="mt-3">
+                  <input type="hidden" name="libraryKey" value={entry.key} />
+                  <Button type="submit" size="sm" variant="outline">
+                    Clone {entry.displayName}
+                  </Button>
+                </form>
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
       <section className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-5 py-4">
