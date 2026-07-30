@@ -99,6 +99,12 @@ describe("loyalty milestone concept detectors", () => {
       }),
     ).toBe(true);
     expect(
+      isAdvancedFabricConcept({
+        kind: "fabric_collection",
+        slug: "summertime-collection",
+      }),
+    ).toBe(false);
+    expect(
       isAdvancedFabricConcept({ kind: "fibre", slug: "cashmere-blend" }),
     ).toBe(true);
     expect(
