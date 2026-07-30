@@ -1,7 +1,7 @@
 "use server";
 
 import { requireRetailerRole } from "@paon/auth";
-import { AppointmentRepository } from "@paon/database";
+import { AppointmentRepository, WorkflowRepository } from "@paon/database";
 import { asId, updateAppointmentInputSchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
@@ -18,17 +18,25 @@ export async function quickUpdateAppointmentStatus(
   const parsed = updateAppointmentInputSchema.safeParse({ status });
   if (!appointmentId || !parsed.success || !parsed.data.status) return;
 
-  await new AppointmentRepository(await getSupabaseServerClient()).update(
-    asId<"AppointmentId">(appointmentId),
-    { status: parsed.data.status },
-  );
+  const supabase = await getSupabaseServerClient();
+  const id = asId<"AppointmentId">(appointmentId);
+  const current = await new AppointmentRepository(supabase).findById(id);
+  if (!current || current.status === parsed.data.status) return;
+
+  await new WorkflowRepository(supabase).transitionAppointment({
+    appointmentId: id,
+    toState: parsed.data.status,
+    ...(current.staffId ? { staffId: current.staffId } : {}),
+    ...(current.branchId ? { branchId: current.branchId } : {}),
+  });
+
   revalidatePath("/appointments");
   revalidatePath(`/appointments/${appointmentId}`);
 }
 
 /** Bulk row-select completion — a floor advisor clearing a full day of
  * fittings one at a time was the friction; this is the same single-row
- * `update` the quick-status form already uses, just fanned out. */
+ * workflow transition the quick-status form already uses, just fanned out. */
 export async function bulkCompleteAppointments(
   formData: FormData,
 ): Promise<void> {
@@ -40,11 +48,22 @@ export async function bulkCompleteAppointments(
     .filter(Boolean);
   if (appointmentIds.length === 0) return;
 
-  const repository = new AppointmentRepository(await getSupabaseServerClient());
+  const supabase = await getSupabaseServerClient();
+  const appointmentRepo = new AppointmentRepository(supabase);
+  const workflowRepo = new WorkflowRepository(supabase);
+
   await Promise.all(
-    appointmentIds.map((id) =>
-      repository.update(asId<"AppointmentId">(id), { status: "completed" }),
-    ),
+    appointmentIds.map(async (idValue) => {
+      const id = asId<"AppointmentId">(idValue);
+      const current = await appointmentRepo.findById(id);
+      if (!current || current.status === "completed") return;
+      await workflowRepo.transitionAppointment({
+        appointmentId: id,
+        toState: "completed",
+        ...(current.staffId ? { staffId: current.staffId } : {}),
+        ...(current.branchId ? { branchId: current.branchId } : {}),
+      });
+    }),
   );
   revalidatePath("/appointments");
 }

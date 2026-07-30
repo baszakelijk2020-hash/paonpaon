@@ -2,7 +2,7 @@
 
 import {
   APPOINTMENT_STATUSES,
-  APPOINTMENT_STATUS_LABELS,
+  type AppointmentStatus,
   type RetailerStaffMember,
 } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
@@ -18,11 +18,13 @@ export function AppointmentActionsForm({
   currentStatus,
   currentStaffId,
   staff,
+  statusLabels,
 }: {
   appointmentId: string;
   currentStatus: string;
   currentStaffId?: string;
   staff: readonly RetailerStaffMember[];
+  statusLabels: Record<AppointmentStatus, string>;
 }) {
   const boundAction = updateAppointment.bind(null, appointmentId);
   const [state, formAction, isPending] = useActionState(
@@ -42,7 +44,7 @@ export function AppointmentActionsForm({
         <Select id="status" name="status" defaultValue={currentStatus}>
           {APPOINTMENT_STATUSES.map((status) => (
             <option key={status} value={status}>
-              {APPOINTMENT_STATUS_LABELS[status]}
+              {statusLabels[status]}
             </option>
           ))}
         </Select>

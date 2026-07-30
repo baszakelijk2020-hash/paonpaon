@@ -28,6 +28,10 @@ import { AppointmentStatusBadge } from "../status-badge";
 import { AppointmentActionsForm } from "./appointment-actions-form";
 import { AppointmentCloseoutCapture } from "./appointment-closeout-capture";
 
+import {
+  appointmentStatusLabelsForPreset,
+  loadRetailerFamiliarityPresetKey,
+} from "@/lib/familiarity-preset";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -47,7 +51,7 @@ export default async function AppointmentDetailPage({
     notFound();
   }
 
-  const [customer, staff, branches, closeout, rectangleConcepts] =
+  const [customer, staff, branches, closeout, rectangleConcepts, presetKey] =
     await Promise.all([
       new CustomerRepository(supabase).findById(appointment.customerId),
       new RetailerStaffRepository(supabase).findByRetailer(session.retailerId),
@@ -57,7 +61,9 @@ export default async function AppointmentDetailPage({
         appointment.id,
       ),
       new MetadataRepository(supabase).findVisibleConcepts(session.retailerId),
+      loadRetailerFamiliarityPresetKey(session.retailerId),
     ]);
+  const statusLabels = appointmentStatusLabelsForPreset(presetKey);
   const [notes, orders, garments, advisorBrief] = customer
     ? await Promise.all([
         new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -97,7 +103,10 @@ export default async function AppointmentDetailPage({
               <p className="font-accent text-[11px] uppercase tracking-[0.22em] text-white/60">
                 Appointment brief
               </p>
-              <AppointmentStatusBadge status={appointment.status} />
+              <AppointmentStatusBadge
+                status={appointment.status}
+                label={statusLabels[appointment.status]}
+              />
             </div>
             <h1 className="font-display mt-4 text-3xl leading-none sm:text-4xl">
               {customer?.fullName ?? "Unknown customer"}
@@ -208,6 +217,7 @@ export default async function AppointmentDetailPage({
                   ? { currentStaffId: appointment.staffId }
                   : {})}
                 staff={staff}
+                statusLabels={statusLabels}
               />
             </Card>
           ) : null}

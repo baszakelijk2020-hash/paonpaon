@@ -1,9 +1,10 @@
 "use client";
 
 import {
-  APPOINTMENT_STATUS_LABELS,
+  APPOINTMENT_STATUSES,
   APPOINTMENT_TYPE_LABELS,
   type Appointment,
+  type AppointmentStatus,
 } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -18,23 +19,7 @@ import {
 } from "./actions";
 import { AppointmentStatusBadge } from "./status-badge";
 
-const QUICK_STATUSES = [
-  "requested",
-  "confirmed",
-  "checked_in",
-  "completed",
-  "canceled",
-  "no_show",
-] as const;
-
-const STATUS_OPTION_LABELS: Record<(typeof QUICK_STATUSES)[number], string> = {
-  requested: "Requested",
-  confirmed: "Confirmed",
-  checked_in: "Checked in",
-  completed: "Completed",
-  canceled: "Canceled",
-  no_show: "No-show",
-};
+const QUICK_STATUSES = APPOINTMENT_STATUSES;
 
 function startOfDay(date: Date): number {
   return new Date(
@@ -65,9 +50,11 @@ function dayLabel(iso: string): string {
 export function AppointmentsList({
   appointments,
   customerNameById,
+  statusLabels,
 }: {
   appointments: Appointment[];
   customerNameById: Record<string, string>;
+  statusLabels: Record<AppointmentStatus, string>;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
@@ -107,9 +94,7 @@ export function AppointmentsList({
           APPOINTMENT_TYPE_LABELS[appointment.type]
             .toLowerCase()
             .includes(query) ||
-          APPOINTMENT_STATUS_LABELS[appointment.status]
-            .toLowerCase()
-            .includes(query)
+          statusLabels[appointment.status].toLowerCase().includes(query)
         );
       }}
       empty={
@@ -187,7 +172,10 @@ export function AppointmentsList({
                         </Link>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <AppointmentStatusBadge status={appointment.status} />
+                        <AppointmentStatusBadge
+                          status={appointment.status}
+                          label={statusLabels[appointment.status]}
+                        />
                         <form
                           action={quickUpdateAppointmentStatus}
                           className="flex flex-wrap items-center gap-2"
@@ -205,7 +193,7 @@ export function AppointmentsList({
                           >
                             {QUICK_STATUSES.map((status) => (
                               <option key={status} value={status}>
-                                {STATUS_OPTION_LABELS[status]}
+                                {statusLabels[status]}
                               </option>
                             ))}
                           </select>

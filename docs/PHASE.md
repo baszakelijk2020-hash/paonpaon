@@ -998,7 +998,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     `/integration-health`; generated types current. Live Faden credentials
     remain a live-proof gap only.
 
-- [ ] **8.3 Versioned workflow and familiarity presets**
+- [x] **8.3 Versioned workflow and familiarity presets**
   - **Requirement IDs:** `INT-005`, `WFM-103`.
   - **Dependencies:** `8.2`.
   - **Owner boundary:** workflow/form/view definition versions and one real
@@ -1010,8 +1010,13 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     semantic-equivalence.
   - **Non-goals:** no competitor pixel clone or per-source data-model fork.
   - **Hard blockers:** none.
-
-### Stage 9 — Migration Cockpit and connectors
+  - **Landed:** `@paon/domain` workflow contracts + appointment v1/v2 fixtures
+    - familiarity presets; migration
+      `20260730310000_add_versioned_workflow_and_familiarity_presets.sql` with
+      pinned instances, transition RPC, and retailer preset storage;
+      `WorkflowRepository` + `FamiliarityPresetRepository`; appointment status
+      changes routed through `transition_appointment_workflow`; Retailer
+      `/settings/familiarity` preset selector with appointment label mounts.
 
 - [ ] **9.1 Generic staged-file migration**
   - **Requirement IDs:** `INT-002`, `INT-003`.
