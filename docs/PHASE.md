@@ -647,7 +647,7 @@ explanation path.
     `garment_type` concept IDs, and feeds `buildTieMateDeck`
     (`projectFabricCandidates` / `resolveTieConceptIdsForRetailer` /
     `buildDeck`) with unit + storefront read-security coverage.
-  - **Landed (interim UI):** Customer `/r/[slug]/tie-mate` mounts
+  - **Landed (interim UI):** `7b684ff` — Customer `/r/[slug]/tie-mate` mounts
     `TieMateRepository.buildDeck` + `buildTieMateActionPaths`; phone-scale
     full-bleed fabric (swatch preferred), pointer swipe + ArrowLeft/Right,
     wishlist save, PDP buy, appointment/messages/swipe handoffs; empty-deck

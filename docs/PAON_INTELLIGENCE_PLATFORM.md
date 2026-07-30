@@ -47,7 +47,8 @@ requires it.
   HighMaintenance concierge operations (PHASE 5.3 complete); `6842fb5` adds
   Tie-Mate domain deck/photo/handoff under ADR-065 (PHASE 5.4 foundation);
   `345ea4d` wires Tie-Mate catalogue projection via `TieMateRepository`
-  (PHASE 5.4 repository wiring).
+  (PHASE 5.4 repository wiring); `7b684ff` ships interim Customer
+  `/r/[slug]/tie-mate` UI (PHASE 5.4 complete).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -116,11 +117,11 @@ requires it.
   swatch-preferred fabric images, neckwear concept filter, existing-path
   handoffs, keyboard map) plus `@paon/database` `TieMateRepository` catalogue
   projection and Customer interim `/r/[slug]/tie-mate` surface.
-- **Checks/deployment state:** 109 migrations; Tie-Mate interim UI + domain/
-  repository wiring; lint/typecheck/test/build/format green on the 5.4 tip.
-  Anonymous interaction persistence remains blocked pending jurisdiction
-  documentation. Live Resend/OpenWeather smoke still needs provider
-  credentials.
+- **Checks/deployment state:** 109 migrations; Tie-Mate interim UI (`7b684ff`)
+  - domain/repository wiring; lint/typecheck/test/build/format green on the
+    5.4 tip. Anonymous interaction persistence remains blocked pending
+    jurisdiction documentation. Live Resend/OpenWeather smoke still needs
+    provider credentials.
 - **Real blockers:** Stage 6.1 is blocked on founder business/legal/accounting/
   provider decisions; 6.2 depends on 6.1; 6.3 marketplace modelling is not
   explicitly activated and remains gated on commercial/payment design;
