@@ -35,6 +35,10 @@ export default async function AppointmentsPage() {
             <Link href="/appointments/availability" className="underline">
               Availability
             </Link>
+            {" · "}
+            <Link href="/appointments/calendar" className="underline">
+              Branch calendar
+            </Link>
           </p>
         </div>
         <Link href="/appointments/new" className={buttonVariants()}>

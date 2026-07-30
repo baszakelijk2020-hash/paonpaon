@@ -1,6 +1,7 @@
 import type {
   AppointmentId,
   AvailabilityWindowId,
+  BranchId,
   CustomerId,
   RetailerId,
   StaffId,
@@ -31,6 +32,7 @@ export interface Appointment extends Timestamps {
   readonly status: AppointmentStatus;
   readonly startsAt: string;
   readonly endsAt: string;
+  readonly branchId?: BranchId;
   readonly locationId?: string;
   readonly notes?: string;
 }
