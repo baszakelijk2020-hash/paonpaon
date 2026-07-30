@@ -1,6 +1,10 @@
 # Current Phase — PAON Retail Relationship and Operations Programme
 
-**This is the only authorized work queue.** It supersedes the 2026-07-27
+**This is the only authorized work queue.**
+
+**Queue rule:** an item that lists another PHASE item as a dependency must not be checked or marked `verified_*` while that dependency remains unchecked or `implemented_unverified` (parallel implementation is allowed).
+
+It supersedes the 2026-07-27
 pilot-only freeze and every queue in ROADMAP, COMPETITIVE_GAPS,
 EXPERIENCE_REBUILD, vision documents, audits, and old handoffs.
 
@@ -1070,8 +1074,9 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 9 — Migration Cockpit and connectors
 
-- [x] **9.1 Generic staged-file migration**
-  - **Status:** `verified_local`.
+- [ ] **9.1 Generic staged-file migration**
+  - **Status:** `implemented_unverified`; canonical write-through and one local
+    operator browser pass landed, but verification waits on dependency `8.4`.
   - **Requirement IDs:** `INT-002`, `INT-003`.
   - **Dependencies:** `8.2`, `8.4`; extend existing import foundations.
   - **Owner boundary:** immutable raw upload, profiling/mapping/dedupe/review,
@@ -1093,7 +1098,8 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     `/migrations` revalidates `/products`/`customers`/`orders`; Playwright
     `migration-write-through.spec.ts` passed locally 2026-07-30 (fixture →
     publish → Navy Suit Jacket on `/products`). Evidence
-    `docs/evidence/tranches/9.1.json`. Provider adapters remain Stage 9.2.
+    `docs/evidence/tranches/9.1.json` stays `implemented_unverified` until
+    dependency `8.4` is verified once. Provider adapters remain Stage 9.2.
 
 - [ ] **9.2 Shopify and Faden executable adapters**
   - **Status:** `implemented_unverified`; contracts/fixtures exist, but the
