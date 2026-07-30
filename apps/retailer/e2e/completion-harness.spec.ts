@@ -10,6 +10,11 @@ import {
 } from "@paon/domain";
 import { expect, test, type Page } from "@playwright/test";
 
+import { writeBrowserProofRun } from "./write-browser-proof-run";
+
+const PHASE_ITEM_ID = "8.4";
+const BROWSER_PROOF_SPEC = "apps/retailer/e2e/completion-harness.spec.ts";
+
 async function signIn(page: Page, email: string): Promise<void> {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
@@ -23,6 +28,8 @@ async function signOut(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/login/);
 }
 
+let harnessPassed = false;
+
 test.beforeAll(async () => {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
   const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
@@ -33,6 +40,14 @@ test.beforeAll(async () => {
     );
   }
   await ensureProgrammeProofSeed({ supabaseUrl, anonKey, serviceRoleKey });
+});
+
+test.afterAll(async () => {
+  await writeBrowserProofRun({
+    phaseItemId: PHASE_ITEM_ID,
+    spec: BROWSER_PROOF_SPEC,
+    status: harnessPassed ? "passed" : "failed",
+  });
 });
 
 test("advisor mutates note → manager receives → worker RLS denied → DB asserts", async ({
@@ -95,4 +110,5 @@ test("advisor mutates note → manager receives → worker RLS denied → DB ass
   expect(adminError).toBeNull();
   expect(adminNotes?.length).toBe(1);
   expect(adminNotes?.[0]?.body).toBe(marker);
+  harnessPassed = true;
 });

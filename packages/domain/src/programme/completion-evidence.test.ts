@@ -1,11 +1,43 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildBrowserProofRunArtifact,
   mayMarkPhaseItemComplete,
   parseCompletionEvidenceRecord,
   validateCompletionEvidence,
   type CompletionEvidenceRecord,
+  type CompletionEvidenceValidateOptions,
 } from "./completion-evidence";
+
+const HEAD = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+function passedRun(
+  overrides: {
+    phaseItemId?: string;
+    gitSha?: string;
+    spec?: string;
+    status?: "passed" | "failed";
+  } = {},
+) {
+  return buildBrowserProofRunArtifact({
+    phaseItemId: overrides.phaseItemId ?? "8.4",
+    gitSha: overrides.gitSha ?? HEAD,
+    spec: overrides.spec ?? "apps/retailer/e2e/completion-harness.spec.ts",
+    status: overrides.status ?? "passed",
+    timestamp: "2026-07-30T00:00:00.000Z",
+  });
+}
+
+function verifiedOptions(
+  overrides: Partial<CompletionEvidenceValidateOptions> = {},
+): CompletionEvidenceValidateOptions {
+  return {
+    pathExists: () => true,
+    currentGitSha: HEAD,
+    readBrowserProofRun: () => passedRun(),
+    ...overrides,
+  };
+}
 
 function baseRecord(
   overrides: Partial<CompletionEvidenceRecord> = {},
@@ -62,15 +94,66 @@ function baseRecord(
 }
 
 describe("completion evidence validator", () => {
-  it("accepts a complete verified_local record", () => {
+  it("accepts a complete verified_local record with a current passed run", () => {
+    const options = verifiedOptions();
+    const result = validateCompletionEvidence(baseRecord(), options);
+    expect(result.ok).toBe(true);
+    expect(result.issues).toEqual([]);
+    expect(mayMarkPhaseItemComplete(baseRecord(), options)).toBe(true);
+  });
+
+  it("rejects verified_local when the run artifact is missing", () => {
+    const result = validateCompletionEvidence(
+      baseRecord(),
+      verifiedOptions({
+        pathExists: (path) => !path.includes("docs/evidence/runs/"),
+        readBrowserProofRun: () => null,
+      }),
+    );
+    expect(result.ok).toBe(false);
+    expect(
+      result.issues.some((issue) => issue.field === "browserProofRun"),
+    ).toBe(true);
+  });
+
+  it("rejects verified_local when the run status is not passed", () => {
+    const result = validateCompletionEvidence(
+      baseRecord(),
+      verifiedOptions({
+        readBrowserProofRun: () => passedRun({ status: "failed" }),
+      }),
+    );
+    expect(result.ok).toBe(false);
+    expect(
+      result.issues.some((issue) => issue.field === "browserProofRun.status"),
+    ).toBe(true);
+  });
+
+  it("rejects verified_local when the run gitSha is not current HEAD", () => {
+    const result = validateCompletionEvidence(
+      baseRecord(),
+      verifiedOptions({
+        readBrowserProofRun: () =>
+          passedRun({ gitSha: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }),
+      }),
+    );
+    expect(result.ok).toBe(false);
+    expect(
+      result.issues.some((issue) => issue.field === "browserProofRun.gitSha"),
+    ).toBe(true);
+  });
+
+  it("rejects verified_local when only a browser spec path exists", () => {
     const result = validateCompletionEvidence(baseRecord(), {
       pathExists: () => true,
     });
-    expect(result.ok).toBe(true);
-    expect(result.issues).toEqual([]);
+    expect(result.ok).toBe(false);
+    expect(
+      result.issues.some((issue) => issue.field === "browserProofRun"),
+    ).toBe(true);
     expect(
       mayMarkPhaseItemComplete(baseRecord(), { pathExists: () => true }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("rejects missing required evidence fields", () => {
@@ -101,10 +184,13 @@ describe("completion evidence validator", () => {
   });
 
   it("rejects lying repository paths", () => {
-    const result = validateCompletionEvidence(baseRecord(), {
-      pathExists: (path) =>
-        path !== "packages/domain/src/programme/completion-evidence.ts",
-    });
+    const result = validateCompletionEvidence(
+      baseRecord(),
+      verifiedOptions({
+        pathExists: (path) =>
+          path !== "packages/domain/src/programme/completion-evidence.ts",
+      }),
+    );
     expect(result.ok).toBe(false);
     expect(result.issues.some((issue) => issue.field === "artifact")).toBe(
       true,
@@ -116,6 +202,7 @@ describe("completion evidence validator", () => {
       baseRecord({
         browserProofSpec: "docs/evidence/tranches/8.4.json",
       }),
+      verifiedOptions(),
     );
     expect(result.ok).toBe(false);
     expect(
@@ -131,6 +218,7 @@ describe("completion evidence validator", () => {
           denied: "missing",
         },
       }),
+      verifiedOptions(),
     );
     expect(result.ok).toBe(false);
     expect(
@@ -138,7 +226,7 @@ describe("completion evidence validator", () => {
     ).toBe(true);
   });
 
-  it("allows implemented_unverified without browser proof", () => {
+  it("allows implemented_unverified without browser proof run", () => {
     const record = baseRecord({
       status: "implemented_unverified",
       linkedSeedId: "",
@@ -179,8 +267,6 @@ describe("completion evidence validator", () => {
   it("parses a JSON-shaped record", () => {
     const parsed = parseCompletionEvidenceRecord(baseRecord());
     expect(parsed.phaseItemId).toBe("8.4");
-    expect(
-      validateCompletionEvidence(parsed, { pathExists: () => true }).ok,
-    ).toBe(true);
+    expect(validateCompletionEvidence(parsed, verifiedOptions()).ok).toBe(true);
   });
 });

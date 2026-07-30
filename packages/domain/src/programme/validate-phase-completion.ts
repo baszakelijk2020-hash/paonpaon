@@ -9,6 +9,7 @@ import {
   mayMarkPhaseItemComplete,
   parseCompletionEvidenceRecord,
   type CompletionEvidenceRecord,
+  type CompletionEvidenceValidateOptions,
 } from "./completion-evidence";
 
 const CHECKED_ITEM_RE = /^- \[x\] \*\*(\d+(?:\.\d+)*)\b/gm;
@@ -49,11 +50,13 @@ export interface PhaseCompletionGateResult {
 
 /**
  * Gate: every checked PHASE id that requires evidence must have a parseable
- * record that mayMarkPhaseItemComplete accepts.
+ * record that mayMarkPhaseItemComplete accepts (including a current passed
+ * Playwright run artifact for verified_*).
  */
 export function validatePhaseCompletionGate(args: {
   readonly phaseMarkdown: string;
   readonly evidenceByPhaseItemId: ReadonlyMap<string, unknown>;
+  readonly evidenceOptions?: CompletionEvidenceValidateOptions;
 }): PhaseCompletionGateResult {
   const checkedIds = extractCheckedPhaseItemIds(args.phaseMarkdown);
   const gatedIds = checkedIds.filter(requiresCompletionEvidence);
@@ -62,6 +65,7 @@ export function validatePhaseCompletionGate(args: {
     phaseItemId: string;
     issues: string[];
   }[] = [];
+  const evidenceOptions = args.evidenceOptions ?? {};
 
   for (const id of gatedIds) {
     const raw = args.evidenceByPhaseItemId.get(id);
@@ -90,7 +94,7 @@ export function validatePhaseCompletionGate(args: {
       });
       continue;
     }
-    if (!mayMarkPhaseItemComplete(record)) {
+    if (!mayMarkPhaseItemComplete(record, evidenceOptions)) {
       invalidEvidence.push({
         phaseItemId: id,
         issues: [`status ${record.status} is not a verified completion claim`],

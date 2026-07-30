@@ -23,9 +23,9 @@
     "receiver_ui": "apps/retailer/app/(dashboard)/customers/[id]/page.tsx",
     "rls": "supabase/migrations/20260720000003_create_clienteling_notes.sql",
     "exceptions": "apps/retailer/e2e/completion-harness.spec.ts worker forbidden note read",
-    "browser": "apps/retailer/e2e/completion-harness.spec.ts — local run 2026-07-30 failed in ensureProgrammeProofSeed/demo seed: invalid input value for enum public.metadata_concept_kind: \"fabric\". No UI mutation executed.",
+    "browser": "apps/retailer/e2e/completion-harness.spec.ts — local run 2026-07-30 failed in ensureProgrammeProofSeed/demo seed: invalid input value for enum public.metadata_concept_kind: \"fabric\". No UI mutation; harness will write docs evidence runs/8.4.json on next invocation.",
     "operations": "packages/domain/scripts/validate-completion-evidence.ts",
-    "live_gap": "Not a hosted-credential gap; local seeded stack demo-seed enum mismatch blocks the one harness proof"
+    "live_gap": "Not a hosted-credential gap; local seeded stack demo-seed enum mismatch blocks the one harness proof; verified_local requires a current status=passed run artifact from that Playwright invocation"
   },
   "uiChecklist": {
     "loading": "n_a",

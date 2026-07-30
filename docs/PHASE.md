@@ -1035,16 +1035,21 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     receiver UI/RLS/exception/browser/operations proofs and any live-only gap;
     validator rejects missing applicable evidence, missing referenced
     repository artifacts, a non-executable browser spec and unexplained
-    `n_a`; the validator is part of root/CI definition of done rather than an
-    optional command; one seeded multi-role flow proves the harness; docs
-    distinguish `implemented_unverified`, `verified_local`, `verified_live`
-    and `blocked_external`.
-  - **Tests:** validator pass/fail/lying-path/unexplained-`n_a` fixtures,
-    deterministic seed rerun and one actually executed browser flow in which
-    the originating role performs a mutation through UI, the receiving role
-    sees it, a direct forbidden route/RLS attempt is denied, and canonical
-    database state is asserted. Merely reading objects already created by the
-    seed or hiding a navigation link is not sufficient.
+    `n_a`; `verified_local` additionally requires a current
+    `docs/evidence/runs/<id>.json` produced by the exact Playwright
+    invocation (`phaseItemId`, `gitSha`, `spec`, `status=passed`,
+    `timestamp`) — a mere `*.spec.ts` path is not enough; the validator is
+    part of root/CI definition of done rather than an optional command; one
+    seeded multi-role flow proves the harness; docs distinguish
+    `implemented_unverified`, `verified_local`, `verified_live` and
+    `blocked_external`.
+  - **Tests:** validator pass/fail/lying-path/unexplained-`n_a`/missing-or-
+    failed-run-artifact fixtures, deterministic seed rerun and one actually
+    executed browser flow in which the originating role performs a mutation
+    through UI, the receiving role sees it, a direct forbidden route/RLS
+    attempt is denied, and canonical database state is asserted. Merely
+    reading objects already created by the seed or hiding a navigation link
+    is not sufficient.
   - **UI/UX:** standard loading/empty/error/denied/stale/conflict/success
     states, role orientation, task continuation, phone/tablet/desktop and
     keyboard/a11y checklist are assessed for applicability, not mechanically
@@ -1062,15 +1067,18 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     no screenshot-only acceptance.
   - **Hard blockers:** none.
   - **Landed:** domain completion-evidence + PHASE gate (8.4+; earlier stages
-    grandfathered); path/n_a/browser-spec validation; `pnpm test` runs
-    `validate:completion`; `docs/evidence/tranches/8.4.json`; linked Maison
-    Dubois proof seed descriptor; Playwright harness
-    `apps/retailer/e2e/completion-harness.spec.ts` exists. One attempted local
-    run failed before UI mutation: demo seed raises
-    `invalid input value for enum public.metadata_concept_kind: "fabric"`.
-    Browser proof therefore not executed; status remains
-    `implemented_unverified` until that seed/enum mismatch is fixed and the
-    single harness passes.
+    grandfathered); path/n_a/browser-spec validation; `verified_local`
+    requires `docs/evidence/runs/<id>.json` (`status=passed`, matching HEAD
+    SHA + spec) written by the Playwright harness — path-only proof rejected;
+    `pnpm test` runs `validate:completion`; `docs/evidence/tranches/8.4.json`;
+    linked Maison Dubois proof seed descriptor; Playwright harness
+    `apps/retailer/e2e/completion-harness.spec.ts` exists and writes the run
+    artifact. One attempted local run failed before UI mutation: demo seed
+    raises `invalid input value for enum public.metadata_concept_kind:
+"fabric"`. Browser proof therefore not passed; status remains
+    `implemented_unverified` (and dependent `9.1` stays unverified) until that
+    seed/enum mismatch is fixed and the single harness produces a current
+    `status=passed` run artifact.
 
 ### Stage 9 — Migration Cockpit and connectors
 

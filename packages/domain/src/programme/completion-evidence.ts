@@ -1,7 +1,8 @@
 /**
  * Machine-readable completion evidence (AUD-001–AUD-005 / PHASE 8.4 /
  * ADR-068). A checked PHASE box means verified with applicable evidence —
- * not merely that scaffolding landed.
+ * not merely that scaffolding landed. verified_local also requires a current
+ * Playwright run artifact under docs/evidence/runs/ (status=passed).
  */
 
 export const PROGRAMME_STATUS_VALUES = [
@@ -54,6 +55,19 @@ export type UiStateChecklistKey = (typeof UI_STATE_CHECKLIST_KEYS)[number];
 
 export type UiChecklistValue = "proven" | "n_a" | "missing";
 
+export const BROWSER_PROOF_RUN_STATUSES = ["passed", "failed"] as const;
+
+export type BrowserProofRunStatus = (typeof BROWSER_PROOF_RUN_STATUSES)[number];
+
+/** One terse Playwright pass/fail record — no screenshots or device matrix. */
+export interface BrowserProofRunArtifact {
+  readonly phaseItemId: string;
+  readonly gitSha: string;
+  readonly spec: string;
+  readonly status: BrowserProofRunStatus;
+  readonly timestamp: string;
+}
+
 export interface CompletionEvidenceRecord {
   readonly phaseItemId: string;
   readonly requirementIds: readonly string[];
@@ -82,9 +96,13 @@ export interface CompletionEvidenceValidation {
 export interface CompletionEvidenceValidateOptions {
   /**
    * When provided, repo-relative artifact paths mentioned in required
-   * evidence / browserProofSpec must exist. Injected for unit tests.
+   * evidence / browserProofSpec / run path must exist. Injected for unit tests.
    */
   readonly pathExists?: (relativePath: string) => boolean;
+  /** Load docs/evidence/runs/<phaseItemId>.json contents, or null if absent. */
+  readonly readBrowserProofRun?: (phaseItemId: string) => unknown | null;
+  /** When set, a verified_* claim requires the run artifact gitSha to match. */
+  readonly currentGitSha?: string;
 }
 
 const VERIFIED_STATUSES: ReadonlySet<ProgrammeStatus> = new Set([
@@ -100,6 +118,46 @@ export function isProgrammeStatus(value: unknown): value is ProgrammeStatus {
     typeof value === "string" &&
     (PROGRAMME_STATUS_VALUES as readonly string[]).includes(value)
   );
+}
+
+export function browserProofRunPath(phaseItemId: string): string {
+  return `docs/evidence/runs/${phaseItemId}.json`;
+}
+
+export function buildBrowserProofRunArtifact(args: {
+  readonly phaseItemId: string;
+  readonly gitSha: string;
+  readonly spec: string;
+  readonly status: BrowserProofRunStatus;
+  readonly timestamp?: string;
+}): BrowserProofRunArtifact {
+  return {
+    phaseItemId: args.phaseItemId,
+    gitSha: args.gitSha,
+    spec: args.spec,
+    status: args.status,
+    timestamp: args.timestamp ?? new Date().toISOString(),
+  };
+}
+
+export function parseBrowserProofRunArtifact(
+  value: unknown,
+): BrowserProofRunArtifact {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Browser proof run must be an object");
+  }
+  const record = value as Record<string, unknown>;
+  const status = record["status"];
+  if (status !== "passed" && status !== "failed") {
+    throw new Error(`Invalid browser proof run status ${String(status)}`);
+  }
+  return {
+    phaseItemId: String(record["phaseItemId"] ?? ""),
+    gitSha: String(record["gitSha"] ?? ""),
+    spec: String(record["spec"] ?? ""),
+    status,
+    timestamp: String(record["timestamp"] ?? ""),
+  };
 }
 
 function extractRepoPaths(value: string): string[] {
@@ -118,10 +176,17 @@ function isExecutableBrowserSpec(spec: string): boolean {
   );
 }
 
+function specsMatch(artifactSpec: string, expectedSpec: string): boolean {
+  const a = artifactSpec.trim();
+  const b = expectedSpec.trim();
+  return a === b || a.endsWith(`/${b}`) || b.endsWith(`/${a}`);
+}
+
 /**
  * Rejects completion claims when any applicable evidence field is empty,
  * when n_a lacks an explanation, when referenced paths are missing, when the
- * browser spec is not executable, or when verified_* lacks seed/browser proof.
+ * browser spec is not executable, when verified_* lacks seed/browser proof,
+ * or when verified_* lacks a current passed Playwright run artifact.
  */
 export function validateCompletionEvidence(
   record: CompletionEvidenceRecord,
@@ -193,6 +258,78 @@ export function validateCompletionEvidence(
           message: `verified status requires uiChecklist.${key} proven or n_a`,
         });
       }
+    }
+
+    const runRelPath = browserProofRunPath(record.phaseItemId);
+    if (options.pathExists && !options.pathExists(runRelPath)) {
+      issues.push({
+        field: "browserProofRun",
+        message: `verified status requires passed run artifact at ${runRelPath}`,
+      });
+    } else if (options.readBrowserProofRun) {
+      const raw = options.readBrowserProofRun(record.phaseItemId);
+      if (raw === null || raw === undefined) {
+        issues.push({
+          field: "browserProofRun",
+          message: `verified status requires passed run artifact at ${runRelPath}`,
+        });
+      } else {
+        try {
+          const run = parseBrowserProofRunArtifact(raw);
+          if (run.phaseItemId !== record.phaseItemId) {
+            issues.push({
+              field: "browserProofRun.phaseItemId",
+              message: `run phaseItemId ${run.phaseItemId} does not match ${record.phaseItemId}`,
+            });
+          }
+          if (!specsMatch(run.spec, record.browserProofSpec)) {
+            issues.push({
+              field: "browserProofRun.spec",
+              message: `run spec ${run.spec} does not match browserProofSpec ${record.browserProofSpec}`,
+            });
+          }
+          if (run.status !== "passed") {
+            issues.push({
+              field: "browserProofRun.status",
+              message: `verified status requires run status=passed (got ${run.status})`,
+            });
+          }
+          if (!run.gitSha.trim()) {
+            issues.push({
+              field: "browserProofRun.gitSha",
+              message: "run artifact gitSha is required",
+            });
+          } else if (
+            options.currentGitSha &&
+            run.gitSha !== options.currentGitSha
+          ) {
+            issues.push({
+              field: "browserProofRun.gitSha",
+              message: `run gitSha ${run.gitSha} is not current HEAD ${options.currentGitSha}`,
+            });
+          }
+          if (!run.timestamp.trim()) {
+            issues.push({
+              field: "browserProofRun.timestamp",
+              message: "run artifact timestamp is required",
+            });
+          }
+        } catch (error) {
+          issues.push({
+            field: "browserProofRun",
+            message:
+              error instanceof Error
+                ? error.message
+                : "failed to parse browser proof run",
+          });
+        }
+      }
+    } else {
+      issues.push({
+        field: "browserProofRun",
+        message:
+          "verified status requires readBrowserProofRun to validate a passed run artifact",
+      });
     }
   }
 

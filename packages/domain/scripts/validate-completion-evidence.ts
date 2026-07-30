@@ -1,16 +1,20 @@
 /**
  * ADR-068 / PHASE 8.4 completion gate.
  * Validates docs/evidence/tranches/*.json and checked PHASE items from 8.4+.
+ * verified_* claims also require docs/evidence/runs/<id>.json with
+ * status=passed for the current git SHA.
  *
  * Run: pnpm validate:completion
  */
 
-import { existsSync } from "node:fs";
+import { execSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  browserProofRunPath,
   parseCompletionEvidenceRecord,
   validateCompletionEvidence,
 } from "../src/programme/completion-evidence.ts";
@@ -27,12 +31,28 @@ function pathExists(relativePath: string): boolean {
   return existsSync(path.join(root, relativePath));
 }
 
+function currentGitSha(): string {
+  return execSync("git rev-parse HEAD", { cwd: root, encoding: "utf8" }).trim();
+}
+
+function readBrowserProofRun(phaseItemId: string): unknown | null {
+  const absolute = path.join(root, browserProofRunPath(phaseItemId));
+  if (!existsSync(absolute)) return null;
+  return JSON.parse(readFileSync(absolute, "utf8")) as unknown;
+}
+
 async function main(): Promise<void> {
   const phaseMarkdown = await readFile(phasePath, "utf8");
   const files = (await readdir(evidenceDir)).filter((name) =>
     name.endsWith(".json"),
   );
   const evidenceByPhaseItemId = new Map<string, unknown>();
+  const gitSha = currentGitSha();
+  const evidenceOptions = {
+    pathExists,
+    readBrowserProofRun,
+    currentGitSha: gitSha,
+  };
   let failed = false;
 
   for (const file of files) {
@@ -40,7 +60,7 @@ async function main(): Promise<void> {
       await readFile(path.join(evidenceDir, file), "utf8"),
     );
     const record = parseCompletionEvidenceRecord(raw);
-    const validation = validateCompletionEvidence(record, { pathExists });
+    const validation = validateCompletionEvidence(record, evidenceOptions);
     if (!validation.ok) {
       failed = true;
       console.error(`Invalid evidence ${file}:`);
@@ -54,6 +74,7 @@ async function main(): Promise<void> {
   const gate = validatePhaseCompletionGate({
     phaseMarkdown,
     evidenceByPhaseItemId,
+    evidenceOptions,
   });
   if (!gate.ok) {
     failed = true;
@@ -75,7 +96,7 @@ async function main(): Promise<void> {
   }
 
   console.warn(
-    `Completion evidence OK (${files.length} tranche file(s); gated checked ids: ${gate.gatedIds.join(", ") || "none"})`,
+    `Completion evidence OK (${files.length} tranche file(s); gated checked ids: ${gate.gatedIds.join(", ") || "none"}; HEAD ${gitSha.slice(0, 7)})`,
   );
 }
 
