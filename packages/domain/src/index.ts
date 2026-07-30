@@ -107,6 +107,10 @@ export * from "./intelligence/grounded-answer";
 export * from "./integrations/weather";
 export * from "./integrations/calendar";
 
+export * from "./interoperability/source-authority";
+export * from "./interoperability/source-authority.schema";
+export * from "./interoperability/faden-fixture";
+
 export * from "./wardrobe/wardrobe";
 export * from "./wardrobe/wardrobe.schema";
 export * from "./wardrobe/lifecycle";

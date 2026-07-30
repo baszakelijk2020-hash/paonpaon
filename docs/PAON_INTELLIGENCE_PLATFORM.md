@@ -11,14 +11,16 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Programme status:** Stages 0–5 complete through Tie-Mate interim Customer
-  UI. Stage 6 remains blocked (compliance/marketplace). Stage 7
-  (evidence-cited Self-Portrait / clienteling intelligence, ADR-066) is
-  complete through 7.8; continue only if new Stage 7 follow-ons are queued.
-- **Current queue item:** Stage 6 remains blocked — skip. No further Stage 7
-  queue items. Resume only on a new authorised item or Stage 6 unlock.
-- **Current requirement IDs:** `CLI-001`–`CLI-009`, `ENG-006` (Stage 7);
-  Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001` remain gated.
+- **Programme status:** Stages 0–7 complete. Stage 8 expanded operating-system
+  programme is active: 8.0 authority and 8.1 six-section wardrobe landed on
+  main; 8.2 source-authority registry is the current slice. Stage 6 remains
+  blocked (compliance/marketplace).
+- **Current queue item:** Stage 8.3 — versioned workflow and familiarity
+  presets (`INT-005`, `WFM-103`). Stage 6 remains blocked — skip payment/
+  marketplace code.
+- **Current requirement IDs:** `INT-001`, `INT-003`, `INT-004` (8.2 complete);
+  next `INT-005`, `WFM-103`; Stage 6 `PAY-001`/`PAY-002`/`SERV-002`/`MKT-001`
+  remain gated.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -58,7 +60,8 @@ requires it.
   (PHASE 7.4 complete); `2942822` / `6b66dc3` land branches and closeout
   (PHASE 7.5 complete); `891bae1` lands unified For You (PHASE 7.6 complete);
   Stage 7.7 lands presence/funnel/heatmap dashboards; Stage 7.8 lands policy/
-  correction/admin health (Stage 7 complete).
+  correction/admin health (Stage 7 complete); `8058351` authorizes expanded
+  programme Stage 8 (8.0); `5cc8dfb` lands six-section wardrobe (8.1).
 - **Available schema/interfaces:** seven metadata/fabric tables, four
   knowledge tables, three catalogue-import tables with publish provenance
   columns, `import_enrichment_prompt_contracts`, review-task
@@ -130,10 +133,15 @@ requires it.
   Stage 7.1 adds `@paon/domain` `projectCustomerInterestInsights` and
   `@paon/database` `CustomerInterestRepository`, mounted on Retailer
   Self-Portrait as "Recent interests / Why we think this".
-- **Checks/deployment state:** 109 migrations; Stage 7.0 authority at
-  `4a3881b`; 7.1 interest insight pending push after DoD. Anonymous
-  interaction persistence remains blocked pending jurisdiction documentation.
-  Live Resend/OpenWeather smoke still needs provider credentials.
+  Stage 8.2 adds `@paon/domain` source-authority contracts, Faden read-only
+  fixture/deep-link, `source_connections` / `source_authority_policies` /
+  `external_identities` / `source_snapshots` / `source_reconciliations` /
+  `connector_health_events`, `SourceAuthorityRepository`, and Admin/Retailer
+  connection health surfaces.
+- **Checks/deployment state:** 117 migrations; Stage 8.2 source-authority
+  registry pending push after DoD. Anonymous interaction persistence remains
+  blocked pending jurisdiction documentation. Live Resend/OpenWeather/Faden
+  smoke still needs provider credentials.
 - **Real blockers:** Stage 6.1 is blocked on founder business/legal/accounting/
   provider decisions; 6.2 depends on 6.1; 6.3 marketplace modelling is not
   explicitly activated and remains gated on commercial/payment design;
@@ -143,8 +151,9 @@ requires it.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next files/tests:** Stage 7 queue exhausted. Do not invent Stage 6
-  payment/marketplace code. Stop unless a new PHASE item is authorised.
+- **Exact next files/tests:** Resume on PHASE 8.3 (`INT-005`, `WFM-103`):
+  versioned workflow/form/view definitions and one appointment or garment flow
+  plus terminology preset. Do not invent Stage 6 payment/marketplace code.
 
 ## 1. Programme intent
 
