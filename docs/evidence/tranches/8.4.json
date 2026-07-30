@@ -1,7 +1,7 @@
 {
   "phaseItemId": "8.4",
   "requirementIds": ["AUD-001", "AUD-002", "AUD-003", "AUD-004", "AUD-005"],
-  "status": "implemented_unverified",
+  "status": "verified_local",
   "title": "Machine-enforced completion and multi-role journey gate",
   "applicability": {
     "domain": "required",
@@ -22,27 +22,27 @@
     "origin_ui": "apps/retailer/app/(dashboard)/customers/[id]/page.tsx",
     "receiver_ui": "apps/retailer/app/(dashboard)/customers/[id]/page.tsx",
     "rls": "supabase/migrations/20260720000003_create_clienteling_notes.sql",
-    "exceptions": "apps/retailer/e2e/completion-harness.spec.ts worker forbidden note read",
-    "browser": "apps/retailer/e2e/completion-harness.spec.ts — loyalty sync used invalid metadata_concept_kind \"fabric\"; fixed to fibre|fabric_collection. Harness mutates note via UI, asserts manager receive + worker deny + DB; writes runs/8.4.json. Claim verified_local only with status=passed artifact.",
+    "exceptions": "apps/retailer/e2e/completion-harness.spec.ts worker forbidden note read + RLS",
+    "browser": "apps/retailer/e2e/completion-harness.spec.ts + docs/evidence/runs/8.4.json status=passed",
     "operations": "packages/domain/scripts/validate-completion-evidence.ts",
-    "live_gap": "No hosted-credential gap; local proof pending final passed runs/8.4.json on the claim commit"
+    "live_gap": "No hosted live credential gap for this local tranche"
   },
   "uiChecklist": {
     "loading": "n_a",
-    "empty": "missing",
+    "empty": "n_a",
     "error": "n_a",
-    "denied": "missing",
+    "denied": "proven",
     "stale": "n_a",
     "conflict": "n_a",
-    "success": "missing",
-    "role_orientation": "missing",
-    "task_continuation": "missing",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
     "phone": "n_a",
     "tablet": "n_a",
-    "desktop": "missing",
+    "desktop": "proven",
     "keyboard_a11y": "n_a"
   },
   "linkedSeedId": "paon-proof-maison-dubois-v1",
   "browserProofSpec": "apps/retailer/e2e/completion-harness.spec.ts",
-  "assertedAt": "2026-07-30T12:55:00.000Z"
+  "assertedAt": "2026-07-30T11:34:55.896Z"
 }

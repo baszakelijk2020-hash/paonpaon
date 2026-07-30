@@ -1022,8 +1022,8 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 8.4 — Delivery integrity and connected-product proof
 
-- [ ] **8.4 Machine-enforced completion and multi-role journey gate**
-  - **Status:** `implemented_unverified`.
+- [x] **8.4 Machine-enforced completion and multi-role journey gate**
+  - **Status:** `verified_local`.
   - **Requirement IDs:** `AUD-001`–`AUD-005`.
   - **Dependencies:** `8.3`; ADR-068; the common-sense and traceability audits.
   - **Owner boundary:** honest status vocabulary; machine-readable tranche
@@ -1070,15 +1070,12 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     grandfathered); path/n_a/browser-spec validation; `verified_local`
     requires `docs/evidence/runs/<id>.json` (`status=passed`, current SHA +
     spec) written by the Playwright harness — path-only proof rejected;
-    `pnpm test` runs `validate:completion`; `docs/evidence/tranches/8.4.json`;
-    linked Maison Dubois proof seed; harness
-    `apps/retailer/e2e/completion-harness.spec.ts` writes the run artifact.
-    Seed blocker fixed: `sync_loyalty_milestones_for_order` compared
-    `metadata_concept_kind` to invalid `'fabric'` (now
-    `'fibre'|'fabric_collection'`). Local harness has passed once; status
-    remains `implemented_unverified` until the claim commit includes a
-    current `status=passed` run artifact. Dependent `9.1` stays unverified
-    until `8.4` is checked.
+    `pnpm test` runs `validate:completion`; `docs/evidence/tranches/8.4.json`
+    - `docs/evidence/runs/8.4.json`; linked Maison Dubois proof seed; harness
+      `apps/retailer/e2e/completion-harness.spec.ts` proves advisor mutate →
+      manager receive → worker RLS deny → DB assert. Loyalty
+      `metadata_concept_kind` `'fabric'` literal fixed to
+      `fibre`/`fabric_collection`.
 
 ### Stage 9 — Migration Cockpit and connectors
 
