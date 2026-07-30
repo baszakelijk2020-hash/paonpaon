@@ -1,4 +1,4 @@
-# Current Phase — PAON Intelligence Platform Programme
+# Current Phase — PAON Retail Relationship and Operations Programme
 
 **This is the only authorized work queue.** It supersedes the 2026-07-27
 pilot-only freeze and every queue in ROADMAP, COMPETITIVE_GAPS,
@@ -8,8 +8,9 @@ Set by the founder on 2026-07-30.
 
 ## Objective
 
-Turn PAON's existing RetailOS into an explainable intelligence platform for
-independent premium menswear retailers:
+Turn PAON's existing RetailOS into an explainable relationship and operations
+platform for independent premium menswear retailers. Stages 0–7 established
+the intelligence foundation:
 
 1. establish a reviewed, metadata-driven catalogue and reusable knowledge
    system;
@@ -19,9 +20,18 @@ independent premium menswear retailers:
 5. add campaigns, milestones, concierge services, and compliant commerce only
    after their foundations exist.
 
+Stages 8–16 now extend that foundation into one Mission Control across
+interoperability, migration, clienteling/campaigns, workforce, MTM/fit/
+production, inventory/POS, corporate fashion, lifestyle network commerce,
+MunroMerchant, knowledge/training, and later vertical packs. Retailers can use
+PAON as an overlay, co-managed system or full authority by domain; replacement
+is not required at onboarding.
+
 The complete product and technical specification is
 [PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md). Existing
 founder-designed surfaces remain authoritative wherever they define the UI.
+The expanded successor specification is
+[PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECUTION.md).
 
 ## As-built baseline
 
@@ -918,6 +928,375 @@ capability with policy as a separate eligibility plane (ADR-066).
 marketplace, no hard-coded jurisdiction branches in core projectors, no
 unrelated-site tracking, no autonomous customer spam, no black-box prose as
 evidence authority.
+
+### Stage 8 — Expanded operating-system control plane
+
+Authorized by ADR-067 after Stage 7. The detailed product/technical programme
+is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECUTION.md).
+
+- [x] **8.0 Expanded programme authority**
+  - **Requirement IDs:** `ENG-005`, `INT-001`, traceability for `WRD-101`,
+    `WFM-*`, `INV-*`, `CORP-*`, `CMP-*`, `FIT-*`, `SRV-*`, `NET-*`, `KNW-*`.
+  - **Dependencies:** Stage 7 complete; ADR-067.
+  - **Owner boundary:** documentation only: append-only ADR, product/technical
+    specifications, vision index, this canonical queue, Cursor continuous
+    handoff, and factual project state.
+  - **Acceptance:** Faden coexistence/replacement, inventory identity,
+    workforce, corporate fashion, wardrobe/services, fit, campaigns,
+    lifestyle network and knowledge/consultancy have explicit boundaries and
+    interaction; target/as-built language is honest; Stage 6 gates remain.
+  - **Tests:** Markdown/link/authority checks and stale queue/prompt search.
+  - **Non-goals:** no schema or product feature in this item.
+  - **Hard blockers:** none.
+  - **Landed:** ADR-067; canonical Stages 8–16 queue; expanded programme,
+    Faden coexistence, inventory, workforce, corporate fashion, wardrobe/
+    service, fit, campaigns, lifestyle network and knowledge/consultancy
+    specifications; updated continuous Cursor handoff and vision index.
+
+- [ ] **8.1 Six-section digital wardrobe**
+  - **Requirement IDs:** `WRD-101`.
+  - **Dependencies:** existing Stage 4 wardrobe; ADR-063.
+  - **Owner boundary:** Customer wardrobe presentation only; existing
+    `WardrobeItem`, ownership history, lifecycle, roadmap and actions remain
+    canonical.
+  - **Acceptance:** every retailer relationship shows six stacked horizontal
+    carousels in this exact order: Suits, Jackets, Shirts, Knitwear, Shoes,
+    Accessories; cards preserve identifying image, provenance, fit/care/
+    condition/wear, history and retirement; empty rails remain visible; all
+    garment categories map without loss; phone/desktop and keyboard scrolling
+    remain usable.
+  - **Tests:** customer typecheck/lint, rendered empty/populated states, mobile
+    width/overflow and accessibility.
+  - **Non-goals:** no new wardrobe schema, AI tagging, outfit engine rewrite or
+    global cross-retailer wardrobe.
+  - **Hard blockers:** hosted data blocks live screenshot only, not local UI.
+
+- [ ] **8.2 Source-authority and external-identity registry**
+  - **Requirement IDs:** `INT-001`, `INT-003`, `INT-004`.
+  - **Dependencies:** `8.0`; ADR-067.
+  - **Owner boundary:** domain contracts, forward migration/RLS, repository,
+    Admin/Retailer connection health and one exercised fixture.
+  - **Acceptance:** authority is configured by domain/field group with
+    `paon|external|co_managed`, connection/external ID/direction/version/raw
+    reference/reconciliation; conflicts fail visibly; one Faden fixture shows
+    read-only ingest plus deep-link handoff without fake write-back.
+  - **Tests:** schema invariants, mapping/idempotency, cross-tenant denial,
+    conflict and stale-source behavior.
+  - **Non-goals:** no universal connector UI or claim of live Faden credentials.
+  - **Hard blockers:** live keys block only live provider proof.
+
+- [ ] **8.3 Versioned workflow and familiarity presets**
+  - **Requirement IDs:** `INT-005`, `WFM-103`.
+  - **Dependencies:** `8.2`.
+  - **Owner boundary:** workflow/form/view definition versions and one real
+    appointment or garment flow plus terminology/navigation preset.
+  - **Acceptance:** definition changes do not mutate active instances; required
+    fields/permissions/transitions/exceptions are enforced; presets alter
+    labels/grouping/defaults only.
+  - **Tests:** version pinning, invalid transition, permissions/RLS and preset
+    semantic-equivalence.
+  - **Non-goals:** no competitor pixel clone or per-source data-model fork.
+  - **Hard blockers:** none.
+
+### Stage 9 — Migration Cockpit and connectors
+
+- [ ] **9.1 Generic staged-file migration**
+  - **Requirement IDs:** `INT-002`, `INT-003`.
+  - **Dependencies:** `8.2`; extend existing import foundations.
+  - **Owner boundary:** immutable raw upload, profiling/mapping/dedupe/review,
+    dry run, dependency-ordered publish, reconcile, dead-letter/resume and
+    rollback references for CSV/XLSX/JSON.
+  - **Acceptance:** realistic products/customers/orders/stock fixture imports
+    idempotently; counts and money reconcile; passwords/payment credentials and
+    ambiguous identity merges are rejected.
+  - **Tests:** rerun/delta/failure/resume, cross-tenant denial and operator
+    browser journey.
+  - **Non-goals:** no silent AI identity merge.
+  - **Hard blockers:** none.
+
+- [ ] **9.2 Shopify and Faden adapters**
+  - **Requirement IDs:** `INT-002`, `INT-003`, `INT-004`.
+  - **Dependencies:** `9.1`.
+  - **Owner boundary:** current official export/API/webhook contracts, raw
+    adapters, mappings, health and reconciliation.
+  - **Acceptance:** Shopify fixture covers catalogue/customer/order/stock
+    deltas; Faden fixture covers documented read-only API and signed webhooks;
+    unsupported writes become source tasks/deep links.
+  - **Tests:** signatures/replay, cursors, rate/failure, idempotency,
+    reconciliation and stale state.
+  - **Non-goals:** no undocumented endpoint or browser-automation connector.
+  - **Hard blockers:** provider keys block only live smoke tests.
+
+- [ ] **9.3 Demand-led connector expansion**
+  - **Requirement IDs:** `INT-002`–`INT-005`.
+  - **Dependencies:** `9.1`; live prospect evidence.
+  - **Owner boundary:** one adapter at a time, likely Lightspeed X, Square,
+    WooCommerce, Endear/Tulip or factory files.
+  - **Acceptance:** current provider contract and fixture-driven complete
+    vertical import/sync; operator-visible gaps.
+  - **Tests:** provider contract, idempotency, reconciliation and tenancy.
+  - **Non-goals:** no speculative empty adapters.
+  - **Hard blockers:** absence of demand/sample payload defers that adapter.
+
+### Stage 10 — Clienteling, campaign, and remote-selling parity
+
+- [ ] **10.1 Versioned campaign library**
+  - **Requirement IDs:** `CMP-101`–`CMP-104`.
+  - **Dependencies:** `8.3`; existing campaign/private-offer foundations.
+  - **Owner boundary:** PAON library object, retailer copy/version,
+    prerequisites/mapping/preview, staff mission, customer in-app placement and
+    outcome.
+  - **Acceptance:** one campaign can be previewed, cloned, mapped, rehearsed,
+    activated and measured without silently changing with library updates.
+  - **Tests:** version pin, eligibility/exclusion/contact pressure, role/RLS,
+    empty prerequisite and browser states.
+  - **Non-goals:** no generic drag-and-drop email editor.
+  - **Hard blockers:** external channel credentials block only sending.
+
+- [ ] **10.2 Seven-Day Wardrobe and Honeymoon Phase**
+  - **Requirement IDs:** `CMP-105`, `CMP-106`, `WRD-104`.
+  - **Dependencies:** `8.1`, `10.1`; wardrobe/MorningRoutine/order foundations.
+  - **Owner boundary:** executable campaign packages and required customer/
+    advisor surfaces.
+  - **Acceptance:** editable owned-first seven-day outfits identify cited
+    gaps; order-to-delivery tracker creates useful preparation/collection/
+    aftercare actions with stock/lead-time truth and pressure limits.
+  - **Tests:** owned/suggested separation, campaign timing, suppression,
+    correction and outcomes.
+  - **Non-goals:** no fabricated scarcity or unapproved one-click payment.
+  - **Hard blockers:** payment eligibility blocks only payment action.
+
+- [ ] **10.3 Unified communication and remote proposals**
+  - **Requirement IDs:** clienteling parity target; `CLI-004`, `CMP-103`.
+  - **Dependencies:** `8.2`, `10.1`.
+  - **Owner boundary:** channel abstraction/threading, confirmed note
+    extraction, lookbook/proposal/quote/cart handoff and outcome.
+  - **Acceptance:** advisor prepares, sends an approved look, receives reply,
+    books appointment/creates cart and links sale; opt-out/failure suppresses;
+    multimodal note candidates require confirmation.
+  - **Tests:** provider mocks, consent, grounding, failure/retry, RLS/browser.
+  - **Non-goals:** no autonomous customer spam or invented facts.
+  - **Hard blockers:** live channel credentials block only live smoke test.
+
+### Stage 11 — Workforce Mission Control and coaching
+
+- [ ] **11.1 Time approval and payroll package**
+  - **Requirement IDs:** `WFM-101`, `WFM-102`.
+  - **Dependencies:** existing roster/time entries; `8.3`.
+  - **Owner boundary:** breaks/exceptions/corrections/manager approvals,
+    pay-period versions and generic payroll/accountant export.
+  - **Acceptance:** manager resolves missing punch/overtime exception, approves
+    period and exports checksummed earning-code hours; correction produces a
+    new version; no customer data.
+  - **Tests:** time overlap/rules, self-approval denial, period lock/version,
+    export mapping and RLS.
+  - **Non-goals:** no tax calculation, filing or salary payout.
+  - **Hard blockers:** payroll account blocks only provider adapter.
+
+- [ ] **11.2 Today, closeout, I AM and extra mile**
+  - **Requirement IDs:** `WFM-103`, `WFM-104`.
+  - **Dependencies:** `8.3`; Stage 7 opportunities/closeout.
+  - **Owner boundary:** unified role home, tasks/promises/briefing, ten-minute
+    closeout, evidence-linked employee profile and recognition.
+  - **Acceptance:** employee completes customer/operational missions and logs a
+    reviewable extra-mile act; manager acknowledges/coaches; no raw-volume
+    leaderboard.
+  - **Tests:** role/visibility, empty/exception, task outcome and recognition
+    non-gaming fixtures.
+  - **Non-goals:** no screenshot/keystroke surveillance.
+  - **Hard blockers:** none.
+
+- [ ] **11.3 Scheduling, demand, ceremony and coaching**
+  - **Requirement IDs:** `WFM-105`, `WFM-106`.
+  - **Dependencies:** `11.1`, `11.2`.
+  - **Owner boundary:** availability/swaps/coverage, explainable staffing,
+    ceremony versions, contextual prompts, observations/rubrics/plans.
+  - **Acceptance:** manager publishes coverage, receives cited shortage
+    recommendation and completes observation-to-coaching loop.
+  - **Tests:** timezone/coverage/skills, versioning, role/RLS and outcome
+    quality.
+  - **Non-goals:** no fully autonomous scheduling.
+  - **Hard blockers:** none.
+
+### Stage 12 — MTM, fit, production, and service network
+
+- [ ] **12.1 MeasurementMonitor decision gate**
+  - **Requirement IDs:** `FIT-101`–`FIT-103`.
+  - **Dependencies:** wardrobe/lifecycle and official garment-fit foundations.
+  - **Owner boundary:** private guided capture, quality/result candidate,
+    advisor review and reorder gate.
+  - **Acceptance:** self-scan can produce no-action/review/remeasure, never
+    silently overwrite approved measurements; garment outcome feeds a
+    reviewable future-fit candidate.
+  - **Tests:** provenance/retention, quality fail, decision version, deletion
+    recompute and role/RLS.
+  - **Non-goals:** no single-photo accuracy equivalence to Face ID.
+  - **Hard blockers:** model provider blocks only model-assisted tranche;
+    structured review remains buildable.
+
+- [ ] **12.2 Garment production and serialized pieces**
+  - **Requirement IDs:** `INV-103`; Stage 12 target architecture.
+  - **Dependencies:** `8.3`, `8.2`.
+  - **Owner boundary:** immutable measurement/spec versions, pieces, stages,
+    barcode/QR, work tickets/tech pack/BOM, materials, QC/rework and
+    workroom/outworker.
+  - **Acceptance:** complete suit flow; jacket/trousers scan independently;
+    post-cut change is explicit; outworker sees minimized identity; delay
+    creates service-recovery action.
+  - **Tests:** locks/transitions, barcode identity, material reconcile,
+    permissions/RLS and full fixture.
+  - **Non-goals:** no forced replacement of factory-mandated ordering.
+  - **Hard blockers:** external write API blocks only automated submission.
+
+- [ ] **12.3 Preferred Tailoring partner network**
+  - **Requirement IDs:** `SRV-101`–`SRV-103`, `INV-103`.
+  - **Dependencies:** `8.1`; inventory identity foundation.
+  - **Owner boundary:** per-location partners, capability/SLA, wardrobe intake,
+    custody, work/quality, costs/invoices/reconciliation.
+  - **Acceptance:** one alteration and one dry-cleaning flow from booking and
+    pickup through return; partner sees minimum data; costs reconcile.
+  - **Tests:** custody, partner scope/RLS, SLA/exception, accounting export.
+  - **Non-goals:** no partner payout without approved money design.
+  - **Hard blockers:** payment decision blocks charging/payout only.
+
+### Stage 13 — Inventory, POS, and loss prevention
+
+- [ ] **13.1 Stock ledger, reservations, barcode receiving and counts**
+  - **Requirement IDs:** `INV-101`, `INV-102`.
+  - **Dependencies:** `8.2`.
+  - **Owner boundary:** append-only ledger, location balances/reservations,
+    barcode scan modes, receiving/transfers/count/reconcile.
+  - **Acceptance:** purchase receipt, transfer, sale reservation and blind
+    count reconcile without silent balance edits or oversell.
+  - **Tests:** concurrency, reversal/idempotency, count/recount, RLS/browser.
+  - **Non-goals:** no RFID-first implementation.
+  - **Hard blockers:** none.
+
+- [ ] **13.2 Loss prevention and RFID pilot**
+  - **Requirement IDs:** `INV-104`, `INV-105`.
+  - **Dependencies:** `13.1`.
+  - **Owner boundary:** risk rules/approvals plus EPC serialized observations
+    from one adapter into count/custody events.
+  - **Acceptance:** high-risk adjustment requires independent approval; RFID
+    sweep reconciles observations and never posts direct balance; false
+    positives are resolved.
+  - **Tests:** separation of duties, duplicate reads, zone/count confidence,
+    offline/retry.
+  - **Non-goals:** no employee accusation score.
+  - **Hard blockers:** reader hardware blocks live pilot only.
+
+- [ ] **13.3 Omnichannel POS and returns**
+  - **Requirement IDs:** Stage 13 target architecture.
+  - **Dependencies:** `13.1`, `8.2`; ADR-062 for activated money capabilities.
+  - **Owner boundary:** RTW/service/MTM carts, quotes, suspended/remote sale,
+    provider references, fulfillment, returns/exchanges.
+  - **Acceptance:** mixed RTW+MTM+alteration transaction; stock/financial
+    history survives return/exchange; provider retries reconcile.
+  - **Tests:** concurrent reservation, provider contracts, refund/reversal,
+    close totals and RLS.
+  - **Non-goals:** no raw card storage or custom lending.
+  - **Hard blockers:** provider/compliance blocks affected payment activation.
+
+### Stage 14 — Corporate fashion and advanced intelligence
+
+- [ ] **14.1 PAON Métier corporate pilot**
+  - **Requirement IDs:** `CORP-101`–`CORP-106`.
+  - **Dependencies:** `8.3`, `13.1`; fit/order foundations.
+  - **Owner boundary:** B2B account/programme/roles/wearers, entitlement,
+    employee portal, fittings/orders/exceptions/readiness and tender demo.
+  - **Acceptance:** one fixture employer with two locations/three roles runs
+    invite → fit → order → issue → service/leaver exception; retailer and
+    corporate dashboards are separately scoped.
+  - **Tests:** entitlement versions, role/location/RLS, batch/delta import,
+    readiness and browser/a11y.
+  - **Non-goals:** no HR replacement or unrestricted health/accommodation data.
+  - **Hard blockers:** live employer data blocks only live pilot.
+
+- [ ] **14.2 Advanced cited intelligence**
+  - **Requirement IDs:** Stage 14 target plus `WFM-105`, `INV-104`.
+  - **Dependencies:** real operational evidence from earlier stages.
+  - **Owner boundary:** temporal hotspots, interest progression, complete-look,
+    fit/production/stock/staffing risk and role dashboards.
+  - **Acceptance:** each recommendation exposes sources/version/window/sample;
+    correction recomputes; inventory/lead time/presence remain honest.
+  - **Tests:** projector fixtures, correction, sample/timezone, role/RLS and AI
+    evaluation.
+  - **Non-goals:** no black-box owner dashboard.
+  - **Hard blockers:** sparse live data defers model claims, not contracts.
+
+### Stage 15 — Lifestyle network and MunroMerchant
+
+- [ ] **15.1 Lifestyle partner catalogue and attribution**
+  - **Requirement IDs:** `NET-101`–`NET-103`.
+  - **Dependencies:** `10.1`, `8.2`.
+  - **Owner boundary:** partner/programme/listing, retailer curation, customer
+    placement, click/lead/order confirmation, holding/reversal and reporting.
+  - **Acceptance:** retailer activates disclosed partner listing; attributed
+    conversion reverses on refund; partner receives no raw Self-Portrait.
+  - **Tests:** attribution/idempotency, expiry/reversal, visibility/RLS.
+  - **Non-goals:** no silent sale of named customer profiles.
+  - **Hard blockers:** commercial contract blocks live listing only.
+
+- [ ] **15.2 Rewards and concierge activation**
+  - **Requirement IDs:** `NET-103`, `NET-104`.
+  - **Dependencies:** `15.1`; ADR-062 decisions for liability/money.
+  - **Owner boundary:** concierge operational requests and explicit
+    funded/pending/available/reversed rewards ledger.
+  - **Acceptance:** non-money concierge works independently; any earning,
+    redemption or transfer names funding/liability/accounting/provider.
+  - **Tests:** ledger reversal, expiry, eligibility, partner/account mapping.
+  - **Non-goals:** no unapproved stored value or promised transfer network.
+  - **Hard blockers:** accounting/provider decision blocks affected reward.
+
+- [ ] **15.3 MunroMerchant B2B procurement**
+  - **Requirement IDs:** `MKT-001`; ADR-064.
+  - **Dependencies:** provider-neutral Stage 15 architecture; separate bounded
+    context.
+  - **Owner boundary:** suppliers/listings/MOQ/tiers/samples/customization/
+    proofs/RFQ/quote/PO/shipment/issues/group buy.
+  - **Acceptance:** paper-bag custom proof, hanger reorder, furniture RFQ and
+    group-buy fixtures; no consumer catalogue/customer contamination.
+  - **Tests:** package/table/RLS boundaries, supplier/buyer roles, full flows.
+  - **Non-goals:** no customer-facing marketplace order reuse.
+  - **Hard blockers:** money/commercial decisions block payment, not RFQ/PO.
+
+### Stage 16 — Knowledge productization and vertical packs
+
+- [ ] **16.1 Consultancy, guided tiers and staff academy**
+  - **Requirement IDs:** `KNW-101`–`KNW-104`.
+  - **Dependencies:** existing knowledge; `8.3`, `11.2`.
+  - **Owner boundary:** separate customer/staff/owner/media libraries, guided
+    MTM package versions, DailyBriefing and MunroMentor.
+  - **Acceptance:** an article launches an audit/template; customer selects a
+    coherent tier; employee completes context lesson and evidence-cited
+    roleplay/coaching loop.
+  - **Tests:** content approval/version/rights, package spec mapping, rubric
+    grounding and role/RLS.
+  - **Non-goals:** no unreviewed AI publication.
+  - **Hard blockers:** licensed media blocks that content only.
+
+- [ ] **16.2 Media and future-products incubation**
+  - **Requirement IDs:** `KNW-105`, `NET-103`.
+  - **Dependencies:** `16.1`, `15.1`.
+  - **Owner boundary:** rights-aware retailer media activation and gated
+    product incubation register.
+  - **Acceptance:** retailer activates approved expiring article/feed; future
+    product remains a hypothesis until demand/margin/supplier/quality evidence.
+  - **Tests:** rights/territory/expiry, attribution and catalogue separation.
+  - **Non-goals:** no copied publisher content or speculative stock purchase.
+  - **Hard blockers:** media agreement blocks publication only.
+
+- [ ] **16.3 Vertical-pack framework and evidence-selected pilot**
+  - **Requirement IDs:** Stage 16 target architecture.
+  - **Dependencies:** stable core; actual prospect evidence.
+  - **Owner boundary:** extension convention for terminology/forms/workflows/
+    facts/dashboards and one second vertical.
+  - **Acceptance:** second vertical completes relationship/service/commerce
+    loop without core fork; menswear remains focused.
+  - **Tests:** core upgrade compatibility, vertical isolation and sensitive
+    field access.
+  - **Non-goals:** no simultaneous speculative multi-vertical build.
+  - **Hard blockers:** no qualified pilot prospect defers vertical selection.
 
 ## Real hard blockers
 

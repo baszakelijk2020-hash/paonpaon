@@ -2918,3 +2918,60 @@ Tie-Mate, and Self-Portrait mounts are extended rather than replaced. Session
 IDs and richer event taxonomy land when persistence requires them (7.2+).
 Tranche 7.1 ships the first end-to-end cited interest insight over current
 events and accepted metadata before introducing a giant schema.
+
+## ADR-067: PAON expands through domain authority and one Mission Control
+
+**Status: accepted for the post-Stage-7 programme / requirement families
+`INT-*`, `WRD-1*`, `WFM-*`, `INV-1*`, `CORP-*`, `CMP-1*`, `FIT-1*`, `SRV-1*`,
+`NET-1*`, and `KNW-1*`.**
+
+**Context.** Stage 7 completed the evidence-cited customer intelligence loop.
+The founder has now explicitly authorized the broader PAON operating-system
+destination: workforce Mission Control, barcode/RFID inventory identity,
+corporate-fashion programmes, campaign infrastructure, the six-section
+digital wardrobe, fit monitoring, services, lifestyle network commerce,
+consultancy/training and later B2B procurement/vertical packs. Retailers may
+already use Shopify, Faden, factory-owned order systems, payroll/accounting
+providers and local operational tools. Requiring replacement at onboarding
+would create double entry and prevent adoption; simply adding PAON as another
+disconnected tool would fail for the same reason.
+
+**Decision.**
+
+1. PAON supports three modes per domain: Experience Overlay, Co-managed and
+   Full PAON. A retailer may combine modes. Replacement is an earned migration
+   outcome, not a prerequisite.
+2. Every co-system field group has an explicit authority, external identity,
+   allowed direction and reconciliation state. "Two-way sync" is not a
+   sufficient contract.
+3. Employees operate through one PAON Mission Control. External systems appear
+   as source state, executable adapter actions or resolved deep-link tasks;
+   source-familiar presets change presentation, not canonical semantics.
+4. Workforce operations, payroll/tax payout, inventory, production, payment
+   and accounting remain distinct authorities. PAON may own scheduling/time
+   approval and export an immutable pay-period package without claiming to be
+   payroll. It may ingest a Faden read-only API/webhook without claiming
+   writable order sync.
+5. Barcode/QR and RFID observations resolve to the same auditable inventory
+   and custody ledger. RFID is optional acceleration, never a separate stock
+   truth.
+6. Customer wardrobe, fit candidates, official measurements and physical
+   garment/service custody remain separate aggregates under ADR-063. A
+   self-scan can trigger review or block a reorder but cannot silently approve
+   measurements.
+7. Campaigns are versioned executable packages connecting audience, staff
+   missions, customer surfaces, channel drafts, operations and outcomes.
+   Lifestyle listings, referrals, rewards and B2B marketplace transactions
+   retain explicit commercial, attribution and money boundaries.
+8. Broad technical modelling remains permitted, but money movement, stored
+   value, partner payout and provider claims remain behind ADR-062/064 design
+   gates. Tenant isolation, security, evidence, correction and audit are not
+   optional configuration.
+
+**Consequences.** `docs/PHASE.md` may authorize the successor build queue.
+Initial work prioritizes a visible wardrobe slice plus the source-authority
+control plane, workforce approvals, campaign library and stock ledger before
+large replacement modules. Target documents must keep target/as-built language
+honest. A missing provider write API, payroll account, RFID reader or payment
+decision blocks only that activation/live proof; provider-neutral and
+independent product work continues.

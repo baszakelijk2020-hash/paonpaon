@@ -96,6 +96,25 @@ flowchart TB
 | 13  | [13_ai_memory.md](./13_ai_memory.md)                               | AI Memory                      |
 | 14  | [14_long_term_product_vision.md](./14_long_term_product_vision.md) | Long-term product vision       |
 
+## Expanded operating-system programme
+
+The founder's 2026-07-30 expansion brief is decomposed here. These are target
+specifications; only checked items in [PHASE.md](../PHASE.md) are authorized
+and only [PROJECT_STATE.md](../PROJECT_STATE.md) records shipped capability.
+
+| Document                                                                                                   | Scope                                                                 |
+| ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./PAON_EXPANDED_PROGRAMME_EXECUTION.md)                             | System map, bounded contexts, requirement IDs and execution order     |
+| [PAON_FADEN_COEXISTENCE_AND_REPLACEMENT_STRATEGY.md](./PAON_FADEN_COEXISTENCE_AND_REPLACEMENT_STRATEGY.md) | Faden/factory-system authority, overlay/co-managed/full PAON          |
+| [PAON_INVENTORY_IDENTITY_AND_LOSS_PREVENTION.md](./PAON_INVENTORY_IDENTITY_AND_LOSS_PREVENTION.md)         | Ledger, barcode/QR, RFID, custody, counts and fraud/error prevention  |
+| [PAON_WORKFORCE_MISSION_CONTROL.md](./PAON_WORKFORCE_MISSION_CONTROL.md)                                   | Scheduling/time/payroll handoff, tasks, closeout, I AM and coaching   |
+| [PAON_CORPORATE_FASHION_OPERATING_SYSTEM.md](./PAON_CORPORATE_FASHION_OPERATING_SYSTEM.md)                 | Tender-to-wearer corporate uniform programme                          |
+| [PAON_DIGITAL_WARDROBE_AND_PREFERRED_TAILORING.md](./PAON_DIGITAL_WARDROBE_AND_PREFERRED_TAILORING.md)     | Six-section closet, ingestion, outfits, aftercare and partner service |
+| [PAON_FIT_MEASUREMENT_AND_SERVICE_NETWORK.md](./PAON_FIT_MEASUREMENT_AND_SERVICE_NETWORK.md)               | MeasurementMonitor, reorder gate, fit learning and service accounting |
+| [PAON_CAMPAIGN_AND_STRATEGY_LIBRARY.md](./PAON_CAMPAIGN_AND_STRATEGY_LIBRARY.md)                           | Executable campaign packages including Seven-Day and Honeymoon        |
+| [PAON_LIFESTYLE_ECOSYSTEM_AND_NETWORK_COMMERCE.md](./PAON_LIFESTYLE_ECOSYSTEM_AND_NETWORK_COMMERCE.md)     | Lifestyle marketplace, attribution, concierge, rewards and media      |
+| [PAON_KNOWLEDGE_CONSULTANCY_AND_MEDIA.md](./PAON_KNOWLEDGE_CONSULTANCY_AND_MEDIA.md)                       | Consultancy, guided tiers, training, media and future products        |
+
 ## Shared template (every pillar)
 
 1. Problem / non-goals for this pillar

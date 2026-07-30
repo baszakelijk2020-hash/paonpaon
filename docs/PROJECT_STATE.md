@@ -17,8 +17,11 @@ Snapshot: 2026-07-30.
 
 - Stages 0–5 complete. Stage 6 blocked.
 - Stage 7.0–7.8 complete (ADR-066 intelligence/clienteling programme).
+- Stage 8.0 complete (ADR-067 expanded operating-system authority and
+  canonical Stages 8–16 queue).
 
 ## Current handoff
 
-Stage 7 queue exhausted. Next buildable work requires a new authorised PHASE
-item or Stage 6 founder unlock. Skip Stage 6 while blocked.
+Stage 8.1 is the first active product slice: the existing customer wardrobe is
+being presented as six permanent visual carousels while preserving the shipped
+wardrobe/lifecycle/roadmap model. Stage 6 remains blocked; skip it.

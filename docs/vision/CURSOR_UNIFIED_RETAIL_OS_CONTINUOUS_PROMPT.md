@@ -1,4 +1,4 @@
-# Cursor Continuous Prompt — PAON Unified Retail OS
+# Cursor Continuous Prompt — PAON Expanded Relationship and Operations OS
 
 Copy everything below the line into Cursor Agent when the current Cursor run is
 ready to receive the expanded programme. This is one continuous instruction,
@@ -6,11 +6,18 @@ not a sequence of prompts.
 
 ---
 
-You are continuing work in the PAON repository. Work autonomously and
-continuously toward the complete target. Do not stop after one tranche merely
-to ask whether you should continue. Complete one bounded vertical slice at a
-time, verify it, commit it intentionally, push it, update factual authority,
-and immediately take the next independent buildable slice.
+You are continuing work in the PAON repository after the completed Stage 7
+evidence-cited intelligence programme and the founder's 2026-07-30 expansion
+authorization. Work autonomously and continuously toward the complete target.
+Do not stop after one tranche merely to ask whether you should continue.
+Complete one bounded vertical slice at a time, verify it, commit it
+intentionally, push it, update factual authority, and immediately take the next
+independent buildable slice.
+
+You are not being asked to rediscover or rewrite the product strategy. The
+research and architecture are already recorded. Spend model usage on the first
+unchecked dependency-complete item in `docs/PHASE.md`, not on another broad
+competitor audit or a parallel roadmap.
 
 ## Founder authority for this programme
 
@@ -37,6 +44,26 @@ The destination includes:
   mannequins, fixtures, furniture, services, and other retailer supplies;
 - a reusable core that can later support bridal, jewelry, premium womenswear,
   optical, luxury furniture, and hospitality through vertical packs.
+- three coexistence modes by domain — Experience Overlay, Co-managed and Full
+  PAON — so Shopify, Faden, factory ordering, accounting and payroll can remain
+  authoritative where appropriate without giving employees another
+  disconnected daily interface;
+- Workforce Mission Control with time exceptions/approvals, payroll handoff,
+  scheduling, tasks/promises, daily briefing/closeout, I AM, extra-mile
+  recognition, ceremony and coaching;
+- a customer wardrobe of six permanent visual rails — Suits, Jackets, Shirts,
+  Knitwear, Shoes and Accessories — connected to outfits, roadmap, fit,
+  Preferred Tailoring and service partners;
+- PAON Métier corporate-fashion programmes from tender and wearer onboarding
+  through allocation, fitting, order, issue, service and leaver return;
+- a versioned strategy/campaign library including Seven-Day Wardrobe,
+  Honeymoon Phase, Valentine/overcoat, milestone, annual-event and referral
+  packages;
+- optional RFID over the same stock/custody ledger as barcode/QR;
+- MeasurementMonitor as a reviewable fit-drift/reorder gate, never a silent
+  single-photo replacement for approved tailoring measurements;
+- a lifestyle partner/media/concierge/attribution layer distinct from the
+  MunroMerchant B2B procurement context.
 
 Do not push back by reducing this to an MVP feature checklist. Sequence it
 correctly and build the durable foundations. Push back only on a concrete
@@ -55,8 +82,11 @@ Read completely:
 5. `docs/DECISIONS.md`, especially the latest relevant ADRs;
 6. `docs/vision/PAON_COMPETITIVE_CAPABILITY_AND_PORTABILITY_LEDGER.md`;
 7. `docs/vision/PAON_UNIFIED_RETAIL_OS_TARGET_ARCHITECTURE.md`;
-8. repository package/app scripts and the implementation files relevant to the
-   next slice.
+8. `docs/vision/PAON_EXPANDED_PROGRAMME_EXECUTION.md`;
+9. the specific expanded product document linked by the active PHASE item
+   (do not load every vision document for every tranche);
+10. repository package/app scripts and the implementation files relevant to the
+    next slice.
 
 Inspect `git status`, recent commits, and remote divergence before editing.
 The worktree may contain founder or concurrent-agent changes. Preserve and do
@@ -64,40 +94,36 @@ not stage, rewrite, delete, or absorb unrelated changes.
 
 ## Immediate sequencing
 
-1. Resume the exact active item in `docs/PHASE.md`. At the time this prompt was
-   authored, Stage 7.5 had landed and 7.6 was in progress, but verify current
-   code and authority instead of assuming this is still true.
-2. Complete the remaining buildable Stage 7 items with their existing
-   acceptance criteria and verification. Do not reopen completed items without
-   evidence of a defect.
-3. After Stage 7 is green, add one append-only ADR that authorizes the Unified
-   Retail OS successor programme described by the two vision documents.
-4. In the same documentation-only authority tranche:
-   - integrate a concise successor queue into the canonical programme and
-     `PHASE.md`;
-   - give every tranche stable requirement IDs, dependencies, owner boundary,
-     acceptance, tests, non-goals, and real blockers;
-   - preserve factual as-built versus target language;
-   - state that the earlier prices were exploration, not architecture;
-   - separate provider-neutral marketplace/catalog/RFQ/PO work from activation
-     of money movement;
-   - preserve the evidence, provenance, correction, policy, tenancy, and
-     human-approval rules already landed.
-5. Then execute the successor queue continuously, beginning with the smallest
-   dependency-complete vertical slice. The target sequence is:
-   - canonical interoperability/configuration kernel;
-   - Migration Cockpit and first adapters;
-   - clienteling/remote-selling parity;
-   - selling ceremony/onboarding/coaching;
-   - made-to-measure/workshop OS;
-   - POS/inventory/omnichannel commerce;
-   - advanced intelligence and role dashboards;
-   - MunroMerchant marketplace;
-   - vertical-pack framework and an evidence-selected second-vertical pilot.
+1. Inspect `git status`, recent commits, `docs/PHASE.md` and
+   `docs/PROJECT_STATE.md`.
+2. Take the first unchecked item in Stages 8–16 whose dependencies are
+   complete. At this prompt's authoring point Stage 8.0/8.1 may already be in a
+   pending or completed change; verify code and docs rather than assuming or
+   rebuilding them.
+3. Implement that item as the smallest complete vertical behavior. Do not dump
+   a stage-wide speculative schema.
+4. Run its focused checks and the repository definition of done; perform
+   browser/a11y/RLS/live proof required by its acceptance criteria, recording
+   hosted/provider gaps honestly.
+5. Update `PHASE.md` and `PROJECT_STATE.md`, commit only the tranche, push it,
+   and immediately repeat from step 1.
 
-You may refine tranche boundaries based on actual repository dependencies.
-Record material changes in the append-only ADR/queue rather than silently
-drifting.
+The canonical high-level order is already encoded:
+
+- Stage 8: authority, six-section wardrobe, source-authority/workflow control;
+- Stage 9: Migration Cockpit and demand-led connectors;
+- Stage 10: campaigns, Seven-Day/Honeymoon and remote selling;
+- Stage 11: workforce Mission Control and coaching;
+- Stage 12: MeasurementMonitor, MTM/production and service partners;
+- Stage 13: stock ledger, barcode/RFID, loss prevention and POS;
+- Stage 14: PAON Métier and advanced cited intelligence;
+- Stage 15: lifestyle network, rewards/concierge and MunroMerchant;
+- Stage 16: consultancy/training/media and a demand-proven vertical pack.
+
+Do not reorder a dependent stage merely because it is visually exciting.
+Independent slices may continue around a real provider/hardware/payment
+blocker. Record a material boundary change in a new append-only ADR and the
+canonical queue rather than silently drifting.
 
 ## Core architecture rules
 
@@ -241,6 +267,27 @@ Translate selling training into actual software:
 Do not optimize employee keystrokes, screenshots, raw clicks, or note volume.
 Measure completion quality, customer response, appointments, sales, service,
 repeat behavior, data correctness, and coaching outcomes.
+
+### Workforce, wardrobe, campaigns, and specialist operations
+
+- PAON may own schedules, worked-time exceptions, approvals and immutable
+  pay-period exports while payroll/accounting remains external authority. Do
+  not implement tax filing or salary payout by summing time entries.
+- The customer wardrobe always distinguishes owned items, advisor suggestions
+  and roadmap targets. `PhysicalGarment` remains official fit/service truth.
+- MeasurementMonitor produces quality-scored fit-drift candidates and a
+  reorder decision gate. It never silently overwrites approved measurement
+  versions.
+- A campaign is a versioned executable package: eligibility, exclusions,
+  prerequisites, staff missions, customer placements, approved channel copy,
+  operational capacity and outcomes. Do not reduce it to email templates.
+- Corporate-fashion accounts/programmes/wearers are a retailer-owned B2B
+  context with corporate roles. They are not ordinary consumer customers and
+  cannot see the retailer's client book.
+- Barcode/QR and RFID resolve to one serialized-asset/custody/stock ledger.
+  Reader observations and counts reconcile; they do not directly set balance.
+- Lifestyle partner commerce and MunroMerchant procurement remain separate
+  contexts. Neither exposes raw customer profiles to partners/suppliers.
 
 ## Connector order
 
