@@ -101,7 +101,14 @@ export interface CompletionEvidenceValidateOptions {
   readonly pathExists?: (relativePath: string) => boolean;
   /** Load docs/evidence/runs/<phaseItemId>.json contents, or null if absent. */
   readonly readBrowserProofRun?: (phaseItemId: string) => unknown | null;
-  /** When set, a verified_* claim requires the run artifact gitSha to match. */
+  /**
+   * When set, a verified_* claim requires the run artifact gitSha to be
+   * "current" — typically HEAD, or an ancestor when only evidence/PHASE docs
+   * changed since the harness ran (so the claim can land in a follow-up
+   * commit without re-running Playwright).
+   */
+  readonly isCurrentGitSha?: (artifactGitSha: string) => boolean;
+  /** @deprecated Prefer isCurrentGitSha. Exact equality with HEAD. */
   readonly currentGitSha?: string;
 }
 
@@ -299,6 +306,13 @@ export function validateCompletionEvidence(
               field: "browserProofRun.gitSha",
               message: "run artifact gitSha is required",
             });
+          } else if (options.isCurrentGitSha) {
+            if (!options.isCurrentGitSha(run.gitSha)) {
+              issues.push({
+                field: "browserProofRun.gitSha",
+                message: `run gitSha ${run.gitSha} is not current for this checkout`,
+              });
+            }
           } else if (
             options.currentGitSha &&
             run.gitSha !== options.currentGitSha

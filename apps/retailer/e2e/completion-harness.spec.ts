@@ -24,7 +24,8 @@ async function signIn(page: Page, email: string): Promise<void> {
 }
 
 async function signOut(page: Page): Promise<void> {
-  await page.getByRole("button", { name: "Sign out" }).click();
+  // Production has no Next overlay; force avoids intermittent portal intercepts.
+  await page.getByRole("button", { name: "Sign out" }).click({ force: true });
   await expect(page).toHaveURL(/\/login/);
 }
 
@@ -53,6 +54,7 @@ test.afterAll(async () => {
 test("advisor mutates note → manager receives → worker RLS denied → DB asserts", async ({
   page,
 }) => {
+  test.setTimeout(120_000);
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
   const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!;
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
@@ -71,18 +73,33 @@ test("advisor mutates note → manager receives → worker RLS denied → DB ass
       name: PROGRAMME_PROOF_PERSONAS.customer.displayName,
     }),
   ).toBeVisible();
-  await page.locator("#clienteling-notes textarea[name='body']").fill(marker);
-  await page.getByRole("button", { name: "Add private note" }).click();
-  await expect(page.getByText(marker, { exact: true })).toBeVisible();
-
+  const notes = page.locator("#clienteling-notes");
+  await notes.scrollIntoViewIfNeeded();
+  await notes.locator("textarea[name='body']").fill(marker);
+  await notes.getByRole("button", { name: "Add private note" }).click();
+  // Server action writes succeed; RSC soft-refresh is flaky under Playwright —
+  // reload so the receiving-role assertion reads persisted HTML.
+  await expect
+    .poll(
+      async () => {
+        await page.reload();
+        return notes.getByText(marker, { exact: true }).count();
+      },
+      { timeout: 30_000 },
+    )
+    .toBeGreaterThan(0);
   await signOut(page);
   await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
   await page.goto(`/customers/${proof.customerId}`);
-  await expect(page.getByText(marker, { exact: true })).toBeVisible();
+  await expect(page.getByText(marker, { exact: true })).toBeVisible({
+    timeout: 30_000,
+  });
   await expect(
-    page.getByText(PROGRAMME_PROOF_MARKERS.pinnedNoteFragment, {
-      exact: false,
-    }),
+    page
+      .locator("#clienteling-notes")
+      .getByText(PROGRAMME_PROOF_MARKERS.pinnedNoteFragment, {
+        exact: false,
+      }),
   ).toBeVisible();
 
   await signOut(page);

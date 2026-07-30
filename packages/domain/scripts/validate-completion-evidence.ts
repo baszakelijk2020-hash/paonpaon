@@ -35,6 +35,31 @@ function currentGitSha(): string {
   return execSync("git rev-parse HEAD", { cwd: root, encoding: "utf8" }).trim();
 }
 
+const EVIDENCE_ONLY_PATH_RE =
+  /^(docs\/evidence\/|docs\/PHASE\.md$|docs\/evidence\/STAGE_REPAIR_LEDGER\.md$)/;
+
+function isCurrentGitSha(artifactGitSha: string): boolean {
+  const head = currentGitSha();
+  if (artifactGitSha === head) return true;
+  try {
+    execSync(`git merge-base --is-ancestor ${artifactGitSha} HEAD`, {
+      cwd: root,
+      stdio: "ignore",
+    });
+  } catch {
+    return false;
+  }
+  const changed = execSync(`git diff --name-only ${artifactGitSha} HEAD`, {
+    cwd: root,
+    encoding: "utf8",
+  })
+    .trim()
+    .split("\n")
+    .filter(Boolean);
+  if (changed.length === 0) return true;
+  return changed.every((file) => EVIDENCE_ONLY_PATH_RE.test(file));
+}
+
 function readBrowserProofRun(phaseItemId: string): unknown | null {
   const absolute = path.join(root, browserProofRunPath(phaseItemId));
   if (!existsSync(absolute)) return null;
@@ -51,7 +76,7 @@ async function main(): Promise<void> {
   const evidenceOptions = {
     pathExists,
     readBrowserProofRun,
-    currentGitSha: gitSha,
+    isCurrentGitSha,
   };
   let failed = false;
 

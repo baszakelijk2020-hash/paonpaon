@@ -1068,17 +1068,17 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Hard blockers:** none.
   - **Landed:** domain completion-evidence + PHASE gate (8.4+; earlier stages
     grandfathered); path/n_a/browser-spec validation; `verified_local`
-    requires `docs/evidence/runs/<id>.json` (`status=passed`, matching HEAD
-    SHA + spec) written by the Playwright harness — path-only proof rejected;
+    requires `docs/evidence/runs/<id>.json` (`status=passed`, current SHA +
+    spec) written by the Playwright harness — path-only proof rejected;
     `pnpm test` runs `validate:completion`; `docs/evidence/tranches/8.4.json`;
-    linked Maison Dubois proof seed descriptor; Playwright harness
-    `apps/retailer/e2e/completion-harness.spec.ts` exists and writes the run
-    artifact. One attempted local run failed before UI mutation: demo seed
-    raises `invalid input value for enum public.metadata_concept_kind:
-"fabric"`. Browser proof therefore not passed; status remains
-    `implemented_unverified` (and dependent `9.1` stays unverified) until that
-    seed/enum mismatch is fixed and the single harness produces a current
-    `status=passed` run artifact.
+    linked Maison Dubois proof seed; harness
+    `apps/retailer/e2e/completion-harness.spec.ts` writes the run artifact.
+    Seed blocker fixed: `sync_loyalty_milestones_for_order` compared
+    `metadata_concept_kind` to invalid `'fabric'` (now
+    `'fibre'|'fabric_collection'`). Local harness has passed once; status
+    remains `implemented_unverified` until the claim commit includes a
+    current `status=passed` run artifact. Dependent `9.1` stays unverified
+    until `8.4` is checked.
 
 ### Stage 9 — Migration Cockpit and connectors
 

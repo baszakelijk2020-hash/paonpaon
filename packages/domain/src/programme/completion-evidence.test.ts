@@ -135,12 +135,25 @@ describe("completion evidence validator", () => {
       verifiedOptions({
         readBrowserProofRun: () =>
           passedRun({ gitSha: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }),
+        isCurrentGitSha: (sha) => sha === HEAD,
       }),
     );
     expect(result.ok).toBe(false);
     expect(
       result.issues.some((issue) => issue.field === "browserProofRun.gitSha"),
     ).toBe(true);
+  });
+
+  it("accepts verified_local when isCurrentGitSha allows an evidence-only ancestor", () => {
+    const ancestor = "dddddddddddddddddddddddddddddddddddddddd";
+    const result = validateCompletionEvidence(
+      baseRecord(),
+      verifiedOptions({
+        isCurrentGitSha: (sha) => sha === ancestor,
+        readBrowserProofRun: () => passedRun({ gitSha: ancestor }),
+      }),
+    );
+    expect(result.ok).toBe(true);
   });
 
   it("rejects verified_local when only a browser spec path exists", () => {
