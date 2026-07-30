@@ -5154,6 +5154,190 @@ export type Database = {
           },
         ];
       };
+      migration_jobs: {
+        Row: {
+          connection_id: string | null;
+          contract_version: string;
+          created_at: string;
+          display_name: string;
+          dry_run_report: Json | null;
+          id: string;
+          last_error: string | null;
+          reconcile_report: Json | null;
+          retailer_id: string;
+          rollback_ref: string | null;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          connection_id?: string | null;
+          contract_version?: string;
+          created_at?: string;
+          display_name: string;
+          dry_run_report?: Json | null;
+          id?: string;
+          last_error?: string | null;
+          reconcile_report?: Json | null;
+          retailer_id: string;
+          rollback_ref?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          connection_id?: string | null;
+          contract_version?: string;
+          created_at?: string;
+          display_name?: string;
+          dry_run_report?: Json | null;
+          id?: string;
+          last_error?: string | null;
+          reconcile_report?: Json | null;
+          retailer_id?: string;
+          rollback_ref?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "migration_jobs_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "migration_jobs_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      migration_publish_receipts: {
+        Row: {
+          canonical_id: string;
+          created_at: string;
+          entity_kind: string;
+          external_id: string;
+          id: string;
+          job_id: string;
+          money_minor: number;
+          retailer_id: string;
+          stock_units: number;
+        };
+        Insert: {
+          canonical_id: string;
+          created_at?: string;
+          entity_kind: string;
+          external_id: string;
+          id?: string;
+          job_id: string;
+          money_minor?: number;
+          retailer_id: string;
+          stock_units?: number;
+        };
+        Update: {
+          canonical_id?: string;
+          created_at?: string;
+          entity_kind?: string;
+          external_id?: string;
+          id?: string;
+          job_id?: string;
+          money_minor?: number;
+          retailer_id?: string;
+          stock_units?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "migration_publish_receipts_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "migration_jobs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "migration_publish_receipts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      migration_staged_rows: {
+        Row: {
+          canonical_id: string | null;
+          created_at: string;
+          entity_kind: string;
+          external_id: string;
+          id: string;
+          job_id: string;
+          payload: Json;
+          raw_event_id: string | null;
+          rejection_code: string | null;
+          rejection_message: string | null;
+          retailer_id: string;
+          row_number: number;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          canonical_id?: string | null;
+          created_at?: string;
+          entity_kind: string;
+          external_id: string;
+          id?: string;
+          job_id: string;
+          payload?: Json;
+          raw_event_id?: string | null;
+          rejection_code?: string | null;
+          rejection_message?: string | null;
+          retailer_id: string;
+          row_number: number;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          canonical_id?: string | null;
+          created_at?: string;
+          entity_kind?: string;
+          external_id?: string;
+          id?: string;
+          job_id?: string;
+          payload?: Json;
+          raw_event_id?: string | null;
+          rejection_code?: string | null;
+          rejection_message?: string | null;
+          retailer_id?: string;
+          row_number?: number;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "migration_staged_rows_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "migration_jobs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "migration_staged_rows_raw_event_id_fkey";
+            columns: ["raw_event_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_raw_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "migration_staged_rows_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       morning_routine_delivery_audits: {
         Row: {
           created_at: string;

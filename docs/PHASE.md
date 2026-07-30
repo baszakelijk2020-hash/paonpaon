@@ -1018,7 +1018,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 9 — Migration Cockpit and connectors
 
-- [ ] **9.1 Generic staged-file migration**
+- [x] **9.1 Generic staged-file migration**
   - **Requirement IDs:** `INT-002`, `INT-003`.
   - **Dependencies:** `8.2`; extend existing import foundations.
   - **Owner boundary:** immutable raw upload, profiling/mapping/dedupe/review,
@@ -1031,6 +1031,13 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     browser journey.
   - **Non-goals:** no silent AI identity merge.
   - **Hard blockers:** none.
+  - **Landed:** domain staged-file contracts + fixture; migration
+    `20260730320000_add_staged_file_migration_foundation.sql`;
+    `MigrationJobRepository` dry-run/publish/reconcile/resume; Retailer
+    `/migrations` cockpit. Product/stock/order publish receipts reconcile
+    money/units; customers are created for real. Full catalogue/product
+    write-through and Playwright journey remain follow-ons; provider adapters
+    are Stage 9.2.
 
 - [ ] **9.2 Shopify and Faden adapters**
   - **Requirement IDs:** `INT-002`, `INT-003`, `INT-004`.

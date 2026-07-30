@@ -214,6 +214,11 @@ export default async function DashboardLayout({
                 description: "Supplier preview without publishing",
               },
               {
+                href: "/migrations",
+                label: "Migrations",
+                description: "Staged-file dry-run and publish",
+              },
+              {
                 href: "/settings/morning-routine",
                 label: "MorningRoutine",
                 description: "Delivery pause and eligible products",

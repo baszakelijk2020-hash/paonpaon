@@ -111,6 +111,8 @@ export * from "./integrations/faden-readonly-fixture";
 
 export * from "./workflow/workflow-definition";
 
+export * from "./migration/staged-file-migration";
+
 export * from "./wardrobe/wardrobe";
 export * from "./wardrobe/wardrobe.schema";
 export * from "./wardrobe/lifecycle";
