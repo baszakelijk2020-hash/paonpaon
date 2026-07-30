@@ -28,7 +28,7 @@ Snapshot: 2026-07-30 (save-game seal).
   copies exist; mapping/rehearsal, staff/customer activation, outcome/
   correction and multi-role browser proof are missing.
 - Stage 10.2 Honeymoon/Seven-Day WIP is preserved on pushed branch
-  `wip/stage-10-2-honeymoon` (not mixed into sealed `main`).
+  `wip/stage-10-2-honeymoon` @ `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5` (not mixed into sealed `main`).
 
 ## Current handoff
 

@@ -16,11 +16,11 @@ requires it.
   `verified_local` (migration write-through + `docs/evidence/runs/9.1.json`
   `status=passed`). Stage 9.2 and 10.1 remain `implemented_unverified` under
   ADR-068; Stage 9.3 is demand-led blocked. Stage 10.2 WIP lives on
-  `wip/stage-10-2-honeymoon`, not `main`.
+  `wip/stage-10-2-honeymoon` @ `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`, not `main`.
 - **Current queue item:** Stage 6 / 9.3 blocked — skip. **Next buildable item:
   Stage 9.2** (provider adapters / ADR-068 proof — do not claim `verified_*`
   without a current passed run artifact). Preserve
-  `wip/stage-10-2-honeymoon`; do not absorb unfinished 10.2 into `main`.
+  `wip/stage-10-2-honeymoon` @ `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`; do not absorb unfinished 10.2 into `main`.
 - **Current requirement IDs:** `INT-004` (and related 9.2 connector IDs);
   Stage 6 gates remain. Stages 8.4 and 9.1 are sealed `verified_local`.
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
@@ -150,7 +150,7 @@ requires it.
   replace interim chrome — not a programme blocker.
 - **Exact next work:** **Stage 9.2** on `main` (Shopify/Faden connectors toward
   ADR-068 proof — do not claim `verified_*` without a current passed run
-  artifact). Preserve `wip/stage-10-2-honeymoon`. Do not invent Stage 6
+  artifact). Preserve `wip/stage-10-2-honeymoon` @ `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`. Do not invent Stage 6
   payment behavior.
 
 ## 1. Programme intent
