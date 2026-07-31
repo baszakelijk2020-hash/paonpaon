@@ -102,9 +102,124 @@ export interface FadenWebhookEnvelope {
   readonly rawBody: string;
 }
 
+export const FADEN_SIGNATURE_SCHEME = "faden-hmac-sha256-v1";
+
+/** Default replay window. A signature older than this is refused. */
+export const FADEN_SIGNATURE_TOLERANCE_SECONDS = 300;
+
 /**
- * Deterministic fixture verifier — not a claim of live HMAC secrets.
- * Accepts only the documented fixture signature material.
+ * Canonical signing payload for a Faden webhook.
+ *
+ * The provider event id, the timestamp and the **complete raw body** are all
+ * bound into the signed material. Binding the body itself rather than its
+ * length is what makes tampering detectable: two different payloads of equal
+ * length must not produce the same signature.
+ *
+ * Field order and separator are part of the contract — changing either
+ * invalidates every previously issued signature, so this is a versioned format.
+ */
+export function buildFadenWebhookSigningPayload(
+  envelope: Pick<
+    FadenWebhookEnvelope,
+    "providerEventId" | "timestamp" | "rawBody"
+  >,
+): string {
+  return [
+    FADEN_SIGNATURE_SCHEME,
+    envelope.providerEventId,
+    envelope.timestamp,
+    envelope.rawBody,
+  ].join("\n");
+}
+
+export type FadenSignatureRejectionReason =
+  | "signature_malformed"
+  | "signature_mismatch"
+  | "timestamp_malformed"
+  | "timestamp_outside_tolerance";
+
+export type FadenSignatureVerification =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly reason: FadenSignatureRejectionReason };
+
+/**
+ * Compares two hex digests without leaking, through timing, how many leading
+ * characters matched. Digest length is not a secret, so it is compared first;
+ * the per-character loop then always runs over the full digest.
+ */
+function constantTimeHexEqual(left: string, right: string): boolean {
+  if (left.length !== right.length) return false;
+  let difference = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  }
+  return difference === 0;
+}
+
+/**
+ * Verifies a live Faden webhook signature.
+ *
+ * The HMAC is injected rather than imported so this module stays free of Node
+ * builtins — `@paon/domain` is bundled into client components, and pulling
+ * `node:crypto` in here would break those builds. A route handler supplies
+ * `computeHmacHex`, normally
+ * `(secret, payload) => createHmac("sha256", secret).update(payload).digest("hex")`.
+ *
+ * Rejection carries a typed reason rather than a bare `false` so the ingest
+ * lifecycle can record *why* an event was refused: 9.2 requires signature and
+ * replay failures to be observable, and "invalid" alone cannot distinguish a
+ * forged body from a stale retry.
+ */
+export function verifyFadenWebhookSignature(args: {
+  readonly envelope: FadenWebhookEnvelope;
+  readonly sharedSecret: string;
+  readonly computeHmacHex: (secret: string, payload: string) => string;
+  readonly nowMs: number;
+  readonly toleranceSeconds?: number;
+}): FadenSignatureVerification {
+  const { envelope, sharedSecret, computeHmacHex, nowMs } = args;
+  const toleranceSeconds =
+    args.toleranceSeconds ?? FADEN_SIGNATURE_TOLERANCE_SECONDS;
+
+  const prefix = `${FADEN_SIGNATURE_SCHEME}=`;
+  if (!envelope.signature.startsWith(prefix)) {
+    return { ok: false, reason: "signature_malformed" };
+  }
+  const provided = envelope.signature.slice(prefix.length);
+  if (provided.length === 0 || !/^[0-9a-f]+$/.test(provided)) {
+    return { ok: false, reason: "signature_malformed" };
+  }
+
+  const signedAtMs = Date.parse(envelope.timestamp);
+  if (Number.isNaN(signedAtMs)) {
+    return { ok: false, reason: "timestamp_malformed" };
+  }
+
+  const expected = computeHmacHex(
+    sharedSecret,
+    buildFadenWebhookSigningPayload(envelope),
+  );
+  if (!constantTimeHexEqual(provided, expected)) {
+    return { ok: false, reason: "signature_mismatch" };
+  }
+
+  // Checked only after the signature holds, so an unauthenticated caller cannot
+  // probe our clock. Future-dated stamps are refused symmetrically: a skewed
+  // provider clock must not widen the replay window.
+  if (Math.abs(nowMs - signedAtMs) > toleranceSeconds * 1000) {
+    return { ok: false, reason: "timestamp_outside_tolerance" };
+  }
+
+  return { ok: true };
+}
+
+/**
+ * @deprecated Fixture-shape check only — this MUST NOT guard a real webhook
+ * route. Three properties make it unsafe for live traffic: the shared secret is
+ * embedded in the signature string in plaintext, only `rawBody.length` is bound
+ * (so any tampered body of equal length passes), and the comparison is neither
+ * constant-time nor bounded by a replay window. Use
+ * {@link verifyFadenWebhookSignature} for anything reaching the network.
  */
 export function verifyFadenWebhookFixture(
   envelope: FadenWebhookEnvelope,
