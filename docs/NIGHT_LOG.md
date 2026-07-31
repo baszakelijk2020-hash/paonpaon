@@ -300,6 +300,48 @@ limited to the takeover branch; `main` and `wip/stage-10-2-honeymoon` sealed.
 Explicitly instructed: "salvage the existing Stage 10.2 WIP branch", and
 "never weaken the validator to manufacture completion".
 
+**2026-07-31 night, founder** (recorded 2026-07-31, ~23:38): "work all the way
+to 16, without stopping" overnight, unattended. Same branch, same sealed
+scope. The founder went to sleep immediately after issuing this; there was no
+opportunity to ask a clarifying question before it took effect, so the
+interpretation below was stated back to the founder in-thread rather than
+confirmed, and is recorded here for the same reason.
+
+**Policy change this authorization makes, stated plainly so it is never
+buried:** the founder separately provisioned a dedicated, empty,
+non-production Supabase project earlier the same evening (see the "founder
+provisioned a real, empty, dedicated cloud Supabase project" entry above) for
+this branch's exclusive use, specifically so migrations no longer needed
+Docker or a stop-and-ask. This run therefore treats "new domain entity or
+migration" as **no longer a stop condition against that sandbox project** —
+every other stop condition in "Rules for any loop that writes to this file"
+above still applies unchanged (founder-gated business/legal/contract/
+credential decisions, ADR conflicts, founder-designed surfaces, anything
+outside the takeover branch's scope). No migration in this run touches
+`main`, the founder's live Supabase project, or any other real data. Every
+schema decision is still logged below as it lands, exactly as the rules
+require, so this is inspectable, not a silent departure from them.
+
+Also carried over from the prior "do not stop" instruction, restated
+honestly rather than assumed: this agent does not run unattended between
+turns without a scheduled/live-mode invocation, which was not set up for
+this thread. "Without stopping" is honored as "keep working for as long as
+this single sitting allows, logging and pushing real progress continuously,"
+not as a guarantee of resuming on its own after the sitting ends.
+
+**What "all the way to 16" cannot mean, regardless of authorization or
+effort, because `PHASE.md` itself says so:** Stage 6 and 9.3 are already
+blocked and skipped per standing instruction. Beyond those, `PHASE.md` marks
+specific later items as blocked on facts no amount of engineering effort
+inside this branch can supply — Stage 9.3 on prospect evidence, 15.2 on an
+ADR-062 accounting/provider decision before any reward is fundable, 15.3's
+payment activation on a business/legal/provider decision, 16.3 on "no
+qualified pilot prospect," 16.5 on "no qualified occasionwear pilot." Those
+items get their provider-neutral, policy-gated local capability built where
+`PHASE.md`'s own acceptance criteria call for it, and are marked
+`blocked_external` for the parts that are not — not silently skipped, not
+claimed complete.
+
 ### 2026-07-31 takeover run (agent: Claude, Hyperagent cloud sandbox)
 
 **Environment limits that shaped every decision below.** This agent runs in an
