@@ -451,3 +451,111 @@ through the GitHub API instead.
      fixture helper) → retailer connect/configure UI → admin health controls →
      RLS and cross-tenant denial → multi-role Playwright proof → run artifact.
      Stage 6 and 9.3 remain blocked; skip them.
+
+### 2026-07-31 night → 2026-08-01 (agent: Claude, same sandbox, continuous session)
+
+Overnight continuous run under the "work all the way to 16, without stopping"
+authorization above. The Docker wall from the previous entry was removed
+mid-session: the founder provisioned a dedicated, empty, non-production
+Supabase project (`ap-northeast-2`) and a personal access token scoped to a
+single-project account, verified empty before any write. All schema and
+type-generation work below went through the Supabase Management API
+(`database/query` and `types/typescript` endpoints) — no Docker, no CLI
+`--db-url` path (that still shells out to Docker even against a remote
+database, confirmed by trying it).
+
+- **`254014c`/`c8f18eb` — closed out the previous entry's own next step.**
+  Applied all 121 pre-existing migrations to the sandbox (one failure was a
+  quoting bug in the apply script, rolled back cleanly by its own
+  transaction wrapper; zero real migration failures). Regenerated
+  `database.types.ts` — structurally identical to the prior generated file
+  except a scratch tracking table this run created and dropped. Then ran
+  the two real Playwright specs against that live database (installed
+  Chromium via `pnpm exec playwright install chromium`, no `--with-deps`
+  needed): both passed genuinely. `pnpm validate:completion` went green for
+  the first time this takeover — then broke again one commit later because
+  the types-regeneration commit itself wasn't evidence-only, so its own
+  artifacts read as stale at its own HEAD; fixed by re-running both specs a
+  second time at that exact HEAD and pushing the evidence separately
+  (`c8f18eb`), following `9ceb374`'s own precedent rather than widening the
+  validator's allowlist.
+- **`d61d2d2` — Stage 9.2 Faden connector-lifecycle slice, browser-proven.**
+  New schema (`20260731000000`): `operational_state` on
+  `integration_connections` (active/paused/disconnected, distinct from the
+  existing observed `health_status`), `integration_connection_secrets`
+  (pointer-only, never a raw secret value — matches
+  `retailer_stripe_accounts`' existing pattern), `integration_sync_cursors`,
+  `integration_sync_runs`, `integration_dead_letters`,
+  `integration_reconciliation_reports`. Domain
+  (`connection-lifecycle.ts`): `planConnectionOperationalTransition` is the
+  one place transition legality is decided — a disconnected connection
+  cannot be reactivated, since reconnecting means a new connection record,
+  not reviving this one's cursors/secrets. Repository
+  (`IntegrationLifecycleRepository`) and a new orchestrator
+  (`ingestFadenWebhook`) tie a webhook delivery through connection-state
+  check → signature verification → the existing 8.2 source-authority
+  ingest, dead-lettering with a typed reason at every rejection — including
+  refusing to invent a canonical mapping for an external order nobody has
+  linked yet (`unmapped_external_object`), rather than guessing one. A real
+  route handler
+  (`apps/retailer/app/api/webhooks/faden/[connectionId]/route.ts`) computes
+  the actual HMAC and payload hash via `node:crypto` at the edge — the one
+  place in this whole chain that imports it, keeping `@paon/domain` and
+  `@paon/database` client-bundle-safe. Retailer UI: pause/resume/disconnect
+  buttons plus visible sync-run history and dead letters on
+  `/settings/integrations` — 9.2's own acceptance language ("signature/
+  replay/cursor/failure/retry/reconcile are observable") is not satisfied by
+  schema nothing renders.
+- **A genuine e2e run found a real defect, not a mock artifact.** The new
+  Playwright spec (`integration-connection-lifecycle.spec.ts`) drove the
+  actual retailer UI's Pause button against the live database and got 422
+  when 409 was expected — the connection never actually paused. Verified via
+  a direct admin-client read (bypassing the UI entirely) that the DB row
+  really was stuck at `active` for the full poll window, ruling out a
+  render-lag explanation. Root cause: `20260730300000` granted `UPDATE` on
+  `integration_connections` to `service_role` only; the retailer's own
+  Server Action runs under the session-scoped anon client and had no write
+  path at all, so the mutation was silently rejected by Postgres and the UI
+  never updated. Fixed with a new migration (`20260731000001`) granting
+  **column-scoped** `UPDATE` — only the four `operational_state*` columns
+  plus `updated_at` — paired with an owner/manager/admin RLS policy with
+  both `USING` and `WITH CHECK`; `health_status` stays `service_role`-only
+  since a retailer cannot self-report observed provider health. Re-ran the
+  spec after the fix: pause genuinely blocks a live signed webhook (409),
+  resume plus a correct signature is admitted (422 unmapped — proving the
+  connection-state and mapping checks are independent code paths, not one
+  check accidentally covering for the other), a same-length tampered body is
+  refused (401 — the exact forgery the now-deprecated fixture verifier from
+  the previous entry would have accepted), and both rejections appear as
+  visible dead letters rather than disappearing silently.
+- **`ac15bcd` — evidence refresh**, same pattern as `c8f18eb`: `d61d2d2`
+  wasn't evidence-only, so its own artifacts read stale at its own HEAD;
+  re-ran both specs at `d61d2d2` and pushed the two evidence files alone.
+  `pnpm validate:completion` reports OK at the true final HEAD `ac15bcd`.
+- **Full gate at `ac15bcd`:** lint (12/12 packages), typecheck (5/5,
+  invoked per-package — turbo's parallel runner still OOMs on this 2-CPU/
+  4.2GB sandbox and needs `--concurrency=1` or per-package calls,
+  environmental as in the previous entry), 731 unit tests, `format:check`,
+  serial `build`, and now a genuinely green `validate:completion` backed by
+  two real Playwright runs against a live, non-production database. Not one
+  hand-written evidence file in the whole chain — every `docs/evidence/runs/
+*.json` was written by the harness's own `afterAll` hook.
+- **Not claimed complete: Stage 9.2 as a whole.** Shopify's scheduled/delta
+  sync remains the pre-existing fixture, not an executable scheduler; the
+  reconciliation-report table has no writer yet; actor attribution on a
+  transition is `null` (`AppSession` has no `retailer_staff_members` row id
+  to attach, and the column is nullable for exactly that reason); only the
+  owner role was exercised in the browser proof, not manager/sales roles.
+  `PHASE.md`'s 9.2 checkbox stays unchecked.
+- **Environment notes for whoever resumes:** the Supabase Management API
+  rejects Python's default `urllib` `User-Agent` with a Cloudflare 403 (error 1010) — set `User-Agent: curl/8.17.0` or similar. It also rate-limits at
+  120 req/min. Playwright's `webServer` (`pnpm start`) is a separate child
+  process — an env var set inside a test body with `process.env[...] = ...`
+  never reaches it; export it in the shell _before_ invoking
+  `playwright test`. This sandbox's round-trip latency to the sandbox
+  project's `ap-northeast-2` region is roughly 1s, so
+  `completion-harness.spec.ts`'s `test.setTimeout(120_000)` needs a temporary
+  bump to pass here; every such bump in this session was reverted
+  (confirmed via `git diff`/`git checkout --`) before the next commit — none
+  of them are present at `ac15bcd`.
+- **Continuing** to the next unblocked slice per the authorization above.
