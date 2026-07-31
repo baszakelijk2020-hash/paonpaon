@@ -30,6 +30,45 @@ Snapshot: 2026-07-30 (save-game seal).
 - Stage 10.2 Honeymoon/Seven-Day WIP is preserved on pushed branch
   `wip/stage-10-2-honeymoon` @ `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5` (not mixed into sealed `main`).
 
+## Stage 10.2 WIP salvage audit (2026-07-31)
+
+Audited read-only at `ec58c8e`; the branch was neither merged nor modified.
+Contents: migration `20260730340000_add_seven_day_and_honeymoon_packages.sql`,
+pure domain `packages/domain/src/campaign/seven-day-honeymoon.ts` (+ tests),
+`packages/database/src/repositories/honeymoon-programme-repository.ts` (+ unit
+and security tests). The domain layer is pure with no `any`; the migration
+carries `retailer_id` on both new tables, enables RLS, revokes from
+`public`/`anon`, and hard-constrains `requires_payment_approval = false`.
+
+The work is sound but **does not compile as-is**. It must not be merged until
+repaired:
+
+1. `packages/database/src/generated/database.types.ts` is unchanged, so
+   `Database["public"]["Tables"]["honeymoon_programmes"]` and
+   `…["honeymoon_programme_actions"]` do not exist and the repository fails
+   typecheck. Regeneration needs `supabase gen types typescript --local`, which
+   requires a running local Supabase (Docker) — `blocked_external` in any
+   environment without it.
+2. `packages/domain/src/index.ts` does not export `seven-day-honeymoon`, so
+   `deriveHoneymoonActions` / `HoneymoonAction` / `HoneymoonLineTruth` are
+   unreachable from `@paon/domain`.
+3. `packages/database/src/index.ts` does not export
+   `honeymoon-programme-repository`.
+4. `CAMPAIGN_LIBRARY_KEYS` in `packages/domain/src/campaign/campaign-library.ts`
+   still lists only `private_offer_member_fabric`, while the migration's CHECK
+   constraint adds `seven_day_wardrobe` and `honeymoon_phase`.
+5. `honeymoon_programme_actions` has no index on `(programme_id, retailer_id)`,
+   so scoped action lookups sequential-scan.
+
+Absent layers beyond the above: service/application layer, retailer UI,
+customer UI, events/outbox, audit writes, and any browser proof. Stage 10.2
+therefore remains **not started on `main`** and is not claimable at any
+`verified_*` status. Its dependency Stage 10.1 is still
+`implemented_unverified`, though the honeymoon tracker hangs off `orders` and
+`customers` with a nullable `library_version_id`, so a repaired 10.2 could be
+exercised without a pinned library version if its scope is limited to programme
+tracking.
+
 ## Current handoff
 
 Next queue item on `main`: **Stage 9.2**. Stage 6 and 9.3 remain blocked;

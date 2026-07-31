@@ -1527,7 +1527,77 @@ Acceptance:
 - false-positive/incorrect feedback affects evaluation;
 - live presence expires honestly.
 
-### Stage 15 — MunroMerchant marketplace
+### Stage 15 — Lifestyle network and MunroMerchant
+
+Stage 15 ships two deliberately separate bounded contexts. The customer-facing
+lifestyle network (Capolavoro Online / MunroMarché) and retailer-facing
+MunroMerchant B2B procurement share no catalogue, cart, order or customer
+table. Canonical design for the network half is
+`PAON_LIFESTYLE_ECOSYSTEM_AND_NETWORK_COMMERCE.md`; nothing below is claimed as
+implemented software.
+
+#### Stage 15 (network) — Capolavoro Online / MunroMarché
+
+Deliver:
+
+- partner/publisher/programme/listing records with explicit commercial type
+  (editorial outbound, affiliate, qualified lead, booking, supplier-fulfilled,
+  local partner) and mandatory disclosure class;
+- retailer curation, placement mapping, competitor/category exclusion and
+  activation over a contracted programme;
+- zero-stock lifestyle categories: books, art and design, hospitality,
+  restaurants, travel, automotive, golf, jewelry and watches, grooming,
+  culture, events and experiences;
+- lifestyle concierge requests with owner, SLA, options, quote/approval,
+  exception and outcome;
+- network rewards on an append-only funded/pending/available/reversed/expired
+  liability ledger;
+- third-party publisher/media cards carrying rights, territory, expiry,
+  attribution, outbound link and retailer activation eligibility;
+- MunroMentions invitations that never copy the referrer's identity into the
+  invitee record;
+- distinct retailer, partner, publisher, advertiser, fulfiller and PAON portals
+  with minimum-data scopes per role;
+- Audience Studio: cited eligibility rules, versioned cohorts, policy-aware
+  reachable-size forecasting and holdout membership;
+- advertising inventory: placements, orders, line items, flights, creatives,
+  budgets, pacing and frequency caps;
+- economics: CPM, CPC, CPL, CPA, affiliate, sponsorship and booking fee;
+- append-only idempotent billable/outcome event stream: impression,
+  viewability, click, lead, booking, conversion, refund, reversal;
+- attribution with opaque IDs, incrementality experiments, deduplication keys
+  and fraud-review disposition;
+- canonical multi-party revenue-sharing ledgers for retailer, publisher,
+  partner/fulfiller, advertiser settlement and PAON platform fee;
+- governed insight modes: aggregate insights, retailer benchmarking,
+  PAON-executed audiences, pseudonymous attribution, clean-room matching,
+  contracted data exchange, retailer exports and customer-requested named
+  introductions;
+- provenance, purpose, contract, entitlement, retention, correction, deletion
+  and recomputation fields on every network fact and event.
+
+Acceptance:
+
+- a retailer activates a disclosed partner listing and a customer reaches the
+  partner through a placement that never resembles retailer-held stock;
+- an attributed conversion holds, then reverses on refund, without erasing
+  history, and the reversal propagates to every affected ledger share;
+- a partner, publisher or advertiser receives tokens, placements and outcomes —
+  never a raw Self-Portrait or retailer client list;
+- billable events replay idempotently under duplicate provider callbacks;
+- a cohort is version-pinned so a later rule edit cannot silently restate a
+  past forecast or a past payable;
+- correction or deletion of a customer fact recomputes derived eligibility,
+  cohorts, forecasts and payable projections;
+- every commercial model, portal role and event type is representable while
+  activation is disabled by policy, so a later legal or founder restriction is
+  configuration rather than schema deletion;
+- no lifestyle network table is reachable from MunroMerchant procurement, and
+  no consumer customer row is exposed to a supplier;
+- live advertising, payment, stored value and licensed media remain gated on
+  contracts and credentials.
+
+#### Stage 15 (procurement) — MunroMerchant marketplace
 
 Deliver:
 

@@ -223,6 +223,13 @@ correlation from experimental lift. Deduplication keys prevent double-pay
 across channels. Fraud review can hold or reverse payable amounts without
 erasing history.
 
+Existing affiliate platforms already validate these mechanics — tracking
+links/codes, server events, pending/holding periods, refund reversals,
+flexible commission structures and automated payout — so PAON is adopting a
+proven settlement model rather than inventing one. Sources:
+[Shopify Collabs commissions](https://help.shopify.com/en/manual/promoting-marketing/collabs/creators/payments)
+and [Partnerize platform](https://partnerize.com/platform).
+
 ## Revenue-sharing ledgers
 
 Canonical append-only ledgers (not feature-local balances) record shares for:
@@ -255,6 +262,14 @@ entitlement:
 
 **Rejected as product default:** sale or export of named customer profiles to
 advertisers or partners for uncontrolled reuse.
+
+Building the ability to segment an audience precisely is **not** permission to
+sell a named person's profile. The two are separate decisions with separate
+records: segmentation is an internal eligibility capability, while any release
+of data outside PAON requires a purpose, a contract, an entitlement and — for a
+named individual — that individual's own request. A partner receives the
+minimum data required to fulfil or attribute, and never a raw Self-Portrait or
+retailer client list.
 
 ## Provenance, purpose, entitlement, retention and recomputation
 

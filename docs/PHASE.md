@@ -1427,6 +1427,59 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Non-goals:** no customer-facing marketplace order reuse.
   - **Hard blockers:** money/commercial decisions block payment, not RFQ/PO.
 
+- [ ] **15.4 Audience Studio and advertising inventory**
+  - **Requirement IDs:** `NET-105`; ledger rows `NET-17`–`NET-22`, `NET-31`.
+  - **Dependencies:** `15.1`; Stage 7 evidence/consent plane; `8.2`.
+  - **Owner boundary:** audience and advertising bounded context plus
+    advertiser/publisher/PAON portal surfaces — cited eligibility rules,
+    versioned cohorts, policy-aware reachable-size forecasting, holdout
+    membership, inventory and placements, orders, line items, flights,
+    creatives with rights/review state, budgets, pacing, frequency caps, and
+    the append-only impression/viewability/click/lead/booking/conversion/
+    refund/reversal event stream with deduplication and fraud-review state.
+  - **Acceptance:** an advertiser or PAON operator builds a cohort whose size
+    forecast is computed under policy and refuses to render when entitlement is
+    absent; activation pins the cohort version so a later rule edit cannot
+    restate a past forecast or a past payable; an order resolves to line items,
+    flights and reviewed creatives; pacing and frequency caps are enforced and
+    observable; duplicate provider callbacks replay idempotently; a
+    PAON-executed audience delivers placements and outcomes to the advertiser
+    without exporting named profiles.
+  - **Tests:** cohort version pin on activation, policy-denied forecast, pacing
+    and frequency-cap enforcement, event idempotency and dedupe keys,
+    creative-rights gate, cross-tenant denial, and an advertiser-to-customer
+    multi-role browser journey.
+  - **Non-goals:** no live ad serving before contracts, no fabricated reach or
+    impression counts, no cross-device identity claim without evidence.
+  - **Hard blockers:** ad-provider credentials and signed advertiser contracts
+    block live serving and live billing only, not the provider-neutral local
+    capability.
+
+- [ ] **15.5 Governed insights, clean-room and entitlement exchange**
+  - **Requirement IDs:** `NET-106`; ledger rows `NET-23`–`NET-28`, `NET-32`.
+  - **Dependencies:** `15.1`, `15.4`; consent/provenance plane (ENG-006).
+  - **Owner boundary:** network intelligence over the policy/entitlement plane
+    — aggregate insights, retailer benchmarking, PAON-executed audiences,
+    pseudonymous attribution, clean-room matching, contracted data exchange,
+    retailer exports of own tenant data, customer-requested named
+    introductions, and the canonical multi-party revenue-sharing ledgers for
+    retailer, publisher, partner/fulfiller, advertiser settlement and PAON fee.
+  - **Acceptance:** each release mode is allowed only with purpose, contract and
+    entitlement recorded; aggregates enforce minimum-n thresholds; a named
+    introduction occurs only on the customer's own request and is audited;
+    correcting or deleting a customer fact recomputes derived eligibility,
+    cohorts, forecasts and payable projections; a refund reverses every
+    affected ledger share without erasing history; accounting export remains a
+    projection over the ledger rather than a second truth.
+  - **Tests:** minimum-n threshold rejection, entitlement matrix per mode,
+    correction and deletion recompute, reversal propagation across shares,
+    rejection of uncontrolled named export, and cross-tenant denial.
+  - **Non-goals:** no sale or export of named customer profiles for
+    uncontrolled reuse; no benchmarking that re-identifies a peer retailer; no
+    technically false measurement claim.
+  - **Hard blockers:** data-processing terms and clean-room provider decisions
+    block the affected exchange mode only.
+
 ### Stage 16 — Knowledge productization and vertical packs
 
 - [ ] **16.1 Consultancy, guided tiers and staff academy**
