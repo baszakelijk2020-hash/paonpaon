@@ -1,11 +1,15 @@
 "use server";
 
 import { requireRetailerRole } from "@paon/auth";
-import { IntegrationLifecycleRepository } from "@paon/database";
+import {
+  IntegrationLifecycleRepository,
+  orchestrateShopifyDeltaSync,
+} from "@paon/database";
 import type { ConnectionOperationalState } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
 import { requireSession } from "@/lib/session";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface ConnectionLifecycleActionState {
@@ -67,4 +71,49 @@ export async function transitionConnection(
 
   revalidatePath("/settings/integrations");
   return {};
+}
+
+export interface ShopifySyncActionState {
+  formError?: string;
+  lastRunSummary?: string;
+}
+
+/**
+ * Manual trigger for one Shopify delta-sync cycle (PHASE 9.2). Uses the
+ * service-role client because the underlying migration publish path
+ * (packages/database/src/repositories/migration-job-repository.ts) writes
+ * canonical customer/product/order rows that only `service_role` may write —
+ * the same boundary 9.1's own migration cockpit already relies on. The
+ * retailer session only ever authorizes the trigger; it never gets a write
+ * path to canonical tables directly.
+ */
+export async function runShopifySync(
+  _previous: ShopifySyncActionState,
+  formData: FormData,
+): Promise<ShopifySyncActionState> {
+  const session = await requireSession();
+  requireRetailerRole(session.retailerRole, "admin");
+
+  const connectionId = String(formData.get("connectionId") ?? "");
+  if (!connectionId) {
+    return { formError: "Missing connection." };
+  }
+
+  const admin = getSupabaseAdminClient();
+  const result = await orchestrateShopifyDeltaSync(admin, {
+    retailerId: session.retailerId,
+    connectionId,
+    triggerKind: "manual",
+  });
+
+  revalidatePath("/settings/integrations");
+
+  if (result.status === "failed") {
+    return {
+      formError: result.errorSummary ?? "Shopify sync failed.",
+    };
+  }
+  return {
+    lastRunSummary: `Synced ${result.recordsProcessed} record(s) into job ${result.jobId}.`,
+  };
 }

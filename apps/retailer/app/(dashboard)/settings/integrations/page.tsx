@@ -8,6 +8,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ConnectionLifecycleControls } from "./connection-lifecycle-controls";
+import { ShopifySyncButton } from "./shopify-sync-button";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -98,6 +99,9 @@ export default async function IntegrationsSettingsPage() {
                     {" · "}
                     {connection.operationalState}
                   </span>
+                  {connection.provider === "shopify" ? (
+                    <ShopifySyncButton connectionId={connection.id} />
+                  ) : null}
                   <ConnectionLifecycleControls
                     connectionId={connection.id}
                     operationalState={connection.operationalState}

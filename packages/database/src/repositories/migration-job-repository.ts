@@ -149,7 +149,28 @@ export class MigrationJobRepository {
     readonly retailerId: RetailerId;
     readonly displayName?: string;
   }): Promise<MigrationJobRecord> {
-    const rows = buildFixtureMigrationRows();
+    return this.createJobFromRows({
+      retailerId: args.retailerId,
+      displayName: args.displayName ?? "Fixture staged-file migration",
+      rows: buildFixtureMigrationRows(),
+    });
+  }
+
+  /**
+   * The general case `createFixtureJob` and the Shopify connector orchestrator
+   * (`orchestrateShopifyDeltaSync`) both delegate to — the only difference
+   * between a manual fixture load and a provider delta is which rows arrive,
+   * never how they're staged. Keeping one path here means 9.1's dry-run/
+   * publish/reconcile pipeline is the only ingestion truth a connector can
+   * ever reach, matching AGENTS.md's "never create a second feature-local
+   * truth."
+   */
+  async createJobFromRows(args: {
+    readonly retailerId: RetailerId;
+    readonly displayName: string;
+    readonly rows: readonly MigrationStagedRow[];
+  }): Promise<MigrationJobRecord> {
+    const rows = args.rows;
     const dryRun = buildMigrationDryRunReport(rows);
     const rollbackRef = `rollback:${newId()}`;
 
@@ -157,7 +178,7 @@ export class MigrationJobRepository {
       .from("migration_jobs")
       .insert({
         retailer_id: args.retailerId,
-        display_name: args.displayName ?? "Fixture staged-file migration",
+        display_name: args.displayName,
         status: "dry_run",
         contract_version: MIGRATION_CONTRACT_VERSION,
         dry_run_report: dryRun as unknown as Json,

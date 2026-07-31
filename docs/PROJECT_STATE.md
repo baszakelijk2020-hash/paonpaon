@@ -33,10 +33,19 @@ Snapshot: 2026-07-30 (save-game seal).
   silently failing because `integration_connections` never granted
   `authenticated` write access at all (fixed in
   `20260731000001_grant_connection_lifecycle_transitions.sql`, a
-  column-scoped grant covering only the four lifecycle columns). Still
-  missing before the whole item can be claimed: Shopify's scheduled/delta
-  sync remains fixture-only (no executable scheduler), and the reconciliation
-  aggregate is defined but nothing yet populates it. Live provider proof is
+  column-scoped grant covering only the four lifecycle columns). Shopify's
+  delta sync is now executable, not just a fixture object:
+  `orchestrateShopifyDeltaSync` drives the current documented delta through
+  9.1's real staged-file pipeline (dry-run → publish → canonical tables via
+  `MigrationJobRepository.createJobFromRows`, factored out of
+  `createFixtureJob` so both paths share one truth), checks
+  `connectionAcceptsIngestNow` first, records a sync run and advances a
+  cursor, and dead-letters on failure — triggerable from the retailer's own
+  "Run Shopify sync" button. The delta content itself is documented fixture
+  data, not a live Shopify Admin API call (live credentials would replace
+  only the fetch step). Still missing before the whole item can be claimed:
+  the reconciliation-report aggregate has no writer yet, and only the owner
+  role has been exercised in a browser proof. Live provider proof is
   additionally blocked on credentials.
 - Stage 9.3 is demand-led and blocked on prospect evidence.
 - Stage 10.1 is `implemented_unverified`: versioned library and pinned retailer
