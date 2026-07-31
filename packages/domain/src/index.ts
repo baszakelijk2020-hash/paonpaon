@@ -132,6 +132,7 @@ export * from "./campaign/campaign";
 export * from "./campaign/campaign.schema";
 export * from "./campaign/campaign-library";
 export * from "./campaign/seven-day-honeymoon";
+export * from "./campaign/relationship-calendar";
 export * from "./programme/completion-evidence";
 export * from "./programme/programme-proof-seed";
 export * from "./programme/validate-phase-completion";

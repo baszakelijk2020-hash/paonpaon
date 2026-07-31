@@ -78,6 +78,11 @@ Snapshot: 2026-07-30 (save-game seal).
   conversation led to, mirroring `clienteling_opportunities`'s outcome
   fields. Missing: lookbook/proposal/quote attachments, confirmed note
   extraction, opt-out/failure suppression, multi-role browser proof.
+- Stage 10.4 is domain-layer only, far from complete (takeover branch only —
+  not on `main`): `evaluateRelationshipDateWindow` correctly recurs a
+  customer's own date annually, across a year boundary, timezone-agnostic by
+  design. One of nine named packages (`ANNIVERSARY_MOMENT_LIBRARY_V1`) is
+  real; the other eight, UI wiring, and browser proof are not started.
 
 ## Stage 10.2 WIP salvage audit (2026-07-31)
 

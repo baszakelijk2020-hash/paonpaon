@@ -1265,6 +1265,25 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Non-goals:** no static campaign gallery or fictional scarcity.
   - **Hard blockers:** media rights or external channel credentials block only
     affected assets/sends.
+  - **Landed:** `relationship-calendar.ts`'s `evaluateRelationshipDateWindow`
+    decides whether today falls in a campaign's lead/trailing window around a
+    customer's own recurring date (Stage 7's existing `customer_facts`
+    `anniversary`/`wedding_date` fact types are the "relationship event/fact
+    foundation" this item depends on — already built, no new fact schema
+    needed) — timezone-agnostic by design (the caller resolves "today" in the
+    retailer's own timezone first, matching how `campaigns.timezone` already
+    works) and correct across a year boundary and when a fact's own year
+    differs from the current one, both covered by tests. One real library
+    package, `ANNIVERSARY_MOMENT_LIBRARY_V1`, proves the pattern — chosen
+    first because it needs no new fact type and no sensitive-context
+    human-rehearsal gate the other eight packages this item names may need.
+    Missing: the other eight named packages (Valentine, Mother's/Father's
+    Day, coming-of-age, Race Sunday, annual event, client event, dating/
+    single-again, referral), wiring this eligibility function into the
+    10.1 rehearsal/activation pipeline's candidate gathering, retailer
+    mapping UI for a relationship package specifically, and multi-role
+    browser proof. This is domain-layer only — treat 10.4 as far from
+    complete, not merely unverified.
 
 ### Stage 11 — Workforce Mission Control and coaching
 
