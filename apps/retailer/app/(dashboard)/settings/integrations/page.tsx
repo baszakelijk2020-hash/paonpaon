@@ -1,15 +1,22 @@
 import { requireRetailerRole } from "@paon/auth";
-import { SourceAuthorityRepository } from "@paon/database";
+import {
+  IntegrationLifecycleRepository,
+  SourceAuthorityRepository,
+} from "@paon/database";
 import { Card } from "@paon/ui/components/Card";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+import { ConnectionLifecycleControls } from "./connection-lifecycle-controls";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
- * Smallest useful operator surface for PHASE 8.2 connection health.
- * Does not claim live Faden credentials or a universal connector UI.
+ * Smallest useful operator surface for PHASE 8.2 connection health, plus
+ * the PHASE 9.2 lifecycle controls and observability the queue's own
+ * acceptance criteria call out by name: "signature/replay/cursor/failure/
+ * retry/reconcile are observable."
  */
 export default async function IntegrationsSettingsPage() {
   const session = await requireSession();
@@ -21,12 +28,29 @@ export default async function IntegrationsSettingsPage() {
 
   const supabase = await getSupabaseServerClient();
   const repo = new SourceAuthorityRepository(supabase);
+  const lifecycle = new IntegrationLifecycleRepository(supabase);
   const [connections, policies, identities, handoffs] = await Promise.all([
     repo.listConnections(session.retailerId),
     repo.listPolicies(session.retailerId),
     repo.listIdentities(session.retailerId, 12),
     repo.listHandoffs(session.retailerId, 8),
   ]);
+
+  const lifecycleByConnection = await Promise.all(
+    connections.map(async (connection) => ({
+      connectionId: connection.id,
+      runs: await lifecycle.listSyncRuns({
+        retailerId: session.retailerId,
+        connectionId: connection.id,
+        limit: 5,
+      }),
+      deadLetters: await lifecycle.listUnresolvedDeadLetters({
+        retailerId: session.retailerId,
+        connectionId: connection.id,
+        limit: 10,
+      }),
+    })),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -65,15 +89,103 @@ export default async function IntegrationsSettingsPage() {
                 <span>
                   {connection.displayName} · {connection.provider}
                 </span>
-                <span className="text-xs uppercase tracking-wide text-[var(--color-stone-500)]">
-                  {connection.healthStatus}
-                  {connection.lagSeconds > 0
-                    ? ` · lag ${connection.lagSeconds}s`
-                    : ""}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs uppercase tracking-wide text-[var(--color-stone-500)]">
+                    {connection.healthStatus}
+                    {connection.lagSeconds > 0
+                      ? ` · lag ${connection.lagSeconds}s`
+                      : ""}
+                    {" · "}
+                    {connection.operationalState}
+                  </span>
+                  <ConnectionLifecycleControls
+                    connectionId={connection.id}
+                    operationalState={connection.operationalState}
+                  />
+                </div>
               </li>
             ))}
           </ul>
+        )}
+      </Card>
+
+      <Card>
+        <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
+          Sync runs and dead letters
+        </h2>
+        <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+          Every scheduled or webhook-triggered run, and any event a connection
+          could not process. A run failing here does not silently disappear — it
+          is either resolved or stays visible until it is.
+        </p>
+        {lifecycleByConnection.every(
+          (entry) => entry.runs.length === 0 && entry.deadLetters.length === 0,
+        ) ? (
+          <p className="mt-3 text-sm text-[var(--color-stone-500)]">
+            No sync runs recorded yet.
+          </p>
+        ) : (
+          <div className="mt-3 flex flex-col gap-4 text-sm">
+            {lifecycleByConnection.map((entry) => {
+              const connection = connections.find(
+                (candidate) => candidate.id === entry.connectionId,
+              );
+              if (
+                !connection ||
+                (entry.runs.length === 0 && entry.deadLetters.length === 0)
+              ) {
+                return null;
+              }
+              return (
+                <div key={entry.connectionId}>
+                  <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-stone-500)]">
+                    {connection.displayName}
+                  </p>
+                  {entry.runs.length > 0 ? (
+                    <ul className="mt-1 flex flex-col gap-1">
+                      {entry.runs.map((run) => (
+                        <li
+                          key={run.id}
+                          className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--color-stone-100)] py-1"
+                        >
+                          <span>
+                            {run.triggerKind} · {run.status} ·{" "}
+                            {run.recordsProcessed} processed,{" "}
+                            {run.recordsFailed} failed
+                          </span>
+                          <span className="text-xs text-[var(--color-stone-500)]">
+                            {new Date(run.startedAt).toLocaleString()}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {entry.deadLetters.length > 0 ? (
+                    <ul className="mt-1 flex flex-col gap-1">
+                      {entry.deadLetters.map((deadLetter) => (
+                        <li
+                          key={deadLetter.id}
+                          className="border-[var(--color-danger-500)]/20 flex flex-wrap items-center justify-between gap-2 border-b py-1"
+                        >
+                          <span className="text-[var(--color-danger-500)]">
+                            {deadLetter.failureReason}
+                            {deadLetter.providerEventId
+                              ? ` · ${deadLetter.providerEventId}`
+                              : ""}
+                          </span>
+                          <span className="text-xs text-[var(--color-stone-500)]">
+                            {new Date(
+                              deadLetter.firstFailedAt,
+                            ).toLocaleString()}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
         )}
       </Card>
 

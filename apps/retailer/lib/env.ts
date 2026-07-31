@@ -55,4 +55,17 @@ export const env = {
   get openaiApiKey() {
     return optionalEnv("OPENAI_API_KEY");
   },
+  /**
+   * Resolves a connection secret's `secret_ref` (an env var NAME stored in
+   * `integration_connection_secrets`, e.g. from
+   * `IntegrationLifecycleRepository.listConnectionSecretRefs`) to its actual
+   * value. The database never holds the secret itself — see
+   * `20260731000000_add_integration_connection_lifecycle.sql`'s comment on
+   * that column — so this is the one place that pointer is followed. Named
+   * distinctly from `optionalEnv`/`requireEnv` because its argument is
+   * data-driven, not a literal env var name a reviewer can grep for.
+   */
+  resolveSecretRef(secretRef: string | undefined): string | undefined {
+    return secretRef ? optionalEnv(secretRef) : undefined;
+  },
 };

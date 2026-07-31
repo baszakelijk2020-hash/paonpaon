@@ -109,6 +109,7 @@ export * from "./integrations/calendar";
 export * from "./integrations/source-authority";
 export * from "./integrations/faden-readonly-fixture";
 export * from "./integrations/provider-adapters";
+export * from "./integrations/connection-lifecycle";
 
 export * from "./workflow/workflow-definition";
 

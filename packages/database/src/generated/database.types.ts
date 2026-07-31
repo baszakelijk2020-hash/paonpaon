@@ -3802,6 +3802,57 @@ export type Database = {
         };
         Relationships: [];
       };
+      integration_connection_secrets: {
+        Row: {
+          connection_id: string;
+          created_at: string;
+          id: string;
+          kind: string;
+          last_rotated_at: string | null;
+          retailer_id: string;
+          revoked_at: string | null;
+          secret_ref: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          connection_id: string;
+          created_at?: string;
+          id?: string;
+          kind: string;
+          last_rotated_at?: string | null;
+          retailer_id: string;
+          revoked_at?: string | null;
+          secret_ref?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          connection_id?: string;
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          last_rotated_at?: string | null;
+          retailer_id?: string;
+          revoked_at?: string | null;
+          secret_ref?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integration_connection_secrets_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_connection_secrets_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       integration_connections: {
         Row: {
           created_at: string;
@@ -3814,6 +3865,10 @@ export type Database = {
           last_error_at: string | null;
           last_error_summary: string | null;
           last_success_at: string | null;
+          operational_state: string;
+          operational_state_changed_at: string;
+          operational_state_changed_by: string | null;
+          operational_state_reason: string | null;
           provider: string;
           retailer_id: string;
           updated_at: string;
@@ -3829,6 +3884,10 @@ export type Database = {
           last_error_at?: string | null;
           last_error_summary?: string | null;
           last_success_at?: string | null;
+          operational_state?: string;
+          operational_state_changed_at?: string;
+          operational_state_changed_by?: string | null;
+          operational_state_reason?: string | null;
           provider: string;
           retailer_id: string;
           updated_at?: string;
@@ -3844,16 +3903,97 @@ export type Database = {
           last_error_at?: string | null;
           last_error_summary?: string | null;
           last_success_at?: string | null;
+          operational_state?: string;
+          operational_state_changed_at?: string;
+          operational_state_changed_by?: string | null;
+          operational_state_reason?: string | null;
           provider?: string;
           retailer_id?: string;
           updated_at?: string;
         };
         Relationships: [
           {
+            foreignKeyName: "integration_connections_operational_state_changed_by_fkey";
+            columns: ["operational_state_changed_by"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "integration_connections_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      integration_dead_letters: {
+        Row: {
+          connection_id: string;
+          created_at: string;
+          failure_detail: Json;
+          failure_reason: string;
+          first_failed_at: string;
+          id: string;
+          last_attempted_at: string;
+          provider_event_id: string | null;
+          resolution: string | null;
+          resolved_at: string | null;
+          retailer_id: string;
+          retry_count: number;
+          run_id: string | null;
+        };
+        Insert: {
+          connection_id: string;
+          created_at?: string;
+          failure_detail?: Json;
+          failure_reason: string;
+          first_failed_at?: string;
+          id?: string;
+          last_attempted_at?: string;
+          provider_event_id?: string | null;
+          resolution?: string | null;
+          resolved_at?: string | null;
+          retailer_id: string;
+          retry_count?: number;
+          run_id?: string | null;
+        };
+        Update: {
+          connection_id?: string;
+          created_at?: string;
+          failure_detail?: Json;
+          failure_reason?: string;
+          first_failed_at?: string;
+          id?: string;
+          last_attempted_at?: string;
+          provider_event_id?: string | null;
+          resolution?: string | null;
+          resolved_at?: string | null;
+          retailer_id?: string;
+          retry_count?: number;
+          run_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integration_dead_letters_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_dead_letters_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_dead_letters_run_id_fkey";
+            columns: ["run_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_sync_runs";
             referencedColumns: ["id"];
           },
         ];
@@ -3962,6 +4102,175 @@ export type Database = {
           },
           {
             foreignKeyName: "integration_raw_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      integration_reconciliation_reports: {
+        Row: {
+          conflict_count: number;
+          connection_id: string;
+          created_at: string;
+          dead_letter_count: number;
+          generated_at: string;
+          id: string;
+          matched_count: number;
+          resource: string;
+          retailer_id: string;
+          run_id: string | null;
+          stale_count: number;
+        };
+        Insert: {
+          conflict_count?: number;
+          connection_id: string;
+          created_at?: string;
+          dead_letter_count?: number;
+          generated_at?: string;
+          id?: string;
+          matched_count?: number;
+          resource: string;
+          retailer_id: string;
+          run_id?: string | null;
+          stale_count?: number;
+        };
+        Update: {
+          conflict_count?: number;
+          connection_id?: string;
+          created_at?: string;
+          dead_letter_count?: number;
+          generated_at?: string;
+          id?: string;
+          matched_count?: number;
+          resource?: string;
+          retailer_id?: string;
+          run_id?: string | null;
+          stale_count?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integration_reconciliation_reports_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_reconciliation_reports_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_reconciliation_reports_run_id_fkey";
+            columns: ["run_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_sync_runs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      integration_sync_cursors: {
+        Row: {
+          connection_id: string;
+          created_at: string;
+          cursor_value: Json;
+          id: string;
+          last_synced_at: string | null;
+          resource: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          connection_id: string;
+          created_at?: string;
+          cursor_value?: Json;
+          id?: string;
+          last_synced_at?: string | null;
+          resource: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          connection_id?: string;
+          created_at?: string;
+          cursor_value?: Json;
+          id?: string;
+          last_synced_at?: string | null;
+          resource?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integration_sync_cursors_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_sync_cursors_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      integration_sync_runs: {
+        Row: {
+          connection_id: string;
+          created_at: string;
+          error_summary: string | null;
+          finished_at: string | null;
+          id: string;
+          records_failed: number;
+          records_processed: number;
+          retailer_id: string;
+          started_at: string;
+          status: string;
+          trigger_kind: string;
+        };
+        Insert: {
+          connection_id: string;
+          created_at?: string;
+          error_summary?: string | null;
+          finished_at?: string | null;
+          id?: string;
+          records_failed?: number;
+          records_processed?: number;
+          retailer_id: string;
+          started_at?: string;
+          status?: string;
+          trigger_kind: string;
+        };
+        Update: {
+          connection_id?: string;
+          created_at?: string;
+          error_summary?: string | null;
+          finished_at?: string | null;
+          id?: string;
+          records_failed?: number;
+          records_processed?: number;
+          retailer_id?: string;
+          started_at?: string;
+          status?: string;
+          trigger_kind?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integration_sync_runs_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_sync_runs_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";

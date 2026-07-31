@@ -19,10 +19,25 @@ Snapshot: 2026-07-30 (save-game seal).
 - Stage 7 and Stage 8.0–8.3 complete under ADR-066/067.
 - Stage 8.4 is `verified_local` (completion harness + `runs/8.4.json`).
 - Stage 9.1 is `verified_local` (migration write-through + `runs/9.1.json`).
-- Stage 9.2 is `implemented_unverified`: Shopify/Faden mapping, signature and
-  read-only fixture foundations exist; executable connection/scheduling/
-  webhook lifecycle and multi-role browser proof are missing. Live provider
-  proof is additionally blocked on credentials.
+- Stage 9.2 is `implemented_unverified` (takeover branch only — not on `main`):
+  the Faden webhook half of the connector lifecycle is now real and
+  browser-proven against a dedicated non-production Supabase project — real
+  HMAC signature verification (`verifyFadenWebhookSignature`, constant-time,
+  replay-windowed), connection pause/resume/disconnect with a
+  retailer-facing UI, sync cursors, run history, dead letters and
+  reconciliation-report schema, and a route handler
+  (`apps/retailer/app/api/webhooks/faden/[connectionId]/route.ts`) that
+  refuses to invent a canonical mapping for an unseen external order. A
+  genuine e2e run (`integration-connection-lifecycle.spec.ts`) found and
+  fixed a real defect along the way: the retailer's pause/resume action was
+  silently failing because `integration_connections` never granted
+  `authenticated` write access at all (fixed in
+  `20260731000001_grant_connection_lifecycle_transitions.sql`, a
+  column-scoped grant covering only the four lifecycle columns). Still
+  missing before the whole item can be claimed: Shopify's scheduled/delta
+  sync remains fixture-only (no executable scheduler), and the reconciliation
+  aggregate is defined but nothing yet populates it. Live provider proof is
+  additionally blocked on credentials.
 - Stage 9.3 is demand-led and blocked on prospect evidence.
 - Stage 10.1 is `implemented_unverified`: versioned library and pinned retailer
   copies exist; mapping/rehearsal, staff/customer activation, outcome/

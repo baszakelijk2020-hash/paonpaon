@@ -10,6 +10,8 @@
 import type { RetailerId } from "../shared/branded-id";
 import type { Timestamps } from "../shared/timestamps";
 
+import type { ConnectionOperationalState } from "./connection-lifecycle";
+
 export const INTEGRATION_PROVIDERS = [
   "faden",
   "shopify",
@@ -84,6 +86,8 @@ export interface IntegrationConnection extends Timestamps {
   readonly lastErrorSummary?: string;
   readonly lagSeconds: number;
   readonly deepLinkBaseUrl?: string;
+  /** Operator intent (PHASE 9.2) — see connection-lifecycle.ts. Independent of healthStatus, which is observed. */
+  readonly operationalState: ConnectionOperationalState;
 }
 
 export interface SourceAuthorityPolicy extends Timestamps {
