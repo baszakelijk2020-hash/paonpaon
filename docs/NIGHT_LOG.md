@@ -289,3 +289,123 @@ select` policy — no one anticipated a customer inserting this row
   before any code is written. Not started. The RLS gap above should
   likely be fixed before or alongside step 4, since step 1 doesn't
   actually work end-to-end without it.
+
+## Authorization
+
+**2026-07-31, founder** (recorded 2026-07-31): takeover run on branch
+`agent/grok-takeover-2026-07-30`, continuing the programme "autonomously from
+its sealed checkpoint through every authorized, unblocked item in PHASE.md",
+with a documentation/architecture tranche first, then Stage 9.2 onward. Scope
+limited to the takeover branch; `main` and `wip/stage-10-2-honeymoon` sealed.
+Explicitly instructed: "salvage the existing Stage 10.2 WIP branch", and
+"never weaken the validator to manufacture completion".
+
+### 2026-07-31 takeover run (agent: Claude, Hyperagent cloud sandbox)
+
+**Environment limits that shaped every decision below.** This agent runs in an
+isolated Linux container, not on the founder's Mac. No Docker, therefore no
+`supabase start`, therefore (a) no migration can be applied, (b)
+`supabase gen types typescript --local` cannot run, and (c) `apps/*/e2e/
+global-setup.ts` throws, so no Playwright journey and no run artifact can be
+produced. Consequence: **nothing in this run may be claimed `verified_local`**,
+and any queue item whose remaining work needs a migration is blocked here per
+the loop rules above. `registry.npmjs.org` was firewall-blocked until access was
+granted mid-run; `git push` has no credentials, so all commits were pushed
+through the GitHub API instead.
+
+- **Sealed checkpoint verified exactly**: `main` = `origin/main` =
+  `5b77fd0e069f498fbf2994b8dd4966e6f3e42d1e`, clean tree,
+  `wip/stage-10-2-honeymoon` = `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`.
+  Neither ref was touched at any point in this run.
+- **Handoff premise corrected.** The takeover brief stated the previous agent
+  died before committing and that three ecosystem docs were uncommitted. False:
+  `87d2d13` already existed and was already pushed on this branch with exactly
+  those 402 additions. Nothing was lost and nothing needed recovering. The brief
+  also omitted that the same commit carried 162 deletions; those were reviewed
+  line by line and were a rewrite, not a loss — two safety guards (affiliate
+  listings never resembling retailer stock; refusal to sell named profiles) came
+  back stronger as tables. Genuinely dropped and restored by `df9f9b2`: the
+  external affiliate-settlement citations (Shopify Collabs, Partnerize).
+- **`df9f9b2` — documentation tranche completed.** `87d2d13` had updated only
+  three of the five canonical files the tranche named. Added the missing two:
+  `PAON_UNIFIED_RETAIL_OS_TARGET_ARCHITECTURE.md` Stage 15 previously covered
+  only MunroMerchant procurement and omitted the entire lifestyle network, now
+  split into network and procurement halves with Deliver/Acceptance; `PHASE.md`
+  gained items **15.4** (`NET-105` Audience Studio and advertising inventory)
+  and **15.5** (`NET-106` governed insights, clean-room and entitlement
+  exchange). Both left unchecked. No status advanced, no software claimed.
+- **Stage 10.2 WIP salvaged by audit, not by merge.** Audited read-only at
+  `ec58c8e`; branch neither merged nor modified, per the Resume Protocol's "do
+  not absorb unfinished 10.2 into `main`". The work is sound (pure domain, no
+  `any`, `retailer_id` + RLS on both tables, a DB-level
+  `requires_payment_approval = false` constraint) but **does not compile**. The
+  five required repairs are recorded in `PROJECT_STATE.md`; the first —
+  regenerating `database.types.ts` — is `blocked_external` without Docker.
+  Deliberately did **not** hand-write the generated types file to force a
+  compile: that would have created the second source of truth `AGENTS.md`
+  forbids and would silently diverge from generator output.
+- **`4bc3076` — real HMAC webhook verification (Stage 9.2, domain only).**
+  Found a security-shaped defect while inventorying 9.2:
+  `verifyFadenWebhookFixture` computed
+  `sha256:${sharedSecret}:${providerEventId}:${timestamp}:${rawBody.length}`
+  and string-compared it — the shared secret sits in the signature in
+  plaintext, only the body _length_ is bound (so any equal-length tampered body
+  passes), the compare is not constant-time, and there is no replay window.
+  It is labelled a fixture in its own comment, but it takes a defaulted secret
+  argument and a benign name, and 9.2's owner boundary asks for signed
+  webhooks — a live route wired to it would accept forged bodies. Added
+  `buildFadenWebhookSigningPayload` (binds the complete raw body) and
+  `verifyFadenWebhookSignature` (constant-time compare, symmetric skew window,
+  typed rejection reason so signature-vs-replay is observable); marked the old
+  helper `@deprecated` with those reasons; added a test that documents the
+  equal-length forgery it accepts. HMAC is **injected as a port**, not
+  imported: domain source uses no Node builtins and its barrel reaches
+  `"use client"` components, so `node:crypto` here would risk client bundles.
+- **Stage 9.2 is not completable in this environment, and was not faked.**
+  Inventory found more already built than `PHASE.md` implies —
+  `integration_connections`, `integration_raw_events` (already idempotent on
+  `(connection_id, provider_event_id)`), `source_authority_policies`,
+  `external_identities`, `integration_handoff_tasks`, a
+  `SourceAuthorityRepository` whose `ingestFadenReadOnly` is the only writer of
+  raw events, an admin integration-health page and a retailer read-only
+  integrations page. What remains needs **new schema**: connection config /
+  secret reference, sync cursor / checkpoint, explicit pause/resume/disconnect
+  state (`health_status` is `healthy|degraded|stale|failed|disconnected`, which
+  conflates a deliberate disconnect with failure and has no paused state or
+  actor/reason), scheduled-run history, dead-letter records, reconciliation
+  aggregates. There is no connector orchestrator and no Shopify/Faden webhook
+  route handler anywhere. Migration → type regeneration → Docker: blocked.
+- **`validate:completion` is RED on this branch and was deliberately left
+  red.** It already failed at `87d2d13`, before this agent changed anything
+  (proven by stashing and re-running there). Cause: the gate's
+  `EVIDENCE_ONLY_PATH_RE` allowlists `docs/evidence/`, `docs/PHASE.md`,
+  `docs/PROJECT_STATE.md` and `docs/PAON_INTELLIGENCE_PLATFORM.md` but not
+  `docs/NORTH_STAR.md` or `docs/vision/**`; because `87d2d13` touched those, the
+  8.4 and 9.1 run artifacts pinned at `eabc716` read as stale and both sealed
+  `verified_local` claims are rejected. `main` stays green only because its
+  post-proof changes are all allowlisted. **The fix is not to widen that
+  regex** — commit `9ceb374` ("Both harnesses re-passed on `eabc716` so
+  verified_local claims stay current") establishes that the sanctioned remedy is
+  to re-run the harnesses and bump the artifact `gitSha`. An earlier suggestion
+  in this run to widen the allowlist was retracted for that reason; widening it
+  would weaken the gate the founder explicitly said not to weaken.
+- **Gate at `4bc3076`:** lint, typecheck, unit tests (446 `@paon/domain` + 282
+  `@paon/database`), `format:check` and `build` all pass. `validate:completion`
+  red as above. Caveat for any auditor: turbo's _parallel_ `typecheck` and
+  `build` exit `137` (SIGKILL / OOM) in this 2-CPU / 4.2 GB sandbox and pass
+  only with `--concurrency=1`; that is environmental, so CI parallelism remains
+  the real check, not this run's serial pass.
+- **Exact next work, for whoever picks this up on a Docker-capable host:**
+  1. `supabase start`, then re-run
+     `apps/retailer/e2e/completion-harness.spec.ts` and
+     `apps/retailer/e2e/migration-write-through.spec.ts`; refresh
+     `docs/evidence/runs/{8.4,9.1}.json` `gitSha` to the then-current HEAD and
+     confirm `pnpm validate:completion` goes green. Do not edit the validator.
+  2. Optionally repair Stage 10.2 per the five items in `PROJECT_STATE.md`,
+     starting with `pnpm --filter @paon/database generate-types`.
+  3. Then Stage 9.2 proper: migration for the six missing concepts above →
+     regenerate types → repository → ingest orchestrator → Shopify/Faden webhook
+     route handlers using `verifyFadenWebhookSignature` (never the deprecated
+     fixture helper) → retailer connect/configure UI → admin health controls →
+     RLS and cross-tenant denial → multi-role Playwright proof → run artifact.
+     Stage 6 and 9.3 remain blocked; skip them.
