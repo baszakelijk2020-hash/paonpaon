@@ -75,3 +75,47 @@ The Intelligence Platform programme now turns this mission into an ordered
 implementation path: catalogue intelligence first, then advisor intelligence,
 wardrobe/MorningRoutine, relationship programmes, concierge, and compliant
 commerce. `PHASE.md` remains the sole queue; this mission does not reorder it.
+
+## Capolavoro Online / MunroMarché ecosystem north star
+
+Long-term, the same retailer–client relationship compounds into a **governed
+lifestyle network** the retailer curates without holding stock:
+
+- zero-stock lifestyle commerce across books, art, design, hospitality,
+  restaurants, travel, automotive, golf, jewelry, grooming, culture and
+  experiences;
+- affiliate, referral, qualified-lead, booking, supplier-fulfilled and
+  local-partner commercial models with explicit disclosure;
+- lifestyle concierge and network rewards on append-only liability ledgers;
+- third-party publisher/media cards with rights, attribution, outbound links
+  and retailer activation;
+- MunroMentions without copying the referrer’s identity into the invitee;
+- distinct portals for retailer, partner, publisher, advertiser, fulfiller and
+  PAON;
+- Audience Studio with versioned cohorts and policy-aware forecasting;
+- advertising inventory (placements, orders, line items, flights, creatives,
+  budgets, pacing, frequency caps) and CPM/CPC/CPL/CPA/affiliate/sponsorship/
+  booking economics;
+- impression, viewability, click, lead, booking, conversion, refund and
+  reversal events with attribution, incrementality, deduplication and fraud
+  review;
+- multi-party revenue-sharing ledgers;
+- aggregate insights, retailer benchmarking, PAON-executed audiences,
+  pseudonymous attribution, clean-room matching, contracted data exchange,
+  retailer exports and customer-requested named introductions only;
+- provenance, purpose, contract, entitlement, retention, correction, deletion
+  and recomputation on every network fact and event.
+
+**Commercial north star:** governed access to highly specific, high-intent
+audiences and measurable outcomes — **not** uncontrolled named-profile
+exports.
+
+**Technical ceiling:** build the full capability model behind policy and
+entitlement controls so later activation restrictions are configuration, not a
+platform rebuild. Strictly separate the customer-facing lifestyle network from
+retailer-facing **MunroMerchant** B2B procurement.
+
+Canonical design:
+[vision/PAON_LIFESTYLE_ECOSYSTEM_AND_NETWORK_COMMERCE.md](./vision/PAON_LIFESTYLE_ECOSYSTEM_AND_NETWORK_COMMERCE.md).
+Implementation remains Stage 15+ in [PHASE.md](./PHASE.md) only — this section
+does not authorize early software.

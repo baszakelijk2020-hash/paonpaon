@@ -1,53 +1,78 @@
 # PAON Lifestyle Ecosystem and Network Commerce
 
-**Status:** expansive target design. Provider-neutral catalogue, attribution,
-eligibility and accounting contracts may be built before regulated money
-movement; live payment, stored value and data commercialization remain gated
-by explicit business/provider decisions.
+**Status:** expansive target design and commercial/technical ceiling. No Stage
+15 software is claimed as implemented by this document. Provider-neutral
+catalogue, attribution, eligibility, audience, advertising inventory and
+accounting contracts may be built before regulated money movement; live
+payment, stored value, media rights activation and data commercialization
+remain gated by explicit business/provider decisions and by `docs/PHASE.md`.
+
+**Commercial north star:** governed access to highly specific, high-intent
+audiences and measurable outcomes — not uncontrolled profile exports.
+
+**Product names in this surface family:** Capolavoro Online / MunroMarché
+(customer-facing lifestyle network curated by the retailer). MunroMerchant
+remains a separate B2B procurement context.
 
 ## The opportunity
 
 Independent premium retailers already create local partnerships with
-restaurants, hotels, golf clubs, car dealerships, jewelers and cultural
-institutions. PAON can turn those relationships into reusable infrastructure:
+restaurants, hotels, golf clubs, car dealerships, jewelers, cultural
+institutions, publishers and experience operators. PAON turns those
+relationships into reusable infrastructure:
 
-- retailer-curated lifestyle storefront;
-- affiliate/referral offers;
-- experiences and concierge;
-- reciprocal partner introductions;
+- retailer-curated zero-stock lifestyle commerce;
+- affiliate, referral, qualified-lead, booking, supplier-fulfilled and
+  local-partner models;
+- lifestyle concierge;
 - network rewards;
-- lifestyle media;
-- audience and campaign infrastructure.
+- third-party publisher/media cards with rights and attribution;
+- MunroMentions;
+- multi-portal operations (retailer, partner, publisher, advertiser,
+  fulfiller, PAON);
+- audience studio, versioned cohorts and forecasting;
+- advertising inventory with full order/line-item economics;
+- attribution, incrementality, experiments, deduplication and fraud review;
+- revenue-sharing ledgers across retailer / publisher / partner / PAON;
+- aggregate insights, benchmarking, clean-room matching and contracted
+  data exchange under entitlement;
+- the compounding flywheel from retailer trust to network intelligence.
 
 The customer should experience one trusted retailer becoming more useful. The
 retailer should gain engagement and incremental revenue without holding stock.
-The partner should reach a relevant audience and receive attributable demand.
+The partner, publisher or advertiser should reach a relevant audience and
+receive attributable demand under contract. PAON should compound network
+intelligence without selling named profiles.
 
 ## Product layers
 
-### 1. Curated lifestyle shelf
+### 1. Curated lifestyle shelf (zero-stock)
 
-Retailer selects from PAON-approved partner listings:
+Retailer selects from PAON-approved partner listings. Categories include at
+minimum:
 
 - books and magazines;
-- art/design objects;
-- travel, hospitality and dining;
-- watches/jewelry;
-- grooming/fragrance;
-- automotive/golf/cultural experiences;
-- services.
+- art and design objects;
+- hospitality, restaurants and travel;
+- automotive and golf experiences;
+- jewelry and watches;
+- grooming and fragrance;
+- culture, events and experiences;
+- services that the retailer does not stock.
 
-A listing can be:
+A listing commercial type is explicit and never ambiguous:
 
-- editorial outbound link;
-- tracked affiliate link;
-- lead/referral;
-- bookable experience;
-- supplier-fulfilled marketplace item;
-- local partner offer.
+| Type                                | Customer sees                    | Retailer holds stock | Fulfilment                |
+| ----------------------------------- | -------------------------------- | -------------------- | ------------------------- |
+| Editorial outbound link             | Disclosed external story/offer   | No                   | Outbound only             |
+| Tracked affiliate link              | Disclosed affiliate relationship | No                   | Partner/affiliate network |
+| Qualified lead / referral           | Introduction or enquiry form     | No                   | Partner lead intake       |
+| Bookable experience                 | Availability/request path        | No                   | Partner booking           |
+| Supplier-fulfilled marketplace item | Order status, not store stock    | No                   | Supplier/fulfiller        |
+| Local partner offer                 | Local terms and redemption       | No                   | Local partner             |
 
-The commercial type is explicit. PAON never makes an affiliate link look like
-stock fulfilled by the retailer.
+PAON never makes an affiliate link or supplier-fulfilled item look like stock
+fulfilled by the retailer.
 
 ### 2. Lifestyle concierge
 
@@ -58,18 +83,20 @@ Customer asks the trusted advisor or concierge layer to arrange:
 - flowers/gift;
 - chauffeur;
 - repair/care;
-- partner introduction.
+- partner introduction;
+- multi-step packages (for example Valentine reservation + roses + transport).
 
-Requests have owner, SLA, availability, quote/approval and outcome. Early
-versions can be human-coordinated tasks. Automation follows only where partner
-APIs/contracts exist.
+Requests carry owner, SLA, availability, quote/approval, exception path and
+outcome. Early versions can be human-coordinated tasks. Automation follows only
+where partner APIs and contracts exist. Non-money concierge operations must be
+buildable independently of stored-value/reward liability design.
 
 ### 3. Network rewards
 
 Use an append-only rewards ledger with:
 
 - earning rule and funding party;
-- pending/available/reversed/expired;
+- pending / available / reversed / expired states;
 - retailer vs PAON vs partner liability;
 - redemption catalogue and conversion rate;
 - transfer/partner account link only under an explicit contract;
@@ -82,20 +109,29 @@ promise cross-partner transferability before the liability/accounting design
 is approved. Source:
 [American Express Membership Rewards transfer partners](https://global.americanexpress.com/rewards/transfer).
 
-### 4. Lifestyle media
+### 4. Lifestyle media and third-party publisher cards
 
 Retailer activates a white-labeled section containing:
 
 - PAON-produced menswear/wardrobe/service thinking;
 - licensed partner/editorial feeds;
+- third-party publisher/media cards;
 - retailer/local stories;
 - campaign stories;
 - shoppable/affiliate components;
 - events and concierge actions.
 
-It is designed to create reasons to return between clothing purchases.
+Every third-party publisher/media card carries as first-class metadata:
+
+- rights grant and territory;
+- attribution and byline;
+- outbound link target and disclosure class;
+- retailer activation eligibility;
+- commercial model (sponsorship, CPL, affiliate, editorial);
+- expiry / recall / correction path.
+
 Publication rights, source attribution and commercial disclosure are content
-metadata, not a manual footnote.
+metadata, not a manual footnote. Unlicensed content must not be activatable.
 
 ### 5. MunroMentions
 
@@ -108,140 +144,271 @@ Customer shares:
 
 Tracking records the invitation and downstream consented outcome. The referred
 person creates their own identity and permissions. Existing customer data is
-not copied into the referral.
+not copied into the referral. MunroMentions may earn network rewards only under
+explicit funded liability rules.
 
-## Retailer activation
+## Portals and role ownership
 
-The owner browses a network catalogue and can:
+| Portal                     | Primary owner                | Core responsibilities                                                       |
+| -------------------------- | ---------------------------- | --------------------------------------------------------------------------- |
+| Customer lifestyle network | Customer + retailer curation | Browse curated shelf, media, concierge, rewards, MunroMentions              |
+| Retailer portal            | Manager/owner                | Curation, placement, audience mapping, activation, economics, exclusions    |
+| Partner portal             | Lifestyle partner            | Listings, terms, availability, lead/order confirmation, disputes            |
+| Publisher portal           | Media/publisher              | Rights, cards, attribution, territory, recall                               |
+| Advertiser portal          | Brand/agency advertiser      | Inventory discovery, orders, creatives, pacing, reporting under entitlement |
+| Fulfiller portal           | Supplier-fulfilled operator  | Order receipt, shipment/status, exceptions — minimum identity only          |
+| PAON portal                | Platform staff               | Network catalogue approval, contracts, fraud review, ledger ops, policy     |
 
-- preview customer placement;
-- see commission/referral terms and holding period;
-- choose branches/audience;
-- map retailer branding/copy;
-- exclude competitors or categories;
-- set approval requirement;
-- activate/deactivate;
-- view attributed visits, leads, confirmed sales, reversals and payable amount.
+Partner, publisher, advertiser and fulfiller receive the minimum data required
+to fulfill, attribute or measure. They do not receive a raw Self-Portrait or
+retailer client list unless a separately recorded, customer-requested named
+introduction is authorized.
 
-One toggle is possible only after a signed programme and required disclosures
-are already configured.
+## Audience studio, cohorts and forecasting
 
-## Partner portal
+Audience Studio is the governed planning surface for lifestyle and advertising
+activation:
 
-Partner manages:
+- versioned cohorts with cited eligibility rules;
+- forecast of reachable size under current policy/consent/entitlement;
+- retailer-executed vs PAON-executed audience modes;
+- holdout and experiment assignment;
+- frequency and contact-pressure caps shared with campaign/clienteling
+  rails where applicable;
+- no silent mutation of a live flight when the library cohort changes —
+  activations pin a cohort version.
 
-- organization and contract;
-- listing/feed and assets;
-- audience/territory eligibility;
-- inventory/availability if relevant;
-- commission, referral or placement terms;
-- tracking integration;
-- order/lead confirmation;
-- returns/cancellations;
-- invoice/payout;
-- creative approval;
-- performance and disputes.
+Forecasting must show sample size, window, exclusion reasons and policy
+denials. A large theoretical segment that policy forbids is reported as
+ineligible, not as inventory.
 
-Partner receives the minimum data required to fulfill or attribute. It does not
-receive a raw Self-Portrait or retailer client list.
+## Advertising inventory and commercial objects
 
-## Attribution architecture
+Provider-neutral advertising objects (buildable before live ad serving):
 
-Affiliate systems validate the mechanics: tracking links/codes, server events,
-pending periods, refund reversals, flexible commissions and automated payout.
-Sources: [Shopify Collabs commissions](https://help.shopify.com/en/manual/promoting-marketing/collabs/creators/payments)
-and [Partnerize platform](https://partnerize.com/platform).
+- inventory and placements (surface, format, territory, retailer scope);
+- orders and line items;
+- flights (schedule, timezone, status);
+- creatives (asset, disclosure, rights, review state);
+- budgets, pacing and frequency caps;
+- economics: CPM, CPC, CPL, CPA, affiliate, sponsorship, booking fee;
+- event stream: impression, viewability, click, lead, booking, conversion,
+  refund, reversal;
+- attribution path, incrementality experiment, deduplication key and fraud
+  review state.
+
+Every billable event is append-only, idempotent by provider/event key, and
+reversible through a compensating ledger entry — never by silent mutation.
+
+## Attribution, incrementality and integrity
 
 PAON records:
 
 - impression/placement;
+- viewability where contractually required;
 - click with opaque attribution ID;
 - partner handoff;
 - lead/booking/order callback;
-- transaction value and eligible commission;
+- transaction value and eligible commission/fee;
 - validation/holding period;
 - return/cancel/reversal;
-- approved payout/invoice.
+- approved payout/invoice;
+- experiment/holdout membership;
+- fraud-review disposition.
 
 Support link/code attribution first, server-to-server conversion callbacks
 second and provider adapters third. Cross-device identity is never claimed
-without actual evidence.
+without actual evidence. Incrementality language must distinguish observed
+correlation from experimental lift. Deduplication keys prevent double-pay
+across channels. Fraud review can hold or reverse payable amounts without
+erasing history.
 
-## Recommendation and audience
+## Revenue-sharing ledgers
 
-Use PAON evidence to rank eligible listings for the **retailer/customer
-experience**, but do not expose raw customer traits to every partner.
+Canonical append-only ledgers (not feature-local balances) record shares for:
 
-Example:
+- retailer;
+- publisher;
+- partner / fulfiller;
+- advertiser settlement side;
+- PAON platform fee.
 
-> Show an Amsterdam design-book event because the customer saved three
-> architecture stories and the retailer enabled local cultural partners.
+Each entry names programme, commercial model, funding party, liability party,
+holding state, tax/invoice reference class and reversal link. Accounting export
+is a projection over the ledger, not a second truth.
 
-Partner reporting can receive aggregated, thresholded audience/performance
-segments. One-to-one personal data sharing requires a separately recorded
-purpose and activation contract. Building the ability to segment does not mean
-silently selling a named person's profile.
+## Insights, benchmarking and data exchange under entitlement
 
-## Commercial models
+Allowed network intelligence modes, each gated by policy + contract +
+entitlement:
 
-Provider-neutral support:
+| Mode                                  | What leaves PAON                                 | Requires                 |
+| ------------------------------------- | ------------------------------------------------ | ------------------------ |
+| Aggregate insights                    | Thresholded counts/rates                         | Contract + minimum-n     |
+| Retailer benchmarking                 | Peer-anonymous aggregates                        | Contract + cohort rules  |
+| PAON-executed audiences               | Partner receives tokens/placements, not profiles | Programme + purpose      |
+| Pseudonymous attribution              | Opaque IDs and outcomes                          | Attribution contract     |
+| Clean-room matching                   | Matched aggregates only                          | Clean-room contract      |
+| Contracted data exchange              | Explicit field set, purpose, retention           | Data-processing terms    |
+| Retailer exports                      | Retailer-owned export of own tenant data         | Retailer authority       |
+| Customer-requested named introduction | Named handoff to a specific partner              | Customer request + audit |
 
-- affiliate percentage;
-- qualified lead fee;
-- confirmed booking fee;
-- fixed campaign placement;
-- retailer sponsorship share;
-- subscription/listing fee;
-- concierge/service margin;
-- rewards-funded promotion.
+**Rejected as product default:** sale or export of named customer profiles to
+advertisers or partners for uncontrolled reuse.
 
-Each programme records merchant/fulfiller, customer support owner, tax/invoice,
-refund, commission, retailer share and PAON share.
+## Provenance, purpose, entitlement, retention and recomputation
+
+Every lifestyle, media, advertising and rewards fact or event carries:
+
+- provenance (actor, source system, raw reference, time);
+- purpose (why collected / why processed);
+- contract and entitlement reference;
+- retention class and deletion/anonymization path;
+- correction path that recomputes derived eligibility, cohorts, forecasts and
+  payable projections.
+
+Capability is built first; activation is restricted by typed policy so later
+founders/legal choices do not force a platform rebuild. This is the same
+capability-vs-policy plane used in intelligence (ENG-006), extended to network
+commerce.
+
+## Technical ceiling (policy and entitlement)
+
+The platform must be able to represent, even when a tenant disables activation:
+
+1. full event and commercial object model above;
+2. all commercial models (affiliate through booking and sponsorship);
+3. all portal roles and minimum-data scopes;
+4. audience studio versioning and forecasting;
+5. revenue-share and rewards liability ledgers;
+6. clean-room and contracted exchange envelopes;
+7. correction, deletion, retention and recomputation;
+8. strict package/table separation from MunroMerchant B2B procurement.
+
+Later restrictions are configuration and contract state — not schema deletion.
 
 ## Relationship to MunroMerchant
 
 Do not mix them:
 
-- **Lifestyle network:** customer-facing partner commerce/media selected by a
-  retailer.
+- **Lifestyle network (Capolavoro Online / MunroMarché):** customer-facing
+  partner commerce, media, advertising placements and concierge selected by a
+  retailer for the customer relationship.
 - **MunroMerchant:** B2B procurement where the retailer buys hangers, bags,
-  mannequins, fixtures, furniture and services.
+  mannequins, fixtures, furniture and operating services.
 
-They may share partner onboarding, attribution and context-neutral money
-objects through interfaces, but not catalogue/order tables.
+They may share partner onboarding primitives, attribution interfaces and
+context-neutral money objects through interfaces, but **not** catalogue, order,
+cart, inventory or customer tables.
+
+## The compounding flywheel
+
+```text
+Retailer trust and curation
+  → customer evidence (consented, purpose-bound)
+    → relevance (Audience Studio + eligibility)
+      → engagement (shelf, media, concierge, MunroMentions)
+        → partner / publisher / advertiser demand
+          → revenue and network rewards (ledgered)
+            → network intelligence (aggregates, experiments, clean rooms)
+              → better retailer curation and customer usefulness
+```
+
+The moat is not "tens of thousands of profiles for sale." It is a distribution
+network of trusted retailer relationships, high-quality declared and observed
+intent, a standardized campaign/attribution/ad rail, a partner and publisher
+catalogue retailers can activate, measurable outcomes, and retailer economics
+under governance.
 
 ## Customer experience principles
 
 - the retailer's curation is visible;
-- sponsored/affiliate relationship is disclosed;
+- sponsored/affiliate/advertising relationship is disclosed;
 - external checkout vs retailer checkout is clear;
 - recommendations are sparse and useful;
 - customer can hide a topic/partner;
-- wardrobe/clienteling relationship is not polluted by every click;
+- wardrobe/clienteling relationship is not polluted by every ad click;
 - concierge has real human escalation;
-- no fake scarcity or impossible availability.
+- no fake scarcity or impossible availability;
+- frequency caps and contact pressure are honest.
 
-## Network effects
+## Future requirements, ownership, acceptance and tests
 
-The long-term moat is not "tens of thousands of profiles for sale." It is:
+These are **future Stage 15 / 16 requirements**. They authorize design clarity
+only; implementation remains ordered by `docs/PHASE.md` and must not jump
+ahead of Stage 9–14 foundations.
 
-- a distribution network of trusted retailer relationships;
-- high-quality declared and observed intent;
-- a standardized campaign/attribution rail;
-- a partner catalogue retailers can activate;
-- measurable customer outcomes;
-- retailer economics and curation control.
+### NET-101 — Partner catalogue and retailer curation
 
-That can become a valuable media/commerce network while remaining technically
-legible and commercially defensible.
+- **Owner:** domain + partner/retailer portals; PAON approval.
+- **Acceptance:** retailer activates a disclosed zero-stock listing across
+  lifestyle categories; commercial type is explicit; partner has no raw
+  Self-Portrait access.
+- **Tests:** category fixtures; commercial-type disclosure; RLS; activation
+  prerequisites; competitor exclusion.
 
-## Delivery
+### NET-102 — Attribution and economics
 
-1. partner/listing/programme contracts and external-link attribution.
-2. retailer curation shelf and customer placement.
-3. conversion confirmation, holding/reversal and reporting.
-4. concierge requests and local partner operations.
-5. media library/licensing and campaign components.
-6. provider-backed booking/affiliate adapters.
-7. rewards liability/transfer after explicit design gate.
-8. aggregated partner audience planning and network optimization.
+- **Owner:** attribution/event ledger + reporting projections.
+- **Acceptance:** click → lead/booking/order → hold → payout path; refund
+  reverses payable share; CPM/CPC/CPL/CPA/affiliate/sponsorship/booking models
+  are representable; fraud hold is observable.
+- **Tests:** idempotent events; holding/reversal; multi-party revenue share;
+  dedupe keys; experiment/holdout membership.
+
+### NET-103 — Media, publisher cards, MunroMentions, concierge ops
+
+- **Owner:** media/publisher portals + customer placement + concierge tasks.
+- **Acceptance:** rights/attribution/outbound/retailer-activation metadata on
+  every publisher card; MunroMentions track invitation without copying identity;
+  concierge request reaches outcome without inventing money movement.
+- **Tests:** rights expiry blocks activation; attribution required; referral
+  isolation; concierge SLA/exception states.
+
+### NET-104 — Rewards liability
+
+- **Owner:** rewards ledger; gated by ADR-062 / Stage 6 money decisions where
+  stored value applies.
+- **Acceptance:** funded/pending/available/reversed/expired entries name
+  liability party; transfer only under contract.
+- **Tests:** ledger immutability; reversal; expiry; no cash claim without
+  design gate.
+
+### NET-105 — Audience Studio and advertising inventory
+
+- **Owner:** audience + ad inventory bounded context; advertiser/PAON portals.
+- **Acceptance:** versioned cohorts with forecast under policy; order → line
+  item → flight → creative → paced delivery events; frequency caps enforced;
+  PAON-executed audience never exports named profiles by default.
+- **Tests:** cohort pin on activation; policy-denied forecast; pacing;
+  frequency cap; cross-tenant denial; creative rights gate.
+
+### NET-106 — Insights, clean-room, entitlement export
+
+- **Owner:** network intelligence + policy/entitlement plane.
+- **Acceptance:** aggregate/benchmark/clean-room/contracted exchange modes only;
+  customer-requested named introduction is audited; deletion/correction
+  recomputes derived objects.
+- **Tests:** minimum-n thresholds; entitlement matrix; correction recompute;
+  rejection of uncontrolled named export.
+
+## Delivery sequence (when Stage 15 is authorized)
+
+1. partner/listing/programme contracts and external-link attribution;
+2. retailer curation shelf and customer placement;
+3. conversion confirmation, holding/reversal and multi-party reporting;
+4. concierge requests and local partner operations;
+5. media library, publisher cards, licensing and MunroMentions;
+6. Audience Studio, ad inventory objects and event economics;
+7. provider-backed booking/affiliate/ad adapters;
+8. rewards liability/transfer after explicit design gate;
+9. clean-room, benchmarking and contracted exchange under entitlement;
+10. network optimization over ledgered outcomes — never over raw profile sale.
+
+## Explicit non-claims
+
+- This document does **not** implement Stage 15 software.
+- Vision completeness does **not** authorize jumping the `PHASE.md` queue.
+- Live advertising, payment, stored value and media rights remain
+  `blocked_external` until contracts and credentials exist, even after local
+  provider-neutral capability ships.

@@ -250,23 +250,44 @@ from the source is implemented.
 
 ## 10. Lifestyle network, MunroMarché, rewards and media
 
-| ID     | Capability from the sources                   | Real connected implementation                                                  | Roles/surfaces              | Placement | State |
-| ------ | --------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------- | --------- | ----- |
-| NET-01 | Capolavoro Online/MunroMarché                 | approved lifestyle partner listings curated by retailer                        | customer, manager, partner  | 15.1      | `Q`   |
-| NET-02 | Zero-stock books/art/watches/cars/experiences | external fulfilment/referral with disclosure, attribution and status           | customer, retailer, partner | 15.1      | `Q`   |
-| NET-03 | Retailer one-toggle curation                  | retailer maps placement/audience and activates contracted programme            | manager                     | 15.1      | `Q`   |
-| NET-04 | Fine-grained audience relevance               | eligibility executed inside PAON; partner receives token, not raw profile      | customer, partner           | 15.1      | `Q`   |
-| NET-05 | Affiliate/ad/referral economics               | attribution, confirmation, hold, reversal and reporting                        | retailer, partner, PAON     | 15.1      | `Q`   |
-| NET-06 | Local retailer partnerships                   | partner programme for golf, hotel, car, jewelry, restaurant and events         | manager, customer           | 15.1      | `Q`   |
-| NET-07 | Lifestyle concierge                           | request, supplier options, booking state, exception and outcome                | customer, advisor, partner  | 15.2      | `Q`   |
-| NET-08 | Valentine reservation/roses/chauffeur         | a configured concierge package over NET-07                                     | customer, advisor           | 15.2      | `Q`   |
-| NET-09 | MunroMiles/MunroMiglia rewards                | explicit funded/pending/available/reversed liability ledger                    | customer, manager           | 15.2      | `B`   |
-| NET-10 | Cross-partner earning/redemption              | commercial, accounting and provider design before activation                   | customer, partner           | 15.2      | `B`   |
-| NET-11 | Media/lifestyle feed                          | rights-aware approved feed/article, territory and expiry                       | customer, manager           | 16.2      | `Q`   |
-| NET-12 | MunroMentions                                 | shoppable editorial mention with product/partner attribution                   | customer                    | 16.2      | `Q`   |
-| NET-13 | Retailer daily-return habit                   | MorningRoutine/media/service/campaign relevance, measured honestly             | customer, manager           | 10.2/16.2 | `Q`   |
-| NET-14 | Shared ad revenue                             | contracted placement and ledgered attribution, no fabricated reach             | retailer, PAON, partner     | 15.1/16.2 | `B`   |
-| NET-15 | Sell/export named customer profiles           | deliberately rejected; monetization uses audience execution/opaque attribution | none                        | non-goal  | `X`   |
+Canonical design authority for this family:
+`docs/vision/PAON_LIFESTYLE_ECOSYSTEM_AND_NETWORK_COMMERCE.md`. Rows below are
+**queued target design** (`Q`/`B`/`X`); none claim Stage 15 software is shipped.
+
+| ID     | Capability from the sources                                                                               | Real connected implementation                                                                                   | Roles/surfaces                                 | Placement   | State |
+| ------ | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ----------- | ----- |
+| NET-01 | Capolavoro Online/MunroMarché                                                                             | approved lifestyle partner listings curated by retailer                                                         | customer, manager, partner                     | 15.1        | `Q`   |
+| NET-02 | Zero-stock books/art/design/hospitality/restaurants/travel/auto/golf/jewelry/grooming/culture/experiences | external fulfilment/referral/booking with disclosure, attribution and status                                    | customer, retailer, partner, fulfiller         | 15.1        | `Q`   |
+| NET-03 | Retailer one-toggle curation                                                                              | retailer maps placement/audience and activates contracted programme                                             | manager                                        | 15.1        | `Q`   |
+| NET-04 | Fine-grained audience relevance                                                                           | eligibility executed inside PAON; partner receives token, not raw profile                                       | customer, partner                              | 15.1        | `Q`   |
+| NET-05 | Affiliate/referral/lead/booking/supplier-fulfilled economics                                              | attribution, confirmation, hold, reversal and multi-party reporting                                             | retailer, partner, PAON, fulfiller             | 15.1        | `Q`   |
+| NET-06 | Local retailer partnerships                                                                               | partner programme for golf, hotel, car, jewelry, restaurant and events                                          | manager, customer                              | 15.1        | `Q`   |
+| NET-07 | Lifestyle concierge                                                                                       | request, supplier options, booking state, exception and outcome                                                 | customer, advisor, partner                     | 15.2        | `Q`   |
+| NET-08 | Valentine reservation/roses/chauffeur                                                                     | a configured concierge package over NET-07                                                                      | customer, advisor                              | 15.2        | `Q`   |
+| NET-09 | MunroMiles/MunroMiglia rewards                                                                            | explicit funded/pending/available/reversed liability ledger                                                     | customer, manager                              | 15.2        | `B`   |
+| NET-10 | Cross-partner earning/redemption                                                                          | commercial, accounting and provider design before activation                                                    | customer, partner                              | 15.2        | `B`   |
+| NET-11 | Media/lifestyle feed                                                                                      | rights-aware approved feed/article, territory and expiry                                                        | customer, manager, publisher                   | 16.2        | `Q`   |
+| NET-12 | MunroMentions                                                                                             | invitation + shoppable editorial mention; invitee creates own identity; product/partner attribution             | customer                                       | 15.1/16.2   | `Q`   |
+| NET-13 | Retailer daily-return habit                                                                               | MorningRoutine/media/service/campaign relevance, measured honestly                                              | customer, manager                              | 10.2/16.2   | `Q`   |
+| NET-14 | Shared ad/network revenue                                                                                 | contracted placement and ledgered multi-party attribution, no fabricated reach                                  | retailer, PAON, partner, publisher, advertiser | 15.1/16.2   | `B`   |
+| NET-15 | Sell/export named customer profiles                                                                       | deliberately rejected; monetization uses audience execution/opaque attribution                                  | none                                           | non-goal    | `X`   |
+| NET-16 | Third-party publisher/media cards                                                                         | rights, attribution, outbound links, disclosure class, retailer activation eligibility, recall                  | publisher, PAON, manager, customer             | 15.1/16.2   | `A`   |
+| NET-17 | Multi-portal network operations                                                                           | distinct retailer/partner/publisher/advertiser/fulfiller/PAON portals with minimum-data scopes                  | all network roles                              | 15.1–15.3   | `A`   |
+| NET-18 | Audience Studio, versioned cohorts, forecasting                                                           | cited eligibility, cohort version pin, policy-aware reachable-size forecast, holdouts                           | manager, PAON, advertiser (entitled)           | 15.1        | `A`   |
+| NET-19 | Advertising inventory objects                                                                             | placements, orders, line items, flights, creatives, budgets, pacing, frequency caps                             | advertiser, PAON, retailer                     | 15.1        | `A`   |
+| NET-20 | Ad/network commercial models                                                                              | CPM, CPC, CPL, CPA, affiliate, sponsorship, booking fee as first-class programme economics                      | advertiser, partner, retailer, PAON            | 15.1        | `A`   |
+| NET-21 | Billable and outcome event stream                                                                         | impression, viewability, click, lead, booking, conversion, refund, reversal — append-only and idempotent        | system, partner, advertiser, PAON              | 15.1        | `A`   |
+| NET-22 | Attribution, incrementality, dedupe, fraud review                                                         | opaque attribution IDs, experiment/holdout, dedupe keys, hold/reverse payable without erasing history           | PAON, advertiser, partner                      | 15.1        | `A`   |
+| NET-23 | Multi-party revenue-sharing ledgers                                                                       | retailer/publisher/partner/PAON shares as canonical ledger entries, not feature-local balances                  | retailer, publisher, partner, PAON             | 15.1/15.2   | `A`   |
+| NET-24 | Aggregate insights and retailer benchmarking                                                              | thresholded, peer-anonymous aggregates under contract                                                           | manager, PAON                                  | 15.1/14.2   | `A`   |
+| NET-25 | PAON-executed audiences and pseudonymous attribution                                                      | partner receives tokens/placements/outcomes, not raw profiles                                                   | partner, advertiser, PAON                      | 15.1        | `A`   |
+| NET-26 | Clean-room matching and contracted data exchange                                                          | matched aggregates or explicit field sets with purpose, retention and entitlement                               | PAON, contracted counterparty                  | 15.1        | `A`   |
+| NET-27 | Retailer exports and customer-requested named introductions                                               | retailer-owned export of own data; named handoff only on customer request with audit                            | retailer, customer, partner                    | 15.1        | `A`   |
+| NET-28 | Provenance/purpose/entitlement/retention/correction/deletion/recompute                                    | every network fact/event carries governance fields; correction recomputes derived objects                       | all network roles                              | 15.1–15.2   | `A`   |
+| NET-29 | Compounding network flywheel                                                                              | retailer → evidence → relevance → engagement → partner demand → revenue/rewards → network intelligence loop     | product architecture                           | 15.x design | `A`   |
+| NET-30 | Strict lifestyle vs MunroMerchant separation                                                              | no shared catalogue/order/cart/customer tables between Capolavoro Online and B2B procurement                    | all                                            | invariant   | `Q`   |
+| NET-31 | Policy/entitlement technical ceiling                                                                      | full commercial/event model representable; activation restricted by policy so later limits need no rebuild      | PAON platform                                  | 15.x design | `A`   |
+| NET-32 | Commercial north star = governed high-intent access + measurable outcomes                                 | product and legal language forbid uncontrolled profile sale; measurable ledgered outcomes are the sellable unit | PAON, retailer, advertiser                     | invariant   | `A`   |
 
 ## 11. MunroMerchant and retailer operating services
 
@@ -380,7 +401,15 @@ be added to PHASE rather than treated as implied:
 10. the wedding-party apparel coordination vertical (`WED-02`–`WED-08`,
     `WED-15`);
 11. remnant/upcycled product-drop incubation (`FUT-04`);
-12. an AMAM consultancy project/deliverable workflow (`MKT-08`).
+12. an AMAM consultancy project/deliverable workflow (`MKT-08`);
+13. Capolavoro Online / MunroMarché full commercial and technical ceiling
+    (`NET-16`–`NET-32`): publisher cards, multi-portal roles, Audience Studio,
+    advertising inventory/economics/events, attribution integrity,
+    multi-party revenue ledgers, clean-room/entitlement exchange, provenance
+    plane, flywheel, lifestyle↔MunroMerchant separation, and the governed
+    high-intent audience commercial north star — design captured in
+    `PAON_LIFESTYLE_ECOSYSTEM_AND_NETWORK_COMMERCE.md` and PHASE Stage 15
+    acceptance; **software not claimed implemented**.
 
 The complete wedding-planning platform, M&A/corporate-finance strategy,
 unrestricted ad-data sale and technically false measurement claims are
