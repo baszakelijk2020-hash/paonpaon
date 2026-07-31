@@ -1436,27 +1436,33 @@ export type Database = {
           display_order: number;
           id: string;
           look_id: string;
-          product_id: string;
+          product_id: string | null;
           retailer_id: string;
           slot_kind: string;
+          source: string | null;
+          wardrobe_item_id: string | null;
         };
         Insert: {
           created_at?: string;
           display_order?: number;
           id?: string;
           look_id: string;
-          product_id: string;
+          product_id?: string | null;
           retailer_id: string;
           slot_kind: string;
+          source?: string | null;
+          wardrobe_item_id?: string | null;
         };
         Update: {
           created_at?: string;
           display_order?: number;
           id?: string;
           look_id?: string;
-          product_id?: string;
+          product_id?: string | null;
           retailer_id?: string;
           slot_kind?: string;
+          source?: string | null;
+          wardrobe_item_id?: string | null;
         };
         Relationships: [
           {
@@ -1478,6 +1484,13 @@ export type Database = {
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "campaign_challenge_look_slots_wardrobe_item_id_fkey";
+            columns: ["wardrobe_item_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_items";
             referencedColumns: ["id"];
           },
         ];
@@ -3781,6 +3794,122 @@ export type Database = {
           },
           {
             foreignKeyName: "fitting_sessions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      honeymoon_programme_actions: {
+        Row: {
+          created_at: string;
+          due_hint: string;
+          id: string;
+          kind: string;
+          programme_id: string;
+          requires_payment_approval: boolean;
+          retailer_id: string;
+          suppressed: boolean;
+          suppression_reason: string | null;
+          title: string;
+        };
+        Insert: {
+          created_at?: string;
+          due_hint: string;
+          id?: string;
+          kind: string;
+          programme_id: string;
+          requires_payment_approval?: boolean;
+          retailer_id: string;
+          suppressed?: boolean;
+          suppression_reason?: string | null;
+          title: string;
+        };
+        Update: {
+          created_at?: string;
+          due_hint?: string;
+          id?: string;
+          kind?: string;
+          programme_id?: string;
+          requires_payment_approval?: boolean;
+          retailer_id?: string;
+          suppressed?: boolean;
+          suppression_reason?: string | null;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "honeymoon_programme_actions_programme_id_fkey";
+            columns: ["programme_id"];
+            isOneToOne: false;
+            referencedRelation: "honeymoon_programmes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "honeymoon_programme_actions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      honeymoon_programmes: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          id: string;
+          library_version_id: string | null;
+          order_id: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          library_version_id?: string | null;
+          order_id: string;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          library_version_id?: string | null;
+          order_id?: string;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "honeymoon_programmes_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "honeymoon_programmes_library_version_id_fkey";
+            columns: ["library_version_id"];
+            isOneToOne: false;
+            referencedRelation: "campaign_library_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "honeymoon_programmes_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: true;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "honeymoon_programmes_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";

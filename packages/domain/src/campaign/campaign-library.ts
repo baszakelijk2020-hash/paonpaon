@@ -6,7 +6,12 @@
 
 export const CAMPAIGN_LIBRARY_PROJECTOR_VERSION = "campaign-library-v1";
 
-export const CAMPAIGN_LIBRARY_KEYS = ["private_offer_member_fabric"] as const;
+export const CAMPAIGN_LIBRARY_KEYS = [
+  "private_offer_member_fabric",
+  // PHASE 10.2 (CMP-105/CMP-106/WRD-104) — see seven-day-honeymoon.ts.
+  "seven_day_wardrobe",
+  "honeymoon_phase",
+] as const;
 
 export type CampaignLibraryKey = (typeof CAMPAIGN_LIBRARY_KEYS)[number];
 

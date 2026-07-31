@@ -1,4 +1,5 @@
 import {
+  HoneymoonProgrammeRepository,
   OrderRepository,
   PaymentRepository,
   ProductVariantRepository,
@@ -10,9 +11,11 @@ import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
 import { notFound } from "next/navigation";
 
+import { HoneymoonProgrammeCard } from "./honeymoon-programme-card";
 import { PayPanel } from "./pay-panel";
 
 import { requireSession } from "@/lib/session";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function OrderDetailPage({
@@ -43,6 +46,35 @@ export default async function OrderDetailPage({
   const variants = await Promise.all(
     lines.map((line) => variantRepo.findById(line.productVariantId)),
   );
+
+  // Order-to-delivery tracker (PHASE 10.2 / CMP-106). Recomputed on every
+  // view from the order's current status and each variant's real
+  // inventory/lead-time — never a cached snapshot that could drift from
+  // stock truth. Uses the admin client because honeymoon_programmes /
+  // honeymoon_programme_actions are service-role-write-only (matching
+  // integration_connections before its own retailer-write grant was added
+  // for PHASE 9.2 — these tables have no such grant, since a customer must
+  // never set their own action's suppression state). contactPressureActive
+  // is false here deliberately: that field suppresses unsolicited STAFF
+  // outreach, not a customer's own view of their own order.
+  const admin = getSupabaseAdminClient();
+  const honeymoonProgramme = await new HoneymoonProgrammeRepository(
+    admin,
+  ).ensureForOrder({
+    retailerId: order.retailerId,
+    customerId: order.customerId,
+    orderId: order.id,
+    orderStatus: order.status,
+    contactPressureActive: false,
+    lines: variants
+      .filter((variant) => variant !== null)
+      .map((variant) => ({
+        productLabel: variant.sku,
+        quantity: 1,
+        inStock: variant.inventoryQuantity > 0,
+        leadTimeDays: variant.leadTimeDays ?? 0,
+      })),
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -143,6 +175,8 @@ export default async function OrderDetailPage({
           Refunded {formatMoney(paymentRecord.amount, "en-US")}.
         </p>
       ) : null}
+
+      <HoneymoonProgrammeCard programme={honeymoonProgramme} />
     </div>
   );
 }

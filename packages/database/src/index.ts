@@ -79,6 +79,7 @@ export * from "./repositories/morning-routine-delivery-repository";
 export * from "./morning-routine-delivery-orchestrator";
 export * from "./repositories/campaign-repository";
 export * from "./repositories/campaign-library-repository";
+export * from "./repositories/honeymoon-programme-repository";
 export * from "./campaign-delivery-orchestrator";
 export * from "./faden-webhook-ingest-orchestrator";
 export * from "./shopify-delta-sync-orchestrator";

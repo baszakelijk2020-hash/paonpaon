@@ -59,8 +59,17 @@ Snapshot: 2026-07-30 (save-game seal).
   once a campaign is active; no new write was needed there. Still missing:
   automated order-to-mission outcome linking, a correction path for
   post-activation mapping changes, and multi-role browser proof.
-- Stage 10.2 Honeymoon/Seven-Day WIP is preserved on pushed branch
-  `wip/stage-10-2-honeymoon` @ `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5` (not mixed into sealed `main`).
+- Stage 10.2 is `implemented_unverified` (takeover branch only — not on
+  `main`): the honeymoon order-to-delivery tracker is real — order-linked,
+  idempotent, recomputed from live order status and variant inventory/lead
+  time on every read, rendered on the customer's own order page. The
+  owned-first seven-day domain logic (`composeSevenDayOwnedFirstPlan`) is
+  real and tested but has no customer UI yet, since the existing
+  `upsert_campaign_challenge_look` RPC still only accepts catalogue products
+  — wiring it to owned wardrobe items is separate follow-up. The original
+  `wip/stage-10-2-honeymoon` branch remains preserved and untouched at
+  `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`; this work is a fresh port
+  informed by reading it, not a merge of it.
 
 ## Stage 10.2 WIP salvage audit (2026-07-31)
 

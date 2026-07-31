@@ -1198,6 +1198,25 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     correction and outcomes.
   - **Non-goals:** no fabricated scarcity or unapproved one-click payment.
   - **Hard blockers:** payment eligibility blocks only payment action.
+  - **Landed:** salvaged and repaired from `wip/stage-10-2-honeymoon` (preserved,
+    never merged — this is fresh work on the takeover branch informed by
+    reading it). Domain (`seven-day-honeymoon.ts`): `composeSevenDayOwnedFirstPlan`
+    prefers owned wardrobe items, falls back to in-stock catalogue, otherwise
+    cites an explicit gap — never invents ownership; `deriveHoneymoonActions`
+    suppresses preparation/collection/aftercare on stock gaps, contact
+    pressure, or a canceled/refunded order, always `requiresPaymentApproval:
+false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
+    idempotent, and recomputes fresh from the order's live status and each
+    variant's real inventory/lead-time on every read — rendered on
+    `apps/customer`'s order detail page, so a customer sees their own honest
+    preparation/collection/aftercare state, not a decorative timeline.
+    `campaign_challenge_look_slots` gained nullable `product_id` +
+    `wardrobe_item_id`/`source` so an owned-first look can exist at the schema
+    level. Missing: the seven-day owned-first composition has no customer UI
+    yet — `upsert_campaign_challenge_look`'s RPC still only accepts catalogue
+    products, so wiring `composeSevenDayOwnedFirstPlan` to a real challenge
+    look is separate follow-up work, not done here; the month/season roadmap
+    visualization; and multi-role browser proof.
 
 - [ ] **10.3 Unified communication and remote proposals**
   - **Requirement IDs:** clienteling parity target; `CLI-004`, `CMP-103`.

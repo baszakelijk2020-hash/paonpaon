@@ -140,7 +140,11 @@ function toSlot(row: SlotRow): CampaignChallengeLookSlot {
     lookId: asId<"CampaignChallengeLookId">(row.look_id),
     retailerId: asId<"RetailerId">(row.retailer_id),
     slotKind: row.slot_kind as OutfitSlotKind,
-    productId: asId<"ProductId">(row.product_id),
+    ...(row.product_id ? { productId: asId<"ProductId">(row.product_id) } : {}),
+    ...(row.wardrobe_item_id ? { wardrobeItemId: row.wardrobe_item_id } : {}),
+    ...(row.source
+      ? { source: row.source as "owned" | "suggested" | "gap" }
+      : {}),
     displayOrder: row.display_order,
   };
 }

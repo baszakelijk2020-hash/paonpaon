@@ -217,7 +217,12 @@ export interface CampaignChallengeLookSlot {
   readonly lookId: CampaignChallengeLookId;
   readonly retailerId: RetailerId;
   readonly slotKind: OutfitSlotKind;
-  readonly productId: ProductId;
+  /** Absent for an owned-wardrobe slot (see wardrobeItemId) or a cited gap. */
+  readonly productId?: ProductId;
+  /** Set only when source is "owned" (PHASE 10.2 / seven-day-honeymoon.ts). */
+  readonly wardrobeItemId?: string;
+  /** Absent means the pre-10.2 catalogue-only shape (equivalent to "suggested"). */
+  readonly source?: "owned" | "suggested" | "gap";
   readonly displayOrder: number;
 }
 
