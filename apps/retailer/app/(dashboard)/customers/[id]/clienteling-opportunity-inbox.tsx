@@ -12,6 +12,7 @@ const TYPE_LABELS: Record<ClientelingOpportunity["type"], string> = {
   wardrobe_gap: "Wardrobe gap",
   anniversary_moment: "Anniversary moment",
   contact_pressure_warning: "Contact pressure",
+  campaign_mission: "Campaign mission",
 };
 
 /**

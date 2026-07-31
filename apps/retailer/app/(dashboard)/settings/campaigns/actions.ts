@@ -1,14 +1,18 @@
 "use server";
 
 import {
+  activateCampaignToStaffMissions,
   CampaignLibraryRepository,
   CampaignRepository,
+  rehearseCampaignActivation,
   RetailerStaffRepository,
 } from "@paon/database";
 import {
+  retailerRoleAtLeast,
   setCampaignTargetProductInputSchema,
   upsertCampaignAudienceRuleInputSchema,
   upsertCampaignInputSchema,
+  type CampaignRehearsalReport,
   type CampaignStatus,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
@@ -95,6 +99,72 @@ export async function setCampaignTargetProduct(
   await new CampaignRepository(
     await getSupabaseServerClient(),
   ).setTargetProduct(session.retailerId, parsed);
+  revalidatePath("/settings/campaigns");
+}
+
+/**
+ * Read-only preview (PHASE 10.1) — persisted via recordRehearsal so the
+ * settings page can show the last rehearsal after revalidatePath, without
+ * this action itself needing to return a value to a useActionState form.
+ *
+ * Uses the admin client because rehearsal reads every portal customer's
+ * consent and style-profile state on the retailer's behalf, not just the
+ * caller's own row — unlike this file's other actions there is no RLS
+ * backstop here, so the manager-or-above check below is load-bearing, not
+ * a UI nicety.
+ */
+export async function rehearseCampaign(formData: FormData): Promise<void> {
+  const session = await requireSession();
+  if (!retailerRoleAtLeast(session.retailerRole, "manager")) {
+    throw new Error("Only a manager or owner can rehearse a campaign.");
+  }
+  const campaignId = String(formData.get("campaignId") ?? "");
+  if (!campaignId) throw new Error("Missing campaign.");
+
+  const admin = getSupabaseAdminClient();
+  const report: CampaignRehearsalReport = await rehearseCampaignActivation(
+    admin,
+    { retailerId: session.retailerId, campaignId },
+  );
+  await new CampaignRepository(admin).recordRehearsal({
+    retailerId: session.retailerId,
+    campaignId,
+    report,
+  });
+  revalidatePath("/settings/campaigns");
+}
+
+/**
+ * Activates a campaign into shared staff missions (PHASE 10.1) and sets it
+ * live for matching customers in the same step — replaces the plain
+ * setCampaignStatus("active") call the button used before this existed.
+ * See the rehearseCampaign docstring above for why this uses the admin
+ * client and enforces the role check itself.
+ */
+export async function activateCampaignWithMissions(
+  formData: FormData,
+): Promise<void> {
+  const session = await requireSession();
+  if (!retailerRoleAtLeast(session.retailerRole, "manager")) {
+    throw new Error("Only a manager or owner can activate a campaign.");
+  }
+  const campaignId = String(formData.get("campaignId") ?? "");
+  const campaignTitle = String(formData.get("campaignTitle") ?? "");
+  const staffMission = String(formData.get("staffMission") ?? "");
+  if (!campaignId) throw new Error("Missing campaign.");
+
+  const admin = getSupabaseAdminClient();
+  const result = await activateCampaignToStaffMissions(admin, {
+    retailerId: session.retailerId,
+    campaignId,
+    campaignTitle,
+    staffMission,
+  });
+  await new CampaignRepository(admin).recordActivation({
+    retailerId: session.retailerId,
+    campaignId,
+    missionsCreated: result.missionsCreated,
+  });
   revalidatePath("/settings/campaigns");
 }
 

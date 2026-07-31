@@ -328,6 +328,81 @@ export class CampaignRepository {
     if (error) throw error;
   }
 
+  /**
+   * Persists a rehearsal preview (PHASE 10.1) directly on the campaign row —
+   * mirrors migration_jobs.dry_run_report's own projection-on-the-record
+   * pattern (9.1) rather than a second live state store the settings page
+   * would need to reconcile separately.
+   */
+  async recordRehearsal(args: {
+    readonly retailerId: string;
+    readonly campaignId: string;
+    readonly report: unknown;
+  }): Promise<void> {
+    const { error } = await this.client
+      .from("campaigns")
+      .update({
+        last_rehearsal_report: args.report as Json,
+        last_rehearsed_at: new Date().toISOString(),
+      })
+      .eq("id", args.campaignId)
+      .eq("retailer_id", args.retailerId);
+    if (error) throw error;
+  }
+
+  async recordActivation(args: {
+    readonly retailerId: string;
+    readonly campaignId: string;
+    readonly missionsCreated: number;
+  }): Promise<void> {
+    const { error } = await this.client
+      .from("campaigns")
+      .update({
+        status: "active",
+        last_activation_missions_created: args.missionsCreated,
+        last_activated_at: new Date().toISOString(),
+      })
+      .eq("id", args.campaignId)
+      .eq("retailer_id", args.retailerId);
+    if (error) throw error;
+  }
+
+  async getActivationTracking(args: {
+    readonly retailerId: string;
+    readonly campaignId: string;
+  }): Promise<{
+    readonly lastRehearsalReport: unknown;
+    readonly lastRehearsedAt?: string;
+    readonly lastActivationMissionsCreated?: number;
+    readonly lastActivatedAt?: string;
+  } | null> {
+    const { data, error } = await this.client
+      .from("campaigns")
+      .select(
+        "last_rehearsal_report, last_rehearsed_at, last_activation_missions_created, last_activated_at",
+      )
+      .eq("id", args.campaignId)
+      .eq("retailer_id", args.retailerId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return {
+      lastRehearsalReport: data.last_rehearsal_report,
+      ...(data.last_rehearsed_at
+        ? { lastRehearsedAt: data.last_rehearsed_at }
+        : {}),
+      ...(data.last_activation_missions_created !== null
+        ? {
+            lastActivationMissionsCreated:
+              data.last_activation_missions_created ?? undefined,
+          }
+        : {}),
+      ...(data.last_activated_at
+        ? { lastActivatedAt: data.last_activated_at }
+        : {}),
+    };
+  }
+
   async listAudienceRules(campaignId: string): Promise<CampaignAudienceRule[]> {
     const { data, error } = await this.client
       .from("campaign_audience_rules")

@@ -23,6 +23,7 @@ function opportunityRow(
     assigned_staff_id: null,
     best_time_window: "weekday evening",
     branch_label: null,
+    campaign_id: null,
     channel: "message",
     confidence: 0.8,
     contact_pressure: false,

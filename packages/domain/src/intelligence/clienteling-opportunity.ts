@@ -18,6 +18,10 @@ export const CLIENTELING_OPPORTUNITY_TYPES = [
   "wardrobe_gap",
   "anniversary_moment",
   "contact_pressure_warning",
+  /** A campaign activation's own staff mission (PHASE 10.1) — the same
+   * draft-task/contact-pressure/outcome-linking object every other type
+   * already is, distinguished only by carrying a campaignId. */
+  "campaign_mission",
 ] as const;
 
 export type ClientelingOpportunityType =
@@ -80,6 +84,8 @@ export interface ClientelingOpportunity {
   readonly cooldownUntil?: string;
   readonly contactPressure: boolean;
   readonly evidence: readonly ClientelingOpportunityEvidence[];
+  /** Set only for type "campaign_mission" (PHASE 10.1) — which activation created this mission. */
+  readonly campaignId?: string;
   readonly outcomeMessageId?: string;
   readonly outcomeAppointmentId?: string;
   readonly outcomeOrderId?: string;
@@ -178,4 +184,122 @@ export function buildInterestFollowUpOpportunities(
     evidence: [{ insightStatement: statement }],
     projectorVersion: CLIENTELING_OPPORTUNITY_PROJECTOR_VERSION,
   }));
+}
+
+/**
+ * One candidate customer for a campaign activation rehearsal (PHASE 10.1).
+ * The audience-rule match itself is decided by campaign.ts's
+ * evaluateAudienceRules — this stays with the per-customer contact-pressure
+ * check specifically, so the two concerns are never conflated into one
+ * opaque yes/no.
+ */
+export interface CampaignRehearsalCandidate {
+  readonly customerId: CustomerId;
+  readonly audienceMatch:
+    { readonly ok: true } | { readonly ok: false; readonly reason: string };
+  readonly recentTouchCount: number;
+  readonly cooldownUntil?: string;
+}
+
+export type CampaignRehearsalOutcome =
+  | { readonly customerId: CustomerId; readonly result: "eligible" }
+  | {
+      readonly customerId: CustomerId;
+      readonly result: "excluded";
+      readonly reason: string;
+    }
+  | { readonly customerId: CustomerId; readonly result: "contact_pressure" };
+
+export interface CampaignRehearsalReport {
+  readonly eligibleCount: number;
+  readonly excludedCount: number;
+  readonly contactPressureCount: number;
+  readonly outcomes: readonly CampaignRehearsalOutcome[];
+}
+
+/**
+ * Previews who a campaign activation would actually reach, without writing
+ * anything — 10.1's acceptance requires a campaign to be "rehearsed with
+ * prerequisites/exclusions/contact pressure" before it is activated into
+ * live missions and customer placements. Every candidate falls into exactly
+ * one bucket: audience mismatch, contact-pressure suppressed, or eligible.
+ */
+export function evaluateCampaignRehearsal(args: {
+  readonly candidates: readonly CampaignRehearsalCandidate[];
+  readonly now: string;
+}): CampaignRehearsalReport {
+  const outcomes: CampaignRehearsalOutcome[] = args.candidates.map(
+    (candidate) => {
+      if (!candidate.audienceMatch.ok) {
+        return {
+          customerId: candidate.customerId,
+          result: "excluded",
+          reason: candidate.audienceMatch.reason,
+        };
+      }
+      const pressure = isContactPressureActive({
+        recentTouchCount: candidate.recentTouchCount,
+        now: args.now,
+        ...(candidate.cooldownUntil
+          ? { cooldownUntil: candidate.cooldownUntil }
+          : {}),
+      });
+      if (pressure) {
+        return { customerId: candidate.customerId, result: "contact_pressure" };
+      }
+      return { customerId: candidate.customerId, result: "eligible" };
+    },
+  );
+
+  return {
+    eligibleCount: outcomes.filter((o) => o.result === "eligible").length,
+    excludedCount: outcomes.filter((o) => o.result === "excluded").length,
+    contactPressureCount: outcomes.filter(
+      (o) => o.result === "contact_pressure",
+    ).length,
+    outcomes,
+  };
+}
+
+export interface BuildCampaignMissionInput {
+  readonly retailerId: RetailerId;
+  readonly customerId: CustomerId;
+  readonly campaignId: string;
+  readonly campaignTitle: string;
+  readonly staffMission: string;
+  readonly now: string;
+  readonly assignedStaffId?: StaffId;
+}
+
+/**
+ * One shared staff mission for one customer under one campaign activation
+ * (PHASE 10.1). "Shared" means every eligible customer under the same
+ * activation gets the identical suggestedAction text (the campaign's own
+ * staffMission from its pinned library snapshot) — a mission is not
+ * re-authored per customer, only targeted per customer.
+ */
+export function buildCampaignMissionOpportunity(
+  input: BuildCampaignMissionInput,
+): Omit<ClientelingOpportunity, "id" | "createdAt" | "updatedAt"> {
+  return {
+    retailerId: input.retailerId,
+    customerId: input.customerId,
+    type: "campaign_mission",
+    whyNow: `Eligible for the "${input.campaignTitle}" campaign.`,
+    suggestedAction: input.staffMission,
+    channel: "in_person",
+    priority: 2,
+    confidence: 1,
+    status: "draft",
+    contactPressure: false,
+    campaignId: input.campaignId,
+    evidence: [],
+    ...(input.assignedStaffId
+      ? { assignedStaffId: input.assignedStaffId }
+      : {}),
+    expiresAt: new Date(
+      Date.parse(input.now) + 30 * 24 * 60 * 60 * 1000,
+    ).toISOString(),
+    projectorVersion: CLIENTELING_OPPORTUNITY_PROJECTOR_VERSION,
+  };
 }

@@ -1163,10 +1163,26 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
   - **Landed:** domain library snapshot + pin/prereq rules; migration
     `20260730330000_add_versioned_campaign_library.sql`;
     `CampaignLibraryRepository` ensure/clone with `library_version_id` pin;
-    Retailer campaigns settings shows library preview and clone. Missing:
-    mapping wizard, rehearsal, shared mission/customer placement, downstream
-    outcome/correction funnel and multi-role browser proof. Those are required
-    completion work for 10.1, not optional follow-ons.
+    Retailer campaigns settings shows library preview and clone, plus the
+    mapping wizard (audience-rule and target-product forms — this already
+    existed and was previously undercredited). Since: `evaluateCampaignRehearsal`
+    - `buildCampaignMissionOpportunity` (domain) and
+      `rehearseCampaignActivation` / `activateCampaignToStaffMissions`
+      (orchestrator, `campaign-activation-orchestrator.ts`) close rehearsal and
+      shared-staff-mission activation — a mission reuses `clienteling_opportunities`
+      (PHASE 7.4) via a new `campaign_id` column
+      (`20260801000000_add_campaign_mission_opportunities.sql`) rather than a
+      second staff-task table, so outcome linking (`linkOutcome`) is inherited
+      for free. Customer placement needed no new write: `apps/customer`'s
+      private-offers page already lists any `active` campaign whose audience
+      rules a customer matches. `20260801000001_...sql` persists the last
+      rehearsal/activation on the campaign row so the settings page can show it
+      after `revalidatePath`. Still missing: downstream continuation to
+      appointment/proposal/cart/order (a mission's `outcomeOrderId` can be
+      linked, but nothing yet automates linking it from an actual order), a
+      correction path when mapped products/audience change after activation
+      without silently reinterpreting the pinned snapshot, and multi-role
+      browser proof. Those remain required completion work for 10.1.
 
 - [ ] **10.2 Seven-Day Wardrobe and Honeymoon Phase**
   - **Requirement IDs:** `CMP-105`, `CMP-106`, `WRD-104`.

@@ -48,9 +48,17 @@ Snapshot: 2026-07-30 (save-game seal).
   role has been exercised in a browser proof. Live provider proof is
   additionally blocked on credentials.
 - Stage 9.3 is demand-led and blocked on prospect evidence.
-- Stage 10.1 is `implemented_unverified`: versioned library and pinned retailer
-  copies exist; mapping/rehearsal, staff/customer activation, outcome/
-  correction and multi-role browser proof are missing.
+- Stage 10.1 is `implemented_unverified` (takeover branch only — not on
+  `main`): versioned library, pinned retailer copies, and the retailer
+  mapping wizard (audience rules + target products) exist. Since: rehearsal
+  (`rehearseCampaignActivation`) and activation into shared staff missions
+  (`activateCampaignToStaffMissions`) are real, reusing `clienteling_opportunities`
+  (PHASE 7.4) for missions via a new `campaign_id` column rather than a
+  second staff-task table — outcome linking is inherited from that reuse.
+  Customer placement already worked via the existing private-offers page
+  once a campaign is active; no new write was needed there. Still missing:
+  automated order-to-mission outcome linking, a correction path for
+  post-activation mapping changes, and multi-role browser proof.
 - Stage 10.2 Honeymoon/Seven-Day WIP is preserved on pushed branch
   `wip/stage-10-2-honeymoon` @ `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5` (not mixed into sealed `main`).
 

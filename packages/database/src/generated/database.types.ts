@@ -1910,6 +1910,10 @@ export type Database = {
           frequency: string;
           id: string;
           kind: string;
+          last_activated_at: string | null;
+          last_activation_missions_created: number | null;
+          last_rehearsal_report: Json | null;
+          last_rehearsed_at: string | null;
           library_entry_id: string | null;
           library_pinned_at: string | null;
           library_version_id: string | null;
@@ -1936,6 +1940,10 @@ export type Database = {
           frequency?: string;
           id?: string;
           kind: string;
+          last_activated_at?: string | null;
+          last_activation_missions_created?: number | null;
+          last_rehearsal_report?: Json | null;
+          last_rehearsed_at?: string | null;
           library_entry_id?: string | null;
           library_pinned_at?: string | null;
           library_version_id?: string | null;
@@ -1962,6 +1970,10 @@ export type Database = {
           frequency?: string;
           id?: string;
           kind?: string;
+          last_activated_at?: string | null;
+          last_activation_missions_created?: number | null;
+          last_rehearsal_report?: Json | null;
+          last_rehearsed_at?: string | null;
           library_entry_id?: string | null;
           library_pinned_at?: string | null;
           library_version_id?: string | null;
@@ -2302,6 +2314,7 @@ export type Database = {
           assigned_staff_id: string | null;
           best_time_window: string | null;
           branch_label: string | null;
+          campaign_id: string | null;
           channel: string;
           confidence: number;
           contact_pressure: boolean;
@@ -2329,6 +2342,7 @@ export type Database = {
           assigned_staff_id?: string | null;
           best_time_window?: string | null;
           branch_label?: string | null;
+          campaign_id?: string | null;
           channel: string;
           confidence?: number;
           contact_pressure?: boolean;
@@ -2356,6 +2370,7 @@ export type Database = {
           assigned_staff_id?: string | null;
           best_time_window?: string | null;
           branch_label?: string | null;
+          campaign_id?: string | null;
           channel?: string;
           confidence?: number;
           contact_pressure?: boolean;
@@ -2385,6 +2400,13 @@ export type Database = {
             columns: ["assigned_staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "clienteling_opportunities_campaign_id_fkey";
+            columns: ["campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
             referencedColumns: ["id"];
           },
           {

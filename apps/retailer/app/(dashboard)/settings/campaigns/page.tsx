@@ -11,7 +11,9 @@ import { Button } from "@paon/ui/components/Button";
 import { notFound } from "next/navigation";
 
 import {
+  activateCampaignWithMissions,
   cloneCampaignFromLibrary,
+  rehearseCampaign,
   setCampaignStatus,
   setCampaignTargetProduct,
   upsertCampaign,
@@ -50,6 +52,10 @@ export default async function CampaignSettingsPage() {
       campaign,
       rules: await campaignRepo.listAudienceRules(campaign.id),
       targets: await campaignRepo.listTargetProducts(campaign.id),
+      tracking: await campaignRepo.getActivationTracking({
+        retailerId: session.retailerId,
+        campaignId: campaign.id,
+      }),
     })),
   );
 
@@ -224,7 +230,7 @@ export default async function CampaignSettingsPage() {
           No campaigns yet.
         </p>
       ) : (
-        campaignsWithRules.map(({ campaign, rules, targets }) => (
+        campaignsWithRules.map(({ campaign, rules, targets, tracking }) => (
           <section
             key={campaign.id}
             className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-5 py-4"
@@ -242,24 +248,77 @@ export default async function CampaignSettingsPage() {
                   {campaign.explanation}
                 </p>
               </div>
-              <form action={setCampaignStatus} className="flex gap-2">
-                <input type="hidden" name="campaignId" value={campaign.id} />
-                {campaign.status === "active" ? (
-                  <>
-                    <input type="hidden" name="status" value="paused" />
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex gap-2">
+                  <form action={rehearseCampaign}>
+                    <input
+                      type="hidden"
+                      name="campaignId"
+                      value={campaign.id}
+                    />
                     <Button type="submit" size="sm" variant="outline">
-                      Pause
+                      Rehearse
                     </Button>
-                  </>
-                ) : (
-                  <>
-                    <input type="hidden" name="status" value="active" />
-                    <Button type="submit" size="sm">
-                      Activate
-                    </Button>
-                  </>
-                )}
-              </form>
+                  </form>
+                  {campaign.status === "active" ? (
+                    <form action={setCampaignStatus}>
+                      <input
+                        type="hidden"
+                        name="campaignId"
+                        value={campaign.id}
+                      />
+                      <input type="hidden" name="status" value="paused" />
+                      <Button type="submit" size="sm" variant="outline">
+                        Pause
+                      </Button>
+                    </form>
+                  ) : (
+                    <form action={activateCampaignWithMissions}>
+                      <input
+                        type="hidden"
+                        name="campaignId"
+                        value={campaign.id}
+                      />
+                      <input
+                        type="hidden"
+                        name="campaignTitle"
+                        value={campaign.title}
+                      />
+                      <input
+                        type="hidden"
+                        name="staffMission"
+                        value={campaign.explanation}
+                      />
+                      <Button type="submit" size="sm">
+                        Activate → staff missions + customer placement
+                      </Button>
+                    </form>
+                  )}
+                </div>
+                {tracking?.lastRehearsalReport ? (
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    Last rehearsal:{" "}
+                    {JSON.stringify(tracking.lastRehearsalReport).includes(
+                      "eligibleCount",
+                    )
+                      ? (() => {
+                          const report = tracking.lastRehearsalReport as {
+                            readonly eligibleCount: number;
+                            readonly excludedCount: number;
+                            readonly contactPressureCount: number;
+                          };
+                          return `${report.eligibleCount} eligible · ${report.excludedCount} excluded · ${report.contactPressureCount} paused for contact pressure`;
+                        })()
+                      : null}
+                  </p>
+                ) : null}
+                {typeof tracking?.lastActivationMissionsCreated === "number" ? (
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    Last activation created{" "}
+                    {tracking.lastActivationMissionsCreated} staff mission(s).
+                  </p>
+                ) : null}
+              </div>
             </div>
 
             <div className="mt-4 border-t border-[var(--color-stone-100)] pt-4">
