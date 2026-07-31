@@ -14,7 +14,7 @@ import Link from "next/link";
 
 import { LifecycleBadge } from "../customers/lifecycle-badge";
 
-import { sendMessage } from "./actions";
+import { linkConversationOutcome, sendMessage } from "./actions";
 import { AttachFileInput } from "./attach-file-input";
 import {
   ConversationList,
@@ -288,15 +288,45 @@ export default async function MessagesPage({
                 </p>
               ) : (
                 <Card className="divide-y divide-[var(--color-stone-100)] p-0">
-                  {orders.slice(0, 5).map((order) => (
-                    <div key={order.id} className="px-3 py-2 text-sm">
-                      <p className="font-medium">{order.orderNumber}</p>
-                      <p className="text-xs text-[var(--color-stone-500)]">
-                        {ORDER_STATUS_LABELS[order.status]} ·{" "}
-                        {formatMoney(order.total, "en-US")}
-                      </p>
-                    </div>
-                  ))}
+                  {orders.slice(0, 5).map((order) => {
+                    const isLinkedOutcome =
+                      activeConversation?.outcomeOrderId === order.id;
+                    return (
+                      <div
+                        key={order.id}
+                        className="flex items-center justify-between gap-2 px-3 py-2 text-sm"
+                      >
+                        <div>
+                          <p className="font-medium">{order.orderNumber}</p>
+                          <p className="text-xs text-[var(--color-stone-500)]">
+                            {ORDER_STATUS_LABELS[order.status]} ·{" "}
+                            {formatMoney(order.total, "en-US")}
+                          </p>
+                        </div>
+                        {activeConversation ? (
+                          isLinkedOutcome ? (
+                            <Badge tone="success">Linked outcome</Badge>
+                          ) : (
+                            <form action={linkConversationOutcome}>
+                              <input
+                                type="hidden"
+                                name="conversationId"
+                                value={activeConversation.id}
+                              />
+                              <input
+                                type="hidden"
+                                name="orderId"
+                                value={order.id}
+                              />
+                              <Button type="submit" size="sm" variant="outline">
+                                Link
+                              </Button>
+                            </form>
+                          )
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </Card>
               )}
             </div>

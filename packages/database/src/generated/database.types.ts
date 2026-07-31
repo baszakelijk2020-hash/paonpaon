@@ -2713,6 +2713,9 @@ export type Database = {
           id: string;
           intent: string | null;
           last_message_at: string | null;
+          outcome_appointment_id: string | null;
+          outcome_order_id: string | null;
+          outcome_recorded_at: string | null;
           retailer_id: string;
           updated_at: string;
         };
@@ -2723,6 +2726,9 @@ export type Database = {
           id?: string;
           intent?: string | null;
           last_message_at?: string | null;
+          outcome_appointment_id?: string | null;
+          outcome_order_id?: string | null;
+          outcome_recorded_at?: string | null;
           retailer_id: string;
           updated_at?: string;
         };
@@ -2733,6 +2739,9 @@ export type Database = {
           id?: string;
           intent?: string | null;
           last_message_at?: string | null;
+          outcome_appointment_id?: string | null;
+          outcome_order_id?: string | null;
+          outcome_recorded_at?: string | null;
           retailer_id?: string;
           updated_at?: string;
         };
@@ -2742,6 +2751,20 @@ export type Database = {
             columns: ["customer_id"];
             isOneToOne: false;
             referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversations_outcome_appointment_id_fkey";
+            columns: ["outcome_appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversations_outcome_order_id_fkey";
+            columns: ["outcome_order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
             referencedColumns: ["id"];
           },
           {

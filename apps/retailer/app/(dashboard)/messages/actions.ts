@@ -2,6 +2,7 @@
 import { requireRetailerRole } from "@paon/auth";
 import { MessagingRepository } from "@paon/database";
 import {
+  asId,
   MESSAGE_ATTACHMENT_MIME_TYPES,
   sendMessageSchema,
   startStaffConversationSchema,
@@ -11,6 +12,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireSession } from "@/lib/session";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 function isAllowedAttachmentMime(
@@ -61,5 +63,31 @@ export async function sendMessage(formData: FormData) {
     });
   }
 
+  revalidatePath("/messages");
+}
+
+/**
+ * PHASE 10.3 (CLI-004/CMP-103): records that this thread actually led to a
+ * placed order. Uses the admin client because `conversations` grants no
+ * authenticated write at all (see MessagingRepository.linkOutcome's own
+ * docstring) — the role check here is therefore load-bearing, not a UI
+ * nicety backed by RLS.
+ */
+export async function linkConversationOutcome(formData: FormData) {
+  const session = await requireSession();
+  requireRetailerRole(session.retailerRole, "sales_associate");
+
+  const conversationId = String(formData.get("conversationId") ?? "");
+  const orderId = String(formData.get("orderId") ?? "");
+  if (!conversationId || !orderId) {
+    throw new Error("Missing conversation or order.");
+  }
+
+  const repo = new MessagingRepository(getSupabaseAdminClient());
+  await repo.linkOutcome({
+    conversationId: asId<"ConversationId">(conversationId),
+    retailerId: session.retailerId,
+    outcomeOrderId: orderId,
+  });
   revalidatePath("/messages");
 }

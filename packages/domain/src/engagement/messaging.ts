@@ -21,6 +21,12 @@ export interface Conversation extends Timestamps {
    * inquiry (ADR-034) or an ordinary logged-in customer message, which
    * never sets it. Never overwritten on a later message. */
   readonly intent?: ConversationIntent;
+  /** PHASE 10.3 (CLI-004/CMP-103): the real appointment/order this
+   * conversation led to — mirrors clienteling_opportunities' own outcome
+   * fields (PHASE 7.4) rather than a second outcome shape. */
+  readonly outcomeAppointmentId?: string;
+  readonly outcomeOrderId?: string;
+  readonly outcomeRecordedAt?: string;
 }
 
 export type MessageSenderType = "customer" | "staff" | "ai_assistant" | "guest";

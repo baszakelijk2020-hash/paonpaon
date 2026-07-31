@@ -1229,6 +1229,26 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Tests:** provider mocks, consent, grounding, failure/retry, RLS/browser.
   - **Non-goals:** no autonomous customer spam or invented facts.
   - **Hard blockers:** live channel credentials block only live smoke test.
+  - **Landed:** channel abstraction/threading already existed and was
+    previously uncredited here — `conversations`/`messages` (in-app channel),
+    `MessagingRepository`, a real 3-pane retailer inbox and customer message
+    UI, intent classification, attachments, and a TableService storefront
+    guest-inquiry channel (ADR-034). Since: the outcome half of the
+    acceptance ("receives reply, books appointment/creates cart and links
+    sale") — `conversations` gained `outcome_appointment_id`/
+    `outcome_order_id`/`outcome_recorded_at`, mirroring
+    `clienteling_opportunities`'s existing outcome fields (PHASE 7.4) rather
+    than a second outcome shape. `MessagingRepository.linkOutcome` writes it
+    (via service-role, since `conversations` grants no authenticated write —
+    `markRead` already needed its own security-definer RPC for the same
+    reason); a "Link" button on the retailer inbox's order-history panel
+    calls it. Missing: lookbook/proposal/quote attachments distinct from a
+    generic file upload, confirmed note extraction (a message/attachment
+    proposing a candidate customer fact that requires explicit staff
+    confirmation before being trusted — Stage 7's declared-vs-inferred
+    StyleProfile distinction is the nearest existing pattern, not yet
+    connected to messaging), opt-out/failure suppression logic, and
+    multi-role browser proof.
 
 - [ ] **10.4 Relationship-calendar campaign packages**
   - **Requirement IDs:** `CMP-107`, `REL-20`.

@@ -70,6 +70,14 @@ Snapshot: 2026-07-30 (save-game seal).
   `wip/stage-10-2-honeymoon` branch remains preserved and untouched at
   `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`; this work is a fresh port
   informed by reading it, not a merge of it.
+- Stage 10.3 is `implemented_unverified` (takeover branch only — not on
+  `main`): channel abstraction/threading already existed
+  (`conversations`/`messages`, `MessagingRepository`, a real 3-pane retailer
+  inbox, TableService guest channel) and was previously uncredited. Since:
+  `MessagingRepository.linkOutcome` records a real appointment/order a
+  conversation led to, mirroring `clienteling_opportunities`'s outcome
+  fields. Missing: lookbook/proposal/quote attachments, confirmed note
+  extraction, opt-out/failure suppression, multi-role browser proof.
 
 ## Stage 10.2 WIP salvage audit (2026-07-31)
 

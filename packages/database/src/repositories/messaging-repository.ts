@@ -23,6 +23,13 @@ const conversation = (row: ConversationRow): Conversation => ({
   customerId: asId<"CustomerId">(row.customer_id),
   ...(row.last_message_at ? { lastMessageAt: row.last_message_at } : {}),
   ...(row.intent ? { intent: row.intent as ConversationIntent } : {}),
+  ...(row.outcome_appointment_id
+    ? { outcomeAppointmentId: row.outcome_appointment_id }
+    : {}),
+  ...(row.outcome_order_id ? { outcomeOrderId: row.outcome_order_id } : {}),
+  ...(row.outcome_recorded_at
+    ? { outcomeRecordedAt: row.outcome_recorded_at }
+    : {}),
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   deletedAt: row.deleted_at,
@@ -135,6 +142,44 @@ export class MessagingRepository {
     const { error } = await this.client.rpc("mark_conversation_read", {
       p_conversation_id: id,
     });
+    if (error) throw error;
+  }
+
+  /**
+   * PHASE 10.3 (CLI-004/CMP-103): records that a conversation actually led
+   * to a booked appointment or a placed order — "receives reply, books
+   * appointment/creates cart and links sale" is not satisfied by message
+   * history alone. `conversations` grants no authenticated write at all
+   * (only the three SELECT policies above; markRead needed its own
+   * security-definer RPC for the same reason) — callers must pass a
+   * service-role client, and are responsible for their own role check, the
+   * same boundary campaign-activation-orchestrator.ts and
+   * shopify-delta-sync-orchestrator.ts already use.
+   */
+  async linkOutcome(args: {
+    readonly conversationId: ConversationId;
+    readonly retailerId: RetailerId;
+    readonly outcomeAppointmentId?: string;
+    readonly outcomeOrderId?: string;
+  }): Promise<void> {
+    if (!args.outcomeAppointmentId && !args.outcomeOrderId) {
+      throw new Error(
+        "linkOutcome requires at least one of outcomeAppointmentId or outcomeOrderId",
+      );
+    }
+    const { error } = await this.client
+      .from("conversations")
+      .update({
+        ...(args.outcomeAppointmentId
+          ? { outcome_appointment_id: args.outcomeAppointmentId }
+          : {}),
+        ...(args.outcomeOrderId
+          ? { outcome_order_id: args.outcomeOrderId }
+          : {}),
+        outcome_recorded_at: new Date().toISOString(),
+      })
+      .eq("id", args.conversationId)
+      .eq("retailer_id", args.retailerId);
     if (error) throw error;
   }
 
