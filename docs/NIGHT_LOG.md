@@ -865,3 +865,131 @@ a DIFFERENT rule than the one under test:
 The code was right all three times. Worth recording because the pattern is
 specific and repeatable: when a rule has multiple thresholds, a fixture must
 be chosen to clear every threshold except the one being tested.
+
+---
+
+## 2026-08-01 (full day) — Five slices, and what operating them found
+
+The through-line of the whole day: **a correct rule and an enforced rule are
+different things, and only a browser tells you which one you have.** Every
+defect below survived a green unit-test suite. None of them survived being
+used.
+
+### 13.3 Point of sale — the till could not legally sell anything
+
+Building the POS surfaced two problems the domain tests could not see.
+
+`completeSale` attempted `open → completed`, an edge the transition graph
+does not contain. The graph was right: `completed` is reachable only from
+`awaiting_payment`. Underneath that was the worse fact — _nothing anywhere
+required the money to exist_. A till could have closed a cart nobody paid
+for and the stock would have moved. The ledger would have been internally
+consistent while the shop was robbed. `checkSaleCompletable` now refuses on
+`payment_incomplete` and completion genuinely travels the edge.
+
+Then the deadlock: `ACTIVATED_PAYMENT_PROVIDERS` is empty until ADR-062
+approves a processor, so every capture was refused, so completion was
+unreachable. The POS was unshippable _by construction_, not by policy. The
+resolution was to notice that **cash is not a provider integration**. There
+is no PSP to approve, no card to refuse, no settlement design to sign off; a
+till that cannot take cash until a card processor is contracted is a till
+that cannot open. Card stays gated. The card-data refusal still applies to
+cash, so the carve-out is about provider approval and never about what may
+be stored.
+
+### The four "parked" e2e failures — two were real product defects
+
+These had been dismissed as low ship value. Diagnosing them properly:
+
+- **A fit-tool chip tap recorded nothing.** `vox:apply` was dispatched only
+  from the voice path. Tapping a chip moved the slider, the tailor saw the
+  number they asked for, and the observation was never persisted. The spec's
+  own comment described the intended behaviour; it had never existed.
+- **The fit-tool chips were `<div>` with click handlers** — no role, no
+  keyboard reach, invisible to assistive tech.
+- **`DateTimePicker` bound its `<label for>` to a hidden input**, so "Starts"
+  named a control nobody could reach while the day and time strips had no
+  accessible name at all, and selection was signalled by opacity alone.
+- Two were genuinely rotted tests: `"Save"` had begun matching
+  `"Save closeout"`, and the attachments spec asserted a "Shared images"
+  gallery that exists nowhere in the app.
+
+The invite spec was a third category again — the fixture used `@paon.test`,
+which Supabase Auth rejects outright. The product's error named the cause
+exactly. Beyond that the path is rate-limited without custom SMTP, so the
+happy path is now asserted conditionally and a new unconditional test was
+added that matters more: **an undeliverable invite creates no teammate.**
+The action already had the right ordering, so a failed send cannot leave
+someone on the team list who never heard from anyone and cannot sign in.
+
+### Stock had two truths, and both could oversell
+
+The largest finding. `place_order` and `checkout_cart` decremented
+`product_variants.inventory_quantity` with their own guard; stage 13.1's till
+appended to `stock_ledger_entries`. Neither could see the other. A garment
+sold online never reduced the ledger and the till would promise it again; a
+garment sold at the till never reduced the column and the storefront would
+sell it again. Both screens looked correct throughout. This is exactly the
+failure the append-only ledger was built to prevent, and it was live.
+
+Measured before touching anything: 84 variants, 1,896 units in the column,
+and the ledger knew about 2 variants.
+
+Migrations 18–21 make the ledger the only writer and the column a maintained
+projection — caching _available_, not on-hand, so a garment held for someone
+at the counter stops being sellable online. The catalogue's 1,896 units
+became opening receipts; without that the column would have read zero
+everywhere and the storefront would have refused every order. A direct write
+is **converted** into the ledger entry it should have been rather than
+refused, so all 28 readers keep working and none can set a figure the ledger
+disagrees with. Patching five call sites would have left the sixth free to
+get it wrong.
+
+Migration 21 fixed recursion that 19 introduced: the BEFORE trigger's ledger
+insert fired the ledger's AFTER trigger against the same row and Postgres
+refused the statement with `27000`. supabase-js reports that as an error
+object, so every caller that did not check it — all of them — saw its write
+vanish with no exception. **Stock edits became silent no-ops.** That is now a
+standing rule in `AGENTS.md`: check `error` on every write.
+
+### 12.1 MeasurementMonitor — the gate was not actually enforced
+
+`recordApprovedMeasurements` hardcoded `capturedBy: "tailor_tape"` on every
+value, so `derivedFromScan` never became true and the written-decision
+requirement was dead code at the only seam that matters. A phone scan could
+become the record of measurement with no human reasoning attached. It also
+destroyed provenance: a number read off a phone was stored forever as having
+been measured with a tape.
+
+The candidate is now read from the database, never the form, because
+provenance is precisely what a client must not assert. A value left
+**unchanged** keeps the scan's provenance — accepting a scan's number means
+the scan is where it came from — and a value the advisor changed becomes
+`tailor_tape`, because they measured it themselves. Separately,
+`Math.round(cm * 10)` had made the whole-millimetre rule unreachable and
+silently invented precision.
+
+### 11.4 and 13.2
+
+11.4 proved the acknowledgement is a _record_: DELETE and UPDATE against it
+both change nothing, and a duplicate is refused, so a reach figure cannot
+claim two people read a safety notice when one did.
+
+13.2 went from domain-and-schema to an operated surface. A raised write-off
+has not happened — null `ledger_entry_id`, no stock moved — and only an
+approval by a different manager writes the entry, which the flag then cites.
+The RFID half cannot post a balance structurally: there is no method that
+turns a sweep into a ledger entry, so the page has no such button to offer.
+Operating it found an ordering defect — the action checked for an open stock
+count _before_ checking who was allowed to approve, sending someone who could
+not approve at all off on a pointless errand.
+
+### Recurring self-inflicted mistakes
+
+Worth naming because they cost the most time and are now codified in
+`AGENTS.md`: client-side validation making server rules unreachable through
+the UI (three times); fixture numbers tripping the wrong threshold; polling a
+proxy signal instead of the asserted state; a guard matching the copy that
+explains its own absence; specs colliding with their own history; and test
+suites leaving queue rows that fail _other_ suites later while looking like
+those suites' bug.

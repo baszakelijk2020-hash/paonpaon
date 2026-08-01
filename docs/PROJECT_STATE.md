@@ -5,7 +5,10 @@ protocol.** Verify every claim against code, migrations, git, and deployment
 runbooks. Current work and resume state live in `PHASE.md` and the Resume
 Protocol in `PAON_INTELLIGENCE_PLATFORM.md`.
 
-Snapshot: 2026-07-30 (save-game seal).
+Snapshot: 2026-08-01 (takeover branch `agent/grok-takeover-2026-07-30`).
+The 2026-07-30 save-game seal below still describes `main`; the section
+**"2026-08-01 takeover-branch snapshot"** at the end of this file describes
+what is true on the takeover branch and supersedes it there.
 
 ## Repository
 
@@ -187,3 +190,67 @@ useful work is **depth, not breadth**: convert these slices into operated
 features with browser proofs, starting with whichever surface a real user
 will touch first. Stage 11.2's `/staff/recognition` is the only surface in
 stages 11-16 that has one.
+
+## 2026-08-01 takeover-branch snapshot
+
+Everything in this section is true on `agent/grok-takeover-2026-07-30` only.
+`main` is untouched at `5b77fd0e` and `wip/stage-10-2-honeymoon` at
+`ec58c8e0`. **Work only on the takeover branch.** The charter's
+"push to `origin/main`" line does not apply while this takeover is in force.
+
+### What is browser-proven
+
+Eight items carry a `passed` browser proof plus live database assertions:
+8.4, 9.1, 11.2, 11.3, 11.4, 12.1, 13.1, 13.2, 13.3. Only 8.4 and 9.1 are
+checked `- [x]` in `PHASE.md`; the rest are `verified_local` with scope
+deliberately still open, and a checked box is a completion claim requiring a
+tranche evidence file.
+
+Totals: ~1,400 unit tests, 67 live integration assertions across five suites
+(`PAON_INTEGRATION=1`), 12 browser cases, lint/typecheck/format green.
+
+### Stock is now one truth
+
+`product_variants.inventory_quantity` used to be decremented independently by
+`place_order` / `checkout_cart` while the till appended to
+`stock_ledger_entries`, so a garment sold online was still promisable at the
+counter and vice versa. Migrations 18–21 make the ledger the only writer and
+the column a maintained projection of it (available across all locations,
+clamped at zero). A direct write to the column is converted into the ledger
+entry it should have been, so all 28 readers keep working and none can set a
+figure the ledger disagrees with. `count_inventory_disagreements()` must
+return 0 forever; non-zero means a new write path is bypassing the ledger.
+
+### Known open, in rough priority order
+
+- **The customer app's e2e suite has ~13 pre-existing rotted specs.** Verified
+  unrelated to the stock work: the storefront product data is correct and the
+  cart contains the expected item. The failures are drift between the
+  founder's HTML template and what the specs expect, plus shared-context
+  pollution. Needs its own pass.
+- `/staff/roster` and `/services` are built but have never been operated.
+  Every page operated so far has yielded at least one real defect.
+- 12.2, 12.3, 12.4, 14.x, 15.x, 16.x remain domain-and-schema only.
+- Four e2e specs use `@paon.test` addresses on paths that reach Supabase Auth;
+  Auth rejects the reserved `.test` TLD. Use `AUTH_DELIVERABLE_DOMAIN` from
+  the e2e fixtures for anything that sends mail.
+
+### Blocked externally
+
+- **Card payment activation** (ADR-062). `ACTIVATED_PAYMENT_PROVIDERS` is
+  empty by design, so every card capture is refused. Cash is implemented as a
+  tender rather than a provider integration — no PSP to approve, no card to
+  refuse — which is what lets a shop trade today. The card-data refusal still
+  applies to cash; the carve-out concerns provider approval, never what may
+  be stored.
+- **Supabase Auth email rate limits** without custom SMTP. Staff invites
+  succeed or are refused with a rate-limit message; the spec asserts the happy
+  path conditionally and annotates `blocked_external`.
+- **RFID reader hardware** for a live 13.2 pilot.
+
+### Security
+
+The Supabase secret key was pasted into a chat transcript on 2026-08-01 and
+**must be rotated**. Rotating it also requires updating the Vercel environment
+variables or production breaks. This is hygiene only; nothing in the build
+depends on the current value.
