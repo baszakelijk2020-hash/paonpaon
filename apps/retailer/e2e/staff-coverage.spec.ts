@@ -202,6 +202,22 @@ test("manager publishes coverage, reads a cited shortage, closes a coaching loop
     .fill("Greeted by name and offered water before measuring.");
   await page.getByRole("button", { name: "Record observation" }).click();
 
+  // Read the form's own error before polling. Without this, a server-side
+  // refusal shows up only as an opaque 60s poll timeout, because every poll
+  // iteration navigates away from the page carrying the message. Turning a
+  // mute timeout into the actual reason is worth six lines.
+  const submissionError = page
+    .locator("form")
+    .filter({ has: page.getByRole("button", { name: "Record observation" }) })
+    .locator("[role=alert]");
+  await page.waitForTimeout(2_000);
+  if ((await submissionError.count()) > 0) {
+    const text = (await submissionError.allInnerTexts()).join(" | ").trim();
+    if (text.length > 0) {
+      throw new Error(`Observation was refused by the server: ${text}`);
+    }
+  }
+
   // Wait for THIS colleague's row in the "observed" state, not merely for
   // "some observation exists". A count-based poll is satisfied by a leftover
   // row from an earlier spec in the same run, which is exactly how this
