@@ -1333,6 +1333,28 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     non-gaming fixtures.
   - **Non-goals:** no screenshot/keystroke surveillance.
   - **Hard blockers:** none.
+  - **Landed:** the extra-mile/recognition half (WFM-104).
+    `20260801000004_add_staff_recognition_acts.sql` stores narrated acts
+    optionally linked to the real customer/appointment/order they happened
+    on, so a recognition is auditable rather than self-asserted. This item's
+    "no raw-volume leaderboard" non-goal is enforced structurally, not by
+    convention: the table has no count/score/rank/points column, the domain
+    module exports no per-person total or ranking at all
+    (`summarizeRecognitionCoverage` answers "is recognition reaching
+    everyone" and returns the _unrecognized_ list — a manager's problem to
+    fix — instead of "who has the most"), and two tests fail if a future
+    change reintroduces either. `checkRecognitionReview` blocks self-review,
+    which RLS cannot catch (RLS can prove the caller is a manager but not
+    that the act is about that same manager), blocks double-review, and
+    refuses a `coached` state carrying no actual coaching note. A dismissed
+    act deliberately does not count as coverage, so a manager cannot clear
+    their unrecognized list by dismissing acts. Writes are `authenticated`
+    (unusually for this repo) because an employee logs their own act — the
+    insert policy pins the author to the calling user. Missing: the rest of
+    11.2 entirely — unified role home, tasks/promises/briefing, the
+    ten-minute closeout flow, the evidence-linked employee profile surface,
+    any UI at all for recognition, and browser proof. Treat 11.2 as one
+    slice of several, not near-complete.
 
 - [ ] **11.3 Scheduling, demand, ceremony and coaching**
   - **Requirement IDs:** `WFM-105`, `WFM-106`.

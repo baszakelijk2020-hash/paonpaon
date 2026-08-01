@@ -88,6 +88,13 @@ Snapshot: 2026-07-30 (save-game seal).
   payroll export over the existing real `staff_time_entries`/`staff_shifts`.
   No pay-period/version/approval schema, export provider, RLS, UI or browser
   proof exist yet.
+- Stage 11.2 is one slice of several (takeover branch only — not on `main`):
+  the extra-mile recognition half is real, with schema, RLS (author pinned
+  to the calling user; review restricted to manager+), domain checks
+  (self-review, double-review and empty-coaching all refused) and a
+  structurally-enforced absence of any leaderboard. Missing: unified role
+  home, tasks/promises/briefing, ten-minute closeout, employee profile
+  surface, any recognition UI, and browser proof.
 
 ## Stage 10.2 WIP salvage audit (2026-07-31)
 

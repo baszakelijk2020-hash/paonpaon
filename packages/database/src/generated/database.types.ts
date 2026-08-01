@@ -9293,6 +9293,113 @@ export type Database = {
           },
         ];
       };
+      staff_recognition_acts: {
+        Row: {
+          appointment_id: string | null;
+          authored_by_staff_id: string;
+          coaching_note: string | null;
+          created_at: string;
+          customer_id: string | null;
+          deleted_at: string | null;
+          id: string;
+          narrative: string;
+          occurred_on: string;
+          order_id: string | null;
+          retailer_id: string;
+          review_state: string;
+          reviewed_at: string | null;
+          reviewed_by_staff_id: string | null;
+          staff_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          appointment_id?: string | null;
+          authored_by_staff_id: string;
+          coaching_note?: string | null;
+          created_at?: string;
+          customer_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          narrative: string;
+          occurred_on: string;
+          order_id?: string | null;
+          retailer_id: string;
+          review_state?: string;
+          reviewed_at?: string | null;
+          reviewed_by_staff_id?: string | null;
+          staff_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          appointment_id?: string | null;
+          authored_by_staff_id?: string;
+          coaching_note?: string | null;
+          created_at?: string;
+          customer_id?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          narrative?: string;
+          occurred_on?: string;
+          order_id?: string | null;
+          retailer_id?: string;
+          review_state?: string;
+          reviewed_at?: string | null;
+          reviewed_by_staff_id?: string | null;
+          staff_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_recognition_acts_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_recognition_acts_authored_by_staff_id_fkey";
+            columns: ["authored_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_recognition_acts_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_recognition_acts_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_recognition_acts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_recognition_acts_reviewed_by_staff_id_fkey";
+            columns: ["reviewed_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_recognition_acts_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       staff_shifts: {
         Row: {
           created_at: string;
