@@ -341,11 +341,16 @@ duplicate gestures do not duplicate events. Consent withdrawal removes the
 signal from recomputation while preserving the minimum audit record. Prove
 source parity at responsive breakpoints, keyboard/touch, reload/resume,
 withdrawal/recompute and visible downstream reason change. **Current:**
-faithful connected foundation with source spacing restored, equivalent
-keyboard controls, idempotent save semantics, visible failed-save recovery and
-a real Server Action/database/reload/wishlist browser proof. Still missing:
-deck-version/resume persistence, explicit touch/reduced-motion parity and the
-withdrawal-to-recompute/downstream-reason proof.
+faithful connected implementation with source spacing, keyboard and real
+mobile touch controls, reduced-motion behavior, idempotent save semantics and
+visible failed-save recovery. A deterministic version pins selection rule,
+occasion, product, variant and media; consented decisions resume across reload
+through the interaction-event spine. Browser proof covers Server Action,
+database, reload/resume, wishlist and withdrawal (signals anonymize and a
+skipped item becomes eligible again while the durable wishlist survives).
+Still missing: product-concept evidence into StyleProfile recomputation and a
+visible downstream Advisor/For You reason change, plus visual-regression
+screenshots at the canonical responsive breakpoints.
 
 ## FT-09 — TableService / messenger consultation
 

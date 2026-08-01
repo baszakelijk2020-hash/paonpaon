@@ -4,6 +4,9 @@ import {
   AnalyticsRepository,
   CustomerConsentRepository,
   CustomerRepository,
+  InteractionSessionRepository,
+  ProductRepository,
+  ProductVariantRepository,
   WishlistRepository,
 } from "@paon/database";
 import {
@@ -19,6 +22,7 @@ async function captureSwipeSignal(args: {
   readonly retailerId: string;
   readonly name: "product_favorited" | "product_skipped";
   readonly properties: Record<string, unknown>;
+  readonly deckVersion: string;
 }): Promise<void> {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
@@ -41,12 +45,29 @@ async function captureSwipeSignal(args: {
     occurredAt,
   );
 
+  const interactionSession = await new InteractionSessionRepository(
+    supabase,
+  ).ensureForCustomer({
+    retailerId: rId,
+    customerId: customer.id,
+    now: occurredAt,
+    deviceClass: "unknown",
+  });
+
+  const productId = args.properties["productId"];
+  if (typeof productId !== "string") return;
+
   await new AnalyticsRepository(supabase).capture({
     retailerId: rId,
     customerId: customer.id,
+    sessionId: interactionSession.id,
     name: args.name,
-    properties: args.properties,
+    properties: { ...args.properties, deckVersion: args.deckVersion },
     occurredAt,
+    receivedAt: occurredAt,
+    pagePath: "/swipe",
+    deviceClass: "unknown",
+    idempotencyKey: `swipe:${args.deckVersion}:${args.name}:${productId}:${consentState.updatedAt}`,
     source: "customer_portal",
     purpose: "personalization",
     consentBasis: "explicit_opt_in",
@@ -56,26 +77,47 @@ async function captureSwipeSignal(args: {
   });
 }
 
+function assertDeckVersion(deckVersion: string): void {
+  if (!/^[a-f0-9]{16}$/.test(deckVersion)) {
+    throw new Error("Invalid swipe deck version");
+  }
+}
+
 /** A swipe-right: saves the variant and logs a consented favorite signal. */
 export async function swipeRight(
   retailerId: string,
   productVariantId: string,
   productId: string,
+  deckVersion: string,
 ): Promise<void> {
+  assertDeckVersion(deckVersion);
   await requireSession();
   const supabase = await getSupabaseServerClient();
   const rId = asId<"RetailerId">(retailerId);
+  const pId = asId<"ProductId">(productId);
+  const variantId = asId<"ProductVariantId">(productVariantId);
+  const [product, variant] = await Promise.all([
+    new ProductRepository(supabase).findById(pId),
+    new ProductVariantRepository(supabase).findById(variantId),
+  ]);
+  if (
+    !product ||
+    product.retailerId !== rId ||
+    product.status !== "active" ||
+    !variant ||
+    variant.productId !== pId
+  ) {
+    throw new Error("Swipe product is unavailable");
+  }
 
-  await new WishlistRepository(supabase).saveItem(
-    rId,
-    asId<"ProductVariantId">(productVariantId),
-  );
+  await new WishlistRepository(supabase).saveItem(rId, variantId);
 
   try {
     await captureSwipeSignal({
       retailerId,
       name: "product_favorited",
       properties: { productId, productVariantId, via: "swipe" },
+      deckVersion,
     });
   } catch {
     // Best-effort — a failed capture must never block the save.
@@ -86,13 +128,24 @@ export async function swipeRight(
 export async function swipeLeft(
   retailerId: string,
   productId: string,
+  deckVersion: string,
 ): Promise<void> {
+  assertDeckVersion(deckVersion);
   await requireSession();
+  const supabase = await getSupabaseServerClient();
+  const rId = asId<"RetailerId">(retailerId);
+  const product = await new ProductRepository(supabase).findById(
+    asId<"ProductId">(productId),
+  );
+  if (!product || product.retailerId !== rId || product.status !== "active") {
+    throw new Error("Swipe product is unavailable");
+  }
   try {
     await captureSwipeSignal({
       retailerId,
       name: "product_skipped",
       properties: { productId, via: "swipe" },
+      deckVersion,
     });
   } catch {
     // Best-effort.

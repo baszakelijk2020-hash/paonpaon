@@ -5,6 +5,7 @@ import { buttonVariants } from "@paon/ui/components/Button";
 import { formatMoney } from "@paon/utils";
 import Link from "next/link";
 import {
+  useEffect,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
@@ -50,16 +51,20 @@ const LIKED_SLOTS = 10;
 export function SwipeDeck({
   slug,
   retailerId,
+  deckVersion,
   cards,
   savedVariantIds,
+  initialLikedCards,
 }: {
   slug: string;
   retailerId: string;
+  deckVersion: string;
   cards: SwipeCard[];
   savedVariantIds: string[];
+  initialLikedCards: SwipeCard[];
 }) {
   const [index, setIndex] = useState(0);
-  const [liked, setLiked] = useState<SwipeCard[]>([]);
+  const [liked, setLiked] = useState<SwipeCard[]>(initialLikedCards);
   const savedSet = new Set([
     ...savedVariantIds,
     ...liked.map((card) => card.variantId),
@@ -67,13 +72,23 @@ export function SwipeDeck({
   const [dragX, setDragX] = useState(0);
   const [exiting, setExiting] = useState<"left" | "right" | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const dragging = useRef(false);
   const busy = useRef(false);
   const startX = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const current = cards[index];
-  const likedSlotCount = Math.min(LIKED_SLOTS, cards.length || LIKED_SLOTS);
+  const likedSlotCount = LIKED_SLOTS;
+  const exitDuration = prefersReducedMotion ? 0 : EXIT_DURATION_MS;
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setPrefersReducedMotion(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   async function commit(direction: "left" | "right") {
     const card = cards[index];
@@ -87,15 +102,15 @@ export function SwipeDeck({
       direction === "right"
         ? savedSet.has(card.variantId)
           ? Promise.resolve()
-          : swipeRight(retailerId, card.variantId, card.productId)
-        : swipeLeft(retailerId, card.productId);
+          : swipeRight(retailerId, card.variantId, card.productId, deckVersion)
+        : swipeLeft(retailerId, card.productId, deckVersion);
 
     try {
       await persistence;
     } catch (error) {
       persistenceError = error;
     }
-    await new Promise((resolve) => setTimeout(resolve, EXIT_DURATION_MS));
+    await new Promise((resolve) => setTimeout(resolve, exitDuration));
 
     if (persistenceError) {
       setDragX(0);
@@ -146,8 +161,12 @@ export function SwipeDeck({
   if (exiting) {
     const endX = (exiting === "right" ? 1 : -1) * containerWidth * 1.5;
     const rotation = exiting === "right" ? 25 : -25;
-    cardTransform = `translate(${endX}px, 30px) rotate(${rotation}deg)`;
-    cardTransition = `transform ${EXIT_DURATION_MS}ms cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity ${EXIT_DURATION_MS}ms ease`;
+    cardTransform = prefersReducedMotion
+      ? "translateZ(0)"
+      : `translate(${endX}px, 30px) rotate(${rotation}deg)`;
+    cardTransition = prefersReducedMotion
+      ? "none"
+      : `transform ${EXIT_DURATION_MS}ms cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity ${EXIT_DURATION_MS}ms ease`;
     cardOpacity = 0;
   } else if (dragging.current || dragX !== 0) {
     cardTransform = `translate(${dragX}px, ${dragX * 0.05}px) scale(${1 + p * 0.05}) rotate(${dragX / 20}deg)`;
@@ -184,6 +203,11 @@ export function SwipeDeck({
         #paon-swipe-deck .liked-item { flex: 0 0 auto; width: 70px; height: 105px; border-radius: 10px; background: #EBEBEB; background-position: center; background-size: cover; display: flex; align-items: center; justify-content: center; position: relative; scroll-snap-align: start; }
         #paon-swipe-deck .liked-item:first-child { margin-left: 20px; }
         #paon-swipe-deck .like-icon-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16.5px; height: 16.5px; background-image: url('https://www.nebelspiegel.com/images/bookmarkwhite.png'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: invert(1); opacity: 0.1; pointer-events: none; }
+        @media (prefers-reduced-motion: reduce) {
+          #paon-swipe-deck .button-outer,
+          #paon-swipe-deck .button-inner,
+          #paon-swipe-deck .liked-item { transition: none !important; }
+        }
       `}</style>
 
       <p className="sr-only" role="status" aria-live="polite">

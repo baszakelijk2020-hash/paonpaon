@@ -1,4 +1,7 @@
+import { createHash } from "node:crypto";
+
 import {
+  AnalyticsRepository,
   CustomerRepository,
   ProductRepository,
   ProductVariantRepository,
@@ -77,6 +80,23 @@ export default async function SwipePage({
     )
   ).filter((card): card is NonNullable<typeof card> => !!card);
 
+  const deckVersion = createHash("sha256")
+    .update(
+      JSON.stringify({
+        retailerId: retailer.id,
+        occasion: occasion ?? null,
+        selectionRule: "active-catalogue-v1",
+        cards: cards.map((card) => ({
+          productId: card.productId,
+          variantId: card.variantId,
+          name: card.name,
+          imageUrl: card.imageUrl ?? null,
+        })),
+      }),
+    )
+    .digest("hex")
+    .slice(0, 16);
+
   const relationships = await new CustomerRepository(supabase).findByUserId(
     session.userId,
   );
@@ -84,6 +104,7 @@ export default async function SwipePage({
     (item) => item.retailerId === retailer.id,
   );
   let savedVariantIds: string[] = [];
+  const decidedProductIds = new Set<string>();
   if (customer) {
     const wishlistRepo = new WishlistRepository(supabase);
     const wishlist = await wishlistRepo.findByCustomer(customer.id);
@@ -92,7 +113,33 @@ export default async function SwipePage({
         (item) => item.productVariantId,
       );
     }
+
+    const events = await new AnalyticsRepository(supabase).findRecentByCustomer(
+      retailer.id,
+      customer.id,
+      Math.min(Math.max(cards.length * 3, 50), 500),
+    );
+    for (const event of events) {
+      if (
+        (event.name === "product_favorited" ||
+          event.name === "product_skipped") &&
+        event.properties["via"] === "swipe" &&
+        event.properties["deckVersion"] === deckVersion &&
+        typeof event.properties["productId"] === "string"
+      ) {
+        decidedProductIds.add(event.properties["productId"]);
+      }
+    }
   }
+
+  const savedSet = new Set(savedVariantIds);
+  const initialLikedCards = cards.filter((card) =>
+    savedSet.has(card.variantId),
+  );
+  const remainingCards = cards.filter(
+    (card) =>
+      !savedSet.has(card.variantId) && !decidedProductIds.has(card.productId),
+  );
 
   return (
     <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col px-6 py-10">
@@ -120,8 +167,10 @@ export default async function SwipePage({
       <SwipeDeck
         slug={slug}
         retailerId={retailer.id}
-        cards={cards}
+        deckVersion={deckVersion}
+        cards={remainingCards}
         savedVariantIds={savedVariantIds}
+        initialLikedCards={initialLikedCards}
       />
     </main>
   );

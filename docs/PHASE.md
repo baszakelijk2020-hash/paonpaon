@@ -133,7 +133,7 @@ be resumed without the module mapping required by R0.3.**
     marks preview surfaces and removes suspended/off surfaces. Proof: 8 domain
     assertions, 8 repository/schema assertions, 15 pgTAP assertions, clean
     reset through all 150 migrations and 1/1 browser suspend/preview/restore.
-    Customer e2e contains 30 journeys: the inherited 14 failures were repaired
+    Customer e2e is now a clean 30/30: the inherited 14 failures were repaired
     against current human labels, guest intent recovery, fitting-first order
     policy, founder storefront category behavior, Demo Studio lifecycle and
     tap-target contracts. The repair also removed a first-open order-detail
@@ -181,9 +181,16 @@ be resumed without the module mapping required by R0.3.**
     Action writes once, survives reload and appears in the canonical wishlist;
     7 pgTAP assertions prove replay idempotency, function ACL and cross-House
     refusal.
-    Deck resume/versioning, explicit touch and reduced-motion parity, and
-    consent-withdrawal recomputation remain. Continue implementing the
-    contracts, audit non-browser module entry points, and finish House cleanup.
+    The follow-on pins each deck to its selection rule, occasion, products,
+    variants and media, records consent-epoch idempotent decisions through the
+    existing interaction session/event spine and resumes by removing answered
+    cards. The same browser journey proves keyboard plus real mobile touch,
+    reduced motion, no duplicate signals, reload completion and withdrawal:
+    personalization events anonymize, a skipped item becomes eligible again,
+    and the durable wishlist remains. Product-concept evidence into
+    StyleProfile/downstream reasons and canonical breakpoint screenshots remain.
+    Continue implementing the contracts, audit non-browser module entry points,
+    and finish House cleanup.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

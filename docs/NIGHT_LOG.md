@@ -1053,3 +1053,14 @@ those suites' bug.
   refusal. A clean database reset applies all 150 migrations. Resume/version,
   touch/reduced-motion and withdrawal-driven recomputation remain open rather
   than being relabelled complete.
+- FT-08 continuation closes most of those open runtime gaps without inventing
+  a parallel campaign store. A deterministic deck hash pins selection rule,
+  occasion, product, variant and media. Consented favorite/skip events now use
+  the existing interaction session with a consent-epoch idempotency key; page
+  reload removes answered cards and reconstructs the liked strip from the
+  canonical wishlist. The connected journey covers keyboard, CDP-dispatched
+  mobile touch, reduced motion, duplicate count, reload/resume and actual
+  consent withdrawal: signals anonymize, the skipped product returns, and the
+  saved product remains durable. StyleProfile/downstream reason proof and
+  canonical breakpoint screenshots remain honest open work. The complete
+  customer suite passes 30/30 with this journey included.
