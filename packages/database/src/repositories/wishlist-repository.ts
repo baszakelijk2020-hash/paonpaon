@@ -72,4 +72,19 @@ export class WishlistRepository {
     if (error) throw error;
     return data;
   }
+
+  /**
+   * Idempotently saves a variant. Use this for retryable commands such as a
+   * swipe-right; unlike toggleItem, replaying the command cannot remove it.
+   */
+  async saveItem(
+    retailerId: RetailerId,
+    productVariantId: ProductVariantId,
+  ): Promise<void> {
+    const { error } = await this.client.rpc("save_wishlist_item", {
+      p_retailer_id: retailerId,
+      p_variant_id: productVariantId,
+    });
+    if (error) throw error;
+  }
 }

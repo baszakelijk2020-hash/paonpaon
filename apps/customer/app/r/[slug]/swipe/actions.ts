@@ -66,7 +66,7 @@ export async function swipeRight(
   const supabase = await getSupabaseServerClient();
   const rId = asId<"RetailerId">(retailerId);
 
-  await new WishlistRepository(supabase).toggleItem(
+  await new WishlistRepository(supabase).saveItem(
     rId,
     asId<"ProductVariantId">(productVariantId),
   );

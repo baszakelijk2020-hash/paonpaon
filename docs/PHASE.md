@@ -132,8 +132,8 @@ be resumed without the module mapping required by R0.3.**
     and add-ons. Retailer navigation now projects effective module+role state,
     marks preview surfaces and removes suspended/off surfaces. Proof: 8 domain
     assertions, 8 repository/schema assertions, 15 pgTAP assertions, clean
-    reset through all 149 migrations and 1/1 browser suspend/preview/restore.
-    Customer e2e is now a clean 29/29: the inherited 14 failures were repaired
+    reset through all 150 migrations and 1/1 browser suspend/preview/restore.
+    Customer e2e contains 30 journeys: the inherited 14 failures were repaired
     against current human labels, guest intent recovery, fitting-first order
     policy, founder storefront category behavior, Demo Studio lifecycle and
     tap-target contracts. The repair also removed a first-open order-detail
@@ -173,9 +173,17 @@ be resumed without the module mapping required by R0.3.**
     experience, ecosystem job, actors, module/tier, state, canonical wiring,
     governance, recovery and completion proof for all fourteen designated
     tools and crosswalks the wider founder brief. It is a specification, not a
-    shipped-status claim. Remaining: implement the contracts, extend module
-    enforcement across every remaining owned surface, and complete canonical
-    House cleanup.
+    shipped-status claim. The first connected implementation increment hardens
+    FT-08 Swipe Deck without restyling it: migration `20260802000001` adds an
+    idempotent save command so a retry cannot unsave a piece; the card now
+    restores visibly on persistence failure, supports ArrowLeft/ArrowRight,
+    and restores source spacing. A browser journey proves the real Server
+    Action writes once, survives reload and appears in the canonical wishlist;
+    7 pgTAP assertions prove replay idempotency, function ACL and cross-House
+    refusal.
+    Deck resume/versioning, explicit touch and reduced-motion parity, and
+    consent-withdrawal recomputation remain. Continue implementing the
+    contracts, audit non-browser module entry points, and finish House cleanup.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

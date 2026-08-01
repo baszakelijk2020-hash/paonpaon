@@ -60,6 +60,13 @@ requires it.
   source fragment. The blueprint is not shipped-status evidence: implement
   the exact experience and connected state/proof together. Do not treat
   nebelspiegel/Atelier Munro branding as PAON product intent.
+  FT-08 Swipe Deck is the first hardened founder-tool increment: its exact
+  card composition remains, right-swipe now uses an idempotent RPC with
+  visible failure recovery, keyboard save is connected and a local browser
+  proof covers Server Action -> database -> reload -> wishlist; 7 pgTAP
+  assertions cover replay, ACL and cross-House refusal. Do not call the
+  blueprint complete yet: deck resume/versioning, touch/reduced-motion parity
+  and withdrawal/recompute remain open.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

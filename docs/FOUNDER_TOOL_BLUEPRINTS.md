@@ -341,7 +341,11 @@ duplicate gestures do not duplicate events. Consent withdrawal removes the
 signal from recomputation while preserving the minimum audit record. Prove
 source parity at responsive breakpoints, keyboard/touch, reload/resume,
 withdrawal/recompute and visible downstream reason change. **Current:**
-faithful connected foundation; refresh full parity/continuation proof.
+faithful connected foundation with source spacing restored, equivalent
+keyboard controls, idempotent save semantics, visible failed-save recovery and
+a real Server Action/database/reload/wishlist browser proof. Still missing:
+deck-version/resume persistence, explicit touch/reduced-motion parity and the
+withdrawal-to-recompute/downstream-reason proof.
 
 ## FT-09 — TableService / messenger consultation
 

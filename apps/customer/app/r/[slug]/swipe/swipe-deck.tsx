@@ -66,47 +66,73 @@ export function SwipeDeck({
   ]);
   const [dragX, setDragX] = useState(0);
   const [exiting, setExiting] = useState<"left" | "right" | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const dragging = useRef(false);
+  const busy = useRef(false);
   const startX = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const current = cards[index];
   const likedSlotCount = Math.min(LIKED_SLOTS, cards.length || LIKED_SLOTS);
 
-  function commit(direction: "left" | "right") {
+  async function commit(direction: "left" | "right") {
     const card = cards[index];
-    if (!card || exiting) return;
+    if (!card || busy.current) return;
+    busy.current = true;
+    setErrorMessage(null);
     setExiting(direction);
-    if (direction === "right") {
-      setLiked((prev) => [...prev, card]);
-      if (!savedSet.has(card.variantId)) {
-        void swipeRight(retailerId, card.variantId, card.productId);
-      }
-    } else {
-      void swipeLeft(retailerId, card.productId);
+
+    let persistenceError: unknown;
+    const persistence =
+      direction === "right"
+        ? savedSet.has(card.variantId)
+          ? Promise.resolve()
+          : swipeRight(retailerId, card.variantId, card.productId)
+        : swipeLeft(retailerId, card.productId);
+
+    try {
+      await persistence;
+    } catch (error) {
+      persistenceError = error;
     }
-    setTimeout(() => {
+    await new Promise((resolve) => setTimeout(resolve, EXIT_DURATION_MS));
+
+    if (persistenceError) {
       setDragX(0);
       setExiting(null);
-      setIndex((i) => i + 1);
-    }, EXIT_DURATION_MS);
+      setErrorMessage(
+        direction === "right"
+          ? "That piece was not saved. Please try again."
+          : "That choice was not recorded. Please try again.",
+      );
+      busy.current = false;
+      return;
+    }
+
+    if (direction === "right") {
+      setLiked((prev) => [...prev, card]);
+    }
+    setDragX(0);
+    setExiting(null);
+    setIndex((i) => i + 1);
+    busy.current = false;
   }
 
-  function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+  function onPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
     if (exiting) return;
     dragging.current = true;
     startX.current = event.clientX;
     event.currentTarget.setPointerCapture(event.pointerId);
   }
-  function onPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+  function onPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
     if (!dragging.current) return;
     setDragX(event.clientX - startX.current);
   }
   function onPointerUp() {
     if (!dragging.current) return;
     dragging.current = false;
-    if (dragX > SWIPE_THRESHOLD) commit("right");
-    else if (dragX < -SWIPE_THRESHOLD) commit("left");
+    if (dragX > SWIPE_THRESHOLD) void commit("right");
+    else if (dragX < -SWIPE_THRESHOLD) void commit("left");
     else setDragX(0);
   }
 
@@ -135,9 +161,9 @@ export function SwipeDeck({
     <div id="paon-swipe-deck" className="flex flex-1 flex-col items-center">
       <style>{`
         #paon-swipe-deck { width: 100%; display: flex; flex-direction: column; align-items: center; }
-        #paon-swipe-deck .swipe-clip-wrapper { position: relative; width: 100%; max-width: 390px; overflow: visible; box-sizing: border-box; }
-        #paon-swipe-deck .swipe-container { position: relative; width: 100%; height: 555px; touch-action: pan-y; overflow: visible; }
-        #paon-swipe-deck .munro-swipe-card { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 20px; background-color: #f0f0f0; background-size: cover; background-position: center; cursor: grab; user-select: none; font-family: OptimaKlein, sans-serif; font-size: 13px; text-align: center; color: #555555; box-sizing: border-box; }
+        #paon-swipe-deck .swipe-clip-wrapper { position: relative; width: 100%; max-width: 390px; overflow: visible; padding: 20px 20px 0 20px; box-sizing: border-box; }
+        #paon-swipe-deck .swipe-container { position: relative; width: 100%; height: 555px; z-index: 100; touch-action: pan-y; overflow: visible; }
+        #paon-swipe-deck .munro-swipe-card { position: absolute; top: 0; left: 0; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; appearance: none; border: 0; border-radius: 20px; background-color: #f0f0f0; background-size: cover; background-position: center; cursor: grab; user-select: none; font-family: OptimaKlein, sans-serif; font-size: 13px; text-align: center; color: #555555; padding: 20px; box-sizing: border-box; will-change: transform; }
         #paon-swipe-deck .munro-final-card { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; background: #f2f2f2; padding: 20px; }
         #paon-swipe-deck .card-label { display: flex; height: 25%; flex-direction: column; justify-content: center; padding: 0 20px; background: rgba(255,255,255,0.88); position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 20px 20px; }
         #paon-swipe-deck .buttons { display: flex; justify-content: center; margin-top: 20px; gap: 50px; }
@@ -146,15 +172,17 @@ export function SwipeDeck({
         #paon-swipe-deck .button-outer { position: relative; z-index: 1; border-radius: inherit; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0.05em 0.05em -0.01em rgba(5,5,5,1), 0 0.01em 0.01em -0.01em rgba(5,5,5,0.5), 0.15em 0.3em 0.1em -0.01em rgba(5,5,5,0.25); transition: box-shadow 300ms ease; }
         #paon-swipe-deck .button-inner { position: relative; z-index: 1; border-radius: inherit; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transition: box-shadow 300ms ease, transform 250ms ease; overflow: clip; clip-path: inset(0 0 0 0 round 999vw); box-shadow: -0.05em -0.05em 0.05em 0 inset rgba(5,5,5,0.25), 0 0 0.05em 0.2em inset rgba(255,255,255,0.25), 0.025em 0.05em 0.1em 0 inset rgba(255,255,255,1), 0.12em 0.12em 0.12em inset rgba(255,255,255,0.25), -0.075em -0.25em 0.25em 0.1em inset rgba(5,5,5,0.25); }
         #paon-swipe-deck button.munro-swipe-btn:active .button-inner { transform: scale(0.975); transition: transform 0.05s ease-in; }
+        #paon-swipe-deck button.munro-swipe-btn:disabled { cursor: wait; opacity: 0.72; }
         #paon-swipe-deck .button-inner img { width: 18px; height: auto; display: block; }
         #paon-swipe-deck #dislike .button-inner img { opacity: 0.75; width: 15px; }
         #paon-swipe-deck #dislike .button-inner { background-color: #ff4c4c; }
         #paon-swipe-deck #like .button-inner { background-color: #4caf50; }
         #paon-swipe-deck .liked-carousel { position: relative; width: 100%; margin-top: 40px; height: 115px; }
-        #paon-swipe-deck .liked-track-wrapper { overflow-x: auto; overflow-y: hidden; height: 100%; display: flex; align-items: center; box-sizing: border-box; padding: 0 20px; scrollbar-width: none; }
+        #paon-swipe-deck .liked-track-wrapper { overflow-x: auto; overflow-y: hidden; height: 100%; display: flex; align-items: center; box-sizing: border-box; padding-right: 20px; scrollbar-width: none; }
         #paon-swipe-deck .liked-track-wrapper::-webkit-scrollbar { display: none; }
-        #paon-swipe-deck .liked-track { display: flex; align-items: center; gap: 10px; width: max-content; }
-        #paon-swipe-deck .liked-item { flex: 0 0 auto; width: 70px; height: 105px; border-radius: 10px; background: #EBEBEB; background-position: center; background-size: cover; position: relative; }
+        #paon-swipe-deck .liked-track { display: flex; align-items: center; gap: 10px; width: max-content; scroll-snap-type: x mandatory; }
+        #paon-swipe-deck .liked-item { flex: 0 0 auto; width: 70px; height: 105px; border-radius: 10px; background: #EBEBEB; background-position: center; background-size: cover; display: flex; align-items: center; justify-content: center; position: relative; scroll-snap-align: start; }
+        #paon-swipe-deck .liked-item:first-child { margin-left: 20px; }
         #paon-swipe-deck .like-icon-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16.5px; height: 16.5px; background-image: url('https://www.nebelspiegel.com/images/bookmarkwhite.png'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: invert(1); opacity: 0.1; pointer-events: none; }
       `}</style>
 
@@ -167,11 +195,23 @@ export function SwipeDeck({
       {current ? (
         <div className="swipe-clip-wrapper">
           <div className="swipe-container" ref={containerRef}>
-            <div
+            <button
+              type="button"
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerUp}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowLeft") {
+                  event.preventDefault();
+                  void commit("left");
+                } else if (event.key === "ArrowRight") {
+                  event.preventDefault();
+                  void commit("right");
+                }
+              }}
+              aria-label={`${current.name}. Press the right arrow to save or the left arrow to skip.`}
+              aria-busy={exiting !== null}
               className="munro-swipe-card"
               style={{
                 backgroundImage: current.imageUrl
@@ -189,7 +229,7 @@ export function SwipeDeck({
                   {formatMoney(current.price, "en-US")}
                 </p>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       ) : (
@@ -222,7 +262,8 @@ export function SwipeDeck({
           id="dislike"
           className="munro-swipe-btn"
           aria-label="Skip"
-          onClick={() => commit("left")}
+          disabled={exiting !== null}
+          onClick={() => void commit("left")}
         >
           <div className="button-outer">
             <div className="button-inner">
@@ -239,7 +280,8 @@ export function SwipeDeck({
           id="like"
           className="munro-swipe-btn"
           aria-label="Save"
-          onClick={() => commit("right")}
+          disabled={exiting !== null}
+          onClick={() => void commit("right")}
         >
           <div className="button-outer">
             <div className="button-inner">
@@ -253,6 +295,15 @@ export function SwipeDeck({
           </div>
         </button>
       </div>
+
+      {errorMessage ? (
+        <p
+          role="alert"
+          className="mt-3 text-center text-sm text-[var(--color-error-700,#9f2929)]"
+        >
+          {errorMessage}
+        </p>
+      ) : null}
 
       <div className="liked-carousel">
         <div className="liked-track-wrapper">

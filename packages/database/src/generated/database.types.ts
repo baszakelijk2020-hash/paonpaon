@@ -17382,6 +17382,10 @@ export type Database = {
         Args: { p_email: string; p_retailer_id: string };
         Returns: undefined;
       };
+      save_wishlist_item: {
+        Args: { p_retailer_id: string; p_variant_id: string };
+        Returns: boolean;
+      };
       sync_loyalty_milestones_for_order: {
         Args: { p_order_id: string };
         Returns: number;

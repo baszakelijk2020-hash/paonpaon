@@ -1042,3 +1042,14 @@ those suites' bug.
   login/invitation boundary intentionally remain outside module enforcement;
   non-browser handlers/jobs remain a separate audit surface. The complete
   retailer browser suite stays green at 43/43 after this pass.
+- FT-08 Swipe Deck moved from audited foundation into connected product
+  hardening. Migration `20260802000001` adds `save_wishlist_item`, separating
+  retry-safe swipe intent from the explicit wishlist toggle. The founder card
+  restores on a failed write instead of claiming a false save, keeps its
+  450ms source motion, supports arrow-key decisions and restores source
+  spacing/carousel details. The browser journey proves keyboard save through
+  the real Server Action, one database row, reload and canonical wishlist
+  visibility; 7 pgTAP assertions prove retry idempotency, ACL and cross-House
+  refusal. A clean database reset applies all 150 migrations. Resume/version,
+  touch/reduced-motion and withdrawal-driven recomputation remain open rather
+  than being relabelled complete.
