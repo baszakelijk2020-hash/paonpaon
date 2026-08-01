@@ -11,7 +11,7 @@ import {
 } from "@paon/domain";
 
 import { createSupabaseAdminClient } from "./clients/admin";
-import { seedDemoData } from "./demo-seed";
+import { seedProgrammeProofData } from "./demo-seed";
 
 export interface ProgrammeProofSeedResult {
   readonly seedId: typeof PROGRAMME_PROOF_SEED_ID;
@@ -28,7 +28,7 @@ export async function ensureProgrammeProofSeed(params: {
   readonly anonKey: string;
   readonly serviceRoleKey: string;
 }): Promise<ProgrammeProofSeedResult> {
-  await seedDemoData(params);
+  await seedProgrammeProofData(params);
   const admin = createSupabaseAdminClient(
     params.supabaseUrl,
     params.serviceRoleKey,

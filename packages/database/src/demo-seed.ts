@@ -16,7 +16,10 @@ import type {
   StaffId,
   UserId,
 } from "@paon/domain";
-import { decodeProspectProductImageLine } from "@paon/domain";
+import {
+  decodeProspectProductImageLine,
+  PROGRAMME_PROOF_RETAILER_SLUG,
+} from "@paon/domain";
 
 import {
   AlterationRepository,
@@ -1152,6 +1155,45 @@ export async function seedDemoData(params: {
     ...params,
     specs: RETAILERS,
     includePlatformAdmin: true,
+  });
+}
+
+/**
+ * Seeds the canonical local proof house without touching founder walkthrough
+ * data. It deliberately reuses the realistic Maison catalogue and 12 client
+ * stories while scoping every tenant/user natural key to the proof slug.
+ * Demo Studio prospects use their own generated slugs and Playwright's generic
+ * CRUD workspace uses `e2e-retailer-workspace`; those three data classes can
+ * now be reset or mutated independently.
+ */
+export async function seedProgrammeProofData(params: {
+  supabaseUrl: string;
+  anonKey: string;
+  serviceRoleKey: string;
+}): Promise<DemoLogin[]> {
+  const template = RETAILERS[0]!;
+  const customers = template.customers.map((customer) => {
+    const localPart = customer.email.split("@")[0] ?? "client";
+    const alias = localPart.replace(/^contact\+/, "");
+    return {
+      ...customer,
+      email: `contact+${PROGRAMME_PROOF_RETAILER_SLUG}-${alias}@nebelspiegel.com`,
+    };
+  });
+  return seedRetailerSpecs({
+    ...params,
+    specs: [
+      {
+        ...template,
+        slug: PROGRAMME_PROOF_RETAILER_SLUG,
+        displayName: "PAON Programme Proof House",
+        legalName: "PAON Programme Proof House SARL",
+        collectionName: "Proof House Wardrobe",
+        collectionSlug: "proof-house-wardrobe",
+        customers,
+      },
+    ],
+    includePlatformAdmin: false,
   });
 }
 

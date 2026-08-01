@@ -1,34 +1,34 @@
 /**
- * Deterministic linked multi-role seed descriptor for Stage 8.4 harness
- * proof (AUD-003 / AUD-004). Uses Maison Dubois demo personas so browser
- * tests assert originating role → receiving role → persisted state without
- * inventing a parallel tenant.
+ * Deterministic linked multi-role seed descriptor for the programme harness
+ * (AUD-003 / AUD-004). The proof house is deliberately separate from Maison
+ * Dubois demo data and from the generic E2E workspace: verification may
+ * mutate it without changing the founder walkthrough or onboarding demos.
  */
 
-export const PROGRAMME_PROOF_SEED_ID = "paon-proof-maison-dubois-v1" as const;
+export const PROGRAMME_PROOF_SEED_ID = "paon-programme-proof-house-v2" as const;
 
-export const PROGRAMME_PROOF_RETAILER_SLUG = "maison-dubois" as const;
+export const PROGRAMME_PROOF_RETAILER_SLUG = "paon-programme-proof" as const;
 
 export const PROGRAMME_PROOF_PERSONAS = {
   owner: {
     role: "owner",
-    email: "contact+maison-dubois-owner@nebelspiegel.com",
+    email: "contact+paon-programme-proof-owner@nebelspiegel.com",
   },
   manager: {
     role: "manager",
-    email: "contact+maison-dubois-manager@nebelspiegel.com",
+    email: "contact+paon-programme-proof-manager@nebelspiegel.com",
   },
   advisor: {
     role: "sales_associate",
-    email: "contact+maison-dubois-sales@nebelspiegel.com",
+    email: "contact+paon-programme-proof-sales@nebelspiegel.com",
   },
   worker: {
     role: "worker",
-    email: "contact+maison-dubois-alteration-worker@nebelspiegel.com",
+    email: "contact+paon-programme-proof-alteration-worker@nebelspiegel.com",
   },
   customer: {
     role: "customer",
-    email: "contact+julien@nebelspiegel.com",
+    email: "contact+paon-programme-proof-julien@nebelspiegel.com",
     displayName: "Julien Moreau",
   },
 } as const;

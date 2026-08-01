@@ -34,7 +34,7 @@ This correction supersedes conflicting status and handoff claims below:
   baseline mixed stale assertions with real storefront collision,
   accessibility and order-detail read-after-write defects; all 14 scenarios
   now pass together against disposable local Supabase.
-- Retailer e2e is now 42/42 on the takeover branch. The audit restored the
+- Retailer e2e is now 43/43 on the takeover branch. The audit restored the
   missing `/staff/coverage` UI and coaching loop, production-specialist order
   navigation, a local-only webhook secret fixture, deterministic measurement
   version setup, and invalid-invite/network-idle proof assumptions. The route
@@ -67,12 +67,15 @@ This correction supersedes conflicting status and handoff claims below:
   effective retailer lifecycle/authority resolution, dependency rollback,
   audit history, active-only jobs and role-aware navigation projection.
   Module proof is 8 domain + 8 repository/schema + 15 pgTAP + 1 browser
-  assertion. Customer e2e is a clean 29/29 and retailer e2e is a clean 42/42.
+  assertion. Customer e2e is a clean 29/29 and retailer e2e is a clean 43/43.
   Preview/suspended/off now fail closed at the server-session boundary for
   stock, loss prevention, POS and coverage mutations; browser proof submits a
   direct preview-mode Server Action and verifies no row is written. It is not
-  yet universal across every module surface. R0.3 still needs canonical House
-  depth and complete server/read guards. `CAPABILITY_DISPOSITION.md` classifies every
+  yet universal across every module surface. The canonical proof House is now
+  idempotently seeded as a tenant distinct from Maison Dubois, Demo Studio and
+  the generic e2e workspace, with 6+ staff, 14 clients, 20+ products, 5+
+  appointments, 10+ orders and an alteration case. R0.3 still needs canonical
+  House cleanup and complete server/read guards. `CAPABILITY_DISPOSITION.md` classifies every
   inherited Stage 8–16 capability and founder-designated tool by module,
   keep/harden/consolidate/replace/quarantine decision and connected proof.
 

@@ -30,7 +30,7 @@ requires it.
   remains external. Atomic POS/return/payment RPCs, finality triggers and role
   boundaries are locally verified (70/70 live, 11/11 pgTAP) but remain under
   R0.2 and proposed cash ADR-072. Customer e2e is now clean at 29/29 and
-  retailer e2e is clean at 42/42; the invented Faden signature contract
+  retailer e2e is clean at 43/43; the invented Faden signature contract
   remains explicitly a local fixture rather than provider truth.
   R0.3's first local slice now provides the eight-family module kernel,
   dependency-safe plan/add-on state, job suppression and retailer navigation
@@ -40,7 +40,10 @@ requires it.
   depth remain open. The first mutation boundary now rejects preview,
   suspended and off writes across stock, loss prevention, POS and coverage;
   the browser proof verifies a direct preview-mode Server Action writes no
-  row. Extend that contract rather than inventing per-page tier checks.
+  row. The canonical proof House is now a deep, idempotent tenant separated
+  from founder demo, Demo Studio and generic e2e data, with the full retailer
+  suite green at 43/43. Extend the shared gate rather than inventing per-page
+  tier checks; House cleanup and the remaining read/write surfaces stay open.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

@@ -67,7 +67,7 @@ be resumed without the module mapping required by R0.3.**
     privileged-function ACLs. Migration 18 now refuses catalogue/ledger
     conflicts before rewriting; the populated synthetic conflict and success
     upgrade paths are rehearsed and documented. Customer baseline is 29/29;
-    retailer is 42/42 overall and the repaired stock/loss/POS slice is 4/4.
+    retailer is 43/43 overall and the repaired stock/loss/POS slice is 4/4.
     Vercel returns all three production
     Supabase URLs as irreversibly `[SENSITIVE]`, so they remain conservatively
     classified protected/original. Remaining external gate: approved restore
@@ -133,7 +133,7 @@ be resumed without the module mapping required by R0.3.**
     tap-target contracts. The repair also removed a first-open order-detail
     failure caused by a redundant Honeymoon read-after-write and prevents
     TableService from covering the founder detail CTA. Retailer e2e is now a
-    clean 42/42. The repair restored the omitted `/staff/coverage` route,
+    clean 43/43. The repair restored the omitted `/staff/coverage` route,
     production-specialist order navigation, a local integration-secret
     fixture and deterministic proof setup. A broad `coverage/` gitignore rule
     had silently excluded the route while allowing its proof and documentation
@@ -143,8 +143,14 @@ be resumed without the module mapping required by R0.3.**
     prevention, POS and coverage actions all use it. Browser proof loads the
     direct coverage route in preview and verifies that submitting its live
     Server Action creates no row. Remaining: extend the gate across every
-    module-owned mutation/read surface and complete canonical House depth and
-    cleanup. `CAPABILITY_DISPOSITION.md` maps every Stage 8–16
+    module-owned mutation/read surface and complete canonical House cleanup.
+    The programme proof now seeds an idempotent, lived-in tenant independently
+    from Maison Dubois, Demo Studio prospects and the generic e2e workspace:
+    6+ staff, 14 clients, 20+ products, 5+ appointments, 10+ orders and an
+    alteration case in real canonical tables. A dedicated browser/database
+    assertion reruns the seed, checks stable linked ids and verifies the three
+    tenant classes cannot collapse into one another; the complete retailer
+    suite passes 43/43. `CAPABILITY_DISPOSITION.md` maps every Stage 8–16
     capability and founder-designated tool to one module, one explicit
     keep/harden/consolidate/replace/quarantine decision and a connected proof
     contract.
