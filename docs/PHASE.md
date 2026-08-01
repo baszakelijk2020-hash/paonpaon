@@ -147,14 +147,15 @@ be resumed without the module mapping required by R0.3.**
     Mutation enforcement now goes beyond navigation/jobs: a shared
     module-session gate rejects preview/suspended/off writes. Stock, loss
     prevention, POS, coverage, customer, appointment, messaging, customer-fact,
-    wardrobe, roadmap, alteration, workshop and service-plan actions all use
-    it. Relationship and garment/service route layouts allow active/preview
-    reads while refusing suspended/off direct access. Browser proof waits for
-    real Server Action responses, verifies coverage, client and service-plan
-    writes leave zero rows in preview, then proves suspended direct client and
-    service routes return 500. Remaining: extend the gate across every other
-    module-owned mutation/read surface, implement the founder-tool blueprints,
-    and complete canonical House cleanup.
+    wardrobe, roadmap, alteration, workshop, service-plan, order, campaign,
+    loyalty and event actions all use it. Relationship, garment/service and
+    Commerce route layouts allow active/preview reads while refusing
+    suspended/off direct access. Browser proof waits for real Server Action
+    responses, verifies coverage, client, service-plan and event writes leave
+    zero rows in preview, then proves suspended direct routes return 500.
+    Remaining: extend the gate across every other module-owned mutation/read
+    surface, implement the founder-tool blueprints, and complete canonical
+    House cleanup.
     The programme proof now seeds an idempotent, lived-in tenant independently
     from Maison Dubois, Demo Studio prospects and the generic e2e workspace:
     6+ staff, 14 clients, 20+ products, 5+ appointments, 10+ orders and an

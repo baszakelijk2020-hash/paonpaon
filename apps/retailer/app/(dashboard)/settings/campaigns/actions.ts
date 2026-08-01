@@ -17,12 +17,12 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function upsertCampaign(formData: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   const quietStart = formData.get("quietStartMinute");
   const quietEnd = formData.get("quietEndMinute");
   const rewardKind = formData.get("rewardKind");
@@ -57,7 +57,7 @@ export async function upsertCampaign(formData: FormData): Promise<void> {
 }
 
 export async function setCampaignStatus(formData: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   const campaignId = String(formData.get("campaignId") ?? "");
   const status = String(formData.get("status") ?? "") as CampaignStatus;
   await new CampaignRepository(
@@ -69,7 +69,7 @@ export async function setCampaignStatus(formData: FormData): Promise<void> {
 export async function upsertCampaignAudienceRule(
   formData: FormData,
 ): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   const parsed = upsertCampaignAudienceRuleInputSchema.parse({
     campaignId: formData.get("campaignId"),
     ruleKind: formData.get("ruleKind"),
@@ -90,7 +90,7 @@ export async function upsertCampaignAudienceRule(
 export async function setCampaignTargetProduct(
   formData: FormData,
 ): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   const parsed = setCampaignTargetProductInputSchema.parse({
     campaignId: formData.get("campaignId"),
     productId: formData.get("productId"),
@@ -114,7 +114,7 @@ export async function setCampaignTargetProduct(
  * a UI nicety.
  */
 export async function rehearseCampaign(formData: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   if (!retailerRoleAtLeast(session.retailerRole, "manager")) {
     throw new Error("Only a manager or owner can rehearse a campaign.");
   }
@@ -144,7 +144,7 @@ export async function rehearseCampaign(formData: FormData): Promise<void> {
 export async function activateCampaignWithMissions(
   formData: FormData,
 ): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   if (!retailerRoleAtLeast(session.retailerRole, "manager")) {
     throw new Error("Only a manager or owner can activate a campaign.");
   }
@@ -169,7 +169,7 @@ export async function activateCampaignWithMissions(
 }
 
 export async function cloneCampaignFromLibrary(): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   const supabase = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(supabase).findByUserId(
     session.userId,

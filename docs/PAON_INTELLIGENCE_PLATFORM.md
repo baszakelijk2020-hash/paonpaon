@@ -40,13 +40,15 @@ requires it.
   cleanup remain open. The shared boundary now rejects preview, suspended and
   off writes across stock, loss prevention, POS, coverage, customer,
   appointment, messaging, customer-fact, wardrobe, roadmap, alteration,
-  workshop and service-plan actions. Relationship and garment/service route
-  layouts reject suspended/off direct reads while keeping preview useful.
-  Browser proof waits for the action responses, verifies zero
-  coverage/client/service-plan rows, and checks suspended direct access returns 500. The canonical proof House is now a deep, idempotent tenant separated
-  from founder demo, Demo Studio and generic e2e data, with the full retailer
-  suite green at 43/43. Extend the shared gate rather than inventing per-page
-  tier checks; House cleanup and the remaining read/write surfaces stay open.
+  workshop, service-plan, order, campaign, loyalty and event actions.
+  Relationship, garment/service and Commerce route layouts reject
+  suspended/off direct reads while keeping preview useful. Browser proof waits
+  for the action responses, verifies zero coverage/client/service-plan/event
+  rows, and checks suspended direct access returns 500. The canonical proof
+  House is now a deep, idempotent tenant separated from founder demo, Demo
+  Studio and generic e2e data, with the full retailer suite green at 43/43.
+  Extend the shared gate rather than inventing per-page tier checks; House
+  cleanup and the remaining read/write surfaces stay open.
   `CAPABILITY_DISPOSITION.md` is the inheritance registry;
   `FOUNDER_TOOL_BLUEPRINTS.md` is now the implementation-grade contract for
   all fourteen designated tools and the wider founder-intent crosswalk. Read

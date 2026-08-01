@@ -11,11 +11,11 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function saveProgram(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "manager");
   const values = loyaltyProgramSchema.parse({
     name: formData.get("name"),
@@ -31,7 +31,7 @@ export async function saveProgram(formData: FormData) {
 }
 
 export async function createReward(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "manager");
   const values = rewardSchema.parse({
     name: formData.get("name"),
@@ -52,7 +52,7 @@ export async function createReward(formData: FormData) {
 }
 
 export async function saveBuiltInMilestone(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "manager");
   const values = upsertBuiltInMilestonePointsSchema.parse({
     kind: formData.get("kind"),
@@ -70,7 +70,7 @@ export async function saveBuiltInMilestone(formData: FormData) {
 }
 
 export async function createPeerMilestone(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "manager");
   const conceptRaw = String(formData.get("matchConceptIds") ?? "");
   const matchConceptIds = conceptRaw

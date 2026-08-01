@@ -39,6 +39,7 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
     .slice(0, 10);
   const previewCustomerEmail = `module-preview-${Date.now()}@example.test`;
   const previewPlanTitle = `Blocked preview plan ${Date.now()}`;
+  const previewEventName = `Blocked preview event ${Date.now()}`;
   const relationshipDependents = [
     "network_ecosystem",
     "enterprise_verticals",
@@ -168,6 +169,56 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
     });
     const suspendedServiceResponse = await page.goto("/services");
     expect(suspendedServiceResponse?.status()).toBe(500);
+
+    // Commerce owns orders, campaigns, loyalty and client events. Prove one
+    // representative mutation and direct route at the shared boundary; the
+    // other actions use the same module-session gate.
+    await modules.configure({
+      retailerId: retailer!.id,
+      moduleKey: "commerce_growth",
+      state: "preview",
+      authorityMode: "co_managed",
+      source: "override",
+      reason: "Browser proof commerce preview",
+    });
+    await page.goto("/dashboard");
+    await expect(
+      page.locator('nav[aria-label="Primary"] a[href="/events"]'),
+    ).toContainText("Events · Preview");
+    await page.goto("/events");
+    await page.getByPlaceholder("Spring trunk show").fill(previewEventName);
+    await page.getByPlaceholder("Venue").fill("Preview-only room");
+    await page.locator('input[name="startsAt"]').fill("2400-03-01T10:00");
+    await page.locator('input[name="endsAt"]').fill("2400-03-01T12:00");
+    await page
+      .getByPlaceholder("Event description")
+      .fill("This must never be persisted while Commerce is in preview.");
+    await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.request().method() === "POST" &&
+          new URL(response.url()).pathname === "/events",
+      ),
+      page.getByRole("button", { name: "Create draft" }).click(),
+    ]);
+    const { count: eventCount, error: eventCountError } = await admin
+      .from("retailer_events")
+      .select("id", { count: "exact", head: true })
+      .eq("retailer_id", retailer!.id)
+      .eq("name", previewEventName);
+    expect(eventCountError).toBeNull();
+    expect(eventCount ?? 0).toBe(0);
+
+    await modules.configure({
+      retailerId: retailer!.id,
+      moduleKey: "commerce_growth",
+      state: "suspended",
+      authorityMode: "co_managed",
+      source: "override",
+      reason: "Browser proof commerce read containment",
+    });
+    const suspendedCommerceResponse = await page.goto("/events");
+    expect(suspendedCommerceResponse?.status()).toBe(500);
 
     // Relationship Intelligence sits under several active families. Turn
     // those dependants off in dependency-safe order, then prove preview keeps

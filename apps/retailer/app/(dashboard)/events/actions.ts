@@ -6,11 +6,11 @@ import { createEventSchema, updateEventStatusSchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function createEvent(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "manager");
   const value = createEventSchema.parse({
     name: formData.get("name"),
@@ -37,7 +37,7 @@ export async function createEvent(formData: FormData) {
   redirect(`/events/${event.id}`);
 }
 export async function updateEventStatus(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "manager");
   const eventId = String(formData.get("eventId"));
   const status = updateEventStatusSchema.parse(formData.get("status"));
@@ -50,7 +50,7 @@ export async function updateEventStatus(formData: FormData) {
 }
 
 export async function checkInGuest(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "manager");
   const eventId = String(formData.get("eventId"));
   const customerId = String(formData.get("customerId"));

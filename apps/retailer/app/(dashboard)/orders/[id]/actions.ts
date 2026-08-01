@@ -9,7 +9,7 @@ import {
 import { asId, updateOrderStatusInputSchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface UpdateOrderStatusFormState {
@@ -21,7 +21,7 @@ export async function updateOrderStatus(
   _prevState: UpdateOrderStatusFormState,
   formData: FormData,
 ): Promise<UpdateOrderStatusFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "production_staff");
 
   const parsed = updateOrderStatusInputSchema.safeParse({
@@ -65,7 +65,7 @@ export async function markPaidInStore(
   _prevState: OrderActionState,
   _formData: FormData,
 ): Promise<OrderActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "production_staff");
 
   const supabase = await getSupabaseServerClient();
@@ -101,7 +101,7 @@ export async function requestReturn(
   _prevState: OrderActionState,
   formData: FormData,
 ): Promise<OrderActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "production_staff");
 
   const reason = String(formData.get("reason") ?? "").trim();

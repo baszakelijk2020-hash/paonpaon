@@ -1018,9 +1018,14 @@ those suites' bug.
   read surface but writes zero plans; suspension rejects the direct route.
   Focused proof, retailer 43/43 and the full repository definition of done are
   green. Exact-SHA evidence refresh follows in a separate evidence commit.
-- Founder clarification captured: `CAPABILITY_DISPOSITION.md` is an index, not
-  a sufficient tool specification. The next specification slice must produce
-  detailed per-tool blueprints covering literal source experience, PAON
-  rationale, roles, module/tier, data/events, permissions, provenance/consent,
-  technical wiring, recovery and connected browser/database proof without
-  importing Atelier Munro branding or surrounding pitch claims.
+- `24980f1` created `FOUNDER_TOOL_BLUEPRINTS.md`: fourteen stable, detailed
+  implementation contracts covering literal source experience, PAON purpose,
+  actors, module/tier, state, canonical data/events, privacy, technical wiring,
+  recovery and connected proof. The wider founder brief is crosswalked without
+  importing Atelier Munro branding or surrounding pitch claims. `ebac234`
+  reran and refreshed the exact-SHA completion proofs; both journeys passed.
+- The next server-boundary slice gates Commerce & Growth order, campaign,
+  loyalty and event mutations plus their direct read routes. The browser proof
+  attempts a real event create in preview, observes zero database rows and then
+  proves a suspended direct route returns 500; the focused production build
+  and browser proof pass.
