@@ -115,6 +115,16 @@ export class CoveragePlanningRepository {
           timezone: args.timezone,
           state: "draft",
           branch_id: args.branchId ?? null,
+          // Clearing these is not optional. Re-saving an ALREADY PUBLISHED
+          // plan reverts it to draft, and `coverage_plans_publish_complete`
+          // asserts that a published state and a publisher exist together
+          // or not at all. Leaving them set makes the whole upsert fail
+          // with 23514 — which is the constraint doing its job: a row
+          // calling itself a draft while naming who published it is
+          // incoherent, and the fix belongs here rather than in the
+          // constraint. Found by publishing twice through the real UI.
+          published_at: null,
+          published_by_staff_id: null,
         },
         { onConflict: "retailer_id,branch_id,plan_date" },
       )

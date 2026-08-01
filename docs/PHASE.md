@@ -1417,6 +1417,44 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     fails if a score aggregate column appears. Missing: retailer UI for all
     four surfaces, a browser proof, and the manager-facing publish-coverage
     flow end to end.
+  - **Update (2026-08-01, later the same day):** the **acceptance criterion
+    is now browser-proven** — `apps/retailer/e2e/staff-coverage.spec.ts`
+    drives a real manager through `/staff/coverage`: publish a requirement,
+    read a shortage _with its citations rendered inline_, publish again and
+    have the intervals replaced rather than merged, record an observation on
+    a colleague, and walk the loop observed → discussed → plan_agreed →
+    outcome_recorded, with a refusal proven on the way (agreeing a plan with
+    no action). The proof ends by asserting the database agrees with the page
+    **and that no `staff_shifts` row was created for that date** — the
+    load-bearing claim of the whole item, checked rather than asserted in
+    prose.
+
+    The checkbox stays unchecked and the item is still not complete: the
+    owner boundary also covers availability declarations, shift swaps, and
+    ceremony versions with contextual prompts, and none of those has a
+    surface. What changed is that one named acceptance criterion moved from
+    "schema exists" to "a manager did it in a browser".
+
+    Wiring the UI found **two real defects the domain and schema tests could
+    not have found**, which is the argument for doing this work at all:
+
+    1. `coverage_plans_unique_day` was `unique (retailer_id, branch_id,
+plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
+       distinct, so whole-retailer plans — the common case for a single-site
+       shop — were never unique. `saveDraftPlan`'s upsert conflict target
+       could therefore never match, so every save created another plan, and
+       `findPlanForDate`'s `.maybeSingle()` would then throw on the second
+       one. Verified by inserting twice against the sandbox project
+       (`duplicate_rows: 2`) before writing the fix. Repaired in
+       `20260801000015` with `unique nulls not distinct`, which is what was
+       meant: a null branch is the statement "this plan covers the whole
+       retailer", not missing information.
+    2. `saveDraftPlan` reverted a published plan to `draft` without clearing
+       `published_at` / `published_by_staff_id`, which violates
+       `coverage_plans_publish_complete` (`23514`). The constraint was right
+       and the repository was wrong — a row calling itself a draft while
+       naming who published it is incoherent — so the fix is in the
+       repository. Only a second publish through the real UI exercises this.
 
 - [ ] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.

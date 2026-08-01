@@ -73,6 +73,15 @@ export default async function DashboardLayout({
           label: "Recognition",
           description: "Extra-mile acts and coaching",
         },
+        // PHASE 11.3 / WFM-105. Also unconditional: a published coverage
+        // requirement people cannot see is not a plan. The publish and
+        // observe actions on the page are manager-gated in RLS, so the nav
+        // entry being open costs nothing.
+        {
+          href: "/staff/coverage",
+          label: "Coverage",
+          description: "What the day needs, and where it is short",
+        },
         ...(!isWorkshopRole
           ? [
               {
