@@ -1013,10 +1013,11 @@ those suites' bug.
   relationship, appointment, messaging, customer-fact, wardrobe and roadmap
   surfaces. Browser proof waits for actual Server Action completion before
   asserting zero preview writes and a suspended direct-route refusal.
-- In flight at this log entry: the same boundary is applied to alteration,
-  workshop and service-plan actions plus `/alterations` and `/services` reads.
-  Focused proof and the complete retailer suite are green at 43/43; commit,
-  push and exact-SHA evidence refresh remain before handoff.
+- `9b26b23` applied the same boundary to alteration, workshop and service-plan
+  actions plus `/alterations` and `/services` reads. Preview permits the real
+  read surface but writes zero plans; suspension rejects the direct route.
+  Focused proof, retailer 43/43 and the full repository definition of done are
+  green. Exact-SHA evidence refresh follows in a separate evidence commit.
 - Founder clarification captured: `CAPABILITY_DISPOSITION.md` is an index, not
   a sufficient tool specification. The next specification slice must produce
   detailed per-tool blueprints covering literal source experience, PAON
