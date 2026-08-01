@@ -39,6 +39,126 @@ test("the founder swipe deck persists choices, deduplicates signals, and resumes
     .limit(1)
     .single();
   if (!variant) throw new Error("fixture variant missing");
+  const { error: stableImageError } = await admin
+    .from("products")
+    .update({ primary_image_url: null })
+    .eq("id", product.id);
+  if (stableImageError) throw stableImageError;
+
+  const companionSlug = "e2e-style-profile-companion";
+  let { data: companion } = await admin
+    .from("products")
+    .select("id")
+    .eq("retailer_id", retailer.id)
+    .eq("slug", companionSlug)
+    .maybeSingle();
+  if (!companion) {
+    const { data: created, error: createError } = await admin
+      .from("products")
+      .insert({
+        retailer_id: retailer.id,
+        name: "E2E Style Profile Companion Jacket",
+        slug: companionSlug,
+        description: "Shares a reviewed style concept with the swipe fixture.",
+        status: "active",
+        is_made_to_order: false,
+        is_alterable: false,
+      })
+      .select("id")
+      .single();
+    if (createError) throw createError;
+    companion = created;
+  } else {
+    const { error: activateError } = await admin
+      .from("products")
+      .update({ status: "active", deleted_at: null })
+      .eq("id", companion.id);
+    if (activateError) throw activateError;
+  }
+  const { data: companionVariant } = await admin
+    .from("product_variants")
+    .select("id")
+    .eq("product_id", companion.id)
+    .limit(1)
+    .maybeSingle();
+  if (!companionVariant) {
+    const { error: variantError } = await admin
+      .from("product_variants")
+      .insert({
+        product_id: companion.id,
+        sku: "E2E-COMPANION-42",
+        size: "42",
+        price_amount_minor_units: 425000,
+        price_currency: "USD",
+        inventory_quantity: 8,
+      });
+    if (variantError) throw variantError;
+  }
+
+  const conceptSlug = "e2e-swipe-soft-structure";
+  let { data: swipeConcept } = await admin
+    .from("metadata_concepts")
+    .select("id")
+    .eq("retailer_id", retailer.id)
+    .eq("kind", "style")
+    .eq("slug", conceptSlug)
+    .maybeSingle();
+  if (!swipeConcept) {
+    const { data: created, error: conceptError } = await admin
+      .from("metadata_concepts")
+      .insert({
+        retailer_id: retailer.id,
+        kind: "style",
+        slug: conceptSlug,
+        canonical_name: "Soft structure",
+        attributes: {},
+        active: true,
+      })
+      .select("id")
+      .single();
+    if (conceptError) throw conceptError;
+    swipeConcept = created;
+  } else {
+    const { error: activateConceptError } = await admin
+      .from("metadata_concepts")
+      .update({ active: true, deleted_at: null })
+      .eq("id", swipeConcept.id);
+    if (activateConceptError) throw activateConceptError;
+  }
+  const { data: reviewer } = await admin
+    .from("retailer_staff_members")
+    .select("id")
+    .eq("retailer_id", retailer.id)
+    .limit(1)
+    .single();
+  if (!reviewer) throw new Error("fixture metadata reviewer missing");
+  const assignmentTargets = [product.id, companion.id];
+  const { error: oldAssignmentError } = await admin
+    .from("entity_metadata_assignments")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("retailer_id", retailer.id)
+    .eq("concept_id", swipeConcept.id)
+    .in("target_id", assignmentTargets)
+    .is("deleted_at", null);
+  if (oldAssignmentError) throw oldAssignmentError;
+  const reviewedAt = new Date().toISOString();
+  const { error: assignmentError } = await admin
+    .from("entity_metadata_assignments")
+    .insert(
+      assignmentTargets.map((targetId) => ({
+        retailer_id: retailer.id,
+        target_type: "product" as const,
+        target_id: targetId,
+        concept_id: swipeConcept.id,
+        source: "paon" as const,
+        confidence: 1,
+        review_status: "accepted" as const,
+        evidence: { summary: "E2E reviewed swipe intelligence fixture" },
+        reviewed_by_staff_id: reviewer.id,
+        reviewed_at: reviewedAt,
+      })),
+    );
+  if (assignmentError) throw assignmentError;
 
   const { data: customer } = await admin
     .from("customers")
@@ -47,6 +167,12 @@ test("the founder swipe deck persists choices, deduplicates signals, and resumes
     .eq("email", TEST_CUSTOMER_EMAIL)
     .single();
   if (!customer) throw new Error("fixture customer missing");
+  const { error: evidenceCleanupError } = await admin
+    .from("customer_style_preference_evidence")
+    .delete()
+    .eq("customer_id", customer.id)
+    .eq("concept_id", swipeConcept.id);
+  if (evidenceCleanupError) throw evidenceCleanupError;
   const { error: consentError } = await admin
     .from("customer_preferences")
     .upsert(
@@ -97,7 +223,24 @@ test("the founder swipe deck persists choices, deduplicates signals, and resumes
 
   const captureStartedAt = new Date().toISOString();
   const swipePath = `/r/${TEST_RETAILER_SLUG}/swipe?products=${encodeURIComponent(product.id)}`;
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(swipePath);
+  const globalContactButton = page.getByRole("button", { name: "Contact us" });
+  if (await globalContactButton.count()) {
+    await globalContactButton.evaluate((element) => {
+      element.style.visibility = "hidden";
+    });
+  }
+  await expect(page.locator("#paon-swipe-deck")).toHaveScreenshot(
+    "swipe-deck-desktop.png",
+    { animations: "disabled", caret: "hide", maxDiffPixelRatio: 0.05 },
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator("#paon-swipe-deck")).toHaveScreenshot(
+    "swipe-deck-mobile.png",
+    { animations: "disabled", caret: "hide", maxDiffPixelRatio: 0.05 },
+  );
+  await page.setViewportSize({ width: 1280, height: 900 });
   const card = page.getByRole("button", {
     name: /E2E Storefront Overcoat.*right arrow to save/i,
   });
@@ -105,6 +248,56 @@ test("the founder swipe deck persists choices, deduplicates signals, and resumes
   await card.focus();
   await page.keyboard.press("ArrowRight");
   await expect(card).not.toBeVisible();
+
+  await expect
+    .poll(async () => {
+      const { data: evidence } = await admin
+        .from("customer_style_preference_evidence")
+        .select("source, polarity, source_event_id")
+        .eq("customer_id", customer.id)
+        .eq("concept_id", swipeConcept.id)
+        .is("suppressed_at", null);
+      return evidence;
+    })
+    .toEqual([
+      expect.objectContaining({
+        source: "product_favorited",
+        polarity: "positive",
+        source_event_id: expect.any(String),
+      }),
+    ]);
+  await expect
+    .poll(async () => {
+      const { data: profile } = await admin
+        .from("customer_style_profiles")
+        .select("inferred_preferences")
+        .eq("customer_id", customer.id)
+        .single();
+      const inferred = Array.isArray(profile?.inferred_preferences)
+        ? profile.inferred_preferences
+        : [];
+      return inferred.some(
+        (entry) =>
+          typeof entry === "object" &&
+          entry !== null &&
+          "conceptId" in entry &&
+          entry.conceptId === swipeConcept.id &&
+          "polarity" in entry &&
+          entry.polarity === "positive",
+      );
+    })
+    .toBe(true);
+
+  await page.goto("/for-you");
+  const companionRecommendation = page.getByRole("listitem").filter({
+    hasText: "E2E Style Profile Companion Jacket",
+  });
+  await expect(companionRecommendation).toBeVisible();
+  await expect(companionRecommendation).toContainText(
+    "Because of your recent browsing",
+  );
+
+  await page.goto(swipePath);
 
   const decisionCard = page.getByRole("button", {
     name: /Press the right arrow to save or the left arrow to skip/i,
@@ -177,6 +370,26 @@ test("the founder swipe deck persists choices, deduplicates signals, and resumes
       return count;
     })
     .toBe(decisionCount);
+  await expect
+    .poll(async () => {
+      const { count } = await admin
+        .from("customer_style_preference_evidence")
+        .select("*", { count: "exact", head: true })
+        .eq("customer_id", customer.id)
+        .eq("concept_id", swipeConcept.id)
+        .not("suppressed_at", "is", null);
+      return count;
+    })
+    .toBe(2);
+  const { data: withdrawnProfile } = await admin
+    .from("customer_style_profiles")
+    .select("inferred_preferences")
+    .eq("customer_id", customer.id)
+    .single();
+  expect(withdrawnProfile?.inferred_preferences).toEqual([]);
+
+  await page.goto("/for-you");
+  await expect(page.getByText("Nothing ranked yet.")).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -188,6 +401,7 @@ test("the founder swipe deck persists choices, deduplicates signals, and resumes
 
   const box = await decisionCard.boundingBox();
   if (!box) throw new Error("resumed mobile swipe card has no bounds");
+  const touchedLabel = await decisionCard.getAttribute("aria-label");
   const touch = await page.context().newCDPSession(page);
   const startX = box.x + box.width * 0.75;
   const y = box.y + box.height * 0.5;
@@ -203,6 +417,15 @@ test("the founder swipe deck persists choices, deduplicates signals, and resumes
     type: "touchEnd",
     touchPoints: [],
   });
+  await expect
+    .poll(async () => {
+      if ((await decisionCard.count()) === 0) return true;
+      return (await decisionCard.getAttribute("aria-label")) !== touchedLabel;
+    })
+    .toBe(true);
+  for (let guard = 0; guard < 20 && (await decisionCard.count()) > 0; guard++) {
+    await decisionCard.press("ArrowLeft");
+  }
   await expect(page.getByText("You’ve seen everything for now.")).toBeVisible();
 
   await page.goto("/wishlist");

@@ -13,6 +13,8 @@ import {
   type MetadataReviewStatus,
   type MetadataSource,
   type MetadataTarget,
+  type ProductId,
+  type ProductVariantId,
   type RetailerConceptOverride,
   type RetailerId,
 } from "@paon/domain";
@@ -402,6 +404,53 @@ export class MetadataRepository {
       throw error;
     }
     return data.map(toAssignment);
+  }
+
+  /**
+   * Resolve the reviewed, currently visible concepts that may become
+   * customer intelligence for a product interaction. Variant assignments are
+   * folded onto their parent product, while pending/rejected or inactive
+   * concepts never leave the repository boundary.
+   */
+  async findAcceptedConceptIdsForProduct(
+    retailerId: RetailerId,
+    productId: ProductId,
+    productVariantId?: ProductVariantId,
+  ): Promise<readonly MetadataConceptId[]> {
+    const targets: MetadataTarget[] = [
+      { targetType: "product", targetId: productId },
+      ...(productVariantId
+        ? ([
+            {
+              targetType: "product_variant",
+              targetId: productVariantId,
+            },
+          ] as const)
+        : []),
+    ];
+    const assignments = (
+      await Promise.all(
+        targets.map((target) =>
+          this.findAssignmentsForTarget(retailerId, target),
+        ),
+      )
+    ).flat();
+    const acceptedIds = [
+      ...new Set(
+        assignments
+          .filter((assignment) => assignment.reviewStatus === "accepted")
+          .map((assignment) => assignment.conceptId),
+      ),
+    ];
+    const concepts = await Promise.all(
+      acceptedIds.map((conceptId) =>
+        this.findConceptById(retailerId, conceptId),
+      ),
+    );
+    return concepts
+      .filter((concept): concept is MetadataConcept => Boolean(concept?.active))
+      .map((concept) => concept.id)
+      .sort();
   }
 
   async findAssignmentsForReview(

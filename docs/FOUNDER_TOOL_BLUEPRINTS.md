@@ -27,6 +27,36 @@ visually faithful. Unsupported measurement, supplier, payment, availability
 or partner claims must be shown as unavailable or awaiting review, never
 simulated.
 
+### Founder control and change protocol
+
+This file is the guardrail against a long build quietly becoming a different
+product. Future agents may improve implementation, reliability and the
+surrounding PAON system, but they may not silently narrow, genericise or
+reinterpret an `FT-*` contract.
+
+- **Fixed without a founder decision:** the designated source interaction,
+  PAON job, connected ecosystem role and required completion proof. A cheaper
+  generic UI, static demo or disconnected schema cannot satisfy the contract.
+- **Engineering-owned within the contract:** internal decomposition,
+  repository/RPC shape, performance, accessibility-preserving adaptations,
+  safe fallback and the order of coherent implementation slices.
+- **Must be explicit:** an unsupported external integration, legal/commercial
+  policy, unvalidated measurement claim or missing source state is recorded as
+  a named boundary. It is never silently mocked and never used to park the
+  independent local workflow.
+- **Change control:** altering a fixed element requires a dated ADR naming the
+  exact old contract, proposed replacement, reason, affected tools/data and
+  migration/recovery plan, plus an explicit founder decision. An agent's
+  preference or implementation convenience is not a decision.
+- **Status control:** `Current` describes only connected code proven at the
+  browser/database boundary. Domain types, migrations, generic pages and
+  confident prose are foundations—not completed tools. Failed or missing
+  proof leaves the gap named here and in `PHASE.md`.
+- **Scope control:** implement one active `FT-*` against this contract and its
+  committed source fragment. Do not reopen the entire founder brief in routine
+  turns, and do not infer that a later tool is cancelled because it is not the
+  current slice.
+
 ### Shared product and technical spine
 
 Every retained tool attaches to the same connected graph rather than creating
@@ -348,9 +378,19 @@ occasion, product, variant and media; consented decisions resume across reload
 through the interaction-event spine. Browser proof covers Server Action,
 database, reload/resume, wishlist and withdrawal (signals anonymize and a
 skipped item becomes eligible again while the durable wishlist survives).
-Still missing: product-concept evidence into StyleProfile recomputation and a
-visible downstream Advisor/For You reason change, plus visual-regression
-screenshots at the canonical responsive breakpoints.
+Accepted active product/variant concepts are now derived server-side, stamped
+onto the source event and recorded as replay-safe StyleProfile evidence with
+the event as provenance. Positive and negative evidence recomputes the profile;
+For You joins that profile back to reviewed catalogue concepts and displays a
+real related-product reason. The browser proof follows favorite -> evidence ->
+positive inferred preference -> visible related recommendation, then verifies
+withdrawal anonymizes events, suppresses evidence, clears inference and hides
+the recommendation while the wishlist remains. Migration `20260802000002`
+also rejects cross-subject/source event provenance and makes event+concept
+evidence idempotent. Exact founder icon bytes are embedded locally rather than
+loaded from an external host. Cross-platform desktop and 390px mobile visual
+snapshots now pin the source card, controls and liked rail. **Current:
+connected and proven against this FT-08 contract.**
 
 ## FT-09 — TableService / messenger consultation
 

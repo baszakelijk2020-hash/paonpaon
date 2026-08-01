@@ -5,12 +5,16 @@ import {
   CustomerConsentRepository,
   CustomerRepository,
   InteractionSessionRepository,
+  MetadataRepository,
   ProductRepository,
   ProductVariantRepository,
+  StyleProfileRepository,
   WishlistRepository,
 } from "@paon/database";
 import {
   asId,
+  defaultPolarityForEvidenceSource,
+  evidenceSourceFromEventName,
   mayCapturePersonalizationForCustomer,
   retentionExpiresAt,
 } from "@paon/domain";
@@ -57,12 +61,29 @@ async function captureSwipeSignal(args: {
   const productId = args.properties["productId"];
   if (typeof productId !== "string") return;
 
-  await new AnalyticsRepository(supabase).capture({
+  const rawVariantId = args.properties["productVariantId"];
+  const productVariantId =
+    typeof rawVariantId === "string"
+      ? asId<"ProductVariantId">(rawVariantId)
+      : undefined;
+  const metadataRepo = new MetadataRepository(supabase);
+  const conceptIds = await metadataRepo.findAcceptedConceptIdsForProduct(
+    rId,
+    asId<"ProductId">(productId),
+    productVariantId,
+  );
+  const captureProperties = {
+    ...args.properties,
+    deckVersion: args.deckVersion,
+    conceptIds,
+  };
+
+  const sourceEventId = await new AnalyticsRepository(supabase).capture({
     retailerId: rId,
     customerId: customer.id,
     sessionId: interactionSession.id,
     name: args.name,
-    properties: { ...args.properties, deckVersion: args.deckVersion },
+    properties: captureProperties,
     occurredAt,
     receivedAt: occurredAt,
     pagePath: "/swipe",
@@ -75,6 +96,22 @@ async function captureSwipeSignal(args: {
     retentionClass: "personalization_signal",
     retentionExpiresAt: retentionExpiresAt({ occurredAt }),
   });
+
+  const source = evidenceSourceFromEventName(args.name);
+  if (!source || conceptIds.length === 0) return;
+
+  const styleRepo = new StyleProfileRepository(supabase);
+  const polarity = defaultPolarityForEvidenceSource(source);
+  for (const conceptId of conceptIds) {
+    await styleRepo.recordEvidence(customer.id, {
+      conceptId,
+      source,
+      polarity,
+      confidence: 1,
+      sourceEventId: asId<"BehavioralEventId">(sourceEventId),
+    });
+  }
+  await styleRepo.recompute(rId, customer.id, occurredAt);
 }
 
 function assertDeckVersion(deckVersion: string): void {

@@ -187,8 +187,19 @@ be resumed without the module mapping required by R0.3.**
     cards. The same browser journey proves keyboard plus real mobile touch,
     reduced motion, no duplicate signals, reload completion and withdrawal:
     personalization events anonymize, a skipped item becomes eligible again,
-    and the durable wishlist remains. Product-concept evidence into
-    StyleProfile/downstream reasons and canonical breakpoint screenshots remain.
+    and the durable wishlist remains. Migration `20260802000002` now derives
+    reviewed active product/variant concepts on the server, binds replay-safe
+    evidence to the matching source event, recomputes positive/negative
+    StyleProfile inference and joins those concepts back into For You.
+    Browser/database proof shows a favorite create a positive inferred
+    preference and a visible related-product reason; withdrawal anonymizes the
+    events, suppresses both evidence rows, clears inference and hides For You
+    while preserving the durable wishlist. A clean reset applies all 151
+    migrations; focused StyleProfile pgTAP is 13/13 and the connected browser
+    journey is green. Exact source icon bytes no longer depend on an external
+    runtime host, and cross-platform desktop/390px snapshots pin the founder
+    card, controls and liked rail. FT-08 now satisfies its blueprint; continue
+    with the next founder-tool contract.
     Continue implementing the contracts, audit non-browser module entry points,
     and finish House cleanup.
 

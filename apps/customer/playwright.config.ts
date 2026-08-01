@@ -11,6 +11,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
+  snapshotPathTemplate: "{testDir}/{testFilePath}-snapshots/{arg}{ext}",
   // These journeys run against the live cloud Postgres, several regions away.
   // A single step is many sequential round trips, so the defaults (30s test,
   // 5s expect) are a latency budget rather than a correctness signal — they

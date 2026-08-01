@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import { swipeLeft, swipeRight } from "./actions";
+import { SWIPE_BOOKMARK_ICON, SWIPE_DISLIKE_ICON } from "./swipe-icons";
 
 /**
  * Exact port of pag1.html's `#swipe-app-placeholder` ("munro-swipe-card")
@@ -202,7 +203,7 @@ export function SwipeDeck({
         #paon-swipe-deck .liked-track { display: flex; align-items: center; gap: 10px; width: max-content; scroll-snap-type: x mandatory; }
         #paon-swipe-deck .liked-item { flex: 0 0 auto; width: 70px; height: 105px; border-radius: 10px; background: #EBEBEB; background-position: center; background-size: cover; display: flex; align-items: center; justify-content: center; position: relative; scroll-snap-align: start; }
         #paon-swipe-deck .liked-item:first-child { margin-left: 20px; }
-        #paon-swipe-deck .like-icon-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16.5px; height: 16.5px; background-image: url('https://www.nebelspiegel.com/images/bookmarkwhite.png'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: invert(1); opacity: 0.1; pointer-events: none; }
+        #paon-swipe-deck .like-icon-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16.5px; height: 16.5px; background-image: url('${SWIPE_BOOKMARK_ICON}'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: invert(1); opacity: 0.1; pointer-events: none; }
         @media (prefers-reduced-motion: reduce) {
           #paon-swipe-deck .button-outer,
           #paon-swipe-deck .button-inner,
@@ -292,10 +293,7 @@ export function SwipeDeck({
           <div className="button-outer">
             <div className="button-inner">
               {/* eslint-disable-next-line @next/next/no-img-element -- byte-for-byte source markup */}
-              <img
-                src="https://www.nebelspiegel.com/images/closetinder.png"
-                alt=""
-              />
+              <img src={SWIPE_DISLIKE_ICON} alt="" />
             </div>
           </div>
         </button>
@@ -311,7 +309,7 @@ export function SwipeDeck({
             <div className="button-inner">
               {/* eslint-disable-next-line @next/next/no-img-element -- byte-for-byte source markup */}
               <img
-                src="https://www.nebelspiegel.com/images/bookmarkwhite.png"
+                src={SWIPE_BOOKMARK_ICON}
                 alt=""
                 style={{ width: 16.5, height: "auto", opacity: 0.8 }}
               />

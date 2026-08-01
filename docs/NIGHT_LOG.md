@@ -1064,3 +1064,20 @@ those suites' bug.
   saved product remains durable. StyleProfile/downstream reason proof and
   canonical breakpoint screenshots remain honest open work. The complete
   customer suite passes 30/30 with this journey included.
+- FT-08 intelligence continuation closes the semantic gap between a swipe and
+  a useful PAON outcome. The Server Action resolves only reviewed, active
+  product/variant concepts; `20260802000002` binds idempotent evidence to the
+  matching customer/retailer/source event; and deterministic recomputation
+  feeds those concepts back into For You. Connected browser proof observes a
+  positive inferred preference and a related-product “Because of your recent
+  browsing” reason, then withdraws consent and proves event anonymization,
+  evidence suppression, empty inference and recommendation removal while the
+  saved garment survives. Clean reset applies 151 migrations, focused
+  StyleProfile pgTAP is 13/13 and the dedicated journey passes. One full-suite
+  run reached 28/30: the new journey's only failure was a test assumption that
+  one touch would exhaust every newly eligible card and was repaired; the
+  unrelated first account magic link returned `invalid_invite` once and is not
+  represented as a product regression. The exact source PNG bytes are now
+  local data assets, removing a runtime/privacy dependency on nebelspiegel;
+  shared-path desktop and 390px visual snapshots pin the card, controls and
+  liked rail. FT-08 now satisfies its blueprint.

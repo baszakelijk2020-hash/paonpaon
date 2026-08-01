@@ -16,6 +16,7 @@ type MetadataAssignmentReviewRow =
 const retailerId = "11111111-1111-1111-1111-111111111111";
 const conceptId = "22222222-2222-2222-2222-222222222222";
 const productId = "33333333-3333-3333-3333-333333333333";
+const variantId = "77777777-7777-4777-8777-777777777777";
 const staffId = "44444444-4444-4444-4444-444444444444";
 
 const conceptRow: MetadataConceptRow = {
@@ -130,6 +131,61 @@ describe("MetadataRepository", () => {
         reviewedByStaffId: staffId,
       }),
     ]);
+  });
+
+  it("resolves only accepted active product and variant concepts for intelligence", async () => {
+    const repository = new MetadataRepository({} as PaonSupabaseClient);
+    const inactiveConceptId = "88888888-8888-4888-8888-888888888888";
+    vi.spyOn(repository, "findAssignmentsForTarget").mockImplementation(
+      async (_retailerId, target) =>
+        target.targetType === "product"
+          ? [
+              {
+                ...assignmentRow,
+                conceptId,
+                reviewStatus: "accepted",
+              } as never,
+              {
+                ...assignmentRow,
+                id: "99999999-9999-4999-8999-999999999999",
+                conceptId: inactiveConceptId,
+                reviewStatus: "accepted",
+              } as never,
+            ]
+          : [
+              {
+                ...assignmentRow,
+                target,
+                conceptId,
+                reviewStatus: "accepted",
+              } as never,
+              {
+                ...assignmentRow,
+                id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+                target,
+                conceptId,
+                reviewStatus: "pending",
+              } as never,
+            ],
+    );
+    vi.spyOn(repository, "findConceptById").mockImplementation(
+      async (_retailerId, id) =>
+        id === inactiveConceptId
+          ? ({ ...conceptRow, id, active: false } as never)
+          : ({ ...conceptRow, id } as never),
+    );
+
+    const result = await repository.findAcceptedConceptIdsForProduct(
+      retailerId as never,
+      productId as never,
+      variantId as never,
+    );
+
+    expect(result).toEqual([conceptId]);
+    expect(repository.findAssignmentsForTarget).toHaveBeenCalledWith(
+      retailerId,
+      { targetType: "product_variant", targetId: variantId },
+    );
   });
 
   it("serializes assignment evidence to database JSON without widening types", async () => {

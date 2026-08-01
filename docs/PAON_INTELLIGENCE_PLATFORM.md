@@ -29,7 +29,7 @@ requires it.
   conflict/success paths are proven, but an approved restore of original data
   remains external. Atomic POS/return/payment RPCs, finality triggers and role
   boundaries are locally verified (70/70 live, 11/11 pgTAP) but remain under
-  R0.2 and proposed cash ADR-072. Customer e2e is now clean at 29/29 and
+  R0.2 and proposed cash ADR-072. Customer e2e baseline is 30/30 and
   retailer e2e is clean at 43/43; the invented Faden signature contract
   remains explicitly a local fixture rather than provider truth.
   R0.3's first local slice now provides the eight-family module kernel,
@@ -64,13 +64,18 @@ requires it.
   card composition remains, right-swipe now uses an idempotent RPC with
   visible failure recovery, keyboard save is connected and a local browser
   proof covers Server Action -> database -> reload -> wishlist; 7 pgTAP
-  assertions cover replay, ACL and cross-House refusal. Do not call the
+  assertions cover replay, ACL and cross-House refusal.
   The follow-on versions the selection/occasion/product/variant/media set,
   resumes consented decisions through the interaction-event spine, deduplicates
   within the current consent epoch and proves keyboard, real mobile touch,
-  reduced motion and withdrawal behavior. Do not call the blueprint complete
-  yet: product-concept evidence into StyleProfile/downstream reasons and
-  canonical breakpoint screenshots remain open.
+  reduced motion and withdrawal behavior. Reviewed active product concepts now
+  flow through event-provenanced, replay-safe StyleProfile evidence into a
+  visible related-product For You reason; withdrawal suppresses evidence,
+  clears inference and hides the result without erasing the wishlist. Exact
+  source icons are locally pinned and cross-platform desktop/390px snapshots
+  cover the source composition. FT-08 now meets its blueprint; take the next
+  founder-tool contract rather than reopening swipe work without a failed
+  invariant.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The
