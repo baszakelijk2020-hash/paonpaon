@@ -3,6 +3,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
+    setupFiles: ["./src/test-environment-guard.ts"],
     include: ["src/**/*.test.ts"],
     /**
      * The integration suites talk to the live cloud Postgres, and a single

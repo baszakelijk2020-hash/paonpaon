@@ -7,6 +7,7 @@ coverage
 pnpm-lock.yaml
 supabase/.branches
 supabase/.temp
+.vscode
 
 # Verbatim HTML that must never be reformatted.
 # paon-template.html is the founder's own file, served byte-for-byte

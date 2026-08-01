@@ -65,7 +65,8 @@ test("a write-off waits for a second signature, and the sweep moves nothing", as
 
   const { data: variant } = await admin
     .from("product_variants")
-    .select("id, sku")
+    .select("id, sku, products!inner(retailer_id)")
+    .eq("products.retailer_id", proof.retailerId)
     .limit(1)
     .single();
   const variantId = variant!.id;

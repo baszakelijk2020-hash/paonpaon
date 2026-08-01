@@ -75,6 +75,30 @@ export interface CreateProductVariantParams {
 export class ProductVariantRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
 
+  /**
+   * Lists variants through their owning product, which is the tenant
+   * boundary for this legacy table. `product_variants` predates the
+   * retailer_id invariant, so a bare select can legitimately see public
+   * catalogue rows from another retailer and must never feed an operational
+   * stock or POS surface.
+   */
+  async findForRetailer(
+    retailerId: RetailerId,
+    limit = 50,
+  ): Promise<ProductVariant[]> {
+    const { data, error } = await this.client
+      .from("product_variants")
+      .select("*, products!inner(retailer_id, deleted_at)")
+      .eq("products.retailer_id", retailerId)
+      .is("products.deleted_at", null)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true })
+      .limit(limit);
+
+    if (error) throw error;
+    return data.map(toDomain);
+  }
+
   async findByProduct(productId: ProductId): Promise<ProductVariant[]> {
     const { data, error } = await this.client
       .from("product_variants")

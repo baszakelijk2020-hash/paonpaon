@@ -43,6 +43,8 @@ const REJECTION_MESSAGES: Record<string, string> = {
   provider_not_activated:
     "Card payment is not switched on yet. Cash works today.",
   provider_reference_required: "A payment needs a reference.",
+  provider_reference_conflict:
+    "That terminal reference is already attached to another payment. Reconcile it before retrying.",
   amount_mismatch: "That amount does not match the sale total.",
   card_data_not_accepted:
     "Card details are never accepted here. Use the card terminal, then record its reference.",

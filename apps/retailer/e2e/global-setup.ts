@@ -4,9 +4,11 @@ import {
   ProductVariantRepository,
   RetailerRepository,
   RetailerStaffRepository,
+  assertSafeSupabaseWriteTarget,
   createSupabaseAdminClient,
   createSupabaseDirectClient,
 } from "@paon/database";
+import { ensureProgrammeProofSeed } from "@paon/database/programme-proof-seed";
 import type { UserId } from "@paon/domain";
 
 import {
@@ -37,6 +39,21 @@ async function globalSetup(): Promise<void> {
       "e2e global setup requires the local Supabase URL, anon key, and service-role key — run `supabase start` and export its printed values first.",
     );
   }
+
+  assertSafeSupabaseWriteTarget({
+    supabaseUrl,
+    operation: "Retailer Playwright fixture setup",
+  });
+
+  // Inventory, loss-prevention and POS share the programme proof personas.
+  // Seed that canonical graph once before Playwright starts parallel workers;
+  // asking each worker to race through the same auth-user creation makes a
+  // clean database depend on which test happens to win the first insert.
+  await ensureProgrammeProofSeed({
+    supabaseUrl,
+    anonKey: supabaseAnonKey,
+    serviceRoleKey,
+  });
 
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
   const retailerRepo = new RetailerRepository(admin);

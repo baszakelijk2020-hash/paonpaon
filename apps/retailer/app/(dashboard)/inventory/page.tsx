@@ -1,4 +1,7 @@
-import { StockLedgerRepository } from "@paon/database";
+import {
+  ProductVariantRepository,
+  StockLedgerRepository,
+} from "@paon/database";
 import { retailerRoleAtLeast, type LedgerEntryKind } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
@@ -82,17 +85,16 @@ export default async function InventoryPage({
   // It is shown alongside the per-location figures below because they answer
   // different questions: this page is "what is in THIS room", the catalogue
   // number is "what can still be promised anywhere".
-  const { data: variantRows } = await supabase
-    .from("product_variants")
-    .select("id, sku, size, inventory_quantity")
-    .limit(50);
+  const variantRows = await new ProductVariantRepository(
+    supabase,
+  ).findForRetailer(session.retailerId);
 
-  const items: Option[] = (variantRows ?? []).map((variant) => ({
+  const items: Option[] = variantRows.map((variant) => ({
     id: variant.id,
     label: variant.size ? `${variant.sku} · ${variant.size}` : variant.sku,
   }));
-  const legacyQuantityByVariant = new Map(
-    (variantRows ?? []).map((v) => [v.id, v.inventory_quantity]),
+  const legacyQuantityByVariant = new Map<string, number>(
+    variantRows.map((variant) => [variant.id, variant.inventoryQuantity]),
   );
   const labelByVariant = new Map(items.map((item) => [item.id, item.label]));
   const locationOptions: Option[] = locations.map((location) => ({

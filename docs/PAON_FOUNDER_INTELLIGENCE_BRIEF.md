@@ -5,6 +5,17 @@
 acceptance, and `PHASE.md` alone orders implementation. Code and migrations
 remain authoritative for what already exists.
 
+## Founder-source fidelity contract
+
+When this brief explicitly asks PAON to build a linked founder tool, the tool
+is not loose inspiration. Pag1's specified tools, pag2's groom and best-men
+fitting-planning workflow, pag3's Preferred Tailoring/HighMaintenance
+workflow, and the visually referenced tools in the founder instructions must
+preserve how the source looks, moves and behaves while operating on real PAON
+data. The surrounding Atelier Munro brand, literal product catalogue and
+commercial universe are adapted to PAON. See ADR-052/071 and
+`docs/DESIGN_PORTS.md`.
+
 ## Starting point
 
 PAON already has a premium storefront template, a Customer Environment, an

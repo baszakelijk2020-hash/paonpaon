@@ -42,8 +42,6 @@ import {
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
-import { StockLedgerRepository } from "./stock-ledger-repository";
-
 type TransactionRow = Database["public"]["Tables"]["pos_transactions"]["Row"];
 type LineRow = Database["public"]["Tables"]["pos_transaction_lines"]["Row"];
 
@@ -73,11 +71,7 @@ export interface TransactionWithLines {
 }
 
 export class PosRepository {
-  private readonly ledger: StockLedgerRepository;
-
-  constructor(private readonly client: PaonSupabaseClient) {
-    this.ledger = new StockLedgerRepository(client);
-  }
+  constructor(private readonly client: PaonSupabaseClient) {}
 
   async openTransaction(args: {
     readonly retailerId: RetailerId;
@@ -184,36 +178,20 @@ export class PosRepository {
       return { ok: false, reason: "quantity_not_positive" };
     }
 
-    let reservationEntryId: string | undefined;
-    if (args.kind === "rtw" && args.variantId) {
-      const held = await this.ledger.reserve({
-        retailerId: args.retailerId,
-        variantId: args.variantId,
-        locationId: args.locationId,
-        quantity: args.quantity,
-      });
-      if (!held.ok) return { ok: false, reason: held.reason };
-      reservationEntryId = held.id;
-    }
-
-    const { data, error } = await this.client
-      .from("pos_transaction_lines")
-      .insert({
-        retailer_id: args.retailerId,
-        transaction_id: args.transactionId,
-        kind: args.kind,
-        quantity: args.quantity,
-        unit_price_minor_units: args.unitPriceMinorUnits,
-        currency: args.currency ?? "EUR",
-        ...(args.variantId ? { variant_id: args.variantId } : {}),
-        ...(reservationEntryId
-          ? { reservation_entry_id: reservationEntryId }
-          : {}),
-      })
-      .select("id")
-      .single();
+    const { data, error } = await this.client.rpc("add_pos_line_atomic", {
+      p_retailer_id: args.retailerId,
+      p_transaction_id: args.transactionId,
+      p_location_id: args.locationId,
+      p_kind: args.kind,
+      p_quantity: args.quantity,
+      p_unit_price_minor_units: args.unitPriceMinorUnits,
+      p_currency: args.currency ?? "EUR",
+      ...(args.variantId ? { p_variant_id: args.variantId } : {}),
+    });
     if (error) throw error;
-    return { ok: true, lineId: data.id };
+    return data as unknown as
+      | { readonly ok: true; readonly lineId: string }
+      | { readonly ok: false; readonly reason: string };
   }
 
   /** Guards a state move through the pure transition table. */
@@ -289,16 +267,17 @@ export class PosRepository {
     });
     if (!check.ok) return check;
 
-    const { error } = await this.client.from("pos_payments").insert({
-      retailer_id: args.retailerId,
-      transaction_id: args.transactionId,
-      provider: args.provider,
-      provider_reference: reference,
-      amount_minor_units: args.amountMinorUnits,
-      currency: args.currency ?? "EUR",
+    const { data, error } = await this.client.rpc("record_pos_payment_atomic", {
+      p_retailer_id: args.retailerId,
+      p_transaction_id: args.transactionId,
+      p_provider: args.provider,
+      p_provider_reference: reference,
+      p_amount_minor_units: args.amountMinorUnits,
+      p_currency: args.currency ?? "EUR",
     });
     if (error) throw error;
-    return { ok: true };
+    return data as unknown as
+      { readonly ok: true } | Exclude<PaymentCaptureCheck, { ok: true }>;
   }
 
   /**
@@ -355,44 +334,17 @@ export class PosRepository {
     });
     if (!ready.ok) return ready;
 
-    // Present for payment first if the till has not already done so, so the
-    // `awaiting_payment -> completed` edge is genuinely travelled.
-    if (loaded.transaction.state !== "awaiting_payment") {
-      const presented = await this.transition({
-        retailerId: args.retailerId,
-        transactionId: args.transactionId,
-        to: "awaiting_payment",
-      });
-      if (!presented.ok) return presented;
-    }
-
-    const moved = await this.transition({
-      retailerId: args.retailerId,
-      transactionId: args.transactionId,
-      to: "completed",
+    const { data, error } = await this.client.rpc("complete_pos_sale_atomic", {
+      p_retailer_id: args.retailerId,
+      p_transaction_id: args.transactionId,
+      p_location_id: args.locationId,
+      ...(args.staffId ? { p_staff_id: args.staffId } : {}),
     });
-    if (!moved.ok) return moved;
-
-    for (const line of loaded.lines) {
-      if (line.kind !== "rtw" || !line.variantId) continue;
-      // Release first, then sell. Doing it the other way round leaves a
-      // window where availability is double-counted against the sale.
-      await this.ledger.release({
-        retailerId: args.retailerId,
-        variantId: line.variantId,
-        locationId: args.locationId,
-        quantity: line.quantity,
-        ...(args.staffId ? { recordedByStaffId: args.staffId } : {}),
-      });
-      await this.ledger.sell({
-        retailerId: args.retailerId,
-        variantId: line.variantId,
-        locationId: args.locationId,
-        quantity: line.quantity,
-        ...(args.staffId ? { recordedByStaffId: args.staffId } : {}),
-      });
-    }
-    return { ok: true };
+    if (error) throw error;
+    return data as unknown as
+      | { readonly ok: true }
+      | Exclude<SaleCompletionCheck, { readonly ok: true }>
+      | Exclude<TransactionCheck, { readonly ok: true }>;
   }
 
   /**
@@ -416,17 +368,21 @@ export class PosRepository {
       return { ok: false, reason: "nothing_to_sell" };
     }
 
-    const already = await this.capturedMinorUnits(args);
-    if (already < loaded.totals.subtotalMinorUnits) {
-      const captured = await this.capturePayment({
-        retailerId: args.retailerId,
-        transactionId: args.transactionId,
-        provider: CASH_TENDER,
-        amountMinorUnits: loaded.totals.subtotalMinorUnits - already,
-      });
-      if (!captured.ok) return captured;
-    }
-    return this.completeSale(args);
+    const { data, error } = await this.client.rpc(
+      "take_cash_and_complete_pos_sale_atomic",
+      {
+        p_retailer_id: args.retailerId,
+        p_transaction_id: args.transactionId,
+        p_location_id: args.locationId,
+        ...(args.staffId ? { p_staff_id: args.staffId } : {}),
+      },
+    );
+    if (error) throw error;
+    return data as unknown as
+      | { readonly ok: true }
+      | Exclude<SaleCompletionCheck, { readonly ok: true }>
+      | Exclude<TransactionCheck, { readonly ok: true }>
+      | Exclude<PaymentCaptureCheck, { readonly ok: true }>;
   }
 
   /**
@@ -439,22 +395,18 @@ export class PosRepository {
     readonly locationId: string;
     readonly voidReason: string;
   }): Promise<{ readonly ok: true } | Exclude<TransactionCheck, { ok: true }>> {
-    const loaded = await this.load(args);
-    if (!loaded) throw new Error("Transaction not found");
-
-    const moved = await this.transition({ ...args, to: "voided" });
-    if (!moved.ok) return moved;
-
-    for (const line of loaded.lines) {
-      if (line.kind !== "rtw" || !line.variantId) continue;
-      await this.ledger.release({
-        retailerId: args.retailerId,
-        variantId: line.variantId,
-        locationId: args.locationId,
-        quantity: line.quantity,
-      });
-    }
-    return { ok: true };
+    const { data, error } = await this.client.rpc(
+      "void_pos_transaction_atomic",
+      {
+        p_retailer_id: args.retailerId,
+        p_transaction_id: args.transactionId,
+        p_location_id: args.locationId,
+        p_void_reason: args.voidReason,
+      },
+    );
+    if (error) throw error;
+    return data as unknown as
+      { readonly ok: true } | Exclude<TransactionCheck, { ok: true }>;
   }
 
   /** Per-line eligibility, delegated to the pure rules. */
@@ -515,57 +467,25 @@ export class PosRepository {
     const eligibility = await this.checkReturn(args);
     if (!eligibility.ok) return eligibility;
 
-    const { data: lineRow, error: lineError } = await this.client
-      .from("pos_transaction_lines")
-      .select("*")
-      .eq("id", args.lineId)
-      .maybeSingle();
-    if (lineError) throw lineError;
-    if (!lineRow) throw new Error("Line not found");
-
-    const line = toCartLine(lineRow);
-    const remaining = line.quantity - lineRow.returned_quantity;
-
-    const { data: returnTransaction, error } = await this.client
-      .from("pos_transactions")
-      .insert({
-        retailer_id: args.retailerId,
-        location_id: args.locationId,
-        state: "completed",
-        completed_at: new Date().toISOString(),
-        returns_transaction_id: args.transactionId,
-        ...(args.staffId ? { staff_id: args.staffId } : {}),
-      })
-      .select("id")
-      .single();
+    const { data, error } = await this.client.rpc("return_pos_line_atomic", {
+      p_retailer_id: args.retailerId,
+      p_transaction_id: args.transactionId,
+      p_location_id: args.locationId,
+      p_line_id: args.lineId,
+      p_requested_on: args.requestedOn,
+      ...(args.staffId ? { p_staff_id: args.staffId } : {}),
+      ...(args.servicePerformed !== undefined
+        ? { p_service_performed: args.servicePerformed }
+        : {}),
+    });
     if (error) throw error;
-
-    // Only goods come back to a shelf. A performed service has nowhere to
-    // return to, which is why it is refused upstream rather than restocked.
-    let restocked = 0;
-    if (line.kind === "rtw" && line.variantId) {
-      await this.ledger.receive({
-        retailerId: args.retailerId,
-        variantId: line.variantId,
-        locationId: args.locationId,
-        quantity: remaining,
-        ...(args.staffId ? { recordedByStaffId: args.staffId } : {}),
-      });
-      restocked = remaining;
-    }
-
-    const { error: markError } = await this.client
-      .from("pos_transaction_lines")
-      .update({ returned_quantity: line.quantity })
-      .eq("id", args.lineId)
-      .eq("retailer_id", args.retailerId);
-    if (markError) throw markError;
-
-    return {
-      ok: true,
-      returnTransactionId: returnTransaction.id,
-      refundMinorUnits: eligibility.refundableMinorUnits,
-      restocked,
-    };
+    return data as unknown as
+      | {
+          readonly ok: true;
+          readonly returnTransactionId: string;
+          readonly refundMinorUnits: number;
+          readonly restocked: number;
+        }
+      | Exclude<ReturnEligibility, { ok: true }>;
   }
 }

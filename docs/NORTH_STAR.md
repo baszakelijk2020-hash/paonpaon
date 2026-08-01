@@ -1,121 +1,207 @@
 # North Star
 
-## The mission
+## The company PAON is building
 
-**PAON is the system of record and the system of engagement for the
-lifetime relationship between an independent menswear retailer and their
-clients.**
+**PAON is the memory and action system for a premium retailer's standard of
+care.**
 
-Long-term category ownership is **personal wardrobe intelligence** delivered
-through that RetailOS — not another POS or e-commerce stack with AI bolted on.
-The active architecture and product programme is
-[PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md); what is built
-next is ordered only by [PHASE.md](./PHASE.md).
+It makes the house remember what a client owns, how each garment fits and
+ages, what has been promised, what should happen next, and whether the outcome
+was worthy of the relationship. It then turns that memory into prepared human
+service: before a conversation, during a commission, throughout production,
+and long after delivery.
 
-## Who it is for
+The initial category is independent premium menswear. The durable category is
+**relationship intelligence for high-consideration retail**.
 
-An independent multi-brand menswear retailer, usually owner-operated, who
-carries private-label made-to-measure alongside several other houses. They
-compete on personal service and garment quality, and they lose credibility
-online because their digital presence is a decade behind what their clients
-now expect.
+PAON is not primarily a storefront, CRM, POS, configurator, loyalty scheme, or
+AI stylist. Those are interfaces and capabilities. The product is continuity:
+the relationship becomes more useful with every interaction and does not
+disappear into an advisor's memory, a supplier system, or nine spreadsheets.
 
-They are not a chain, not a marketplace seller, and not a high-volume
-retailer. Every product decision in this repository assumes low volume, high
-touch, long production and alteration cycles, and staff who are expected to
-remember a client without being told twice.
+## The customer promise
 
-## PAON is independent
+For the retailer:
 
-There is no brand partnership, channel agreement or endorsement behind PAON.
-The founder's credibility with this segment comes from having run a
-private-label made-to-measure business inside it, and from a career in
-menswear.
+> Every advisor can deliver the house's best standard of care, with the right
+> context and next action, without re-keying or replacing the systems that
+> already work.
 
-Two consequences bind both product and go-to-market:
+For the client:
 
-- No marketing surface may imply affiliation with any brand.
-- No part of the architecture may assume a brand supplies data, assets or
-  introductions. Where the product ingests supplier collection assets, that
-  is the retailer uploading material they already hold and control.
+> This house knows me, remembers what happened, explains what it recommends,
+> and looks after my wardrobe after the sale.
 
-## What we are not trying to be
+## The shared intelligence spine
 
-Not a vertically integrated chain's website. Suitsupply set the expectation
-these retailers are judged against, and matching its conversion funnel would
-mean competing on its ground with its strengths, while abandoning the one
-advantage an independent has: the returning client who values being known.
+Every PAON module connects to the same relationship, garment, commerce and
+service memory. The shortest complete expression of that spine is:
 
-The goal is not to make these retailers look like a chain. It is to make
-them look like themselves, executed properly.
+```text
+Evidence and consent
+  -> House Memory (client, wardrobe, fit, promises)
+  -> Prepared Conversation (advisor Today / appointment brief)
+  -> Composed Proposal (look, roadmap, service, or campaign)
+  -> Order or Appointment
+  -> Production / fitting / alteration visibility
+  -> Delivery and Aftercare
+  -> Outcome captured back into House Memory
+```
 
-## What success looks like
+The three moments that must feel magical are:
 
-- A retailer's staff never re-key the same client fact into two tools.
-- A client can see the truth about their order, their alteration and their
-  standing without calling the store.
-- A retailer who grows from one door to several never has to migrate off
-  PAON.
-- A small platform team operates many retailer tenants without linear
-  headcount growth.
-- An engineer opening this repository can predict where a piece of logic
-  lives before searching for it.
+1. **Before the visit:** the advisor is prepared and the client feels expected.
+2. **At the table:** PAON reduces choice and composes a confident next step.
+3. **After the sale:** silence becomes anticipation, care, and a useful reason
+   to return.
 
-## What we optimize for, in order
+This is the golden relationship journey and the first full-system
+demonstrator. It is not PAON's scope boundary. Retail operations, campaigns,
+corporate programmes, partner services, marketplace capabilities and future
+verticals may enter at different points, but they must exchange authoritative
+state and outcomes through the same spine rather than becoming disconnected
+products.
 
-Correct → Reliable → Scalable → Consistent → Fast to build.
+## The modular platform
 
-Built for years, not for a demo. See [PRINCIPLES.md](./PRINCIPLES.md) for
-how that is applied day to day, and [NON_GOALS.md](./NON_GOALS.md) for what
-is deliberately deferred.
+PAON is one platform with independently entitlement-controlled modules. The
+destination is deliberately broad; the build order is disciplined so that
+breadth becomes a working system rather than a collection of routes and
+tables.
 
-## The current objective
+### 1. Platform Core
 
-The Intelligence Platform programme now turns this mission into an ordered
-implementation path: catalogue intelligence first, then advisor intelligence,
-wardrobe/MorningRoutine, relationship programmes, concierge, and compliant
-commerce. `PHASE.md` remains the sole queue; this mission does not reorder it.
+Tenancy, identity, roles, consent, provenance, audit, workflow, integration,
+migration, module entitlements, plan/billing metadata, notifications, evidence
+and outcome capture. Every other module depends on this foundation.
 
-## Capolavoro Online / MunroMarché ecosystem north star
+### 2. Client and Relationship Intelligence
 
-Long-term, the same retailer–client relationship compounds into a **governed
-lifestyle network** the retailer curates without holding stock:
+Client memory, advisor preparation and Mission Control, appointments,
+conversations, preferences, milestones, promises, messaging, explainable
+recommendations, quick capture and outcomes.
 
-- zero-stock lifestyle commerce across books, art, design, hospitality,
-  restaurants, travel, automotive, golf, jewelry, grooming, culture and
-  experiences;
-- affiliate, referral, qualified-lead, booking, supplier-fulfilled and
-  local-partner commercial models with explicit disclosure;
-- lifestyle concierge and network rewards on append-only liability ledgers;
-- third-party publisher/media cards with rights, attribution, outbound links
-  and retailer activation;
-- MunroMentions without copying the referrer’s identity into the invitee;
-- distinct portals for retailer, partner, publisher, advertiser, fulfiller and
-  PAON;
-- Audience Studio with versioned cohorts and policy-aware forecasting;
-- advertising inventory (placements, orders, line items, flights, creatives,
-  budgets, pacing, frequency caps) and CPM/CPC/CPL/CPA/affiliate/sponsorship/
-  booking economics;
-- impression, viewability, click, lead, booking, conversion, refund and
-  reversal events with attribution, incrementality, deduplication and fraud
-  review;
-- multi-party revenue-sharing ledgers;
-- aggregate insights, retailer benchmarking, PAON-executed audiences,
-  pseudonymous attribution, clean-room matching, contracted data exchange,
-  retailer exports and customer-requested named introductions only;
-- provenance, purpose, contract, entitlement, retention, correction, deletion
-  and recomputation on every network fact and event.
+### 3. Wardrobe and Styling Intelligence
 
-**Commercial north star:** governed access to highly specific, high-intent
-audiences and measurable outcomes — **not** uncontrolled named-profile
-exports.
+The garment graph, visual wardrobe, StyleProfile, fit evidence, knowledge and
+metadata, wardrobe roadmap, composed looks, guided consultation, Morning
+Routine and proposals. The founder-specified tools in pag1, the groom-party
+fitting planner in pag2, the Preferred Tailoring/HighMaintenance experience in
+pag3, and tools explicitly called out in the founder brief preserve their
+source experience under ADR-052/071. Their Atelier Munro business shell is not
+PAON's company plan; their specified interaction, motion and workflow are
+product requirements.
 
-**Technical ceiling:** build the full capability model behind policy and
-entitlement controls so later activation restrictions are configuration, not a
-platform rebuild. Strictly separate the customer-facing lifestyle network from
-retailer-facing **MunroMerchant** B2B procurement.
+### 4. Commerce and Growth
 
-Canonical design:
-[vision/PAON_LIFESTYLE_ECOSYSTEM_AND_NETWORK_COMMERCE.md](./vision/PAON_LIFESTYLE_ECOSYSTEM_AND_NETWORK_COMMERCE.md).
-Implementation remains Stage 15+ in [PHASE.md](./PHASE.md) only — this section
-does not authorize early software.
+Storefront and assisted selling, cart and orders, remote selling, private
+offers, campaigns, loyalty and referral, post-order momentum, customer
+journeys, attribution and measurable growth programmes.
+
+### 5. Garment and Service Operations
+
+Source-authorized production visibility, fitting, alterations, delivery,
+aftercare, custody, repair, care plans, service memberships, partner
+fulfilment and complete garment lifecycle history.
+
+### 6. Retail Operations
+
+Catalogue and product intelligence, inventory and auditable stock movement,
+POS and returns, staff work, scheduling, tasks, campaigns, recognition,
+locations, operational analytics, migration and provider reconciliation. PAON
+supports overlay, co-managed and full-authority modes by domain.
+
+### 7. Enterprise and Vertical Solutions
+
+Corporate wardrobes, wedding-party apparel, multi-location operations,
+preferred tailoring, training and consultancy, partner-workshop workflows and
+later category or occasion packs. These are real PAON modules with distinct
+buyers and onboarding journeys, not accidental additions to a generic core.
+
+### 8. Network and Ecosystem
+
+B2B procurement, partner and publisher participation, curated lifestyle
+commerce, referral and revenue-share infrastructure, rewards, events and
+other multi-party experiences. The technical capability is part of the
+destination; live money movement, advertising, data use and partner activation
+remain subject to explicit legal, supply and trust gates.
+
+## Modules and plans
+
+Retailers configure PAON through modules, not product forks. A module has an
+explicit state (`off`, `preview`, `active`, or `suspended`), dependencies,
+role/navigation grants, data authority mode, limits and audit history. Turning
+one off removes its jobs and surfaces without deleting its historical truth.
+
+Commercial tiers are curated module bundles—for example Foundation,
+Intelligence, Growth, Operations, and Enterprise & Network—not separate
+codebases or ceilings on ambition. Retailers may add eligible modules outside
+a bundle. Names, packaging and pricing remain commercially testable; the
+module and entitlement architecture does not.
+
+## Strategic advantages
+
+PAON should compound five assets:
+
+1. **House Memory:** portable institutional memory when staff are absent or
+   leave. This is continuity insurance, not merely CRM.
+2. **Garment Graph:** each physical garment connects purchase, fit, usage,
+   care, alteration, combinations, and future intent.
+3. **Standard of Care:** the founder's menswear and service intelligence
+   becomes an executable house playbook, not generic automation.
+4. **Outcome Evidence:** recommendations and staff actions learn from what was
+   accepted, bought, delivered, altered, worn, or declined.
+5. **Trust:** consent, provenance, correction, restraint, and transparent
+   recommendations create a client-visible advantage that surveillance cannot.
+
+## North-star measures
+
+The primary product measure is **Prepared Relationship Moments**: meaningful
+client interactions where PAON supplied cited context or a next action, a human
+or client completed an outcome, and the result returned to House Memory.
+
+Supporting measures:
+
+- time from signal or promise to completed action;
+- repeat commission and service interval;
+- wardrobe coverage and aftercare participation;
+- advisor preparation and quick-capture completion;
+- promises kept on time;
+- retailer activation to first real relationship loop;
+- retained paying retailers, not routes, tables, or generated recommendations.
+
+## Who the first buyer is
+
+An owner-led independent premium menswear retailer with high-touch client
+relationships, made-to-measure or alteration complexity, and fragmented tools.
+It wants its house to be remembered for service, not to become a software
+operator. PAON must work with its current stack and prove value on a small
+number of real relationships quickly.
+
+There is no brand partnership or endorsement behind PAON. No surface may imply
+one, and no architecture may assume a brand supplies data or access.
+
+## Product discipline
+
+- Build the full modular destination in coherent chapters, with connected
+  vertical slices inside each chapter.
+- Use the golden relationship journey as the first system demonstrator and
+  regression spine, not as a reason to suppress the rest of the platform.
+- Prefer a composed decision to a catalogue of possibilities.
+- Preserve designated founder tools exactly under ADR-052/071; use the wider
+  source grammar—cinematic context, deliberate reveal, tactile rails, product
+  composition and quiet confidence—for new PAON surfaces. Do not copy the
+  source brand, literal products, unsupported claims or unrelated commercial
+  framing into PAON.
+- Integrate commodity systems; own the relationship, garment, evidence, and
+  service intelligence that make PAON distinctive. Earn deeper authority in
+  operations where it creates material value.
+- The roadmap commits to all eight module families. `PHASE.md` controls
+  dependency order and proof; it does not reduce the destination to a pilot.
+- Real retailer use, deployment, security, and connected browser journeys
+  are proof lanes throughout the build, not an excuse for disconnected breadth
+  or an indefinite stop on later modules.
+
+See [VISION.md](./VISION.md) for the product thesis, [PRODUCT.md](./PRODUCT.md)
+for current surfaces and boundaries, and [PHASE.md](./PHASE.md) for the only
+authorized work order.

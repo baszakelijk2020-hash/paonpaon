@@ -30,19 +30,22 @@ This ledger covers the concepts extracted from:
 - the founder’s detailed 2026-07-30 instructions in this programme.
 
 This is product traceability, not a claim that every sentence, name or visual
-from the source is implemented.
+from the source is implemented. For founder-specified tools, ADR-071 makes the
+source experience part of the requirement: functional infrastructure without
+that experience remains partial. `docs/DESIGN_PORTS.md` records the audited
+implementation truth for those tools.
 
 ## Legend
 
-| Code | Meaning                                                                    |
-| ---- | -------------------------------------------------------------------------- |
-| `V`  | verified material software exists now                                      |
-| `P`  | partial or implemented but not fully connected/verified                    |
-| `Q`  | explicitly queued in PHASE Stages 10–16                                    |
-| `A`  | added by this audit because the earlier canonical queue was too vague      |
-| `B`  | local capability can be built, but live activation has an external blocker |
-| `D`  | deliberately deferred to a later vertical/R&D programme                    |
-| `X`  | deliberately excluded from PAON product software                           |
+| Code | Meaning                                                                                            |
+| ---- | -------------------------------------------------------------------------------------------------- |
+| `V`  | verified connected software exists; for a designated tool, source-experience proof is also current |
+| `P`  | partial or implemented but not fully connected/verified                                            |
+| `Q`  | explicitly queued in PHASE Stages 10–16                                                            |
+| `A`  | added by this audit because the earlier canonical queue was too vague                              |
+| `B`  | local capability can be built, but live activation has an external blocker                         |
+| `D`  | deliberately deferred to a later vertical/R&D programme                                            |
+| `X`  | deliberately excluded from PAON product software                                                   |
 
 ## 0. Core retailer platform and competitor-parity baseline
 
@@ -67,7 +70,7 @@ from the source is implemented.
 
 | ID     | Capability from the sources                           | Real connected implementation                                                                  | Roles/surfaces                | Placement                   | State |
 | ------ | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------- | ----- |
-| REL-01 | Customer 360/Self-Portrait                            | canonical relationship, fact provenance, timeline, correction and source authority             | customer, advisor, manager    | shipped foundations/Stage 7 | `V`   |
+| REL-01 | Customer 360/Self-Portrait                            | canonical relationship, fact provenance, timeline, correction and source authority             | customer, advisor, manager    | shipped foundations/Stage 7 | `P`   |
 | REL-02 | First-party browsing and engagement                   | PAON page/product/search/favourite/tool events with session/time/device context                | customer, advisor analytics   | Stage 7/14.2                | `P`   |
 | REL-03 | Advisor proactive fact tagging                        | structured proposed facts, source, confidence, confirmation and correction                     | advisor, customer             | Stage 7/11.2                | `P`   |
 | REL-04 | Starter data-tagging rectangles                       | versioned question sets, image/choice answers and fact candidates                              | customer, advisor             | 8.3/14.2                    | `Q`   |
@@ -92,7 +95,7 @@ from the source is implemented.
 
 | ID     | Capability from the sources                                                 | Real connected implementation                                                             | Roles/surfaces    | Placement               | State |
 | ------ | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------- | ----------------------- | ----- |
-| WRD-01 | Six stacked carousels: suits, jackets, shirts, knitwear, shoes, accessories | real wardrobe records rendered as six permanent visual rails                              | customer          | 8.1                     | `V`   |
+| WRD-01 | Six stacked carousels: suits, jackets, shirts, knitwear, shoes, accessories | real wardrobe records exist, but current card sections do not reproduce the source rails  | customer          | 8.1/R0.5                | `P`   |
 | WRD-02 | Customer-added garment                                                      | image/manual intake creates pending garment with provenance                               | customer          | 8.1/12.3                | `P`   |
 | WRD-03 | Advisor suggestion                                                          | suggestion remains separate until accepted/purchased                                      | customer, advisor | 10.2                    | `Q`   |
 | WRD-04 | Order-fed wardrobe                                                          | fulfilled order creates confirmed owned garment and links order line                      | customer, advisor | 10.2/13.3               | `Q`   |

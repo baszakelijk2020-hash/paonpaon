@@ -11,18 +11,44 @@ Read this block with `AGENTS.md` and the active `PHASE.md` item in ordinary
 implementation sessions. Do not reread the full programme unless a conflict
 requires it.
 
-- **Programme status:** Stages 0–5 complete. Stage 6 blocked. Stage 7 and
-  8.0–8.3 complete. Stage 8.4 is `verified_local`. Stage 9.1 is
-  `verified_local` (migration write-through + `docs/evidence/runs/9.1.json`
-  `status=passed`). Stage 9.2 and 10.1 remain `implemented_unverified` under
-  ADR-068; Stage 9.3 is demand-led blocked. Stage 10.2 WIP lives on
-  `wip/stage-10-2-honeymoon` @ `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`, not `main`.
-- **Current queue item:** Stage 6 / 9.3 blocked — skip. **Next buildable item:
-  Stage 9.2** (provider adapters / ADR-068 proof — do not claim `verified_*`
-  without a current passed run artifact). Preserve
-  `wip/stage-10-2-honeymoon` @ `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`; do not absorb unfinished 10.2 into `main`.
-- **Current requirement IDs:** `INT-004` (and related 9.2 connector IDs);
-  Stage 6 gates remain. Stages 8.4 and 9.1 are sealed `verified_local`.
+- **Programme status:** ADR-070 retains the 2026-08-01 safety and
+  connected-proof reset while restoring the full modular PAON destination.
+  Landed Stage 0–16 foundations remain in code; unchecked legacy work must be
+  mapped into the modular chapters before it resumes.
+- **Current queue item:** **R0.1 Environment truth and safety containment** at
+  the top of `PHASE.md`. Do not perform live-data/deployment work until its
+  environment guard passes, money/stock work until R0.2, or resume a legacy
+  item before R0.3 maps it to a module and proof contract. Safe independent
+  work is not blocked by a missing pilot or provider.
+- **Immediate facts:** `ENVIRONMENTS.md` is the project ledger. Local Supabase
+  is the active disposable target; original project `hngxrczavwywsnfceppb` is
+  hard-protected; the Hyperagent sandbox is not accessible with the current
+  token. Customer production is HTTP 500 on an older schema. Do not apply the
+  2026-08-01 migrations to original data. The R0.1 tenant-boundary migration
+  and test-target guard are verified locally. Synthetic populated upgrade
+  conflict/success paths are proven, but an approved restore of original data
+  remains external. Atomic POS/return/payment RPCs, finality triggers and role
+  boundaries are locally verified (70/70 live, 11/11 pgTAP) but remain under
+  R0.2 and proposed cash ADR-072. The 15/29
+  customer e2e baseline and invented Faden signature contract remain open.
+- **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
+  proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
+  first demonstrator and shared intelligence spine, not PAON's scope. The
+  committed destination is the eight entitlement-controlled module families
+  in `NORTH_STAR.md`. Founder-specified tools retain their exact experience
+  contract under ADR-052/071; the surrounding source universe is interpreted
+  research. Read the dated audit only when tracing intent.
+- **Branch caution:** preserve `wip/stage-10-2-honeymoon` @
+  `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`; do not absorb unfinished 10.2
+  into the active branch by default.
+
+Everything below this paragraph is the historical implementation and
+traceability ledger. **Skip it during an ordinary implementation turn.** Use
+targeted search by requirement ID, table, repository or commit only when the
+active slice needs historical context.
+
+## Historical implementation ledger
+
 - **Completed programme commits:** `dd695d5` authorized the Intelligence
   Platform programme; `0af9e00` folded the complete founder brief into the
   programme; `f61e53a` added stable traceability and queue contracts;
@@ -148,10 +174,13 @@ requires it.
   payment blocks money collection only (ADR-062). Stage 7 is not blocked by
   Stage 6. Optional later ADR-052 verbatim Tie-Mate founder-HTML port may
   replace interim chrome — not a programme blocker.
-- **Exact next work:** **Stage 9.2** on `main` (Shopify/Faden connectors toward
-  ADR-068 proof — do not claim `verified_*` without a current passed run
-  artifact). Preserve `wip/stage-10-2-honeymoon` @ `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`. Do not invent Stage 6
-  payment behavior.
+- **Exact next work:** **R0.1 Environment truth and safety containment** on the
+  currently authorized takeover branch. Stage 9.2 must first be mapped through
+  R0.3 under ADR-070. Do not present the fixture Faden HMAC/header convention
+  as provider-documented.
+  Preserve `wip/stage-10-2-honeymoon` @
+  `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`. Do not invent Stage 6 payment
+  behavior.
 
 ## 1. Programme intent
 

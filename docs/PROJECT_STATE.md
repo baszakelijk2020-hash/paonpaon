@@ -10,6 +10,52 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
+## 2026-08-02 Codex audit correction
+
+This correction supersedes conflicting status and handoff claims below:
+
+- Active queue: R0.1 at the top of `PHASE.md`; ADR-070 restores the full
+  modular destination while requiring legacy 9.2 and Stage 10–16 work to be
+  mapped through R0.3 before it resumes.
+- The takeover branch has 148 migrations and all apply from zero locally. A
+  populated synthetic pre-18 database now proves both transactional refusal
+  of catalogue/ledger conflicts and a quantity-preserving clean upgrade
+  through migration 22 plus R0.1 hardening. An approved restore of actual
+  original data is still required. Current Vercel production is classified
+  protected/original infrastructure and its customer app is broken by
+  code/schema drift.
+- Faden documents a read-only API and webhooks publicly, but nothing found in
+  the provider contract establishes the implemented HMAC scheme or
+  `x-faden-*` headers. Treat them as fixtures, not provider facts.
+- Audit reproduction found a cross-tenant inventory-ledger mutation path, a
+  public SECURITY DEFINER arbitrary-retailer location path, and non-atomic POS
+  completion/returns. These precede further feature work.
+- Customer e2e is 15/29 on the takeover branch. The same 14 scenarios failed
+  at the pre-takeover checkpoint, although some failure points changed.
+- The live repository suite initially reproduced only 8 passes and 59 skips.
+  Its fixture now provisions one coherent disposable tenant and the suite
+  executes 70/70 assertions after a clean reset.
+- Existing evidence artifacts describe their historical SHAs, not the new R0
+  gate.
+- R0.1 read-only inventory now records the exact projects in
+  `ENVIRONMENTS.md`. All local app env files point to disposable local
+  Supabase; the CLI remains linked to protected original project
+  `hngxrczavwywsnfceppb`; the Hyperagent sandbox is not accessible with the
+  current token. Customer production is HTTP 500 on an older schema missing
+  `entity_metadata_assignments`; admin and retailer login return 200.
+- Migration `20260801175205_harden_stock_tenant_boundaries.sql`, the shared
+  test-target guard, and retailer-scoped operational variant queries are
+  verified locally. The latter fixed a real cross-retailer inventory/POS UI
+  path exposed by the new constraint. No hosted migration, test, seed,
+  deployment, or data write was performed.
+- R0.2 migration `20260801183032_make_pos_money_and_stock_atomic.sql` replaces
+  sequential POS/stock seams with transactional RPCs. Authenticated payment
+  and POS-line writes are RPC-only, and final-state/line triggers prevent
+  direct bypass even by privileged fixture clients. The live suite is now
+  70/70; pgTAP is 11/11; clean reset applies all 148 migrations; the
+  stock/loss/POS browser slice remains 4/4. Cash remains a proposed policy in
+  ADR-072, not a production activation.
+
 ## Repository
 
 - Branch: `main`; remote: `origin` (`baszakelijk2020-hash/paonpaon`).
@@ -182,8 +228,9 @@ Lint 12/12, typecheck 12/12, `format:check` clean, serial build clean.
 
 ## Current handoff
 
-Next queue item on `main`: **Stage 9.2**. Stage 6 and 9.3 remain blocked;
-skip them. See Resume Protocol.
+Next queue item on the authorized takeover branch: **R0.1 Environment truth
+and safety containment**. Do not continue Stage 9.2 by default. See the Resume
+Protocol and ADR-070.
 
 On the takeover branch the queue is exhausted through 16.5, so the next
 useful work is **depth, not breadth**: convert these slices into operated

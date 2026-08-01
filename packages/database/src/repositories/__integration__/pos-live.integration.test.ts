@@ -19,6 +19,8 @@ import { createSupabaseAdminClient } from "../../clients/admin";
 import { PosRepository } from "../pos-repository";
 import { StockLedgerRepository } from "../stock-ledger-repository";
 
+import { findStaffCohort, findVariantIds } from "./fixture-selection";
+
 const LIVE = process.env["PAON_INTEGRATION"] === "1";
 const CHECK_VIOLATION = "23514";
 const UNIQUE_VIOLATION = "23505";
@@ -51,28 +53,10 @@ describe.skipIf(!LIVE)("point of sale, live (13.3)", () => {
     pos = new PosRepository(admin);
     ledger = new StockLedgerRepository(admin);
 
-    const { data: retailer } = await admin
-      .from("retailers")
-      .select("id")
-      .limit(1)
-      .single();
-    retailerId = retailer!.id as RetailerId;
-
-    const { data: staff } = await admin
-      .from("retailer_staff_members")
-      .select("id")
-      .eq("retailer_id", retailerId)
-      .is("deleted_at", null)
-      .limit(1)
-      .single();
-    staffId = staff!.id;
-
-    const { data: variant } = await admin
-      .from("product_variants")
-      .select("id")
-      .limit(1)
-      .single();
-    variantId = variant!.id;
+    const cohort = await findStaffCohort(admin, 1);
+    retailerId = cohort.retailerId;
+    staffId = cohort.staff[0]!.id;
+    variantId = (await findVariantIds(admin, retailerId, 1))[0]!;
   });
 
   it("a cart HOLDS stock: on-hand unchanged, availability gone", async () => {
@@ -102,6 +86,36 @@ describe.skipIf(!LIVE)("point of sale, live (13.3)", () => {
     });
     expect(balance.onHand).toBe(2);
     expect(balance.available).toBe(0);
+  });
+
+  it("rolls a reservation back when the line insert fails", async () => {
+    const locationId = await freshLocation("LINEFAIL");
+    await ledger.receive({ retailerId, variantId, locationId, quantity: 1 });
+    const transaction = await pos.openTransaction({
+      retailerId,
+      locationId,
+      staffId,
+    });
+
+    await expect(
+      pos.addLine({
+        retailerId,
+        transactionId: transaction.id,
+        locationId,
+        kind: "rtw",
+        variantId,
+        quantity: 1,
+        unitPriceMinorUnits: 12000,
+        currency: "EU",
+      }),
+    ).rejects.toMatchObject({ code: CHECK_VIOLATION });
+
+    expect(
+      await ledger.balanceFor({ retailerId, variantId, locationId }),
+    ).toMatchObject({ onHand: 1, reserved: 0, available: 1 });
+    expect(
+      (await pos.load({ retailerId, transactionId: transaction.id }))?.lines,
+    ).toHaveLength(0);
   });
 
   it("REFUSES a second till promising the same last garment", async () => {
@@ -648,6 +662,26 @@ describe.skipIf(!LIVE)("point of sale, live (13.3)", () => {
     expect(balance.reserved).toBe(3);
   });
 
+  it("REFUSES a direct final-state write that would bypass money and stock", async () => {
+    const locationId = await freshLocation("FINALITY");
+    const transaction = await pos.openTransaction({ retailerId, locationId });
+
+    const attempt = await admin
+      .from("pos_transactions")
+      .update({
+        state: "completed",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", transaction.id);
+
+    expect(attempt.error?.code).toBe("23514");
+    const loaded = await pos.load({
+      retailerId,
+      transactionId: transaction.id,
+    });
+    expect(loaded!.transaction.state).toBe("open");
+  });
+
   it("REFUSES to complete on a part payment", async () => {
     const locationId = await freshLocation("PARTIAL");
     await ledger.receive({ retailerId, variantId, locationId, quantity: 1 });
@@ -710,6 +744,14 @@ describe.skipIf(!LIVE)("point of sale, live (13.3)", () => {
     });
     expect(closed.ok).toBe(true);
 
+    const replayed = await pos.takeCashAndComplete({
+      retailerId,
+      transactionId: transaction.id,
+      locationId,
+      staffId,
+    });
+    expect(replayed.ok).toBe(true);
+
     const { data: payments } = await admin
       .from("pos_payments")
       .select("provider, amount_minor_units")
@@ -717,6 +759,16 @@ describe.skipIf(!LIVE)("point of sale, live (13.3)", () => {
     expect(payments).toHaveLength(1);
     expect(payments![0]!.provider).toBe("cash");
     expect(payments![0]!.amount_minor_units).toBe(24000);
+
+    const entries = await ledger.entriesFor({
+      retailerId,
+      variantId,
+      locationId,
+    });
+    expect(entries.filter((entry) => entry.kind === "sale")).toHaveLength(1);
+    expect(
+      entries.filter((entry) => entry.kind === "reservation_release"),
+    ).toHaveLength(1);
 
     // And the sale genuinely travelled awaiting_payment -> completed.
     const { data: row } = await admin

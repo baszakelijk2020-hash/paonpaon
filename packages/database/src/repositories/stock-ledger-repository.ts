@@ -20,8 +20,6 @@
 
 import {
   checkCountAdjustment,
-  checkReservation,
-  checkTransfer,
   projectBalance,
   reconcileBlindCount,
   type AdjustmentCheck,
@@ -230,14 +228,23 @@ export class StockLedgerRepository {
     | { readonly ok: true; readonly id: string }
     | Exclude<ReservationCheck, { readonly ok: true }>
   > {
-    const balance = await this.balanceFor(args);
-    const check = checkReservation({
-      balance,
-      requestedQuantity: args.quantity,
+    const { data, error } = await this.client.rpc("reserve_stock_atomic", {
+      p_retailer_id: args.retailerId,
+      p_variant_id: args.variantId,
+      p_location_id: args.locationId,
+      p_quantity: args.quantity,
+      ...(args.recordedByStaffId
+        ? { p_recorded_by_staff_id: args.recordedByStaffId }
+        : {}),
+      ...(args.idempotencyKey
+        ? { p_idempotency_key: args.idempotencyKey }
+        : {}),
     });
-    if (!check.ok) return check;
-    const { id } = await this.insertEntry({ ...args, kind: "reservation" });
-    return { ok: true, id };
+    if (error) throw error;
+    const result = data as unknown as
+      | { readonly ok: true; readonly id: string }
+      | Exclude<ReservationCheck, { readonly ok: true }>;
+    return result;
   }
 
   async release(args: {
@@ -271,26 +278,18 @@ export class StockLedgerRepository {
     readonly entryId: string;
     readonly recordedByStaffId?: string;
   }): Promise<{ readonly id: string }> {
-    const { data: original, error } = await this.client
-      .from("stock_ledger_entries")
-      .select("*")
-      .eq("id", args.entryId)
-      .eq("retailer_id", args.retailerId)
-      .maybeSingle();
+    const { data, error } = await this.client.rpc(
+      "reverse_stock_entry_atomic",
+      {
+        p_retailer_id: args.retailerId,
+        p_entry_id: args.entryId,
+        ...(args.recordedByStaffId
+          ? { p_recorded_by_staff_id: args.recordedByStaffId }
+          : {}),
+      },
+    );
     if (error) throw error;
-    if (!original) throw new Error("Ledger entry not found");
-
-    return this.insertEntry({
-      retailerId: args.retailerId,
-      variantId: original.variant_id,
-      locationId: original.location_id,
-      kind: "reversal",
-      quantity: original.quantity,
-      reversesEntryId: original.id,
-      ...(args.recordedByStaffId
-        ? { recordedByStaffId: args.recordedByStaffId }
-        : {}),
-    });
+    return data as unknown as { readonly id: string };
   }
 
   /**
@@ -305,39 +304,30 @@ export class StockLedgerRepository {
     readonly toLocationId: string;
     readonly quantity: number;
     readonly recordedByStaffId?: string;
+    readonly operationId?: string;
   }): Promise<
     | { readonly ok: true; readonly outId: string; readonly inId: string }
-    | TransferCheck
+    | Exclude<TransferCheck, { readonly ok: true }>
   > {
-    const originBalance = await this.balanceFor({
-      retailerId: args.retailerId,
-      variantId: args.variantId,
-      locationId: args.fromLocationId,
-    });
-    const check = checkTransfer({ ...args, originBalance });
-    if (!check.ok) return check;
-
-    const out = await this.insertEntry({
-      retailerId: args.retailerId,
-      variantId: args.variantId,
-      locationId: args.fromLocationId,
-      kind: "transfer_out",
-      quantity: args.quantity,
+    const { data, error } = await this.client.rpc("transfer_stock_atomic", {
+      p_retailer_id: args.retailerId,
+      p_variant_id: args.variantId,
+      p_from_location_id: args.fromLocationId,
+      p_to_location_id: args.toLocationId,
+      p_quantity: args.quantity,
       ...(args.recordedByStaffId
-        ? { recordedByStaffId: args.recordedByStaffId }
+        ? { p_recorded_by_staff_id: args.recordedByStaffId }
         : {}),
+      ...(args.operationId ? { p_operation_id: args.operationId } : {}),
     });
-    const inbound = await this.insertEntry({
-      retailerId: args.retailerId,
-      variantId: args.variantId,
-      locationId: args.toLocationId,
-      kind: "transfer_in",
-      quantity: args.quantity,
-      ...(args.recordedByStaffId
-        ? { recordedByStaffId: args.recordedByStaffId }
-        : {}),
-    });
-    return { ok: true, outId: out.id, inId: inbound.id };
+    if (error) throw error;
+    return data as unknown as
+      | {
+          readonly ok: true;
+          readonly outId: string;
+          readonly inId: string;
+        }
+      | Exclude<TransferCheck, { readonly ok: true }>;
   }
 
   // ------------------------------------------------------------- counts

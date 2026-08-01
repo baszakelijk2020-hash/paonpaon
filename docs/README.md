@@ -28,6 +28,9 @@ Read another document only when the active slice needs its topic.
   `DESIGN_PORTS.md` + the relevant `downloaded_pages`/founder HTML + ADR-052
   for a founder surface. Read the linked founder-brief requirement only for
   product ambiguity and only the ADR named by the queue item.
+- **Product decision:** read `NORTH_STAR.md`, then `PRODUCT.md`. Use the dated
+  founder-source audit only to trace why a concept was kept, narrowed, gated or
+  rejected.
 - **Level 3 — conflict or audit only:** use targeted search across docs and
   code. Read whole documents only when targeted inspection cannot resolve the
   conflict.
@@ -48,9 +51,9 @@ current-state document.
 | 5    | Agent process                | [../AGENTS.md](../AGENTS.md), [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)                                             | How work advances                                           |
 | 6    | Standing engineering rules   | [PRINCIPLES.md](./PRINCIPLES.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [DATABASE.md](./DATABASE.md), [API.md](./API.md) | Cross-program invariants                                    |
 | 7    | Current domain description   | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) and `@paon/domain`                                                                  | Current bounded contexts and relationships                  |
-| 8    | Product direction            | [NORTH_STAR.md](./NORTH_STAR.md), [VISION.md](./VISION.md), [PRODUCT.md](./PRODUCT.md), [NON_GOALS.md](./NON_GOALS.md)   | Durable mission and exclusions                              |
+| 8    | Product direction            | [NORTH_STAR.md](./NORTH_STAR.md), [VISION.md](./VISION.md), [PRODUCT.md](./PRODUCT.md), [NON_GOALS.md](./NON_GOALS.md)   | Durable mission, layers, surfaces and exclusions            |
 | 9    | Design and experience        | [DESIGN_PORTS.md](./DESIGN_PORTS.md), [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md)     | Visual authorities and interaction rules                    |
-| 10   | Operations                   | [DEPLOYMENT.md](./DEPLOYMENT.md), [TOOLING.md](./TOOLING.md)                                                             | Live environments, CLIs, and runbooks                       |
+| 10   | Operations                   | [ENVIRONMENTS.md](./ENVIRONMENTS.md), [DEPLOYMENT.md](./DEPLOYMENT.md), [TOOLING.md](./TOOLING.md)                       | Environment identity, deployments, CLIs, and runbooks       |
 | 11   | Reference and history        | `vision/`, `ai_snapshot/`, `audits/`, [ROADMAP.md](./ROADMAP.md), [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)           | Dated inputs and analysis; never queues                     |
 | 12   | Factual handoff              | [PROJECT_STATE.md](./PROJECT_STATE.md)                                                                                   | Compact verified snapshot; never authority                  |
 | 13   | Archive                      | [archive/](./archive/)                                                                                                   | Obsolete material                                           |
@@ -92,14 +95,16 @@ source in the same documentation slice instead of preserving ambiguity.
 
 ## On-demand references
 
-| Working on                  | Read                                                                           |
-| --------------------------- | ------------------------------------------------------------------------------ |
-| Domain types and validation | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md), relevant `packages/domain/src`           |
-| Schema or tenancy           | [DATABASE.md](./DATABASE.md), relevant migrations                              |
-| App/repository boundaries   | [ARCHITECTURE.md](./ARCHITECTURE.md), [API.md](./API.md)                       |
-| Roles and permissions       | [ACCESS_MODEL.md](./ACCESS_MODEL.md)                                           |
-| Founder-designed surfaces   | [DESIGN_PORTS.md](./DESIGN_PORTS.md), canonical HTML                           |
-| UI primitives               | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md) |
-| Deployments or credentials  | [DEPLOYMENT.md](./DEPLOYMENT.md), [TOOLING.md](./TOOLING.md)                   |
-| Historical rationale        | [DECISIONS.md](./DECISIONS.md), then git history                               |
-| Product ambiguity           | [PAON_FOUNDER_INTELLIGENCE_BRIEF.md](./PAON_FOUNDER_INTELLIGENCE_BRIEF.md)     |
+| Working on                    | Read                                                                                                               |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Domain types and validation   | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md), relevant `packages/domain/src`                                               |
+| Schema or tenancy             | [DATABASE.md](./DATABASE.md), relevant migrations                                                                  |
+| App/repository boundaries     | [ARCHITECTURE.md](./ARCHITECTURE.md), [API.md](./API.md)                                                           |
+| Roles and permissions         | [ACCESS_MODEL.md](./ACCESS_MODEL.md)                                                                               |
+| Founder-designed surfaces     | [DESIGN_PORTS.md](./DESIGN_PORTS.md), canonical HTML                                                               |
+| Founder-source interpretation | [audits/FOUNDER_INTENT_AND_PLATFORM_RESET_2026-08-01.md](./audits/FOUNDER_INTENT_AND_PLATFORM_RESET_2026-08-01.md) |
+| UI primitives                 | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md)                                     |
+| Browser/live proof            | [runbooks/BROWSER_PROOF.md](./runbooks/BROWSER_PROOF.md)                                                           |
+| Environment or live tests     | [ENVIRONMENTS.md](./ENVIRONMENTS.md), [DEPLOYMENT.md](./DEPLOYMENT.md), [TOOLING.md](./TOOLING.md)                 |
+| Historical rationale          | [DECISIONS.md](./DECISIONS.md), then git history                                                                   |
+| Product ambiguity             | [PAON_FOUNDER_INTELLIGENCE_BRIEF.md](./PAON_FOUNDER_INTELLIGENCE_BRIEF.md)                                         |

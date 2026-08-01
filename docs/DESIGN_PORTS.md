@@ -6,43 +6,63 @@ the porting rule in [../CLAUDE.md](../CLAUDE.md).
 
 ## The rule, in one line
 
-Copy the original CSS, markup and JS byte-for-byte. Wire data through the
-narrowest hook. Never re-express it in Tailwind or `@paon/ui`.
+Preserve the source composition, CSS, markup, motion and interaction; wire
+real PAON data and actions through the narrowest hook. Never replace a
+designated tool with a generic Tailwind or `@paon/ui` interpretation.
+
+ADR-071 adds the completion rule: visual fidelity alone is a shell, while a
+domain/repository implementation without the source experience is a
+foundation. A tool is built only when both are connected and proven.
 
 ## Where the sources live
 
 All committed to this repository already — no session needs to ask for
 them, and no session has an excuse for approximating them.
 
-| Source                                          | Contains                                                                                      |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `apps/customer/app/r/[slug]/paon-template.html` | The storefront — the retailer's digital front door. **The product.**                          |
-| `downloaded_pages/pag1.html`                    | Mission Control, fit tools, table service, globe, lapel, gift card, house party, monthly grid |
-| `downloaded_pages/pag2.html`                    | Gift/voucher SaaS presentation module                                                         |
-| `downloaded_pages/pag3.html`                    | Remaining recommendation-deck content                                                         |
+| Source                                          | Contains                                                                                                                                                                                                                         |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/customer/app/r/[slug]/paon-template.html` | The storefront — the retailer's digital front door                                                                                                                                                                               |
+| `downloaded_pages/pag1.html`                    | Voice/drag fitting, QR try-on/fabric batch, first-fitting automation, silhouette analysis, Mission Control/Self-Portrait, MorningRoutine, lapel configurator, swipe, TableService, Inspiration Box, globe, Merchant and training |
+| `downloaded_pages/pag2.html`                    | Moonstruck; PAON's designated scope is the groom/best-men inspiration, invitation, personal-profile, group-date, fitting, delivery and pickup planner                                                                            |
+| `downloaded_pages/pag3.html`                    | Residents Club context; PAON's designated scope is Preferred Tailoring's weekly calendar-led wardrobe orchestration and the HighMaintenance care workflow                                                                        |
 
 `pag1`–`pag3` were written as a commercial recommendation to a supplier
 that PAON is now independent of (see `NORTH_STAR.md`). They survive purely
 as design specification.
 
-## Status
+## Status vocabulary
 
-"Wrong" means a component exists at that path but is a Tailwind rewrite
-bearing no relationship to the founder's CSS. It must be replaced by a real
-port, not patched.
+- **Faithful foundation:** source experience is substantially preserved and
+  real state is connected, but connected visual/browser proof or part of the
+  required workflow is missing.
+- **Functional foundation:** useful domain, schema or actions exist, but the
+  source tool has not been reproduced.
+- **Shell:** source chrome exists, but required actions are fake or incomplete.
+- **Wrong:** a generic rewrite occupies the slot and must be replaced.
+- **Missing:** no material implementation of the specified tool exists.
 
-| #   | Surface                    | Source id                           | Implementation                                                            | Status                                                                                                                                                                            |
-| --- | -------------------------- | ----------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Fit sliders (voice + drag) | `vox-widget-root`                   | `apps/retailer/components/fit-tools/vox-fit-slider.tsx` + `vox-source.ts` | **Ported, then PARKED** 2026-07-27 — see "Parked: fit tools" below                                                                                                                |
-| 2   | Silhouette carousel        | `nbs-silhouette-…`                  | `apps/retailer/components/fit-tools/silhouette-carousel.tsx`              | **Wrong** — 186 lines Tailwind, and its only render site is `/alterations/*` — see open question in `NIGHT_LOG.md` 2026-07-28                                                     |
-| 3   | Swipe deck                 | `swipe-app-placeholder` (pag1.html) | `apps/customer/app/r/[slug]/swipe/swipe-deck.tsx`                         | **Ported** 2026-07-28 — verbatim CSS/dimensions from pag1's `munro-swipe-card` widget, real product data through the existing `SwipeCard[]` prop                                  |
-| 4   | Table service chat         | `gilda-chat-widget`                 | `apps/customer/app/r/[slug]/table-service-widget.tsx`                     | **Verified** 2026-07-28 — spot-checked `.gcw-chat-wrapper/-history/-pics/-panel-wrapper/-message/-field/-send-button` against pag1.html, all byte-for-byte; ADR-048's claim holds |
-| 5   | AM House Party orbit       | `#ow`                               | `apps/customer/app/(dashboard)/wedding-parties/[id]/am-house-orbit.tsx`   | **Done** 2026-07-28 — pag1 `#ow` math/CSS; member `photoUrl` wired                                                                                                                |
-| 6   | Location globe (Cesium)    | `am-globe-widget`                   | not built                                                                 | Not started                                                                                                                                                                       |
-| 7   | Lapel configurator         | `nbs-lapel-…-v4`                    | not built                                                                 | Not started                                                                                                                                                                       |
-| 8   | Gift card 3D booklet       | `amibx-root-…`                      | not built                                                                 | Not started                                                                                                                                                                       |
-| 9   | Monthly photo grid         | bottom of pag1                      | not built                                                                 | Not started                                                                                                                                                                       |
-| 10  | Gift/voucher SaaS module   | pag2                                | not built                                                                 | Not started                                                                                                                                                                       |
+## Audited status — 2026-08-02
+
+| Surface                                    | Current implementation                                                                              | Honest status and required correction                                                                                                                                                                                                       |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Voice + drag fit slider                    | `apps/retailer/components/fit-tools/vox-fit-slider.tsx`, `vox-source.ts`, real fitting observations | **Faithful foundation.** Exact widget is real; move it out of the invented generic alteration experience and connect the complete first-fitting decision/work-order journey. Supplier write-back may remain an explicit external boundary.  |
+| Silhouette analysis                        | `apps/retailer/components/fit-tools/silhouette-carousel.tsx`                                        | **Wrong.** Generic Tailwind carousel with invented silhouettes. Replace with the source Level 1 interaction, then add the specified individual-analysis and prediction progression without claiming unsupported measurement truth.          |
+| QR try-on / fabric batch concept order     | none found                                                                                          | **Missing.** Build the exact scan interaction and safe concept-order batch workflow.                                                                                                                                                        |
+| First-fitting automation                   | observations and alteration primitives                                                              | **Functional foundation.** No connected imperfection → FitProfile candidate → reviewed alteration work-order automation.                                                                                                                    |
+| Mission Control / customer cockpit         | retailer dashboard, clienteling and Self-Portrait primitives                                        | **Functional foundation.** Real operational data exists, but the source's integrated cockpit and choreography are not reproduced.                                                                                                           |
+| MorningRoutine composed look               | domain, repository, migration, actions and generic customer panel                                   | **Functional foundation.** Current code ranks/list items; it does not reproduce the source's complete-look canvas and behavior.                                                                                                             |
+| Lapel/pocket/shoulder configurator         | none found                                                                                          | **Missing.**                                                                                                                                                                                                                                |
+| Swipe deck                                 | `apps/customer/app/r/[slug]/swipe/swipe-deck.tsx`                                                   | **Faithful foundation.** Source port and real persisted choices exist; rerun current responsive/browser parity proof.                                                                                                                       |
+| TableService / MunroMessenger              | `apps/customer/app/r/[slug]/table-service-widget.tsx`                                               | **Shell plus useful guidance.** Visual port and real inquiry/handoff exist, but photo/PDF/Pinterest/wedding-fabric attachment controls do not perform their stated jobs.                                                                    |
+| Inspiration Box / gift booklet             | none found                                                                                          | **Missing.**                                                                                                                                                                                                                                |
+| Location globe and monthly visual grid     | none found                                                                                          | **Missing.**                                                                                                                                                                                                                                |
+| Six-rail wardrobe                          | real wardrobe records and six generic card sections                                                 | **Functional foundation.** Data/provenance are valuable; replace the generic UI with the founder's tactile stacked-rail composition and motion.                                                                                             |
+| Pag2 groom/best-men planner                | party/member/invite/fitting-state model, generic pages, faithful orbit, additional domain/schema    | **Functional foundation.** Invitation basics work, but group date coordination, personal options, fitting/delivery/pickup tracking and the source planner experience are incomplete. Domain/schema-only Stage 16.5 work is not the product. |
+| Pag3 Preferred Tailoring / HighMaintenance | service plans, entitlements, bookings, care/cost/history and partner schema; generic pages          | **Functional foundation.** Strong operational primitives, but no faithful weekly calendar, agenda/travel-driven looks, care animation, connected custody/partner UI or end-to-end proof.                                                    |
+
+This table is the correction map for R0.3. It does not erase useful
+foundations; it prevents them from being mistaken for the founder-specified
+end product.
 
 ## AM House Party orbit — done 2026-07-28
 
@@ -51,14 +71,14 @@ actual `#ow` orbit now lives in `am-house-orbit.tsx`: source CSS and
 `orbitR: 130` / sine-drift animation preserved; center + ring avatars
 come from `WeddingPartyMember` (`photoUrl`, initials fallback).
 
-## Parked: fit tools (founder decision, 2026-07-27)
+## Fit tools are not parked
 
-The `vox-` slider is ported correctly and verbatim, and the component stays
-in the repository. **The feature is parked.** Applying fit corrections is
-only useful if the values reach the supplier that actually makes the
-garment, which means an integration with each retailer's own supplier
-ordering system. That dependency is not in reach, so no further work on fit
-tools until it is.
+The earlier 2026-07-27 parking decision inferred that a missing supplier write
+API made the whole tool useless. The founder has rejected that inference.
+PAON can capture evidence, create a reviewed FitProfile candidate, create and
+track in-house or partner alteration work, inform reorder safety and prepare a
+source-authorized supplier handoff. Only the unavailable external write-back
+is blocked.
 
 ## `/alterations/*` is not a founder-designed surface
 
@@ -73,11 +93,12 @@ placed inside an invented screen, so a correct port still produced something
 the founder did not recognise. Before porting any widget, confirm the
 surface it lands on is founder-designed. If it is not, stop and ask.
 
-**What the real tool is.** The valuable alterations product is not fit
-correction. It is work-order handling for the third-party alteration
-workshop, and cost management for the store owner — the money question, not
-the measurement question. The founder will design it. Until that design
-exists, nothing in the alterations vertical should be built or extended.
+**What the real host must do.** Do not discard fit correction or leave it in a
+generic detail page. The connected experience must preserve the founder fit
+tool while carrying its evidence into reviewed FitProfile decisions,
+alteration work orders, workshop custody, cost and outcome. Where the source
+does not design the surrounding operational screen, build a PAON-native host
+around the exact widget and verify the resulting journey with the founder.
 
 ## How to extract a widget from the source
 
@@ -140,15 +161,10 @@ The cost is real and is accepted: these components sit outside the token
 system, will not inherit theme changes automatically, and cannot be
 restyled centrally. That is the price of keeping them exact.
 
-## Scope warning
+## Scope and sequencing
 
-This inventory is ten surfaces, two of which (the Cesium globe and the
-three.js gift-card booklet) carry heavy third-party dependencies and
-ongoing cost. Porting all of them is months of work, and
-[PHASE.md](./PHASE.md) sets the objective as three paid pilots.
-
-Items 6, 7, 8 and 10 are **presentation modules for selling PAON**, not
-product a retailer uses. They make the pitch prettier; they do not make a
-retailer's store work. Items 1–5 and 9 are what a prospect sees when shown
-their own store. Sequence accordingly, and do not start any of them without
-a founder decision under `PHASE.md`.
+These are product tools, not disposable pitch decoration. Heavy dependencies
+such as Cesium or three.js still require bundle, performance, accessibility,
+privacy and operating-cost decisions, but those decisions may not silently
+convert an explicit requirement into a generic substitute. `PHASE.md` orders
+coherent slices; R0.3 records each tool's module, dependency and proof plan.

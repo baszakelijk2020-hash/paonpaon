@@ -17,6 +17,8 @@ import type { PaonSupabaseClient } from "../../client-type";
 import { createSupabaseAdminClient } from "../../clients/admin";
 import { StockLedgerRepository } from "../stock-ledger-repository";
 
+import { findStaffCohort, findVariantIds } from "./fixture-selection";
+
 const LIVE = process.env["PAON_INTEGRATION"] === "1";
 const CHECK_VIOLATION = "23514";
 const UNIQUE_VIOLATION = "23505";
@@ -40,28 +42,13 @@ describe.skipIf(!LIVE)("stock ledger, live (13.1)", () => {
     admin = createSupabaseAdminClient(url, key);
     repo = new StockLedgerRepository(admin);
 
-    const { data: retailer } = await admin
-      .from("retailers")
-      .select("id")
-      .limit(1)
-      .single();
-    retailerId = retailer!.id as RetailerId;
+    const cohort = await findStaffCohort(admin, 1);
+    retailerId = cohort.retailerId;
+    staffId = cohort.staff[0]!.id;
 
-    const { data: staff } = await admin
-      .from("retailer_staff_members")
-      .select("id")
-      .eq("retailer_id", retailerId)
-      .is("deleted_at", null)
-      .limit(1)
-      .single();
-    staffId = staff!.id;
-
-    const { data: variants } = await admin
-      .from("product_variants")
-      .select("id")
-      .limit(2);
-    variantA = variants![0]!.id;
-    variantB = variants![1]?.id ?? variants![0]!.id;
+    const variants = await findVariantIds(admin, retailerId, 2);
+    variantA = variants[0]!;
+    variantB = variants[1]!;
 
     // Locations are per run so parallel or repeated runs never share a
     // ledger and a stale balance cannot make an assertion pass.
@@ -175,6 +162,47 @@ describe.skipIf(!LIVE)("stock ledger, live (13.1)", () => {
     if (!second.ok) expect(second.reason).toBe("insufficient_available");
   });
 
+  it("serializes two simultaneous claims on the last unit", async () => {
+    const location = (
+      await repo.ensureLocation({
+        retailerId,
+        code: `RACE-${RUN}`,
+        name: "Reservation race",
+      })
+    ).id;
+    await repo.receive({
+      retailerId,
+      variantId: variantA,
+      locationId: location,
+      quantity: 1,
+    });
+
+    const attempts = await Promise.all([
+      repo.reserve({
+        retailerId,
+        variantId: variantA,
+        locationId: location,
+        quantity: 1,
+      }),
+      repo.reserve({
+        retailerId,
+        variantId: variantA,
+        locationId: location,
+        quantity: 1,
+      }),
+    ]);
+
+    expect(attempts.filter((attempt) => attempt.ok)).toHaveLength(1);
+    expect(attempts.filter((attempt) => !attempt.ok)).toHaveLength(1);
+    expect(
+      await repo.balanceFor({
+        retailerId,
+        variantId: variantA,
+        locationId: location,
+      }),
+    ).toMatchObject({ onHand: 1, reserved: 1, available: 0 });
+  });
+
   it("derives a reversal's effect from the entry it cites", async () => {
     const location = (
       await repo.ensureLocation({
@@ -205,7 +233,15 @@ describe.skipIf(!LIVE)("stock ledger, live (13.1)", () => {
       ).onHand,
     ).toBe(6);
 
-    await repo.reverse({ retailerId, entryId: sale.id });
+    const firstReversal = await repo.reverse({
+      retailerId,
+      entryId: sale.id,
+    });
+    const replayedReversal = await repo.reverse({
+      retailerId,
+      entryId: sale.id,
+    });
+    expect(replayedReversal.id).toBe(firstReversal.id);
     // Back to 10, and BOTH the sale and its reversal remain on the record.
     const after = await repo.balanceFor({
       retailerId,
@@ -282,14 +318,28 @@ describe.skipIf(!LIVE)("stock ledger, live (13.1)", () => {
       quantity: 4,
     });
 
+    const operationId = crypto.randomUUID();
     const moved = await repo.transfer({
       retailerId,
       variantId: variantA,
       fromLocationId: from,
       toLocationId: to,
       quantity: 3,
+      operationId,
     });
     expect(moved.ok).toBe(true);
+    const replayed = await repo.transfer({
+      retailerId,
+      variantId: variantA,
+      fromLocationId: from,
+      toLocationId: to,
+      quantity: 3,
+      operationId,
+    });
+    expect(replayed).toMatchObject({
+      ok: true,
+      ...(moved.ok ? { outId: moved.outId, inId: moved.inId } : {}),
+    });
 
     const origin = await repo.balanceFor({
       retailerId,

@@ -1,5 +1,6 @@
 import {
   LossPreventionRepository,
+  ProductVariantRepository,
   StockLedgerRepository,
 } from "@paon/database";
 import { type RiskRuleKind } from "@paon/domain";
@@ -67,11 +68,10 @@ export default async function LossPreventionPage({
   });
   const activeLocationId = resolved.location ?? locations[0]?.id;
 
-  const { data: variantRows } = await supabase
-    .from("product_variants")
-    .select("id, sku, size")
-    .limit(50);
-  const items: Option[] = (variantRows ?? []).map((variant) => ({
+  const variantRows = await new ProductVariantRepository(
+    supabase,
+  ).findForRetailer(session.retailerId);
+  const items: Option[] = variantRows.map((variant) => ({
     id: variant.id,
     label: variant.size ? `${variant.sku} · ${variant.size}` : variant.sku,
   }));

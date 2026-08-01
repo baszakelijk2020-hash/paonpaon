@@ -126,6 +126,38 @@ $$;
 comment on function public.retailer_online_location(uuid) is
   'The fulfilment location online orders draw from, created on first use. Gives a webshop sale a place in the ledger so it stops being invisible to the shop floor.';
 
+-- ── 2a. Refuse to erase a disagreement during an upgrade ───────────────
+-- A database that already used the Stage 13 ledger can contain both an old
+-- catalogue quantity and ledger history. If those disagree, choosing either
+-- value automatically destroys information. Stop before the backfill or the
+-- reconciliation UPDATE changes a single row; the restored-copy rehearsal
+-- must resolve the discrepancy deliberately and rerun the migration.
+do $$
+declare
+  v_conflict_count integer;
+begin
+  select count(*)::integer into v_conflict_count
+  from public.product_variants pv
+  cross join lateral public.variant_ledger_balance(pv.id) b
+  where pv.deleted_at is null
+    and exists (
+      select 1
+      from public.stock_ledger_entries e
+      where e.variant_id = pv.id
+    )
+    and pv.inventory_quantity is distinct from greatest(b.available, 0);
+
+  if v_conflict_count > 0 then
+    raise exception using
+      errcode = 'P0001',
+      message = format(
+        'Inventory single-truth upgrade blocked: %s variant(s) disagree with their ledger balance.',
+        v_conflict_count
+      ),
+      hint = 'Inspect product_variants against variant_ledger_balance on a restored copy and reconcile each discrepancy before retrying.';
+  end if;
+end $$;
+
 -- ── 3. Carry the catalogue figure into the ledger as an opening balance ──
 -- 1896 units across 77 variants existed only as `inventory_quantity`. If the
 -- column became a projection without this, every one of them would read as

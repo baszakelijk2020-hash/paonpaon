@@ -62,6 +62,16 @@ describe("ProductVariantRepository", () => {
     expect(variants).toHaveLength(1);
   });
 
+  it("maps the retailer-scoped operational variant list", async () => {
+    const repo = new ProductVariantRepository(
+      clientReturning({ data: [row], error: null }),
+    );
+    const variants = await repo.findForRetailer(
+      "66666666-6666-6666-6666-666666666666" as never,
+    );
+    expect(variants.map((variant) => variant.id)).toEqual([row.id]);
+  });
+
   it("throws VariantSkuAlreadyExistsError on a unique constraint violation", async () => {
     const repo = new ProductVariantRepository(
       clientReturning({

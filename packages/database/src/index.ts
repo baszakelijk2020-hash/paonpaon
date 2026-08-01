@@ -1,4 +1,5 @@
 export * from "./lib/retry-read";
+export * from "./environment-safety";
 export * from "./clients/browser";
 export * from "./clients/server";
 export * from "./clients/admin";

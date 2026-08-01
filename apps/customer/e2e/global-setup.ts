@@ -9,6 +9,7 @@ import {
   RetailerRepository,
   RetailerStaffRepository,
   WorkshopRepository,
+  assertSafeSupabaseWriteTarget,
   createSupabaseAdminClient,
 } from "@paon/database";
 import type { UserId } from "@paon/domain";
@@ -38,6 +39,11 @@ async function globalSetup(): Promise<void> {
       "e2e global setup requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY — run `supabase start` and export its printed values first.",
     );
   }
+
+  assertSafeSupabaseWriteTarget({
+    supabaseUrl,
+    operation: "Customer Playwright fixture setup",
+  });
 
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
   const retailerRepo = new RetailerRepository(admin);

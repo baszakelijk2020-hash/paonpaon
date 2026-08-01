@@ -8,34 +8,207 @@ It supersedes the 2026-07-27
 pilot-only freeze and every queue in ROADMAP, COMPETITIVE_GAPS,
 EXPERIENCE_REBUILD, vision documents, audits, and old handoffs.
 
-Set by the founder on 2026-07-30.
+Set by the founder on 2026-07-30 and resequenced after the founder-intent,
+visual-source, security and connected-product audit on 2026-08-01 (ADR-069).
+The full modular destination was restored on 2026-08-02 after founder
+clarification (ADR-070), and the exact founder-tool fidelity contract was
+restored by ADR-071.
 
 ## Objective
 
-Turn PAON's existing RetailOS into an explainable relationship and operations
-platform for independent premium menswear retailers. Stages 0–7 established
-the intelligence foundation:
+Build a secure, technically complete and commercially configurable **modular
+PAON platform**. The first cross-module demonstrator is the Golden Relationship
+Journey for an independent premium menswear retailer:
 
-1. establish a reviewed, metadata-driven catalogue and reusable knowledge
-   system;
-2. use it for discovery, search, filters, imports, and client education;
-3. add consented customer signals and advisor intelligence;
-4. build wardrobe intelligence and MorningRoutine on the same concepts; and
-5. add campaigns, milestones, concierge services, and compliant commerce only
-   after their foundations exist.
+```text
+House Memory -> Advisor Today -> composed wardrobe/service proposal
+  -> appointment/order -> production/fitting/alteration -> aftercare
+  -> outcome captured back into House Memory
+```
 
-Stages 8–16 now extend that foundation into one Mission Control across
-interoperability, migration, clienteling/campaigns, workforce, MTM/fit/
-production, inventory/POS, corporate fashion, lifestyle network commerce,
-MunroMerchant, knowledge/training, and later vertical packs. Retailers can use
-PAON as an overlay, co-managed system or full authority by domain; replacement
-is not required at onboarding.
+The journey is PAON's shared intelligence spine, not its scope boundary. The
+committed destination includes all eight module families in `NORTH_STAR.md`.
+The landed Stage 0–16 foundations remain available, but do not continue a
+later stage merely because its domain types or migrations exist: map, audit
+and integrate it into the chaptered programme below.
 
-The complete product and technical specification is
-[PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md). Existing
-founder-designed surfaces remain authoritative wherever they define the UI.
-The expanded successor specification is
-[PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECUTION.md).
+The product hierarchy is authoritative in [NORTH_STAR.md](./NORTH_STAR.md).
+The source audit and rationale are recorded in
+[audits/FOUNDER_INTENT_AND_PLATFORM_RESET_2026-08-01.md](./audits/FOUNDER_INTENT_AND_PLATFORM_RESET_2026-08-01.md).
+
+## 2026-08-01 control gate — active queue
+
+**Take the first unchecked item here. R0.1 is a hard gate for any operation
+that can affect live data or deployments. R0.2 is a hard gate for stock or
+money flows. Provider-neutral design and local implementation may continue
+when an external activation dependency is unavailable, but no legacy item may
+be resumed without the module mapping required by R0.3.**
+
+- [ ] **R0.1 Environment truth and safety containment**
+  - **Dependencies:** none; ADR-069.
+  - **Acceptance:** identify every Supabase project and Vercel deployment used
+    by local, preview, demo and production; document project refs without
+    secrets in `docs/ENVIRONMENTS.md`; prove which deployment points where;
+    classify data; establish a disposable integration target; prevent
+    destructive/live tests unless the target is explicitly allowlisted; no
+    migration is applied to original data in this item.
+  - **Security repair:** close the cross-tenant inventory-ledger reference and
+    public arbitrary-retailer location creation paths with forward migrations,
+    tenant/RLS tests and an upgrade rehearsal. Audit equivalent SECURITY
+    DEFINER and cross-table tenant references.
+  - **Tests:** focused domain/repository tests, migrated-schema assertions,
+    tenant isolation, tracked format check and environment guard dry run.
+  - **Hard blocker:** missing provider access blocks mapping a named external
+    project only; local guard and security work continues.
+  - **Status (2026-08-02):** local containment is verified: fail-closed target
+    guard, 11 pgTAP tenant/ACL assertions, zero security-advisor findings,
+    70/70 live repository assertions, and clean-reset application of all 148
+    migrations. `20260801175205` closes stock/POS tenant references and
+    privileged-function ACLs. Migration 18 now refuses catalogue/ledger
+    conflicts before rewriting; the populated synthetic conflict and success
+    upgrade paths are rehearsed and documented. Customer baseline is 15/29
+    (the same historical 14 failures); retailer is 32/41 overall and the
+    repaired stock/loss/POS slice is 4/4. Vercel returns all three production
+    Supabase URLs as irreversibly `[SENSITIVE]`, so they remain conservatively
+    classified protected/original. Remaining external gate: approved restore
+    of actual original data for the same rehearsal and definitive deployment
+    target attestation. Safe local R0.2 implementation may proceed in parallel
+    but cannot be checked complete while this dependency remains open.
+
+- [ ] **R0.2 Atomic money and stock invariants**
+  - **Dependencies:** R0.1.
+  - **Acceptance:** POS completion, tender, stock ledger, return and reversal
+    use transactional database boundaries; caller intent cannot be silently
+    reclassified without an explicit contract; `count_inventory_disagreements`
+    stays zero across every supported write path; cash policy is recorded as a
+    founder/commercial decision rather than inferred from a blocked provider.
+  - **Tests:** concurrency, retry/idempotency, partial failure, tenant
+    isolation and upgrade data preservation.
+  - **Status (2026-08-02):** local implementation is verified behind the R0.1
+    external gate. Migration `20260801183032` makes POS line+reservation,
+    completion+ledger, cash tender+completion, void+release, return+restock,
+    transfer and reversal atomic and idempotent. Supported reservations use a
+    transaction advisory lock. Payments and POS lines are RPC-only for
+    authenticated callers; database triggers reject bypassed final-state and
+    commercial-line edits. Live proof is 70/70, including simultaneous
+    last-unit claims, forced line-insert rollback and direct-finality refusal;
+    11 pgTAP boundary assertions pass and the operated stock/POS browser slice
+    is 4/4. `count_inventory_disagreements()` remains zero.
+    ADR-072 records cash as a proposed founder/commercial policy rather than
+    an inferred provider workaround; it is not authorized for production.
+    Remaining before the item can close: R0.1's external dependency and the
+    founder cash decision. Further generic stock write-surface consolidation
+    is a hardening follow-up, not a reason to represent local POS proof as
+    incomplete.
+
+- [ ] **R0.3 Platform module kernel, canonical House and baseline**
+  - **Dependencies:** R0.1.
+  - **Acceptance:** module registry, retailer entitlements, dependency
+    validation, lifecycle state (`off`, `preview`, `active`, `suspended`),
+    role/navigation projection, authority mode, job suppression and plan
+    catalogue contracts are defined over one codebase. One deterministic
+    retailer, staff roster, 10–20 clients, garments, appointments, orders,
+    fitting/alteration cases and permissions exercise the real canonical
+    tables; Demo Studio, integration and e2e data are explicitly separated;
+    customer and retailer e2e have a recorded clean baseline with setup
+    failures fixed, not relabelled as product failures. Existing Stage 8–16
+    capabilities are mapped to keep/harden/consolidate/replace/quarantine and
+    to one of the modular chapters below. The same map accounts for every
+    founder-specified tool in `docs/DESIGN_PORTS.md` and may not call a generic
+    UI, static shell or domain/schema foundation a completed source tool.
+  - **Tests:** seed rerun, cleanup, tenancy, primary login/navigation and
+    canonical consumer checks; entitlement dependency and module-off tests.
+
+- [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
+  - **Dependencies:** R0.3.
+  - **Acceptance:** an advisor opens one Today surface, understands the next
+    clients/promises, opens a complete House Memory view, sees provenance and
+    why-now evidence, completes a quick human action and captures an outcome;
+    the outcome changes the next preparation. Existing modules compose into
+    shared object pages rather than new top-level navigation.
+  - **Tests:** manager/advisor/customer permissions, correction/withdrawal,
+    stale/empty/error states, mobile and desktop browser proof.
+
+- [ ] **R0.5 Golden Relationship — visual wardrobe to aftercare**
+  - **Dependencies:** R0.4, R0.2 where money/stock applies.
+  - **Acceptance:** customer and advisor share a visual wardrobe with owned,
+    self-added and proposed provenance; a short TableService/MorningRoutine
+    journey produces one composed look; appointment or order continues into
+    source-authorized status, Honeymoon, fitting/alteration, delivery and one
+    aftercare action; each stage records an outcome. The designated pag1
+    wardrobe, MorningRoutine, TableService, swipe, fit and consultation tools
+    preserve source composition, motion and behaviour under ADR-052/071; real
+    data enters through narrow hooks. Non-designated surrounding surfaces may
+    use reusable PAON primitives.
+  - **Tests:** connected multi-role browser journey plus database assertions,
+    responsive/accessibility, source conflict and human-review fit rules.
+
+- [ ] **R0.6 Deployable House, pilot onboarding and programme release map**
+  - **Dependencies:** R0.5.
+  - **Acceptance:** deploy a safe pilot environment; onboard one real or
+    founder-approved design partner cohort; capture baseline and Prepared
+    Relationship Moments; record pricing/implementation assumptions and the
+    retailer's actual systems; publish the chapter backlog and module-to-plan
+    catalogue for all eight families, including what existing Stage 8–16 work
+    is reused and what connected vertical slice proves each chapter.
+  - **Tests:** onboarding rehearsal, support/recovery, observability, data
+    export/correction and rollback plan.
+  - **Hard blocker:** absence of a willing design partner pauses external
+    pilot proof only. It does not stop safe implementation of later modular
+    chapters once their dependencies and local proof contracts are met.
+
+### Risk and activation rules
+
+- **Module delivery:** an assigned chapter, declared dependencies, a named
+  buyer/job and a connected user journey. A pilot is preferred evidence, not
+  the only authorization for safe technical work.
+- **Provider adapter:** current provider contract or real sample payload. The
+  present invented Faden HMAC/header fixture must not be described as a live
+  contract.
+- **Enterprise/vertical module:** named buyer, distinct proposition,
+  onboarding journey and reuse map for PAON primitives.
+- **Network/ecosystem module:** provider-neutral local work follows its chapter;
+  live partners, ads, payouts, procurement or customer-data use additionally
+  require supply, legal/commercial basis, customer value and founder approval.
+- **Navigation:** a capability appears contextually before it earns a top-level
+  destination.
+
+## Modular programme chapters — committed destination
+
+The chapter order is a dependency order, not a statement that the later
+product is optional. R0 establishes control and the regression spine; R0.6
+must expand each chapter into evidence-sized queue items before legacy work is
+resumed.
+
+1. **Chapter 1 — Platform Core:** module registry, entitlements, plans, roles,
+   consent, provenance, audit, workflows, integrations, migration, evidence,
+   jobs, observability and coherent role shells.
+2. **Chapter 2 — Client and Relationship Intelligence:** client memory,
+   Advisor Today/Mission Control, appointments, communication, Self-Portrait,
+   clienteling, promises and measurable outcomes.
+3. **Chapter 3 — Wardrobe and Styling Intelligence:** garment graph,
+   StyleProfile, knowledge/metadata, visual wardrobe, fit evidence, roadmaps,
+   composed looks, guided consultation and proposals.
+4. **Chapter 4 — Commerce and Growth:** storefront, assisted/remote selling,
+   cart/order, private offers, campaigns, loyalty/referrals, post-order
+   momentum, attribution and growth analytics.
+5. **Chapter 5 — Garment and Service Operations:** production projection,
+   fitting, alterations, delivery, aftercare, custody, repair, care plans,
+   memberships and partner fulfilment.
+6. **Chapter 6 — Retail Operations:** catalogue, inventory/RFID, POS/returns,
+   workforce, tasks, locations, recognition, reconciliation and operational
+   analytics in overlay, co-managed and full-PAON modes.
+7. **Chapter 7 — Enterprise and Vertical Solutions:** corporate wardrobes,
+   wedding-party apparel, multi-location, preferred tailoring, training,
+   consultancy, partner workshops and additional category/occasion packs.
+8. **Chapter 8 — Network and Ecosystem:** B2B procurement, curated lifestyle
+   commerce, partners/publishers, referrals/revenue share, rewards, events and
+   compliant multi-party operations.
+
+Each chapter ends with a multi-role browser-and-database proof, module-off and
+dependency behavior, onboarding/rollback, operational recovery and an honest
+live-activation status. Independent groundwork may overlap, but a chapter is
+not complete while its primary journey is disconnected.
 
 ## As-built baseline
 
@@ -1675,8 +1848,12 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
   - **Owner boundary:** per-location partners, capability/SLA, wardrobe intake,
     service plans, custody, work/quality/customer feedback, costs/invoices/
     reconciliation and a real wardrobe service calendar.
-  - **Acceptance:** one alteration and one dry-cleaning flow from booking and
-    pickup through return; partner sees minimum data; costs reconcile.
+  - **Acceptance:** reproduce pag3's Preferred Tailoring weekly calendar-led
+    wardrobe orchestration and HighMaintenance care experience faithfully,
+    backed by real agenda/travel/context, composed looks, plan, booking,
+    custody, partner fulfilment and history; one alteration and one
+    dry-cleaning flow continues from booking and pickup through return;
+    partner sees minimum data; costs reconcile.
   - **Tests:** custody, partner scope/RLS, SLA/exception, accounting export.
   - **Non-goals:** no partner payout without approved money design.
   - **Hard blockers:** payment decision blocks charging/payout only.
@@ -2337,10 +2514,13 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     fitting capacity, coordinated design choices, order/fitting/delivery
     readiness, guest dress-code looks/vouchers, garment aftercare and
     anniversary continuation; never create a second party model.
-  - **Acceptance:** a couple plus three party members completes invite →
-    inspiration/design → fitting → order readiness → collection/aftercare;
-    each participant sees only their data; retailer sees group exceptions and
-    the anniversary becomes a relationship moment.
+  - **Acceptance:** faithfully reproduce pag2's specified groom/best-men
+    fitting-planning experience: inspiration before the visit, group date
+    coordination, party invitations, each member's personal profile/options,
+    and visible fitting/delivery/pickup progress. A couple plus three party
+    members completes invite → inspiration/design → fitting → order readiness
+    → collection/aftercare; each participant sees only their data; retailer
+    sees group exceptions and the anniversary becomes a relationship moment.
   - **Tests:** group/individual permissions, invitation expiry, fitting/
     production status, asset rights, responsive multi-role browser journey.
   - **Non-goals:** no full venue, accommodation, invitations, dietary RSVP,

@@ -22,6 +22,8 @@ import type { PaonSupabaseClient } from "../../client-type";
 import { createSupabaseAdminClient } from "../../clients/admin";
 import { StockLedgerRepository } from "../stock-ledger-repository";
 
+import { findProductId, findStaffCohort } from "./fixture-selection";
+
 const LIVE = process.env["PAON_INTEGRATION"] === "1";
 const RUN = Date.now();
 
@@ -78,22 +80,10 @@ describe.skipIf(!LIVE)("stock has one truth (13.1 / 13.3 seam)", () => {
     admin = createSupabaseAdminClient(url, key);
     ledger = new StockLedgerRepository(admin);
 
-    const { data: product } = await admin
-      .from("products")
-      .select("id, retailer_id")
-      .limit(1)
-      .single();
-    productId = product!.id;
-    retailerId = product!.retailer_id as RetailerId;
-
-    const { data: staff } = await admin
-      .from("retailer_staff_members")
-      .select("id")
-      .eq("retailer_id", retailerId)
-      .is("deleted_at", null)
-      .limit(1)
-      .single();
-    staffId = staff!.id;
+    const cohort = await findStaffCohort(admin, 1);
+    retailerId = cohort.retailerId;
+    staffId = cohort.staff[0]!.id;
+    productId = await findProductId(admin, retailerId);
   });
 
   it("a new variant's opening stock exists in the LEDGER, not only the column", async () => {

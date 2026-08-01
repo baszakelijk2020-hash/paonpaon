@@ -1,128 +1,190 @@
 # Product
 
-PAON consists of three applications sharing one domain model
-([DOMAIN_MODEL.md](./DOMAIN_MODEL.md)) and one design system
-([DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)). No feature is implemented
-twice — if two apps need the same capability, it is built once in a
-shared package (`packages/*`) and consumed by both.
+PAON is delivered through three applications over one domain model and one
+design system. The applications are viewpoints into one relationship, not
+three independent feature catalogues.
 
-## The three applications
+## The golden relationship journey
 
-### 1. PAON Admin — `apps/admin`
+The product is coherent only when one real client can move through this loop:
 
-Used by PAON's own staff to operate the platform itself.
+```text
+Admin prepares a retailer and trusted data
+  -> advisor sees Today and prepares a conversation
+  -> client/advisor composes a wardrobe or service next step
+  -> appointment/order/production/fitting progresses
+  -> delivery and aftercare complete the promise
+  -> outcome updates the relationship and garment history
+```
 
-| Area                    | Responsibility                                                   |
-| ----------------------- | ---------------------------------------------------------------- |
-| Retailer onboarding     | Create tenants, configure initial settings, provision staff      |
-| Subscription management | Plans, billing status, upgrades/downgrades                       |
-| Platform analytics      | Cross-tenant usage, health, adoption metrics                     |
-| Feature management      | Per-plan and per-retailer feature flags                          |
-| Support                 | Tenant impersonation (audited), ticket context                   |
-| Billing                 | Invoices, payment status, dunning                                |
-| Integrations            | Manage platform-level third-party integrations                   |
-| Platform settings       | Global configuration, plan catalog                               |
-| User administration     | Platform staff accounts and roles                                |
-| Audit logs              | Immutable record of privileged actions across the platform       |
-| AI monitoring           | Usage, cost and quality oversight of AI personalisation features |
+Every active feature must identify where it enters this loop, who continues
+it, what authoritative state it changes, and how the outcome becomes future
+context.
 
-### 2. Retailer Portal — `apps/retailer`
+## 1. PAON Admin — `apps/admin`
 
-Used by a retailer's own staff to run the business day to day.
+Admin exists to launch, protect and support retailer relationships. Its core
+jobs are:
 
-| Area                          | Responsibility                                             |
-| ----------------------------- | ---------------------------------------------------------- |
-| Dashboard                     | Operational overview: orders, production, appointments due |
-| Customers / CRM               | Customer records, clienteling notes, lifecycle stage       |
-| Products                      | Catalog authoring: products, variants, collections         |
-| Orders                        | Order lifecycle from placement to fulfillment              |
-| Production                    | Connector-facing supplier/manufacturing status             |
-| Alterations                   | Garment intake, fitting, work orders and handoffs          |
-| Loyalty / Rewards / Referrals | Configure programs, view customer balances                 |
-| Appointments                  | Booking, staff availability, calendar                      |
-| Inventory                     | Stock levels per variant                                   |
-| Communications                | Messaging threads, notification templates                  |
-| Analytics                     | Retailer-scoped performance metrics                        |
-| Staff                         | Staff accounts, roles, availability                        |
-| Settings                      | Brand theme, locations, business configuration             |
+- qualify and onboard a retailer;
+- map environments, data authorities and integrations;
+- migrate and reconcile a controlled cohort;
+- configure plans, entitlements, brand presentation and house standards;
+- monitor tenant health, consent, AI cost/quality and connector failures;
+- support a tenant through explicit, audited access;
+- operate Demo Studio without confusing demonstration data with production.
 
-### 3. Customer Portal — `apps/customer`
+Admin is not a second retailer portal. Cross-tenant analytics and network
+operations activate only when the relevant commercial layer is authorized.
 
-Used by a retailer's customers.
+## 2. Retailer Portal — `apps/retailer`
 
-| Area                | Responsibility                                                             |
-| ------------------- | -------------------------------------------------------------------------- |
-| Login               | Passwordless / OAuth authentication                                        |
-| Profile             | Personal details and relationship preferences                              |
-| Cart                | Persisted multi-item cart, one per retailer relationship, through checkout |
-| Orders              | Purchase history and current orders                                        |
-| Production tracking | Approved supplier/manufacturing status                                     |
-| Alteration tracking | Approved status and pickup/delivery information                            |
-| Loyalty / Rewards   | Points balance, tier, redeemable rewards                                   |
-| Referrals           | Invite friends, track referral status                                      |
-| Wishlist            | Saved products                                                             |
-| Appointments        | Book and manage appointments with the retailer                             |
-| Notifications       | Cross-channel notification inbox                                           |
-| Messaging           | Direct conversation with retailer staff                                    |
-| Preferences         | Communication and privacy preferences                                      |
+The primary staff experience is **Today**, not a module directory. It answers:
 
-A customer with relationships at multiple PAON retailers signs into one
-Customer Portal account and sees each retailer relationship separately
-— see `CustomerAccountLink` in [DOMAIN_MODEL.md](./DOMAIN_MODEL.md).
+1. Who needs attention?
+2. What do I need to know?
+3. What promise or risk is due?
+4. What is the next best human action?
+5. Can I complete or capture it in seconds?
 
-## Order vs. Production vs. Alteration
+Shared object pages hold the depth behind Today:
 
-This distinction is load-bearing throughout the product and is modeled
-explicitly rather than inferred:
+- **Client / House Memory:** relationship timeline, consent, preferences,
+  wardrobe, fit evidence, appointments, orders, services and outcomes;
+- **Garment:** identity, ownership, fit, order/production projection,
+  alterations, custody, care and lifecycle;
+- **Conversation / Appointment:** preparation, composed proposals, notes,
+  follow-up and outcome;
+- **Order / Service case:** money, status, exceptions, source authority,
+  promises and handoffs;
+- **Programme:** campaign or service version, audience, missions, placements,
+  operational prerequisites and measured outcomes.
 
-- An **Order** is the commercial record — what was bought, for how
-  much, its fulfillment status.
-- A **ProductionOrder** is the _intended_ manufacturing-status projection
-  for a made-to-order line. The domain type exists; **persistence and
-  supplier connectors are not built yet** (see DOMAIN_MODEL persistence
-  note). Do not describe it as a live table.
-- An **Alteration** tracks a fit change, which may be tied to a
-  fulfilled order line or requested independently, on a past purchase.
+Manager Mission Control adds staffing, inventory/custody, operational health,
+campaign management, reconciliation and analytics. Capabilities should appear
+in context before earning top-level navigation.
 
-An order can be "delivered" while an alteration on one of its lines is
-still "in progress" — the UI must always be able to show these as
-related but independently-progressing timelines, never collapse them
-into a single status.
+## 3. Customer Portal — `apps/customer`
 
-## Alterations ownership boundary
+The customer experience is the calm, visible proof that the house remembers.
+Its primary surfaces are:
 
-PAON does not replace GoCreate, a supplier manufacturing platform,
-factory ERP, MTM measurement/fit profiles, garment specifications,
-production ordering or construction systems. Those systems remain
-authoritative for manufacturing and PAON may connect to them later.
+- **Home / For You:** a small number of timely, explainable next moments;
+- **Wardrobe:** tactile category rails for owned, self-added and advisor-
+  proposed pieces, with provenance and correction;
+- **A composed look:** MorningRoutine, TableService and advisor proposals that
+  present a confident ensemble before configuration detail;
+- **My journey:** appointment, order, production, fitting, alteration,
+  delivery and aftercare as related but distinct timelines;
+- **Honeymoon:** the post-order window for anticipation, preparation,
+  complementary pieces, pickup and fit—not generic notification spam;
+- **Services and relationship:** care, membership, messages, milestones and
+  preferences under the retailer's brand.
 
-PAON is authoritative for the in-store garment journey: identifying a
-specific physical garment; fitting sessions and observations; proposed
-operations classified as `work_now` or `future_order_note`; work orders,
-quotes, approvals and effective price lists; retailer/workshop assignment;
-evidence and chain of custody; completion review; customer-approved status;
-pickup/delivery; cancellation; and immutable audit history. A
-`future_order_note` is retained for manual staff entry into a future GoCreate
-order. PAON does not turn it into a manufacturing specification or production
-order.
+A client may have relationships with multiple retailers, but each house's
+data, consent and presentation remain separate. PAON must never imply that one
+retailer can see another's relationship.
 
-## Phasing
+## Authority boundaries
 
-See [PHASE.md](./PHASE.md) for the only authorized build order and
-[PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md) for the
-active programme specification. This document describes product surfaces; it
-is not a statement that every surface exists.
+PAON owns relationship memory, garment/service evidence, customer-visible
+continuity, in-store alterations/custody, and the actions/outcomes it creates.
 
-## Intelligence Platform surfaces — staged, not yet built
+External systems may remain authoritative:
 
-The table below remains factual until code lands. `PHASE.md` now authorizes
-these surfaces in dependency order; their detailed acceptance belongs to the
-active programme specification, not to the older vision drafts.
+- Shopify or another commerce platform for catalogue, checkout or order facts;
+- Faden, GoCreate or factory software for MTM configuration and production;
+- POS for tender and fiscal transaction truth;
+- payroll/accounting providers for payroll, tax and books;
+- messaging/calendar providers for delivery and scheduling channels.
 
-| Surface                                        | App                         | Pillar                                                                       |
-| ---------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------- |
-| Personal wardrobe / digital twin               | Customer                    | [03](./vision/03_wardrobe_intelligence.md)                                   |
-| Wardrobe roadmap & scores                      | Customer                    | [04](./vision/04_wardrobe_roadmap.md), [07](./vision/07_wardrobe_scoring.md) |
-| AI style advisor                               | Customer (+ retailer brief) | [06](./vision/06_ai_style_advisor.md)                                        |
-| Clienteling cockpit (gaps, events, likelihood) | Retailer                    | [09](./vision/09_clienteling_cockpit.md)                                     |
-| Metadata enrichment / import review            | Retailer / Admin            | [02](./vision/02_metadata_graph.md)                                          |
+For every integrated field group, PAON records source, direction, external
+identity, freshness, conflicts and the permitted action. An invented API,
+signature format or write-back capability is not an integration.
+
+## Order, production, fitting and alteration
+
+- **Order** is the commercial record.
+- **Production** is a source-authorized manufacturing projection.
+- **Fitting** records observations and decisions with provenance.
+- **Alteration** is an independently progressing piece of work on a physical
+  garment.
+- **Aftercare** records custody, care, repair and return after delivery.
+
+They can be related and visible on one journey, but must not be collapsed into
+one status. A photo or self-scan may create evidence or a review candidate; it
+does not silently become an approved measurement.
+
+## Founder-source experience contract
+
+The founder-authored corpus is both design research and, for the tools the
+founder explicitly selected, a product specification. Pag1's specified tools,
+pag2's groom/best-men fitting-planning workflow, pag3's Preferred Tailoring and
+HighMaintenance workflow, and tools explicitly called out in the founder brief
+must retain the source composition, motion and behaviour while narrow hooks
+connect them to real PAON data and actions. "PAON-native" does not authorize a
+generic redesign of those tools.
+
+The wider corpus also supplies reusable patterns:
+
+- cinematic chapter opening and live context;
+- narrow editorial reveal with high contrast and purposeful pacing;
+- stacked horizontal wardrobe rails with a clear active item;
+- composed outfit canvas with item-level inclusion controls;
+- a short guided menu instead of exhaustive first-step configuration;
+- visual timelines and live progress for waiting periods;
+- context cards combining weather, calendar, place and wardrobe evidence;
+- campaign experiences that connect story, product, staff action and outcome.
+
+For non-designated surfaces these patterns should be translated into
+accessible, responsive PAON components. ADR-052/071 governs the designated
+tools. Their completion requires visual/motion parity, real domain and
+persistence, the complete role workflow, and connected browser-plus-database
+proof; satisfying only one layer is a foundation, not a shipped tool.
+
+## Module system and commercial packaging
+
+The eight module families in [NORTH_STAR.md](./NORTH_STAR.md) form one product
+over one platform kernel. They are not eight applications and later families
+are not merely a speculative option list.
+
+Each deployable module declares:
+
+- required platform and module dependencies;
+- retailer entitlement and state (`off`, `preview`, `active`, `suspended`);
+- roles, contextual navigation and background jobs it enables;
+- authority mode (`overlay`, `co-managed`, or `full PAON`) for shared data;
+- plan limits, metering and commercial catalogue identity;
+- onboarding, rollback, export and audit behavior.
+
+Plans are changeable bundles of modules. A practical starting family is
+Foundation, Intelligence, Growth, Operations, and Enterprise & Network, with
+eligible modules available as add-ons. Final names and pricing are commercial
+decisions; tenant-safe entitlements and dependencies are technical contracts.
+No tier should create a forked codebase, orphan historical data, or expose a
+surface whose dependencies are unavailable.
+
+A baseline bundle hypothesis is:
+
+| Module family                      | Foundation | Intelligence | Growth   | Operations | Enterprise & Network |
+| ---------------------------------- | ---------- | ------------ | -------- | ---------- | -------------------- |
+| Platform Core                      | Included   | Included     | Included | Included   | Included             |
+| Client & Relationship Intelligence | Essentials | Included     | Included | Included   | Included             |
+| Wardrobe & Styling Intelligence    | Add-on     | Included     | Included | Included   | Included             |
+| Commerce & Growth                  | Add-on     | Add-on       | Included | Included   | Included             |
+| Garment & Service Operations       | Add-on     | Add-on       | Add-on   | Included   | Included             |
+| Retail Operations                  | Add-on     | Add-on       | Add-on   | Included   | Included             |
+| Enterprise & Vertical Solutions    | —          | —            | Add-on   | Add-on     | Included             |
+| Network & Ecosystem                | —          | —            | —        | Add-on     | Included             |
+
+This matrix is a commercial hypothesis to test, not permission to omit a
+module from the build. `Add-on` means independently entitlement-controlled;
+ecosystem activation still observes the applicable partner, legal and money
+gates.
+
+The golden relationship journey is PAON's first connected demonstrator and
+ongoing regression spine. It proves that the modules compose; it is not the
+maximum product PAON intends to build.
+
+`PHASE.md` is the only build order. This document describes the intended
+product and boundaries; code and migrations remain the truth for what exists.

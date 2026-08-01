@@ -59,7 +59,8 @@ test("associate sells a garment for cash, is refused a card and an unpaid finish
 
   const { data: variant } = await admin
     .from("product_variants")
-    .select("id")
+    .select("id, products!inner(retailer_id)")
+    .eq("products.retailer_id", proof.retailerId)
     .limit(1)
     .single();
   const variantId = variant!.id;

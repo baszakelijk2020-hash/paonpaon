@@ -3039,3 +3039,197 @@ role -> persisted outcome/exception -> downstream handoff`.
 proven. Cursor first implements Stage 8.4, then closes those gaps before
 building Honeymoon/Seven-Day and later stages. Future green checks remain
 necessary but cannot by themselves authorize a completion claim.
+
+## ADR-069: Sequence PAON by relationship proof, with later layers behind gates
+
+**Status: accepted. Supersedes ADR-067 only for sequencing and product
+activation; retains its source-authority, integration and domain-boundary
+decisions.**
+
+**Context.** The expanded Stage 8–16 programme translated nearly every founder
+Mark-II concept into a capability family. This preserved intent but promoted
+workforce, POS, corporate fashion, network commerce, advertising, B2B
+procurement and vertical packs into one apparent product path before PAON had
+established a reliable deployed baseline, a secure production environment, a
+complete primary relationship journey or a paying pilot. A visual review of
+the founder source also showed that its distinguishing contribution is the
+choreography of preparation, composed choice, anticipation and aftercare—not
+the number of modules represented in schema.
+
+**Decision.**
+
+1. PAON's current product is the Relationship Operating Layer described in
+   `NORTH_STAR.md`: House Memory, Advisor Today, visual wardrobe/composed
+   proposals, order/fitting/alteration continuity and aftercare.
+2. The release unit is one Golden Relationship Journey from cited evidence to
+   human action to persisted outcome. Route, repository, migration or stage
+   counts are not product progress measures.
+3. Stage 8–16 capability work already landed remains in the codebase and may be
+   hardened when required by the golden journey. It does not itself authorize
+   completion, navigation exposure or further horizontal expansion.
+4. House Operations activate only for a named pilot requirement. Specialist
+   products (corporate wardrobes, wedding apparel and other vertical packs)
+   require a distinct buyer, proposition and connected proof. Network/media/
+   marketplace capabilities require trusted distribution, partner supply,
+   legal/commercial decisions and an explicit founder activation gate.
+5. PAON integrates commodity authorities before replacing them. A provider
+   adapter requires a current written/public contract or real sample payload;
+   fixtures must not invent provider signatures, headers or writable APIs.
+6. Founder source pages are a design-research corpus. Their reusable
+   interaction grammar is translated into accessible product primitives;
+   speculative claims, surveillance, brand-specific assumptions and separate
+   venture ideas are not copied as requirements.
+7. Security, environment truth, upgrade safety, primary e2e, onboarding and a
+   real pilot precede the former 9.2 continuation. `PHASE.md` defines the new
+   control gate and remains the only queue.
+
+**Consequences.** The former expanded queue becomes a gated option portfolio,
+not the immediate conveyor belt. No existing schema is deleted merely for
+being early. Navigation and active implementation narrow around role-based
+journeys. Strategy documents describe a broad destination and a narrow release
+boundary without contradiction.
+
+## ADR-070: Commit to the full modular PAON platform; sequence is not scope
+
+**Status: accepted. Clarifies and supersedes ADR-069 wherever ADR-069 treats
+the Golden Relationship Journey as PAON's product boundary or the later
+module families as an optional portfolio. ADR-069 remains accepted for its
+security, environment, connected-proof, provider-authority and coherent-slice
+discipline.**
+
+**Context.** The founder's Atelier Munro and Faden source material was supplied
+as a broad intent and interaction-research corpus, not as literal PAON pages,
+brand concepts or a request to reduce PAON to the few concepts closest to a
+first retailer pilot. The response to overproduction in Stage 8–16
+overcorrected: it correctly prioritized environment truth, security and
+connected journeys, but wrongly implied that operations, vertical solutions
+and ecosystem capabilities were fantasies to be indefinitely gated out.
+
+The founder intends a technically achievable but unusually ambitious platform
+whose modules retailers can switch on independently and whose bundles form
+commercial tiers. The platform must become greater and more coherent than its
+source material through interpretation, not transplantation.
+
+**Decision.**
+
+1. PAON's committed destination comprises the eight module families defined
+   in `NORTH_STAR.md`: Platform Core; Client and Relationship Intelligence;
+   Wardrobe and Styling Intelligence; Commerce and Growth; Garment and
+   Service Operations; Retail Operations; Enterprise and Vertical Solutions;
+   and Network and Ecosystem.
+2. House Memory -> Advisor Today -> wardrobe/proposal -> order/fitting ->
+   aftercare is the shared intelligence spine and first demonstrator. It is
+   not the module list, navigation model or ceiling of the product.
+3. Modules are tenant entitlements over one platform kernel. They declare
+   dependencies, roles, navigation, authority mode, jobs, limits, audit and
+   lifecycle state. Plans are commercially editable bundles, not code forks.
+4. Delivery is chaptered by technical dependency and connected proof. Later
+   chapters are committed roadmap scope even when they are not the active
+   coding item. A real pilot validates work continuously but does not hold all
+   independent platform development hostage.
+5. Gates attach to the risk they control: security and environment gates
+   protect live data; money gates protect tender, settlement and stored value;
+   provider gates protect integration claims; legal and supply gates protect
+   live ecosystem activation. They do not prohibit provider-neutral domain,
+   UX, workflow or local verification work.
+6. Founder source names, brand structures, claims and page composition are not
+   PAON requirements. Agents extract the underlying job, emotional effect,
+   service choreography and useful interaction pattern, then design the best
+   PAON-native system.
+7. Existing Stage 8–16 work is audited and mapped into the modular chapters:
+   keep and harden useful primitives, consolidate duplicates, replace false
+   abstractions, and delete or quarantine only with evidence. Breadth is not a
+   completion claim; every chapter still requires end-to-end proof.
+
+**Consequences.** `PHASE.md` retains an ordered safety and foundation chapter,
+then realizes the complete modular programme. The first connected journey
+remains urgent because it is the strongest integration test and sales
+demonstrator, not because PAON is being narrowed to a CRM/clienteling product.
+Commercial activation can remain gated while technical delivery continues on
+safe, independent work.
+
+## ADR-071: Founder-specified tools are exact experience and system contracts
+
+**Status: accepted. Supersedes ADR-069 decision 6 and ADR-070 decision 6 where
+they classify a founder-specified tool as merely reusable interaction grammar.
+Retains their rejection of unsupported claims, invasive data use and literal
+Atelier Munro business framing. Extends ADR-052.**
+
+**Context.** The founder supplied the Nebelspiegel corpus for two different
+purposes that prior handoffs repeatedly collapsed. The wider branded ventures,
+claims and commercial structures are strategy material to interpret for PAON.
+But the founder also explicitly designed and selected concrete software tools
+over two years and instructed PAON to build how those tools look and behave.
+Treating the latter as loose inspiration produced generic Tailwind screens,
+domain/schema scaffolds and static visual shells that were then described as
+implemented. This was not the requested product.
+
+**Decision.**
+
+1. `downloaded_pages/pag1.html` is the experience authority for its
+   founder-specified tools. Pag2 is the experience authority for the groom and
+   best-men fitting-planning workflow. Pag3 is the experience authority for
+   Preferred Tailoring's weekly calendar-led wardrobe orchestration and
+   HighMaintenance care workflow.
+2. A tool or workflow explicitly called out for implementation in the founder
+   brief or linked-source instructions is also designated. Its source
+   composition, spatial hierarchy, motion, pacing and interaction are
+   requirements, not optional styling cues.
+3. The surrounding Atelier Munro brand, literal catalogue, unsupported claim
+   and unrelated venture scope are not automatically PAON requirements. PAON
+   may adapt identity, copy and commercial packaging without redesigning the
+   designated tool.
+4. A designated tool has two simultaneous authorities: the source experience
+   and PAON's domain/security architecture. Data enters through narrow hooks;
+   permissions, tenant isolation, provenance, persistence, corrections and
+   receiving-role continuation remain real PAON behavior.
+5. "Built" requires four proofs: source visual/motion parity; real domain and
+   persistence; complete originating/receiving role actions; and connected
+   browser-plus-database proof including applicable denied, empty, stale,
+   conflict and recovery states. A matching table, repository, unit test,
+   route, static shell or screenshot proves only its own layer.
+6. Existing faithful ports are retained and connected. Generic substitutes are
+   replaced rather than cosmetically patched. Missing supplier write access
+   may block only that external handoff; it does not park the independent
+   fitting, planning, care or PAON workflow.
+
+**Consequences.** `docs/DESIGN_PORTS.md` is the implementation inventory for
+designated source tools and must be read before touching them. `PHASE.md`
+orders their delivery and connected proof. Strategic curation remains broad
+and ambitious, but it can no longer erase an explicit founder experience
+contract or call infrastructure the finished tool.
+
+## ADR-072: Cash is a recorded retailer tender, pending founder activation
+
+**Status: proposed operating policy; locally implemented, not authorized for
+production or a pilot until the founder accepts it.**
+
+**Context.** The Stage 13 till could not complete a sale because ADR-062
+correctly blocks unapproved payment providers. The prior agent exempted cash
+on the reasoning that physical notes are not a provider integration. That is
+technically coherent but still a commercial and accounting decision; a
+blocked card processor cannot silently authorize a different tender policy.
+The first implementation also recorded cash, completed the sale and moved
+stock in separate requests, allowing partial failure.
+
+**Proposed decision.**
+
+1. Cash is physical tender received by the retailer as merchant of record.
+   PAON never holds, settles or lends the funds; it records the retailer's
+   opaque till event and its stock consequence.
+2. A cash completion uses one deterministic reference per sale and one
+   Postgres transaction for tender, state finality, reservation release and
+   sale movements. Retries reconcile to the same event.
+3. Cash never weakens ADR-062: card details remain forbidden and every
+   provider-hosted payment remains blocked until its own compliance design is
+   accepted.
+4. Local proof does not make the till production-ready. Receipt/fiscal rules,
+   VAT/accounting export, cash drawer opening/closing, change, till variance,
+   refunds and jurisdiction-specific obligations must be assigned before a
+   real pilot activates cash.
+
+**Consequences.** The locally proven cash path remains available for product
+integration and demos. Production entitlements must keep it off until founder
+acceptance and the operational checklist above are recorded. If the founder
+rejects cash, the same atomic completion boundary remains and a later approved
+provider supplies the tender event.

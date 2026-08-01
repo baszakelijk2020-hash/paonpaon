@@ -1,78 +1,116 @@
 # Vision
 
-## The problem
+## The problem PAON actually solves
 
-Premium and luxury retailers sell relationships, not transactions. A
-client who commissions a bespoke suit, books three fittings, alters two
-older pieces and attends a trunk show is having one continuous
-relationship with the house — but the software underneath is almost
-always fragmented: a POS for transactions, a spreadsheet or generic CRM
-for clienteling, email for production status, a separate booking tool
-for appointments, and nothing at all connecting loyalty to any of it.
-The retailer's staff become the integration layer, manually. That does
-not scale past a handful of locations, and it is invisible to the
-customer, who experiences it as being forgotten between visits.
+Premium retail promises recognition and continuity, but its systems are
+organized around transactions and departments. The POS knows the sale, the
+supplier knows production, the calendar knows the appointment, an advisor's
+phone knows the client, and nobody owns the garment after delivery. The client
+experiences that fragmentation as being forgotten.
 
-Generic e-commerce and CRM platforms don't fill this gap because they
-are built for high-volume, low-touch commerce: fast checkout, self-serve
-returns, chat-bot support. Luxury retail runs on the opposite pattern —
-low volume, high touch, long production and alteration cycles, and staff
-who are expected to remember a client's preferences without being told
-twice.
+The deepest loss is not administrative. A house cannot consistently reproduce
+its best advisor's judgment, follow through on promises, or improve its
+standard of care because the evidence and outcomes never become shared memory.
 
-## What PAON is
+## The thesis
 
-PAON is a **RetailOS** and a lifelong **wardrobe intelligence** system for
-independent menswear houses and their clients.
+PAON turns the retailer-client relationship into a compounding asset.
 
-As RetailOS it connects the commercial lifecycle —
+It joins four things that competitors usually separate:
 
-Discovery → Purchase → Production → Alteration → Delivery → Loyalty →
-Referral → Repeat.
+- **relationship memory** — declared facts, observations, transactions,
+  preferences, milestones, permissions and promises with provenance;
+- **garment memory** — what exists, how it fits, where it is, how it changed,
+  how it is cared for and what it works with;
+- **house judgment** — product metadata, sartorial knowledge, service
+  standards, campaign playbooks and human review;
+- **action and outcome** — the next conversation, proposal, appointment,
+  commission, fitting, alteration or aftercare action and what happened next.
 
-As wardrobe intelligence it owns the **customer-side north loop**: the
-digital twin of what a client owns, how it fits and ages, what the wardrobe
-needs next, and an explainable advisor that improves over a lifetime —
-analogous to how Apple Health owns health data, not “software to sell
-clothes.” Commercial consequence (better retail relationships, better
-recommendations) follows from wardrobe quality; it is not the sole objective.
-The active programme is specified in
-[PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md) and sequenced
-only by [PHASE.md](./PHASE.md). The older [vision/](./vision/) pillars are
-reference inputs, not parallel specifications or queues.
+That creates a flywheel:
 
-It is delivered as three purpose-built applications
-([PRODUCT.md](./PRODUCT.md)) sharing one domain model
-([DOMAIN_MODEL.md](./DOMAIN_MODEL.md)), so that a fact recorded once —
-a physical garment's fitting observations, an order's production stage, a loyalty
-balance — is true everywhere it is shown, instantly, without sync jobs.
+```text
+better evidence -> better preparation -> better human service
+      ^                                      |
+      +--------- captured outcome <----------+
+```
 
-## Who it serves
+AI can rank, compose, explain and summarize inside this loop. It is never the
+authority for a measurement, consent, payment, inventory count, production
+status or unsupported personal claim.
 
-- **PAON** (the company) — operates the platform, onboards retailers,
-  and grows revenue through retailer subscriptions.
-- **Retailers** — premium and luxury houses, from single-boutique
-  ateliers to multi-location maisons, who use PAON to run daily
-  operations and deepen customer relationships.
-- **Customers** — the retailer's clients, who get one place to track
-  everything they have going on with a house they shop with.
+## The experience thesis
 
-## Why now
+PAON should feel like a discreet, exceptionally prepared house—not enterprise
+software wearing luxury colors.
 
-Luxury retail is under margin pressure to do more with the same
-headcount, while customer expectations (set by consumer tech generally)
-have risen: real-time status, self-service where appropriate, and
-personalization that feels earned rather than automated. A platform that
-unifies CRM, commerce, production/alteration tracking and loyalty into
-one coherent product — with AI personalisation layered on a single
-clean domain model rather than bolted onto fragmented data — is a
-genuine step change, not a feature checklist.
+The founder's visual concepts reveal the right interaction principles:
 
-## Time horizon
+- begin with context and desire, then disclose mechanics;
+- show a composed look or short menu before exposing configuration depth;
+- use wardrobe rails, timelines, maps, live context and deliberate motion to
+  make intelligence tangible;
+- turn waiting into anticipation and aftercare rather than status polling;
+- let the client see why the house knows something and correct it;
+- keep operational density in staff surfaces and calm confidence in client
+  surfaces.
 
-This is a multi-year platform. Every architectural choice in
-[ARCHITECTURE.md](./ARCHITECTURE.md) and every decision in
-[DECISIONS.md](./DECISIONS.md) is made assuming the codebase will still
-be actively developed five years from now, by people who were not in
-the room when the decision was made. That assumption is not aspirational
-— it is a design constraint.
+The source corpus has two different authorities. Founder-specified tools are
+experience specifications: their composition, motion and interaction must be
+ported faithfully and connected to real PAON state under ADR-052/071. The
+surrounding Atelier Munro brand, claims and business universe are evidence and
+possibility space to curate for PAON. Speculative claims, invasive data ideas
+and unsupported commercial authority still require validation or rejection.
+
+## The commercial entry point
+
+PAON first sells a **Relationship Operating Layer** to owner-led premium
+menswear retailers. This is the fastest way to demonstrate the intelligence
+spine and win trusted access to the broader retailer operation; it is a
+go-to-market entry point, not the limit of the product.
+
+Onboarding is a productized service:
+
+1. relationship and data audit;
+2. migration of a controlled client/garment cohort;
+3. configuration of the house's service standard and vocabulary;
+4. launch of advisor Today, client wardrobe and aftercare;
+5. measured pilot with real clients and outcomes.
+
+This makes the founder's expertise part of the product and supports meaningful
+implementation revenue instead of pricing a high-touch transformation like a
+generic low-cost SaaS seat.
+
+## Platform realization
+
+PAON is realized as a modular platform over shared primitives:
+
+1. **establish the kernel and demonstrator:** platform control, relationship
+   intelligence and one complete multi-role journey;
+2. **deepen client value:** wardrobe, style, fit, aftercare, campaigns,
+   remote selling and commerce;
+3. **operate the house:** staff, locations, catalogue, inventory, POS,
+   services, workflows, reconciliation and analytics;
+4. **package specialist solutions:** corporate wardrobes, wedding-party
+   apparel, preferred tailoring, training and partner operations;
+5. **connect the ecosystem:** procurement, curated lifestyle commerce,
+   partners, publishers, referrals, rewards and multi-party experiences.
+
+These are committed product families, not five unrelated bets. Each module
+must reuse the platform kernel and intelligence spine, identify its buyer and
+measurable job, and preserve tenant, authority and trust boundaries. A legal,
+payment, provider or supply dependency may gate live activation without
+turning the underlying module into an abandoned idea.
+
+## Five-year destination
+
+PAON becomes the trusted relationship and wardrobe infrastructure used by
+premium houses across locations and generations of staff. A client can carry a
+consented, explainable history with each house; the retailer can preserve its
+distinctive judgment; and specialist services and partners can participate
+without fragmenting the experience.
+
+The destination and the roadmap are broad. Delivery is chaptered and
+evidence-driven so that every increment is usable and the platform remains
+coherent. The queue in [PHASE.md](./PHASE.md) decides build order and proof;
+it does not redefine the company as the first release.

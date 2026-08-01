@@ -3,6 +3,14 @@
 **Tier 1 — read before deploying anything.** Written so any session can
 take a PAON app live without asking the founder for values.
 
+> **2026-08-02 safety correction:** read
+> [ENVIRONMENTS.md](./ENVIRONMENTS.md) first. The customer production URL now
+> returns HTTP 500 because deployed code expects
+> `entity_metadata_assignments`, which its older database schema does not
+> contain. The "live and confirmed working" record below is historical, not
+> current health. Do not repair this by pushing the full migration chain into
+> the original database.
+
 ## What exists
 
 | Thing            | Value                                                                           |

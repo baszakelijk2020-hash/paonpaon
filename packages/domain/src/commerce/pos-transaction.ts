@@ -134,6 +134,7 @@ export type PaymentCaptureCheck =
       readonly reason:
         | "provider_not_activated"
         | "provider_reference_required"
+        | "provider_reference_conflict"
         | "amount_mismatch"
         | "card_data_not_accepted";
     };

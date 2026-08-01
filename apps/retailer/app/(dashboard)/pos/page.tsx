@@ -1,4 +1,8 @@
-import { PosRepository, StockLedgerRepository } from "@paon/database";
+import {
+  PosRepository,
+  ProductVariantRepository,
+  StockLedgerRepository,
+} from "@paon/database";
 import { CASH_TENDER, type CartLineKind } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
@@ -94,11 +98,10 @@ export default async function PosPage({
     );
   }
 
-  const { data: variantRows } = await supabase
-    .from("product_variants")
-    .select("id, sku, size")
-    .limit(50);
-  const items: Option[] = (variantRows ?? []).map((variant) => ({
+  const variantRows = await new ProductVariantRepository(
+    supabase,
+  ).findForRetailer(session.retailerId);
+  const items: Option[] = variantRows.map((variant) => ({
     id: variant.id,
     label: variant.size ? `${variant.sku} · ${variant.size}` : variant.sku,
   }));

@@ -24,6 +24,8 @@ import { createSupabaseAdminClient } from "../../clients/admin";
 import { LossPreventionRepository } from "../loss-prevention-repository";
 import { StockLedgerRepository } from "../stock-ledger-repository";
 
+import { findStaffCohort, findVariantIds } from "./fixture-selection";
+
 const LIVE = process.env["PAON_INTEGRATION"] === "1";
 const CHECK_VIOLATION = "23514";
 const RUN = Date.now();
@@ -63,30 +65,12 @@ describe.skipIf(!LIVE)("loss prevention, live (13.2)", () => {
     risk = new LossPreventionRepository(admin);
     ledger = new StockLedgerRepository(admin);
 
-    const { data: retailer } = await admin
-      .from("retailers")
-      .select("id")
-      .limit(1)
-      .single();
-    retailerId = retailer!.id as RetailerId;
-
     // Two different people. Separation of duties cannot be tested with one.
-    const { data: staff } = await admin
-      .from("retailer_staff_members")
-      .select("id, role")
-      .eq("retailer_id", retailerId)
-      .is("deleted_at", null)
-      .limit(10);
-    expect(staff?.length ?? 0).toBeGreaterThanOrEqual(2);
-    requesterId = staff![0]!.id;
-    managerId = staff![1]!.id;
-
-    const { data: variant } = await admin
-      .from("product_variants")
-      .select("id")
-      .limit(1)
-      .single();
-    variantId = variant!.id;
+    const cohort = await findStaffCohort(admin, 2);
+    retailerId = cohort.retailerId;
+    requesterId = cohort.staff[0]!.id;
+    managerId = cohort.staff[1]!.id;
+    variantId = (await findVariantIds(admin, retailerId, 1))[0]!;
   });
 
   afterAll(async () => {

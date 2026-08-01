@@ -31,6 +31,30 @@ function tableBody(name: string): string {
 
 const migrationCode = stripSqlComments(migration);
 
+const tenantBoundaryMigration = readFileSync(
+  new URL(
+    "../../../../supabase/migrations/20260801175205_harden_stock_tenant_boundaries.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
+const singleTruthMigration = readFileSync(
+  new URL(
+    "../../../../supabase/migrations/20260801000018_make_inventory_quantity_a_ledger_projection.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
+const atomicPosMigration = readFileSync(
+  new URL(
+    "../../../../supabase/migrations/20260801183032_make_pos_money_and_stock_atomic.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
 const APPEND_ONLY = [
   "stock_ledger_entries",
   "rfid_sweep_observations",
@@ -94,6 +118,15 @@ describe("PHASE 13.1 stock ledger", () => {
       "blind boolean not null default true",
     );
   });
+
+  it("blocks an upgrade that would erase a stock disagreement", () => {
+    expect(singleTruthMigration).toContain(
+      "Inventory single-truth upgrade blocked",
+    );
+    expect(singleTruthMigration).toContain(
+      "pv.inventory_quantity is distinct from greatest(b.available, 0)",
+    );
+  });
 });
 
 describe("PHASE 13.2 loss prevention", () => {
@@ -140,6 +173,35 @@ describe("PHASE 13.2 loss prevention", () => {
 });
 
 describe("PHASE 13.3 POS", () => {
+  it("commits each stock and money aggregate through one RPC", () => {
+    for (const functionName of [
+      "add_pos_line_atomic",
+      "record_pos_payment_atomic",
+      "complete_pos_sale_atomic",
+      "take_cash_and_complete_pos_sale_atomic",
+      "void_pos_transaction_atomic",
+      "return_pos_line_atomic",
+      "reserve_stock_atomic",
+      "transfer_stock_atomic",
+      "reverse_stock_entry_atomic",
+    ]) {
+      expect(atomicPosMigration).toContain(
+        `create or replace function public.${functionName}`,
+      );
+    }
+    expect(atomicPosMigration).toContain("pg_advisory_xact_lock");
+    expect(atomicPosMigration).toContain("pos-complete-sale:");
+    expect(atomicPosMigration).toContain("pos-return-restock:");
+  });
+
+  it("records a return as a linked negative line with one original", () => {
+    expect(atomicPosMigration).toContain("returns_line_id uuid");
+    expect(atomicPosMigration).toContain(
+      "pos_lines_one_return_per_original_idx",
+    );
+    expect(atomicPosMigration).toContain("pos_return_line_is_negative");
+  });
+
   it("has no column a card number could be written into", () => {
     const body = tableBody("pos_payments");
     expect(body).not.toMatch(
@@ -149,11 +211,20 @@ describe("PHASE 13.3 POS", () => {
   });
 
   it("keeps payments append-only so a retry reconciles instead of duplicating", () => {
-    expect(migration).toContain(
-      "grant insert on table public.pos_payments to authenticated, service_role;",
+    expect(atomicPosMigration).toContain(
+      "revoke insert, update, delete on table public.pos_payments",
     );
+    expect(atomicPosMigration).toContain("record_pos_payment_atomic");
     expect(tableBody("pos_payments")).toContain(
       "constraint pos_payment_reference_unique",
+    );
+  });
+
+  it("prevents callers from bypassing atomic POS finality", () => {
+    expect(atomicPosMigration).toContain("enforce_pos_finality");
+    expect(atomicPosMigration).toContain("enforce_pos_line_finality");
+    expect(atomicPosMigration).toContain(
+      "Final POS state must be reached through its atomic operation.",
     );
   });
 
@@ -210,6 +281,37 @@ describe("PHASE 13 tenancy", () => {
     expect(migration).toContain("enable row level security");
     expect(migration).toContain(
       "revoke all on table public.%I from public, anon",
+    );
+  });
+
+  it("binds stock and POS foreign references to the row retailer", () => {
+    for (const constraint of [
+      "stock_ledger_location_same_retailer_fk",
+      "stock_count_lines_session_same_retailer_fk",
+      "stock_risk_ledger_same_retailer_fk",
+      "pos_transactions_location_same_retailer_fk",
+      "pos_lines_transaction_same_retailer_fk",
+      "pos_payments_transaction_same_retailer_fk",
+    ]) {
+      expect(tenantBoundaryMigration).toContain(constraint);
+    }
+    expect(tenantBoundaryMigration).toContain(
+      "create or replace function public.enforce_stock_variant_retailer()",
+    );
+  });
+
+  it("removes public execution from internal inventory helpers", () => {
+    for (const signature of [
+      "public.retailer_online_location(uuid)",
+      "public.variant_ledger_balance(uuid)",
+      "public.count_inventory_disagreements()",
+    ]) {
+      expect(tenantBoundaryMigration).toContain(
+        `revoke all on function ${signature}`,
+      );
+    }
+    expect(tenantBoundaryMigration).toContain(
+      "revoke all on function public.convert_pilot_to_live_retailer(uuid)",
     );
   });
 });

@@ -7,10 +7,30 @@ export type Json =
   | Json[];
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.15";
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   public: {
     Tables: {
@@ -8849,6 +8869,13 @@ export type Database = {
             referencedRelation: "pos_transactions";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "pos_payments_transaction_same_retailer_fk";
+            columns: ["retailer_id", "transaction_id"];
+            isOneToOne: false;
+            referencedRelation: "pos_transactions";
+            referencedColumns: ["retailer_id", "id"];
+          },
         ];
       };
       pos_transaction_lines: {
@@ -8863,6 +8890,7 @@ export type Database = {
           reservation_entry_id: string | null;
           retailer_id: string;
           returned_quantity: number;
+          returns_line_id: string | null;
           transaction_id: string;
           unit_price_minor_units: number;
           updated_at: string;
@@ -8879,6 +8907,7 @@ export type Database = {
           reservation_entry_id?: string | null;
           retailer_id: string;
           returned_quantity?: number;
+          returns_line_id?: string | null;
           transaction_id: string;
           unit_price_minor_units: number;
           updated_at?: string;
@@ -8895,12 +8924,62 @@ export type Database = {
           reservation_entry_id?: string | null;
           retailer_id?: string;
           returned_quantity?: number;
+          returns_line_id?: string | null;
           transaction_id?: string;
           unit_price_minor_units?: number;
           updated_at?: string;
           variant_id?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "pos_lines_alteration_same_retailer_fk";
+            columns: ["retailer_id", "alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_work_orders";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "pos_lines_alteration_same_retailer_fk";
+            columns: ["retailer_id", "alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_alteration_work_orders";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "pos_lines_alteration_same_retailer_fk";
+            columns: ["retailer_id", "alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "worker_alteration_work_orders";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "pos_lines_production_same_retailer_fk";
+            columns: ["retailer_id", "production_spec_id"];
+            isOneToOne: false;
+            referencedRelation: "production_specs";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "pos_lines_reservation_same_retailer_fk";
+            columns: ["retailer_id", "reservation_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_ledger_entries";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "pos_lines_returns_line_same_retailer_fk";
+            columns: ["retailer_id", "returns_line_id"];
+            isOneToOne: false;
+            referencedRelation: "pos_transaction_lines";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "pos_lines_transaction_same_retailer_fk";
+            columns: ["retailer_id", "transaction_id"];
+            isOneToOne: false;
+            referencedRelation: "pos_transactions";
+            referencedColumns: ["retailer_id", "id"];
+          },
           {
             foreignKeyName: "pos_transaction_lines_alteration_id_fkey";
             columns: ["alteration_id"];
@@ -9008,6 +9087,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "pos_transactions_customer_same_retailer_fk";
+            columns: ["retailer_id", "customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
             foreignKeyName: "pos_transactions_location_id_fkey";
             columns: ["location_id"];
             isOneToOne: false;
@@ -9015,11 +9101,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "pos_transactions_location_same_retailer_fk";
+            columns: ["retailer_id", "location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
             foreignKeyName: "pos_transactions_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transactions_return_same_retailer_fk";
+            columns: ["retailer_id", "returns_transaction_id"];
+            isOneToOne: false;
+            referencedRelation: "pos_transactions";
+            referencedColumns: ["retailer_id", "id"];
           },
           {
             foreignKeyName: "pos_transactions_returns_transaction_id_fkey";
@@ -9034,6 +9134,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transactions_staff_same_retailer_fk";
+            columns: ["retailer_id", "staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["retailer_id", "id"];
           },
         ];
       };
@@ -11054,6 +11161,13 @@ export type Database = {
           zone_key?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "rfid_observations_location_same_retailer_fk";
+            columns: ["retailer_id", "location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["retailer_id", "id"];
+          },
           {
             foreignKeyName: "rfid_sweep_observations_location_id_fkey";
             columns: ["location_id"];
@@ -13385,6 +13499,20 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "stock_count_lines_session_same_retailer_fk";
+            columns: ["retailer_id", "session_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_count_sessions";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_count_lines_staff_same_retailer_fk";
+            columns: ["retailer_id", "counted_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
             foreignKeyName: "stock_count_lines_variant_id_fkey";
             columns: ["variant_id"];
             isOneToOne: false;
@@ -13439,6 +13567,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "stock_count_sessions_location_same_retailer_fk";
+            columns: ["retailer_id", "location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
             foreignKeyName: "stock_count_sessions_opened_by_staff_id_fkey";
             columns: ["opened_by_staff_id"];
             isOneToOne: false;
@@ -13451,6 +13586,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "retailers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_count_sessions_staff_same_retailer_fk";
+            columns: ["retailer_id", "opened_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["retailer_id", "id"];
           },
         ];
       };
@@ -13502,6 +13644,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "stock_ledger_count_session_same_retailer_fk";
+            columns: ["retailer_id", "count_session_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_count_sessions";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
             foreignKeyName: "stock_ledger_entries_count_session_id_fkey";
             columns: ["count_session_id"];
             isOneToOne: false;
@@ -13543,6 +13692,27 @@ export type Database = {
             referencedRelation: "product_variants";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "stock_ledger_location_same_retailer_fk";
+            columns: ["retailer_id", "location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_ledger_reversal_same_retailer_fk";
+            columns: ["retailer_id", "reverses_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_ledger_entries";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_ledger_staff_same_retailer_fk";
+            columns: ["retailer_id", "recorded_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["retailer_id", "id"];
+          },
         ];
       };
       stock_locations: {
@@ -13583,6 +13753,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "retailer_branches";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_locations_branch_same_retailer_fk";
+            columns: ["retailer_id", "branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["retailer_id", "id"];
           },
           {
             foreignKeyName: "stock_locations_retailer_id_fkey";
@@ -13632,6 +13809,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "stock_risk_approver_same_retailer_fk";
+            columns: ["retailer_id", "approved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
             foreignKeyName: "stock_risk_flags_approved_by_staff_id_fkey";
             columns: ["approved_by_staff_id"];
             isOneToOne: false;
@@ -13665,6 +13849,27 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "retailers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_risk_ledger_same_retailer_fk";
+            columns: ["retailer_id", "ledger_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_ledger_entries";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_risk_location_same_retailer_fk";
+            columns: ["retailer_id", "location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "stock_risk_requester_same_retailer_fk";
+            columns: ["retailer_id", "requested_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["retailer_id", "id"];
           },
         ];
       };
@@ -16053,6 +16258,19 @@ export type Database = {
         };
         Returns: string;
       };
+      add_pos_line_atomic: {
+        Args: {
+          p_currency?: string;
+          p_kind: string;
+          p_location_id: string;
+          p_quantity: number;
+          p_retailer_id: string;
+          p_transaction_id: string;
+          p_unit_price_minor_units: number;
+          p_variant_id?: string;
+        };
+        Returns: Json;
+      };
       add_to_cart: {
         Args: {
           p_quantity: number;
@@ -16078,6 +16296,7 @@ export type Database = {
         Args: { p_limit?: number };
         Returns: number;
       };
+      assert_pos_actor: { Args: { p_retailer_id: string }; Returns: undefined };
       assign_alteration_work_order: {
         Args: {
           p_alteration_id: string;
@@ -16198,6 +16417,15 @@ export type Database = {
       complete_campaign_challenge: {
         Args: { p_enrollment_id: string };
         Returns: string;
+      };
+      complete_pos_sale_atomic: {
+        Args: {
+          p_location_id: string;
+          p_retailer_id: string;
+          p_staff_id?: string;
+          p_transaction_id: string;
+        };
+        Returns: Json;
       };
       convert_pilot_to_live_retailer: {
         Args: { p_prospect_id: string };
@@ -16603,6 +16831,17 @@ export type Database = {
         };
         Returns: string;
       };
+      record_pos_payment_atomic: {
+        Args: {
+          p_amount_minor_units: number;
+          p_currency?: string;
+          p_provider: string;
+          p_provider_reference: string;
+          p_retailer_id: string;
+          p_transaction_id: string;
+        };
+        Returns: Json;
+      };
       record_service_care: {
         Args: {
           p_alteration_id?: string;
@@ -16759,6 +16998,17 @@ export type Database = {
         };
         Returns: string;
       };
+      reserve_stock_atomic: {
+        Args: {
+          p_idempotency_key?: string;
+          p_location_id: string;
+          p_quantity: number;
+          p_recorded_by_staff_id?: string;
+          p_retailer_id: string;
+          p_variant_id: string;
+        };
+        Returns: Json;
+      };
       restore_retailer_brand_theme: {
         Args: { p_retailer_id: string; p_version_number: number };
         Returns: number;
@@ -16770,6 +17020,26 @@ export type Database = {
       retailer_online_location: {
         Args: { p_retailer_id: string };
         Returns: string;
+      };
+      return_pos_line_atomic: {
+        Args: {
+          p_line_id: string;
+          p_location_id: string;
+          p_requested_on: string;
+          p_retailer_id: string;
+          p_service_performed?: boolean;
+          p_staff_id?: string;
+          p_transaction_id: string;
+        };
+        Returns: Json;
+      };
+      reverse_stock_entry_atomic: {
+        Args: {
+          p_entry_id: string;
+          p_recorded_by_staff_id?: string;
+          p_retailer_id: string;
+        };
+        Returns: Json;
       };
       review_catalogue_import_task: {
         Args: {
@@ -16850,6 +17120,14 @@ export type Database = {
         Args: { p_membership_id: string; p_status: string };
         Returns: string;
       };
+      stock_available_at: {
+        Args: {
+          p_location_id: string;
+          p_retailer_id: string;
+          p_variant_id: string;
+        };
+        Returns: number;
+      };
       submit_commercial_inquiry: {
         Args: {
           p_company_name: string;
@@ -16893,9 +17171,31 @@ export type Database = {
         Args: { p_order_id: string };
         Returns: number;
       };
+      take_cash_and_complete_pos_sale_atomic: {
+        Args: {
+          p_currency?: string;
+          p_location_id: string;
+          p_retailer_id: string;
+          p_staff_id?: string;
+          p_transaction_id: string;
+        };
+        Returns: Json;
+      };
       toggle_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };
         Returns: boolean;
+      };
+      transfer_stock_atomic: {
+        Args: {
+          p_from_location_id: string;
+          p_operation_id?: string;
+          p_quantity: number;
+          p_recorded_by_staff_id?: string;
+          p_retailer_id: string;
+          p_to_location_id: string;
+          p_variant_id: string;
+        };
+        Returns: Json;
       };
       transition_alteration_work_order: {
         Args: {
@@ -17028,6 +17328,16 @@ export type Database = {
           on_hand: number;
           reserved: number;
         }[];
+      };
+      void_pos_transaction_atomic: {
+        Args: {
+          p_location_id: string;
+          p_retailer_id: string;
+          p_staff_id?: string;
+          p_transaction_id: string;
+          p_void_reason: string;
+        };
+        Returns: Json;
       };
       wardrobe_item_self_scan_eligible: {
         Args: { p_item: Database["public"]["Tables"]["wardrobe_items"]["Row"] };
@@ -17395,6 +17705,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       ai_generation_kind: [

@@ -31,6 +31,8 @@ import { CoveragePlanningRepository } from "../coverage-planning-repository";
 import { InternalCommunityRepository } from "../internal-community-repository";
 import { MeasurementMonitorRepository } from "../measurement-monitor-repository";
 
+import { findCustomerId, findStaffCohort } from "./fixture-selection";
+
 const LIVE = process.env["PAON_INTEGRATION"] === "1";
 
 /** Postgres SQLSTATEs we deliberately provoke. */
@@ -53,45 +55,11 @@ describe.skipIf(!LIVE)("live database integration (stages 11-12)", () => {
     if (!url || !key) throw new Error("Live integration needs Supabase env.");
     admin = createSupabaseAdminClient(url, key);
 
-    const { data: retailer } = await admin
-      .from("retailers")
-      .select("id")
-      .limit(1)
-      .single();
-    retailerId = retailer!.id as RetailerId;
-
-    const { data: staff } = await admin
-      .from("retailer_staff_members")
-      .select("id")
-      .eq("retailer_id", retailerId)
-      .is("deleted_at", null)
-      .limit(2);
-    staffA = staff![0]!.id;
-    // A second person is required by every separation-of-duties rule under
-    // test. Create one rather than skipping those assertions.
-    if (staff!.length > 1) {
-      staffB = staff![1]!.id;
-    } else {
-      const { data: extra } = await admin
-        .from("retailer_staff_members")
-        .insert({
-          retailer_id: retailerId,
-          full_name: `Integration Colleague ${RUN}`,
-          role: "sales_associate",
-          email: `integration-${RUN}@example.com`,
-        })
-        .select("id")
-        .single();
-      staffB = extra!.id;
-    }
-
-    const { data: customer } = await admin
-      .from("customers")
-      .select("id")
-      .eq("retailer_id", retailerId)
-      .limit(1)
-      .single();
-    customerId = customer!.id;
+    const cohort = await findStaffCohort(admin, 2);
+    retailerId = cohort.retailerId;
+    staffA = cohort.staff[0]!.id;
+    staffB = cohort.staff[1]!.id;
+    customerId = await findCustomerId(admin, retailerId);
   });
 
   // ---------------------------------------------------- 11.3 coverage
