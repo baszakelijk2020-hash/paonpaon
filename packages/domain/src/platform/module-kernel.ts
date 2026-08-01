@@ -74,6 +74,11 @@ const CUSTOMER_FACING_ROLES: readonly RetailerRole[] = [
   "read_only",
 ];
 
+const ORDER_ROLES: readonly RetailerRole[] = [
+  ...CUSTOMER_FACING_ROLES,
+  "production_staff",
+];
+
 const MANAGER_ROLES: readonly RetailerRole[] = ["owner", "admin", "manager"];
 
 export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
@@ -151,7 +156,7 @@ export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
       "Assisted selling, orders, private offers, campaigns, loyalty, referrals and measurable journeys.",
     dependencies: ["platform_core", "relationship_intelligence"],
     navigation: [
-      { href: "/orders", label: "Orders", roles: CUSTOMER_FACING_ROLES },
+      { href: "/orders", label: "Orders", roles: ORDER_ROLES },
       { href: "/loyalty", label: "Loyalty", roles: MANAGER_ROLES },
       { href: "/events", label: "Events", roles: MANAGER_ROLES },
       {

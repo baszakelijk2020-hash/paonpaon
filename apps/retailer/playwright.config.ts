@@ -1,5 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// The Faden lifecycle proof signs its own fixture webhook. Keep the value
+// local to Playwright: it is not a provider credential and production still
+// requires an explicitly managed secret reference.
+process.env["E2E_FADEN_WEBHOOK_SECRET"] ??=
+  "paon-local-e2e-faden-webhook-secret";
+
 export default defineConfig({
   testDir: "./e2e",
   globalSetup: "./e2e/global-setup.ts",

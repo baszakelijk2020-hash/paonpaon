@@ -66,9 +66,9 @@ be resumed without the module mapping required by R0.3.**
     migrations. `20260801175205` closes stock/POS tenant references and
     privileged-function ACLs. Migration 18 now refuses catalogue/ledger
     conflicts before rewriting; the populated synthetic conflict and success
-    upgrade paths are rehearsed and documented. Customer baseline is 15/29
-    (the same historical 14 failures); retailer is 32/41 overall and the
-    repaired stock/loss/POS slice is 4/4. Vercel returns all three production
+    upgrade paths are rehearsed and documented. Customer baseline is 29/29;
+    retailer is 42/42 overall and the repaired stock/loss/POS slice is 4/4.
+    Vercel returns all three production
     Supabase URLs as irreversibly `[SENSITIVE]`, so they remain conservatively
     classified protected/original. Remaining external gate: approved restore
     of actual original data for the same rehearsal and definitive deployment
@@ -132,10 +132,14 @@ be resumed without the module mapping required by R0.3.**
     policy, founder storefront category behavior, Demo Studio lifecycle and
     tap-target contracts. The repair also removed a first-open order-detail
     failure caused by a redundant Honeymoon read-after-write and prevents
-    TableService from covering the founder detail CTA. Remaining:
+    TableService from covering the founder detail CTA. Retailer e2e is now a
+    clean 42/42. The repair restored the omitted `/staff/coverage` route,
+    production-specialist order navigation, a local integration-secret
+    fixture and deterministic proof setup. A broad `coverage/` gitignore rule
+    had silently excluded the route while allowing its proof and documentation
+    to be committed; the route is now explicitly unignored. Remaining:
     server-boundary enforcement beyond navigation/jobs, canonical House depth
-    and cleanup, a clean retailer baseline, and the Stage 8–16 + founder-tool
-    disposition map.
+    and cleanup, and the Stage 8–16 + founder-tool disposition map.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
@@ -1646,6 +1650,15 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
        and the repository was wrong — a row calling itself a draft while
        naming who published it is incoherent — so the fix is in the
        repository. Only a second publish through the real UI exercises this.
+
+  - **Audit repair (2026-08-02):** the documented browser surface was absent
+    from git because the repository-wide `coverage/` test-output ignore also
+    matched `apps/retailer/app/(dashboard)/staff/coverage`. The route, Server
+    Actions and guarded client forms are now tracked and the full retailer
+    suite passes 42/42 together. The proof no longer attempts an unauthorized
+    service-role DELETE and ignores its error; it uses a collision-free future
+    date. Availability, swaps and ceremony management remain unbuilt, so this
+    legacy item correctly stays unchecked pending R0.3 disposition mapping.
 
 - [ ] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.

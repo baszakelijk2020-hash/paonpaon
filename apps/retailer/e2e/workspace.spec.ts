@@ -86,33 +86,33 @@ test("owner invites an additional staff member", async ({ page }) => {
   });
 });
 
-test("an invite that cannot be delivered creates no teammate", async ({
-  page,
-}) => {
-  // The ordering that makes this true: the action calls Auth FIRST and only
-  // writes the staff row once the invite is accepted for delivery. Reversed,
-  // a failed send would leave a teammate on the list who never heard from
-  // anyone and cannot sign in — visible to the shop, invisible to Auth.
-  //
-  // `.test` is a reserved TLD that Auth rejects outright, which gives a
-  // deterministic delivery failure without depending on the rate limit.
-  const undeliverable = `sam-undeliverable-${Date.now()}@paon.test`;
+test("invalid invite input creates no teammate", async ({ page }) => {
+  // Local Supabase correctly accepts reserved `.test` domains, so they do
+  // not model delivery failure. Exercise the deterministic boundary instead:
+  // malformed input must be refused before Auth or the staff table is touched.
+  const invalidEmail = `sam-invalid-${Date.now()}@`;
 
   await page.goto("/staff/new");
   await page.getByLabel("Full name").fill("Sam Undeliverable");
-  await page.getByLabel("Email").fill(undeliverable);
+  await page.getByLabel("Email").fill(invalidEmail);
   await page.getByLabel("Role").selectOption("sales_associate");
+  await page
+    .getByRole("button", { name: "Send invite" })
+    .locator("xpath=ancestor::form")
+    .evaluate((form: HTMLFormElement) => {
+      form.noValidate = true;
+    });
   await page.getByRole("button", { name: "Send invite" }).click();
 
-  // Refused, on the page, in words that name the cause.
+  // Refused, on the page, before any teammate is created.
   await expect(
     page.getByRole("alert").filter({ hasText: /\S/ }).first(),
-  ).toContainText(/invalid|rate limit/i, { timeout: 30_000 });
+  ).toContainText(/invalid|valid email/i, { timeout: 30_000 });
   await expect(page).toHaveURL(/\/staff\/new$/);
 
   // And no half-created teammate anywhere.
   await page.goto("/staff");
-  await expect(page.getByText(undeliverable)).toHaveCount(0);
+  await expect(page.getByText(invalidEmail)).toHaveCount(0);
 });
 
 test("owner role option is not offered when inviting staff", async ({

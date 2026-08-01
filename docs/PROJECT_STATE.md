@@ -34,6 +34,12 @@ This correction supersedes conflicting status and handoff claims below:
   baseline mixed stale assertions with real storefront collision,
   accessibility and order-detail read-after-write defects; all 14 scenarios
   now pass together against disposable local Supabase.
+- Retailer e2e is now 42/42 on the takeover branch. The audit restored the
+  missing `/staff/coverage` UI and coaching loop, production-specialist order
+  navigation, a local-only webhook secret fixture, deterministic measurement
+  version setup, and invalid-invite/network-idle proof assumptions. The route
+  had been silently excluded by the generic `coverage/` gitignore rule even
+  though its browser proof and completion prose were committed.
 - The live repository suite initially reproduced only 8 passes and 59 skips.
   Its fixture now provisions one coherent disposable tenant and the suite
   executes 70/70 assertions after a clean reset.
@@ -61,9 +67,9 @@ This correction supersedes conflicting status and handoff claims below:
   effective retailer lifecycle/authority resolution, dependency rollback,
   audit history, active-only jobs and role-aware navigation projection.
   Module proof is 6 domain + 8 repository/schema + 15 pgTAP + 1 browser
-  assertion. Customer e2e is a clean 29/29. It is a first slice, not R0.3
-  completion; canonical House depth, direct server guards, the retailer
-  baseline and the capability disposition map remain.
+  assertion. Customer e2e is a clean 29/29 and retailer e2e is a clean 42/42.
+  It is a first slice, not R0.3 completion; canonical House depth, direct
+  server guards and the capability disposition map remain.
 
 ## Repository
 

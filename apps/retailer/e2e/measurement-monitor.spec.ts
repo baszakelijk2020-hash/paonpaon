@@ -76,6 +76,40 @@ test("an advisor cannot approve a self-scan measurement without writing why", as
     .single();
   const customerId = customer!.id;
 
+  // This journey proves append-only versioning, so it needs an actual
+  // approved predecessor. The shared seed does not promise measurements and
+  // a clean database otherwise makes the newly approved record version 1.
+  const { data: existingVersions, error: existingVersionsError } = await admin
+    .from("customer_measurement_versions")
+    .select("id")
+    .eq("customer_id", customerId)
+    .limit(1);
+  expect(existingVersionsError).toBeNull();
+  if ((existingVersions?.length ?? 0) === 0) {
+    const { data: manager, error: managerError } = await admin
+      .from("retailer_staff_members")
+      .select("id")
+      .eq("retailer_id", proof.retailerId)
+      .eq("email", PROGRAMME_PROOF_PERSONAS.manager.email)
+      .is("deleted_at", null)
+      .single();
+    expect(managerError).toBeNull();
+    const { error: baselineError } = await admin
+      .from("customer_measurement_versions")
+      .insert({
+        retailer_id: proof.retailerId,
+        customer_id: customerId,
+        version: 1,
+        values: [
+          { key: "chest", millimetres: 990, capturedBy: "tailor_tape" },
+          { key: "waist", millimetres: 870, capturedBy: "tailor_tape" },
+        ],
+        approved_by_staff_id: manager!.id,
+        review_note: "Baseline tape measurement for append-only proof.",
+      });
+    expect(baselineError).toBeNull();
+  }
+
   // A candidate whose values came from a guided self-scan. `capturedBy` is
   // what makes the note mandatory, so it is the whole point of the fixture.
   const { data: candidate, error: candidateError } = await admin

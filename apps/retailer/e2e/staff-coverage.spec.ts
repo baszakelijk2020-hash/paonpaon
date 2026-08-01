@@ -67,20 +67,15 @@ test("manager publishes coverage, reads a cited shortage, closes a coaching loop
     .single();
   expect(colleagueError).toBeNull();
 
-  // A date far enough out that no real appointment or shift exists for it,
-  // so the shortage below is caused by the published requirement alone and
-  // the assertion cannot pass by accident.
-  const planDate = "2027-03-06";
-
-  // Start from a clean slate for this date: the whole point of the
-  // NULLS NOT DISTINCT fix in 20260801000015 is that a second publish
-  // REPLACES the plan rather than creating a duplicate, and a leftover row
-  // would hide a regression in that.
-  await admin
-    .from("coverage_plans")
-    .delete()
-    .eq("retailer_id", proof.retailerId)
-    .eq("plan_date", planDate);
+  // A collision-free future date: the service-role table grant intentionally
+  // omits DELETE, so pretending to clean up a fixed date left an old plan in
+  // place while discarding the database error. This date remains far enough
+  // out that no real appointment or shift can satisfy the requirement.
+  const planDate = new Date(
+    Date.UTC(2100, 0, 1) + (Date.now() % 100_000) * 86_400_000,
+  )
+    .toISOString()
+    .slice(0, 10);
 
   /**
    * Waits for the coaching row to actually reach a state, reading the

@@ -136,6 +136,24 @@ describe("platform module registry", () => {
     expect(navigation.some((item) => item.href === "/orders")).toBe(false);
   });
 
+  it("gives production specialists the order handoff without client access", () => {
+    const navigation = projectModuleNavigation({
+      configurations: [
+        core,
+        {
+          moduleKey: "commerce_growth",
+          state: "active",
+          authorityMode: "paon",
+          source: "plan",
+        },
+      ],
+      role: "production_staff",
+    });
+
+    expect(navigation.some((item) => item.href === "/orders")).toBe(true);
+    expect(navigation.some((item) => item.href === "/customers")).toBe(false);
+  });
+
   it("suppresses every job unless its owning module is active", () => {
     const active: RetailerModuleConfiguration = {
       moduleKey: "wardrobe_styling",

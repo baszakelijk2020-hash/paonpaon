@@ -29,12 +29,13 @@ requires it.
   conflict/success paths are proven, but an approved restore of original data
   remains external. Atomic POS/return/payment RPCs, finality triggers and role
   boundaries are locally verified (70/70 live, 11/11 pgTAP) but remain under
-  R0.2 and proposed cash ADR-072. Customer e2e is now clean at 29/29; the
-  retailer clean baseline and invented Faden signature contract remain open.
+  R0.2 and proposed cash ADR-072. Customer e2e is now clean at 29/29 and
+  retailer e2e is clean at 42/42; the invented Faden signature contract
+  remains explicitly a local fixture rather than provider truth.
   R0.3's first local slice now provides the eight-family module kernel,
   dependency-safe plan/add-on state, job suppression and retailer navigation
-  projection; it is not complete until server guards, the canonical House,
-  clean baselines and capability mapping land.
+  projection; it is not complete until server guards, the canonical House and
+  capability mapping land.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

@@ -13,6 +13,10 @@ out/
 
 # Testing
 coverage/
+# `/staff/coverage` is product source, not a test report. The broad rule
+# above previously hid the route while its browser proof stayed trackable.
+!apps/retailer/app/(dashboard)/staff/coverage/
+!apps/retailer/app/(dashboard)/staff/coverage/**
 playwright-report/
 test-results/
 .vitest-cache/

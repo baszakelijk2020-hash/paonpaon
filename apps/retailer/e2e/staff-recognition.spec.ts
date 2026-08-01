@@ -111,15 +111,13 @@ test("an extra-mile act is logged, refused when thin, then coached with a note",
   });
 
   await page.reload();
-  // useActionState only surfaces a returned error once the form is
-  // hydrated — before that the form does a native POST and the server
-  // re-render discards the action's return value. Waiting for network idle
-  // is the cheapest reliable proxy for "React has taken over the form".
-  await page.waitForLoadState("networkidle");
   const queueItem = page
     .locator("#recognition-review-queue li")
     .filter({ hasText: marker });
-  await expect(queueItem).toBeVisible({ timeout: 15_000 });
+  // The row itself is the readiness condition. `networkidle` never settles
+  // reliably in an RSC application and previously timed out after the row
+  // was already usable on screen.
+  await expect(queueItem).toBeVisible({ timeout: 30_000 });
 
   // 3. Coaching with no note is refused — a coaching state carrying no
   //    guidance is the empty gesture this surface must not produce.
