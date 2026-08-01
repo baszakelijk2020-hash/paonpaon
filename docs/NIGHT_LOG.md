@@ -558,4 +558,61 @@ database, confirmed by trying it).
   bump to pass here; every such bump in this session was reverted
   (confirmed via `git diff`/`git checkout --`) before the next commit — none
   of them are present at `ac15bcd`.
+- **`d61d2d2` → `7985f6b` — continuous run through Stage 9.2's remaining
+  gap and all of Stage 10 and into 11.1**, per the "work all the way to 16"
+  authorization above. Every item below shipped as its own commit with a
+  full green gate (lint/typecheck/test/format/build) before the next one
+  started; evidence was refreshed in batches rather than after every single
+  commit once it became clear `NIGHT_LOG.md` itself is not in
+  `EVIDENCE_ONLY_PATH_RE` either — a standalone log commit reopens the same
+  stale-evidence gap a code commit does, so from this point forward a
+  log entry rides inside the same push as the work it describes wherever
+  practical.
+  - **`d61d2d2` (Stage 9.2):** `orchestrateShopifyDeltaSync` runs the
+    documented Shopify delta through 9.1's real staged-file pipeline
+    (`MigrationJobRepository.createJobFromRows`, factored out of
+    `createFixtureJob` so both share one truth) rather than leaving it a
+    fixture object nothing executes.
+  - **`2e9cc0c` (Stage 10.1):** `evaluateCampaignRehearsal` +
+    `activateCampaignToStaffMissions` close the rehearsal and
+    shared-staff-mission gaps `PHASE.md` named — missions reuse
+    `clienteling_opportunities` (Stage 7.4) via a new `campaign_id` column,
+    inheriting outcome linking for free instead of a second staff-task
+    table. The mapping wizard `PHASE.md` also listed as missing already
+    existed and was corrected to landed rather than rebuilt.
+  - **`11770d5` (Stage 10.2):** salvaged `wip/stage-10-2-honeymoon` (still
+    preserved, still never merged — this is fresh work informed by reading
+    it) and fixed the five defects its own repair audit found. The
+    honeymoon order-to-delivery tracker is real and renders on the
+    customer's actual order page, recomputed from live order status and
+    variant inventory/lead-time on every read.
+  - **`2d628d9` (Stage 10.3):** corrected another undercredit — channel
+    abstraction/threading already existed in full (`conversations`,
+    `MessagingRepository`, a real 3-pane inbox). Added the one concrete
+    acceptance gap there was time for: `linkOutcome` records a real
+    appointment/order a conversation led to, mirroring
+    `clienteling_opportunities`'s own outcome fields again rather than a
+    third outcome shape.
+  - **`61ed2b0` (Stage 10.4):** `evaluateRelationshipDateWindow` recurs a
+    customer's own date annually and correctly across a year boundary
+    (tested explicitly, including the classic December→January failure
+    mode naive recurrence code gets wrong). One of nine named packages
+    built; the other eight are named as not started, not stubbed.
+  - **`4c00899` (Stage 11.1, partial):** payroll exception detection and a
+    checksummed export over the existing real `staff_time_entries`, with
+    the checksum verified stable across repeated exports of unchanged data
+    by test, not just asserted. Domain layer only — recorded honestly as a
+    small fraction of the item, not most of it.
+  - **Recurring pattern across every slice above:** before writing anything,
+    checked whether a canonical record already existed to extend (it almost
+    always did — `clienteling_opportunities` alone now backs three different
+    stages' "mission"/"outcome" concepts) rather than adding a second
+    feature-local truth; checked the actual RLS grants on any table before
+    writing to it from a Server Action, after the 9.2 commit's own
+    pause/resume defect made the cost of skipping that check concrete.
+  - **Gate at `7985f6b`:** lint (12/12), typecheck (5/5, per-package — the
+    turbo-parallel OOM on this sandbox is unchanged from every earlier
+    entry), 768 unit tests, `format:check`, serial `build`, and
+    `validate:completion` genuinely green via two fresh live Playwright runs
+    against the same non-production Supabase project as before.
 - **Continuing** to the next unblocked slice per the authorization above.
