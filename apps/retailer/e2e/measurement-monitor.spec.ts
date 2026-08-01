@@ -10,6 +10,13 @@ const PHASE_ITEM_ID = "12.1";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/measurement-monitor.spec.ts";
 
 let proofPassed = false;
+
+// This file emits one tranche artifact from shared module state and its
+// scenarios intentionally build on the same customer's append-only history.
+// Under the repository-wide `fullyParallel` setting, separate workers each
+// ran their own afterAll and the last one could overwrite a passed artifact
+// with `failed` even though every browser assertion passed.
+test.describe.configure({ mode: "serial" });
 /**
  * Candidates this spec created. An unresolved `advisor_review` candidate
  * BLOCKS a reorder for that customer by design, so one left behind by a
