@@ -101,6 +101,13 @@ export default async function DashboardLayout({
                 label: "Stock",
                 description: "What is on hand, and every movement behind it",
               },
+              // PHASE 13.3 / POS-101. Sits next to Stock deliberately: the
+              // till writes to the same ledger, so they are one subject.
+              {
+                href: "/pos",
+                label: "Till",
+                description: "Sell, take payment, and handle a return",
+              },
               {
                 href: "/messages",
                 label: "Messages",

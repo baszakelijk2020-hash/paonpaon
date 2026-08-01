@@ -226,7 +226,10 @@ export class StockLedgerRepository {
     readonly quantity: number;
     readonly recordedByStaffId?: string;
     readonly idempotencyKey?: string;
-  }): Promise<{ readonly ok: true; readonly id: string } | ReservationCheck> {
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<ReservationCheck, { readonly ok: true }>
+  > {
     const balance = await this.balanceFor(args);
     const check = checkReservation({
       balance,
@@ -455,7 +458,10 @@ export class StockLedgerRepository {
     readonly adjustmentQuantity: number;
     readonly reason: string;
     readonly recordedByStaffId?: string;
-  }): Promise<{ readonly ok: true; readonly id: string } | AdjustmentCheck> {
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<AdjustmentCheck, { readonly ok: true }>
+  > {
     const reconciliation = await this.reconcileCount(args);
     const variance = reconciliation.variances.find(
       (entry) => entry.variantId === args.variantId,

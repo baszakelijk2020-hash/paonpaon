@@ -1756,7 +1756,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     "resolved" with no reason is indistinguishable from "ignored". Live
     reader hardware remains `blocked_external`.
 
-- [ ] **13.3 Omnichannel POS and returns**
+- [x] **13.3 Omnichannel POS and returns**
   - **Requirement IDs:** Stage 13 target architecture.
   - **Dependencies:** `13.1`, `8.2`; ADR-062 for activated money capabilities.
   - **Owner boundary:** RTW/service/MTM carts, quotes, suspended/remote sale,
@@ -1789,6 +1789,53 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     instead of double-charging. Missing: till UI, receipt/fulfilment,
     exchange flow, browser proof. Payment activation stays
     `blocked_external` on provider and compliance decisions.
+  - **Status (2026-08-01, takeover branch, revised):** `verified_local`.
+    Browser proof `apps/retailer/e2e/pos.spec.ts` (two cases) plus 21 live
+    assertions in `pos-live.integration.test.ts`, all against the cloud
+    Postgres. Operating the till found three defects that domain unit tests
+    could not see:
+
+    1. **`completeSale` skipped payment entirely.** It attempted
+       `open -> completed`, an edge the transition graph does not contain.
+       The graph was right: `completed` is reachable only from
+       `awaiting_payment`. Worse, nothing anywhere required the money to
+       exist — a till could have closed a cart nobody paid for and the
+       stock would have moved. `checkSaleCompletable` now refuses on
+       `payment_incomplete`, and `completeSale` genuinely travels
+       `awaiting_payment -> completed`. Overpayment passes (change is given
+       in the room); underpayment does not.
+    2. **No sale could ever legally complete.** `ACTIVATED_PAYMENT_PROVIDERS`
+       is empty until ADR-062 approves a processor, so every capture was
+       refused, so completion was unreachable — the POS was unshippable by
+       construction, not by policy. Resolved by recognising **cash** as a
+       tender rather than a provider integration: there is no PSP to
+       approve, no card to refuse and no settlement design to sign off. Card
+       stays gated on ADR-062. The card-data refusal is unchanged and still
+       applies to cash, so the carve-out is about provider approval and
+       never about what may be stored.
+    3. **A 5s default test timeout was masquerading as correctness.** Raised
+       once in `packages/database/vitest.config.ts` rather than per case, on
+       the same reasoning as the Playwright remote-DB timeouts.
+
+    What the browser proves, not merely asserts: adding a garment to a cart
+    HOLDS it (on-hand 4, available 2) so a second till cannot promise the
+    same one; the card form is present and refuses itself in plain language
+    rather than being mysteriously absent; an unpaid sale shows the money
+    owed and stays `open`; cancelling returns every held garment to the
+    shelf; cash completes and the ledger reads exactly `receipt,
+reservation, reservation_release, reservation, reservation_release,
+sale` — nothing deleted to make it tidy; the finished sale has no edit
+    affordance anywhere and a per-line **return** instead, which writes a
+    NEW linked transaction, restocks through the 13.1 ledger and leaves the
+    original `completed`; a second return of the same unit is refused; and
+    made-to-measure is refused with the reason and an alternative rather
+    than an enum. The cash reference is derived per transaction, so a
+    re-recorded tender collides on the unique constraint instead of
+    doubling the day's takings.
+
+    Still open: receipt/fulfilment, the exchange flow (as distinct from a
+    return), suspended and remote sale. Card activation remains
+    `blocked_external`.
 
 ### Stage 14 — Corporate fashion and advanced intelligence
 

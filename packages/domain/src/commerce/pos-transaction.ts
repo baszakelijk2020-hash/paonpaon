@@ -120,6 +120,13 @@ export function checkTransactionTransition(args: {
   return { ok: true };
 }
 
+/**
+ * The one tender that needs no provider integration. Kept as a named
+ * constant so the carve-out below is greppable rather than a bare string
+ * buried in a condition.
+ */
+export const CASH_TENDER = "cash";
+
 export type PaymentCaptureCheck =
   | { readonly ok: true }
   | {
@@ -150,10 +157,19 @@ export function checkPaymentCapture(args: {
   if ((args.rawFieldNames ?? []).some((name) => forbidden.test(name))) {
     return { ok: false, reason: "card_data_not_accepted" };
   }
-  if (!args.activatedProviders.includes(args.provider)) {
+  if (args.provider !== CASH_TENDER) {
     // ADR-062 gates provider activation. An unactivated provider means the
     // money design for it has not been approved.
-    return { ok: false, reason: "provider_not_activated" };
+    //
+    // Cash is deliberately outside that gate. It is not a provider being
+    // integrated, it is a note handed across a counter: there is no PSP to
+    // approve, no card to refuse and no settlement design to sign off. A
+    // till that cannot take cash until a card processor is contracted is a
+    // till that cannot open, so cash is how a shop trades today and card
+    // arrives when the money decision does.
+    if (!args.activatedProviders.includes(args.provider)) {
+      return { ok: false, reason: "provider_not_activated" };
+    }
   }
   if (!args.providerReference || args.providerReference.trim().length === 0) {
     return { ok: false, reason: "provider_reference_required" };
@@ -225,6 +241,51 @@ export function checkReturnEligibility(args: {
     ok: true,
     refundableMinorUnits: args.line.unitPriceMinorUnits * remaining,
   };
+}
+
+export type SaleCompletionCheck =
+  | { readonly ok: true }
+  | {
+      readonly ok: false;
+      readonly reason:
+        | "completed_is_final"
+        | "nothing_to_sell"
+        | "not_presented_for_payment"
+        | "payment_incomplete";
+    };
+
+/**
+ * Whether a sale may actually close.
+ *
+ * The transition graph says `completed` is reachable only from
+ * `awaiting_payment`, and this is the rule that gives that edge its meaning:
+ * a sale closes when the money is accounted for, not when a button is
+ * pressed. Without this, a till could complete a cart nobody paid for and
+ * the stock would move anyway — the ledger would be internally consistent
+ * and the shop would still be robbed.
+ *
+ * Overpayment is allowed through (change is given in the room, and refusing
+ * it would strand a legitimate cash sale); underpayment is not.
+ */
+export function checkSaleCompletable(args: {
+  readonly from: TransactionState;
+  readonly lineCount: number;
+  readonly capturedMinorUnits: number;
+  readonly expectedMinorUnits: number;
+}): SaleCompletionCheck {
+  if (args.from === "completed") {
+    return { ok: false, reason: "completed_is_final" };
+  }
+  if (args.lineCount === 0) {
+    return { ok: false, reason: "nothing_to_sell" };
+  }
+  if (args.from === "voided") {
+    return { ok: false, reason: "not_presented_for_payment" };
+  }
+  if (args.capturedMinorUnits < args.expectedMinorUnits) {
+    return { ok: false, reason: "payment_incomplete" };
+  }
+  return { ok: true };
 }
 
 export interface ReturnLedgerPlan {

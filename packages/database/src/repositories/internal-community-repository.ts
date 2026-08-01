@@ -155,7 +155,10 @@ export class InternalCommunityRepository {
     readonly authorStaffId: string;
     readonly title: string;
     readonly body: string;
-  }): Promise<{ readonly ok: true; readonly id: string } | ContributionCheck> {
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<ContributionCheck, { readonly ok: true }>
+  > {
     const { data: prior, error: priorError } = await this.client
       .from("staff_learning_contributions")
       .select("version, state")
@@ -201,7 +204,9 @@ export class InternalCommunityRepository {
     readonly moderatorStaffId: string;
     readonly nextState: Extract<ContributionState, "approved" | "rejected">;
     readonly moderationNote?: string;
-  }): Promise<{ readonly ok: true } | ContributionCheck> {
+  }): Promise<
+    { readonly ok: true } | Exclude<ContributionCheck, { readonly ok: true }>
+  > {
     const { data: current, error } = await this.client
       .from("staff_learning_contributions")
       .select("state, author_staff_id")
@@ -261,7 +266,10 @@ export class InternalCommunityRepository {
     readonly currency?: string;
     readonly customerId?: string;
     readonly orderId?: string;
-  }): Promise<{ readonly ok: true; readonly id: string } | BudgetCheck> {
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<BudgetCheck, { readonly ok: true }>
+  > {
     const check = checkBudgetRequest(args);
     if (!check.ok) return check;
 
@@ -294,7 +302,9 @@ export class InternalCommunityRepository {
     readonly approverStaffId: string;
     readonly approve: boolean;
     readonly decisionNote?: string;
-  }): Promise<{ readonly ok: true } | BudgetCheck> {
+  }): Promise<
+    { readonly ok: true } | Exclude<BudgetCheck, { readonly ok: true }>
+  > {
     const { data: current, error } = await this.client
       .from("service_recovery_budget_requests")
       .select("state, requested_by_staff_id")

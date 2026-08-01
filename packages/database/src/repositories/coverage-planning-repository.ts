@@ -268,7 +268,10 @@ export class CoveragePlanningRepository {
     readonly requestingStaffId: string;
     readonly peerStaffId: string;
     readonly reason?: string;
-  }): Promise<{ readonly ok: true; readonly id: string } | SwapCheck> {
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<SwapCheck, { readonly ok: true }>
+  > {
     const { data: shift, error } = await this.client
       .from("staff_shifts")
       .select("id, staff_id, shift_date, start_time, end_time")
@@ -364,7 +367,9 @@ export class CoveragePlanningRepository {
     readonly requiredSkills?: readonly string[];
     readonly peerSkills?: readonly string[];
     readonly otherCoveringSkills?: readonly string[];
-  }): Promise<{ readonly ok: true } | SwapCheck> {
+  }): Promise<
+    { readonly ok: true } | Exclude<SwapCheck, { readonly ok: true }>
+  > {
     const { data: swap, error } = await this.client
       .from("staff_shift_swap_requests")
       .select("*")

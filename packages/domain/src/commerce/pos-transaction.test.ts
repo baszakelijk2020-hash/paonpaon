@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CASH_TENDER,
   checkPaymentCapture,
   checkReturnEligibility,
+  checkSaleCompletable,
   checkTransactionTransition,
   planReturn,
   totalCart,
@@ -259,5 +261,125 @@ describe("planReturn", () => {
       lines: [{ line: service, refundableMinorUnits: 4500, restock: true }],
     });
     expect(plan.restockLines).toEqual([]);
+  });
+});
+
+describe("cash is a tender, not a provider integration", () => {
+  it("accepts cash with no provider activated at all", () => {
+    // The empty list is the real production state until ADR-062 approves a
+    // processor. A shop must still be able to trade.
+    expect(
+      checkPaymentCapture({
+        activatedProviders: [],
+        provider: CASH_TENDER,
+        providerReference: "drawer-1",
+        capturedMinorUnits: 12000,
+        expectedMinorUnits: 12000,
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("still refuses a card provider that nobody activated", () => {
+    expect(
+      checkPaymentCapture({
+        activatedProviders: [],
+        provider: "some_psp",
+        providerReference: "pi_1",
+        capturedMinorUnits: 12000,
+        expectedMinorUnits: 12000,
+      }),
+    ).toEqual({ ok: false, reason: "provider_not_activated" });
+  });
+
+  it("refuses card data even when the tender is cash", () => {
+    // The carve-out is about provider approval, never about what may be
+    // stored. Cash is not a loophole for a PAN.
+    expect(
+      checkPaymentCapture({
+        activatedProviders: [],
+        provider: CASH_TENDER,
+        providerReference: "drawer-1",
+        capturedMinorUnits: 12000,
+        expectedMinorUnits: 12000,
+        rawFieldNames: ["amount", "card_number"],
+      }),
+    ).toEqual({ ok: false, reason: "card_data_not_accepted" });
+  });
+
+  it("still holds cash to the cart total", () => {
+    expect(
+      checkPaymentCapture({
+        activatedProviders: [],
+        provider: CASH_TENDER,
+        providerReference: "drawer-1",
+        capturedMinorUnits: 11999,
+        expectedMinorUnits: 12000,
+      }),
+    ).toEqual({ ok: false, reason: "amount_mismatch" });
+  });
+});
+
+describe("a sale closes when the money is accounted for", () => {
+  const base = {
+    from: "awaiting_payment" as const,
+    lineCount: 1,
+    expectedMinorUnits: 12000,
+  };
+
+  it("REFUSES to complete a cart nobody paid for", () => {
+    // Without this the stock would move on an unpaid sale and the ledger
+    // would look perfectly consistent while the shop was robbed.
+    expect(checkSaleCompletable({ ...base, capturedMinorUnits: 0 })).toEqual({
+      ok: false,
+      reason: "payment_incomplete",
+    });
+  });
+
+  it("REFUSES a part payment", () => {
+    expect(
+      checkSaleCompletable({ ...base, capturedMinorUnits: 11999 }),
+    ).toEqual({ ok: false, reason: "payment_incomplete" });
+  });
+
+  it("allows an overpayment, because change is given in the room", () => {
+    expect(
+      checkSaleCompletable({ ...base, capturedMinorUnits: 12500 }),
+    ).toEqual({ ok: true });
+  });
+
+  it("completes on an exact payment", () => {
+    expect(
+      checkSaleCompletable({ ...base, capturedMinorUnits: 12000 }),
+    ).toEqual({ ok: true });
+  });
+
+  it("REFUSES an empty cart before it asks about money", () => {
+    expect(
+      checkSaleCompletable({
+        ...base,
+        lineCount: 0,
+        capturedMinorUnits: 99999,
+      }),
+    ).toEqual({ ok: false, reason: "nothing_to_sell" });
+  });
+
+  it("REFUSES to complete something already completed", () => {
+    expect(
+      checkSaleCompletable({
+        ...base,
+        from: "completed",
+        capturedMinorUnits: 12000,
+      }),
+    ).toEqual({ ok: false, reason: "completed_is_final" });
+  });
+
+  it("REFUSES to resurrect a voided sale by paying for it", () => {
+    expect(
+      checkSaleCompletable({
+        ...base,
+        from: "voided",
+        capturedMinorUnits: 12000,
+      }),
+    ).toEqual({ ok: false, reason: "not_presented_for_payment" });
   });
 });
