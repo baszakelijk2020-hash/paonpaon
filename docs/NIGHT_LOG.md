@@ -686,3 +686,33 @@ the repository** and are never committed.
    three narrowed. This failure mode has now happened four times on this
    branch; the fix is to scan code with comments stripped, and to anchor
    schema scans on the CREATE TABLE target.
+
+### Evidence and the rewritten-SHA push path (2026-08-01, important)
+
+ADR-068's completion gate pins each browser proof to the code SHA it ran
+against, and tolerates later commits only when they touch allowlisted paths
+(`docs/evidence/`, `docs/PHASE.md`, `docs/PROJECT_STATE.md`,
+`docs/PAON_INTELLIGENCE_PLATFORM.md`). That design assumes `git push`
+preserves SHAs.
+
+The MCP push path used in this session does not: it replays each commit
+through the GitHub API, producing an identical tree under a new SHA. So
+proof evidence recorded before a push is stale the moment the branch is
+reset onto the pushed commit.
+
+The sequence that actually works, and the one used here:
+
+1. Commit code. Push it (SHA changes).
+2. `git fetch`, verify the tree diff against the local commit is empty,
+   `git reset --hard` onto the pushed SHA.
+3. **Then** re-run the gated proofs, so the run's `gitSha` is the SHA that
+   exists on the remote.
+4. Commit the evidence alone and push it. Because that commit touches only
+   allowlisted paths, it does not invalidate the run it carries.
+
+Consequence for a later auditor: evidence in this branch's history is valid
+against the remote SHAs, not against any local pre-push SHA. If the branch
+is ever re-pushed by a mechanism that rewrites SHAs again, the proofs must
+be re-run, not re-pointed. Editing a `gitSha` by hand to make the validator
+pass would be manufacturing completion, which the working agreement forbids
+outright.
