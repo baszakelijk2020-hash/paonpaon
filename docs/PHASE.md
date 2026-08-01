@@ -153,8 +153,8 @@ be resumed without the module mapping required by R0.3.**
     real Server Action responses, verifies coverage, client and service-plan
     writes leave zero rows in preview, then proves suspended direct client and
     service routes return 500. Remaining: extend the gate across every other
-    module-owned mutation/read surface, write the full founder-tool blueprint
-    set, and complete canonical House cleanup.
+    module-owned mutation/read surface, implement the founder-tool blueprints,
+    and complete canonical House cleanup.
     The programme proof now seeds an idempotent, lived-in tenant independently
     from Maison Dubois, Demo Studio prospects and the generic e2e workspace:
     6+ staff, 14 clients, 20+ products, 5+ appointments, 10+ orders and an
@@ -164,7 +164,13 @@ be resumed without the module mapping required by R0.3.**
     suite passes 43/43. `CAPABILITY_DISPOSITION.md` maps every Stage 8–16
     capability and founder-designated tool to one module, one explicit
     keep/harden/consolidate/replace/quarantine decision and a connected proof
-    contract.
+    contract. `FOUNDER_TOOL_BLUEPRINTS.md` now defines the authoritative
+    experience, ecosystem job, actors, module/tier, state, canonical wiring,
+    governance, recovery and completion proof for all fourteen designated
+    tools and crosswalks the wider founder brief. It is a specification, not a
+    shipped-status claim. Remaining: implement the contracts, extend module
+    enforcement across every remaining owned surface, and complete canonical
+    House cleanup.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

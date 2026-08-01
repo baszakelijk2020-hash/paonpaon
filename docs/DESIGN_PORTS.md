@@ -4,6 +4,11 @@ Inventory of founder-designed surfaces and their porting status. **Tier 1 —
 read this before touching any of them.** The governing rule is ADR-052 and
 the porting rule in [../CLAUDE.md](../CLAUDE.md).
 
+For the product job, actors, module/tier, state, data/events, privacy,
+integration, recovery and connected proof contract behind each surface, read
+[FOUNDER_TOOL_BLUEPRINTS.md](./FOUNDER_TOOL_BLUEPRINTS.md). This file remains
+the concise source-fidelity status; the blueprint is the build contract.
+
 ## The rule, in one line
 
 Preserve the source composition, CSS, markup, motion and interaction; wire

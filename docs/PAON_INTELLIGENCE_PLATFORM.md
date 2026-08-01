@@ -47,12 +47,13 @@ requires it.
   from founder demo, Demo Studio and generic e2e data, with the full retailer
   suite green at 43/43. Extend the shared gate rather than inventing per-page
   tier checks; House cleanup and the remaining read/write surfaces stay open.
-  `CAPABILITY_DISPOSITION.md` accounts for every designated tool but is only a
-  registry. The next product-specification slice must create the authoritative
-  per-tool blueprints from `DESIGN_PORTS.md`, the founder brief and founder
-  source pages: exact experience plus actors, module/tier, canonical data,
-  events, permissions, consent/provenance, integrations, recovery and proof.
-  Do not treat nebelspiegel/Atelier Munro branding as PAON product intent.
+  `CAPABILITY_DISPOSITION.md` is the inheritance registry;
+  `FOUNDER_TOOL_BLUEPRINTS.md` is now the implementation-grade contract for
+  all fourteen designated tools and the wider founder-intent crosswalk. Read
+  only the active tool's blueprint plus `DESIGN_PORTS.md` and its canonical
+  source fragment. The blueprint is not shipped-status evidence: implement
+  the exact experience and connected state/proof together. Do not treat
+  nebelspiegel/Atelier Munro branding as PAON product intent.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The
