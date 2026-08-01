@@ -3,10 +3,9 @@ import { requireRetailerRole } from "@paon/auth";
 import { MessagingRepository } from "@paon/database";
 import {
   asId,
-  MESSAGE_ATTACHMENT_MIME_TYPES,
   sendMessageSchema,
   startStaffConversationSchema,
-  type MessageAttachmentMimeType,
+  validateMessageAttachmentUpload,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -15,13 +14,6 @@ import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
-function isAllowedAttachmentMime(
-  mimeType: string,
-): mimeType is MessageAttachmentMimeType {
-  return (MESSAGE_ATTACHMENT_MIME_TYPES as readonly string[]).includes(
-    mimeType,
-  );
-}
 export async function startConversation(formData: FormData) {
   const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
@@ -49,17 +41,24 @@ export async function sendMessage(formData: FormData) {
 
   const file = formData.get("attachment");
   if (file instanceof File && file.size > 0) {
-    if (!isAllowedAttachmentMime(file.type)) {
-      throw new Error("Attachments must be a JPEG, PNG or WebP image.");
-    }
+    const content = await file.arrayBuffer();
+    const validated = validateMessageAttachmentUpload({
+      purpose: "photo",
+      fileName: file.name,
+      mimeType: file.type,
+      sizeBytes: file.size,
+      bytes: new Uint8Array(content),
+    });
+    if (!validated.ok) throw new Error(validated.error);
     await repo.uploadAttachment({
       retailerId: session.retailerId,
       conversationId,
       messageId,
-      fileName: file.name,
-      mimeType: file.type,
+      purpose: "photo",
+      fileName: validated.fileName,
+      mimeType: validated.mimeType,
       sizeBytes: file.size,
-      content: await file.arrayBuffer(),
+      content,
     });
   }
 

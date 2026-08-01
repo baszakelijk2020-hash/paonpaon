@@ -200,6 +200,21 @@ be resumed without the module mapping required by R0.3.**
     runtime host, and cross-platform desktop/390px snapshots pin the founder
     card, controls and liked rail. FT-08 now satisfies its blueprint; continue
     with the next founder-tool contract.
+    FT-09 TableService has its first connected vertical slice. The exact raw
+    storefront—not only the React child-route port—detects a signed-in
+    customer and sends text, photo, PDF, Pinterest and wedding-fabric material
+    into the canonical private conversation. Migration `20260802000003`
+    records attachment purpose/source/rights/scan state, permits reviewed PDF
+    storage and installs a caller/tenant-rederiving metadata command. Domain
+    validation checks size, declared type and file signature; Pinterest input
+    is HTTPS/host constrained; the source interaction previews/removes drafts,
+    requires rights confirmation and retains failed input. Customer/retailer
+    reads use signed storage links. Proof: 4 domain assertions, 8 pgTAP
+    assertions, 2/2 customer browser journeys (all four types plus spoofed
+    file/no write) and the existing retailer attachment journey. This does not
+    complete FT-09: true async malware/quarantine, progress, optional party/
+    garment links, consent/citation proof and the connected shared-look ->
+    appointment/proposal outcome remain.
     Continue implementing the contracts, audit non-browser module entry points,
     and finish House cleanup.
 

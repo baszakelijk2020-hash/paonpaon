@@ -80,10 +80,10 @@ export default async function MessagesPage({
     : null;
 
   let thread: Awaited<ReturnType<MessagingRepository["findMessages"]>> = [];
-  let attachmentsByMessage = new Map<
-    string,
-    { attachment: { id: string; fileName: string }; signedUrl: string }[]
-  >();
+  type AttachmentEntry = Awaited<
+    ReturnType<MessagingRepository["findAttachmentsByConversation"]>
+  >[number];
+  let attachmentsByMessage = new Map<string, AttachmentEntry[]>();
   let activeCustomer: Awaited<ReturnType<CustomerRepository["findById"]>> =
     null;
   let orders: Awaited<ReturnType<OrderRepository["findByCustomer"]>> = [];
@@ -108,10 +108,7 @@ export default async function MessagesPage({
     orders = orderHistory;
     notes = clientelingNotes;
 
-    const grouped = new Map<
-      string,
-      { attachment: { id: string; fileName: string }; signedUrl: string }[]
-    >();
+    const grouped = new Map<string, AttachmentEntry[]>();
     for (const entry of attachments) {
       const key = entry.attachment.messageId;
       const existing = grouped.get(key) ?? [];
@@ -189,22 +186,36 @@ export default async function MessagesPage({
                     <p className="text-sm">{msg.body}</p>
                     {msgAttachments.length > 0 ? (
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {msgAttachments.map(({ attachment, signedUrl }) => (
+                        {msgAttachments.map(({ attachment, accessUrl }) => (
                           <a
                             key={attachment.id}
-                            href={signedUrl}
+                            href={accessUrl}
                             target="_blank"
                             rel="noreferrer"
                             className="block overflow-hidden rounded-[var(--radius-md)]"
                           >
-                            <Image
-                              src={signedUrl}
-                              alt={attachment.fileName}
-                              width={160}
-                              height={160}
-                              unoptimized
-                              className="max-h-40 w-auto object-cover"
-                            />
+                            {attachment.purpose === "pinterest_link" ? (
+                              <span className="text-xs underline">
+                                Pinterest reference
+                              </span>
+                            ) : attachment.mimeType === "application/pdf" ? (
+                              <span className="text-xs underline">
+                                {attachment.fileName}
+                              </span>
+                            ) : accessUrl ? (
+                              <Image
+                                src={accessUrl}
+                                alt={attachment.fileName}
+                                width={160}
+                                height={160}
+                                unoptimized
+                                className="max-h-40 w-auto object-cover"
+                              />
+                            ) : (
+                              <span className="text-xs">
+                                Attachment unavailable
+                              </span>
+                            )}
                           </a>
                         ))}
                       </div>

@@ -76,6 +76,15 @@ requires it.
   cover the source composition. FT-08 now meets its blueprint; take the next
   founder-tool contract rather than reopening swipe work without a failed
   invariant.
+  FT-09 TableService is active. Its exact raw storefront (the route-handler
+  page, not merely the React child-route port) now connects text and all four
+  founder attachment controls to the canonical private conversation.
+  Migration `20260802000003` adds purpose/source/rights/basic-validation state
+  and a tenant/caller-rederiving metadata command; private signed reads,
+  byte/MIME/size checks, Pinterest host normalization, preview/remove,
+  rights confirmation and retained unsafe-file failure are proven. Do not
+  call FT-09 complete: async malware/quarantine, progress, party/garment
+  linkage, consent/citation proof and conversation-to-look-to-outcome remain.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

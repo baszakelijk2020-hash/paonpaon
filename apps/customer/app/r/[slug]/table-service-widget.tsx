@@ -1,6 +1,9 @@
 "use client";
 
-import type { ConversationIntent } from "@paon/domain";
+import type {
+  ConversationIntent,
+  MessageAttachmentPurpose,
+} from "@paon/domain";
 import { usePathname } from "next/navigation";
 import {
   useActionState,
@@ -13,6 +16,7 @@ import {
 
 import {
   submitTableServiceInquiry,
+  sendSignedInTableServiceMessage,
   type TableServiceFormState,
 } from "./table-service-actions";
 import { requestTableServiceGuidance } from "./table-service-guidance-actions";
@@ -56,24 +60,40 @@ const ATTACH_ITEMS = [
   {
     img: "https://www.nebelspiegel.com/images/knopphoto.png",
     label: "Upload Photo",
+    purpose: "photo" as const,
   },
   {
     img: "https://www.nebelspiegel.com/images/knopfile.png",
     label: "Attach Pdf",
+    purpose: "document" as const,
   },
   {
     img: "https://www.nebelspiegel.com/images/knoppint.png",
     label: "Paste Pinterest Link",
+    purpose: "pinterest_link" as const,
   },
   {
     img: "https://www.nebelspiegel.com/images/knopdress.png",
     label: "Upload Wedding Dress fabric",
+    purpose: "wedding_fabric" as const,
   },
 ];
 
 const initial: TableServiceFormState = { values: {}, fieldErrors: {} };
 
 type Step = "name" | "email" | "message" | "invite_token" | "done";
+type AttachmentDraft =
+  | {
+      readonly kind: "upload";
+      readonly purpose: Exclude<MessageAttachmentPurpose, "pinterest_link">;
+      readonly file: File;
+      readonly previewUrl?: string;
+    }
+  | {
+      readonly kind: "link";
+      readonly purpose: "pinterest_link";
+      readonly url: string;
+    };
 
 const PLACEHOLDER_BY_STEP: Record<Step, string> = {
   name: "Your name...",
@@ -120,11 +140,24 @@ export function TableServiceWidget({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [guidancePending, startGuidance] = useTransition();
+  const [sendPending, startSend] = useTransition();
+  const [attachmentDraft, setAttachmentDraft] =
+    useState<AttachmentDraft | null>(null);
+  const [attachmentPurpose, setAttachmentPurpose] = useState<Exclude<
+    MessageAttachmentPurpose,
+    "pinterest_link"
+  > | null>(null);
+  const [attachmentRightsConfirmed, setAttachmentRightsConfirmed] =
+    useState(false);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [linkComposerOpen, setLinkComposerOpen] = useState(false);
+  const [linkValue, setLinkValue] = useState("");
 
   const boundAction = submitTableServiceInquiry.bind(null, retailerId);
   const [state, formAction, isPending] = useActionState(boundAction, initial);
   const formRef = useRef<HTMLFormElement>(null);
   const messageInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const pathname = usePathname();
   const isLandingPage = /^\/r\/[^/]+\/?$/.test(pathname ?? "");
@@ -140,6 +173,67 @@ export function TableServiceWidget({
       setStep("done");
     }
   }, [state.submitted]);
+
+  useEffect(
+    () => () => {
+      if (attachmentDraft?.kind === "upload" && attachmentDraft.previewUrl) {
+        URL.revokeObjectURL(attachmentDraft.previewUrl);
+      }
+    },
+    [attachmentDraft],
+  );
+
+  function clearAttachment() {
+    if (attachmentDraft?.kind === "upload" && attachmentDraft.previewUrl) {
+      URL.revokeObjectURL(attachmentDraft.previewUrl);
+    }
+    setAttachmentDraft(null);
+    setAttachmentRightsConfirmed(false);
+    setAttachmentError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function requestAttachment(purpose: MessageAttachmentPurpose) {
+    setAttachmentError(null);
+    if (!isSignedIn) {
+      setHistory((rows) => [
+        ...rows,
+        "Sign in to attach private consultation material securely. Your draft message stays here.",
+      ]);
+      setAttachOpen(false);
+      return;
+    }
+    if (purpose === "pinterest_link") {
+      setLinkComposerOpen(true);
+      setAttachOpen(false);
+      return;
+    }
+    setAttachmentPurpose(purpose);
+    setAttachOpen(false);
+    window.setTimeout(() => fileInputRef.current?.click(), 0);
+  }
+
+  function onFileSelected(file: File | undefined) {
+    if (!file || !attachmentPurpose) return;
+    clearAttachment();
+    setAttachmentDraft({
+      kind: "upload",
+      purpose: attachmentPurpose,
+      file,
+      ...(file.type.startsWith("image/")
+        ? { previewUrl: URL.createObjectURL(file) }
+        : {}),
+    });
+  }
+
+  function usePinterestLink() {
+    const url = linkValue.trim();
+    if (!url) return;
+    clearAttachment();
+    setAttachmentDraft({ kind: "link", purpose: "pinterest_link", url });
+    setLinkComposerOpen(false);
+    setLinkValue("");
+  }
 
   function appendGuidance(intentValue: ConversationIntent, caption: string) {
     if (!shouldRequestGuidance(intentValue, caption)) return;
@@ -188,7 +282,20 @@ export function TableServiceWidget({
   function handleSend() {
     const text = inputValue.trim();
     if (!text) return;
-    setHistory((h) => [...h, text]);
+    if (
+      step === "message" &&
+      isSignedIn &&
+      attachmentDraft &&
+      !attachmentRightsConfirmed
+    ) {
+      setAttachmentError(
+        "Confirm you may share this material for the consultation.",
+      );
+      return;
+    }
+    if (!(step === "message" && isSignedIn)) {
+      setHistory((h) => [...h, text]);
+    }
     setInputValue("");
 
     if (step === "invite_token") {
@@ -235,11 +342,35 @@ export function TableServiceWidget({
           setHistory((h) => [...h, ...result.chatLines]);
         });
       }
-      if (isSignedIn && signedInMessagesHref) {
-        setHistory((h) => [
-          ...h,
-          `To continue with an advisor, open Messages: ${signedInMessagesHref}`,
-        ]);
+      if (isSignedIn) {
+        startSend(async () => {
+          const formData = new FormData();
+          formData.set("body", text);
+          if (attachmentDraft?.kind === "upload") {
+            formData.set("attachmentPurpose", attachmentDraft.purpose);
+            formData.set("attachment", attachmentDraft.file);
+          } else if (attachmentDraft?.kind === "link") {
+            formData.set("attachmentPurpose", "pinterest_link");
+            formData.set("sourceUrl", attachmentDraft.url);
+          }
+          const result = await sendSignedInTableServiceMessage(
+            retailerId,
+            formData,
+          );
+          if (!result.ok) {
+            setAttachmentError(result.error ?? "Message could not be sent.");
+            setInputValue(text);
+            return;
+          }
+          setHistory((rows) => [
+            ...rows,
+            text,
+            result.attachmentPurpose
+              ? "Shared securely with your advisor. Basic file checks passed; the original remains private."
+              : "Sent securely to your advisor.",
+          ]);
+          clearAttachment();
+        });
         return;
       }
       if (messageInputRef.current) messageInputRef.current.value = text;
@@ -347,10 +478,15 @@ export function TableServiceWidget({
                   className="gcw-field"
                   placeholder={PLACEHOLDER_BY_STEP[step]}
                   value={inputValue}
-                  disabled={step === "done" || isPending || guidancePending}
+                  disabled={
+                    step === "done" ||
+                    isPending ||
+                    guidancePending ||
+                    sendPending
+                  }
                   onChange={(event) => setInputValue(event.target.value)}
                   onKeyDown={handleKeyDown}
-                  aria-busy={guidancePending || isPending}
+                  aria-busy={guidancePending || isPending || sendPending}
                 />
                 <button
                   type="button"
@@ -365,10 +501,15 @@ export function TableServiceWidget({
                 <button
                   type="button"
                   className="gcw-send-button"
-                  disabled={step === "done" || isPending || guidancePending}
+                  disabled={
+                    step === "done" ||
+                    isPending ||
+                    guidancePending ||
+                    sendPending
+                  }
                   onClick={handleSend}
                 >
-                  {isPending || guidancePending ? "…" : "Send"}
+                  {isPending || guidancePending || sendPending ? "…" : "Send"}
                 </button>
               </div>
             </div>
@@ -379,7 +520,7 @@ export function TableServiceWidget({
                   type="button"
                   className="gcw-attach-item"
                   key={item.label}
-                  onClick={() => setAttachOpen(false)}
+                  onClick={() => requestAttachment(item.purpose)}
                 >
                   <div className="gcw-attach-btn">
                     {/* eslint-disable-next-line @next/next/no-img-element -- byte-for-byte source markup */}
@@ -389,6 +530,93 @@ export function TableServiceWidget({
                 </button>
               ))}
             </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="sr-only"
+              aria-label="Choose consultation attachment"
+              accept={
+                attachmentPurpose === "document"
+                  ? "application/pdf"
+                  : attachmentPurpose === "wedding_fabric"
+                    ? "image/jpeg,image/png,image/webp,application/pdf"
+                    : "image/jpeg,image/png,image/webp"
+              }
+              onChange={(event) => onFileSelected(event.target.files?.[0])}
+            />
+
+            {linkComposerOpen ? (
+              <div className="mx-5 mb-2 flex gap-2" aria-label="Pinterest link">
+                <input
+                  type="url"
+                  value={linkValue}
+                  onChange={(event) => setLinkValue(event.target.value)}
+                  placeholder="https://www.pinterest.com/pin/..."
+                  className="min-w-0 flex-1 rounded-[7px] border border-black/20 px-2 text-xs"
+                />
+                <button
+                  type="button"
+                  className="text-xs underline"
+                  onClick={usePinterestLink}
+                >
+                  Use link
+                </button>
+                <button
+                  type="button"
+                  className="text-xs underline"
+                  onClick={() => setLinkComposerOpen(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : null}
+
+            {attachmentDraft ? (
+              <div className="mx-5 mb-2 rounded-[7px] border border-black/15 bg-white p-2 text-xs">
+                <div className="flex items-center gap-2">
+                  {attachmentDraft.kind === "upload" &&
+                  attachmentDraft.previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
+                    <img
+                      src={attachmentDraft.previewUrl}
+                      alt="Attachment preview"
+                      className="h-10 w-10 rounded object-cover"
+                    />
+                  ) : null}
+                  <span className="min-w-0 flex-1 truncate">
+                    {attachmentDraft.kind === "upload"
+                      ? attachmentDraft.file.name
+                      : attachmentDraft.url}
+                  </span>
+                  <button
+                    type="button"
+                    className="underline"
+                    onClick={clearAttachment}
+                  >
+                    Remove
+                  </button>
+                </div>
+                <label className="mt-2 flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={attachmentRightsConfirmed}
+                    onChange={(event) =>
+                      setAttachmentRightsConfirmed(event.target.checked)
+                    }
+                  />
+                  <span>
+                    I may share this material for this private consultation.
+                  </span>
+                </label>
+              </div>
+            ) : null}
+
+            {attachmentError ? (
+              <p role="alert" className="mx-5 mb-2 text-xs text-red-700">
+                {attachmentError}
+              </p>
+            ) : null}
           </div>
 
           <form ref={formRef} action={formAction} className="hidden">

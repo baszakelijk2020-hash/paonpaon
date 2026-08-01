@@ -17,7 +17,7 @@ This correction supersedes conflicting status and handoff claims below:
 - Active queue: R0.1 at the top of `PHASE.md`; ADR-070 restores the full
   modular destination while requiring legacy 9.2 and Stage 10–16 work to be
   mapped through R0.3 before it resumes.
-- The takeover branch has 149 migrations and all apply from zero locally. A
+- The takeover branch has 152 migrations and all apply from zero locally. A
   populated synthetic pre-18 database now proves both transactional refusal
   of catalogue/ledger conflicts and a quantity-preserving clean upgrade
   through migration 22 plus R0.1 hardening. An approved restore of actual
@@ -82,6 +82,14 @@ This correction supersedes conflicting status and handoff claims below:
   House cleanup and complete server/read guards. `CAPABILITY_DISPOSITION.md` classifies every
   inherited Stage 8–16 capability and founder-designated tool by module,
   keep/harden/consolidate/replace/quarantine decision and connected proof.
+- FT-08 is connected and proven. FT-09 now has a connected attachment slice
+  on the exact raw founder storefront as well as the React child-route port:
+  text/photo/PDF/Pinterest/wedding-fabric inputs reach the canonical private
+  thread with purpose, source, rights and honest `basic_validated` state.
+  Customer 2/2 attachment browser proof, retailer 1/1 regression proof, 4
+  domain assertions and 8 pgTAP assertions pass. Async malware/quarantine,
+  progress, party/garment links, consent/citation proof and the full
+  conversation-to-outcome journey remain open.
 
 ## Repository
 

@@ -16371,6 +16371,28 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         color: #7a7870;
         cursor: pointer;
     }
+    #gilda-chat-widget .gcw-attachment-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    #gilda-chat-widget .gcw-attachment-draft,
+    #gilda-chat-widget .gcw-link-composer {
+        display: none;
+        margin: 0 20px 10px;
+        padding: 10px;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 7px;
+        background: rgba(255,255,255,.92);
+        color: #333;
+        font: 12px/1.35 'lvreg', sans-serif;
+    }
+    #gilda-chat-widget .gcw-attachment-draft.active,
+    #gilda-chat-widget .gcw-link-composer.active { display: block; }
+    #gilda-chat-widget .gcw-draft-row,
+    #gilda-chat-widget .gcw-link-row { display: flex; align-items: center; gap: 8px; }
+    #gilda-chat-widget .gcw-draft-preview { width: 42px; height: 42px; border-radius: 6px; object-fit: cover; display: none; }
+    #gilda-chat-widget .gcw-draft-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #gilda-chat-widget .gcw-link-input { min-width: 0; flex: 1; height: 32px; border: 1px solid #bbb; border-radius: 6px; padding: 0 8px; font: inherit; }
+    #gilda-chat-widget .gcw-inline-action { border: 0; background: none; padding: 3px; color: #222; text-decoration: underline; cursor: pointer; font: inherit; }
+    #gilda-chat-widget .gcw-rights { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; }
+    #gilda-chat-widget .gcw-error { min-height: 0; margin: 0 20px 8px; color: #a3261d; font: 12px/1.35 'lvreg', sans-serif; }
 </style>
 
 <div id="gilda-chat-widget-launcher">
@@ -16386,28 +16408,48 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
             <div class="gcw-input-container">
                 <div class="gcw-field-wrapper">
                     <input type="text" class="gcw-field" placeholder="Your name..." id="gcw-input">
-                    <div class="gcw-paperclip" id="gcw-paperclip"></div>
-                    <div class="gcw-send-button" id="gcw-send">Send</div>
+                    <div class="gcw-paperclip" id="gcw-paperclip" role="button" tabindex="0" aria-label="Attach"></div>
+                    <div class="gcw-send-button" id="gcw-send" role="button" tabindex="0" aria-label="Send">Send</div>
                 </div>
             </div>
             <div class="gcw-attach-panel" id="gcw-attach-panel">
-                <button type="button" class="gcw-attach-item">
+                <button type="button" class="gcw-attach-item" data-purpose="photo">
                     <div class="gcw-attach-btn"><img src="https://www.nebelspiegel.com/images/knopphoto.png"></div>
                     <div class="gcw-attach-label">Upload Photo</div>
                 </button>
-                <button type="button" class="gcw-attach-item">
+                <button type="button" class="gcw-attach-item" data-purpose="document">
                     <div class="gcw-attach-btn"><img src="https://www.nebelspiegel.com/images/knopfile.png"></div>
                     <div class="gcw-attach-label">Attach Pdf</div>
                 </button>
-                <button type="button" class="gcw-attach-item">
+                <button type="button" class="gcw-attach-item" data-purpose="pinterest_link">
                     <div class="gcw-attach-btn"><img src="https://www.nebelspiegel.com/images/knoppint.png"></div>
                     <div class="gcw-attach-label">Paste Pinterest Link</div>
                 </button>
-                <button type="button" class="gcw-attach-item">
+                <button type="button" class="gcw-attach-item" data-purpose="wedding_fabric">
                     <div class="gcw-attach-btn"><img src="https://www.nebelspiegel.com/images/knopdress.png"></div>
                     <div class="gcw-attach-label">Upload Wedding Dress fabric</div>
                 </button>
             </div>
+            <input id="gcw-attachment-input" class="gcw-attachment-input" type="file" aria-label="Choose consultation attachment">
+            <div id="gcw-link-composer" class="gcw-link-composer" aria-label="Pinterest link">
+                <div class="gcw-link-row">
+                    <input id="gcw-link-input" class="gcw-link-input" type="url" placeholder="https://www.pinterest.com/pin/...">
+                    <button id="gcw-link-use" class="gcw-inline-action" type="button">Use link</button>
+                    <button id="gcw-link-cancel" class="gcw-inline-action" type="button">Cancel</button>
+                </div>
+            </div>
+            <div id="gcw-attachment-draft" class="gcw-attachment-draft">
+                <div class="gcw-draft-row">
+                    <img id="gcw-draft-preview" class="gcw-draft-preview" alt="Attachment preview">
+                    <span id="gcw-draft-name" class="gcw-draft-name"></span>
+                    <button id="gcw-draft-remove" class="gcw-inline-action" type="button">Remove</button>
+                </div>
+                <label class="gcw-rights">
+                    <input id="gcw-rights" type="checkbox">
+                    <span>I may share this material for this private consultation.</span>
+                </label>
+            </div>
+            <p id="gcw-error" class="gcw-error" role="alert"></p>
         </div>
         <button type="button" class="gcw-close" id="gcw-close">Close</button>
     </div>
@@ -16418,6 +16460,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
 (function() {
     var RETAILER_ID = '__PAON_RETAILER_ID__';
     var SLUG = '__PAON_SLUG__';
+    var SIGNED_IN = __PAON_TABLESERVICE_SIGNED_IN__;
 
     var launcher   = document.getElementById('gilda-chat-widget-launcher');
     var toggleBtn  = document.getElementById('gilda-chat-widget-toggle');
@@ -16432,11 +16475,24 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     var chatPics          = chatWidget.querySelectorAll('.gcw-chat-pics .gcw-panel-wrapper');
     var paperclip         = chatWidget.querySelector('#gcw-paperclip');
     var attachPanel       = chatWidget.querySelector('#gcw-attach-panel');
+    var attachmentInput   = chatWidget.querySelector('#gcw-attachment-input');
+    var attachmentDraftEl = chatWidget.querySelector('#gcw-attachment-draft');
+    var draftPreview      = chatWidget.querySelector('#gcw-draft-preview');
+    var draftName         = chatWidget.querySelector('#gcw-draft-name');
+    var draftRemove       = chatWidget.querySelector('#gcw-draft-remove');
+    var rightsCheckbox    = chatWidget.querySelector('#gcw-rights');
+    var linkComposer      = chatWidget.querySelector('#gcw-link-composer');
+    var linkInput         = chatWidget.querySelector('#gcw-link-input');
+    var linkUse           = chatWidget.querySelector('#gcw-link-use');
+    var linkCancel        = chatWidget.querySelector('#gcw-link-cancel');
+    var errorEl           = chatWidget.querySelector('#gcw-error');
 
-    var step = 'name';          // name -> email -> message | invite_token -> done
+    var step = SIGNED_IN ? 'message' : 'name';
     var intent = 'freeform';
     var name = '';
     var email = '';
+    var attachmentDraft = null;
+    var attachmentPreviewUrl = '';
     var placeholders = {
         name: "Your name...",
         email: "Your email...",
@@ -16444,6 +16500,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         invite_token: "Paste invite token or full join URL...",
         done: ""
     };
+    chatInput.placeholder = placeholders[step];
 
     function appendMessage(text) {
         var wrapper = document.createElement('div');
@@ -16459,6 +16516,74 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         chatInput.disabled = busy;
         sendBtn.textContent = busy ? '…' : 'Send';
         sendBtn.style.pointerEvents = busy ? 'none' : '';
+    }
+
+    function setError(message) {
+        errorEl.textContent = message || '';
+    }
+
+    function clearAttachment() {
+        if (attachmentPreviewUrl) URL.revokeObjectURL(attachmentPreviewUrl);
+        attachmentPreviewUrl = '';
+        attachmentDraft = null;
+        attachmentInput.value = '';
+        rightsCheckbox.checked = false;
+        draftPreview.removeAttribute('src');
+        draftPreview.style.display = 'none';
+        draftName.textContent = '';
+        attachmentDraftEl.classList.remove('active');
+        setError('');
+    }
+
+    function showAttachmentDraft(label, previewUrl) {
+        draftName.textContent = label;
+        if (previewUrl) {
+            draftPreview.src = previewUrl;
+            draftPreview.style.display = 'block';
+        } else {
+            draftPreview.removeAttribute('src');
+            draftPreview.style.display = 'none';
+        }
+        attachmentDraftEl.classList.add('active');
+    }
+
+    function submitPrivateMessage(message) {
+        if (attachmentDraft && !rightsCheckbox.checked) {
+            setError('Confirm you may share this material for the consultation.');
+            return;
+        }
+        var formData = new FormData();
+        formData.set('retailerId', RETAILER_ID);
+        formData.set('body', message);
+        if (attachmentDraft) {
+            formData.set('attachmentPurpose', attachmentDraft.purpose);
+            if (attachmentDraft.kind === 'upload') {
+                formData.set('attachment', attachmentDraft.file);
+            } else {
+                formData.set('sourceUrl', attachmentDraft.url);
+            }
+        }
+        setBusy(true);
+        setError('');
+        fetch('/r/' + SLUG + '/api/table-service-message', {
+            method: 'POST',
+            body: formData
+        }).then(function(res) {
+            return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+        }).then(function(result) {
+            setBusy(false);
+            if (!result.ok) {
+                setError(result.data && result.data.error ? result.data.error : 'Message could not be sent.');
+                return;
+            }
+            appendMessage(message);
+            if (attachmentDraft) appendMessage('Shared securely with your advisor. Basic file checks passed; the original remains private.');
+            chatInput.value = '';
+            clearAttachment();
+        }).catch(function() {
+            setBusy(false);
+            setError('Message could not be sent. Your draft is still here.');
+        });
     }
 
     function submitInquiry(message) {
@@ -16488,6 +16613,10 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     function handleSend() {
         var text = chatInput.value.trim();
         if (!text || step === 'done') return;
+        if (step === 'message' && SIGNED_IN) {
+            submitPrivateMessage(text);
+            return;
+        }
         appendMessage(text);
         chatInput.value = '';
 
@@ -16529,6 +16658,9 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     }
 
     sendBtn.addEventListener('click', handleSend);
+    sendBtn.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') { handleSend(); e.preventDefault(); }
+    });
     chatInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') { handleSend(); e.preventDefault(); }
     });
@@ -16564,11 +16696,62 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         e.stopPropagation();
         attachPanel.classList.toggle('active');
     });
+    paperclip.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.stopPropagation();
+            attachPanel.classList.toggle('active');
+            e.preventDefault();
+        }
+    });
     attachPanel.querySelectorAll('.gcw-attach-item').forEach(function(item) {
         item.addEventListener('click', function() {
             attachPanel.classList.remove('active');
+            setError('');
+            if (!SIGNED_IN) {
+                appendMessage('Sign in to attach private consultation material securely. Your draft message stays here.');
+                return;
+            }
+            var purpose = item.getAttribute('data-purpose');
+            if (purpose === 'pinterest_link') {
+                linkComposer.classList.add('active');
+                linkInput.focus();
+                return;
+            }
+            attachmentInput.dataset.purpose = purpose;
+            attachmentInput.accept = purpose === 'document'
+                ? 'application/pdf'
+                : purpose === 'wedding_fabric'
+                    ? 'image/jpeg,image/png,image/webp,application/pdf'
+                    : 'image/jpeg,image/png,image/webp';
+            attachmentInput.click();
         });
     });
+
+    attachmentInput.addEventListener('change', function() {
+        var file = attachmentInput.files && attachmentInput.files[0];
+        var purpose = attachmentInput.dataset.purpose;
+        if (!file || !purpose) return;
+        clearAttachment();
+        attachmentDraft = { kind: 'upload', purpose: purpose, file: file };
+        if (file.type.indexOf('image/') === 0) {
+            attachmentPreviewUrl = URL.createObjectURL(file);
+        }
+        showAttachmentDraft(file.name, attachmentPreviewUrl);
+    });
+
+    linkUse.addEventListener('click', function() {
+        var url = linkInput.value.trim();
+        if (!url) return;
+        clearAttachment();
+        attachmentDraft = { kind: 'link', purpose: 'pinterest_link', url: url };
+        showAttachmentDraft(url, '');
+        linkInput.value = '';
+        linkComposer.classList.remove('active');
+    });
+    linkCancel.addEventListener('click', function() {
+        linkComposer.classList.remove('active');
+    });
+    draftRemove.addEventListener('click', clearAttachment);
 
     document.addEventListener('click', function(e) {
         if (!attachPanel.contains(e.target) && !paperclip.contains(e.target)) {

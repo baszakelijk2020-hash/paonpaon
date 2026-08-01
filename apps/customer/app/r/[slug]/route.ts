@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
+import { resolveAppSession } from "@paon/auth";
 import {
   CollectionRepository,
   ProductRepository,
@@ -307,6 +308,10 @@ export async function GET(
 ) {
   const { slug } = await params;
   const supabase = await getSupabaseServerClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const tableServiceSignedIn = authData.user
+    ? resolveAppSession(authData.user).accountType === "customer"
+    : false;
 
   const retailer = await new RetailerRepository(supabase).findBySlug(slug);
   if (!retailer || retailer.status !== "active") {
@@ -539,6 +544,10 @@ ${
   const html = template
     .replaceAll("__PAON_SLUG__", slug)
     .replaceAll("__PAON_RETAILER_ID__", retailer.id)
+    .replaceAll(
+      "__PAON_TABLESERVICE_SIGNED_IN__",
+      tableServiceSignedIn ? "true" : "false",
+    )
     .replaceAll("__PAON_RETAILER_NAME__", safeName)
     .replaceAll("__PAON_OG_TITLE__", ogTitle)
     .replaceAll("__PAON_OG_DESCRIPTION__", ogDescription)

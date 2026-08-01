@@ -7018,11 +7018,16 @@ export type Database = {
           file_name: string;
           id: string;
           message_id: string;
-          mime_type: string;
+          mime_type: string | null;
+          purpose: string;
           retailer_id: string;
+          rights_basis: string;
+          scan_status: string;
           size_bytes: number;
-          storage_bucket: string;
-          storage_path: string;
+          source_kind: string;
+          source_url: string | null;
+          storage_bucket: string | null;
+          storage_path: string | null;
           uploaded_by_staff_id: string | null;
           uploaded_by_user_id: string | null;
         };
@@ -7031,11 +7036,16 @@ export type Database = {
           file_name: string;
           id?: string;
           message_id: string;
-          mime_type: string;
+          mime_type?: string | null;
+          purpose?: string;
           retailer_id: string;
+          rights_basis?: string;
+          scan_status?: string;
           size_bytes: number;
-          storage_bucket: string;
-          storage_path: string;
+          source_kind?: string;
+          source_url?: string | null;
+          storage_bucket?: string | null;
+          storage_path?: string | null;
           uploaded_by_staff_id?: string | null;
           uploaded_by_user_id?: string | null;
         };
@@ -7044,11 +7054,16 @@ export type Database = {
           file_name?: string;
           id?: string;
           message_id?: string;
-          mime_type?: string;
+          mime_type?: string | null;
+          purpose?: string;
           retailer_id?: string;
+          rights_basis?: string;
+          scan_status?: string;
           size_bytes?: number;
-          storage_bucket?: string;
-          storage_path?: string;
+          source_kind?: string;
+          source_url?: string | null;
+          storage_bucket?: string | null;
+          storage_path?: string | null;
           uploaded_by_staff_id?: string | null;
           uploaded_by_user_id?: string | null;
         };
@@ -16970,6 +16985,19 @@ export type Database = {
         };
         Returns: string;
       };
+      record_consultation_attachment: {
+        Args: {
+          p_file_name: string;
+          p_message_id: string;
+          p_mime_type?: string;
+          p_purpose: string;
+          p_size_bytes?: number;
+          p_source_kind: string;
+          p_source_url?: string;
+          p_storage_path?: string;
+        };
+        Returns: string;
+      };
       record_customer_ai_generation: {
         Args: {
           p_error_message?: string;
@@ -17285,6 +17313,10 @@ export type Database = {
         Args: { p_change_note: string; p_retailer_id: string; p_theme: Json };
         Returns: number;
       };
+      save_wishlist_item: {
+        Args: { p_retailer_id: string; p_variant_id: string };
+        Returns: boolean;
+      };
       send_conversation_message: {
         Args: { p_body: string; p_conversation_id: string };
         Returns: string;
@@ -17381,10 +17413,6 @@ export type Database = {
       subscribe_to_newsletter: {
         Args: { p_email: string; p_retailer_id: string };
         Returns: undefined;
-      };
-      save_wishlist_item: {
-        Args: { p_retailer_id: string; p_variant_id: string };
-        Returns: boolean;
       };
       sync_loyalty_milestones_for_order: {
         Args: { p_order_id: string };

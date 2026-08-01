@@ -422,8 +422,20 @@ grounded context.
 purpose; enforce MIME/size/malware/SSRF controls and signed access. Failure
 keeps the draft and permits retry/removal. Prove each attachment type, unsafe
 file/link, RLS, citation/no-answer behaviour, consent withdrawal and a real
-conversation-to-look-to-appointment/proposal outcome. **Current:** source
-shell + useful guidance; attachments incomplete.
+conversation-to-look-to-appointment/proposal outcome. **Current:** the exact
+raw founder storefront and the React child-route port now share the canonical
+private conversation. All four visible attachment choices work: photo, PDF,
+Pinterest and wedding-fabric material retain typed purpose, source and rights;
+uploads use private signed storage; links are HTTPS/host constrained; previews,
+remove, retained-failure drafts and basic magic-byte/MIME/size validation are
+browser-proven. The customer message view and retailer inbox read the same
+attachments, and the database re-derives the caller/tenant before accepting
+metadata. This is a connected first slice, not FT-09 completion. Still owed:
+an actual async malware/quarantine service (the current state is honestly
+`basic_validated`), attachment progress, optional wedding-party/garment links,
+consent withdrawal/retention proof, attachment-grounded citation/no-answer
+proof and the full conversation -> shared look -> appointment/proposal
+outcome journey.
 
 ## FT-10 — Inspiration Box and gift booklet
 

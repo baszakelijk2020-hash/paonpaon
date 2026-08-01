@@ -7,6 +7,7 @@ import {
   type Message,
   type MessageAttachment,
   type MessageAttachmentMimeType,
+  type MessageAttachmentPurpose,
   type MessageId,
   type RetailerId,
 } from "@paon/domain";
@@ -55,11 +56,18 @@ const messageAttachment = (row: MessageAttachmentRow): MessageAttachment => ({
   id: asId<"MessageAttachmentId">(row.id),
   retailerId: asId<"RetailerId">(row.retailer_id),
   messageId: asId<"MessageId">(row.message_id),
-  storageBucket: row.storage_bucket,
-  storagePath: row.storage_path,
   fileName: row.file_name,
-  mimeType: row.mime_type as MessageAttachmentMimeType,
+  sourceKind: row.source_kind as MessageAttachment["sourceKind"],
+  purpose: row.purpose as MessageAttachment["purpose"],
+  ...(row.storage_bucket ? { storageBucket: row.storage_bucket } : {}),
+  ...(row.storage_path ? { storagePath: row.storage_path } : {}),
+  ...(row.source_url ? { sourceUrl: row.source_url } : {}),
+  ...(row.mime_type
+    ? { mimeType: row.mime_type as MessageAttachmentMimeType }
+    : {}),
   sizeBytes: row.size_bytes,
+  rightsBasis: row.rights_basis as MessageAttachment["rightsBasis"],
+  scanStatus: row.scan_status as MessageAttachment["scanStatus"],
   ...(row.uploaded_by_staff_id
     ? { uploadedByStaffId: asId<"StaffId">(row.uploaded_by_staff_id) }
     : {}),
@@ -213,7 +221,7 @@ export class MessagingRepository {
    * this bucket is private. */
   async findAttachmentsByConversation(
     conversationId: ConversationId,
-  ): Promise<{ attachment: MessageAttachment; signedUrl: string }[]> {
+  ): Promise<{ attachment: MessageAttachment; accessUrl?: string }[]> {
     const { data: messageRows, error: messagesError } = await this.client
       .from("messages")
       .select("id")
@@ -232,11 +240,22 @@ export class MessagingRepository {
     return Promise.all(
       data.map(async (row) => {
         const attachment = messageAttachment(row);
+        if (attachment.sourceKind === "link") {
+          return {
+            attachment,
+            ...(attachment.sourceUrl
+              ? { accessUrl: attachment.sourceUrl }
+              : {}),
+          };
+        }
+        if (!attachment.storageBucket || !attachment.storagePath) {
+          return { attachment };
+        }
         const { data: signed, error: signedError } = await this.client.storage
           .from(attachment.storageBucket)
           .createSignedUrl(attachment.storagePath, 15 * 60);
         if (signedError) throw signedError;
-        return { attachment, signedUrl: signed.signedUrl };
+        return { attachment, accessUrl: signed.signedUrl };
       }),
     );
   }
@@ -245,12 +264,13 @@ export class MessagingRepository {
     retailerId: RetailerId;
     conversationId: ConversationId;
     messageId: MessageId;
+    purpose: Exclude<MessageAttachmentPurpose, "pinterest_link">;
     fileName: string;
     mimeType: MessageAttachmentMimeType;
     sizeBytes: number;
     content: ArrayBuffer;
   }): Promise<MessageAttachment> {
-    const storagePath = `${params.retailerId}/${params.conversationId}/${Date.now()}-${params.fileName}`;
+    const storagePath = `${params.retailerId}/${params.conversationId}/${crypto.randomUUID()}-${params.fileName}`;
     const { error: uploadError } = await this.client.storage
       .from("message-attachments")
       .upload(storagePath, params.content, {
@@ -259,15 +279,51 @@ export class MessagingRepository {
       });
     if (uploadError) throw uploadError;
 
-    const { data, error } = await this.client.rpc("record_message_attachment", {
-      p_message_id: params.messageId,
-      p_storage_path: storagePath,
-      p_file_name: params.fileName,
-      p_mime_type: params.mimeType,
-      p_size_bytes: params.sizeBytes,
-    });
-    if (error) throw error;
+    const { data, error } = await this.client.rpc(
+      "record_consultation_attachment",
+      {
+        p_message_id: params.messageId,
+        p_source_kind: "upload",
+        p_purpose: params.purpose,
+        p_file_name: params.fileName,
+        p_mime_type: params.mimeType,
+        p_size_bytes: params.sizeBytes,
+        p_storage_path: storagePath,
+      },
+    );
+    if (error) {
+      await this.client.storage
+        .from("message-attachments")
+        .remove([storagePath]);
+      throw error;
+    }
 
+    const { data: row, error: fetchError } = await this.client
+      .from("message_attachments")
+      .select("*")
+      .eq("id", data)
+      .single();
+    if (fetchError) throw fetchError;
+    return messageAttachment(row);
+  }
+
+  async recordReferenceAttachment(params: {
+    conversationId: ConversationId;
+    messageId: MessageId;
+    purpose: "pinterest_link";
+    sourceUrl: string;
+  }): Promise<MessageAttachment> {
+    const { data, error } = await this.client.rpc(
+      "record_consultation_attachment",
+      {
+        p_message_id: params.messageId,
+        p_source_kind: "link",
+        p_purpose: params.purpose,
+        p_file_name: "Pinterest reference",
+        p_source_url: params.sourceUrl,
+      },
+    );
+    if (error) throw error;
     const { data: row, error: fetchError } = await this.client
       .from("message_attachments")
       .select("*")

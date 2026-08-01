@@ -1081,3 +1081,19 @@ those suites' bug.
   local data assets, removing a runtime/privacy dependency on nebelspiegel;
   shared-path desktop and 390px visual snapshots pin the card, controls and
   liked rail. FT-08 now satisfies its blueprint.
+- FT-09 TableService began with a runtime audit that found a material false
+  positive: the exact `/r/[slug]` storefront is a raw HTML Route Handler, so
+  its original widget was the surface customers actually clicked; the
+  database-connected React port only mounted on child routes. The raw founder
+  interaction now detects customer auth and uses a same-origin multipart
+  bridge into the same canonical message command. Photo, PDF, Pinterest and
+  wedding-fabric choices have working native selection/link composition,
+  preview, remove, rights confirmation, retained failure and private signed
+  rendering in both customer and retailer views. Migration
+  `20260802000003` adds typed source/purpose/rights/scan fields plus a
+  caller/tenant-rederiving RPC; domain checks enforce 10 MB, MIME/magic bytes,
+  filename safety and Pinterest HTTPS hosts. Clean reset applied 152
+  migrations; 4 domain, 8 pgTAP, 2 customer browser and 1 retailer browser
+  assertions pass. The status remains a connected first slice because real
+  malware/quarantine, progress, party/garment context, withdrawal/citation and
+  conversation-to-look-to-outcome proof are not yet built.

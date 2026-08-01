@@ -2,6 +2,7 @@ import { MessagingRepository, RetailerRepository } from "@paon/database";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { sendMessage } from "../actions";
@@ -20,10 +21,21 @@ export default async function ConversationPage({
   const conversation = await repo.findConversation(id as never);
   if (!conversation) notFound();
   await repo.markRead(conversation.id);
-  const [messages, retailer] = await Promise.all([
+  const [messages, retailer, attachments] = await Promise.all([
     repo.findMessages(conversation.id),
     new RetailerRepository(client).findById(conversation.retailerId),
+    repo.findAttachmentsByConversation(conversation.id),
   ]);
+  const attachmentsByMessage = new Map<
+    string,
+    (typeof attachments)[number][]
+  >();
+  for (const attachment of attachments) {
+    const rows =
+      attachmentsByMessage.get(attachment.attachment.messageId) ?? [];
+    rows.push(attachment);
+    attachmentsByMessage.set(attachment.attachment.messageId, rows);
+  }
   return (
     <div className="flex min-h-[calc(100dvh-10.5rem)] flex-col gap-5 lg:min-h-0">
       <div>
@@ -41,6 +53,36 @@ export default async function ConversationPage({
             className={`max-w-[85%] rounded-[var(--radius-md)] px-4 py-3 ${message.senderType === "customer" ? "ml-auto bg-[var(--color-stone-900)] text-white" : "bg-[var(--color-stone-100)]"}`}
           >
             <p className="text-sm">{message.body}</p>
+            {(attachmentsByMessage.get(message.id) ?? []).map(
+              ({ attachment, accessUrl }) =>
+                accessUrl ? (
+                  <a
+                    key={attachment.id}
+                    href={accessUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 block text-xs underline"
+                  >
+                    {attachment.purpose === "pinterest_link" ||
+                    attachment.mimeType === "application/pdf" ? (
+                      attachment.fileName
+                    ) : (
+                      <Image
+                        src={accessUrl}
+                        alt={attachment.fileName}
+                        width={160}
+                        height={160}
+                        unoptimized
+                        className="max-h-40 w-auto rounded object-cover"
+                      />
+                    )}
+                  </a>
+                ) : (
+                  <span key={attachment.id} className="mt-2 block text-xs">
+                    Attachment unavailable
+                  </span>
+                ),
+            )}
             <p className="mt-1 text-xs opacity-60">
               {formatDate(message.createdAt, "en-US")}
             </p>
