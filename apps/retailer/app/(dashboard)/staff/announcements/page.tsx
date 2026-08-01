@@ -101,8 +101,16 @@ export default async function AnnouncementsPage() {
             Your announcements ({correctAnnouncements.length})
           </h2>
           {correctAnnouncements.length === 0 ? (
-            <p className="mt-3 text-sm text-[var(--color-stone-500)]">
-              No announcements yet. Check back later.
+            // Designed, not defaulted. "Check back later" is the wrong
+            // instruction for someone looking at a publish form: they are the
+            // person who makes the first one exist.
+            <p
+              id="announcement-feed-empty"
+              className="mt-3 text-sm text-[var(--color-stone-500)]"
+            >
+              Nothing posted yet. Anything you publish here reaches the team on
+              their next shift, and you can ask them to confirm they have read
+              it.
             </p>
           ) : (
             <ul id="announcement-feed" className="mt-3 flex flex-col gap-4">
@@ -122,6 +130,7 @@ export default async function AnnouncementsPage() {
                 return (
                   <li
                     key={ann.id}
+                    data-announcement-id={ann.id}
                     data-acknowledged={hasAcknowledged ? "true" : "false"}
                     className="border-b border-[var(--color-stone-100)] pb-4 last:border-0"
                   >
@@ -221,7 +230,9 @@ async function ReachSummary({
 
   return (
     <div
-      id="announcement-reach"
+      // Scoped to the announcement: this block renders once per item in the
+      // feed, and a literal id would repeat down the page.
+      data-announcement-reach={announcementId}
       className="mt-2 border-t border-[var(--color-stone-100)] pt-2 text-xs text-[var(--color-stone-500)]"
     >
       <p>

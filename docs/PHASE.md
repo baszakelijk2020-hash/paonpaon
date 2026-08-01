@@ -1521,6 +1521,28 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     nothing. Missing: all UI, browser proof, onboarding checklists, and
     discussion threads on announcements.
 
+  - **Status (2026-08-01, takeover branch, revised):** `verified_local`.
+    Browser proof `apps/retailer/e2e/staff-announcements.spec.ts`. What it
+    proves is that "I have read this" is a RECORD rather than a checkbox:
+    the acknowledgement is written once, a DELETE and an UPDATE against it
+    both change nothing (append-only enforced as a grant, not a
+    convention, including for `service_role`), and a second insert for the
+    same reader is refused outright so a reach figure cannot claim two
+    people read a safety notice when one did. The reach line then reads
+    "1 of N have read this" with the outstanding readers named.
+
+    Operating it also fixed two defects of the same kind found in 12.1:
+    `#announcement-reach` was a literal id on a block that renders once per
+    announcement (duplicate ids down the page), and the feed's empty state
+    told a manager standing in front of the publish form to "check back
+    later" — they are the person who makes the first one exist.
+
+    One test-authoring lesson worth keeping: the first run appeared to show
+    the acknowledgement flag being dropped, because the spec never selected
+    an audience. The action correctly refused, `.single()` returned null,
+    and dereferencing it with `!` made a refused publish look exactly like
+    a silently dropped column. Both are now checked explicitly.
+
 ### Stage 12 — MTM, fit, production, and service network
 
 - [ ] **12.1 MeasurementMonitor decision gate**
@@ -1583,6 +1605,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
        accepting a scan's number means the scan is where it came from; a
        value the advisor changed becomes `tailor_tape`, because they
        measured it themselves.
+
     2. **`Math.round(cm * 10)` made the whole-millimetre rule unreachable**
        and silently invented precision: 101.05 cm became 1011 mm rather
        than being refused. Sub-millimetre input is now rejected.
