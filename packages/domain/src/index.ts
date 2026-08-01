@@ -153,3 +153,6 @@ export * from "./inventory/loss-prevention";
 export * from "./commerce/pos-transaction";
 export * from "./corporate/corporate-programme";
 export * from "./intelligence/cited-recommendation";
+export * from "./network/partner-attribution";
+export * from "./network/audience-governance";
+export * from "./merchant/munro-merchant";

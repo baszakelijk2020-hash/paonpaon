@@ -14,6 +14,181 @@ export type Database = {
   };
   public: {
     Tables: {
+      advertising_creatives: {
+        Row: {
+          asset_ref: string;
+          created_at: string;
+          id: string;
+          order_id: string;
+          retailer_id: string;
+          review_state: string;
+          reviewed_by_staff_id: string | null;
+          rights_expires_on: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          asset_ref: string;
+          created_at?: string;
+          id?: string;
+          order_id: string;
+          retailer_id: string;
+          review_state?: string;
+          reviewed_by_staff_id?: string | null;
+          rights_expires_on?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          asset_ref?: string;
+          created_at?: string;
+          id?: string;
+          order_id?: string;
+          retailer_id?: string;
+          review_state?: string;
+          reviewed_by_staff_id?: string | null;
+          rights_expires_on?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advertising_creatives_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "advertising_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advertising_creatives_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advertising_creatives_reviewed_by_staff_id_fkey";
+            columns: ["reviewed_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advertising_events: {
+        Row: {
+          created_at: string;
+          dedupe_key: string;
+          fraud_review_state: string;
+          id: string;
+          kind: string;
+          occurred_at: string;
+          order_id: string;
+          pseudonymous_ref: string;
+          retailer_id: string;
+          value_minor_units: number | null;
+        };
+        Insert: {
+          created_at?: string;
+          dedupe_key: string;
+          fraud_review_state?: string;
+          id?: string;
+          kind: string;
+          occurred_at?: string;
+          order_id: string;
+          pseudonymous_ref: string;
+          retailer_id: string;
+          value_minor_units?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          dedupe_key?: string;
+          fraud_review_state?: string;
+          id?: string;
+          kind?: string;
+          occurred_at?: string;
+          order_id?: string;
+          pseudonymous_ref?: string;
+          retailer_id?: string;
+          value_minor_units?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advertising_events_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "advertising_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advertising_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advertising_orders: {
+        Row: {
+          advertiser_key: string;
+          budget_minor_units: number;
+          cohort_version_id: string;
+          created_at: string;
+          flight_end: string;
+          flight_start: string;
+          frequency_cap: number;
+          id: string;
+          live_serving: boolean;
+          retailer_id: string;
+          serving_contract_ref: string | null;
+          spent_minor_units: number;
+          updated_at: string;
+        };
+        Insert: {
+          advertiser_key: string;
+          budget_minor_units: number;
+          cohort_version_id: string;
+          created_at?: string;
+          flight_end: string;
+          flight_start: string;
+          frequency_cap?: number;
+          id?: string;
+          live_serving?: boolean;
+          retailer_id: string;
+          serving_contract_ref?: string | null;
+          spent_minor_units?: number;
+          updated_at?: string;
+        };
+        Update: {
+          advertiser_key?: string;
+          budget_minor_units?: number;
+          cohort_version_id?: string;
+          created_at?: string;
+          flight_end?: string;
+          flight_start?: string;
+          frequency_cap?: number;
+          id?: string;
+          live_serving?: boolean;
+          retailer_id?: string;
+          serving_contract_ref?: string | null;
+          spent_minor_units?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advertising_orders_cohort_version_id_fkey";
+            columns: ["cohort_version_id"];
+            isOneToOne: false;
+            referencedRelation: "audience_cohort_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advertising_orders_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ai_generations: {
         Row: {
           created_at: string;
@@ -1074,6 +1249,92 @@ export type Database = {
             columns: ["staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      audience_cohort_versions: {
+        Row: {
+          cohort_key: string;
+          computed_at: string;
+          created_at: string;
+          id: string;
+          retailer_id: string;
+          rule_hash: string;
+          size_at_version: number;
+          version: number;
+        };
+        Insert: {
+          cohort_key: string;
+          computed_at?: string;
+          created_at?: string;
+          id?: string;
+          retailer_id: string;
+          rule_hash: string;
+          size_at_version: number;
+          version: number;
+        };
+        Update: {
+          cohort_key?: string;
+          computed_at?: string;
+          created_at?: string;
+          id?: string;
+          retailer_id?: string;
+          rule_hash?: string;
+          size_at_version?: number;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "audience_cohort_versions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      audience_forecasts: {
+        Row: {
+          cohort_version_id: string;
+          computed_at: string;
+          created_at: string;
+          id: string;
+          policy_ref: string;
+          reachable_size: number;
+          retailer_id: string;
+        };
+        Insert: {
+          cohort_version_id: string;
+          computed_at?: string;
+          created_at?: string;
+          id?: string;
+          policy_ref: string;
+          reachable_size: number;
+          retailer_id: string;
+        };
+        Update: {
+          cohort_version_id?: string;
+          computed_at?: string;
+          created_at?: string;
+          id?: string;
+          policy_ref?: string;
+          reachable_size?: number;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "audience_forecasts_cohort_version_id_fkey";
+            columns: ["cohort_version_id"];
+            isOneToOne: false;
+            referencedRelation: "audience_cohort_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "audience_forecasts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];
@@ -4539,6 +4800,56 @@ export type Database = {
           },
         ];
       };
+      governed_releases: {
+        Row: {
+          cohort_size_at_release: number;
+          contract_ref: string | null;
+          created_at: string;
+          customer_request_ref: string | null;
+          entitlement_ref: string;
+          id: string;
+          minimum_n: number;
+          mode: string;
+          purpose: string;
+          released_at: string;
+          retailer_id: string;
+        };
+        Insert: {
+          cohort_size_at_release: number;
+          contract_ref?: string | null;
+          created_at?: string;
+          customer_request_ref?: string | null;
+          entitlement_ref: string;
+          id?: string;
+          minimum_n?: number;
+          mode: string;
+          purpose: string;
+          released_at?: string;
+          retailer_id: string;
+        };
+        Update: {
+          cohort_size_at_release?: number;
+          contract_ref?: string | null;
+          created_at?: string;
+          customer_request_ref?: string | null;
+          entitlement_ref?: string;
+          id?: string;
+          minimum_n?: number;
+          mode?: string;
+          purpose?: string;
+          released_at?: string;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "governed_releases_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       honeymoon_programme_actions: {
         Row: {
           created_at: string;
@@ -6034,6 +6345,389 @@ export type Database = {
         };
         Relationships: [];
       };
+      merchant_group_buys: {
+        Row: {
+          closes_on: string;
+          committed_quantity: number;
+          created_at: string;
+          id: string;
+          listing_id: string;
+          retailer_id: string;
+          target_quantity: number;
+          updated_at: string;
+        };
+        Insert: {
+          closes_on: string;
+          committed_quantity?: number;
+          created_at?: string;
+          id?: string;
+          listing_id: string;
+          retailer_id: string;
+          target_quantity: number;
+          updated_at?: string;
+        };
+        Update: {
+          closes_on?: string;
+          committed_quantity?: number;
+          created_at?: string;
+          id?: string;
+          listing_id?: string;
+          retailer_id?: string;
+          target_quantity?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "merchant_group_buys_listing_id_fkey";
+            columns: ["listing_id"];
+            isOneToOne: false;
+            referencedRelation: "merchant_listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "merchant_group_buys_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      merchant_listings: {
+        Row: {
+          category: string;
+          created_at: string;
+          customizable: boolean;
+          id: string;
+          minimum_order_quantity: number;
+          price_tiers: Json;
+          retailer_id: string;
+          sample_available: boolean;
+          supplier_id: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          category: string;
+          created_at?: string;
+          customizable?: boolean;
+          id?: string;
+          minimum_order_quantity: number;
+          price_tiers: Json;
+          retailer_id: string;
+          sample_available?: boolean;
+          supplier_id: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          category?: string;
+          created_at?: string;
+          customizable?: boolean;
+          id?: string;
+          minimum_order_quantity?: number;
+          price_tiers?: Json;
+          retailer_id?: string;
+          sample_available?: boolean;
+          supplier_id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "merchant_listings_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "merchant_listings_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "merchant_suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      merchant_purchase_orders: {
+        Row: {
+          approved_at: string | null;
+          approved_by_staff_id: string | null;
+          created_at: string;
+          currency: string;
+          id: string;
+          po_number: string;
+          raised_by_staff_id: string | null;
+          retailer_id: string;
+          rfq_id: string | null;
+          state: string;
+          supplier_id: string;
+          total_minor_units: number;
+          updated_at: string;
+        };
+        Insert: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          po_number: string;
+          raised_by_staff_id?: string | null;
+          retailer_id: string;
+          rfq_id?: string | null;
+          state?: string;
+          supplier_id: string;
+          total_minor_units: number;
+          updated_at?: string;
+        };
+        Update: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          po_number?: string;
+          raised_by_staff_id?: string | null;
+          retailer_id?: string;
+          rfq_id?: string | null;
+          state?: string;
+          supplier_id?: string;
+          total_minor_units?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "merchant_purchase_orders_approved_by_staff_id_fkey";
+            columns: ["approved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "merchant_purchase_orders_raised_by_staff_id_fkey";
+            columns: ["raised_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "merchant_purchase_orders_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "merchant_purchase_orders_rfq_id_fkey";
+            columns: ["rfq_id"];
+            isOneToOne: false;
+            referencedRelation: "merchant_rfqs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "merchant_purchase_orders_supplier_id_fkey";
+            columns: ["supplier_id"];
+            isOneToOne: false;
+            referencedRelation: "merchant_suppliers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      merchant_rfqs: {
+        Row: {
+          created_at: string;
+          id: string;
+          listing_id: string;
+          proof_approved_at: string | null;
+          quantity: number;
+          quote_expires_on: string | null;
+          quoted_unit_price_minor_units: number | null;
+          retailer_id: string;
+          state: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          listing_id: string;
+          proof_approved_at?: string | null;
+          quantity: number;
+          quote_expires_on?: string | null;
+          quoted_unit_price_minor_units?: number | null;
+          retailer_id: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          listing_id?: string;
+          proof_approved_at?: string | null;
+          quantity?: number;
+          quote_expires_on?: string | null;
+          quoted_unit_price_minor_units?: number | null;
+          retailer_id?: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "merchant_rfqs_listing_id_fkey";
+            columns: ["listing_id"];
+            isOneToOne: false;
+            referencedRelation: "merchant_listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "merchant_rfqs_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      merchant_shipment_issues: {
+        Row: {
+          affected_quantity: number;
+          created_at: string;
+          evidence_refs: string[];
+          id: string;
+          kind: string;
+          resolved_at: string | null;
+          retailer_id: string;
+          shipment_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          affected_quantity: number;
+          created_at?: string;
+          evidence_refs?: string[];
+          id?: string;
+          kind: string;
+          resolved_at?: string | null;
+          retailer_id: string;
+          shipment_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          affected_quantity?: number;
+          created_at?: string;
+          evidence_refs?: string[];
+          id?: string;
+          kind?: string;
+          resolved_at?: string | null;
+          retailer_id?: string;
+          shipment_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "merchant_shipment_issues_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "merchant_shipment_issues_shipment_id_fkey";
+            columns: ["shipment_id"];
+            isOneToOne: false;
+            referencedRelation: "merchant_shipments";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      merchant_shipments: {
+        Row: {
+          carrier_reference: string | null;
+          created_at: string;
+          id: string;
+          purchase_order_id: string;
+          quantity: number;
+          received_on: string | null;
+          retailer_id: string;
+          shipped_on: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          carrier_reference?: string | null;
+          created_at?: string;
+          id?: string;
+          purchase_order_id: string;
+          quantity: number;
+          received_on?: string | null;
+          retailer_id: string;
+          shipped_on?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          carrier_reference?: string | null;
+          created_at?: string;
+          id?: string;
+          purchase_order_id?: string;
+          quantity?: number;
+          received_on?: string | null;
+          retailer_id?: string;
+          shipped_on?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "merchant_shipments_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "merchant_purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "merchant_shipments_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      merchant_suppliers: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          display_name: string;
+          id: string;
+          retailer_id: string;
+          supplier_key: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          display_name: string;
+          id?: string;
+          retailer_id: string;
+          supplier_key: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          display_name?: string;
+          id?: string;
+          retailer_id?: string;
+          supplier_key?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "merchant_suppliers_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       message_attachments: {
         Row: {
           created_at: string;
@@ -7018,6 +7712,275 @@ export type Database = {
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      network_attribution_events: {
+        Row: {
+          created_at: string;
+          event: string;
+          id: string;
+          listing_id: string;
+          occurred_at: string;
+          provider_event_key: string;
+          pseudonymous_ref: string;
+          retailer_id: string;
+          state: string;
+          value_minor_units: number | null;
+        };
+        Insert: {
+          created_at?: string;
+          event: string;
+          id?: string;
+          listing_id: string;
+          occurred_at?: string;
+          provider_event_key: string;
+          pseudonymous_ref: string;
+          retailer_id: string;
+          state?: string;
+          value_minor_units?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          event?: string;
+          id?: string;
+          listing_id?: string;
+          occurred_at?: string;
+          provider_event_key?: string;
+          pseudonymous_ref?: string;
+          retailer_id?: string;
+          state?: string;
+          value_minor_units?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "network_attribution_events_listing_id_fkey";
+            columns: ["listing_id"];
+            isOneToOne: false;
+            referencedRelation: "network_listings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "network_attribution_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      network_listings: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          curated_by_retailer: boolean;
+          description: string | null;
+          destination_url: string;
+          id: string;
+          partner_id: string;
+          retailer_id: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          curated_by_retailer?: boolean;
+          description?: string | null;
+          destination_url: string;
+          id?: string;
+          partner_id: string;
+          retailer_id: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          curated_by_retailer?: boolean;
+          description?: string | null;
+          destination_url?: string;
+          id?: string;
+          partner_id?: string;
+          retailer_id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "network_listings_partner_id_fkey";
+            columns: ["partner_id"];
+            isOneToOne: false;
+            referencedRelation: "network_partners";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "network_listings_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      network_partners: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          disclosure_text: string;
+          display_name: string;
+          id: string;
+          partner_key: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          disclosure_text: string;
+          display_name: string;
+          id?: string;
+          partner_key: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          disclosure_text?: string;
+          display_name?: string;
+          id?: string;
+          partner_key?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "network_partners_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      network_pseudonym_map: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          id: string;
+          partner_id: string;
+          pseudonymous_ref: string;
+          retailer_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          partner_id: string;
+          pseudonymous_ref: string;
+          retailer_id: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          partner_id?: string;
+          pseudonymous_ref?: string;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "network_pseudonym_map_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "network_pseudonym_map_partner_id_fkey";
+            columns: ["partner_id"];
+            isOneToOne: false;
+            referencedRelation: "network_partners";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "network_pseudonym_map_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      network_reward_entries: {
+        Row: {
+          attribution_event_id: string | null;
+          created_at: string;
+          currency: string;
+          customer_id: string;
+          expires_on: string;
+          funding_source: string;
+          id: string;
+          retailer_id: string;
+          reverses_entry_id: string | null;
+          state: string;
+          value_minor_units: number;
+        };
+        Insert: {
+          attribution_event_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          customer_id: string;
+          expires_on: string;
+          funding_source: string;
+          id?: string;
+          retailer_id: string;
+          reverses_entry_id?: string | null;
+          state?: string;
+          value_minor_units: number;
+        };
+        Update: {
+          attribution_event_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          customer_id?: string;
+          expires_on?: string;
+          funding_source?: string;
+          id?: string;
+          retailer_id?: string;
+          reverses_entry_id?: string | null;
+          state?: string;
+          value_minor_units?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "network_reward_entries_attribution_event_id_fkey";
+            columns: ["attribution_event_id"];
+            isOneToOne: false;
+            referencedRelation: "network_attribution_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "network_reward_entries_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "network_reward_entries_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "network_reward_entries_reverses_entry_id_fkey";
+            columns: ["reverses_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "network_reward_entries";
             referencedColumns: ["id"];
           },
         ];
@@ -9559,6 +10522,61 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      revenue_share_entries: {
+        Row: {
+          amount_minor_units: number;
+          created_at: string;
+          currency: string;
+          id: string;
+          party: string;
+          retailer_id: string;
+          reverses_entry_id: string | null;
+          source_event_id: string | null;
+        };
+        Insert: {
+          amount_minor_units: number;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          party: string;
+          retailer_id: string;
+          reverses_entry_id?: string | null;
+          source_event_id?: string | null;
+        };
+        Update: {
+          amount_minor_units?: number;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          party?: string;
+          retailer_id?: string;
+          reverses_entry_id?: string | null;
+          source_event_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "revenue_share_entries_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "revenue_share_entries_reverses_entry_id_fkey";
+            columns: ["reverses_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "revenue_share_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "revenue_share_entries_source_event_id_fkey";
+            columns: ["source_event_id"];
+            isOneToOne: false;
+            referencedRelation: "advertising_events";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       reward_redemptions: {
         Row: {

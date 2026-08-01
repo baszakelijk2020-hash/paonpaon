@@ -1841,6 +1841,25 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Tests:** attribution/idempotency, expiry/reversal, visibility/RLS.
   - **Non-goals:** no silent sale of named customer profiles.
   - **Hard blockers:** commercial contract blocks live listing only.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only; no UI, no browser proof.
+    `network_attribution_events` has **no `customer_id` column at all** —
+    not a nullable one — so a partner-facing query has nothing to resolve
+    a person from, and a test asserts the absence. The customer-to-pseudonym
+    mapping lives in `network_pseudonym_map`, granted to `service_role`
+    only, with no retailer-select policy: no session and no partner
+    integration can reverse it. `buildPartnerPayload` is a whitelist over
+    the pseudonymous ref and a test proves a name, an email and a
+    Self-Portrait value all fail to appear in its output. A confirmed order
+    enters `holding`, not `confirmed` — commission is payable only once the
+    return window closes, because paying on order and clawing back later
+    leaves a partner owing money on a month they have already spent — and a
+    refund reverses to zero wherever in the window it lands. Retried
+    provider callbacks collapse on a unique `provider_event_key`. Every
+    partner listing must carry disclosure text: a placement the customer
+    cannot tell is commercial is an advertisement pretending to be advice.
+    Missing: listing curation UI, customer placement surface, partner
+    reporting, browser proof. Live listings stay `blocked_external`.
 
 - [ ] **15.2 Rewards and concierge activation**
   - **Requirement IDs:** `NET-103`, `NET-104`.
@@ -1852,6 +1871,23 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Tests:** ledger reversal, expiry, eligibility, partner/account mapping.
   - **Non-goals:** no unapproved stored value or promised transfer network.
   - **Hard blockers:** accounting/provider decision blocks affected reward.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. The concierge half deliberately works with no
+    money design at all, so the useful part of this item is not blocked on
+    a decision it does not need; `checkConciergeRequest` refuses only a
+    request that would move money. On the reward side, `funding_source`
+    and `expires_on` are both NOT NULL: every unit of value must trace to
+    money that already exists, and an unexpiring balance is an indefinite
+    liability — which is precisely the stored-value question ADR-062 has
+    not answered. Transfer between customers is refused **outright** rather
+    than gated behind a flag, because a transferable balance is a currency
+    and PAON has no licence to issue one; making it a refusal rather than
+    an unimplemented branch means nobody can enable it by setting a
+    boolean. Rewards are append-only and a refunded attribution produces
+    reversal _entries_ citing the original, never an edit. A test asserts
+    the whole migration names no payout, provider or payment reference
+    anywhere. Missing: reward UI, concierge request surface, accounting
+    export, browser proof.
 
 - [ ] **15.3 MunroMerchant B2B procurement**
   - **Requirement IDs:** `MKT-001`; ADR-064.
@@ -1864,6 +1900,25 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Tests:** package/table/RLS boundaries, supplier/buyer roles, full flows.
   - **Non-goals:** no customer-facing marketplace order reuse.
   - **Hard blockers:** money/commercial decisions block payment, not RFQ/PO.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only, and deliberately a **separate bounded
+    context**: `packages/domain/src/merchant/munro-merchant.ts` imports
+    nothing at all — a test reads its own source and asserts the import
+    list is empty — and every `merchant_*` table is checked to reference
+    no `customers`, `orders`, `order_lines`, `wardrobe_items`, `products`
+    or `product_variants`. A foreign key is the only thing that could break
+    the boundary, so that is what the test looks for. Tiered pricing
+    applies the _highest_ tier the quantity clears, because sorting
+    ascending and taking the first match quotes the most expensive band to
+    the largest buyer. A customised item cannot be accepted without an
+    approved proof — printing 5,000 bags with the wrong logo is not a
+    recoverable mistake. A purchase order above a threshold needs a second
+    person, and `initiatePayment` is refused outright rather than ignored,
+    the same reasoning as 12.3's partner invoice. A group buy reports a
+    near-miss as a miss with the shortfall, since a group buy that
+    "nearly" hit its minimum is one the supplier will not honour. Missing:
+    supplier/buyer portals, sample workflow, browser proof. Payment stays
+    `blocked_external`.
 
 - [ ] **15.4 Audience Studio and advertising inventory**
   - **Requirement IDs:** `NET-105`; ledger rows `NET-17`–`NET-22`, `NET-31`.
@@ -1892,6 +1947,26 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Hard blockers:** ad-provider credentials and signed advertiser contracts
     block live serving and live billing only, not the provider-neutral local
     capability.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. Cohort versions are immutable rows;
+    `advertising_orders` and `audience_forecasts` both pin
+    `cohort_version_id` with `on delete restrict`, so a later rule edit
+    creates a new version rather than restating a past forecast or a past
+    payable. `restateForecast()` exists **only to refuse** — a past
+    forecast is a historical claim, and recomputing it under today's rules
+    makes a measurement dispute unwinnable because nobody can show what was
+    originally said. `advertising_live_needs_contract` makes live serving
+    without a signed contract impossible at the schema level, which is
+    exactly the line the hard blocker draws: local capability yes, live
+    serving no. Pacing and frequency caps are enforced in `checkDelivery`
+    before an impression, not reported afterwards — a cap you can only
+    observe after the fact is not a cap — and an unreviewed creative
+    cannot deliver. Provider events dedupe on a unique key, and
+    `advertising_events` has no `customer_id` column, same as the partner
+    network. `checkIdentityClaim` refuses a cross-device claim resting on a
+    probabilistic signal: a shared IP address is not evidence that two
+    devices are one person. Missing: advertiser and publisher portals,
+    the serving path itself, browser proof.
 
 - [ ] **15.5 Governed insights, clean-room and entitlement exchange**
   - **Requirement IDs:** `NET-106`; ledger rows `NET-23`–`NET-28`, `NET-32`.
@@ -1917,6 +1992,24 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     technically false measurement claim.
   - **Hard blockers:** data-processing terms and clean-room provider decisions
     block the affected exchange mode only.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. `governed_releases.purpose` and
+    `entitlement_ref` are NOT NULL, so a release cannot be recorded without
+    the things that made it lawful — a nullable column would make
+    "recorded" optional. The minimum-n floor is a CHECK constraint rather
+    than application logic, and `checkRelease` evaluates it against the
+    cohort **as it is now**: a cohort that was 400 people and is 6 after a
+    correction stops being releasable immediately. Only two modes may carry
+    a named person — `own_tenant_export` (a retailer's own data about its
+    own customers) and `customer_requested_introduction`, which requires
+    the customer's own request on record; every other mode is refused if it
+    tries, in both the domain check and a CHECK constraint. A refund
+    reverses **every** share, not only the retailer's, and reversal is a
+    new ledger row citing the original because editing it would erase that
+    value was ever shared, which is the thing a dispute needs. Revenue
+    share entries have no UPDATE grant. Missing: clean-room adapter,
+    benchmark projections, accounting export, browser proof. Affected
+    exchange modes stay `blocked_external` on data-processing terms.
 
 ### Stage 16 — Knowledge productization and vertical packs
 
