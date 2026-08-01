@@ -1,5 +1,6 @@
 import {
   OrderRepository,
+  PlatformModuleRepository,
   ProductRepository,
   ProductVariantRepository,
   RetailerRepository,
@@ -9,7 +10,7 @@ import {
   createSupabaseDirectClient,
 } from "@paon/database";
 import { ensureProgrammeProofSeed } from "@paon/database/programme-proof-seed";
-import type { UserId } from "@paon/domain";
+import { PLATFORM_MODULES, type RetailerId, type UserId } from "@paon/domain";
 
 import {
   TEST_ORDER_PRODUCT_SLUG,
@@ -49,7 +50,7 @@ async function globalSetup(): Promise<void> {
   // Seed that canonical graph once before Playwright starts parallel workers;
   // asking each worker to race through the same auth-user creation makes a
   // clean database depend on which test happens to win the first insert.
-  await ensureProgrammeProofSeed({
+  const proof = await ensureProgrammeProofSeed({
     supabaseUrl,
     anonKey: supabaseAnonKey,
     serviceRoleKey,
@@ -75,6 +76,22 @@ async function globalSetup(): Promise<void> {
         countryCode: "US",
       },
     });
+  }
+
+  // Both shared e2e houses intentionally exercise the complete platform.
+  // New production retailers receive modules through plans/add-ons instead.
+  const moduleRepository = new PlatformModuleRepository(admin);
+  for (const retailerId of [proof.retailerId as RetailerId, retailer.id]) {
+    for (const platformModule of PLATFORM_MODULES) {
+      await moduleRepository.configure({
+        retailerId,
+        moduleKey: platformModule.key,
+        state: "active",
+        authorityMode:
+          platformModule.key === "platform_core" ? "paon" : "co_managed",
+        source: "add_on",
+      });
+    }
   }
   // workspace.spec.ts temporarily edits the display name and restores it.
   // A failed/interrupted run must not make the next run inherit an ever-longer

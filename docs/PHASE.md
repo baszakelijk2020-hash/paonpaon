@@ -118,6 +118,18 @@ be resumed without the module mapping required by R0.3.**
     UI, static shell or domain/schema foundation a completed source tool.
   - **Tests:** seed rerun, cleanup, tenancy, primary login/navigation and
     canonical consumer checks; entitlement dependency and module-off tests.
+  - **Status (2026-08-02):** the first local kernel slice is implemented.
+    Migration `20260801190000` and `@paon/domain` define the eight module
+    families, lifecycle, dependencies, authority, plan bundles, auditable
+    add-ons/overrides and active-only jobs. Existing tenants receive an
+    explicit compatibility override; new retailers derive access from plans
+    and add-ons. Retailer navigation now projects effective module+role state,
+    marks preview surfaces and removes suspended/off surfaces. Proof: 6 domain
+    assertions, 8 repository/schema assertions, 15 pgTAP assertions, clean
+    reset through all 149 migrations and 1/1 browser suspend/preview/restore.
+    Remaining: server-boundary enforcement beyond navigation/jobs, canonical
+    House depth and cleanup, clean customer/retailer baselines, and the
+    Stage 8–16 + founder-tool disposition map.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

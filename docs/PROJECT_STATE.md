@@ -17,7 +17,7 @@ This correction supersedes conflicting status and handoff claims below:
 - Active queue: R0.1 at the top of `PHASE.md`; ADR-070 restores the full
   modular destination while requiring legacy 9.2 and Stage 10–16 work to be
   mapped through R0.3 before it resumes.
-- The takeover branch has 148 migrations and all apply from zero locally. A
+- The takeover branch has 149 migrations and all apply from zero locally. A
   populated synthetic pre-18 database now proves both transactional refusal
   of catalogue/ledger conflicts and a quantity-preserving clean upgrade
   through migration 22 plus R0.1 hardening. An approved restore of actual
@@ -52,9 +52,16 @@ This correction supersedes conflicting status and handoff claims below:
   sequential POS/stock seams with transactional RPCs. Authenticated payment
   and POS-line writes are RPC-only, and final-state/line triggers prevent
   direct bypass even by privileged fixture clients. The live suite is now
-  70/70; pgTAP is 11/11; clean reset applies all 148 migrations; the
+  70/70; pgTAP is 11/11; clean reset applies all 149 migrations; the
   stock/loss/POS browser slice remains 4/4. Cash remains a proposed policy in
   ADR-072, not a production activation.
+- R0.3 now has a local module kernel: eight family contracts, plan bundles,
+  effective retailer lifecycle/authority resolution, dependency rollback,
+  audit history, active-only jobs and role-aware navigation projection.
+  Module proof is 6 domain + 8 repository/schema + 15 pgTAP + 1 browser
+  assertion. It is a first slice, not R0.3 completion; canonical House depth,
+  direct server guards, clean baselines and the capability disposition map
+  remain.
 
 ## Repository
 

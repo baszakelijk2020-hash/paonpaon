@@ -1,9 +1,11 @@
 import {
+  PlatformModuleRepository,
   RetailerRepository,
   WorkflowDefinitionRepository,
 } from "@paon/database";
 import {
   applyNavigationLabel,
+  projectModuleNavigation,
   RETAILER_ROLE_LABELS,
   retailerRoleAtLeast,
   retailerRoleHasAlterationsPermission,
@@ -36,6 +38,16 @@ export default async function DashboardLayout({
   const familiarity = await new WorkflowDefinitionRepository(
     supabase,
   ).getRetailerPreset(session.retailerId);
+  const moduleConfigurations = await new PlatformModuleRepository(
+    supabase,
+  ).resolveRetailer(session.retailerId);
+  const projectedModuleNavigation = projectModuleNavigation({
+    configurations: moduleConfigurations,
+    role: session.retailerRole,
+  });
+  const moduleNavigationByHref = new Map(
+    projectedModuleNavigation.map((item) => [item.href, item]),
+  );
   const canManageRetailer = retailerRoleAtLeast(session.retailerRole, "admin");
   const canManageCustomers = retailerRoleAtLeast(
     session.retailerRole,
@@ -299,6 +311,20 @@ export default async function DashboardLayout({
       : []),
   ];
 
+  const entitledNavigation: AppShellNavGroup[] = navigation
+    .map((group) => ({
+      ...group,
+      items: group.items
+        .filter((item) => moduleNavigationByHref.has(item.href))
+        .map((item) => ({
+          ...item,
+          label: moduleNavigationByHref.get(item.href)?.preview
+            ? `${item.label} · Preview`
+            : item.label,
+        })),
+    }))
+    .filter((group) => group.items.length > 0);
+
   const mobileDock = isWorkshopRole
     ? [
         { href: "/dashboard", label: "Brief" },
@@ -316,6 +342,9 @@ export default async function DashboardLayout({
           : [{ href: "/orders", label: "Orders" }]),
         { href: "/messages", label: "Messages" },
       ];
+  const entitledMobileDock = mobileDock.filter((item) =>
+    moduleNavigationByHref.has(item.href),
+  );
 
   return (
     <RetailerTheme theme={retailer.brandTheme}>
@@ -325,8 +354,8 @@ export default async function DashboardLayout({
         homeHref={homeHref}
         persona={PERSONA_LABELS[session.retailerRole]}
         email={session.email}
-        navigation={navigation}
-        mobileDock={mobileDock}
+        navigation={entitledNavigation}
+        mobileDock={entitledMobileDock}
         signOutControl={
           <form action={signOut}>
             <Button type="submit" variant="ghost" size="sm">

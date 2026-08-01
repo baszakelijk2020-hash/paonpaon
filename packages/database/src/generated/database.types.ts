@@ -8784,6 +8784,42 @@ export type Database = {
           },
         ];
       };
+      platform_modules: {
+        Row: {
+          authority_domains: string[];
+          created_at: string;
+          dependency_keys: string[];
+          description: string;
+          family_order: number;
+          job_keys: string[];
+          key: string;
+          name: string;
+          updated_at: string;
+        };
+        Insert: {
+          authority_domains?: string[];
+          created_at?: string;
+          dependency_keys?: string[];
+          description: string;
+          family_order: number;
+          job_keys?: string[];
+          key: string;
+          name: string;
+          updated_at?: string;
+        };
+        Update: {
+          authority_domains?: string[];
+          created_at?: string;
+          dependency_keys?: string[];
+          description?: string;
+          family_order?: number;
+          job_keys?: string[];
+          key?: string;
+          name?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       platform_staff_members: {
         Row: {
           accepted_at: string | null;
@@ -10713,6 +10749,117 @@ export type Database = {
           },
           {
             foreignKeyName: "retailer_knowledge_overrides_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      retailer_module_configuration_events: {
+        Row: {
+          changed_by_user_id: string | null;
+          id: string;
+          module_key: string;
+          next_authority_mode: string;
+          next_state: string;
+          occurred_at: string;
+          previous_authority_mode: string | null;
+          previous_state: string | null;
+          reason: string | null;
+          retailer_id: string;
+          source: string;
+        };
+        Insert: {
+          changed_by_user_id?: string | null;
+          id?: string;
+          module_key: string;
+          next_authority_mode: string;
+          next_state: string;
+          occurred_at?: string;
+          previous_authority_mode?: string | null;
+          previous_state?: string | null;
+          reason?: string | null;
+          retailer_id: string;
+          source: string;
+        };
+        Update: {
+          changed_by_user_id?: string | null;
+          id?: string;
+          module_key?: string;
+          next_authority_mode?: string;
+          next_state?: string;
+          occurred_at?: string;
+          previous_authority_mode?: string | null;
+          previous_state?: string | null;
+          reason?: string | null;
+          retailer_id?: string;
+          source?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_module_configuration_events_module_key_fkey";
+            columns: ["module_key"];
+            isOneToOne: false;
+            referencedRelation: "platform_modules";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "retailer_module_configuration_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      retailer_module_configurations: {
+        Row: {
+          authority_mode: string;
+          configured_by_user_id: string | null;
+          created_at: string;
+          id: string;
+          module_key: string;
+          reason: string | null;
+          retailer_id: string;
+          source: string;
+          state: string;
+          updated_at: string;
+        };
+        Insert: {
+          authority_mode: string;
+          configured_by_user_id?: string | null;
+          created_at?: string;
+          id?: string;
+          module_key: string;
+          reason?: string | null;
+          retailer_id: string;
+          source: string;
+          state: string;
+          updated_at?: string;
+        };
+        Update: {
+          authority_mode?: string;
+          configured_by_user_id?: string | null;
+          created_at?: string;
+          id?: string;
+          module_key?: string;
+          reason?: string | null;
+          retailer_id?: string;
+          source?: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_module_configurations_module_key_fkey";
+            columns: ["module_key"];
+            isOneToOne: false;
+            referencedRelation: "platform_modules";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "retailer_module_configurations_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
@@ -14152,6 +14299,42 @@ export type Database = {
           },
         ];
       };
+      subscription_plan_modules: {
+        Row: {
+          created_at: string;
+          default_authority_mode: string;
+          module_key: string;
+          plan_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          default_authority_mode?: string;
+          module_key: string;
+          plan_id: string;
+        };
+        Update: {
+          created_at?: string;
+          default_authority_mode?: string;
+          module_key?: string;
+          plan_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "subscription_plan_modules_module_key_fkey";
+            columns: ["module_key"];
+            isOneToOne: false;
+            referencedRelation: "platform_modules";
+            referencedColumns: ["key"];
+          },
+          {
+            foreignKeyName: "subscription_plan_modules_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "subscription_plans";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       subscription_plans: {
         Row: {
           billing_interval: string;
@@ -16297,6 +16480,10 @@ export type Database = {
         Returns: number;
       };
       assert_pos_actor: { Args: { p_retailer_id: string }; Returns: undefined };
+      assert_retailer_module_dependencies: {
+        Args: { p_retailer_id: string };
+        Returns: undefined;
+      };
       assign_alteration_work_order: {
         Args: {
           p_alteration_id: string;
@@ -16965,6 +17152,10 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      replace_subscription_plan_modules: {
+        Args: { p_module_keys: string[]; p_plan_id: string };
+        Returns: undefined;
+      };
       request_appointment: {
         Args: {
           p_ends_at: string;
@@ -17009,12 +17200,25 @@ export type Database = {
         };
         Returns: Json;
       };
+      resolve_retailer_modules: {
+        Args: { p_retailer_id: string };
+        Returns: {
+          authority_mode: string;
+          module_key: string;
+          source: string;
+          state: string;
+        }[];
+      };
       restore_retailer_brand_theme: {
         Args: { p_retailer_id: string; p_version_number: number };
         Returns: number;
       };
       retailer_has_entitlement: {
         Args: { p_feature_key: string; p_retailer_id: string };
+        Returns: boolean;
+      };
+      retailer_module_job_enabled: {
+        Args: { p_job_key: string; p_retailer_id: string };
         Returns: boolean;
       };
       retailer_online_location: {
@@ -17115,6 +17319,17 @@ export type Database = {
       set_prospect_demo_publication: {
         Args: { p_prospect_id: string; p_publish: boolean };
         Returns: undefined;
+      };
+      set_retailer_module_configuration: {
+        Args: {
+          p_authority_mode: string;
+          p_module_key: string;
+          p_reason?: string;
+          p_retailer_id: string;
+          p_source: string;
+          p_state: string;
+        };
+        Returns: string;
       };
       set_service_membership_status: {
         Args: { p_membership_id: string; p_status: string };

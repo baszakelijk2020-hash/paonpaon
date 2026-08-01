@@ -15,8 +15,8 @@ Snapshot: 2026-08-02, branch `agent/grok-takeover-2026-07-30`.
 | Hyperagent takeover sandbox | `lowlzpktpayiglckvfpi`   | `ap-northeast-2` | disposable non-production sandbox      | documented by takeover; not visible to the current local Supabase token and not present in current app env files | blocked until credentials are restored; then requires explicit `PAON_DISPOSABLE_SUPABASE_REFS=lowlzpktpayiglckvfpi` |
 | Landlord OS                 | `zpzbrojnhlmwsaxstkws`   | `ap-southeast-1` | unrelated protected project            | visible to local Supabase account                                                                                | out of scope; never touch from PAON                                                                                 |
 
-The repository contains 148 migrations including the R0.1 tenant-boundary
-repair and the local-only R0.2 atomic POS migration. The Hyperagent sandbox
+The repository contains 149 migrations including the R0.1 tenant-boundary
+repair, R0.2 atomic POS migration and local-only R0.3 module kernel. The Hyperagent sandbox
 previously received the first 146 from empty.
 That is clean-database proof only. A populated synthetic pre-18 upgrade has
 now been rehearsed locally in both conflict and success modes; see

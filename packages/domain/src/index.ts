@@ -15,6 +15,7 @@ export * from "./retailer/retailer-branch";
 export * from "./retailer/retailer.schema";
 export * from "./retailer/subscription";
 export * from "./retailer/subscription.schema";
+export * from "./platform/module-kernel";
 export * from "./retailer/commercial-inquiry";
 export * from "./retailer/commercial-inquiry.schema";
 export * from "./retailer/commercial-prospect";
