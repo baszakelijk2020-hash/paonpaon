@@ -7,7 +7,7 @@ import {
 } from "@paon/database";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface AnnouncementActionState {
@@ -30,7 +30,7 @@ export async function publishAnnouncement(
   _previous: AnnouncementActionState,
   formData: FormData,
 ): Promise<AnnouncementActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
 
   const supabase = await getSupabaseServerClient();
@@ -99,7 +99,7 @@ export async function acknowledgeAnnouncement(
   _previous: AnnouncementActionState,
   formData: FormData,
 ): Promise<AnnouncementActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
 
   const supabase = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(supabase).findByUserId(

@@ -1035,3 +1035,10 @@ those suites' bug.
   import, migration, inventory, POS, analytics and staff reads; metadata keeps
   its correct Wardrobe & Styling ownership. The lifecycle proof adds a
   suspended direct-product route assertion rather than relying on hidden nav.
+- The final retailer Server Action pass assigns Platform Core settings and
+  notifications, Wardrobe MorningRoutine, Commerce payment administration,
+  Retail staff work, Garment measurement decisions and Enterprise wedding
+  parties to their owning modules. Only sign-out and the unauthenticated
+  login/invitation boundary intentionally remain outside module enforcement;
+  non-browser handlers/jobs remain a separate audit surface. The complete
+  retailer browser suite stays green at 43/43 after this pass.

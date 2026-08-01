@@ -13,7 +13,7 @@ import {
 import { redirect } from "next/navigation";
 
 import { env } from "@/lib/env";
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export interface InviteStaffFormState {
@@ -26,7 +26,7 @@ export async function inviteStaff(
   _prevState: InviteStaffFormState,
   formData: FormData,
 ): Promise<InviteStaffFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "admin");
 
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;

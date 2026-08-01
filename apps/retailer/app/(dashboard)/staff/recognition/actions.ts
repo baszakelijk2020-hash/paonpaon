@@ -8,7 +8,7 @@ import {
 import type { RecognitionReviewState } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface RecognitionActionState {
@@ -38,7 +38,7 @@ export async function submitRecognitionAct(
   _previous: RecognitionActionState,
   formData: FormData,
 ): Promise<RecognitionActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   // Every retailer role may log an act — the lowest role in the system is
   // still someone whose work deserves recognising.
   requireRetailerRole(session.retailerRole, "read_only");
@@ -85,7 +85,7 @@ export async function reviewRecognitionAct(
   _previous: RecognitionActionState,
   formData: FormData,
 ): Promise<RecognitionActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
 
   const supabase = await getSupabaseServerClient();

@@ -5,7 +5,7 @@ import { RetailerRepository } from "@paon/database";
 import { updateRetailerProfileInputSchema } from "@paon/domain";
 import { stripUndefined } from "@paon/utils";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface UpdateSettingsFormState {
@@ -19,7 +19,7 @@ export async function updateRetailerProfile(
   _prevState: UpdateSettingsFormState,
   formData: FormData,
 ): Promise<UpdateSettingsFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("platform_core");
   requireRetailerRole(session.retailerRole, "admin");
 
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;

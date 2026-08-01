@@ -49,8 +49,10 @@ requires it.
   returns 500. The canonical proof House is now a deep, idempotent tenant
   separated from founder demo, Demo Studio and generic e2e data, with the full
   retailer suite green at 43/43.
-  Extend the shared gate rather than inventing per-page tier checks; House
-  cleanup and the remaining read/write surfaces stay open.
+  Every authenticated retailer Server Action now resolves its owning module;
+  only sign-out and unauthenticated login/invitation acceptance intentionally
+  bypass the gate. Audit non-browser handlers/background entry points rather
+  than inventing per-page tier checks; House cleanup remains open.
   `CAPABILITY_DISPOSITION.md` is the inheritance registry;
   `FOUNDER_TOOL_BLUEPRINTS.md` is now the implementation-grade contract for
   all fourteen designated tools and the wider founder-intent crosswalk. Read

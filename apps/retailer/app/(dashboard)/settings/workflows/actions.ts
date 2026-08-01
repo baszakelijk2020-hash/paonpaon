@@ -8,13 +8,13 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function setFamiliarityPresetAction(
   formData: FormData,
 ): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("platform_core");
   requireRetailerRole(session.retailerRole, "admin");
 
   const presetKey = String(formData.get("presetKey") ?? "");

@@ -7,13 +7,13 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function setMorningRoutineEligibleProduct(
   formData: FormData,
 ): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("wardrobe_styling");
   const parsed = setMorningRoutineEligibleProductInputSchema.parse({
     productId: formData.get("productId"),
     active: formData.get("active") === "true",
@@ -31,7 +31,7 @@ export async function setMorningRoutineEligibleProduct(
 export async function setMorningRoutineRetailerPaused(
   formData: FormData,
 ): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("wardrobe_styling");
   const parsed = setMorningRoutineRetailerPausedInputSchema.parse({
     paused: formData.get("paused") === "true",
   });

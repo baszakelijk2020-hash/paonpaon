@@ -155,9 +155,11 @@ be resumed without the module mapping required by R0.3.**
     Server Action responses, verifies coverage, client, service-plan and event
     writes leave zero rows in preview, then proves suspended direct routes
     return 500.
-    Remaining: extend the gate across every other module-owned mutation/read
-    surface, implement the founder-tool blueprints, and complete canonical
-    House cleanup.
+    Every authenticated retailer Server Action now resolves its owning module;
+    the only exceptions are sign-out and unauthenticated login/invitation
+    acceptance. Remaining: audit non-browser handlers/background entry points,
+    implement the founder-tool blueprints, and complete canonical House
+    cleanup.
     The programme proof now seeds an idempotent, lived-in tenant independently
     from Maison Dubois, Demo Studio prospects and the generic e2e workspace:
     6+ staff, 14 clients, 20+ products, 5+ appointments, 10+ orders and an

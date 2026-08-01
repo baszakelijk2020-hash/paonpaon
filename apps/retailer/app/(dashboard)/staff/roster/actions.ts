@@ -5,11 +5,11 @@ import { StaffRosterRepository } from "@paon/database";
 import { asId, createStaffShiftSchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function createStaffShift(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
 
   const value = createStaffShiftSchema.parse({
@@ -32,7 +32,7 @@ export async function createStaffShift(formData: FormData) {
 }
 
 export async function deleteStaffShift(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
 
   const shiftId = String(formData.get("shiftId"));
@@ -44,13 +44,13 @@ export async function deleteStaffShift(formData: FormData) {
 
 /** Any staff role — clocking in/out is not a manager-only action. */
 export async function clockIn() {
-  await requireSession();
+  await requireModuleSession("retail_operations");
   await new StaffRosterRepository(await getSupabaseServerClient()).clockIn();
   revalidatePath("/dashboard");
 }
 
 export async function clockOut() {
-  await requireSession();
+  await requireModuleSession("retail_operations");
   await new StaffRosterRepository(await getSupabaseServerClient()).clockOut();
   revalidatePath("/dashboard");
 }

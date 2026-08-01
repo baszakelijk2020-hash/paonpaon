@@ -8,7 +8,7 @@ import {
 import type { ConnectionOperationalState } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -27,7 +27,7 @@ export async function transitionConnection(
   _previous: ConnectionLifecycleActionState,
   formData: FormData,
 ): Promise<ConnectionLifecycleActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("platform_core");
   requireRetailerRole(session.retailerRole, "admin");
 
   const connectionId = String(formData.get("connectionId") ?? "");
@@ -91,7 +91,7 @@ export async function runShopifySync(
   _previous: ShopifySyncActionState,
   formData: FormData,
 ): Promise<ShopifySyncActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("platform_core");
   requireRetailerRole(session.retailerRole, "admin");
 
   const connectionId = String(formData.get("connectionId") ?? "");

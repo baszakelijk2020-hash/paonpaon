@@ -13,7 +13,7 @@ import {
 import { redirect } from "next/navigation";
 
 import { env } from "@/lib/env";
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getStripeClient } from "@/lib/stripe";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -34,7 +34,7 @@ export async function connectStripeAccount(
   _previous: PaymentsActionState,
   _formData: FormData,
 ): Promise<PaymentsActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "admin");
 
   const stripe = getStripeClient();
@@ -74,7 +74,7 @@ export async function openStripeExpressDashboard(
   _previous: PaymentsActionState,
   _formData: FormData,
 ): Promise<PaymentsActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "admin");
 
   const stripe = getStripeClient();

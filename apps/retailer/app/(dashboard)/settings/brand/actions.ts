@@ -5,7 +5,7 @@ import { RetailerRepository } from "@paon/database";
 import { retailerBrandThemeSchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface BrandThemeActionState {
@@ -18,7 +18,7 @@ export async function saveBrandTheme(
   _previous: BrandThemeActionState,
   formData: FormData,
 ): Promise<BrandThemeActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("platform_core");
   requireRetailerRole(session.retailerRole, "admin");
   const parsed = retailerBrandThemeSchema.safeParse({
     logoUrl: formData.get("logoUrl"),
@@ -56,7 +56,7 @@ export async function saveBrandTheme(
 }
 
 export async function restoreBrandTheme(formData: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("platform_core");
   requireRetailerRole(session.retailerRole, "admin");
   const version = Number(formData.get("versionNumber"));
   if (!Number.isInteger(version) || version < 1) {

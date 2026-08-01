@@ -11,11 +11,11 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function createWeddingParty(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("enterprise_verticals");
   const value = createWeddingPartySchema.parse({
     organizerCustomerId: formData.get("organizerCustomerId"),
     eventDate: formData.get("eventDate") || undefined,
@@ -40,7 +40,7 @@ export async function createWeddingParty(formData: FormData) {
 }
 
 export async function updateWeddingPartyStatus(formData: FormData) {
-  await requireSession();
+  await requireModuleSession("enterprise_verticals");
   const value = updateWeddingPartyStatusSchema.parse({
     weddingPartyId: formData.get("weddingPartyId"),
     status: formData.get("status"),
@@ -63,7 +63,7 @@ export async function addWeddingPartyMember(
   _prevState: AddMemberState,
   formData: FormData,
 ): Promise<AddMemberState> {
-  await requireSession();
+  await requireModuleSession("enterprise_verticals");
   const parsed = addWeddingPartyMemberSchema.safeParse({
     weddingPartyId,
     name: formData.get("name"),
@@ -90,7 +90,7 @@ export async function addWeddingPartyMember(
 }
 
 export async function updateMemberFittingStatus(formData: FormData) {
-  await requireSession();
+  await requireModuleSession("enterprise_verticals");
   const memberId = String(formData.get("memberId"));
   const status = formData.get("status") as WeddingPartyMemberFittingStatus;
   const weddingPartyId = String(formData.get("weddingPartyId"));
@@ -110,7 +110,7 @@ export async function updatePartySchedule(
   _prev: UpdatePartyScheduleState,
   formData: FormData,
 ): Promise<UpdatePartyScheduleState> {
-  await requireSession();
+  await requireModuleSession("enterprise_verticals");
   const parsed = createWeddingPartySchema
     .omit({ organizerCustomerId: true })
     .safeParse({

@@ -6,7 +6,7 @@ import { createBillingPortalSession } from "@paon/payments";
 import { redirect } from "next/navigation";
 
 import { env } from "@/lib/env";
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getStripeClient } from "@/lib/stripe";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -18,7 +18,7 @@ export async function openBillingPortal(
   _previous: BillingActionState,
   _formData: FormData,
 ): Promise<BillingActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("platform_core");
   requireRetailerRole(session.retailerRole, "admin");
 
   const stripe = getStripeClient();

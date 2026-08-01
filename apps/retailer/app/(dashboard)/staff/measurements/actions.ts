@@ -8,7 +8,7 @@ import {
 import type { MeasurementValue } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface MeasurementActionState {
@@ -39,7 +39,7 @@ export async function recordApprovedMeasurements(
   _previous: MeasurementActionState,
   formData: FormData,
 ): Promise<MeasurementActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const supabase = await getSupabaseServerClient();
@@ -174,7 +174,7 @@ export async function dismissCandidate(
   _previous: MeasurementActionState,
   formData: FormData,
 ): Promise<MeasurementActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const supabase = await getSupabaseServerClient();
