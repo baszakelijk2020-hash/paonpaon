@@ -94,6 +94,13 @@ export default async function DashboardLayout({
                 label: "Orders",
                 description: "Promises through fulfilment",
               },
+              // PHASE 13.1 / INV-101. Not workshop-facing: the shop floor and
+              // stockroom are where stock is received, held and counted.
+              {
+                href: "/inventory",
+                label: "Stock",
+                description: "What is on hand, and every movement behind it",
+              },
               {
                 href: "/messages",
                 label: "Messages",

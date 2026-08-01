@@ -797,3 +797,71 @@ Also fixed while there: `CoachingRepository.recordObservation` declared
 `Promise<{ok:true; id:string} | CoachingCheck>`, and `CoachingCheck`
 contains `{ok:true}`, so the union collapsed and no caller could ever reach
 `id` after narrowing. Now excludes the duplicate success arm.
+
+## 2026-08-01 (evening) — Slice 1 shipped: stock ledger, all five layers
+
+Executed the strict per-slice loop for PHASE 13.1: migration → live
+integration test → server action → UI → browser proof. Nothing was claimed
+before the layer beneath it was proven.
+
+### What exists now
+
+- `StockLedgerRepository` — the repository 13.1 never had. Append-only by
+  construction: every method INSERTs, `reverse` appends a reversal citing the
+  original, and a transfer writes TWO entries so in-transit stock stays
+  visible.
+- `__integration__/stock-ledger-live.integration.test.ts` — 15 assertions
+  against live Postgres. Proves the UPDATE and DELETE refusals, the oversell
+  guard, reversal arithmetic, idempotency-key dedupe, the negative-receipt
+  refusal, the recount gate and the variance cap.
+- `/inventory` — receive, hold, transfer, undo, blind count, reconcile and a
+  reasoned adjustment. Design system components only; every ledger kind
+  rendered in plain language ("Sent out", not `transfer_out`), per
+  UX_PHILOSOPHY rule 1.
+- `e2e/inventory.spec.ts` — browser proof, passing.
+
+### Two real defects found by doing it in this order
+
+1. **A stock shortfall could not be recorded at all.**
+   `stock_ledger_entries` had `check (quantity > 0)` for every kind, and the
+   domain maps `count_adjustment` to +1, so an adjustment could only ever ADD
+   stock. A blind count finding eight where the ledger expected ten — the
+   most common real outcome of counting anything — had nowhere to go.
+   `reconcileBlindCount` reported the negative variance correctly and the
+   insert would then have died on the CHECK.
+   Fixed in `20260801000017`: `count_adjustment` may be signed, every other
+   kind stays positive because direction lives in the kind. Zero is still
+   refused everywhere.
+   Found by writing the repository. No unit test could have caught it: both
+   `projectBalance` and `reconcileBlindCount` are perfectly happy with
+   negative variances, and the schema test asserted the CHECK existed rather
+   than asking whether it was the right CHECK.
+
+2. **`product_variants.inventory_quantity` is a pre-existing second truth.**
+   The older catalogue flows store a stock number on the variant. The 13.1
+   ledger projects its own. Two truths for one fact, and the column cannot be
+   dropped while other code writes it.
+   The page now reads both and SHOWS the disagreement in plain language,
+   rather than silently preferring one. A hidden divergence between a
+   catalogue figure and a ledger figure is exactly how a shop oversells while
+   every screen looks fine. Resolving it properly (retiring the column, or
+   making it a generated projection) is a real follow-up, now visible instead
+   of buried.
+
+### Three of my own fixtures were wrong, in the same way each time
+
+Every failure in this slice was a test fixture choosing numbers that tripped
+a DIFFERENT rule than the one under test:
+
+- 9 of 10 counted is a 10% variance, which correctly trips the relative
+  recount threshold. Two integration assertions were therefore testing the
+  recount gate while claiming to test the adjustment path. Changed to 19 of
+  20 (5%).
+- The browser proof received 3 and counted 2 — a 33% variance — so the page
+  correctly hid the adjust form behind "count again first", and the proof
+  timed out looking for an input that should not have been there. Changed to
+  20 and 19.
+
+The code was right all three times. Worth recording because the pattern is
+specific and repeatable: when a rule has multiple thresholds, a fixture must
+be chosen to clear every threshold except the one being tested.
