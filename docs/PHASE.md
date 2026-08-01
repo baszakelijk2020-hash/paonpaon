@@ -1299,6 +1299,21 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     export mapping and RLS.
   - **Non-goals:** no tax calculation, filing or salary payout.
   - **Hard blockers:** payroll account blocks only provider adapter.
+  - **Landed:** domain layer only (`payroll-period.ts`), operating on the
+    existing real `staff_time_entries`/`staff_shifts` (never customer data).
+    `detectPayrollExceptions` flags a missing clock-out only once a shift has
+    run well past a normal length (not every open shift — that would flag
+    every employee currently on the clock) and flags per-entry overtime
+    matching how `summarizePeriodHours` splits the same entry into regular
+    and overtime hours, so the two can never disagree about what counts as
+    overtime. Every exception starts unresolved — resolution is a manager
+    action this layer does not perform. `buildChecksummedPayrollExport`
+    sorts rows deterministically before hashing specifically so the checksum
+    is stable across repeated exports of unchanged data, which is the entire
+    point of checksumming an export. Missing: no schema at all yet for pay
+    periods, versions, corrections or manager approval state; no export
+    provider adapter; no self-approval-denial enforcement; no RLS; no UI; no
+    browser proof. This is a small fraction of 11.1, not most of it.
 
 - [ ] **11.2 Today, closeout, I AM and extra mile**
   - **Requirement IDs:** `WFM-103`, `WFM-104`.

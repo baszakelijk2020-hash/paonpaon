@@ -139,3 +139,4 @@ export * from "./programme/validate-phase-completion";
 
 export * from "./concierge/service-plan";
 export * from "./concierge/service-plan.schema";
+export * from "./workforce/payroll-period";

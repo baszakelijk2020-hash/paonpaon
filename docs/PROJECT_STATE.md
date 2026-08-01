@@ -83,6 +83,11 @@ Snapshot: 2026-07-30 (save-game seal).
   customer's own date annually, across a year boundary, timezone-agnostic by
   design. One of nine named packages (`ANNIVERSARY_MOMENT_LIBRARY_V1`) is
   real; the other eight, UI wiring, and browser proof are not started.
+- Stage 11.1 is domain-layer only, a small fraction of the item (takeover
+  branch only — not on `main`): exception detection and a checksummed
+  payroll export over the existing real `staff_time_entries`/`staff_shifts`.
+  No pay-period/version/approval schema, export provider, RLS, UI or browser
+  proof exist yet.
 
 ## Stage 10.2 WIP salvage audit (2026-07-31)
 
