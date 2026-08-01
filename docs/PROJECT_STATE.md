@@ -69,7 +69,9 @@ This correction supersedes conflicting status and handoff claims below:
   Module proof is 6 domain + 8 repository/schema + 15 pgTAP + 1 browser
   assertion. Customer e2e is a clean 29/29 and retailer e2e is a clean 42/42.
   It is a first slice, not R0.3 completion; canonical House depth, direct
-  server guards and the capability disposition map remain.
+  server guards remain. `CAPABILITY_DISPOSITION.md` now classifies every
+  inherited Stage 8–16 capability and founder-designated tool by module,
+  keep/harden/consolidate/replace/quarantine decision and connected proof.
 
 ## Repository
 

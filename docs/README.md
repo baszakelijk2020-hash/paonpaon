@@ -41,22 +41,22 @@ current-state document.
 
 ## Authority hierarchy
 
-| Rank | Authority                    | Source                                                                                                                   | Decides                                                     |
-| ---- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
-| 0    | Implementation               | `apps/`, `packages/`, `supabase/migrations/`, generated types                                                            | What exists                                                 |
-| 1    | Active queue                 | [PHASE.md](./PHASE.md)                                                                                                   | What is authorized and what comes next                      |
-| 2    | Founder product intent       | [PAON_FOUNDER_INTELLIGENCE_BRIEF.md](./PAON_FOUNDER_INTELLIGENCE_BRIEF.md)                                               | Complete founder requirements; never sequencing             |
-| 3    | Active engineering programme | [PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md)                                                         | Traceability, target architecture, acceptance, resume state |
-| 4    | Decisions                    | [DECISIONS.md](./DECISIONS.md)                                                                                           | Why load-bearing choices were made                          |
-| 5    | Agent process                | [../AGENTS.md](../AGENTS.md), [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)                                             | How work advances                                           |
-| 6    | Standing engineering rules   | [PRINCIPLES.md](./PRINCIPLES.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [DATABASE.md](./DATABASE.md), [API.md](./API.md) | Cross-program invariants                                    |
-| 7    | Current domain description   | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) and `@paon/domain`                                                                  | Current bounded contexts and relationships                  |
-| 8    | Product direction            | [NORTH_STAR.md](./NORTH_STAR.md), [VISION.md](./VISION.md), [PRODUCT.md](./PRODUCT.md), [NON_GOALS.md](./NON_GOALS.md)   | Durable mission, layers, surfaces and exclusions            |
-| 9    | Design and experience        | [DESIGN_PORTS.md](./DESIGN_PORTS.md), [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md)     | Visual authorities and interaction rules                    |
-| 10   | Operations                   | [ENVIRONMENTS.md](./ENVIRONMENTS.md), [DEPLOYMENT.md](./DEPLOYMENT.md), [TOOLING.md](./TOOLING.md)                       | Environment identity, deployments, CLIs, and runbooks       |
-| 11   | Reference and history        | `vision/`, `ai_snapshot/`, `audits/`, [ROADMAP.md](./ROADMAP.md), [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)           | Dated inputs and analysis; never queues                     |
-| 12   | Factual handoff              | [PROJECT_STATE.md](./PROJECT_STATE.md)                                                                                   | Compact verified snapshot; never authority                  |
-| 13   | Archive                      | [archive/](./archive/)                                                                                                   | Obsolete material                                           |
+| Rank | Authority                    | Source                                                                                                                     | Decides                                                                                       |
+| ---- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 0    | Implementation               | `apps/`, `packages/`, `supabase/migrations/`, generated types                                                              | What exists                                                                                   |
+| 1    | Active queue                 | [PHASE.md](./PHASE.md)                                                                                                     | What is authorized and what comes next                                                        |
+| 2    | Founder product intent       | [PAON_FOUNDER_INTELLIGENCE_BRIEF.md](./PAON_FOUNDER_INTELLIGENCE_BRIEF.md)                                                 | Complete founder requirements; never sequencing                                               |
+| 3    | Active engineering programme | [PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md), [CAPABILITY_DISPOSITION.md](./CAPABILITY_DISPOSITION.md) | Traceability, target architecture, inherited-capability disposition, acceptance, resume state |
+| 4    | Decisions                    | [DECISIONS.md](./DECISIONS.md)                                                                                             | Why load-bearing choices were made                                                            |
+| 5    | Agent process                | [../AGENTS.md](../AGENTS.md), [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)                                               | How work advances                                                                             |
+| 6    | Standing engineering rules   | [PRINCIPLES.md](./PRINCIPLES.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [DATABASE.md](./DATABASE.md), [API.md](./API.md)   | Cross-program invariants                                                                      |
+| 7    | Current domain description   | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) and `@paon/domain`                                                                    | Current bounded contexts and relationships                                                    |
+| 8    | Product direction            | [NORTH_STAR.md](./NORTH_STAR.md), [VISION.md](./VISION.md), [PRODUCT.md](./PRODUCT.md), [NON_GOALS.md](./NON_GOALS.md)     | Durable mission, layers, surfaces and exclusions                                              |
+| 9    | Design and experience        | [DESIGN_PORTS.md](./DESIGN_PORTS.md), [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md)       | Visual authorities and interaction rules                                                      |
+| 10   | Operations                   | [ENVIRONMENTS.md](./ENVIRONMENTS.md), [DEPLOYMENT.md](./DEPLOYMENT.md), [TOOLING.md](./TOOLING.md)                         | Environment identity, deployments, CLIs, and runbooks                                         |
+| 11   | Reference and history        | `vision/`, `ai_snapshot/`, `audits/`, [ROADMAP.md](./ROADMAP.md), [COMPETITIVE_GAPS.md](./COMPETITIVE_GAPS.md)             | Dated inputs and analysis; never queues                                                       |
+| 12   | Factual handoff              | [PROJECT_STATE.md](./PROJECT_STATE.md)                                                                                     | Compact verified snapshot; never authority                                                    |
+| 13   | Archive                      | [archive/](./archive/)                                                                                                     | Obsolete material                                                                             |
 
 When two documents conflict, the higher-ranked source wins. Fix the lower
 source in the same documentation slice instead of preserving ambiguity.
@@ -74,6 +74,7 @@ source in the same documentation slice instead of preserving ambiguity.
 | Tables, migrations, RLS                                 | migrations, then `DATABASE.md`                     |
 | Server Actions and Route Handlers                       | `API.md`                                           |
 | Founder-authored HTML surfaces                          | committed HTML + `DESIGN_PORTS.md`                 |
+| Stage 8–16 and founder-tool disposition                 | `CAPABILITY_DISPOSITION.md`                        |
 | Deployment and provider setup                           | `DEPLOYMENT.md`                                    |
 | Compact resume state                                    | Resume Protocol in `PAON_INTELLIGENCE_PLATFORM.md` |
 
@@ -102,6 +103,7 @@ source in the same documentation slice instead of preserving ambiguity.
 | App/repository boundaries     | [ARCHITECTURE.md](./ARCHITECTURE.md), [API.md](./API.md)                                                           |
 | Roles and permissions         | [ACCESS_MODEL.md](./ACCESS_MODEL.md)                                                                               |
 | Founder-designed surfaces     | [DESIGN_PORTS.md](./DESIGN_PORTS.md), canonical HTML                                                               |
+| Inherited capability mapping  | [CAPABILITY_DISPOSITION.md](./CAPABILITY_DISPOSITION.md)                                                           |
 | Founder-source interpretation | [audits/FOUNDER_INTENT_AND_PLATFORM_RESET_2026-08-01.md](./audits/FOUNDER_INTENT_AND_PLATFORM_RESET_2026-08-01.md) |
 | UI primitives                 | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md), [UX_PHILOSOPHY.md](./UX_PHILOSOPHY.md)                                     |
 | Browser/live proof            | [runbooks/BROWSER_PROOF.md](./runbooks/BROWSER_PROOF.md)                                                           |

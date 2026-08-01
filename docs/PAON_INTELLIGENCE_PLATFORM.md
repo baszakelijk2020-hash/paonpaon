@@ -34,8 +34,10 @@ requires it.
   remains explicitly a local fixture rather than provider truth.
   R0.3's first local slice now provides the eight-family module kernel,
   dependency-safe plan/add-on state, job suppression and retailer navigation
-  projection; it is not complete until server guards, the canonical House and
-  capability mapping land.
+  projection. `CAPABILITY_DISPOSITION.md` now supplies the compact R0.3
+  inheritance registry; consult it instead of resuming a numbered legacy stage
+  because files happen to exist. Direct server guards and canonical House
+  depth remain open.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

@@ -138,8 +138,11 @@ be resumed without the module mapping required by R0.3.**
     fixture and deterministic proof setup. A broad `coverage/` gitignore rule
     had silently excluded the route while allowing its proof and documentation
     to be committed; the route is now explicitly unignored. Remaining:
-    server-boundary enforcement beyond navigation/jobs, canonical House depth
-    and cleanup, and the Stage 8–16 + founder-tool disposition map.
+    server-boundary enforcement beyond navigation/jobs and canonical House
+    depth and cleanup. `CAPABILITY_DISPOSITION.md` now maps every Stage 8–16
+    capability and founder-designated tool to one module, one explicit
+    keep/harden/consolidate/replace/quarantine decision and a connected proof
+    contract.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
