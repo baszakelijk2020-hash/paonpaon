@@ -1563,6 +1563,47 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     model-assisted measurement extraction (`blocked_external` on a model
     provider).
 
+  - **Status (2026-08-01, takeover branch, revised):** `verified_local`.
+    Browser proof `apps/retailer/e2e/measurement-monitor.spec.ts` (three
+    cases). Operating the review queue found the gate was **not actually
+    enforced**, which no unit test could see because the domain rule was
+    correct and unreachable:
+
+    1. **`recordApprovedMeasurements` hardcoded `capturedBy: "tailor_tape"`
+       for every value.** So `derivedFromScan` never became true and the
+       written-decision requirement was dead code at the only seam that
+       matters. A phone scan could walk into the record of measurement with
+       no human reasoning attached — the exact thing item 12.1 exists to
+       prevent. It also destroyed provenance: a number read off a phone was
+       stored forever as having been measured with a tape.
+
+       The candidate is now read from the database rather than the form,
+       because provenance is precisely what a client must not be allowed to
+       assert. A value left UNCHANGED keeps the scan's provenance, since
+       accepting a scan's number means the scan is where it came from; a
+       value the advisor changed becomes `tailor_tape`, because they
+       measured it themselves.
+    2. **`Math.round(cm * 10)` made the whole-millimetre rule unreachable**
+       and silently invented precision: 101.05 cm became 1011 mm rather
+       than being refused. Sub-millimetre input is now rejected.
+    3. **Duplicate DOM ids across the queue.** Every candidate rendered
+       `id="reviewNote"` and `id="measurement_0_mm"`, so on a queue of two
+       or more every `<label for>` resolved to the first form and clicking
+       the third candidate's label focused the first candidate's input. Ids
+       are now scoped per candidate.
+
+    What the browser proves: an empty note cannot be submitted at all
+    (`required`), a note of only spaces is refused by the SERVER with a
+    readable reason and records nothing, a sub-millimetre value is refused
+    before the request is made, a written decision produces a NEW version
+    whose note is stored so the number a garment was cut to stays
+    explicable months later, the candidate is resolved (which is what
+    unblocks the reorder gate), a `remeasure` candidate deliberately stays
+    out of a queue meant for decisions a human must make, and a dismissal
+    changes no approved measurement at all.
+
+    Still open: the guided capture surface itself and the reorder gate's own
+    UI. Model-assisted tranche remains `blocked_external`.
 - [ ] **12.2 Garment production and serialized pieces**
   - **Requirement IDs:** `INV-103`; Stage 12 target architecture.
   - **Dependencies:** `8.3`, `8.2`.

@@ -1,0 +1,7 @@
+{
+  "phaseItemId": "12.1",
+  "gitSha": "0556cec698a0d37a545cef71cd649acd828589bd",
+  "spec": "apps/retailer/e2e/measurement-monitor.spec.ts",
+  "status": "passed",
+  "timestamp": "2026-08-01T12:15:09.236Z"
+}

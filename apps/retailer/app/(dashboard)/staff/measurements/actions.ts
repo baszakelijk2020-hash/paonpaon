@@ -80,26 +80,60 @@ export async function recordApprovedMeasurements(
     return { formError: "At least one measurement must be provided." };
   }
 
-  // Convert the form data into MeasurementValue entries.
-  // The values come from the form as cm; convert back to millimetres.
+  // The candidate is read from the database, never from the form.
+  //
+  // Provenance is the whole point of this gate, and the client must not get to
+  // state it. Trusting a hidden field here would let anyone post
+  // `capturedBy: tailor_tape` and walk a phone scan straight into the record
+  // of measurement with no written decision at all.
+  const { data: candidateRow, error: candidateError } = await supabase
+    .from("customer_measurement_candidates")
+    .select("values")
+    .eq("id", candidateId)
+    .eq("retailer_id", session.retailerId)
+    .maybeSingle();
+  if (candidateError) throw candidateError;
+  if (!candidateRow) {
+    return { formError: "That review could not be found." };
+  }
+  const proposedByKey = new Map(
+    (candidateRow.values as unknown as readonly MeasurementValue[]).map(
+      (value) => [value.key, value],
+    ),
+  );
+
+  // Convert the form data into MeasurementValue entries. The form sends
+  // centimetres; the record is whole millimetres.
   const values: MeasurementValue[] = [];
   for (const [key, cmValue] of measurementMap.entries()) {
-    const cm = parseFloat(cmValue);
-    if (isNaN(cm) || cm <= 0) {
+    const cm = Number(cmValue);
+    if (!Number.isFinite(cm) || cm <= 0) {
       return {
-        formError: `Invalid measurement for ${key}. Enter a positive decimal number in centimetres.`,
+        formError: `Invalid measurement for ${key}. Enter a positive number in centimetres.`,
       };
     }
-    const mm = Math.round(cm * 10);
-    if (!Number.isInteger(mm) || mm <= 0) {
+    // NOT rounded. Rounding 101.05 cm to 1011 mm silently invents a precision
+    // the tape never had and quietly makes the "whole millimetres" rule
+    // unreachable — the number a garment is cut to should be the number
+    // somebody actually read off the tape.
+    const mm = cm * 10;
+    if (!Number.isInteger(mm)) {
       return {
-        formError: `Invalid measurement for ${key}. Ensure it converts to a positive whole millimetre.`,
+        formError:
+          "All measurements must be whole millimetres — no decimals. Enter centimetres to one decimal place.",
       };
     }
+
+    const proposed = proposedByKey.get(key);
+    // Unchanged means the advisor is ACCEPTING the scan's number, so the scan
+    // is still where that number came from and the written-decision rule must
+    // apply. Changed means they measured it themselves, which is a tape.
+    const acceptedAsProposed =
+      proposed !== undefined && proposed.millimetres === mm;
     values.push({
       key,
       millimetres: mm,
-      capturedBy: "tailor_tape",
+      capturedBy: acceptedAsProposed ? proposed.capturedBy : "tailor_tape",
     });
   }
 

@@ -71,6 +71,14 @@ export function MeasurementReviewForm({
     (v) => v.capturedBy === "guided_self_scan",
   );
 
+  // Ids are scoped to the candidate. The review queue renders one of these
+  // forms PER candidate, so a literal `id="reviewNote"` appears several times
+  // on the page — duplicate ids mean every `<label for>` resolves to the
+  // first form, and clicking the third candidate's label focuses the first
+  // candidate's input. The name attributes stay unscoped because each form
+  // posts on its own.
+  const fieldId = (suffix: string) => `${suffix}-${candidateId}`;
+
   return (
     <form
       action={action}
@@ -92,12 +100,12 @@ export function MeasurementReviewForm({
             value={value.key}
           />
           <FormField
-            htmlFor={`measurement_${index}_mm`}
+            htmlFor={fieldId(`measurement_${index}_mm`)}
             label={getMeasurementLabel(value.key)}
             hint={`Proposed: ${formatMeasurementUnit(value.millimetres)} cm (${getCaptureMethodLabel(value.capturedBy)})`}
           >
             <Input
-              id={`measurement_${index}_mm`}
+              id={fieldId(`measurement_${index}_mm`)}
               name={`measurement_${index}_mm`}
               type="number"
               step="0.1"
@@ -113,7 +121,7 @@ export function MeasurementReviewForm({
 
       {/* Review note (required if self-scan present) */}
       <FormField
-        htmlFor="reviewNote"
+        htmlFor={fieldId("reviewNote")}
         label="Review note"
         hint={
           hasSelfScan
@@ -122,7 +130,7 @@ export function MeasurementReviewForm({
         }
       >
         <Input
-          id="reviewNote"
+          id={fieldId("reviewNote")}
           name="reviewNote"
           type="text"
           maxLength={1000}
