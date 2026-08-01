@@ -173,7 +173,13 @@ be resumed without the module mapping required by R0.3.**
     experience, ecosystem job, actors, module/tier, state, canonical wiring,
     governance, recovery and completion proof for all fourteen designated
     tools and crosswalks the wider founder brief. It is a specification, not a
-    shipped-status claim. The first connected implementation increment hardens
+    shipped-status claim. ADR-073 now ratifies the non-lossy control plane:
+    the curated PAON contract decides product meaning while exact designated
+    source fragments retain experience authority. It fixes founder versus
+    engineering decision rights, a mandatory ten-part slice contract, seven
+    completion dimensions and anti-drift tripwires; ordinary sessions read
+    only the active contract/source rather than rediscovering the whole
+    corpus. The first connected implementation increment hardens
     FT-08 Swipe Deck without restyling it: migration `20260802000001` adds an
     idempotent save command so a retry cannot unsave a piece; the card now
     restores visibly on persistence failure, supports ArrowLeft/ArrowRight,

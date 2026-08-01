@@ -1097,3 +1097,12 @@ those suites' bug.
   assertions pass. The status remains a connected first slice because real
   malware/quarantine, progress, party/garment context, withdrawal/citation and
   conversation-to-look-to-outcome proof are not yet built.
+- Founder-control hardening resolved the remaining documentation authority
+  ambiguity without creating another roadmap. ADR-073 now distinguishes the
+  ratified PAON contract from preserved raw input, keeps exact designated
+  source interactions authoritative, assigns founder/engineering decision
+  rights and requires every founder-tool slice to declare ten contract fields
+  and pass seven completion dimensions. `AGENTS.md` now routes future builders
+  directly to the active `FT-*`, source fragment and status row, with explicit
+  anti-drift tripwires for inert controls, generic substitutes, shadow models,
+  disconnected role journeys, fake provider proof and stale/omitted evidence.

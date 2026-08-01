@@ -3233,3 +3233,56 @@ integration and demos. Production entitlements must keep it off until founder
 acceptance and the operational checklist above are recorded. If the founder
 rejects cash, the same atomic completion boundary remains and a later approved
 provider supplies the tender event.
+
+## ADR-073: Ratify a non-lossy founder product control plane
+
+**Status: accepted. Clarifies the authority relationship among the founder
+brief, the curated PAON destination, exact designated source tools, the work
+queue and factual implementation. Extends ADR-070/071.**
+
+**Context.** Repeated model handoffs produced opposite forms of drift. Some
+sessions treated the Nebelspiegel/Atelier material literally and risked
+copying a different business into PAON. Others treated two years of explicitly
+specified tools as loose inspiration, substituted generic interfaces or
+domain scaffolds, and reported those foundations as built. A large raw prompt
+is valuable non-lossy memory but is too ambiguous to be a routine work queue;
+a concise plan without the raw source can quietly erase ambition. Chat history
+cannot be the only place that resolves the difference.
+
+**Decision.**
+
+1. `NORTH_STAR.md`, `FOUNDER_TOOL_BLUEPRINTS.md` and `DESIGN_PORTS.md` form the
+   ratified PAON product contract. They curate the preserved founder input into
+   the PAON company, exact designated experiences, system jobs, decision
+   rights and completion proof.
+2. `PAON_FOUNDER_INTELLIGENCE_BRIEF.md`, linked instructions and committed
+   founder HTML remain non-lossy source evidence. They cannot become a second
+   queue or automatically reinstate brand framing, unrelated ventures or
+   unsupported claims. The exact interaction regions designated by ADR-071
+   remain experience authority and may not be weakened by curation.
+3. `PHASE.md` is the sole delivery queue. Sequencing a capability later never
+   deletes it from the destination. An agent may decompose the active contract
+   into safe coherent slices but may not remove or materially reinterpret a
+   founder-owned element.
+4. Code and executable proof decide only what currently exists. They do not
+   acquire product authority by being implemented first. Every founder-tool
+   slice must declare identity/source, effect, PAON job, actors/continuation,
+   canonical objects, modules, trust, state/recovery, exactness boundary,
+   connected proof and explicit remaining gaps.
+5. Founder-owned changes require an explicit founder decision and a dated ADR.
+   Engineering owns internal decomposition and technical mechanisms inside the
+   contract. Missing answers that would change founder-owned scope block only
+   that decision; safe independent queue work continues.
+6. Completion is evaluated across experience, function, canonical continuity,
+   trust, recovery, outcome and operability. An inert source control, generic
+   substitute, disconnected role, shadow aggregate, old-SHA proof or omitted
+   known gap invalidates the completion claim.
+7. Each founder-tool and chapter transition performs a targeted contract-to-
+   source-to-code-to-proof check. Ordinary turns use the minimum context path;
+   they do not repeatedly reread the full corpus.
+
+**Consequences.** Future builders receive enough context to preserve intent
+without spending an entire session rediscovering it. The founder can change
+the product, but models cannot do so silently. Ambition remains broad; delivery
+remains dependency-ordered; current status remains falsifiable. No additional
+roadmap or handoff document is created.

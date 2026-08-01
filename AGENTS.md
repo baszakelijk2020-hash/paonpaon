@@ -15,13 +15,18 @@ For an ordinary implementation turn, read only:
 5. directly relevant code, tests, repository and migration.
 
 For work derived from `downloaded_pages/pag1.html`, `pag2.html`, `pag3.html`
-or a founder-linked Nebelspiegel tool, also read `docs/DESIGN_PORTS.md`. These
-tools carry both an experience contract and a system-behaviour contract; a
-generic replacement is not an implementation.
+or a founder-linked Nebelspiegel tool, also read the relevant `FT-*` contract
+in `docs/FOUNDER_TOOL_BLUEPRINTS.md`, its row in `docs/DESIGN_PORTS.md`, and
+the exact committed source fragment. These tools carry both an experience
+contract and a system-behaviour contract; a generic replacement is not an
+implementation. The founder-control section in the blueprint decides who may
+change which part of the contract.
 
-Use `docs/README.md` to cross a topic boundary. Read `NORTH_STAR.md` for a
-product decision. Read the founder brief, source audit or full programme only
-for product ambiguity, traceability conflict or a strategic audit. Code and
+Use `docs/README.md` to cross a topic boundary. Read `NORTH_STAR.md` and the
+founder-control section of `FOUNDER_TOOL_BLUEPRINTS.md` for a product decision.
+Read the founder brief, source audit or full programme only for product
+ambiguity, traceability conflict or a strategic audit. The raw brief preserves
+input; it is not permission to undo its later PAON curation. Code and
 migrations are factual truth; `PHASE.md` is the only queue.
 
 If an item can touch cloud data, migrations, integration tests or e2e, also

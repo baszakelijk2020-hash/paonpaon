@@ -57,6 +57,123 @@ reinterpret an `FT-*` contract.
   turns, and do not infer that a later tool is cancelled because it is not the
   current slice.
 
+### Product control plane
+
+This section separates ambition, interpretation, implementation and proof so
+that no handoff can silently turn one into another.
+
+| Layer               | Authority                                             | What it may decide                                                                                     | What it may not do                                                                                           |
+| ------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Founder destination | `NORTH_STAR.md` plus these `FT-*` contracts           | PAON's promise, platform breadth, designated tools, intended experience and connected outcome          | Claim that a current implementation already satisfies the destination                                        |
+| Preserved source    | founder brief, linked instructions and committed HTML | Supply complete intent, exact designated interactions and traceability evidence                        | Act as a second queue, reinstate Atelier Munro's business model, or override later PAON curation by accident |
+| Delivery control    | `PHASE.md` plus accepted ADRs                         | Sequence dependencies, define the active acceptance contract, gate risk and authorize a coherent slice | Delete destination scope because it is not next, or call a foundation the finished tool                      |
+| Factual state       | code, migrations and executable proof                 | Establish what currently exists and works                                                              | Redefine founder intent merely because the current code chose a different abstraction                        |
+| Handoff memory      | Resume Protocol and `PROJECT_STATE.md`                | State the exact restart point and verified facts compactly                                             | Introduce another roadmap, silently revise status, or become product authority                               |
+
+If these layers disagree, continue safe independent work but freeze the
+affected claim. Record the conflict in the active `FT-*` Current paragraph and
+`PHASE.md`; resolve product meaning through an explicit founder decision and
+ADR. Never resolve it by quietly editing the source contract, deleting scope,
+or implementing the cheapest interpretation.
+
+#### Decision rights
+
+| Decision                                                                                                                                   | Owner                                                   | Required record                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Remove, materially narrow or replace a promised module, founder tool, interaction, actor journey or ecosystem outcome                      | Founder                                                 | Explicit decision plus dated ADR, affected `FT-*` contracts and migration/recovery impact           |
+| Depart materially from a designated source's composition, motion, pacing or behaviour                                                      | Founder, informed by engineering/accessibility evidence | Before/after evidence and ADR; accessibility or security repairs must still preserve the experience |
+| Activate cash, stored value, external payments, customer-data use, advertising, automated high-value advice or other legal/commercial risk | Founder after named operational/legal inputs            | Accepted policy ADR and activation checklist; local implementation alone cannot activate it         |
+| Change module packaging, bundle names, tier pricing or a capability's eligible add-on model                                                | Founder/commercial owner                                | Versioned catalogue decision; no code fork                                                          |
+| Choose schemas, RPC/repository boundaries, job technology, cache, internal API shape and safe decomposition                                | Engineering                                             | Relevant ADR only when load-bearing; tests and migration proof otherwise                            |
+| Choose the order of coherent slices inside the active PHASE item                                                                           | Engineering                                             | Current acceptance/gaps updated after every committed slice                                         |
+| Validate desirability or workflow fit                                                                                                      | Founder and named design partners                       | Observed evidence; feedback informs a decision but does not silently rewrite the contract           |
+
+Questions that are merely implementation choices must not interrupt the build.
+Questions whose answers would change a founder-owned row are real blockers for
+that choice; the agent records them and continues another independent slice.
+
+#### Mandatory slice contract
+
+Before changing a founder tool, the active implementation context must be able
+to answer all of the following from existing authorities. If one is absent,
+add it to this blueprint or `PHASE.md` before writing product code:
+
+1. **Identity:** one `FT-*` id and the exact source selector, region or
+   interaction being implemented.
+2. **Founder effect:** what the client or retailer should feel and accomplish;
+   this prevents a technically equivalent but experientially wrong rewrite.
+3. **PAON job:** why the tool exists in this platform rather than as a copied
+   microsite.
+4. **Entry and continuation:** originating role/surface and the receiving
+   customer, advisor, operator or partner surface.
+5. **Canonical objects:** which existing customer, garment, look, appointment,
+   proposal, order, service or outcome records it reads and changes.
+6. **Module contract:** owning module, dependencies, lifecycle behaviour and
+   current commercial bundle/add-on eligibility.
+7. **Authority and trust:** tenant, role, consent, provenance, retention,
+   correction, external-system authority and human-review boundaries.
+8. **State machine:** loading, empty, draft, success, denied, stale, conflict,
+   failure, retry, correction/withdrawal and terminal outcome where applicable.
+9. **Exactness boundary:** source details that are fixed, tenant data/copy that
+   is substituted, and surrounding PAON-native surfaces that engineering may
+   design.
+10. **Proof:** originating action, authoritative write, receiving-role read,
+    denied/cross-tenant path, recovery path, source-parity evidence and final
+    outcome returned to House Memory.
+
+The slice must name what it deliberately does **not** complete. Missing
+provider access can block a provider claim; it cannot erase a buildable local
+workflow. Conversely, a mocked provider response cannot satisfy live proof.
+
+#### Completion dimensions
+
+Every `FT-*` Current paragraph and `DESIGN_PORTS.md` status is judged across
+the same seven dimensions. A tool is Verified only when all applicable rows
+are proven together.
+
+| Dimension            | Required evidence                                                                                                                             |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Experience           | Desktop and mobile source parity for composition, interaction, motion and reduced-motion/keyboard behaviour                                   |
+| Function             | Every visible control performs its stated job; no decorative buttons, dead links or demo-only state                                           |
+| Canonical continuity | The originating action writes canonical objects and the next role/stage consumes them without duplicate shadow records                        |
+| Trust                | Module/role/RLS, consent, provenance, retention, correction and authority boundaries fail closed                                              |
+| Recovery             | Empty, stale, conflict, partial failure, idempotent retry, cancellation/withdrawal and unavailable integration states are usable and truthful |
+| Outcome              | A real appointment, proposal/order, fitting/service or other contract-specific result is linked and returned to House Memory                  |
+| Operability          | Entitlements, jobs, audit/observability, support path, data migration/export and safe activation/deactivation exist at the required maturity  |
+
+Allowed status words remain `Missing`, `Wrong`, `Shell`, `Functional
+foundation`, `Faithful foundation`, `Connected first slice` and `Verified`.
+Terms such as “done”, “complete” or “production-ready” are forbidden for a
+tool unless the seven-dimension contract passes or an inapplicable dimension
+is explicitly justified.
+
+#### Anti-drift tripwires
+
+The following observations automatically invalidate a completion claim and
+must be repaired or recorded as a named gap:
+
+- a visible founder control is inert, simulated, hard-coded or connected only
+  on a different route than the user actually sees;
+- a generic card/table/form replaces a designated source interaction;
+- a second customer, garment, appointment, proposal, order or outcome model is
+  created for convenience instead of extending the canonical aggregate;
+- the originating role can submit but the receiving role cannot continue, or
+  the result never returns to House Memory;
+- a schema, repository, AI prompt, screenshot or happy-path test is used as
+  proof of the complete tool;
+- a missing credential, provider or commercial decision is used to suppress
+  unrelated local functionality, or a fixture is presented as real provider
+  support;
+- the active queue becomes narrower by silently deleting later ambition, or
+  broader by adding an uncontracted feature that bypasses dependency order;
+- a status line omits a known gap, proof is pinned to an old SHA, or a handoff
+  depends on chat memory rather than the authorities above.
+
+At each `FT-*` transition and chapter boundary, compare the exact source,
+`DESIGN_PORTS.md`, this blueprint, the implementation and its proof in that
+order. This is a targeted control check, not permission to reread the entire
+repository on every turn.
+
 ### Shared product and technical spine
 
 Every retained tool attaches to the same connected graph rather than creating

@@ -60,6 +60,14 @@ requires it.
   source fragment. The blueprint is not shipped-status evidence: implement
   the exact experience and connected state/proof together. Do not treat
   nebelspiegel/Atelier Munro branding as PAON product intent.
+  ADR-073 makes this a non-lossy product control plane: `NORTH_STAR.md` plus
+  the blueprints/design-port registry are the ratified PAON interpretation;
+  the raw founder brief and HTML remain preserved input and exact designated
+  experience authority, never a second queue. The blueprint now fixes
+  decision rights, a ten-part mandatory slice contract, seven completion
+  dimensions and anti-drift tripwires. Future sessions must not silently
+  narrow scope, literalize the surrounding Atelier business, genericize an
+  exact tool or acquire product authority from whatever code landed first.
   FT-08 Swipe Deck is the first hardened founder-tool increment: its exact
   card composition remains, right-swipe now uses an idempotent RPC with
   visible failure recovery, keyboard save is connected and a local browser
