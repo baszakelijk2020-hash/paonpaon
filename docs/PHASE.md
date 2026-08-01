@@ -127,9 +127,15 @@ be resumed without the module mapping required by R0.3.**
     marks preview surfaces and removes suspended/off surfaces. Proof: 6 domain
     assertions, 8 repository/schema assertions, 15 pgTAP assertions, clean
     reset through all 149 migrations and 1/1 browser suspend/preview/restore.
-    Remaining: server-boundary enforcement beyond navigation/jobs, canonical
-    House depth and cleanup, clean customer/retailer baselines, and the
-    Stage 8–16 + founder-tool disposition map.
+    Customer e2e is now a clean 29/29: the inherited 14 failures were repaired
+    against current human labels, guest intent recovery, fitting-first order
+    policy, founder storefront category behavior, Demo Studio lifecycle and
+    tap-target contracts. The repair also removed a first-open order-detail
+    failure caused by a redundant Honeymoon read-after-write and prevents
+    TableService from covering the founder detail CTA. Remaining:
+    server-boundary enforcement beyond navigation/jobs, canonical House depth
+    and cleanup, a clean retailer baseline, and the Stage 8–16 + founder-tool
+    disposition map.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

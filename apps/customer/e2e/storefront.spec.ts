@@ -15,7 +15,10 @@ test("browsing the storefront requires no sign-in", async ({ page }) => {
   await expect(
     page.getByText(TEST_RETAILER_DISPLAY_NAME).first(),
   ).toBeVisible();
-  await expect(page.getByText("E2E Storefront Overcoat")).toBeVisible();
+  await page.locator("#cat-grid .cat-item", { hasText: "Outerwear" }).click();
+  await expect(
+    page.locator(`.grid-card[data-product-id="${TEST_PRODUCT_SLUG}"]`),
+  ).toBeVisible();
 
   await page.goto(
     `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}?legacy=1`,
@@ -102,12 +105,14 @@ test("a signed-in shopper builds a cart, updates a line, checks out, and sees th
     .click();
   await expect(page.getByText("$9,000.00").first()).toBeVisible();
 
-  // checkout_cart: revalidates stock/price and moves the cart to pending_payment.
+  // checkout_cart: the non-payment fallback is intentionally disclosed and
+  // tucked behind a choice; open it and save a pending order.
+  await page.getByText("Save as pending order instead").click();
   await page.getByPlaceholder("Address", { exact: true }).fill("1 Test Street");
   await page.getByPlaceholder("City").fill("Testville");
   await page.getByPlaceholder("Postal code").fill("00000");
   await page.getByPlaceholder("Country code").fill("US");
-  await page.getByRole("button", { name: "Place order" }).click();
+  await page.getByRole("button", { name: "Save pending order" }).click();
 
   await expect(page).toHaveURL(/\/orders\/[0-9a-f-]+$/);
   await expect(page.getByText("$9,000.00")).toBeVisible();
@@ -158,8 +163,11 @@ test("storefront shows an uploaded product image", async ({ page }) => {
     .eq("id", productRow.id);
 
   await page.goto(`/r/${TEST_RETAILER_SLUG}`);
+  await page.locator("#cat-grid .cat-item", { hasText: "Outerwear" }).click();
   await expect(
-    page.locator('img[src*="product-images"]').first(),
+    page
+      .locator(`.grid-card[data-product-id="${TEST_PRODUCT_SLUG}"]`)
+      .locator('img[src*="product-images"]'),
   ).toBeVisible();
 
   await page.goto(

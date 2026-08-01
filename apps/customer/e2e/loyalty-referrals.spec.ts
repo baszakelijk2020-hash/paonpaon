@@ -63,12 +63,12 @@ test("a referral converts through signup and first delivered order", async ({
     await joinButton.click();
   }
 
-  await page.getByPlaceholder("Friend's email").fill(referredEmail);
-  await page.getByRole("button", { name: "Invite friend" }).click();
+  await page.getByPlaceholder("Their email address").fill(referredEmail);
+  await page.getByRole("button", { name: "Send invitation" }).click();
   // Scoped to this referral's own row — the referrer may have other
   // referrals from prior runs/tests sharing the same identity.
   const referralRow = page.locator("li", { hasText: referredEmail });
-  await expect(referralRow).toContainText("invited");
+  await expect(referralRow).toContainText("Invited");
 
   const { data: referrerCustomer } = await admin
     .from("customers")
@@ -118,7 +118,7 @@ test("a referral converts through signup and first delivered order", async ({
   }
 
   await page.reload();
-  await expect(referralRow).toContainText("signed up");
+  await expect(referralRow).toContainText("Signed up");
 
   // Simulate the referred friend's first delivered order — fulfillment
   // is a retailer staff action Customer Portal never performs.
@@ -148,7 +148,7 @@ test("a referral converts through signup and first delivered order", async ({
   if (deliverError) throw deliverError;
 
   await page.reload();
-  await expect(referralRow).toContainText("rewarded");
+  await expect(referralRow).toContainText("Reward issued");
 
   const { data: accountAfter } = await admin
     .from("loyalty_accounts")

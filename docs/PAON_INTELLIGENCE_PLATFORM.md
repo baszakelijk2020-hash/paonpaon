@@ -29,8 +29,8 @@ requires it.
   conflict/success paths are proven, but an approved restore of original data
   remains external. Atomic POS/return/payment RPCs, finality triggers and role
   boundaries are locally verified (70/70 live, 11/11 pgTAP) but remain under
-  R0.2 and proposed cash ADR-072. The 15/29
-  customer e2e baseline and invented Faden signature contract remain open.
+  R0.2 and proposed cash ADR-072. Customer e2e is now clean at 29/29; the
+  retailer clean baseline and invented Faden signature contract remain open.
   R0.3's first local slice now provides the eight-family module kernel,
   dependency-safe plan/add-on state, job suppression and retailer navigation
   projection; it is not complete until server guards, the canonical House,

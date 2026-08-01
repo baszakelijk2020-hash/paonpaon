@@ -83,8 +83,11 @@ test("storefront template includes products from every collection", async ({
   }
 
   // Catalogue browsing lives in the verbatim paon.html template at
-  // /r/[slug], not a separate Tailwind shop list.
-  await page.goto(`/r/${TEST_RETAILER_SLUG}`);
-  await expect(page.getByText("E2E Storefront Overcoat")).toBeVisible();
-  await expect(page.getByText("E2E Outside-Collection Blazer")).toBeVisible();
+  // /r/[slug], not a separate Tailwind shop list. Its category rail only
+  // renders one category at a time, so prove the server supplied both
+  // collection-linked and unlinked products in the real template payload.
+  const response = await page.goto(`/r/${TEST_RETAILER_SLUG}`);
+  const html = await response?.text();
+  expect(html).toContain("E2E Storefront Overcoat");
+  expect(html).toContain("E2E Outside-Collection Blazer");
 });

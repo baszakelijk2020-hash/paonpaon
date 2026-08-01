@@ -8,18 +8,29 @@ import {
   TEST_RETAILER_DISPLAY_NAME,
 } from "./fixtures";
 
-// Its own empty context. These specs share one worker, so a session left by
-// an earlier sign-in makes "unauthenticated visitor" a lie and the visitor
-// lands on /dashboard exactly as a signed-in one should.
+// Its own empty context. /dashboard deliberately offers a private-client
+// preview before sign-in; the contract is that no private account data leaks
+// and the guest gets an explicit sign-in path.
 test.describe("unauthenticated", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  test("redirects unauthenticated visitors to /login", async ({ page }) => {
+  test("shows the guest client preview without private account data", async ({
+    page,
+  }) => {
     await page.goto("/dashboard");
-    await expect(page).toHaveURL(/\/login/);
+    await expect(page).toHaveURL(/\/dashboard$/);
     await expect(
-      page.getByRole("heading", { name: "Welcome back." }),
+      page.getByRole("heading", {
+        name: "Your wardrobe, beautifully in motion.",
+      }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("main").getByRole("link", {
+        name: "Sign in",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(page.getByText(TEST_CUSTOMER_EMAIL)).toHaveCount(0);
   });
 });
 

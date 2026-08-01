@@ -16156,6 +16156,11 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         align-items: flex-end;
         gap: 12px;
     }
+    /* Keep TableService available without covering the founder detail
+       footer's primary action. The detail itself controls this body class. */
+    body.product-detail-open #gilda-chat-widget-launcher {
+        bottom: 88px;
+    }
     #gilda-chat-widget-toggle {
         border: 0;
         border-radius: 6px;

@@ -104,7 +104,15 @@ test("a private demo is code-gated, routes to the live storefront, and is revoca
         p_public_token: publicToken,
         p_access_code: accessCode,
         p_expires_at: new Date(Date.now() + 86_400_000).toISOString(),
-        p_synthetic_data: { personas: [], metrics: {} },
+        p_synthetic_data: {
+          personas: [],
+          customers: [],
+          products: [],
+          appointments: [],
+          alterations: [],
+          orders: [],
+          metrics: {},
+        },
         p_retailer_id: retailer.id,
         p_retailer_slug: retailerSlug,
       },
@@ -124,11 +132,15 @@ test("a private demo is code-gated, routes to the live storefront, and is revoca
 
     await page.goto(`/demo/${publicToken}`);
     await expect(
-      page.getByRole("heading", { name: "Enter the room." }),
+      page.getByRole("heading", { name: companyName }),
     ).toBeVisible();
     await page.getByLabel("Access code").fill("wrong-code");
     await page.getByRole("button", { name: "Open private demo" }).click();
-    await expect(page.getByText(/unavailable/)).toBeVisible();
+    await expect(
+      page.getByRole("alert").filter({
+        hasText: "That access code is incorrect.",
+      }),
+    ).toBeVisible();
 
     await page.getByLabel("Access code").fill(accessCode);
     await page.getByRole("button", { name: "Open private demo" }).click();
@@ -146,7 +158,7 @@ test("a private demo is code-gated, routes to the live storefront, and is revoca
     await expect(storefront).toHaveAttribute("href", `/r/${retailerSlug}`);
     await storefront.click();
     await expect(page).toHaveURL(new RegExp(`/r/${retailerSlug}$`));
-    await expect(page.getByText(companyName)).toBeVisible();
+    await expect(page.getByText(companyName, { exact: true })).toBeVisible();
 
     await admin.rpc("set_prospect_demo_publication", {
       p_prospect_id: prospect.id,

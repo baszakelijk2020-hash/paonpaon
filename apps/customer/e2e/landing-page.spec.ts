@@ -113,7 +113,7 @@ test.describe("desktop", () => {
     ).toBeVisible();
   });
 
-  test("Add to Bag redirects a signed-out visitor to sign in", async ({
+  test("Add to Bag preserves a signed-out visitor's intent for sign in", async ({
     page,
   }) => {
     await page.goto(`/r/${TEST_RETAILER_SLUG}`);
@@ -123,8 +123,15 @@ test.describe("desktop", () => {
       .click();
 
     await page.getByRole("button", { name: "Add to Bag" }).first().click();
-    await expect(page).toHaveURL(
-      new RegExp(`/login\\?redirectTo=.*r%2F${TEST_RETAILER_SLUG}`),
+    const savedIntent = page.getByRole("status").filter({
+      hasText: "Saved for you",
+    });
+    await expect(savedIntent).toBeVisible();
+    await expect(
+      savedIntent.getByRole("link", { name: "sign in" }),
+    ).toHaveAttribute(
+      "href",
+      new RegExp(`/login\\?redirectTo=.*r%2F${TEST_RETAILER_SLUG}%2Fcart`),
     );
   });
 

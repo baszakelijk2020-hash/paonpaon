@@ -156,8 +156,17 @@ export class HoneymoonProgrammeRepository {
       if (actionsError) throw actionsError;
     }
 
-    const refreshed = await this.findByOrder(args.retailerId, args.orderId);
-    if (!refreshed) throw new Error("Honeymoon programme missing after ensure");
-    return refreshed;
+    // Every programme and action write above has already completed or thrown.
+    // Returning that exact persisted projection avoids a redundant
+    // read-after-write through PostgREST, which can briefly miss a newly
+    // committed row and turn the first order-detail view into a server error.
+    return {
+      id: programme.id,
+      retailerId: asId<"RetailerId">(programme.retailer_id),
+      customerId: programme.customer_id,
+      orderId: programme.order_id,
+      status: programme.status,
+      actions: derived,
+    };
   }
 }

@@ -10,11 +10,9 @@ test("storefront catalogue renders products and sort controls are present", asyn
   // so an unscoped match resolves to two elements.
   await expect(page.getByText("E2E Customer Workspace").first()).toBeVisible();
   // The collection grid must contain at least one product card
-  await expect(
-    page
-      .locator('[data-product-card], .product-card, [data-testid="product"]')
-      .first(),
-  ).toBeVisible({ timeout: 10000 });
+  await expect(page.locator("#product-grid .grid-card").first()).toBeVisible({
+    timeout: 10000,
+  });
 });
 
 test("storefront catalogue HTML route serves the template", async ({

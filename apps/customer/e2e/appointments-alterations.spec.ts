@@ -50,10 +50,10 @@ test("a signed-in shopper requests an appointment", async ({ page }) => {
   await page.getByRole("button", { name: "Request appointment" }).click();
 
   await expect(page).toHaveURL(/\/appointments\/[0-9a-f-]+$/);
-  await expect(page.getByText("requested", { exact: true })).toBeVisible();
+  await expect(page.getByText("Requested", { exact: true })).toBeVisible();
 
   await page.goto("/appointments");
-  await expect(page.getByText("fitting").first()).toBeVisible();
+  await expect(page.getByText(/^Fitting · /).first()).toBeVisible();
 });
 
 test("a shopper sees their alteration status and pickup readiness", async ({
@@ -76,9 +76,11 @@ test("a shopper sees their alteration status and pickup readiness", async ({
   ).toBeVisible();
 
   await page.goto("/alterations");
-  await expect(page.getByText("ready for pickup")).toBeVisible();
+  await expect(
+    page.getByText("Ready for collection", { exact: true }),
+  ).toBeVisible();
 
-  await page.getByText("ready for pickup").first().click();
+  await page.getByText("Ready for collection", { exact: true }).first().click();
   await expect(
     page.getByText("Ready for pickup", { exact: true }),
   ).toBeVisible();

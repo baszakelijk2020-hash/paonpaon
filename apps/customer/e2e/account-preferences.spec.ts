@@ -31,7 +31,10 @@ test("a signed-in shopper edits and persists their preferences with a retailer",
 
   await page.goto("/account");
   await expect(
-    page.getByRole("heading", { name: TEST_RETAILER_DISPLAY_NAME }),
+    page.getByRole("heading", {
+      name: TEST_RETAILER_DISPLAY_NAME,
+      exact: true,
+    }),
   ).toBeVisible();
 
   await page.getByLabel("Preferred language").fill("fr-FR");

@@ -144,19 +144,17 @@ test.describe("mobile cart", () => {
     for (const control of [increaseButton, decreaseButton, removeButton]) {
       const box = await control.boundingBox();
       expect(box).not.toBeNull();
-      // Ceil: Playwright can report 43.87 for a 44 CSS-px box under
-      // fractional device metrics; the WCAG floor is still 44 CSS pixels.
-      expect(Math.ceil(box!.height)).toBeGreaterThanOrEqual(MIN_TAP_TARGET);
-      expect(Math.ceil(box!.width)).toBeGreaterThanOrEqual(MIN_TAP_TARGET);
+      expect(box!.height).toBeGreaterThanOrEqual(MIN_TAP_TARGET);
+      expect(box!.width).toBeGreaterThanOrEqual(MIN_TAP_TARGET);
     }
 
-    // The sticky mobile checkout bar is reachable without scrolling past
-    // the item list, and its own CTA also meets the tap-target minimum.
-    const mobileCheckoutButton = page
-      .getByRole("button", { name: /Place order/ })
-      .last();
-    await expect(mobileCheckoutButton).toBeVisible();
-    const checkoutBox = await mobileCheckoutButton.boundingBox();
+    // Fitting-first is the current commercial policy: the persistent mobile
+    // CTA books the fitting rather than implying card payment is live.
+    const mobileFittingLink = page.getByRole("link", {
+      name: "Book appointment",
+    });
+    await expect(mobileFittingLink).toBeVisible();
+    const checkoutBox = await mobileFittingLink.boundingBox();
     expect(checkoutBox).not.toBeNull();
     expect(checkoutBox!.height).toBeGreaterThanOrEqual(MIN_TAP_TARGET);
     expect(checkoutBox!.y).toBeLessThanOrEqual(MOBILE_VIEWPORT.height);

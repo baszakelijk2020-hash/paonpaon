@@ -30,8 +30,10 @@ This correction supersedes conflicting status and handoff claims below:
 - Audit reproduction found a cross-tenant inventory-ledger mutation path, a
   public SECURITY DEFINER arbitrary-retailer location path, and non-atomic POS
   completion/returns. These precede further feature work.
-- Customer e2e is 15/29 on the takeover branch. The same 14 scenarios failed
-  at the pre-takeover checkpoint, although some failure points changed.
+- Customer e2e is now 29/29 on the takeover branch. The inherited 15/29
+  baseline mixed stale assertions with real storefront collision,
+  accessibility and order-detail read-after-write defects; all 14 scenarios
+  now pass together against disposable local Supabase.
 - The live repository suite initially reproduced only 8 passes and 59 skips.
   Its fixture now provisions one coherent disposable tenant and the suite
   executes 70/70 assertions after a clean reset.
@@ -59,13 +61,14 @@ This correction supersedes conflicting status and handoff claims below:
   effective retailer lifecycle/authority resolution, dependency rollback,
   audit history, active-only jobs and role-aware navigation projection.
   Module proof is 6 domain + 8 repository/schema + 15 pgTAP + 1 browser
-  assertion. It is a first slice, not R0.3 completion; canonical House depth,
-  direct server guards, clean baselines and the capability disposition map
-  remain.
+  assertion. Customer e2e is a clean 29/29. It is a first slice, not R0.3
+  completion; canonical House depth, direct server guards, the retailer
+  baseline and the capability disposition map remain.
 
 ## Repository
 
-- Branch: `main`; remote: `origin` (`baszakelijk2020-hash/paonpaon`).
+- Branch: `agent/grok-takeover-2026-07-30`; remote: `origin`
+  (`baszakelijk2020-hash/paonpaon`).
 - Schema source: forward Supabase migrations plus generated TypeScript
   database types.
 

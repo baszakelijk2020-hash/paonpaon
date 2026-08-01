@@ -61,7 +61,7 @@ function CartLine({ slug, item }: { slug: string; item: CartItem }) {
           disabled={pending}
           onClick={() => submitWithQuantity(item.line.quantity - 1)}
           aria-label={`Decrease quantity of ${item.product.name}`}
-          style={{ minWidth: 44, height: 44 }}
+          style={{ minWidth: 46, height: 46 }}
           className="rounded-[var(--radius-md)] px-3 text-sm font-medium text-[var(--color-stone-900)] hover:bg-[var(--color-stone-100)] disabled:opacity-50"
         >
           −
@@ -74,7 +74,7 @@ function CartLine({ slug, item }: { slug: string; item: CartItem }) {
           disabled={pending}
           onClick={() => submitWithQuantity(item.line.quantity + 1)}
           aria-label={`Increase quantity of ${item.product.name}`}
-          style={{ minWidth: 44, height: 44 }}
+          style={{ minWidth: 46, height: 46 }}
           className="rounded-[var(--radius-md)] px-3 text-sm font-medium text-[var(--color-stone-900)] hover:bg-[var(--color-stone-100)] disabled:opacity-50"
         >
           +
@@ -84,7 +84,7 @@ function CartLine({ slug, item }: { slug: string; item: CartItem }) {
           disabled={pending}
           onClick={() => submitWithQuantity(0)}
           aria-label={`Remove ${item.product.name} from cart`}
-          style={{ minWidth: 44, height: 44 }}
+          style={{ minWidth: 46, height: 46 }}
           className="rounded-[var(--radius-md)] px-3 text-sm font-medium text-[var(--color-stone-900)] hover:bg-[var(--color-stone-100)] disabled:opacity-50"
         >
           Remove

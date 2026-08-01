@@ -43,4 +43,50 @@ describe("HoneymoonProgrammeRepository", () => {
     expect(builder.eq).toHaveBeenCalledWith("retailer_id", retailerId);
     expect(builder.eq).toHaveBeenCalledWith("order_id", "order-1");
   });
+
+  it("returns the programme projection without a fragile post-write lookup", async () => {
+    let programmeQueries = 0;
+    const from = vi.fn((table: string) => {
+      if (table === "honeymoon_programmes") {
+        programmeQueries += 1;
+        if (programmeQueries === 1) {
+          return createBuilder(() => ({ data: null, error: null }));
+        }
+        return createBuilder(() => ({
+          data: {
+            id: "programme-1",
+            retailer_id: retailerId,
+            customer_id: "customer-1",
+            order_id: "order-1",
+            status: "active",
+          },
+          error: null,
+        }));
+      }
+      return createBuilder(() => ({ data: null, error: null }));
+    });
+    const repo = new HoneymoonProgrammeRepository({
+      from,
+    } as unknown as PaonSupabaseClient);
+
+    const result = await repo.ensureForOrder({
+      retailerId,
+      customerId: "customer-1",
+      orderId: "order-1",
+      orderStatus: "pending_payment",
+      contactPressureActive: false,
+      lines: [
+        {
+          productLabel: "Jacket",
+          quantity: 1,
+          inStock: true,
+          leadTimeDays: 0,
+        },
+      ],
+    });
+
+    expect(result.id).toBe("programme-1");
+    expect(result.actions).toHaveLength(3);
+    expect(programmeQueries).toBe(2);
+  });
 });
