@@ -198,6 +198,49 @@ Everything in this section is true on `agent/grok-takeover-2026-07-30` only.
 `ec58c8e0`. **Work only on the takeover branch.** The charter's
 "push to `origin/main`" line does not apply while this takeover is in force.
 
+### Environments — TWO Supabase projects, and what that means
+
+This is the most consequential thing to understand before touching anything.
+
+**Stages 0 through roughly 9 were built and verified against the ORIGINAL
+Supabase project. Everything from stage 10 onward — including every
+`verified_local` claim on this branch — was built and proven against a
+SECOND, dedicated, non-production project** (`lowlzpktpayiglckvfpi`,
+ap-northeast-2), provisioned empty specifically for the takeover.
+
+The credentials live in `apps/retailer/.env.local`, which is **gitignored**.
+A fresh clone therefore has no database at all and no record that two exist.
+Ask the founder for the project to point at before running anything.
+
+Consequences, in order of how badly they can bite:
+
+1. **The two schemas have diverged.** All 146 migrations were applied to the
+   sandbox from empty. The original project has only the earlier ones. Do not
+   assume a migration that is "in the repo" has run against whichever database
+   you are pointed at.
+2. **Clean-database proof is not incremental-upgrade proof.** The sandbox
+   proves migrations 18–22 work on an empty database. It does NOT prove they
+   apply safely on top of the original project's real data.
+   `20260801000018` is the one to be careful with: it carries a **data
+   backfill** (turning every `inventory_quantity` into an opening ledger
+   receipt) plus triggers that rewrite a caller's write. It is guarded by
+   `not exists` and an `idempotency_key` with `on conflict do nothing`, so a
+   re-run should be inert — but it is still a one-way data event and deserves
+   a dry run against a restored copy before it touches anything real.
+3. **The test suites write real rows into whatever project the env points
+   at.** The live integration and Playwright suites create locations,
+   candidates, risk flags, sweeps and sales. On the sandbox this is fine and
+   deliberate. **Pointing them at the original or production project would
+   pollute it.** Check `NEXT_PUBLIC_SUPABASE_URL` before running
+   `PAON_INTEGRATION=1` or Playwright, every time.
+4. **Which project production/Vercel uses was never confirmed during the
+   takeover.** Establish this before rotating any key or applying any
+   migration, rather than inferring it.
+5. **Migrations were applied with helper scripts at `/agent/tools/`, outside
+   the repository**, because they carry a management token. Those scripts do
+   not exist in a normal checkout. Use the Supabase CLI (`supabase db push`)
+   or the dashboard SQL editor instead, and never commit a token.
+
 ### What is browser-proven
 
 Eight items carry a `passed` browser proof plus live database assertions:
