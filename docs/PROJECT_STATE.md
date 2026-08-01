@@ -69,9 +69,12 @@ This correction supersedes conflicting status and handoff claims below:
   Module proof is 8 domain + 8 repository/schema + 15 pgTAP + 1 browser
   assertion. Customer e2e is a clean 29/29 and retailer e2e is a clean 43/43.
   Preview/suspended/off now fail closed at the server-session boundary for
-  stock, loss prevention, POS and coverage mutations; browser proof submits a
-  direct preview-mode Server Action and verifies no row is written. It is not
-  yet universal across every module surface. The canonical proof House is now
+  stock, loss prevention, POS, coverage, customer, appointment, messaging,
+  customer-fact, wardrobe and roadmap mutations. Relationship route layouts
+  also refuse suspended/off direct reads while allowing preview reads. Browser
+  proof waits for both preview-mode Server Actions, verifies no rows are
+  written, and asserts the suspended direct client route returns 500. The gate
+  is not yet universal across every module surface. The canonical proof House is now
   idempotently seeded as a tenant distinct from Maison Dubois, Demo Studio and
   the generic e2e workspace, with 6+ staff, 14 clients, 20+ products, 5+
   appointments, 10+ orders and an alteration case. R0.3 still needs canonical

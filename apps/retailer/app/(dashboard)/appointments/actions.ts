@@ -5,13 +5,13 @@ import { AppointmentRepository } from "@paon/database";
 import { asId, updateAppointmentInputSchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function quickUpdateAppointmentStatus(
   formData: FormData,
 ): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
   const appointmentId = String(formData.get("appointmentId") ?? "");
   const status = String(formData.get("status") ?? "");
@@ -32,7 +32,7 @@ export async function quickUpdateAppointmentStatus(
 export async function bulkCompleteAppointments(
   formData: FormData,
 ): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
   const appointmentIds = formData
     .getAll("appointmentIds")

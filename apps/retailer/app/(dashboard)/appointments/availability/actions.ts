@@ -4,7 +4,7 @@ import { AvailabilityWindowRepository } from "@paon/database";
 import { asId, createAvailabilityWindowInputSchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface CreateAvailabilityWindowFormState {
@@ -23,7 +23,7 @@ export async function createAvailabilityWindow(
   _prevState: CreateAvailabilityWindowFormState,
   formData: FormData,
 ): Promise<CreateAvailabilityWindowFormState> {
-  await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
 
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
 
@@ -43,7 +43,6 @@ export async function createAvailabilityWindow(
     return { values: raw, fieldErrors };
   }
 
-  const session = await requireSession();
   const supabase = await getSupabaseServerClient();
 
   try {
@@ -70,7 +69,7 @@ export async function createAvailabilityWindow(
 export async function deleteAvailabilityWindow(
   windowId: string,
 ): Promise<void> {
-  await requireSession();
+  await requireModuleSession("relationship_intelligence");
   const supabase = await getSupabaseServerClient();
   await new AvailabilityWindowRepository(supabase).delete(
     asId<"AvailabilityWindowId">(windowId),

@@ -5,7 +5,7 @@ import { AppointmentRepository } from "@paon/database";
 import { asId, updateAppointmentInputSchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface UpdateAppointmentFormState {
@@ -17,7 +17,7 @@ export async function updateAppointment(
   _prevState: UpdateAppointmentFormState,
   formData: FormData,
 ): Promise<UpdateAppointmentFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;

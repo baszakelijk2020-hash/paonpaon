@@ -15,7 +15,7 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface RetailerWardrobeActionState {
@@ -45,7 +45,7 @@ export async function addAdvisorExternalWardrobeItem(
   _prevState: RetailerWardrobeActionState,
   formData: FormData,
 ): Promise<RetailerWardrobeActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("wardrobe_styling");
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const parsed = createAdvisorExternalWardrobeItemInputSchema.safeParse({
@@ -105,7 +105,7 @@ export async function addCatalogueWardrobeItem(
   _prevState: RetailerWardrobeActionState,
   formData: FormData,
 ): Promise<RetailerWardrobeActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("wardrobe_styling");
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const productId = optionalString(formData.get("productId"));

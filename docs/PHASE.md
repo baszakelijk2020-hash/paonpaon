@@ -139,11 +139,15 @@ be resumed without the module mapping required by R0.3.**
     had silently excluded the route while allowing its proof and documentation
     to be committed; the route is now explicitly unignored. Remaining:
     Mutation enforcement now goes beyond navigation/jobs: a shared
-    module-session gate rejects preview/suspended/off writes, and stock, loss
-    prevention, POS and coverage actions all use it. Browser proof loads the
-    direct coverage route in preview and verifies that submitting its live
-    Server Action creates no row. Remaining: extend the gate across every
-    module-owned mutation/read surface and complete canonical House cleanup.
+    module-session gate rejects preview/suspended/off writes. Stock, loss
+    prevention, POS, coverage, customer, appointment, messaging, customer-fact,
+    wardrobe and roadmap actions all use it. Relationship route layouts now
+    allow active/preview reads while refusing suspended/off direct access.
+    Browser proof waits for real Server Action responses, verifies both a
+    coverage write and a client creation leave zero rows in preview, then
+    proves a suspended direct client route returns 500. Remaining: extend the
+    gate across every other module-owned mutation/read surface and complete
+    canonical House cleanup.
     The programme proof now seeds an idempotent, lived-in tenant independently
     from Maison Dubois, Demo Studio prospects and the generic e2e workspace:
     6+ staff, 14 clients, 20+ products, 5+ appointments, 10+ orders and an

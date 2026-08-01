@@ -37,10 +37,13 @@ requires it.
   projection. `CAPABILITY_DISPOSITION.md` now supplies the compact R0.3
   inheritance registry; consult it instead of resuming a numbered legacy stage
   because files happen to exist. Direct server guards and canonical House
-  depth remain open. The first mutation boundary now rejects preview,
-  suspended and off writes across stock, loss prevention, POS and coverage;
-  the browser proof verifies a direct preview-mode Server Action writes no
-  row. The canonical proof House is now a deep, idempotent tenant separated
+  cleanup remain open. The shared boundary now rejects preview, suspended and
+  off writes across stock, loss prevention, POS, coverage, customer,
+  appointment, messaging, customer-fact, wardrobe and roadmap actions.
+  Relationship route layouts reject suspended/off direct reads while keeping
+  preview useful. Browser proof waits for the action responses, verifies zero
+  coverage/client rows, and checks suspended direct access returns 500. The
+  canonical proof House is now a deep, idempotent tenant separated
   from founder demo, Demo Studio and generic e2e data, with the full retailer
   suite green at 43/43. Extend the shared gate rather than inventing per-page
   tier checks; House cleanup and the remaining read/write surfaces stay open.

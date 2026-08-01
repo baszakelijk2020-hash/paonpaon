@@ -20,7 +20,7 @@ import { formatMoney } from "@paon/utils";
 import { revalidatePath } from "next/cache";
 
 import { getAIProvider } from "@/lib/ai";
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface AIActionState {
@@ -34,7 +34,7 @@ export async function generateNextBestAction(
   _previous: AIActionState,
   _formData: FormData,
 ): Promise<AIActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const provider = getAIProvider();
@@ -121,7 +121,7 @@ export async function generateNextBestAction(
  * carrier/pickup arrangement staff intend to use for this customer,
  * shown alongside their shipping addresses. */
 export async function setPreferredCarrier(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
   const customerId = String(formData.get("customerId"));
   const raw = String(formData.get("carrier") ?? "");
@@ -146,7 +146,7 @@ export async function setPreferredCarrier(formData: FormData) {
 }
 
 export async function createClientelingNote(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
   const value = createClientelingNoteSchema.parse({
     customerId: formData.get("customerId"),

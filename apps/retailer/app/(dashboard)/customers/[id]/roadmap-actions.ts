@@ -17,7 +17,7 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface RoadmapActionState {
@@ -47,7 +47,7 @@ export async function createCustomerWardrobeRoadmap(
   _prevState: RoadmapActionState,
   formData: FormData,
 ): Promise<RoadmapActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("wardrobe_styling");
   const supabase = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(supabase).findByUserId(
     session.userId as never,
@@ -193,7 +193,7 @@ export async function submitRoadmapForApproval(
   _prevState: RoadmapActionState,
   formData: FormData,
 ): Promise<RoadmapActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("wardrobe_styling");
   const supabase = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(supabase).findByUserId(
     session.userId as never,

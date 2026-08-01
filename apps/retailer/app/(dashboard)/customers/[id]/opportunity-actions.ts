@@ -7,7 +7,7 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 function parseStatus(
@@ -22,7 +22,7 @@ function parseStatus(
 export async function setClientelingOpportunityStatus(
   formData: FormData,
 ): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   const opportunityId = formData.get("opportunityId");
   const customerId = formData.get("customerId");
   const status = parseStatus(formData.get("status"));

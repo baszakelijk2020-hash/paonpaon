@@ -11,11 +11,11 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function correctCustomerFact(formData: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   const factId = formData.get("factId");
   const customerId = formData.get("customerId");
   const factType = formData.get("factType");

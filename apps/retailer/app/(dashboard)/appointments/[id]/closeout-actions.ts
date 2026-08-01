@@ -15,7 +15,7 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function submitAppointmentCloseout(args: {
@@ -33,7 +33,7 @@ export async function submitAppointmentCloseout(args: {
 }): Promise<
   { readonly ok: true } | { readonly ok: false; readonly error: string }
 > {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   const supabase = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(supabase).findByUserId(
     session.userId,

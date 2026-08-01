@@ -5,7 +5,7 @@ import { CustomerRepository } from "@paon/database";
 import { createCustomerInputSchema } from "@paon/domain";
 import { redirect } from "next/navigation";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface CreateCustomerFormState {
@@ -18,7 +18,7 @@ export async function createCustomer(
   _prevState: CreateCustomerFormState,
   formData: FormData,
 ): Promise<CreateCustomerFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;

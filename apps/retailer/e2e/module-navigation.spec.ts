@@ -37,6 +37,14 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
   )
     .toISOString()
     .slice(0, 10);
+  const previewCustomerEmail = `module-preview-${Date.now()}@example.test`;
+  const relationshipDependents = [
+    "network_ecosystem",
+    "enterprise_verticals",
+    "wardrobe_styling",
+    "commerce_growth",
+    "garment_service_operations",
+  ] as const;
 
   try {
     await modules.configure({
@@ -75,7 +83,14 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
     // boundary refuses the write instead of relying on hidden navigation.
     await page.goto(`/staff/coverage?date=${previewWriteDate}`);
     await page.getByLabel("morning headcount").fill("1");
-    await page.getByRole("button", { name: "Publish coverage" }).click();
+    await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.request().method() === "POST" &&
+          new URL(response.url()).pathname === "/staff/coverage",
+      ),
+      page.getByRole("button", { name: "Publish coverage" }).click(),
+    ]);
     await expect
       .poll(async () => {
         const { count, error } = await admin
@@ -87,7 +102,96 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
         return count ?? 0;
       })
       .toBe(0);
+
+    // Relationship Intelligence sits under several active families. Turn
+    // those dependants off in dependency-safe order, then prove preview keeps
+    // the direct read route useful while the customer Server Action fails
+    // closed. This covers stale tabs and forged action requests, not just nav.
+    for (const moduleKey of relationshipDependents) {
+      await modules.configure({
+        retailerId: retailer!.id,
+        moduleKey,
+        state: "off",
+        authorityMode: "co_managed",
+        source: "override",
+        reason: "Browser proof relationship dependency containment",
+      });
+    }
+    await modules.configure({
+      retailerId: retailer!.id,
+      moduleKey: "relationship_intelligence",
+      state: "preview",
+      authorityMode: "co_managed",
+      source: "override",
+      reason: "Browser proof relationship preview",
+    });
+    await page.reload();
+    await expect(
+      page.locator('nav[aria-label="Primary"] a[href="/customers"]'),
+    ).toContainText("Clients · Preview");
+
+    await page.goto("/customers/new");
+    await expect(
+      page.getByRole("heading", { name: "New customer" }),
+    ).toBeVisible();
+    await page.getByLabel("Full name").fill("Blocked Preview Client");
+    await page.getByLabel("Email").fill(previewCustomerEmail);
+    await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.request().method() === "POST" &&
+          new URL(response.url()).pathname === "/customers/new",
+      ),
+      page.getByRole("button", { name: "Add client" }).click(),
+    ]);
+    await expect
+      .poll(async () => {
+        const { count, error } = await admin
+          .from("customers")
+          .select("id", { count: "exact", head: true })
+          .eq("retailer_id", retailer!.id)
+          .eq("email", previewCustomerEmail);
+        expect(error).toBeNull();
+        return count ?? 0;
+      })
+      .toBe(0);
+
+    await modules.configure({
+      retailerId: retailer!.id,
+      moduleKey: "relationship_intelligence",
+      state: "suspended",
+      authorityMode: "co_managed",
+      source: "override",
+      reason: "Browser proof relationship read containment",
+    });
+    const suspendedResponse = await page.goto("/customers/new");
+    expect(suspendedResponse?.status()).toBe(500);
+    await expect(
+      page.getByRole("heading", { name: "New customer" }),
+    ).toHaveCount(0);
   } finally {
+    await modules.configure({
+      retailerId: retailer!.id,
+      moduleKey: "relationship_intelligence",
+      state: "active",
+      authorityMode: "co_managed",
+      source: "add_on",
+    });
+    for (const moduleKey of [
+      "wardrobe_styling",
+      "commerce_growth",
+      "garment_service_operations",
+      "enterprise_verticals",
+      "network_ecosystem",
+    ] as const) {
+      await modules.configure({
+        retailerId: retailer!.id,
+        moduleKey,
+        state: "active",
+        authorityMode: "co_managed",
+        source: "add_on",
+      });
+    }
     await modules.configure({
       retailerId: retailer!.id,
       moduleKey: "retail_operations",

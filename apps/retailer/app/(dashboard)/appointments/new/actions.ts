@@ -12,7 +12,7 @@ import {
 } from "@paon/domain";
 import { redirect } from "next/navigation";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface CreateAppointmentFormState {
@@ -43,7 +43,7 @@ export async function createAppointment(
   _prevState: CreateAppointmentFormState,
   formData: FormData,
 ): Promise<CreateAppointmentFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;

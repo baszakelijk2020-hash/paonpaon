@@ -11,7 +11,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -23,7 +23,7 @@ function isAllowedAttachmentMime(
   );
 }
 export async function startConversation(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
   const value = startStaffConversationSchema.parse({
     customerId: formData.get("customerId"),
@@ -36,7 +36,7 @@ export async function startConversation(formData: FormData) {
   redirect(`/messages?c=${id}`);
 }
 export async function sendMessage(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
   const value = sendMessageSchema.parse({
     conversationId: formData.get("conversationId"),
@@ -74,7 +74,7 @@ export async function sendMessage(formData: FormData) {
  * nicety backed by RLS.
  */
 export async function linkConversationOutcome(formData: FormData) {
-  const session = await requireSession();
+  const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const conversationId = String(formData.get("conversationId") ?? "");
