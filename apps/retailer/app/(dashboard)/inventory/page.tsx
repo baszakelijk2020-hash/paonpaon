@@ -71,14 +71,17 @@ export default async function InventoryPage({
   const activeLocationId = resolved.location ?? locations[0]?.id;
   const isManager = retailerRoleAtLeast(session.retailerRole, "manager");
 
-  // `inventory_quantity` is a PRE-EXISTING stored stock number on the
-  // variant, written by the older catalogue flows. The 13.1 ledger projects
-  // its own balance from movements. That is two truths for one fact, and the
-  // legacy column cannot simply be deleted while other code writes it.
+  // `inventory_quantity` is the number the storefront, tie-mate, low-stock
+  // export and morning routine all read. It is no longer a second truth:
+  // since migrations 18-21 it is a maintained PROJECTION of this same ledger
+  // (available across every location, clamped at zero), and the only way to
+  // change it is to append a movement. A direct write to it is converted into
+  // the ledger entry it should have been, so the two cannot drift —
+  // `count_inventory_disagreements()` exists to prove that and must stay at 0.
   //
-  // Rather than pick one silently, this page reads both and SHOWS the
-  // disagreement. A hidden divergence between a catalogue figure and a
-  // ledger figure is how a shop oversells while both screens look fine.
+  // It is shown alongside the per-location figures below because they answer
+  // different questions: this page is "what is in THIS room", the catalogue
+  // number is "what can still be promised anywhere".
   const { data: variantRows } = await supabase
     .from("product_variants")
     .select("id, sku, size, inventory_quantity")
@@ -243,20 +246,17 @@ export default async function InventoryPage({
                   ) : null}
                 </div>
                 {(() => {
-                  const legacy = legacyQuantityByVariant.get(balance.variantId);
-                  if (legacy === undefined || legacy === balance.onHand) {
-                    return null;
-                  }
+                  const catalogue = legacyQuantityByVariant.get(
+                    balance.variantId,
+                  );
+                  if (catalogue === undefined) return null;
                   return (
                     <p
-                      data-legacy-mismatch={balance.variantId}
-                      data-legacy-quantity={legacy}
-                      className="mt-1 text-sm text-[var(--color-stone-700)]"
+                      data-catalogue-quantity={catalogue}
+                      className="mt-1 text-sm text-[var(--color-stone-500)]"
                     >
-                      The catalogue still says {legacy} for this item while the
-                      movements add up to {balance.onHand}. The movements are
-                      the record; the catalogue figure is left over from an
-                      older flow and is not used to sell.
+                      {catalogue} available to sell online, counting every
+                      location and every hold.
                     </p>
                   );
                 })()}

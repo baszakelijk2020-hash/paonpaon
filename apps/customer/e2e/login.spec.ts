@@ -2,14 +2,25 @@ import { createSupabaseAdminClient } from "@paon/database";
 import { DEMO_PASSWORD, seedDemoData } from "@paon/database/demo-seed";
 import { expect, test } from "@playwright/test";
 
-import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_DISPLAY_NAME } from "./fixtures";
+import {
+  AUTH_DELIVERABLE_DOMAIN,
+  TEST_CUSTOMER_EMAIL,
+  TEST_RETAILER_DISPLAY_NAME,
+} from "./fixtures";
 
-test("redirects unauthenticated visitors to /login", async ({ page }) => {
-  await page.goto("/dashboard");
-  await expect(page).toHaveURL(/\/login/);
-  await expect(
-    page.getByRole("heading", { name: "Welcome back." }),
-  ).toBeVisible();
+// Its own empty context. These specs share one worker, so a session left by
+// an earlier sign-in makes "unauthenticated visitor" a lie and the visitor
+// lands on /dashboard exactly as a signed-in one should.
+test.describe("unauthenticated", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test("redirects unauthenticated visitors to /login", async ({ page }) => {
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/login/);
+    await expect(
+      page.getByRole("heading", { name: "Welcome back." }),
+    ).toBeVisible();
+  });
 });
 
 test("requesting a sign-in link shows a confirmation, not an error", async ({
@@ -18,7 +29,7 @@ test("requesting a sign-in link shows a confirmation, not an error", async ({
   await page.goto("/login");
   await page
     .getByLabel("Email")
-    .fill(`e2e-new-shopper-${Date.now()}@paon.test`);
+    .fill(`e2e-new-shopper-${Date.now()}@${AUTH_DELIVERABLE_DOMAIN}`);
   await page.getByRole("button", { name: "Send sign-in link" }).click();
   await expect(page.getByRole("status")).toContainText("Check");
 });

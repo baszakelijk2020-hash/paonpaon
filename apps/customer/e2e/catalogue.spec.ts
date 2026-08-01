@@ -6,7 +6,9 @@ test("storefront catalogue renders products and sort controls are present", asyn
   page,
 }) => {
   await page.goto(`/r/${TEST_RETAILER_SLUG}`);
-  await expect(page.getByText("E2E Customer Workspace")).toBeVisible();
+  // First: the name also appears in the storefront's address block,
+  // so an unscoped match resolves to two elements.
+  await expect(page.getByText("E2E Customer Workspace").first()).toBeVisible();
   // The collection grid must contain at least one product card
   await expect(
     page

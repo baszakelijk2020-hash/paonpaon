@@ -10,7 +10,11 @@ import {
 
 test("browsing the storefront requires no sign-in", async ({ page }) => {
   await page.goto(`/r/${TEST_RETAILER_SLUG}`);
-  await expect(page.getByText(TEST_RETAILER_DISPLAY_NAME)).toBeVisible();
+  // First: the name also appears in the storefront's address block,
+  // so an unscoped match resolves to two elements.
+  await expect(
+    page.getByText(TEST_RETAILER_DISPLAY_NAME).first(),
+  ).toBeVisible();
   await expect(page.getByText("E2E Storefront Overcoat")).toBeVisible();
 
   await page.goto(

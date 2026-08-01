@@ -16203,6 +16203,7 @@ export type Database = {
         Args: { p_prospect_id: string };
         Returns: string;
       };
+      count_inventory_disagreements: { Args: never; Returns: number };
       create_alteration_intake: {
         Args: {
           p_appointment_id: string;
@@ -16766,6 +16767,10 @@ export type Database = {
         Args: { p_feature_key: string; p_retailer_id: string };
         Returns: boolean;
       };
+      retailer_online_location: {
+        Args: { p_retailer_id: string };
+        Returns: string;
+      };
       review_catalogue_import_task: {
         Args: {
           p_status: Database["public"]["Enums"]["metadata_review_task_status"];
@@ -17015,6 +17020,14 @@ export type Database = {
           p_timezone?: string;
         };
         Returns: string;
+      };
+      variant_ledger_balance: {
+        Args: { p_variant_id: string };
+        Returns: {
+          available: number;
+          on_hand: number;
+          reserved: number;
+        }[];
       };
       wardrobe_item_self_scan_eligible: {
         Args: { p_item: Database["public"]["Tables"]["wardrobe_items"]["Row"] };
