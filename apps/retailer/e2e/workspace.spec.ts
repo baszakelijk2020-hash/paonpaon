@@ -1,6 +1,21 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { TEST_OWNER_EMAIL, TEST_OWNER_PASSWORD } from "./fixtures";
+
+/**
+ * Clicks a PRIMARY NAVIGATION link.
+ *
+ * `page.getByRole("link", { name: /^Team/ })` matches two elements: the
+ * sidebar entry and the dashboard's quick-link card, which carry the same
+ * accessible name. Playwright then refuses in strict mode. Scoping to the
+ * navigation landmark says which one is meant, and keeps working as more
+ * dashboard cards are added.
+ */
+function navLink(page: Page, name: RegExp) {
+  return page
+    .getByRole("navigation", { name: "Primary" })
+    .getByRole("link", { name });
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/login");
@@ -13,10 +28,10 @@ test.beforeEach(async ({ page }) => {
 test("owner invites an additional staff member", async ({ page }) => {
   const unique = Date.now();
 
-  await page.getByRole("link", { name: /^Team/ }).click();
+  await navLink(page, /^Team/).click();
   await expect(page).toHaveURL(/\/staff$/);
 
-  await page.getByRole("link", { name: "Invite staff" }).click();
+  await page.getByRole("link", { name: "Invite teammate" }).click();
   await expect(page).toHaveURL(/\/staff\/new$/);
 
   await page.getByLabel("Full name").fill("Sam Sales");
@@ -43,7 +58,7 @@ test("owner edits the retailer's business profile", async ({ page }) => {
   // Restores the fixture retailer's display name afterwards — other
   // specs (login.spec.ts) run in parallel against the same shared
   // fixture and assert on its original value.
-  await page.getByRole("link", { name: /^Settings/ }).click();
+  await navLink(page, /^Settings/).click();
   await expect(page).toHaveURL(/\/settings$/);
 
   const originalDisplayName = await page
@@ -65,16 +80,16 @@ test("owner edits the retailer's business profile", async ({ page }) => {
 test("owner adds a client to the book", async ({ page }) => {
   const unique = Date.now();
 
-  await page.getByRole("link", { name: /^Clients/ }).click();
+  await navLink(page, /^Clients/).click();
   await expect(page).toHaveURL(/\/customers$/);
 
-  await page.getByRole("link", { name: "New customer" }).click();
+  await page.getByRole("link", { name: "New client" }).click();
   await expect(page).toHaveURL(/\/customers\/new$/);
 
   await page.getByLabel("Full name").fill("Jamie Shopper");
   await page.getByLabel("Email").fill(`jamie-${unique}@paon.test`);
   await page.getByLabel("Lifecycle stage").selectOption("vip");
-  await page.getByRole("button", { name: "Add customer" }).click();
+  await page.getByRole("button", { name: "Add client" }).click();
 
   await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+$/);
   await expect(
@@ -101,7 +116,7 @@ test("owner adds a client to the book", async ({ page }) => {
 test("owner adds a product with its first variant", async ({ page }) => {
   const unique = Date.now();
 
-  await page.getByRole("link", { name: /^Products/ }).click();
+  await navLink(page, /^Products/).click();
   await expect(page).toHaveURL(/\/products$/);
 
   await page.getByRole("link", { name: "New product" }).click();
@@ -175,7 +190,7 @@ test("owner adds a collection", async ({ page }) => {
 });
 
 test("owner views and updates an order's status", async ({ page }) => {
-  await page.getByRole("link", { name: /^Orders/ }).click();
+  await navLink(page, /^Orders/).click();
   await expect(page).toHaveURL(/\/orders$/);
 
   const firstOrderLink = page.getByRole("link", { name: /ORD-/ }).first();

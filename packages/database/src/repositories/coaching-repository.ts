@@ -126,7 +126,13 @@ export class CoachingRepository {
     readonly observedOn: string;
     readonly ceremonyVersionId?: string;
     readonly appointmentId?: string;
-  }): Promise<{ readonly ok: true; readonly id: string } | CoachingCheck> {
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    // Exclude the success arm of CoachingCheck: leaving it in makes the
+    // union collapse so that narrowing on `ok === true` cannot reach `id`,
+    // and no caller can use the returned identifier at all.
+    | Exclude<CoachingCheck, { readonly ok: true }>
+  > {
     const check = checkObservation(args);
     if (!check.ok) return check;
 
@@ -161,7 +167,9 @@ export class CoachingRepository {
     readonly next: CoachingState;
     readonly agreedAction?: string;
     readonly outcomeNote?: string;
-  }): Promise<{ readonly ok: true } | CoachingCheck> {
+  }): Promise<
+    { readonly ok: true } | Exclude<CoachingCheck, { readonly ok: true }>
+  > {
     const { data: current, error } = await this.client
       .from("staff_coaching_observations")
       .select("state")

@@ -7,9 +7,18 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
+  // The sandbox database is in another region, so a click that triggers a
+  // Server Action round-trip regularly exceeds Playwright's 5s default
+  // expect timeout and 30s default test timeout. These are WAIT budgets,
+  // not weakened assertions: every condition asserted is unchanged. Set
+  // once here rather than sprinkled per spec.
+  timeout: 120_000,
+  expect: { timeout: 20_000 },
   use: {
     baseURL: "http://localhost:3001",
     trace: "on-first-retry",
+    actionTimeout: 30_000,
+    navigationTimeout: 45_000,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {

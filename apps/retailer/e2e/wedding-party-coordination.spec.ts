@@ -18,7 +18,7 @@ test("owner starts a wedding party, adds a groomsman, and messages the party", a
   await page.goto("/customers/new");
   await page.getByLabel("Full name").fill("Groom To Be");
   await page.getByLabel("Email").fill(`groom-${unique}@paon.test`);
-  await page.getByRole("button", { name: "Add customer" }).click();
+  await page.getByRole("button", { name: "Add client" }).click();
   await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+$/);
   const customerId = page.url().split("/").pop();
 
@@ -42,5 +42,8 @@ test("owner starts a wedding party, adds a groomsman, and messages the party", a
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Message the party" }).click();
-  await expect(page).toHaveURL(/\/messages\/[0-9a-f-]+$/);
+  // The inbox selects a conversation with a query param now
+  // (/messages?c=<id>), not a path segment. Accept either so this
+  // assertion tracks "a conversation is open", which is what it means.
+  await expect(page).toHaveURL(/\/messages(\/[0-9a-f-]+|\?c=[0-9a-f-]+)$/);
 });

@@ -22,11 +22,14 @@ test("owner attaches an image to a client message and sees it rendered inline", 
   await page.goto("/customers/new");
   await page.getByLabel("Full name").fill("Attachment Test Customer");
   await page.getByLabel("Email").fill(`attach-${unique}@paon.test`);
-  await page.getByRole("button", { name: "Add customer" }).click();
+  await page.getByRole("button", { name: "Add client" }).click();
   await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+$/);
 
   await page.getByRole("button", { name: "Message client" }).click();
-  await expect(page).toHaveURL(/\/messages\/[0-9a-f-]+$/);
+  // The inbox selects a conversation with a query param now
+  // (/messages?c=<id>), not a path segment. Accept either so this
+  // assertion tracks "a conversation is open", which is what it means.
+  await expect(page).toHaveURL(/\/messages(\/[0-9a-f-]+|\?c=[0-9a-f-]+)$/);
 
   // Attaching before sending shows the picked filename, not a silent no-op.
   const fixtureImage = path.join(__dirname, "fixtures", "swatch.png");

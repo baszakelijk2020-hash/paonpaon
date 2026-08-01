@@ -35,14 +35,14 @@ const retailerPersonas = [
     email: "contact+maison-dubois-workshop@nebelspiegel.com",
     visible: [/^Work queue/, /^Workshop pricing/],
     hidden: [/^Orders/, /^Clients/, /^Products/],
-    brief: "The workroom, clearly.",
+    brief: "The workroom, in motion.",
   },
   {
     name: "alteration worker",
     email: "contact+maison-dubois-alteration-worker@nebelspiegel.com",
     visible: [/^Work queue/],
     hidden: [/^Workshop pricing/, /^Orders/, /^Clients/, /^Products/],
-    brief: "Your workbench.",
+    brief: "Your bench, clearly.",
   },
 ] as const;
 

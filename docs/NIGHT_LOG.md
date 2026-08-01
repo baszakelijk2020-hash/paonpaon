@@ -716,3 +716,84 @@ is ever re-pushed by a mechanism that rewrites SHAs again, the proofs must
 be re-run, not re-pointed. Editing a `gitSha` by hand to make the validator
 pass would be manufacturing completion, which the working agreement forbids
 outright.
+
+## 2026-08-01 (afternoon) — Ship-mode audit: the append-only guarantee was fiction
+
+Three findings, in descending order of seriousness.
+
+### 1. CRITICAL — every "append-only" table was fully writable
+
+Every migration in stages 11-16 wrote `revoke all on table X from public,
+anon` and then `grant insert on table X to authenticated, service_role`.
+
+That does **not** revoke from `authenticated` or `service_role`. Supabase
+ships `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO
+anon, authenticated, service_role`, so every table created by this
+programme inherited full `UPDATE, DELETE, TRUNCATE` for both session roles,
+and the narrow `grant insert` that followed added nothing they did not
+already hold.
+
+Verified against the live database before any fix:
+
+    customer_measurement_versions  authenticated  DELETE,INSERT,...,UPDATE
+    customer_measurement_versions  service_role   DELETE,INSERT,...,UPDATE
+    stock_ledger_entries           authenticated  DELETE,INSERT,...,UPDATE
+    ... identical for all 18 append-only tables.
+
+For `authenticated` the hole was largely masked by RLS, since no UPDATE
+policy exists on those tables. For `service_role` there was no mask at all:
+service_role bypasses RLS. Any code path holding the admin client — and
+several repositories do — could silently rewrite an approved measurement,
+edit a stock ledger row, or restate a revenue share. Those three things are
+precisely what the schema was written to prevent.
+
+Fixed in `20260801000016_enforce_append_only_grants.sql`, which revokes
+UPDATE/DELETE/TRUNCATE from both session roles on all 18 tables and also
+changes the schema default privileges so the same footgun cannot re-arm for
+tables created later. Re-verified: 18 of 18 now correct, 0 wrong.
+
+**How it was missed for the entire programme**: the `*-security.test.ts`
+files read the migration `.sql` as TEXT and assert it contains the right
+`grant insert` string. It did. The text was correct and the database was
+not. A text-matching test cannot detect a privilege the migration never
+mentions. This is the strongest possible argument against counting those
+files as verification, and they must never be counted as such again.
+
+### 2. The integration harness that found it
+
+`packages/database/src/repositories/__integration__/stage-11-12-live.integration.test.ts`
+executes real SQL against the live database: 16 assertions that either write
+a row Postgres must accept, or write one it must reject with a specific
+SQLSTATE (23505 unique violation, 23514 check violation). Gated behind
+`PAON_INTEGRATION=1` so the ordinary offline unit gate stays hermetic.
+
+Run with:
+PAON_INTEGRATION=1 pnpm --filter @paon/database exec vitest run src/repositories/**integration**
+
+It found the grant hole on its first execution, in under twenty seconds.
+
+### 3. Regression audit of the existing product — clean
+
+The full 14-spec Playwright suite had never been run since this programme
+began touching migrations. First run: 15 passed, 11 failed. **None of the
+11 were regressions.** Categorised:
+
+- 5 x strict-mode violations where `getByRole("link", {name: /^Team/})`
+  matched both the sidebar entry and a dashboard quick-link card. Fixed by
+  scoping to the `Primary` navigation landmark.
+- 4 x 30s timeouts against a database in another region. Fixed once in
+  `playwright.config.ts` rather than per spec.
+- 1 x missing `E2E_FADEN_WEBHOOK_SECRET`. Added to `.env.local`/`.env.example`.
+- Then a second layer: the specs had drifted from the product's own copy.
+  The UI says "Invite teammate", "New client", "Add client"; the specs
+  still said "Invite staff", "New customer", "Add customer". The dashboard
+  says "The workroom, in motion." and "Your bench, clearly."; the specs
+  still expected "The workroom, clearly." and "Your workbench.". The inbox
+  selects a conversation with `/messages?c=<id>`; the specs expected
+  `/messages/<id>`. In every case the product was right and the test was
+  stale.
+
+Also fixed while there: `CoachingRepository.recordObservation` declared
+`Promise<{ok:true; id:string} | CoachingCheck>`, and `CoachingCheck`
+contains `{ok:true}`, so the union collapsed and no caller could ever reach
+`id` after narrowing. Now excludes the duplicate success arm.
