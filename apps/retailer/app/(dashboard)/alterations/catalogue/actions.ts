@@ -8,7 +8,7 @@ import {
 import { asId } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface CatalogueActionState {
@@ -27,7 +27,7 @@ export async function updateCategorySetting(
   _state: CatalogueActionState,
   formData: FormData,
 ): Promise<CatalogueActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   requireAlterationsPermission(session.retailerRole, "configure");
   const categoryId = formData.get("categoryId");
   if (typeof categoryId !== "string") {
@@ -55,7 +55,7 @@ export async function updateOperationSetting(
   _state: CatalogueActionState,
   formData: FormData,
 ): Promise<CatalogueActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   requireAlterationsPermission(session.retailerRole, "configure");
   const operationId = formData.get("operationId");
   if (typeof operationId !== "string") {
@@ -95,7 +95,7 @@ export async function updateWorkshopPrice(
   _state: CatalogueActionState,
   formData: FormData,
 ): Promise<CatalogueActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   requireAlterationsPermission(
     session.retailerRole,
     "manage_assigned_workshop",

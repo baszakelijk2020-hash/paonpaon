@@ -4,7 +4,7 @@ import { requireAlterationsPermission } from "@paon/auth";
 import { WorkshopRepository } from "@paon/database";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface WorkshopFormState {
@@ -16,7 +16,7 @@ export async function createWorkshop(
   _state: WorkshopFormState,
   formData: FormData,
 ): Promise<WorkshopFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   requireAlterationsPermission(session.retailerRole, "configure");
   const name = formData.get("name");
   if (typeof name !== "string" || name.trim().length < 2) {

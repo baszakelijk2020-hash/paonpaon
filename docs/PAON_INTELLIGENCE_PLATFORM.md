@@ -39,14 +39,20 @@ requires it.
   because files happen to exist. Direct server guards and canonical House
   cleanup remain open. The shared boundary now rejects preview, suspended and
   off writes across stock, loss prevention, POS, coverage, customer,
-  appointment, messaging, customer-fact, wardrobe and roadmap actions.
-  Relationship route layouts reject suspended/off direct reads while keeping
-  preview useful. Browser proof waits for the action responses, verifies zero
-  coverage/client rows, and checks suspended direct access returns 500. The
-  canonical proof House is now a deep, idempotent tenant separated
+  appointment, messaging, customer-fact, wardrobe, roadmap, alteration,
+  workshop and service-plan actions. Relationship and garment/service route
+  layouts reject suspended/off direct reads while keeping preview useful.
+  Browser proof waits for the action responses, verifies zero
+  coverage/client/service-plan rows, and checks suspended direct access returns 500. The canonical proof House is now a deep, idempotent tenant separated
   from founder demo, Demo Studio and generic e2e data, with the full retailer
   suite green at 43/43. Extend the shared gate rather than inventing per-page
   tier checks; House cleanup and the remaining read/write surfaces stay open.
+  `CAPABILITY_DISPOSITION.md` accounts for every designated tool but is only a
+  registry. The next product-specification slice must create the authoritative
+  per-tool blueprints from `DESIGN_PORTS.md`, the founder brief and founder
+  source pages: exact experience plus actors, module/tier, canonical data,
+  events, permissions, consent/provenance, integrations, recovery and proof.
+  Do not treat nebelspiegel/Atelier Munro branding as PAON product intent.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

@@ -24,7 +24,7 @@ import {
 import { stripUndefined } from "@paon/utils";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface AddAlterationUpdateFormState {
@@ -52,7 +52,7 @@ export async function uploadAlterationPhoto(
   _state: WorkflowActionState,
   formData: FormData,
 ): Promise<WorkflowActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   const allowed = [
     "intake",
     "oversight",
@@ -124,7 +124,7 @@ export async function proposePriceChange(
   _state: PricingActionState,
   formData: FormData,
 ): Promise<PricingActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   if (
     !retailerRoleHasAlterationsPermission(
       session.retailerRole,
@@ -180,7 +180,7 @@ export async function decidePriceChange(
   _state: PricingActionState,
   formData: FormData,
 ): Promise<PricingActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   if (
     !retailerRoleHasAlterationsPermission(
       session.retailerRole,
@@ -221,7 +221,7 @@ export async function updateTaskStatus(
   _state: WorkflowActionState,
   formData: FormData,
 ): Promise<WorkflowActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   const mayWork = [
     "oversight",
     "manage_assigned_workshop",
@@ -261,7 +261,7 @@ export async function addTaskNote(
   _state: WorkflowActionState,
   formData: FormData,
 ): Promise<WorkflowActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   const mayWork = [
     "oversight",
     "manage_assigned_workshop",
@@ -294,7 +294,7 @@ export async function assignWorkOrder(
   _state: WorkflowActionState,
   formData: FormData,
 ): Promise<WorkflowActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   requireAlterationsPermission(session.retailerRole, "configure");
   const workshopId = formData.get("workshopId");
   const targetDate = formData.get("targetCompletionDate");
@@ -323,7 +323,7 @@ export async function updateWorkshopAssignment(
   _state: WorkflowActionState,
   formData: FormData,
 ): Promise<WorkflowActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   requireAlterationsPermission(
     session.retailerRole,
     "manage_assigned_workshop",
@@ -354,7 +354,7 @@ export async function recordCustodyEvent(
   _state: WorkflowActionState,
   formData: FormData,
 ): Promise<WorkflowActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   const allowed = ["intake", "oversight", "manage_assigned_workshop"].some(
     (permission) =>
       retailerRoleHasAlterationsPermission(
@@ -404,7 +404,7 @@ export async function recordFulfillment(
   _state: WorkflowActionState,
   formData: FormData,
 ): Promise<WorkflowActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   const allowed =
     retailerRoleHasAlterationsPermission(session.retailerRole, "oversight") ||
     retailerRoleHasAlterationsPermission(session.retailerRole, "intake");
@@ -474,7 +474,7 @@ export async function recordFitToolObservation(
   area: string,
   observation: string,
 ): Promise<WorkflowActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   const allowed = [
     "intake",
     "oversight",
@@ -507,7 +507,7 @@ export async function addAlterationUpdate(
   _prevState: AddAlterationUpdateFormState,
   formData: FormData,
 ): Promise<AddAlterationUpdateFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   const canProgress = [
     "oversight",
     "intake",

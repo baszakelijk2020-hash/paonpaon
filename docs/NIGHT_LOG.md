@@ -993,3 +993,33 @@ proxy signal instead of the asserted state; a guard matching the copy that
 explains its own absence; specs colliding with their own history; and test
 suites leaving queue rows that fail _other_ suites later while looking like
 those suites' bug.
+
+## 2026-08-02 Codex takeover and continuous run
+
+- `61223cd` / `b4e06e8` / `a64eee7` restored the missing retailer coverage
+  product route, repaired the inherited browser baseline to 42/42 and made its
+  measurement evidence deterministic. The missing route had been silently
+  ignored by a broad `coverage/` rule while its proof prose was committed.
+- `6dad18a` mapped all inherited Stage 8–16 capabilities and all 14 designated
+  founder tools into eight PAON module families with explicit disposition and
+  connected proof contracts in `CAPABILITY_DISPOSITION.md`.
+- `f21d5cc` / `7a4804e` introduced the active-module Server Action boundary
+  and applied it to stock, loss prevention, POS and coverage, including a
+  preview-mode no-write browser assertion.
+- `c4a7d66` / `2d9a013` separated the deep, idempotent canonical programme
+  proof House from Maison Dubois, Demo Studio and generic e2e data. Retailer
+  browser baseline became 43/43; all SHA-bound evidence was refreshed.
+- `cbc7269` / `3a10ffd` applied shared mutation and direct-read boundaries to
+  relationship, appointment, messaging, customer-fact, wardrobe and roadmap
+  surfaces. Browser proof waits for actual Server Action completion before
+  asserting zero preview writes and a suspended direct-route refusal.
+- In flight at this log entry: the same boundary is applied to alteration,
+  workshop and service-plan actions plus `/alterations` and `/services` reads.
+  Focused proof and the complete retailer suite are green at 43/43; commit,
+  push and exact-SHA evidence refresh remain before handoff.
+- Founder clarification captured: `CAPABILITY_DISPOSITION.md` is an index, not
+  a sufficient tool specification. The next specification slice must produce
+  detailed per-tool blueprints covering literal source experience, PAON
+  rationale, roles, module/tier, data/events, permissions, provenance/consent,
+  technical wiring, recovery and connected browser/database proof without
+  importing Atelier Munro branding or surrounding pitch claims.

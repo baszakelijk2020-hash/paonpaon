@@ -5,7 +5,7 @@ import { AlterationRepository } from "@paon/database";
 import { createAlterationInputSchema } from "@paon/domain";
 import { redirect } from "next/navigation";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface CreateAlterationFormState {
@@ -18,7 +18,7 @@ export async function createAlteration(
   _prevState: CreateAlterationFormState,
   formData: FormData,
 ): Promise<CreateAlterationFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   requireAlterationsPermission(session.retailerRole, "intake");
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
   const futureNote = raw["futureOrderNote"]?.trim();

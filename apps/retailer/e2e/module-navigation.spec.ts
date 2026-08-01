@@ -38,6 +38,7 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
     .toISOString()
     .slice(0, 10);
   const previewCustomerEmail = `module-preview-${Date.now()}@example.test`;
+  const previewPlanTitle = `Blocked preview plan ${Date.now()}`;
   const relationshipDependents = [
     "network_ecosystem",
     "enterprise_verticals",
@@ -103,6 +104,71 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
       })
       .toBe(0);
 
+    // Garment/service operations has two downstream families. Contain those
+    // first, then exercise both its read-only preview and suspended read gate.
+    for (const moduleKey of [
+      "network_ecosystem",
+      "enterprise_verticals",
+    ] as const) {
+      await modules.configure({
+        retailerId: retailer!.id,
+        moduleKey,
+        state: "off",
+        authorityMode: "co_managed",
+        source: "override",
+        reason: "Browser proof garment dependency containment",
+      });
+    }
+    await modules.configure({
+      retailerId: retailer!.id,
+      moduleKey: "garment_service_operations",
+      state: "preview",
+      authorityMode: "co_managed",
+      source: "override",
+      reason: "Browser proof garment preview",
+    });
+    await page.reload();
+    await expect(
+      page.locator('nav[aria-label="Primary"] a[href="/services"]'),
+    ).toContainText("Services · Preview");
+    await page.goto("/services");
+    await expect(
+      page.getByRole("heading", {
+        name: "Preferred Tailoring & HighMaintenance",
+      }),
+    ).toBeVisible();
+    await page.getByLabel("Title").fill(previewPlanTitle);
+    await page.getByLabel("Summary").fill("Must remain read-only in preview");
+    await page
+      .getByLabel("Explanation")
+      .fill("A stale form cannot activate this module.");
+    await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.request().method() === "POST" &&
+          new URL(response.url()).pathname === "/services",
+      ),
+      page.getByRole("button", { name: "Save plan" }).click(),
+    ]);
+    const { count: planCount, error: planCountError } = await admin
+      .from("service_plans")
+      .select("id", { count: "exact", head: true })
+      .eq("retailer_id", retailer!.id)
+      .eq("title", previewPlanTitle);
+    expect(planCountError).toBeNull();
+    expect(planCount ?? 0).toBe(0);
+
+    await modules.configure({
+      retailerId: retailer!.id,
+      moduleKey: "garment_service_operations",
+      state: "suspended",
+      authorityMode: "co_managed",
+      source: "override",
+      reason: "Browser proof garment read containment",
+    });
+    const suspendedServiceResponse = await page.goto("/services");
+    expect(suspendedServiceResponse?.status()).toBe(500);
+
     // Relationship Intelligence sits under several active families. Turn
     // those dependants off in dependency-safe order, then prove preview keeps
     // the direct read route useful while the customer Server Action fails
@@ -125,7 +191,7 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
       source: "override",
       reason: "Browser proof relationship preview",
     });
-    await page.reload();
+    await page.goto("/dashboard");
     await expect(
       page.locator('nav[aria-label="Primary"] a[href="/customers"]'),
     ).toContainText("Clients · Preview");

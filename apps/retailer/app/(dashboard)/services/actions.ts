@@ -17,7 +17,7 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 function revalidateServices(): void {
@@ -25,7 +25,7 @@ function revalidateServices(): void {
 }
 
 export async function upsertServicePlan(formData: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   const parsed = upsertServicePlanInputSchema.parse({
     planId: formData.get("planId") || undefined,
     kind: formData.get("kind"),
@@ -42,7 +42,7 @@ export async function upsertServicePlan(formData: FormData): Promise<void> {
 }
 
 export async function setServicePlanStatus(formData: FormData): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   const planId = String(formData.get("planId") ?? "");
   const status = String(formData.get("status") ?? "") as ServicePlanStatus;
   await new ServicePlanRepository(
@@ -54,7 +54,7 @@ export async function setServicePlanStatus(formData: FormData): Promise<void> {
 export async function enrollServiceMembership(
   formData: FormData,
 ): Promise<void> {
-  await requireSession();
+  await requireModuleSession("garment_service_operations");
   const parsed = enrollServiceMembershipInputSchema.parse({
     planId: formData.get("planId"),
     customerId: formData.get("customerId"),
@@ -70,7 +70,7 @@ export async function enrollServiceMembership(
 }
 
 export async function setMembershipStatus(formData: FormData): Promise<void> {
-  await requireSession();
+  await requireModuleSession("garment_service_operations");
   const parsed = setServiceMembershipStatusInputSchema.parse({
     membershipId: formData.get("membershipId"),
     status: formData.get("status"),
@@ -82,7 +82,7 @@ export async function setMembershipStatus(formData: FormData): Promise<void> {
 }
 
 export async function assignAdvisor(formData: FormData): Promise<void> {
-  await requireSession();
+  await requireModuleSession("garment_service_operations");
   const parsed = assignServiceAdvisorInputSchema.parse({
     membershipId: formData.get("membershipId"),
     advisorStaffId: formData.get("advisorStaffId"),
@@ -94,7 +94,7 @@ export async function assignAdvisor(formData: FormData): Promise<void> {
 }
 
 export async function grantEntitlement(formData: FormData): Promise<void> {
-  await requireSession();
+  await requireModuleSession("garment_service_operations");
   const parsed = grantServiceEntitlementInputSchema.parse({
     membershipId: formData.get("membershipId"),
     kind: formData.get("kind"),
@@ -111,7 +111,7 @@ export async function grantEntitlement(formData: FormData): Promise<void> {
 }
 
 export async function requestBooking(formData: FormData): Promise<void> {
-  await requireSession();
+  await requireModuleSession("garment_service_operations");
   const parsed = requestServiceBookingInputSchema.parse({
     membershipId: formData.get("membershipId"),
     kind: formData.get("kind"),
@@ -127,7 +127,7 @@ export async function requestBooking(formData: FormData): Promise<void> {
 }
 
 export async function transitionBooking(formData: FormData): Promise<void> {
-  await requireSession();
+  await requireModuleSession("garment_service_operations");
   const parsed = transitionServiceBookingInputSchema.parse({
     bookingId: formData.get("bookingId"),
     status: formData.get("status"),
@@ -141,7 +141,7 @@ export async function transitionBooking(formData: FormData): Promise<void> {
 }
 
 export async function linkAppointment(formData: FormData): Promise<void> {
-  await requireSession();
+  await requireModuleSession("garment_service_operations");
   const parsed = linkServiceBookingAppointmentInputSchema.parse({
     bookingId: formData.get("bookingId"),
     appointmentId: formData.get("appointmentId"),
@@ -153,7 +153,7 @@ export async function linkAppointment(formData: FormData): Promise<void> {
 }
 
 export async function recordFulfilment(formData: FormData): Promise<void> {
-  await requireSession();
+  await requireModuleSession("garment_service_operations");
   const parsed = recordServiceFulfilmentInputSchema.parse({
     bookingId: formData.get("bookingId"),
     method: formData.get("method"),
@@ -167,7 +167,7 @@ export async function recordFulfilment(formData: FormData): Promise<void> {
 }
 
 export async function recordCare(formData: FormData): Promise<void> {
-  await requireSession();
+  await requireModuleSession("garment_service_operations");
   const parsed = recordServiceCareInputSchema.parse({
     membershipId: formData.get("membershipId"),
     careKind: formData.get("careKind"),
@@ -183,7 +183,7 @@ export async function recordCare(formData: FormData): Promise<void> {
 }
 
 export async function recordCost(formData: FormData): Promise<void> {
-  await requireSession();
+  await requireModuleSession("garment_service_operations");
   const parsed = recordServiceCostInputSchema.parse({
     membershipId: formData.get("membershipId"),
     label: formData.get("label"),

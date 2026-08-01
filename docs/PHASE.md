@@ -116,6 +116,12 @@ be resumed without the module mapping required by R0.3.**
     to one of the modular chapters below. The same map accounts for every
     founder-specified tool in `docs/DESIGN_PORTS.md` and may not call a generic
     UI, static shell or domain/schema foundation a completed source tool.
+    Every founder-specified tool also has an authoritative build blueprint:
+    exact source composition/motion/behaviour, PAON rationale and ecosystem
+    role, actors/permissions, module/tier, state model, canonical data/events,
+    consent/provenance/RLS, Server Action/job/integration wiring, recovery and
+    browser/database proof. The disposition registry is not a substitute for
+    these implementation contracts.
   - **Tests:** seed rerun, cleanup, tenancy, primary login/navigation and
     canonical consumer checks; entitlement dependency and module-off tests.
   - **Status (2026-08-02):** the first local kernel slice is implemented.
@@ -141,13 +147,14 @@ be resumed without the module mapping required by R0.3.**
     Mutation enforcement now goes beyond navigation/jobs: a shared
     module-session gate rejects preview/suspended/off writes. Stock, loss
     prevention, POS, coverage, customer, appointment, messaging, customer-fact,
-    wardrobe and roadmap actions all use it. Relationship route layouts now
-    allow active/preview reads while refusing suspended/off direct access.
-    Browser proof waits for real Server Action responses, verifies both a
-    coverage write and a client creation leave zero rows in preview, then
-    proves a suspended direct client route returns 500. Remaining: extend the
-    gate across every other module-owned mutation/read surface and complete
-    canonical House cleanup.
+    wardrobe, roadmap, alteration, workshop and service-plan actions all use
+    it. Relationship and garment/service route layouts allow active/preview
+    reads while refusing suspended/off direct access. Browser proof waits for
+    real Server Action responses, verifies coverage, client and service-plan
+    writes leave zero rows in preview, then proves suspended direct client and
+    service routes return 500. Remaining: extend the gate across every other
+    module-owned mutation/read surface, write the full founder-tool blueprint
+    set, and complete canonical House cleanup.
     The programme proof now seeds an idempotent, lived-in tenant independently
     from Maison Dubois, Demo Studio prospects and the generic e2e workspace:
     6+ staff, 14 clients, 20+ products, 5+ appointments, 10+ orders and an
