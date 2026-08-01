@@ -4,11 +4,16 @@
  * Reuses Stage 7's existing customer_facts anniversary/wedding_date fact
  * types (already the "relationship event/fact foundation" 10.4 depends on —
  * no new fact schema needed) rather than inventing a parallel date store.
- * This module adds only the missing piece: deciding whether TODAY falls
- * inside a campaign's lead-time window around a customer's own recurring
- * date, timezone-aware and correct across a year boundary (a
- * December-dated anniversary must still fire in early January).
+ * This module adds the missing piece: deciding whether TODAY falls inside a
+ * campaign's lead-time window around a customer's own recurring date. The
+ * recurrence math itself reuses `nextYearlyOccurrence` from
+ * `appointments/customer-moment.ts` — found only after first writing a
+ * near-duplicate of it here, which is exactly the "second feature-local
+ * truth" AGENTS.md warns against; corrected once found rather than left in
+ * place with the shared function undiscovered by the next reader too.
  */
+
+import { nextYearlyOccurrence } from "../appointments/customer-moment";
 
 import type { CampaignLibrarySnapshot } from "./campaign-library";
 
@@ -40,30 +45,26 @@ function daysBetween(fromIso: string, toIso: string): number {
   return Math.round((Date.parse(toIso) - Date.parse(fromIso)) / msPerDay);
 }
 
+function toDateOnly(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getUTCFullYear()).padStart(4, "0")}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+}
+
 /**
  * Finds the nearest occurrence of relationshipDate's month/day at or after
- * today, rolling into next year if this year's occurrence has already
- * passed — this is what makes a December 20 anniversary still correctly
- * evaluate as "10 days away" when today is December 10, and correctly
- * evaluate as "356 days away" (not "-355") the day after it passes.
+ * today via the shared `nextYearlyOccurrence`, rolling into next year if
+ * this year's occurrence has already passed — this is what makes a
+ * December 20 anniversary still correctly evaluate as "10 days away" when
+ * today is December 10, and correctly evaluate as "356 days away" (not
+ * "-355") the day after it passes. Returns midnight UTC on that date, since
+ * the shared function works in date-only (YYYY-MM-DD) terms.
  */
 function nextOccurrence(relationshipDateIso: string, todayIso: string): Date {
-  const relationship = new Date(relationshipDateIso);
-  const today = new Date(todayIso);
-  const candidate = new Date(
-    Date.UTC(
-      today.getUTCFullYear(),
-      relationship.getUTCMonth(),
-      relationship.getUTCDate(),
-    ),
-  );
-  const todayMidnight = new Date(
-    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()),
-  );
-  if (candidate.getTime() < todayMidnight.getTime()) {
-    candidate.setUTCFullYear(candidate.getUTCFullYear() + 1);
-  }
-  return candidate;
+  const occursOn = nextYearlyOccurrence({
+    occursOn: toDateOnly(relationshipDateIso),
+    fromDate: toDateOnly(todayIso),
+  });
+  return new Date(`${occursOn}T00:00:00.000Z`);
 }
 
 /**

@@ -1273,8 +1273,14 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     needed) — timezone-agnostic by design (the caller resolves "today" in the
     retailer's own timezone first, matching how `campaigns.timezone` already
     works) and correct across a year boundary and when a fact's own year
-    differs from the current one, both covered by tests. One real library
-    package, `ANNIVERSARY_MOMENT_LIBRARY_V1`, proves the pattern — chosen
+    differs from the current one, both covered by tests. The recurrence math
+    itself was refactored onto the existing `nextYearlyOccurrence`
+    (`appointments/customer-moment.ts`) after a later self-review found this
+    item had first written a near-duplicate of it — corrected in the same
+    tranche once found, all 9 tests re-verified identical against the
+    shared function, not left in place for the next reader to rediscover.
+    One real library package, `ANNIVERSARY_MOMENT_LIBRARY_V1`, proves the
+    pattern — chosen
     first because it needs no new fact type and no sensitive-context
     human-rehearsal gate the other eight packages this item names may need.
     Missing: the other eight named packages (Valentine, Mother's/Father's
