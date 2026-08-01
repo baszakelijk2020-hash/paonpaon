@@ -202,21 +202,17 @@ test("manager publishes coverage, reads a cited shortage, closes a coaching loop
     .fill("Greeted by name and offered water before measuring.");
   await page.getByRole("button", { name: "Record observation" }).click();
 
-  await expect
-    .poll(
-      async () => {
-        await page.goto(`/staff/coverage?date=${planDate}`);
-        return page.locator("#coaching-observations > li").count();
-      },
-      { timeout: 45_000 },
-    )
-    .toBeGreaterThan(0);
+  // Wait for THIS colleague's row in the "observed" state, not merely for
+  // "some observation exists". A count-based poll is satisfied by a leftover
+  // row from an earlier spec in the same run, which is exactly how this
+  // passed alone and failed in sequence. Fourth instance of the same
+  // mistake in this proof: wait for the specific thing you are asserting.
+  await waitForCoachingState("observed");
 
   const observation = page
     .locator("#coaching-observations > li")
     .filter({ hasText: colleagueName })
     .first();
-  await expect(observation).toHaveAttribute("data-coaching-state", "observed");
 
   // A plan cannot be agreed before the observation has been discussed. The
   // UI only offers the next step, so the refusal is proven at the domain
