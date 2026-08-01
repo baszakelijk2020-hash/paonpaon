@@ -2027,6 +2027,26 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     grounding and role/RLS.
   - **Non-goals:** no unreviewed AI publication.
   - **Hard blockers:** licensed media blocks that content only.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. "No unreviewed AI publication" is a CHECK
+    constraint: `knowledge_ai_needs_human_approval` makes it impossible to
+    set `published_at` on machine-written content that is not
+    `human_approved`, and `provenance` is NOT NULL so an AI draft cannot be
+    laundered in by omitting it. `ai_assisted` is treated identically to
+    `ai_generated` — a human who edited a machine draft is still publishing
+    a machine draft, and the distinction is too easy to claim to be worth
+    trusting. An author cannot review their own article, in both the domain
+    check and a constraint. Tier coherence catches the specific incoherence
+    that matters: a dearer tier that silently drops something a cheaper one
+    included, which a customer discovers by upgrading and losing a service.
+    A roleplay grade must cite observed behaviour with an evidence ref,
+    because ungrounded feedback teaches nothing and cannot be disputed —
+    the same problem seen from two sides — and there is no aggregate score
+    column, matching 11.2 and 11.3. A consultancy project cannot enter
+    delivery with no deliverable the retailer can see, and cannot close
+    without their approval. Missing: the libraries themselves, DailyBriefing,
+    MunroMentor, all UI and browser proof. Licensed media stays
+    `blocked_external` for that content only.
 
 - [ ] **16.2 Media and future-products incubation**
   - **Requirement IDs:** `KNW-105`, `NET-103`.
@@ -2039,6 +2059,19 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Tests:** rights/territory/expiry, attribution and catalogue separation.
   - **Non-goals:** no copied publisher content or speculative stock purchase.
   - **Hard blockers:** media agreement blocks publication only.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. `checkMediaActivation` refuses content whose
+    rights have expired, whose territory does not cover the retailer, or
+    which names no licence — a piece with no stated licence is a piece
+    somebody assumed was free, and "we found it online" is how a publisher
+    complaint starts. On incubation, `product_hypotheses` has **no**
+    purchase-order, committed-quantity or supplier-order column, and a test
+    asserts their absence: "no speculative stock purchase" is implemented
+    as nowhere to record one. `evaluateProductHypothesis` returns
+    `authorisesPurchase: false` unconditionally — even when demand, margin,
+    supplier and quality evidence all exist, the function has no success
+    case that means "buy it", because that is a human decision. Missing:
+    contributor workflow, feed activation UI, browser proof.
 
 - [ ] **16.3 Vertical-pack framework and evidence-selected pilot**
   - **Requirement IDs:** Stage 16 target architecture.
@@ -2051,6 +2084,19 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     field access.
   - **Non-goals:** no simultaneous speculative multi-vertical build.
   - **Hard blockers:** no qualified pilot prospect defers vertical selection.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`. — **framework only**, and the pilot deliberately not started.
+    `checkVerticalPack` implements the extension contract: a pack may
+    rename core terms, add forms, add workflows and declare sensitive
+    fields, but may **not** declare an entity whose key matches a core
+    entity — that is precisely what "no core fork" means, and it is checked
+    rather than described. Renaming a term the core does not have is also
+    refused, because it is a typo rather than an override and would
+    silently do nothing. An undeclared sensitive field is refused, so a
+    vertical cannot quietly introduce a field like `prescription` without
+    it being registered as sensitive. No second vertical has been built and
+    none should be: `VERTICAL_SELECTION_NOTE` states in code that selection
+    comes from actual prospect evidence. The pilot remains
+    `blocked_external` on a qualified prospect; the framework does not.
 
 - [ ] **16.4 Instrumented physical-store and selling experience**
   - **Requirement IDs:** `EXP-101`.
@@ -2068,6 +2114,28 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     camera-derived employee accusation.
   - **Hard blockers:** display/RFID/camera hardware blocks live-device proof
     only.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. All three non-goals are refusals.
+    `store_observations` has **no `staff_id` column and no biometric
+    template column**, and tests assert both absences — a zone sensor that
+    can report which advisor stood where becomes a productivity monitor the
+    day someone asks it to. `checkObservationAdapter` refuses biometric
+    identity with no consent escape hatch at all, because a consent
+    checkbox on a shop door is not consent; a _named customer_ observation
+    is a different and much narrower thing and does require that customer's
+    recorded consent. `assessVirtualFit` returns a comparison band and a
+    mandatory disclaimer, never a number: the return type declares
+    `millimetres?: never`, so a future contributor adding one has to change
+    the type first, which is a conversation rather than a commit. A mirror
+    that says "42mm too long" implies an accuracy no display has and the
+    customer will believe it. Device failure is not an error state — a
+    session completed on paper is as valid as one on a mirror, which is
+    what the acceptance criterion asks for — but a failure with no fallback
+    recorded is refused. A guided comparison must record _why_ the customer
+    preferred something: "chose full canvas" is a sale, "chose full canvas
+    because the chest felt softer" is something the next advisor can use.
+    Missing: tablet/mirror UI, device adapters, browser proof. Live-device
+    proof stays `blocked_external`.
 
 - [ ] **16.5 Moonstruck wedding-party apparel pack**
   - **Requirement IDs:** `WED-101`.
@@ -2088,6 +2156,32 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     lost-and-found or unlicensed escrow wedding-planning platform.
   - **Hard blockers:** no qualified occasionwear pilot defers live vertical
     proof, not the reusable pack contracts.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. The owner boundary's instruction — "never
+    create a second party model" — is enforced two ways. The domain module
+    declares no `WeddingParty`, `PartyMember` or `WeddingPartyMember` type,
+    asserted by a test that parses its own source; and a test scans
+    **every** migration in the repository and asserts the only
+    party-shaped tables that exist anywhere are the original
+    `wedding_parties` and `wedding_party_members` from 2026-07-19. All five
+    new tables hang off those rows by foreign key. Group readiness returns
+    counts, states and display names only — a best man must not be able to
+    read the groom's waist because they are in the same party, so nothing
+    per-person beyond a name and a state crosses that boundary, and a test
+    asserts no measurement vocabulary appears in the output. Coordinated
+    design choices are detected as conflicting at _choice_ time; two
+    different lapels discovered on the morning of the wedding is not a
+    recoverable error. Group fitting capacity answers the question that
+    actually goes wrong — eight groomsmen, one fitter, three weeks — before
+    it becomes a complaint. A guest voucher holds a `guest_label`, never a
+    `customer_id`: the couple shared those names to organise a wedding, not
+    to populate a CRM, and `checkGuestVoucher` refuses outright a call that
+    would create customer records. The anniversary continuation _injects_
+    the existing `nextYearlyOccurrence` rather than reimplementing it,
+    because a second date-recurrence function is how two parts of a system
+    start disagreeing about what a leap-year date means. Missing: invite
+    and inspiration UI, fitting scheduling, browser proof. The live
+    occasionwear pilot stays `blocked_external`; the pack contracts do not.
 
 ## Real hard blockers
 

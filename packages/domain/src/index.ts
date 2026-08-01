@@ -156,3 +156,6 @@ export * from "./intelligence/cited-recommendation";
 export * from "./network/partner-attribution";
 export * from "./network/audience-governance";
 export * from "./merchant/munro-merchant";
+export * from "./knowledge/academy-consultancy";
+export * from "./experience/store-instrumentation";
+export * from "./wedding/moonstruck-pack";
