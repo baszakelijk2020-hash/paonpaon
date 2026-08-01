@@ -1350,11 +1350,23 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     act deliberately does not count as coverage, so a manager cannot clear
     their unrecognized list by dismissing acts. Writes are `authenticated`
     (unusually for this repo) because an employee logs their own act — the
-    insert policy pins the author to the calling user. Missing: the rest of
-    11.2 entirely — unified role home, tasks/promises/briefing, the
-    ten-minute closeout flow, the evidence-linked employee profile surface,
-    any UI at all for recognition, and browser proof. Treat 11.2 as one
-    slice of several, not near-complete.
+    insert policy pins the author to the calling user. The retailer surface
+    at `/staff/recognition` is real and browser-proven
+    (`apps/retailer/e2e/staff-recognition.spec.ts`, run against this
+    branch's live Supabase project): an owner logs an act about a colleague
+    through the actual form, a too-thin narrative is refused with a readable
+    reason, coaching with no note is refused, coaching with a note moves the
+    act to the recognised list carrying that note, the act leaves the review
+    queue so a second manager cannot re-review it, and the rendered page is
+    asserted to contain no leaderboard or top-performer language. Writing
+    that proof surfaced a real design consequence rather than a bug: the
+    fixture retailer has one staff member, so the owner's first attempt hit
+    the self-review guard — the guard firing in a live browser is itself
+    the evidence it works. Nav entry sits in the unconditional group, since
+    recognition only some roles can see is not recognition. Missing: the
+    rest of 11.2 — unified role home, tasks/promises/briefing, the
+    ten-minute closeout flow, and the evidence-linked employee profile
+    surface. Treat 11.2 as one slice of several, not near-complete.
 
 - [ ] **11.3 Scheduling, demand, ceremony and coaching**
   - **Requirement IDs:** `WFM-105`, `WFM-106`.

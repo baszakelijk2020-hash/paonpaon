@@ -64,6 +64,15 @@ export default async function DashboardLayout({
           label: "Brief",
           description: "Attention, appointments and pace",
         },
+        // PHASE 11.2 / WFM-104. Deliberately in the unconditional group:
+        // recognition only managers (or only shop-floor roles) can see is
+        // not recognition, which is why its RLS read policy is open to
+        // every retailer role too.
+        {
+          href: "/staff/recognition",
+          label: "Recognition",
+          description: "Extra-mile acts and coaching",
+        },
         ...(!isWorkshopRole
           ? [
               {

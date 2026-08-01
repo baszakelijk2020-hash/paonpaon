@@ -92,9 +92,10 @@ Snapshot: 2026-07-30 (save-game seal).
   the extra-mile recognition half is real, with schema, RLS (author pinned
   to the calling user; review restricted to manager+), domain checks
   (self-review, double-review and empty-coaching all refused) and a
-  structurally-enforced absence of any leaderboard. Missing: unified role
-  home, tasks/promises/briefing, ten-minute closeout, employee profile
-  surface, any recognition UI, and browser proof.
+  structurally-enforced absence of any leaderboard, plus a real
+  `/staff/recognition` surface with a passing browser proof against the
+  sandbox project. Missing: unified role home, tasks/promises/briefing,
+  ten-minute closeout, and the employee profile surface.
 
 ## Stage 10.2 WIP salvage audit (2026-07-31)
 
