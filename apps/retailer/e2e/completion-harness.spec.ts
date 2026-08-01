@@ -32,6 +32,13 @@ async function signOut(page: Page): Promise<void> {
 let harnessPassed = false;
 
 test.beforeAll(async () => {
+  // The seed takes ~100s against the cloud sandbox project (measured, not
+  // guessed: it is a long chain of sequential round-trips to a database in
+  // another region). Playwright's default 30s hook timeout is a limit on
+  // the fixture setup, NOT on any assertion in this proof — every check
+  // below is unchanged. Raising it is the difference between a proof that
+  // fails on network distance and one that fails on behaviour.
+  test.setTimeout(300_000);
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
   const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
@@ -54,7 +61,14 @@ test.afterAll(async () => {
 test("advisor mutates note → manager receives → worker RLS denied → DB asserts", async ({
   page,
 }) => {
-  test.setTimeout(120_000);
+  // 300s, not 120s. The in-test seed call below re-verifies the whole
+  // fixture and takes ~100s against the cloud sandbox project, which left
+  // roughly 20s for a journey that signs in and out three times — so the
+  // THIRD sign-in was failing on the clock, not on behaviour. Diagnosed by
+  // driving that same worker login on its own, where it succeeds and lands
+  // on /dashboard. This raises a time budget; every assertion below is
+  // unchanged.
+  test.setTimeout(300_000);
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
   const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!;
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
