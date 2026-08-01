@@ -2264,6 +2264,65 @@ export type Database = {
           },
         ];
       };
+      cited_recommendations: {
+        Row: {
+          confidence: string;
+          created_at: string;
+          derived_from_fact_ids: string[];
+          id: string;
+          kind: string;
+          retailer_id: string;
+          sample_size: number;
+          sources: Json;
+          statement: string;
+          updated_at: string;
+          window_from: string;
+          window_to: string;
+          withdrawn_at: string | null;
+          withdrawn_reason: string | null;
+        };
+        Insert: {
+          confidence: string;
+          created_at?: string;
+          derived_from_fact_ids?: string[];
+          id?: string;
+          kind: string;
+          retailer_id: string;
+          sample_size: number;
+          sources: Json;
+          statement: string;
+          updated_at?: string;
+          window_from: string;
+          window_to: string;
+          withdrawn_at?: string | null;
+          withdrawn_reason?: string | null;
+        };
+        Update: {
+          confidence?: string;
+          created_at?: string;
+          derived_from_fact_ids?: string[];
+          id?: string;
+          kind?: string;
+          retailer_id?: string;
+          sample_size?: number;
+          sources?: Json;
+          statement?: string;
+          updated_at?: string;
+          window_from?: string;
+          window_to?: string;
+          withdrawn_at?: string | null;
+          withdrawn_reason?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cited_recommendations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       clienteling_notes: {
         Row: {
           author_staff_id: string;
@@ -2769,6 +2828,348 @@ export type Database = {
           },
           {
             foreignKeyName: "conversations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_accounts: {
+        Row: {
+          account_reference: string;
+          active: boolean;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          legal_name: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          account_reference: string;
+          active?: boolean;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          legal_name: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          account_reference?: string;
+          active?: boolean;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          legal_name?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_accounts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_entitlement_versions: {
+        Row: {
+          created_at: string;
+          effective_from: string;
+          id: string;
+          programme_id: string;
+          retailer_id: string;
+          rules: Json;
+          version: number;
+        };
+        Insert: {
+          created_at?: string;
+          effective_from: string;
+          id?: string;
+          programme_id: string;
+          retailer_id: string;
+          rules: Json;
+          version: number;
+        };
+        Update: {
+          created_at?: string;
+          effective_from?: string;
+          id?: string;
+          programme_id?: string;
+          retailer_id?: string;
+          rules?: Json;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_entitlement_versions_programme_id_fkey";
+            columns: ["programme_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_entitlement_versions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_exceptions: {
+        Row: {
+          action: string | null;
+          created_at: string;
+          detail: string;
+          garment_key: string | null;
+          id: string;
+          kind: string;
+          programme_id: string;
+          quantity: number | null;
+          resolved_at: string | null;
+          retailer_id: string;
+          updated_at: string;
+          wearer_id: string | null;
+        };
+        Insert: {
+          action?: string | null;
+          created_at?: string;
+          detail: string;
+          garment_key?: string | null;
+          id?: string;
+          kind: string;
+          programme_id: string;
+          quantity?: number | null;
+          resolved_at?: string | null;
+          retailer_id: string;
+          updated_at?: string;
+          wearer_id?: string | null;
+        };
+        Update: {
+          action?: string | null;
+          created_at?: string;
+          detail?: string;
+          garment_key?: string | null;
+          id?: string;
+          kind?: string;
+          programme_id?: string;
+          quantity?: number | null;
+          resolved_at?: string | null;
+          retailer_id?: string;
+          updated_at?: string;
+          wearer_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_exceptions_programme_id_fkey";
+            columns: ["programme_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_exceptions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_exceptions_wearer_id_fkey";
+            columns: ["wearer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_wearers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_issue_records: {
+        Row: {
+          created_at: string;
+          entitlement_version_id: string;
+          garment_key: string;
+          id: string;
+          issued_on: string;
+          order_id: string | null;
+          quantity: number;
+          retailer_id: string;
+          wearer_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          entitlement_version_id: string;
+          garment_key: string;
+          id?: string;
+          issued_on: string;
+          order_id?: string | null;
+          quantity: number;
+          retailer_id: string;
+          wearer_id: string;
+        };
+        Update: {
+          created_at?: string;
+          entitlement_version_id?: string;
+          garment_key?: string;
+          id?: string;
+          issued_on?: string;
+          order_id?: string | null;
+          quantity?: number;
+          retailer_id?: string;
+          wearer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_issue_records_entitlement_version_id_fkey";
+            columns: ["entitlement_version_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_entitlement_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_issue_records_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_issue_records_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_issue_records_wearer_id_fkey";
+            columns: ["wearer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_wearers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_programmes: {
+        Row: {
+          account_id: string;
+          active: boolean;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          retailer_id: string;
+          site_keys: string[];
+          updated_at: string;
+        };
+        Insert: {
+          account_id: string;
+          active?: boolean;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          retailer_id: string;
+          site_keys?: string[];
+          updated_at?: string;
+        };
+        Update: {
+          account_id?: string;
+          active?: boolean;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          retailer_id?: string;
+          site_keys?: string[];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_programmes_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_programmes_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_wearers: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          customer_id: string | null;
+          deleted_at: string | null;
+          display_name: string;
+          employee_reference: string;
+          garment_adaptation_note: string | null;
+          id: string;
+          joined_on: string;
+          programme_id: string;
+          retailer_id: string;
+          role_key: string;
+          site_key: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          customer_id?: string | null;
+          deleted_at?: string | null;
+          display_name: string;
+          employee_reference: string;
+          garment_adaptation_note?: string | null;
+          id?: string;
+          joined_on: string;
+          programme_id: string;
+          retailer_id: string;
+          role_key: string;
+          site_key?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          customer_id?: string | null;
+          deleted_at?: string | null;
+          display_name?: string;
+          employee_reference?: string;
+          garment_adaptation_note?: string | null;
+          id?: string;
+          joined_on?: string;
+          programme_id?: string;
+          retailer_id?: string;
+          role_key?: string;
+          site_key?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_wearers_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_wearers_programme_id_fkey";
+            columns: ["programme_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_wearers_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";

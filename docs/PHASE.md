@@ -1766,6 +1766,32 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     readiness and browser/a11y.
   - **Non-goals:** no HR replacement or unrestricted health/accommodation data.
   - **Hard blockers:** live employer data blocks only live pilot.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only; no employee portal, no dashboards, no browser
+    proof. Both non-goals are structural. `corporate_wearers` has no
+    salary, manager, termination reason, notice period or performance
+    column, and a test asserts their absence — a leaver is an
+    _entitlement_ event that produces garment-return exceptions, and
+    `planLeaverExceptions` returns nothing resembling an employment
+    record. There is also no diagnosis, medical or accommodation-reason
+    column anywhere: an adaptation is stored as a garment fact ("left
+    sleeve +40mm", "magnetic fastening"), the reason is never asked for,
+    and `checkAccommodationNote` refuses text matching diagnosis-shaped
+    language, because a free-text field beside a fitting is exactly where
+    health data ends up by accident. Entitlements are versioned and both
+    the version table and the issue table are append-only, so an employer
+    widening policy next year cannot retroactively make last year's issues
+    over-quota, and an issue cannot be edited to restate a balance. A
+    wearer may exist with a null `customer_id`, so a programme does not
+    manufacture a shadow customer per employee. Readiness names the
+    wearers who have not started rather than only a percentage — a
+    percentage says you are behind, a list says who to call. The corporate
+    scoped view is a whitelist carrying programme readiness only: no
+    margins, no other clients, and no individual measurements, since a
+    supervisor reading a colleague's chest measurement is the worst
+    failure mode in this item. Missing: employee portal, invite flow,
+    fitting/order/issue wiring to real orders, tender demo, dashboards and
+    browser proof. Live employer data stays `blocked_external`.
 
 - [ ] **14.2 Advanced cited intelligence**
   - **Requirement IDs:** Stage 14 target plus `WFM-105`, `INV-104`.
@@ -1778,6 +1804,30 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     evaluation.
   - **Non-goals:** no black-box owner dashboard.
   - **Hard blockers:** sparse live data defers model claims, not contracts.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. The non-goal is a CHECK constraint, not a
+    review convention: `cited_recommendations.sources` is asserted
+    non-empty in the schema, and `buildRecommendation` is the only
+    constructor — it refuses a missing source, a source with no projector
+    version, an inverted window, a non-positive sample, and a sample size
+    larger than the sources actually contain, which is the most direct way
+    to make a weak finding look strong. Confidence is a band
+    (`insufficient_sample` / `indicative` / `supported`), never a
+    percentage: "73% confident" from a sample of nine means nothing but
+    reads as though it does. A low-sample recommendation is kept and
+    labelled rather than hidden, because silently dropping it makes a
+    sparse dataset look confident — the same lie as overstating
+    confidence, told by omission. Every recommendation carries the fact
+    ids it derives from, so `planRecompute` can find and withdraw what a
+    corrected customer fact invalidated instead of leaving a stale card up
+    until the next scheduled rebuild; a recommendation is withdrawn with a
+    reason, never edited in place. `checkRecommendationHonesty` refuses
+    three specific claims — offering stock that is not available, quoting
+    a lead time shorter than the supplier's own, and implying an advisor
+    is present when the roster says otherwise — because each turns a
+    suggestion into a promise the shop cannot keep in front of a customer.
+    Missing: the projectors themselves, role dashboards, AI evaluation,
+    and browser proof.
 
 ### Stage 15 — Lifestyle network and MunroMerchant
 
