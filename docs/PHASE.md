@@ -1756,7 +1756,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     "resolved" with no reason is indistinguishable from "ignored". Live
     reader hardware remains `blocked_external`.
 
-- [x] **13.3 Omnichannel POS and returns**
+- [ ] **13.3 Omnichannel POS and returns**
   - **Requirement IDs:** Stage 13 target architecture.
   - **Dependencies:** `13.1`, `8.2`; ADR-062 for activated money capabilities.
   - **Owner boundary:** RTW/service/MTM carts, quotes, suspended/remote sale,
