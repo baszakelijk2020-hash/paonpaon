@@ -148,3 +148,6 @@ export * from "./fit/measurement-monitor";
 export * from "./production/serialized-piece";
 export * from "./concierge/partner-network";
 export * from "./production/supplier-intelligence";
+export * from "./inventory/stock-ledger";
+export * from "./inventory/loss-prevention";
+export * from "./commerce/pos-transaction";

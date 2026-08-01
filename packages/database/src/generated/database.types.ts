@@ -7172,6 +7172,243 @@ export type Database = {
         };
         Relationships: [];
       };
+      pos_payments: {
+        Row: {
+          amount_minor_units: number;
+          captured_at: string;
+          created_at: string;
+          currency: string;
+          id: string;
+          provider: string;
+          provider_reference: string;
+          retailer_id: string;
+          transaction_id: string;
+        };
+        Insert: {
+          amount_minor_units: number;
+          captured_at?: string;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          provider: string;
+          provider_reference: string;
+          retailer_id: string;
+          transaction_id: string;
+        };
+        Update: {
+          amount_minor_units?: number;
+          captured_at?: string;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          provider?: string;
+          provider_reference?: string;
+          retailer_id?: string;
+          transaction_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pos_payments_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_payments_transaction_id_fkey";
+            columns: ["transaction_id"];
+            isOneToOne: false;
+            referencedRelation: "pos_transactions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pos_transaction_lines: {
+        Row: {
+          alteration_id: string | null;
+          created_at: string;
+          currency: string;
+          id: string;
+          kind: string;
+          production_spec_id: string | null;
+          quantity: number;
+          reservation_entry_id: string | null;
+          retailer_id: string;
+          returned_quantity: number;
+          transaction_id: string;
+          unit_price_minor_units: number;
+          updated_at: string;
+          variant_id: string | null;
+        };
+        Insert: {
+          alteration_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          kind: string;
+          production_spec_id?: string | null;
+          quantity: number;
+          reservation_entry_id?: string | null;
+          retailer_id: string;
+          returned_quantity?: number;
+          transaction_id: string;
+          unit_price_minor_units: number;
+          updated_at?: string;
+          variant_id?: string | null;
+        };
+        Update: {
+          alteration_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          kind?: string;
+          production_spec_id?: string | null;
+          quantity?: number;
+          reservation_entry_id?: string | null;
+          retailer_id?: string;
+          returned_quantity?: number;
+          transaction_id?: string;
+          unit_price_minor_units?: number;
+          updated_at?: string;
+          variant_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pos_transaction_lines_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transaction_lines_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transaction_lines_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "worker_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transaction_lines_production_spec_id_fkey";
+            columns: ["production_spec_id"];
+            isOneToOne: false;
+            referencedRelation: "production_specs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transaction_lines_reservation_entry_id_fkey";
+            columns: ["reservation_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_ledger_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transaction_lines_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transaction_lines_transaction_id_fkey";
+            columns: ["transaction_id"];
+            isOneToOne: false;
+            referencedRelation: "pos_transactions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transaction_lines_variant_id_fkey";
+            columns: ["variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      pos_transactions: {
+        Row: {
+          completed_at: string | null;
+          created_at: string;
+          customer_id: string | null;
+          id: string;
+          location_id: string;
+          retailer_id: string;
+          returns_transaction_id: string | null;
+          staff_id: string | null;
+          state: string;
+          updated_at: string;
+          void_reason: string | null;
+        };
+        Insert: {
+          completed_at?: string | null;
+          created_at?: string;
+          customer_id?: string | null;
+          id?: string;
+          location_id: string;
+          retailer_id: string;
+          returns_transaction_id?: string | null;
+          staff_id?: string | null;
+          state?: string;
+          updated_at?: string;
+          void_reason?: string | null;
+        };
+        Update: {
+          completed_at?: string | null;
+          created_at?: string;
+          customer_id?: string | null;
+          id?: string;
+          location_id?: string;
+          retailer_id?: string;
+          returns_transaction_id?: string | null;
+          staff_id?: string | null;
+          state?: string;
+          updated_at?: string;
+          void_reason?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pos_transactions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transactions_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transactions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transactions_returns_transaction_id_fkey";
+            columns: ["returns_transaction_id"];
+            isOneToOne: false;
+            referencedRelation: "pos_transactions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pos_transactions_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       price_change_proposals: {
         Row: {
           alteration_id: string;
@@ -9010,6 +9247,101 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "rewards_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rfid_sweep_discrepancies: {
+        Row: {
+          created_at: string;
+          epc: string;
+          id: string;
+          kind: string;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          retailer_id: string;
+          sweep_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          epc: string;
+          id?: string;
+          kind: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          retailer_id: string;
+          sweep_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          epc?: string;
+          id?: string;
+          kind?: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          retailer_id?: string;
+          sweep_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rfid_sweep_discrepancies_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      rfid_sweep_observations: {
+        Row: {
+          created_at: string;
+          epc: string;
+          id: string;
+          location_id: string;
+          observed_at: string;
+          read_confidence: number;
+          retailer_id: string;
+          sweep_id: string;
+          zone_key: string;
+        };
+        Insert: {
+          created_at?: string;
+          epc: string;
+          id?: string;
+          location_id: string;
+          observed_at?: string;
+          read_confidence: number;
+          retailer_id: string;
+          sweep_id: string;
+          zone_key: string;
+        };
+        Update: {
+          created_at?: string;
+          epc?: string;
+          id?: string;
+          location_id?: string;
+          observed_at?: string;
+          read_confidence?: number;
+          retailer_id?: string;
+          sweep_id?: string;
+          zone_key?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "rfid_sweep_observations_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfid_sweep_observations_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
@@ -11277,6 +11609,340 @@ export type Database = {
             columns: ["staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stock_count_lines: {
+        Row: {
+          counted_at: string;
+          counted_by_staff_id: string | null;
+          counted_quantity: number;
+          id: string;
+          retailer_id: string;
+          session_id: string;
+          variant_id: string;
+        };
+        Insert: {
+          counted_at?: string;
+          counted_by_staff_id?: string | null;
+          counted_quantity: number;
+          id?: string;
+          retailer_id: string;
+          session_id: string;
+          variant_id: string;
+        };
+        Update: {
+          counted_at?: string;
+          counted_by_staff_id?: string | null;
+          counted_quantity?: number;
+          id?: string;
+          retailer_id?: string;
+          session_id?: string;
+          variant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stock_count_lines_counted_by_staff_id_fkey";
+            columns: ["counted_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_count_lines_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_count_lines_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_count_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_count_lines_variant_id_fkey";
+            columns: ["variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stock_count_sessions: {
+        Row: {
+          blind: boolean;
+          closed_at: string | null;
+          created_at: string;
+          id: string;
+          location_id: string;
+          opened_at: string;
+          opened_by_staff_id: string;
+          retailer_id: string;
+          state: string;
+          updated_at: string;
+        };
+        Insert: {
+          blind?: boolean;
+          closed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          location_id: string;
+          opened_at?: string;
+          opened_by_staff_id: string;
+          retailer_id: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Update: {
+          blind?: boolean;
+          closed_at?: string | null;
+          created_at?: string;
+          id?: string;
+          location_id?: string;
+          opened_at?: string;
+          opened_by_staff_id?: string;
+          retailer_id?: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stock_count_sessions_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_count_sessions_opened_by_staff_id_fkey";
+            columns: ["opened_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_count_sessions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stock_ledger_entries: {
+        Row: {
+          count_session_id: string | null;
+          created_at: string;
+          id: string;
+          idempotency_key: string | null;
+          kind: string;
+          location_id: string;
+          occurred_at: string;
+          quantity: number;
+          reason: string | null;
+          recorded_by_staff_id: string | null;
+          retailer_id: string;
+          reverses_entry_id: string | null;
+          variant_id: string;
+        };
+        Insert: {
+          count_session_id?: string | null;
+          created_at?: string;
+          id?: string;
+          idempotency_key?: string | null;
+          kind: string;
+          location_id: string;
+          occurred_at?: string;
+          quantity: number;
+          reason?: string | null;
+          recorded_by_staff_id?: string | null;
+          retailer_id: string;
+          reverses_entry_id?: string | null;
+          variant_id: string;
+        };
+        Update: {
+          count_session_id?: string | null;
+          created_at?: string;
+          id?: string;
+          idempotency_key?: string | null;
+          kind?: string;
+          location_id?: string;
+          occurred_at?: string;
+          quantity?: number;
+          reason?: string | null;
+          recorded_by_staff_id?: string | null;
+          retailer_id?: string;
+          reverses_entry_id?: string | null;
+          variant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stock_ledger_entries_count_session_id_fkey";
+            columns: ["count_session_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_count_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_ledger_entries_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_ledger_entries_recorded_by_staff_id_fkey";
+            columns: ["recorded_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_ledger_entries_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_ledger_entries_reverses_entry_id_fkey";
+            columns: ["reverses_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_ledger_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_ledger_entries_variant_id_fkey";
+            columns: ["variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stock_locations: {
+        Row: {
+          active: boolean;
+          branch_id: string | null;
+          code: string;
+          created_at: string;
+          id: string;
+          name: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          branch_id?: string | null;
+          code: string;
+          created_at?: string;
+          id?: string;
+          name: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          branch_id?: string | null;
+          code?: string;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stock_locations_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_locations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stock_risk_flags: {
+        Row: {
+          approved_at: string | null;
+          approved_by_staff_id: string | null;
+          created_at: string;
+          id: string;
+          ledger_entry_id: string | null;
+          location_id: string;
+          requested_by_staff_id: string;
+          retailer_id: string;
+          triggered_rules: string[];
+          updated_at: string;
+        };
+        Insert: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          id?: string;
+          ledger_entry_id?: string | null;
+          location_id: string;
+          requested_by_staff_id: string;
+          retailer_id: string;
+          triggered_rules: string[];
+          updated_at?: string;
+        };
+        Update: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          id?: string;
+          ledger_entry_id?: string | null;
+          location_id?: string;
+          requested_by_staff_id?: string;
+          retailer_id?: string;
+          triggered_rules?: string[];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stock_risk_flags_approved_by_staff_id_fkey";
+            columns: ["approved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_risk_flags_ledger_entry_id_fkey";
+            columns: ["ledger_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_ledger_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_risk_flags_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_locations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_risk_flags_requested_by_staff_id_fkey";
+            columns: ["requested_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "stock_risk_flags_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];

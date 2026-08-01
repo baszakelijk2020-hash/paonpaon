@@ -1656,6 +1656,32 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Tests:** concurrency, reversal/idempotency, count/recount, RLS/browser.
   - **Non-goals:** no RFID-first implementation.
   - **Hard blockers:** none.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only; no UI, no browser proof. There is no balance
+    column anywhere in the schema, and a test asserts that: a balance is a
+    projection over `stock_ledger_entries`, which has **no UPDATE and no
+    DELETE grant on any role, `service_role` included**. "Without silent
+    balance edits" is therefore a property of the grants rather than of
+    the application, and undoing an entry is a `reversal` row citing the
+    original, so a mistake and its correction both stay visible.
+    `projectBalance` is the single definition of on-hand, reserved and
+    available; anything computing availability differently is a second
+    truth that will eventually oversell. A reservation deliberately does
+    not move on-hand — reserving promises a garment, it does not move one
+    — and the oversell guard checks _available_, because on-hand says yes
+    to both customers reserving the last jacket. A reversal's sign is
+    derived from the entry it cites, so a caller cannot mis-sign one.
+    Idempotency keys are collapsed on read as well as on write, because
+    deduping only at the write boundary lets a webhook replayed during a
+    partition double-count. A blind count produces variances and writes
+    nothing; an unscanned variant is reported as uncounted, never as
+    counted-zero, since treating absence as zero writes off stock nobody
+    looked for. An adjustment must come from a count session, must not
+    exceed what the count found, and must state a reason. A transfer is
+    two entries, not one, so in-transit stock stays visible. Scan mode
+    `lookup` never writes, so checking what something is cannot
+    accidentally receive it. Missing: receiving/count/transfer UI,
+    concurrency proof under real contention, browser proof.
 
 - [ ] **13.2 Loss prevention and RFID pilot**
   - **Requirement IDs:** `INV-104`, `INV-105`.
@@ -1669,6 +1695,28 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     offline/retry.
   - **Non-goals:** no employee accusation score.
   - **Hard blockers:** reader hardware blocks live pilot only.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. The non-goal is structural, not documented:
+    no function in `loss-prevention.ts` accepts a staff id and returns a
+    number. `assessAdjustmentRisk` takes only properties of the
+    _transaction_ — value, repetition, whether a count session was open —
+    and a test parses its signature to prove no identity is in it.
+    `summarizeRiskCoverage` reports adjustments and locations; a "who
+    triggers the most flags" view cannot be built from it because the
+    identity never enters the function. The schema likewise has no
+    risk-score or incident-count column. Approval requires a different
+    person **and** a manager: either alone is insufficient, since a peer
+    approving a peer is not independence. An RFID sweep never posts a
+    balance — `reconcileSweep` returns `postsBalanceChange: false`, the
+    observations table has no route to the ledger, and only a human count
+    adjustment moves stock. Repeated reads of one tag collapse to one
+    jacket, which is how a pilot avoids inventing a surplus on day one. An
+    expected-but-unseen tag is `unobserved`, never `missing`: a tag goes
+    unread for a dozen mundane reasons and "missing" invites a write-off.
+    Low-confidence reads stay visible so a poor sweep does not look like a
+    clean one, and closing a discrepancy requires a note, because
+    "resolved" with no reason is indistinguishable from "ignored". Live
+    reader hardware remains `blocked_external`.
 
 - [ ] **13.3 Omnichannel POS and returns**
   - **Requirement IDs:** Stage 13 target architecture.
@@ -1681,6 +1729,28 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     close totals and RLS.
   - **Non-goals:** no raw card storage or custom lending.
   - **Hard blockers:** provider/compliance blocks affected payment activation.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. There is no column in `pos_payments` a PAN,
+    CVC or track-2 blob could be written into, and `checkPaymentCapture`
+    rejects the _entire_ capture if a caller passes a card-shaped field
+    name rather than silently dropping it — dropping it would let the
+    caller believe it was stored and keep sending it. Provider activation
+    is gated on ADR-062: an unactivated provider is refused, so no payment
+    can be recorded against a money design nobody approved. A completed
+    transaction has no exits at all; the correction for a completed sale
+    is a return or exchange, which is a **new linked transaction**, never
+    an edit — that is what makes stock and financial history survive a
+    return, which is the item's own acceptance criterion. A mixed cart is
+    never netted into one number: RTW, alteration service and MTM stay
+    separate because they behave differently on return. MTM is refused
+    outright rather than given a shorter window, since a garment cut to
+    one person has no second buyer and a policy pretending otherwise
+    creates a dispute at the worst moment; a performed alteration is
+    likewise not refundable, an unperformed one is. Payments are
+    append-only and unique per provider reference, so a retry reconciles
+    instead of double-charging. Missing: till UI, receipt/fulfilment,
+    exchange flow, browser proof. Payment activation stays
+    `blocked_external` on provider and compliance decisions.
 
 ### Stage 14 — Corporate fashion and advanced intelligence
 
