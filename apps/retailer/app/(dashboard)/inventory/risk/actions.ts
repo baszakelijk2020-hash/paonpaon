@@ -9,7 +9,7 @@ import {
 import { retailerRoleAtLeast } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface RiskActionState {
@@ -52,7 +52,7 @@ function message(reason: string): string {
 }
 
 async function context() {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "sales_associate");
   const supabase = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(supabase).findByUserId(

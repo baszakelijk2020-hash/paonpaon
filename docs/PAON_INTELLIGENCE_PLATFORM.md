@@ -37,7 +37,10 @@ requires it.
   projection. `CAPABILITY_DISPOSITION.md` now supplies the compact R0.3
   inheritance registry; consult it instead of resuming a numbered legacy stage
   because files happen to exist. Direct server guards and canonical House
-  depth remain open.
+  depth remain open. The first mutation boundary now rejects preview,
+  suspended and off writes across stock, loss prevention, POS and coverage;
+  the browser proof verifies a direct preview-mode Server Action writes no
+  row. Extend that contract rather than inventing per-page tier checks.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

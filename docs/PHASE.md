@@ -124,7 +124,7 @@ be resumed without the module mapping required by R0.3.**
     add-ons/overrides and active-only jobs. Existing tenants receive an
     explicit compatibility override; new retailers derive access from plans
     and add-ons. Retailer navigation now projects effective module+role state,
-    marks preview surfaces and removes suspended/off surfaces. Proof: 6 domain
+    marks preview surfaces and removes suspended/off surfaces. Proof: 8 domain
     assertions, 8 repository/schema assertions, 15 pgTAP assertions, clean
     reset through all 149 migrations and 1/1 browser suspend/preview/restore.
     Customer e2e is now a clean 29/29: the inherited 14 failures were repaired
@@ -138,8 +138,13 @@ be resumed without the module mapping required by R0.3.**
     fixture and deterministic proof setup. A broad `coverage/` gitignore rule
     had silently excluded the route while allowing its proof and documentation
     to be committed; the route is now explicitly unignored. Remaining:
-    server-boundary enforcement beyond navigation/jobs and canonical House
-    depth and cleanup. `CAPABILITY_DISPOSITION.md` now maps every Stage 8–16
+    Mutation enforcement now goes beyond navigation/jobs: a shared
+    module-session gate rejects preview/suspended/off writes, and stock, loss
+    prevention, POS and coverage actions all use it. Browser proof loads the
+    direct coverage route in preview and verifies that submitting its live
+    Server Action creates no row. Remaining: extend the gate across every
+    module-owned mutation/read surface and complete canonical House depth and
+    cleanup. `CAPABILITY_DISPOSITION.md` maps every Stage 8–16
     capability and founder-designated tool to one module, one explicit
     keep/harden/consolidate/replace/quarantine decision and a connected proof
     contract.

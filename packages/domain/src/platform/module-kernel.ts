@@ -372,3 +372,19 @@ export function moduleMayRunJob(
   if (!configuration || configuration.state !== "active") return false;
   return PLATFORM_MODULE_BY_KEY[configuration.moduleKey].jobs.includes(jobKey);
 }
+
+export type ModuleAccessMode = "read" | "mutate";
+
+/**
+ * Preview may render real read-only data, but it can never mutate it. This is
+ * deliberately separate from navigation projection: hiding a link does not
+ * stop a stale tab or a direct Server Action request.
+ */
+export function moduleAllowsAccess(
+  configuration: RetailerModuleConfiguration | undefined,
+  mode: ModuleAccessMode,
+): boolean {
+  if (!configuration) return false;
+  if (mode === "mutate") return configuration.state === "active";
+  return configuration.state === "active" || configuration.state === "preview";
+}

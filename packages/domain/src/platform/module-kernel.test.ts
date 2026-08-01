@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   PLATFORM_MODULES,
   moduleMayRunJob,
+  moduleAllowsAccess,
   projectModuleNavigation,
   validateModuleDependencies,
   validateModulePlan,
@@ -169,5 +170,23 @@ describe("platform module registry", () => {
       ),
     ).toBe(false);
     expect(moduleMayRunJob(active, "campaign_activation")).toBe(false);
+  });
+
+  it("keeps preview readable but refuses every mutation boundary", () => {
+    const preview: RetailerModuleConfiguration = {
+      moduleKey: "retail_operations",
+      state: "preview",
+      authorityMode: "external",
+      source: "add_on",
+    };
+    expect(moduleAllowsAccess(preview, "read")).toBe(true);
+    expect(moduleAllowsAccess(preview, "mutate")).toBe(false);
+    expect(moduleAllowsAccess({ ...preview, state: "active" }, "mutate")).toBe(
+      true,
+    );
+    expect(moduleAllowsAccess({ ...preview, state: "suspended" }, "read")).toBe(
+      false,
+    );
+    expect(moduleAllowsAccess(undefined, "read")).toBe(false);
   });
 });

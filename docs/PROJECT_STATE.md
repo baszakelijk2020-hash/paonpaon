@@ -66,10 +66,13 @@ This correction supersedes conflicting status and handoff claims below:
 - R0.3 now has a local module kernel: eight family contracts, plan bundles,
   effective retailer lifecycle/authority resolution, dependency rollback,
   audit history, active-only jobs and role-aware navigation projection.
-  Module proof is 6 domain + 8 repository/schema + 15 pgTAP + 1 browser
+  Module proof is 8 domain + 8 repository/schema + 15 pgTAP + 1 browser
   assertion. Customer e2e is a clean 29/29 and retailer e2e is a clean 42/42.
-  It is a first slice, not R0.3 completion; canonical House depth, direct
-  server guards remain. `CAPABILITY_DISPOSITION.md` now classifies every
+  Preview/suspended/off now fail closed at the server-session boundary for
+  stock, loss prevention, POS and coverage mutations; browser proof submits a
+  direct preview-mode Server Action and verifies no row is written. It is not
+  yet universal across every module surface. R0.3 still needs canonical House
+  depth and complete server/read guards. `CAPABILITY_DISPOSITION.md` classifies every
   inherited Stage 8–16 capability and founder-designated tool by module,
   keep/harden/consolidate/replace/quarantine decision and connected proof.
 

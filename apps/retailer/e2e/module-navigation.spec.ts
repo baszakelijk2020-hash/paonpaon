@@ -32,6 +32,11 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
     'nav[aria-label="Primary"] a[href="/inventory"]',
   );
   await expect(stockNavigation).toBeVisible();
+  const previewWriteDate = new Date(
+    Date.UTC(2400, 0, 1) + (Date.now() % 20_000) * 86_400_000,
+  )
+    .toISOString()
+    .slice(0, 10);
 
   try {
     await modules.configure({
@@ -64,6 +69,24 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
     });
     await page.reload();
     await expect(stockNavigation).toContainText("Stock · Preview");
+
+    // Preview is real read-only data, not an active module. A direct route or
+    // stale tab still carries callable Server Actions, so prove the server
+    // boundary refuses the write instead of relying on hidden navigation.
+    await page.goto(`/staff/coverage?date=${previewWriteDate}`);
+    await page.getByLabel("morning headcount").fill("1");
+    await page.getByRole("button", { name: "Publish coverage" }).click();
+    await expect
+      .poll(async () => {
+        const { count, error } = await admin
+          .from("coverage_plans")
+          .select("id", { count: "exact", head: true })
+          .eq("retailer_id", retailer!.id)
+          .eq("plan_date", previewWriteDate);
+        expect(error).toBeNull();
+        return count ?? 0;
+      })
+      .toBe(0);
   } finally {
     await modules.configure({
       retailerId: retailer!.id,

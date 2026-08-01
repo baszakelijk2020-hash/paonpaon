@@ -9,7 +9,7 @@ import {
 import type { CoachingState, CoverageInterval } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface CoverageActionState {
@@ -26,7 +26,7 @@ export async function publishCoveragePlan(
   _previous: CoverageActionState,
   formData: FormData,
 ): Promise<CoverageActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
 
   const planDate = String(formData.get("planDate") ?? "").trim();
@@ -88,7 +88,7 @@ export async function recordCoachingObservation(
   _previous: CoverageActionState,
   formData: FormData,
 ): Promise<CoverageActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
   const observedStaffId = String(formData.get("observedStaffId") ?? "");
   const evidence = String(formData.get("evidence") ?? "").trim();
@@ -132,7 +132,7 @@ export async function advanceCoachingLoop(
   _previous: CoverageActionState,
   formData: FormData,
 ): Promise<CoverageActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
   const observationId = String(formData.get("observationId") ?? "");
   const next = String(formData.get("next") ?? "") as CoachingState;
