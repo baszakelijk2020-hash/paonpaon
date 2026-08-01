@@ -33,9 +33,19 @@ test("a signed-in shopper requests an appointment", async ({ page }) => {
   await page.goto(`/r/${TEST_RETAILER_SLUG}/appointments`);
   await page.getByLabel("What would you like to book?").selectOption("fitting");
 
-  const future = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const localValue = future.toISOString().slice(0, 16);
-  await page.getByLabel("Preferred date & time").fill(localValue);
+  // A composite control — a day strip and a time strip, not a native
+  // datetime-local input. Driven the way a shopper drives it.
+  const picker = page.locator('[data-datetime-field="startsAt"]');
+  await picker
+    .getByRole("radiogroup", { name: "Preferred date & time — day" })
+    .getByRole("radio")
+    .first()
+    .click();
+  await picker
+    .getByRole("radiogroup", { name: "Preferred date & time — time" })
+    .getByRole("radio", { name: "10:00", exact: true })
+    .click();
+  await expect(picker).not.toHaveAttribute("data-datetime-value", "");
   await page.getByLabel(/Anything we should know/).fill("First fitting.");
   await page.getByRole("button", { name: "Request appointment" }).click();
 

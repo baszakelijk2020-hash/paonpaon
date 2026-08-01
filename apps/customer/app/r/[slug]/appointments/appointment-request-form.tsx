@@ -53,9 +53,10 @@ export function AppointmentRequestForm({
       <FormField
         label="Preferred date & time"
         htmlFor="startsAt"
+        labelledGroup
         error={state.fieldErrors["startsAt"]}
       >
-        <DateTimePicker name="startsAt" />
+        <DateTimePicker name="startsAt" label="Preferred date & time" />
       </FormField>
       <FormField
         label="Anything we should know?"

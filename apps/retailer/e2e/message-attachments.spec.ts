@@ -11,6 +11,10 @@ test("owner attaches an image to a client message and sees it rendered inline", 
   page,
 }) => {
   const unique = Date.now();
+  // Unique per run. A fixed body collides with the conversation previews left
+  // by earlier runs of this same test, and the assertion then fails in strict
+  // mode on its own history rather than on anything the product did.
+  const body = `Here's the fabric swatch we discussed (${unique}).`;
 
   await page.goto("/login");
   await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
@@ -36,18 +40,20 @@ test("owner attaches an image to a client message and sees it rendered inline", 
   await page.getByLabel("Attach an image").setInputFiles(fixtureImage);
   await expect(page.getByText("swatch.png")).toBeVisible();
 
-  await page
-    .getByLabel("Message")
-    .fill("Here's the fabric swatch we discussed.");
+  await page.getByLabel("Message").fill(body);
   await page.getByRole("button", { name: "Send" }).click();
 
-  await expect(
-    page.getByText("Here's the fabric swatch we discussed."),
-  ).toBeVisible();
-  // The gallery strip ("Shared images") and the inline bubble image both
-  // render from the same signed URL — proves the attach → storage →
-  // record_message_attachment → signed-read round trip actually works,
-  // not just that the form submitted.
-  await expect(page.getByText("Shared images")).toBeVisible();
-  await expect(page.getByAltText("swatch.png").first()).toBeVisible();
+  await expect(page.getByText(body).first()).toBeVisible();
+  // The inline bubble image renders from a signed URL, which proves the
+  // whole attach → storage → record_message_attachment → signed-read round
+  // trip works rather than merely that the form submitted.
+  //
+  // There is deliberately no assertion on a separate "Shared images" gallery
+  // strip: no such surface exists in the inbox. Asserting one made this spec
+  // fail for a feature that was never built.
+  const inlineImage = page.getByAltText("swatch.png").first();
+  await expect(inlineImage).toBeVisible();
+  const src = await inlineImage.getAttribute("src");
+  // A signed read, not a public URL: the bucket is private.
+  expect(src).toContain("token=");
 });

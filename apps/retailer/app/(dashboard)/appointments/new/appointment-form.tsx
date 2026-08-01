@@ -116,17 +116,27 @@ export function AppointmentForm({
           <FormField
             label="Starts"
             htmlFor="startsAt"
+            labelledGroup
             hint="Branch local time"
             error={state.fieldErrors["startsAt"]}
           >
-            <DateTimePicker name="startsAt" defaultValue={v["startsAt"]} />
+            <DateTimePicker
+              name="startsAt"
+              label="Starts"
+              defaultValue={v["startsAt"]}
+            />
           </FormField>
           <FormField
             label="Ends"
             htmlFor="endsAt"
+            labelledGroup
             error={state.fieldErrors["endsAt"]}
           >
-            <DateTimePicker name="endsAt" defaultValue={v["endsAt"]} />
+            <DateTimePicker
+              name="endsAt"
+              label="Ends"
+              defaultValue={v["endsAt"]}
+            />
           </FormField>
           <FormField
             label="Advisor"
