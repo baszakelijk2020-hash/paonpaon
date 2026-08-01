@@ -50,6 +50,7 @@ export * from "./repositories/staff-recognition-repository";
 export * from "./repositories/coverage-planning-repository";
 export * from "./repositories/coaching-repository";
 export * from "./repositories/internal-community-repository";
+export * from "./repositories/measurement-monitor-repository";
 export * from "./repositories/messaging-repository";
 export * from "./repositories/notification-repository";
 export * from "./repositories/email-outbox-repository";

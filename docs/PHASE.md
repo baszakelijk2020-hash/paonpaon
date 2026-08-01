@@ -1498,6 +1498,32 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Non-goals:** no single-photo accuracy equivalence to Face ID.
   - **Hard blockers:** model provider blocks only model-assisted tranche;
     structured review remains buildable.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain, schema, RLS and a repository exist; no UI and no browser
+    proof. The rule the item turns on — a self-scan never becomes a
+    measurement of record — is enforced as a _grant_, not a convention:
+    `customer_measurement_versions` has **no UPDATE and no DELETE grant to
+    any role, including `service_role`**. A correction is a new version.
+    There is likewise no `approveCandidate` method and there should not be
+    one; approving is `recordApprovedVersion`, which takes the values an
+    advisor actually signed off, and making them restate those values is
+    the difference between review and a rubber stamp. A version whose
+    values came from a scan additionally requires a written review note.
+    The decision gate returns exactly `no_action`, `advisor_review` or
+    `remeasure` — nothing that means "apply" — stamps the decision-rule
+    version on every result so re-running an old scan under new rules is
+    visibly a different decision, and reports a missing measurement as
+    missing rather than as a change to zero. Quality assessment returns
+    _every_ failure at once, because telling a customer "stand further
+    back", then after they redo it "we also need the reference card",
+    makes them repeat a two-minute process twice for one problem. Deletion
+    recompute is a foreign key: candidates cascade from the source scan
+    while approved versions have no FK to it and survive, because a
+    garment may already have been cut to one. The reorder gate refuses
+    while a review is open or the pinned version is superseded. Missing:
+    the guided capture UI, advisor review UI, browser proof, and any
+    model-assisted measurement extraction (`blocked_external` on a model
+    provider).
 
 - [ ] **12.2 Garment production and serialized pieces**
   - **Requirement IDs:** `INV-103`; Stage 12 target architecture.
@@ -1512,6 +1538,34 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     permissions/RLS and full fixture.
   - **Non-goals:** no forced replacement of factory-mandated ordering.
   - **Hard blockers:** external write API blocks only automated submission.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only — no UI, no browser proof, no repository yet.
+    Pieces exist as first-class rows rather than an order status column
+    because a two-piece suit with finished trousers and a jacket in rework
+    is a real state an order-level status cannot represent without lying
+    about one of them; the item's own acceptance criterion is
+    "jacket/trousers scan independently", and each piece carries its own
+    barcode, unique per retailer. A spec pins Stage 12.1's append-only
+    `measurement_version_id` with `on delete restrict`, so "what was this
+    cut to" stays answerable. Post-cut change is explicit: before cutting
+    a spec edit is ordinary, afterwards it is an amendment row that must
+    name a reason **and** a cost decision, and after dispatch it is
+    refused outright. Stage transitions are a directed graph, and rework
+    re-enters at `assembly` rather than at the stage it failed — something
+    has to be undone, and resuming exactly where a QC failure happened is
+    how a failed piece gets marked ready untouched. QC exit requires a
+    named inspector who is not the maker. Stage events and amendments are
+    append-only (no UPDATE grant): the stage column on the piece is a
+    convenience, the event table is the record. The outworker ticket is a
+    whitelist projection carrying initials, never a name — a redaction
+    pass fails open when a field is added, a whitelist fails closed.
+    Material reconciliation reports under-consumption as well as over,
+    because under-consumption usually means the BOM is wrong and quietly
+    mis-costs every future garment of that pattern. A delay past three
+    days raises a service-recovery flag. Missing: work-ticket UI,
+    workroom/outworker surfaces, tech pack and BOM authoring, the full
+    fixture flow and browser proof. Automated factory submission stays
+    `blocked_external`.
 
 - [ ] **12.3 Preferred Tailoring partner network**
   - **Requirement IDs:** `SRV-101`–`SRV-103`, `INV-103`.
@@ -1524,6 +1578,33 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Tests:** custody, partner scope/RLS, SLA/exception, accounting export.
   - **Non-goals:** no partner payout without approved money design.
   - **Hard blockers:** payment decision blocks charging/payout only.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. Deliberately reuses rather than duplicates:
+    `service_bookings`, `service_plans` and `service_cost_records`
+    (2026-07-30 concierge) stay canonical and this migration creates no
+    second version of any of them — a test asserts that by anchoring on
+    the CREATE TABLE target. What was genuinely missing is the partner:
+    who work goes out to, their per-branch capability and turnaround, what
+    came back and in what condition, and what they billed.
+    `service_partner_custody_events` is a second table but not a second
+    truth: `chain_of_custody_events` is bound to `alteration_work_orders`
+    by a status-machine trigger, and a wardrobe garment sent for dry
+    cleaning has no work order, so widening it would mean rewriting a
+    proven flow for no benefit to it. The split is stated in code
+    (`PARTNER_CUSTODY_SPLIT_NOTE`) and one garment movement is never in
+    both. Custody refuses to go from `with_partner` straight to
+    `released_to_customer` — that missing step is how a garment gets
+    marked collected while sitting on a rail across town — and the return
+    leg requires a condition note, since the moment it comes back is the
+    only moment damage can be attributed. Partner selection returns
+    distinct refusals ("nobody does leather" versus "the one who does
+    cannot make Friday") because those lead a manager to different
+    actions. Invoices reconcile _against_ the existing cost records and
+    are all-or-nothing: an invoice that mostly matches is one nobody
+    checked. Approval refuses self-approval and refuses an
+    `initiatePayout` flag outright rather than ignoring it, so no caller
+    can believe money moved — ADR-062 has decided no payout design.
+    Missing: intake and calendar UI, partner portal, browser proof.
 
 - [ ] **12.4 Supplier/atelier intelligence and support operations**
   - **Requirement IDs:** `MTM-101`.
@@ -1540,6 +1621,28 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Non-goals:** no invented supplier data, undocumented factory write-back
     or black-box “MinorityReport” claim.
   - **Hard blockers:** live supplier API blocks only live sync proof.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Domain and schema only. Every supplier fact carries the authority that
+    asserted it, the feed version and the observation time; there is no
+    bare availability column anywhere, because a value with no source is
+    exactly the "invented supplier data" this item forbids.
+    `resolveSupplierFact` refuses an unregistered authority outright
+    ("someone emailed us a spreadsheet" is not a source), surfaces a
+    two-authority disagreement as `authority_conflict` with both facts
+    attached rather than quietly preferring the newer — which supplier is
+    right is a human question with commercial consequences — and flags a
+    stale answer instead of presenting it as current. A fabric with no
+    pairing rule returns `no_rule_for_fabric`, **not** "allowed": defaulting
+    to permissive turns silence into approval. A supply exception must
+    name an owner (unowned, it is a notification) and carry at least one
+    citation, both enforced by CHECK. A complaint closes only from
+    `customer_recovered` and only with a stated outcome, so a supplier
+    credit alone cannot close a case — the customer is not the supplier's
+    accounting entry. Facts are append-only; a correction is a later
+    observation. There is no factory write-back queue at all, and
+    `describeFactoryWriteBack` returns a refusal rather than a TODO
+    somebody later fills in. Missing: supplier fixture ingestion, UI,
+    browser proof. Live supplier sync stays `blocked_external`.
 
 ### Stage 13 — Inventory, POS, and loss prevention
 

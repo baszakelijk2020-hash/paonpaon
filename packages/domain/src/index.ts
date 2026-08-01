@@ -144,3 +144,7 @@ export * from "./workforce/recognition";
 export * from "./workforce/coverage";
 export * from "./workforce/coaching";
 export * from "./workforce/community";
+export * from "./fit/measurement-monitor";
+export * from "./production/serialized-piece";
+export * from "./concierge/partner-network";
+export * from "./production/supplier-intelligence";

@@ -616,3 +616,73 @@ database, confirmed by trying it).
     `validate:completion` genuinely green via two fresh live Playwright runs
     against the same non-production Supabase project as before.
 - **Continuing** to the next unblocked slice per the authorization above.
+
+## 2026-08-01 — Stage 11.3 through Stage 16 tranche
+
+### Push path changed (material, read this before auditing SHAs)
+
+The sandbox container was recreated between sessions and the git credential
+did not survive it. `git push` over HTTPS now fails with "could not read
+Username". The repository is publicly readable, so `git ls-remote` and
+`git fetch` still work anonymously; only writes are affected.
+
+Commits are therefore being replayed onto `origin` through the connected
+GitHub API integration (`push_files`), one call per local commit,
+preserving each commit message and file set. This **rewrites the commit
+SHAs** — the trees are byte-identical, the parents differ. After each push
+the local branch is `git fetch`ed and hard-reset onto the remote commit, and
+the tree diff is verified empty first, so local and remote stay in lockstep
+and evidence pinned to a code SHA still refers to a real remote commit.
+
+Auditor consequence: commit SHAs referenced in earlier NIGHT_LOG entries for
+work before `02d589c` are unaffected. From `2ddf2d6` onward, a SHA quoted in
+a commit message written _before_ its own push may not exist; the SHA in
+`git log` is authoritative.
+
+`main` (`5b77fd0e`) and `wip/stage-10-2-honeymoon` (`ec58c8e0`) remain
+untouched and unmerged.
+
+### Tooling
+
+Migrations continue to go through the Supabase Management API rather than
+`supabase db push`, because this sandbox has no Docker. The helper scripts
+carry the personal access token, so they live at `/agent/tools/` **outside
+the repository** and are never committed.
+
+### Increments
+
+- **11.3** coverage plans/intervals, availability declarations, shift swaps,
+  versioned service ceremonies, coaching observations. Non-goal made
+  structural: no table in the tranche can assign a shift.
+- **11.4** announcements with branch/role audiences, read receipts, moderated
+  and versioned learning contributions, learning sessions, service-recovery
+  budget requests, support-resource catalogue. Load-bearing decision is an
+  absent table: no support-resource usage log exists anywhere, and a test
+  scans every migration in the repo to keep it that way.
+- **12.1** MeasurementMonitor gate. Approved measurements have no UPDATE or
+  DELETE grant to any role at all.
+- **12.2** serialized production pieces, spec amendments, stage events,
+  materials, work tickets.
+- **12.3** service partner network reusing the existing concierge booking and
+  cost tables; partner custody kept separate from alteration custody, with the
+  reason recorded in code.
+- **12.4** sourced supplier facts, fabric/button pairing rules, supply
+  exceptions, complaint cases. No factory write-back queue exists.
+
+### Defects found by tests during this tranche
+
+1. `recommendCoverage` compared a citation's `windowStart`/`windowEnd`
+   against a shift's `startTime`/`endTime` shape, so overlap evaluated
+   against `NaN` and a morning demand signal could justify an afternoon
+   shortage. Caught by the demand-attribution test, fixed, test kept.
+2. `customer_measurement_candidates` had a `set_updated_at` trigger but no
+   `updated_at` column — every resolve would have failed at runtime. Caught
+   by re-reading the migration before committing; tables were empty, so they
+   were dropped and re-applied rather than patched forward.
+3. Three separate self-matching test guards: a scan for a forbidden
+   identifier matched the comment explaining its absence, a "no second cost
+   table" scan matched the foreign key expressing the reuse, and a
+   "catalogue is read-only" scan matched the intended SELECT grant. All
+   three narrowed. This failure mode has now happened four times on this
+   branch; the fix is to scan code with comments stripped, and to anchor
+   schema scans on the CREATE TABLE target.

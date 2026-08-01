@@ -3188,6 +3188,167 @@ export type Database = {
           },
         ];
       };
+      customer_measurement_candidates: {
+        Row: {
+          compared_to_version_id: string | null;
+          created_at: string;
+          customer_id: string;
+          decision: string;
+          decision_version: number;
+          deltas: Json;
+          id: string;
+          quality_passed: boolean;
+          quality_signals: Json;
+          rationale: string;
+          resolved_at: string | null;
+          resolved_by_staff_id: string | null;
+          retailer_id: string;
+          self_scan_id: string | null;
+          updated_at: string;
+          values: Json;
+        };
+        Insert: {
+          compared_to_version_id?: string | null;
+          created_at?: string;
+          customer_id: string;
+          decision: string;
+          decision_version: number;
+          deltas?: Json;
+          id?: string;
+          quality_passed: boolean;
+          quality_signals?: Json;
+          rationale: string;
+          resolved_at?: string | null;
+          resolved_by_staff_id?: string | null;
+          retailer_id: string;
+          self_scan_id?: string | null;
+          updated_at?: string;
+          values: Json;
+        };
+        Update: {
+          compared_to_version_id?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          decision?: string;
+          decision_version?: number;
+          deltas?: Json;
+          id?: string;
+          quality_passed?: boolean;
+          quality_signals?: Json;
+          rationale?: string;
+          resolved_at?: string | null;
+          resolved_by_staff_id?: string | null;
+          retailer_id?: string;
+          self_scan_id?: string | null;
+          updated_at?: string;
+          values?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_measurement_candidates_compared_to_version_id_fkey";
+            columns: ["compared_to_version_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_measurement_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_measurement_candidates_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_measurement_candidates_resolved_by_staff_id_fkey";
+            columns: ["resolved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_measurement_candidates_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_measurement_candidates_self_scan_id_fkey";
+            columns: ["self_scan_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_self_scans";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_measurement_versions: {
+        Row: {
+          approved_at: string;
+          approved_by_staff_id: string;
+          created_at: string;
+          customer_id: string;
+          id: string;
+          retailer_id: string;
+          review_note: string | null;
+          reviewed_candidate_id: string | null;
+          values: Json;
+          version: number;
+        };
+        Insert: {
+          approved_at?: string;
+          approved_by_staff_id: string;
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          retailer_id: string;
+          review_note?: string | null;
+          reviewed_candidate_id?: string | null;
+          values: Json;
+          version: number;
+        };
+        Update: {
+          approved_at?: string;
+          approved_by_staff_id?: string;
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          retailer_id?: string;
+          review_note?: string | null;
+          reviewed_candidate_id?: string | null;
+          values?: Json;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_measurement_versions_approved_by_staff_id_fkey";
+            columns: ["approved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_measurement_versions_candidate_fk";
+            columns: ["reviewed_candidate_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_measurement_candidates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_measurement_versions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_measurement_versions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customer_moments: {
         Row: {
           appointment_id: string | null;
@@ -3772,6 +3933,44 @@ export type Database = {
           },
           {
             foreignKeyName: "external_identities_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      fabric_button_rules: {
+        Row: {
+          allowed_button_keys: string[];
+          created_at: string;
+          fabric_key: string;
+          id: string;
+          note: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          allowed_button_keys: string[];
+          created_at?: string;
+          fabric_key: string;
+          id?: string;
+          note: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          allowed_button_keys?: string[];
+          created_at?: string;
+          fabric_key?: string;
+          id?: string;
+          note?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fabric_button_rules_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
@@ -7293,6 +7492,389 @@ export type Database = {
           },
         ];
       };
+      production_material_lines: {
+        Row: {
+          consumed_units: number | null;
+          created_at: string;
+          id: string;
+          material_key: string;
+          piece_id: string | null;
+          planned_units: number;
+          retailer_id: string;
+          spec_id: string;
+          unit: string;
+          updated_at: string;
+        };
+        Insert: {
+          consumed_units?: number | null;
+          created_at?: string;
+          id?: string;
+          material_key: string;
+          piece_id?: string | null;
+          planned_units: number;
+          retailer_id: string;
+          spec_id: string;
+          unit: string;
+          updated_at?: string;
+        };
+        Update: {
+          consumed_units?: number | null;
+          created_at?: string;
+          id?: string;
+          material_key?: string;
+          piece_id?: string | null;
+          planned_units?: number;
+          retailer_id?: string;
+          spec_id?: string;
+          unit?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "production_material_lines_piece_id_fkey";
+            columns: ["piece_id"];
+            isOneToOne: false;
+            referencedRelation: "production_pieces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_material_lines_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_material_lines_spec_id_fkey";
+            columns: ["spec_id"];
+            isOneToOne: false;
+            referencedRelation: "production_specs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      production_pieces: {
+        Row: {
+          barcode: string;
+          completed_on: string | null;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          maker_staff_id: string | null;
+          order_id: string;
+          piece_kind: string;
+          piece_sequence: number;
+          promised_on: string | null;
+          retailer_id: string;
+          spec_id: string;
+          stage: string;
+          updated_at: string;
+        };
+        Insert: {
+          barcode: string;
+          completed_on?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          maker_staff_id?: string | null;
+          order_id: string;
+          piece_kind: string;
+          piece_sequence: number;
+          promised_on?: string | null;
+          retailer_id: string;
+          spec_id: string;
+          stage?: string;
+          updated_at?: string;
+        };
+        Update: {
+          barcode?: string;
+          completed_on?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          maker_staff_id?: string | null;
+          order_id?: string;
+          piece_kind?: string;
+          piece_sequence?: number;
+          promised_on?: string | null;
+          retailer_id?: string;
+          spec_id?: string;
+          stage?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "production_pieces_maker_staff_id_fkey";
+            columns: ["maker_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_pieces_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_pieces_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_pieces_spec_id_fkey";
+            columns: ["spec_id"];
+            isOneToOne: false;
+            referencedRelation: "production_specs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      production_spec_amendments: {
+        Row: {
+          amended_by_staff_id: string;
+          changes: Json;
+          cost_decision: string;
+          created_at: string;
+          id: string;
+          reason: string;
+          retailer_id: string;
+          spec_id: string;
+        };
+        Insert: {
+          amended_by_staff_id: string;
+          changes?: Json;
+          cost_decision: string;
+          created_at?: string;
+          id?: string;
+          reason: string;
+          retailer_id: string;
+          spec_id: string;
+        };
+        Update: {
+          amended_by_staff_id?: string;
+          changes?: Json;
+          cost_decision?: string;
+          created_at?: string;
+          id?: string;
+          reason?: string;
+          retailer_id?: string;
+          spec_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "production_spec_amendments_amended_by_staff_id_fkey";
+            columns: ["amended_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_spec_amendments_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_spec_amendments_spec_id_fkey";
+            columns: ["spec_id"];
+            isOneToOne: false;
+            referencedRelation: "production_specs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      production_specs: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          id: string;
+          locked_at: string | null;
+          measurement_version_id: string;
+          order_id: string;
+          retailer_id: string;
+          spec: Json;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          locked_at?: string | null;
+          measurement_version_id: string;
+          order_id: string;
+          retailer_id: string;
+          spec?: Json;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          locked_at?: string | null;
+          measurement_version_id?: string;
+          order_id?: string;
+          retailer_id?: string;
+          spec?: Json;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "production_specs_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_specs_measurement_version_id_fkey";
+            columns: ["measurement_version_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_measurement_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_specs_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_specs_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      production_stage_events: {
+        Row: {
+          defect_note: string | null;
+          from_stage: string;
+          id: string;
+          inspector_staff_id: string | null;
+          occurred_at: string;
+          piece_id: string;
+          recorded_by_staff_id: string | null;
+          retailer_id: string;
+          to_stage: string;
+        };
+        Insert: {
+          defect_note?: string | null;
+          from_stage: string;
+          id?: string;
+          inspector_staff_id?: string | null;
+          occurred_at?: string;
+          piece_id: string;
+          recorded_by_staff_id?: string | null;
+          retailer_id: string;
+          to_stage: string;
+        };
+        Update: {
+          defect_note?: string | null;
+          from_stage?: string;
+          id?: string;
+          inspector_staff_id?: string | null;
+          occurred_at?: string;
+          piece_id?: string;
+          recorded_by_staff_id?: string | null;
+          retailer_id?: string;
+          to_stage?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "production_stage_events_inspector_staff_id_fkey";
+            columns: ["inspector_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_stage_events_piece_id_fkey";
+            columns: ["piece_id"];
+            isOneToOne: false;
+            referencedRelation: "production_pieces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_stage_events_recorded_by_staff_id_fkey";
+            columns: ["recorded_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_stage_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      production_work_tickets: {
+        Row: {
+          assigned_outworker_reference: string | null;
+          created_at: string;
+          due_on: string;
+          id: string;
+          instructions: string;
+          issued_at: string;
+          piece_id: string;
+          retailer_id: string;
+          returned_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          assigned_outworker_reference?: string | null;
+          created_at?: string;
+          due_on: string;
+          id?: string;
+          instructions: string;
+          issued_at?: string;
+          piece_id: string;
+          retailer_id: string;
+          returned_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          assigned_outworker_reference?: string | null;
+          created_at?: string;
+          due_on?: string;
+          id?: string;
+          instructions?: string;
+          issued_at?: string;
+          piece_id?: string;
+          retailer_id?: string;
+          returned_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "production_work_tickets_piece_id_fkey";
+            columns: ["piece_id"];
+            isOneToOne: false;
+            referencedRelation: "production_pieces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "production_work_tickets_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       products: {
         Row: {
           created_at: string;
@@ -9291,6 +9873,441 @@ export type Database = {
           },
         ];
       };
+      service_partner_custody_events: {
+        Row: {
+          actor_staff_id: string | null;
+          condition_note: string | null;
+          engagement_id: string;
+          from_state: string;
+          id: string;
+          occurred_at: string;
+          retailer_id: string;
+          to_state: string;
+        };
+        Insert: {
+          actor_staff_id?: string | null;
+          condition_note?: string | null;
+          engagement_id: string;
+          from_state: string;
+          id?: string;
+          occurred_at?: string;
+          retailer_id: string;
+          to_state: string;
+        };
+        Update: {
+          actor_staff_id?: string | null;
+          condition_note?: string | null;
+          engagement_id?: string;
+          from_state?: string;
+          id?: string;
+          occurred_at?: string;
+          retailer_id?: string;
+          to_state?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_partner_custody_events_actor_staff_id_fkey";
+            columns: ["actor_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_custody_events_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "service_partner_engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_custody_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_partner_engagements: {
+        Row: {
+          alteration_id: string | null;
+          booking_id: string | null;
+          capability: string;
+          created_at: string;
+          custody_state: string;
+          customer_id: string;
+          deleted_at: string | null;
+          due_on: string;
+          id: string;
+          instructions: string;
+          job_reference: string;
+          partner_id: string;
+          physical_garment_id: string | null;
+          retailer_id: string;
+          returned_on: string | null;
+          sent_on: string | null;
+          updated_at: string;
+          wardrobe_item_id: string | null;
+        };
+        Insert: {
+          alteration_id?: string | null;
+          booking_id?: string | null;
+          capability: string;
+          created_at?: string;
+          custody_state?: string;
+          customer_id: string;
+          deleted_at?: string | null;
+          due_on: string;
+          id?: string;
+          instructions: string;
+          job_reference: string;
+          partner_id: string;
+          physical_garment_id?: string | null;
+          retailer_id: string;
+          returned_on?: string | null;
+          sent_on?: string | null;
+          updated_at?: string;
+          wardrobe_item_id?: string | null;
+        };
+        Update: {
+          alteration_id?: string | null;
+          booking_id?: string | null;
+          capability?: string;
+          created_at?: string;
+          custody_state?: string;
+          customer_id?: string;
+          deleted_at?: string | null;
+          due_on?: string;
+          id?: string;
+          instructions?: string;
+          job_reference?: string;
+          partner_id?: string;
+          physical_garment_id?: string | null;
+          retailer_id?: string;
+          returned_on?: string | null;
+          sent_on?: string | null;
+          updated_at?: string;
+          wardrobe_item_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_partner_engagements_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_engagements_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_engagements_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "worker_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_engagements_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "service_bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_engagements_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_engagements_partner_id_fkey";
+            columns: ["partner_id"];
+            isOneToOne: false;
+            referencedRelation: "service_partners";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_engagements_physical_garment_id_fkey";
+            columns: ["physical_garment_id"];
+            isOneToOne: false;
+            referencedRelation: "physical_garments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_engagements_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_engagements_wardrobe_item_id_fkey";
+            columns: ["wardrobe_item_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_partner_invoice_lines: {
+        Row: {
+          amount_minor_units: number;
+          created_at: string;
+          id: string;
+          invoice_id: string;
+          job_reference: string;
+          matched_cost_record_id: string | null;
+          retailer_id: string;
+        };
+        Insert: {
+          amount_minor_units: number;
+          created_at?: string;
+          id?: string;
+          invoice_id: string;
+          job_reference: string;
+          matched_cost_record_id?: string | null;
+          retailer_id: string;
+        };
+        Update: {
+          amount_minor_units?: number;
+          created_at?: string;
+          id?: string;
+          invoice_id?: string;
+          job_reference?: string;
+          matched_cost_record_id?: string | null;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_partner_invoice_lines_invoice_id_fkey";
+            columns: ["invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "service_partner_invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_invoice_lines_matched_cost_record_id_fkey";
+            columns: ["matched_cost_record_id"];
+            isOneToOne: false;
+            referencedRelation: "service_cost_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_invoice_lines_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_partner_invoices: {
+        Row: {
+          approved_at: string | null;
+          approved_by_staff_id: string | null;
+          created_at: string;
+          currency: string;
+          id: string;
+          partner_id: string;
+          partner_invoice_reference: string;
+          period_end: string;
+          period_start: string;
+          reconciliation: Json;
+          retailer_id: string;
+          state: string;
+          submitted_by_staff_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          currency: string;
+          id?: string;
+          partner_id: string;
+          partner_invoice_reference: string;
+          period_end: string;
+          period_start: string;
+          reconciliation?: Json;
+          retailer_id: string;
+          state?: string;
+          submitted_by_staff_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          partner_id?: string;
+          partner_invoice_reference?: string;
+          period_end?: string;
+          period_start?: string;
+          reconciliation?: Json;
+          retailer_id?: string;
+          state?: string;
+          submitted_by_staff_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_partner_invoices_approved_by_staff_id_fkey";
+            columns: ["approved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_invoices_partner_id_fkey";
+            columns: ["partner_id"];
+            isOneToOne: false;
+            referencedRelation: "service_partners";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_invoices_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_invoices_submitted_by_staff_id_fkey";
+            columns: ["submitted_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_partner_quality_reviews: {
+        Row: {
+          created_at: string;
+          customer_note: string | null;
+          customer_rating: number | null;
+          engagement_id: string;
+          id: string;
+          partner_id: string;
+          retailer_id: string;
+          retailer_note: string | null;
+          retailer_rating: number | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_note?: string | null;
+          customer_rating?: number | null;
+          engagement_id: string;
+          id?: string;
+          partner_id: string;
+          retailer_id: string;
+          retailer_note?: string | null;
+          retailer_rating?: number | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_note?: string | null;
+          customer_rating?: number | null;
+          engagement_id?: string;
+          id?: string;
+          partner_id?: string;
+          retailer_id?: string;
+          retailer_note?: string | null;
+          retailer_rating?: number | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_partner_quality_reviews_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "service_partner_engagements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_quality_reviews_partner_id_fkey";
+            columns: ["partner_id"];
+            isOneToOne: false;
+            referencedRelation: "service_partners";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partner_quality_reviews_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_partners: {
+        Row: {
+          active: boolean;
+          branch_id: string | null;
+          capabilities: string[];
+          contact_email: string | null;
+          contact_phone: string | null;
+          created_at: string;
+          deleted_at: string | null;
+          display_name: string;
+          id: string;
+          retailer_id: string;
+          turnaround_days: number;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          branch_id?: string | null;
+          capabilities?: string[];
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          display_name: string;
+          id?: string;
+          retailer_id: string;
+          turnaround_days: number;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          branch_id?: string | null;
+          capabilities?: string[];
+          contact_email?: string | null;
+          contact_phone?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          display_name?: string;
+          id?: string;
+          retailer_id?: string;
+          turnaround_days?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_partners_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_partners_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       service_plans: {
         Row: {
           created_at: string;
@@ -10377,6 +11394,203 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      supplier_facts: {
+        Row: {
+          created_at: string;
+          id: string;
+          kind: string;
+          material_key: string;
+          observed_at: string;
+          retailer_id: string;
+          source_authority_key: string;
+          source_version: string;
+          supplier_key: string;
+          value: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          kind: string;
+          material_key: string;
+          observed_at: string;
+          retailer_id: string;
+          source_authority_key: string;
+          source_version: string;
+          supplier_key: string;
+          value: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          material_key?: string;
+          observed_at?: string;
+          retailer_id?: string;
+          source_authority_key?: string;
+          source_version?: string;
+          supplier_key?: string;
+          value?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supplier_facts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      supply_complaint_cases: {
+        Row: {
+          created_at: string;
+          customer_id: string | null;
+          customer_recovery_note: string | null;
+          evidence_refs: string[];
+          id: string;
+          order_id: string | null;
+          outcome_note: string | null;
+          owner_staff_id: string | null;
+          piece_id: string | null;
+          retailer_id: string;
+          state: string;
+          summary: string;
+          supplier_action_note: string | null;
+          supplier_key: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id?: string | null;
+          customer_recovery_note?: string | null;
+          evidence_refs?: string[];
+          id?: string;
+          order_id?: string | null;
+          outcome_note?: string | null;
+          owner_staff_id?: string | null;
+          piece_id?: string | null;
+          retailer_id: string;
+          state?: string;
+          summary: string;
+          supplier_action_note?: string | null;
+          supplier_key?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string | null;
+          customer_recovery_note?: string | null;
+          evidence_refs?: string[];
+          id?: string;
+          order_id?: string | null;
+          outcome_note?: string | null;
+          owner_staff_id?: string | null;
+          piece_id?: string | null;
+          retailer_id?: string;
+          state?: string;
+          summary?: string;
+          supplier_action_note?: string | null;
+          supplier_key?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supply_complaint_cases_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supply_complaint_cases_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supply_complaint_cases_owner_staff_id_fkey";
+            columns: ["owner_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supply_complaint_cases_piece_id_fkey";
+            columns: ["piece_id"];
+            isOneToOne: false;
+            referencedRelation: "production_pieces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supply_complaint_cases_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      supply_exceptions: {
+        Row: {
+          citations: Json;
+          created_at: string;
+          detail: string;
+          id: string;
+          kind: string;
+          material_key: string;
+          owner_staff_id: string;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          retailer_id: string;
+          state: string;
+          updated_at: string;
+        };
+        Insert: {
+          citations: Json;
+          created_at?: string;
+          detail: string;
+          id?: string;
+          kind: string;
+          material_key: string;
+          owner_staff_id: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          retailer_id: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Update: {
+          citations?: Json;
+          created_at?: string;
+          detail?: string;
+          id?: string;
+          kind?: string;
+          material_key?: string;
+          owner_staff_id?: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          retailer_id?: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supply_exceptions_owner_staff_id_fkey";
+            columns: ["owner_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supply_exceptions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       synthetic_demo_generations: {
         Row: {
