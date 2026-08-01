@@ -13,7 +13,7 @@ import {
 } from "@paon/domain";
 import { redirect } from "next/navigation";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface CreateProductFormState {
@@ -26,7 +26,7 @@ export async function createProduct(
   _prevState: CreateProductFormState,
   formData: FormData,
 ): Promise<CreateProductFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
 
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;

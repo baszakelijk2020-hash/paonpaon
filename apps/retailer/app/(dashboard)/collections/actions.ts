@@ -8,7 +8,7 @@ import {
 import { createCollectionInputSchema } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface CreateCollectionFormState {
@@ -21,7 +21,7 @@ export async function createCollection(
   _prevState: CreateCollectionFormState,
   formData: FormData,
 ): Promise<CreateCollectionFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
 
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;

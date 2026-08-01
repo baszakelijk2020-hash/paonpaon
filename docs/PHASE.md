@@ -148,11 +148,13 @@ be resumed without the module mapping required by R0.3.**
     module-session gate rejects preview/suspended/off writes. Stock, loss
     prevention, POS, coverage, customer, appointment, messaging, customer-fact,
     wardrobe, roadmap, alteration, workshop, service-plan, order, campaign,
-    loyalty and event actions all use it. Relationship, garment/service and
-    Commerce route layouts allow active/preview reads while refusing
-    suspended/off direct access. Browser proof waits for real Server Action
-    responses, verifies coverage, client, service-plan and event writes leave
-    zero rows in preview, then proves suspended direct routes return 500.
+    loyalty, event, collection, catalogue import/migration, product and product
+    knowledge actions all use it. Relationship, garment/service, Commerce,
+    Retail Operations and knowledge route layouts allow active/preview reads
+    while refusing suspended/off direct access. Browser proof waits for real
+    Server Action responses, verifies coverage, client, service-plan and event
+    writes leave zero rows in preview, then proves suspended direct routes
+    return 500.
     Remaining: extend the gate across every other module-owned mutation/read
     surface, implement the founder-tool blueprints, and complete canonical
     House cleanup.

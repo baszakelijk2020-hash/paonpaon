@@ -1029,3 +1029,9 @@ those suites' bug.
   attempts a real event create in preview, observes zero database rows and then
   proves a suspended direct route returns 500; the focused production build
   and browser proof pass.
+- The following Retail Operations/knowledge slice gates collections, catalogue
+  imports and migration publishing, product creation/edit/media, product facts
+  and knowledge assignments. Shared layouts now protect catalogue, collection,
+  import, migration, inventory, POS, analytics and staff reads; metadata keeps
+  its correct Wardrobe & Styling ownership. The lifecycle proof adds a
+  suspended direct-product route assertion rather than relying on hidden nav.

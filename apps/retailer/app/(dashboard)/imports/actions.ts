@@ -25,7 +25,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getAIProvider } from "@/lib/ai";
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface ImportUploadState {
@@ -39,7 +39,7 @@ export interface ImportPublishState {
 }
 
 async function requireManagerSession() {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
   return session;
 }

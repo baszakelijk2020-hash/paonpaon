@@ -69,6 +69,8 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
         jobKey: "inventory_drift_monitor",
       }),
     ).resolves.toBe(false);
+    const suspendedRetailResponse = await page.goto("/products");
+    expect(suspendedRetailResponse?.status()).toBe(500);
 
     await modules.configure({
       retailerId: retailer!.id,
@@ -77,7 +79,7 @@ test("module lifecycle projects navigation and suppresses jobs", async ({
       authorityMode: "external",
       source: "add_on",
     });
-    await page.reload();
+    await page.goto("/dashboard");
     await expect(stockNavigation).toContainText("Stock · Preview");
 
     // Preview is real read-only data, not an active module. A direct route or

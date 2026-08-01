@@ -4,11 +4,11 @@ import { requireRetailerRole } from "@paon/auth";
 import { MigrationJobRepository } from "@paon/database";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export async function createFixtureMigrationJobAction(): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "admin");
   await new MigrationJobRepository(getSupabaseAdminClient()).createFixtureJob({
     retailerId: session.retailerId,
@@ -19,7 +19,7 @@ export async function createFixtureMigrationJobAction(): Promise<void> {
 export async function publishMigrationJobAction(
   formData: FormData,
 ): Promise<void> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "admin");
   const jobId = String(formData.get("jobId") ?? "");
   if (!jobId) throw new Error("Missing job id");

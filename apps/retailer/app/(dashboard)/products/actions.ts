@@ -3,7 +3,7 @@
 import { requireRetailerRole } from "@paon/auth";
 import { ProductVariantRepository } from "@paon/database";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface LowStockRow {
@@ -17,7 +17,7 @@ export interface LowStockRow {
  * infrastructure exists yet, so this just hands back the same
  * low-stock join the dashboard's attention tile already counts. */
 export async function getLowStockRows(): Promise<LowStockRow[]> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations", "read");
   requireRetailerRole(session.retailerRole, "manager");
   const supabase = await getSupabaseServerClient();
   const rows = await new ProductVariantRepository(

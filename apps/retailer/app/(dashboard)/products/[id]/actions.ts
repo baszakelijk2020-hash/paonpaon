@@ -16,7 +16,7 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface CatalogueFormState {
@@ -37,7 +37,7 @@ export async function uploadProductImage(
   _previous: ProductImageActionState,
   formData: FormData,
 ): Promise<ProductImageActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
 
   const file = formData.get("image");
@@ -99,7 +99,7 @@ export async function removeProductImage(
   _previous: ProductImageActionState,
   _formData: FormData,
 ): Promise<ProductImageActionState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
 
   const supabase = await getSupabaseServerClient();
@@ -144,7 +144,7 @@ export async function updateProduct(
   _previous: CatalogueFormState,
   formData: FormData,
 ): Promise<CatalogueFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
   const parsed = updateProductInputSchema.safeParse({
     name: formData.get("name"),
@@ -194,7 +194,7 @@ export async function updateVariant(
   _previous: CatalogueFormState,
   formData: FormData,
 ): Promise<CatalogueFormState> {
-  const session = await requireSession();
+  const session = await requireModuleSession("retail_operations");
   requireRetailerRole(session.retailerRole, "manager");
   const parsed = updateProductVariantInputSchema.safeParse({
     id: formData.get("id"),
