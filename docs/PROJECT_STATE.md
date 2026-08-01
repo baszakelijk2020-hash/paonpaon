@@ -136,7 +136,54 @@ therefore remains **not started on `main`** and is not claimable at any
 exercised without a pinned library version if its scope is limited to programme
 tracking.
 
+## Stages 11.3 through 16.5 (2026-08-01, takeover branch only)
+
+Every remaining unblocked queue item from 11.3 to 16.5 now has a real
+domain layer, real schema with RLS, and focused tests, and **none of them
+has a UI or a browser proof**. All are recorded in `PHASE.md` as
+`implemented_unverified`, and none is claimable at any `verified_*` status.
+Read that as: the rules are enforceable and enforced, and nobody has yet
+operated any of it through a browser.
+
+Items: 11.3 coverage/swaps/ceremony/coaching; 11.4 announcements,
+contributions, budgets, support catalogue; 12.1 MeasurementMonitor gate;
+12.2 serialized production; 12.3 partner network; 12.4 supplier
+intelligence; 13.1 stock ledger; 13.2 loss prevention; 13.3 POS and
+returns; 14.1 corporate programmes; 14.2 cited recommendations; 15.1/15.2
+partner attribution and rewards; 15.3 MunroMerchant; 15.4 audience studio;
+15.5 governed release; 16.1/16.2 academy and media; 16.3 vertical-pack
+framework (framework only — the pilot is deliberately not started, pending
+prospect evidence); 16.4 store instrumentation; 16.5 Moonstruck.
+
+Eight forward migrations were added (`20260801000005` through
+`20260801000014`), all applied to the dedicated non-production Supabase
+project via the Management API, with `database.types.ts` regenerated after
+each.
+
+The through-line worth knowing before reading any of it: in this tranche
+most non-goals are enforced by **grants, CHECK constraints, absent columns
+and absent tables** rather than by convention. Concretely —
+`stock_ledger_entries` and `customer_measurement_versions` have no UPDATE
+or DELETE grant on any role including `service_role`;
+`network_attribution_events` and `advertising_events` have no `customer_id`
+column at all; there is no support-resource usage log anywhere in the
+repository and a test scans every migration to keep it that way;
+`store_observations` has no `staff_id` and no biometric column;
+`product_hypotheses` has no purchase-order column; `pos_payments` has
+nowhere to put a card number; and the only party-shaped tables in the whole
+schema are still the original two from 2026-07-19.
+
+Test counts at this snapshot: domain 877, database 440, payments 26,
+auth 22, ai 18, sms 3, email 2, utils 1 — **1,389 total**, up from 890.
+Lint 12/12, typecheck 12/12, `format:check` clean, serial build clean.
+
 ## Current handoff
 
 Next queue item on `main`: **Stage 9.2**. Stage 6 and 9.3 remain blocked;
 skip them. See Resume Protocol.
+
+On the takeover branch the queue is exhausted through 16.5, so the next
+useful work is **depth, not breadth**: convert these slices into operated
+features with browser proofs, starting with whichever surface a real user
+will touch first. Stage 11.2's `/staff/recognition` is the only surface in
+stages 11-16 that has one.
