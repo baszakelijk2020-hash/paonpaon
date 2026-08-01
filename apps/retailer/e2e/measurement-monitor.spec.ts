@@ -272,9 +272,12 @@ test("a remeasure candidate stays out of the advisor review queue", async ({
 
   await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
   await page.goto("/staff/measurements");
-  await expect(page.locator("#measurement-review-queue")).toBeVisible({
-    timeout: 30_000,
-  });
+  // The page is identified by its heading, not by the queue element: the
+  // queue only renders when something is IN it, so requiring it here makes
+  // this assertion depend on whatever other candidates happen to exist.
+  await expect(
+    page.getByRole("heading", { name: "Measurement reviews" }),
+  ).toBeVisible({ timeout: 30_000 });
   await expect(
     page.locator(`[data-candidate-id="${candidate!.id}"]`),
   ).toHaveCount(0);
