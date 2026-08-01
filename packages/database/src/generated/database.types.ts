@@ -2776,6 +2776,121 @@ export type Database = {
           },
         ];
       };
+      coverage_plan_intervals: {
+        Row: {
+          created_at: string;
+          end_time: string;
+          id: string;
+          plan_id: string;
+          required_headcount: number;
+          required_skills: string[];
+          retailer_id: string;
+          start_time: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          end_time: string;
+          id?: string;
+          plan_id: string;
+          required_headcount: number;
+          required_skills?: string[];
+          retailer_id: string;
+          start_time: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          end_time?: string;
+          id?: string;
+          plan_id?: string;
+          required_headcount?: number;
+          required_skills?: string[];
+          retailer_id?: string;
+          start_time?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "coverage_plan_intervals_plan_id_fkey";
+            columns: ["plan_id"];
+            isOneToOne: false;
+            referencedRelation: "coverage_plans";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "coverage_plan_intervals_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      coverage_plans: {
+        Row: {
+          branch_id: string | null;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          plan_date: string;
+          published_at: string | null;
+          published_by_staff_id: string | null;
+          retailer_id: string;
+          state: string;
+          timezone: string;
+          updated_at: string;
+        };
+        Insert: {
+          branch_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          plan_date: string;
+          published_at?: string | null;
+          published_by_staff_id?: string | null;
+          retailer_id: string;
+          state?: string;
+          timezone: string;
+          updated_at?: string;
+        };
+        Update: {
+          branch_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          plan_date?: string;
+          published_at?: string | null;
+          published_by_staff_id?: string | null;
+          retailer_id?: string;
+          state?: string;
+          timezone?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "coverage_plans_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "coverage_plans_published_by_staff_id_fkey";
+            columns: ["published_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "coverage_plans_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customer_account_links: {
         Row: {
           customer_id: string;
@@ -8672,6 +8787,50 @@ export type Database = {
           },
         ];
       };
+      service_ceremony_versions: {
+        Row: {
+          ceremony_key: string;
+          created_at: string;
+          id: string;
+          published: boolean;
+          published_at: string | null;
+          retailer_id: string;
+          steps: Json;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          ceremony_key: string;
+          created_at?: string;
+          id?: string;
+          published?: boolean;
+          published_at?: string | null;
+          retailer_id: string;
+          steps?: Json;
+          updated_at?: string;
+          version: number;
+        };
+        Update: {
+          ceremony_key?: string;
+          created_at?: string;
+          id?: string;
+          published?: boolean;
+          published_at?: string | null;
+          retailer_id?: string;
+          steps?: Json;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_ceremony_versions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       service_cost_records: {
         Row: {
           amount_minor_units: number;
@@ -9186,6 +9345,93 @@ export type Database = {
           },
         ];
       };
+      service_recovery_budget_requests: {
+        Row: {
+          amount_minor_units: number;
+          approved_by_staff_id: string | null;
+          created_at: string;
+          currency: string;
+          customer_id: string | null;
+          decided_at: string | null;
+          decision_note: string | null;
+          id: string;
+          order_id: string | null;
+          reason: string;
+          requested_by_staff_id: string;
+          retailer_id: string;
+          state: string;
+          updated_at: string;
+        };
+        Insert: {
+          amount_minor_units: number;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          customer_id?: string | null;
+          decided_at?: string | null;
+          decision_note?: string | null;
+          id?: string;
+          order_id?: string | null;
+          reason: string;
+          requested_by_staff_id: string;
+          retailer_id: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Update: {
+          amount_minor_units?: number;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          customer_id?: string | null;
+          decided_at?: string | null;
+          decision_note?: string | null;
+          id?: string;
+          order_id?: string | null;
+          reason?: string;
+          requested_by_staff_id?: string;
+          retailer_id?: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_recovery_budget_requests_approved_by_staff_id_fkey";
+            columns: ["approved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_recovery_budget_requests_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_recovery_budget_requests_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_recovery_budget_requests_requested_by_staff_id_fkey";
+            columns: ["requested_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_recovery_budget_requests_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sms_outbox: {
         Row: {
           attempts: number;
@@ -9286,6 +9532,400 @@ export type Database = {
           },
           {
             foreignKeyName: "source_authority_policies_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      staff_announcement_acknowledgements: {
+        Row: {
+          acknowledged_at: string;
+          announcement_id: string;
+          id: string;
+          retailer_id: string;
+          staff_id: string;
+        };
+        Insert: {
+          acknowledged_at?: string;
+          announcement_id: string;
+          id?: string;
+          retailer_id: string;
+          staff_id: string;
+        };
+        Update: {
+          acknowledged_at?: string;
+          announcement_id?: string;
+          id?: string;
+          retailer_id?: string;
+          staff_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_announcement_acknowledgements_announcement_id_fkey";
+            columns: ["announcement_id"];
+            isOneToOne: false;
+            referencedRelation: "staff_announcements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_announcement_acknowledgements_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_announcement_acknowledgements_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      staff_announcements: {
+        Row: {
+          audience_roles: string[];
+          authored_by_staff_id: string;
+          body: string;
+          branch_id: string | null;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          published_at: string | null;
+          requires_acknowledgement: boolean;
+          retailer_id: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          audience_roles?: string[];
+          authored_by_staff_id: string;
+          body: string;
+          branch_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          published_at?: string | null;
+          requires_acknowledgement?: boolean;
+          retailer_id: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          audience_roles?: string[];
+          authored_by_staff_id?: string;
+          body?: string;
+          branch_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          published_at?: string | null;
+          requires_acknowledgement?: boolean;
+          retailer_id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_announcements_authored_by_staff_id_fkey";
+            columns: ["authored_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_announcements_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_announcements_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      staff_availability_declarations: {
+        Row: {
+          available: boolean;
+          created_at: string;
+          deleted_at: string | null;
+          effective_on: string;
+          end_time: string;
+          id: string;
+          note: string | null;
+          retailer_id: string;
+          staff_id: string;
+          start_time: string;
+          updated_at: string;
+          weekday: number;
+        };
+        Insert: {
+          available?: boolean;
+          created_at?: string;
+          deleted_at?: string | null;
+          effective_on: string;
+          end_time: string;
+          id?: string;
+          note?: string | null;
+          retailer_id: string;
+          staff_id: string;
+          start_time: string;
+          updated_at?: string;
+          weekday: number;
+        };
+        Update: {
+          available?: boolean;
+          created_at?: string;
+          deleted_at?: string | null;
+          effective_on?: string;
+          end_time?: string;
+          id?: string;
+          note?: string | null;
+          retailer_id?: string;
+          staff_id?: string;
+          start_time?: string;
+          updated_at?: string;
+          weekday?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_availability_declarations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_availability_declarations_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      staff_coaching_observations: {
+        Row: {
+          agreed_action: string | null;
+          appointment_id: string | null;
+          ceremony_version_id: string | null;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          observed_on: string;
+          observed_staff_id: string;
+          observer_staff_id: string;
+          outcome_note: string | null;
+          retailer_id: string;
+          scores: Json;
+          state: string;
+          updated_at: string;
+        };
+        Insert: {
+          agreed_action?: string | null;
+          appointment_id?: string | null;
+          ceremony_version_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          observed_on: string;
+          observed_staff_id: string;
+          observer_staff_id: string;
+          outcome_note?: string | null;
+          retailer_id: string;
+          scores?: Json;
+          state?: string;
+          updated_at?: string;
+        };
+        Update: {
+          agreed_action?: string | null;
+          appointment_id?: string | null;
+          ceremony_version_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          observed_on?: string;
+          observed_staff_id?: string;
+          observer_staff_id?: string;
+          outcome_note?: string | null;
+          retailer_id?: string;
+          scores?: Json;
+          state?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_coaching_observations_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_coaching_observations_ceremony_version_id_fkey";
+            columns: ["ceremony_version_id"];
+            isOneToOne: false;
+            referencedRelation: "service_ceremony_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_coaching_observations_observed_staff_id_fkey";
+            columns: ["observed_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_coaching_observations_observer_staff_id_fkey";
+            columns: ["observer_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_coaching_observations_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      staff_learning_contributions: {
+        Row: {
+          author_staff_id: string;
+          body: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          moderated_at: string | null;
+          moderated_by_staff_id: string | null;
+          moderation_note: string | null;
+          retailer_id: string;
+          state: string;
+          title: string;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          author_staff_id: string;
+          body: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          moderated_at?: string | null;
+          moderated_by_staff_id?: string | null;
+          moderation_note?: string | null;
+          retailer_id: string;
+          state?: string;
+          title: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          author_staff_id?: string;
+          body?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          moderated_at?: string | null;
+          moderated_by_staff_id?: string | null;
+          moderation_note?: string | null;
+          retailer_id?: string;
+          state?: string;
+          title?: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_learning_contributions_author_staff_id_fkey";
+            columns: ["author_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_learning_contributions_moderated_by_staff_id_fkey";
+            columns: ["moderated_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_learning_contributions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      staff_learning_sessions: {
+        Row: {
+          contribution_id: string | null;
+          created_at: string;
+          deleted_at: string | null;
+          description: string | null;
+          host_branch_id: string | null;
+          id: string;
+          join_url: string | null;
+          retailer_id: string;
+          starts_at: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          contribution_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          description?: string | null;
+          host_branch_id?: string | null;
+          id?: string;
+          join_url?: string | null;
+          retailer_id: string;
+          starts_at: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          contribution_id?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+          description?: string | null;
+          host_branch_id?: string | null;
+          id?: string;
+          join_url?: string | null;
+          retailer_id?: string;
+          starts_at?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_learning_sessions_contribution_id_fkey";
+            columns: ["contribution_id"];
+            isOneToOne: false;
+            referencedRelation: "staff_learning_contributions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_learning_sessions_host_branch_id_fkey";
+            columns: ["host_branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_learning_sessions_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
@@ -9400,6 +10040,84 @@ export type Database = {
           },
         ];
       };
+      staff_shift_swap_requests: {
+        Row: {
+          approved_by_staff_id: string | null;
+          created_at: string;
+          decided_at: string | null;
+          id: string;
+          peer_staff_id: string;
+          reason: string | null;
+          requesting_staff_id: string;
+          retailer_id: string;
+          shift_id: string;
+          state: string;
+          updated_at: string;
+        };
+        Insert: {
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          decided_at?: string | null;
+          id?: string;
+          peer_staff_id: string;
+          reason?: string | null;
+          requesting_staff_id: string;
+          retailer_id: string;
+          shift_id: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Update: {
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          decided_at?: string | null;
+          id?: string;
+          peer_staff_id?: string;
+          reason?: string | null;
+          requesting_staff_id?: string;
+          retailer_id?: string;
+          shift_id?: string;
+          state?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_shift_swap_requests_approved_by_staff_id_fkey";
+            columns: ["approved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_shift_swap_requests_peer_staff_id_fkey";
+            columns: ["peer_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_shift_swap_requests_requesting_staff_id_fkey";
+            columns: ["requesting_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_shift_swap_requests_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_shift_swap_requests_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "staff_shifts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       staff_shifts: {
         Row: {
           created_at: string;
@@ -9450,6 +10168,53 @@ export type Database = {
             columns: ["staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      staff_support_resources: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          external_url: string | null;
+          id: string;
+          phone: string | null;
+          resource_key: string;
+          retailer_id: string;
+          summary: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          external_url?: string | null;
+          id?: string;
+          phone?: string | null;
+          resource_key: string;
+          retailer_id: string;
+          summary: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          external_url?: string | null;
+          id?: string;
+          phone?: string | null;
+          resource_key?: string;
+          retailer_id?: string;
+          summary?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_support_resources_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];

@@ -141,3 +141,6 @@ export * from "./concierge/service-plan";
 export * from "./concierge/service-plan.schema";
 export * from "./workforce/payroll-period";
 export * from "./workforce/recognition";
+export * from "./workforce/coverage";
+export * from "./workforce/coaching";
+export * from "./workforce/community";

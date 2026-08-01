@@ -1379,6 +1379,44 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     quality.
   - **Non-goals:** no fully autonomous scheduling.
   - **Hard blockers:** none.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Schema, RLS and domain logic are real; there is no UI and no browser
+    proof, so this is not claimable at any `verified_*` status.
+    `20260801000005_add_coverage_ceremony_coaching.sql` adds coverage plans
+    and intervals, staff availability declarations, shift-swap requests,
+    versioned service ceremonies and coaching observations. The
+    "no fully autonomous scheduling" non-goal is structural rather than a
+    convention: no table here can assign a shift — `public.staff_shifts`
+    (2026-07-21) stays the only truth for who works when, a coverage plan
+    states a REQUIREMENT, `recommendCoverage` states a GAP, and the only
+    code path that moves a roster row is `approveSwap`, gated on an
+    independent manager. A test asserts `coverage_plan_intervals` carries
+    no `staff_id` at all. Recommendations are explainable by construction:
+    `StaffingRecommendation.citations` is never empty, and the worst case
+    (nobody rostered, so no shift rows to cite) still cites the plan the
+    requirement came from rather than emitting a bare number; real
+    appointment counts become `booked_appointments` citations bucketed by
+    hour, and a test proves a morning demand signal cannot justify an
+    afternoon shortage. Interval times are local wall-clock against a named
+    IANA zone carried on the plan, not instants — storing instants would
+    shift a roster by an hour twice a year at a DST boundary. Overlap is
+    half-open, so a shift ending exactly when an interval starts does not
+    count as covering it. Swap approval re-checks required skills at
+    approval time rather than request time, because the roster can move
+    between the two; both a CHECK constraint and a domain check refuse an
+    approver who is either party. Ceremony versions are immutable once
+    published (the update policy carries `and published = false`), which is
+    what keeps an observation's version citation meaningful later. The
+    coaching loop advances one state at a time, so a manager cannot close a
+    record the employee was never told about, and coaching rows are
+    readable only by the subject and managers — every other 11.3 table is
+    retailer-wide readable on purpose, but an observation the whole floor
+    can read is a public performance notice. As in 11.2, there is no
+    per-person average, total or rank anywhere: `summarizeCoachingLoop`
+    answers "are loops being closed" and names who is stalled, and a test
+    fails if a score aggregate column appears. Missing: retailer UI for all
+    four surfaces, a browser proof, and the manager-facing publish-coverage
+    flow end to end.
 
 - [ ] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.
@@ -1396,6 +1434,54 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
   - **Non-goals:** no replacement social network, clinical service, keystroke
     or screenshot monitoring.
   - **Hard blockers:** external support contracts block only direct booking.
+  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+    Schema, RLS and domain logic are real; no UI and no browser proof, so
+    not claimable at any `verified_*` status.
+    `20260801000006_add_internal_community.sql` adds announcements with
+    branch/role audiences, one-per-person read receipts, versioned and
+    moderated learning contributions, cross-location learning sessions,
+    service-recovery budget requests and a support-resource catalogue.
+
+    The most important property of this item is a table that does **not**
+    exist. There is no `support_resource_views`, no access event and no
+    counter on the catalogue row. The requirement is a _confidential_
+    handoff and the non-goal forbids exposing private support use; a log
+    readable by managers defeats that outright, and one readable by nobody
+    is still a re-identification risk in a five-person store and would
+    still have to be disclosed. So usage is simply not observable. A test
+    scans **every** migration in the repository — not just this one — and
+    fails if such a table is ever added, so a later "engagement analytics"
+    request has to argue with the note in
+    `SUPPORT_RESOURCE_PRIVACY_NOTE` first. `checkSupportResource` also
+    refuses a resource that claims direct booking, because the provider
+    contract is a real blocker and a bookable-looking dead end is worse
+    than an honest phone number.
+
+    The "no activity leaderboard" non-goal is structural in the same way as
+    11.2's: `summarizeCommunityReach` is scoped to **one** announcement and
+    returns the list of people who have _not_ seen it — an operational gap
+    a manager closes — with no per-person rate across messages, and there
+    is no function that spans announcements. A read receipt is unique per
+    person per announcement, so a repeated page load cannot inflate a
+    number that is meant to be a fact about people rather than page views.
+
+    A budget request moves no money and names no provider: ADR-062 has not
+    decided a payout design, so this records an internal authorisation to
+    spend up to an amount, which is a genuinely separate artefact from the
+    payment that may later settle it. A test asserts the table mentions no
+    provider, payout or payment reference. Requests must attach to a
+    customer or an order (unattached, it is petty cash, which has different
+    controls), are capped per request, and cannot be self-approved — in
+    both a CHECK constraint and the domain layer.
+
+    Two visibility decisions differ from the rest of the tranche on
+    purpose: budget requests are requester-and-manager only (they name a
+    customer and an amount), and unapproved contributions are hidden from
+    the floor while remaining visible to their author and to moderators — a
+    rejected draft is not published reading material. Rejection requires a
+    reason in the schema, because an anonymous veto teaches the contributor
+    nothing. Missing: all UI, browser proof, onboarding checklists, and
+    discussion threads on announcements.
 
 ### Stage 12 — MTM, fit, production, and service network
 
