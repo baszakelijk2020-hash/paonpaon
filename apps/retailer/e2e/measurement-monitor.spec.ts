@@ -10,8 +10,25 @@ const PHASE_ITEM_ID = "12.1";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/measurement-monitor.spec.ts";
 
 let proofPassed = false;
+/**
+ * Candidates this spec created. An unresolved `advisor_review` candidate
+ * BLOCKS a reorder for that customer by design, so one left behind by a
+ * failed run is not inert debris — it fails unrelated suites later and looks
+ * like their bug. The spec that created it removes it.
+ */
+const createdCandidateIds: string[] = [];
 
 test.afterAll(async () => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (supabaseUrl && serviceRoleKey && createdCandidateIds.length > 0) {
+    const cleanup = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+    await cleanup
+      .from("customer_measurement_candidates")
+      .delete()
+      .in("id", createdCandidateIds);
+  }
+
   await writeBrowserProofRun({
     phaseItemId: PHASE_ITEM_ID,
     spec: BROWSER_PROOF_SPEC,
@@ -81,6 +98,7 @@ test("an advisor cannot approve a self-scan measurement without writing why", as
     .single();
   expect(candidateError).toBeNull();
   const candidateId = candidate!.id;
+  createdCandidateIds.push(candidateId);
 
   await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
   await page.goto("/staff/measurements");
@@ -250,6 +268,7 @@ test("a remeasure candidate stays out of the advisor review queue", async ({
     })
     .select("id")
     .single();
+  createdCandidateIds.push(candidate!.id);
 
   await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
   await page.goto("/staff/measurements");
@@ -302,6 +321,7 @@ test("a candidate can be dismissed without changing the approved record", async 
     .select("id")
     .single();
   const candidateId = candidate!.id;
+  createdCandidateIds.push(candidateId);
 
   const { data: before } = await admin
     .from("customer_measurement_versions")

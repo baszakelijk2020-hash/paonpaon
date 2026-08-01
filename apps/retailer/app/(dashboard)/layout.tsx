@@ -101,6 +101,15 @@ export default async function DashboardLayout({
                 label: "Stock",
                 description: "What is on hand, and every movement behind it",
               },
+              // PHASE 13.2 / INV-104, INV-105. Next to Stock because it is
+              // the control over it: nothing valuable leaves without two
+              // people, and a reader sweep lands here rather than in a balance.
+              {
+                href: "/inventory/risk",
+                label: "Write-offs",
+                description:
+                  "Approvals waiting, and what a sweep disagreed with",
+              },
               // PHASE 13.3 / POS-101. Sits next to Stock deliberately: the
               // till writes to the same ledger, so they are one subject.
               {

@@ -1820,6 +1820,48 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     "resolved" with no reason is indistinguishable from "ignored". Live
     reader hardware remains `blocked_external`.
 
+  - **Status (2026-08-01, takeover branch, revised):** `verified_local`.
+    Now an operated surface: `LossPreventionRepository`, `/inventory/risk`,
+    7 live assertions in `loss-prevention-live.integration.test.ts` and a
+    browser proof `apps/retailer/e2e/loss-prevention.spec.ts`.
+
+    The control the item turns on is that a valuable write-off has NOT
+    happened when it is asked for. Raising one writes a flag with a null
+    `ledger_entry_id` and touches no stock at all; only the approval writes
+    the ledger entry, and the flag then cites the entry it authorised so an
+    audit walks from signature to movement rather than inferring it from
+    timestamps. Self-approval is refused in the application AND by a CHECK
+    constraint, so it holds even if something bypasses the repository. A
+    different person who is not a manager is refused too — either half alone
+    is not independence. A second approval on the same flag is refused,
+    because one signature authorises one movement.
+
+    The RFID half never posts a balance, and that is structural rather than
+    documented: there is no method on the repository that turns a sweep into
+    a ledger entry, so the page has no such button to offer. Four reads of
+    one tag are one garment (the browser asserts "3 found", not 6, which is
+    how a pilot avoids inventing a surplus on day one), a low-confidence read
+    stays counted so a poor sweep looks poor, and an expected-but-unread tag
+    is labelled "Expected here, not read" — never "missing", because that
+    word invites a write-off nobody counted. Closing a discrepancy without a
+    sentence is refused, and the sentence is stored.
+
+    One ordering defect found by operating it: the action checked for an open
+    stock count BEFORE checking who was allowed to approve, so someone who
+    could not approve at all was sent off to open a count session and the
+    real answer was hidden behind an unrelated instruction. Identity is now
+    settled first.
+
+    Migration 22 adds `unique (sweep_id, epc, kind)`. Without it a reader
+    that drops its connection and retries appended duplicate discrepancies,
+    so the pilot would look like it found twice as many problems as it did
+    and a person resolving one copy would leave the other open forever.
+
+    Two suites were also made to own their rows: an unapproved risk flag and
+    an unresolved `advisor_review` candidate are not inert debris — they sit
+    in a queue and fail unrelated specs later, looking like those specs'
+    bug. Live reader hardware remains `blocked_external`.
+
 - [ ] **13.3 Omnichannel POS and returns**
   - **Requirement IDs:** Stage 13 target architecture.
   - **Dependencies:** `13.1`, `8.2`; ADR-062 for activated money capabilities.
