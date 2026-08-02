@@ -80,6 +80,13 @@ export async function sendSignedInTableServiceMessage(
   const purpose = purposeRaw as MessageAttachmentPurpose;
   const file = formData.get("attachment");
   const sourceUrlRaw = String(formData.get("sourceUrl") ?? "").trim();
+  const weddingPartyIdRaw = formData.get("weddingPartyId");
+  const weddingPartyId =
+    purpose === "wedding_fabric" &&
+    typeof weddingPartyIdRaw === "string" &&
+    z.string().uuid().safeParse(weddingPartyIdRaw).success
+      ? asId<"WeddingPartyId">(weddingPartyIdRaw)
+      : undefined;
 
   let validatedUpload:
     | {
@@ -140,6 +147,7 @@ export async function sendSignedInTableServiceMessage(
         conversationId,
         messageId,
         ...validatedUpload,
+        ...(weddingPartyId ? { weddingPartyId } : {}),
       });
     }
     if (pinterestUrl) {

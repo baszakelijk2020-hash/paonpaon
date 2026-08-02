@@ -640,12 +640,28 @@ uploads use private signed storage; links are HTTPS/host constrained; previews,
 remove, retained-failure drafts and basic magic-byte/MIME/size validation are
 browser-proven. The customer message view and retailer inbox read the same
 attachments, and the database re-derives the caller/tenant before accepting
-metadata. This is a connected first slice, not FT-09 completion. Still owed:
-an actual async malware/quarantine service (the current state is honestly
-`basic_validated`), attachment progress, optional wedding-party/garment links,
-consent withdrawal/retention proof, attachment-grounded citation/no-answer
-proof and the full conversation -> shared look -> appointment/proposal
-outcome journey.
+metadata. This is a connected first slice, not FT-09 completion.
+Wedding-party linking on `wedding_fabric` attachments is now closed: an
+optional `wedding_party_id` column plus a `record_consultation_attachment`
+signature change (old 8-arg overload explicitly dropped, not just
+shadowed) lets a signed-in customer tag a fabric upload to their own
+wedding party (`is_wedding_party_organizer_or_member` enforced
+server-side); the retailer inbox resolves and shows the party's name next
+to the attachment rather than recording the link silently. Built twice,
+not once: the exact raw founder landing page (`route.ts` +
+`paon-template.html`, a hand-templated string substitution, not React)
+and the React child-route port (`table-service-widget.tsx`, used on
+`/products`, `/cart` etc. via `layout.tsx`) are two independent widget
+implementations that happen to call the same Server Action — a real
+architectural fact worth knowing before assuming an edit to one reaches
+both (this cost real debugging time: the root `/r/[slug]` path has no
+`page.tsx`, only a `route.ts` Route Handler, which Next.js never wraps in
+`layout.tsx`, so the React widget's props/state never apply there).
+Garment links remain unattempted. Still owed: an actual async
+malware/quarantine service (the current state is honestly
+`basic_validated`), attachment progress, consent withdrawal/retention
+proof, attachment-grounded citation/no-answer proof and the full
+conversation -> shared look -> appointment/proposal outcome journey.
 
 ## FT-10 — Inspiration Box and gift booklet
 

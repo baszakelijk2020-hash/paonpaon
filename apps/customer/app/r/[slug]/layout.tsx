@@ -1,4 +1,8 @@
-import { RetailerRepository } from "@paon/database";
+import {
+  CustomerRepository,
+  RetailerRepository,
+  WeddingPartyRepository,
+} from "@paon/database";
 import { RetailerTheme } from "@paon/ui/components/RetailerTheme";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
@@ -32,6 +36,23 @@ export default async function StorefrontLayout({
     notFound();
   }
 
+  let weddingParties: { id: string; label: string }[] = [];
+  if (session?.accountType === "customer") {
+    const customers = await new CustomerRepository(supabase).findByUserId(
+      session.userId,
+    );
+    const customer = customers.find((row) => row.retailerId === retailer.id);
+    if (customer) {
+      const parties = await new WeddingPartyRepository(supabase).findByCustomer(
+        customer.id,
+      );
+      weddingParties = parties.map((party) => ({
+        id: party.id,
+        label: party.venueName ?? "My wedding party",
+      }));
+    }
+  }
+
   return (
     <RetailerTheme theme={retailer.brandTheme}>
       {children}
@@ -40,6 +61,7 @@ export default async function StorefrontLayout({
         retailerName={retailer.displayName}
         slug={slug}
         isSignedIn={session?.accountType === "customer"}
+        weddingParties={weddingParties}
         {...(session?.accountType === "customer"
           ? { signedInMessagesHref: "/messages" }
           : {})}

@@ -10,6 +10,7 @@ import {
   type MessageAttachmentPurpose,
   type MessageId,
   type RetailerId,
+  type WeddingPartyId,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
@@ -68,6 +69,9 @@ const messageAttachment = (row: MessageAttachmentRow): MessageAttachment => ({
   sizeBytes: row.size_bytes,
   rightsBasis: row.rights_basis as MessageAttachment["rightsBasis"],
   scanStatus: row.scan_status as MessageAttachment["scanStatus"],
+  ...(row.wedding_party_id
+    ? { weddingPartyId: asId<"WeddingPartyId">(row.wedding_party_id) }
+    : {}),
   ...(row.uploaded_by_staff_id
     ? { uploadedByStaffId: asId<"StaffId">(row.uploaded_by_staff_id) }
     : {}),
@@ -269,6 +273,7 @@ export class MessagingRepository {
     mimeType: MessageAttachmentMimeType;
     sizeBytes: number;
     content: ArrayBuffer;
+    weddingPartyId?: WeddingPartyId;
   }): Promise<MessageAttachment> {
     const storagePath = `${params.retailerId}/${params.conversationId}/${crypto.randomUUID()}-${params.fileName}`;
     const { error: uploadError } = await this.client.storage
@@ -289,6 +294,7 @@ export class MessagingRepository {
         p_mime_type: params.mimeType,
         p_size_bytes: params.sizeBytes,
         p_storage_path: storagePath,
+        p_wedding_party_id: (params.weddingPartyId ?? null) as never,
       },
     );
     if (error) {
@@ -312,6 +318,7 @@ export class MessagingRepository {
     messageId: MessageId;
     purpose: "pinterest_link";
     sourceUrl: string;
+    weddingPartyId?: WeddingPartyId;
   }): Promise<MessageAttachment> {
     const { data, error } = await this.client.rpc(
       "record_consultation_attachment",
@@ -321,6 +328,7 @@ export class MessagingRepository {
         p_purpose: params.purpose,
         p_file_name: "Pinterest reference",
         p_source_url: params.sourceUrl,
+        p_wedding_party_id: (params.weddingPartyId ?? null) as never,
       },
     );
     if (error) throw error;

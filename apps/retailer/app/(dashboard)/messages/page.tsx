@@ -3,6 +3,7 @@ import {
   CustomerRepository,
   MessagingRepository,
   OrderRepository,
+  WeddingPartyRepository,
 } from "@paon/database";
 import { CONVERSATION_INTENT_LABELS, ORDER_STATUS_LABELS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
@@ -84,6 +85,7 @@ export default async function MessagesPage({
     ReturnType<MessagingRepository["findAttachmentsByConversation"]>
   >[number];
   let attachmentsByMessage = new Map<string, AttachmentEntry[]>();
+  let weddingPartyLabelById = new Map<string, string>();
   let activeCustomer: Awaited<ReturnType<CustomerRepository["findById"]>> =
     null;
   let orders: Awaited<ReturnType<OrderRepository["findByCustomer"]>> = [];
@@ -116,6 +118,25 @@ export default async function MessagesPage({
       grouped.set(key, existing);
     }
     attachmentsByMessage = grouped;
+
+    const weddingPartyIds = [
+      ...new Set(
+        attachments
+          .map(({ attachment }) => attachment.weddingPartyId)
+          .filter((id): id is NonNullable<typeof id> => Boolean(id)),
+      ),
+    ];
+    if (weddingPartyIds.length > 0) {
+      const weddingPartyRepo = new WeddingPartyRepository(client);
+      const parties = await Promise.all(
+        weddingPartyIds.map((id) => weddingPartyRepo.findById(id)),
+      );
+      weddingPartyLabelById = new Map(
+        parties
+          .filter((party): party is NonNullable<typeof party> => Boolean(party))
+          .map((party) => [party.id, party.venueName ?? "Wedding party"]),
+      );
+    }
   }
 
   return (
@@ -187,36 +208,44 @@ export default async function MessagesPage({
                     {msgAttachments.length > 0 ? (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {msgAttachments.map(({ attachment, accessUrl }) => (
-                          <a
-                            key={attachment.id}
-                            href={accessUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="block overflow-hidden rounded-[var(--radius-md)]"
-                          >
-                            {attachment.purpose === "pinterest_link" ? (
-                              <span className="text-xs underline">
-                                Pinterest reference
-                              </span>
-                            ) : attachment.mimeType === "application/pdf" ? (
-                              <span className="text-xs underline">
-                                {attachment.fileName}
-                              </span>
-                            ) : accessUrl ? (
-                              <Image
-                                src={accessUrl}
-                                alt={attachment.fileName}
-                                width={160}
-                                height={160}
-                                unoptimized
-                                className="max-h-40 w-auto object-cover"
-                              />
-                            ) : (
-                              <span className="text-xs">
-                                Attachment unavailable
-                              </span>
-                            )}
-                          </a>
+                          <div key={attachment.id}>
+                            <a
+                              href={accessUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block overflow-hidden rounded-[var(--radius-md)]"
+                            >
+                              {attachment.purpose === "pinterest_link" ? (
+                                <span className="text-xs underline">
+                                  Pinterest reference
+                                </span>
+                              ) : attachment.mimeType === "application/pdf" ? (
+                                <span className="text-xs underline">
+                                  {attachment.fileName}
+                                </span>
+                              ) : accessUrl ? (
+                                <Image
+                                  src={accessUrl}
+                                  alt={attachment.fileName}
+                                  width={160}
+                                  height={160}
+                                  unoptimized
+                                  className="max-h-40 w-auto object-cover"
+                                />
+                              ) : (
+                                <span className="text-xs">
+                                  Attachment unavailable
+                                </span>
+                              )}
+                            </a>
+                            {attachment.weddingPartyId ? (
+                              <p className="mt-1 text-[10px] uppercase tracking-wide opacity-60">
+                                {weddingPartyLabelById.get(
+                                  attachment.weddingPartyId,
+                                ) ?? "Wedding party"}
+                              </p>
+                            ) : null}
+                          </div>
                         ))}
                       </div>
                     ) : null}

@@ -122,6 +122,7 @@ export function TableServiceWidget({
   slug,
   signedInMessagesHref,
   isSignedIn = false,
+  weddingParties = [],
 }: {
   retailerId: string;
   retailerName: string;
@@ -129,6 +130,10 @@ export function TableServiceWidget({
   /** Advisor-first handoff — shown as CTA; signed-in users still open the widget. */
   signedInMessagesHref?: string;
   isSignedIn?: boolean;
+  /** PAON-added, no source equivalent (same precedent as FT-02's "Select"
+   * button): lets a signed-in customer optionally tag a wedding_fabric
+   * attachment to one of their own wedding parties. */
+  weddingParties?: { id: string; label: string }[];
 }) {
   const [open, setOpen] = useState(false);
   const [intent, setIntent] = useState<ConversationIntent>("freeform");
@@ -149,6 +154,7 @@ export function TableServiceWidget({
   > | null>(null);
   const [attachmentRightsConfirmed, setAttachmentRightsConfirmed] =
     useState(false);
+  const [weddingPartyId, setWeddingPartyId] = useState("");
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [linkComposerOpen, setLinkComposerOpen] = useState(false);
   const [linkValue, setLinkValue] = useState("");
@@ -190,6 +196,7 @@ export function TableServiceWidget({
     setAttachmentDraft(null);
     setAttachmentRightsConfirmed(false);
     setAttachmentError(null);
+    setWeddingPartyId("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -349,6 +356,12 @@ export function TableServiceWidget({
           if (attachmentDraft?.kind === "upload") {
             formData.set("attachmentPurpose", attachmentDraft.purpose);
             formData.set("attachment", attachmentDraft.file);
+            if (
+              attachmentDraft.purpose === "wedding_fabric" &&
+              weddingPartyId
+            ) {
+              formData.set("weddingPartyId", weddingPartyId);
+            }
           } else if (attachmentDraft?.kind === "link") {
             formData.set("attachmentPurpose", "pinterest_link");
             formData.set("sourceUrl", attachmentDraft.url);
@@ -609,6 +622,28 @@ export function TableServiceWidget({
                     I may share this material for this private consultation.
                   </span>
                 </label>
+                {attachmentDraft.kind === "upload" &&
+                attachmentDraft.purpose === "wedding_fabric" &&
+                weddingParties.length > 0 ? (
+                  <label className="mt-2 flex items-center gap-2">
+                    <span>Link to wedding party (optional)</span>
+                    <select
+                      aria-label="Link to wedding party"
+                      value={weddingPartyId}
+                      onChange={(event) =>
+                        setWeddingPartyId(event.target.value)
+                      }
+                      className="min-w-0 flex-1 rounded-[7px] border border-black/20 px-2 py-1 text-xs"
+                    >
+                      <option value="">Not linked</option>
+                      {weddingParties.map((party) => (
+                        <option key={party.id} value={party.id}>
+                          {party.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
               </div>
             ) : null}
 

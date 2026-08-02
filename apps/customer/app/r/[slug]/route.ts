@@ -4,9 +4,11 @@ import path from "node:path";
 import { resolveAppSession } from "@paon/auth";
 import {
   CollectionRepository,
+  CustomerRepository,
   ProductRepository,
   ProductVariantRepository,
   RetailerRepository,
+  WeddingPartyRepository,
 } from "@paon/database";
 import type { Product, ProductVariant } from "@paon/domain";
 import { formatMoney } from "@paon/utils";
@@ -318,6 +320,26 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
+  // PAON-added, no source equivalent (same precedent as FT-02's "Select"
+  // button): lets a signed-in customer optionally tag a wedding_fabric
+  // attachment to one of their own wedding parties.
+  let weddingParties: { id: string; label: string }[] = [];
+  if (tableServiceSignedIn && authData.user) {
+    const customers = await new CustomerRepository(supabase).findByUserId(
+      resolveAppSession(authData.user).userId,
+    );
+    const customer = customers.find((row) => row.retailerId === retailer.id);
+    if (customer) {
+      const parties = await new WeddingPartyRepository(supabase).findByCustomer(
+        customer.id,
+      );
+      weddingParties = parties.map((party) => ({
+        id: party.id,
+        label: party.venueName ?? "My wedding party",
+      }));
+    }
+  }
+
   const [productRepo, variantRepo, collectionRepo] = [
     new ProductRepository(supabase),
     new ProductVariantRepository(supabase),
@@ -548,6 +570,7 @@ ${
       "__PAON_TABLESERVICE_SIGNED_IN__",
       tableServiceSignedIn ? "true" : "false",
     )
+    .replaceAll("__PAON_WEDDING_PARTIES_JSON__", JSON.stringify(weddingParties))
     .replaceAll("__PAON_RETAILER_NAME__", safeName)
     .replaceAll("__PAON_OG_TITLE__", ogTitle)
     .replaceAll("__PAON_OG_DESCRIPTION__", ogDescription)

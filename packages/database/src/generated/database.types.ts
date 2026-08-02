@@ -7196,6 +7196,7 @@ export type Database = {
           storage_path: string | null;
           uploaded_by_staff_id: string | null;
           uploaded_by_user_id: string | null;
+          wedding_party_id: string | null;
         };
         Insert: {
           created_at?: string;
@@ -7214,6 +7215,7 @@ export type Database = {
           storage_path?: string | null;
           uploaded_by_staff_id?: string | null;
           uploaded_by_user_id?: string | null;
+          wedding_party_id?: string | null;
         };
         Update: {
           created_at?: string;
@@ -7232,6 +7234,7 @@ export type Database = {
           storage_path?: string | null;
           uploaded_by_staff_id?: string | null;
           uploaded_by_user_id?: string | null;
+          wedding_party_id?: string | null;
         };
         Relationships: [
           {
@@ -7253,6 +7256,13 @@ export type Database = {
             columns: ["uploaded_by_staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "message_attachments_wedding_party_id_fkey";
+            columns: ["wedding_party_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
             referencedColumns: ["id"];
           },
         ];
@@ -17308,6 +17318,7 @@ export type Database = {
           p_source_kind: string;
           p_source_url?: string;
           p_storage_path?: string;
+          p_wedding_party_id?: string;
         };
         Returns: string;
       };

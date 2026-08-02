@@ -252,6 +252,20 @@ requires it.
   money-movement path, same boundary read as `wedding_guest_vouchers`.
   Wired retailer-side with a "New task" form on the alteration detail
   page; proof: `alteration-add-task.spec.ts`.
+  Closed FT-09's optional wedding-party attachment link (party side only,
+  garment links untouched): `message_attachments.wedding_party_id`
+  (nullable) plus a `record_consultation_attachment` signature change
+  (old 8-arg overload explicitly dropped). Discovered the root `/r/[slug]`
+  page has no `page.tsx` — only a `route.ts` Route Handler serving the
+  founder's `paon-template.html` via string substitution, which Next.js
+  never wraps in `layout.tsx` — so the React `TableServiceWidget` never
+  mounts there; the founder page runs its own hand-templated vanilla-JS
+  widget copy instead, calling the same Server Action through an API
+  bridge. Added the same optional "Link to wedding party" selector to
+  both surfaces. Retailer inbox now resolves and shows the linked party's
+  name. Proof: `tableservice-wedding-fabric-link.spec.ts`, run against
+  the actual root path used by the pre-existing
+  `tableservice-attachments.spec.ts`.
   FT-06 MorningRoutine moved from a generic ranked list to a first
   connected slice. `pag1.html` has no composed-look widget (checked
   directly — only narrative plus a decorative weather-camera overlay), so

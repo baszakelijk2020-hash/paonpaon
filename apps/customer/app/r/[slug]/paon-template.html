@@ -16392,6 +16392,8 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     #gilda-chat-widget .gcw-link-input { min-width: 0; flex: 1; height: 32px; border: 1px solid #bbb; border-radius: 6px; padding: 0 8px; font: inherit; }
     #gilda-chat-widget .gcw-inline-action { border: 0; background: none; padding: 3px; color: #222; text-decoration: underline; cursor: pointer; font: inherit; }
     #gilda-chat-widget .gcw-rights { display: flex; align-items: flex-start; gap: 6px; margin-top: 8px; }
+    #gilda-chat-widget .gcw-wedding-party-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; font: 12px/1.3 'lvreg', sans-serif; }
+    #gilda-chat-widget .gcw-wedding-party-row select { flex: 1; min-width: 0; border-radius: 7px; border: 1px solid rgba(0,0,0,.2); padding: 2px 4px; font-size: 12px; }
     #gilda-chat-widget .gcw-error { min-height: 0; margin: 0 20px 8px; color: #a3261d; font: 12px/1.35 'lvreg', sans-serif; }
 </style>
 
@@ -16448,6 +16450,10 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
                     <input id="gcw-rights" type="checkbox">
                     <span>I may share this material for this private consultation.</span>
                 </label>
+                <label id="gcw-wedding-party-row" class="gcw-wedding-party-row" style="display:none;">
+                    <span>Link to wedding party (optional)</span>
+                    <select id="gcw-wedding-party-select" aria-label="Link to wedding party"></select>
+                </label>
             </div>
             <p id="gcw-error" class="gcw-error" role="alert"></p>
         </div>
@@ -16461,6 +16467,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     var RETAILER_ID = '__PAON_RETAILER_ID__';
     var SLUG = '__PAON_SLUG__';
     var SIGNED_IN = __PAON_TABLESERVICE_SIGNED_IN__;
+    var WEDDING_PARTIES = __PAON_WEDDING_PARTIES_JSON__;
 
     var launcher   = document.getElementById('gilda-chat-widget-launcher');
     var toggleBtn  = document.getElementById('gilda-chat-widget-toggle');
@@ -16481,6 +16488,8 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     var draftName         = chatWidget.querySelector('#gcw-draft-name');
     var draftRemove       = chatWidget.querySelector('#gcw-draft-remove');
     var rightsCheckbox    = chatWidget.querySelector('#gcw-rights');
+    var weddingPartyRow   = chatWidget.querySelector('#gcw-wedding-party-row');
+    var weddingPartySelect = chatWidget.querySelector('#gcw-wedding-party-select');
     var linkComposer      = chatWidget.querySelector('#gcw-link-composer');
     var linkInput         = chatWidget.querySelector('#gcw-link-input');
     var linkUse           = chatWidget.querySelector('#gcw-link-use');
@@ -16501,6 +16510,19 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         done: ""
     };
     chatInput.placeholder = placeholders[step];
+
+    if (WEDDING_PARTIES.length > 0) {
+        var notLinkedOption = document.createElement('option');
+        notLinkedOption.value = '';
+        notLinkedOption.textContent = 'Not linked';
+        weddingPartySelect.appendChild(notLinkedOption);
+        WEDDING_PARTIES.forEach(function(party) {
+            var option = document.createElement('option');
+            option.value = party.id;
+            option.textContent = party.label;
+            weddingPartySelect.appendChild(option);
+        });
+    }
 
     function appendMessage(text) {
         var wrapper = document.createElement('div');
@@ -16532,6 +16554,8 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         draftPreview.style.display = 'none';
         draftName.textContent = '';
         attachmentDraftEl.classList.remove('active');
+        weddingPartyRow.style.display = 'none';
+        weddingPartySelect.value = '';
         setError('');
     }
 
@@ -16561,6 +16585,9 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
                 formData.set('attachment', attachmentDraft.file);
             } else {
                 formData.set('sourceUrl', attachmentDraft.url);
+            }
+            if (attachmentDraft.purpose === 'wedding_fabric' && weddingPartySelect.value) {
+                formData.set('weddingPartyId', weddingPartySelect.value);
             }
         }
         setBusy(true);
@@ -16737,6 +16764,8 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
             attachmentPreviewUrl = URL.createObjectURL(file);
         }
         showAttachmentDraft(file.name, attachmentPreviewUrl);
+        weddingPartyRow.style.display =
+            (purpose === 'wedding_fabric' && WEDDING_PARTIES.length > 0) ? 'flex' : 'none';
     });
 
     linkUse.addEventListener('click', function() {

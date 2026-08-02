@@ -595,6 +595,38 @@ be resumed without the module mapping required by R0.3.**
     second task post-intake, assert it renders unpriced (`Now · Proposed`,
     `Original quote 0 USD`) alongside the intake-created task. Full
     retailer e2e suite reran green.
+    Closed FT-09's "optional wedding-party/garment links" gap (party side
+    only; garment links untouched). `message_attachments` gains a nullable
+    `wedding_party_id`; `record_consultation_attachment` was recreated
+    with the new optional param (its old 8-arg overload explicitly
+    dropped, not just shadowed — `create or replace` does not replace a
+    function whose argument list changed). Real architecture discovery
+    made building this: the root `/r/[slug]` landing page has no
+    `page.tsx`, only a `route.ts` Route Handler serving the founder's
+    `paon-template.html` byte-for-byte with string substitution — Next.js
+    never wraps a Route Handler in `layout.tsx`, so the React
+    `TableServiceWidget` (used correctly on `/products`, `/cart`, etc.)
+    never mounts there. Cost real time: added a debug marker to
+    `layout.tsx`, confirmed via curl it never rendered, before finding
+    `route.ts` and realizing the founder root path runs its own
+    hand-templated vanilla-JS copy of the same widget. Added the
+    optional "Link to wedding party" selector to _both_ — the React
+    component for child routes, and `paon-template.html`'s inline
+    `<script>` plus a new `__PAON_WEDDING_PARTIES_JSON__` substitution
+    in `route.ts` for the root path — since both already independently
+    call the same `sendSignedInTableServiceMessage` Server Action via the
+    `/api/table-service-message` bridge, no backend duplication was
+    needed. Retailer inbox resolves and displays the linked party's name
+    next to the attachment. Proof: new
+    `tableservice-wedding-fabric-link.spec.ts` (root path, the widget
+    actually used by the pre-existing `tableservice-attachments.spec.ts`
+    too) — both green. Full retailer and customer e2e suites reran green
+    against a genuinely fresh `supabase db reset`; two retailer failures
+    seen mid-session (`pos.spec.ts`, `loss-prevention.spec.ts`) were
+    proven to be this session's own debugging-churn database pollution,
+    not a regression — both pass cleanly on a fresh reset with the FT-09
+    migration applied, and also pass on the pre-FT-09 commit, confirming
+    no causal link either way.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
