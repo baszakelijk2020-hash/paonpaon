@@ -737,16 +737,65 @@ export default async function AlterationDetailPage({
             />
             {fitObservations.length > 0 ? (
               <div className="divide-y divide-[var(--color-stone-100)] border-t border-[var(--color-stone-100)] pt-3">
-                {fitObservations.map((observation) => (
-                  <div key={observation.id} className="py-2 text-sm">
-                    <span className="font-medium">{observation.area}</span> ·{" "}
-                    {observation.observation}
-                    <span className="block text-xs text-[var(--color-stone-500)]">
-                      {staffName(observation.recordedByStaffId)} ·{" "}
-                      {formatDate(observation.createdAt, "en-US")}
-                    </span>
-                  </div>
-                ))}
+                {fitObservations.map((observation) => {
+                  const linkedTask = tasks.find(
+                    (task) =>
+                      "originFittingObservationId" in task &&
+                      task.originFittingObservationId === observation.id,
+                  );
+                  return (
+                    <div key={observation.id} className="py-2 text-sm">
+                      <span className="font-medium">{observation.area}</span> ·{" "}
+                      {observation.observation}
+                      <span className="block text-xs text-[var(--color-stone-500)]">
+                        {staffName(observation.recordedByStaffId)} ·{" "}
+                        {formatDate(observation.createdAt, "en-US")}
+                      </span>
+                      {linkedTask ? (
+                        <span className="mt-1 block text-xs text-[var(--color-stone-500)]">
+                          Task: {linkedTask.title}
+                        </span>
+                      ) : canAddTask &&
+                        !["completed", "canceled"].includes(
+                          alteration.status,
+                        ) ? (
+                        <WorkflowActionForm
+                          action={addAlterationTask.bind(null, alteration.id)}
+                          className="mt-2 flex flex-wrap items-center gap-2"
+                          submitLabel="Add as task"
+                          pendingLabel="Adding…"
+                        >
+                          <input
+                            type="hidden"
+                            name="fittingObservationId"
+                            value={observation.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="classification"
+                            value="work_now"
+                          />
+                          <input
+                            type="hidden"
+                            name="instructions"
+                            value={observation.observation}
+                          />
+                          <input
+                            name="title"
+                            aria-label={`Task title for ${observation.area} observation`}
+                            defaultValue={`${observation.area}: ${observation.observation}`.slice(
+                              0,
+                              160,
+                            )}
+                            maxLength={160}
+                            required
+                            className="h-9 min-w-48 flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 text-sm"
+                          />
+                        </WorkflowActionForm>
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
             ) : null}
           </Card>

@@ -8,6 +8,7 @@ import {
   type AlterationTaskNote,
   type AlterationTaskStatus,
   type CurrencyCode,
+  type FittingObservationId,
   type WorkClassification,
   type WorkerAlterationTask,
 } from "@paon/domain";
@@ -46,6 +47,13 @@ function toDomain(row: TaskRow): AlterationTask {
       : {}),
     ...(row.assigned_worker_id
       ? { assignedWorkerId: asId<"StaffId">(row.assigned_worker_id) }
+      : {}),
+    ...(row.origin_fitting_observation_id
+      ? {
+          originFittingObservationId: asId<"FittingObservationId">(
+            row.origin_fitting_observation_id,
+          ),
+        }
       : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -123,6 +131,7 @@ export class AlterationTaskRepository {
     instructions?: string;
     operationId?: AlterationOperationId;
     note?: string;
+    fittingObservationId?: FittingObservationId;
   }): Promise<AlterationTaskId> {
     const { data, error } = await this.client.rpc("add_alteration_task", {
       p_alteration_id: params.alterationId,
@@ -131,6 +140,7 @@ export class AlterationTaskRepository {
       p_classification: params.classification,
       p_operation_id: (params.operationId ?? null) as never,
       p_note: (params.note ?? null) as never,
+      p_fitting_observation_id: (params.fittingObservationId ?? null) as never,
     });
     if (error) throw error;
     return asId<"AlterationTaskId">(data as string);

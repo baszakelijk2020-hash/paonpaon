@@ -304,6 +304,7 @@ export async function addAlterationTask(
     instructions: formData.get("instructions") || undefined,
     classification: formData.get("classification") || "work_now",
     note: formData.get("note") || undefined,
+    fittingObservationId: formData.get("fittingObservationId") || undefined,
   });
   if (!parsed.success) {
     return { formError: parsed.error.issues[0]?.message ?? "Invalid task." };
@@ -318,6 +319,13 @@ export async function addAlterationTask(
           ? { instructions: parsed.data.instructions }
           : {}),
         ...(parsed.data.note ? { note: parsed.data.note } : {}),
+        ...(parsed.data.fittingObservationId
+          ? {
+              fittingObservationId: asId<"FittingObservationId">(
+                parsed.data.fittingObservationId,
+              ),
+            }
+          : {}),
       },
     );
   } catch (error) {

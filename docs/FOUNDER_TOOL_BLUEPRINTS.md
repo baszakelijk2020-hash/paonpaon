@@ -251,7 +251,22 @@ than erase. Network loss preserves an encrypted local draft and idempotency
 key; duplicate submit cannot duplicate observations/work. Prove exact pointer,
 touch, keyboard and voice-fallback behaviour, candidate-not-approval semantics,
 staff/customer isolation and an approved alteration outcome returning to House
-Memory. **Current:** faithful widget foundation; connected journey incomplete.
+Memory. **Current:** faithful widget foundation; connected journey incomplete. A
+first connected slice (2026-08-03) closes the specific gap the widget itself
+surfaced: a recorded observation (voice-slider chip/value or silhouette
+panel select) had no path into the reviewable work order — an advisor had
+to retype the same finding into the unrelated task-entry form, losing the
+observation's own provenance. `alteration_tasks.origin_fitting_observation_id`
+(reusing FT-04's `add_alteration_task`, which re-derives and checks the
+observation belongs to the same work order's garment) now lets a staff
+member turn a `fitting_observations` row directly into a task with one
+click, pre-filled from the observation's own area/value; the task still
+inserts at zero quote through the existing dual-control pricing flow, so
+this adds no new money path. Still not built: a distinct reviewed
+FitProfile candidate/version (a task is not a candidate), advisor
+comparison against the previous approved fit, supplier write-back, and the
+full trust/recovery state machine (permission-denied, no-speech,
+low-confidence, offline draft, idempotent duplicate-submit refusal).
 
 ## FT-02 — Silhouette analysis
 

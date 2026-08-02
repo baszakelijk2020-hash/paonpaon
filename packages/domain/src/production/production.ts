@@ -233,6 +233,7 @@ export interface AlterationTask extends Timestamps {
   readonly originalQuote: Money;
   readonly agreedPrice?: Money;
   readonly assignedWorkerId?: StaffId;
+  readonly originFittingObservationId?: FittingObservationId;
 }
 
 /** Assigned task projection with customer and pricing data removed. */

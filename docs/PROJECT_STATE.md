@@ -401,6 +401,23 @@ spec.ts` proved exactly one of five "Needs your attention" card types
   keyboard-decision loop has pre-existing card-detachment flakiness
   unrelated to guard-loop size — passes on retry, consistent with other
   logged flakes.
+- The non-browser/customer-entry-point module-boundary audit is now fully
+  closed (customer commerce writes, relationship/wardrobe writes,
+  background jobs, anonymous wedding-party join). FT-13 Moonstruck is
+  fully wired across every table its schema already had. FT-02, FT-04,
+  FT-06, FT-07, FT-09 and FT-10 each closed a specific identified gap. A
+  real production bug was found and fixed while proving the cron/webhook
+  orchestrators: every app's session-auth middleware 307-redirected
+  server-to-server callers (cron ticks, Stripe/Faden webhooks) to
+  `/login` because its matcher never excluded `/api/` — fixed by
+  short-circuiting those prefixes before any session check.
+- FT-01 Voice + drag fit slider gained a first connected slice: a fitting
+  observation (chip tap or silhouette select) can now become a reviewable
+  alteration task with one click, linked back via
+  `alteration_tasks.origin_fitting_observation_id` and reusing FT-04's
+  `add_alteration_task` RPC rather than a parallel write path. Still open:
+  a distinct FitProfile candidate/version, advisor fit-comparison,
+  supplier write-back and the full voice trust/recovery state machine.
 
 ## Repository
 

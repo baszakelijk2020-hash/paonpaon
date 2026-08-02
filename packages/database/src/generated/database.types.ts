@@ -997,6 +997,7 @@ export type Database = {
           id: string;
           instructions: string | null;
           operation_id: string | null;
+          origin_fitting_observation_id: string | null;
           original_quote_amount_minor_units: number;
           original_quote_currency: string;
           retailer_id: string;
@@ -1015,6 +1016,7 @@ export type Database = {
           id?: string;
           instructions?: string | null;
           operation_id?: string | null;
+          origin_fitting_observation_id?: string | null;
           original_quote_amount_minor_units?: number;
           original_quote_currency: string;
           retailer_id: string;
@@ -1033,6 +1035,7 @@ export type Database = {
           id?: string;
           instructions?: string | null;
           operation_id?: string | null;
+          origin_fitting_observation_id?: string | null;
           original_quote_amount_minor_units?: number;
           original_quote_currency?: string;
           retailer_id?: string;
@@ -1074,6 +1077,13 @@ export type Database = {
             columns: ["operation_id"];
             isOneToOne: false;
             referencedRelation: "alteration_operations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_tasks_origin_fitting_observation_id_fkey";
+            columns: ["origin_fitting_observation_id"];
+            isOneToOne: false;
+            referencedRelation: "fitting_observations";
             referencedColumns: ["id"];
           },
           {
@@ -16746,6 +16756,7 @@ export type Database = {
         Args: {
           p_alteration_id: string;
           p_classification?: Database["public"]["Enums"]["work_classification"];
+          p_fitting_observation_id?: string;
           p_instructions?: string;
           p_note?: string;
           p_operation_id?: string;

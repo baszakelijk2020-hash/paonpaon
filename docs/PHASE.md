@@ -920,6 +920,37 @@ orchestrator.ts` was the only other one still uncovered (the
     need it call `test.skip` when unset rather than assuming it's
     configured, matching this codebase's established
     environment-truth discipline.
+    FT-01 Voice + drag fit slider moved from "faithful widget foundation,
+    connected journey incomplete" to a first connected slice, rather than
+    building blind against the blueprint's full state machine: the exact
+    gap is that a recorded fitting_observations row (a chip tap or
+    silhouette panel select) had no path into the reviewable work order —
+    an advisor had to retype the same finding into the unrelated "New task"
+    form, losing the observation's own provenance entirely. Migration
+    `20260803000001` adds `alteration_tasks.origin_fitting_observation_id`
+    and extends FT-04's `add_alteration_task` RPC with an optional
+    `p_fitting_observation_id` that re-derives and checks the observation's
+    `physical_garment_id` matches the work order's own garment before
+    linking — the same cross-object mistake R0.2's tenant checks exist to
+    catch, scoped to one garment. This adds no new money-movement path: a
+    linked task still inserts at zero quote through the existing, unmodified
+    `proposePriceChange`/`decidePriceChange` dual-control flow. A one-click
+    "Add as task" form next to each unlinked observation is pre-filled from
+    the observation's own area/value; once linked, the row shows "Task: …"
+    in place of the form rather than a transient toast, since the revalidated
+    page no longer renders the form for an already-linked observation.
+    Proof: a new `fit-tools.spec.ts` journey (chip tap -> pre-filled
+    one-click "Add as task" -> task appears unpriced in the Tasks list with
+    the observation's own value as its instructions -> linkage survives
+    reload); the existing `alteration-add-task.spec.ts` unlinked-task path
+    was rerun to confirm the RPC signature change is backward compatible.
+    Full retailer e2e suite reran green at 53/53, single-worker, with no
+    failures.
+    Not built: a distinct reviewed FitProfile candidate/version separate
+    from a task, advisor comparison against the previous approved fit,
+    supplier write-back, and the full trust/recovery state machine
+    (permission-denied, no-speech, low-confidence, offline draft,
+    idempotent duplicate-submit refusal) the blueprint specifies.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

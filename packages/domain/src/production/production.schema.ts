@@ -131,6 +131,7 @@ export const addAlterationTaskInputSchema = z.object({
   instructions: z.string().trim().max(2000).optional(),
   classification: workClassificationSchema.default("work_now"),
   note: z.string().trim().max(2000).optional(),
+  fittingObservationId: z.string().uuid().optional(),
 });
 
 export const recordCustodyEventInputSchema = z

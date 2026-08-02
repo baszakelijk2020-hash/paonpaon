@@ -393,6 +393,36 @@ spec.ts` proved exactly one of five "Needs your attention" card types
   keyboard-decision loop has pre-existing card-detachment flakiness
   unrelated to guard-loop size — passes on retry, consistent with other
   logged flakes.
+  Every authenticated retailer Server Action's module-boundary audit is
+  now fully closed, including the four unenforced customer commerce entry
+  points it found (raw-storefront cart routes, the React product page's
+  addToCart, `cart/actions.ts`), every other customer write
+  (`relationship_intelligence`, `commerce_growth`, `wardrobe_styling`),
+  background jobs (MorningRoutine/campaign delivery, newsletter dispatch)
+  and the anonymous wedding-party join path. FT-13 Moonstruck is now fully
+  wired across every table its schema already had (aftercare, group
+  fittings, inspiration items, design choices, date candidates/votes,
+  guest vouchers). FT-02 Silhouette, FT-04 post-intake tasking, FT-06
+  MorningRoutine, FT-07 configurator advisor visibility, FT-09 TableService
+  party linkage and FT-10 gift-invitation email dispatch each closed a
+  real, specifically-identified gap rather than a generic pass. A
+  production-only bug was found and fixed while proving the cron/webhook
+  orchestrators with a real HTTP-level test: every app's session-auth
+  middleware 307-redirected server-to-server callers (`/api/cron/*`,
+  Stripe/Faden webhooks) to `/login` because its matcher never excluded
+  `/api/`, meaning these routes had likely never fired outside a manual
+  local call in any real deployment; fixed by short-circuiting the
+  middleware before Supabase/session checks for those prefixes.
+  FT-01 Voice + drag fit slider now has a first connected slice too: a
+  recorded `fitting_observations` row (chip tap or silhouette select) can
+  be turned into a reviewable alteration task with one click, pre-filled
+  from the observation's own area/value and linked back via
+  `alteration_tasks.origin_fitting_observation_id` — closing the exact
+  "observation has nowhere reviewable to go" gap the widget itself
+  surfaced, reusing FT-04's `add_alteration_task` RPC rather than inventing
+  a parallel write path. Still open: a distinct FitProfile
+  candidate/version, advisor fit-comparison, supplier write-back and the
+  full voice trust/recovery state machine.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The
