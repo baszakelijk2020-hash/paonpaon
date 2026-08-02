@@ -556,6 +556,17 @@ outcome journey.
 
 ## FT-10 — Inspiration Box and gift booklet
 
+**Source status (reconfirmed 2026-08-02):** `downloaded_pages/pag1.html` has
+no interactive Inspiration Box/gift-booklet fragment — the only occurrence
+(near `id="u569109"`) is a single static marketing sentence next to a price
+under the Atelier Munro brand block, not a component with markup/CSS/motion
+to port. `DESIGN_PORTS.md`'s "none found" is accurate. Per `AGENTS.md`'s "for
+non-designated source material, curate the underlying job and interaction
+grammar into PAON" — this tool is not fidelity-constrained to an exact
+source; build it with PAON's own primitives against the PAON-job/state
+description below, and do not later claim source-port fidelity that ADR-071
+never actually established for this tool.
+
 **Source and experience.** Port `pag1.html`'s Inspiration Box reveal and gift
 booklet composition exactly: a considered opening, curated choices and a
 recipient-facing continuation rather than a generic voucher form. Preserve
