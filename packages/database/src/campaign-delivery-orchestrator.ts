@@ -2,11 +2,13 @@ import {
   asId,
   buildCampaignDeliveryNotification,
   evaluateCampaignDelivery,
+  type RetailerId,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "./client-type";
 import { CampaignRepository } from "./repositories/campaign-repository";
 import { CustomerConsentRepository } from "./repositories/customer-consent-repository";
+import { PlatformModuleRepository } from "./repositories/platform-module-repository";
 import { StyleProfileRepository } from "./repositories/style-profile-repository";
 
 /**
@@ -26,7 +28,9 @@ export async function orchestrateCampaignDeliveries(
   const campaignRepo = new CampaignRepository(admin);
   const consentRepo = new CustomerConsentRepository(admin);
   const styleRepo = new StyleProfileRepository(admin);
+  const moduleRepo = new PlatformModuleRepository(admin);
   const offers = await campaignRepo.listActivePrivateOffers();
+  const moduleEnabledByRetailer = new Map<RetailerId, boolean>();
 
   let considered = 0;
   let queued = 0;
@@ -34,6 +38,17 @@ export async function orchestrateCampaignDeliveries(
   let failed = 0;
 
   for (const campaign of offers) {
+    const retailerId = asId<"RetailerId">(campaign.retailerId);
+    let moduleEnabled = moduleEnabledByRetailer.get(retailerId);
+    if (moduleEnabled === undefined) {
+      moduleEnabled = await moduleRepo.jobEnabled({
+        retailerId,
+        jobKey: "campaign_activation",
+      });
+      moduleEnabledByRetailer.set(retailerId, moduleEnabled);
+    }
+    if (!moduleEnabled) continue;
+
     const rules = await campaignRepo.listAudienceRules(campaign.id);
     const customers = await campaignRepo.listCustomersForRetailer(
       campaign.retailerId,

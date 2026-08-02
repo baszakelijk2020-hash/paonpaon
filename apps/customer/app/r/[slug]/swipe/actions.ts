@@ -19,6 +19,7 @@ import {
   retentionExpiresAt,
 } from "@paon/domain";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -147,6 +148,7 @@ export async function swipeRight(
     throw new Error("Swipe product is unavailable");
   }
 
+  await assertRetailerModuleActive(supabase, rId, "wardrobe_styling");
   await new WishlistRepository(supabase).saveItem(rId, variantId);
 
   try {

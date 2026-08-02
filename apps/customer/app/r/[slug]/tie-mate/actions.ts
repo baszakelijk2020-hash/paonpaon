@@ -14,6 +14,7 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -87,6 +88,7 @@ export async function saveTieMateFabric(args: {
   const rId = asId<"RetailerId">(args.retailerId);
 
   try {
+    await assertRetailerModuleActive(supabase, rId, "wardrobe_styling");
     await new WishlistRepository(supabase).toggleItem(
       rId,
       asId<"ProductVariantId">(args.productVariantId),

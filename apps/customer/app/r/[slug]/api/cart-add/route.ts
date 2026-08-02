@@ -45,6 +45,8 @@ export async function POST(request: Request) {
       supabase,
       product.retailerId,
       "commerce_growth",
+      "mutate",
+      "This shop isn't accepting orders right now. Please check back soon.",
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";

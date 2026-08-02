@@ -14,6 +14,7 @@ import {
 } from "@paon/domain";
 import { redirect } from "next/navigation";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -77,6 +78,11 @@ export async function requestAppointment(
 
   let appointmentId: string;
   try {
+    await assertRetailerModuleActive(
+      supabase,
+      rId,
+      "relationship_intelligence",
+    );
     appointmentId = await new AppointmentRepository(
       supabase,
     ).requestAppointment({

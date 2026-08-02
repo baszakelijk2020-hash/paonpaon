@@ -41,7 +41,13 @@ export async function POST(
   }
 
   try {
-    await assertRetailerModuleActive(supabase, retailer.id, "commerce_growth");
+    await assertRetailerModuleActive(
+      supabase,
+      retailer.id,
+      "commerce_growth",
+      "mutate",
+      "This shop isn't accepting orders right now. Please check back soon.",
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
     return NextResponse.json({ error: message }, { status: 403 });

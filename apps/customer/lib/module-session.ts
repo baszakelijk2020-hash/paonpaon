@@ -23,6 +23,7 @@ export async function assertRetailerModuleActive(
   retailerId: RetailerId,
   moduleKey: PlatformModuleKey,
   mode: ModuleAccessMode = "mutate",
+  message = "This isn't available right now. Please check back soon.",
 ): Promise<void> {
   const state = await new PlatformModuleRepository(supabase).publicAccessState(
     retailerId,
@@ -33,8 +34,6 @@ export async function assertRetailerModuleActive(
     mode,
   );
   if (!allowed) {
-    throw new Error(
-      "This shop isn't accepting orders right now. Please check back soon.",
-    );
+    throw new Error(message);
   }
 }

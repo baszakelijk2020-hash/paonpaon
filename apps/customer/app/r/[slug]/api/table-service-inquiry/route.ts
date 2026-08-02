@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { validateTableServiceInquiry } from "../../table-service-validation";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
@@ -42,9 +43,22 @@ export async function POST(request: Request) {
   const { retailerId, name, email, message, intent } = validation.value;
 
   const supabase = await getSupabaseServerClient();
+  const rId = asId<"RetailerId">(retailerId);
+  try {
+    await assertRetailerModuleActive(
+      supabase,
+      rId,
+      "relationship_intelligence",
+    );
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Something went wrong.";
+    return NextResponse.json({ error: errorMessage }, { status: 403 });
+  }
+
   try {
     await new MessagingRepository(supabase).submitTableServiceInquiry({
-      retailerId: asId<"RetailerId">(retailerId),
+      retailerId: rId,
       name,
       email,
       intent,

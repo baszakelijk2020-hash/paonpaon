@@ -19,7 +19,13 @@ async function requireCommerceModule(
 ): Promise<void> {
   const retailer = await new RetailerRepository(supabase).findBySlug(slug);
   if (!retailer) throw new Error("Retailer not found");
-  await assertRetailerModuleActive(supabase, retailer.id, "commerce_growth");
+  await assertRetailerModuleActive(
+    supabase,
+    retailer.id,
+    "commerce_growth",
+    "mutate",
+    "This shop isn't accepting orders right now. Please check back soon.",
+  );
 }
 
 export interface CartFormState {

@@ -2,6 +2,7 @@ import { AppointmentRepository } from "@paon/database";
 import { asId } from "@paon/domain";
 import { NextResponse } from "next/server";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
@@ -49,10 +50,23 @@ export async function POST(request: Request) {
   }
 
   const supabase = await getSupabaseServerClient();
+  const rId = asId<"RetailerId">(retailerId);
+  try {
+    await assertRetailerModuleActive(
+      supabase,
+      rId,
+      "relationship_intelligence",
+    );
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Something went wrong.";
+    return NextResponse.json({ error: errorMessage }, { status: 403 });
+  }
+
   const repo = new AppointmentRepository(supabase);
   try {
     const appointmentId = await repo.requestGuestAppointment({
-      retailerId: asId<"RetailerId">(retailerId),
+      retailerId: rId,
       name,
       email,
       startsAt,

@@ -12,6 +12,7 @@ import { z } from "zod";
 
 import { validateTableServiceInquiry } from "./table-service-validation";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -58,6 +59,19 @@ export async function sendSignedInTableServiceMessage(
   const customer = customers.find((row) => row.retailerId === retailerId);
   if (!customer) {
     return { ok: false, error: "No relationship with this retailer." };
+  }
+
+  try {
+    await assertRetailerModuleActive(
+      supabase,
+      retailerId,
+      "relationship_intelligence",
+    );
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Messaging is closed.",
+    };
   }
 
   const body = String(formData.get("body") ?? "").trim();
@@ -175,9 +189,15 @@ export async function submitTableServiceInquiry(
   const { name, email, message, intent } = validation.value;
 
   const supabase = await getSupabaseServerClient();
+  const rId = asId<"RetailerId">(retailerId);
   try {
+    await assertRetailerModuleActive(
+      supabase,
+      rId,
+      "relationship_intelligence",
+    );
     await new MessagingRepository(supabase).submitTableServiceInquiry({
-      retailerId: asId<"RetailerId">(retailerId),
+      retailerId: rId,
       name,
       email,
       intent,

@@ -2,11 +2,13 @@ import {
   buildMorningRoutineDeliveryNotification,
   evaluateMorningRoutineDelivery,
   filterCatalogueByEligibleProducts,
+  type RetailerId,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "./client-type";
 import { MorningRoutineDeliveryRepository } from "./repositories/morning-routine-delivery-repository";
 import { MorningRoutineRepository } from "./repositories/morning-routine-repository";
+import { PlatformModuleRepository } from "./repositories/platform-module-repository";
 
 /**
  * Enqueues MorningRoutine delivery for opted-in subscriptions from the
@@ -24,7 +26,9 @@ export async function orchestrateMorningRoutineDeliveries(
 }> {
   const deliveryRepo = new MorningRoutineDeliveryRepository(admin);
   const selectionRepo = new MorningRoutineRepository(admin);
+  const moduleRepo = new PlatformModuleRepository(admin);
   const subscriptions = await deliveryRepo.listOptedInSubscriptions(200);
+  const moduleEnabledByRetailer = new Map<RetailerId, boolean>();
 
   let queued = 0;
   let skipped = 0;
@@ -32,6 +36,19 @@ export async function orchestrateMorningRoutineDeliveries(
 
   for (const subscription of subscriptions) {
     try {
+      let moduleEnabled = moduleEnabledByRetailer.get(subscription.retailerId);
+      if (moduleEnabled === undefined) {
+        moduleEnabled = await moduleRepo.jobEnabled({
+          retailerId: subscription.retailerId,
+          jobKey: "morning_routine_delivery",
+        });
+        moduleEnabledByRetailer.set(subscription.retailerId, moduleEnabled);
+      }
+      if (!moduleEnabled) {
+        skipped += 1;
+        continue;
+      }
+
       const settings = await deliveryRepo.getRetailerSettings(
         subscription.retailerId,
       );

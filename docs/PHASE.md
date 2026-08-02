@@ -244,10 +244,45 @@ be resumed without the module mapping required by R0.3.**
     lookup (module_kernel_test.sql, 18/18), a new browser assertion that a
     suspended module blocks the write with zero rows and a visible message
     then recovers once reactivated, and the full customer e2e suite green at
-    33/33 with no regression. Webhook (Stripe Connect, Faden), anonymous
-    appointment/table-service, and background-job module gating from the same
-    audit remain open, as does founder-tool blueprint implementation and House
-    cleanup.
+    33/33 with no regression.
+    The remaining audit items are now closed except one deliberate exception
+    and one deferred item. Every other customer-app write now calls
+    `assertRetailerModuleActive` before mutating: `relationship_intelligence`
+    (`appointments/actions.ts`, `api/appointment-request`,
+    `table-service-actions.ts`'s signed-in and anonymous paths,
+    `api/table-service-inquiry`), `commerce_growth` (`events/actions.ts`
+    RSVP), and `wardrobe_styling` (`newsletter-actions.ts`,
+    `swipe/actions.ts`'s save, `tie-mate/actions.ts`'s save,
+    `products/[productSlug]/actions.ts`'s `toggleWishlist`). The gate's
+    message is now parameterized — a wishlist/appointment/message failure no
+    longer shows commerce-specific "not accepting orders" wording. Two new
+    browser proofs (`module-boundary.spec.ts`) cover one representative
+    mutation per newly gated module family (anonymous inquiry;
+    wardrobe wishlist save), matching the retailer app's "prove one
+    representative mutation" precedent; the other actions share the same
+    gate. Background jobs now respect module state too:
+    `orchestrateMorningRoutineDeliveries`, `orchestrateCampaignDeliveries` and
+    `dispatch-newsletter` each check `PlatformModuleRepository.jobEnabled`
+    per retailer before enqueueing, using the existing
+    `retailer_module_job_enabled` RPC already proven by pgTAP.
+    **Deliberate exception, not a gap:** the Stripe Connect and Faden
+    webhooks stay ungated. They record facts about money/inventory events
+    that already happened externally (a captured charge, a POS order-status
+    change); silently dropping them under a module-suspension check would
+    create exactly the ledger/stock divergence R0.2 exists to prevent, and
+    provider retries eventually expire, making it unrecoverable. The correct
+    enforcement point is origination (cart/checkout, already gated), not
+    reconciliation.
+    **Deferred:** `wedding-parties/join/[token]/actions.ts`'s anonymous
+    `joinWeddingParty` is not yet gated on `enterprise_verticals` — the
+    invite-token join RPC resolves the retailer only as a side effect of the
+    write itself, so gating first needs a read-only token→retailer lookup
+    added to `WeddingPartyRepository` (no such method exists today). Low risk
+    in the interim: an invite token is retailer-scoped and manager-issued, so
+    a suspended enterprise module mainly means an unwanted late join rather
+    than an unauthorized one.
+    Remaining from the original audit: founder-tool blueprint implementation
+    and House cleanup.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

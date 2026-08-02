@@ -58,9 +58,19 @@ requires it.
   unenforced — they have no retailer/staff session to call
   `resolve_retailer_modules()` with. `retailer_module_access_state`
   (migration `20260802000004`) plus a customer-app `assertRetailerModuleActive`
-  helper close that for `commerce_growth`; webhooks (Stripe Connect, Faden),
-  anonymous appointment/table-service inquiries and background job
-  suppression from the same audit remain open.
+  helper closed that for `commerce_growth`, then for every other customer
+  write: `relationship_intelligence` (appointments, signed-in/anonymous
+  TableService), `commerce_growth` (event RSVP) and `wardrobe_styling`
+  (newsletter, swipe/tie-mate/product-page wishlist saves). Background jobs
+  (MorningRoutine delivery, campaign activation, newsletter dispatch) now
+  check `PlatformModuleRepository.jobEnabled` per retailer before enqueueing.
+  Stripe Connect and Faden webhooks are deliberately left ungated — they
+  record externally-already-happened money/inventory facts, and dropping
+  them under a module-suspension check would create the ledger/stock
+  divergence R0.2 exists to prevent; enforcement belongs at origination, not
+  reconciliation. Still open: `joinWeddingParty`'s anonymous invite-token
+  path (needs a token→retailer lookup added to `WeddingPartyRepository`
+  before it can gate pre-write).
   `CAPABILITY_DISPOSITION.md` is the inheritance registry;
   `FOUNDER_TOOL_BLUEPRINTS.md` is now the implementation-grade contract for
   all fourteen designated tools and the wider founder-intent crosswalk. Read

@@ -98,8 +98,20 @@ This correction supersedes conflicting status and handoff claims below:
   lookup; all four customer commerce entry points now fail closed when the
   module is off/suspended/preview. Proof: 3 new pgTAP assertions (18/18) and
   a browser assertion of block-then-recover; full customer e2e suite 33/33.
-  Webhooks, anonymous appointment/table-service intake and background job
-  suppression from the same audit remain open.
+- The rest of the audit is closed except one deliberate exception and one
+  deferred item. Every remaining customer write now gates on its module:
+  `relationship_intelligence` (appointments, TableService signed-in/anonymous),
+  `commerce_growth` (event RSVP), `wardrobe_styling` (newsletter, swipe/
+  tie-mate/product-page wishlist saves). Background jobs (MorningRoutine
+  delivery, campaign activation, newsletter dispatch) check
+  `PlatformModuleRepository.jobEnabled` per retailer before enqueueing.
+  Stripe Connect and Faden webhooks stay deliberately ungated — they record
+  externally-already-happened money/inventory facts, and dropping them under
+  a module-suspension check would create the ledger/stock divergence R0.2
+  exists to prevent. Deferred: `joinWeddingParty`'s anonymous invite-token
+  path needs a token→retailer lookup added to `WeddingPartyRepository` before
+  it can gate before the write. Proof: 2 new browser assertions
+  (`module-boundary.spec.ts`), full customer e2e suite green at 35/35.
 
 ## Repository
 

@@ -1,5 +1,6 @@
 import {
   NewsletterRepository,
+  PlatformModuleRepository,
   ProductRepository,
   RetailerRepository,
 } from "@paon/database";
@@ -57,6 +58,7 @@ async function handleDispatch(request: Request): Promise<Response> {
   ).findAllActiveGroupedByRetailer();
   const retailerRepo = new RetailerRepository(supabase);
   const productRepo = new ProductRepository(supabase);
+  const moduleRepo = new PlatformModuleRepository(supabase);
 
   let sent = 0;
   let skipped = 0;
@@ -66,6 +68,15 @@ async function handleDispatch(request: Request): Promise<Response> {
 
     const retailer = await retailerRepo.findById(retailerId);
     if (!retailer || retailer.status !== "active") {
+      skipped += subscribers.length;
+      continue;
+    }
+
+    const moduleEnabled = await moduleRepo.jobEnabled({
+      retailerId,
+      jobKey: "morning_routine_delivery",
+    });
+    if (!moduleEnabled) {
       skipped += subscribers.length;
       continue;
     }

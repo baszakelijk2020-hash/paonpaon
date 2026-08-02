@@ -48,6 +48,8 @@ export async function addToCart(
       supabase,
       parsed.data.retailerId as never,
       "commerce_growth",
+      "mutate",
+      "This shop isn't accepting orders right now. Please check back soon.",
     );
     await new OrderRepository(supabase).addToCart({
       retailerId: parsed.data.retailerId as never,
@@ -85,6 +87,11 @@ export async function toggleWishlist(
 
   const supabase = await getSupabaseServerClient();
   try {
+    await assertRetailerModuleActive(
+      supabase,
+      parsed.data.retailerId as never,
+      "wardrobe_styling",
+    );
     await new WishlistRepository(supabase).toggleItem(
       parsed.data.retailerId as never,
       parsed.data.productVariantId as never,

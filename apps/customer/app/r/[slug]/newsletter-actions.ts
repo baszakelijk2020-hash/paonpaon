@@ -3,6 +3,7 @@
 import { NewsletterRepository } from "@paon/database";
 import { asId } from "@paon/domain";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface NewsletterState {
@@ -21,11 +22,10 @@ export async function subscribeToNewsletter(
   }
 
   const supabase = await getSupabaseServerClient();
+  const rId = asId<"RetailerId">(retailerId);
   try {
-    await new NewsletterRepository(supabase).subscribe(
-      asId<"RetailerId">(retailerId),
-      email,
-    );
+    await assertRetailerModuleActive(supabase, rId, "wardrobe_styling");
+    await new NewsletterRepository(supabase).subscribe(rId, email);
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
     return { formError: message };
