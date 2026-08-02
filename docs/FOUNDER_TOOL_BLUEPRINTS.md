@@ -549,9 +549,18 @@ the swipe deck/wardrobe rail precedent of an explicit persisted choice rather
 than saving on every scroll settle. Proof: one browser journey covering
 initial predefined-model state, clicking a different model to resync all
 three sub-carousels together, save, and a database assertion of the saved
-row. Not built yet: prohibited combinations, version pinning, retired-option
-recovery, cross-House asset/rule isolation, advisor-side visibility UI and
-configuration-to-proposal/MTM production continuation.
+row. Advisor-side visibility is now closed:
+`SuitConfiguratorRepository.findRecentByCustomer` already existed with no
+caller — the retailer customer detail page now renders a read-only "Suit
+configurator picks" card from it. No new migration, RLS or RPC needed: the
+table's retailer-staff SELECT policy and grant were already in place,
+unused. Proof: `suit-configuration-intents.spec.ts` — seeds a pick through
+the real `save_suit_configuration_intent` RPC as an authenticated shopper
+(not a direct table insert; the table grants no INSERT to any role but
+that RPC), then asserts the owner sees it on the client's profile. Not
+built yet: prohibited combinations, version pinning, retired-option
+recovery, cross-House asset/rule isolation, and configuration-to-
+proposal/MTM production continuation.
 
 ## FT-08 — Swipe deck
 

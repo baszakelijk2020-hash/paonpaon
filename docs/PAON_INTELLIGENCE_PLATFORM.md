@@ -266,6 +266,18 @@ requires it.
   name. Proof: `tableservice-wedding-fabric-link.spec.ts`, run against
   the actual root path used by the pre-existing
   `tableservice-attachments.spec.ts`.
+  Closed FT-07's advisor-side visibility gap: `SuitConfiguratorRepository
+.findRecentByCustomer` already existed with no caller, and its
+  retailer-staff RLS policy/grant were already in place, unused. Added a
+  read-only "Suit configurator picks" card to the retailer customer
+  detail page — no migration, no RLS/RPC change. Proof:
+  `suit-configuration-intents.spec.ts`, seeding through the real
+  `save_suit_configuration_intent` RPC as an authenticated shopper (a
+  direct table insert was tried and correctly rejected — no role has
+  INSERT on that table but the RPC). Fixed one real test-authoring trap:
+  `generateLink({type: "magiclink"})` for a brand-new email silently
+  mints a signup-type token, not a magiclink one; verifying it as
+  magiclink then fails — fixed by creating the auth user first.
   FT-06 MorningRoutine moved from a generic ranked list to a first
   connected slice. `pag1.html` has no composed-look widget (checked
   directly — only narrative plus a decorative weather-camera overlay), so

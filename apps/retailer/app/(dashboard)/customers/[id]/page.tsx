@@ -14,6 +14,7 @@ import {
   OrderRepository,
   PhysicalGarmentRepository,
   ProductRepository,
+  SuitConfiguratorRepository,
   WardrobeLifecycleRepository,
   WardrobeRepository,
   WardrobeRoadmapRepository,
@@ -46,6 +47,7 @@ import { ClientelingOpportunityInbox } from "./clienteling-opportunity-inbox";
 import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
 import { SelfPortrait } from "./self-portrait";
+import { SuitConfigurationIntentsCard } from "./suit-configuration-intents-card";
 
 import { getAIProvider } from "@/lib/ai";
 import { requireSession } from "@/lib/session";
@@ -94,6 +96,7 @@ export default async function CustomerDetailPage({
     wardrobeItems,
     catalogueProducts,
     roadmaps,
+    suitConfigurationIntents,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -125,6 +128,7 @@ export default async function CustomerDetailPage({
     new WardrobeRepository(supabase).findByCustomer(customer.id),
     new ProductRepository(supabase).findByRetailer(session.retailerId),
     new WardrobeRoadmapRepository(supabase).findByCustomer(customer.id),
+    new SuitConfiguratorRepository(supabase).findRecentByCustomer(customer.id),
   ]);
   const wardrobeRepo = new WardrobeRepository(supabase);
   const wardrobeLifecycleRepo = new WardrobeLifecycleRepository(supabase);
@@ -676,6 +680,8 @@ export default async function CustomerDetailPage({
         }))}
         canManage={canManage}
       />
+
+      <SuitConfigurationIntentsCard intents={suitConfigurationIntents} />
 
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">

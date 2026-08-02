@@ -627,6 +627,26 @@ be resumed without the module mapping required by R0.3.**
     not a regression — both pass cleanly on a fresh reset with the FT-09
     migration applied, and also pass on the pre-FT-09 commit, confirming
     no causal link either way.
+    Closed FT-07's "advisor-side visibility UI" gap — the smallest of the
+    three found this session: `SuitConfiguratorRepository.findRecentByCustomer`
+    already existed (written when the customer configurator shipped) but
+    had no caller anywhere in the retailer app. Its RLS policy
+    (`retailer staff can read their retailer's configuration intents`)
+    and base grant were also already in place, unused. Added a read-only
+    "Suit configurator picks" card to the retailer customer detail page —
+    zero migration, zero RLS/RPC change, pure UI wiring onto
+    already-correct backend. Proof: `suit-configuration-intents.spec.ts`
+    seeds a pick through the real `save_suit_configuration_intent` RPC as
+    an authenticated shopper (a direct table insert was tried first and
+    correctly rejected — the migration grants INSERT to no role but that
+    RPC — matching the same "no invented write path" discipline as FT-04/
+    FT-09). Hit and fixed one real test-authoring trap along the way:
+    `generateLink({type: "magiclink"})` for an email with no existing auth
+    user silently mints a "signup"-type token instead of a magiclink one
+    (only visible in `action_link`'s own query string), so verifying it as
+    `"magiclink"` fails with "Email link is invalid or has expired" —
+    fixed by creating the auth user first. Full retailer e2e suite rerun
+    green.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
