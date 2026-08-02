@@ -4,6 +4,7 @@ import {
   type RetailerId,
   type WeddingAftercarePlan,
   type WeddingAftercarePlanId,
+  type WeddingDesignChoice,
   type WeddingGroupFitting,
   type WeddingInspirationItem,
   type WeddingParty,
@@ -26,6 +27,8 @@ type GroupFittingRow =
   Database["public"]["Tables"]["wedding_group_fittings"]["Row"];
 type InspirationItemRow =
   Database["public"]["Tables"]["wedding_inspiration_items"]["Row"];
+type DesignChoiceRow =
+  Database["public"]["Tables"]["wedding_design_choices"]["Row"];
 
 const PARTY_PHOTOS_BUCKET = "party-photos";
 
@@ -97,6 +100,23 @@ const toInspirationItem = (
   ...(row.note ? { note: row.note } : {}),
   internalOnly: row.internal_only,
   createdAt: row.created_at,
+});
+
+const toDesignChoice = (row: DesignChoiceRow): WeddingDesignChoice => ({
+  id: asId<"WeddingDesignChoiceId">(row.id),
+  weddingPartyId: asId<"WeddingPartyId">(row.wedding_party_id),
+  ...(row.wedding_party_member_id
+    ? {
+        weddingPartyMemberId: asId<"WeddingPartyMemberId">(
+          row.wedding_party_member_id,
+        ),
+      }
+    : {}),
+  slotKey: row.slot_key,
+  valueKey: row.value_key,
+  coordinated: row.coordinated,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
 });
 
 /** See `docs/ARCHITECTURE.md` "Data access layer" — the only code
@@ -551,6 +571,43 @@ export class WeddingPartyRepository {
       p_wedding_party_id: params.weddingPartyId,
       ...(params.imageRef ? { p_image_ref: params.imageRef } : {}),
       ...(params.note ? { p_note: params.note } : {}),
+    });
+    if (error) throw error;
+  }
+
+  async findDesignChoices(
+    weddingPartyId: WeddingPartyId,
+  ): Promise<WeddingDesignChoice[]> {
+    const { data, error } = await this.client
+      .from("wedding_design_choices")
+      .select("*")
+      .eq("wedding_party_id", weddingPartyId)
+      .order("slot_key", { ascending: true });
+    if (error) throw error;
+    return data.map(toDesignChoice);
+  }
+
+  /** SECURITY DEFINER RPC (`set_wedding_design_choice`) — re-derives
+   * organizer-or-assigned-member authorization server-side and upserts on
+   * (party, member-or-null, slot) rather than trusting a client-supplied
+   * customer/member id or accumulating duplicate rows per slot. */
+  async setDesignChoice(params: {
+    weddingPartyId: WeddingPartyId;
+    weddingPartyMemberId?: WeddingPartyMemberId;
+    slotKey: string;
+    valueKey: string;
+    coordinated?: boolean;
+  }): Promise<void> {
+    const { error } = await this.client.rpc("set_wedding_design_choice", {
+      p_wedding_party_id: params.weddingPartyId,
+      p_slot_key: params.slotKey,
+      p_value_key: params.valueKey,
+      ...(params.weddingPartyMemberId
+        ? { p_wedding_party_member_id: params.weddingPartyMemberId }
+        : {}),
+      ...(params.coordinated !== undefined
+        ? { p_coordinated: params.coordinated }
+        : {}),
     });
     if (error) throw error;
   }

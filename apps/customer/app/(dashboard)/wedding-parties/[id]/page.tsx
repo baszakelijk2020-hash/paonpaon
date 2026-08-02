@@ -19,6 +19,7 @@ import { completeAftercarePlan, markFittingScheduled } from "../actions";
 
 import { AmHouseHero } from "./am-house-hero";
 import { AmHouseOrbit } from "./am-house-orbit";
+import { DesignChoiceForm } from "./design-choice-form";
 import { InspirationItemForm } from "./inspiration-item-form";
 import { InviteLink } from "./invite-link";
 import { MemberPhotoUploader, PartyCoverUploader } from "./party-photos";
@@ -55,6 +56,7 @@ export default async function WeddingPartyDetailPage({
     aftercarePlans,
     groupFittings,
     inspirationItems,
+    designChoices,
   ] = await Promise.all([
     partyRepo.findMembers(party.id),
     new RetailerRepository(supabase).findById(party.retailerId),
@@ -62,6 +64,7 @@ export default async function WeddingPartyDetailPage({
     partyRepo.findAftercarePlans(party.id),
     partyRepo.findGroupFittings(party.id),
     partyRepo.findInspirationItems(party.id),
+    partyRepo.findDesignChoices(party.id),
   ]);
   const myCustomerIds = new Set(myCustomers.map((c) => c.id));
   const organizer = members.find(
@@ -360,6 +363,47 @@ export default async function WeddingPartyDetailPage({
           )}
           {isOrganizer || myMember ? (
             <InspirationItemForm weddingPartyId={party.id} />
+          ) : null}
+        </Card>
+      ) : null}
+
+      {designChoices.length > 0 || isOrganizer || myMember ? (
+        <Card className="paon-reveal" style={{ animationDelay: "230ms" }}>
+          <p className="mb-3 text-sm font-medium text-[var(--color-stone-900)]">
+            Outfit choices
+          </p>
+          {designChoices.length > 0 ? (
+            <ul className="mb-3 flex flex-col gap-2">
+              {designChoices.map((choice) => {
+                const chosenBy = members.find(
+                  (candidate) => candidate.id === choice.weddingPartyMemberId,
+                );
+                return (
+                  <li
+                    key={choice.id}
+                    className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm"
+                  >
+                    <span>
+                      {choice.slotKey}: {choice.valueKey}
+                    </span>
+                    <span className="text-xs text-[var(--color-stone-500)]">
+                      {chosenBy ? chosenBy.name : "Whole party"}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="mb-3 text-sm text-[var(--color-stone-500)]">
+              No choices set yet.
+            </p>
+          )}
+          {isOrganizer || myMember ? (
+            <DesignChoiceForm
+              weddingPartyId={party.id}
+              isOrganizer={isOrganizer}
+              {...(myMember ? { myMemberId: myMember.id } : {})}
+            />
           ) : null}
         </Card>
       ) : null}

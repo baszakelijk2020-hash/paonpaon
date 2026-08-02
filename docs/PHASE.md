@@ -421,12 +421,29 @@ be resumed without the module mapping required by R0.3.**
     and/or a note; `internal_only` defaults `true` per the schema's own
     comment ("a couple pinning a magazine photo is not licensed for
     publication"). Proof: a customer browser journey (pin a note, see it
-    listed, DB asserts `added_by_customer_id` and `internal_only`). Remaining
-    FT-13 gaps: `wedding_design_choices` and `wedding_guest_vouchers` are
-    also already schema-real from the same `20260801000014` migration and
-    still fully unwired (no repository, no UI, no RLS beyond the original
-    staff-only policies); date candidates/votes ("group-date agreement") has
-    no schema at all yet.
+    listed, DB asserts `added_by_customer_id` and `internal_only`).
+    `wedding_design_choices` (also schema-real from `20260801000014`) is now
+    connected too — the third and last of that batch's plain "wire what
+    already exists" slices. A member records their own outfit choice per
+    slot (free text: no slot/value vocabulary is specified anywhere in the
+    founder source or blueprints, so nothing is invented); the organizer can
+    instead set one party-wide "coordinated" choice. Migration
+    `20260802000011` adds `set_wedding_design_choice`, a SECURITY DEFINER RPC
+    that re-derives organizer-or-assigned-member authorization and upserts
+    on (party, member-or-null, slot) via `select ... for update` rather than
+    accumulating duplicate rows — backed by two partial unique indexes as a
+    concurrency backstop (same idiom as `one_default_wishlist_per_customer_idx`).
+    Proof: a customer browser journey (organizer sets a party-wide choice,
+    sees it listed, DB asserts `coordinated = true` and a null member id).
+    Remaining FT-13 gaps: `wedding_guest_vouchers` is also schema-real from
+    the same migration and still fully unwired — deliberately left alone
+    this round since it holds real monetary value (`value_minor_units`,
+    `funding_source`) with no redemption token/mechanism defined anywhere,
+    so wiring it needs a real design decision, not a mechanical port of the
+    aftercare/group-fitting/inspiration pattern, and rushing a money-adjacent
+    feature under time pressure is exactly what R0.2's boundary exists to
+    prevent; date candidates/votes ("group-date agreement") has no schema at
+    all yet.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

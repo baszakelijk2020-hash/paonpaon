@@ -7,6 +7,7 @@ import {
   addWeddingInspirationItemSchema,
   asId,
   createWeddingPartySchema,
+  setWeddingDesignChoiceSchema,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -71,6 +72,57 @@ export async function addWeddingInspirationItem(
       weddingPartyId: asId<"WeddingPartyId">(parsed.data.weddingPartyId),
       ...(parsed.data.imageRef ? { imageRef: parsed.data.imageRef } : {}),
       ...(parsed.data.note ? { note: parsed.data.note } : {}),
+    });
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Could not save",
+    };
+  }
+  revalidatePath(`/wedding-parties/${weddingPartyId}`);
+  return {};
+}
+
+export interface SetDesignChoiceState {
+  formError?: string;
+}
+
+/** A member setting their own outfit choice, or the organizer setting a
+ * party-wide "coordinated" choice — set_wedding_design_choice re-derives
+ * membership/organizer authorization server-side, so this has nothing
+ * further to check. */
+export async function setWeddingDesignChoice(
+  weddingPartyId: string,
+  _prev: SetDesignChoiceState,
+  formData: FormData,
+): Promise<SetDesignChoiceState> {
+  await requireSession();
+  const parsed = setWeddingDesignChoiceSchema.safeParse({
+    weddingPartyId,
+    weddingPartyMemberId: formData.get("weddingPartyMemberId") || undefined,
+    slotKey: formData.get("slotKey"),
+    valueKey: formData.get("valueKey"),
+    coordinated: formData.get("coordinated") === "on",
+  });
+  if (!parsed.success) {
+    return {
+      formError: parsed.error.issues[0]?.message ?? "Check the choice fields.",
+    };
+  }
+  try {
+    await new WeddingPartyRepository(
+      await getSupabaseServerClient(),
+    ).setDesignChoice({
+      weddingPartyId: asId<"WeddingPartyId">(parsed.data.weddingPartyId),
+      ...(parsed.data.weddingPartyMemberId
+        ? {
+            weddingPartyMemberId: asId<"WeddingPartyMemberId">(
+              parsed.data.weddingPartyMemberId,
+            ),
+          }
+        : {}),
+      slotKey: parsed.data.slotKey,
+      valueKey: parsed.data.valueKey,
+      coordinated: parsed.data.coordinated,
     });
   } catch (error) {
     return {

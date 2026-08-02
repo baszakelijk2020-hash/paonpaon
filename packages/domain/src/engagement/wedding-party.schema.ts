@@ -57,6 +57,14 @@ export const addWeddingInspirationItemSchema = z
     path: ["note"],
   });
 
+export const setWeddingDesignChoiceSchema = z.object({
+  weddingPartyId: z.string().uuid(),
+  weddingPartyMemberId: z.string().uuid().optional(),
+  slotKey: z.string().trim().min(2).max(64),
+  valueKey: z.string().trim().min(1).max(120),
+  coordinated: z.coerce.boolean().optional().default(false),
+});
+
 export const joinWeddingPartySchema = z.object({
   name: z.string().trim().min(1).max(200),
   email: z.string().trim().email(),

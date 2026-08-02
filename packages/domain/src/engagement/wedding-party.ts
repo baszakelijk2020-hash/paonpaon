@@ -2,6 +2,7 @@ import type {
   CustomerId,
   RetailerId,
   WeddingAftercarePlanId,
+  WeddingDesignChoiceId,
   WeddingGroupFittingId,
   WeddingInspirationItemId,
   WeddingPartyId,
@@ -146,4 +147,18 @@ export interface WeddingInspirationItem {
   readonly note?: string;
   readonly internalOnly: boolean;
   readonly createdAt: string;
+}
+
+/** A member's (or the organizer's party-wide "coordinated") outfit choice
+ * for one slot (FT-13). No slot/value vocabulary is specified anywhere in
+ * the founder source, so both are free text. */
+export interface WeddingDesignChoice {
+  readonly id: WeddingDesignChoiceId;
+  readonly weddingPartyId: WeddingPartyId;
+  readonly weddingPartyMemberId?: WeddingPartyMemberId;
+  readonly slotKey: string;
+  readonly valueKey: string;
+  readonly coordinated: boolean;
+  readonly createdAt: string;
+  readonly updatedAt: string;
 }

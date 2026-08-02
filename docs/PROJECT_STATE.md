@@ -208,9 +208,16 @@ This correction supersedes conflicting status and handoff claims below:
   check constraint (image or note required) the original schema lacked. The
   organizer and every member pin an image link and/or note; `internal_only`
   defaults true. Proof: a customer browser journey with a DB assertion.
-  `wedding_design_choices` and `wedding_guest_vouchers` are also
-  schema-real from the same migration and remain fully unwired; date
-  candidates/votes has no schema at all.
+- `wedding_design_choices` (also schema-real) is now connected too: a member
+  records their own outfit choice per slot (free text, no vocabulary
+  specified in the source), or the organizer sets one party-wide
+  "coordinated" choice, via migration `20260802000011`'s
+  `set_wedding_design_choice` RPC, which upserts on (party, member-or-null,
+  slot) rather than accumulating duplicate rows. `wedding_guest_vouchers` is
+  also schema-real and deliberately left unwired — it holds real monetary
+  value with no redemption mechanism defined anywhere, so it needs a design
+  decision, not a mechanical port; date candidates/votes has no schema at
+  all.
 
 ## Repository
 

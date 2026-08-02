@@ -17620,6 +17620,16 @@ export type Database = {
         Args: { p_membership_id: string; p_status: string };
         Returns: string;
       };
+      set_wedding_design_choice: {
+        Args: {
+          p_coordinated?: boolean;
+          p_slot_key: string;
+          p_value_key: string;
+          p_wedding_party_id: string;
+          p_wedding_party_member_id?: string;
+        };
+        Returns: string;
+      };
       stock_available_at: {
         Args: {
           p_location_id: string;

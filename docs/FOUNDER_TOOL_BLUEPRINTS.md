@@ -780,11 +780,18 @@ is customer-writable via `added_by_customer_id`, so migration
 re-deriving organizer/member authorization and the caller's own customer id,
 plus a `wedding_inspiration_item_has_content` check constraint the original
 schema lacked) — the organizer and every member pin an image link and/or
-note, `internal_only` defaults true. Still unwired: `wedding_design_choices`
-and `wedding_guest_vouchers` (also schema-real from the same migration, no
-repository/UI/customer RLS yet) and date candidates/votes ("group-date
-agreement", no schema at all) — planner workflow/experience otherwise
-partial.
+note, `internal_only` defaults true, plus a connected `wedding_design_choices`
+slice (also schema-real since `20260801000014`) — a member records their own
+outfit choice per slot (free text; no vocabulary is specified in the source)
+or the organizer sets one party-wide "coordinated" choice, via migration
+`20260802000011`'s `set_wedding_design_choice` SECURITY DEFINER RPC, which
+upserts on (party, member-or-null, slot) rather than accumulating duplicate
+rows. Still unwired: `wedding_guest_vouchers` (also schema-real, deliberately
+left alone — it holds real monetary value with no redemption mechanism
+defined anywhere, so wiring it needs a real design decision, not a
+mechanical port of the other three tables' pattern) and date candidates/
+votes ("group-date agreement", no schema at all) — planner workflow/
+experience otherwise partial.
 
 ## FT-14 — Preferred Tailoring and HighMaintenance
 
