@@ -231,14 +231,16 @@ This correction supersedes conflicting status and handoff claims below:
   retailer issue/mark-redeemed use plain insert/update through
   already-granted staff RLS, no RPC. FT-13 is now fully wired across every
   table the schema already had.
-- Added a third dashboard "Needs your attention" card type to FT-05's
-  proof: unread messages, seeded as one notification row for the
-  owner's own auth user and asserted through the real card, counting
-  pre-existing unread notifications first so the assertion is correct
-  regardless of run order. Left low stock (needs a post-R0.2
-  ledger-correct write path, not a rushed stock write) and draft
-  clienteling opportunity (already proven to render in its own separate
-  card, not a gap) for later.
+- Added a third and fourth dashboard "Needs your attention" card type
+  to FT-05's proof: unread messages (one notification row for the
+  owner's own auth user) and low stock (one product/variant with
+  inventory_quantity=3 — checked that this still correctly seeds the
+  ledger post-R0.2 via the live `record_new_variant_opening_stock`
+  trigger, so a direct insert is the correct path, not a bypass). Both
+  count pre-existing matching rows first so their assertions are correct
+  regardless of run order. Four of five card types now proven; draft
+  clienteling opportunity remains unproven only because it already
+  renders in its own separate card, not because it's a gap.
 - Closed FT-05's other "unverified" gap, the composited customer view
   (`advisor-preparation-brief.tsx`): extended `workspace.spec.ts`'s
   existing fresh-customer test to assert its fail-closed, no-consent

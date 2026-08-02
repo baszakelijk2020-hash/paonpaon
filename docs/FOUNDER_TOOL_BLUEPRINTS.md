@@ -460,18 +460,23 @@ row directly for the owner's own `auth.users` id and asserted through
 the real `#attention a[href='/messages']` card, counting whatever
 unread notifications already exist first (rather than assuming zero)
 so the assertion stays correct regardless of run order or other specs'
-leftover notifications. Did not attempt low stock or draft clienteling
-opportunity this round: low stock needs a fixture written through
-whatever the current stock-ledger write path is post-R0.2 (the
-`inventory_quantity` column is now a ledger projection, not a plain
-column — worth its own investigation rather than a rushed money/stock-
-adjacent write), and draft clienteling opportunity already renders in
-its own separate, richer card outside `#attention` (not a bug — see the
-PHASE.md journal). Not proven this round: low stock, draft clienteling
-opportunity, the `usable`-visibility composited-customer-view path,
-ranking-rule/evidence-window versioning, cross-module
-degrade-independently behavior, and one completed action altering the
-next Today view.
+leftover notifications. Also closed low stock, the fourth: checking the
+current stock write path directly (rather than deferring again)
+confirmed `product_variants.inventory_quantity` being a ledger
+projection since R0.2 does not block seeding it — inserting a variant
+with a low `inventory_quantity` still fires
+`record_new_variant_opening_stock` (an AFTER INSERT trigger, live per
+`20260801000019_route_all_stock_writes_through_the_ledger.sql`), which
+writes the matching opening receipt to the ledger regardless of whether
+the insert came from the admin client or the real product-creation
+Server Action, so the ledger stays correct without calling the ledger
+repository directly. Four of five card types are now proven; only draft
+clienteling opportunity remains, and it was already confirmed to render
+correctly in its own separate, richer card outside `#attention` rather
+than being a gap (see the PHASE.md journal). Not proven this round: the
+`usable`-visibility composited-customer-view path, ranking-rule/
+evidence-window versioning, cross-module degrade-independently
+behavior, and one completed action altering the next Today view.
 
 ## FT-06 — MorningRoutine complete-look canvas
 

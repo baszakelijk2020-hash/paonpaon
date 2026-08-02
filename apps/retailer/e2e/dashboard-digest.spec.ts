@@ -273,3 +273,90 @@ test("owner sees unread notifications as a dashboard attention card", async ({
 
   await admin.from("notifications").delete().eq("id", notification!.id);
 });
+
+/**
+ * Fourth card type: low stock. `countLowStockForRetailer` reads
+ * `product_variants.inventory_quantity`, which R0.2's
+ * `20260801000018_make_inventory_quantity_a_ledger_projection.sql` turned
+ * into a maintained projection of `stock_ledger_entries` rather than a
+ * plain column. A direct insert is still the correct seeding path, not a
+ * bypass: `record_new_variant_opening_stock` (an AFTER INSERT trigger on
+ * `product_variants`, confirmed live in
+ * `20260801000019_route_all_stock_writes_through_the_ledger.sql`) fires on
+ * any insert with `inventory_quantity > 0` and writes the matching opening
+ * receipt to the ledger regardless of whether the insert came from this
+ * admin client or the real "Create product" Server Action — so the ledger
+ * stays correct without calling the ledger repository directly.
+ */
+test("owner sees low stock as a dashboard attention card", async ({ page }) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+    );
+  }
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", "e2e-retailer-workspace")
+    .single();
+  if (!retailer) throw new Error("E2E retailer is missing");
+
+  const { count: beforeCount } = await admin
+    .from("product_variants")
+    .select("id, products!inner(retailer_id, deleted_at)", {
+      count: "exact",
+      head: true,
+    })
+    .eq("products.retailer_id", retailer.id)
+    .is("products.deleted_at", null)
+    .lte("inventory_quantity", 5)
+    .is("deleted_at", null);
+  const expectedCount = (beforeCount ?? 0) + 1;
+
+  const unique = Date.now();
+  const { data: product, error: productError } = await admin
+    .from("products")
+    .insert({
+      retailer_id: retailer.id,
+      name: "Dashboard digest low-stock fixture",
+      slug: `dashboard-digest-low-stock-${unique}`,
+      status: "active",
+    })
+    .select("id")
+    .single();
+  if (productError) throw productError;
+  const { data: variant, error: variantError } = await admin
+    .from("product_variants")
+    .insert({
+      product_id: product!.id,
+      sku: `DASH-LOW-${unique}`,
+      price_amount_minor_units: 10000,
+      price_currency: "USD",
+      inventory_quantity: 3,
+    })
+    .select("id")
+    .single();
+  if (variantError) throw variantError;
+
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
+  await page.getByLabel("Password").fill(TEST_OWNER_PASSWORD);
+  await page.getByRole("button", { name: "Enter the atelier" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  await expect(page.getByText("Needs your attention")).toBeVisible();
+  const card = page.locator("#attention a[href='/products']");
+  await expect(card).toBeVisible();
+  await expect(card).toContainText(
+    expectedCount === 1
+      ? "1 variant at or below 5 units"
+      : `${expectedCount} variants at or below 5 units`,
+  );
+
+  await admin.from("product_variants").delete().eq("id", variant!.id);
+  await admin.from("products").delete().eq("id", product!.id);
+});

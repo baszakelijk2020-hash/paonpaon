@@ -781,8 +781,31 @@ p_customer_app_base_url)`, mirroring
     territory. Draft clienteling opportunity was checked and found to
     already render correctly in its own separate "Draft clienteling
     opportunities" card above `#attention` (confirmed earlier this
-    session, not a gap). Full retailer suite: `dashboard-digest.spec.ts`
-    (now 3 tests) green standalone.
+    session, not a gap).
+    Closed the fourth card type, low stock, rather than deferring it
+    again — checked the actual current stock write path instead of
+    assuming it needed new machinery. `product_variants.inventory_quantity`
+    became a ledger projection in R0.2
+    (`20260801000018_make_inventory_quantity_a_ledger_projection.sql`),
+    but `record_new_variant_opening_stock` — an AFTER INSERT trigger on
+    `product_variants`, confirmed still live in
+    `20260801000019_route_all_stock_writes_through_the_ledger.sql`
+    (only its direct-RPC execution grant was revoked from callers, not
+    the trigger itself) — fires on any insert with
+    `inventory_quantity > 0` and writes the matching opening receipt to
+    `stock_ledger_entries`. That happens regardless of whether the
+    insert comes through the real "Create product" Server Action or
+    this test's own admin-client insert, so seeding a product/variant
+    directly with `inventory_quantity: 3` is the correct path, not a
+    bypass of the ledger R0.2 exists to protect. New test asserts the
+    real `#attention a[href='/products']` card, counting pre-existing
+    low-stock variants first so the "N variants at or below 5 units"
+    text stays correct regardless of what other fixtures already exist.
+    Four of five "Needs your attention" card types are now proven in
+    `dashboard-digest.spec.ts` (4 tests, all pass together and
+    standalone); only draft clienteling opportunity remains, and it was
+    already confirmed not to be a gap (renders in its own section, not
+    a missing card). Full retailer e2e suite reran green.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
