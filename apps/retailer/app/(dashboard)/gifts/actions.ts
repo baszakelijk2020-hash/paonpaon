@@ -83,6 +83,25 @@ export async function sendGiftInvitation(formData: FormData) {
   revalidatePath("/gifts");
 }
 
+export async function emailGiftInvitation(formData: FormData) {
+  const session = await requireModuleSession("commerce_growth");
+  requireRetailerRole(session.retailerRole, "manager");
+
+  const invitationId = String(formData.get("invitationId"));
+  const customerAppBaseUrl = (
+    process.env["NEXT_PUBLIC_CUSTOMER_APP_URL"] ?? "http://localhost:3002"
+  ).replace(/\/$/, "");
+
+  await new GiftRepository(
+    await getSupabaseServerClient(),
+  ).enqueueInvitationEmail({
+    invitationId: invitationId as never,
+    customerAppBaseUrl,
+  });
+
+  revalidatePath("/gifts");
+}
+
 export async function revokeGiftExperience(formData: FormData) {
   const session = await requireModuleSession("commerce_growth");
   requireRetailerRole(session.retailerRole, "manager");

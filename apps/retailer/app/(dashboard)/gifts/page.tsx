@@ -17,6 +17,7 @@ import { redirect } from "next/navigation";
 
 import {
   composeGiftExperience,
+  emailGiftInvitation,
   revokeGiftExperience,
   sendGiftInvitation,
 } from "./actions";
@@ -179,6 +180,28 @@ export default async function GiftsPage() {
                       {customerAppBase}/r/{retailer?.slug}/gift/
                       {invitation.inviteToken}
                     </code>
+                    {invitation.recipientEmail ? (
+                      <form action={emailGiftInvitation}>
+                        <input
+                          type="hidden"
+                          name="invitationId"
+                          value={invitation.id}
+                        />
+                        <Button type="submit" variant="outline" size="sm">
+                          {invitation.emailSentAt
+                            ? "Resend email"
+                            : "Email invitation"}
+                        </Button>
+                        {invitation.emailSentAt ? (
+                          <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                            Emailed{" "}
+                            {new Date(
+                              invitation.emailSentAt,
+                            ).toLocaleDateString()}
+                          </p>
+                        ) : null}
+                      </form>
+                    ) : null}
                   </li>
                 ))}
               </ul>

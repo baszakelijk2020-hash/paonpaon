@@ -70,6 +70,7 @@ export interface GiftInvitation {
   readonly openedAt?: string;
   readonly redeemedAt?: string;
   readonly redeemedCuratedItemId?: GiftCuratedItemId;
+  readonly emailSentAt?: string;
   readonly createdAt: string;
 }
 

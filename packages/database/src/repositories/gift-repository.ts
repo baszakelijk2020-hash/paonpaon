@@ -7,6 +7,7 @@ import {
   type GiftExperienceId,
   type GiftExperienceStatus,
   type GiftInvitation,
+  type GiftInvitationId,
   type GiftReveal,
   type RetailerId,
   type StaffId,
@@ -57,6 +58,7 @@ const toInvitation = (row: InvitationRow): GiftInvitation => ({
         ),
       }
     : {}),
+  ...(row.email_sent_at ? { emailSentAt: row.email_sent_at } : {}),
   createdAt: row.created_at,
 });
 
@@ -266,5 +268,25 @@ export class GiftRepository {
     if (error) throw error;
     const payload = data as { ok: boolean; curatedItemId: string };
     return asId<"GiftCuratedItemId">(payload.curatedItemId);
+  }
+
+  /** Queues the invitation's redeem link through the standard
+   * email_outbox drain (`enqueue_gift_invitation_email`, SECURITY
+   * DEFINER — re-derives retailer-manager authorization server-side and
+   * reads recipient/subject/body from the invitation itself, not from
+   * the caller). Returns the queued `email_outbox` row id. */
+  async enqueueInvitationEmail(params: {
+    invitationId: GiftInvitationId;
+    customerAppBaseUrl: string;
+  }): Promise<string> {
+    const { data, error } = await this.client.rpc(
+      "enqueue_gift_invitation_email",
+      {
+        p_invitation_id: params.invitationId,
+        p_customer_app_base_url: params.customerAppBaseUrl,
+      },
+    );
+    if (error) throw error;
+    return data as string;
   }
 }

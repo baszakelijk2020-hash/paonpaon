@@ -104,6 +104,34 @@ test("a manager curates a gift experience, sends an invitation, and sees it rede
   expect(invitation?.invite_token).toBeTruthy();
   await expect(page.getByText(invitation!.invite_token)).toBeVisible();
 
+  // "Send invitation" only creates the row and shows the raw link for the
+  // manager to copy — it never sends anything. This proves the separate
+  // "Email invitation" action actually queues a real email through the
+  // standard outbox, and that the button relabels once one has gone out.
+  await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        new URL(response.url()).pathname === "/gifts",
+    ),
+    experienceCard.getByRole("button", { name: "Email invitation" }).click(),
+  ]);
+
+  const { data: outboxRows } = await admin
+    .from("email_outbox")
+    .select("recipient_email, subject, html_body")
+    .eq("recipient_email", recipientEmail)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  const outboxRow = outboxRows?.[0];
+  expect(outboxRow?.subject).toContain(title);
+  expect(outboxRow?.html_body).toContain(invitation!.invite_token);
+
+  await page.reload();
+  await expect(
+    experienceCard.getByRole("button", { name: "Resend email" }),
+  ).toBeVisible();
+
   // The customer-app redemption journey is proven independently
   // (apps/customer/e2e/gift.spec.ts); simulate it here at the RPC layer
   // so this test also proves the retailer list reflects a real redemption.
@@ -127,6 +155,10 @@ test("a manager curates a gift experience, sends an invitation, and sees it rede
   ).toBeVisible();
 
   await admin.from("gift_experiences").delete().eq("id", experience.id);
+  await admin
+    .from("email_outbox")
+    .delete()
+    .eq("recipient_email", recipientEmail);
   await admin
     .from("customers")
     .delete()

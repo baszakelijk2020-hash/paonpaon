@@ -231,6 +231,23 @@ This correction supersedes conflicting status and handoff claims below:
   retailer issue/mark-redeemed use plain insert/update through
   already-granted staff RLS, no RPC. FT-13 is now fully wired across every
   table the schema already had.
+- Closed FT-10's "resend" gap, which turned out on inspection to be an
+  initial-send gap: "Send invitation" only ever created the DB row and
+  showed the raw redeem link as text for the manager to copy — nothing
+  was ever actually sent. `gift_invitations` has no `recipient_user_id`
+  (the recipient is anonymous, not a PAON user), so the standard
+  notifications-insert trigger that populates `email_outbox` for every
+  other transactional email (ADR-032) can't apply. Migration
+  `20260802000016` adds `email_sent_at` plus
+  `enqueue_gift_invitation_email`, a SECURITY DEFINER RPC mirroring
+  `enqueue_morning_routine_delivery_notification`'s shape — re-derives
+  retailer-manager authorization and builds the email entirely from the
+  invitation/experience/retailer rows, never trusting caller input, then
+  queues into the same outbox the `dispatch-emails` cron already drains.
+  A separate "Email invitation" button (relabels to "Resend email")
+  keeps sending an explicit decision, not a side effect of creating the
+  link. Proof: extended `gifts.spec.ts` with a real `email_outbox`
+  assertion and the button-relabel check.
 - Corrected a stale FT-06 doc claim the same day it was written: "not
   built: live weather/calendar context wiring, delivery-job-driven
   notification" was false — both predate the FT-06 slice (PHASE 4.4/4.5,

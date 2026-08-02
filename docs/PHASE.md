@@ -678,6 +678,47 @@ be resumed without the module mapping required by R0.3.**
     persisted selection and recording the resulting audit, and
     duplicate-for-date suppression. `pnpm --filter @paon/database
 typecheck lint test` all green.
+    Closed FT-10's "resend" gap — which turned out on inspection to be an
+    initial-send gap, not a resend gap: the retailer's "Send invitation"
+    button only ever inserted the `gift_invitations` row and displayed
+    the raw redeem link as text for the manager to copy; no email was
+    ever actually dispatched. `gift_invitations` has no
+    `recipient_user_id` (the recipient is an anonymous, non-PAON
+    person), so the `enqueue_notification_email()` trigger that
+    populates `email_outbox` for every other transactional email in this
+    codebase (ADR-032, keyed off `notifications.recipient_user_id` ->
+    `auth.users.email`) structurally cannot apply here. Migration
+    `20260802000016` adds `gift_invitations.email_sent_at` plus a new
+    SECURITY DEFINER RPC, `enqueue_gift_invitation_email(p_invitation_id,
+p_customer_app_base_url)`, mirroring
+    `enqueue_morning_routine_delivery_notification`'s shape: re-derives
+    retailer-manager authorization server-side (retailer match +
+    manager/admin/owner role, same check as the table's own RLS
+    policies, since SECURITY DEFINER bypasses RLS and must re-assert it),
+    rejects invitations with no recipient email or already past
+    pending/opened, and builds subject/body entirely from the
+    invitation/experience/retailer rows it looks up itself — the only
+    caller-supplied value is the customer-app base URL, which is the
+    deploying operator's own `NEXT_PUBLIC_CUSTOMER_APP_URL` env var, not
+    attacker input. Retailer-side: a plain `UPDATE` on
+    `email_sent_at` was possible without a new RPC (the existing
+    "retailer managers manage gift invitations" policy already grants
+    `for all`); only the `email_outbox` insert needed one, since that
+    table's RLS is `is_platform_staff()`-only. Added a separate "Email
+    invitation" button next to each invitation (relabels "Resend email"
+    once one has gone out already) rather than folding it into "Send
+    invitation" — keeps dispatch an explicit, repeatable manager
+    decision distinct from generating the link, consistent with this
+    codebase's recurring "explicit action, not implicit side effect"
+    precedent (swipe deck saves, suit configurator saves, etc.). Proof:
+    extended the existing `gifts.spec.ts` — click "Email invitation",
+    assert a real `email_outbox` row exists with the invite link in its
+    body, reload, assert the button now reads "Resend email" — run
+    before the redemption step so the RPC's pending/opened status guard
+    doesn't reject it. Full retailer e2e suite (49 tests) reran green;
+    the pre-existing `demo-personas.spec.ts` parallel-worker seed
+    collision reappeared under default worker count and was reconfirmed
+    (again) as unrelated to this change — all 7 pass with `--workers=1`.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

@@ -748,10 +748,30 @@ redemption, never a curation-time snapshot. Proof: 6 pgTAP assertions
 (token isolation, unknown-token rejection, item-must-belong-to-experience,
 no-double-redeem), a retailer browser journey (curate → invite → see a
 real redemption reflected) and a customer browser journey (anonymous
-open → redeem → second-redemption blocked). Not yet built: expiry/revoke
-UI polish beyond the raw fields, resend, giver payment/request flow, and
-recall/refund handling — the blueprint's fuller giver-side and commercial-
-instrument scope remains open.
+open → redeem → second-redemption blocked). Closed the "resend" gap —
+which on inspection turned out to be an initial-send gap: the retailer
+button was labeled "Send invitation" but only ever inserted the DB row
+and displayed the raw redeem link as text for the manager to copy;
+nothing was ever actually sent. `gift_invitations` has no
+`recipient_user_id` (the recipient is an anonymous, non-PAON person), so
+the notifications-insert trigger that normally populates `email_outbox`
+for every other transactional email in this codebase (ADR-032) cannot
+apply here. Migration `20260802000016` adds `email_sent_at` plus a new
+SECURITY DEFINER RPC, `enqueue_gift_invitation_email`, mirroring
+`enqueue_morning_routine_delivery_notification`'s shape: re-derives
+retailer-manager authorization and reads recipient/subject/body from the
+invitation/experience/retailer rows themselves (never trusts the
+caller), then queues into the same `email_outbox` the `dispatch-emails`
+cron already drains. Wired as a separate "Email invitation" button per
+invitation (relabels to "Resend email" once one has gone out), so
+sending stays an explicit manager decision distinct from creating the
+link — matching this codebase's repeated "explicit action, not implicit
+side effect" precedent. Proof: extended `gifts.spec.ts` — click "Email
+invitation", assert a real `email_outbox` row with the invite link,
+reload, assert the button now reads "Resend email". Not yet built:
+expiry/revoke UI polish beyond the raw fields, giver payment/request
+flow, and recall/refund handling — the blueprint's fuller giver-side and
+commercial-instrument scope remains open.
 
 ## FT-11 — Location globe and monthly visual grid
 

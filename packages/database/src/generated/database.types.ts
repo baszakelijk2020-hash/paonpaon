@@ -5058,6 +5058,7 @@ export type Database = {
         Row: {
           created_at: string;
           created_by_staff_id: string | null;
+          email_sent_at: string | null;
           gift_experience_id: string;
           id: string;
           invite_token: string;
@@ -5073,6 +5074,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           created_by_staff_id?: string | null;
+          email_sent_at?: string | null;
           gift_experience_id: string;
           id?: string;
           invite_token?: string;
@@ -5088,6 +5090,7 @@ export type Database = {
         Update: {
           created_at?: string;
           created_by_staff_id?: string | null;
+          email_sent_at?: string | null;
           gift_experience_id?: string;
           id?: string;
           invite_token?: string;
@@ -17000,6 +17003,10 @@ export type Database = {
           p_retailer_id: string;
           p_title: string;
         };
+        Returns: string;
+      };
+      enqueue_gift_invitation_email: {
+        Args: { p_customer_app_base_url: string; p_invitation_id: string };
         Returns: string;
       };
       enqueue_morning_routine_delivery_notification: {
