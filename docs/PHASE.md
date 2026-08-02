@@ -827,6 +827,34 @@ p_customer_app_base_url)`, mirroring
     (4 tests) green together and standalone; full retailer suite reran
     green (49/50, the recurring demo-personas parallel-worker seed
     collision reconfirmed pre-existing once more).
+    Closed the same test-coverage gap in
+    `orchestrateCampaignDeliveries` (Stage 5.1's private-offer cron
+    enqueue, also wired into `dispatch-emails`) that
+    `orchestrateMorningRoutineDeliveries` had before it: the pure gating
+    functions (`evaluateCampaignDelivery`/`evaluateAudienceRules` in
+    `packages/domain/src/campaign/campaign.ts`) already had unit
+    coverage via `campaign.test.ts`, but the orchestrator's own loop —
+    per-campaign module-off short-circuit, per-customer consent/
+    audience/duplicate gating, and the repository/RPC calls it makes —
+    had none. Found by checking which top-level files in
+    `packages/database/src` had no matching `.test.ts`, the same search
+    that surfaced the morning-routine gap; `campaign-delivery-
+orchestrator.ts` was the only other one still uncovered (the
+    remaining files without a sibling test — `client-type.ts`,
+    `demo-seed.ts`, `index.ts`, `programme-proof-seed.ts`,
+    `test-environment-guard.ts` — are type/seed/index files, not logic
+    to unit test). New `campaign-delivery-orchestrator.test.ts` reuses
+    the same in-memory fake-client shape as the morning-routine test:
+    module-off skips an entire campaign's customers without considering
+    any of them (a real difference from morning-routine's per-
+    subscription skip — the `continue` here is on the outer campaign
+    loop), a consented customer against a campaign with zero audience
+    rules queues (zero rules + granted consent auto-matches, per
+    `evaluateAudienceRules`), a customer with no personalization consent
+    is skipped and audited with `skipped_consent_withdrawn`/
+    `no_personalization_consent`, and duplicate-for-date is suppressed.
+    `pnpm --filter @paon/database typecheck lint test` all green (476
+    tests, no regressions).
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

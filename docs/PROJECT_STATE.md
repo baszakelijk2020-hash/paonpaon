@@ -231,6 +231,18 @@ This correction supersedes conflicting status and handoff claims below:
   retailer issue/mark-redeemed use plain insert/update through
   already-granted staff RLS, no RPC. FT-13 is now fully wired across every
   table the schema already had.
+- Closed the same test-coverage gap in `orchestrateCampaignDeliveries`
+  that `orchestrateMorningRoutineDeliveries` had before it: pure gating
+  functions were unit-tested, the orchestrator loop wasn't. Found by
+  checking which top-level `packages/database/src/*.ts` files had no
+  sibling `.test.ts` — the same search that found the morning-routine
+  gap; this was the only other real one (the rest are type/seed/index
+  files). New `campaign-delivery-orchestrator.test.ts`: module-off
+  skips an entire campaign without considering its customers (a real
+  difference from morning-routine — the short-circuit is on the outer
+  campaign loop), zero-audience-rules-plus-consent auto-matches and
+  queues, no-consent is skipped and audited, duplicate-for-date is
+  suppressed.
 - Closed FT-05's last small dashboard proof gap: "one completed action
   altering the next Today view." Extended the price-approval test to
   actually decide the proposal through the real UI (not the RPC
