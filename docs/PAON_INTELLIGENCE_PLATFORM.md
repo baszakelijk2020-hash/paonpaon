@@ -215,9 +215,14 @@ requires it.
   organizer-RLS `updateSchedule` path, not a new RPC. Caught a real bug
   during proof: the migration's RLS SELECT policies had no matching
   table-level `select` grant, which 500'd immediately — fixed by adding it.
-  `wedding_guest_vouchers` is the only FT-13 surface still deliberately
-  unwired — it holds real monetary value with no redemption mechanism
-  defined anywhere, so it needs a design decision, not a mechanical port.
+  `wedding_guest_vouchers` is now connected too: it holds real monetary
+  value, but wiring it never required a payment/redemption mechanism, only
+  recording that a voucher was issued (funded outside PAON) and later
+  redeemed — neither write creates an order, moves stock, or captures a
+  payment. Migration `20260802000013` adds the customer read policy;
+  retailer issue/mark-redeemed use plain insert/update through
+  already-granted staff RLS, no RPC. FT-13 is now fully wired across every
+  table the schema already had.
   FT-02 Silhouette analysis moved from "wrong" to a first connected slice,
   replacing the invented Dutch-language SVG carousel that `DESIGN_PORTS.md`
   correctly flagged. `pag1.html`'s `#nbs-silhouette-widget-a91k` was

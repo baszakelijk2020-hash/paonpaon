@@ -10,7 +10,7 @@ import {
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate } from "@paon/utils";
+import { formatDate, formatMoney } from "@paon/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -59,6 +59,7 @@ export default async function WeddingPartyDetailPage({
     inspirationItems,
     designChoices,
     dateCandidates,
+    guestVouchers,
   ] = await Promise.all([
     partyRepo.findMembers(party.id),
     new RetailerRepository(supabase).findById(party.retailerId),
@@ -68,6 +69,7 @@ export default async function WeddingPartyDetailPage({
     partyRepo.findInspirationItems(party.id),
     partyRepo.findDesignChoices(party.id),
     partyRepo.findDateCandidates(party.id),
+    partyRepo.findGuestVouchers(party.id),
   ]);
   const dateVotes = await partyRepo.findDateVotes(
     dateCandidates.map((candidate) => candidate.id),
@@ -345,6 +347,33 @@ export default async function WeddingPartyDetailPage({
                 <span className="text-xs text-[var(--color-stone-500)]">
                   Capacity {fitting.capacity}
                 </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
+      {guestVouchers.length > 0 ? (
+        <Card className="paon-reveal" style={{ animationDelay: "210ms" }}>
+          <p className="mb-3 text-sm font-medium text-[var(--color-stone-900)]">
+            Guest vouchers
+          </p>
+          <ul className="flex flex-col gap-2">
+            {guestVouchers.map((voucher) => (
+              <li
+                key={voucher.id}
+                className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm"
+              >
+                <div className="min-w-0">
+                  <p>{voucher.guestLabel}</p>
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    {formatMoney(voucher.value, "en-US")} · expires{" "}
+                    {formatDate(voucher.expiresOn, "en-US")}
+                  </p>
+                </div>
+                <Badge tone={voucher.redeemedAt ? "success" : "neutral"}>
+                  {voucher.redeemedAt ? "Redeemed" : "Active"}
+                </Badge>
               </li>
             ))}
           </ul>

@@ -70,6 +70,20 @@ export const proposeWeddingDateCandidateSchema = z.object({
   candidateDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date"),
 });
 
+export const issueWeddingGuestVoucherSchema = z.object({
+  weddingPartyId: z.string().uuid(),
+  guestLabel: z.string().trim().min(1).max(200),
+  valueAmount: z.coerce.number().positive(),
+  currency: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z]{3}$/, "Use a 3-letter currency code")
+    .default("EUR"),
+  fundingSource: z.string().trim().min(2).max(64),
+  expiresOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date"),
+});
+
 export const joinWeddingPartySchema = z.object({
   name: z.string().trim().min(1).max(200),
   email: z.string().trim().email(),

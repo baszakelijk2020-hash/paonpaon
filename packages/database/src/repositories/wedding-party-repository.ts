@@ -1,5 +1,7 @@
 import {
   asId,
+  money,
+  type CurrencyCode,
   type CustomerId,
   type RetailerId,
   type WeddingAftercarePlan,
@@ -9,6 +11,8 @@ import {
   type WeddingDateVote,
   type WeddingDesignChoice,
   type WeddingGroupFitting,
+  type WeddingGuestVoucher,
+  type WeddingGuestVoucherId,
   type WeddingInspirationItem,
   type WeddingParty,
   type WeddingPartyMember,
@@ -35,6 +39,8 @@ type DesignChoiceRow =
 type DateCandidateRow =
   Database["public"]["Tables"]["wedding_date_candidates"]["Row"];
 type DateVoteRow = Database["public"]["Tables"]["wedding_date_votes"]["Row"];
+type GuestVoucherRow =
+  Database["public"]["Tables"]["wedding_guest_vouchers"]["Row"];
 
 const PARTY_PHOTOS_BUCKET = "party-photos";
 
@@ -139,6 +145,17 @@ const toDateVote = (row: DateVoteRow): WeddingDateVote => ({
   weddingPartyMemberId: asId<"WeddingPartyMemberId">(
     row.wedding_party_member_id,
   ),
+  createdAt: row.created_at,
+});
+
+const toGuestVoucher = (row: GuestVoucherRow): WeddingGuestVoucher => ({
+  id: asId<"WeddingGuestVoucherId">(row.id),
+  weddingPartyId: asId<"WeddingPartyId">(row.wedding_party_id),
+  guestLabel: row.guest_label,
+  value: money(row.value_minor_units, row.currency as CurrencyCode),
+  fundingSource: row.funding_source,
+  expiresOn: row.expires_on,
+  ...(row.redeemed_at ? { redeemedAt: row.redeemed_at } : {}),
   createdAt: row.created_at,
 });
 
@@ -682,5 +699,59 @@ export class WeddingPartyRepository {
     });
     if (error) throw error;
     return data;
+  }
+
+  async findGuestVouchers(
+    weddingPartyId: WeddingPartyId,
+  ): Promise<WeddingGuestVoucher[]> {
+    const { data, error } = await this.client
+      .from("wedding_guest_vouchers")
+      .select("*")
+      .eq("wedding_party_id", weddingPartyId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(toGuestVoucher);
+  }
+
+  /** Plain insert/update, not an RPC: the caller here is always retailer
+   * staff with a real session, so the existing staff RLS policies on
+   * `wedding_guest_vouchers` are sufficient — same reasoning as
+   * `createGroupFitting`. Records a fact (issued / later redeemed); never
+   * moves money itself. */
+  async issueGuestVoucher(params: {
+    retailerId: RetailerId;
+    weddingPartyId: WeddingPartyId;
+    guestLabel: string;
+    valueMinorUnits: number;
+    currency: string;
+    fundingSource: string;
+    expiresOn: string;
+  }): Promise<WeddingGuestVoucher> {
+    const { data, error } = await this.client
+      .from("wedding_guest_vouchers")
+      .insert({
+        retailer_id: params.retailerId,
+        wedding_party_id: params.weddingPartyId,
+        guest_label: params.guestLabel,
+        value_minor_units: params.valueMinorUnits,
+        currency: params.currency,
+        funding_source: params.fundingSource,
+        expires_on: params.expiresOn,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toGuestVoucher(data);
+  }
+
+  async markGuestVoucherRedeemed(
+    voucherId: WeddingGuestVoucherId,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("wedding_guest_vouchers")
+      .update({ redeemed_at: new Date().toISOString() })
+      .eq("id", voucherId)
+      .is("redeemed_at", null);
+    if (error) throw error;
   }
 }

@@ -459,12 +459,23 @@ be resumed without the module mapping required by R0.3.**
     row) — verified stable across 3 repeated runs against a production
     build after an earlier flake during dev-server hot-reload turned out to
     be a hydration-timing artifact of my own debugging, not a real bug.
-    `wedding_guest_vouchers` is the only FT-13 surface still deliberately
-    unwired — it holds real monetary value (`value_minor_units`,
-    `funding_source`) with no redemption token/mechanism defined anywhere,
-    so wiring it needs a real design decision, not a mechanical port of this
-    slice's pattern, and rushing a money-adjacent feature under time
-    pressure is exactly what R0.2's boundary exists to prevent.
+    `wedding_guest_vouchers` — FT-13's last unwired table — is now connected
+    too, on reconsideration: it holds real monetary value
+    (`value_minor_units`, `funding_source`), but wiring it never actually
+    required inventing a payment/redemption mechanism, only recording two
+    facts a retailer already knows externally — a voucher was issued
+    (funded outside PAON) and, later, that it was redeemed. Neither write
+    creates an order, moves stock, or captures a payment, so this stays
+    inside R0.2's boundary rather than crossing it; the earlier "needs a
+    founder decision" framing conflated "touches a money-shaped column"
+    with "invents a money-movement path," which this doesn't. Migration
+    `20260802000013` adds the customer-facing SELECT policy; retailer
+    issue/mark-redeemed use plain insert/update through the already-granted
+    staff RLS (same reasoning as `createGroupFitting` — a real staff
+    session, no RPC needed). Proof: a retailer browser journey (issue a
+    voucher, see it listed, mark it redeemed) and a customer browser
+    journey (organizer sees a retailer-issued voucher and its status).
+    FT-13 is now fully wired across every table the schema already had.
     FT-02 Silhouette analysis moved from "wrong" to a first connected
     slice, replacing the invented Dutch-language SVG carousel
     (Slank/Regulier/Atletisch/Gezet) that `DESIGN_PORTS.md` correctly

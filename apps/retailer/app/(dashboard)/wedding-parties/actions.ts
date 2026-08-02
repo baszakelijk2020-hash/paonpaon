@@ -7,6 +7,7 @@ import {
   createWeddingAftercarePlanSchema,
   createWeddingGroupFittingSchema,
   createWeddingPartySchema,
+  issueWeddingGuestVoucherSchema,
   updateWeddingPartyStatusSchema,
   type WeddingPartyMemberFittingStatus,
 } from "@paon/domain";
@@ -231,4 +232,60 @@ export async function createGroupFitting(
   }
   revalidatePath(`/wedding-parties/${weddingPartyId}`);
   return {};
+}
+
+export interface IssueGuestVoucherState {
+  formError?: string;
+}
+
+export async function issueGuestVoucher(
+  weddingPartyId: string,
+  _prev: IssueGuestVoucherState,
+  formData: FormData,
+): Promise<IssueGuestVoucherState> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const parsed = issueWeddingGuestVoucherSchema.safeParse({
+    weddingPartyId,
+    guestLabel: formData.get("guestLabel"),
+    valueAmount: formData.get("valueAmount"),
+    currency: formData.get("currency") || "EUR",
+    fundingSource: formData.get("fundingSource"),
+    expiresOn: formData.get("expiresOn"),
+  });
+  if (!parsed.success) {
+    return {
+      formError: parsed.error.issues[0]?.message ?? "Check the voucher fields.",
+    };
+  }
+  try {
+    await new WeddingPartyRepository(
+      await getSupabaseServerClient(),
+    ).issueGuestVoucher({
+      retailerId: session.retailerId,
+      weddingPartyId: asId<"WeddingPartyId">(parsed.data.weddingPartyId),
+      guestLabel: parsed.data.guestLabel,
+      valueMinorUnits: Math.round(parsed.data.valueAmount * 100),
+      currency: parsed.data.currency,
+      fundingSource: parsed.data.fundingSource,
+      expiresOn: parsed.data.expiresOn,
+    });
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Could not save",
+    };
+  }
+  revalidatePath(`/wedding-parties/${weddingPartyId}`);
+  return {};
+}
+
+/** Retailer staff only — records that a voucher was redeemed. Never moves
+ * money itself; the underlying transaction is external to PAON. */
+export async function markGuestVoucherRedeemed(formData: FormData) {
+  await requireModuleSession("enterprise_verticals");
+  const voucherId = String(formData.get("voucherId"));
+  const weddingPartyId = String(formData.get("weddingPartyId"));
+  await new WeddingPartyRepository(
+    await getSupabaseServerClient(),
+  ).markGuestVoucherRedeemed(voucherId as never);
+  revalidatePath(`/wedding-parties/${weddingPartyId}`);
 }

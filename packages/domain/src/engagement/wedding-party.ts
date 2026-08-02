@@ -5,10 +5,12 @@ import type {
   WeddingDateCandidateId,
   WeddingDesignChoiceId,
   WeddingGroupFittingId,
+  WeddingGuestVoucherId,
   WeddingInspirationItemId,
   WeddingPartyId,
   WeddingPartyMemberId,
 } from "../shared/branded-id";
+import type { Money } from "../shared/money";
 import type { Timestamps } from "../shared/timestamps";
 
 export type WeddingPartyStatus =
@@ -178,5 +180,21 @@ export interface WeddingDateCandidate {
 export interface WeddingDateVote {
   readonly weddingDateCandidateId: WeddingDateCandidateId;
   readonly weddingPartyMemberId: WeddingPartyMemberId;
+  readonly createdAt: string;
+}
+
+/** A retailer-issued voucher for a named wedding guest (FT-13). Records
+ * that a voucher was issued and, later, that it was redeemed — it never
+ * moves money itself (no order, no stock, no payment capture); the value
+ * was funded externally by `fundingSource`. Deliberately keyed by a guest
+ * label, not a customer id: a wedding guest list is not a customer list. */
+export interface WeddingGuestVoucher {
+  readonly id: WeddingGuestVoucherId;
+  readonly weddingPartyId: WeddingPartyId;
+  readonly guestLabel: string;
+  readonly value: Money;
+  readonly fundingSource: string;
+  readonly expiresOn: string;
+  readonly redeemedAt?: string;
   readonly createdAt: string;
 }

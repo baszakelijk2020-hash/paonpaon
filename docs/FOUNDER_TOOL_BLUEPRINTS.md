@@ -862,10 +862,16 @@ every member votes at most once per candidate
 (`toggle_wedding_date_vote`, resolving the caller's own member row
 server-side); the organizer finalizes by reusing the existing organizer-RLS
 `updateSchedule` path to set `wedding_parties.event_date`, not a new RPC.
-Still unwired: `wedding_guest_vouchers` (also schema-real, deliberately left
-alone — it holds real monetary value with no redemption mechanism defined
-anywhere, so wiring it needs a real design decision, not a mechanical port
-of this pattern) — planner workflow/experience otherwise partial.
+`wedding_guest_vouchers` is now connected too: it holds real monetary
+value but wiring it never required a payment/redemption mechanism, only
+recording two facts the retailer already knows externally (issued,
+funded outside PAON; later redeemed) — neither write creates an order,
+moves stock, or captures a payment, so it stays inside R0.2's boundary
+rather than crossing it. Migration `20260802000013` adds the
+customer-facing SELECT policy; retailer issue/mark-redeemed use plain
+insert/update through the already-granted staff RLS, no RPC. FT-13 is now
+fully wired across every table the schema already had — planner
+workflow/experience otherwise partial.
 
 ## FT-14 — Preferred Tailoring and HighMaintenance
 

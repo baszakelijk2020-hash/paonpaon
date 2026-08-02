@@ -104,3 +104,42 @@ test("owner schedules a group fitting for the wedding party", async ({
   await expect(fittingItem).toBeVisible();
   await expect(fittingItem).toContainText("Mar 15, 2027");
 });
+
+test("owner issues a guest voucher and marks it redeemed", async ({ page }) => {
+  const unique = Date.now();
+
+  await page.goto("/customers/new");
+  await page.getByLabel("Full name").fill("Guest Voucher Groom");
+  await page
+    .getByLabel("Email")
+    .fill(`guest-voucher-groom-${unique}@paon.test`);
+  await page.getByRole("button", { name: "Add client" }).click();
+  await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+$/);
+  const customerId = page.url().split("/").pop();
+
+  await page.goto(`/wedding-parties/new?customerId=${customerId}`);
+  await page.getByLabel("Venue").fill("The Grand Hall");
+  await page.getByRole("button", { name: "Create wedding party" }).click();
+  await expect(page).toHaveURL(/\/wedding-parties\/[0-9a-f-]+$/);
+
+  const guestLabel = `Uncle Robert ${unique}`;
+  await page.getByLabel("Voucher recipient").fill(guestLabel);
+  await page.getByLabel("Funding source").fill("Couple's gift fund");
+  await page.getByLabel("Value").fill("150");
+  await page.getByLabel("Expires").fill("2027-12-31");
+  await page.getByRole("button", { name: "Issue voucher" }).click();
+
+  const voucherItem = page.locator("li", { hasText: guestLabel });
+  await expect(voucherItem).toBeVisible();
+  await expect(voucherItem).toContainText("€150.00");
+  await expect(voucherItem).toContainText("Couple's gift fund");
+  await expect(
+    voucherItem.getByRole("button", { name: "Mark redeemed" }),
+  ).toBeVisible();
+
+  await voucherItem.getByRole("button", { name: "Mark redeemed" }).click();
+  await expect(voucherItem.getByText("Redeemed")).toBeVisible();
+  await expect(
+    voucherItem.getByRole("button", { name: "Mark redeemed" }),
+  ).toHaveCount(0);
+});

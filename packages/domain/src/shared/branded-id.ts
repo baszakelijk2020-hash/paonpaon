@@ -172,6 +172,7 @@ export type WeddingInspirationItemId = Brand<
 >;
 export type WeddingDesignChoiceId = Brand<string, "WeddingDesignChoiceId">;
 export type WeddingDateCandidateId = Brand<string, "WeddingDateCandidateId">;
+export type WeddingGuestVoucherId = Brand<string, "WeddingGuestVoucherId">;
 export type StaffShiftId = Brand<string, "StaffShiftId">;
 export type StaffTimeEntryId = Brand<string, "StaffTimeEntryId">;
 export type BehavioralEventId = Brand<string, "BehavioralEventId">;

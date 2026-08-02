@@ -23,6 +23,7 @@ import { notFound } from "next/navigation";
 
 import { startConversation } from "../../messages/actions";
 import {
+  markGuestVoucherRedeemed,
   updateMemberFittingStatus,
   updateWeddingPartyStatus,
 } from "../actions";
@@ -30,6 +31,7 @@ import {
 import { AddMemberForm } from "./add-member-form";
 import { AftercarePlanForm } from "./aftercare-plan-form";
 import { GroupFittingForm } from "./group-fitting-form";
+import { GuestVoucherForm } from "./guest-voucher-form";
 import { PartyScheduleForm } from "./party-schedule-form";
 
 import { requireSession } from "@/lib/session";
@@ -55,14 +57,14 @@ export default async function WeddingPartyDetailPage({
   const party = await repo.findById(id as never);
   if (!party || party.retailerId !== session.retailerId) notFound();
 
-  const [members, organizer, aftercarePlans, groupFittings] = await Promise.all(
-    [
+  const [members, organizer, aftercarePlans, groupFittings, guestVouchers] =
+    await Promise.all([
       repo.findMembers(party.id),
       new CustomerRepository(supabase).findById(party.organizerCustomerId),
       repo.findAftercarePlans(party.id),
       repo.findGroupFittings(party.id),
-    ],
-  );
+      repo.findGuestVouchers(party.id),
+    ]);
 
   const wishlistRepo = new WishlistRepository(supabase);
   const variantRepo = new ProductVariantRepository(supabase);
@@ -377,6 +379,66 @@ export default async function WeddingPartyDetailPage({
             </p>
           )}
           <GroupFittingForm weddingPartyId={party.id} />
+        </Card>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
+          Guest vouchers
+        </h2>
+        <Card
+          className="paon-reveal flex flex-col gap-4"
+          style={{ animationDelay: "300ms" }}
+        >
+          {guestVouchers.length > 0 ? (
+            <ul className="flex flex-col gap-2">
+              {guestVouchers.map((voucher) => (
+                <li
+                  key={voucher.id}
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p>{voucher.guestLabel}</p>
+                    <p className="text-xs text-[var(--color-stone-500)]">
+                      {formatMoney(voucher.value, "en-US")} ·{" "}
+                      {voucher.fundingSource} · expires{" "}
+                      {formatDate(voucher.expiresOn, "en-US")}
+                    </p>
+                  </div>
+                  {voucher.redeemedAt ? (
+                    <Badge tone="success">Redeemed</Badge>
+                  ) : (
+                    <form action={markGuestVoucherRedeemed}>
+                      <input
+                        type="hidden"
+                        name="voucherId"
+                        value={voucher.id}
+                      />
+                      <input
+                        type="hidden"
+                        name="weddingPartyId"
+                        value={party.id}
+                      />
+                      <button
+                        type="submit"
+                        className={buttonVariants({
+                          variant: "outline",
+                          size: "sm",
+                        })}
+                      >
+                        Mark redeemed
+                      </button>
+                    </form>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-[var(--color-stone-500)]">
+              No guest vouchers issued yet.
+            </p>
+          )}
+          <GuestVoucherForm weddingPartyId={party.id} />
         </Card>
       </div>
     </div>
