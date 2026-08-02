@@ -308,8 +308,17 @@ be resumed without the module mapping required by R0.3.**
     customer open-redeem-blocked-on-replay browser journey. Not built yet:
     expiry/revoke polish, resend, giver payment/request flow and recall/
     refund — continue with these or the next founder-tool contract.
-
-- [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
+    Running the full retailer e2e suite (not just the targeted specs recent
+    sessions ran) surfaced a real pre-existing gap from R0.3's original
+    module-kernel landing: the shared demo persona retailer ("Maison
+    Dubois", `seedDemoData`/`seedProspectDemoRetailer`) had zero module
+    configuration or subscription plan, so every module resolved `off` and
+    every module-gated route/nav 404s or hides for every persona —
+    `demo-personas.spec.ts`'s 7 navigation assertions were all silently
+    failing. `demo-seed.ts`'s `seedRetailer` now activates all eight
+    modules for every seeded demo/prospect house, the same fix already
+    applied to the retailer and customer e2e fixtures. Full retailer suite
+    is now a clean 44/44.
   - **Dependencies:** R0.3.
   - **Acceptance:** an advisor opens one Today surface, understands the next
     clients/promises, opens a complete House Memory view, sees provenance and

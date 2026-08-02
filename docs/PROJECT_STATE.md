@@ -138,6 +138,12 @@ This correction supersedes conflicting status and handoff claims below:
   curate/invite/see-redeemed, customer open/redeem/blocked-on-replay.
   Remaining: expiry/revoke UI polish, resend, giver payment/request flow,
   recall/refund.
+- Running the full retailer e2e suite (rather than only targeted specs)
+  surfaced a real R0.3 regression: the shared demo persona retailer had no
+  module configuration/subscription, so every module resolved `off` and
+  `demo-personas.spec.ts`'s 7 navigation checks were silently failing.
+  `demo-seed.ts` now activates all eight modules for every seeded demo/
+  prospect house. Full retailer suite is a clean 44/44.
 
 ## Repository
 

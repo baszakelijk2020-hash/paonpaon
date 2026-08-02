@@ -18,6 +18,7 @@ import type {
 } from "@paon/domain";
 import {
   decodeProspectProductImageLine,
+  PLATFORM_MODULES,
   PROGRAMME_PROOF_RETAILER_SLUG,
 } from "@paon/domain";
 
@@ -35,6 +36,7 @@ import {
   LoyaltyRepository,
   MessagingRepository,
   OrderRepository,
+  PlatformModuleRepository,
   PlatformStaffRepository,
   ProductRepository,
   ProductVariantRepository,
@@ -1528,6 +1530,23 @@ async function seedRetailerSpecs(params: {
         .eq("id", retailer.id);
     }
     const retailerId = retailer.id as RetailerId;
+
+    // A retailer created after the module-kernel migration
+    // (20260801190000) has no plan/legacy-compatibility override, so
+    // every module resolves "off" by default and every module-gated
+    // route/nav in the retailer app 404s or hides for every persona.
+    // This demo house is meant to exercise the complete platform.
+    const moduleRepo = new PlatformModuleRepository(admin);
+    for (const platformModule of PLATFORM_MODULES) {
+      await moduleRepo.configure({
+        retailerId,
+        moduleKey: platformModule.key,
+        state: "active",
+        authorityMode:
+          platformModule.key === "platform_core" ? "paon" : "co_managed",
+        source: "add_on",
+      });
+    }
 
     // Workshop ("alteration partner") — created before staff since
     // workshop_manager/worker roles require a workshop_id at insert time
