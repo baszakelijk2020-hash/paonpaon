@@ -363,6 +363,34 @@ be resumed without the module mapping required by R0.3.**
     the orphaned rows were purged. Not built yet: date candidates/votes
     ("group-date agreement"), group fittings, member style/design choices,
     guest vouchers and inspiration items.
+    FT-07 Lapel/pocket/shoulder configurator moved from "missing" to a first
+    connected slice — and `DESIGN_PORTS.md`'s prior "none found" for this row
+    was itself wrong: `downloaded_pages/pag1.html` was checked directly and
+    does contain a genuine designated fragment, `#suit-configurator-widget`
+    (three synchronized scroll-snap carousels plus a top model carousel with
+    three predefined coherent combinations). This is a real pixel port, not a
+    built-from-description substitute: CSS, markup, class names, image URLs
+    and the model configs (Henk/Willem/Karel) are byte-for-byte from source.
+    The source drives scroll-to-panel and opacity crossfade with GSAP; this
+    codebase has no GSAP dependency anywhere, so scroll easing is a
+    hand-rolled requestAnimationFrame tween using GSAP's own power2.inOut
+    formula (the same precedent `am-house-orbit.tsx` already set — reimplement
+    source animation math directly rather than add a library) and the opacity
+    crossfade is a plain CSS transition, visually equivalent. Migration
+    `20260802000008` adds `suit_configuration_intents` (append-only, one row
+    per save so an advisor can see exploration, not just the latest pick) and
+    `save_suit_configuration_intent`, a narrow RPC re-deriving the caller's
+    Customer row and self-creating it on a first interaction (same shape as
+    `save_wishlist_item`). A customer explores the widget at
+    `/r/[slug]/configurator`, gated by `wardrobe_styling`, and makes an
+    explicit "Save this configuration" decision separate from browsing,
+    matching the swipe deck/wardrobe rail precedent. Proof: one browser
+    journey covering the initial predefined-model state, clicking a different
+    model to resync all three sub-carousels together, save, and a database
+    assertion of the saved row (lapel/pockets/shoulder/modelPreset). Not built
+    yet: prohibited combinations, version pinning, retired-option recovery,
+    cross-House asset/rule isolation, advisor-side visibility UI and
+    configuration-to-proposal/MTM production continuation.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

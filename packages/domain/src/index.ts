@@ -131,6 +131,8 @@ export * from "./wardrobe/morning-routine";
 export * from "./wardrobe/morning-routine.schema";
 export * from "./wardrobe/morning-routine-delivery";
 export * from "./wardrobe/morning-routine-delivery.schema";
+export * from "./wardrobe/suit-configurator";
+export * from "./wardrobe/suit-configurator.schema";
 export * from "./campaign/campaign";
 export * from "./campaign/campaign.schema";
 export * from "./campaign/campaign-library";

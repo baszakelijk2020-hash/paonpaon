@@ -161,6 +161,10 @@ export type PaymentId = Brand<string, "PaymentId">;
 export type WeddingPartyId = Brand<string, "WeddingPartyId">;
 export type WeddingPartyMemberId = Brand<string, "WeddingPartyMemberId">;
 export type WeddingAftercarePlanId = Brand<string, "WeddingAftercarePlanId">;
+export type SuitConfigurationIntentId = Brand<
+  string,
+  "SuitConfigurationIntentId"
+>;
 export type StaffShiftId = Brand<string, "StaffShiftId">;
 export type StaffTimeEntryId = Brand<string, "StaffTimeEntryId">;
 export type BehavioralEventId = Brand<string, "BehavioralEventId">;

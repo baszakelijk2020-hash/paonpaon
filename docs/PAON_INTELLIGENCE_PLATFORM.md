@@ -165,6 +165,26 @@ requires it.
   fixed to soft-delete, orphaned rows purged. Date candidates/votes, group
   fittings, member design choices, guest vouchers and inspiration items
   remain unwired.
+  FT-07 Lapel/pocket/shoulder configurator moved from missing to a first
+  connected slice, and corrected a wrong `DESIGN_PORTS.md` entry along the
+  way: `pag1.html` was checked directly and does contain a designated
+  `#suit-configurator-widget` fragment (three synchronized carousels plus a
+  model carousel with three predefined combinations), so this is a real
+  pixel port — CSS, markup, image URLs and the model configs are
+  byte-for-byte from source. GSAP scroll/opacity tweening is reimplemented
+  with a hand-rolled requestAnimationFrame tween (GSAP's own power2.inOut
+  formula) and a CSS transition, since this codebase has no GSAP dependency
+  (same precedent as `am-house-orbit.tsx`). Migration `20260802000008` adds
+  `suit_configuration_intents` (append-only) and
+  `save_suit_configuration_intent`, a narrow RPC re-deriving the caller's
+  Customer row and self-creating it on first interaction (same shape as
+  `save_wishlist_item`). Customers explore at `/r/[slug]/configurator`
+  (gated by `wardrobe_styling`) and make an explicit save decision. Proof: a
+  browser journey covering initial predefined-model state, model-click
+  resync of all three sub-carousels, save, and a database assertion.
+  Prohibited combinations, version pinning, retired-option recovery,
+  cross-House isolation, advisor-side visibility and configuration-to-
+  proposal/MTM continuation remain.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

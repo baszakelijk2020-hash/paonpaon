@@ -458,7 +458,30 @@ may inform explainable preferences only with consent.
 history and offer a replacement path. Failed save retains a local draft.
 Prove faithful synchronization, prohibited combinations, version pinning,
 cross-House assets/rules, retired option recovery and configuration-to-proposal
-without unsupported production write-back. **Current:** missing.
+without unsupported production write-back. **Current:** first connected slice
+(2026-08-02). `pag1.html`'s `#suit-configurator-widget` was checked directly
+and confirmed present — this is a genuine designated-source port, not a
+built-from-description substitute: CSS, markup, class names, image URLs and
+the three predefined model combinations (Henk/Willem/Karel) are byte-for-byte
+from the source. The source drives scroll-to-panel and opacity crossfade with
+GSAP; this codebase has no GSAP dependency, so scroll easing is a hand-rolled
+requestAnimationFrame tween using GSAP's own power2.inOut formula (same
+precedent as `am-house-orbit.tsx` reimplementing source animation math
+directly rather than adding a library) and the opacity crossfade is a plain
+CSS transition — visually equivalent, no callback timing to replicate.
+Migration `20260802000008` adds `suit_configuration_intents` (append-only,
+one row per save) and `save_suit_configuration_intent`, a narrow RPC that
+re-derives the caller's Customer row and self-creates it on a first
+interaction (same shape as `save_wishlist_item`). A customer explores the
+widget at `/r/[slug]/configurator`, gated by `wardrobe_styling`, and makes an
+explicit "Save this configuration" decision separate from browsing — matching
+the swipe deck/wardrobe rail precedent of an explicit persisted choice rather
+than saving on every scroll settle. Proof: one browser journey covering
+initial predefined-model state, clicking a different model to resync all
+three sub-carousels together, save, and a database assertion of the saved
+row. Not built yet: prohibited combinations, version pinning, retired-option
+recovery, cross-House asset/rule isolation, advisor-side visibility UI and
+configuration-to-proposal/MTM production continuation.
 
 ## FT-08 — Swipe deck
 

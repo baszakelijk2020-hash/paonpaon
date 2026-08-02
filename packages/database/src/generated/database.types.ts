@@ -14579,6 +14579,54 @@ export type Database = {
         };
         Relationships: [];
       };
+      suit_configuration_intents: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          id: string;
+          lapel: string;
+          model_preset: number | null;
+          pockets: string;
+          retailer_id: string;
+          shoulder: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          lapel: string;
+          model_preset?: number | null;
+          pockets: string;
+          retailer_id: string;
+          shoulder: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          lapel?: string;
+          model_preset?: number | null;
+          pockets?: string;
+          retailer_id?: string;
+          shoulder?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "suit_configuration_intents_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "suit_configuration_intents_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       supplier_facts: {
         Row: {
           created_at: string;
@@ -17499,6 +17547,16 @@ export type Database = {
       save_retailer_brand_theme: {
         Args: { p_change_note: string; p_retailer_id: string; p_theme: Json };
         Returns: number;
+      };
+      save_suit_configuration_intent: {
+        Args: {
+          p_lapel: string;
+          p_model_preset?: number;
+          p_pockets: string;
+          p_retailer_id: string;
+          p_shoulder: string;
+        };
+        Returns: string;
       };
       save_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };
