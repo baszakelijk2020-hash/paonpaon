@@ -242,11 +242,28 @@ export class WeddingPartyRepository {
     return data;
   }
 
+  /** Resolves a token's owning retailer without joining, so a caller can
+   * check module state first. `wedding_parties` has no anonymous select
+   * policy (ADR-034's "no new anonymous RLS read/insert policy, narrow
+   * RPC only"), so this is a narrow RPC mirroring `join_wedding_party`'s
+   * own token-validity check rather than a table read. Returns null for
+   * an invalid/expired/cancelled token — the join call surfaces that as
+   * a thrown error either way. */
+  async retailerIdForInvite(inviteToken: string): Promise<RetailerId | null> {
+    const { data, error } = await this.client.rpc(
+      "wedding_party_retailer_for_invite",
+      { p_invite_token: inviteToken },
+    );
+    if (error) throw error;
+    return data ? asId<"RetailerId">(data) : null;
+  }
+
   /** The anonymous join path (`join_wedding_party`, security definer)
-   * — no pre-validation read of the invite token beforehand, since
-   * `wedding_parties`' RLS has no anonymous select policy and never
-   * should (ADR-034's "no new anonymous RLS read/insert policy, narrow
-   * RPC only"). An invalid token surfaces as a thrown error here. */
+   * — no pre-validation read of the invite token beyond the module-state
+   * check above, since `wedding_parties`' RLS has no anonymous select
+   * policy and never should (ADR-034's "no new anonymous RLS read/insert
+   * policy, narrow RPC only"). An invalid token surfaces as a thrown
+   * error here. */
   async joinViaInvite(params: {
     inviteToken: string;
     name: string;

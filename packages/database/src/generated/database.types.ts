@@ -17594,6 +17594,10 @@ export type Database = {
         Args: { p_item: Database["public"]["Tables"]["wardrobe_items"]["Row"] };
         Returns: boolean;
       };
+      wedding_party_retailer_for_invite: {
+        Args: { p_invite_token: string };
+        Returns: string;
+      };
     };
     Enums: {
       ai_generation_kind:

@@ -68,9 +68,11 @@ requires it.
   record externally-already-happened money/inventory facts, and dropping
   them under a module-suspension check would create the ledger/stock
   divergence R0.2 exists to prevent; enforcement belongs at origination, not
-  reconciliation. Still open: `joinWeddingParty`'s anonymous invite-token
-  path (needs a token→retailer lookup added to `WeddingPartyRepository`
-  before it can gate pre-write).
+  reconciliation. `joinWeddingParty`'s anonymous invite-token path is now
+  gated too, via a new read-only `wedding_party_retailer_for_invite` lookup
+  (migration `20260802000005`) that mirrors the join RPC's own token-validity
+  check without performing the join. The non-browser module-boundary audit
+  from R0.3 is now fully closed.
   `CAPABILITY_DISPOSITION.md` is the inheritance registry;
   `FOUNDER_TOOL_BLUEPRINTS.md` is now the implementation-grade contract for
   all fourteen designated tools and the wider founder-intent crosswalk. Read

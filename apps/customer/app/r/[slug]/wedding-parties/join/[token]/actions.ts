@@ -9,6 +9,7 @@ import {
   type WeddingPartyMemberRole,
 } from "@paon/domain";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -63,9 +64,19 @@ export async function joinWeddingParty(
   }
 
   const supabase = await getSupabaseServerClient();
+  const partyRepo = new WeddingPartyRepository(supabase);
   let joined: { memberId: string; partyId: string; retailerId: string };
   try {
-    joined = await new WeddingPartyRepository(supabase).joinViaInvite({
+    const retailerId = await partyRepo.retailerIdForInvite(token);
+    if (!retailerId) {
+      return { formError: "Invite link is no longer valid." };
+    }
+    await assertRetailerModuleActive(
+      supabase,
+      retailerId,
+      "enterprise_verticals",
+    );
+    joined = await partyRepo.joinViaInvite({
       inviteToken: token,
       name: parsed.data.name,
       email: parsed.data.email,

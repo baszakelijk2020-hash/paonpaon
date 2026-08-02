@@ -273,14 +273,20 @@ be resumed without the module mapping required by R0.3.**
     provider retries eventually expire, making it unrecoverable. The correct
     enforcement point is origination (cart/checkout, already gated), not
     reconciliation.
-    **Deferred:** `wedding-parties/join/[token]/actions.ts`'s anonymous
-    `joinWeddingParty` is not yet gated on `enterprise_verticals` — the
-    invite-token join RPC resolves the retailer only as a side effect of the
-    write itself, so gating first needs a read-only token→retailer lookup
-    added to `WeddingPartyRepository` (no such method exists today). Low risk
-    in the interim: an invite token is retailer-scoped and manager-issued, so
-    a suspended enterprise module mainly means an unwanted late join rather
-    than an unauthorized one.
+    `wedding-parties/join/[token]/actions.ts`'s anonymous `joinWeddingParty`
+    is now also gated on `enterprise_verticals`. Migration `20260802000005`
+    adds `wedding_party_retailer_for_invite`, a read-only mirror of
+    `join_wedding_party`'s own token-validity check (same result: valid ->
+    retailer id, invalid/cancelled -> null), so the caller resolves the
+    retailer and checks the module before ever calling the join RPC.
+    `WeddingPartyRepository.retailerIdForInvite` wraps it; 3 new pgTAP
+    assertions (`wedding_party_invite_lookup_test.sql`) cover valid,
+    unknown and cancelled tokens. No browser proof: this feature had zero
+    existing e2e coverage (photo-upload fixture, invite-token seeding) to
+    extend, and building that from scratch is out of proportion to closing
+    a low-risk deferred gap on already-unproven code — the pgTAP proof plus
+    the byte-identical `assertRetailerModuleActive` call already proven
+    working for every other module family is the honest proof level here.
     Remaining from the original audit: founder-tool blueprint implementation
     and House cleanup.
 

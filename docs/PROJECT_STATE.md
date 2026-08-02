@@ -108,10 +108,18 @@ This correction supersedes conflicting status and handoff claims below:
   Stripe Connect and Faden webhooks stay deliberately ungated — they record
   externally-already-happened money/inventory facts, and dropping them under
   a module-suspension check would create the ledger/stock divergence R0.2
-  exists to prevent. Deferred: `joinWeddingParty`'s anonymous invite-token
-  path needs a token→retailer lookup added to `WeddingPartyRepository` before
-  it can gate before the write. Proof: 2 new browser assertions
-  (`module-boundary.spec.ts`), full customer e2e suite green at 35/35.
+  exists to prevent. Proof: 2 new browser assertions (`module-boundary.spec.ts`),
+  full customer e2e suite green at 35/35.
+- `joinWeddingParty`'s anonymous invite-token path is now gated on
+  `enterprise_verticals` too, closing the R0.3 non-browser audit entirely.
+  A new read-only `wedding_party_retailer_for_invite` RPC (migration
+  `20260802000005`) mirrors `join_wedding_party`'s own token-validity check
+  without performing the join, so the caller can gate before writing;
+  `WeddingPartyRepository.retailerIdForInvite` wraps it. Proof: 3 pgTAP
+  assertions (valid/unknown/cancelled token). No browser proof — this
+  feature has no existing e2e fixture (photo upload, invite seeding) to
+  extend, and building one from scratch was judged disproportionate to
+  closing an already-low-risk deferred gap on previously-unproven code.
 
 ## Repository
 
