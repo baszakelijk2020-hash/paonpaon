@@ -231,6 +231,13 @@ This correction supersedes conflicting status and handoff claims below:
   retailer issue/mark-redeemed use plain insert/update through
   already-granted staff RLS, no RPC. FT-13 is now fully wired across every
   table the schema already had.
+- Strengthened FT-05's advisor Today dashboard proof: `dashboard-digest.
+spec.ts` proved exactly one of five "Needs your attention" card types
+  (price approval); added a second — today's appointment, seeded
+  directly and asserted through the real card (customer name, type
+  label, link-through) — following the same "prove one representative
+  case" precedent used for the module-boundary gate rather than testing
+  all five card types in one slice.
 - Closed FT-10's "resend" gap, which turned out on inspection to be an
   initial-send gap: "Send invitation" only ever created the DB row and
   showed the raw redeem link as text for the manager to copy — nothing

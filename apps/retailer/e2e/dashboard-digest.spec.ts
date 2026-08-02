@@ -111,3 +111,89 @@ test("owner sees a pending price approval on the dashboard and can jump straight
   expect(custodyIndex).toBeGreaterThanOrEqual(0);
   expect(pricingIndex).toBeLessThan(custodyIndex);
 });
+
+/**
+ * The price-approval card above is the only "Needs your attention" card
+ * type with any browser proof (docs/FOUNDER_TOOL_BLUEPRINTS.md FT-05 flags
+ * the advisor-facing Today dashboard as real but unverified). Today's
+ * appointment is the most central of the remaining card types, so this
+ * proves the dashboard reads a real appointment — not just the booking
+ * flow already covered by workspace.spec.ts — and links through correctly.
+ * Seeded directly (see the file docstring above for why direct seeding is
+ * in scope here): the read surface under test is the dashboard card, not
+ * the booking Server Action, which has its own coverage.
+ */
+test("owner sees today's appointment as a dashboard attention card", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+    );
+  }
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", "e2e-retailer-workspace")
+    .single();
+  if (!retailer) throw new Error("E2E retailer is missing");
+  const { data: customer } = await admin
+    .from("customers")
+    .select("id, full_name")
+    .eq("retailer_id", retailer.id)
+    .limit(1)
+    .single();
+  if (!customer) throw new Error("E2E fixture customer is missing");
+
+  // Noon UTC on the current UTC calendar date — matches the dashboard's
+  // own `isToday` (UTC year/month/date comparison) regardless of what
+  // time the suite happens to run.
+  const now = new Date();
+  const startsAt = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      12,
+      0,
+      0,
+    ),
+  );
+  const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000);
+
+  const { data: appointment, error: insertError } = await admin
+    .from("appointments")
+    .insert({
+      retailer_id: retailer.id,
+      customer_id: customer.id,
+      type: "styling_consultation",
+      status: "confirmed",
+      starts_at: startsAt.toISOString(),
+      ends_at: endsAt.toISOString(),
+    })
+    .select("id")
+    .single();
+  if (insertError) throw insertError;
+
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
+  await page.getByLabel("Password").fill(TEST_OWNER_PASSWORD);
+  await page.getByRole("button", { name: "Enter the atelier" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  await expect(page.getByText("Needs your attention")).toBeVisible();
+  const card = page
+    .locator("#attention a[href*='/appointments/']")
+    .filter({ hasText: customer.full_name });
+  await expect(card).toBeVisible();
+  await expect(card).toContainText("Styling consultation");
+
+  await card.click();
+  await expect(page).toHaveURL(`/appointments/${appointment!.id}`);
+
+  await admin.from("appointments").delete().eq("id", appointment!.id);
+});

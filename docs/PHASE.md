@@ -719,6 +719,32 @@ p_customer_app_base_url)`, mirroring
     the pre-existing `demo-personas.spec.ts` parallel-worker seed
     collision reappeared under default worker count and was reconfirmed
     (again) as unrelated to this change — all 7 pass with `--workers=1`.
+    Strengthened FT-05's proof: its own blueprint text flagged "the
+    advisor-facing Today dashboard... real but unverified by this
+    session," and checking directly found `dashboard-digest.spec.ts`
+    proves exactly one of the `/dashboard` "Needs your attention"
+    surface's five card types (price approval — plus that the
+    alteration detail page orders pricing before chain-of-custody).
+    The other four (today's appointment, unread messages, low stock,
+    draft clienteling opportunity — the last of which actually renders
+    in its own separate "Draft clienteling opportunities" card above the
+    attention list, not a bug, just a different, richer section) had
+    zero coverage. Added a second representative case, today's
+    appointment — the most central of the four — as a new test in the
+    same file: seeds a real `appointments` row directly (the read
+    surface under test is the dashboard card, not the booking Server
+    Action, which `workspace.spec.ts` already covers end to end),
+    computed at noon UTC on the current UTC calendar date so it matches
+    the dashboard's own `isToday` check regardless of what time the
+    suite runs, then asserts the card renders the customer's name and
+    "Styling consultation" inside `#attention` and links through to
+    `/appointments/{id}`. Did not attempt the remaining three card types
+    or the composited customer view in this slice — matching the
+    established "prove one representative case, the rest share the same
+    read path" precedent (module-boundary gate, FT-09 attachments)
+    rather than forcing exhaustive coverage into one pass. Full retailer
+    e2e suite reran green (both `dashboard-digest.spec.ts` cases pass
+    together and standalone).
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
