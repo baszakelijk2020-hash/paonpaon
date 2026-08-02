@@ -763,6 +763,26 @@ p_customer_app_base_url)`, mirroring
     interests/shortlist/evidence) remains unproven — would need a
     granted-consent fixture with actual StyleProfile/interest data, out
     of scope for this proof-only slice.
+    Added a third "Needs your attention" card type: unread messages.
+    Seeded as one `notifications` row directly for the owner's own
+    `auth.users` id (category `message`), then asserted through the
+    real `#attention a[href='/messages']` card — scoped to `#attention`
+    since the header also has a `/messages` link with its own unread
+    badge outside that region. Counted the owner's pre-existing unread
+    notifications first rather than assuming a zero baseline, so the
+    "N conversations waiting" assertion stays correct regardless of run
+    order or other specs' leftover rows. Did not attempt the remaining
+    two card types: low stock reads `product_variants.inventory_quantity`,
+    which R0.2's `20260801000018_make_inventory_quantity_a_ledger_projection.sql`
+    and `...000019_route_all_stock_writes_through_the_ledger.sql` turned
+    into a ledger projection rather than a plain column — seeding a
+    correct fixture needs its own investigation into the current stock
+    write path, not a rushed direct write into money/stock-adjacent
+    territory. Draft clienteling opportunity was checked and found to
+    already render correctly in its own separate "Draft clienteling
+    opportunities" card above `#attention` (confirmed earlier this
+    session, not a gap). Full retailer suite: `dashboard-digest.spec.ts`
+    (now 3 tests) green standalone.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

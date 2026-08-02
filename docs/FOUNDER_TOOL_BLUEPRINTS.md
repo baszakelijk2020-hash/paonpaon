@@ -454,11 +454,24 @@ in", interests/shortlist/knowledge each showing their
 "hidden without personalization consent" text) rather than crashing or
 silently showing nothing — reusing the test's existing fresh-customer
 setup instead of a new test. The `usable`-visibility path (real
-consented interests/shortlist/evidence data) remains unproven. Not
-proven this round: the remaining three dashboard card types, the
-`usable`-visibility composited-customer-view path, ranking-rule/
-evidence-window versioning, cross-module degrade-independently
-behavior, and one completed action altering the next Today view.
+consented interests/shortlist/evidence data) remains unproven. Added a
+third dashboard card type: unread messages, seeded as one notification
+row directly for the owner's own `auth.users` id and asserted through
+the real `#attention a[href='/messages']` card, counting whatever
+unread notifications already exist first (rather than assuming zero)
+so the assertion stays correct regardless of run order or other specs'
+leftover notifications. Did not attempt low stock or draft clienteling
+opportunity this round: low stock needs a fixture written through
+whatever the current stock-ledger write path is post-R0.2 (the
+`inventory_quantity` column is now a ledger projection, not a plain
+column — worth its own investigation rather than a rushed money/stock-
+adjacent write), and draft clienteling opportunity already renders in
+its own separate, richer card outside `#attention` (not a bug — see the
+PHASE.md journal). Not proven this round: low stock, draft clienteling
+opportunity, the `usable`-visibility composited-customer-view path,
+ranking-rule/evidence-window versioning, cross-module
+degrade-independently behavior, and one completed action altering the
+next Today view.
 
 ## FT-06 — MorningRoutine complete-look canvas
 

@@ -202,3 +202,74 @@ test("owner sees today's appointment as a dashboard attention card", async ({
 
   await admin.from("appointments").delete().eq("id", appointment!.id);
 });
+
+/**
+ * Third of the five "Needs your attention" card types to get proof —
+ * unread messages. Counts whatever unread notifications already exist for
+ * the owner first (other specs can leave their own behind) rather than
+ * assuming a zero baseline, so the test stays deterministic regardless of
+ * run order.
+ */
+test("owner sees unread notifications as a dashboard attention card", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+    );
+  }
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", "e2e-retailer-workspace")
+    .single();
+  if (!retailer) throw new Error("E2E retailer is missing");
+  const { data: staffRow } = await admin
+    .from("retailer_staff_members")
+    .select("user_id")
+    .eq("retailer_id", retailer.id)
+    .eq("email", TEST_OWNER_EMAIL)
+    .single();
+  if (!staffRow?.user_id) throw new Error("E2E owner staff row is missing");
+
+  const { count: beforeCount } = await admin
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("recipient_user_id", staffRow.user_id)
+    .is("read_at", null);
+  const expectedCount = (beforeCount ?? 0) + 1;
+
+  const { data: notification, error: insertError } = await admin
+    .from("notifications")
+    .insert({
+      retailer_id: retailer.id,
+      recipient_user_id: staffRow.user_id,
+      category: "message",
+      title: "Dashboard digest fixture notification",
+      body: "Seeded for the unread-messages attention card e2e proof.",
+    })
+    .select("id")
+    .single();
+  if (insertError) throw insertError;
+
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
+  await page.getByLabel("Password").fill(TEST_OWNER_PASSWORD);
+  await page.getByRole("button", { name: "Enter the atelier" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  await expect(page.getByText("Needs your attention")).toBeVisible();
+  const card = page.locator("#attention a[href='/messages']");
+  await expect(card).toBeVisible();
+  await expect(card).toContainText(
+    expectedCount === 1
+      ? "1 conversation waiting"
+      : `${expectedCount} conversations waiting`,
+  );
+
+  await admin.from("notifications").delete().eq("id", notification!.id);
+});
