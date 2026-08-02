@@ -38,9 +38,11 @@ test("owner records fit-tool observations against a work order", async ({
   await expect(page.getByText("Observation recorded.")).toBeVisible();
   await expect(page.getByText("Neiging · +1.0")).toBeVisible();
 
-  // Silhouette carousel: switch tab, select the default body type.
+  // Silhouette widget: switch tab, select the default (auto-active) panel.
   await page.getByRole("tab", { name: "Silhouette" }).click();
-  await page.getByRole("button", { name: "Selecteer silhouet" }).click();
+  await page.getByRole("button", { name: "Select S1" }).click();
   await expect(page.getByText("Observation recorded.")).toBeVisible();
-  await expect(page.getByText("Silhouet · Slank")).toBeVisible();
+  await expect(
+    page.getByText("Silhouette · S1 — Full Mid-Section"),
+  ).toBeVisible();
 });

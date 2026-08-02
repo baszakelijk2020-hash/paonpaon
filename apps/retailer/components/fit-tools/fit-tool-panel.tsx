@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 
-import { SilhouetteCarousel } from "./silhouette-carousel";
+import { SilhouetteWidget } from "./silhouette-widget";
 import { VoxFitSlider } from "./vox-fit-slider";
 
 export function FitToolPanel({
@@ -59,7 +59,7 @@ export function FitToolPanel({
       {tab === "slider" ? (
         <VoxFitSlider onApply={apply} />
       ) : (
-        <SilhouetteCarousel onApply={apply} />
+        <SilhouetteWidget onApply={apply} />
       )}
 
       <p

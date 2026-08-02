@@ -218,6 +218,21 @@ requires it.
   `wedding_guest_vouchers` is the only FT-13 surface still deliberately
   unwired — it holds real monetary value with no redemption mechanism
   defined anywhere, so it needs a design decision, not a mechanical port.
+  FT-02 Silhouette analysis moved from "wrong" to a first connected slice,
+  replacing the invented Dutch-language SVG carousel that `DESIGN_PORTS.md`
+  correctly flagged. `pag1.html`'s `#nbs-silhouette-widget-a91k` was
+  checked directly and confirmed present: five video-backed panels (S1–S5)
+  auto-advancing on a dwell timer, pausable on touch/mouse, with two
+  "anticipated FitTools" rule columns whose glow-toggle squares highlight a
+  different subset per panel — CSS, markup, video sources and the
+  rule-highlight mapping are byte-for-byte from source. A PAON-added
+  "Select" button records the active panel through the existing
+  `recordFitToolObservation` path. Level 1 visual classification only —
+  the blueprint's Level 2/3 individual-analysis/prediction progression and
+  full consent/capture session state machine remain unbuilt. Proof: the
+  existing `fit-tools.spec.ts` journey (updated for the real button/
+  observation text) plus manual verification of auto-advance, video
+  playback and rule-highlight resync.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

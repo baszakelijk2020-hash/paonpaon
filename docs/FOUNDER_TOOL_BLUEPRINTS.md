@@ -287,8 +287,25 @@ versioned adapter with deletion propagation.
 sensitive attribute inference or indefinite raw-image retention. A processing
 failure falls back to the faithful manual carousel. Prove consent withdrawal,
 asset isolation, expiry/deletion, human rejection, no approved-fit mutation
-and source-parity motion on narrow/wide layouts. **Current:** wrong generic
-carousel; replace it.
+and source-parity motion on narrow/wide layouts. **Current:** first
+connected slice (2026-08-02), replacing the wrong generic carousel.
+`pag1.html`'s `#nbs-silhouette-widget-a91k` was checked directly and
+confirmed present: five video-backed silhouette panels (S1–S5) in an
+auto-advancing (dwell-timer), touch/mouse-pausable snap carousel, plus two
+"anticipated FitTools" rule columns whose glow-toggle squares highlight a
+different subset per active panel. CSS, markup, video sources, panel
+codes/titles and the rule-highlight mapping are byte-for-byte from source;
+`apps/retailer/components/fit-tools/silhouette-widget.tsx` replaces the
+invented Dutch-language SVG carousel. A PAON-added "Select" button — the
+source has none — records the active panel as a fit-tool observation
+through the existing `recordFitToolObservation` path, unchanged from the
+prior implementation's contract. This is Level 1 visual classification
+only; individual analysis and prediction (Level 2/3) remain unbuilt and are
+not claimed. No consent/capture/session state machine exists yet — this
+tool has no camera capture at all, only the visual carousel — so the
+`consented/capturing/candidate/...` states, private-media-asset isolation,
+advisor review and connected-journey proof described above all remain
+outstanding.
 
 ## FT-03 — QR try-on and fabric-batch concept order
 

@@ -465,6 +465,28 @@ be resumed without the module mapping required by R0.3.**
     so wiring it needs a real design decision, not a mechanical port of this
     slice's pattern, and rushing a money-adjacent feature under time
     pressure is exactly what R0.2's boundary exists to prevent.
+    FT-02 Silhouette analysis moved from "wrong" to a first connected
+    slice, replacing the invented Dutch-language SVG carousel
+    (Slank/Regulier/Atletisch/Gezet) that `DESIGN_PORTS.md` correctly
+    flagged. `pag1.html`'s `#nbs-silhouette-widget-a91k` was checked
+    directly and confirmed present: five video-backed panels (S1–S5),
+    auto-advancing on a dwell timer and pausable on touch/mouse, plus two
+    "anticipated FitTools" rule columns whose glow-toggle squares highlight
+    a different subset per active panel. CSS, markup, video sources, panel
+    codes/titles and the rule-highlight mapping are byte-for-byte from
+    source. A PAON-added "Select" button (the source has none) records the
+    active panel through the existing `recordFitToolObservation` path,
+    unchanged from the replaced component's contract, so `fit-tool-panel.tsx`
+    needed only an import swap. This is Level 1 visual classification only;
+    the blueprint's individual-analysis/prediction (Level 2/3) progression
+    and the full consent/capture session state machine remain unbuilt and
+    are not claimed. Proof: `fit-tools.spec.ts`'s existing browser journey
+    updated for the real button/observation text, plus a manual screenshot
+    verification confirming the auto-advance (S1→S2), real video playback
+    and rule-highlight resync all work — full customer (43 tests) and
+    retailer (46 tests) e2e suites green; the one failure seen in a
+    shared-worker run (migration-write-through) is the same pre-existing
+    parallel-worker flake established earlier this session.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
