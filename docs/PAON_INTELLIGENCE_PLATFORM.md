@@ -223,6 +223,19 @@ requires it.
   retailer issue/mark-redeemed use plain insert/update through
   already-granted staff RLS, no RPC. FT-13 is now fully wired across every
   table the schema already had.
+  Corrected a stale FT-06 doc claim the same day it was written: "not
+  built: live weather/calendar context wiring, delivery-job-driven
+  notification" was false — both predate the FT-06 slice (PHASE 4.4/4.5,
+  the latter landed `933ab1c`) and are already live in production, driven
+  by the `dispatch-emails` cron via `orchestrateMorningRoutineDeliveries`.
+  Caught by verifying directly against source rather than trusting the
+  paragraph just written, same discipline as the MeasurementMonitor
+  false-start. The one real gap found in the process: that orchestrator's
+  own I/O wiring (module-off short-circuit, retailer-pause audit, per-
+  channel enqueue, duplicate-for-date suppression) had zero test coverage
+  — sibling pure gating functions were unit-tested, the orchestration
+  loop itself was not. Closed with
+  `packages/database/src/morning-routine-delivery-orchestrator.test.ts`.
   FT-02 Silhouette analysis moved from "wrong" to a first connected slice,
   replacing the invented Dutch-language SVG carousel that `DESIGN_PORTS.md`
   correctly flagged. `pag1.html`'s `#nbs-silhouette-widget-a91k` was

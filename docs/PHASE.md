@@ -647,6 +647,37 @@ be resumed without the module mapping required by R0.3.**
     `"magiclink"` fails with "Email link is invalid or has expired" —
     fixed by creating the auth user first. Full retailer e2e suite rerun
     green.
+    Corrected a stale FT-06 claim from earlier the same day: its
+    **Current** line said "not built: live weather/calendar context
+    wiring, delivery-job-driven notification" — false. Both predate the
+    FT-06 slice entirely: weather/calendar wiring is PHASE 4.4
+    (`apps/customer/app/(dashboard)/morning-routine/actions.ts` already
+    calls `OpenWeatherProvider`/`AppointmentCalendarProvider` on every
+    selection generation), and the delivery job is PHASE 4.5, landed
+    `933ab1c` — `orchestrateMorningRoutineDeliveries`
+    (`packages/database/src/morning-routine-delivery-orchestrator.ts`)
+    already runs on every `dispatch-emails` cron tick, gating on
+    module-enabled/retailer-paused/opted-in/frequency/quiet-hours/
+    duplicate-for-date before enqueuing in-app/email notifications from
+    the exact persisted selection. Caught by verifying directly against
+    source instead of trusting the paragraph just written — same
+    discipline that caught the MeasurementMonitor false-start earlier
+    this session, now applied to my own immediately-prior work. The one
+    real gap surfaced in the process: `evaluateMorningRoutineDelivery`
+    and friends (the pure gating logic in
+    `packages/domain/src/wardrobe/morning-routine-delivery.ts`) had unit
+    coverage, but `orchestrateMorningRoutineDeliveries` itself — the I/O
+    wiring that loops subscriptions and calls those functions — had
+    none. Closed with
+    `packages/database/src/morning-routine-delivery-orchestrator.test.ts`:
+    an in-memory fake Postgrest/RPC client (equality-filtered `.from()`,
+    dispatched `.rpc()`, calls recorded for assertion) proving four
+    branches — module-off short-circuit with zero further table calls,
+    retailer-paused audit write with zero enqueue, a full happy path
+    enqueuing one notification per subscribed channel from a real
+    persisted selection and recording the resulting audit, and
+    duplicate-for-date suppression. `pnpm --filter @paon/database
+typecheck lint test` all green.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

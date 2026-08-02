@@ -493,9 +493,26 @@ MorningRoutine had zero e2e coverage before this slice despite being a
 real, data-backed feature; a first browser journey now exists. Empty/
 missing-image states render an honest placeholder rather than hiding the
 card, per the blueprint's "empty and partial wardrobes must still produce
-a beautiful honest composition." Not built: live weather/calendar context
-wiring, delivery-job-driven notification, and the source's decorative
+a beautiful honest composition." Not built: the source's decorative
 elements (this tool has no interactive source fragment to preserve).
+**Correction (2026-08-02):** the line above previously claimed live
+weather/calendar wiring and delivery-job-driven notification were not
+built — false, caught the same day by direct verification against
+source rather than trusting the prior paragraph. Both predate this
+slice and were already live: `apps/customer/app/(dashboard)/morning-routine/actions.ts`
+calls `OpenWeatherProvider`/`AppointmentCalendarProvider` on every
+selection generation (PHASE 4.4), and `orchestrateMorningRoutineDeliveries`
+(`packages/database/src/morning-routine-delivery-orchestrator.ts`,
+PHASE 4.5, landed `933ab1c`) runs on every `dispatch-emails` cron tick,
+enqueuing in-app/email notifications from the exact persisted selection
+with quiet-hours/frequency/duplicate/retailer-pause/module-off gating.
+The one real gap found there: the orchestrator's own I/O wiring (as
+opposed to the pure gating functions in `morning-routine-delivery.ts`,
+which already had unit coverage) had zero test coverage. Closed with
+`packages/database/src/morning-routine-delivery-orchestrator.test.ts`
+— module-off short-circuit, retailer-paused audit+no-enqueue,
+multi-channel enqueue from a real persisted selection, and duplicate-
+for-date suppression, each asserting the exact RPC calls made.
 
 ## FT-07 — Lapel, pocket and shoulder configurator
 
