@@ -16691,6 +16691,14 @@ export type Database = {
         };
         Returns: string;
       };
+      add_wedding_inspiration_item: {
+        Args: {
+          p_image_ref?: string;
+          p_note?: string;
+          p_wedding_party_id: string;
+        };
+        Returns: string;
+      };
       add_wedding_party_member: {
         Args: {
           p_email: string;

@@ -773,9 +773,18 @@ retailer authoring UI and customer completion UI, proven end-to-end
 customer-facing SELECT RLS mirroring the aftercare-plan pattern) — a
 retailer schedules a date/time + capacity fitting from the party page, the
 organizer and every member see it listed (read-only; the schema has no
-per-member RSVP column yet). Still unwired: date candidates/votes
-("group-date agreement"), member style/design choices, guest vouchers and
-inspiration items — planner workflow/experience otherwise partial.
+per-member RSVP column yet), plus a connected `wedding_inspiration_items`
+slice (also schema-real since `20260801000014`; unlike group fittings this
+is customer-writable via `added_by_customer_id`, so migration
+`20260802000010` adds `add_wedding_inspiration_item`, a SECURITY DEFINER RPC
+re-deriving organizer/member authorization and the caller's own customer id,
+plus a `wedding_inspiration_item_has_content` check constraint the original
+schema lacked) — the organizer and every member pin an image link and/or
+note, `internal_only` defaults true. Still unwired: `wedding_design_choices`
+and `wedding_guest_vouchers` (also schema-real from the same migration, no
+repository/UI/customer RLS yet) and date candidates/votes ("group-date
+agreement", no schema at all) — planner workflow/experience otherwise
+partial.
 
 ## FT-14 — Preferred Tailoring and HighMaintenance
 

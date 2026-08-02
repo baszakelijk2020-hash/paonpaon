@@ -3,7 +3,11 @@
 import { randomUUID } from "node:crypto";
 
 import { CustomerRepository, WeddingPartyRepository } from "@paon/database";
-import { asId, createWeddingPartySchema } from "@paon/domain";
+import {
+  addWeddingInspirationItemSchema,
+  asId,
+  createWeddingPartySchema,
+} from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -35,6 +39,46 @@ export async function completeAftercarePlan(formData: FormData) {
     await getSupabaseServerClient(),
   ).completeAftercarePlan(planId as never);
   revalidatePath(`/wedding-parties/${weddingPartyId}`);
+}
+
+export interface AddInspirationItemState {
+  formError?: string;
+}
+
+/** Organizer or member only — add_wedding_inspiration_item re-derives
+ * membership and the caller's own customer id server-side, so this has
+ * nothing further to check. */
+export async function addWeddingInspirationItem(
+  weddingPartyId: string,
+  _prev: AddInspirationItemState,
+  formData: FormData,
+): Promise<AddInspirationItemState> {
+  await requireSession();
+  const parsed = addWeddingInspirationItemSchema.safeParse({
+    weddingPartyId,
+    imageRef: formData.get("imageRef") || undefined,
+    note: formData.get("note") || undefined,
+  });
+  if (!parsed.success) {
+    return {
+      formError: parsed.error.issues[0]?.message ?? "Add an image or a note",
+    };
+  }
+  try {
+    await new WeddingPartyRepository(
+      await getSupabaseServerClient(),
+    ).addInspirationItem({
+      weddingPartyId: asId<"WeddingPartyId">(parsed.data.weddingPartyId),
+      ...(parsed.data.imageRef ? { imageRef: parsed.data.imageRef } : {}),
+      ...(parsed.data.note ? { note: parsed.data.note } : {}),
+    });
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Could not save",
+    };
+  }
+  revalidatePath(`/wedding-parties/${weddingPartyId}`);
+  return {};
 }
 
 export interface CreateWeddingPartyState {

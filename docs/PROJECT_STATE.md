@@ -200,6 +200,17 @@ This correction supersedes conflicting status and handoff claims below:
   date/time + capacity fitting; the organizer and every member see it
   listed (read-only — no per-member RSVP column exists yet). Proof: a
   retailer and a customer browser journey.
+- `wedding_inspiration_items` (also schema-real since `20260801000014`) is
+  now connected too. Unlike group fittings, this table is customer-writable
+  (`added_by_customer_id`), so migration `20260802000010` adds
+  `add_wedding_inspiration_item`, a SECURITY DEFINER RPC re-deriving
+  organizer/member authorization and the caller's own customer id, plus a
+  check constraint (image or note required) the original schema lacked. The
+  organizer and every member pin an image link and/or note; `internal_only`
+  defaults true. Proof: a customer browser journey with a DB assertion.
+  `wedding_design_choices` and `wedding_guest_vouchers` are also
+  schema-real from the same migration and remain fully unwired; date
+  candidates/votes has no schema at all.
 
 ## Repository
 

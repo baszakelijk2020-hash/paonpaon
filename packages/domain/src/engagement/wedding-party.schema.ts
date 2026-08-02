@@ -46,6 +46,17 @@ export const createWeddingGroupFittingSchema = z.object({
   capacity: z.coerce.number().int().positive(),
 });
 
+export const addWeddingInspirationItemSchema = z
+  .object({
+    weddingPartyId: z.string().uuid(),
+    imageRef: z.string().trim().min(1).max(2000).optional(),
+    note: z.string().trim().min(1).max(2000).optional(),
+  })
+  .refine((value) => value.imageRef ?? value.note, {
+    message: "Add an image link or a note",
+    path: ["note"],
+  });
+
 export const joinWeddingPartySchema = z.object({
   name: z.string().trim().min(1).max(200),
   email: z.string().trim().email(),

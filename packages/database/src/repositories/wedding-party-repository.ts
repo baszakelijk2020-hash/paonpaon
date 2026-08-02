@@ -5,6 +5,7 @@ import {
   type WeddingAftercarePlan,
   type WeddingAftercarePlanId,
   type WeddingGroupFitting,
+  type WeddingInspirationItem,
   type WeddingParty,
   type WeddingPartyMember,
   type WeddingPartyMemberFittingStatus,
@@ -23,6 +24,8 @@ type AftercarePlanRow =
   Database["public"]["Tables"]["wedding_aftercare_plans"]["Row"];
 type GroupFittingRow =
   Database["public"]["Tables"]["wedding_group_fittings"]["Row"];
+type InspirationItemRow =
+  Database["public"]["Tables"]["wedding_inspiration_items"]["Row"];
 
 const PARTY_PHOTOS_BUCKET = "party-photos";
 
@@ -79,6 +82,20 @@ const toGroupFitting = (row: GroupFittingRow): WeddingGroupFitting => ({
   weddingPartyId: asId<"WeddingPartyId">(row.wedding_party_id),
   scheduledAt: row.scheduled_at,
   capacity: row.capacity,
+  createdAt: row.created_at,
+});
+
+const toInspirationItem = (
+  row: InspirationItemRow,
+): WeddingInspirationItem => ({
+  id: asId<"WeddingInspirationItemId">(row.id),
+  weddingPartyId: asId<"WeddingPartyId">(row.wedding_party_id),
+  ...(row.added_by_customer_id
+    ? { addedByCustomerId: asId<"CustomerId">(row.added_by_customer_id) }
+    : {}),
+  ...(row.image_ref ? { imageRef: row.image_ref } : {}),
+  ...(row.note ? { note: row.note } : {}),
+  internalOnly: row.internal_only,
   createdAt: row.created_at,
 });
 
@@ -508,5 +525,33 @@ export class WeddingPartyRepository {
       .order("scheduled_at", { ascending: true });
     if (error) throw error;
     return data.map(toGroupFitting);
+  }
+
+  async findInspirationItems(
+    weddingPartyId: WeddingPartyId,
+  ): Promise<WeddingInspirationItem[]> {
+    const { data, error } = await this.client
+      .from("wedding_inspiration_items")
+      .select("*")
+      .eq("wedding_party_id", weddingPartyId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(toInspirationItem);
+  }
+
+  /** SECURITY DEFINER RPC (`add_wedding_inspiration_item`) — re-derives the
+   * caller's organizer/member authorization and customer id server-side
+   * rather than trusting a client-supplied customer id. */
+  async addInspirationItem(params: {
+    weddingPartyId: WeddingPartyId;
+    imageRef?: string;
+    note?: string;
+  }): Promise<void> {
+    const { error } = await this.client.rpc("add_wedding_inspiration_item", {
+      p_wedding_party_id: params.weddingPartyId,
+      ...(params.imageRef ? { p_image_ref: params.imageRef } : {}),
+      ...(params.note ? { p_note: params.note } : {}),
+    });
+    if (error) throw error;
   }
 }

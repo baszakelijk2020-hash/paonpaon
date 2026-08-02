@@ -19,6 +19,7 @@ import { completeAftercarePlan, markFittingScheduled } from "../actions";
 
 import { AmHouseHero } from "./am-house-hero";
 import { AmHouseOrbit } from "./am-house-orbit";
+import { InspirationItemForm } from "./inspiration-item-form";
 import { InviteLink } from "./invite-link";
 import { MemberPhotoUploader, PartyCoverUploader } from "./party-photos";
 import { PartyScheduleForm } from "./party-schedule-form";
@@ -47,14 +48,21 @@ export default async function WeddingPartyDetailPage({
   const party = await partyRepo.findById(id as never);
   if (!party) notFound();
 
-  const [members, retailer, myCustomers, aftercarePlans, groupFittings] =
-    await Promise.all([
-      partyRepo.findMembers(party.id),
-      new RetailerRepository(supabase).findById(party.retailerId),
-      new CustomerRepository(supabase).findByUserId(session.userId),
-      partyRepo.findAftercarePlans(party.id),
-      partyRepo.findGroupFittings(party.id),
-    ]);
+  const [
+    members,
+    retailer,
+    myCustomers,
+    aftercarePlans,
+    groupFittings,
+    inspirationItems,
+  ] = await Promise.all([
+    partyRepo.findMembers(party.id),
+    new RetailerRepository(supabase).findById(party.retailerId),
+    new CustomerRepository(supabase).findByUserId(session.userId),
+    partyRepo.findAftercarePlans(party.id),
+    partyRepo.findGroupFittings(party.id),
+    partyRepo.findInspirationItems(party.id),
+  ]);
   const myCustomerIds = new Set(myCustomers.map((c) => c.id));
   const organizer = members.find(
     (member) => member.customerId === party.organizerCustomerId,
@@ -316,6 +324,43 @@ export default async function WeddingPartyDetailPage({
               </li>
             ))}
           </ul>
+        </Card>
+      ) : null}
+
+      {inspirationItems.length > 0 || isOrganizer || myMember ? (
+        <Card className="paon-reveal" style={{ animationDelay: "220ms" }}>
+          <p className="mb-3 text-sm font-medium text-[var(--color-stone-900)]">
+            Inspiration
+          </p>
+          {inspirationItems.length > 0 ? (
+            <ul className="mb-3 flex flex-col gap-2">
+              {inspirationItems.map((item) => (
+                <li
+                  key={item.id}
+                  className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm"
+                >
+                  {item.imageRef ? (
+                    <a
+                      href={item.imageRef}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4"
+                    >
+                      {item.imageRef}
+                    </a>
+                  ) : null}
+                  {item.note ? <p>{item.note}</p> : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mb-3 text-sm text-[var(--color-stone-500)]">
+              Nothing pinned yet.
+            </p>
+          )}
+          {isOrganizer || myMember ? (
+            <InspirationItemForm weddingPartyId={party.id} />
+          ) : null}
         </Card>
       ) : null}
 

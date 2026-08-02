@@ -3,6 +3,7 @@ import type {
   RetailerId,
   WeddingAftercarePlanId,
   WeddingGroupFittingId,
+  WeddingInspirationItemId,
   WeddingPartyId,
   WeddingPartyMemberId,
 } from "../shared/branded-id";
@@ -131,5 +132,18 @@ export interface WeddingGroupFitting {
   readonly weddingPartyId: WeddingPartyId;
   readonly scheduledAt: string;
   readonly capacity: number;
+  readonly createdAt: string;
+}
+
+/** A pinned inspiration photo/note (FT-13). `addedByCustomerId` is absent
+ * when the record predates a customer link; `internalOnly` defaults true —
+ * a couple pinning a magazine photo is not licensed for publication. */
+export interface WeddingInspirationItem {
+  readonly id: WeddingInspirationItemId;
+  readonly weddingPartyId: WeddingPartyId;
+  readonly addedByCustomerId?: CustomerId;
+  readonly imageRef?: string;
+  readonly note?: string;
+  readonly internalOnly: boolean;
   readonly createdAt: string;
 }

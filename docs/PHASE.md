@@ -404,8 +404,29 @@ be resumed without the module mapping required by R0.3.**
     schema has no per-member RSVP/registration column to wire yet. Proof: a
     retailer browser journey (schedule, see it listed with the right
     date/capacity) and a customer browser journey (organizer sees a
-    retailer-scheduled fitting). Remaining FT-13 gaps: date candidates/votes,
-    member style/design choices, guest vouchers and inspiration items.
+    retailer-scheduled fitting). Remaining FT-13 gaps at that point: date
+    candidates/votes, member style/design choices, guest vouchers and
+    inspiration items.
+    `wedding_inspiration_items` (also schema-real since `20260801000014`,
+    unwired) is now connected too — the last of the three tables that only
+    needed wiring, not new schema. Unlike group fittings, this table is
+    customer-writable (`added_by_customer_id` anticipates it), so migration
+    `20260802000010` adds `add_wedding_inspiration_item`, a SECURITY DEFINER
+    RPC re-deriving the caller's organizer/member authorization and their own
+    customer id server-side (ADR-034 pattern) rather than a plain RLS insert
+    — the caller has no staff session to trust the way group-fitting
+    scheduling does. Also adds a `wedding_inspiration_item_has_content` check
+    constraint (image or note required) since the pre-existing schema
+    allowed neither. The organizer and every member can pin an image link
+    and/or a note; `internal_only` defaults `true` per the schema's own
+    comment ("a couple pinning a magazine photo is not licensed for
+    publication"). Proof: a customer browser journey (pin a note, see it
+    listed, DB asserts `added_by_customer_id` and `internal_only`). Remaining
+    FT-13 gaps: `wedding_design_choices` and `wedding_guest_vouchers` are
+    also already schema-real from the same `20260801000014` migration and
+    still fully unwired (no repository, no UI, no RLS beyond the original
+    staff-only policies); date candidates/votes ("group-date agreement") has
+    no schema at all yet.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
