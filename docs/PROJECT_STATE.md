@@ -241,6 +241,27 @@ This correction supersedes conflicting status and handoff claims below:
   `fit-tools.spec.ts` journey (updated for the real button/observation
   text) plus manual verification of auto-advance, video playback and
   rule-highlight resync.
+- Investigated FT-04 First-fitting automation next and found a precise,
+  money-adjacent gap instead of building blind: the alteration state
+  machine (`create_alteration_intake`, 11 statuses) is mature, but it is
+  the only path that ever creates a task — there is no way to add one to
+  an existing alteration later, so a post-intake observation has nowhere
+  reviewable to go. Doing that safely means reusing the intake RPC's
+  price-list task pricing and deciding its interaction with the existing
+  `proposePriceChange`/`decidePriceChange` approval flow — a real design
+  decision R0.2's boundary says not to rush. Deliberately not attempted.
+- FT-06 MorningRoutine moved from a generic ranked list to a first
+  connected slice. `pag1.html` has no composed-look widget (checked
+  directly — only narrative plus a decorative weather-camera overlay), so
+  this is built with PAON primitives against the blueprint's physical
+  description. The top recommendation is now a large featured "Today's
+  look" card; the rest form a horizontal "Complete the look" strip with
+  non-owned pieces marked. Every Server Action/field is unchanged — a pure
+  recomposition — except one real gap fixed: `primaryImageUrl` existed on
+  the domain type but was dropped in the view mapping, so no image ever
+  rendered. First e2e coverage added for a feature that had zero before.
+  "Buy" still only links to the existing product page; order creation
+  remains the Commerce boundary.
 
 ## Repository
 

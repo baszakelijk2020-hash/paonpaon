@@ -487,6 +487,48 @@ be resumed without the module mapping required by R0.3.**
     retailer (46 tests) e2e suites green; the one failure seen in a
     shared-worker run (migration-write-through) is the same pre-existing
     parallel-worker flake established earlier this session.
+    Investigated FT-04 First-fitting automation next and found a real,
+    specific, money-adjacent gap rather than building blind: the alteration
+    work order state machine (`create_alteration_intake`, 11 statuses) is
+    already mature, but the only path that creates an `alteration_task` is
+    that one intake-time RPC — there is no way to add a task to an
+    _existing_ alteration later, so a fitting observation recorded after
+    intake has nowhere reviewable to go. Adding that path safely means
+    reusing the intake RPC's price-list-driven task pricing
+    (`alteration_price_list_items` keyed by `operation_id`) and deciding how
+    it interacts with `proposePriceChange`/`decidePriceChange`'s existing
+    price-change-approval flow so the ledger stays consistent — exactly the
+    kind of money-adjacent design decision R0.2's boundary says not to rush.
+    Deliberately not attempted this session; FT-04's **Current** line below
+    now names the precise gap instead of a vague "automation absent."
+    FT-06 MorningRoutine complete-look canvas moved from "generic ranked
+    list" to a first connected slice. `pag1.html` was checked directly for
+    a composed-look widget and has none — only marketing narrative plus a
+    decorative live-weather-camera overlay requiring its own API key — so
+    this is built with PAON primitives against the blueprint's physical
+    description ("composed outfit, weather/calendar/live context,
+    complementary wardrobe pieces, missing/purchasable piece"), not a
+    source port. The top-ranked recommendation becomes a large featured
+    "Today's look" card (image, owned/catalogue label); the rest become a
+    horizontal "Complete the look" strip, with non-owned catalogue pieces
+    marked "Add to complete." Every existing Server Action (save/review/
+    book/buy/ask-advisor) and field is unchanged — this is a pure
+    recomposition, not new backend logic — except one real gap it surfaced
+    and fixed: `MorningRoutineRecommendation.primaryImageUrl` already
+    existed on the domain type but was silently dropped in the
+    page-to-panel view mapping, so no image ever had anywhere to render;
+    now wired through. "Buy" still only links to the existing product page
+    — order creation remains the Commerce boundary, nothing new was added
+    there. Also found and closed a real proof gap: MorningRoutine had zero
+    e2e coverage before this slice despite being a real, data-backed
+    feature; `morning-routine.spec.ts` is new. Empty/missing-image states
+    render an honest "No image yet" placeholder rather than hiding the
+    card, matching the blueprint's "empty and partial wardrobes must still
+    produce a beautiful honest composition." Proof: browser journey plus
+    manual screenshot verification of the featured card and strip layout
+    (fixture products have no seeded images, confirming the fallback path
+    renders correctly rather than breaking). Full customer (44 tests) and
+    retailer (46 tests) e2e suites green with no failures this run.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

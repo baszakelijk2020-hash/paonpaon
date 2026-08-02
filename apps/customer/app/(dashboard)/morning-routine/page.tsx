@@ -88,6 +88,12 @@ export default async function MorningRoutinePage() {
                           ...(recommendation.categoryCode
                             ? { categoryCode: recommendation.categoryCode }
                             : {}),
+                          ...(recommendation.primaryImageUrl
+                            ? { imageUrl: recommendation.primaryImageUrl }
+                            : {}),
+                          ...(recommendation.wardrobeItemId
+                            ? { owned: true }
+                            : {}),
                           explanation: recommendation.explanation,
                           actions: recommendation.actions,
                         }),

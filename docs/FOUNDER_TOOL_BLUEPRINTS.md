@@ -371,8 +371,20 @@ new fit candidate but never rewrite the fitted order.
 Reopen/rework appends transitions; partial work creation rolls back. Prove
 role transitions, stale-version conflict, retry/idempotency, custody and cost,
 customer acceptance and future-candidate learning without historical mutation.
-**Current:** strong observations/alteration primitives; connected source host
-and automation absent.
+**Current:** strong observations/alteration primitives (now including
+FT-01's voice/drag slider and FT-02's silhouette widget, both connected and
+recording to `fitting_observations`); connected source host and automation
+absent. Investigated directly (2026-08-02) rather than left vague: the
+alteration state machine is mature (`create_alteration_intake`, 11
+statuses), but it is the _only_ path that ever creates an
+`alteration_task` — there is no way to add a task to an existing alteration
+later, so an observation recorded after intake has nowhere reviewable to
+go. Building that path safely requires reusing the intake RPC's
+price-list-driven task pricing and deciding how a post-intake task
+interacts with the existing `proposePriceChange`/`decidePriceChange`
+approval flow so the ledger stays consistent — a real money-adjacent design
+decision, not a mechanical addition, and deliberately not attempted this
+session per R0.2's boundary.
 
 ## FT-05 — Mission Control and Self-Portrait
 
@@ -441,8 +453,28 @@ weather/calendar cannot block wardrobe value. Never invent availability or
 delivery. Frequency, quiet hours and unsubscribe are enforced at dispatch.
 Prove complete/sparse/no-context states, deterministic rerun, correction and
 suppression, module job-off behaviour and save-to-wardrobe plus appointment or
-order continuation. **Current:** domain/repository/delivery foundation; source
-experience missing.
+order continuation. **Current:** first connected slice (2026-08-02).
+`pag1.html` was checked directly for a composed-look widget and has none —
+only marketing narrative plus a decorative live-weather-camera overlay
+requiring its own API key — so this is built with PAON primitives against
+the blueprint's physical description, not a source port. The top-ranked
+recommendation is now a large featured "Today's look" card (image,
+owned/catalogue provenance label); the remaining recommendations form a
+horizontal "Complete the look" strip, with non-owned catalogue pieces
+marked "Add to complete." Every existing Server Action and data field is
+unchanged — a pure recomposition of the prior plain ranked list, not new
+backend logic — except one real gap surfaced and fixed:
+`MorningRoutineRecommendation.primaryImageUrl` already existed on the
+domain type but was silently dropped in the page-to-panel view mapping, so
+no image ever had anywhere to render. "Buy" still only links to the
+existing product page; order creation remains the Commerce boundary.
+MorningRoutine had zero e2e coverage before this slice despite being a
+real, data-backed feature; a first browser journey now exists. Empty/
+missing-image states render an honest placeholder rather than hiding the
+card, per the blueprint's "empty and partial wardrobes must still produce
+a beautiful honest composition." Not built: live weather/calendar context
+wiring, delivery-job-driven notification, and the source's decorative
+elements (this tool has no interactive source fragment to preserve).
 
 ## FT-07 — Lapel, pocket and shoulder configurator
 
