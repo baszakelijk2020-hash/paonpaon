@@ -8,6 +8,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -43,6 +44,11 @@ export async function addToCart(
   const supabase = await getSupabaseServerClient();
 
   try {
+    await assertRetailerModuleActive(
+      supabase,
+      parsed.data.retailerId as never,
+      "commerce_growth",
+    );
     await new OrderRepository(supabase).addToCart({
       retailerId: parsed.data.retailerId as never,
       productVariantId: parsed.data.productVariantId,

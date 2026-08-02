@@ -49,6 +49,28 @@ export class PlatformModuleRepository {
     }));
   }
 
+  /**
+   * A single module's lifecycle state for a retailer, callable without a
+   * platform-staff or retailer session. `resolveRetailer` above requires
+   * one, so customer-facing entry points (storefront cart/checkout) need
+   * this narrower lookup to enforce module state without a service-role
+   * client on the request path.
+   */
+  async publicAccessState(
+    retailerId: RetailerId,
+    moduleKey: PlatformModuleKey,
+  ): Promise<ModuleLifecycleState> {
+    const { data, error } = await this.client.rpc(
+      "retailer_module_access_state",
+      {
+        p_retailer_id: retailerId,
+        p_module_key: moduleKey,
+      },
+    );
+    if (error) throw error;
+    return data as ModuleLifecycleState;
+  }
+
   async configure(args: {
     readonly retailerId: RetailerId;
     readonly moduleKey: PlatformModuleKey;

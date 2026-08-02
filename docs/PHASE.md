@@ -223,6 +223,31 @@ be resumed without the module mapping required by R0.3.**
     appointment/proposal outcome remain.
     Continue implementing the contracts, audit non-browser module entry points,
     and finish House cleanup.
+    The non-browser/customer-entry-point audit found that the module boundary
+    covered retailer Server Actions only: every customer-facing commerce
+    write (raw-storefront `/api/cart-add` and `/api/cart-update`, the React
+    product page's `addToCart` Server Action, and `cart/actions.ts`'s
+    `updateCartLine`/`checkoutCart`) mutated orders regardless of the
+    retailer's `commerce_growth` module state, because those entry points
+    have no retailer/platform-staff session and cannot call
+    `resolve_retailer_modules()`. Migration `20260802000004` adds
+    `retailer_module_access_state`, a narrow single-module lookup safe to
+    expose without that session; `PlatformModuleRepository.publicAccessState`
+    and a new `assertRetailerModuleActive` customer-app helper wrap it. All
+    four customer commerce entry points now fail closed when `commerce_growth`
+    is off/suspended/preview, matching the retailer app's server boundary.
+    The customer e2e fixture retailer previously resolved every module as
+    `off` (it postdates the module-kernel migration's legacy-compatibility
+    override and had no plan), which was silently unenforced until now;
+    `global-setup.ts` now activates all eight modules for it, matching the
+    retailer app's own fixture. Proof: 3 new pgTAP assertions for the public
+    lookup (module_kernel_test.sql, 18/18), a new browser assertion that a
+    suspended module blocks the write with zero rows and a visible message
+    then recovers once reactivated, and the full customer e2e suite green at
+    33/33 with no regression. Webhook (Stripe Connect, Faden), anonymous
+    appointment/table-service, and background-job module gating from the same
+    audit remain open, as does founder-tool blueprint implementation and House
+    cleanup.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

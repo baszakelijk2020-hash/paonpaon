@@ -4,6 +4,7 @@ import {
   AlterationUpdateRepository,
   AlterationWorkflowRepository,
   CustomerRepository,
+  PlatformModuleRepository,
   ProductRepository,
   ProductVariantRepository,
   RetailerRepository,
@@ -12,7 +13,7 @@ import {
   assertSafeSupabaseWriteTarget,
   createSupabaseAdminClient,
 } from "@paon/database";
-import type { UserId } from "@paon/domain";
+import { PLATFORM_MODULES, type UserId } from "@paon/domain";
 
 import {
   TEST_CUSTOMER_EMAIL,
@@ -77,6 +78,25 @@ async function globalSetup(): Promise<void> {
       .from("retailers")
       .update({ status: "active" })
       .eq("id", retailer.id);
+  }
+
+  // A retailer created after the module-kernel migration has no plan or
+  // legacy compatibility override, so every module resolves "off" by
+  // default (see 20260801190000_create_platform_module_kernel.sql). This
+  // house intentionally exercises the complete platform, matching the
+  // retailer app's own e2e fixture; without this, module-gated customer
+  // entry points (cart, checkout, appointments, messaging) would fail
+  // closed against a fixture retailer that never opted into any module.
+  const moduleRepository = new PlatformModuleRepository(admin);
+  for (const platformModule of PLATFORM_MODULES) {
+    await moduleRepository.configure({
+      retailerId: retailer.id,
+      moduleKey: platformModule.key,
+      state: "active",
+      authorityMode:
+        platformModule.key === "platform_core" ? "paon" : "co_managed",
+      source: "add_on",
+    });
   }
 
   const existingCustomers = await customerRepo.findByRetailer(retailer.id);

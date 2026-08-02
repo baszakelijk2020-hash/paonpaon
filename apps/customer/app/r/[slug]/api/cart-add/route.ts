@@ -5,6 +5,7 @@ import {
 } from "@paon/database";
 import { NextResponse } from "next/server";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -37,6 +38,17 @@ export async function POST(request: Request) {
   );
   if (!product) {
     return NextResponse.json({ error: "product not found" }, { status: 404 });
+  }
+
+  try {
+    await assertRetailerModuleActive(
+      supabase,
+      product.retailerId,
+      "commerce_growth",
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    return NextResponse.json({ error: message }, { status: 403 });
   }
 
   try {

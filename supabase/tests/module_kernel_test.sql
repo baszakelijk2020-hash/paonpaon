@@ -1,5 +1,5 @@
 begin;
-select plan(15);
+select plan(18);
 
 select is(
   (select count(*) from public.platform_modules),
@@ -199,6 +199,42 @@ select is(
   1::bigint,
   'an identical configuration replay does not duplicate audit history'
 );
+
+-- Customer-facing entry points have no retailer/platform-staff session, so
+-- they cannot call resolve_retailer_modules(); this narrow lookup must stay
+-- callable by an anonymous/customer role while still resolving state
+-- correctly, so cart mutations can be gated without a service-role client.
+select set_config('request.jwt.claim.role', 'anon', true);
+select set_config('role', 'anon', true);
+
+select is(
+  public.retailer_module_access_state(
+    'a1000000-0000-0000-0000-000000000001',
+    'commerce_growth'
+  ),
+  'active',
+  'an anonymous caller resolves an active module state for a full-plan retailer'
+);
+
+select is(
+  public.retailer_module_access_state(
+    'a1000000-0000-0000-0000-000000000001',
+    'network_ecosystem'
+  ),
+  'suspended',
+  'the public lookup reflects a suspended override without a staff/retailer session'
+);
+
+select is(
+  public.retailer_module_access_state(
+    'a1000000-0000-0000-0000-000000000002',
+    'commerce_growth'
+  ),
+  'off',
+  'a retailer with no subscription resolves modules as off rather than erroring'
+);
+
+select set_config('role', 'none', true);
 
 select * from finish();
 rollback;

@@ -1,6 +1,6 @@
 "use server";
 
-import { OrderRepository } from "@paon/database";
+import { OrderRepository, RetailerRepository } from "@paon/database";
 import {
   asId,
   checkoutCartInputSchema,
@@ -9,8 +9,18 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+async function requireCommerceModule(
+  supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>,
+  slug: string,
+): Promise<void> {
+  const retailer = await new RetailerRepository(supabase).findBySlug(slug);
+  if (!retailer) throw new Error("Retailer not found");
+  await assertRetailerModuleActive(supabase, retailer.id, "commerce_growth");
+}
 
 export interface CartFormState {
   formError?: string;
@@ -31,7 +41,9 @@ export async function updateCartLine(
   if (!parsed.success)
     return { formError: "Choose a quantity between 0 and 20." };
   try {
-    await new OrderRepository(await getSupabaseServerClient()).updateCartLine(
+    const supabase = await getSupabaseServerClient();
+    await requireCommerceModule(supabase, slug);
+    await new OrderRepository(supabase).updateCartLine(
       parsed.data.lineId,
       parsed.data.quantity,
     );
@@ -67,20 +79,23 @@ export async function checkoutCart(
     return { formError: "Complete a valid shipping address." };
   let orderId: string;
   try {
-    orderId = await new OrderRepository(
-      await getSupabaseServerClient(),
-    ).checkoutCart(asId<"OrderId">(parsed.data.orderId), {
-      line1: parsed.data.shippingAddress.line1,
-      city: parsed.data.shippingAddress.city,
-      postalCode: parsed.data.shippingAddress.postalCode,
-      countryCode: parsed.data.shippingAddress.countryCode,
-      ...(parsed.data.shippingAddress.line2
-        ? { line2: parsed.data.shippingAddress.line2 }
-        : {}),
-      ...(parsed.data.shippingAddress.region
-        ? { region: parsed.data.shippingAddress.region }
-        : {}),
-    });
+    const supabase = await getSupabaseServerClient();
+    await requireCommerceModule(supabase, slug);
+    orderId = await new OrderRepository(supabase).checkoutCart(
+      asId<"OrderId">(parsed.data.orderId),
+      {
+        line1: parsed.data.shippingAddress.line1,
+        city: parsed.data.shippingAddress.city,
+        postalCode: parsed.data.shippingAddress.postalCode,
+        countryCode: parsed.data.shippingAddress.countryCode,
+        ...(parsed.data.shippingAddress.line2
+          ? { line2: parsed.data.shippingAddress.line2 }
+          : {}),
+        ...(parsed.data.shippingAddress.region
+          ? { region: parsed.data.shippingAddress.region }
+          : {}),
+      },
+    );
   } catch (error) {
     return {
       formError: error instanceof Error ? error.message : "Checkout failed",

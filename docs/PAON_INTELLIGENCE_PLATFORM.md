@@ -52,7 +52,15 @@ requires it.
   Every authenticated retailer Server Action now resolves its owning module;
   only sign-out and unauthenticated login/invitation acceptance intentionally
   bypass the gate. Audit non-browser handlers/background entry points rather
-  than inventing per-page tier checks; House cleanup remains open.
+  than inventing per-page tier checks; House cleanup remains open. That audit
+  found the customer app's commerce writes (raw-storefront cart routes, the
+  React product page's `addToCart`, and `cart/actions.ts`) entirely
+  unenforced — they have no retailer/staff session to call
+  `resolve_retailer_modules()` with. `retailer_module_access_state`
+  (migration `20260802000004`) plus a customer-app `assertRetailerModuleActive`
+  helper close that for `commerce_growth`; webhooks (Stripe Connect, Faden),
+  anonymous appointment/table-service inquiries and background job
+  suppression from the same audit remain open.
   `CAPABILITY_DISPOSITION.md` is the inheritance registry;
   `FOUNDER_TOOL_BLUEPRINTS.md` is now the implementation-grade contract for
   all fourteen designated tools and the wider founder-intent crosswalk. Read

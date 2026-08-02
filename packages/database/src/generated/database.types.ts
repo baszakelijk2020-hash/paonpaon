@@ -17245,6 +17245,10 @@ export type Database = {
         Args: { p_feature_key: string; p_retailer_id: string };
         Returns: boolean;
       };
+      retailer_module_access_state: {
+        Args: { p_module_key: string; p_retailer_id: string };
+        Returns: string;
+      };
       retailer_module_job_enabled: {
         Args: { p_job_key: string; p_retailer_id: string };
         Returns: boolean;

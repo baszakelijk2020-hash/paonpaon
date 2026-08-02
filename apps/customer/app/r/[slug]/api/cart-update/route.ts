@@ -1,7 +1,8 @@
-import { OrderRepository } from "@paon/database";
+import { OrderRepository, RetailerRepository } from "@paon/database";
 import { updateCartLineInputSchema } from "@paon/domain";
 import { NextResponse } from "next/server";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -11,7 +12,10 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
  * because the widget lives on the raw-served `/r/[slug]` page (see
  * `route.ts`'s own doc comment) where no Server Action can bind.
  */
-export async function POST(request: Request) {
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> },
+) {
   const session = await getSession();
   if (!session || session.accountType !== "customer") {
     return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
@@ -29,8 +33,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid input" }, { status: 400 });
   }
 
+  const { slug } = await params;
+  const supabase = await getSupabaseServerClient();
+  const retailer = await new RetailerRepository(supabase).findBySlug(slug);
+  if (!retailer) {
+    return NextResponse.json({ error: "retailer not found" }, { status: 404 });
+  }
+
   try {
-    await new OrderRepository(await getSupabaseServerClient()).updateCartLine(
+    await assertRetailerModuleActive(supabase, retailer.id, "commerce_growth");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown error";
+    return NextResponse.json({ error: message }, { status: 403 });
+  }
+
+  try {
+    await new OrderRepository(supabase).updateCartLine(
       parsed.data.lineId,
       parsed.data.quantity,
     );

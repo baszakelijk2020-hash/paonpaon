@@ -90,6 +90,16 @@ This correction supersedes conflicting status and handoff claims below:
   domain assertions and 8 pgTAP assertions pass. Async malware/quarantine,
   progress, party/garment links, consent/citation proof and the full
   conversation-to-outcome journey remain open.
+- The non-browser module-boundary audit found the customer app's commerce
+  writes (raw-storefront cart routes, the React PDP's `addToCart`,
+  `cart/actions.ts`) entirely unenforced against `commerce_growth` state —
+  they have no retailer/staff session to call `resolve_retailer_modules()`.
+  Migration `20260802000004` adds a narrow public `retailer_module_access_state`
+  lookup; all four customer commerce entry points now fail closed when the
+  module is off/suspended/preview. Proof: 3 new pgTAP assertions (18/18) and
+  a browser assertion of block-then-recover; full customer e2e suite 33/33.
+  Webhooks, anonymous appointment/table-service intake and background job
+  suppression from the same audit remain open.
 
 ## Repository
 

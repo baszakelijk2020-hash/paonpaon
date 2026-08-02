@@ -1,4 +1,8 @@
-import { createSupabaseAdminClient } from "@paon/database";
+import {
+  PlatformModuleRepository,
+  createSupabaseAdminClient,
+} from "@paon/database";
+import { asId } from "@paon/domain";
 import { expect, test } from "@playwright/test";
 
 import {
@@ -176,4 +180,130 @@ test("storefront shows an uploaded product image", async ({ page }) => {
   await expect(
     page.locator('img[src*="product-images"]').first(),
   ).toBeVisible();
+});
+
+test("a suspended commerce module blocks cart writes and preserves the cart afterward", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+    );
+  }
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+  const modules = new PlatformModuleRepository(admin);
+
+  const { data: retailerRow } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailerRow) throw new Error("fixture retailer missing");
+  const retailerId = asId<"RetailerId">(retailerRow.id);
+  const { data: customerRow } = await admin
+    .from("customers")
+    .select("id")
+    .eq("retailer_id", retailerRow.id)
+    .eq("email", TEST_CUSTOMER_EMAIL)
+    .maybeSingle();
+  if (customerRow) {
+    await admin
+      .from("orders")
+      .delete()
+      .eq("customer_id", customerRow.id)
+      .eq("status", "draft");
+  }
+
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email: TEST_CUSTOMER_EMAIL,
+  });
+  if (error || !data.properties) {
+    throw new Error(
+      `Failed to generate magic link: ${error?.message ?? "unknown error"}`,
+    );
+  }
+  await page.goto(
+    `/auth/confirm?token_hash=${data.properties.hashed_token}&type=magiclink`,
+  );
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  try {
+    // network_ecosystem depends on commerce_growth, so it must be
+    // contained first — the same dependency-safe order the retailer app's
+    // module-navigation proof uses.
+    await modules.configure({
+      retailerId: retailerId,
+      moduleKey: "network_ecosystem",
+      state: "off",
+      authorityMode: "co_managed",
+      source: "override",
+      reason: "Browser proof commerce dependency containment",
+    });
+
+    // add_to_cart: a suspended commerce module must refuse the write at the
+    // server boundary — not merely hide a button — since a stale tab or a
+    // forged fetch still reaches the route.
+    await modules.configure({
+      retailerId: retailerId,
+      moduleKey: "commerce_growth",
+      state: "suspended",
+      authorityMode: "co_managed",
+      source: "override",
+      reason: "Browser proof commerce suspension blocks cart writes",
+    });
+
+    await page.goto(
+      `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}?legacy=1`,
+    );
+    await page.getByLabel("Qty").fill("1");
+    await page.getByRole("button", { name: "Add to cart" }).click();
+    await expect(page.getByText("isn't accepting orders")).toBeVisible();
+    await expect(page).toHaveURL(
+      new RegExp(`/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}`),
+    );
+
+    const { count: blockedCount, error: blockedCountError } = await admin
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("customer_id", customerRow!.id)
+      .eq("status", "draft");
+    expect(blockedCountError).toBeNull();
+    expect(blockedCount ?? 0).toBe(0);
+
+    // Restoring the module must not leave the write path broken.
+    await modules.configure({
+      retailerId: retailerId,
+      moduleKey: "commerce_growth",
+      state: "active",
+      authorityMode: "co_managed",
+      source: "add_on",
+    });
+    await page.getByRole("button", { name: "Add to cart" }).click();
+    await expect(page).toHaveURL(new RegExp(`/r/${TEST_RETAILER_SLUG}/cart$`));
+  } finally {
+    await modules.configure({
+      retailerId: retailerId,
+      moduleKey: "commerce_growth",
+      state: "active",
+      authorityMode: "co_managed",
+      source: "add_on",
+    });
+    await modules.configure({
+      retailerId: retailerId,
+      moduleKey: "network_ecosystem",
+      state: "active",
+      authorityMode: "co_managed",
+      source: "add_on",
+    });
+    if (customerRow) {
+      await admin
+        .from("orders")
+        .delete()
+        .eq("customer_id", customerRow.id)
+        .eq("status", "draft");
+    }
+  }
 });
