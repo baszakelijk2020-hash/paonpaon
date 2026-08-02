@@ -4,6 +4,9 @@ import {
   type RetailerId,
   type WeddingAftercarePlan,
   type WeddingAftercarePlanId,
+  type WeddingDateCandidate,
+  type WeddingDateCandidateId,
+  type WeddingDateVote,
   type WeddingDesignChoice,
   type WeddingGroupFitting,
   type WeddingInspirationItem,
@@ -29,6 +32,9 @@ type InspirationItemRow =
   Database["public"]["Tables"]["wedding_inspiration_items"]["Row"];
 type DesignChoiceRow =
   Database["public"]["Tables"]["wedding_design_choices"]["Row"];
+type DateCandidateRow =
+  Database["public"]["Tables"]["wedding_date_candidates"]["Row"];
+type DateVoteRow = Database["public"]["Tables"]["wedding_date_votes"]["Row"];
 
 const PARTY_PHOTOS_BUCKET = "party-photos";
 
@@ -117,6 +123,23 @@ const toDesignChoice = (row: DesignChoiceRow): WeddingDesignChoice => ({
   coordinated: row.coordinated,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
+});
+
+const toDateCandidate = (row: DateCandidateRow): WeddingDateCandidate => ({
+  id: asId<"WeddingDateCandidateId">(row.id),
+  weddingPartyId: asId<"WeddingPartyId">(row.wedding_party_id),
+  candidateDate: row.candidate_date,
+  createdAt: row.created_at,
+});
+
+const toDateVote = (row: DateVoteRow): WeddingDateVote => ({
+  weddingDateCandidateId: asId<"WeddingDateCandidateId">(
+    row.wedding_date_candidate_id,
+  ),
+  weddingPartyMemberId: asId<"WeddingPartyMemberId">(
+    row.wedding_party_member_id,
+  ),
+  createdAt: row.created_at,
 });
 
 /** See `docs/ARCHITECTURE.md` "Data access layer" — the only code
@@ -610,5 +633,54 @@ export class WeddingPartyRepository {
         : {}),
     });
     if (error) throw error;
+  }
+
+  async findDateCandidates(
+    weddingPartyId: WeddingPartyId,
+  ): Promise<WeddingDateCandidate[]> {
+    const { data, error } = await this.client
+      .from("wedding_date_candidates")
+      .select("*")
+      .eq("wedding_party_id", weddingPartyId)
+      .order("candidate_date", { ascending: true });
+    if (error) throw error;
+    return data.map(toDateCandidate);
+  }
+
+  async findDateVotes(
+    candidateIds: WeddingDateCandidateId[],
+  ): Promise<WeddingDateVote[]> {
+    if (candidateIds.length === 0) return [];
+    const { data, error } = await this.client
+      .from("wedding_date_votes")
+      .select("*")
+      .in("wedding_date_candidate_id", candidateIds);
+    if (error) throw error;
+    return data.map(toDateVote);
+  }
+
+  /** SECURITY DEFINER RPC (`propose_wedding_date_candidate`) — re-derives
+   * organizer/member authorization server-side; idempotent on
+   * (party, date) via `on conflict do nothing`. */
+  async proposeDateCandidate(
+    weddingPartyId: WeddingPartyId,
+    candidateDate: string,
+  ): Promise<void> {
+    const { error } = await this.client.rpc("propose_wedding_date_candidate", {
+      p_wedding_party_id: weddingPartyId,
+      p_candidate_date: candidateDate,
+    });
+    if (error) throw error;
+  }
+
+  /** SECURITY DEFINER RPC (`toggle_wedding_date_vote`) — resolves the
+   * caller's own member row server-side, so a member can never vote as
+   * someone else. Returns true if the vote is now cast. */
+  async toggleDateVote(candidateId: WeddingDateCandidateId): Promise<boolean> {
+    const { data, error } = await this.client.rpc("toggle_wedding_date_vote", {
+      p_candidate_id: candidateId,
+    });
+    if (error) throw error;
+    return data;
   }
 }

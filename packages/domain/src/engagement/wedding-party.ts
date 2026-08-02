@@ -2,6 +2,7 @@ import type {
   CustomerId,
   RetailerId,
   WeddingAftercarePlanId,
+  WeddingDateCandidateId,
   WeddingDesignChoiceId,
   WeddingGroupFittingId,
   WeddingInspirationItemId,
@@ -161,4 +162,21 @@ export interface WeddingDesignChoice {
   readonly coordinated: boolean;
   readonly createdAt: string;
   readonly updatedAt: string;
+}
+
+/** A proposed wedding date, with each member's vote recorded separately
+ * (FT-13 "group-date agreement"). Finalizing sets `wedding_parties.event_date`
+ * directly — the organizer already has update rights on that column via the
+ * existing party-schedule RLS policy, so no new RPC exists for that step. */
+export interface WeddingDateCandidate {
+  readonly id: WeddingDateCandidateId;
+  readonly weddingPartyId: WeddingPartyId;
+  readonly candidateDate: string;
+  readonly createdAt: string;
+}
+
+export interface WeddingDateVote {
+  readonly weddingDateCandidateId: WeddingDateCandidateId;
+  readonly weddingPartyMemberId: WeddingPartyMemberId;
+  readonly createdAt: string;
 }

@@ -65,6 +65,11 @@ export const setWeddingDesignChoiceSchema = z.object({
   coordinated: z.coerce.boolean().optional().default(false),
 });
 
+export const proposeWeddingDateCandidateSchema = z.object({
+  weddingPartyId: z.string().uuid(),
+  candidateDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date"),
+});
+
 export const joinWeddingPartySchema = z.object({
   name: z.string().trim().min(1).max(200),
   email: z.string().trim().email(),

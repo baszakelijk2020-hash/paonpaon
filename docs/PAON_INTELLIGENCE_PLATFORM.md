@@ -205,11 +205,19 @@ requires it.
   specified in the source), or the organizer sets one party-wide
   "coordinated" choice, via migration `20260802000011`'s
   `set_wedding_design_choice` RPC, which upserts on (party, member-or-null,
-  slot) rather than accumulating duplicate rows. `wedding_guest_vouchers` is
-  also schema-real and deliberately left unwired — it holds real monetary
-  value with no redemption mechanism defined anywhere, so it needs a design
-  decision, not a mechanical port; date candidates/votes has no schema at
-  all.
+  slot) rather than accumulating duplicate rows. "Group-date agreement" is
+  connected too — the one FT-13 surface with no schema at all until
+  migration `20260802000012` added `wedding_date_candidates`/
+  `wedding_date_votes`. The organizer or any member proposes a candidate
+  date (idempotent); every member votes at most once
+  (`toggle_wedding_date_vote` resolves the caller's own member row
+  server-side); the organizer finalizes by reusing the existing
+  organizer-RLS `updateSchedule` path, not a new RPC. Caught a real bug
+  during proof: the migration's RLS SELECT policies had no matching
+  table-level `select` grant, which 500'd immediately — fixed by adding it.
+  `wedding_guest_vouchers` is the only FT-13 surface still deliberately
+  unwired — it holds real monetary value with no redemption mechanism
+  defined anywhere, so it needs a design decision, not a mechanical port.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

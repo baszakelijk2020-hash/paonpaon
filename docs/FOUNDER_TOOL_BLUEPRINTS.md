@@ -786,12 +786,18 @@ outfit choice per slot (free text; no vocabulary is specified in the source)
 or the organizer sets one party-wide "coordinated" choice, via migration
 `20260802000011`'s `set_wedding_design_choice` SECURITY DEFINER RPC, which
 upserts on (party, member-or-null, slot) rather than accumulating duplicate
-rows. Still unwired: `wedding_guest_vouchers` (also schema-real, deliberately
-left alone — it holds real monetary value with no redemption mechanism
-defined anywhere, so wiring it needs a real design decision, not a
-mechanical port of the other three tables' pattern) and date candidates/
-votes ("group-date agreement", no schema at all) — planner workflow/
-experience otherwise partial.
+rows, plus a connected "group-date agreement" slice — the one FT-13 surface
+with no schema at all until migration `20260802000012` added
+`wedding_date_candidates`/`wedding_date_votes`. The organizer or any member
+proposes a candidate date (`propose_wedding_date_candidate`, idempotent);
+every member votes at most once per candidate
+(`toggle_wedding_date_vote`, resolving the caller's own member row
+server-side); the organizer finalizes by reusing the existing organizer-RLS
+`updateSchedule` path to set `wedding_parties.event_date`, not a new RPC.
+Still unwired: `wedding_guest_vouchers` (also schema-real, deliberately left
+alone — it holds real monetary value with no redemption mechanism defined
+anywhere, so wiring it needs a real design decision, not a mechanical port
+of this pattern) — planner workflow/experience otherwise partial.
 
 ## FT-14 — Preferred Tailoring and HighMaintenance
 

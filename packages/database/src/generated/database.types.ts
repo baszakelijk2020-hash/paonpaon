@@ -15709,6 +15709,78 @@ export type Database = {
           },
         ];
       };
+      wedding_date_candidates: {
+        Row: {
+          candidate_date: string;
+          created_at: string;
+          id: string;
+          retailer_id: string;
+          wedding_party_id: string;
+        };
+        Insert: {
+          candidate_date: string;
+          created_at?: string;
+          id?: string;
+          retailer_id: string;
+          wedding_party_id: string;
+        };
+        Update: {
+          candidate_date?: string;
+          created_at?: string;
+          id?: string;
+          retailer_id?: string;
+          wedding_party_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wedding_date_candidates_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_date_candidates_wedding_party_id_fkey";
+            columns: ["wedding_party_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wedding_date_votes: {
+        Row: {
+          created_at: string;
+          wedding_date_candidate_id: string;
+          wedding_party_member_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          wedding_date_candidate_id: string;
+          wedding_party_member_id: string;
+        };
+        Update: {
+          created_at?: string;
+          wedding_date_candidate_id?: string;
+          wedding_party_member_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wedding_date_votes_wedding_date_candidate_id_fkey";
+            columns: ["wedding_date_candidate_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_date_candidates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_date_votes_wedding_party_member_id_fkey";
+            columns: ["wedding_party_member_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_party_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       wedding_design_choices: {
         Row: {
           coordinated: boolean;
@@ -17150,6 +17222,10 @@ export type Database = {
         };
         Returns: string;
       };
+      propose_wedding_date_candidate: {
+        Args: { p_candidate_date: string; p_wedding_party_id: string };
+        Returns: string;
+      };
       publish_catalogue_import_row: {
         Args: { p_import_row_id: string };
         Returns: Json;
@@ -17690,6 +17766,10 @@ export type Database = {
           p_transaction_id: string;
         };
         Returns: Json;
+      };
+      toggle_wedding_date_vote: {
+        Args: { p_candidate_id: string };
+        Returns: boolean;
       };
       toggle_wishlist_item: {
         Args: { p_retailer_id: string; p_variant_id: string };

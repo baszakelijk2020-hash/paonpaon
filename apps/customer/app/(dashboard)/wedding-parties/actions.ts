@@ -7,6 +7,7 @@ import {
   addWeddingInspirationItemSchema,
   asId,
   createWeddingPartySchema,
+  proposeWeddingDateCandidateSchema,
   setWeddingDesignChoiceSchema,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
@@ -131,6 +132,68 @@ export async function setWeddingDesignChoice(
   }
   revalidatePath(`/wedding-parties/${weddingPartyId}`);
   return {};
+}
+
+export interface ProposeDateCandidateState {
+  formError?: string;
+}
+
+/** Organizer or member — propose_wedding_date_candidate re-derives
+ * authorization server-side and is idempotent on (party, date). */
+export async function proposeWeddingDateCandidate(
+  weddingPartyId: string,
+  _prev: ProposeDateCandidateState,
+  formData: FormData,
+): Promise<ProposeDateCandidateState> {
+  await requireSession();
+  const parsed = proposeWeddingDateCandidateSchema.safeParse({
+    weddingPartyId,
+    candidateDate: formData.get("candidateDate"),
+  });
+  if (!parsed.success) {
+    return {
+      formError: parsed.error.issues[0]?.message ?? "Choose a valid date",
+    };
+  }
+  try {
+    await new WeddingPartyRepository(
+      await getSupabaseServerClient(),
+    ).proposeDateCandidate(
+      asId<"WeddingPartyId">(parsed.data.weddingPartyId),
+      parsed.data.candidateDate,
+    );
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Could not save",
+    };
+  }
+  revalidatePath(`/wedding-parties/${weddingPartyId}`);
+  return {};
+}
+
+/** Toggles the caller's own vote — toggle_wedding_date_vote resolves the
+ * caller's own member row server-side, so this has nothing further to
+ * check. */
+export async function toggleWeddingDateVote(formData: FormData) {
+  await requireSession();
+  const candidateId = String(formData.get("candidateId"));
+  const weddingPartyId = String(formData.get("weddingPartyId"));
+  await new WeddingPartyRepository(
+    await getSupabaseServerClient(),
+  ).toggleDateVote(candidateId as never);
+  revalidatePath(`/wedding-parties/${weddingPartyId}`);
+}
+
+/** Organizer only — sets the party's event_date to the chosen candidate,
+ * reusing the same organizer-update RLS path as updatePartySchedule rather
+ * than a new RPC. */
+export async function finalizeWeddingDate(formData: FormData) {
+  const partyId = String(formData.get("weddingPartyId"));
+  const candidateDate = String(formData.get("candidateDate"));
+  const gate = await requireOrganizerParty(partyId);
+  if ("error" in gate) return;
+  await gate.repo.updateSchedule(gate.party.id, { eventDate: candidateDate });
+  revalidatePath(`/wedding-parties/${partyId}`);
 }
 
 export interface CreateWeddingPartyState {

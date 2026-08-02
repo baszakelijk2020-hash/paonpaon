@@ -435,15 +435,36 @@ be resumed without the module mapping required by R0.3.**
     concurrency backstop (same idiom as `one_default_wishlist_per_customer_idx`).
     Proof: a customer browser journey (organizer sets a party-wide choice,
     sees it listed, DB asserts `coordinated = true` and a null member id).
-    Remaining FT-13 gaps: `wedding_guest_vouchers` is also schema-real from
-    the same migration and still fully unwired — deliberately left alone
-    this round since it holds real monetary value (`value_minor_units`,
+    Date candidates/votes ("group-date agreement") is now built too — the
+    one FT-13 surface with no schema at all until this slice. New tables
+    `wedding_date_candidates` (unique on party+date) and
+    `wedding_date_votes` (composite PK on candidate+member, so a member can
+    vote at most once per candidate); migration `20260802000012` adds
+    `propose_wedding_date_candidate` (organizer or member, idempotent via
+    `on conflict do nothing`) and `toggle_wedding_date_vote` (resolves the
+    caller's own member row server-side, so a member can never vote as
+    someone else). Finalizing deliberately reuses the existing
+    `updateSchedule` organizer-RLS path (`20260728000005`'s "organizer
+    updates own wedding party") to set `wedding_parties.event_date` rather
+    than adding a new RPC, since that write path already exists and is
+    already proven. Caught and fixed a real bug during proof: the initial
+    migration created RLS SELECT policies on the two new tables but never
+    granted table-level `select` to `authenticated` — Postgres denies access
+    regardless of a matching policy without the base grant, which surfaced
+    immediately as a 500 ("permission denied for table
+    wedding_date_candidates") the first time the page rendered; fixed by
+    adding the missing `grant select ... to authenticated, service_role`.
+    Proof: a customer browser journey (organizer proposes a date, finalizes
+    it, DB asserts `wedding_parties.event_date` and exactly one candidate
+    row) — verified stable across 3 repeated runs against a production
+    build after an earlier flake during dev-server hot-reload turned out to
+    be a hydration-timing artifact of my own debugging, not a real bug.
+    `wedding_guest_vouchers` is the only FT-13 surface still deliberately
+    unwired — it holds real monetary value (`value_minor_units`,
     `funding_source`) with no redemption token/mechanism defined anywhere,
-    so wiring it needs a real design decision, not a mechanical port of the
-    aftercare/group-fitting/inspiration pattern, and rushing a money-adjacent
-    feature under time pressure is exactly what R0.2's boundary exists to
-    prevent; date candidates/votes ("group-date agreement") has no schema at
-    all yet.
+    so wiring it needs a real design decision, not a mechanical port of this
+    slice's pattern, and rushing a money-adjacent feature under time
+    pressure is exactly what R0.2's boundary exists to prevent.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

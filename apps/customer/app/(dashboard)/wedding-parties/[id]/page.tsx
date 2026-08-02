@@ -19,6 +19,7 @@ import { completeAftercarePlan, markFittingScheduled } from "../actions";
 
 import { AmHouseHero } from "./am-house-hero";
 import { AmHouseOrbit } from "./am-house-orbit";
+import { DateCandidatesPanel } from "./date-candidates-panel";
 import { DesignChoiceForm } from "./design-choice-form";
 import { InspirationItemForm } from "./inspiration-item-form";
 import { InviteLink } from "./invite-link";
@@ -57,6 +58,7 @@ export default async function WeddingPartyDetailPage({
     groupFittings,
     inspirationItems,
     designChoices,
+    dateCandidates,
   ] = await Promise.all([
     partyRepo.findMembers(party.id),
     new RetailerRepository(supabase).findById(party.retailerId),
@@ -65,7 +67,11 @@ export default async function WeddingPartyDetailPage({
     partyRepo.findGroupFittings(party.id),
     partyRepo.findInspirationItems(party.id),
     partyRepo.findDesignChoices(party.id),
+    partyRepo.findDateCandidates(party.id),
   ]);
+  const dateVotes = await partyRepo.findDateVotes(
+    dateCandidates.map((candidate) => candidate.id),
+  );
   const myCustomerIds = new Set(myCustomers.map((c) => c.id));
   const organizer = members.find(
     (member) => member.customerId === party.organizerCustomerId,
@@ -135,6 +141,21 @@ export default async function WeddingPartyDetailPage({
               ? { fittingLocation: party.fittingLocation }
               : {})}
             {...(party.notes ? { notes: party.notes } : {})}
+          />
+        </Card>
+      ) : null}
+
+      {isOrganizer || myMember ? (
+        <Card className="paon-reveal" style={{ animationDelay: "50ms" }}>
+          <p className="mb-3 text-sm font-medium text-[var(--color-stone-900)]">
+            Agree on a date
+          </p>
+          <DateCandidatesPanel
+            weddingPartyId={party.id}
+            candidates={dateCandidates}
+            votes={dateVotes}
+            isOrganizer={isOrganizer}
+            {...(myMember ? { myMemberId: myMember.id } : {})}
           />
         </Card>
       ) : null}
