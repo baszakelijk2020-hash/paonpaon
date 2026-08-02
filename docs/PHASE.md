@@ -806,6 +806,27 @@ p_customer_app_base_url)`, mirroring
     standalone); only draft clienteling opportunity remains, and it was
     already confirmed not to be a gap (renders in its own section, not
     a missing card). Full retailer e2e suite reran green.
+    Closed FT-05's remaining small proof requirement: "one completed
+    action altering the next Today view." Extended the price-approval
+    test — after asserting the DOM order fix, actually decide the
+    proposal through the real `PriceDecisionForm` (select "Approve",
+    fill a reason, submit — not calling `decide_alteration_price_change`
+    directly), then reload `/dashboard` and assert the "Price approval
+    needed" card is gone. First attempt failed with "Unable to decide
+    proposal": `decide_alteration_price_change`
+    (`20260721000009_harden_alteration_price_controls.sql`) only accepts
+    a decision while the work order's status is `assigned`/`in_progress`
+    — the seeded work order was still in its intake state, since this
+    test deliberately inserts the pending proposal directly rather than
+    driving the full workshop-assignment flow (see the file's own
+    docstring). Fixed by flipping `alteration_work_orders.status` to
+    `assigned` directly before deciding, same reasoning already applied
+    to the proposal seed itself — the assignment flow has its own
+    coverage elsewhere, and this test is about the dashboard/decision
+    read-and-write surfaces, not assignment. `dashboard-digest.spec.ts`
+    (4 tests) green together and standalone; full retailer suite reran
+    green (49/50, the recurring demo-personas parallel-worker seed
+    collision reconfirmed pre-existing once more).
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

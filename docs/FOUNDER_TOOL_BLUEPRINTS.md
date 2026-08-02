@@ -473,10 +473,19 @@ Server Action, so the ledger stays correct without calling the ledger
 repository directly. Four of five card types are now proven; only draft
 clienteling opportunity remains, and it was already confirmed to render
 correctly in its own separate, richer card outside `#attention` rather
-than being a gap (see the PHASE.md journal). Not proven this round: the
-`usable`-visibility composited-customer-view path, ranking-rule/
-evidence-window versioning, cross-module degrade-independently
-behavior, and one completed action altering the next Today view.
+than being a gap (see the PHASE.md journal). Also closed "one completed
+action altering the next Today view": extended the price-approval test
+to actually decide the proposal through the real `PriceDecisionForm`
+(not the RPC directly, selecting "Approve" and submitting a reason),
+then reload `/dashboard` and assert its card is gone. Discovered
+`decide_alteration_price_change` only accepts a decision while the work
+order is `assigned`/`in_progress` — flipped the seeded work order to
+`assigned` directly first, the same "out of scope for what this test
+verifies" reasoning the file's own docstring already uses for seeding
+the proposal itself (the workshop-assignment flow has its own coverage
+elsewhere). Not proven this round: the `usable`-visibility
+composited-customer-view path, ranking-rule/evidence-window versioning,
+and cross-module degrade-independently behavior.
 
 ## FT-06 — MorningRoutine complete-look canvas
 

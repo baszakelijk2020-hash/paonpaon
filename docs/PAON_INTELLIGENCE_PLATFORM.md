@@ -223,6 +223,13 @@ requires it.
   retailer issue/mark-redeemed use plain insert/update through
   already-granted staff RLS, no RPC. FT-13 is now fully wired across every
   table the schema already had.
+  Closed FT-05's last small dashboard proof gap: "one completed action
+  altering the next Today view." Extended the price-approval test to
+  actually decide the proposal through the real UI (not the RPC
+  directly) and confirm its card disappears on the next dashboard load.
+  Found `decide_alteration_price_change` requires the work order to be
+  assigned/in_progress first — flipped it directly (same "out of scope
+  for this test" reasoning already used to seed the proposal itself).
   Added a third and fourth dashboard "Needs your attention" card type
   to FT-05's proof: unread messages (one notification row for the
   owner's own auth user) and low stock (one product/variant with

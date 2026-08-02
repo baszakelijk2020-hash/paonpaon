@@ -110,6 +110,34 @@ test("owner sees a pending price approval on the dashboard and can jump straight
   expect(pricingIndex).toBeGreaterThanOrEqual(0);
   expect(custodyIndex).toBeGreaterThanOrEqual(0);
   expect(pricingIndex).toBeLessThan(custodyIndex);
+
+  // FT-05's blueprint requires proving "one completed action altering the
+  // next Today view" — deciding this proposal through the real
+  // PriceDecisionForm (not the RPC directly) should remove its dashboard
+  // card, not just change its own page. decide_alteration_price_change
+  // only accepts decisions while the work order is assigned/in_progress
+  // (see the migration header docstring for why this test seeds the
+  // proposal directly rather than through the full workshop-assignment
+  // flow); flip the work order to "assigned" the same way, since that
+  // flow's own coverage lives elsewhere.
+  await admin
+    .from("alteration_work_orders")
+    .update({ status: "assigned" })
+    .eq("id", alterationId);
+  await page.reload();
+  await page
+    .getByRole("combobox", { name: "Decision" })
+    .selectOption("approved");
+  await page
+    .getByPlaceholder("Decision reason")
+    .fill("Approved for the dashboard digest e2e proof.");
+  await page.getByRole("button", { name: "Record decision" }).click();
+  await expect(page.getByText(/^Approved · 120/)).toBeVisible();
+
+  await page.goto("/dashboard");
+  await expect(
+    page.getByText(`Price approval needed · ${workOrder.work_order_number}`),
+  ).not.toBeVisible();
 });
 
 /**
