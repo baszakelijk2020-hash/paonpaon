@@ -13,6 +13,7 @@ import {
   RetailerStaffRepository,
 } from "@paon/database";
 import {
+  addAlterationTaskInputSchema,
   addAlterationUpdateInputSchema,
   asId,
   retailerRoleHasAlterationsPermission,
@@ -287,6 +288,46 @@ export async function addTaskNote(
   }
   revalidatePath(`/alterations/${alterationId}`);
   return { successMessage: "Work note added." };
+}
+
+export async function addAlterationTask(
+  alterationId: string,
+  _state: WorkflowActionState,
+  formData: FormData,
+): Promise<WorkflowActionState> {
+  const session = await requireModuleSession("garment_service_operations");
+  if (!retailerRoleHasAlterationsPermission(session.retailerRole, "intake")) {
+    throw new ForbiddenError();
+  }
+  const parsed = addAlterationTaskInputSchema.safeParse({
+    title: formData.get("title"),
+    instructions: formData.get("instructions") || undefined,
+    classification: formData.get("classification") || "work_now",
+    note: formData.get("note") || undefined,
+  });
+  if (!parsed.success) {
+    return { formError: parsed.error.issues[0]?.message ?? "Invalid task." };
+  }
+  try {
+    await new AlterationTaskRepository(await getSupabaseServerClient()).addTask(
+      {
+        alterationId: asId<"AlterationId">(alterationId),
+        title: parsed.data.title,
+        classification: parsed.data.classification,
+        ...(parsed.data.instructions
+          ? { instructions: parsed.data.instructions }
+          : {}),
+        ...(parsed.data.note ? { note: parsed.data.note } : {}),
+      },
+    );
+  } catch (error) {
+    return workflowError(error, "Unable to add task.");
+  }
+  revalidatePath(`/alterations/${alterationId}`);
+  return {
+    successMessage:
+      "Task added. Price it via a pricing proposal to add it to the total.",
+  };
 }
 
 export async function assignWorkOrder(

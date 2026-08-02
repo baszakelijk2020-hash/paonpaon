@@ -2,11 +2,13 @@ import {
   asId,
   money,
   type AlterationId,
+  type AlterationOperationId,
   type AlterationTask,
   type AlterationTaskId,
   type AlterationTaskNote,
   type AlterationTaskStatus,
   type CurrencyCode,
+  type WorkClassification,
   type WorkerAlterationTask,
 } from "@paon/domain";
 
@@ -112,6 +114,26 @@ export class AlterationTaskRepository {
       p_note: note,
     });
     if (error) throw error;
+  }
+
+  async addTask(params: {
+    alterationId: AlterationId;
+    title: string;
+    classification: WorkClassification;
+    instructions?: string;
+    operationId?: AlterationOperationId;
+    note?: string;
+  }): Promise<AlterationTaskId> {
+    const { data, error } = await this.client.rpc("add_alteration_task", {
+      p_alteration_id: params.alterationId,
+      p_title: params.title,
+      p_instructions: (params.instructions ?? null) as never,
+      p_classification: params.classification,
+      p_operation_id: (params.operationId ?? null) as never,
+      p_note: (params.note ?? null) as never,
+    });
+    if (error) throw error;
+    return asId<"AlterationTaskId">(data as string);
   }
 
   async findNotesByAlteration(

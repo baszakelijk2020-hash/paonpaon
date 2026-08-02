@@ -125,6 +125,14 @@ export const decidePriceChangeInputSchema = z.object({
   reason: z.string().trim().min(3).max(2000),
 });
 
+export const addAlterationTaskInputSchema = z.object({
+  operationId: z.string().uuid().optional(),
+  title: z.string().trim().min(2).max(160),
+  instructions: z.string().trim().max(2000).optional(),
+  classification: workClassificationSchema.default("work_now"),
+  note: z.string().trim().max(2000).optional(),
+});
+
 export const recordCustodyEventInputSchema = z
   .object({
     eventType: z.enum([

@@ -16729,6 +16729,17 @@ export type Database = {
         Args: { p_staff_id: string };
         Returns: undefined;
       };
+      add_alteration_task: {
+        Args: {
+          p_alteration_id: string;
+          p_classification?: Database["public"]["Enums"]["work_classification"];
+          p_instructions?: string;
+          p_note?: string;
+          p_operation_id?: string;
+          p_title: string;
+        };
+        Returns: string;
+      };
       add_alteration_task_note: {
         Args: { p_note: string; p_task_id: string };
         Returns: string;

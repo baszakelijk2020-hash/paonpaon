@@ -374,17 +374,19 @@ customer acceptance and future-candidate learning without historical mutation.
 **Current:** strong observations/alteration primitives (now including
 FT-01's voice/drag slider and FT-02's silhouette widget, both connected and
 recording to `fitting_observations`); connected source host and automation
-absent. Investigated directly (2026-08-02) rather than left vague: the
-alteration state machine is mature (`create_alteration_intake`, 11
-statuses), but it is the _only_ path that ever creates an
-`alteration_task` — there is no way to add a task to an existing alteration
-later, so an observation recorded after intake has nowhere reviewable to
-go. Building that path safely requires reusing the intake RPC's
-price-list-driven task pricing and deciding how a post-intake task
-interacts with the existing `proposePriceChange`/`decidePriceChange`
-approval flow so the ledger stays consistent — a real money-adjacent design
-decision, not a mechanical addition, and deliberately not attempted this
-session per R0.2's boundary.
+absent. The post-intake task-creation gap identified on 2026-08-02 is closed:
+`add_alteration_task` (advisor-only, `is_alterations_advisor()`) lets staff
+turn a later observation into a reviewable task on an existing alteration.
+It does not touch the ledger — every new task inserts with a zero original
+quote and `proposed` status, so `agreed_total_amount_minor_units` is
+untouched until the task is priced through the existing, unmodified
+`proposePriceChange`/`decidePriceChange` dual-control flow. This reuses the
+approval governance rather than inventing a parallel one; it stays inside
+R0.2's boundary the same way `wedding_guest_vouchers` does — no new
+money-movement path, only a fact (a task exists) recorded ahead of its own
+priced approval. The full first-fitting-to-work automation sequencing
+(scheduled → observed → proposal_ready → …) is still not built; this closes
+one identified structural gap in it.
 
 ## FT-05 — Mission Control and Self-Portrait
 

@@ -246,15 +246,20 @@ This correction supersedes conflicting status and handoff claims below:
   `fit-tools.spec.ts` journey (updated for the real button/observation
   text) plus manual verification of auto-advance, video playback and
   rule-highlight resync.
-- Investigated FT-04 First-fitting automation next and found a precise,
-  money-adjacent gap instead of building blind: the alteration state
-  machine (`create_alteration_intake`, 11 statuses) is mature, but it is
-  the only path that ever creates a task — there is no way to add one to
-  an existing alteration later, so a post-intake observation has nowhere
-  reviewable to go. Doing that safely means reusing the intake RPC's
-  price-list task pricing and deciding its interaction with the existing
-  `proposePriceChange`/`decidePriceChange` approval flow — a real design
-  decision R0.2's boundary says not to rush. Deliberately not attempted.
+- Investigated FT-04 First-fitting automation and found, then closed, a
+  precise post-intake task-creation gap: the alteration state machine
+  (`create_alteration_intake`, 11 statuses) was mature, but it was the
+  only path that ever created a task. Reusing
+  `proposePriceChange`/`decidePriceChange` directly was not viable — they
+  require an existing `task_id` and only ever adjust a price, never
+  create one. Instead, a new `add_alteration_task` RPC (advisor-only)
+  inserts a task at the schema's own default zero quote and `proposed`
+  status; `agreed_total_amount_minor_units` is only ever recomputed
+  inside the unmodified approval flow, so an unpriced task changes
+  nothing until it goes through that same dual-control pricing — no new
+  money-movement path, same boundary read as `wedding_guest_vouchers`.
+  Wired retailer-side with a "New task" form on the alteration detail
+  page; proof: `alteration-add-task.spec.ts`.
 - FT-06 MorningRoutine moved from a generic ranked list to a first
   connected slice. `pag1.html` has no composed-look widget (checked
   directly — only narrative plus a decorative weather-camera overlay), so

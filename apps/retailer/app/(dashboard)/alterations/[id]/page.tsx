@@ -33,6 +33,7 @@ import { notFound } from "next/navigation";
 import { AlterationStatusBadge } from "../status-badge";
 
 import {
+  addAlterationTask,
   addTaskNote,
   assignWorkOrder,
   recordCustodyEvent,
@@ -208,6 +209,10 @@ export default async function AlterationDetailPage({
   const canManageWorkshopAssignment = retailerRoleHasAlterationsPermission(
     session.retailerRole,
     "manage_assigned_workshop",
+  );
+  const canAddTask = retailerRoleHasAlterationsPermission(
+    session.retailerRole,
+    "intake",
   );
   const canWorkTasks = [
     "oversight",
@@ -902,6 +907,54 @@ export default async function AlterationDetailPage({
               ) : null}
             </div>
           ))}
+          {canAddTask &&
+          !["completed", "canceled"].includes(alteration.status) ? (
+            <div className="px-6 py-4">
+              <WorkflowActionForm
+                action={addAlterationTask.bind(null, alteration.id)}
+                className="grid grid-cols-1 gap-2 sm:grid-cols-4"
+                submitLabel="Add task"
+                pendingLabel="Adding…"
+                buttonClassName="sm:col-span-4"
+              >
+                <input
+                  name="title"
+                  aria-label="New task title"
+                  placeholder="Task title"
+                  required
+                  maxLength={160}
+                  className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm sm:col-span-2"
+                />
+                <select
+                  name="classification"
+                  aria-label="New task classification"
+                  defaultValue="work_now"
+                  className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-2 text-sm"
+                >
+                  <option value="work_now">Work now</option>
+                  <option value="future_order_note">Future order note</option>
+                </select>
+                <input
+                  name="instructions"
+                  aria-label="New task instructions"
+                  placeholder="Instructions (optional)"
+                  maxLength={2000}
+                  className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
+                />
+                <input
+                  name="note"
+                  aria-label="New task origin note"
+                  placeholder="Why this task was added (optional)"
+                  maxLength={2000}
+                  className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm sm:col-span-4"
+                />
+              </WorkflowActionForm>
+              <p className="mt-2 text-xs text-[var(--color-stone-500)]">
+                New tasks start unpriced. Use a pricing proposal below to add
+                the agreed cost to the total.
+              </p>
+            </div>
+          ) : null}
         </Card>
       </div>
 

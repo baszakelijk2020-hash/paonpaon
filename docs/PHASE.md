@@ -571,6 +571,30 @@ be resumed without the module mapping required by R0.3.**
     Today dashboard and composited customer view (real but unverified by
     this session), ranking-rule/evidence-window versioning, and cross-
     module degrade-independently behavior.
+    Reconsidered and closed the FT-04 post-intake task-creation gap logged
+    above. On reread, `propose_alteration_price_change`/
+    `decide_alteration_price_change` require an _existing_ `task_id` and
+    only ever adjust a task's price or the whole order's agreed total —
+    they cannot create a task, so reusing them directly was not viable.
+    The actual fix is smaller than the earlier note implied: a new
+    `add_alteration_task` RPC (advisor-only, same `is_alterations_advisor()`
+    gate as recording a fitting observation) inserts a task with the
+    schema's own existing default zero quote and `proposed` status.
+    `alteration_work_orders.agreed_total_amount_minor_units` is a stored
+    field only ever recomputed inside `decide_alteration_price_change`'s
+    approval branch, so a zero-quote task changes nothing until it is
+    separately priced through that same unmodified dual-control flow —
+    no parallel pricing mechanism, no ledger inconsistency. This is the
+    same boundary read as `wedding_guest_vouchers`: recording that a task
+    exists is a fact, not a money movement. Wired retailer-side only (a
+    "New task" mini-form in the alteration detail page's Tasks card,
+    gated on the `intake` permission, disabled once the order is
+    completed/canceled); no customer-facing surface, matching the
+    blueprint's advisor-decides framing. Proof: new
+    `alteration-add-task.spec.ts` — create a work order via intake, add a
+    second task post-intake, assert it renders unpriced (`Now · Proposed`,
+    `Original quote 0 USD`) alongside the intake-created task. Full
+    retailer e2e suite reran green.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
