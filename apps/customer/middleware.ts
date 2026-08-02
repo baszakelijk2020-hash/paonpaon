@@ -39,6 +39,13 @@ const PUBLIC_PATHS = [
 // visiting it (unlike the protected paths below).
 const STOREFRONT_PATH_PREFIX = "/r/";
 
+// Server-to-server routes with their own auth (Stripe signature
+// verification) — never gate them behind a browser session. A real
+// Stripe webhook call never sends this app's session cookie, so
+// without this bypass the session redirect below fires first and the
+// route is unreachable by its real caller in any deployment.
+const SERVER_TO_SERVER_PATH_PREFIX = "/api/webhooks/";
+
 /**
  * `NextResponse.redirect(...)` builds a brand-new response object, so
  * any cookies Supabase just refreshed (or cleared on sign-out) on
@@ -55,6 +62,10 @@ function redirectWithCookies(url: URL, from: NextResponse): NextResponse {
 }
 
 export async function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname.startsWith(SERVER_TO_SERVER_PATH_PREFIX)) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createSupabaseServerClient(

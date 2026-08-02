@@ -6,6 +6,13 @@ import { env } from "./lib/env";
 
 const PUBLIC_PATHS = ["/login", "/auth/confirm", "/accept-invite"];
 
+// Server-to-server routes with their own auth (CRON_SECRET bearer token,
+// Stripe signature verification) — never gate them behind a browser
+// session. Vercel Cron and Stripe never send this app's session cookie,
+// so without this bypass the session redirect below fires first and
+// these routes are unreachable by their real callers in any deployment.
+const SERVER_TO_SERVER_PATH_PREFIXES = ["/api/cron/", "/api/webhooks/"];
+
 /**
  * `NextResponse.redirect(...)` builds a brand-new response object, so
  * any cookies Supabase just refreshed (or cleared on sign-out) on
@@ -22,6 +29,14 @@ function redirectWithCookies(url: URL, from: NextResponse): NextResponse {
 }
 
 export async function middleware(request: NextRequest) {
+  if (
+    SERVER_TO_SERVER_PATH_PREFIXES.some((prefix) =>
+      request.nextUrl.pathname.startsWith(prefix),
+    )
+  ) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createSupabaseServerClient(

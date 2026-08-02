@@ -223,6 +223,22 @@ requires it.
   retailer issue/mark-redeemed use plain insert/update through
   already-granted staff RLS, no RPC. FT-13 is now fully wired across every
   table the schema already had.
+  Found and fixed a real, previously-undiscovered production bug while
+  writing an HTTP-level (not just unit) test for the dispatch-emails
+  cron route: every app's `middleware.ts` (admin, retailer, customer)
+  requires a session cookie for every path except a few explicit public
+  ones, and never excluded `/api/`. A real external caller with no
+  session cookie — Vercel Cron, Stripe, Faden — always got 307-redirected
+  to `/login` before reaching the route's own auth check. This means
+  admin's four cron routes, admin's and customer's Stripe webhooks, and
+  retailer's Faden webhook have likely never actually executed in any
+  real deployment. Retailer's own Faden webhook test never caught this
+  because it calls `page.request.post` (shares the browser's own signed-
+  in cookies) rather than simulating a real, cookie-less caller. Fixed
+  by adding the same kind of early bypass customer's middleware already
+  used for `/r/` and `/auth/confirm`, scoped to `/api/cron/` and
+  `/api/webhooks/`. Verified with curl against fresh prod builds of all
+  three apps, before (307) and after (each route's real response).
   Closed the same test-coverage gap in `orchestrateCampaignDeliveries`
   that `orchestrateMorningRoutineDeliveries` had before it: pure gating
   functions were unit-tested, the orchestrator loop wasn't. Found by

@@ -855,6 +855,71 @@ orchestrator.ts` was the only other one still uncovered (the
     `no_personalization_consent`, and duplicate-for-date is suppressed.
     `pnpm --filter @paon/database typecheck lint test` all green (476
     tests, no regressions).
+    Writing a real HTTP-level test for `dispatch-emails` (rather than
+    only unit-testing the orchestrators it calls) surfaced a genuine,
+    previously-undiscovered production bug spanning all three apps:
+    every session-auth `middleware.ts` (admin, retailer, customer) has a
+    matcher that excludes only `_next/static`, `_next/image`,
+    `favicon.ico` and `fonts/` — never `/api/` — so it intercepts and
+    307-redirects to `/login` _every_ request with no session cookie,
+    including the server-to-server routes that were always meant to
+    authenticate themselves: admin's four `/api/cron/*` routes and
+    `/api/webhooks/stripe`, retailer's `/api/webhooks/faden/*`, and
+    customer's own `/api/webhooks/stripe`. A real Vercel Cron tick,
+    Stripe webhook, or Faden webhook call never carries this app's
+    session cookie, so in any actual deployment none of these routes
+    could ever have executed — confirmed directly with `curl` against a
+    freshly built prod server: `POST /api/cron/dispatch-emails` with the
+    correct `CRON_SECRET` bearer token returned a 307 to `/login`, not
+    200, before this fix. This means the cron-driven MorningRoutine/
+    campaign delivery this session just finished unit-testing, and
+    Demo Studio environment expiry, have likely never fired outside a
+    manually-invoked local `curl`/Playwright call, and Stripe/Faden
+    payment and catalogue-sync webhooks have likely never been received.
+    Retailer's own `integration-connection-lifecycle.spec.ts` already
+    exercises the Faden webhook route and asserts specific status codes,
+    but never caught this: it calls `page.request.post(...)`, which
+    shares the browser context's own signed-in cookies, masking exactly
+    the case (an external caller with zero cookies) that breaks in
+    reality. The new admin test that found this,
+    `dispatch-emails-cron.spec.ts`, uses the bare `request` fixture
+    instead specifically to simulate a real caller.
+    Fix: each `middleware.ts` now short-circuits to
+    `NextResponse.next({ request })` before touching Supabase or
+    session state at all when the path starts with a server-to-server
+    prefix — `/api/cron/` and `/api/webhooks/` for admin, `/api/webhooks/`
+    for retailer and customer (customer's anonymous storefront APIs are
+    already under `/r/`, covered by its existing `STOREFRONT_PATH_PREFIX`
+    bypass) — mirroring the exact bypass style customer's middleware
+    already used for `/r/` and `/auth/confirm`, not a new pattern.
+    Verified with `curl` against fresh production builds of all three
+    apps, before and after: every route above changed from a 307 to
+    `/login` to reaching its own real auth check (401 for a missing/wrong
+    cron bearer token, 200 for the correct one combining
+    `demosExpired`/`morningRoutine`/`campaigns`/`email` in one response;
+    503 for Stripe's own not-yet-configured guard). Full retailer suite
+    reran clean (48/50; the recurring demo-personas parallel-worker
+    collision and one `migration-write-through.spec.ts` timeout under
+    contention were both reconfirmed pre-existing and unrelated via
+    standalone `--workers=1` reruns, the latter passing cleanly alone).
+    Full customer suite initially showed 7 failures under default worker
+    count; all 7 were confirmed pre-existing and unrelated by rerunning
+    every one of them standalone — 3 hit the already-documented
+    intermittent `generateLink` magiclink race
+    (`account-preferences.spec.ts`, `swipe-deck.spec.ts`,
+    `wardrobe.spec.ts`), and the other 4
+    (`appointments-alterations.spec.ts`'s own use of the same
+    magiclink-based sign-in helper, `storefront.spec.ts`,
+    `tableservice-attachments.spec.ts`,
+    `tableservice-wedding-fabric-link.spec.ts`) were parallel-worker
+    contention that vanished entirely at `--workers=1`. Added
+    `CRON_SECRET=e2e-local-cron-secret` to `apps/admin/.env.local`
+    (gitignored, local-only — matches the existing local Supabase demo
+    keys' status as fixed, non-sensitive local dev values) so the new
+    cron auth test can exercise the real authorized path; tests that
+    need it call `test.skip` when unset rather than assuming it's
+    configured, matching this codebase's established
+    environment-truth discipline.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
