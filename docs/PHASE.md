@@ -529,6 +529,37 @@ be resumed without the module mapping required by R0.3.**
     (fixture products have no seeded images, confirming the fallback path
     renders correctly rather than breaking). Full customer (44 tests) and
     retailer (46 tests) e2e suites green with no failures this run.
+    Checked FT-05 Mission Control/Self-Portrait directly rather than
+    trusting its stale "cockpit not reproduced" summary, and found it more
+    built than documented: no interactive "MissionControl"/"Self-Portrait"
+    fragment exists in `pag1.html` (only narrative text plus one small
+    unrelated decorative logo-carousel), but three of the blueprint's
+    described actor surfaces already exist with real composed data — the
+    retailer `/dashboard` Brief (761 lines), the per-customer composited
+    view (`/customers/[id]` + `advisor-preparation-brief.tsx`, 1132 lines),
+    and the customer-facing declared/inferred Self-Portrait panel with
+    correction (`style-profile-panel.tsx`, 272 lines). The customer-facing
+    panel had zero e2e proof despite being fully wired;
+    `style-profile-account.spec.ts` is a new first browser journey (view an
+    inferred preference, remove it, DB asserts the profile no longer
+    carries it) — reusing the swipe deck's proven evidence-generation path
+    rather than reinventing fixture seeding. Found and fixed a real bug
+    surfaced by adding this: the test's own swipe-right saved the fixture
+    variant to the shared customer's wishlist and recorded a decided-
+    product event, both leaking into `wishlist.spec.ts` (which asserts
+    exactly one saved item) and the swipe deck's own dedup on rerun; added
+    a `finally` cleanup mirroring `swipe-deck.spec.ts`'s own state hygiene,
+    and purged the orphaned rows left by earlier debug runs. Separately
+    confirmed (not caused by this work): `swipe-deck.spec.ts`'s rapid
+    keyboard-decision loop has pre-existing flakiness — Playwright presses
+    ArrowLeft against a card mid-exit-animation and the element detaches —
+    unrelated to the guard-loop bound (raising it from 20 to 50 did not
+    fix it and was reverted rather than left as an unexplained change); it
+    passes on retry, consistent with every other timing-based flake
+    already logged this session. Not proven this round: the advisor-facing
+    Today dashboard and composited customer view (real but unverified by
+    this session), ranking-rule/evidence-window versioning, and cross-
+    module degrade-independently behavior.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

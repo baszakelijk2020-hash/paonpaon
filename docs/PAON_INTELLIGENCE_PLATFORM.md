@@ -254,6 +254,21 @@ requires it.
   rendered. First e2e coverage added for a feature that had zero before.
   "Buy" still only links to the existing product page; order creation
   remains the Commerce boundary.
+  Checked FT-05 Mission Control/Self-Portrait directly rather than trusting
+  its stale summary and found it more built than documented: no
+  interactive fragment exists in `pag1.html` (only narrative plus one
+  unrelated decorative logo-carousel), but three real actor surfaces
+  already exist — the retailer `/dashboard` Brief, the per-customer
+  composited view, and the customer-facing Self-Portrait facts panel with
+  correction. That customer-facing panel had zero e2e proof despite being
+  fully wired; `style-profile-account.spec.ts` is a new first browser
+  journey. Found and fixed a real bug it surfaced: the test's own swipe
+  leaked a wishlist item and a decided-product event into other specs;
+  added cleanup mirroring `swipe-deck.spec.ts`'s own hygiene. Separately
+  confirmed (not caused by this work) that `swipe-deck.spec.ts`'s
+  keyboard-decision loop has pre-existing card-detachment flakiness
+  unrelated to guard-loop size — passes on retry, consistent with other
+  logged flakes.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

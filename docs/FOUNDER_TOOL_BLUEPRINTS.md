@@ -419,7 +419,26 @@ inferences stay labelled and correctable. No off-site presence claim or black
 box “churn score.” Prove advisor/manager/customer visibility, stale/empty/error
 states, corrections changing recommendations, disabled modules disappearing
 without broken actions and one completed action altering the next Today view.
-**Current:** functional data foundations; cockpit not reproduced.
+**Current:** more built than previously documented, checked directly
+(2026-08-02) rather than left at a stale summary. No interactive
+"MissionControl"/"Self-Portrait" fragment exists in `pag1.html` — only
+narrative text plus one small, unrelated decorative logo-carousel — so
+there is no staged-reveal choreography to port; this tool was always going
+to be built from the job/state description, not a pixel port. Three of the
+described actor surfaces already exist with real composed data: the
+retailer `/dashboard` Brief (role-scoped attention/appointments/pace,
+761 lines), the per-customer composited view
+(`/customers/[id]` + `advisor-preparation-brief.tsx`, 1132 lines), and the
+customer-facing declared/inferred Self-Portrait facts panel with
+correction (`style-profile-panel.tsx`, 272 lines) — all real, not stubs.
+The customer-facing panel had zero e2e proof despite being fully wired;
+`style-profile-account.spec.ts` is a new first browser journey (view an
+inferred preference with confidence/evidence, remove it, DB asserts the
+profile no longer carries it). Not proven this round: the advisor-facing
+Today dashboard and composited customer view (real but unverified by this
+session), ranking-rule/evidence-window versioning, cross-module
+degrade-independently behavior, and one completed action altering the next
+Today view.
 
 ## FT-06 — MorningRoutine complete-look canvas
 
