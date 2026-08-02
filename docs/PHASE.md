@@ -319,6 +319,23 @@ be resumed without the module mapping required by R0.3.**
     modules for every seeded demo/prospect house, the same fix already
     applied to the retailer and customer e2e fixtures. Full retailer suite
     is now a clean 44/44.
+    FT-12 Six-rail wardrobe moved from "generic experience must be
+    replaced" to a first connected slice. No interactive rail fragment
+    exists in `pag1.html` either (checked directly: only a decorative,
+    differently-labelled homepage carousel) — built with PAON primitives
+    against the blueprint's own physical description (opening/closing,
+    layered depth, horizontal movement) via a new `WardrobeRail` component:
+    each category defaults to a closed spine with a layered peek-stack
+    preview, opens/closes with a height transition, and supports arrow-key
+    roving focus between rail headers; `prefers-reduced-motion` disables
+    the animation. Existing add/retire actions and provenance labelling are
+    unchanged. Proof: one browser journey covering default-open state,
+    close/reopen, keyboard roving and the pre-existing add/retire flow
+    through the new UI. Not built: composed-look transition, concurrent-
+    correction/order-fed-ownership/service-away/cross-House proof, and the
+    rail-to-look-to-MorningRoutine continuation.
+
+- [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
   - **Acceptance:** an advisor opens one Today surface, understands the next
     clients/promises, opens a complete House Memory view, sees provenance and

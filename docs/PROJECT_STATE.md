@@ -144,6 +144,17 @@ This correction supersedes conflicting status and handoff claims below:
   `demo-personas.spec.ts`'s 7 navigation checks were silently failing.
   `demo-seed.ts` now activates all eight modules for every seeded demo/
   prospect house. Full retailer suite is a clean 44/44.
+- FT-12 Six-rail wardrobe now has a first connected slice. No interactive
+  rail fragment exists in `pag1.html` either (checked directly), so
+  `WardrobeRail` replaces the six generic card sections with a closed
+  spine + layered peek-stack preview, click-to-open height transition,
+  arrow-key roving focus and `prefers-reduced-motion` support, built
+  against the blueprint's physical description rather than guessed
+  pixels. Existing add/retire/provenance behavior is unchanged. Proof: one
+  browser journey (default-open, close/reopen, keyboard roving, add/retire
+  through the new UI). Composed-look transition, concurrent-correction/
+  order-fed-ownership/service-away/cross-House proof and the rail-to-look-
+  to-MorningRoutine continuation remain.
 
 ## Repository
 

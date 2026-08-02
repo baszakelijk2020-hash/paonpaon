@@ -683,8 +683,26 @@ advisor proposals never become ownership without acceptance/fulfilment.
 Unavailable imagery falls back without breaking rail geometry. Prove exact
 responsive motion, all provenance states, concurrent correction, order-fed
 ownership, service-away return, cross-House isolation and a rail-to-look-to-
-MorningRoutine/service continuation. **Current:** strong canonical data;
-generic experience must be replaced.
+MorningRoutine/service continuation. **Current:** first connected slice
+(2026-08-02). No interactive source fragment exists for the stacked-rail
+interaction (checked directly against `pag1.html`: the only category-named
+element is a decorative, differently-labelled homepage image carousel, not
+a personal-wardrobe rail), so per AGENTS.md's non-designated-source path
+this replaces the six generic card sections with `WardrobeRail`
+(`apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx`) built against
+the blueprint's own physical description rather than guessed pixels: each
+category defaults to a closed "spine" with a layered peek-stack preview of
+its first pieces, opens/closes on click with a `grid-template-rows`
+height transition, and supports arrow-key roving focus between rail
+headers. `prefers-reduced-motion` disables the transform/transition.
+Existing add/retire actions and provenance labelling are unchanged. Proof:
+one browser journey — default-open state, close/reopen collapse, keyboard
+navigation between rails, and the pre-existing add/retire flow still
+working through the new UI. Not built: composed-look transition, concurrent-
+correction proof, order-fed ownership proof, service-away return, cross-
+House isolation proof, and the rail-to-look-to-MorningRoutine/service
+continuation — the blueprint's fuller interaction and proof scope remains
+open.
 
 ## FT-13 — Moonstruck groom and best-men planner
 

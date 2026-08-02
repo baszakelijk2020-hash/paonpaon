@@ -126,6 +126,24 @@ requires it.
   convert. 6 pgTAP assertions plus a retailer and a customer browser
   journey prove it. Expiry/revoke polish, resend, giver payment/request and
   recall/refund remain.
+  FT-12 Six-rail wardrobe also has a first connected slice — no interactive
+  rail fragment exists in `pag1.html` either (checked directly), so
+  `WardrobeRail` (`apps/customer/app/(dashboard)/wardrobe/wardrobe-panel.tsx`)
+  is built against the blueprint's physical description (opening/closing,
+  layered depth, horizontal movement): a closed spine with a layered peek-
+  stack preview, click-to-open height transition, arrow-key roving focus,
+  and `prefers-reduced-motion` support. Existing add/retire/provenance
+  behavior is unchanged. One browser journey proves default-open, close/
+  reopen, keyboard roving and the pre-existing add/retire flow through the
+  new UI. Composed-look transition, concurrent-correction/order-fed-
+  ownership/service-away/cross-House proof and the rail-to-look-to-
+  MorningRoutine continuation remain.
+  Separately, running the full retailer e2e suite (not only targeted specs)
+  surfaced that the shared demo persona retailer had zero module
+  configuration/subscription, silently failing `demo-personas.spec.ts`'s 7
+  navigation checks since R0.3's module kernel landed; `demo-seed.ts` now
+  activates all eight modules for every seeded demo/prospect house, and the
+  full retailer suite is a clean 44/44.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

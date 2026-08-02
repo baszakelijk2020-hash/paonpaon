@@ -13,7 +13,7 @@ import {
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import Image from "next/image";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import {
   addExternalWardrobeItem,
@@ -178,6 +178,157 @@ function WardrobeItemCard({
   );
 }
 
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReduced(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  return reduced;
+}
+
+/** No `downloaded_pages` fragment matches the founder's "tactile stacked
+ * rail" description (checked directly: only a decorative, differently-
+ * categorised homepage image carousel exists, not an interactive personal-
+ * wardrobe rail) — see FOUNDER_TOOL_BLUEPRINTS.md FT-12. Built against the
+ * blueprint's own physical description (opening/closing, layered depth,
+ * horizontal movement) with PAON primitives rather than guessed pixels. */
+function WardrobeRail({
+  id,
+  label,
+  items,
+  retailerId,
+  historyByItemId,
+  retireAction,
+  retirePending,
+  open,
+  onToggle,
+  onKeyNav,
+  headerRef,
+}: {
+  id: string;
+  label: string;
+  items: readonly WardrobeItem[];
+  retailerId: string;
+  historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
+  retireAction: (payload: FormData) => void;
+  retirePending: boolean;
+  open: boolean;
+  onToggle: () => void;
+  onKeyNav: (direction: "next" | "previous") => void;
+  headerRef: (el: HTMLButtonElement | null) => void;
+}) {
+  const reducedMotion = usePrefersReducedMotion();
+  const peek = items.slice(0, 3);
+  const headerId = `wardrobe-rail-${retailerId}-${id}`;
+  const panelId = `wardrobe-rail-panel-${retailerId}-${id}`;
+
+  return (
+    <section aria-labelledby={headerId}>
+      <button
+        ref={headerRef}
+        id={headerId}
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={onToggle}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+            event.preventDefault();
+            onKeyNav("next");
+          } else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+            event.preventDefault();
+            onKeyNav("previous");
+          }
+        }}
+        className="flex w-full items-center justify-between gap-3 rounded-[var(--radius-md)] py-2 text-left"
+      >
+        <span className="flex items-center gap-4">
+          <span className="relative h-14 w-16 shrink-0" aria-hidden="true">
+            {peek.length === 0 ? (
+              <span className="absolute inset-0 rounded-[var(--radius-sm)] border border-dashed border-[var(--color-stone-300)]" />
+            ) : (
+              peek.map((item, index) => (
+                <span
+                  key={item.id}
+                  className="absolute inset-0 overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-stone-200)] bg-[var(--color-stone-100)] shadow-sm transition-transform motion-reduce:transition-none"
+                  style={{
+                    zIndex: peek.length - index,
+                    transform: reducedMotion
+                      ? undefined
+                      : `translateX(${index * 8}px) rotate(${(index - (peek.length - 1) / 2) * 5}deg)`,
+                  }}
+                >
+                  {item.identifyingPhotoUrl ? (
+                    <Image
+                      src={item.identifyingPhotoUrl}
+                      alt=""
+                      width={64}
+                      height={56}
+                      unoptimized
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null}
+                </span>
+              ))
+            )}
+          </span>
+          <span>
+            <span className="font-display block text-xl text-[var(--color-stone-900)]">
+              {label}
+            </span>
+            <span className="text-xs text-[var(--color-stone-500)]">
+              {items.length} piece{items.length === 1 ? "" : "s"}
+            </span>
+          </span>
+        </span>
+        <span
+          aria-hidden="true"
+          className={`text-[var(--color-stone-400)] transition-transform motion-reduce:transition-none ${open ? "rotate-90" : ""}`}
+        >
+          ›
+        </span>
+      </button>
+      <div
+        id={panelId}
+        role="region"
+        aria-labelledby={headerId}
+        className="grid transition-[grid-template-rows] duration-300 ease-[var(--ease-out-quiet)] motion-reduce:transition-none"
+        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
+      >
+        <div className="min-h-0 overflow-hidden">
+          {items.length > 0 ? (
+            <div
+              className="-mx-5 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2"
+              style={{ scrollbarWidth: "thin" }}
+            >
+              {items.map((item) => (
+                <WardrobeItemCard
+                  key={item.id}
+                  retailerId={retailerId}
+                  item={item}
+                  history={historyByItemId[item.id] ?? []}
+                  retireAction={retireAction}
+                  retirePending={retirePending}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="mt-3 rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-4 py-7 text-center">
+              <p className="text-sm text-[var(--color-stone-500)]">
+                No {label.toLowerCase()} in this wardrobe yet.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function WardrobeHousePanel({
   retailerId,
   retailerName,
@@ -203,6 +354,32 @@ export function WardrobeHousePanel({
 
   const active = items.filter((item) => item.condition !== "retired");
   const retired = items.filter((item) => item.condition === "retired");
+  const sectionsWithItems = WARDROBE_SECTIONS.map((section) => ({
+    section,
+    items: active.filter((item) =>
+      (section.categories as readonly GarmentCategoryCode[]).includes(
+        item.categoryCode,
+      ),
+    ),
+  }));
+  const firstNonEmptyId =
+    sectionsWithItems.find(({ items: sectionItems }) => sectionItems.length > 0)
+      ?.section.id ?? sectionsWithItems[0]?.section.id;
+  const [openRailId, setOpenRailId] = useState<string | undefined>(
+    firstNonEmptyId,
+  );
+  const railHeaderRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  function focusRail(direction: "next" | "previous", fromId: string) {
+    const ids: string[] = sectionsWithItems.map(({ section }) => section.id);
+    const index = ids.indexOf(fromId);
+    const nextIndex =
+      direction === "next"
+        ? (index + 1) % ids.length
+        : (index - 1 + ids.length) % ids.length;
+    const nextId = ids[nextIndex];
+    if (nextId) railHeaderRefs.current[nextId]?.focus();
+  }
 
   return (
     <Card className="flex flex-col gap-5">
@@ -233,57 +410,29 @@ export function WardrobeHousePanel({
         </p>
       ) : null}
 
-      <div className="flex flex-col gap-7">
-        {WARDROBE_SECTIONS.map((section) => {
-          const sectionItems = active.filter((item) =>
-            (section.categories as readonly GarmentCategoryCode[]).includes(
-              item.categoryCode,
-            ),
-          );
-
-          return (
-            <section
-              key={section.id}
-              aria-labelledby={`wardrobe-${retailerId}-${section.id}`}
-            >
-              <div className="mb-3 flex items-baseline justify-between gap-3">
-                <h3
-                  id={`wardrobe-${retailerId}-${section.id}`}
-                  className="font-display text-xl text-[var(--color-stone-900)]"
-                >
-                  {section.label}
-                </h3>
-                <span className="text-xs text-[var(--color-stone-500)]">
-                  {sectionItems.length} piece
-                  {sectionItems.length === 1 ? "" : "s"}
-                </span>
-              </div>
-              {sectionItems.length > 0 ? (
-                <div
-                  className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2"
-                  style={{ scrollbarWidth: "thin" }}
-                >
-                  {sectionItems.map((item) => (
-                    <WardrobeItemCard
-                      key={item.id}
-                      retailerId={retailerId}
-                      item={item}
-                      history={historyByItemId[item.id] ?? []}
-                      retireAction={retireAction}
-                      retirePending={retirePending}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-4 py-7 text-center">
-                  <p className="text-sm text-[var(--color-stone-500)]">
-                    No {section.label.toLowerCase()} in this wardrobe yet.
-                  </p>
-                </div>
-              )}
-            </section>
-          );
-        })}
+      <div className="flex flex-col gap-3" role="presentation">
+        {sectionsWithItems.map(({ section, items: sectionItems }) => (
+          <WardrobeRail
+            key={section.id}
+            id={section.id}
+            label={section.label}
+            items={sectionItems}
+            retailerId={retailerId}
+            historyByItemId={historyByItemId}
+            retireAction={retireAction}
+            retirePending={retirePending}
+            open={openRailId === section.id}
+            onToggle={() =>
+              setOpenRailId((current) =>
+                current === section.id ? undefined : section.id,
+              )
+            }
+            onKeyNav={(direction) => focusRail(direction, section.id)}
+            headerRef={(el) => {
+              railHeaderRefs.current[section.id] = el;
+            }}
+          />
+        ))}
         {active.length === 0 ? (
           <p role="status" className="text-sm text-[var(--color-stone-500)]">
             Add a garment bought elsewhere, or ask your advisor to link a
