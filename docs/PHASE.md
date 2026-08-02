@@ -745,6 +745,24 @@ p_customer_app_base_url)`, mirroring
     rather than forcing exhaustive coverage into one pass. Full retailer
     e2e suite reran green (both `dashboard-digest.spec.ts` cases pass
     together and standalone).
+    Closed FT-05's other flagged-unverified surface, the composited
+    customer view (`advisor-preparation-brief.tsx`, ADV-003). Rather than
+    a new test with fresh fixture setup, extended
+    `workspace.spec.ts`'s existing "owner adds a client to the book"
+    test — it already lands on a brand-new customer's detail page with
+    zero consent/evidence, which is exactly the fail-closed path this
+    component needs proven. Read the component source first to get the
+    exact copy right rather than guessing: `resolveAdvisorBriefVisibility`
+    only returns `usable` for `granted` personalization consent, so a
+    customer with none renders the `consent_denied` branch — asserted the
+    "Continue the online conversation" heading, the "Personalization not
+    opted in" badge, and each of the three intelligence sections'
+    (interests/shortlist/knowledge) "hidden without personalization
+    consent" empty-state copy. Passed on the first run, confirming the
+    prediction. The `usable`-visibility path (real consented
+    interests/shortlist/evidence) remains unproven — would need a
+    granted-consent fixture with actual StyleProfile/interest data, out
+    of scope for this proof-only slice.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

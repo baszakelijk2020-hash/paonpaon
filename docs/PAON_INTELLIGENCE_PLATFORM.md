@@ -223,6 +223,12 @@ requires it.
   retailer issue/mark-redeemed use plain insert/update through
   already-granted staff RLS, no RPC. FT-13 is now fully wired across every
   table the schema already had.
+  Closed FT-05's other "unverified" gap, the composited customer view
+  (`advisor-preparation-brief.tsx`): extended `workspace.spec.ts`'s
+  existing fresh-customer test to assert its fail-closed, no-consent
+  empty state renders honestly rather than crashing or showing nothing.
+  The `usable`-visibility (real consented evidence) path remains
+  unproven.
   Strengthened FT-05's advisor Today dashboard proof: `dashboard-digest.
 spec.ts` proved exactly one of five "Needs your attention" card types
   (price approval); added a second — today's appointment, seeded

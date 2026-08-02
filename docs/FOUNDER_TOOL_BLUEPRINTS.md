@@ -445,12 +445,20 @@ appointment, seeded directly against a real customer/retailer and
 asserted through the real card (customer name, type label, link to
 `/appointments/{id}`) — matching this codebase's established "prove one
 representative case, the rest share the same read path" precedent rather
-than exhaustively covering all five. Not proven this round: the
-remaining three card types, the composited customer view
-(`advisor-preparation-brief.tsx`, real but unverified by this session),
-ranking-rule/evidence-window versioning, cross-module
-degrade-independently behavior, and one completed action altering the next
-Today view.
+than exhaustively covering all five. The composited customer view
+(`advisor-preparation-brief.tsx`) is proven for its honest empty state:
+`workspace.spec.ts`'s existing "owner adds a client to the book" test now
+also asserts, for a brand-new client with no personalization consent,
+that the fail-closed copy renders correctly ("Personalization not opted
+in", interests/shortlist/knowledge each showing their
+"hidden without personalization consent" text) rather than crashing or
+silently showing nothing — reusing the test's existing fresh-customer
+setup instead of a new test. The `usable`-visibility path (real
+consented interests/shortlist/evidence data) remains unproven. Not
+proven this round: the remaining three dashboard card types, the
+`usable`-visibility composited-customer-view path, ranking-rule/
+evidence-window versioning, cross-module degrade-independently
+behavior, and one completed action altering the next Today view.
 
 ## FT-06 — MorningRoutine complete-look canvas
 

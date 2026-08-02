@@ -181,6 +181,24 @@ test("owner adds a client to the book", async ({ page }) => {
     page.getByText("AI personalisation is not configured on this deployment."),
   ).toBeVisible();
 
+  // FT-05's advisor preparation brief (ADV-003) is composited from
+  // several intelligence sources and fails closed without personalization
+  // consent — a brand-new client has none, so this proves the honest
+  // consent-denied empty state, not just that the card exists.
+  await expect(
+    page.getByRole("heading", { name: "Continue the online conversation" }),
+  ).toBeVisible();
+  await expect(page.getByText("Personalization not opted in")).toBeVisible();
+  await expect(
+    page.getByText("Interests hidden without personalization consent."),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Shortlist hidden without personalization consent."),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Knowledge history hidden without personalization consent."),
+  ).toBeVisible();
+
   await page.goto("/customers");
   await expect(page.getByText(`jamie-${unique}@paon.test`)).toBeVisible();
 });

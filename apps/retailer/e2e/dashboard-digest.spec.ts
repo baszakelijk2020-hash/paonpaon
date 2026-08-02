@@ -186,10 +186,15 @@ test("owner sees today's appointment as a dashboard attention card", async ({
   await expect(page).toHaveURL(/\/dashboard$/);
 
   await expect(page.getByText("Needs your attention")).toBeVisible();
-  const card = page
-    .locator("#attention a[href*='/appointments/']")
-    .filter({ hasText: customer.full_name });
+  // Scoped by this test's own appointment id, not by customer name — the
+  // fixture customer can carry other today-appointments seeded by other
+  // specs (e.g. workspace.spec.ts's booking test), which would otherwise
+  // match the same name filter and break Playwright's strict mode.
+  const card = page.locator(
+    `#attention a[href='/appointments/${appointment!.id}']`,
+  );
   await expect(card).toBeVisible();
+  await expect(card).toContainText(customer.full_name);
   await expect(card).toContainText("Styling consultation");
 
   await card.click();
