@@ -155,6 +155,25 @@ This correction supersedes conflicting status and handoff claims below:
   through the new UI). Composed-look transition, concurrent-correction/
   order-fed-ownership/service-away/cross-House proof and the rail-to-look-
   to-MorningRoutine continuation remain.
+- FT-13 Moonstruck groom/best-men planner now has a first "delivery and
+  pickup readiness" slice. No interactive aftercare-checklist fragment
+  exists in `pag1.html`/pag2/pag3 either (checked directly), so it is built
+  with PAON primitives against the blueprint's job/state description.
+  Migration `20260802000007` adds `wedding_aftercare_plans` (party-wide or
+  member-scoped, optional due date) and `complete_wedding_aftercare_plan`, a
+  SECURITY DEFINER RPC re-deriving organizer-or-assigned-member
+  authorization server-side (ADR-034 pattern); the table grants only
+  `select` to `authenticated`, so completion only happens through the RPC.
+  A retailer manager authors instructions; the organizer or the assigned
+  member completes one. Proof: a retailer browser journey (author, see
+  "Pending") and a customer browser journey (organizer completes their own
+  instruction, DB asserts `completed_at`). Surfaced and fixed a latent bug:
+  `wedding_parties` has no DELETE grant for any role by design (soft-delete
+  only); an early test-cleanup draft's hard delete silently failed and left
+  orphaned parties for the shared customer e2e fixture, breaking
+  `mobile-ux.spec.ts`'s bottom-nav assertion — fixed to soft-delete,
+  orphaned rows purged. Date candidates/votes, group fittings, member
+  design choices, guest vouchers and inspiration items remain unwired.
 
 ## Repository
 

@@ -1,6 +1,7 @@
 import type {
   CustomerId,
   RetailerId,
+  WeddingAftercarePlanId,
   WeddingPartyId,
   WeddingPartyMemberId,
 } from "../shared/branded-id";
@@ -106,4 +107,17 @@ export interface WeddingPartyMember extends Timestamps {
   readonly heightCm?: number;
   /** Self-reported weight in kg — party-scoped prep data (ADR-055). */
   readonly weightKg?: number;
+}
+
+/** Post-order "delivery and pickup readiness" instruction (FT-13). A null
+ * `weddingPartyMemberId` means it applies to the whole party (e.g. "return
+ * rentals within 3 days"); a set one is scoped to that member only. */
+export interface WeddingAftercarePlan {
+  readonly id: WeddingAftercarePlanId;
+  readonly weddingPartyId: WeddingPartyId;
+  readonly weddingPartyMemberId?: WeddingPartyMemberId;
+  readonly instruction: string;
+  readonly dueOn?: string;
+  readonly completedAt?: string;
+  readonly createdAt: string;
 }

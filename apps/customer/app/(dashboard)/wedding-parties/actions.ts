@@ -23,6 +23,20 @@ export async function markFittingScheduled(formData: FormData) {
   revalidatePath(`/wedding-parties/${weddingPartyId}`);
 }
 
+/** The organizer or the assigned member marking one "delivery and pickup
+ * readiness" instruction done — complete_wedding_aftercare_plan
+ * re-derives the caller's membership server-side and raises for anyone
+ * else, so this has nothing further to check. */
+export async function completeAftercarePlan(formData: FormData) {
+  await requireSession();
+  const planId = String(formData.get("planId"));
+  const weddingPartyId = String(formData.get("weddingPartyId"));
+  await new WeddingPartyRepository(
+    await getSupabaseServerClient(),
+  ).completeAftercarePlan(planId as never);
+  revalidatePath(`/wedding-parties/${weddingPartyId}`);
+}
+
 export interface CreateWeddingPartyState {
   formError?: string;
 }

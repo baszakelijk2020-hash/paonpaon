@@ -144,6 +144,27 @@ requires it.
   navigation checks since R0.3's module kernel landed; `demo-seed.ts` now
   activates all eight modules for every seeded demo/prospect house, and the
   full retailer suite is a clean 44/44.
+  FT-13 Moonstruck groom/best-men planner now has a first "delivery and
+  pickup readiness" slice. `pag1.html`/pag2/pag3 have no interactive
+  aftercare-checklist fragment (checked directly), so it is built with PAON
+  primitives against the blueprint's job/state description. Migration
+  `20260802000007` adds `wedding_aftercare_plans` (party-wide or member-
+  scoped, optional due date) and `complete_wedding_aftercare_plan`, a
+  SECURITY DEFINER RPC re-deriving organizer-or-assigned-member authorization
+  server-side (ADR-034 pattern); the table grants only `select` to
+  `authenticated`, so completion is only possible through the RPC. A
+  retailer manager authors instructions; the organizer or the specifically
+  assigned member completes one, with the RPC raising for anyone else.
+  Proof: a retailer browser journey (author, see "Pending") and a customer
+  browser journey (organizer completes their own instruction, DB asserts
+  `completed_at`). Surfaced and fixed a real latent bug: `wedding_parties`
+  has no DELETE grant for any role by design (soft-delete only, matching
+  FT-13's audit-preservation intent); an early cleanup draft using a hard
+  delete silently failed and left orphaned parties for the shared customer
+  e2e fixture, which broke `mobile-ux.spec.ts`'s bottom-nav assertion —
+  fixed to soft-delete, orphaned rows purged. Date candidates/votes, group
+  fittings, member design choices, guest vouchers and inspiration items
+  remain unwired.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

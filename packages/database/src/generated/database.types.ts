@@ -16795,6 +16795,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      complete_wedding_aftercare_plan: {
+        Args: { p_plan_id: string };
+        Returns: undefined;
+      };
       convert_pilot_to_live_retailer: {
         Args: { p_prospect_id: string };
         Returns: string;

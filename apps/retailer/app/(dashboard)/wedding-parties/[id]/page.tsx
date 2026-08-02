@@ -28,6 +28,7 @@ import {
 } from "../actions";
 
 import { AddMemberForm } from "./add-member-form";
+import { AftercarePlanForm } from "./aftercare-plan-form";
 import { PartyScheduleForm } from "./party-schedule-form";
 
 import { requireSession } from "@/lib/session";
@@ -53,9 +54,10 @@ export default async function WeddingPartyDetailPage({
   const party = await repo.findById(id as never);
   if (!party || party.retailerId !== session.retailerId) notFound();
 
-  const [members, organizer] = await Promise.all([
+  const [members, organizer, aftercarePlans] = await Promise.all([
     repo.findMembers(party.id),
     new CustomerRepository(supabase).findById(party.organizerCustomerId),
+    repo.findAftercarePlans(party.id),
   ]);
 
   const wishlistRepo = new WishlistRepository(supabase);
@@ -291,6 +293,50 @@ export default async function WeddingPartyDetailPage({
         </h2>
         <Card className="paon-reveal" style={{ animationDelay: "240ms" }}>
           <AddMemberForm weddingPartyId={party.id} />
+        </Card>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
+          Delivery &amp; pickup readiness
+        </h2>
+        <Card
+          className="paon-reveal flex flex-col gap-4"
+          style={{ animationDelay: "260ms" }}
+        >
+          {aftercarePlans.length > 0 ? (
+            <ul className="flex flex-col gap-2">
+              {aftercarePlans.map((plan) => {
+                const member = members.find(
+                  (candidate) => candidate.id === plan.weddingPartyMemberId,
+                );
+                return (
+                  <li
+                    key={plan.id}
+                    className="flex items-start justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <p>{plan.instruction}</p>
+                      <p className="text-xs text-[var(--color-stone-500)]">
+                        {member ? member.name : "Whole party"}
+                        {plan.dueOn
+                          ? ` · due ${formatDate(plan.dueOn, "en-US")}`
+                          : ""}
+                      </p>
+                    </div>
+                    <Badge tone={plan.completedAt ? "success" : "neutral"}>
+                      {plan.completedAt ? "Done" : "Pending"}
+                    </Badge>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-sm text-[var(--color-stone-500)]">
+              No instructions yet.
+            </p>
+          )}
+          <AftercarePlanForm weddingPartyId={party.id} members={members} />
         </Card>
       </div>
     </div>

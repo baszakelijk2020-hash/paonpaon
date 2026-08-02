@@ -2,6 +2,8 @@ import {
   asId,
   type CustomerId,
   type RetailerId,
+  type WeddingAftercarePlan,
+  type WeddingAftercarePlanId,
   type WeddingParty,
   type WeddingPartyMember,
   type WeddingPartyMemberFittingStatus,
@@ -16,6 +18,8 @@ import type { Database } from "../generated/database.types";
 
 type PartyRow = Database["public"]["Tables"]["wedding_parties"]["Row"];
 type MemberRow = Database["public"]["Tables"]["wedding_party_members"]["Row"];
+type AftercarePlanRow =
+  Database["public"]["Tables"]["wedding_aftercare_plans"]["Row"];
 
 const PARTY_PHOTOS_BUCKET = "party-photos";
 
@@ -49,6 +53,22 @@ const toMember = (row: MemberRow): WeddingPartyMember => ({
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   deletedAt: row.deleted_at,
+});
+
+const toAftercarePlan = (row: AftercarePlanRow): WeddingAftercarePlan => ({
+  id: asId<"WeddingAftercarePlanId">(row.id),
+  weddingPartyId: asId<"WeddingPartyId">(row.wedding_party_id),
+  ...(row.wedding_party_member_id
+    ? {
+        weddingPartyMemberId: asId<"WeddingPartyMemberId">(
+          row.wedding_party_member_id,
+        ),
+      }
+    : {}),
+  instruction: row.instruction,
+  ...(row.due_on ? { dueOn: row.due_on } : {}),
+  ...(row.completed_at ? { completedAt: row.completed_at } : {}),
+  createdAt: row.created_at,
 });
 
 /** See `docs/ARCHITECTURE.md` "Data access layer" — the only code
@@ -390,6 +410,55 @@ export class WeddingPartyRepository {
     const { error } = await this.client.storage
       .from(PARTY_PHOTOS_BUCKET)
       .remove([storagePath]);
+    if (error) throw error;
+  }
+
+  /** Staff-authored "delivery and pickup readiness" instructions
+   * (FT-13). `retailerId` is required at write time — the table has no
+   * default-tenant derivation the way the anonymous-write RPCs do,
+   * since only retailer staff (never a customer) create these. */
+  async createAftercarePlan(params: {
+    retailerId: RetailerId;
+    weddingPartyId: WeddingPartyId;
+    weddingPartyMemberId?: WeddingPartyMemberId;
+    instruction: string;
+    dueOn?: string;
+  }): Promise<WeddingAftercarePlan> {
+    const { data, error } = await this.client
+      .from("wedding_aftercare_plans")
+      .insert({
+        retailer_id: params.retailerId,
+        wedding_party_id: params.weddingPartyId,
+        wedding_party_member_id: params.weddingPartyMemberId ?? null,
+        instruction: params.instruction,
+        due_on: params.dueOn ?? null,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toAftercarePlan(data);
+  }
+
+  async findAftercarePlans(
+    weddingPartyId: WeddingPartyId,
+  ): Promise<WeddingAftercarePlan[]> {
+    const { data, error } = await this.client
+      .from("wedding_aftercare_plans")
+      .select("*")
+      .eq("wedding_party_id", weddingPartyId)
+      .order("due_on", { ascending: true, nullsFirst: false })
+      .order("created_at");
+    if (error) throw error;
+    return data.map(toAftercarePlan);
+  }
+
+  /** Organizer or assigned member only (`complete_wedding_aftercare_plan`,
+   * SECURITY DEFINER) — re-derives the caller's membership server-side
+   * rather than trusting a client-supplied customer/member id. */
+  async completeAftercarePlan(planId: WeddingAftercarePlanId): Promise<void> {
+    const { error } = await this.client.rpc("complete_wedding_aftercare_plan", {
+      p_plan_id: planId,
+    });
     if (error) throw error;
   }
 }

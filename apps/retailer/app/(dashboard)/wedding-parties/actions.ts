@@ -4,6 +4,7 @@ import { WeddingPartyRepository } from "@paon/database";
 import {
   addWeddingPartyMemberSchema,
   asId,
+  createWeddingAftercarePlanSchema,
   createWeddingPartySchema,
   updateWeddingPartyStatusSchema,
   type WeddingPartyMemberFittingStatus,
@@ -145,4 +146,50 @@ export async function updatePartySchedule(
   }
   revalidatePath(`/wedding-parties/${partyId}`);
   return { success: "Schedule saved." };
+}
+
+export interface CreateAftercarePlanState {
+  formError?: string;
+}
+
+export async function createAftercarePlan(
+  weddingPartyId: string,
+  _prev: CreateAftercarePlanState,
+  formData: FormData,
+): Promise<CreateAftercarePlanState> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const parsed = createWeddingAftercarePlanSchema.safeParse({
+    weddingPartyId,
+    weddingPartyMemberId: formData.get("weddingPartyMemberId") || undefined,
+    instruction: formData.get("instruction"),
+    dueOn: formData.get("dueOn") || undefined,
+  });
+  if (!parsed.success) {
+    return {
+      formError: parsed.error.issues[0]?.message ?? "Check the plan fields.",
+    };
+  }
+  try {
+    await new WeddingPartyRepository(
+      await getSupabaseServerClient(),
+    ).createAftercarePlan({
+      retailerId: session.retailerId,
+      weddingPartyId: asId<"WeddingPartyId">(parsed.data.weddingPartyId),
+      ...(parsed.data.weddingPartyMemberId
+        ? {
+            weddingPartyMemberId: asId<"WeddingPartyMemberId">(
+              parsed.data.weddingPartyMemberId,
+            ),
+          }
+        : {}),
+      instruction: parsed.data.instruction,
+      ...(parsed.data.dueOn ? { dueOn: parsed.data.dueOn } : {}),
+    });
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Could not save",
+    };
+  }
+  revalidatePath(`/wedding-parties/${weddingPartyId}`);
+  return {};
 }

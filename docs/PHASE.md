@@ -334,6 +334,35 @@ be resumed without the module mapping required by R0.3.**
     through the new UI. Not built: composed-look transition, concurrent-
     correction/order-fed-ownership/service-away/cross-House proof, and the
     rail-to-look-to-MorningRoutine continuation.
+    FT-13 Moonstruck groom/best-men planner gained its first "delivery and
+    pickup readiness" slice. `downloaded_pages/pag1.html`/pag2/pag3 were
+    checked directly and have no interactive aftercare-checklist fragment to
+    port — built with PAON primitives against the blueprint's own PAON-job/
+    state description. Migration `20260802000007` adds `wedding_aftercare_plans`
+    (party-wide or member-scoped instruction with an optional due date) and
+    `complete_wedding_aftercare_plan`, a SECURITY DEFINER RPC that re-derives
+    organizer-or-assigned-member authorization server-side rather than trust a
+    client-supplied role (ADR-034 pattern); the table itself grants only
+    `select` to `authenticated`, so completion can only happen through the
+    RPC. A retailer manager authors instructions from the party page; the
+    organizer or the specifically assigned member marks one done, with the
+    RPC raising for anyone else. Proof: a retailer browser journey (author an
+    instruction, see it listed "Pending") and a customer browser journey
+    (organizer completes their own party-wide instruction, DB asserts
+    `completed_at`). Fixed one collateral regression found while adding this:
+    the new member-select `<option>` text collided with an existing
+    pre-fitting-status locator in `wedding-party-coordination.spec.ts`,
+    narrowed to an element-scoped locator. Also found and fixed a real latent
+    bug this surfaced: `wedding_parties` has no DELETE grant for any role by
+    design (only soft-delete, matching FT-13's "removal preserves audit/order
+    obligations"), and an early draft of the new customer test's cleanup used
+    a hard delete that silently failed and left orphaned non-deleted parties
+    for the shared `TEST_CUSTOMER_EMAIL` fixture, which broke
+    `mobile-ux.spec.ts`'s bottom-nav assertion (any non-deleted party flips
+    the customer shell into wedding mode); the cleanup now soft-deletes and
+    the orphaned rows were purged. Not built yet: date candidates/votes
+    ("group-date agreement"), group fittings, member style/design choices,
+    guest vouchers and inspiration items.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

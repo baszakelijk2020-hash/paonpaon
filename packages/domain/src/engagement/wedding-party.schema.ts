@@ -33,6 +33,13 @@ export const addWeddingPartyMemberSchema = z.object({
 
 /** Anonymous join-link onboarding — identity plus party-scoped prep
  * (ADR-055). Photo is validated in the Server Action as a File. */
+export const createWeddingAftercarePlanSchema = z.object({
+  weddingPartyId: z.string().uuid(),
+  weddingPartyMemberId: z.string().uuid().optional(),
+  instruction: z.string().trim().min(5).max(2000),
+  dueOn: z.string().optional(),
+});
+
 export const joinWeddingPartySchema = z.object({
   name: z.string().trim().min(1).max(200),
   email: z.string().trim().email(),

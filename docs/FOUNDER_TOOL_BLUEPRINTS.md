@@ -739,7 +739,15 @@ expired invites fail safely; removal preserves audit/order obligations while
 revoking future access. Prove organizer/member/advisor/production RLS, date
 conflict resolution, retry/idempotency, partial party, late change and full
 invite-to-group-fitting-to-delivery/pickup journey. **Current:** useful party
-model and faithful orbit; planner workflow/experience partial.
+model, faithful orbit, and a proven delivery/pickup readiness slice —
+`wedding_aftercare_plans` (party-wide or member-scoped instructions with a due
+date) plus `complete_wedding_aftercare_plan` (SECURITY DEFINER RPC re-deriving
+organizer-or-assigned-member authorization server-side, ADR-034 pattern),
+retailer authoring UI and customer completion UI, proven end-to-end
+(retailer creates → customer completes → DB asserts). Still unwired: date
+candidates/votes ("group-date agreement"), group fittings, member style/design
+choices, guest vouchers and inspiration items — planner workflow/experience
+otherwise partial.
 
 ## FT-14 — Preferred Tailoring and HighMaintenance
 

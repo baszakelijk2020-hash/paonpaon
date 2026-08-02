@@ -15,7 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { markFittingScheduled } from "../actions";
+import { completeAftercarePlan, markFittingScheduled } from "../actions";
 
 import { AmHouseHero } from "./am-house-hero";
 import { AmHouseOrbit } from "./am-house-orbit";
@@ -47,15 +47,20 @@ export default async function WeddingPartyDetailPage({
   const party = await partyRepo.findById(id as never);
   if (!party) notFound();
 
-  const [members, retailer, myCustomers] = await Promise.all([
+  const [members, retailer, myCustomers, aftercarePlans] = await Promise.all([
     partyRepo.findMembers(party.id),
     new RetailerRepository(supabase).findById(party.retailerId),
     new CustomerRepository(supabase).findByUserId(session.userId),
+    partyRepo.findAftercarePlans(party.id),
   ]);
   const myCustomerIds = new Set(myCustomers.map((c) => c.id));
   const organizer = members.find(
     (member) => member.customerId === party.organizerCustomerId,
   );
+  const myMember = members.find((member) =>
+    myCustomerIds.has(member.customerId),
+  );
+  const isOrganizer = myCustomerIds.has(party.organizerCustomerId);
 
   return (
     <div className="flex flex-col gap-6">
@@ -225,6 +230,66 @@ export default async function WeddingPartyDetailPage({
           </p>
         ) : null}
       </Card>
+
+      {aftercarePlans.length > 0 ? (
+        <Card className="paon-reveal" style={{ animationDelay: "160ms" }}>
+          <p className="mb-3 text-sm font-medium text-[var(--color-stone-900)]">
+            Delivery &amp; pickup readiness
+          </p>
+          <ul className="flex flex-col gap-2">
+            {aftercarePlans.map((plan) => {
+              const assignedMember = members.find(
+                (candidate) => candidate.id === plan.weddingPartyMemberId,
+              );
+              const canComplete =
+                !plan.completedAt &&
+                (isOrganizer ||
+                  (plan.weddingPartyMemberId
+                    ? myMember?.id === plan.weddingPartyMemberId
+                    : !!myMember));
+              return (
+                <li
+                  key={plan.id}
+                  className="flex items-start justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p>{plan.instruction}</p>
+                    <p className="text-xs text-[var(--color-stone-500)]">
+                      {assignedMember ? assignedMember.name : "Whole party"}
+                      {plan.dueOn
+                        ? ` · due ${formatDate(plan.dueOn, "en-US")}`
+                        : ""}
+                    </p>
+                  </div>
+                  {plan.completedAt ? (
+                    <Badge tone="success">Done</Badge>
+                  ) : canComplete ? (
+                    <form action={completeAftercarePlan}>
+                      <input type="hidden" name="planId" value={plan.id} />
+                      <input
+                        type="hidden"
+                        name="weddingPartyId"
+                        value={party.id}
+                      />
+                      <button
+                        type="submit"
+                        className={buttonVariants({
+                          variant: "outline",
+                          size: "sm",
+                        })}
+                      >
+                        Mark done
+                      </button>
+                    </form>
+                  ) : (
+                    <Badge tone="neutral">Pending</Badge>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      ) : null}
 
       {retailer ? (
         <p className="text-sm text-[var(--color-stone-600)]">
