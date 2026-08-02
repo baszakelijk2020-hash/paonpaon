@@ -172,8 +172,8 @@ This correction supersedes conflicting status and handoff claims below:
   only); an early test-cleanup draft's hard delete silently failed and left
   orphaned parties for the shared customer e2e fixture, breaking
   `mobile-ux.spec.ts`'s bottom-nav assertion — fixed to soft-delete,
-  orphaned rows purged. Date candidates/votes, group fittings, member
-  design choices, guest vouchers and inspiration items remain unwired.
+  orphaned rows purged. Date candidates/votes, member design choices, guest
+  vouchers and inspiration items remain unwired.
 - FT-07 Lapel/pocket/shoulder configurator moved from missing to a first
   connected slice, correcting a wrong `DESIGN_PORTS.md` entry: `pag1.html`
   was checked directly and does contain a designated
@@ -192,6 +192,14 @@ This correction supersedes conflicting status and handoff claims below:
   save, and a database assertion. Prohibited combinations, version pinning,
   retired-option recovery, cross-House isolation, advisor-side visibility
   and configuration-to-proposal/MTM continuation remain.
+- FT-13's `wedding_group_fittings` (schema already real since
+  `20260801000014`, unwired) is now connected. Migration `20260802000009`
+  adds the missing customer-facing SELECT RLS (mirroring the aftercare-plan
+  pattern); the retailer insert needed no new RPC since staff already write
+  through their own session's existing RLS. A retailer schedules a
+  date/time + capacity fitting; the organizer and every member see it
+  listed (read-only — no per-member RSVP column exists yet). Proof: a
+  retailer and a customer browser journey.
 
 ## Repository
 

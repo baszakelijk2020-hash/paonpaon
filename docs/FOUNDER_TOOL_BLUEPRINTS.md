@@ -767,10 +767,15 @@ model, faithful orbit, and a proven delivery/pickup readiness slice —
 date) plus `complete_wedding_aftercare_plan` (SECURITY DEFINER RPC re-deriving
 organizer-or-assigned-member authorization server-side, ADR-034 pattern),
 retailer authoring UI and customer completion UI, proven end-to-end
-(retailer creates → customer completes → DB asserts). Still unwired: date
-candidates/votes ("group-date agreement"), group fittings, member style/design
-choices, guest vouchers and inspiration items — planner workflow/experience
-otherwise partial.
+(retailer creates → customer completes → DB asserts), plus a connected
+`wedding_group_fittings` slice (schema was already real since
+`20260801000014`; migration `20260802000009` added the missing
+customer-facing SELECT RLS mirroring the aftercare-plan pattern) — a
+retailer schedules a date/time + capacity fitting from the party page, the
+organizer and every member see it listed (read-only; the schema has no
+per-member RSVP column yet). Still unwired: date candidates/votes
+("group-date agreement"), member style/design choices, guest vouchers and
+inspiration items — planner workflow/experience otherwise partial.
 
 ## FT-14 — Preferred Tailoring and HighMaintenance
 

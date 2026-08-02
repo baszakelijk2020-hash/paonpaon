@@ -40,6 +40,12 @@ export const createWeddingAftercarePlanSchema = z.object({
   dueOn: z.string().optional(),
 });
 
+export const createWeddingGroupFittingSchema = z.object({
+  weddingPartyId: z.string().uuid(),
+  scheduledAt: z.string().min(1),
+  capacity: z.coerce.number().int().positive(),
+});
+
 export const joinWeddingPartySchema = z.object({
   name: z.string().trim().min(1).max(200),
   email: z.string().trim().email(),

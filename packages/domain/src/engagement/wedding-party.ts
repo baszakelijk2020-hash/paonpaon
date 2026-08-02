@@ -2,6 +2,7 @@ import type {
   CustomerId,
   RetailerId,
   WeddingAftercarePlanId,
+  WeddingGroupFittingId,
   WeddingPartyId,
   WeddingPartyMemberId,
 } from "../shared/branded-id";
@@ -119,5 +120,16 @@ export interface WeddingAftercarePlan {
   readonly instruction: string;
   readonly dueOn?: string;
   readonly completedAt?: string;
+  readonly createdAt: string;
+}
+
+/** A single scheduled group fitting session for the whole party (FT-13).
+ * No per-member RSVP/registration exists in the schema — this is a
+ * scheduled slot with a capacity, not a booking system. */
+export interface WeddingGroupFitting {
+  readonly id: WeddingGroupFittingId;
+  readonly weddingPartyId: WeddingPartyId;
+  readonly scheduledAt: string;
+  readonly capacity: number;
   readonly createdAt: string;
 }

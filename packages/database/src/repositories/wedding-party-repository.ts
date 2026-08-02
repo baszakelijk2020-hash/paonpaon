@@ -4,6 +4,7 @@ import {
   type RetailerId,
   type WeddingAftercarePlan,
   type WeddingAftercarePlanId,
+  type WeddingGroupFitting,
   type WeddingParty,
   type WeddingPartyMember,
   type WeddingPartyMemberFittingStatus,
@@ -20,6 +21,8 @@ type PartyRow = Database["public"]["Tables"]["wedding_parties"]["Row"];
 type MemberRow = Database["public"]["Tables"]["wedding_party_members"]["Row"];
 type AftercarePlanRow =
   Database["public"]["Tables"]["wedding_aftercare_plans"]["Row"];
+type GroupFittingRow =
+  Database["public"]["Tables"]["wedding_group_fittings"]["Row"];
 
 const PARTY_PHOTOS_BUCKET = "party-photos";
 
@@ -68,6 +71,14 @@ const toAftercarePlan = (row: AftercarePlanRow): WeddingAftercarePlan => ({
   instruction: row.instruction,
   ...(row.due_on ? { dueOn: row.due_on } : {}),
   ...(row.completed_at ? { completedAt: row.completed_at } : {}),
+  createdAt: row.created_at,
+});
+
+const toGroupFitting = (row: GroupFittingRow): WeddingGroupFitting => ({
+  id: asId<"WeddingGroupFittingId">(row.id),
+  weddingPartyId: asId<"WeddingPartyId">(row.wedding_party_id),
+  scheduledAt: row.scheduled_at,
+  capacity: row.capacity,
   createdAt: row.created_at,
 });
 
@@ -460,5 +471,42 @@ export class WeddingPartyRepository {
       p_plan_id: planId,
     });
     if (error) throw error;
+  }
+
+  /** Plain insert, not an RPC: the caller here is always retailer staff
+   * with a real session, so the existing staff-insert RLS policy on
+   * `wedding_group_fittings` (owner/manager/admin/sales_associate) is
+   * sufficient — unlike the anonymous/customer paths elsewhere, there is
+   * no client-supplied identity to re-derive. */
+  async createGroupFitting(params: {
+    retailerId: RetailerId;
+    weddingPartyId: WeddingPartyId;
+    scheduledAt: string;
+    capacity: number;
+  }): Promise<WeddingGroupFitting> {
+    const { data, error } = await this.client
+      .from("wedding_group_fittings")
+      .insert({
+        retailer_id: params.retailerId,
+        wedding_party_id: params.weddingPartyId,
+        scheduled_at: params.scheduledAt,
+        capacity: params.capacity,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toGroupFitting(data);
+  }
+
+  async findGroupFittings(
+    weddingPartyId: WeddingPartyId,
+  ): Promise<WeddingGroupFitting[]> {
+    const { data, error } = await this.client
+      .from("wedding_group_fittings")
+      .select("*")
+      .eq("wedding_party_id", weddingPartyId)
+      .order("scheduled_at", { ascending: true });
+    if (error) throw error;
+    return data.map(toGroupFitting);
   }
 }

@@ -76,3 +76,31 @@ test("owner adds a delivery & pickup readiness instruction for the whole party",
   await expect(planItem.getByText("Whole party")).toBeVisible();
   await expect(planItem.getByText("Pending", { exact: true })).toBeVisible();
 });
+
+test("owner schedules a group fitting for the wedding party", async ({
+  page,
+}) => {
+  const unique = Date.now();
+
+  await page.goto("/customers/new");
+  await page.getByLabel("Full name").fill("Group Fitting Groom");
+  await page
+    .getByLabel("Email")
+    .fill(`group-fitting-groom-${unique}@paon.test`);
+  await page.getByRole("button", { name: "Add client" }).click();
+  await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+$/);
+  const customerId = page.url().split("/").pop();
+
+  await page.goto(`/wedding-parties/new?customerId=${customerId}`);
+  await page.getByLabel("Venue").fill("The Grand Hall");
+  await page.getByRole("button", { name: "Create wedding party" }).click();
+  await expect(page).toHaveURL(/\/wedding-parties\/[0-9a-f-]+$/);
+
+  await page.getByLabel("Date and time").fill("2027-03-15T14:30");
+  await page.getByLabel("Capacity").fill("8");
+  await page.getByRole("button", { name: "Schedule group fitting" }).click();
+
+  const fittingItem = page.locator("li", { hasText: "Capacity 8" });
+  await expect(fittingItem).toBeVisible();
+  await expect(fittingItem).toContainText("Mar 15, 2027");
+});

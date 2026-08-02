@@ -29,6 +29,7 @@ import {
 
 import { AddMemberForm } from "./add-member-form";
 import { AftercarePlanForm } from "./aftercare-plan-form";
+import { GroupFittingForm } from "./group-fitting-form";
 import { PartyScheduleForm } from "./party-schedule-form";
 
 import { requireSession } from "@/lib/session";
@@ -54,11 +55,14 @@ export default async function WeddingPartyDetailPage({
   const party = await repo.findById(id as never);
   if (!party || party.retailerId !== session.retailerId) notFound();
 
-  const [members, organizer, aftercarePlans] = await Promise.all([
-    repo.findMembers(party.id),
-    new CustomerRepository(supabase).findById(party.organizerCustomerId),
-    repo.findAftercarePlans(party.id),
-  ]);
+  const [members, organizer, aftercarePlans, groupFittings] = await Promise.all(
+    [
+      repo.findMembers(party.id),
+      new CustomerRepository(supabase).findById(party.organizerCustomerId),
+      repo.findAftercarePlans(party.id),
+      repo.findGroupFittings(party.id),
+    ],
+  );
 
   const wishlistRepo = new WishlistRepository(supabase);
   const variantRepo = new ProductVariantRepository(supabase);
@@ -337,6 +341,42 @@ export default async function WeddingPartyDetailPage({
             </p>
           )}
           <AftercarePlanForm weddingPartyId={party.id} members={members} />
+        </Card>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
+          Group fittings
+        </h2>
+        <Card
+          className="paon-reveal flex flex-col gap-4"
+          style={{ animationDelay: "280ms" }}
+        >
+          {groupFittings.length > 0 ? (
+            <ul className="flex flex-col gap-2">
+              {groupFittings.map((fitting) => (
+                <li
+                  key={fitting.id}
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm"
+                >
+                  <span>
+                    {new Date(fitting.scheduledAt).toLocaleString("en-US", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </span>
+                  <span className="text-xs text-[var(--color-stone-500)]">
+                    Capacity {fitting.capacity}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-[var(--color-stone-500)]">
+              No group fittings scheduled yet.
+            </p>
+          )}
+          <GroupFittingForm weddingPartyId={party.id} />
         </Card>
       </div>
     </div>

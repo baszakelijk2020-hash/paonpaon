@@ -162,9 +162,8 @@ requires it.
   FT-13's audit-preservation intent); an early cleanup draft using a hard
   delete silently failed and left orphaned parties for the shared customer
   e2e fixture, which broke `mobile-ux.spec.ts`'s bottom-nav assertion —
-  fixed to soft-delete, orphaned rows purged. Date candidates/votes, group
-  fittings, member design choices, guest vouchers and inspiration items
-  remain unwired.
+  fixed to soft-delete, orphaned rows purged. Date candidates/votes, member
+  design choices, guest vouchers and inspiration items remain unwired.
   FT-07 Lapel/pocket/shoulder configurator moved from missing to a first
   connected slice, and corrected a wrong `DESIGN_PORTS.md` entry along the
   way: `pag1.html` was checked directly and does contain a designated
@@ -185,6 +184,14 @@ requires it.
   Prohibited combinations, version pinning, retired-option recovery,
   cross-House isolation, advisor-side visibility and configuration-to-
   proposal/MTM continuation remain.
+  FT-13's `wedding_group_fittings` (schema already real since
+  `20260801000014`, unwired) is now connected: migration `20260802000009`
+  adds the missing customer-facing SELECT RLS (mirroring the aftercare-plan
+  pattern); the retailer insert needed no new RPC since staff already write
+  through their own session's existing RLS. A retailer schedules a
+  date/time + capacity fitting; the organizer and every member see it
+  listed (read-only — no per-member RSVP column exists yet). Proof: a
+  retailer and a customer browser journey.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

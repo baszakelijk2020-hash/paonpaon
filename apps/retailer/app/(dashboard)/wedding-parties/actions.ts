@@ -5,6 +5,7 @@ import {
   addWeddingPartyMemberSchema,
   asId,
   createWeddingAftercarePlanSchema,
+  createWeddingGroupFittingSchema,
   createWeddingPartySchema,
   updateWeddingPartyStatusSchema,
   type WeddingPartyMemberFittingStatus,
@@ -184,6 +185,44 @@ export async function createAftercarePlan(
         : {}),
       instruction: parsed.data.instruction,
       ...(parsed.data.dueOn ? { dueOn: parsed.data.dueOn } : {}),
+    });
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Could not save",
+    };
+  }
+  revalidatePath(`/wedding-parties/${weddingPartyId}`);
+  return {};
+}
+
+export interface CreateGroupFittingState {
+  formError?: string;
+}
+
+export async function createGroupFitting(
+  weddingPartyId: string,
+  _prev: CreateGroupFittingState,
+  formData: FormData,
+): Promise<CreateGroupFittingState> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const parsed = createWeddingGroupFittingSchema.safeParse({
+    weddingPartyId,
+    scheduledAt: formData.get("scheduledAt"),
+    capacity: formData.get("capacity"),
+  });
+  if (!parsed.success) {
+    return {
+      formError: parsed.error.issues[0]?.message ?? "Check the fitting fields.",
+    };
+  }
+  try {
+    await new WeddingPartyRepository(
+      await getSupabaseServerClient(),
+    ).createGroupFitting({
+      retailerId: session.retailerId,
+      weddingPartyId: asId<"WeddingPartyId">(parsed.data.weddingPartyId),
+      scheduledAt: new Date(parsed.data.scheduledAt).toISOString(),
+      capacity: parsed.data.capacity,
     });
   } catch (error) {
     return {

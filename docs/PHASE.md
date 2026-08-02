@@ -361,8 +361,8 @@ be resumed without the module mapping required by R0.3.**
     `mobile-ux.spec.ts`'s bottom-nav assertion (any non-deleted party flips
     the customer shell into wedding mode); the cleanup now soft-deletes and
     the orphaned rows were purged. Not built yet: date candidates/votes
-    ("group-date agreement"), group fittings, member style/design choices,
-    guest vouchers and inspiration items.
+    ("group-date agreement"), member style/design choices, guest vouchers and
+    inspiration items.
     FT-07 Lapel/pocket/shoulder configurator moved from "missing" to a first
     connected slice — and `DESIGN_PORTS.md`'s prior "none found" for this row
     was itself wrong: `downloaded_pages/pag1.html` was checked directly and
@@ -391,6 +391,21 @@ be resumed without the module mapping required by R0.3.**
     yet: prohibited combinations, version pinning, retired-option recovery,
     cross-House asset/rule isolation, advisor-side visibility UI and
     configuration-to-proposal/MTM production continuation.
+    FT-13's `wedding_group_fittings` table (already schema-real since
+    `20260801000014`, unwired: retailer-staff read/insert/update RLS existed
+    but no customer-facing visibility and no repository/UI touched it) is now
+    connected. Migration `20260802000009` adds the one missing piece, a
+    customer-facing SELECT policy mirroring the aftercare-plan precedent
+    (`is_wedding_party_organizer_or_member`); the retailer-side insert needed
+    no new RPC since staff already write through their own session's
+    existing RLS policy, unlike the anonymous/customer paths elsewhere. A
+    retailer schedules a fitting (date/time + capacity) from the party page;
+    the organizer and every member see it listed — read-only, since the
+    schema has no per-member RSVP/registration column to wire yet. Proof: a
+    retailer browser journey (schedule, see it listed with the right
+    date/capacity) and a customer browser journey (organizer sees a
+    retailer-scheduled fitting). Remaining FT-13 gaps: date candidates/votes,
+    member style/design choices, guest vouchers and inspiration items.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

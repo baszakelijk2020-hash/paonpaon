@@ -165,6 +165,7 @@ export type SuitConfigurationIntentId = Brand<
   string,
   "SuitConfigurationIntentId"
 >;
+export type WeddingGroupFittingId = Brand<string, "WeddingGroupFittingId">;
 export type StaffShiftId = Brand<string, "StaffShiftId">;
 export type StaffTimeEntryId = Brand<string, "StaffTimeEntryId">;
 export type BehavioralEventId = Brand<string, "BehavioralEventId">;

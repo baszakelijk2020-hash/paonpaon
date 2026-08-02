@@ -47,12 +47,14 @@ export default async function WeddingPartyDetailPage({
   const party = await partyRepo.findById(id as never);
   if (!party) notFound();
 
-  const [members, retailer, myCustomers, aftercarePlans] = await Promise.all([
-    partyRepo.findMembers(party.id),
-    new RetailerRepository(supabase).findById(party.retailerId),
-    new CustomerRepository(supabase).findByUserId(session.userId),
-    partyRepo.findAftercarePlans(party.id),
-  ]);
+  const [members, retailer, myCustomers, aftercarePlans, groupFittings] =
+    await Promise.all([
+      partyRepo.findMembers(party.id),
+      new RetailerRepository(supabase).findById(party.retailerId),
+      new CustomerRepository(supabase).findByUserId(session.userId),
+      partyRepo.findAftercarePlans(party.id),
+      partyRepo.findGroupFittings(party.id),
+    ]);
   const myCustomerIds = new Set(myCustomers.map((c) => c.id));
   const organizer = members.find(
     (member) => member.customerId === party.organizerCustomerId,
@@ -287,6 +289,32 @@ export default async function WeddingPartyDetailPage({
                 </li>
               );
             })}
+          </ul>
+        </Card>
+      ) : null}
+
+      {groupFittings.length > 0 ? (
+        <Card className="paon-reveal" style={{ animationDelay: "200ms" }}>
+          <p className="mb-3 text-sm font-medium text-[var(--color-stone-900)]">
+            Group fittings
+          </p>
+          <ul className="flex flex-col gap-2">
+            {groupFittings.map((fitting) => (
+              <li
+                key={fitting.id}
+                className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm"
+              >
+                <span>
+                  {new Date(fitting.scheduledAt).toLocaleString("en-US", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </span>
+                <span className="text-xs text-[var(--color-stone-500)]">
+                  Capacity {fitting.capacity}
+                </span>
+              </li>
+            ))}
           </ul>
         </Card>
       ) : null}
