@@ -159,6 +159,7 @@ export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
       { href: "/orders", label: "Orders", roles: ORDER_ROLES },
       { href: "/loyalty", label: "Loyalty", roles: MANAGER_ROLES },
       { href: "/events", label: "Events", roles: MANAGER_ROLES },
+      { href: "/gifts", label: "Gifts", roles: MANAGER_ROLES },
       {
         href: "/settings/campaigns",
         label: "Campaigns",

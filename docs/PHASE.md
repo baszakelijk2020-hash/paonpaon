@@ -289,6 +289,25 @@ be resumed without the module mapping required by R0.3.**
     working for every other module family is the honest proof level here.
     Remaining from the original audit: founder-tool blueprint implementation
     and House cleanup.
+    FT-10 Inspiration Box/gift booklet moved from missing to a first
+    connected slice. `downloaded_pages/pag1.html` was checked directly and
+    has no interactive fragment for this tool (only one static marketing
+    sentence) — `DESIGN_PORTS.md`'s "none found" is accurate, so this is
+    built with PAON's own primitives against the blueprint's PAON-job/state
+    description rather than a pixel port, per AGENTS.md's non-designated-
+    source path. Migration `20260802000006` adds the gift schema plus
+    anonymous-safe `resolve_gift_invitation`/`redeem_gift_invitation` RPCs.
+    A retailer manager curates real catalogue pieces at `/gifts` and sends
+    an opaque-token invitation; the recipient opens and redeems it
+    anonymously, seeing only their own reveal. Redemption deliberately
+    creates no Order and touches no stock — R0.2 already owns that atomic
+    write surface, so a fresh ad-hoc order path here would be exactly the
+    uncoordinated surface PHASE.md warns against; it records a selection
+    outcome for the advisor to convert manually instead. Proof: 6 pgTAP
+    assertions, a retailer curate-invite-see-redeemed browser journey and a
+    customer open-redeem-blocked-on-replay browser journey. Not built yet:
+    expiry/revoke polish, resend, giver payment/request flow and recall/
+    refund — continue with these or the next founder-tool contract.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

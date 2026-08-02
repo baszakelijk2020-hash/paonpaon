@@ -120,6 +120,24 @@ This correction supersedes conflicting status and handoff claims below:
   feature has no existing e2e fixture (photo upload, invite seeding) to
   extend, and building one from scratch was judged disproportionate to
   closing an already-low-risk deferred gap on previously-unproven code.
+- FT-10 Inspiration Box/gift booklet moved from missing to a first
+  connected slice, reusing this session's module-gate infrastructure.
+  `pag1.html` was checked directly and has no interactive fragment to
+  port, so this is built with PAON primitives, not a source port. Migration
+  `20260802000006` adds `gift_experiences`/`gift_curated_items`/
+  `gift_invitations` plus anonymous-safe `resolve_gift_invitation`/
+  `redeem_gift_invitation` RPCs (ADR-034 narrow-RPC pattern). A retailer
+  manager curates 1-12 real catalogue pieces at `/gifts` and sends an
+  opaque-token invitation; the recipient opens/redeems anonymously,
+  seeing only their own reveal with live catalogue price. Redemption
+  creates no Order and touches no stock by design — R0.2 already owns
+  that atomic write surface, so this records a selection outcome for the
+  advisor to convert manually rather than adding an uncoordinated order
+  path. Proof: 6 pgTAP assertions (token isolation, no-double-redeem,
+  item-must-belong-to-experience) and two browser journeys — retailer
+  curate/invite/see-redeemed, customer open/redeem/blocked-on-replay.
+  Remaining: expiry/revoke UI polish, resend, giver payment/request flow,
+  recall/refund.
 
 ## Repository
 

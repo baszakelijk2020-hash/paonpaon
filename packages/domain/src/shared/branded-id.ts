@@ -175,6 +175,9 @@ export type StylePreferenceEvidenceId = Brand<
   string,
   "StylePreferenceEvidenceId"
 >;
+export type GiftExperienceId = Brand<string, "GiftExperienceId">;
+export type GiftCuratedItemId = Brand<string, "GiftCuratedItemId">;
+export type GiftInvitationId = Brand<string, "GiftInvitationId">;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

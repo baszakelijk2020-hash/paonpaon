@@ -4958,6 +4958,172 @@ export type Database = {
           },
         ];
       };
+      gift_curated_items: {
+        Row: {
+          created_at: string;
+          gift_experience_id: string;
+          id: string;
+          note: string | null;
+          product_variant_id: string;
+          sort_order: number;
+        };
+        Insert: {
+          created_at?: string;
+          gift_experience_id: string;
+          id?: string;
+          note?: string | null;
+          product_variant_id: string;
+          sort_order?: number;
+        };
+        Update: {
+          created_at?: string;
+          gift_experience_id?: string;
+          id?: string;
+          note?: string | null;
+          product_variant_id?: string;
+          sort_order?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gift_curated_items_gift_experience_id_fkey";
+            columns: ["gift_experience_id"];
+            isOneToOne: false;
+            referencedRelation: "gift_experiences";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gift_curated_items_product_variant_id_fkey";
+            columns: ["product_variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      gift_experiences: {
+        Row: {
+          created_at: string;
+          created_by_staff_id: string | null;
+          deleted_at: string | null;
+          expires_at: string | null;
+          id: string;
+          intro_message: string;
+          retailer_id: string;
+          status: Database["public"]["Enums"]["gift_experience_status"];
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          intro_message: string;
+          retailer_id: string;
+          status?: Database["public"]["Enums"]["gift_experience_status"];
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          intro_message?: string;
+          retailer_id?: string;
+          status?: Database["public"]["Enums"]["gift_experience_status"];
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gift_experiences_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gift_experiences_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      gift_invitations: {
+        Row: {
+          created_at: string;
+          created_by_staff_id: string | null;
+          gift_experience_id: string;
+          id: string;
+          invite_token: string;
+          opened_at: string | null;
+          recipient_email: string | null;
+          recipient_name: string | null;
+          redeemed_at: string | null;
+          redeemed_curated_item_id: string | null;
+          redeemed_recipient_email: string | null;
+          redeemed_recipient_name: string | null;
+          status: Database["public"]["Enums"]["gift_invitation_status"];
+        };
+        Insert: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          gift_experience_id: string;
+          id?: string;
+          invite_token?: string;
+          opened_at?: string | null;
+          recipient_email?: string | null;
+          recipient_name?: string | null;
+          redeemed_at?: string | null;
+          redeemed_curated_item_id?: string | null;
+          redeemed_recipient_email?: string | null;
+          redeemed_recipient_name?: string | null;
+          status?: Database["public"]["Enums"]["gift_invitation_status"];
+        };
+        Update: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          gift_experience_id?: string;
+          id?: string;
+          invite_token?: string;
+          opened_at?: string | null;
+          recipient_email?: string | null;
+          recipient_name?: string | null;
+          redeemed_at?: string | null;
+          redeemed_curated_item_id?: string | null;
+          redeemed_recipient_email?: string | null;
+          redeemed_recipient_name?: string | null;
+          status?: Database["public"]["Enums"]["gift_invitation_status"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gift_invitations_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gift_invitations_gift_experience_id_fkey";
+            columns: ["gift_experience_id"];
+            isOneToOne: false;
+            referencedRelation: "gift_experiences";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gift_invitations_redeemed_curated_item_id_fkey";
+            columns: ["redeemed_curated_item_id"];
+            isOneToOne: false;
+            referencedRelation: "gift_curated_items";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       governed_releases: {
         Row: {
           cohort_size_at_release: number;
@@ -17155,6 +17321,15 @@ export type Database = {
         };
         Returns: string;
       };
+      redeem_gift_invitation: {
+        Args: {
+          p_curated_item_id: string;
+          p_invite_token: string;
+          p_recipient_email: string;
+          p_recipient_name: string;
+        };
+        Returns: Json;
+      };
       redeem_my_reward: { Args: { p_reward_id: string }; Returns: string };
       remove_inferred_style_preference: {
         Args: {
@@ -17226,6 +17401,10 @@ export type Database = {
           p_retailer_id: string;
           p_variant_id: string;
         };
+        Returns: Json;
+      };
+      resolve_gift_invitation: {
+        Args: { p_invite_token: string };
         Returns: Json;
       };
       resolve_retailer_modules: {
@@ -17692,6 +17871,9 @@ export type Database = {
       event_visibility: "public" | "invite_only" | "vip_tier";
       garment_identification_state: "verified" | "needs_verification";
       garment_source_kind: "external" | "finished_mtm";
+      gift_experience_status: "draft" | "active" | "expired" | "revoked";
+      gift_invitation_status:
+        "pending" | "opened" | "redeemed" | "expired" | "revoked";
       knowledge_commercial_intent:
         | "educate"
         | "justify_premium"
@@ -18088,6 +18270,14 @@ export const Constants = {
       event_visibility: ["public", "invite_only", "vip_tier"],
       garment_identification_state: ["verified", "needs_verification"],
       garment_source_kind: ["external", "finished_mtm"],
+      gift_experience_status: ["draft", "active", "expired", "revoked"],
+      gift_invitation_status: [
+        "pending",
+        "opened",
+        "redeemed",
+        "expired",
+        "revoked",
+      ],
       knowledge_commercial_intent: [
         "educate",
         "justify_premium",

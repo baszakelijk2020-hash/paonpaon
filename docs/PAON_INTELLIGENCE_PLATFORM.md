@@ -113,6 +113,19 @@ requires it.
   rights confirmation and retained unsafe-file failure are proven. Do not
   call FT-09 complete: async malware/quarantine, progress, party/garment
   linkage, consent/citation proof and conversation-to-look-to-outcome remain.
+  FT-10 Inspiration Box/gift booklet now has a first connected slice.
+  `downloaded_pages/pag1.html` has no interactive fragment for it (checked
+  directly, not just trusted from `DESIGN_PORTS.md`), so it is built with
+  PAON primitives against the blueprint's job/state description rather than
+  a source port. Migration `20260802000006` adds the schema plus anonymous
+  `resolve_gift_invitation`/`redeem_gift_invitation` RPCs; a manager curates
+  real pieces at `/gifts` and sends an opaque-token invitation, the
+  recipient opens/redeems anonymously seeing only their own reveal.
+  Redemption deliberately creates no Order/stock movement — R0.2 owns that
+  write surface — and instead records a selection for the advisor to
+  convert. 6 pgTAP assertions plus a retailer and a customer browser
+  journey prove it. Expiry/revoke polish, resend, giver payment/request and
+  recall/refund remain.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

@@ -596,7 +596,27 @@ must not silently create marketing consent. Giver cannot see recipient
 browsing/preferences. Recall/refund/item-unavailable paths preserve the gift's
 value and intent. Prove token isolation/expiry, recipient consent boundary,
 price changes, resend/idempotency and a full curate-open-select-redeem outcome.
-**Current:** missing.
+**Current:** first connected slice (2026-08-02). Migration `20260802000006`
+adds `gift_experiences`/`gift_curated_items`/`gift_invitations` plus two
+anonymous-safe SECURITY DEFINER RPCs (`resolve_gift_invitation`,
+`redeem_gift_invitation`) mirroring the ADR-034 narrow-RPC pattern. A
+retailer manager curates 1–12 real catalogue pieces into an experience
+(`/gifts`) and sends an opaque-token invitation; the recipient opens it
+anonymously, sees only their own reveal (live price/name/image, never
+another recipient's activity), and redeems one piece by name/email — which
+never grants marketing consent. Redemption deliberately does not create an
+Order or touch stock (see the migration header): R0.2 already owns the
+atomic money/stock write surface, so this records a selection outcome for
+the retailer's advisor to convert manually, rather than adding an
+uncoordinated write path. Price is always the live catalogue price at
+redemption, never a curation-time snapshot. Proof: 6 pgTAP assertions
+(token isolation, unknown-token rejection, item-must-belong-to-experience,
+no-double-redeem), a retailer browser journey (curate → invite → see a
+real redemption reflected) and a customer browser journey (anonymous
+open → redeem → second-redemption blocked). Not yet built: expiry/revoke
+UI polish beyond the raw fields, resend, giver payment/request flow, and
+recall/refund handling — the blueprint's fuller giver-side and commercial-
+instrument scope remains open.
 
 ## FT-11 — Location globe and monthly visual grid
 
