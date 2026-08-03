@@ -44,6 +44,7 @@ import {
   ProductVariantRepository,
   RetailerRepository,
   RetailerStaffRepository,
+  ServicePlanRepository,
   WeddingPartyRepository,
   WorkshopRepository,
   createSupabaseAdminClient,
@@ -2165,6 +2166,60 @@ async function seedRetailerSpecs(params: {
             ...(prep && member.weightKg == null
               ? { weightKg: prep.weightKg }
               : {}),
+          });
+        }
+      }
+    }
+
+    // Preferred Tailoring — an active concierge membership so the
+    // customer app's /services booking form (including its date/time
+    // picker) has something real to render against.
+    if (customerIds[0]) {
+      const servicePlanRepo = new ServicePlanRepository(admin);
+      let plans = await servicePlanRepo.listPlansByRetailer(retailerId);
+      let plan = plans.find((p) => p.kind === "preferred_tailoring");
+      if (!plan) {
+        const planId = await servicePlanRepo.upsertPlan(retailerId, {
+          kind: "preferred_tailoring",
+          status: "active",
+          title: "Preferred Tailoring",
+          summary: "Advisor-led wardrobe planning, twice a year.",
+          explanation:
+            "Two seasonal planning sessions and a full wardrobe review, booked directly with your advisor.",
+        });
+        plans = await servicePlanRepo.listPlansByRetailer(retailerId);
+        plan = plans.find((p) => p.id === planId);
+      }
+      if (plan) {
+        const memberships = await servicePlanRepo.listMembershipsForCustomer(
+          customerIds[0],
+        );
+        const membership = memberships.find((m) => m.planId === plan!.id);
+        if (!membership) {
+          // enroll_service_membership/set_service_membership_status assert
+          // the caller's own JWT-derived retailer staff role — the
+          // service-role admin client used everywhere else in this file
+          // has no such claim, so this one call needs a real staff session.
+          const ownerClient = await signedInClient(
+            `contact+${spec.slug}-owner@nebelspiegel.com`,
+          );
+          const ownerServicePlanRepo = new ServicePlanRepository(ownerClient);
+          const membershipId = await ownerServicePlanRepo.enrollMembership({
+            planId: plan.id,
+            customerId: customerIds[0],
+            seedDefaultEntitlements: true,
+          });
+          await ownerServicePlanRepo.setMembershipStatus({
+            membershipId,
+            status: "active",
+          });
+        } else if (membership.status !== "active") {
+          const ownerClient = await signedInClient(
+            `contact+${spec.slug}-owner@nebelspiegel.com`,
+          );
+          await new ServicePlanRepository(ownerClient).setMembershipStatus({
+            membershipId: membership.id,
+            status: "active",
           });
         }
       }

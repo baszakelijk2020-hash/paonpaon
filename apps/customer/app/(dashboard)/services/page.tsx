@@ -20,6 +20,8 @@ import {
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
+import { DateTimePicker } from "@paon/ui/components/DateTimePicker";
+import { FormField } from "@paon/ui/components/FormField";
 import Link from "next/link";
 
 import { requestConciergeBooking } from "./actions";
@@ -241,7 +243,7 @@ function MembershipPanel({
       {membership.status === "active" ? (
         <form
           action={requestConciergeBooking}
-          className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end"
+          className="paon-reveal grid gap-3 md:grid-cols-[1fr_auto] md:items-end"
         >
           <input type="hidden" name="membershipId" value={membership.id} />
           <input
@@ -268,6 +270,18 @@ function MembershipPanel({
             </select>
           </label>
           <Button type="submit">Request booking</Button>
+          <div className="md:col-span-2">
+            <FormField
+              label="Preferred date & time (optional)"
+              htmlFor="requestedFor"
+              labelledGroup
+            >
+              <DateTimePicker
+                name="requestedFor"
+                label="Preferred date & time"
+              />
+            </FormField>
+          </div>
           <label className="flex flex-col gap-1 text-sm md:col-span-2">
             Notes
             <textarea

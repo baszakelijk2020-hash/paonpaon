@@ -198,6 +198,11 @@ export default async function DashboardLayout({
                 ),
                 description: "Partners, assignments and access",
               },
+              {
+                href: "/service-partners",
+                label: "Service partners",
+                description: "Dry cleaning, repair — booking and invoices",
+              },
             ]
           : []),
       ],

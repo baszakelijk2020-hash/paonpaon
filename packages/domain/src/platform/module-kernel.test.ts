@@ -125,6 +125,7 @@ describe("platform module registry", () => {
       "/dashboard",
       "/notifications",
       "/customers",
+      "/mission-control",
       "/appointments",
       "/messages",
       "/inventory",

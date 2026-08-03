@@ -194,6 +194,11 @@ export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
         label: "Workshop network",
         roles: ["owner", "admin", "manager", "workshop_manager"],
       },
+      {
+        href: "/service-partners",
+        label: "Service partners",
+        roles: ["owner", "admin", "manager", "workshop_manager"],
+      },
     ],
     authorityDomains: ["production", "appointment", "order"],
     jobs: ["production_milestone_scan", "service_care_reminder"],

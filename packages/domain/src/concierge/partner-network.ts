@@ -18,6 +18,20 @@
  * of the same one. See `PARTNER_CUSTODY_SPLIT_NOTE`.
  */
 
+import type {
+  CustomerId,
+  RetailerId,
+  ServiceCostRecordId,
+  ServicePartnerCustodyEventId,
+  ServicePartnerEngagementId,
+  ServicePartnerId,
+  ServicePartnerInvoiceId,
+  ServicePartnerInvoiceLineId,
+  StaffId,
+  WardrobeItemId,
+} from "../shared/branded-id";
+import type { Timestamps } from "../shared/timestamps";
+
 export const PARTNER_CUSTODY_SPLIT_NOTE =
   "Alteration custody stays in chain_of_custody_events. Partner custody " +
   "covers garments sent out with no alteration work order. One fact, one " +
@@ -42,6 +56,15 @@ export interface ServicePartner {
   readonly capabilities: readonly PartnerCapability[];
   readonly turnaroundDays: number;
   readonly active: boolean;
+}
+
+/** Persisted partner row — a superset of `ServicePartner`, so it can be
+ * passed anywhere the pure functions above expect one. */
+export interface ServicePartnerRecord extends ServicePartner, Timestamps {
+  readonly id: ServicePartnerId;
+  readonly retailerId: RetailerId;
+  readonly contactEmail?: string;
+  readonly contactPhone?: string;
 }
 
 export type PartnerSelection =
@@ -128,6 +151,34 @@ export const PARTNER_CUSTODY_STATES = [
   "released_to_customer",
 ] as const;
 export type PartnerCustodyState = (typeof PARTNER_CUSTODY_STATES)[number];
+
+/** A garment sent to a partner for work outside any alteration work order —
+ * see `PARTNER_CUSTODY_SPLIT_NOTE` for why this is not `chain_of_custody_events`. */
+export interface ServicePartnerEngagement extends Timestamps {
+  readonly id: ServicePartnerEngagementId;
+  readonly retailerId: RetailerId;
+  readonly partnerId: ServicePartnerId;
+  readonly customerId: CustomerId;
+  readonly wardrobeItemId: WardrobeItemId;
+  readonly jobReference: string;
+  readonly capability: PartnerCapability;
+  readonly instructions: string;
+  readonly sentOn?: string;
+  readonly dueOn: string;
+  readonly returnedOn?: string;
+  readonly custodyState: PartnerCustodyState;
+}
+
+export interface PartnerCustodyEvent {
+  readonly id: ServicePartnerCustodyEventId;
+  readonly retailerId: RetailerId;
+  readonly engagementId: ServicePartnerEngagementId;
+  readonly fromState: PartnerCustodyState;
+  readonly toState: PartnerCustodyState;
+  readonly conditionNote?: string;
+  readonly actorStaffId?: StaffId;
+  readonly occurredAt: string;
+}
 
 const CUSTODY_GRAPH: Readonly<
   Record<PartnerCustodyState, readonly PartnerCustodyState[]>
@@ -248,6 +299,38 @@ export interface InvoiceLine {
 export interface RecordedCost {
   readonly jobReference: string;
   readonly amountMinorUnits: number;
+}
+
+export const PARTNER_INVOICE_STATES = [
+  "submitted",
+  "reconciled",
+  "approved",
+  "disputed",
+] as const;
+export type PartnerInvoiceState = (typeof PARTNER_INVOICE_STATES)[number];
+
+export interface ServicePartnerInvoice extends Timestamps {
+  readonly id: ServicePartnerInvoiceId;
+  readonly retailerId: RetailerId;
+  readonly partnerId: ServicePartnerId;
+  readonly partnerInvoiceReference: string;
+  readonly periodStart: string;
+  readonly periodEnd: string;
+  readonly currency: string;
+  readonly submittedByStaffId?: StaffId;
+  readonly state: PartnerInvoiceState;
+  readonly approvedByStaffId?: StaffId;
+  readonly approvedAt?: string;
+  readonly reconciliation: InvoiceReconciliation | Record<string, never>;
+}
+
+export interface ServicePartnerInvoiceLine {
+  readonly id: ServicePartnerInvoiceLineId;
+  readonly retailerId: RetailerId;
+  readonly invoiceId: ServicePartnerInvoiceId;
+  readonly jobReference: string;
+  readonly amountMinorUnits: number;
+  readonly matchedCostRecordId?: ServiceCostRecordId;
 }
 
 export interface InvoiceReconciliation {

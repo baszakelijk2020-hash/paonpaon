@@ -205,6 +205,20 @@ export type MicroCapsuleDropProductId = Brand<
   string,
   "MicroCapsuleDropProductId"
 >;
+export type ServicePartnerId = Brand<string, "ServicePartnerId">;
+export type ServicePartnerEngagementId = Brand<
+  string,
+  "ServicePartnerEngagementId"
+>;
+export type ServicePartnerCustodyEventId = Brand<
+  string,
+  "ServicePartnerCustodyEventId"
+>;
+export type ServicePartnerInvoiceId = Brand<string, "ServicePartnerInvoiceId">;
+export type ServicePartnerInvoiceLineId = Brand<
+  string,
+  "ServicePartnerInvoiceLineId"
+>;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

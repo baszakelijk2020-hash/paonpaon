@@ -582,6 +582,19 @@ export class ServicePlanRepository {
     return data.map(toCost);
   }
 
+  /** Retailer-wide, unlike `listCostsForMembership` — for reconciling a
+   * partner invoice against cost records that may span several
+   * memberships (or none, when a job was never linked to a booking). */
+  async listCostsByRetailer(retailerId: string): Promise<ServiceCostRecord[]> {
+    const { data, error } = await this.client
+      .from("service_cost_records")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(toCost);
+  }
+
   async listHistoryForCustomer(
     customerId: string,
   ): Promise<ServiceHistoryEvent[]> {
