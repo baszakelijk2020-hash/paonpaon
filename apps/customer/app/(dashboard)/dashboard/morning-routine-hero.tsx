@@ -5,6 +5,11 @@ import Link from "next/link";
 import { saveMorningRoutinePick } from "../morning-routine/actions";
 
 import { MorningRoutineClock } from "./morning-routine-clock";
+import { oneTapBuy } from "./one-tap-actions";
+import {
+  OneTapCheckoutBanner,
+  OneTapCheckoutEnabledBadge,
+} from "./one-tap-checkout-banner";
 
 export interface HeroPiece {
   readonly id: string;
@@ -13,6 +18,7 @@ export interface HeroPiece {
   readonly owned?: boolean;
   readonly priceLabel?: string;
   readonly buyHref?: string;
+  readonly productVariantId?: string;
   readonly saveVariantId?: string;
 }
 
@@ -24,8 +30,36 @@ export interface MorningRoutineDashboardHeroProps {
   selectionId: string;
   weatherSummary?: string;
   nextAppointmentHref?: string;
+  oneTapEligible: boolean;
   featured: HeroPiece;
   pieces: readonly HeroPiece[];
+}
+
+function BuyButton({
+  retailerId,
+  piece,
+  oneTapEligible,
+}: {
+  retailerId: string;
+  piece: HeroPiece;
+  oneTapEligible: boolean;
+}) {
+  if (!piece.buyHref) return null;
+  if (oneTapEligible && piece.productVariantId) {
+    const boundBuy = oneTapBuy.bind(null, retailerId, piece.productVariantId);
+    return (
+      <form action={boundBuy}>
+        <button type="submit" className={buttonVariants({ size: "sm" })}>
+          Buy now
+        </button>
+      </form>
+    );
+  }
+  return (
+    <Link href={piece.buyHref} className={buttonVariants({ size: "sm" })}>
+      Buy
+    </Link>
+  );
 }
 
 /**
@@ -34,9 +68,12 @@ export interface MorningRoutineDashboardHeroProps {
  * — pag1.html's own composed-look widget (anchor id="morning", live
  * OpenWeatherMap fetch, "Hi {name}, with {temp}°C ... today calls for
  * something special") is a personalized daily hero, not a page you have to
- * remember to visit. Same selection/action data as `/morning-routine`;
- * "Buy" still only links to the product page — real 1-click purchase is a
- * separate, payment-eligibility-gated piece of work.
+ * remember to visit. Same selection/action data as `/morning-routine`.
+ * "Buy" is one-tap once a default address is on file (`oneTapEligible`) —
+ * real payment collection stays gated on a processor decision that hasn't
+ * been made; the storefront checkout has never captured payment at all,
+ * it only ever created a `pending_payment` order, so one-tap buy changes
+ * how many manual steps reach that same state, not what state it reaches.
  */
 export function MorningRoutineDashboardHero({
   retailerId,
@@ -46,6 +83,7 @@ export function MorningRoutineDashboardHero({
   selectionId,
   weatherSummary,
   nextAppointmentHref,
+  oneTapEligible,
   featured,
   pieces,
 }: MorningRoutineDashboardHeroProps) {
@@ -114,6 +152,13 @@ export function MorningRoutineDashboardHero({
         </div>
 
         <div className="rounded-[var(--radius-md)] bg-white/95 p-4 text-[var(--color-stone-900)] sm:p-5">
+          <div className="mb-4">
+            {oneTapEligible ? (
+              <OneTapCheckoutEnabledBadge />
+            ) : (
+              <OneTapCheckoutBanner retailerId={retailerId} />
+            )}
+          </div>
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.14em] text-[var(--color-stone-500)]">
             Complete the look
           </p>
@@ -179,13 +224,12 @@ export function MorningRoutineDashboardHero({
                       </button>
                     </form>
                   ) : null}
-                  {!piece.owned && piece.buyHref ? (
-                    <Link
-                      href={piece.buyHref}
-                      className={buttonVariants({ size: "sm" })}
-                    >
-                      Buy
-                    </Link>
+                  {!piece.owned ? (
+                    <BuyButton
+                      retailerId={retailerId}
+                      piece={piece}
+                      oneTapEligible={oneTapEligible}
+                    />
                   ) : null}
                 </div>
               </li>

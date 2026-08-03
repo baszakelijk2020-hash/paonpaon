@@ -175,6 +175,9 @@ export default async function DashboardPage() {
           ...(buyAction?.available && buyAction.href
             ? { buyHref: buyAction.href }
             : {}),
+          ...(recommendation.productVariantId
+            ? { productVariantId: String(recommendation.productVariantId) }
+            : {}),
           ...(saveAction?.available && saveAction.productVariantId
             ? { saveVariantId: saveAction.productVariantId }
             : {}),
@@ -208,6 +211,7 @@ export default async function DashboardPage() {
           retailerName={primary.retailer?.displayName ?? "Your atelier"}
           customerFirstName={firstName}
           selectionId={morningRoutineHero.selectionId}
+          oneTapEligible={primary.customer.shippingAddresses.length > 0}
           featured={morningRoutineHero.featured}
           pieces={morningRoutineHero.pieces}
           {...(morningRoutineHero.weatherSummary

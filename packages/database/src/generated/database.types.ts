@@ -17885,6 +17885,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      update_my_default_shipping_address: {
+        Args: { p_address: Json; p_retailer_id: string };
+        Returns: undefined;
+      };
       update_product_catalogue: {
         Args: {
           p_collection_ids?: string[];

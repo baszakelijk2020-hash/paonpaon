@@ -139,6 +139,28 @@ export class CustomerRepository {
   }
 
   /**
+   * "1-Tap Checkout" eligibility. Unlike `updatePreferredCarrier`, the
+   * customer's own session — not staff — is the only caller here, so this
+   * goes through `update_my_default_shipping_address` (re-derives the
+   * caller's own customer row server-side) rather than a direct table
+   * write `customers` has no self-service RLS grant for.
+   */
+  async updateMyDefaultShippingAddress(
+    retailerId: RetailerId,
+    address: Address,
+  ): Promise<void> {
+    const { error } = await this.client.rpc(
+      "update_my_default_shipping_address",
+      {
+        p_retailer_id: retailerId,
+        p_address:
+          address as unknown as Database["public"]["Functions"]["update_my_default_shipping_address"]["Args"]["p_address"],
+      },
+    );
+    if (error) throw error;
+  }
+
+  /**
    * Calls `link_my_customer_accounts` — see docs/DECISIONS.md ADR-013.
    * Idempotent; call once per Customer Portal session establishment.
    */
