@@ -951,6 +951,31 @@ orchestrator.ts` was the only other one still uncovered (the
     supplier write-back, and the full trust/recovery state machine
     (permission-denied, no-speech, low-confidence, offline draft,
     idempotent duplicate-submit refusal) the blueprint specifies.
+    FT-09's last unattempted gap, "garment links," is now closed on the
+    same shape as the party-link slice: migration `20260803000002` adds
+    `message_attachments.wardrobe_item_id` and extends
+    `record_consultation_attachment` with a `p_wardrobe_item_id` that
+    re-derives and checks ownership server-side (a customer may only link
+    their own item; staff may link any of that retailer's). A first attempt
+    at this slice wired `physical_garments` — the staff-only alteration-
+    intake table — instead of `wardrobe_items`, and a browser proof
+    (not typecheck, which passed on the wrong table too) caught it: the new
+    "Link to a garment" `<select>` rendered with zero options because a
+    customer session has no RLS read grant on `physical_garments` at all.
+    Corrected to `wardrobe_items` — the customer-readable garment record
+    the customer app already reads elsewhere (Six-rail wardrobe,
+    MorningRoutine) — which fixed it immediately. Both TableService widget
+    implementations (the raw founder landing page and the React
+    child-route port) got the "Link to a garment (optional)" selector on
+    `photo` attachments, mirroring the wedding-party selector's shape
+    exactly; the retailer inbox resolves and shows the linked item's name.
+    Proof: a new customer browser journey
+    (`tableservice-garment-link.spec.ts`) seeds a real wardrobe item via
+    `WardrobeRepository.createExternalItem`, links it through the raw
+    widget, and asserts the database row's `wardrobe_item_id`. Full
+    customer e2e suite reran green (the pre-existing rapid-keyboard
+    swipe-deck flake reconfirmed once more, passing on retry); full
+    retailer suite reran green at 53/53.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

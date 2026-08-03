@@ -3,6 +3,7 @@ import {
   CustomerRepository,
   MessagingRepository,
   OrderRepository,
+  WardrobeRepository,
   WeddingPartyRepository,
 } from "@paon/database";
 import { CONVERSATION_INTENT_LABELS, ORDER_STATUS_LABELS } from "@paon/domain";
@@ -86,6 +87,7 @@ export default async function MessagesPage({
   >[number];
   let attachmentsByMessage = new Map<string, AttachmentEntry[]>();
   let weddingPartyLabelById = new Map<string, string>();
+  let garmentLabelById = new Map<string, string>();
   let activeCustomer: Awaited<ReturnType<CustomerRepository["findById"]>> =
     null;
   let orders: Awaited<ReturnType<OrderRepository["findByCustomer"]>> = [];
@@ -135,6 +137,25 @@ export default async function MessagesPage({
         parties
           .filter((party): party is NonNullable<typeof party> => Boolean(party))
           .map((party) => [party.id, party.venueName ?? "Wedding party"]),
+      );
+    }
+
+    const garmentIds = [
+      ...new Set(
+        attachments
+          .map(({ attachment }) => attachment.wardrobeItemId)
+          .filter((id): id is NonNullable<typeof id> => Boolean(id)),
+      ),
+    ];
+    if (garmentIds.length > 0) {
+      const wardrobeRepo = new WardrobeRepository(client);
+      const garmentRows = await Promise.all(
+        garmentIds.map((id) => wardrobeRepo.findById(id)),
+      );
+      garmentLabelById = new Map(
+        garmentRows
+          .filter((row): row is NonNullable<typeof row> => Boolean(row))
+          .map((row) => [row.id, row.displayName]),
       );
     }
   }
@@ -243,6 +264,13 @@ export default async function MessagesPage({
                                 {weddingPartyLabelById.get(
                                   attachment.weddingPartyId,
                                 ) ?? "Wedding party"}
+                              </p>
+                            ) : null}
+                            {attachment.wardrobeItemId ? (
+                              <p className="mt-1 text-[10px] uppercase tracking-wide opacity-60">
+                                {garmentLabelById.get(
+                                  attachment.wardrobeItemId,
+                                ) ?? "Garment"}
                               </p>
                             ) : null}
                           </div>

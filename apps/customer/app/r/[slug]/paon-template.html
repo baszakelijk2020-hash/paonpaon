@@ -16454,6 +16454,10 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
                     <span>Link to wedding party (optional)</span>
                     <select id="gcw-wedding-party-select" aria-label="Link to wedding party"></select>
                 </label>
+                <label id="gcw-garment-row" class="gcw-wedding-party-row" style="display:none;">
+                    <span>Link to a garment (optional)</span>
+                    <select id="gcw-garment-select" aria-label="Link to a garment"></select>
+                </label>
             </div>
             <p id="gcw-error" class="gcw-error" role="alert"></p>
         </div>
@@ -16468,6 +16472,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     var SLUG = '__PAON_SLUG__';
     var SIGNED_IN = __PAON_TABLESERVICE_SIGNED_IN__;
     var WEDDING_PARTIES = __PAON_WEDDING_PARTIES_JSON__;
+    var GARMENTS = __PAON_GARMENTS_JSON__;
 
     var launcher   = document.getElementById('gilda-chat-widget-launcher');
     var toggleBtn  = document.getElementById('gilda-chat-widget-toggle');
@@ -16490,6 +16495,8 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     var rightsCheckbox    = chatWidget.querySelector('#gcw-rights');
     var weddingPartyRow   = chatWidget.querySelector('#gcw-wedding-party-row');
     var weddingPartySelect = chatWidget.querySelector('#gcw-wedding-party-select');
+    var garmentRow        = chatWidget.querySelector('#gcw-garment-row');
+    var garmentSelect     = chatWidget.querySelector('#gcw-garment-select');
     var linkComposer      = chatWidget.querySelector('#gcw-link-composer');
     var linkInput         = chatWidget.querySelector('#gcw-link-input');
     var linkUse           = chatWidget.querySelector('#gcw-link-use');
@@ -16521,6 +16528,19 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
             option.value = party.id;
             option.textContent = party.label;
             weddingPartySelect.appendChild(option);
+        });
+    }
+
+    if (GARMENTS.length > 0) {
+        var notLinkedGarmentOption = document.createElement('option');
+        notLinkedGarmentOption.value = '';
+        notLinkedGarmentOption.textContent = 'Not linked';
+        garmentSelect.appendChild(notLinkedGarmentOption);
+        GARMENTS.forEach(function(garment) {
+            var option = document.createElement('option');
+            option.value = garment.id;
+            option.textContent = garment.label;
+            garmentSelect.appendChild(option);
         });
     }
 
@@ -16556,6 +16576,8 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         attachmentDraftEl.classList.remove('active');
         weddingPartyRow.style.display = 'none';
         weddingPartySelect.value = '';
+        garmentRow.style.display = 'none';
+        garmentSelect.value = '';
         setError('');
     }
 
@@ -16588,6 +16610,9 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
             }
             if (attachmentDraft.purpose === 'wedding_fabric' && weddingPartySelect.value) {
                 formData.set('weddingPartyId', weddingPartySelect.value);
+            }
+            if (attachmentDraft.purpose === 'photo' && garmentSelect.value) {
+                formData.set('wardrobeItemId', garmentSelect.value);
             }
         }
         setBusy(true);
@@ -16766,6 +16791,8 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
         showAttachmentDraft(file.name, attachmentPreviewUrl);
         weddingPartyRow.style.display =
             (purpose === 'wedding_fabric' && WEDDING_PARTIES.length > 0) ? 'flex' : 'none';
+        garmentRow.style.display =
+            (purpose === 'photo' && GARMENTS.length > 0) ? 'flex' : 'none';
     });
 
     linkUse.addEventListener('click', function() {

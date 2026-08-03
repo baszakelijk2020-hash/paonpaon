@@ -423,6 +423,17 @@ spec.ts` proved exactly one of five "Needs your attention" card types
   a parallel write path. Still open: a distinct FitProfile
   candidate/version, advisor fit-comparison, supplier write-back and the
   full voice trust/recovery state machine.
+  FT-09's last unattempted gap ("garment links") is now closed too, same
+  shape as its earlier party-link slice: `message_attachments.wardrobe_item_id`
+  plus a `record_consultation_attachment` param that re-derives ownership
+  server-side. A first attempt wired the staff-only `physical_garments`
+  table by mistake — typecheck passed but a browser proof caught it
+  immediately (a customer session has no RLS read grant on that table, so
+  the selector rendered with zero options) — corrected to `wardrobe_items`,
+  the customer-readable garment record the app already reads elsewhere.
+  Both TableService widget implementations got the selector; the retailer
+  inbox shows the linked item. Full customer and retailer e2e suites reran
+  green.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

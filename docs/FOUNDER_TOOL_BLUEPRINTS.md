@@ -743,11 +743,25 @@ architectural fact worth knowing before assuming an edit to one reaches
 both (this cost real debugging time: the root `/r/[slug]` path has no
 `page.tsx`, only a `route.ts` Route Handler, which Next.js never wraps in
 `layout.tsx`, so the React widget's props/state never apply there).
-Garment links remain unattempted. Still owed: an actual async
-malware/quarantine service (the current state is honestly
-`basic_validated`), attachment progress, consent withdrawal/retention
-proof, attachment-grounded citation/no-answer proof and the full
-conversation -> shared look -> appointment/proposal outcome journey.
+Garment links are now closed too, on the same shape as party linking.
+`message_attachments.wardrobe_item_id` (migration `20260803000002`) lets a
+`photo` attachment tag one of the customer's own wardrobe items; the
+`record_consultation_attachment` RPC re-derives and checks the item belongs
+to the caller (a customer may only link their own; staff may link any of
+that retailer's). This links to `wardrobe_items` — the customer-readable
+garment record the customer app already reads elsewhere (Six-rail
+wardrobe, MorningRoutine) — not `physical_garments`, the staff-only
+alteration-intake table a customer has no RLS read access to and typically
+owns none of before ever visiting; an earlier draft of this slice wired
+the wrong table and the widget's own selector silently rendered empty
+until caught by a browser proof failure, not a type error. Both widget
+implementations (the raw founder landing page and the React child-route
+port) got the selector; the retailer inbox resolves and shows the item's
+name next to the attachment. Still owed: an actual async malware/quarantine
+service (the current state is honestly `basic_validated`), attachment
+progress, consent withdrawal/retention proof, attachment-grounded
+citation/no-answer proof and the full conversation -> shared look ->
+appointment/proposal outcome journey.
 
 ## FT-10 — Inspiration Box and gift booklet
 

@@ -8,6 +8,7 @@ import {
   ProductRepository,
   ProductVariantRepository,
   RetailerRepository,
+  WardrobeRepository,
   WeddingPartyRepository,
 } from "@paon/database";
 import type { Product, ProductVariant } from "@paon/domain";
@@ -324,19 +325,24 @@ export async function GET(
   // button): lets a signed-in customer optionally tag a wedding_fabric
   // attachment to one of their own wedding parties.
   let weddingParties: { id: string; label: string }[] = [];
+  let garments: { id: string; label: string }[] = [];
   if (tableServiceSignedIn && authData.user) {
     const customers = await new CustomerRepository(supabase).findByUserId(
       resolveAppSession(authData.user).userId,
     );
     const customer = customers.find((row) => row.retailerId === retailer.id);
     if (customer) {
-      const parties = await new WeddingPartyRepository(supabase).findByCustomer(
-        customer.id,
-      );
+      const [parties, wardrobeItems] = await Promise.all([
+        new WeddingPartyRepository(supabase).findByCustomer(customer.id),
+        new WardrobeRepository(supabase).findByCustomer(customer.id),
+      ]);
       weddingParties = parties.map((party) => ({
         id: party.id,
         label: party.venueName ?? "My wedding party",
       }));
+      garments = wardrobeItems
+        .filter((item) => !item.retiredAt)
+        .map((item) => ({ id: item.id, label: item.displayName }));
     }
   }
 
@@ -571,6 +577,7 @@ ${
       tableServiceSignedIn ? "true" : "false",
     )
     .replaceAll("__PAON_WEDDING_PARTIES_JSON__", JSON.stringify(weddingParties))
+    .replaceAll("__PAON_GARMENTS_JSON__", JSON.stringify(garments))
     .replaceAll("__PAON_RETAILER_NAME__", safeName)
     .replaceAll("__PAON_OG_TITLE__", ogTitle)
     .replaceAll("__PAON_OG_DESCRIPTION__", ogDescription)

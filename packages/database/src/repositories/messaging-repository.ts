@@ -10,6 +10,7 @@ import {
   type MessageAttachmentPurpose,
   type MessageId,
   type RetailerId,
+  type WardrobeItemId,
   type WeddingPartyId,
 } from "@paon/domain";
 
@@ -71,6 +72,9 @@ const messageAttachment = (row: MessageAttachmentRow): MessageAttachment => ({
   scanStatus: row.scan_status as MessageAttachment["scanStatus"],
   ...(row.wedding_party_id
     ? { weddingPartyId: asId<"WeddingPartyId">(row.wedding_party_id) }
+    : {}),
+  ...(row.wardrobe_item_id
+    ? { wardrobeItemId: asId<"WardrobeItemId">(row.wardrobe_item_id) }
     : {}),
   ...(row.uploaded_by_staff_id
     ? { uploadedByStaffId: asId<"StaffId">(row.uploaded_by_staff_id) }
@@ -274,6 +278,7 @@ export class MessagingRepository {
     sizeBytes: number;
     content: ArrayBuffer;
     weddingPartyId?: WeddingPartyId;
+    wardrobeItemId?: WardrobeItemId;
   }): Promise<MessageAttachment> {
     const storagePath = `${params.retailerId}/${params.conversationId}/${crypto.randomUUID()}-${params.fileName}`;
     const { error: uploadError } = await this.client.storage
@@ -295,6 +300,7 @@ export class MessagingRepository {
         p_size_bytes: params.sizeBytes,
         p_storage_path: storagePath,
         p_wedding_party_id: (params.weddingPartyId ?? null) as never,
+        p_wardrobe_item_id: (params.wardrobeItemId ?? null) as never,
       },
     );
     if (error) {

@@ -87,6 +87,13 @@ export async function sendSignedInTableServiceMessage(
     z.string().uuid().safeParse(weddingPartyIdRaw).success
       ? asId<"WeddingPartyId">(weddingPartyIdRaw)
       : undefined;
+  const wardrobeItemIdRaw = formData.get("wardrobeItemId");
+  const wardrobeItemId =
+    purpose === "photo" &&
+    typeof wardrobeItemIdRaw === "string" &&
+    z.string().uuid().safeParse(wardrobeItemIdRaw).success
+      ? asId<"WardrobeItemId">(wardrobeItemIdRaw)
+      : undefined;
 
   let validatedUpload:
     | {
@@ -148,6 +155,7 @@ export async function sendSignedInTableServiceMessage(
         messageId,
         ...validatedUpload,
         ...(weddingPartyId ? { weddingPartyId } : {}),
+        ...(wardrobeItemId ? { wardrobeItemId } : {}),
       });
     }
     if (pinterestUrl) {

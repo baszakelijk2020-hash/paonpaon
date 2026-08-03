@@ -123,6 +123,7 @@ export function TableServiceWidget({
   signedInMessagesHref,
   isSignedIn = false,
   weddingParties = [],
+  garments = [],
 }: {
   retailerId: string;
   retailerName: string;
@@ -134,6 +135,10 @@ export function TableServiceWidget({
    * button): lets a signed-in customer optionally tag a wedding_fabric
    * attachment to one of their own wedding parties. */
   weddingParties?: { id: string; label: string }[];
+  /** PAON-added, same precedent as `weddingParties`: lets a signed-in
+   * customer optionally tag a photo attachment to one of their own
+   * wardrobe items. */
+  garments?: { id: string; label: string }[];
 }) {
   const [open, setOpen] = useState(false);
   const [intent, setIntent] = useState<ConversationIntent>("freeform");
@@ -155,6 +160,7 @@ export function TableServiceWidget({
   const [attachmentRightsConfirmed, setAttachmentRightsConfirmed] =
     useState(false);
   const [weddingPartyId, setWeddingPartyId] = useState("");
+  const [wardrobeItemId, setWardrobeItemId] = useState("");
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [linkComposerOpen, setLinkComposerOpen] = useState(false);
   const [linkValue, setLinkValue] = useState("");
@@ -197,6 +203,7 @@ export function TableServiceWidget({
     setAttachmentRightsConfirmed(false);
     setAttachmentError(null);
     setWeddingPartyId("");
+    setWardrobeItemId("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -361,6 +368,9 @@ export function TableServiceWidget({
               weddingPartyId
             ) {
               formData.set("weddingPartyId", weddingPartyId);
+            }
+            if (attachmentDraft.purpose === "photo" && wardrobeItemId) {
+              formData.set("wardrobeItemId", wardrobeItemId);
             }
           } else if (attachmentDraft?.kind === "link") {
             formData.set("attachmentPurpose", "pinterest_link");
@@ -639,6 +649,28 @@ export function TableServiceWidget({
                       {weddingParties.map((party) => (
                         <option key={party.id} value={party.id}>
                           {party.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+                {attachmentDraft.kind === "upload" &&
+                attachmentDraft.purpose === "photo" &&
+                garments.length > 0 ? (
+                  <label className="mt-2 flex items-center gap-2">
+                    <span>Link to a garment (optional)</span>
+                    <select
+                      aria-label="Link to a garment"
+                      value={wardrobeItemId}
+                      onChange={(event) =>
+                        setWardrobeItemId(event.target.value)
+                      }
+                      className="min-w-0 flex-1 rounded-[7px] border border-black/20 px-2 py-1 text-xs"
+                    >
+                      <option value="">Not linked</option>
+                      {garments.map((garment) => (
+                        <option key={garment.id} value={garment.id}>
+                          {garment.label}
                         </option>
                       ))}
                     </select>

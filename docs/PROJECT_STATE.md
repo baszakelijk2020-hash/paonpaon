@@ -418,6 +418,12 @@ spec.ts` proved exactly one of five "Needs your attention" card types
   `add_alteration_task` RPC rather than a parallel write path. Still open:
   a distinct FitProfile candidate/version, advisor fit-comparison,
   supplier write-back and the full voice trust/recovery state machine.
+- FT-09's last unattempted gap ("garment links") is closed: a photo
+  attachment can be tagged to one of the customer's own `wardrobe_items`
+  (not the staff-only `physical_garments` table a first attempt wrongly
+  used — caught by a browser proof, not typecheck, since a customer
+  session has no RLS read grant on that table). Both TableService widget
+  implementations got the selector; the retailer inbox shows the link.
 
 ## Repository
 

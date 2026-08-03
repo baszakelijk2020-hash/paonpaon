@@ -5,6 +5,7 @@ import type {
   MessageId,
   RetailerId,
   StaffId,
+  WardrobeItemId,
   WeddingPartyId,
 } from "../shared/branded-id";
 import type { Timestamps } from "../shared/timestamps";
@@ -192,6 +193,7 @@ export interface MessageAttachment extends Pick<Timestamps, "createdAt"> {
   readonly rightsBasis: "customer_consultation" | "retailer_consultation";
   readonly scanStatus: MessageAttachmentScanStatus;
   readonly weddingPartyId?: WeddingPartyId;
+  readonly wardrobeItemId?: WardrobeItemId;
   readonly uploadedByStaffId?: StaffId;
   readonly uploadedByUserId?: string;
 }
