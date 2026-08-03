@@ -96,4 +96,9 @@ test("owner sees a client's saved suit configurator pick on their profile", asyn
   await expect(
     page.getByText("peak lapel · flap pockets · roped shoulder"),
   ).toBeVisible();
+
+  // FT-07 expansion: a real next step for staff, not just a read-only log.
+  await expect(
+    page.getByRole("link", { name: "Book a fitting to discuss" }),
+  ).toHaveAttribute("href", `/appointments/new?customerId=${customerRow.id}`);
 });

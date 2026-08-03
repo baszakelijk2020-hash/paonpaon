@@ -62,6 +62,17 @@ test("a shopper explores the suit configurator, follows a predefined model, and 
     }),
   ).toBeVisible();
 
+  // FT-07 expansion: a real next step instead of a dead-end saved intent —
+  // a factual, prefilled deep link into the advisor conversation.
+  const messageLink = page.getByRole("link", {
+    name: "Message advisor about this",
+  });
+  await expect(messageLink).toBeVisible();
+  await expect(messageLink).toHaveAttribute(
+    "href",
+    /\/messages\?prefill=.*peak%20lapel.*roped%20shoulder.*Willem/,
+  );
+
   const { data: retailer } = await admin
     .from("retailers")
     .select("id")

@@ -681,7 +681,10 @@ export default async function CustomerDetailPage({
         canManage={canManage}
       />
 
-      <SuitConfigurationIntentsCard intents={suitConfigurationIntents} />
+      <SuitConfigurationIntentsCard
+        intents={suitConfigurationIntents}
+        customerId={customer.id}
+      />
 
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
