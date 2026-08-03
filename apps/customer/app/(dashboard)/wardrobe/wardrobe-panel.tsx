@@ -9,11 +9,13 @@ import {
   type GarmentCategoryCode,
   type WardrobeItem,
   type WardrobeOwnershipEvent,
+  type WardrobeRoadmap,
+  type WardrobeRoadmapGap,
 } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import Image from "next/image";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState } from "react";
 
 import {
   addExternalWardrobeItem,
@@ -178,153 +180,112 @@ function WardrobeItemCard({
   );
 }
 
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduced(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-  return reduced;
+/** An approved roadmap gap not yet filled by a real purchase or wardrobe
+ * item — "the ideal wardrobe roadmap" the customer's advisor already
+ * approved with them, surfaced in the same carousel as what they own
+ * rather than buried on a separate roadmap page. A filled gap already has
+ * an owned card representing it, so it is excluded here to avoid showing
+ * the same piece twice. */
+function AspirationalGapCard({ gap }: { gap: WardrobeRoadmapGap }) {
+  return (
+    <article className="flex w-[min(78vw,18rem)] shrink-0 snap-start flex-col overflow-hidden rounded-[var(--radius-lg)] border border-dashed border-[var(--color-stone-300)] bg-[var(--color-stone-50)] sm:w-72">
+      <div className="flex aspect-[4/3] items-end p-4" aria-hidden="true">
+        <span className="rounded-full bg-white px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-stone-600)]">
+          On your roadmap
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <p className="text-sm font-medium text-[var(--color-stone-900)]">
+          {gap.title}
+        </p>
+        {gap.description ? (
+          <p className="line-clamp-3 text-sm text-[var(--color-stone-600)]">
+            {gap.description}
+          </p>
+        ) : null}
+        {gap.howPurchaseFillsGap ? (
+          <p className="text-xs text-[var(--color-stone-500)]">
+            Why: {gap.howPurchaseFillsGap}
+          </p>
+        ) : null}
+      </div>
+    </article>
+  );
 }
 
-/** No `downloaded_pages` fragment matches the founder's "tactile stacked
- * rail" description (checked directly: only a decorative, differently-
- * categorised homepage image carousel exists, not an interactive personal-
- * wardrobe rail) — see FOUNDER_TOOL_BLUEPRINTS.md FT-12. Built against the
- * blueprint's own physical description (opening/closing, layered depth,
- * horizontal movement) with PAON primitives rather than guessed pixels. */
-function WardrobeRail({
+/** Always-visible horizontal carousel, one per garment category, stacked
+ * top to bottom — no click-to-expand: browsing the wardrobe means
+ * scrolling within each rail, not opening one section at a time. No
+ * `downloaded_pages` fragment matches a personal-wardrobe carousel
+ * (checked directly: only a decorative, differently-categorised homepage
+ * image carousel exists — see FOUNDER_TOOL_BLUEPRINTS.md FT-12), so this
+ * is built with PAON primitives against the founder's own physical
+ * description (layered depth, horizontal movement) rather than guessed
+ * pixels. Aspirational pieces from an approved roadmap gap appear at the
+ * end of the same strip, visually distinct (dashed border), so the
+ * customer's advisor-approved "ideal wardrobe" lives in the one place they
+ * already browse what they own — not a separate page. */
+function WardrobeCarousel({
   id,
   label,
   items,
+  gaps,
   retailerId,
   historyByItemId,
   retireAction,
   retirePending,
-  open,
-  onToggle,
-  onKeyNav,
-  headerRef,
 }: {
   id: string;
   label: string;
   items: readonly WardrobeItem[];
+  gaps: readonly WardrobeRoadmapGap[];
   retailerId: string;
   historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
   retireAction: (payload: FormData) => void;
   retirePending: boolean;
-  open: boolean;
-  onToggle: () => void;
-  onKeyNav: (direction: "next" | "previous") => void;
-  headerRef: (el: HTMLButtonElement | null) => void;
 }) {
-  const reducedMotion = usePrefersReducedMotion();
-  const peek = items.slice(0, 3);
-  const headerId = `wardrobe-rail-${retailerId}-${id}`;
-  const panelId = `wardrobe-rail-panel-${retailerId}-${id}`;
+  const headerId = `wardrobe-carousel-${retailerId}-${id}`;
 
   return (
     <section aria-labelledby={headerId}>
-      <button
-        ref={headerRef}
-        id={headerId}
-        type="button"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={onToggle}
-        onKeyDown={(event) => {
-          if (event.key === "ArrowDown" || event.key === "ArrowRight") {
-            event.preventDefault();
-            onKeyNav("next");
-          } else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
-            event.preventDefault();
-            onKeyNav("previous");
-          }
-        }}
-        className="flex w-full items-center justify-between gap-3 rounded-[var(--radius-md)] py-2 text-left"
-      >
-        <span className="flex items-center gap-4">
-          <span className="relative h-14 w-16 shrink-0" aria-hidden="true">
-            {peek.length === 0 ? (
-              <span className="absolute inset-0 rounded-[var(--radius-sm)] border border-dashed border-[var(--color-stone-300)]" />
-            ) : (
-              peek.map((item, index) => (
-                <span
-                  key={item.id}
-                  className="absolute inset-0 overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-stone-200)] bg-[var(--color-stone-100)] shadow-sm transition-transform motion-reduce:transition-none"
-                  style={{
-                    zIndex: peek.length - index,
-                    transform: reducedMotion
-                      ? undefined
-                      : `translateX(${index * 8}px) rotate(${(index - (peek.length - 1) / 2) * 5}deg)`,
-                  }}
-                >
-                  {item.identifyingPhotoUrl ? (
-                    <Image
-                      src={item.identifyingPhotoUrl}
-                      alt=""
-                      width={64}
-                      height={56}
-                      unoptimized
-                      className="h-full w-full object-cover"
-                    />
-                  ) : null}
-                </span>
-              ))
-            )}
-          </span>
-          <span>
-            <span className="font-display block text-xl text-[var(--color-stone-900)]">
-              {label}
-            </span>
-            <span className="text-xs text-[var(--color-stone-500)]">
-              {items.length} piece{items.length === 1 ? "" : "s"}
-            </span>
-          </span>
-        </span>
-        <span
-          aria-hidden="true"
-          className={`text-[var(--color-stone-400)] transition-transform motion-reduce:transition-none ${open ? "rotate-90" : ""}`}
+      <div className="flex items-baseline justify-between gap-3 py-2">
+        <h3
+          id={headerId}
+          className="font-display text-xl text-[var(--color-stone-900)]"
         >
-          ›
+          {label}
+        </h3>
+        <span className="text-xs text-[var(--color-stone-500)]">
+          {items.length} piece{items.length === 1 ? "" : "s"}
+          {gaps.length > 0 ? ` · ${gaps.length} on the roadmap` : ""}
         </span>
-      </button>
-      <div
-        id={panelId}
-        role="region"
-        aria-labelledby={headerId}
-        className="grid transition-[grid-template-rows] duration-300 ease-[var(--ease-out-quiet)] motion-reduce:transition-none"
-        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
-      >
-        <div className="min-h-0 overflow-hidden">
-          {items.length > 0 ? (
-            <div
-              className="-mx-5 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2"
-              style={{ scrollbarWidth: "thin" }}
-            >
-              {items.map((item) => (
-                <WardrobeItemCard
-                  key={item.id}
-                  retailerId={retailerId}
-                  item={item}
-                  history={historyByItemId[item.id] ?? []}
-                  retireAction={retireAction}
-                  retirePending={retirePending}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="mt-3 rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-4 py-7 text-center">
-              <p className="text-sm text-[var(--color-stone-500)]">
-                No {label.toLowerCase()} in this wardrobe yet.
-              </p>
-            </div>
-          )}
-        </div>
       </div>
+      {items.length > 0 || gaps.length > 0 ? (
+        <div
+          className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2"
+          style={{ scrollbarWidth: "thin" }}
+        >
+          {items.map((item) => (
+            <WardrobeItemCard
+              key={item.id}
+              retailerId={retailerId}
+              item={item}
+              history={historyByItemId[item.id] ?? []}
+              retireAction={retireAction}
+              retirePending={retirePending}
+            />
+          ))}
+          {gaps.map((gap) => (
+            <AspirationalGapCard key={gap.id} gap={gap} />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-4 py-7 text-center">
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No {label.toLowerCase()} in this wardrobe yet.
+          </p>
+        </div>
+      )}
     </section>
   );
 }
@@ -335,12 +296,14 @@ export function WardrobeHousePanel({
   customerId,
   items,
   historyByItemId,
+  roadmaps,
 }: {
   retailerId: string;
   retailerName: string;
   customerId: string;
   items: readonly WardrobeItem[];
   historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
+  roadmaps: readonly WardrobeRoadmap[];
 }) {
   const initialState: WardrobeActionState = { fieldErrors: {} };
   const [addState, addAction, addPending] = useActionState(
@@ -354,6 +317,10 @@ export function WardrobeHousePanel({
 
   const active = items.filter((item) => item.condition !== "retired");
   const retired = items.filter((item) => item.condition === "retired");
+  const openGaps = roadmaps
+    .filter((roadmap) => roadmap.status === "approved")
+    .flatMap((roadmap) => roadmap.gaps)
+    .filter((gap) => !gap.filledByProductId && !gap.filledByWardrobeItemId);
   const sectionsWithItems = WARDROBE_SECTIONS.map((section) => ({
     section,
     items: active.filter((item) =>
@@ -361,25 +328,14 @@ export function WardrobeHousePanel({
         item.categoryCode,
       ),
     ),
+    gaps: openGaps.filter(
+      (gap) =>
+        gap.categoryCode &&
+        (section.categories as readonly GarmentCategoryCode[]).includes(
+          gap.categoryCode,
+        ),
+    ),
   }));
-  const firstNonEmptyId =
-    sectionsWithItems.find(({ items: sectionItems }) => sectionItems.length > 0)
-      ?.section.id ?? sectionsWithItems[0]?.section.id;
-  const [openRailId, setOpenRailId] = useState<string | undefined>(
-    firstNonEmptyId,
-  );
-  const railHeaderRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-
-  function focusRail(direction: "next" | "previous", fromId: string) {
-    const ids: string[] = sectionsWithItems.map(({ section }) => section.id);
-    const index = ids.indexOf(fromId);
-    const nextIndex =
-      direction === "next"
-        ? (index + 1) % ids.length
-        : (index - 1 + ids.length) % ids.length;
-    const nextId = ids[nextIndex];
-    if (nextId) railHeaderRefs.current[nextId]?.focus();
-  }
 
   return (
     <Card className="flex flex-col gap-5">
@@ -411,26 +367,17 @@ export function WardrobeHousePanel({
       ) : null}
 
       <div className="flex flex-col gap-3" role="presentation">
-        {sectionsWithItems.map(({ section, items: sectionItems }) => (
-          <WardrobeRail
+        {sectionsWithItems.map(({ section, items: sectionItems, gaps }) => (
+          <WardrobeCarousel
             key={section.id}
             id={section.id}
             label={section.label}
             items={sectionItems}
+            gaps={gaps}
             retailerId={retailerId}
             historyByItemId={historyByItemId}
             retireAction={retireAction}
             retirePending={retirePending}
-            open={openRailId === section.id}
-            onToggle={() =>
-              setOpenRailId((current) =>
-                current === section.id ? undefined : section.id,
-              )
-            }
-            onKeyNav={(direction) => focusRail(direction, section.id)}
-            headerRef={(el) => {
-              railHeaderRefs.current[section.id] = el;
-            }}
           />
         ))}
         {active.length === 0 ? (

@@ -95,6 +95,7 @@ export default async function WardrobePage() {
                 customerId={customer.id}
                 items={items}
                 historyByItemId={historyByItemId}
+                roadmaps={roadmaps}
               />
               <WardrobeLifecyclePanel views={serviceViews} />
               <WardrobeRoadmapPanel
