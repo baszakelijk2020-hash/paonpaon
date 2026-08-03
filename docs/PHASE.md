@@ -2751,6 +2751,36 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     `initiatePayout` flag outright rather than ignoring it, so no caller
     can believe money moved — ADR-062 has decided no payout design.
     Missing: intake and calendar UI, partner portal, browser proof.
+  - **Update (2026-08-03, takeover branch):** the partner portal now
+    exists and is browser-proven —
+    `apps/retailer/e2e/service-partners.spec.ts` drives a real owner
+    through `/service-partners`: register a partner, send a wardrobe
+    garment out (`with_retailer` → `in_transit_to_partner`), log a
+    partner invoice, add a line, and reconcile it. The proof asserts the
+    reconciliation is a real computation, not a rubber stamp — with no
+    matching `service_cost_records` row it reports "not reconciled" and
+    the page correctly withholds the Approve action, rather than showing
+    a green check because a request round-tripped. `ServicePartnerRepository`
+    is the new repository layer the domain/schema always needed; it adds
+    no logic of its own beyond persistence — `checkCustodyTransition`,
+    `reconcilePartnerInvoice` and `checkInvoiceApproval` gate every write
+    exactly as designed, including the refusal to expose or wire an
+    `initiatePayout` path (none exists in the UI; approval only ever
+    calls the repository's `approveInvoice`, which sets a state and a
+    timestamp and moves no money). Reconciliation matches an invoice
+    line to a cost record by job reference, carried in
+    `service_cost_records.label` — that table has no dedicated
+    job-reference column, so this is a naming convention the retailer
+    must follow, not a schema guarantee; a future revision could promote
+    it to a real column with a migration if that convention proves
+    fragile in practice. The checkbox stays unchecked: the acceptance
+    criterion also asks for pag3's calendar-led wardrobe orchestration
+    (a real weekly agenda view), and no such surface exists anywhere in
+    this repository or in `downloaded_pages/*.html` to port — building
+    one now would be inventing a UI pattern with no source, which is
+    exactly what this codebase's porting discipline refuses to do.
+    Missing: the weekly wardrobe service calendar and its agenda/travel
+    context.
 
 - [ ] **12.4 Supplier/atelier intelligence and support operations**
   - **Requirement IDs:** `MTM-101`.
@@ -3027,6 +3057,31 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     failure mode in this item. Missing: employee portal, invite flow,
     fitting/order/issue wiring to real orders, tender demo, dashboards and
     browser proof. Live employer data stays `blocked_external`.
+  - **Update (2026-08-03, takeover branch):** the retailer-staff side of
+    this item is now real and browser-proven —
+    `apps/retailer/e2e/corporate.spec.ts` drives a real owner through
+    `/corporate`: view entitlement balances computed live from
+    `computeEntitlementBalance` (not a cached snapshot), issue a garment
+    gated by the real `checkIssue` refusal, and log/resolve an
+    exception. `CorporateRepository` is the repository layer this item
+    always needed; every one of the domain functions named above
+    (`planLeaverExceptions`, `checkAccommodationNote`,
+    `summarizeProgrammeReadiness`, `buildCorporateScopedView`) had zero
+    callers before this and is now wired to the page — the readiness
+    banner names not-started wearers by their real display name, exactly
+    per the domain's own stated design. The checkbox stays unchecked:
+    the owner boundary and acceptance criterion both name an **employee
+    portal** — a login for the employer's own contact — which is a
+    genuinely separate scope this update does not touch. Every RLS
+    policy on every `corporate_*` table admits only
+    `current_retailer_role()` (retailer staff); there is no auth path,
+    session type or RLS grant anywhere for a corporate account contact,
+    and adding one is a new-auth-path decision, not a UI gap "on existing
+    schema" can close. Missing: employee portal and its own auth/session/
+    RLS, invite flow, fitting/order/issue wiring to real orders, tender
+    demo, and the employer-facing `CorporateScopedView` dashboard (the
+    function exists and is unit-tested; nothing renders it, because
+    nothing signs an employer contact in to see it).
 
 - [ ] **14.2 Advanced cited intelligence**
   - **Requirement IDs:** Stage 14 target plus `WFM-105`, `INV-104`.
