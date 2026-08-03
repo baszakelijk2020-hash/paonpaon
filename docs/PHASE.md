@@ -2930,7 +2930,7 @@ closed` graph, refusing a supplier-notify with no evidence and asserting
 
 ### Stage 13 — Inventory, POS, and loss prevention
 
-- [ ] **13.1 Stock ledger, reservations, barcode receiving and counts**
+- [x] **13.1 Stock ledger, reservations, barcode receiving and counts**
   - **Requirement IDs:** `INV-101`, `INV-102`.
   - **Dependencies:** `8.2`.
   - **Owner boundary:** append-only ledger, location balances/reservations,
@@ -2966,6 +2966,37 @@ closed` graph, refusing a supplier-notify with no evidence and asserting
     `lookup` never writes, so checking what something is cannot
     accidentally receive it. Missing: receiving/count/transfer UI,
     concurrency proof under real contention, browser proof.
+
+  - **Status (2026-08-04, takeover branch, revised):** `verified_local`. This
+    status was inaccurate as written above: `/inventory` (receive, hold,
+    blind count, adjustment) and `apps/retailer/e2e/inventory.spec.ts` both
+    already existed and passed before this correction — the "no UI, no
+    browser proof" line was stale, not current. `docs/evidence/runs/13.1.json`
+    already carried a passing run from an earlier commit under this same
+    branch; this pass found the acceptance line's fourth clause, transfer,
+    genuinely untested (the existing spec builds two locations only "so a
+    transfer has somewhere to go" but never drives one), added a second
+    test proving it end to end — receive, move between locations, and a
+    move refused for exceeding what is available at the origin, all against
+    the real ledger — and refreshed the evidence at current HEAD. All four
+    Acceptance clauses (purchase receipt, transfer, sale reservation, blind
+    count reconcile) now have a passing browser proof; `verified_local` is
+    accurate, not aspirational.
+
+    The transfer proof is deliberately a second, independent test rather
+    than an addition to the first: by the end of the first test the
+    location is intentionally left oversold (on-hand 19, available −1) to
+    prove the ledger reports that honestly, and a transfer correctly
+    refuses to move stock that is not available — exercising that inside
+    the first test would test the refusal a second time while claiming to
+    test the move.
+
+    One rough edge found and left as found rather than silently patched:
+    `insufficient_available`'s rejection message is hold-specific ("Not
+    enough available to hold...") and is reused verbatim for a refused
+    transfer, so a manager moving stock between locations sees a message
+    about holding it for a client. Cosmetic, not a correctness gap — worth
+    a follow-up, not a blocker for this item's Acceptance.
 
 - [ ] **13.2 Loss prevention and RFID pilot**
   - **Requirement IDs:** `INV-104`, `INV-105`.

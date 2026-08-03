@@ -9,13 +9,14 @@ import { writeBrowserProofRun } from "./write-browser-proof-run";
 const PHASE_ITEM_ID = "13.1";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/inventory.spec.ts";
 
-let proofPassed = false;
+let receivingProofPassed = false;
+let transferProofPassed = false;
 
 test.afterAll(async () => {
   await writeBrowserProofRun({
     phaseItemId: PHASE_ITEM_ID,
     spec: BROWSER_PROOF_SPEC,
-    status: proofPassed ? "passed" : "failed",
+    status: receivingProofPassed && transferProofPassed ? "passed" : "failed",
   });
 });
 
@@ -223,5 +224,146 @@ test("manager receives stock, is blocked from overselling, and explains a count 
   // The refused hold left no row behind: a refusal must not half-write.
   expect(kinds.filter((k) => k === "reservation")).toHaveLength(1);
 
-  proofPassed = true;
+  receivingProofPassed = true;
+});
+
+/**
+ * Transfer is the fourth named write path in this item's Acceptance line
+ * ("purchase receipt, transfer, sale reservation and blind count reconcile")
+ * and is exercised in its own scenario with fresh locations, rather than
+ * folded into the scenario above: by the end of that test the origin
+ * location is deliberately oversold (on-hand 19, available -1), and a
+ * transfer correctly refuses to move stock from a location that has none
+ * available — testing it there would be testing the refusal, not the move.
+ */
+test("a manager transfers stock between two locations, and the ledger records both entries", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const proof = await ensureProgrammeProofSeed({
+    supabaseUrl,
+    anonKey,
+    serviceRoleKey,
+  });
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const stamp = Date.now();
+  const { data: origin } = await admin
+    .from("stock_locations")
+    .insert({
+      retailer_id: proof.retailerId,
+      code: `E2E-ORIGIN-${stamp}`,
+      name: `E2E Origin ${stamp}`,
+      active: true,
+    })
+    .select("id")
+    .single();
+  const { data: destination } = await admin
+    .from("stock_locations")
+    .insert({
+      retailer_id: proof.retailerId,
+      code: `E2E-DEST-${stamp}`,
+      name: `E2E Destination ${stamp}`,
+      active: true,
+    })
+    .select("id")
+    .single();
+  const originId = origin!.id;
+  const destinationId = destination!.id;
+
+  async function waitForBalanceAt(
+    locationId: string,
+    variantId: string,
+    onHand: number,
+    available: number,
+  ): Promise<void> {
+    await expect
+      .poll(
+        async () => {
+          await page.goto(`/inventory?location=${locationId}`);
+          const row = page.locator(`[data-variant-id="${variantId}"]`);
+          if ((await row.count()) === 0) return "absent";
+          return `${await row.getAttribute("data-on-hand")}/${await row.getAttribute("data-available")}`;
+        },
+        { timeout: 60_000 },
+      )
+      .toBe(`${onHand}/${available}`);
+  }
+
+  await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
+  await page.goto(`/inventory?location=${originId}`);
+
+  const variantId = await page
+    .locator("#receive-variant option")
+    .first()
+    .getAttribute("value");
+  expect(variantId).toBeTruthy();
+
+  // ---- receive at the origin --------------------------------------------
+  await page.selectOption("#receive-location", originId);
+  await page.fill("#receive-quantity", "10");
+  await page.getByRole("button", { name: "Receive stock" }).click();
+  await waitForBalanceAt(originId, variantId!, 10, 10);
+
+  // ---- move some of it to the destination -------------------------------
+  await page.goto(`/inventory?location=${originId}`);
+  await page.selectOption("#transfer-variant", variantId!);
+  await page.selectOption("#transfer-from", originId);
+  await page.selectOption("#transfer-to", destinationId);
+  await page.fill("#transfer-quantity", "4");
+  await page.getByRole("button", { name: "Move stock" }).click();
+
+  await waitForBalanceAt(originId, variantId!, 6, 6);
+  await waitForBalanceAt(destinationId, variantId!, 4, 4);
+
+  // ---- the ledger records two entries, not one --------------------------
+  const { data: originEntries } = await admin
+    .from("stock_ledger_entries")
+    .select("kind, quantity")
+    .eq("retailer_id", proof.retailerId)
+    .eq("location_id", originId)
+    .order("occurred_at", { ascending: true });
+  expect((originEntries ?? []).map((e) => e.kind)).toEqual([
+    "receipt",
+    "transfer_out",
+  ]);
+  // Stored as a magnitude; the ledger's sign per kind (transfer_out: -1,
+  // transfer_in: +1) is applied when projecting a balance, not in the row.
+  expect(originEntries!.find((e) => e.kind === "transfer_out")!.quantity).toBe(
+    4,
+  );
+
+  const { data: destinationEntries } = await admin
+    .from("stock_ledger_entries")
+    .select("kind, quantity")
+    .eq("retailer_id", proof.retailerId)
+    .eq("location_id", destinationId);
+  expect((destinationEntries ?? []).map((e) => e.kind)).toEqual([
+    "transfer_in",
+  ]);
+  expect(destinationEntries![0]!.quantity).toBe(4);
+
+  // ---- moving more than is available at the origin is refused -----------
+  await page.goto(`/inventory?location=${originId}`);
+  await page.selectOption("#transfer-variant", variantId!);
+  await page.selectOption("#transfer-from", originId);
+  await page.selectOption("#transfer-to", destinationId);
+  await page.fill("#transfer-quantity", "999");
+  await page.getByRole("button", { name: "Move stock" }).click();
+  await expect(page.getByText(/Not enough available/i)).toBeVisible({
+    timeout: 30_000,
+  });
+  // In-transit stayed put: still exactly two ledger rows at the origin.
+  const { data: afterRefusal } = await admin
+    .from("stock_ledger_entries")
+    .select("id")
+    .eq("retailer_id", proof.retailerId)
+    .eq("location_id", originId);
+  expect(afterRefusal ?? []).toHaveLength(2);
+
+  transferProofPassed = true;
 });
