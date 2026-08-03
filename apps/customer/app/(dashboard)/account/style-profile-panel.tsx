@@ -6,6 +6,7 @@ import type {
 } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
+import Link from "next/link";
 import { useActionState } from "react";
 
 import {
@@ -66,6 +67,14 @@ export function StyleProfilePanel({
           consented activity and can be removed without deleting purchase or
           appointment history.
         </p>
+        <Link
+          href="/style-quiz"
+          className="text-sm text-[var(--color-stone-700)] underline"
+        >
+          {declared.length === 0
+            ? "Take the 60-second style quiz"
+            : "Retake the style quiz"}
+        </Link>
       </div>
 
       {state.formError ? (
