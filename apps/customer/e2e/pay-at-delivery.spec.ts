@@ -1,0 +1,113 @@
+import { createSupabaseAdminClient } from "@paon/database";
+import { expect, test } from "@playwright/test";
+
+import {
+  TEST_CUSTOMER_EMAIL,
+  TEST_PRODUCT_SLUG,
+  TEST_RETAILER_SLUG,
+} from "./fixtures";
+
+/**
+ * Honeymoon Phase expansion: a customer may explicitly choose to defer
+ * payment to collection instead of retrying Stripe Checkout. Proves the
+ * full loop — choosing it neither charges nor marks the order paid (it
+ * stays `pending_payment`), it only sets a real, persisted flag the
+ * retailer's own order page reads to stop expecting online payment.
+ */
+test("a customer chooses to pay at delivery instead of retrying online payment", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+    );
+  }
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailer) throw new Error("fixture retailer missing");
+  const { data: customerRow } = await admin
+    .from("customers")
+    .select("id")
+    .eq("retailer_id", retailer.id)
+    .eq("email", TEST_CUSTOMER_EMAIL)
+    .maybeSingle();
+  if (!customerRow) throw new Error("fixture customer missing");
+
+  // Isolate this run from any draft cart another spec left behind.
+  await admin
+    .from("orders")
+    .delete()
+    .eq("customer_id", customerRow.id)
+    .eq("status", "draft");
+
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email: TEST_CUSTOMER_EMAIL,
+  });
+  if (error || !data.properties) {
+    throw new Error(
+      `Failed to generate magic link: ${error?.message ?? "unknown error"}`,
+    );
+  }
+  await page.goto(
+    `/auth/confirm?token_hash=${data.properties.hashed_token}&type=magiclink`,
+  );
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  await page.goto(
+    `/r/${TEST_RETAILER_SLUG}/products/${TEST_PRODUCT_SLUG}?legacy=1`,
+  );
+  await page.getByLabel("Qty").fill("1");
+  await page.getByRole("button", { name: "Add to cart" }).click();
+  await expect(page).toHaveURL(new RegExp(`/r/${TEST_RETAILER_SLUG}/cart$`));
+
+  await page.getByText("Save as pending order instead").click();
+  await page.getByPlaceholder("Address", { exact: true }).fill("1 Test Street");
+  await page.getByPlaceholder("City").fill("Testville");
+  await page.getByPlaceholder("Postal code").fill("00000");
+  await page.getByPlaceholder("Country code").fill("US");
+  await page.getByRole("button", { name: "Save pending order" }).click();
+  await expect(page).toHaveURL(/\/orders\/[0-9a-f-]+$/);
+  const orderId = page.url().split("/").pop();
+  if (!orderId) throw new Error("order id missing from URL");
+
+  try {
+    await expect(
+      page.getByRole("button", { name: "Pay at delivery instead" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Pay at delivery instead" }).click();
+    await expect(
+      page.getByText(
+        "You chose to pay at delivery — no online charge has been attempted.",
+      ),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        "Pay at delivery — no online charge has been attempted for this order.",
+      ),
+    ).toBeVisible();
+
+    const { data: order } = await admin
+      .from("orders")
+      .select("status")
+      .eq("id", orderId)
+      .single();
+    expect(order?.status).toBe("pending_payment");
+
+    const { data: programme } = await admin
+      .from("honeymoon_programmes")
+      .select("pay_at_delivery")
+      .eq("order_id", orderId)
+      .single();
+    expect(programme?.pay_at_delivery).toBe(true);
+  } finally {
+    await admin.from("orders").delete().eq("id", orderId);
+  }
+});

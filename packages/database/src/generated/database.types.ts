@@ -5292,6 +5292,7 @@ export type Database = {
           id: string;
           library_version_id: string | null;
           order_id: string;
+          pay_at_delivery: boolean;
           retailer_id: string;
           status: string;
           updated_at: string;
@@ -5302,6 +5303,7 @@ export type Database = {
           id?: string;
           library_version_id?: string | null;
           order_id: string;
+          pay_at_delivery?: boolean;
           retailer_id: string;
           status?: string;
           updated_at?: string;
@@ -5312,6 +5314,7 @@ export type Database = {
           id?: string;
           library_version_id?: string | null;
           order_id?: string;
+          pay_at_delivery?: boolean;
           retailer_id?: string;
           status?: string;
           updated_at?: string;

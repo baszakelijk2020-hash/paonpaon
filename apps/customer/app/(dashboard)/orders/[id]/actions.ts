@@ -1,16 +1,19 @@
 "use server";
 
 import {
+  HoneymoonProgrammeRepository,
   OrderRepository,
   RetailerStripeAccountRepository,
 } from "@paon/database";
 import { asId, createCheckoutSessionInputSchema } from "@paon/domain";
 import { createDirectChargeCheckoutSession } from "@paon/payments";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { env } from "@/lib/env";
 import { requireSession } from "@/lib/session";
 import { getStripeClient } from "@/lib/stripe";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface PayActionState {
@@ -83,4 +86,36 @@ export async function createCheckoutSession(
   }
 
   redirect(session.url);
+}
+
+/**
+ * The customer's explicit choice to defer payment to collection instead of
+ * paying via Stripe Checkout now — Honeymoon Phase expansion. This never
+ * marks the order paid or moves money; `pending_payment` stays exactly
+ * that until Stripe succeeds or staff use `markPaidInStore` at collection.
+ * It only tells retailer staff not to expect (or chase) an online payment.
+ * The order lookup uses the session-scoped client, not the admin client:
+ * RLS on `orders` naturally returns null for an order that isn't this
+ * customer's, so a foreign orderId fails closed here exactly like
+ * `createCheckoutSession` above.
+ */
+export async function choosePayAtDelivery(orderId: string): Promise<void> {
+  await requireSession();
+  const supabase = await getSupabaseServerClient();
+  const order = await new OrderRepository(supabase).findById(
+    asId<"OrderId">(orderId),
+  );
+  if (!order) throw new Error("Order not found.");
+  if (order.status !== "pending_payment") {
+    throw new Error("This order is not awaiting payment.");
+  }
+
+  const admin = getSupabaseAdminClient();
+  const honeymoonRepo = new HoneymoonProgrammeRepository(admin);
+  const programme = await honeymoonRepo.findByOrder(order.retailerId, order.id);
+  if (!programme) {
+    throw new Error("Pay at delivery isn't available for this order.");
+  }
+  await honeymoonRepo.setPayAtDelivery(order.retailerId, programme.id, true);
+  revalidatePath(`/orders/${orderId}`);
 }

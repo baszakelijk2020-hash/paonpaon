@@ -1,9 +1,11 @@
 import {
   CustomerRepository,
+  HoneymoonProgrammeRepository,
   OrderRepository,
   ProductVariantRepository,
 } from "@paon/database";
 import { asId, retailerRoleAtLeast } from "@paon/domain";
+import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
@@ -32,9 +34,13 @@ export default async function OrderDetailPage({
     notFound();
   }
 
-  const [lines, customer] = await Promise.all([
+  const [lines, customer, honeymoonProgramme] = await Promise.all([
     orderRepo.findLinesByOrder(order.id),
     new CustomerRepository(supabase).findById(order.customerId),
+    new HoneymoonProgrammeRepository(supabase).findByOrder(
+      order.retailerId,
+      order.id,
+    ),
   ]);
 
   const variantRepo = new ProductVariantRepository(supabase);
@@ -55,6 +61,9 @@ export default async function OrderDetailPage({
             {order.orderNumber}
           </h1>
           <OrderStatusBadge status={order.status} />
+          {honeymoonProgramme?.payAtDelivery ? (
+            <Badge tone="warning">Pay at delivery</Badge>
+          ) : null}
         </div>
         <p className="text-sm text-[var(--color-stone-500)]">
           {customer?.fullName ?? "Unknown customer"} ·{" "}

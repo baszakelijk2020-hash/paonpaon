@@ -160,6 +160,8 @@ export default async function OrderDetailPage({
             orderId={order.id}
             orderNumber={order.orderNumber}
             paymentCanceled={payment === "canceled"}
+            payAtDelivery={honeymoonProgramme.payAtDelivery}
+            canOfferPayAtDelivery={!honeymoonProgramme.payAtDelivery}
           />
         )
       ) : paymentRecord?.status === "captured" ? (

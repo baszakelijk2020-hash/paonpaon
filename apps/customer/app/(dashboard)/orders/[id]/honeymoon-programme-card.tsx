@@ -22,6 +22,11 @@ export function HoneymoonProgrammeCard({
       <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
         Preparation & aftercare
       </h2>
+      {programme.payAtDelivery ? (
+        <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+          Pay at delivery — no online charge has been attempted for this order.
+        </p>
+      ) : null}
       <ul className="mt-3 flex flex-col gap-3 text-sm">
         {programme.actions.map((action) => (
           <li

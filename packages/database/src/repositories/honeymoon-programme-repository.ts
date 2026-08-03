@@ -24,6 +24,7 @@ export interface HoneymoonProgrammeRecord {
   readonly customerId: string;
   readonly orderId: string;
   readonly status: string;
+  readonly payAtDelivery: boolean;
   readonly actions: readonly HoneymoonAction[];
 }
 
@@ -70,8 +71,23 @@ export class HoneymoonProgrammeRepository {
       customerId: data.customer_id,
       orderId: data.order_id,
       status: data.status,
+      payAtDelivery: data.pay_at_delivery,
       actions: actions.map(toAction),
     };
+  }
+
+  /** Customer's explicit choice to defer payment to collection — never set by the platform on its own. */
+  async setPayAtDelivery(
+    retailerId: RetailerId,
+    programmeId: string,
+    payAtDelivery: boolean,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("honeymoon_programmes")
+      .update({ pay_at_delivery: payAtDelivery })
+      .eq("id", programmeId)
+      .eq("retailer_id", retailerId);
+    if (error) throw error;
   }
 
   async ensureForOrder(args: {
@@ -166,6 +182,7 @@ export class HoneymoonProgrammeRepository {
       customerId: programme.customer_id,
       orderId: programme.order_id,
       status: programme.status,
+      payAtDelivery: programme.pay_at_delivery,
       actions: derived,
     };
   }

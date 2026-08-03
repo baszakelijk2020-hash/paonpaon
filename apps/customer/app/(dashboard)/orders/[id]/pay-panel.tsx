@@ -1,10 +1,14 @@
 "use client";
 
-import { buttonVariants } from "@paon/ui/components/Button";
+import { Button, buttonVariants } from "@paon/ui/components/Button";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useTransition } from "react";
 
-import { createCheckoutSession, type PayActionState } from "./actions";
+import {
+  choosePayAtDelivery,
+  createCheckoutSession,
+  type PayActionState,
+} from "./actions";
 
 const initial: PayActionState = {};
 
@@ -12,16 +16,30 @@ export function PayPanel({
   orderId,
   orderNumber,
   paymentCanceled,
+  payAtDelivery,
+  canOfferPayAtDelivery,
 }: {
   orderId: string;
   orderNumber: string;
   paymentCanceled: boolean;
+  payAtDelivery: boolean;
+  canOfferPayAtDelivery: boolean;
 }) {
   const [state, action, pending] = useActionState(
     createCheckoutSession,
     initial,
   );
+  const [isChoosingPayAtDelivery, startChoosingPayAtDelivery] = useTransition();
   const payInStorePrefill = `I'd like to arrange paying in store for order ${orderNumber}.`;
+
+  if (payAtDelivery) {
+    return (
+      <p className="text-sm text-[var(--color-stone-600)]">
+        You chose to pay at delivery — no online charge has been attempted.
+        You&rsquo;ll settle when your order is ready to collect.
+      </p>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -50,6 +68,20 @@ export function PayPanel({
         >
           Pay in store
         </Link>
+        {canOfferPayAtDelivery ? (
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={isChoosingPayAtDelivery}
+            onClick={() =>
+              startChoosingPayAtDelivery(async () => {
+                await choosePayAtDelivery(orderId);
+              })
+            }
+          >
+            {isChoosingPayAtDelivery ? "Saving…" : "Pay at delivery instead"}
+          </Button>
+        ) : null}
       </div>
       {state.formError ? (
         <div className="space-y-2">
