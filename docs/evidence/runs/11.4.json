@@ -1,7 +1,7 @@
 {
   "phaseItemId": "11.4",
-  "gitSha": "f10490c9c2cb0b21c382ac6ece1cad6ab8fa46ac",
-  "spec": "apps/retailer/e2e/staff-announcements.spec.ts",
+  "gitSha": "abd072d816a290279f37ea77f0553de852cc9237",
+  "spec": "apps/retailer/e2e/internal-community.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-03T14:56:57.039Z"
+  "timestamp": "2026-08-03T15:42:30.433Z"
 }
