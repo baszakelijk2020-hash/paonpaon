@@ -31,6 +31,7 @@ import {
   AvailabilityWindowRepository,
   ClientelingRepository,
   CollectionRepository,
+  CorporateRepository,
   CustomerRepository,
   EventRepository,
   LoyaltyRepository,
@@ -2138,6 +2139,128 @@ async function seedRetailerSpecs(params: {
             ...(prep && member.weightKg == null
               ? { weightKg: prep.weightKg }
               : {}),
+          });
+        }
+      }
+    }
+
+    // A Métier corporate wardrobe programme — an employer buying garments
+    // for its people, not a shadow HR record. Gives the retailer's
+    // "Corporate" workspace a real account/programme/roster to explore.
+    {
+      const corporateRepo = new CorporateRepository(admin);
+      const accounts = await corporateRepo.findAccountsByRetailer(retailerId);
+      let account = accounts.find(
+        (candidate) => candidate.accountReference === "LINDQVIST-CO",
+      );
+      if (!account) {
+        account = await corporateRepo.createAccount(retailerId, {
+          legalName: "Lindqvist & Co. Private Bank",
+          accountReference: "LINDQVIST-CO",
+        });
+      }
+      const programmes =
+        await corporateRepo.findProgrammesByRetailer(retailerId);
+      let programme = programmes.find(
+        (candidate) => candidate.accountId === account!.id,
+      );
+      if (!programme) {
+        programme = await corporateRepo.createProgramme(retailerId, {
+          accountId: account.id,
+          name: "Client-Facing Wardrobe Programme",
+          siteKeys: ["hq"],
+        });
+      }
+      const versions = await corporateRepo.findEntitlementVersions(
+        programme.id,
+      );
+      let latestVersion = versions[0];
+      if (!latestVersion) {
+        latestVersion = await corporateRepo.createEntitlementVersion(
+          retailerId,
+          {
+            programmeId: programme.id,
+            effectiveFrom: "2026-01-01",
+            rules: [
+              {
+                roleKey: "relationship_manager",
+                garmentKey: "suit",
+                quantity: 2,
+                period: "annual",
+              },
+              {
+                roleKey: "relationship_manager",
+                garmentKey: "shirt",
+                quantity: 6,
+                period: "annual",
+              },
+              {
+                roleKey: "relationship_manager",
+                garmentKey: "tie",
+                quantity: 3,
+                period: "annual",
+              },
+              {
+                roleKey: "concierge",
+                garmentKey: "blazer",
+                quantity: 1,
+                period: "annual",
+              },
+              {
+                roleKey: "concierge",
+                garmentKey: "shirt",
+                quantity: 4,
+                period: "annual",
+              },
+            ],
+          },
+        );
+      }
+      const existingWearers = await corporateRepo.findWearersByProgramme(
+        programme.id,
+      );
+      const demoWearers = [
+        {
+          employeeReference: "LC-001",
+          displayName: "Anneke Verhoeven",
+          roleKey: "relationship_manager",
+          joinedOn: "2025-03-01",
+        },
+        {
+          employeeReference: "LC-002",
+          displayName: "Bram de Groot",
+          roleKey: "relationship_manager",
+          joinedOn: "2025-09-15",
+        },
+        {
+          employeeReference: "LC-003",
+          displayName: "Charlotte Willems",
+          roleKey: "concierge",
+          joinedOn: "2026-01-10",
+        },
+      ];
+      for (const demoWearer of demoWearers) {
+        if (
+          existingWearers.some(
+            (candidate) =>
+              candidate.employeeReference === demoWearer.employeeReference,
+          )
+        ) {
+          continue;
+        }
+        const wearer = await corporateRepo.createWearer(retailerId, {
+          programmeId: programme.id,
+          ...demoWearer,
+        });
+        // Anneke has drawn on her allowance already; the others have not —
+        // gives the readiness banner a real "not started" name to show.
+        if (demoWearer.employeeReference === "LC-001") {
+          await corporateRepo.recordIssue(retailerId, {
+            wearerId: wearer.id,
+            entitlementVersionId: latestVersion.id,
+            garmentKey: "suit",
+            quantity: 1,
+            issuedOn: "2026-04-01",
           });
         }
       }

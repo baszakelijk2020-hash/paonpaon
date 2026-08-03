@@ -229,6 +229,11 @@ export default async function DashboardLayout({
                       label: "Events",
                       description: "Previews and RSVPs",
                     },
+                    {
+                      href: "/corporate",
+                      label: "Corporate",
+                      description: "Métier accounts, wearers and entitlements",
+                    },
                   ]
                 : [
                     {

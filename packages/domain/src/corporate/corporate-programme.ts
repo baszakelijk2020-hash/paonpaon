@@ -19,12 +19,100 @@
  * medical information ends up by accident.
  */
 
+import type {
+  CorporateAccountId,
+  CorporateEntitlementVersionId,
+  CorporateExceptionId,
+  CorporateIssueRecordId,
+  CorporateProgrammeId,
+  CorporateWearerId,
+  CustomerId,
+  OrderId,
+  RetailerId,
+} from "../shared/branded-id";
+import type { Timestamps } from "../shared/timestamps";
+
 export const ENTITLEMENT_PERIODS = [
   "annual",
   "biennial",
   "on_joining",
 ] as const;
 export type EntitlementPeriod = (typeof ENTITLEMENT_PERIODS)[number];
+
+/** The employer buying garments for its people. Never PAON's employment record — see file doc. */
+export interface CorporateAccount extends Timestamps {
+  readonly id: CorporateAccountId;
+  readonly retailerId: RetailerId;
+  readonly legalName: string;
+  readonly accountReference: string;
+  readonly active: boolean;
+}
+
+export interface CorporateProgramme extends Timestamps {
+  readonly id: CorporateProgrammeId;
+  readonly retailerId: RetailerId;
+  readonly accountId: CorporateAccountId;
+  readonly name: string;
+  readonly siteKeys: readonly string[];
+  readonly active: boolean;
+}
+
+export interface CorporateEntitlementVersionRecord {
+  readonly id: CorporateEntitlementVersionId;
+  readonly retailerId: RetailerId;
+  readonly programmeId: CorporateProgrammeId;
+  readonly version: number;
+  readonly effectiveFrom: string;
+  readonly rules: readonly EntitlementRule[];
+  readonly createdAt: string;
+}
+
+export interface CorporateWearer extends Timestamps {
+  readonly id: CorporateWearerId;
+  readonly retailerId: RetailerId;
+  readonly programmeId: CorporateProgrammeId;
+  readonly customerId?: CustomerId;
+  readonly employeeReference: string;
+  readonly displayName: string;
+  readonly roleKey: string;
+  readonly siteKey?: string;
+  readonly joinedOn: string;
+  readonly active: boolean;
+  readonly garmentAdaptationNote?: string;
+}
+
+export interface CorporateIssueRecordEntity {
+  readonly id: CorporateIssueRecordId;
+  readonly retailerId: RetailerId;
+  readonly wearerId: CorporateWearerId;
+  readonly entitlementVersionId: CorporateEntitlementVersionId;
+  readonly garmentKey: string;
+  readonly quantity: number;
+  readonly orderId?: OrderId;
+  readonly issuedOn: string;
+  readonly createdAt: string;
+}
+
+export const CORPORATE_EXCEPTION_KINDS = [
+  "leaver_return",
+  "service_required",
+  "fit_issue",
+  "entitlement_dispute",
+] as const;
+export type CorporateExceptionKind = (typeof CORPORATE_EXCEPTION_KINDS)[number];
+
+export interface CorporateException extends Timestamps {
+  readonly id: CorporateExceptionId;
+  readonly retailerId: RetailerId;
+  readonly programmeId: CorporateProgrammeId;
+  readonly wearerId?: CorporateWearerId;
+  readonly kind: CorporateExceptionKind;
+  readonly garmentKey?: string;
+  readonly quantity?: number;
+  readonly action?: LeaverAction;
+  readonly detail: string;
+  readonly resolvedAt?: string;
+}
 
 export interface EntitlementRule {
   readonly roleKey: string;

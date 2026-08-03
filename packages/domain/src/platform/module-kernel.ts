@@ -245,6 +245,11 @@ export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
         label: "Wedding parties",
         roles: CUSTOMER_FACING_ROLES,
       },
+      {
+        href: "/corporate",
+        label: "Corporate",
+        roles: CUSTOMER_FACING_ROLES,
+      },
     ],
     authorityDomains: ["customer", "order", "production", "appointment"],
     jobs: ["wedding_readiness_scan", "corporate_entitlement_monitor"],

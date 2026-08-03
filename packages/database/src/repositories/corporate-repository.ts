@@ -1,0 +1,417 @@
+import {
+  asId,
+  type CorporateAccount,
+  type CorporateAccountId,
+  type CorporateException,
+  type CorporateExceptionKind,
+  type CorporateIssueRecordEntity,
+  type CorporateProgramme,
+  type CorporateWearer,
+  type CreateCorporateAccountInput,
+  type CreateCorporateExceptionInput,
+  type CreateCorporateProgrammeInput,
+  type CreateCorporateWearerInput,
+  type EntitlementRule,
+  type CorporateEntitlementVersionRecord,
+  type LeaverAction,
+  type RecordCorporateIssueInput,
+  type RetailerId,
+} from "@paon/domain";
+
+import type { PaonSupabaseClient } from "../client-type";
+import type { Database } from "../generated/database.types";
+
+type AccountRow = Database["public"]["Tables"]["corporate_accounts"]["Row"];
+type ProgrammeRow = Database["public"]["Tables"]["corporate_programmes"]["Row"];
+type EntitlementVersionRow =
+  Database["public"]["Tables"]["corporate_entitlement_versions"]["Row"];
+type WearerRow = Database["public"]["Tables"]["corporate_wearers"]["Row"];
+type IssueRecordRow =
+  Database["public"]["Tables"]["corporate_issue_records"]["Row"];
+type ExceptionRow = Database["public"]["Tables"]["corporate_exceptions"]["Row"];
+
+function toAccount(row: AccountRow): CorporateAccount {
+  return {
+    id: asId<"CorporateAccountId">(row.id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    legalName: row.legal_name,
+    accountReference: row.account_reference,
+    active: row.active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
+  };
+}
+
+function toProgramme(row: ProgrammeRow): CorporateProgramme {
+  return {
+    id: asId<"CorporateProgrammeId">(row.id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    accountId: asId<"CorporateAccountId">(row.account_id),
+    name: row.name,
+    siteKeys: row.site_keys,
+    active: row.active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
+  };
+}
+
+function toEntitlementVersion(
+  row: EntitlementVersionRow,
+): CorporateEntitlementVersionRecord {
+  return {
+    id: asId<"CorporateEntitlementVersionId">(row.id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    programmeId: asId<"CorporateProgrammeId">(row.programme_id),
+    version: row.version,
+    effectiveFrom: row.effective_from,
+    rules: row.rules as unknown as readonly EntitlementRule[],
+    createdAt: row.created_at,
+  };
+}
+
+function toWearer(row: WearerRow): CorporateWearer {
+  return {
+    id: asId<"CorporateWearerId">(row.id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    programmeId: asId<"CorporateProgrammeId">(row.programme_id),
+    ...(row.customer_id
+      ? { customerId: asId<"CustomerId">(row.customer_id) }
+      : {}),
+    employeeReference: row.employee_reference,
+    displayName: row.display_name,
+    roleKey: row.role_key,
+    ...(row.site_key ? { siteKey: row.site_key } : {}),
+    joinedOn: row.joined_on,
+    active: row.active,
+    ...(row.garment_adaptation_note
+      ? { garmentAdaptationNote: row.garment_adaptation_note }
+      : {}),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
+  };
+}
+
+function toIssueRecord(row: IssueRecordRow): CorporateIssueRecordEntity {
+  return {
+    id: asId<"CorporateIssueRecordId">(row.id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    wearerId: asId<"CorporateWearerId">(row.wearer_id),
+    entitlementVersionId: asId<"CorporateEntitlementVersionId">(
+      row.entitlement_version_id,
+    ),
+    garmentKey: row.garment_key,
+    quantity: row.quantity,
+    ...(row.order_id ? { orderId: asId<"OrderId">(row.order_id) } : {}),
+    issuedOn: row.issued_on,
+    createdAt: row.created_at,
+  };
+}
+
+function toException(row: ExceptionRow): CorporateException {
+  return {
+    id: asId<"CorporateExceptionId">(row.id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    programmeId: asId<"CorporateProgrammeId">(row.programme_id),
+    ...(row.wearer_id
+      ? { wearerId: asId<"CorporateWearerId">(row.wearer_id) }
+      : {}),
+    kind: row.kind as CorporateExceptionKind,
+    ...(row.garment_key ? { garmentKey: row.garment_key } : {}),
+    ...(row.quantity !== null ? { quantity: row.quantity } : {}),
+    ...(row.action ? { action: row.action as LeaverAction } : {}),
+    detail: row.detail,
+    ...(row.resolved_at ? { resolvedAt: row.resolved_at } : {}),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+/** Métier corporate wardrobe programmes — see docs/DECISIONS.md CORP-101..106 / PHASE 14.1. Retailer-staff only; see `packages/domain/src/corporate/corporate-programme.ts` for why. */
+export class CorporateRepository {
+  constructor(private readonly client: PaonSupabaseClient) {}
+
+  async findAccountsByRetailer(
+    retailerId: RetailerId,
+  ): Promise<CorporateAccount[]> {
+    const { data, error } = await this.client
+      .from("corporate_accounts")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .is("deleted_at", null)
+      .order("legal_name", { ascending: true });
+    if (error) throw error;
+    return data.map(toAccount);
+  }
+
+  async findAccountById(
+    accountId: CorporateAccountId,
+  ): Promise<CorporateAccount | null> {
+    const { data, error } = await this.client
+      .from("corporate_accounts")
+      .select("*")
+      .eq("id", accountId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toAccount(data) : null;
+  }
+
+  async createAccount(
+    retailerId: RetailerId,
+    input: CreateCorporateAccountInput,
+  ): Promise<CorporateAccount> {
+    const { data, error } = await this.client
+      .from("corporate_accounts")
+      .insert({
+        retailer_id: retailerId,
+        legal_name: input.legalName,
+        account_reference: input.accountReference,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toAccount(data);
+  }
+
+  async findProgrammesByRetailer(
+    retailerId: RetailerId,
+  ): Promise<CorporateProgramme[]> {
+    const { data, error } = await this.client
+      .from("corporate_programmes")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .is("deleted_at", null)
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return data.map(toProgramme);
+  }
+
+  async findProgrammeById(
+    programmeId: string,
+  ): Promise<CorporateProgramme | null> {
+    const { data, error } = await this.client
+      .from("corporate_programmes")
+      .select("*")
+      .eq("id", programmeId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toProgramme(data) : null;
+  }
+
+  async createProgramme(
+    retailerId: RetailerId,
+    input: CreateCorporateProgrammeInput,
+  ): Promise<CorporateProgramme> {
+    const { data, error } = await this.client
+      .from("corporate_programmes")
+      .insert({
+        retailer_id: retailerId,
+        account_id: input.accountId,
+        name: input.name,
+        site_keys: input.siteKeys,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toProgramme(data);
+  }
+
+  async findEntitlementVersions(
+    programmeId: string,
+  ): Promise<CorporateEntitlementVersionRecord[]> {
+    const { data, error } = await this.client
+      .from("corporate_entitlement_versions")
+      .select("*")
+      .eq("programme_id", programmeId)
+      .order("version", { ascending: false });
+    if (error) throw error;
+    return data.map(toEntitlementVersion);
+  }
+
+  async findLatestEntitlementVersion(
+    programmeId: string,
+  ): Promise<CorporateEntitlementVersionRecord | null> {
+    const versions = await this.findEntitlementVersions(programmeId);
+    return versions[0] ?? null;
+  }
+
+  /** Append-only: the next version number is derived here, never edited in place. */
+  async createEntitlementVersion(
+    retailerId: RetailerId,
+    input: {
+      programmeId: string;
+      effectiveFrom: string;
+      rules: readonly EntitlementRule[];
+    },
+  ): Promise<CorporateEntitlementVersionRecord> {
+    const latest = await this.findLatestEntitlementVersion(input.programmeId);
+    const { data, error } = await this.client
+      .from("corporate_entitlement_versions")
+      .insert({
+        retailer_id: retailerId,
+        programme_id: input.programmeId,
+        version: (latest?.version ?? 0) + 1,
+        effective_from: input.effectiveFrom,
+        rules:
+          input.rules as unknown as Database["public"]["Tables"]["corporate_entitlement_versions"]["Insert"]["rules"],
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toEntitlementVersion(data);
+  }
+
+  async findWearersByProgramme(
+    programmeId: string,
+  ): Promise<CorporateWearer[]> {
+    const { data, error } = await this.client
+      .from("corporate_wearers")
+      .select("*")
+      .eq("programme_id", programmeId)
+      .is("deleted_at", null)
+      .order("display_name", { ascending: true });
+    if (error) throw error;
+    return data.map(toWearer);
+  }
+
+  async findWearerById(wearerId: string): Promise<CorporateWearer | null> {
+    const { data, error } = await this.client
+      .from("corporate_wearers")
+      .select("*")
+      .eq("id", wearerId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toWearer(data) : null;
+  }
+
+  async createWearer(
+    retailerId: RetailerId,
+    input: CreateCorporateWearerInput,
+  ): Promise<CorporateWearer> {
+    const { data, error } = await this.client
+      .from("corporate_wearers")
+      .insert({
+        retailer_id: retailerId,
+        programme_id: input.programmeId,
+        employee_reference: input.employeeReference,
+        display_name: input.displayName,
+        role_key: input.roleKey,
+        site_key: input.siteKey ?? null,
+        joined_on: input.joinedOn,
+        garment_adaptation_note: input.garmentAdaptationNote ?? null,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toWearer(data);
+  }
+
+  async setWearerActive(wearerId: string, active: boolean): Promise<void> {
+    const { error } = await this.client
+      .from("corporate_wearers")
+      .update({ active })
+      .eq("id", wearerId);
+    if (error) throw error;
+  }
+
+  async findIssuesByWearer(
+    wearerId: string,
+  ): Promise<CorporateIssueRecordEntity[]> {
+    const { data, error } = await this.client
+      .from("corporate_issue_records")
+      .select("*")
+      .eq("wearer_id", wearerId)
+      .order("issued_on", { ascending: false });
+    if (error) throw error;
+    return data.map(toIssueRecord);
+  }
+
+  async findIssuesByProgramme(
+    programmeId: string,
+  ): Promise<CorporateIssueRecordEntity[]> {
+    const wearers = await this.findWearersByProgramme(programmeId);
+    if (wearers.length === 0) return [];
+    const { data, error } = await this.client
+      .from("corporate_issue_records")
+      .select("*")
+      .in(
+        "wearer_id",
+        wearers.map((wearer) => wearer.id),
+      )
+      .order("issued_on", { ascending: false });
+    if (error) throw error;
+    return data.map(toIssueRecord);
+  }
+
+  /** Append-only: a correction is a new row, never an edit — see 20260801000016. */
+  async recordIssue(
+    retailerId: RetailerId,
+    input: RecordCorporateIssueInput,
+  ): Promise<CorporateIssueRecordEntity> {
+    const { data, error } = await this.client
+      .from("corporate_issue_records")
+      .insert({
+        retailer_id: retailerId,
+        wearer_id: input.wearerId,
+        entitlement_version_id: input.entitlementVersionId,
+        garment_key: input.garmentKey,
+        quantity: input.quantity,
+        issued_on: input.issuedOn,
+        order_id: input.orderId ?? null,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toIssueRecord(data);
+  }
+
+  async findExceptionsByProgramme(
+    programmeId: string,
+  ): Promise<CorporateException[]> {
+    const { data, error } = await this.client
+      .from("corporate_exceptions")
+      .select("*")
+      .eq("programme_id", programmeId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(toException);
+  }
+
+  async createException(
+    retailerId: RetailerId,
+    input: CreateCorporateExceptionInput,
+  ): Promise<CorporateException> {
+    const { data, error } = await this.client
+      .from("corporate_exceptions")
+      .insert({
+        retailer_id: retailerId,
+        programme_id: input.programmeId,
+        wearer_id: input.wearerId ?? null,
+        kind: input.kind,
+        garment_key: input.garmentKey ?? null,
+        quantity: input.quantity ?? null,
+        action: input.action ?? null,
+        detail: input.detail,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toException(data);
+  }
+
+  async resolveException(exceptionId: string): Promise<CorporateException> {
+    const { data, error } = await this.client
+      .from("corporate_exceptions")
+      .update({ resolved_at: new Date().toISOString() })
+      .eq("id", exceptionId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toException(data);
+  }
+}

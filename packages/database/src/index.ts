@@ -98,4 +98,5 @@ export * from "./shopify-delta-sync-orchestrator";
 export * from "./campaign-activation-orchestrator";
 export * from "./programme-proof-seed";
 export * from "./repositories/service-plan-repository";
+export * from "./repositories/corporate-repository";
 export type { Database } from "./generated/database.types";

@@ -191,6 +191,15 @@ export type StylePreferenceEvidenceId = Brand<
 export type GiftExperienceId = Brand<string, "GiftExperienceId">;
 export type GiftCuratedItemId = Brand<string, "GiftCuratedItemId">;
 export type GiftInvitationId = Brand<string, "GiftInvitationId">;
+export type CorporateAccountId = Brand<string, "CorporateAccountId">;
+export type CorporateProgrammeId = Brand<string, "CorporateProgrammeId">;
+export type CorporateEntitlementVersionId = Brand<
+  string,
+  "CorporateEntitlementVersionId"
+>;
+export type CorporateWearerId = Brand<string, "CorporateWearerId">;
+export type CorporateIssueRecordId = Brand<string, "CorporateIssueRecordId">;
+export type CorporateExceptionId = Brand<string, "CorporateExceptionId">;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;
