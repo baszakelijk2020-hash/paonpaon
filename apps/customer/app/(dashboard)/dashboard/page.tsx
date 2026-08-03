@@ -4,18 +4,21 @@ import {
   CustomerRepository,
   NotificationRepository,
   OrderRepository,
+  ProductVariantRepository,
   RetailerRepository,
 } from "@paon/database";
 import {
   ALTERATION_STATUS_LABELS,
   APPOINTMENT_TYPE_LABELS,
+  asId,
   ORDER_STATUS_LABELS,
 } from "@paon/domain";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate } from "@paon/utils";
+import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
 
+import { ensureTodaysMorningRoutineSelection } from "../morning-routine/generation";
 import { buildVariantIdByProductSlug } from "../wishlist/favorites-map";
 import {
   MergeFavorites,
@@ -23,11 +26,19 @@ import {
 } from "../wishlist/merge-favorites";
 
 import { HouseSwitcher } from "./house-switcher";
+import {
+  MorningRoutineDashboardHero,
+  type HeroPiece,
+} from "./morning-routine-hero";
 import { TodaysPick } from "./todays-pick";
 
 import { getAIProvider } from "@/lib/ai";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+function todayUtcDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 const TERMINAL_ORDER_STATUSES = new Set(["completed", "canceled", "refunded"]);
 const TERMINAL_ALTERATION_STATUSES = new Set(["completed", "canceled"]);
@@ -119,6 +130,68 @@ export default async function DashboardPage() {
     ? (unreadByRetailer.get(primary.customer.retailerId) ?? 0)
     : 0;
 
+  let morningRoutineHero: {
+    weatherSummary?: string;
+    featured: HeroPiece;
+    pieces: HeroPiece[];
+    selectionId: string;
+  } | null = null;
+  if (primary?.retailer) {
+    const forDate = todayUtcDate();
+    const view = await ensureTodaysMorningRoutineSelection({
+      supabase,
+      retailerId: asId<"RetailerId">(primary.customer.retailerId),
+      customerId: asId<"CustomerId">(primary.customer.id),
+      forDate,
+    });
+    const [firstRec, ...restRecs] = view?.recommendations ?? [];
+    if (view && firstRec) {
+      const variantRepo = new ProductVariantRepository(supabase);
+      const toPiece = async (
+        recommendation: (typeof view.recommendations)[number],
+      ): Promise<HeroPiece> => {
+        const owned = Boolean(recommendation.wardrobeItemId);
+        let priceLabel: string | undefined;
+        if (!owned && recommendation.productVariantId) {
+          const variant = await variantRepo.findById(
+            asId<"ProductVariantId">(recommendation.productVariantId),
+          );
+          if (variant) priceLabel = formatMoney(variant.price, "en-US");
+        }
+        const buyAction = recommendation.actions.find(
+          (action) => action.kind === "buy",
+        );
+        const saveAction = recommendation.actions.find(
+          (action) => action.kind === "save",
+        );
+        return {
+          id: recommendation.id,
+          displayName: recommendation.displayName,
+          owned,
+          ...(recommendation.primaryImageUrl
+            ? { imageUrl: recommendation.primaryImageUrl }
+            : {}),
+          ...(priceLabel ? { priceLabel } : {}),
+          ...(buyAction?.available && buyAction.href
+            ? { buyHref: buyAction.href }
+            : {}),
+          ...(saveAction?.available && saveAction.productVariantId
+            ? { saveVariantId: saveAction.productVariantId }
+            : {}),
+        };
+      };
+
+      morningRoutineHero = {
+        ...(view.selection.provenance.weatherSummary
+          ? { weatherSummary: view.selection.provenance.weatherSummary }
+          : {}),
+        featured: await toPiece(firstRec),
+        pieces: await Promise.all(restRecs.map(toPiece)),
+        selectionId: view.selection.id,
+      };
+    }
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <MergeFavorites houses={favoritesHouses} />
@@ -128,7 +201,25 @@ export default async function DashboardPage() {
           name: retailer?.displayName ?? "Your atelier",
         }))}
       />
-      {primary ? (
+      {primary && morningRoutineHero ? (
+        <MorningRoutineDashboardHero
+          retailerId={primary.customer.retailerId}
+          retailerSlug={primary.retailer?.slug ?? "store"}
+          retailerName={primary.retailer?.displayName ?? "Your atelier"}
+          customerFirstName={firstName}
+          selectionId={morningRoutineHero.selectionId}
+          featured={morningRoutineHero.featured}
+          pieces={morningRoutineHero.pieces}
+          {...(morningRoutineHero.weatherSummary
+            ? { weatherSummary: morningRoutineHero.weatherSummary }
+            : {})}
+          {...(primary.nextAppointment
+            ? {
+                nextAppointmentHref: `/appointments/${primary.nextAppointment.id}`,
+              }
+            : {})}
+        />
+      ) : primary ? (
         <section className="paon-reveal relative isolate min-h-[18rem] overflow-hidden rounded-[var(--radius-md)] bg-[var(--color-stone-900)] text-white shadow-[var(--shadow-elevated)] sm:min-h-[24rem]">
           <div
             aria-hidden="true"

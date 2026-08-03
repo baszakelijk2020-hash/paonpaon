@@ -106,9 +106,11 @@ test("a seeded private-client persona has deterministic demo access", async ({
 
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByText("Maison Dubois", { exact: true })).toBeVisible();
+  // Maison Dubois has real catalogue products, so the dashboard's
+  // MorningRoutine hero replaces the generic "beautifully in motion"
+  // banner with today's actual composed-look pick — proving the demo
+  // persona reaches a real, data-backed dashboard, not just a static shell.
   await expect(
-    page.getByRole("heading", {
-      name: "Your wardrobe, beautifully in motion.",
-    }),
+    page.getByText(/today calls for something special/),
   ).toBeVisible();
 });

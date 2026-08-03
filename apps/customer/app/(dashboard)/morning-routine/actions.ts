@@ -1,43 +1,22 @@
 "use server";
 
 import {
-  AppointmentRepository,
-  CustomerConsentRepository,
   CustomerRepository,
   MorningRoutineRepository,
-  ProductRepository,
-  ProductVariantRepository,
-  RetailerRepository,
-  StyleProfileRepository,
-  WardrobeLifecycleRepository,
-  WardrobeRepository,
   WishlistRepository,
 } from "@paon/database";
 import {
   asId,
-  attachRetailerSlugToActions,
-  buildConsentSnapshot,
-  daysBetween,
   generateMorningRoutineInputSchema,
-  isPurposeGranted,
   morningRoutineActionInputSchema,
-  persistMorningRoutineSelectionInputSchema,
-  projectLifecycleState,
-  resolveMorningRoutineInputStatuses,
-  selectMorningRoutine,
-  type CalendarOccasion,
-  type MorningRoutineCatalogueCandidate,
-  type MorningRoutineStyleSignals,
-  type MorningRoutineWardrobeCandidate,
-  type WeatherSnapshot,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import type { ZodError } from "zod";
 
-import { AppointmentCalendarProvider } from "@/lib/calendar-from-appointments";
+import { buildAndPersistMorningRoutineSelection } from "./generation";
+
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-import { OpenWeatherProvider } from "@/lib/weather";
 
 export interface MorningRoutineActionState {
   fieldErrors: Record<string, string>;
@@ -114,175 +93,15 @@ export async function generateMorningRoutineSelection(
   const forDate = parsed.data.forDate ?? todayUtcDate();
 
   try {
-    const consentState = await new CustomerConsentRepository(supabase).getState(
+    const selectionId = await buildAndPersistMorningRoutineSelection({
+      supabase,
       retailerId,
       customerId,
-    );
-    const consent = buildConsentSnapshot({
-      state: consentState,
-      basis: "explicit_opt_in",
-      capturedAt: new Date().toISOString(),
+      forDate,
+      ...(parsed.data.occasionLabel
+        ? { occasionLabel: parsed.data.occasionLabel }
+        : {}),
     });
-
-    const retailer = await new RetailerRepository(supabase).findById(
-      retailerId,
-    );
-    const storeCity = retailer?.billingAddress.city;
-    const locationGranted = isPurposeGranted(consentState, "location");
-    const locationLabel = locationGranted ? storeCity : undefined;
-
-    let weather: WeatherSnapshot | null = null;
-    let weatherFailed = false;
-    if (locationGranted && locationLabel) {
-      try {
-        weather = await new OpenWeatherProvider().getCurrentWeather({
-          locationLabel,
-        });
-      } catch {
-        weatherFailed = true;
-      }
-    }
-
-    const calendar = new AppointmentCalendarProvider(
-      new AppointmentRepository(supabase),
-    );
-    let occasions: CalendarOccasion[] = [];
-    let calendarFailed = false;
-    try {
-      const day = await calendar.listOccasionsForDay({
-        day: forDate,
-        retailerId: customer.retailerId,
-        customerId: customer.id,
-      });
-      occasions = [...day.occasions];
-    } catch {
-      calendarFailed = true;
-    }
-    if (parsed.data.occasionLabel) {
-      occasions = [
-        {
-          label: parsed.data.occasionLabel,
-          startsAt: `${forDate}T09:00:00.000Z`,
-          source: "declared",
-        },
-        ...occasions,
-      ];
-    }
-
-    let styleSignals: MorningRoutineStyleSignals | null = null;
-    if (isPurposeGranted(consentState, "personalization")) {
-      const profile = await new StyleProfileRepository(supabase).findByCustomer(
-        retailerId,
-        customerId,
-      );
-      if (profile) {
-        styleSignals = {
-          declaredConceptIds: profile.explicitPreferences.map((p) =>
-            String(p.conceptId),
-          ),
-          inferredPositiveConceptIds: profile.inferredPreferences
-            .filter((p) => p.polarity === "positive")
-            .map((p) => String(p.conceptId)),
-          inferredNegativeConceptIds: profile.inferredPreferences
-            .filter((p) => p.polarity === "negative")
-            .map((p) => String(p.conceptId)),
-        };
-      }
-    }
-
-    const statuses = resolveMorningRoutineInputStatuses({
-      consent,
-      locationKind: storeCity ? "store_city" : "none",
-      ...(locationLabel ? { locationLabel } : {}),
-      weather,
-      weatherFailed,
-      occasions,
-      calendarFailed,
-      styleProfilePresent: styleSignals !== null,
-    });
-
-    const wardrobeRepo = new WardrobeRepository(supabase);
-    const lifecycleRepo = new WardrobeLifecycleRepository(supabase);
-    const items = await wardrobeRepo.findByCustomer(customerId);
-    const nowIso = new Date().toISOString();
-    const wardrobe: MorningRoutineWardrobeCandidate[] = await Promise.all(
-      items.map(async (item) => {
-        const events = await lifecycleRepo.listLifecycleEvents(item.id);
-        const lifecycle = projectLifecycleState(events);
-        const resting =
-          lifecycle.lastWornAt !== undefined &&
-          (lifecycle.lastRestedAt === undefined ||
-            lifecycle.lastRestedAt < lifecycle.lastWornAt) &&
-          daysBetween(lifecycle.lastWornAt, nowIso) < 3;
-        return {
-          wardrobeItemId: item.id,
-          displayName: item.displayName,
-          categoryCode: item.categoryCode,
-          condition: item.condition,
-          careState: item.careState,
-          ...(item.retiredAt ? { retiredAt: item.retiredAt } : {}),
-          ...(item.deletedAt ? { deletedAt: item.deletedAt } : {}),
-          ...(item.productId ? { productId: item.productId } : {}),
-          resting,
-        };
-      }),
-    );
-
-    const products = await new ProductRepository(supabase).findByRetailer(
-      retailerId,
-    );
-    const variantRepo = new ProductVariantRepository(supabase);
-    const catalogue: MorningRoutineCatalogueCandidate[] = [];
-    for (const product of products
-      .filter((p) => p.status === "active")
-      .slice(0, 12)) {
-      const variants = await variantRepo.findByProduct(product.id);
-      const inStock =
-        variants.find((v) => v.inventoryQuantity > 0) ?? variants[0];
-      catalogue.push({
-        productId: product.id,
-        ...(inStock ? { productVariantId: inStock.id } : {}),
-        displayName: product.name,
-        productSlug: product.slug,
-        available: Boolean(inStock),
-        ...(product.primaryImageUrl
-          ? { primaryImageUrl: product.primaryImageUrl }
-          : {}),
-      });
-    }
-
-    const selected = attachRetailerSlugToActions(
-      selectMorningRoutine({
-        retailerId,
-        customerId,
-        forDate,
-        consent,
-        wardrobe,
-        catalogue,
-        ...(styleSignals ? { styleProfile: styleSignals } : {}),
-        ...(weather ? { weather } : {}),
-        weatherStatus: statuses.weatherStatus,
-        occasions,
-        calendarStatus: statuses.calendarStatus,
-        location: statuses.location,
-        locationStatus: statuses.locationStatus,
-        personalizationStatus: statuses.personalizationStatus,
-      }),
-      retailer?.slug ?? "store",
-    );
-
-    const persistPayload = persistMorningRoutineSelectionInputSchema.parse({
-      retailerId: selected.retailerId,
-      customerId: selected.customerId,
-      forDate: selected.forDate,
-      summary: selected.summary,
-      provenance: selected.provenance,
-      recommendations: selected.recommendations,
-    });
-
-    const selectionId = await new MorningRoutineRepository(
-      supabase,
-    ).persistSelection(persistPayload);
 
     revalidatePath("/morning-routine");
     revalidatePath("/dashboard");
@@ -300,6 +119,19 @@ export async function generateMorningRoutineSelection(
           : "Could not build today’s routine.",
     };
   }
+}
+
+/**
+ * Plain-form adapter for `runMorningRoutineAction` — that action is shaped
+ * for `useActionState` (prevState + formData) so `/morning-routine`'s client
+ * panel can show pending/error state; the dashboard hero is a Server
+ * Component with no client state to update, so it needs a bare
+ * `(formData) => Promise<void>` action instead of the two-arg signature.
+ */
+export async function saveMorningRoutinePick(
+  formData: FormData,
+): Promise<void> {
+  await runMorningRoutineAction({ fieldErrors: {} }, formData);
 }
 
 export async function runMorningRoutineAction(

@@ -4,6 +4,7 @@ import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 
 import { signIn } from "./actions";
+import { MasterDemoLogin } from "./master-demo-login";
 import { QuickDemoLogin } from "./quick-demo-login";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -31,7 +32,7 @@ export default async function LoginPage({
       imageAlt="Tailored overcoat from the PAON collection"
       trustSignals={[
         "Invite-only — no self-serve signup",
-        "Full visibility across every retailer tenant",
+        "Full visibility across every retailer",
         "Platform actions are attributed and logged",
       ]}
       footer={
@@ -41,6 +42,10 @@ export default async function LoginPage({
         </p>
       }
     >
+      {process.env.NODE_ENV !== "production" ||
+      process.env["NEXT_PUBLIC_DEMO_LOGIN"] === "1" ? (
+        <MasterDemoLogin redirectTo={redirectTo} />
+      ) : null}
       <form action={signIn} className="flex flex-col gap-5">
         {redirectTo ? (
           <input type="hidden" name="redirectTo" value={redirectTo} />

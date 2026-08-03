@@ -5,6 +5,7 @@ import { Input } from "@paon/ui/components/Input";
 import { Suspense } from "react";
 
 import { signIn } from "./actions";
+import { MasterDemoLogin } from "./master-demo-login";
 import { QuickDemoLogin } from "./quick-demo-login";
 
 const DEMO_PASSWORD = "Demo-PAON-2026!";
@@ -48,6 +49,10 @@ export default async function LoginPage({
         </p>
       }
     >
+      {process.env.NODE_ENV !== "production" ||
+      process.env["NEXT_PUBLIC_DEMO_LOGIN"] === "1" ? (
+        <MasterDemoLogin redirectTo={redirectTo} />
+      ) : null}
       <form action={signIn} className="flex flex-col gap-5">
         {redirectTo ? (
           <input type="hidden" name="redirectTo" value={redirectTo} />

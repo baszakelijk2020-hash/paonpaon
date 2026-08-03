@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { DemoLoginForm } from "./demo-login-form";
 import { MagicLinkForm } from "./magic-link-form";
+import { MasterDemoLogin } from "./master-demo-login";
 import { QuickDemoLogin } from "./quick-demo-login";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -81,6 +82,10 @@ export default async function LoginPage({
             ) : null}
 
             <div className="mt-6">
+              {process.env.NODE_ENV !== "production" ||
+              process.env["NEXT_PUBLIC_DEMO_LOGIN"] === "1" ? (
+                <MasterDemoLogin redirectTo={redirectTo} />
+              ) : null}
               {isDemo ? (
                 <DemoLoginForm
                   redirectTo={redirectTo}
