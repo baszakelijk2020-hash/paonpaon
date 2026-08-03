@@ -200,6 +200,11 @@ export type CorporateEntitlementVersionId = Brand<
 export type CorporateWearerId = Brand<string, "CorporateWearerId">;
 export type CorporateIssueRecordId = Brand<string, "CorporateIssueRecordId">;
 export type CorporateExceptionId = Brand<string, "CorporateExceptionId">;
+export type MicroCapsuleDropId = Brand<string, "MicroCapsuleDropId">;
+export type MicroCapsuleDropProductId = Brand<
+  string,
+  "MicroCapsuleDropProductId"
+>;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

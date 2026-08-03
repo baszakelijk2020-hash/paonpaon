@@ -159,6 +159,8 @@ export * from "./inventory/loss-prevention";
 export * from "./commerce/pos-transaction";
 export * from "./corporate/corporate-programme";
 export * from "./corporate/corporate-programme.schema";
+export * from "./merchandising/micro-capsule";
+export * from "./merchandising/micro-capsule.schema";
 export * from "./intelligence/cited-recommendation";
 export * from "./network/partner-attribution";
 export * from "./network/audience-governance";

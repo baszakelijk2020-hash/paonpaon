@@ -262,6 +262,11 @@ export default async function DashboardLayout({
                 description: "Group products for storefront",
               },
               {
+                href: "/capsule-drops",
+                label: "Capsule drops",
+                description: "This week's curated small set",
+              },
+              {
                 href: "/metadata",
                 label: "Metadata",
                 description: "Review assignments and overrides",

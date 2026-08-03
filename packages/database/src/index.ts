@@ -99,4 +99,5 @@ export * from "./campaign-activation-orchestrator";
 export * from "./programme-proof-seed";
 export * from "./repositories/service-plan-repository";
 export * from "./repositories/corporate-repository";
+export * from "./repositories/micro-capsule-repository";
 export type { Database } from "./generated/database.types";

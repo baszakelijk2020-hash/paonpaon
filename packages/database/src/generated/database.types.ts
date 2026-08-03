@@ -7612,6 +7612,89 @@ export type Database = {
           },
         ];
       };
+      micro_capsule_drop_products: {
+        Row: {
+          created_at: string;
+          drop_id: string;
+          id: string;
+          product_id: string;
+          rank: number;
+        };
+        Insert: {
+          created_at?: string;
+          drop_id: string;
+          id?: string;
+          product_id: string;
+          rank: number;
+        };
+        Update: {
+          created_at?: string;
+          drop_id?: string;
+          id?: string;
+          product_id?: string;
+          rank?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "micro_capsule_drop_products_drop_id_fkey";
+            columns: ["drop_id"];
+            isOneToOne: false;
+            referencedRelation: "micro_capsule_drops";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "micro_capsule_drop_products_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      micro_capsule_drops: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          published: boolean;
+          retailer_id: string;
+          theme: string | null;
+          title: string;
+          updated_at: string;
+          week_start: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          published?: boolean;
+          retailer_id: string;
+          theme?: string | null;
+          title: string;
+          updated_at?: string;
+          week_start: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          published?: boolean;
+          retailer_id?: string;
+          theme?: string | null;
+          title?: string;
+          updated_at?: string;
+          week_start?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "micro_capsule_drops_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       migration_jobs: {
         Row: {
           connection_id: string | null;

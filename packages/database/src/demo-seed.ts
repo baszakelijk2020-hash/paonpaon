@@ -36,6 +36,7 @@ import {
   EventRepository,
   LoyaltyRepository,
   MessagingRepository,
+  MicroCapsuleRepository,
   OrderRepository,
   PlatformModuleRepository,
   PlatformStaffRepository,
@@ -1660,6 +1661,31 @@ async function seedRetailerSpecs(params: {
         });
       }
       productIds.push(product.id);
+    }
+
+    // Weekly micro-capsule drop — a small ordered set of real seeded
+    // products, published immediately so the customer app's /capsule page
+    // always has something real to show in demo mode.
+    if (productIds.length > 0) {
+      const capsuleRepo = new MicroCapsuleRepository(admin);
+      const existingDrops = await capsuleRepo.findByRetailer(retailerId);
+      const mondayThisWeek = new Date();
+      mondayThisWeek.setUTCDate(
+        mondayThisWeek.getUTCDate() - ((mondayThisWeek.getUTCDay() + 6) % 7),
+      );
+      const weekStart = mondayThisWeek.toISOString().slice(0, 10);
+      let drop = existingDrops.find((d) => d.weekStart === weekStart);
+      if (!drop) {
+        drop = await capsuleRepo.createDrop(retailerId, {
+          title: "This week's edit",
+          theme: "Considered layering for the season",
+          weekStart,
+          productIds: productIds.slice(0, 3),
+        });
+      }
+      if (!drop.published) {
+        await capsuleRepo.setPublished(drop.id, true);
+      }
     }
 
     // Loyalty program — must be enabled before orders are delivered for

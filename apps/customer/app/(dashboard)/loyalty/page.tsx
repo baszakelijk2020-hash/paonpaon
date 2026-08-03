@@ -14,6 +14,7 @@ import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
 
 import { inviteFriend, joinLoyalty, redeemReward } from "./actions";
+import { BadgesShelf } from "./badges-shelf";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -94,6 +95,15 @@ export default async function LoyaltyPage() {
             </div>
             {account ? (
               <>
+                <section aria-labelledby={`badges-${customer.id}`}>
+                  <h2
+                    id={`badges-${customer.id}`}
+                    className="mb-2 text-xs font-medium uppercase tracking-[0.15em] text-[var(--color-stone-500)]"
+                  >
+                    Badges
+                  </h2>
+                  <BadgesShelf milestones={milestones} />
+                </section>
                 <section aria-labelledby={`milestones-${customer.id}`}>
                   <h2
                     id={`milestones-${customer.id}`}
