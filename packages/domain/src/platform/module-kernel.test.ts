@@ -133,6 +133,10 @@ describe("platform module registry", () => {
       "/pos",
       "/staff/recognition",
       "/staff/coverage",
+      "/staff/announcements",
+      "/staff/learning",
+      "/staff/service-recovery",
+      "/staff/support",
     ]);
     expect(navigation.find((item) => item.href === "/pos")?.preview).toBe(true);
     expect(navigation.some((item) => item.href === "/orders")).toBe(false);

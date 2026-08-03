@@ -2496,7 +2496,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     date. Availability, swaps and ceremony management remain unbuilt, so this
     legacy item correctly stays unchecked pending R0.3 disposition mapping.
 
-- [ ] **11.4 Internal community, contribution and support**
+- [x] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.
   - **Dependencies:** `11.2`, `16.1`.
   - **Owner boundary:** branch/HQ announcements and discussions, onboarding,
@@ -2582,6 +2582,68 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     an audience. The action correctly refused, `.single()` returned null,
     and dereferencing it with `!` made a refused publish look exactly like
     a silently dropped column. Both are now checked explicitly.
+
+  - **Status (2026-08-03, takeover branch):** `verified_local`. The three
+    remaining capabilities now have UI, a repository surface and browser
+    proof: `apps/retailer/e2e/internal-community.spec.ts`. New pages —
+    `/staff/learning` (submit + moderate learning contributions),
+    `/staff/service-recovery` (request + approve a budget), `/staff/support`
+    (read-only resource catalogue) — plus repository additions
+    (`listSubmittedContributions`, `listContributionsByAuthor`,
+    `listBudgetRequests`) since none of the three had one beyond the
+    original create/decide methods.
+
+    Before writing any of it, `/staff/announcements` — already
+    `verified_local` from the prior status above — turned out to be
+    reachable from nowhere in the app: no entry in the retailer layout's
+    static navigation array and no entry in `module-kernel.ts`'s
+    `retail_operations` navigation either, so `entitledNavigation`'s
+    href-intersection filter dropped it unconditionally regardless of role.
+    Its own browser proof had passed every run because it navigates there
+    directly with `page.goto`, which cannot see a missing link. Fixed by
+    adding it, `/staff/learning`, `/staff/service-recovery` and
+    `/staff/support` to both the layout's unconditional "Today" group and
+    `retail_operations`'s navigation array (open to `ALL_RETAILER_ROLES`,
+    matching Recognition and Coverage next to it) — the RLS policies below
+    already do the real scoping, so an open nav entry costs nothing.
+    `module-kernel.test.ts`'s hardcoded expected-navigation array is updated
+    for the same reason 14's addition was missed there before: it is a
+    literal list, not a rule, and has to be told about every new href by
+    hand.
+
+    A budget request's per-request cap is not a stored, per-retailer
+    setting — no such configuration exists anywhere yet, and ADR-062 still
+    has not decided a payout design at all. The action layer hardcodes a
+    conservative €250 ceiling (`PER_REQUEST_CAP_MINOR_UNITS`) rather than
+    inventing configuration UI for a number nobody has actually decided;
+    a configurable per-retailer cap is left as explicit future scope.
+
+    Operating the two moderated forms surfaced a real defect predating this
+    slice: `PublishAnnouncementForm`'s title field passed
+    `error={state.formError}` to `FormField` _and_ the form separately
+    rendered the same `state.formError` in its own bottom alert paragraph —
+    every server-rejected submission showed its error message twice. Caught
+    because the new forms copied the same pattern and the browser-proof
+    spec's `getByText(...)` hit a strict-mode violation on two identical
+    `role="alert"` paragraphs. Fixed in all three forms (learning, service
+    recovery, and the pre-existing announcements form) by dropping the
+    field-level `error` prop and keeping only the form's own alert paragraph.
+
+    Support resources are seeded, not staff-authored: the schema grants
+    `insert, update` on `staff_support_resources` to `service_role` only
+    (asserted by `internal-community-security.test.ts`), so
+    `demo-seed.ts` now seeds two resources per retailer directly with the
+    admin client — the one legitimate place these rows can originate. There
+    is deliberately no create/edit UI on `/staff/support` for the same
+    reason `checkSupportResource` refuses `directBookingAvailable`: a
+    curated catalogue a staff member could edit is a different, lesser
+    guarantee than the one this item promises.
+
+    Missing, and out of scope for this pass: onboarding checklists,
+    discussion threads on announcements, and cross-location learning
+    sessions (`staff_learning_sessions` has schema and RLS but no UI — it
+    was not part of this item's Acceptance line, which names contributions,
+    budget requests, and resource discovery, not sessions).
 
 ### Stage 12 — MTM, fit, production, and service network
 

@@ -94,6 +94,33 @@ export default async function DashboardLayout({
           label: "Coverage",
           description: "What the day needs, and where it is short",
         },
+        // PHASE 11.4 / WFM-107. Unconditional for the same reason as
+        // Recognition and Coverage above: RLS already scopes each row (a
+        // budget request is requester-or-manager only; an unapproved
+        // contribution is author-or-moderator only), so the nav entry being
+        // open to every role costs nothing and a hidden entry was the actual
+        // defect — this route existed and had a passing browser proof with
+        // no link anywhere in the app that could reach it.
+        {
+          href: "/staff/announcements",
+          label: "Announcements",
+          description: "Team updates and read receipts",
+        },
+        {
+          href: "/staff/learning",
+          label: "Learning",
+          description: "Share what you know; moderated before it's shared",
+        },
+        {
+          href: "/staff/service-recovery",
+          label: "Service recovery",
+          description: "Request and approve an authorised spend",
+        },
+        {
+          href: "/staff/support",
+          label: "Support",
+          description: "Confidential help resources",
+        },
         ...(!isWorkshopRole
           ? [
               {

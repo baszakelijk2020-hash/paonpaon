@@ -238,6 +238,26 @@ export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
         label: "Coverage",
         roles: ALL_RETAILER_ROLES,
       },
+      {
+        href: "/staff/announcements",
+        label: "Announcements",
+        roles: ALL_RETAILER_ROLES,
+      },
+      {
+        href: "/staff/learning",
+        label: "Learning",
+        roles: ALL_RETAILER_ROLES,
+      },
+      {
+        href: "/staff/service-recovery",
+        label: "Service recovery",
+        roles: ALL_RETAILER_ROLES,
+      },
+      {
+        href: "/staff/support",
+        label: "Support",
+        roles: ALL_RETAILER_ROLES,
+      },
       { href: "/analytics", label: "Performance", roles: MANAGER_ROLES },
     ],
     authorityDomains: ["catalogue", "inventory", "order", "payment", "payroll"],

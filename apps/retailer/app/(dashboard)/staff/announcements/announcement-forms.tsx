@@ -31,7 +31,7 @@ export function PublishAnnouncementForm({
 
   return (
     <form action={action} className="mt-3 flex flex-col gap-4">
-      <FormField htmlFor="title" label="Title" error={state.formError}>
+      <FormField htmlFor="title" label="Title">
         <Input
           id="title"
           name="title"

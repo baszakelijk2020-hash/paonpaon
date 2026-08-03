@@ -37,6 +37,8 @@ type ContributionRow =
   Database["public"]["Tables"]["staff_learning_contributions"]["Row"];
 type SupportRow =
   Database["public"]["Tables"]["staff_support_resources"]["Row"];
+type BudgetRequestRow =
+  Database["public"]["Tables"]["service_recovery_budget_requests"]["Row"];
 
 function toAudience(row: AnnouncementRow): AnnouncementAudience {
   return {
@@ -253,6 +255,56 @@ export class InternalCommunityRepository {
       .eq("state", "approved")
       .is("deleted_at", null)
       .order("moderated_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  /** Submissions awaiting a decision — the manager moderation queue. */
+  async listSubmittedContributions(args: {
+    readonly retailerId: RetailerId;
+  }): Promise<readonly ContributionRow[]> {
+    const { data, error } = await this.client
+      .from("staff_learning_contributions")
+      .select("*")
+      .eq("retailer_id", args.retailerId)
+      .eq("state", "submitted")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  /** One author's own contributions, at any state — drafts and rejections
+   * included, since the RLS visibility policy grants an author that view
+   * regardless of role. */
+  async listContributionsByAuthor(args: {
+    readonly retailerId: RetailerId;
+    readonly authorStaffId: string;
+  }): Promise<readonly ContributionRow[]> {
+    const { data, error } = await this.client
+      .from("staff_learning_contributions")
+      .select("*")
+      .eq("retailer_id", args.retailerId)
+      .eq("author_staff_id", args.authorStaffId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  /**
+   * Budget requests visible to the caller. Relies on RLS to do the actual
+   * scoping (requester-or-manager) — this issues one unfiltered-by-viewer
+   * query and the policy determines what comes back.
+   */
+  async listBudgetRequests(args: {
+    readonly retailerId: RetailerId;
+  }): Promise<readonly BudgetRequestRow[]> {
+    const { data, error } = await this.client
+      .from("service_recovery_budget_requests")
+      .select("*")
+      .eq("retailer_id", args.retailerId)
+      .order("created_at", { ascending: false });
     if (error) throw error;
     return data ?? [];
   }

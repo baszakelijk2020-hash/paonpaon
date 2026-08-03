@@ -2225,6 +2225,50 @@ async function seedRetailerSpecs(params: {
       }
     }
 
+    // Support-resource catalogue (PHASE 11.4 / WFM-107). Writable only by
+    // service_role — see internal-community-security.test.ts — so this is
+    // the one legitimate place these rows get created; no retailer staff
+    // member or action can add one.
+    {
+      const supportResources: Array<{
+        resourceKey: string;
+        title: string;
+        summary: string;
+        externalUrl?: string;
+        phone?: string;
+      }> = [
+        {
+          resourceKey: "employee-assistance-line",
+          title: "Employee assistance line",
+          summary:
+            "Confidential, free counselling for anything going on at work or at home. Available around the clock.",
+          phone: "+33800123456",
+        },
+        {
+          resourceKey: "workplace-mediation",
+          title: "Workplace mediation",
+          summary:
+            "An independent mediator for a conflict with a colleague or manager you'd rather not raise through the usual chain.",
+          externalUrl: "https://mediation.example.org/request",
+        },
+      ];
+      for (const resource of supportResources) {
+        await admin.from("staff_support_resources").upsert(
+          {
+            retailer_id: retailerId,
+            resource_key: resource.resourceKey,
+            title: resource.title,
+            summary: resource.summary,
+            ...(resource.externalUrl
+              ? { external_url: resource.externalUrl }
+              : {}),
+            ...(resource.phone ? { phone: resource.phone } : {}),
+          },
+          { onConflict: "retailer_id,resource_key" },
+        );
+      }
+    }
+
     // A Métier corporate wardrobe programme — an employer buying garments
     // for its people, not a shadow HR record. Gives the retailer's
     // "Corporate" workspace a real account/programme/roster to explore.
