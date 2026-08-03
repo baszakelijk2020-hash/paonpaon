@@ -230,6 +230,11 @@ export default async function DashboardLayout({
                 label: "Service partners",
                 description: "Dry cleaning, repair — booking and invoices",
               },
+              {
+                href: "/supplier-intelligence",
+                label: "Supplier intelligence",
+                description: "Material facts, exceptions and complaint cases",
+              },
             ]
           : []),
       ],

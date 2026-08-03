@@ -2844,7 +2844,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     Missing: the weekly wardrobe service calendar and its agenda/travel
     context.
 
-- [ ] **12.4 Supplier/atelier intelligence and support operations**
+- [x] **12.4 Supplier/atelier intelligence and support operations**
   - **Requirement IDs:** `MTM-101`.
   - **Dependencies:** `12.2`, `8.2`.
   - **Owner boundary:** supplier/PDM/PLM authority mappings, catalogue/material/
@@ -2881,6 +2881,52 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     `describeFactoryWriteBack` returns a refusal rather than a TODO
     somebody later fills in. Missing: supplier fixture ingestion, UI,
     browser proof. Live supplier sync stays `blocked_external`.
+
+  - **Status (2026-08-04, takeover branch):** `verified_local`. Browser proof
+    `apps/retailer/e2e/supplier-intelligence.spec.ts`. Added
+    `SupplierIntelligenceRepository` (facts, fabric/button rules, exceptions,
+    complaints — each a thin persistence layer over the existing pure domain
+    checks, nothing re-implemented) and one page, `/supplier-intelligence`,
+    covering all three Acceptance clauses: logging a supplier fact is the
+    "one supplier fixture updates versioned material data" case (also seeded
+    once in `demo-seed.ts`, since `supplier_facts` grants `insert` only to
+    `service_role`/`authenticated` with no update — a correction is a new
+    row); recording a `material_shortage`/`order_overdue`/etc. exception
+    against staff-picked citations from that retailer's own logged facts is
+    the cited-exception case, refused end-to-end in the browser with no
+    citation selected; and the complaint form drives the full
+    `raised → investigating → supplier_notified → customer_recovered →
+closed` graph, refusing a supplier-notify with no evidence and asserting
+    the page never mentions a factory write-back.
+
+    Deliberately not built this pass: a `resolveSupplierFact` UI panel (the
+    authority-conflict/staleness view). The function itself takes a
+    caller-supplied `registeredAuthorityKeys` allowlist, and no table or
+    config surface defines that allowlist anywhere in this item's own
+    migration or Stage 8's `source_authority_policies` (a different
+    registry, scoped to `catalogue`/`inventory`/`customer`/`order`/`payment`
+    domains, not `supplier`) — inventing a registration UI for a concept the
+    schema doesn't define would be exactly the kind of parallel architecture
+    this repository's conventions warn against. `resolveSupplierFact` stays
+    covered by its own domain unit tests; the UI slice proves the observable
+    CRUD/workflow behaviour the Acceptance line actually names. Also not
+    built: `production_pieces` linkage on a complaint (12.2, its sibling
+    dependency, has no UI of its own yet either, so `piece_id` stays an
+    unexercised optional column).
+
+    Operating the browser proof surfaced that `fabric_button_rules`,
+    `supply_exceptions` and `supply_complaint_cases` — like `supplier_facts`
+    — were granted no `delete` at all in the original migration (only
+    `insert, update`), not merely append-only-enforced after the fact. For
+    `supplier_facts` that is the documented intent; for the other three it
+    reads as consistent with a state-machine design (a rule is superseded by
+    update, not removed; a case closes, it doesn't disappear) but was never
+    stated as such. Left as-is rather than silently changed under an
+    unrelated commit — a schema author decision, not a bug this pass found
+    grounds to override. The one concrete effect: local/e2e test rows on
+    these four tables accumulate indefinitely in the fixture retailer, the
+    same already-accepted reality as `service_partner_custody_events` and
+    `service_partner_invoice_lines` in 12.3.
 
 ### Stage 13 — Inventory, POS, and loss prevention
 

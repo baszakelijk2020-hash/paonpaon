@@ -2269,6 +2269,44 @@ async function seedRetailerSpecs(params: {
       }
     }
 
+    // One supplier fixture (PHASE 12.4 / MTM-101): a versioned material
+    // fact with a named authority, so /supplier-intelligence has something
+    // real to render. `supplier_facts` is append-only (no UPDATE grant, per
+    // the enforce-append-only migration), so this checks for the exact
+    // natural key first rather than upserting — an upsert would attempt an
+    // UPDATE that service_role is not granted, even for a no-op conflict.
+    {
+      const factNaturalKey = {
+        retailer_id: retailerId,
+        supplier_key: "atelier-lucchese",
+        material_key: "wool-flannel-navy-380",
+        kind: "material_availability",
+        source_authority_key: "atelier-lucchese-edi",
+        observed_at: "2026-08-01T09:00:00.000Z",
+      };
+      const { data: existingFact } = await admin
+        .from("supplier_facts")
+        .select("id")
+        .match(factNaturalKey)
+        .maybeSingle();
+      if (!existingFact) {
+        await admin.from("supplier_facts").insert({
+          ...factNaturalKey,
+          value: "in_stock",
+          source_version: "2026-08-01-v3",
+        });
+      }
+      await admin.from("fabric_button_rules").upsert(
+        {
+          retailer_id: retailerId,
+          fabric_key: "wool-flannel-navy-380",
+          allowed_button_keys: ["horn-natural", "horn-dark"],
+          note: "House standard for navy flannel — no metal buttons on this cloth.",
+        },
+        { onConflict: "retailer_id,fabric_key" },
+      );
+    }
+
     // A Métier corporate wardrobe programme — an employer buying garments
     // for its people, not a shadow HR record. Gives the retailer's
     // "Corporate" workspace a real account/programme/roster to explore.
