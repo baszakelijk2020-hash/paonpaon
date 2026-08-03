@@ -97,6 +97,11 @@ export default async function DashboardLayout({
         ...(!isWorkshopRole
           ? [
               {
+                href: "/mission-control",
+                label: "Mission Control",
+                description: "Today, time-blocked — appointments and picks",
+              },
+              {
                 href: "/appointments",
                 label: "Appointments",
                 description: "Calendar, fittings and follow-up",

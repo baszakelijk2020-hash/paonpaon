@@ -121,6 +121,11 @@ export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
     navigation: [
       { href: "/customers", label: "Clients", roles: CUSTOMER_FACING_ROLES },
       {
+        href: "/mission-control",
+        label: "Mission Control",
+        roles: CUSTOMER_FACING_ROLES,
+      },
+      {
         href: "/appointments",
         label: "Appointments",
         roles: CUSTOMER_FACING_ROLES,
