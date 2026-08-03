@@ -2729,7 +2729,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
 
     Still open: the guided capture surface itself and the reorder gate's own
     UI. Model-assisted tranche remains `blocked_external`.
-- [ ] **12.2 Garment production and serialized pieces**
+- [x] **12.2 Garment production and serialized pieces**
   - **Requirement IDs:** `INV-103`; Stage 12 target architecture.
   - **Dependencies:** `8.3`, `8.2`.
   - **Owner boundary:** immutable measurement/spec versions, pieces, stages,
@@ -2770,6 +2770,66 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     workroom/outworker surfaces, tech pack and BOM authoring, the full
     fixture flow and browser proof. Automated factory submission stays
     `blocked_external`.
+
+  - **Status (2026-08-04, takeover branch):** `verified_local`. Added
+    `ProductionPieceRepository` and one page, `/production`, covering the
+    Acceptance line's four clauses end to end: a full suit fixture (spec →
+    jacket + trousers) drives the jacket alone through
+    `cutting → assembly → finishing → quality_control → rework →
+(re-)assembly → finishing → quality_control → ready → dispatched` while
+    the trousers stay untouched at `spec_locked` — "scan independently" is
+    literal: a barcode lookup finds one piece by its own code — and a
+    dispatch attempt on the ready jacket is refused while its sibling piece
+    on the same order isn't ready, then succeeds once both are. Post-cut
+    change is explicit: an empty-reason amendment is refused in the running
+    app, a real one (reason + who absorbs the cost) is recorded and shown
+    against the piece. An outworker ticket's rendered view is checked to
+    contain the client's initials and NOT their full name. A piece created
+    with a promised date already in the past appears in a "Delayed pieces"
+    list before it is ever touched, and "Raise service recovery" writes a
+    real `service_recovery_budget_requests` row (PHASE 11.4's own
+    authorisation record, reused rather than duplicated — moves no money)
+    citing the order. Browser proof: `apps/retailer/e2e/production.spec.ts`.
+
+    Two real defects found operating this, both fixed at the source rather
+    than routed around in the test:
+
+    1. **`checkOrderDispatch` existed in the domain layer and was never
+       called.** The repository's `transitionStage` validated every move
+       via `checkStageTransition` but let a piece dispatch alone regardless
+       of a sibling's state — silently missing the exact rule the item's
+       schema comment names ("a suit with finished trousers and a jacket in
+       rework is a real state"). Fixed: a `to === "dispatched"` transition
+       now also checks every piece on the same order via
+       `checkOrderDispatch` and refuses if any is not ready or dispatched.
+    2. **Barcode lookup could never succeed.** `findPieceByBarcode`
+       upper-cases its search term (matching `parsePieceBarcode`'s own
+       tolerance for whatever case a scanner sends), but `addPiece` stored
+       `buildPieceBarcode`'s output verbatim — mixed case, since the
+       retailer code is a lower-case slug — so a stored barcode could never
+       equal its own upper-cased search term. Fixed by upper-casing at
+       storage time too, so the two sides of the same comparison finally
+       agree.
+
+    One environment-specific finding, not a code defect: a row inserted by
+    the end-to-end fixture (via the service-role client, from the test
+    process) was, in this local stack, observed to be briefly invisible to
+    an immediate read from a _different_ process (the Next.js dev/prod
+    server) — reproduced directly by polling the identical query and
+    watching it start returning the row after a short wait. Cause not
+    pinned down further given the size of this pass; worked around in the
+    test with `expect.poll` around each such read (this suite's existing
+    convention for exactly this shape of timing issue) rather than adding
+    unexplained retry logic to product code. Real staff actions are never
+    seconds-old fixture writes, so this is not expected to be user-visible.
+
+    Deliberately not built this pass: work-ticket authoring UI beyond
+    issuing one (no edit/return-tracking screen), tech pack/BOM authoring,
+    material-line reconciliation UI (`reconcileMaterials` stays covered by
+    its own domain unit tests), and the outworker's own portal (the ticket
+    view proves the whitelist projection is correct; nobody outside the
+    retailer staff signs in to see it yet). Automated factory submission
+    stays `blocked_external` per the item's own hard blocker.
 
 - [ ] **12.3 Preferred Tailoring partner network**
   - **Requirement IDs:** `SRV-101`–`SRV-103`, `INV-103`.

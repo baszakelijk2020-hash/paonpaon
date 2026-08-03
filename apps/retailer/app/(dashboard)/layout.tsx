@@ -235,6 +235,11 @@ export default async function DashboardLayout({
                 label: "Supplier intelligence",
                 description: "Material facts, exceptions and complaint cases",
               },
+              {
+                href: "/production",
+                label: "Production",
+                description: "Serialized pieces, stages and work tickets",
+              },
             ]
           : []),
       ],
