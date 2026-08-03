@@ -2998,7 +2998,7 @@ closed` graph, refusing a supplier-notify with no evidence and asserting
     about holding it for a client. Cosmetic, not a correctness gap — worth
     a follow-up, not a blocker for this item's Acceptance.
 
-- [ ] **13.2 Loss prevention and RFID pilot**
+- [x] **13.2 Loss prevention and RFID pilot**
   - **Requirement IDs:** `INV-104`, `INV-105`.
   - **Dependencies:** `13.1`.
   - **Owner boundary:** risk rules/approvals plus EPC serialized observations
@@ -3074,6 +3074,13 @@ closed` graph, refusing a supplier-notify with no evidence and asserting
     an unresolved `advisor_review` candidate are not inert debris — they sit
     in a queue and fail unrelated specs later, looking like those specs'
     bug. Live reader hardware remains `blocked_external`.
+
+  - **Checkbox correction (2026-08-04, takeover branch):** the revised
+    status above already describes all three Acceptance clauses satisfied
+    and local-verified, with only the reader-hardware pilot left
+    `blocked_external` — the same shape as 8.4 and 9.1, both checked. The
+    box had simply never been flipped after that revision; nothing further
+    was built or changed in this pass.
 
 - [ ] **13.3 Omnichannel POS and returns**
   - **Requirement IDs:** Stage 13 target architecture.
