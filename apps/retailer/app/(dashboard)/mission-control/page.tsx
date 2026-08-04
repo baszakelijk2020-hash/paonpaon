@@ -132,6 +132,7 @@ export default async function MissionControlPage() {
                       <Link
                         key={appointment.id}
                         href={`/appointments/${appointment.id}`}
+                        data-appointment-id={appointment.id}
                         className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 hover:bg-[var(--color-stone-50)]"
                       >
                         <div>

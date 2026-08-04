@@ -78,8 +78,13 @@ test("today's appointment slots into its hour, and a priority task can be accept
       page.getByRole("heading", { name: "Mission Control" }),
     ).toBeVisible();
 
+    // Scoped to the appointment slot specifically: this same customer also
+    // has a clienteling opportunity below, so their name legitimately
+    // appears twice on the page and an unscoped text match is ambiguous.
     await expect(
-      page.getByText(`E2E Mission Control Client ${unique}`),
+      page
+        .locator(`[data-appointment-id="${appointment.id}"]`)
+        .getByText(`E2E Mission Control Client ${unique}`),
     ).toBeVisible();
 
     const opportunityCard = page.locator("li", {
