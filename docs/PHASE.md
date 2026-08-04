@@ -3745,6 +3745,41 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     because the chest felt softer" is something the next advisor can use.
     Missing: tablet/mirror UI, device adapters, browser proof. Live-device
     proof stays `blocked_external`.
+  - **Update (2026-08-04, takeover branch):** the manual-fallback path —
+    the one half of this item with no hardware dependency at all — is
+    wired end to end and browser-proven. `StoreExperienceRepository`
+    (`packages/database`) is thin persistence over the existing
+    `checkSessionOutcome` and `checkComparison`: closing a session with
+    `deviceFailed: true` and no confirmed `manualFallbackUsed` is refused
+    before it ever reaches `store_sessions`' own
+    `store_session_fallback_recorded` CHECK, and a comparison marked
+    `customerPreferred` with no reason is refused before
+    `store_comparison_records`' own `store_comparison_preference_has_reason`
+    CHECK. Deliberately does not touch `store_zones` or
+    `store_observations` — those are the genuinely hardware-dependent half
+    (anonymous sensors, zone playbooks) and stay untouched, unlike the
+    session/comparison path, which the acceptance criterion itself
+    describes as working equally well on paper. Wired to a new
+    `/store-sessions` page (`apps/retailer/app/(dashboard)/store-sessions`,
+    added to `garment_service_operations`' navigation in both
+    `module-kernel.ts` and the dashboard layout, visible to every
+    customer-facing role, not just managers — this is a floor tool).
+    `store-sessions.spec.ts` proves the full arc in the browser: an advisor
+    opens a session for a real customer, records a half-canvas comparison
+    the customer did not prefer, then a full-canvas one they did — with the
+    reason "the chest felt softer" required and captured; closing with the
+    mirror marked failed but no fallback confirmed is refused in the
+    browser with the session still open in the DB; confirming "finished on
+    paper" then closes it, and the DB is asserted to hold both comparison
+    rows exactly and a closed session with `device_failed`,
+    `manual_fallback_used` and the approved look all set correctly. The
+    checkbox stays unchecked: the owner boundary also names store zone/
+    playbook definitions, privacy-safe observation adapters and
+    smart-display/mirror sessions themselves, none of which have a UI —
+    this update is the paper-and-clipboard path the acceptance criterion
+    says must exist independently of any device. Missing: zone/playbook
+    UI, observation adapters, actual mirror/display integration. Live-device
+    proof stays `blocked_external`, unchanged.
 
 - [ ] **16.5 Moonstruck wedding-party apparel pack**
   - **Requirement IDs:** `WED-101`.

@@ -199,6 +199,15 @@ export default async function DashboardLayout({
             ? "Assigned garments and due dates"
             : "Fitting-to-workshop progress",
         },
+        ...(!isWorkshopRole
+          ? [
+              {
+                href: "/store-sessions",
+                label: "Store sessions",
+                description: "Guided comparisons and approved looks",
+              },
+            ]
+          : []),
         ...(canConfigureAlterations || canManageWorkshop
           ? [
               {

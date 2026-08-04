@@ -106,4 +106,5 @@ export * from "./repositories/production-piece-repository";
 export * from "./repositories/cited-recommendation-repository";
 export * from "./repositories/network-repository";
 export * from "./repositories/academy-repository";
+export * from "./repositories/store-experience-repository";
 export type { Database } from "./generated/database.types";

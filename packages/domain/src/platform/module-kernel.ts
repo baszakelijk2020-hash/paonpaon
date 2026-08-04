@@ -209,6 +209,11 @@ export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
         label: "Production",
         roles: ["owner", "admin", "manager", "workshop_manager"],
       },
+      {
+        href: "/store-sessions",
+        label: "Store sessions",
+        roles: CUSTOMER_FACING_ROLES,
+      },
     ],
     authorityDomains: ["production", "appointment", "order"],
     jobs: ["production_milestone_scan", "service_care_reminder"],
