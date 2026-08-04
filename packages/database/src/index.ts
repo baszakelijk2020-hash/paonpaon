@@ -103,4 +103,5 @@ export * from "./repositories/micro-capsule-repository";
 export * from "./repositories/service-partner-repository";
 export * from "./repositories/supplier-intelligence-repository";
 export * from "./repositories/production-piece-repository";
+export * from "./repositories/cited-recommendation-repository";
 export type { Database } from "./generated/database.types";

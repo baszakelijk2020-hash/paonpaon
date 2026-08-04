@@ -215,6 +215,44 @@ export function checkRecommendationHonesty(args: {
   return { ok: true };
 }
 
+export interface HotspotBucket {
+  /** 0 (Sunday) through 6 (Saturday), UTC. See `findBusiestSlot`'s own
+   * comment on why this is not yet the retailer's local timezone. */
+  readonly dayOfWeek: number;
+  readonly hour: number;
+}
+
+export interface HotspotResult extends HotspotBucket {
+  readonly count: number;
+}
+
+/**
+ * The `temporal_hotspot` projector's core computation: which day-of-week +
+ * hour bucket has the most appointments. Pure and timezone-naive on
+ * purpose for this first pass — it buckets by UTC day/hour rather than the
+ * retailer's configured timezone, which means a hotspot near a local
+ * midnight can land in the adjacent day. Documented rather than silently
+ * assumed correct; a real timezone-aware bucketing is follow-up work, not
+ * a defect this function hides.
+ */
+export function findBusiestSlot(
+  startTimes: readonly string[],
+): HotspotResult | null {
+  const counts = new Map<string, number>();
+  for (const iso of startTimes) {
+    const date = new Date(iso);
+    const key = `${date.getUTCDay()}:${date.getUTCHours()}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  let best: HotspotResult | null = null;
+  for (const [key, count] of counts) {
+    if (best && count <= best.count) continue;
+    const [dayOfWeek, hour] = key.split(":").map(Number);
+    best = { dayOfWeek: dayOfWeek!, hour: hour!, count };
+  }
+  return best;
+}
+
 export interface DashboardSection {
   readonly kind: RecommendationKind;
   readonly recommendations: readonly CitedRecommendation[];

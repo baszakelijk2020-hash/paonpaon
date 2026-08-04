@@ -1,5 +1,6 @@
 import {
   AnalyticsRepository,
+  CitedRecommendationRepository,
   ClientelingDashboardRepository,
   CustomerRepository,
   RetailerBranchRepository,
@@ -11,6 +12,8 @@ import { Card } from "@paon/ui/components/Card";
 import { formatMoney } from "@paon/utils";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+
+import { TemporalHotspotCard } from "./insights";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -67,15 +70,20 @@ export default async function AnalyticsPage() {
   const defaultBranch = await new RetailerBranchRepository(
     supabase,
   ).findDefault(session.retailerId);
-  const [summary, summary60, clienteling, customers] = await Promise.all([
-    analyticsRepo.summary(session.retailerId, since30.toISOString()),
-    analyticsRepo.summary(session.retailerId, since60.toISOString()),
-    new ClientelingDashboardRepository(supabase).projectForRetailer({
-      retailerId: session.retailerId,
-      ...(defaultBranch ? { timezone: defaultBranch.timezone } : {}),
-    }),
-    new CustomerRepository(supabase).findByRetailer(session.retailerId),
-  ]);
+  const [summary, summary60, clienteling, customers, citedInsights] =
+    await Promise.all([
+      analyticsRepo.summary(session.retailerId, since30.toISOString()),
+      analyticsRepo.summary(session.retailerId, since60.toISOString()),
+      new ClientelingDashboardRepository(supabase).projectForRetailer({
+        retailerId: session.retailerId,
+        ...(defaultBranch ? { timezone: defaultBranch.timezone } : {}),
+      }),
+      new CustomerRepository(supabase).findByRetailer(session.retailerId),
+      new CitedRecommendationRepository(supabase).listLive({
+        retailerId: session.retailerId,
+        kind: "temporal_hotspot",
+      }),
+    ]);
 
   const customerNameById = Object.fromEntries(
     customers.map((customer) => [customer.id, customer.fullName]),
@@ -288,6 +296,33 @@ export default async function AnalyticsPage() {
               </div>
             ))}
           </div>
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div>
+          <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            Cited insights
+          </p>
+          <h2 className="font-display text-2xl text-[var(--color-stone-900)]">
+            Busiest appointment slot
+          </h2>
+          <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+            Every finding names its source and sample size. A sparse dataset is
+            labelled as sparse, never rounded up into false confidence.
+          </p>
+        </div>
+        <Card>
+          <TemporalHotspotCard
+            insights={citedInsights.map((row) => ({
+              id: row.id,
+              statement: row.statement,
+              confidence: row.confidence,
+              sampleSize: row.sample_size,
+              windowFrom: row.window_from,
+              windowTo: row.window_to,
+            }))}
+          />
         </Card>
       </section>
     </div>

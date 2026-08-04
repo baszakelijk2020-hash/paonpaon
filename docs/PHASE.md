@@ -3343,6 +3343,36 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     suggestion into a promise the shop cannot keep in front of a customer.
     Missing: the projectors themselves, role dashboards, AI evaluation,
     and browser proof.
+  - **Update (2026-08-04, takeover branch):** first real projector shipped
+    and proven in the browser: `temporal_hotspot`. `findBusiestSlot`
+    (`packages/domain/src/intelligence/cited-recommendation.ts`) buckets
+    real appointment `startsAt` values by day-of-week/hour — documented as
+    UTC-naive for this first pass rather than silently assumed
+    timezone-correct. `CitedRecommendationRepository.computeTemporalHotspot`
+    (`packages/database`) reads live appointments (excluding
+    cancellations/no-shows — a slot nobody kept is not a hotspot), finds
+    the busiest bucket, and stores a fully cited recommendation through
+    `buildRecommendation`, naming the exact source, window, and sample
+    size. Recompute withdraws any prior live `temporal_hotspot`
+    recommendation first, so pressing "Recompute" repeatedly supersedes
+    the old finding rather than piling up duplicates — a recommendation is
+    withdrawn, not edited, on every path, including "no appointments in
+    the window anymore." Wired to `/analytics` as a manager-gated "Cited
+    insights" card (`apps/retailer/app/(dashboard)/analytics/insights.tsx`,
+    `actions.ts`) showing the confidence band, sample size and statement,
+    with an explicit on-demand recompute button — never a silent
+    background job. `apps/retailer/e2e/analytics.spec.ts` proves the full
+    honesty arc in a real browser: 3 seeded appointments recompute to a
+    visible `insufficient_sample` card; seeding to 50 in the same bucket
+    and recomputing again supersedes it with a `supported` card, and the
+    DB is asserted to hold exactly one live row (the sparse one withdrawn,
+    not left standing). The checkbox stays unchecked: this is 1 of 7
+    `RECOMMENDATION_KINDS` (temporal_hotspot only — interest_progression,
+    complete_look, fit_risk, production_risk, stock_risk, staffing_risk
+    remain domain-only with no projector), `buildRoleDashboard` still has
+    no caller wiring role-scoped dashboards to a UI, and there is no AI
+    evaluation harness. Missing: the other six projectors, role
+    dashboards, AI evaluation.
 
 ### Stage 15 — Lifestyle network and MunroMerchant
 

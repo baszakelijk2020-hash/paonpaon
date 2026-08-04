@@ -5,6 +5,7 @@ import {
   buildRecommendation,
   buildRoleDashboard,
   checkRecommendationHonesty,
+  findBusiestSlot,
   planRecompute,
 } from "./cited-recommendation";
 
@@ -228,5 +229,32 @@ describe("buildRoleDashboard", () => {
         allowedKinds: ["fit_risk", "stock_risk"],
       }),
     ).toEqual([]);
+  });
+});
+
+describe("findBusiestSlot", () => {
+  it("returns null for no appointments", () => {
+    expect(findBusiestSlot([])).toBeNull();
+  });
+
+  it("finds the day/hour bucket with the most appointments", () => {
+    // Three on a Saturday (2026-08-01 is a Saturday) at 14:00 UTC, one
+    // elsewhere — the bucket with 3 must win.
+    const result = findBusiestSlot([
+      "2026-08-01T14:05:00.000Z",
+      "2026-08-01T14:40:00.000Z",
+      "2026-08-08T14:10:00.000Z", // a different Saturday, same bucket
+      "2026-08-02T09:00:00.000Z", // Sunday 09:00 — one, does not win
+    ]);
+    expect(result).toEqual({ dayOfWeek: 6, hour: 14, count: 3 });
+  });
+
+  it("counts every appointment, not just distinct buckets", () => {
+    const result = findBusiestSlot([
+      "2026-08-03T10:00:00.000Z",
+      "2026-08-10T10:00:00.000Z",
+      "2026-08-17T10:00:00.000Z",
+    ]);
+    expect(result?.count).toBe(3);
   });
 });

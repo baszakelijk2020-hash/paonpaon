@@ -58,10 +58,23 @@ test("associate sells a garment for cash, is refused a card and an unpaid finish
     .single();
   const locationId = till!.id;
 
+  // Matches ProductVariantRepository.findForRetailer's own filter — an
+  // undeleted product's undeleted variant — so the id picked here is
+  // guaranteed to actually appear in the till's #line-variant options.
+  // Unfiltered, `.limit(1)` can land on a variant another spec discontinued
+  // earlier in this shared fixture retailer's history, and the select
+  // would never show it.
   const { data: variant } = await admin
     .from("product_variants")
-    .select("id, products!inner(retailer_id)")
+    .select("id, products!inner(retailer_id, deleted_at)")
     .eq("products.retailer_id", proof.retailerId)
+    .is("products.deleted_at", null)
+    .is("deleted_at", null)
+    // Ordered oldest-first and matched to findForRetailer's own limit(50):
+    // with more than 50 undeleted variants accumulated in this shared
+    // fixture retailer, an unordered pick can land outside that page and
+    // never appear in the select at all.
+    .order("created_at", { ascending: true })
     .limit(1)
     .single();
   const variantId = variant!.id;
@@ -427,10 +440,19 @@ test("a suspended sale frees the counter, stays held, is refused mid-resume whil
     .single();
   const locationId = till!.id;
 
+  // See the matching comment on this same query above: filtered to match
+  // what ProductVariantRepository.findForRetailer actually lists.
   const { data: variant } = await admin
     .from("product_variants")
-    .select("id, products!inner(retailer_id)")
+    .select("id, products!inner(retailer_id, deleted_at)")
     .eq("products.retailer_id", proof.retailerId)
+    .is("products.deleted_at", null)
+    .is("deleted_at", null)
+    // Ordered oldest-first and matched to findForRetailer's own limit(50):
+    // with more than 50 undeleted variants accumulated in this shared
+    // fixture retailer, an unordered pick can land outside that page and
+    // never appear in the select at all.
+    .order("created_at", { ascending: true })
     .limit(1)
     .single();
   const variantId = variant!.id;

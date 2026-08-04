@@ -63,10 +63,23 @@ test("a write-off waits for a second signature, and the sweep moves nothing", as
     .single();
   const locationId = location!.id;
 
+  // Matches ProductVariantRepository.findForRetailer's own filter — an
+  // undeleted product's undeleted variant — so the id picked here is
+  // guaranteed to actually appear in the till's #writeoff-variant options.
+  // Unfiltered, `.limit(1)` can land on a variant another spec discontinued
+  // earlier in this shared fixture retailer's history, and the select
+  // would never show it.
   const { data: variant } = await admin
     .from("product_variants")
-    .select("id, sku, products!inner(retailer_id)")
+    .select("id, sku, products!inner(retailer_id, deleted_at)")
     .eq("products.retailer_id", proof.retailerId)
+    .is("products.deleted_at", null)
+    .is("deleted_at", null)
+    // Ordered oldest-first and matched to findForRetailer's own limit(50):
+    // with more than 50 undeleted variants accumulated in this shared
+    // fixture retailer, an unordered pick can land outside that page and
+    // never appear in the select at all.
+    .order("created_at", { ascending: true })
     .limit(1)
     .single();
   const variantId = variant!.id;
