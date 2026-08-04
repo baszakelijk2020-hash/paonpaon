@@ -1,4 +1,5 @@
 import {
+  CorporateConceptAssetRepository,
   CorporateOpportunityRepository,
   CorporateProjectRepository,
   CorporateTenderRepository,
@@ -31,6 +32,8 @@ import {
   approveTenderVersion,
   createTender,
   createTenderVersion,
+  decideConceptAsset,
+  generateConceptImages,
   transitionStage,
   winOpportunity,
 } from "../actions";
@@ -157,13 +160,28 @@ export default async function OpportunityDetailPage({
   const tenderRepo = new CorporateTenderRepository(
     await getSupabaseServerClient(),
   );
+  const conceptAssetRepo = new CorporateConceptAssetRepository(
+    await getSupabaseServerClient(),
+  );
   const tenders = await tenderRepo.findByOpportunity(opportunity.id);
   const tenderDetails = await Promise.all(
-    tenders.map(async (tender) => ({
-      tender,
-      versions: await tenderRepo.listVersions(tender.id),
-      approvals: await tenderRepo.listApprovals(tender.id),
-    })),
+    tenders.map(async (tender) => {
+      const versions = await tenderRepo.listVersions(tender.id);
+      const conceptAssetsByVersion = await Promise.all(
+        versions.map(async (version) => ({
+          versionId: version.id,
+          assets: await conceptAssetRepo.listByTenderVersion(version.id),
+        })),
+      );
+      return {
+        tender,
+        versions,
+        approvals: await tenderRepo.listApprovals(tender.id),
+        conceptAssetsByVersion: new Map(
+          conceptAssetsByVersion.map((v) => [v.versionId, v.assets]),
+        ),
+      };
+    }),
   );
   const canCreateTender = opportunity.stage !== "lost";
   const retailer = await new RetailerRepository(
@@ -375,7 +393,9 @@ export default async function OpportunityDetailPage({
             No tender authored yet.
           </p>
         ) : (
-          tenderDetails.map(({ tender, versions, approvals }) => {
+          tenderDetails.map((tenderDetail) => {
+            const { tender, versions, approvals, conceptAssetsByVersion } =
+              tenderDetail;
             const approvedVersionIds = new Set(
               approvals.map((a) => a.tenderVersionId),
             );
@@ -421,6 +441,131 @@ export default async function OpportunityDetailPage({
                               <li key={concept}>{concept}</li>
                             ))}
                           </ul>
+                          {(() => {
+                            const conceptAssets =
+                              conceptAssetsByVersion.get(version.id) ?? [];
+                            return (
+                              <div className="flex flex-col gap-2 border-t border-[var(--color-stone-200)] pt-2">
+                                <p className="text-xs font-medium text-[var(--color-stone-700)]">
+                                  Concept images
+                                </p>
+                                {conceptAssets.length === 0 ? (
+                                  <p className="text-xs text-[var(--color-stone-500)]">
+                                    None generated yet.
+                                  </p>
+                                ) : (
+                                  <ul className="flex flex-col gap-2">
+                                    {conceptAssets.map((asset) => (
+                                      <li
+                                        key={asset.id}
+                                        className="flex items-center justify-between gap-2"
+                                      >
+                                        <Badge
+                                          tone={
+                                            asset.status === "approved"
+                                              ? "success"
+                                              : asset.status === "rejected"
+                                                ? "danger"
+                                                : "neutral"
+                                          }
+                                        >
+                                          {asset.status === "approved"
+                                            ? "Approved"
+                                            : asset.status === "rejected"
+                                              ? "Rejected"
+                                              : "Pending approval"}
+                                        </Badge>
+                                        {asset.status === "pending_approval" ? (
+                                          <div className="flex gap-2">
+                                            <form action={decideConceptAsset}>
+                                              <input
+                                                type="hidden"
+                                                name="opportunityId"
+                                                value={opportunity.id}
+                                              />
+                                              <input
+                                                type="hidden"
+                                                name="assetId"
+                                                value={asset.id}
+                                              />
+                                              <input
+                                                type="hidden"
+                                                name="decision"
+                                                value="approved"
+                                              />
+                                              <Button
+                                                type="submit"
+                                                variant="secondary"
+                                                size="sm"
+                                              >
+                                                Approve image
+                                              </Button>
+                                            </form>
+                                            <form action={decideConceptAsset}>
+                                              <input
+                                                type="hidden"
+                                                name="opportunityId"
+                                                value={opportunity.id}
+                                              />
+                                              <input
+                                                type="hidden"
+                                                name="assetId"
+                                                value={asset.id}
+                                              />
+                                              <input
+                                                type="hidden"
+                                                name="decision"
+                                                value="rejected"
+                                              />
+                                              <Button
+                                                type="submit"
+                                                variant="secondary"
+                                                size="sm"
+                                              >
+                                                Reject
+                                              </Button>
+                                            </form>
+                                          </div>
+                                        ) : null}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                                <form
+                                  action={generateConceptImages}
+                                  className="self-start"
+                                >
+                                  <input
+                                    type="hidden"
+                                    name="opportunityId"
+                                    value={opportunity.id}
+                                  />
+                                  <input
+                                    type="hidden"
+                                    name="tenderVersionId"
+                                    value={version.id}
+                                  />
+                                  <input
+                                    type="hidden"
+                                    name="tenderTitle"
+                                    value={tender.title}
+                                  />
+                                  <input
+                                    type="hidden"
+                                    name="garmentConcepts"
+                                    value={version.garmentConcepts.join("\n")}
+                                  />
+                                  <Button
+                                    type="submit"
+                                    variant="secondary"
+                                    size="sm"
+                                  >
+                                    Generate concept images
+                                  </Button>
+                                </form>
+                              </div>
+                            );
+                          })()}
                           {!approved ? (
                             <form
                               action={approveTenderVersion}

@@ -1,4 +1,6 @@
 import {
+  AIGenerationRepository,
+  CorporateConceptAssetRepository,
   CorporateOpportunityRepository,
   CorporateTenderRepository,
   createSupabaseAdminClient,
@@ -95,6 +97,40 @@ test("an anonymous viewer sees a tender as not-yet-published until a version is 
     await expect(page.getByText("Two-piece suit")).toBeVisible();
     await expect(page.getByText("Overcoat")).toBeVisible();
     await expect(page.getByText("Version 1")).toBeVisible();
+
+    // PHASE 18.10: a pending concept image must never reach this page —
+    // only an explicitly APPROVED one may.
+    const generationRepo = new AIGenerationRepository(admin);
+    const conceptRepo = new CorporateConceptAssetRepository(admin);
+    const generation = await generationRepo.record({
+      retailerId,
+      kind: "corporate_concept",
+      status: "succeeded",
+      provider: "mock",
+      model: "mock-concept-v1",
+      inputSummary: `Concept images for tender version ${versionResult.version.id}`,
+    });
+    const asset = await conceptRepo.create({
+      retailerId,
+      tenderVersionId: versionResult.version.id,
+      aiGenerationId: generation.id,
+      imageUrl: "https://example.test/customer-e2e-concept.png",
+      prompt: "Customer e2e seeded concept prompt",
+    });
+
+    await page.reload();
+    await expect(page.locator("[data-concept-images]")).toHaveCount(0);
+
+    await conceptRepo.decide({
+      assetId: asset.id,
+      decision: "approved",
+      staffId: asId<"StaffId">(staff.id),
+    });
+
+    await page.reload();
+    await expect(
+      page.locator('img[src="https://example.test/customer-e2e-concept.png"]'),
+    ).toBeVisible();
   } finally {
     await admin
       .from("corporate_opportunities")

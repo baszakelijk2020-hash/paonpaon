@@ -4,6 +4,8 @@ import type {
   AdvisorCaptureContext,
   AIProvider,
   CatalogueImportEnrichmentContext,
+  ConceptImageContext,
+  ConceptImageResult,
   GroundedAnswerContext,
   GroundedAnswerResult,
   NextBestActionContext,
@@ -165,6 +167,18 @@ function buildCapturePrompt(context: AdvisorCaptureContext): string {
     null,
     2,
   );
+}
+
+const DEFAULT_IMAGE_MODEL = "dall-e-3";
+
+function buildConceptImagePrompt(context: ConceptImageContext): string {
+  const lines = [
+    `A photorealistic tailoring moodboard for ${context.retailerName}'s corporate wardrobe tender "${context.tenderTitle}".`,
+    `Garment concepts: ${context.garmentConcepts.join(", ")}.`,
+    ...(context.styleNotes ? [`Style notes: ${context.styleNotes}.`] : []),
+    "Studio lighting, premium menswear editorial style, no visible text or logos.",
+  ];
+  return lines.join(" ");
 }
 
 export class OpenAIProvider implements AIProvider {
@@ -340,5 +354,31 @@ export class OpenAIProvider implements AIProvider {
     } catch {
       throw new Error("OpenAI advisor capture response was not valid JSON");
     }
+  }
+
+  async generateConceptImages(
+    context: ConceptImageContext,
+  ): Promise<ConceptImageResult> {
+    const prompt = buildConceptImagePrompt(context);
+    const response = await this.client.images.generate({
+      model: DEFAULT_IMAGE_MODEL,
+      prompt,
+      n: 1,
+      size: "1024x1024",
+    });
+
+    const images = (response.data ?? []).map((item) => {
+      if (!item.url) {
+        throw new Error("OpenAI concept image response was missing a url");
+      }
+      return {
+        imageUrl: item.url,
+        revisedPrompt: item.revised_prompt ?? prompt,
+      };
+    });
+    if (images.length === 0) {
+      throw new Error("OpenAI returned no concept images");
+    }
+    return { images };
   }
 }

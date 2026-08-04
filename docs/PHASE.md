@@ -4790,7 +4790,63 @@ access" control (`setWearerLoginEmail`) — there was previously no
   - **Non-goals:** no unapproved asset ever externally visible.
   - **Hard blockers:** live generation needs a configured AI image
     provider — `blocked_external` for the live path only.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `verified_local` for
+    everything except the live provider call, which stays genuinely
+    `blocked_external` — this environment has no `OPENAI_API_KEY`
+    configured, the same condition `apps/retailer/lib/ai.ts` already
+    handles honestly for every other AI feature (`getAIProvider()`
+    returns `null`, callers render/record a not-configured state rather
+    than crashing or faking output). `@paon/ai` gained one new provider
+    method (`generateConceptImages`, plus `ConceptImageContext`/
+    `ConceptImageResult`) on the existing `AIProvider` interface — the
+    dependency line's own "a new provider method, not a new provider
+    architecture" — implemented for real against OpenAI's image API in
+    `OpenAIProvider` (would call a live model with a real key; unit
+    tested against a mocked OpenAI client, never a live call) and a
+    `MockConceptImageProvider`/`runConceptGenerationJob` pair mirroring
+    `17.1`'s own `MockAdvisorCaptureProvider`/`runAdvisorCaptureJob`
+    shape exactly. Migration `20260805110000_add_corporate_concept_generation.sql`
+    adds `ai_generation_kind`'s new `corporate_concept` value (the
+    existing audit trail, not a second log — this item's own dependency
+    line) and `corporate_concept_assets`
+    (`packages/domain/src/corporate/concept-generation.ts`'s
+    `checkDecideConceptAsset` refuses a second decision on an
+    already-approved-or-rejected asset — enforced doubly by a `check`
+    constraint keeping `status = 'approved'` consistent with the
+    decision fields, not application code alone), and extends
+    `resolve_corporate_tender` (18.3) to surface only `approved`
+    `corporate_concept_assets.image_url`s for the resolved version — a
+    pending or rejected image is invisible to that SQL function itself,
+    never merely withheld by the calling page's own choice. The retailer
+    opportunity page gained a "Generate concept images" action per
+    tender version and "Approve image"/"Reject" buttons on each pending
+    result; the customer-app public tender page renders any approved
+    URLs. Requesting generation with no provider configured records a
+    real `failed` `ai_generations` row with an honest error message and
+    creates no asset — never a fabricated image — proven by actually
+    clicking the button in this genuinely-unconfigured environment, not
+    by simulating the condition.
+  - **Tests:** `packages/ai/src/concept-generation-runner.test.ts` (5:
+    the OpenAI implementation sends the built prompt and parses results,
+    throws on an empty/malformed image list; the mock-driven job
+    succeeds and retries-then-fails); `packages/domain/src/corporate/concept-generation.test.ts`
+    (3: allow-once, refuse-twice for both decisions).
+    `apps/retailer/e2e/corporate-concept-generation.spec.ts`: a real
+    click with no provider configured writes exactly one new `failed`
+    row and zero assets; a seeded pending asset is approved through the
+    real UI, its buttons disappear, and a second `decide()` call at the
+    same repository write path the UI itself uses is refused
+    (`already_decided`) — not just reasoned about in the domain layer.
+    `apps/customer/e2e/corporate-tender-reveal.spec.ts` (18.3's own
+    proof, extended rather than duplicated): a pending concept image
+    seeded for the already-approved version never appears on the public
+    page; approving it makes the exact image URL appear.
+  - Checkbox stays unchecked: the live image-generation path is
+    genuinely `blocked_external` in this environment, so "a generated
+    asset" has only ever been proven with a seeded/mocked attempt, never
+    a real model call — this item cannot be claimed complete until a
+    provider key is available and the live path is exercised at least
+    once.
 
 - [ ] **18.11 External signal ingestion (InsiderTailoring discovery)**
   - **Requirement IDs:** BD-111.

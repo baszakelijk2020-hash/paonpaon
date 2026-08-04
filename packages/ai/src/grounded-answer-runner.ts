@@ -79,6 +79,12 @@ export class MockGroundedAnswerProvider implements AIProvider {
       "MockGroundedAnswerProvider does not implement advisor capture",
     );
   }
+
+  async generateConceptImages(): Promise<never> {
+    throw new Error(
+      "MockGroundedAnswerProvider does not implement concept images",
+    );
+  }
 }
 
 export async function runGroundedAnswerJob(

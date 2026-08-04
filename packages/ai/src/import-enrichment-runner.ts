@@ -158,6 +158,12 @@ export class MockImportEnrichmentProvider implements AIProvider {
       "MockImportEnrichmentProvider does not support advisor capture",
     );
   }
+
+  async generateConceptImages(): Promise<never> {
+    throw new Error(
+      "MockImportEnrichmentProvider does not support concept images",
+    );
+  }
 }
 
 export { buildUserPayload };

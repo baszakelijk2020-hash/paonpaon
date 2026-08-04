@@ -115,4 +115,10 @@ export class MockAdvisorCaptureProvider implements AIProvider {
     }
     return this.options.output ?? { bundles: [] };
   }
+
+  async generateConceptImages(): Promise<never> {
+    throw new Error(
+      "MockAdvisorCaptureProvider does not implement concept images",
+    );
+  }
 }

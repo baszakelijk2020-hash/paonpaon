@@ -37,6 +37,19 @@ export default async function TenderRevealPage({
           </p>
         ) : (
           <div className="flex flex-col gap-4">
+            {reveal.conceptImageUrls && reveal.conceptImageUrls.length > 0 ? (
+              <div className="flex flex-col gap-2" data-concept-images>
+                {reveal.conceptImageUrls.map((url) => (
+                  // eslint-disable-next-line @next/next/no-img-element -- external, ai-generated URL, not part of the optimized catalogue image pipeline
+                  <img
+                    key={url}
+                    src={url}
+                    alt="Tender concept"
+                    className="w-full rounded-[var(--radius-md)]"
+                  />
+                ))}
+              </div>
+            ) : null}
             <p className="text-sm text-[var(--color-stone-700)]">
               {reveal.summary}
             </p>

@@ -3457,6 +3457,74 @@ export type Database = {
           },
         ];
       };
+      corporate_concept_assets: {
+        Row: {
+          ai_generation_id: string;
+          approved_at: string | null;
+          approved_by_staff_id: string | null;
+          created_at: string;
+          id: string;
+          image_url: string;
+          prompt: string;
+          retailer_id: string;
+          status: string;
+          tender_version_id: string;
+        };
+        Insert: {
+          ai_generation_id: string;
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          id?: string;
+          image_url: string;
+          prompt: string;
+          retailer_id: string;
+          status?: string;
+          tender_version_id: string;
+        };
+        Update: {
+          ai_generation_id?: string;
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          id?: string;
+          image_url?: string;
+          prompt?: string;
+          retailer_id?: string;
+          status?: string;
+          tender_version_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_concept_assets_ai_generation_id_fkey";
+            columns: ["ai_generation_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_generations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_concept_assets_approved_by_staff_id_fkey";
+            columns: ["approved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_concept_assets_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_concept_assets_tender_version_id_fkey";
+            columns: ["tender_version_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_tender_versions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       corporate_entitlement_versions: {
         Row: {
           created_at: string;
@@ -18892,7 +18960,8 @@ export type Database = {
         | "communication_draft"
         | "import_enrichment"
         | "tableservice_grounded"
-        | "advisor_capture";
+        | "advisor_capture"
+        | "corporate_concept";
       ai_generation_status: "succeeded" | "failed";
       alteration_attachment_kind:
         "intake" | "label" | "evidence" | "progress" | "completion";
@@ -19262,6 +19331,7 @@ export const Constants = {
         "import_enrichment",
         "tableservice_grounded",
         "advisor_capture",
+        "corporate_concept",
       ],
       ai_generation_status: ["succeeded", "failed"],
       alteration_attachment_kind: [

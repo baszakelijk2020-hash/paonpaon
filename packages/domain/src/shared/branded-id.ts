@@ -222,6 +222,7 @@ export type CorporateRolloutDayId = Brand<string, "CorporateRolloutDayId">;
 export type CorporateRolloutSlotId = Brand<string, "CorporateRolloutSlotId">;
 export type CorporateProjectId = Brand<string, "CorporateProjectId">;
 export type CorporateProjectEventId = Brand<string, "CorporateProjectEventId">;
+export type CorporateConceptAssetId = Brand<string, "CorporateConceptAssetId">;
 export type MicroCapsuleDropId = Brand<string, "MicroCapsuleDropId">;
 export type MicroCapsuleDropProductId = Brand<
   string,

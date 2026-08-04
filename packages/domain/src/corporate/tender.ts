@@ -91,6 +91,10 @@ export interface CorporateTenderPublicReveal {
   readonly summary?: string;
   readonly garmentConcepts?: readonly string[];
   readonly pricingNote?: string;
+  /** Only ever the URLs of APPROVED concept images (PHASE 18.10) — a
+   * pending or rejected image is never included, enforced in
+   * `resolve_corporate_tender` itself, not left to this page. */
+  readonly conceptImageUrls?: readonly string[];
 }
 
 export type CreateTenderVersionCheck =

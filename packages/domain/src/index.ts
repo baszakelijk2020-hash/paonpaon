@@ -159,6 +159,7 @@ export * from "./inventory/stock-ledger";
 export * from "./inventory/loss-prevention";
 export * from "./commerce/pos-transaction";
 export * from "./corporate/business-development";
+export * from "./corporate/concept-generation";
 export * from "./corporate/corporate-programme";
 export * from "./corporate/corporate-programme.schema";
 export * from "./corporate/office-visit-request";

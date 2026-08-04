@@ -14,7 +14,8 @@ export type AIGenerationKind =
   | "communication_draft"
   | "import_enrichment"
   | "tableservice_grounded"
-  | "advisor_capture";
+  | "advisor_capture"
+  | "corporate_concept";
 
 export type AIGenerationStatus = "succeeded" | "failed";
 
@@ -25,6 +26,7 @@ export const AI_GENERATION_KIND_LABELS: Record<AIGenerationKind, string> = {
   import_enrichment: "Import enrichment",
   tableservice_grounded: "TableService grounded answer",
   advisor_capture: "Advisor capture",
+  corporate_concept: "Corporate concept image",
 };
 
 export const AI_GENERATION_STATUS_LABELS: Record<AIGenerationStatus, string> = {

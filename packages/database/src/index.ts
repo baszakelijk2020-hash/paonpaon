@@ -99,6 +99,7 @@ export * from "./campaign-activation-orchestrator";
 export * from "./programme-proof-seed";
 export * from "./repositories/service-plan-repository";
 export * from "./repositories/corporate-office-visit-repository";
+export * from "./repositories/corporate-concept-asset-repository";
 export * from "./repositories/corporate-opportunity-repository";
 export * from "./repositories/corporate-project-repository";
 export * from "./repositories/corporate-repository";

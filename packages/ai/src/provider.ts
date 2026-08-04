@@ -100,6 +100,24 @@ export interface AdvisorCaptureContext {
   readonly asOfDate: string;
 }
 
+/** One tender's garment concepts, turned into a moodboard/concept image
+ * request (PHASE 18.10 / BD-110). Never fed pricing or client-identifying
+ * detail — only the same descriptive content already externally visible
+ * once a tender is approved and shared (18.3). */
+export interface ConceptImageContext {
+  readonly retailerName: string;
+  readonly tenderTitle: string;
+  readonly garmentConcepts: readonly string[];
+  readonly styleNotes?: string;
+}
+
+export interface ConceptImageResult {
+  readonly images: readonly {
+    readonly imageUrl: string;
+    readonly revisedPrompt: string;
+  }[];
+}
+
 export interface AIProvider {
   readonly providerName: string;
   readonly model: string;
@@ -132,4 +150,13 @@ export interface AIProvider {
   extractAdvisorCaptureBundles(
     context: AdvisorCaptureContext,
   ): Promise<unknown>;
+  /**
+   * Generates corporate tender moodboard/concept images (18.10). The
+   * result is never shown externally on its own authority — persistence
+   * and the explicit staff approval gate before 18.3's public page can
+   * expose it live outside this package.
+   */
+  generateConceptImages(
+    context: ConceptImageContext,
+  ): Promise<ConceptImageResult>;
 }
