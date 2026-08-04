@@ -2,6 +2,7 @@
 
 import {
   CorporateOpportunityRepository,
+  CorporateProjectRepository,
   CorporateTenderRepository,
   RetailerStaffRepository,
 } from "@paon/database";
@@ -10,6 +11,7 @@ import {
   CORPORATE_OPPORTUNITY_SIGNAL_SOURCES,
   type CorporateOpportunitySignalSource,
   type CorporateOpportunityStage,
+  type CorporateProjectStage,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
@@ -120,6 +122,36 @@ export async function createTenderVersion(formData: FormData): Promise<void> {
     garmentConcepts,
     ...(pricingNote ? { pricingNote } : {}),
     ...(staff ? { createdByStaffId: staff.id } : {}),
+  });
+  revalidatePath(`/business-development/${opportunityId}`);
+}
+
+/**
+ * The manual half of PHASE 18.7's lifecycle state machine: for the
+ * checkpoints with no other real-world trigger (award through launch),
+ * a staff member is the caller who decides the project is ready to
+ * move — with an audit trail (`CorporateProjectRepository.advanceStage`
+ * records who and, optionally, why). `opportunity` -> `tender` and
+ * `tender` -> `award` are NOT offered through this action — those fire
+ * automatically from authoring a tender and winning the opportunity, so
+ * a manual button here would let a stage be claimed without the real
+ * event that stage is supposed to represent ever happening.
+ */
+export async function advanceProjectStage(formData: FormData): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const client = await getSupabaseServerClient();
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  const to = String(formData.get("to") ?? "") as CorporateProjectStage;
+  const note = String(formData.get("note") ?? "");
+  const staff = await new RetailerStaffRepository(client).findByUserId(
+    session.userId,
+  );
+  await new CorporateProjectRepository(client).advanceStage({
+    retailerId: session.retailerId,
+    opportunityId: asId<"CorporateOpportunityId">(opportunityId),
+    to,
+    ...(note.trim() ? { note } : {}),
+    ...(staff ? { staffId: staff.id } : {}),
   });
   revalidatePath(`/business-development/${opportunityId}`);
 }

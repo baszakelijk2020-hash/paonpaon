@@ -1,5 +1,6 @@
 import {
   CorporateOpportunityRepository,
+  CorporateProjectRepository,
   CorporateTenderRepository,
   CustomerFactRepository,
   CustomerRepository,
@@ -7,10 +8,13 @@ import {
 } from "@paon/database";
 import {
   asId,
+  assessProjectStall,
   checkOpportunityStageTransition,
   CORPORATE_OPPORTUNITY_SIGNAL_SOURCES,
   CORPORATE_OPPORTUNITY_STAGES,
+  nextProjectStage,
   type CorporateOpportunityStage,
+  type CorporateProjectStage,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
@@ -23,6 +27,7 @@ import { notFound } from "next/navigation";
 
 import {
   addSignal,
+  advanceProjectStage,
   approveTenderVersion,
   createTender,
   createTenderVersion,
@@ -40,6 +45,41 @@ const STAGE_LABEL: Record<CorporateOpportunityStage, string> = {
   won: "Won",
   lost: "Lost",
 };
+
+const PROJECT_STAGE_LABEL: Record<CorporateProjectStage, string> = {
+  opportunity: "Opportunity",
+  tender: "Tender",
+  award: "Award",
+  design_approval: "Design approval",
+  sample_approval: "Sample approval",
+  material_approval: "Material approval",
+  employee_import: "Employee import",
+  fitting: "Fitting",
+  production: "Production",
+  qc: "QC",
+  distribution: "Distribution",
+  launch: "Launch",
+  renewal: "Renewal",
+};
+
+// PHASE 18.7: opportunity -> tender and tender -> award fire
+// automatically elsewhere (authoring a tender, winning the
+// opportunity) — no manual button is offered for those two so a stage
+// can never be claimed without the real event it represents.
+const MANUALLY_ADVANCEABLE_STAGES: ReadonlySet<CorporateProjectStage> = new Set(
+  [
+    "award",
+    "design_approval",
+    "sample_approval",
+    "material_approval",
+    "employee_import",
+    "fitting",
+    "production",
+    "qc",
+    "distribution",
+    "launch",
+  ],
+);
 
 const SIGNAL_SOURCE_LABEL: Record<string, string> = {
   referral: "Referral",
@@ -67,6 +107,24 @@ export default async function OpportunityDetailPage({
     notFound();
   }
   const signals = await repo.listSignals(opportunity.id);
+
+  const projectRepo = new CorporateProjectRepository(
+    await getSupabaseServerClient(),
+  );
+  const project = await projectRepo.findByOpportunity(opportunity.id);
+  const projectEvents = project ? await projectRepo.listEvents(project.id) : [];
+  const projectStall = project
+    ? assessProjectStall({
+        stage: project.stage,
+        stageEnteredAt: project.stageEnteredAt,
+        now: new Date(),
+      })
+    : null;
+  const projectNextStage = project ? nextProjectStage(project.stage) : null;
+  const canManuallyAdvanceProject =
+    project !== null &&
+    projectNextStage !== null &&
+    MANUALLY_ADVANCEABLE_STAGES.has(project.stage);
 
   // PHASE 18.12: existing-customer cross-reference, scoped to this
   // retailer only. Never auto-added — a match is only ever a suggestion
@@ -142,6 +200,69 @@ export default async function OpportunityDetailPage({
           {STAGE_LABEL[opportunity.stage]}
         </Badge>
       </div>
+
+      {project ? (
+        <Card className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+              Project lifecycle
+            </h2>
+            <div className="flex items-center gap-2">
+              {projectStall?.stalled ? (
+                <Badge tone="warning">
+                  Stalled {projectStall.daysInStage}d (over{" "}
+                  {projectStall.thresholdDays}d)
+                </Badge>
+              ) : null}
+              <Badge tone="neutral">{PROJECT_STAGE_LABEL[project.stage]}</Badge>
+            </div>
+          </div>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            {project.stage === "renewal"
+              ? "Reached the end of the build lifecycle — ongoing renewal risk is tracked in the Analytics and renewal card below."
+              : `${projectStall?.daysInStage ?? 0} day${
+                  projectStall?.daysInStage === 1 ? "" : "s"
+                } in this stage. Opportunity → tender and tender → award move automatically when a tender is authored or the opportunity is won.`}
+          </p>
+          {canManuallyAdvanceProject && projectNextStage ? (
+            <form
+              action={advanceProjectStage}
+              className="flex flex-col gap-3 border-t border-[var(--color-stone-200)] pt-3"
+            >
+              <input
+                type="hidden"
+                name="opportunityId"
+                value={opportunity.id}
+              />
+              <input type="hidden" name="to" value={projectNextStage} />
+              <FormField
+                label={`Note (optional) — why this is ready for ${PROJECT_STAGE_LABEL[projectNextStage]}`}
+                htmlFor="projectAdvanceNote"
+              >
+                <Input id="projectAdvanceNote" name="note" maxLength={2000} />
+              </FormField>
+              <Button type="submit" variant="secondary" className="self-start">
+                Advance to {PROJECT_STAGE_LABEL[projectNextStage]}
+              </Button>
+            </form>
+          ) : null}
+          {projectEvents.length > 0 ? (
+            <ul className="flex flex-col gap-1 border-t border-[var(--color-stone-200)] pt-3 text-xs text-[var(--color-stone-500)]">
+              {projectEvents.slice(0, 6).map((event) => (
+                <li key={event.id}>
+                  {event.fromStage
+                    ? `${PROJECT_STAGE_LABEL[event.fromStage]} → ${
+                        PROJECT_STAGE_LABEL[event.toStage]
+                      }`
+                    : `Started at ${PROJECT_STAGE_LABEL[event.toStage]}`}
+                  {event.note ? ` — ${event.note}` : ""}
+                  {event.staffId ? "" : " (automatic)"}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </Card>
+      ) : null}
 
       <Card className="flex flex-col gap-3">
         <h2 className="text-lg font-medium text-[var(--color-stone-900)]">

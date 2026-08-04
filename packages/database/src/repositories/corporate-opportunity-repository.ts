@@ -15,6 +15,7 @@ import {
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
+import { CorporateProjectRepository } from "./corporate-project-repository";
 import { CorporateRepository } from "./corporate-repository";
 
 type OpportunityRow =
@@ -133,7 +134,14 @@ export class CorporateOpportunityRepository {
       .select("*")
       .single();
     if (error) throw error;
-    return { ok: true, opportunity: toOpportunity(data) };
+    const opportunity = toOpportunity(data);
+    // PHASE 18.7: an opportunity can never exist without the lifecycle
+    // project that tracks it from here through to renewal.
+    await new CorporateProjectRepository(this.client).createForOpportunity({
+      retailerId: args.retailerId,
+      opportunityId: opportunity.id,
+    });
+    return { ok: true, opportunity };
   }
 
   /** Inserts the signal, then recomputes and persists the score from the
@@ -237,6 +245,22 @@ export class CorporateOpportunityRepository {
       .select("*")
       .single();
     if (error) throw error;
+
+    // PHASE 18.7: winning is the real-world trigger for the project's
+    // tender -> award move. If no tender was ever authored through this
+    // system the project honestly stays at whatever stage it reached —
+    // this never fabricates a tender step that did not happen.
+    const projectRepo = new CorporateProjectRepository(this.client);
+    await projectRepo.advanceStage({
+      retailerId: args.retailerId,
+      opportunityId: args.opportunityId,
+      to: "award",
+    });
+    await projectRepo.linkAccount({
+      opportunityId: args.opportunityId,
+      accountId: account.id,
+    });
+
     return { ok: true, opportunity: toOpportunity(data) };
   }
 }

@@ -15,6 +15,8 @@ import {
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
+import { CorporateProjectRepository } from "./corporate-project-repository";
+
 type TenderRow = Database["public"]["Tables"]["corporate_tenders"]["Row"];
 type VersionRow =
   Database["public"]["Tables"]["corporate_tender_versions"]["Row"];
@@ -154,6 +156,18 @@ export class CorporateTenderRepository {
       .select("*")
       .single();
     if (error) throw error;
+
+    // PHASE 18.7: authoring the first tender is the real-world trigger
+    // for the project's opportunity -> tender move. A second tender on
+    // the same opportunity finds the project already past that stage,
+    // and this check simply, silently declines to re-fire — not an
+    // error, just a no-op.
+    await new CorporateProjectRepository(this.client).advanceStage({
+      retailerId: args.retailerId,
+      opportunityId: asId<"CorporateOpportunityId">(args.opportunityId),
+      to: "tender",
+    });
+
     return { ok: true, tender: toTender(data) };
   }
 

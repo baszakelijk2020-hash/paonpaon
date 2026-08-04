@@ -3906,6 +3906,116 @@ export type Database = {
           },
         ];
       };
+      corporate_project_events: {
+        Row: {
+          created_at: string;
+          from_stage: string | null;
+          id: string;
+          note: string | null;
+          project_id: string;
+          retailer_id: string;
+          staff_id: string | null;
+          to_stage: string;
+        };
+        Insert: {
+          created_at?: string;
+          from_stage?: string | null;
+          id?: string;
+          note?: string | null;
+          project_id: string;
+          retailer_id: string;
+          staff_id?: string | null;
+          to_stage: string;
+        };
+        Update: {
+          created_at?: string;
+          from_stage?: string | null;
+          id?: string;
+          note?: string | null;
+          project_id?: string;
+          retailer_id?: string;
+          staff_id?: string | null;
+          to_stage?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_project_events_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_project_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_project_events_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_projects: {
+        Row: {
+          account_id: string | null;
+          created_at: string;
+          id: string;
+          opportunity_id: string;
+          retailer_id: string;
+          stage: string;
+          stage_entered_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          account_id?: string | null;
+          created_at?: string;
+          id?: string;
+          opportunity_id: string;
+          retailer_id: string;
+          stage?: string;
+          stage_entered_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          account_id?: string | null;
+          created_at?: string;
+          id?: string;
+          opportunity_id?: string;
+          retailer_id?: string;
+          stage?: string;
+          stage_entered_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_projects_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_projects_opportunity_id_fkey";
+            columns: ["opportunity_id"];
+            isOneToOne: true;
+            referencedRelation: "corporate_opportunities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_projects_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       corporate_renewal_tasks: {
         Row: {
           created_at: string;

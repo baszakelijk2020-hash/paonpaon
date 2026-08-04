@@ -4549,7 +4549,76 @@ access" control (`setWearerLoginEmail`) — there was previously no
     real transition into the next; a project cannot silently stall in an
     undefined state between two named steps.
   - **Tests:** full lifecycle transition coverage, stuck-state detection.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `verified_local`, real gaps
+    named below. Migration `20260805100000_add_corporate_project_lifecycle.sql`
+    adds `corporate_projects` (one row per opportunity — `unique(opportunity_id)`
+    is the actual enforcement, not application code alone) with `stage`
+    constrained by a `check` to exactly the founder's named chain
+    (`opportunity`, `tender`, `award`, `design_approval`, `sample_approval`,
+    `material_approval`, `employee_import`, `fitting`, `production`, `qc`,
+    `distribution`, `launch`, `renewal`), and `corporate_project_events`,
+    an append-only audit trail (no update/delete grant at all) of every
+    transition. `packages/domain/src/corporate/project-lifecycle.ts`'s
+    `checkAdvanceProjectStage` is an explicit stage → next-stage map with
+    no implicit fallback — the exact "no skipping, one legal move"
+    discipline `checkOpportunityStageTransition` (`18.1`) already
+    established, extended to a 13-stage chain instead of a 5-stage one —
+    and `assessProjectStall` returns `daysInStage` alongside the boolean
+    (never a bare flag), matching this stage's "no black box" scoring
+    discipline (`18.9`'s `assessRenewalRisk`). `CorporateProjectRepository`
+    is the single write path for every transition
+    (`advanceStage`); no step exists with no caller: `opportunity` →
+    `tender` fires automatically the moment the first tender is authored
+    (`CorporateTenderRepository.create`) and `tender` → `award` fires
+    automatically when the opportunity is won
+    (`CorporateOpportunityRepository.winAndCreateAccount`, which also
+    calls the new `linkAccount` so the project carries the real account
+    id from award onward) — reusing the exact events that already cause
+    those state changes elsewhere rather than inventing a second,
+    disconnected trigger. If an opportunity is won with no tender ever
+    authored through this system, the project is left honestly at
+    whatever stage it reached rather than a fabricated `tender` step
+    being invented to unblock the move — a real, deliberate, named
+    behaviour, not an oversight. The remaining nine checkpoints (`award`
+    through `launch`) advance one at a time through a staff-facing
+    "Advance to `<next stage>`" button and optional note on
+    `/business-development/[opportunityId]`'s new "Project lifecycle"
+    card — deliberately NOT offered for `opportunity`/`tender`, so a
+    stage cannot be claimed by a click without the real event it
+    represents actually happening. The same card shows days-in-stage and
+    a "Stalled" badge once `assessProjectStall` (threshold: 21 days, a
+    published constant, not a tuned model) reports it, plus the latest
+    transition history with who (or "(automatic)") and why. Proof:
+    `packages/domain/src/corporate/project-lifecycle.test.ts` (9 tests:
+    every legal step in the chain, skip-ahead refused, backward refused,
+    terminal-stage refused, stall threshold boundary in both directions,
+    `renewal` never flagged stalled) and
+    `apps/retailer/e2e/corporate-project-lifecycle.spec.ts`, a real
+    browser journey proving creating an opportunity really creates its
+    project at `opportunity`, authoring a tender really auto-advances it
+    to `tender`, winning really auto-advances it to `award` with a real
+    linked account id, a staff "Advance" click really writes
+    `design_approval` plus an audited event with a real `staff_id` and
+    note, and a direct repository-level skip-ahead attempt (`award` →
+    `production`) is refused — not merely reasoned about in the domain
+    layer, proven against the same write path the UI uses. Full retailer
+    e2e regression run alongside `business-development.spec.ts` and
+    `corporate-tender.spec.ts`: 3/3 green together, confirming the new
+    opportunity-create and tender-create hooks did not disturb either
+    existing item.
+  - Checkbox stays unchecked: this item's own **Dependencies** line names
+    `14.1` production/order domains (Stage 12) and `18.6` fitting rollout
+    — neither `production`/`qc`/`distribution`/`launch` nor `fitting` is
+    wired to any real production-order or rollout-completion event yet;
+    all nine post-award checkpoints (including `fitting`) are staff
+    button-driven only, with no automatic trigger from 18.6's rollout
+    slots reaching completion or from any Stage 12 production/order
+    object. That is a real, named scope gap against the dependency line,
+    not a hidden one: the acceptance line's bar ("every named step has a
+    real state and a real transition into the next") is met by every
+    stage having a genuine, audited, human-decided transition, but
+    "automatic wiring to the objects that dependency line names" is not
+    yet built for seven of the thirteen stages.
 
 - [ ] **18.8 Corporate service desk**
   - **Requirement IDs:** BD-108.
