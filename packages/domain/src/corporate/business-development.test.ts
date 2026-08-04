@@ -109,4 +109,39 @@ describe("checkAddSignal", () => {
       checkAddSignal({ detail: "Met their ops lead at a trade show" }),
     ).toEqual({ ok: true });
   });
+
+  it("refuses a public_signal with no citation", () => {
+    expect(
+      checkAddSignal({
+        detail: "Press release mentions expansion",
+        source: "public_signal",
+      }),
+    ).toEqual({ ok: false, reason: "citation_required" });
+  });
+
+  it("refuses a public_signal with a non-URL citation", () => {
+    expect(
+      checkAddSignal({
+        detail: "Press release mentions expansion",
+        source: "public_signal",
+        citationUrl: "saw it somewhere",
+      }),
+    ).toEqual({ ok: false, reason: "citation_required" });
+  });
+
+  it("accepts a public_signal with a real checkable citation", () => {
+    expect(
+      checkAddSignal({
+        detail: "Press release mentions expansion",
+        source: "public_signal",
+        citationUrl: "https://example.com/press/expansion",
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("never requires a citation for a non-public_signal source", () => {
+    expect(
+      checkAddSignal({ detail: "Referred by a client", source: "referral" }),
+    ).toEqual({ ok: true });
+  });
 });

@@ -90,6 +90,7 @@ const SIGNAL_SOURCE_LABEL: Record<string, string> = {
   event: "Event",
   existing_customer_link: "Existing customer link",
   staff_observation: "Staff observation",
+  public_signal: "Public signal",
   other: "Other",
 };
 
@@ -300,6 +301,11 @@ export default async function OpportunityDetailPage({
                 <p className="text-xs text-[var(--color-stone-500)]">
                   {signal.detail}
                 </p>
+                {signal.citationUrl ? (
+                  <p className="break-all text-xs text-[var(--color-stone-400)]">
+                    Source: {signal.citationUrl}
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -324,6 +330,18 @@ export default async function OpportunityDetailPage({
               maxLength={2000}
               className="min-h-20 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm"
               placeholder="What happened, and why it points to a real opportunity."
+            />
+          </FormField>
+          <FormField
+            label="Citation URL (required for Public signal)"
+            htmlFor="citationUrl"
+            hint="A real, checkable source — never accepted on trust alone for a public signal."
+          >
+            <Input
+              id="citationUrl"
+              name="citationUrl"
+              type="url"
+              placeholder="https://…"
             />
           </FormField>
           <Button type="submit" className="self-start">

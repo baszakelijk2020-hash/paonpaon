@@ -46,12 +46,14 @@ export async function addSignal(formData: FormData): Promise<void> {
   const opportunityId = String(formData.get("opportunityId") ?? "");
   const detail = String(formData.get("detail") ?? "");
   const source = parseSignalSource(formData.get("source"));
+  const citationUrl = String(formData.get("citationUrl") ?? "").trim();
   await new CorporateOpportunityRepository(
     await getSupabaseServerClient(),
   ).addSignal({
     retailerId: session.retailerId,
     opportunityId: asId<"CorporateOpportunityId">(opportunityId),
     source,
+    ...(citationUrl ? { citationUrl } : {}),
     detail,
   });
   revalidatePath(`/business-development/${opportunityId}`);

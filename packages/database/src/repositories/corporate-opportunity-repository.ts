@@ -48,6 +48,7 @@ function toSignal(row: SignalRow): CorporateOpportunitySignal {
     detail: row.detail,
     observedOn: row.observed_on,
     createdAt: row.created_at,
+    ...(row.citation_url ? { citationUrl: row.citation_url } : {}),
   };
 }
 
@@ -61,7 +62,10 @@ export type AddSignalResult =
       readonly signal: CorporateOpportunitySignal;
       readonly opportunity: CorporateOpportunity;
     }
-  | { readonly ok: false; readonly reason: "detail_required" };
+  | {
+      readonly ok: false;
+      readonly reason: "detail_required" | "citation_required";
+    };
 
 export type TransitionStageResult =
   | { readonly ok: true; readonly opportunity: CorporateOpportunity }
@@ -152,8 +156,13 @@ export class CorporateOpportunityRepository {
     readonly source: CorporateOpportunitySignalSource;
     readonly detail: string;
     readonly observedOn?: string;
+    readonly citationUrl?: string;
   }): Promise<AddSignalResult> {
-    const check = checkAddSignal({ detail: args.detail });
+    const check = checkAddSignal({
+      detail: args.detail,
+      source: args.source,
+      ...(args.citationUrl ? { citationUrl: args.citationUrl } : {}),
+    });
     if (!check.ok) return check;
 
     const insert: Database["public"]["Tables"]["corporate_opportunity_signals"]["Insert"] =
@@ -163,6 +172,7 @@ export class CorporateOpportunityRepository {
         source: args.source,
         detail: args.detail.trim(),
         ...(args.observedOn ? { observed_on: args.observedOn } : {}),
+        ...(args.citationUrl ? { citation_url: args.citationUrl.trim() } : {}),
       };
     const { data: signalRow, error: signalError } = await this.client
       .from("corporate_opportunity_signals")

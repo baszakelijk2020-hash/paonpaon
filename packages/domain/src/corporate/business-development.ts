@@ -65,6 +65,7 @@ export const CORPORATE_OPPORTUNITY_SIGNAL_SOURCES = [
   "event",
   "existing_customer_link",
   "staff_observation",
+  "public_signal",
   "other",
 ] as const;
 export type CorporateOpportunitySignalSource =
@@ -78,6 +79,7 @@ const SIGNAL_SOURCE_WEIGHTS: Record<CorporateOpportunitySignalSource, number> =
     existing_customer_link: 30,
     referral: 25,
     inbound_enquiry: 20,
+    public_signal: 20,
     event: 15,
     staff_observation: 10,
     other: 5,
@@ -104,6 +106,12 @@ export interface CorporateOpportunitySignal {
   readonly detail: string;
   readonly observedOn: string;
   readonly createdAt: string;
+  /** Required, and required checkable (a real URL), for `public_signal`
+   * only (PHASE 18.11 / BD-111) — the citation-grounding discipline
+   * `checkCaptureBundleProposal` (17.1) already applies to AI-authored
+   * content, applied here to externally-discovered ones. Never set for
+   * any other source. */
+  readonly citationUrl?: string;
 }
 
 export type OpportunityTransitionCheck =
@@ -175,13 +183,35 @@ export function checkCreateOpportunity(args: {
 
 export type AddSignalCheck =
   | { readonly ok: true }
-  | { readonly ok: false; readonly reason: "detail_required" };
+  | {
+      readonly ok: false;
+      readonly reason: "detail_required" | "citation_required";
+    };
 
+const CHECKABLE_CITATION_PATTERN = /^https?:\/\/.+/i;
+
+/**
+ * `public_signal` is the one source this pipeline never accepts on
+ * trust alone (PHASE 18.11 / BD-111): every ingested public signal must
+ * carry a real, checkable citation URL, or it is refused before it ever
+ * becomes a scored signal — mirroring `checkCaptureBundleProposal`'s
+ * (17.1) refusal of any AI-proposed bundle with no quoted evidence,
+ * applied here to externally-discovered content instead of AI-authored
+ * content. Every other source is unaffected.
+ */
 export function checkAddSignal(args: {
   readonly detail: string;
+  readonly source?: CorporateOpportunitySignalSource;
+  readonly citationUrl?: string;
 }): AddSignalCheck {
   if (args.detail.trim().length === 0) {
     return { ok: false, reason: "detail_required" };
+  }
+  if (
+    args.source === "public_signal" &&
+    !CHECKABLE_CITATION_PATTERN.test(args.citationUrl?.trim() ?? "")
+  ) {
+    return { ok: false, reason: "citation_required" };
   }
   return { ok: true };
 }

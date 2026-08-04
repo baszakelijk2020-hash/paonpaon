@@ -3880,6 +3880,7 @@ export type Database = {
       };
       corporate_opportunity_signals: {
         Row: {
+          citation_url: string | null;
           created_at: string;
           detail: string;
           id: string;
@@ -3889,6 +3890,7 @@ export type Database = {
           source: string;
         };
         Insert: {
+          citation_url?: string | null;
           created_at?: string;
           detail: string;
           id?: string;
@@ -3898,6 +3900,7 @@ export type Database = {
           source: string;
         };
         Update: {
+          citation_url?: string | null;
           created_at?: string;
           detail?: string;
           id?: string;

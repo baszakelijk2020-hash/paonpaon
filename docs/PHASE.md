@@ -4869,7 +4869,53 @@ access" control (`setWearerLoginEmail`) — there was previously no
     rate-limited, single-target lookups; no data ingestion without a
     checkable citation.
   - **Hard blockers:** external data source access; `blocked_external`.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `verified_local` for the
+    enforcement mechanism only — the autonomous discovery/ingestion
+    pipeline itself (a scraper, a search API integration, a scheduled
+    job) is genuinely `blocked_external` and not attempted: there is no
+    external data source access available to this build, and fabricating
+    one to "prove" the item would mean feeding the citation-grounding
+    check fake evidence — exactly the failure mode this item's own
+    acceptance exists to refuse. What is real: `corporate_opportunity_signals`
+    gained a `public_signal` source (migration
+    `20260805120000_add_corporate_public_signal_citation.sql`, extending
+    18.1's own migration comment explaining why that value was
+    deliberately absent until now) and a `citation_url` column, with a
+    `check` constraint — `source <> 'public_signal' or citation_url ~*
+'^https?://.+'` — that is the actual enforcement, not application
+    code alone. `checkAddSignal` (`packages/domain/src/corporate/business-development.ts`)
+    refuses any `public_signal` with no real, checkable (`https?://`)
+    citation before it ever reaches the database, mirroring
+    `checkCaptureBundleProposal`'s (17.1) refusal of an AI-proposed
+    bundle with no quoted evidence — the same discipline, applied to
+    externally-discovered content instead of AI-authored content.
+    `public_signal` carries a published weight (20, the `inbound_enquiry`
+    tier) in `scoreOpportunity`, so a cited public signal moves the score
+    exactly as inspectably as every other source. The retailer
+    opportunity page's "Add signal" form gained the source option and a
+    citation URL field, and every signal with a citation shows it inline.
+    Since no autonomous pipeline exists, a `public_signal` can currently
+    only be entered the same way every other signal is — a real person,
+    through the real UI, citing a real source — which proves the
+    enforcement path is real without fabricating an ingestion pipeline
+    that does not exist.
+  - **Tests:** `packages/domain/src/corporate/business-development.test.ts`
+    (4 new: refuses no citation, refuses a non-URL citation, accepts a
+    real checkable citation, never requires one for any other source).
+    `apps/retailer/e2e/corporate-public-signal-citation.spec.ts` proves
+    both halves in a real browser/database: a `public_signal` with no
+    citation is refused at the same repository write path the UI itself
+    uses, and one with a real citation is accepted through the real UI,
+    scored at exactly 20, and its citation stays visible — asserted
+    directly against the database, not just the page's own rendering
+    choice. Full corporate/business-development regression run alongside
+    it (`business-development.spec.ts`, `corporate-full-lifecycle.spec.ts`,
+    `corporate-relationship-crossref.spec.ts`): 4/4 green together.
+  - Checkbox stays unchecked: no external discovery mechanism exists at
+    all — this item's own owner boundary ("discovering public commercial
+    signals") is not met, only the schema/enforcement it will one day
+    feed. This item cannot be claimed complete until external data source
+    access is available and a real ingestion path is built against it.
 
 - [x] **18.12 Relationship cross-referencing and opportunity scoring from existing customers**
   - **Requirement IDs:** BD-112.
