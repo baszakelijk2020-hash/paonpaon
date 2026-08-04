@@ -290,6 +290,11 @@ export default async function DashboardLayout({
                       label: "Corporate",
                       description: "Métier accounts, wearers and entitlements",
                     },
+                    {
+                      href: "/business-development",
+                      label: "Business development",
+                      description: "Corporate opportunity pipeline",
+                    },
                   ]
                 : [
                     {

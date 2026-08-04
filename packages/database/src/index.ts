@@ -98,6 +98,7 @@ export * from "./shopify-delta-sync-orchestrator";
 export * from "./campaign-activation-orchestrator";
 export * from "./programme-proof-seed";
 export * from "./repositories/service-plan-repository";
+export * from "./repositories/corporate-opportunity-repository";
 export * from "./repositories/corporate-repository";
 export * from "./repositories/micro-capsule-repository";
 export * from "./repositories/service-partner-repository";

@@ -3634,6 +3634,102 @@ export type Database = {
           },
         ];
       };
+      corporate_opportunities: {
+        Row: {
+          company_name: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          linked_account_id: string | null;
+          retailer_id: string;
+          score: number;
+          stage: string;
+          updated_at: string;
+        };
+        Insert: {
+          company_name: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          linked_account_id?: string | null;
+          retailer_id: string;
+          score?: number;
+          stage?: string;
+          updated_at?: string;
+        };
+        Update: {
+          company_name?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          linked_account_id?: string | null;
+          retailer_id?: string;
+          score?: number;
+          stage?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_opportunities_linked_account_id_fkey";
+            columns: ["linked_account_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_opportunities_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_opportunity_signals: {
+        Row: {
+          created_at: string;
+          detail: string;
+          id: string;
+          observed_on: string;
+          opportunity_id: string;
+          retailer_id: string;
+          source: string;
+        };
+        Insert: {
+          created_at?: string;
+          detail: string;
+          id?: string;
+          observed_on?: string;
+          opportunity_id: string;
+          retailer_id: string;
+          source: string;
+        };
+        Update: {
+          created_at?: string;
+          detail?: string;
+          id?: string;
+          observed_on?: string;
+          opportunity_id?: string;
+          retailer_id?: string;
+          source?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_opportunity_signals_opportunity_id_fkey";
+            columns: ["opportunity_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_opportunities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_opportunity_signals_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       corporate_programmes: {
         Row: {
           account_id: string;

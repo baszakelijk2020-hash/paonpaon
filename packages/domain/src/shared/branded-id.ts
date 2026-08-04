@@ -200,6 +200,11 @@ export type CorporateEntitlementVersionId = Brand<
 export type CorporateWearerId = Brand<string, "CorporateWearerId">;
 export type CorporateIssueRecordId = Brand<string, "CorporateIssueRecordId">;
 export type CorporateExceptionId = Brand<string, "CorporateExceptionId">;
+export type CorporateOpportunityId = Brand<string, "CorporateOpportunityId">;
+export type CorporateOpportunitySignalId = Brand<
+  string,
+  "CorporateOpportunitySignalId"
+>;
 export type MicroCapsuleDropId = Brand<string, "MicroCapsuleDropId">;
 export type MicroCapsuleDropProductId = Brand<
   string,

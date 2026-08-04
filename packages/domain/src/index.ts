@@ -158,6 +158,7 @@ export * from "./production/supplier-intelligence";
 export * from "./inventory/stock-ledger";
 export * from "./inventory/loss-prevention";
 export * from "./commerce/pos-transaction";
+export * from "./corporate/business-development";
 export * from "./corporate/corporate-programme";
 export * from "./corporate/corporate-programme.schema";
 export * from "./merchandising/micro-capsule";

@@ -3329,6 +3329,18 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     demo, and the employer-facing `CorporateScopedView` dashboard (the
     function exists and is unit-tested; nothing renders it, because
     nothing signs an employer contact in to see it).
+  - **Update (2026-08-04, takeover branch):** the founder's corporate B2B
+    mega-directive (InsiderTailoring, Métier expansion, tenders, employee
+    portal, service desk, rollout/analytics — see the new Stage 18) builds
+    on this item rather than beside it. An audit against that directive's
+    full capability list found this item's schema, domain and
+    retailer-staff UI to be the single strongest existing foundation —
+    `ProgrammeReadiness.readyForTender` was already anticipating a tender
+    workflow before one existed. Stage 18 does not duplicate
+    `corporate_accounts`/`corporate_programmes`/`corporate_wearers`; every
+    new corporate capability is required to extend this item's tables and
+    domain module, not fork them. The still-missing employee portal named
+    above is now tracked as 18.5, not a second open item.
 
 - [ ] **14.2 Advanced cited intelligence**
   - **Requirement IDs:** Stage 14 target plus `WFM-105`, `INV-104`.
@@ -3410,6 +3422,24 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     executions could in principle collide again — a fully isolated
     retailer per run would remove this class of flake entirely but was
     not built here, since real CI resets the database between runs.
+  - **Fix (2026-08-04, takeover branch, continued):** the residual risk
+    named directly above materialised the same day it was written — a
+    later run collided again (`n=3` seeded fresh, read back as
+    `indicative` because of rows another spec had already left in the
+    same day-of-week/hour bucket), which is exactly what a 168-slot
+    birthday-paradox space predicts under enough repeated same-day runs,
+    not a fluke. Widening the random space further only lowers the odds;
+    it does not remove the class of flake. Replaced with a deterministic
+    fix: before seeding, the test now queries every non-cancelled
+    appointment already in its chosen day-of-week/hour bucket for this
+    retailer (across the same 90-day window `computeTemporalHotspot`
+    itself uses) and deletes them, regardless of which run or spec left
+    them there. The bucket starts empty on every run by construction, so
+    there is nothing left to collide with. Verified with two consecutive
+    passing runs. The residual-risk note above is superseded by this —
+    a fully isolated retailer per run is still the only way to remove
+    shared-fixture risk everywhere else in this suite, but this specific
+    flake class is now closed for this spec.
 
 ### Stage 15 — Lifestyle network and MunroMerchant
 
@@ -4095,6 +4125,297 @@ now.
     item-specific complete-the-look).
   - **Non-goals:** never requires an account to see the item's own
     information from the scan.
+  - **Status:** not started.
+
+### Stage 18 — Corporate business development, tenders, and rollout (Métier expansion)
+
+Founder-directed mega-directive, added 2026-08-04: InsiderTailoring
+(opportunity intelligence), Tender and Pitch Builder, Concept/Moodboard
+generation, Corporate Campaign and Office-Visit Landing Pages, Employee
+Portal, Corporate Service Desk, Measurement/Fitting Rollout Planning,
+Corporate Project and Rollout Management, and a Corporate Analytics and
+Renewal Engine — formally integrated with `14.1`'s existing Métier
+foundation rather than built beside it as a competing suite.
+
+**Audit finding (2026-08-04), before any of this stage was built:** every
+capability below was checked against the live repository, not assumed
+absent or present. Complete: none — `14.1` covers corporate accounts,
+programmes, versioned entitlements, wearers, issue records, and
+retailer-staff-facing exceptions/readiness, all schema-real and
+browser-proven, but nothing below existed under any name. Partial:
+`14.1` itself (missing employee portal, tender demo, order/fitting
+wiring — see its own 2026-08-03 Update) and the existing corporate
+`exceptions` table (a real but corporate-scoped ticketing model, not the
+general service desk `18.8` describes). Absent, confirmed by grep across
+migrations/domain/routes for every plausible name (tender, proposal,
+pitch, moodboard, concept, opportunity, insider, employee portal, service
+desk, ticket, rollout, office visit, landing page): InsiderTailoring,
+tenders, concept generation, corporate landing pages, the employee
+portal, a general service desk, bulk fitting/rollout planning, the
+rollout lifecycle state machine, and corporate analytics/renewal.
+Reusable-as-is: the `/r/[slug]` tokenized public storefront pattern (the
+public tender page in `18.3` should extend this, not invent a second
+public-page mechanism) and the existing appointment-booking domain/
+repository (`18.6`'s fitting-day rollout should schedule through it, not
+around it). Absent from the RLS role model entirely: any role for a
+corporate account contact or an external tender viewer — every
+`corporate_*` policy admits only `current_retailer_role()` today, so
+`18.5` and `18.3` are each a new-auth-path decision, not a policy
+addition on existing roles.
+
+Build order follows the founder's own explicit sequencing: the pipeline
+model before the tender it feeds, the tender before its public page, the
+portal after the pages that link to it, rollout/service-desk/analytics
+after the objects they operate on, and AI-assisted generation and
+external signal ingestion last — building a scraper or an image generator
+before the object it populates exists would mean producing data with
+nowhere honest to store it.
+
+- [x] **18.1 Corporate business-development opportunities (InsiderTailoring pipeline model)**
+  - **Requirement IDs:** BD-101.
+  - **Dependencies:** `14.1` (`corporate_accounts`, `CorporateRepository`).
+  - **Owner boundary:** the opportunity/signal/scoring/stage-pipeline
+    object itself — manually entered signals only. External commercial-
+    signal discovery is explicitly out of scope here; see `18.11`.
+  - **Acceptance:** an opportunity is created, signals are added and its
+    score is a plain, inspectable sum of fixed per-source weights (no
+    model call, no hidden multiplier — the breakdown is returned
+    alongside the total), the stage moves forward exactly one allowed
+    step at a time and never out of a terminal stage, and winning creates
+    a real `corporate_accounts` row through the existing
+    `CorporateRepository.createAccount` rather than a second, competing
+    company record.
+  - **Tests:** domain transition/scoring/validation unit tests, browser
+    proof of create → score → stage → win → real account.
+  - **Non-goals:** no black-box scoring; no external signal ingestion yet
+    (`source` has no scraped/public-signal value on purpose).
+  - **Hard blockers:** none.
+  - **Status (2026-08-04, takeover branch):** `verified_local`. Migration
+    `20260804130000_add_corporate_opportunities.sql` adds
+    `corporate_opportunities`/`corporate_opportunity_signals` (signals
+    append-only; a `CHECK` refuses `stage = 'won'` without a
+    `linked_account_id`, so the constraint itself — not just application
+    code — prevents a "won" opportunity with no real account behind it).
+    Domain (`packages/domain/src/corporate/business-development.ts`):
+    `checkOpportunityStageTransition` (explicit allow-list per stage, no
+    implicit fallback), `scoreOpportunity` (fixed weight table, capped at
+    100, returns the contributing breakdown), `checkCreateOpportunity`/
+    `checkAddSignal`. `CorporateOpportunityRepository`
+    (`packages/database`) recomputes the score from the full live signal
+    set on every `addSignal` call — the stored `score` column is a read
+    optimisation the repository itself never accepts as caller input —
+    and `winAndCreateAccount` calls `CorporateRepository.createAccount`
+    rather than inserting into `corporate_accounts` directly, so the won
+    opportunity and the account can never diverge into two truths. Wired
+    into the retailer app as `/business-development` (pipeline list) and
+    `/business-development/[opportunityId]` (signals, score, stage
+    buttons, win form), gated by the existing `enterprise_verticals`
+    module and linked from the sidebar next to `/corporate`.
+    `apps/retailer/e2e/business-development.spec.ts` proves the full arc
+    in a real browser: two signals compose to the exact expected score,
+    "Won" is not offered before "Tender sent" (skip-ahead is refused by
+    the same transition check the domain layer enforces), and winning is
+    asserted against the database to have created a real
+    `corporate_accounts` row with the opportunity's company name and the
+    submitted account reference — not merely relabelled the opportunity.
+
+- [ ] **18.2 Tender and Pitch Builder**
+  - **Requirement IDs:** BD-102.
+  - **Dependencies:** `18.1` (an opportunity to build a tender for),
+    `14.1` (the account/programme it may become).
+  - **Owner boundary:** a company-specific tender/proposal document —
+    sections, pricing, garment/programme concepts, versioning, retailer
+    internal approval before anything is externally shareable.
+  - **Acceptance:** a tender is authored against a won-or-in-progress
+    opportunity, is versioned (never edited in place once shared),
+    and requires explicit retailer approval before `18.3` can expose it.
+  - **Tests:** version immutability once shared, approval gate, RLS.
+  - **Non-goals:** no external visibility without explicit approval.
+  - **Status:** not started.
+
+- [ ] **18.3 Public tender page**
+  - **Requirement IDs:** BD-103.
+  - **Dependencies:** `18.2`; the existing `/r/[slug]` tokenized public
+    page pattern — extend it, do not build a second public-page mechanism.
+  - **Owner boundary:** an externally shareable, tokenized view of an
+    approved tender version only — never draft content, never anything
+    unapproved.
+  - **Acceptance:** a tender link exposes exactly the approved version's
+    published fields to an unauthenticated viewer and nothing else on the
+    account (no other clients, no margins, no other tenders).
+  - **Tests:** token scoping, draft-content non-exposure, expiry/revocation.
+  - **Non-goals:** no general-purpose public CMS.
+  - **Hard blockers:** none identified yet.
+  - **Status:** not started.
+
+- [ ] **18.4 Corporate campaign and office-visit landing pages**
+  - **Requirement IDs:** BD-104.
+  - **Dependencies:** `18.1`/`14.1` (account/programme), existing
+    `campaign` domain (`packages/domain/src/campaign/`) — extend its
+    audience/activation model for a company-scoped audience, do not fork
+    a second campaign engine.
+  - **Owner boundary:** a company-branded conversion page connecting to
+    appointments/campaigns/employees/measurements/orders for one
+    corporate programme's office visit or launch.
+  - **Acceptance:** a company-branded page books an appointment or starts
+    measurement capture for a named programme, scoped so one company
+    never sees another's page or data.
+  - **Tests:** cross-company isolation, appointment-booking wiring.
+  - **Status:** not started.
+
+- [ ] **18.5 Employee portal (auth and self-service)**
+  - **Requirement IDs:** BD-105.
+  - **Dependencies:** `14.1` (`corporate_wearers`); this is the
+    new-auth-path decision `14.1`'s 2026-08-03 Update named as its own
+    remaining gap, tracked here rather than as a second open item on
+    `14.1`.
+  - **Owner boundary:** a low-friction, mobile-first, simple-auth session
+    for a corporate-programme employee — appointments, measurements,
+    wardrobe, orders, alterations, tickets, announcements. Never the
+    retailer-staff session type, never broader RLS access than the
+    employee's own wearer row and its programme's published readiness.
+  - **Acceptance:** an employee signs in through a distinct auth path,
+    sees only their own data plus programme-level published information
+    (never a colleague's measurements — the same failure mode
+    `buildCorporateScopedView` was already written to prevent for
+    employer contacts), and can raise a service request (`18.8`).
+  - **Tests:** cross-employee isolation, RLS for the new session/role.
+  - **Non-goals:** not an HR login; no employment data beyond what
+    `14.1` already deliberately excludes.
+  - **Hard blockers:** new auth-path design must be settled before this
+    can start — not an implementation blocker, a decision blocker.
+  - **Status:** not started.
+
+- [ ] **18.6 Measurement and fitting rollout planning**
+  - **Requirement IDs:** BD-106.
+  - **Dependencies:** existing appointment domain/repository — bulk
+    rollout schedules through it, not around it; `14.1` wearers/programmes.
+  - **Owner boundary:** bulk planning for a programme rollout — employee
+    lists, department/location grouping, fitting days, advisor/room
+    capacity, no-show handling — distinct from booking one appointment
+    at a time.
+  - **Acceptance:** a programme's employee list is planned across fitting
+    days within stated advisor/room capacity, and a no-show is handled
+    without silently dropping the employee from the rollout.
+  - **Tests:** capacity limits, no-show re-slotting, department/location
+    grouping.
+  - **Status:** not started.
+
+- [ ] **18.7 Corporate project and rollout management**
+  - **Requirement IDs:** BD-107.
+  - **Dependencies:** `18.1`, `18.2`, `18.6`, `14.1` production/order
+    domains (Stage 12).
+  - **Owner boundary:** the structured lifecycle state machine —
+    opportunity → tender → award → design/sample/material approval →
+    employee import → fitting → production → QC → distribution → launch
+    → renewal — so no step from the founder's directive is a dead end
+    with no caller.
+  - **Acceptance:** every named lifecycle step has a real state and a
+    real transition into the next; a project cannot silently stall in an
+    undefined state between two named steps.
+  - **Tests:** full lifecycle transition coverage, stuck-state detection.
+  - **Status:** not started.
+
+- [ ] **18.8 Corporate service desk**
+  - **Requirement IDs:** BD-108.
+  - **Dependencies:** `14.1`'s `corporate_exceptions` (extend its
+    kind/action vocabulary and generalise its scope; do not fork a
+    second ticketing table for the same shape of problem).
+  - **Owner boundary:** damaged/missing/incorrect-fit/alteration/
+    replacement/urgent requests with category, priority, SLA, assignment,
+    and an audit trail — raisable by staff (existing) and, once `18.5`
+    ships, by an employee directly.
+  - **Acceptance:** a ticket carries category/priority/SLA/assignment,
+    every state change is audited, and an overdue SLA is visible, not
+    silent.
+  - **Tests:** SLA breach detection, assignment, audit completeness.
+  - **Status:** not started.
+
+- [ ] **18.9 Corporate analytics and renewal engine**
+  - **Requirement IDs:** BD-109.
+  - **Dependencies:** `14.1`, `18.7`, `18.8`; the cited-recommendation
+    discipline from `14.2` — no black-box renewal score.
+  - **Owner boundary:** contract value, participation, fulfilment,
+    damage/repair/replacement rates, and a renewal-probability signal
+    that cites the facts behind it, auto-generating a renewal task rather
+    than silently expiring a contract.
+  - **Acceptance:** every reported metric and the renewal signal both
+    cite their source rows, matching `14.2`'s "no black-box owner
+    dashboard" non-goal exactly.
+  - **Tests:** metric correctness against seeded fixtures, renewal-task
+    generation timing.
+  - **Non-goals:** no black-box renewal score.
+  - **Status:** not started.
+
+- [ ] **18.10 AI-assisted concept, moodboard, and image generation**
+  - **Requirement IDs:** BD-110.
+  - **Dependencies:** `18.2` (a tender to attach concepts to); `@paon/ai`
+    provider-neutral pattern (ADR-033) — a new provider method, not a new
+    provider architecture; the "not a black box" house rule from `17.1`
+    (advisor capture): every generated asset stays editable and requires
+    explicit retailer approval before `18.3` can publish it externally.
+  - **Owner boundary:** AI-generated moodboards/looks/lookbook assets,
+    attributable to a specific tender version, editable, never
+    auto-published.
+  - **Acceptance:** a generated asset records which tender version and
+    which AI attempt produced it (via the existing
+    `AIGenerationRepository` audit trail, not a separate log), and cannot
+    reach `18.3`'s public page without an explicit approval action.
+  - **Tests:** approval-gate refusal, audit-trail completeness.
+  - **Non-goals:** no unapproved asset ever externally visible.
+  - **Hard blockers:** live generation needs a configured AI image
+    provider — `blocked_external` for the live path only.
+  - **Status:** not started.
+
+- [ ] **18.11 External signal ingestion (InsiderTailoring discovery)**
+  - **Requirement IDs:** BD-111.
+  - **Dependencies:** `18.1` (the pipeline it feeds must exist first —
+    this is why it is ordered last among the InsiderTailoring items, per
+    the founder's own explicit instruction not to begin with broad
+    scraping before the internal foundations exist).
+  - **Owner boundary:** discovering public commercial signals and adding
+    them as `corporate_opportunity_signals` — this is the item that
+    finally adds a scraped/public-signal `source` value, deliberately
+    absent from `18.1`'s schema until this ships.
+  - **Acceptance:** every ingested signal carries a real, checkable
+    source citation (URL or document reference) — the same evidence-
+    grounding discipline `checkCaptureBundleProposal` (`17.1`) already
+    enforces for AI-authored content, applied here to AI- or script-
+    authored signals.
+  - **Tests:** citation-grounding refusal (a fabricated source is
+    refused, mirroring `17.1`'s own test for exactly this failure mode).
+  - **Non-goals:** no mass/bulk scraping of a target outside authorised,
+    rate-limited, single-target lookups; no data ingestion without a
+    checkable citation.
+  - **Hard blockers:** external data source access; `blocked_external`.
+  - **Status:** not started.
+
+- [ ] **18.12 Relationship cross-referencing and opportunity scoring from existing customers**
+  - **Requirement IDs:** BD-112.
+  - **Dependencies:** `18.1`, `18.11`, existing `customers`/`customer_facts`.
+  - **Owner boundary:** matching a discovered or manually entered company
+    signal against PAON's own existing customer base (e.g., an existing
+    private client who works at the target company), surfaced as an
+    `existing_customer_link` signal (`18.1`'s highest-weighted source) —
+    never as a broader cross-customer data exposure than that one match.
+  - **Acceptance:** a match is surfaced as a signal with a citable basis
+    (which customer, which fact), never a silent, unexplained score bump.
+  - **Tests:** match precision on seeded fixtures, no cross-tenant leakage.
+  - **Status:** not started.
+
+- [ ] **18.13 End-to-end lifecycle hardening**
+  - **Requirement IDs:** BD-113.
+  - **Dependencies:** `18.1`–`18.12` all complete.
+  - **Owner boundary:** proves the full 18-step lifecycle the founder
+    specified (signal → opportunity → qualification → corporate account
+    → tender → share → win/loss → programme/rollout → employee import →
+    campaign publish → fitting → measurements/orders → production/
+    distribution → portal service → account monitoring → auto-renewal)
+    has no dead-end step anywhere in the chain.
+  - **Acceptance:** one fixture company runs the full chain end to end in
+    a browser proof; every step names the real object/table it produced,
+    not a stub.
+  - **Tests:** full-chain browser proof.
   - **Status:** not started.
 
 ## Real hard blockers
