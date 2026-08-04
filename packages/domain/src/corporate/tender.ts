@@ -31,6 +31,11 @@ export interface CorporateTender extends Timestamps {
   readonly opportunityId: string;
   readonly title: string;
   readonly shareToken: string;
+  /** Set once a staff member revokes the public link (PHASE 18.3's own
+   * named gap: "a link, once shared, is shareable forever" — no longer
+   * true once this is set). `resolve_corporate_tender` refuses to
+   * resolve any content once this is set, regardless of approval. */
+  readonly revokedAt?: string;
 }
 
 export interface CorporateTenderVersion {
@@ -75,6 +80,7 @@ export function checkCreateTender(args: {
 export const CORPORATE_TENDER_PUBLIC_STATUSES = [
   "not_published",
   "published",
+  "revoked",
 ] as const;
 export type CorporateTenderPublicStatus =
   (typeof CORPORATE_TENDER_PUBLIC_STATUSES)[number];
@@ -113,6 +119,26 @@ export function checkCreateTenderVersion(args: {
   }
   if (args.garmentConcepts.filter((c) => c.trim().length > 0).length === 0) {
     return { ok: false, reason: "garment_concepts_required" };
+  }
+  return { ok: true };
+}
+
+export type RevokeTenderCheck =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly reason: "already_revoked" };
+
+/** A revocation is a one-way, one-time decision — mirroring the
+ * exactly-once discipline already used for tender-version approval
+ * (`corporate_tender_approvals`'s unique constraint) and 18.10's
+ * concept-asset decisions. There is no "un-revoke": a mistaken
+ * revocation is corrected by sharing a fresh link on a new tender, not
+ * by resurrecting a link that was already told to whoever it was
+ * revoked from. */
+export function checkRevokeTender(args: {
+  readonly revokedAt?: string;
+}): RevokeTenderCheck {
+  if (args.revokedAt) {
+    return { ok: false, reason: "already_revoked" };
   }
   return { ok: true };
 }

@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { checkCreateTender, checkCreateTenderVersion } from "./tender";
+import {
+  checkCreateTender,
+  checkCreateTenderVersion,
+  checkRevokeTender,
+} from "./tender";
 
 describe("checkCreateTender", () => {
   it("refuses a blank title", () => {
@@ -54,5 +58,18 @@ describe("checkCreateTenderVersion", () => {
         garmentConcepts: ["Two-piece suit", "Overcoat"],
       }),
     ).toEqual({ ok: true });
+  });
+});
+
+describe("checkRevokeTender", () => {
+  it("allows revoking a never-revoked tender", () => {
+    expect(checkRevokeTender({})).toEqual({ ok: true });
+  });
+
+  it("refuses revoking an already-revoked tender", () => {
+    expect(checkRevokeTender({ revokedAt: "2026-08-05T00:00:00Z" })).toEqual({
+      ok: false,
+      reason: "already_revoked",
+    });
   });
 });

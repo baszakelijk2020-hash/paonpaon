@@ -15,7 +15,11 @@ import { TEST_RETAILER_SLUG } from "./fixtures";
  * any version is approved the page shows "not yet published" with no
  * draft content, and after approving a version the page shows exactly
  * that version's summary/garment-concepts/pricing note — never an
- * unapproved later draft.
+ * unapproved later draft. Also proves 18.3's own named gap, closed: a
+ * pending concept image (18.10) never appears until approved, and a
+ * revoked tender (the "shareable forever" gap) refuses ALL content —
+ * approved or not — and a second revocation is refused, not silently
+ * accepted.
  */
 test("an anonymous viewer sees a tender as not-yet-published until a version is approved, then sees exactly that version", async ({
   page,
@@ -131,6 +135,27 @@ test("an anonymous viewer sees a tender as not-yet-published until a version is 
     await expect(
       page.locator('img[src="https://example.test/customer-e2e-concept.png"]'),
     ).toBeVisible();
+
+    // PHASE 18.3's own named gap, closed: once revoked, the link refuses
+    // ALL content — approved version, concept images, everything —
+    // never merely reverting to "not yet published".
+    const revoked = await tenderRepo.revoke({
+      retailerId,
+      tenderId: tender.id,
+    });
+    expect(revoked.ok).toBe(true);
+
+    await page.reload();
+    await expect(page.getByText("This link has been revoked")).toBeVisible();
+    await expect(page.getByText("A full formalwear programme")).toHaveCount(0);
+    await expect(page.locator("[data-concept-images]")).toHaveCount(0);
+
+    // A second revocation is refused, not silently accepted.
+    const redoubled = await tenderRepo.revoke({
+      retailerId,
+      tenderId: tender.id,
+    });
+    expect(redoubled).toEqual({ ok: false, reason: "already_revoked" });
   } finally {
     await admin
       .from("corporate_opportunities")

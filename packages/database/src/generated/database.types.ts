@@ -4345,6 +4345,7 @@ export type Database = {
           id: string;
           opportunity_id: string;
           retailer_id: string;
+          revoked_at: string | null;
           share_token: string;
           title: string;
           updated_at: string;
@@ -4354,6 +4355,7 @@ export type Database = {
           id?: string;
           opportunity_id: string;
           retailer_id: string;
+          revoked_at?: string | null;
           share_token?: string;
           title: string;
           updated_at?: string;
@@ -4363,6 +4365,7 @@ export type Database = {
           id?: string;
           opportunity_id?: string;
           retailer_id?: string;
+          revoked_at?: string | null;
           share_token?: string;
           title?: string;
           updated_at?: string;

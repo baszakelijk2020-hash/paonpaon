@@ -4311,12 +4311,28 @@ nowhere honest to store it.
     `writeBrowserProofRun`/`docs/evidence/runs/*.json`, matching this
     codebase's existing convention that ADR-068 evidence tracking is a
     retailer-app-only harness — no existing `apps/customer/e2e/*.spec.ts`
-    uses it either (checked `gift.spec.ts` for precedent). The checkbox
-    stays unchecked: this item's own **Tests** line named
-    "expiry/revocation" and none exists — `share_token` is permanent
-    with no revoke action anywhere, so a link, once shared, is
-    shareable forever. That is a real gap against this item's own
-    acceptance, not a future nice-to-have.
+    uses it either (checked `gift.spec.ts` for precedent).
+  - **Fix (2026-08-05, takeover branch):** the revocation half of this
+    item's own named gap is closed. Migration
+    `20260805130000_add_corporate_tender_revocation.sql` adds
+    `corporate_tenders.revoked_at` and updates `resolve_corporate_tender`
+    to refuse ALL content — approved or not — once set, enforced in the
+    function itself. `checkRevokeTender` (`packages/domain/src/corporate/tender.ts`)
+    is a one-way, exactly-once decision, mirroring the same discipline
+    already used for tender-version approval and 18.10's concept-asset
+    decisions — there is no "un-revoke". The retailer opportunity page's
+    Tenders card gained a "Revoke public link" button, replaced by a
+    "Link revoked" badge once used. Proof: 4 new domain unit tests
+    (`tender.test.ts`) and an extension of the existing
+    `apps/customer/e2e/corporate-tender-reveal.spec.ts` proving a
+    revoked tender shows neither its approved summary nor its concept
+    images, and a second revocation attempt is refused
+    (`already_revoked`) rather than silently accepted. Checkbox stays
+    unchecked: time-based **expiry** was not built — no TTL policy was
+    ever specified by the founder, and inventing an arbitrary one would
+    be a fabricated business rule rather than a real requirement. A link
+    is now revocable by a human decision, not yet auto-expiring on a
+    clock.
 
 - [ ] **18.4 Corporate campaign and office-visit landing pages**
   - **Requirement IDs:** BD-104.

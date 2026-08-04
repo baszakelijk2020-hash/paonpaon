@@ -2,6 +2,7 @@ import {
   asId,
   checkCreateTender,
   checkCreateTenderVersion,
+  checkRevokeTender,
   type CorporateOpportunityStage,
   type CorporateTender,
   type CorporateTenderApproval,
@@ -32,6 +33,7 @@ function toTender(row: TenderRow): CorporateTender {
     shareToken: row.share_token,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    ...(row.revoked_at ? { revokedAt: row.revoked_at } : {}),
   };
 }
 
@@ -75,6 +77,11 @@ export type CreateTenderVersionResult =
 export type ApproveVersionResult =
   | { readonly ok: true; readonly approval: CorporateTenderApproval }
   | { readonly ok: false; readonly reason: "already_approved" };
+
+export type RevokeTenderResult =
+  | { readonly ok: true; readonly tender: CorporateTender }
+  | { readonly ok: false; readonly reason: "already_revoked" }
+  | { readonly ok: false; readonly reason: "tender_not_found" };
 
 /**
  * Corporate tenders (PHASE 18.2 / BD-102). Versions are append-only and
@@ -237,6 +244,31 @@ export class CorporateTenderRepository {
       throw error;
     }
     return { ok: true, approval: toApproval(data) };
+  }
+
+  /** One-way: `checkRevokeTender` refuses a second revocation. Once set,
+   * `resolve_corporate_tender` refuses ALL content for this tender,
+   * approved or not — closing 18.3's own named gap ("a link, once
+   * shared, is shareable forever"). */
+  async revoke(args: {
+    readonly retailerId: RetailerId;
+    readonly tenderId: CorporateTenderId;
+  }): Promise<RevokeTenderResult> {
+    const current = await this.findById(args.tenderId);
+    if (!current) return { ok: false, reason: "tender_not_found" };
+    const check = checkRevokeTender(
+      current.revokedAt ? { revokedAt: current.revokedAt } : {},
+    );
+    if (!check.ok) return check;
+
+    const { data, error } = await this.client
+      .from("corporate_tenders")
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("id", args.tenderId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return { ok: true, tender: toTender(data) };
   }
 
   /** Anonymous, opaque-token reveal (`resolve_corporate_tender`, SECURITY

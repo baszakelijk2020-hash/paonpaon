@@ -34,6 +34,7 @@ import {
   createTenderVersion,
   decideConceptAsset,
   generateConceptImages,
+  revokeTender,
   transitionStage,
   winOpportunity,
 } from "../actions";
@@ -422,14 +423,39 @@ export default async function OpportunityDetailPage({
                 key={tender.id}
                 className="flex flex-col gap-3 border-b border-[var(--color-stone-200)] pb-4 last:border-b-0 last:pb-0"
               >
-                <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
-                  {tender.title}
-                </h3>
-                <p className="break-all text-xs text-[var(--color-stone-500)]">
-                  Public link (shows only the latest approved version):{" "}
-                  {customerAppBase}/r/{retailer?.slug}/tenders/
-                  {tender.shareToken}
-                </p>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
+                    {tender.title}
+                  </h3>
+                  {tender.revokedAt ? (
+                    <Badge tone="danger">Link revoked</Badge>
+                  ) : null}
+                </div>
+                {tender.revokedAt ? (
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    Public link revoked — no longer resolves for any viewer,
+                    approved or not.
+                  </p>
+                ) : (
+                  <>
+                    <p className="break-all text-xs text-[var(--color-stone-500)]">
+                      Public link (shows only the latest approved version):{" "}
+                      {customerAppBase}/r/{retailer?.slug}/tenders/
+                      {tender.shareToken}
+                    </p>
+                    <form action={revokeTender} className="self-start">
+                      <input
+                        type="hidden"
+                        name="opportunityId"
+                        value={opportunity.id}
+                      />
+                      <input type="hidden" name="tenderId" value={tender.id} />
+                      <Button type="submit" variant="secondary" size="sm">
+                        Revoke public link
+                      </Button>
+                    </form>
+                  </>
+                )}
                 {versions.length === 0 ? (
                   <p className="text-xs text-[var(--color-stone-500)]">
                     No version authored yet.

@@ -287,3 +287,18 @@ export async function decideConceptAsset(formData: FormData): Promise<void> {
   });
   revalidatePath(`/business-development/${opportunityId}`);
 }
+
+/** PHASE 18.3's named gap, closed: a one-way revocation — see
+ * `checkRevokeTender`. Once revoked, `resolve_corporate_tender` refuses
+ * ALL content for this tender, approved or not. */
+export async function revokeTender(formData: FormData): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const client = await getSupabaseServerClient();
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  const tenderId = String(formData.get("tenderId") ?? "");
+  await new CorporateTenderRepository(client).revoke({
+    retailerId: session.retailerId,
+    tenderId: asId<"CorporateTenderId">(tenderId),
+  });
+  revalidatePath(`/business-development/${opportunityId}`);
+}

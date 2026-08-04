@@ -30,7 +30,12 @@ export default async function TenderRevealPage({
       </p>
 
       <Card className="mt-6">
-        {reveal.status === "not_published" ? (
+        {reveal.status === "revoked" ? (
+          <p className="text-sm text-[var(--color-stone-700)]" role="status">
+            This link has been revoked and no longer resolves. Reach out to{" "}
+            {reveal.retailerDisplayName} for a current one.
+          </p>
+        ) : reveal.status === "not_published" ? (
           <p className="text-sm text-[var(--color-stone-700)]" role="status">
             This tender is not yet published. Reach out to{" "}
             {reveal.retailerDisplayName} for an update.
