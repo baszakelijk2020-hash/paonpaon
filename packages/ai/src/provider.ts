@@ -88,6 +88,18 @@ export interface GroundedAnswerResult {
   readonly productIds: readonly string[];
 }
 
+/** One advisor note/voice/photo capture — the raw text is already
+ * transcribed by the time it reaches this context; speech-to-text is a
+ * separate, swappable concern from the extraction call itself. */
+export interface AdvisorCaptureContext {
+  readonly rawText: string;
+  readonly retailerName: string;
+  readonly customerName?: string;
+  /** ISO date, so the model can resolve "Friday" or "next month" against
+   * a real anchor instead of guessing one. */
+  readonly asOfDate: string;
+}
+
 export interface AIProvider {
   readonly providerName: string;
   readonly model: string;
@@ -111,4 +123,13 @@ export interface AIProvider {
   generateGroundedAnswer(
     context: GroundedAnswerContext,
   ): Promise<GroundedAnswerResult>;
+  /**
+   * Returns parsed JSON (an array of proposed capture bundles) from the
+   * model. `checkCaptureBundleProposal` (`@paon/domain`) validates every
+   * bundle outside this package before it is ever shown to an advisor,
+   * same split as `enrichCatalogueImportRow`.
+   */
+  extractAdvisorCaptureBundles(
+    context: AdvisorCaptureContext,
+  ): Promise<unknown>;
 }

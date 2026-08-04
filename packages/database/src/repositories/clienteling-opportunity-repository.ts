@@ -79,6 +79,49 @@ function toDomain(row: Row): ClientelingOpportunity {
 export class ClientelingOpportunityRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
 
+  /**
+   * A single advisor-authored opportunity — used for `advisor_commitment`
+   * (an advisor's own confirmed follow-up, e.g. from advisor capture),
+   * distinct from the system-detected types `syncInterestDraftsForCustomer`
+   * produces. Draft by default, same as every other opportunity type —
+   * "Draft tasks by default — never autonomous customer spam."
+   */
+  async create(args: {
+    readonly retailerId: RetailerId;
+    readonly customerId: CustomerId;
+    readonly type: ClientelingOpportunityType;
+    readonly whyNow: string;
+    readonly suggestedAction: string;
+    readonly channel: ClientelingChannel;
+    readonly assignedStaffId?: StaffId;
+    readonly dueAt?: string;
+    readonly confidence?: number;
+    readonly evidence?: readonly ClientelingOpportunityEvidence[];
+    readonly projectorVersion: string;
+  }): Promise<ClientelingOpportunity> {
+    const { data, error } = await this.client
+      .from("clienteling_opportunities")
+      .insert({
+        retailer_id: args.retailerId,
+        customer_id: args.customerId,
+        opportunity_type: args.type,
+        why_now: args.whyNow.trim().slice(0, 1000),
+        suggested_action: args.suggestedAction.trim().slice(0, 1000),
+        channel: args.channel,
+        ...(args.assignedStaffId
+          ? { assigned_staff_id: args.assignedStaffId }
+          : {}),
+        ...(args.dueAt ? { due_at: args.dueAt } : {}),
+        confidence: args.confidence ?? 0.9,
+        evidence: (args.evidence ?? []) as unknown as Json,
+        projector_version: args.projectorVersion,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toDomain(data);
+  }
+
   async listForCustomer(
     retailerId: RetailerId,
     customerId: CustomerId,

@@ -22,6 +22,10 @@ export const CLIENTELING_OPPORTUNITY_TYPES = [
    * draft-task/contact-pressure/outcome-linking object every other type
    * already is, distinguished only by carrying a campaignId. */
   "campaign_mission",
+  /** An advisor's own confirmed follow-up, usually from advisor capture —
+   * the same draft-task object, distinguished only by having no
+   * system-detected trigger behind it. */
+  "advisor_commitment",
 ] as const;
 
 export type ClientelingOpportunityType =

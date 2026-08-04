@@ -163,6 +163,7 @@ export * from "./corporate/corporate-programme.schema";
 export * from "./merchandising/micro-capsule";
 export * from "./merchandising/micro-capsule.schema";
 export * from "./intelligence/cited-recommendation";
+export * from "./intelligence/advisor-capture";
 export * from "./network/partner-attribution";
 export * from "./network/audience-governance";
 export * from "./merchant/munro-merchant";

@@ -1,5 +1,6 @@
 import {
   AdvisorBriefRepository,
+  AdvisorCaptureRepository,
   AIGenerationRepository,
   AlterationRepository,
   AnalyticsRepository,
@@ -40,6 +41,7 @@ import { startConversation } from "../../messages/actions";
 import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 
 import { createClientelingNote, setPreferredCarrier } from "./actions";
+import { AdvisorCapture } from "./advisor-capture";
 import { AdvisorPreparationBriefCard } from "./advisor-preparation-brief";
 import { AdvisorRectangleCapture } from "./advisor-rectangle-capture";
 import { AIInsights } from "./ai-insights";
@@ -187,6 +189,26 @@ export default async function CustomerDetailPage({
         recentTouchCount: 0,
       })
     : [];
+
+  const captureRepo = new AdvisorCaptureRepository(supabase);
+  const captureSessions = canManage
+    ? await captureRepo.listSessionsForCustomer({
+        retailerId: session.retailerId,
+        customerId: customer.id,
+      })
+    : [];
+  const captureBundlesBySession = await Promise.all(
+    captureSessions.map((captureSession) =>
+      captureRepo.listBundlesForSession({
+        retailerId: session.retailerId,
+        sessionId: captureSession.id,
+      }),
+    ),
+  );
+  const pendingCaptureBundles = captureBundlesBySession
+    .flat()
+    .filter((bundle) => bundle.status === "proposed");
+
   const pinnedNote = notes.find((note) => note.pinned) ?? null;
   const now = Date.now();
   const nextAppointment = appointments
@@ -530,6 +552,14 @@ export default async function CustomerDetailPage({
         <AdvisorRectangleCapture
           customerId={customer.id}
           concepts={rectangleConcepts}
+        />
+      ) : null}
+
+      {canManage ? (
+        <AdvisorCapture
+          customerId={customer.id}
+          aiConfigured={!!getAIProvider()}
+          pendingBundles={pendingCaptureBundles}
         />
       ) : null}
 

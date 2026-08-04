@@ -3395,6 +3395,21 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     no caller wiring role-scoped dashboards to a UI, and there is no AI
     evaluation harness. Missing: the other six projectors, role
     dashboards, AI evaluation.
+  - **Fix (2026-08-04, takeover branch):** `analytics.spec.ts`'s "sparse"
+    bucket was a fixed day/hour ("30 days back, 3am UTC"), identical on
+    every run within the same calendar day. Against the shared, long-lived
+    `e2e-retailer-workspace` fixture retailer this eventually collided
+    with organic appointment accumulation from unrelated specs (found:
+    `workspace.spec.ts`'s own fixed-time appointment fixture had
+    accumulated 10+ rows in one bucket from repeated same-day runs,
+    tipping the "busiest slot" the test relies on into a bucket it did
+    not create). Fixed by deriving both the day offset and hour from the
+    test's own unique run id (168 combinations); the stray accumulated
+    appointments were also cleared. Residual risk: this remains a shared,
+    never-reset fixture retailer, so a long enough run of same-day local
+    executions could in principle collide again — a fully isolated
+    retailer per run would remove this class of flake entirely but was
+    not built here, since real CI resets the database between runs.
 
 ### Stage 15 — Lifestyle network and MunroMerchant
 
@@ -3885,6 +3900,202 @@ date-agreement,group-fitting,guest-voucher,aftercare}.spec.ts`) were
     anniversary continuation UI, invite-flow browser proof, and evidence
     tracking for the six customer specs. The live occasionwear pilot
     stays `blocked_external`; the pack contracts do not.
+
+### Stage 17 — Frictionless advisor intelligence
+
+Founder-directed backlog, added 2026-08-04, beyond the original Nebelspiegel
+traceability ledger. Source specifications for the not-yet-started items are
+recorded in `docs/vision/PAON_VIRTUAL_TRYON_AND_OOTD_ECONOMICS.md` and this
+stage's own item text; nothing here jumps ahead of Stage 15/16's own queue,
+it runs alongside it per explicit founder instruction to build this backlog
+now.
+
+- [ ] **17.1 Advisor capture — AI-proposed, human-confirmed action bundles**
+  - **Requirement IDs:** ADV-101.
+  - **Dependencies:** `7.3` (customer_facts), `7.4` (clienteling_opportunities).
+  - **Owner boundary:** typed/voiced/photographed advisor note → AI-proposed
+    Self-Portrait facts, follow-ups and kept notes; advisor review/confirm/
+    dismiss; the AI usage audit trail.
+  - **Acceptance:** an advisor's note produces zero or more bundles, each
+    citing a real substring of the note; nothing writes to `customer_facts`
+    or `clienteling_opportunities` until confirmed; a dismissed bundle
+    writes nothing; every attempt (success or failure) is recorded through
+    `AIGenerationRepository`.
+  - **Tests:** domain evidence-grounding refusal (fabricated excerpt,
+    unknown fact type, empty payload fields), confirm/dismiss browser
+    proof with DB assertions.
+  - **Non-goals:** no black-box AI — every proposal is inspectable before
+    it changes anything; no autonomous writes.
+  - **Hard blockers:** none for the reviewed-proposal flow; live extraction
+    needs `OPENAI_API_KEY` configured (same `blocked_external` shape as
+    `next_best_action`).
+  - **Status (2026-08-04, takeover branch):** `verified_local`. Migration
+    `20260804120000_add_advisor_capture.sql` adds
+    `advisor_capture_sessions`/`advisor_capture_bundles`; domain
+    `checkCaptureBundleProposal` (`packages/domain/src/intelligence/advisor-capture.ts`)
+    refuses a bundle whose `sourceExcerpt` is not a real substring of the
+    note, an unknown fact type, or a missing required field per kind — the
+    exact failure mode a "cited" system exists to catch, not merely
+    describe. `AdvisorCaptureRepository.proposeBundles` validates every AI
+    proposal before persisting; `confirmBundle` writes a
+    `self_portrait_fact` bundle through `CustomerFactRepository.record`
+    (new generic direct-insert method, provenance `advisor_observed`), a
+    `follow_up` bundle through `ClientelingOpportunityRepository.create`
+    (new `advisor_commitment` opportunity type — reuses the existing
+    draft-task object rather than a second truth) and a `task_note` bundle
+    through the existing `ClientelingRepository` "House notes". `@paon/ai`
+    gained `extractAdvisorCaptureBundles` on the `AIProvider` interface
+    (OpenAI implementation + `MockAdvisorCaptureProvider` test double,
+    mirroring `import-enrichment-runner.ts`'s split of "provider returns
+    `unknown`, caller validates"). Wired into the retailer customer page
+    as a new "Capture a note" card next to the existing rectangle-capture
+    and next-best-action cards. `advisor-capture.spec.ts` seeds three
+    realistic AI proposals directly (no live API key in this environment),
+    then drives the real review UI: confirms the fact (asserts the
+    `customer_facts` row, its evidence, and its provenance), confirms the
+    follow-up (asserts the `clienteling_opportunities` row and that it
+    appears in the existing opportunity inbox under "Advisor commitment"),
+    and dismisses the note (asserts nothing was written). Found and fixed
+    a real client-refresh gap along the way: `revalidatePath` alone did
+    not reliably repaint the bundle list after a Server Action in this
+    environment — added an explicit `router.refresh()` on settle,
+    matching the same pattern `advisor-rectangle-capture.tsx` already
+    used; the test itself polls the database rather than the DOM for
+    settlement, the established fix for this exact class of timing issue
+    elsewhere in this suite (`pos.spec.ts`'s `waitForSaleState`).
+
+- [ ] **17.2 Mission Control unified brief**
+  - **Requirement IDs:** ADV-102.
+  - **Dependencies:** `17.1`.
+  - **Owner boundary:** extend the existing Mission Control aggregation
+    (today's appointments + draft clienteling opportunities) with unread
+    messages, low-stock alerts and pending alteration/write-off approvals,
+    so nothing actionable requires leaving the morning brief to discover.
+  - **Acceptance:** an advisor sees, in one place, everything from these
+    four sources that needs their attention today; each item deep-links to
+    where it is actually actioned.
+  - **Non-goals:** no new approval workflow — this aggregates existing ones.
+  - **Status:** not started.
+
+- [ ] **17.3 Pre/during/post-appointment advisor dashboard**
+  - **Requirement IDs:** ADV-103.
+  - **Dependencies:** `17.1`, `9.x` Self-Portrait, wishlist, wardrobe.
+  - **Owner boundary:** a per-appointment view: purchase history, Self-
+    Portrait, favourited-vs-owned gaps, price-comfort band, prior notes; a
+    sensitive-information show/hide toggle for in-front-of-customer use.
+  - **Status:** not started.
+
+- [ ] **17.4 Fabric-pairing upsell engine**
+  - **Requirement IDs:** ADV-104.
+  - **Dependencies:** `2.x` metadata graph, product catalogue.
+  - **Owner boundary:** given a selected fabric, surface top-matching
+    buttons, lining options (standard + upsell), and complete-the-look
+    items — a rules/metadata-graph engine, not a black box, so every
+    advisor has the same upsell breadth regardless of seniority.
+  - **Status:** not started.
+
+- [ ] **17.5 Promise-matching on inbound stock news**
+  - **Requirement IDs:** ADV-105.
+  - **Dependencies:** `17.1`, `7.4` clienteling_opportunities.
+  - **Owner boundary:** a staff-entered stock update ("new linen jackets
+    arrived") matched against open `advisor_commitment`/follow-up
+    opportunities, surfaced as a pairable list with one-tap customer
+    contact.
+  - **Status:** not started.
+
+- [ ] **17.6 Customer segmentation and rankings**
+  - **Requirement IDs:** ADV-106.
+  - **Owner boundary:** best-customer rankings, seasonal/one-time/suit/
+    casual buyer segments and similar retailer-facing cohorts, computed
+    from existing order/behavioural data — no new customer ledger.
+  - **Status:** not started.
+
+- [ ] **17.7 Per-customer MTM price lists**
+  - **Requirement IDs:** ADV-107.
+  - **Dependencies:** MTM pricing engine (fabric/design-option/make based).
+  - **Owner boundary:** assign each customer to a price list (default
+    `price_list_01`), layered under the existing fabric/design/make
+    pricing rather than replacing it.
+  - **Status:** not started.
+
+- [ ] **17.8 Sales academy AI roleplay personas**
+  - **Requirement IDs:** ADV-108.
+  - **Dependencies:** `16.1` (roleplay grading — shipped).
+  - **Owner boundary:** AI-driven training personas (first-time buyer,
+    browser, know-it-all, couple, etc.) for delivery/complaint-handling/
+    white-glove practice, feeding the existing `academy_roleplay_grades`
+    evidence-cited grading loop rather than a second one.
+  - **Status:** not started.
+
+- [ ] **17.9 Omnichannel communication hub**
+  - **Requirement IDs:** ADV-109.
+  - **Owner boundary:** a provider-neutral core that unifies the existing
+    TableService chat with SMS/WhatsApp/email, surfaced both in Mission
+    Control and on the advisor's own phone via the channel's native app.
+  - **Non-goals:** no channel PAON cannot legally/technically integrate
+    (e.g. iMessage has no third-party send API).
+  - **Hard blockers:** live channel connections (WhatsApp Business API,
+    Twilio/SMS, email provider) need real provider accounts and keys —
+    build the provider-neutral core and message model now; live channels
+    stay `blocked_external` per channel until credentials exist.
+  - **Status:** not started.
+
+- [ ] **17.10 AI try-on, daily/ahead-of-time/complete-the-look MorningRoutine**
+  - **Requirement IDs:** ADV-110.
+  - **Dependencies:** MorningRoutine (existing), Self-Portrait recurring
+    facts, wardrobe.
+  - **Owner boundary:** full specification in
+    `docs/vision/PAON_VIRTUAL_TRYON_AND_OOTD_ECONOMICS.md` — generate-on-
+    demand virtual try-on (never unconditional daily generation), the AI
+    usage/budget ledger, provider-neutral `VirtualTryOnProvider` interface,
+    and MorningRoutine's three-card expansion (today's OOTD, ahead-of-time
+    occasions from Self-Portrait, complete-the-look).
+  - **Non-goals:** never implies a physical fit guarantee; no unconditional
+    per-customer-per-day generation.
+  - **Hard blockers:** needs a live try-on provider (e.g. FASHN) key and
+    an approved credit/billing model — build the budget ledger, provider
+    interface and MorningRoutine card structure now; live generation stays
+    `blocked_external`.
+  - **Status:** not started.
+
+- [ ] **17.11 Supplier-CRM data import and ownership**
+  - **Requirement IDs:** ADV-111.
+  - **Owner boundary:** CSV/Excel import of a retailer's existing supplier-
+    CRM customer data into PAON, positioned as data ownership (never
+    shared back to the supplier) — a genuinely separate, larger design
+    pass given the legal/contractual weight of importing another
+    business's customer records.
+  - **Non-goals:** no re-export of imported data back to the originating
+    supplier.
+  - **Status:** not started — needs its own scoping pass before
+    implementation begins.
+
+- [ ] **17.12 Ambient/frictionless checkout**
+  - **Requirement IDs:** ADV-112.
+  - **Dependencies:** ADR-062 (payment provider activation).
+  - **Owner boundary:** full specification in
+    `docs/vision/PAON_VIRTUAL_TRYON_AND_OOTD_ECONOMICS.md` §16 — SMS/
+    WhatsApp soft-close payment links, tap-to-pay, fitting-room mobile POS
+    hand-off, digital-to-physical cart persistence. Checkout as a gesture
+    inside the existing conversation, never a separate register event.
+  - **Hard blockers:** live payment capture is already `blocked_external`
+    on ADR-062 (13.3) — this item's UX layer can be built provider-neutral
+    now, but no real charge can flow until that decision lands.
+  - **Status:** not started.
+
+- [ ] **17.13 QR wardrobe card**
+  - **Requirement IDs:** ADV-113.
+  - **Dependencies:** digital wardrobe (existing).
+  - **Owner boundary:** full specification in
+    `docs/vision/PAON_VIRTUAL_TRYON_AND_OOTD_ECONOMICS.md` §17 — a
+    physical card, scanned to open the item's digital wardrobe page even
+    logged-out/unattached (full item info always shown); per-item action
+    buttons (alteration, cleaning, periodic fit-check photo feeding
+    Self-Portrait size updates, retire, re-order, ask advisor,
+    item-specific complete-the-look).
+  - **Non-goals:** never requires an account to see the item's own
+    information from the scan.
+  - **Status:** not started.
 
 ## Real hard blockers
 

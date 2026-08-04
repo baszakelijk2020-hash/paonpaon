@@ -152,6 +152,12 @@ export class MockImportEnrichmentProvider implements AIProvider {
       "MockImportEnrichmentProvider does not support grounded answers",
     );
   }
+
+  async extractAdvisorCaptureBundles(): Promise<never> {
+    throw new Error(
+      "MockImportEnrichmentProvider does not support advisor capture",
+    );
+  }
 }
 
 export { buildUserPayload };

@@ -51,17 +51,50 @@ test("a sparse temporal hotspot is labelled insufficient, then crossing the samp
     lifecycleStage: "prospect",
   });
 
-  // A single fixed date, 30 days back so it sits well inside the 90-day
-  // window, at an hour unlikely to collide with other specs' "today plus an
-  // hour" appointments. `findBusiestSlot` buckets by day-of-week + hour, not
-  // by exact date, so many appointments on this one date at this one hour
-  // all land in the same bucket without needing to spread across weeks.
+  // `findBusiestSlot` buckets by UTC day-of-week + hour (168 combinations)
+  // across a 90-day rolling window (`computeTemporalHotspot`), not by exact
+  // date. Varying the bucket by `unique` only lowers collision odds — with
+  // enough same-day runs against this long-lived shared fixture retailer,
+  // the birthday paradox still lands two runs in the same bucket (observed
+  // directly: a run's freshly-seeded 3-appointment bucket read back as
+  // "indicative" because of stray rows left by earlier runs). The only
+  // deterministic fix is to clear the chosen bucket of any pre-existing,
+  // non-cancelled appointments before seeding, regardless of which run or
+  // spec left them there.
   const baseDate = new Date();
-  baseDate.setUTCDate(baseDate.getUTCDate() - 30);
-  baseDate.setUTCHours(3, 0, 0, 0);
+  baseDate.setUTCDate(baseDate.getUTCDate() - 30 - (unique % 7));
+  baseDate.setUTCHours(unique % 24, 0, 0, 0);
+  const bucketDayOfWeek = baseDate.getUTCDay();
+  const bucketHour = baseDate.getUTCHours();
 
   const appointmentRepo = new AppointmentRepository(admin);
   const appointmentIds: string[] = [];
+
+  {
+    const windowFrom = new Date(
+      baseDate.getTime() - 90 * 86_400_000,
+    ).toISOString();
+    const windowTo = new Date().toISOString();
+    const { data: candidates } = await admin
+      .from("appointments")
+      .select("id, starts_at")
+      .eq("retailer_id", retailerId)
+      .neq("status", "canceled")
+      .neq("status", "no_show")
+      .gte("starts_at", windowFrom)
+      .lte("starts_at", windowTo);
+    const staleIds = (candidates ?? [])
+      .filter((row) => {
+        const d = new Date(row.starts_at);
+        return (
+          d.getUTCDay() === bucketDayOfWeek && d.getUTCHours() === bucketHour
+        );
+      })
+      .map((row) => row.id);
+    if (staleIds.length > 0) {
+      await admin.from("appointments").delete().in("id", staleIds);
+    }
+  }
 
   async function seedAppointments(count: number): Promise<void> {
     for (let i = appointmentIds.length; i < count; i++) {

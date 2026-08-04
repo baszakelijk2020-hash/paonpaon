@@ -107,4 +107,5 @@ export * from "./repositories/cited-recommendation-repository";
 export * from "./repositories/network-repository";
 export * from "./repositories/academy-repository";
 export * from "./repositories/store-experience-repository";
+export * from "./repositories/advisor-capture-repository";
 export type { Database } from "./generated/database.types";

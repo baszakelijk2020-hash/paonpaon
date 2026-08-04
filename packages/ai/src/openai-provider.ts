@@ -1,6 +1,7 @@
 import type OpenAI from "openai";
 
 import type {
+  AdvisorCaptureContext,
   AIProvider,
   CatalogueImportEnrichmentContext,
   GroundedAnswerContext,
@@ -142,6 +143,28 @@ function parseGroundedAnswer(
     knowledgeObjectIds,
     productIds,
   };
+}
+
+const CAPTURE_SYSTEM_PROMPT = `You are an assistant that reads one advisor's note about a customer interaction and proposes a short list of confirmable action bundles. Never invent anything not implied by the note. Every bundle must quote a real, exact, contiguous substring of the note as "sourceExcerpt" — copy it verbatim, do not paraphrase it, and never propose a bundle with no excerpt.
+
+Each bundle has one "kind":
+- "self_portrait_fact": something to remember about the customer's taste or circumstances. payload: {"factType": one of "preference_concept"|"occasion"|"employer"|"industry"|"bonus_month"|"anniversary"|"wedding_date"|"travel_window"|"fit_note"|"fabric_interest"|"colour_interest"|"pattern_interest"|"rejected_concept"|"other", "valueLabel": short string}.
+- "follow_up": a commitment or promise to act later. payload: {"whyNow": short string explaining why this follow-up exists, "suggestedAction": short string of what to do, "dueAt": optional ISO date if a date was mentioned, resolved against the given "as of" date, "channel": optional one of "in_person"|"message"|"email"|"phone"|"appointment"}.
+- "task_note": anything else worth keeping that doesn't fit the above. payload: {"note": short string}.
+
+Respond only as JSON: {"bundles": [{"kind": string, "summary": short string, "sourceExcerpt": string, "confidence": number between 0 and 1, "payload": object}]}. Return an empty array if the note has nothing actionable. Never merge two unrelated topics into one bundle.`;
+
+function buildCapturePrompt(context: AdvisorCaptureContext): string {
+  return JSON.stringify(
+    {
+      retailer: context.retailerName,
+      customer: context.customerName ?? "unspecified",
+      asOfDate: context.asOfDate,
+      note: context.rawText,
+    },
+    null,
+    2,
+  );
 }
 
 export class OpenAIProvider implements AIProvider {
@@ -293,5 +316,29 @@ export class OpenAIProvider implements AIProvider {
       throw new Error("OpenAI grounded answer was not valid JSON");
     }
     return parseGroundedAnswer(parsed, context);
+  }
+
+  async extractAdvisorCaptureBundles(
+    context: AdvisorCaptureContext,
+  ): Promise<unknown> {
+    const response = await this.client.chat.completions.create({
+      model: this.model,
+      messages: [
+        { role: "system", content: CAPTURE_SYSTEM_PROMPT },
+        { role: "user", content: buildCapturePrompt(context) },
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    const content = response.choices[0]?.message.content;
+    if (!content) {
+      throw new Error("OpenAI returned no content for advisor capture");
+    }
+
+    try {
+      return JSON.parse(content) as unknown;
+    } catch {
+      throw new Error("OpenAI advisor capture response was not valid JSON");
+    }
   }
 }

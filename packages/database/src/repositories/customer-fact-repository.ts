@@ -113,6 +113,43 @@ export class CustomerFactRepository {
     return data.map(toDomain);
   }
 
+  /**
+   * A single direct-insert fact, for callers that already have a specific
+   * fact_type/value in hand rather than a rectangle selection — e.g. an
+   * advisor confirming an AI-proposed capture bundle (PHASE: advisor
+   * capture). Same RLS-permitted direct-insert path `customer_facts`
+   * already grants sales_associate+, no RPC needed.
+   */
+  async record(args: {
+    readonly retailerId: RetailerId;
+    readonly customerId: CustomerId;
+    readonly staffId: StaffId;
+    readonly factType: CustomerFactType;
+    readonly valueLabel: string;
+    readonly provenanceClass?: CustomerFactProvenanceClass;
+    readonly confidence?: number;
+    readonly observedAt?: string;
+    readonly evidence?: readonly CustomerFactEvidenceRef[];
+  }): Promise<CustomerFact> {
+    const { data, error } = await this.client
+      .from("customer_facts")
+      .insert({
+        retailer_id: args.retailerId,
+        customer_id: args.customerId,
+        fact_type: args.factType,
+        provenance_class: args.provenanceClass ?? "advisor_observed",
+        value_label: args.valueLabel.trim().slice(0, 500),
+        confidence: args.confidence ?? 0.9,
+        observed_at: args.observedAt ?? new Date().toISOString(),
+        author_staff_id: args.staffId,
+        evidence: (args.evidence ?? []) as unknown as Json,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toDomain(data);
+  }
+
   async recordAdvisorRectangles(args: {
     readonly retailerId: RetailerId;
     readonly customerId: CustomerId;

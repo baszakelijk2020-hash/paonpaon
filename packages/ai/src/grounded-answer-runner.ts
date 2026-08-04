@@ -73,6 +73,12 @@ export class MockGroundedAnswerProvider implements AIProvider {
       productIds: context.products.slice(0, 4).map((item) => item.productId),
     };
   }
+
+  async extractAdvisorCaptureBundles(): Promise<never> {
+    throw new Error(
+      "MockGroundedAnswerProvider does not implement advisor capture",
+    );
+  }
 }
 
 export async function runGroundedAnswerJob(

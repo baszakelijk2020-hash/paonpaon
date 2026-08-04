@@ -261,6 +261,158 @@ export type Database = {
           },
         ];
       };
+      advisor_capture_bundles: {
+        Row: {
+          capture_session_id: string;
+          confidence: number;
+          confirmed_at: string | null;
+          confirmed_by_staff_id: string | null;
+          created_at: string;
+          id: string;
+          kind: string;
+          linked_fact_id: string | null;
+          linked_note_id: string | null;
+          linked_opportunity_id: string | null;
+          proposed_payload: Json;
+          retailer_id: string;
+          source_excerpt: string;
+          status: string;
+          summary: string;
+          updated_at: string;
+        };
+        Insert: {
+          capture_session_id: string;
+          confidence: number;
+          confirmed_at?: string | null;
+          confirmed_by_staff_id?: string | null;
+          created_at?: string;
+          id?: string;
+          kind: string;
+          linked_fact_id?: string | null;
+          linked_note_id?: string | null;
+          linked_opportunity_id?: string | null;
+          proposed_payload: Json;
+          retailer_id: string;
+          source_excerpt: string;
+          status?: string;
+          summary: string;
+          updated_at?: string;
+        };
+        Update: {
+          capture_session_id?: string;
+          confidence?: number;
+          confirmed_at?: string | null;
+          confirmed_by_staff_id?: string | null;
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          linked_fact_id?: string | null;
+          linked_note_id?: string | null;
+          linked_opportunity_id?: string | null;
+          proposed_payload?: Json;
+          retailer_id?: string;
+          source_excerpt?: string;
+          status?: string;
+          summary?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advisor_capture_bundles_capture_session_id_fkey";
+            columns: ["capture_session_id"];
+            isOneToOne: false;
+            referencedRelation: "advisor_capture_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_confirmed_by_staff_id_fkey";
+            columns: ["confirmed_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_linked_fact_id_fkey";
+            columns: ["linked_fact_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_facts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_linked_note_id_fkey";
+            columns: ["linked_note_id"];
+            isOneToOne: false;
+            referencedRelation: "clienteling_notes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_linked_opportunity_id_fkey";
+            columns: ["linked_opportunity_id"];
+            isOneToOne: false;
+            referencedRelation: "clienteling_opportunities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      advisor_capture_sessions: {
+        Row: {
+          created_at: string;
+          customer_id: string | null;
+          id: string;
+          raw_text: string;
+          retailer_id: string;
+          source: string;
+          staff_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id?: string | null;
+          id?: string;
+          raw_text: string;
+          retailer_id: string;
+          source?: string;
+          staff_id: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string | null;
+          id?: string;
+          raw_text?: string;
+          retailer_id?: string;
+          source?: string;
+          staff_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "advisor_capture_sessions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_sessions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_sessions_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ai_generations: {
         Row: {
           created_at: string;
@@ -18085,7 +18237,8 @@ export type Database = {
         | "product_recommendation"
         | "communication_draft"
         | "import_enrichment"
-        | "tableservice_grounded";
+        | "tableservice_grounded"
+        | "advisor_capture";
       ai_generation_status: "succeeded" | "failed";
       alteration_attachment_kind:
         "intake" | "label" | "evidence" | "progress" | "completion";
@@ -18454,6 +18607,7 @@ export const Constants = {
         "communication_draft",
         "import_enrichment",
         "tableservice_grounded",
+        "advisor_capture",
       ],
       ai_generation_status: ["succeeded", "failed"],
       alteration_attachment_kind: [
