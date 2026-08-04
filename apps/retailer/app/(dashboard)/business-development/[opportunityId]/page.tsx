@@ -1,6 +1,8 @@
 import {
   CorporateOpportunityRepository,
   CorporateTenderRepository,
+  CustomerFactRepository,
+  CustomerRepository,
   RetailerRepository,
 } from "@paon/database";
 import {
@@ -65,6 +67,34 @@ export default async function OpportunityDetailPage({
     notFound();
   }
   const signals = await repo.listSignals(opportunity.id);
+
+  // PHASE 18.12: existing-customer cross-reference, scoped to this
+  // retailer only. Never auto-added — a match is only ever a suggestion
+  // until a person confirms it with "Add as signal" below.
+  const client = await getSupabaseServerClient();
+  const employerMatches = await new CustomerFactRepository(
+    client,
+  ).findByFactTypeAndValue(
+    session.retailerId,
+    "employer",
+    opportunity.companyName,
+  );
+  const customerRepo = new CustomerRepository(client);
+  const employerMatchesWithCustomer = (
+    await Promise.all(
+      employerMatches.map(async (fact) => ({
+        fact,
+        customer: await customerRepo.findById(fact.customerId),
+      })),
+    )
+  ).filter(
+    (
+      m,
+    ): m is {
+      fact: (typeof employerMatches)[number];
+      customer: NonNullable<typeof m.customer>;
+    } => !!m.customer,
+  );
 
   const tenderRepo = new CorporateTenderRepository(
     await getSupabaseServerClient(),
@@ -162,6 +192,58 @@ export default async function OpportunityDetailPage({
           </Button>
         </form>
       </Card>
+
+      {employerMatchesWithCustomer.length > 0 ? (
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+            Existing customer match
+          </h2>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            {employerMatchesWithCustomer.length} of our own client
+            {employerMatchesWithCustomer.length === 1 ? "" : "s"} list
+            {employerMatchesWithCustomer.length === 1 ? "s" : ""}{" "}
+            {opportunity.companyName} as their employer — a citable basis for an
+            existing-customer-link signal, never added automatically.
+          </p>
+          <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
+            {employerMatchesWithCustomer.map(({ fact, customer }) => (
+              <li
+                key={fact.id}
+                className="flex items-center justify-between gap-3 py-2"
+              >
+                <div>
+                  <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                    {customer.fullName}
+                  </p>
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    Lists employer: {fact.valueLabel}
+                  </p>
+                </div>
+                <form action={addSignal}>
+                  <input
+                    type="hidden"
+                    name="opportunityId"
+                    value={opportunity.id}
+                  />
+                  <input
+                    type="hidden"
+                    name="source"
+                    value="existing_customer_link"
+                  />
+                  <input
+                    type="hidden"
+                    name="detail"
+                    value={`${customer.fullName} (existing client) lists "${fact.valueLabel}" as employer — customer fact ${fact.id}.`}
+                  />
+                  <Button type="submit" variant="secondary" size="sm">
+                    Add as signal
+                  </Button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       <Card className="flex flex-col gap-4">
         <h2 className="text-lg font-medium text-[var(--color-stone-900)]">

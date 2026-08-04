@@ -95,6 +95,32 @@ function toDomain(row: Row): CustomerFact {
 export class CustomerFactRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
 
+  /**
+   * Case-insensitive match on one fact type/value, scoped to this
+   * retailer only (PHASE 18.12 / BD-112) — the whole point is finding
+   * an *existing* customer of *this* retailer, never a cross-tenant
+   * search. Used to surface a citable `existing_customer_link` signal
+   * (18.1) rather than a silent, unexplained score bump: the caller
+   * gets back the real fact row (which customer, which fact) to cite.
+   */
+  async findByFactTypeAndValue(
+    retailerId: RetailerId,
+    factType: CustomerFactType,
+    valueLabel: string,
+  ): Promise<CustomerFact[]> {
+    const { data, error } = await this.client
+      .from("customer_facts")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .eq("fact_type", factType)
+      .ilike("value_label", `%${valueLabel.trim()}%`)
+      .is("deleted_at", null)
+      .is("superseded_by_fact_id", null)
+      .order("observed_at", { ascending: false });
+    if (error) throw error;
+    return data.map(toDomain);
+  }
+
   async listForCustomer(
     retailerId: RetailerId,
     customerId: CustomerId,

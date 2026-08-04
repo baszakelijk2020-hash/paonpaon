@@ -4746,7 +4746,7 @@ access" control (`setWearerLoginEmail`) — there was previously no
   - **Hard blockers:** external data source access; `blocked_external`.
   - **Status:** not started.
 
-- [ ] **18.12 Relationship cross-referencing and opportunity scoring from existing customers**
+- [x] **18.12 Relationship cross-referencing and opportunity scoring from existing customers**
   - **Requirement IDs:** BD-112.
   - **Dependencies:** `18.1`, `18.11`, existing `customers`/`customer_facts`.
   - **Owner boundary:** matching a discovered or manually entered company
@@ -4757,7 +4757,36 @@ access" control (`setWearerLoginEmail`) — there was previously no
   - **Acceptance:** a match is surfaced as a signal with a citable basis
     (which customer, which fact), never a silent, unexplained score bump.
   - **Tests:** match precision on seeded fixtures, no cross-tenant leakage.
-  - **Status:** not started.
+  - **Status (2026-08-04, takeover branch):** `verified_local`, built
+    ahead of its own stated `18.11` dependency — named honestly, not
+    hidden: the _manually entered_ signal case this item names in its own
+    owner boundary ("an existing private client who works at the target
+    company") needed nothing from `18.11`'s not-yet-built external
+    discovery, only the `employer` fact type `customer_facts` already
+    had (PHASE 7.3) and `18.1`'s existing `existing_customer_link` signal
+    source — so this ships the reviewable, human-confirmed half now;
+    matching a _discovered_ signal automatically still waits on `18.11`.
+    `CustomerFactRepository.findByFactTypeAndValue` is the only new
+    repository code — a case-insensitive match scoped to
+    `retailer_id = <this retailer>`, nothing broader. No new migration,
+    no new domain module: the match is surfaced on
+    `/business-development/[opportunityId]` as an "Existing customer
+    match" card naming the real customer and the real fact, and adding
+    it as a signal goes through the _exact same_ `addSignal` action
+    `18.1` already built — never an automatic score bump, never a
+    parallel write path. The signal's `detail` text cites the specific
+    `customer_facts` row id, so "which customer, which fact" is always
+    answerable from the signal itself, not just from having trusted the
+    match at the moment it was suggested.
+    `apps/retailer/e2e/corporate-relationship-crossref.spec.ts` proves
+    the full acceptance line in one browser run: an existing client's
+    employer fact surfaces with a citable basis, adding it as a signal
+    moves the score by exactly the `existing_customer_link` weight (30),
+    and — the cross-tenant-leakage test this item's own **Tests** line
+    requires — a matching employer fact seeded under a genuinely
+    different, already-existing fixture retailer
+    (`e2e-customer-workspace`, reused rather than seeding a throwaway
+    second tenant) never appears on the first retailer's page.
 
 - [ ] **18.13 End-to-end lifecycle hardening**
   - **Requirement IDs:** BD-113.
