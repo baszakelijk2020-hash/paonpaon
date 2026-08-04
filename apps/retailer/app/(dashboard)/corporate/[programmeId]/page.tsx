@@ -1,4 +1,5 @@
 import {
+  CitedRecommendationRepository,
   CorporateOfficeVisitRepository,
   CorporateRepository,
   CorporateRolloutRepository,
@@ -6,9 +7,9 @@ import {
   RetailerStaffRepository,
 } from "@paon/database";
 import {
+  computeEntitlementBalance,
   CORPORATE_EXCEPTION_KINDS,
   CORPORATE_EXCEPTION_PRIORITIES,
-  computeEntitlementBalance,
   ENTITLEMENT_PERIODS,
   isExceptionOverdue,
   summarizeProgrammeReadiness,
@@ -31,9 +32,11 @@ import {
   createWearer,
   markRolloutSlotCompleted,
   markRolloutSlotNoShow,
+  recomputeRenewalRisk,
   recordIssue,
   resolveException,
   resolveOfficeVisitRequest,
+  resolveRenewalTask,
   setWearerActive,
   setWearerLoginEmail,
 } from "../actions";
@@ -82,6 +85,8 @@ export default async function CorporateProgrammePage({
     rolloutDays,
     rolloutSlots,
     staffMembers,
+    liveRenewalRiskRows,
+    openRenewalTask,
   ] = await Promise.all([
     repo.findAccountById(programme.accountId),
     repo.findEntitlementVersions(programmeId),
@@ -92,7 +97,17 @@ export default async function CorporateProgrammePage({
     new CorporateRolloutRepository(client).findDaysByProgramme(programme.id),
     new CorporateRolloutRepository(client).findSlotsByProgramme(programme.id),
     new RetailerStaffRepository(client).findByRetailer(session.retailerId),
+    new CitedRecommendationRepository(client).listLive({
+      retailerId: session.retailerId,
+      kind: "corporate_renewal_risk",
+    }),
+    repo.findOpenRenewalTask(programmeId),
   ]);
+  const renewalRiskRecommendation = liveRenewalRiskRows.find((row) =>
+    (row.sources as unknown as { sourceRef: string }[]).some(
+      (s) => s.sourceRef === `corporate_programme:${programme.id}`,
+    ),
+  );
   const staffById = new Map<string, (typeof staffMembers)[number]>(
     staffMembers.map((s) => [s.id, s]),
   );
@@ -907,6 +922,57 @@ export default async function CorporateProgrammePage({
             </Button>
           </form>
         </details>
+      </Card>
+
+      <Card className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+            Analytics and renewal
+          </h2>
+          <form action={recomputeRenewalRisk.bind(null, programmeId)}>
+            <Button type="submit" variant="secondary" size="sm">
+              Recompute
+            </Button>
+          </form>
+        </div>
+        {renewalRiskRecommendation ? (
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-[var(--color-stone-700)]">
+              {renewalRiskRecommendation.statement}
+            </p>
+            <p className="text-xs text-[var(--color-stone-500)]">
+              Sample size {renewalRiskRecommendation.sample_size} ·{" "}
+              {renewalRiskRecommendation.confidence}
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            Not computed yet — press Recompute.
+          </p>
+        )}
+        {openRenewalTask ? (
+          <div className="border-[var(--color-warning-500)]/40 flex items-center justify-between gap-3 rounded-[var(--radius-md)] border p-3">
+            <div>
+              <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                Renewal task open
+              </p>
+              <p className="text-xs text-[var(--color-stone-500)]">
+                {openRenewalTask.reason}
+              </p>
+            </div>
+            <form
+              action={resolveRenewalTask.bind(
+                null,
+                programmeId,
+                openRenewalTask.id,
+              )}
+            >
+              <Button type="submit" variant="secondary" size="sm">
+                Mark done
+              </Button>
+            </form>
+          </div>
+        ) : null}
       </Card>
     </div>
   );

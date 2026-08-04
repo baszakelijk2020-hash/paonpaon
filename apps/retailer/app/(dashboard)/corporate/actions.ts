@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  CitedRecommendationRepository,
   CorporateOfficeVisitRepository,
   CorporateRepository,
   CorporateRolloutRepository,
@@ -357,5 +358,27 @@ export async function markRolloutSlotNoShow(
     slotId: asId<"CorporateRolloutSlotId">(slotId),
     programmeId: asId<"CorporateProgrammeId">(programmeId),
   });
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+export async function recomputeRenewalRisk(programmeId: string): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  await new CitedRecommendationRepository(
+    await getSupabaseServerClient(),
+  ).computeCorporateRenewalRisk({
+    retailerId: session.retailerId,
+    programmeId,
+  });
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+export async function resolveRenewalTask(
+  programmeId: string,
+  taskId: string,
+): Promise<void> {
+  await requireModuleSession("enterprise_verticals");
+  await new CorporateRepository(
+    await getSupabaseServerClient(),
+  ).resolveRenewalTask(taskId);
   revalidatePath(`/corporate/${programmeId}`);
 }

@@ -4645,7 +4645,63 @@ access" control (`setWearerLoginEmail`) — there was previously no
   - **Tests:** metric correctness against seeded fixtures, renewal-task
     generation timing.
   - **Non-goals:** no black-box renewal score.
-  - **Status:** not started.
+  - **Status (2026-08-04, takeover branch):** `verified_local`, built
+    ahead of its own stated `18.7` dependency and narrower than "contract
+    value" — both named honestly below, not hidden. Participation,
+    fulfilment and damage-rate metrics, and the renewal-risk signal they
+    feed, are all computable today directly from `14.1`/`18.8` data
+    (`corporate_wearers`, `corporate_issue_records`,
+    `corporate_exceptions`) — none of it needed `18.7`'s not-yet-built
+    lifecycle state machine, so waiting for that would have blocked real,
+    deliverable value on a dependency this item didn't actually require
+    yet. `RECOMMENDATION_KINDS` (14.2) gains `corporate_renewal_risk` —
+    the renewal signal reuses `cited_recommendations`/`buildRecommendation`
+    exactly, rather than a second citation mechanism, satisfying this
+    item's own "no black-box renewal score" non-goal with infrastructure
+    that already refuses an uncited or oversized-sample claim.
+    `packages/domain/src/corporate/renewal-analytics.ts`:
+    `computeCorporateProgrammeMetrics` (participation/fulfilment/damage-
+    per-wearer rates) and `assessRenewalRisk` — a plain, published
+    weighted formula (low participation and low fulfilment each worth up
+    to 40 points, live damage rate up to 20) returning every contributing
+    factor alongside the score, never a single unexplained number.
+    `shouldCreateRenewalTask` refuses a second task while one is already
+    open. `CitedRecommendationRepository.computeCorporateRenewalRisk`
+    (`packages/database`) is scoped per-programme via a
+    `corporate_programme:<id>` marker in `sources[].sourceRef` — `cited_recommendations`
+    has no `programme_id` column, and withdrawing "every live
+    recommendation of this kind" (the existing `withdrawLiveOfKind`
+    helper's shape) would have wrongly withdrawn every OTHER programme's
+    live renewal signal too, not just the one being recomputed,
+    discovered and fixed before this shipped, not after. The auto-created
+    `corporate_renewal_tasks` row is enforced to one-open-per-programme by
+    a unique index, not application logic alone. Wired to
+    `/corporate/[programmeId]` as an "Analytics and renewal" card: the
+    cited statement, sample size and confidence band, a Recompute button,
+    and an open task with a "Mark done" action.
+    `apps/retailer/e2e/corporate-renewal-analytics.spec.ts` proves the
+    arc for a real struggling programme (one inactive wearer of two, two
+    damage exceptions) in a browser: recompute produces a real cited row
+    scoped to the right programme, a renewal task is really created (DB-
+    asserted), and marking it done is real (`resolved_at` set). Found and
+    fixed a genuine test-authoring bug while proving this: the shared
+    fixture retailer accumulates one live `corporate_renewal_risk` row
+    per programme across every run of this suite, and the test's first
+    draft used `.single()` filtered only by kind — which silently returns
+    null once a second programme's row exists, exactly the "multiple
+    rows" case `.single()` cannot express as a pass — fixed by scoping to
+    this test's own programme marker, matching what the production
+    repository method itself already did correctly.
+  - Checkbox stays unchecked: "contract value" (named explicitly in the
+    owner boundary) has no source anywhere in the corporate data model —
+    no pricing, no contract-value field exists on `corporate_accounts`/
+    `corporate_programmes` at all — so it is not part of the computed
+    metrics, a real absence rather than a zero. "Repair" rate is also not
+    separately tracked (only `damaged`/`missing`/`replacement_request`
+    exception kinds feed the damage rate; there is no `repair` kind).
+    `18.7`'s full lifecycle remains not started, so nothing here is
+    wired to a contract-award or renewal-execution workflow beyond the
+    task itself.
 
 - [ ] **18.10 AI-assisted concept, moodboard, and image generation**
   - **Requirement IDs:** BD-110.

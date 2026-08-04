@@ -569,4 +569,26 @@ export class CorporateRepository {
       });
     if (error) throw error;
   }
+
+  async findOpenRenewalTask(programmeId: string): Promise<{
+    readonly id: string;
+    readonly reason: string;
+  } | null> {
+    const { data, error } = await this.client
+      .from("corporate_renewal_tasks")
+      .select("id, reason")
+      .eq("programme_id", programmeId)
+      .eq("status", "open")
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
+  async resolveRenewalTask(taskId: string): Promise<void> {
+    const { error } = await this.client
+      .from("corporate_renewal_tasks")
+      .update({ status: "done", resolved_at: new Date().toISOString() })
+      .eq("id", taskId);
+    if (error) throw error;
+  }
 }

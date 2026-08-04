@@ -22,6 +22,10 @@ export const RECOMMENDATION_KINDS = [
   "production_risk",
   "stock_risk",
   "staffing_risk",
+  // PHASE 18.9 / BD-109: reuses this citation mechanism rather than a
+  // second one, per that item's own "no black-box owner dashboard"
+  // non-goal.
+  "corporate_renewal_risk",
 ] as const;
 export type RecommendationKind = (typeof RECOMMENDATION_KINDS)[number];
 

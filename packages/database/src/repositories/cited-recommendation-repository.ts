@@ -5,9 +5,12 @@
  */
 
 import {
+  assessRenewalRisk,
   buildRecommendation,
+  computeCorporateProgrammeMetrics,
   findBusiestSlot,
   planRecompute,
+  shouldCreateRenewalTask,
   type CitedRecommendation,
   type RecommendationBuild,
   type RecommendationKind,
@@ -18,6 +21,7 @@ import type { PaonSupabaseClient } from "../client-type";
 import type { Database, Json } from "../generated/database.types";
 
 import { AppointmentRepository } from "./appointment-repository";
+import { CorporateRepository } from "./corporate-repository";
 
 type RecommendationRow =
   Database["public"]["Tables"]["cited_recommendations"]["Row"];
@@ -194,6 +198,149 @@ export class CitedRecommendationRepository {
       "Superseded by a newer computation.",
     );
     return this.store(args.retailerId, result);
+  }
+
+  /**
+   * Withdraws only the live `corporate_renewal_risk` recommendation for
+   * ONE programme — `withdrawLiveOfKind` withdraws every recommendation
+   * of a kind for the whole retailer, which is wrong here: a retailer
+   * can run several corporate programmes, each needing its own live
+   * renewal signal untouched by another programme's recompute. Scoped
+   * by a `corporate_programme:<id>` marker in `sources[].sourceRef`
+   * rather than a new column on a table every other recommendation kind
+   * also uses.
+   */
+  private async withdrawLiveRenewalRiskForProgramme(
+    retailerId: RetailerId,
+    programmeId: string,
+    reason: string,
+  ): Promise<void> {
+    const live = await this.listLive({
+      retailerId,
+      kind: "corporate_renewal_risk",
+    });
+    const marker = `corporate_programme:${programmeId}`;
+    const toWithdraw = live.filter((row) => {
+      const sources = row.sources as unknown as { sourceRef: string }[];
+      return sources.some((s) => s.sourceRef === marker);
+    });
+    for (const row of toWithdraw) {
+      const { error } = await this.client
+        .from("cited_recommendations")
+        .update({
+          withdrawn_at: new Date().toISOString(),
+          withdrawn_reason: reason,
+        })
+        .eq("id", row.id)
+        .eq("retailer_id", retailerId)
+        .is("withdrawn_at", null);
+      if (error) throw error;
+    }
+  }
+
+  /**
+   * The `corporate_renewal_risk` projector (PHASE 18.9 / BD-109). Reads
+   * live wearer/issue/exception counts for one programme, scores risk
+   * with the plain, published `assessRenewalRisk` formula, and stores a
+   * fully cited recommendation — citing the exact wearer ids the score
+   * was computed from. Auto-creates a `corporate_renewal_tasks` row
+   * when risk is medium/high and no task is already open (the unique
+   * index on `programme_id where status='open'` is the actual
+   * enforcement against duplicates, not this check alone).
+   */
+  async computeCorporateRenewalRisk(args: {
+    readonly retailerId: RetailerId;
+    readonly programmeId: string;
+    readonly asOf?: string;
+  }): Promise<
+    | { readonly ok: true; readonly id: string; readonly taskCreated: boolean }
+    | Exclude<RecommendationBuild, { readonly ok: true }>
+    | { readonly ok: false; readonly reason: "no_wearers_in_programme" }
+  > {
+    const asOf = args.asOf ?? new Date().toISOString();
+    const corporateRepo = new CorporateRepository(this.client);
+    const wearers = await corporateRepo.findWearersByProgramme(
+      args.programmeId,
+    );
+    if (wearers.length === 0) {
+      await this.withdrawLiveRenewalRiskForProgramme(
+        args.retailerId,
+        args.programmeId,
+        "Recomputed with no wearers in the programme.",
+      );
+      return { ok: false, reason: "no_wearers_in_programme" };
+    }
+
+    const issuesByWearer = await Promise.all(
+      wearers.map((w) => corporateRepo.findIssuesByWearer(w.id)),
+    );
+    const fulfilledWearerCount = issuesByWearer.filter(
+      (issues) => issues.length > 0,
+    ).length;
+    const exceptions = await corporateRepo.findExceptionsByProgramme(
+      args.programmeId,
+    );
+    const damageEventCount = exceptions.filter((e) =>
+      ["damaged", "missing", "replacement_request"].includes(e.kind),
+    ).length;
+
+    const metrics = computeCorporateProgrammeMetrics({
+      wearerCount: wearers.length,
+      activeWearerCount: wearers.filter((w) => w.active).length,
+      fulfilledWearerCount,
+      damageEventCount,
+    });
+    const risk = assessRenewalRisk(metrics);
+
+    const statement = `${Math.round(metrics.participationRate * 100)}% active, ${Math.round(metrics.fulfilmentRate * 100)}% fulfilled, ${damageEventCount} damage/replacement event${damageEventCount === 1 ? "" : "s"} across ${wearers.length} wearers — renewal risk ${risk.level} (score ${risk.score}/100).`;
+
+    const result = buildRecommendation({
+      kind: "corporate_renewal_risk",
+      statement,
+      sources: [
+        {
+          sourceRef: `corporate_programme:${args.programmeId}`,
+          projectorVersion: "corporate-renewal-risk-v1",
+          observedRows: wearers.length,
+        },
+      ],
+      window: {
+        from: new Date(0).toISOString(),
+        to: asOf,
+      },
+      sampleSize: wearers.length,
+      derivedFromFactIds: wearers.map((w) => w.id),
+    });
+    await this.withdrawLiveRenewalRiskForProgramme(
+      args.retailerId,
+      args.programmeId,
+      "Superseded by a newer computation.",
+    );
+    const stored = await this.store(args.retailerId, result);
+    if (!stored.ok) return stored;
+
+    let taskCreated = false;
+    const { data: openTask } = await this.client
+      .from("corporate_renewal_tasks")
+      .select("id")
+      .eq("programme_id", args.programmeId)
+      .eq("status", "open")
+      .maybeSingle();
+    if (
+      shouldCreateRenewalTask({ level: risk.level, hasOpenTask: !!openTask })
+    ) {
+      const { error: taskError } = await this.client
+        .from("corporate_renewal_tasks")
+        .insert({
+          retailer_id: args.retailerId,
+          programme_id: args.programmeId,
+          reason: statement,
+        });
+      if (taskError) throw taskError;
+      taskCreated = true;
+    }
+
+    return { ok: true, id: stored.id, taskCreated };
   }
 
   /**

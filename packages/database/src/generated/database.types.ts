@@ -3906,6 +3906,54 @@ export type Database = {
           },
         ];
       };
+      corporate_renewal_tasks: {
+        Row: {
+          created_at: string;
+          id: string;
+          programme_id: string;
+          reason: string;
+          resolved_at: string | null;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          programme_id: string;
+          reason: string;
+          resolved_at?: string | null;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          programme_id?: string;
+          reason?: string;
+          resolved_at?: string | null;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_renewal_tasks_programme_id_fkey";
+            columns: ["programme_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_renewal_tasks_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       corporate_rollout_days: {
         Row: {
           advisor_note: string | null;
