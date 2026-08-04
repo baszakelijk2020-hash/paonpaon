@@ -214,6 +214,10 @@ export type CorporateTenderApprovalId = Brand<
   string,
   "CorporateTenderApprovalId"
 >;
+export type CorporateOfficeVisitRequestId = Brand<
+  string,
+  "CorporateOfficeVisitRequestId"
+>;
 export type MicroCapsuleDropId = Brand<string, "MicroCapsuleDropId">;
 export type MicroCapsuleDropProductId = Brand<
   string,

@@ -1,7 +1,11 @@
 "use server";
 
-import { CorporateRepository } from "@paon/database";
 import {
+  CorporateOfficeVisitRepository,
+  CorporateRepository,
+} from "@paon/database";
+import {
+  asId,
   checkAccommodationNote,
   checkIssue,
   computeEntitlementBalance,
@@ -11,6 +15,7 @@ import {
   createCorporateProgrammeInputSchema,
   createCorporateWearerInputSchema,
   recordCorporateIssueInputSchema,
+  type CorporateOfficeVisitRequestStatus,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
@@ -208,5 +213,23 @@ export async function resolveException(
   await new CorporateRepository(
     await getSupabaseServerClient(),
   ).resolveException(exceptionId);
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+export async function resolveOfficeVisitRequest(
+  programmeId: string,
+  requestId: string,
+  status: Extract<
+    CorporateOfficeVisitRequestStatus,
+    "contacted" | "scheduled" | "declined"
+  >,
+): Promise<void> {
+  await requireModuleSession("enterprise_verticals");
+  await new CorporateOfficeVisitRepository(
+    await getSupabaseServerClient(),
+  ).resolve({
+    requestId: asId<"CorporateOfficeVisitRequestId">(requestId),
+    status,
+  });
   revalidatePath(`/corporate/${programmeId}`);
 }

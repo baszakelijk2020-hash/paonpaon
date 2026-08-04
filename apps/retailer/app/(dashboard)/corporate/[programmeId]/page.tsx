@@ -1,4 +1,8 @@
-import { CorporateRepository } from "@paon/database";
+import {
+  CorporateOfficeVisitRepository,
+  CorporateRepository,
+  RetailerRepository,
+} from "@paon/database";
 import {
   CORPORATE_EXCEPTION_KINDS,
   computeEntitlementBalance,
@@ -19,6 +23,7 @@ import {
   createWearer,
   recordIssue,
   resolveException,
+  resolveOfficeVisitRequest,
   setWearerActive,
   setWearerLoginEmail,
 } from "../actions";
@@ -39,18 +44,31 @@ export default async function CorporateProgrammePage({
   params: Promise<{ programmeId: string }>;
 }) {
   const { programmeId } = await params;
-  await requireModuleSession("enterprise_verticals", "read");
-  const repo = new CorporateRepository(await getSupabaseServerClient());
+  const session = await requireModuleSession("enterprise_verticals", "read");
+  const client = await getSupabaseServerClient();
+  const repo = new CorporateRepository(client);
 
   const programme = await repo.findProgrammeById(programmeId);
   if (!programme) notFound();
 
-  const [account, versions, wearers, exceptions] = await Promise.all([
+  const [
+    account,
+    versions,
+    wearers,
+    exceptions,
+    officeVisitRequests,
+    retailer,
+  ] = await Promise.all([
     repo.findAccountById(programme.accountId),
     repo.findEntitlementVersions(programmeId),
     repo.findWearersByProgramme(programmeId),
     repo.findExceptionsByProgramme(programmeId),
+    new CorporateOfficeVisitRepository(client).findByProgramme(programme.id),
+    new RetailerRepository(client).findById(session.retailerId),
   ]);
+  const customerAppBase = (
+    process.env["NEXT_PUBLIC_CUSTOMER_APP_URL"] ?? "http://localhost:3002"
+  ).replace(/\/$/, "");
   const latestVersion = versions[0] ?? null;
   const issuesByWearer = new Map(
     await Promise.all(
@@ -467,6 +485,99 @@ export default async function CorporateProgrammePage({
             </Button>
           </form>
         </details>
+      </Card>
+
+      <Card className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+            Office visit
+          </h2>
+          <p className="break-all text-xs text-[var(--color-stone-500)]">
+            Public landing page: {customerAppBase}/r/{retailer?.slug}
+            /corporate/{programme.id}
+          </p>
+        </div>
+        {officeVisitRequests.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No visit requests yet.
+          </p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
+            {officeVisitRequests.map((request) => (
+              <li
+                key={request.id}
+                className="flex items-center justify-between gap-3 py-2"
+              >
+                <div>
+                  <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                    {request.requesterName}
+                    {request.employeeReference
+                      ? ` — ${request.employeeReference}`
+                      : ""}
+                  </p>
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    {[request.contactEmail, request.note]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                </div>
+                {request.status === "open" || request.status === "contacted" ? (
+                  <div className="flex items-center gap-2">
+                    <Badge tone="neutral">
+                      {request.status === "open" ? "Open" : "Contacted"}
+                    </Badge>
+                    {request.status === "open" ? (
+                      <form
+                        action={resolveOfficeVisitRequest.bind(
+                          null,
+                          programmeId,
+                          request.id,
+                          "contacted",
+                        )}
+                      >
+                        <Button type="submit" variant="secondary" size="sm">
+                          Mark contacted
+                        </Button>
+                      </form>
+                    ) : null}
+                    <form
+                      action={resolveOfficeVisitRequest.bind(
+                        null,
+                        programmeId,
+                        request.id,
+                        "scheduled",
+                      )}
+                    >
+                      <Button type="submit" variant="secondary" size="sm">
+                        Scheduled
+                      </Button>
+                    </form>
+                    <form
+                      action={resolveOfficeVisitRequest.bind(
+                        null,
+                        programmeId,
+                        request.id,
+                        "declined",
+                      )}
+                    >
+                      <Button type="submit" variant="secondary" size="sm">
+                        Decline
+                      </Button>
+                    </form>
+                  </div>
+                ) : (
+                  <Badge
+                    tone={
+                      request.status === "scheduled" ? "success" : "neutral"
+                    }
+                  >
+                    {request.status === "scheduled" ? "Scheduled" : "Declined"}
+                  </Badge>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
     </div>
   );

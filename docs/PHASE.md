@@ -4331,7 +4331,47 @@ nowhere honest to store it.
     measurement capture for a named programme, scoped so one company
     never sees another's page or data.
   - **Tests:** cross-company isolation, appointment-booking wiring.
-  - **Status:** not started.
+  - **Status (2026-08-04, takeover branch):** `verified_local`, scope
+    intentionally narrower than the acceptance line above — named below,
+    not hidden. Migration
+    `20260804170000_add_corporate_office_visit_requests.sql` adds
+    `corporate_office_visit_requests` (no anonymous RLS insert policy at
+    all, matching `submit_table_service_inquiry`'s established shape —
+    `resolve_corporate_office_visit_page`/
+    `submit_corporate_office_visit_request`, both `security definer`,
+    are the only way an unauthenticated visitor reaches it) and reuses
+    `corporate_accounts`/`corporate_programmes` rather than any new
+    company/account table. `packages/domain/src/corporate/office-visit-request.ts`:
+    `checkResolveOfficeVisitRequest` refuses re-resolving an
+    already-`scheduled`/`declined` request. `CorporateOfficeVisitRepository`
+    wraps both RPCs and a staff-side `resolve`/`findByProgramme`. Public
+    page at `apps/customer/app/r/[slug]/corporate/[programmeId]`
+    (company/programme name only — no other client, no margins, no
+    wearer data) with a request form; the retailer's own
+    `/corporate/[programmeId]` page gained an "Office visit" card
+    showing the public link and the intake queue with
+    contacted/scheduled/declined actions.
+    `apps/customer/e2e/corporate-office-visit.spec.ts` proves an
+    anonymous submission really lands in the queue (DB-asserted, not
+    just a confirmation message); `apps/retailer/e2e/corporate-office-visit.spec.ts`
+    proves marking a request "Scheduled" is real (`resolved_at` set,
+    asserted against the database — an earlier draft of this test
+    asserted `getByText("Scheduled")`, which is also the un-clicked
+    button's own label and passed regardless of whether the click
+    actually worked; caught by adding a DB-level assertion and fixed by
+    asserting the button's removal instead, a real test bug found and
+    fixed, not a product bug).
+  - Checkbox stays unchecked: the owner boundary/acceptance names
+    booking an appointment or starting measurement capture directly from
+    this page, and neither exists here — a submitted request is a
+    lead-capture record in a staff-reviewed queue, not a live
+    appointment or a measurement session. Turning a request into an
+    actual scheduled slot against real advisor/room capacity is `18.6`'s
+    own item by design (see this file's migration header), not
+    attempted here. Cross-company isolation is structural (the RPC
+    validates `p_programme_id` against a real active programme/account/
+    retailer and returns only that scoped data) but has no dedicated
+    "company A cannot see company B's page" browser test.
 
 - [ ] **18.5 Employee portal (auth and self-service)**
   - **Requirement IDs:** BD-105.

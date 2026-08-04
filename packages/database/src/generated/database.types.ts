@@ -3634,6 +3634,63 @@ export type Database = {
           },
         ];
       };
+      corporate_office_visit_requests: {
+        Row: {
+          contact_email: string | null;
+          created_at: string;
+          employee_reference: string | null;
+          id: string;
+          note: string | null;
+          programme_id: string;
+          requester_name: string;
+          resolved_at: string | null;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          contact_email?: string | null;
+          created_at?: string;
+          employee_reference?: string | null;
+          id?: string;
+          note?: string | null;
+          programme_id: string;
+          requester_name: string;
+          resolved_at?: string | null;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          contact_email?: string | null;
+          created_at?: string;
+          employee_reference?: string | null;
+          id?: string;
+          note?: string | null;
+          programme_id?: string;
+          requester_name?: string;
+          resolved_at?: string | null;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_office_visit_requests_programme_id_fkey";
+            columns: ["programme_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_office_visit_requests_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       corporate_opportunities: {
         Row: {
           company_name: string;
@@ -18081,6 +18138,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      resolve_corporate_office_visit_page: {
+        Args: { p_programme_id: string };
+        Returns: Json;
+      };
       resolve_corporate_tender: {
         Args: { p_share_token: string };
         Returns: Json;
@@ -18269,6 +18330,16 @@ export type Database = {
           p_objective: string;
           p_requested_plan_key: string;
           p_website_url: string;
+        };
+        Returns: string;
+      };
+      submit_corporate_office_visit_request: {
+        Args: {
+          p_contact_email: string;
+          p_employee_reference: string;
+          p_note: string;
+          p_programme_id: string;
+          p_requester_name: string;
         };
         Returns: string;
       };
