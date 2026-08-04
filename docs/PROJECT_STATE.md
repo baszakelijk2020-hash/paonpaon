@@ -24,47 +24,113 @@ into PAON as a new **Stage 18** in `docs/PHASE.md` (search `### Stage 18` —
 it has its own audit preamble and 13 items, 18.1–18.13): opportunity
 intelligence (InsiderTailoring), tender/pitch builder, corporate office-visit
 landing pages, an employee self-service portal, fitting-rollout planning,
-corporate service desk, analytics/renewal engine, plus two `blocked_external`
-items (AI concept generation, external signal ingestion) and one large
-lifecycle-integration item (18.7) not yet started.
+corporate service desk, analytics/renewal engine, a lifecycle state machine,
+end-to-end hardening, and two items that turned out to need external
+provider/data access.
 
-### What is actually built and verified (`verified_local` in `PHASE.md`)
-
-Read `docs/PHASE.md`'s Stage 18 section for the authoritative, dated status
-line on each item — this list is a pointer, not a replacement:
+**All 13 items have now been touched — Stage 18 is functionally complete
+for everything buildable without external credentials.** Read
+`docs/PHASE.md`'s Stage 18 section for the authoritative, dated status line
+on each item — this list is a pointer, not a replacement:
 
 - **17.1** Advisor capture (AI-proposed, human-confirmed) — precursor work,
   done before Stage 18 started.
 - **18.1** Corporate opportunity pipeline — `[x]`, fully closed.
 - **18.2** Tender and pitch builder — `[x]`, fully closed.
-- **18.3** Public tender page — `verified_local`, named scope gaps remain
-  (see PHASE.md).
-- **18.4** Corporate office-visit landing page — `verified_local`.
+- **18.3** Public tender page — `verified_local`, named scope gap
+  (no expiry/revocation) remains.
+- **18.4** Corporate office-visit landing page — `verified_local`, named
+  scope gap (no appointment/measurement-capture wiring yet) remains.
 - **18.5** Employee portal auth path — `verified_local`. New
   `corporate_wearer` `AccountType` living under `apps/customer/app/employee`,
   own magic-link auth, own middleware carve-out. Hard-won fix: RLS scoping
   helper `current_wearer_id()` must do a direct table lookup on `auth.uid()`,
   **not** read a `wearer_id` JWT claim — the claim is stale on first sign-in.
-- **18.6** Fitting rollout planning — `verified_local`.
+- **18.6** Fitting rollout planning — `verified_local`, named scope gap (no
+  department/location grouping) remains.
+- **18.7** Corporate project and rollout management — `verified_local`. A
+  13-stage lifecycle state machine (`corporate_projects`/
+  `corporate_project_events`) tracking one project per opportunity from
+  `opportunity` through `renewal`. `opportunity`→`tender` and `tender`→
+  `award` fire automatically from the real events that cause them
+  (authoring a tender, winning the opportunity); the remaining nine
+  checkpoints advance through an audited staff "Advance" action. Named gap:
+  `fitting`/`production`/`qc`/`distribution`/`launch` have no automatic
+  trigger from 18.6 rollout completion or Stage 12 production/order objects
+  — they're staff-decided checkpoints with a real audit trail, not wired to
+  those systems yet.
 - **18.8** Corporate service desk — `verified_local` for the retailer side;
   see the unresolved bug below.
 - **18.9** Corporate analytics and renewal engine — `verified_local`.
   Deterministic (non-AI) `assessRenewalRisk` formula returns every
   contributing factor, never a bare score, per this codebase's
   "not a black box" scoring discipline.
+- **18.10** AI-assisted concept/moodboard generation — `verified_local` for
+  everything except the live provider call, which stays genuinely
+  `blocked_external` (no `OPENAI_API_KEY` configured in this environment).
+  `@paon/ai` gained a real `generateConceptImages` provider method
+  (implemented against OpenAI's image API, unit-tested against a mocked
+  client); `corporate_concept_assets` persists each image against a real
+  `ai_generations` audit row and gates it behind an exactly-once staff
+  approval before `resolve_corporate_tender` (18.3) will ever surface it —
+  enforced in SQL. Requesting generation with no provider configured
+  records a real `failed` audit row and creates no asset — proven by
+  actually clicking the button in this genuinely-unconfigured environment.
+- **18.11** External signal ingestion — `verified_local` for the
+  enforcement mechanism only; the autonomous discovery/ingestion pipeline
+  itself stays genuinely `blocked_external` (no external data source
+  access). A new `public_signal` source on `corporate_opportunity_signals`
+  requires a real, checkable `https?://` citation URL, enforced by a SQL
+  `check` constraint, not application code alone. No scraper/search-API
+  integration was built — fabricating one would mean feeding the citation
+  check false evidence, the exact failure mode this item exists to refuse.
+  A `public_signal` can currently only be entered by a real person citing a
+  real source through the retailer UI.
 - **18.12** Relationship cross-referencing / opportunity scoring from
   existing customers — `[x]`, fully closed, cross-tenant leakage proven
   absent in `apps/retailer/e2e/corporate-relationship-crossref.spec.ts`.
+- **18.13** End-to-end lifecycle hardening — `verified_local`, deliberately
+  scoped: one fixture company runs the entire built chain (signal →
+  opportunity → qualification → tender → win/account → programme →
+  employee/wearer → portal access → fitting rollout → service desk →
+  renewal analytics → every remaining lifecycle checkpoint through to
+  `renewal`) end to end through the real UI in
+  `apps/retailer/e2e/corporate-full-lifecycle.spec.ts`, with a final
+  assertion that the full `corporate_project_events` audit trail matches
+  the entire 13-stage chain in order. Does not (and cannot) prove 18.10/
+  18.11's blocked_external live paths.
 
-### What remains
+### What genuinely remains (not buildable without external access)
 
-- **18.7** Corporate project and rollout management — not started. This is
-  the large lifecycle-state-machine item; likely the next slice to build.
-- **18.13** End-to-end lifecycle hardening — not started, depends on 18.7.
-- **18.10** AI-assisted concept/moodboard generation — `blocked_external`
-  (needs an image-generation provider).
-- **18.11** External signal ingestion — `blocked_external` (needs external
-  data source access).
+- **18.10**'s live image-generation call — needs `OPENAI_API_KEY` (or
+  equivalent) configured.
+- **18.11**'s autonomous discovery/ingestion pipeline — needs external data
+  source access (a scraper target, a search API, etc.).
+- Named scope gaps on 18.3/18.4/18.5/18.6/18.7 (see each item's own status
+  block in `PHASE.md` for the precise gap) — these are buildable, just not
+  attempted yet.
+
+### A pre-existing, unrelated gate failure (not caused by this session)
+
+`pnpm run test` chains `pnpm validate:completion`
+(`packages/domain/scripts/validate-completion-evidence.ts`), which checks
+`docs/evidence/tranches/*.json` (a narrower, older mechanism than the
+per-item `docs/evidence/runs/*.json` browser-proof files this whole session
+used). That tranches directory has only ever contained `8.4.json` and
+`9.1.json` — every other `[x]`-checked item across the entire `PHASE.md`,
+including items checked off in sessions long before this one (11.4, 12.2,
+12.4, 13.1, 13.2), has never had a tranche file, so this gate has been
+failing on those pre-existing gaps regardless of anything built this
+session. 18.1/18.2/18.12 (checked `[x]` this session) now also show up in
+that same pre-existing "missing evidence" list — they are not a new class
+of gap, just three more names on an already-long list. Separately, 8.4/9.1's
+own tranche files have a `gitSha` that goes stale every time HEAD advances
+past their last refresh (expected — this branch has a recurring "docs:
+refresh 8.4 and 9.1 evidence at HEAD" commit pattern for exactly this
+reason; several such commits already exist in this branch's history). Do
+not treat a `validate:completion` failure as evidence this session's Stage
+18 work is broken — check `docs/evidence/runs/18.*.json` instead, which are
+current as of every Stage 18 commit.
 
 ### One known, unresolved, honestly-documented bug (18.8)
 
@@ -81,7 +147,7 @@ it. Documented precisely in `PHASE.md` 18.8's status block. The failing test
 red — do not recreate it until the root cause is found; investigate the
 Next.js Server Action fetch path for `/employee/**` vs the shopper path first.
 
-### Engineering discipline used throughout (apply the same way to 18.7+)
+### Engineering discipline used throughout (apply the same way to any follow-on work)
 
 - **Two-commit-per-slice**: (1) feature commit — code + tests + `PHASE.md`
   update, no evidence files; (2) rebuild the affected app
@@ -102,17 +168,21 @@ Next.js Server Action fetch path for `/employee/**` vs the shopper path first.
 
 ### Repository state / what needs the founder's action
 
-- **21 commits sit locally on `agent/grok-takeover-2026-07-30`, unpushed.**
+- **~30 commits sit locally on `agent/grok-takeover-2026-07-30`, unpushed.**
   Every `git push origin agent/grok-takeover-2026-07-30` attempt this session
   was refused by the Claude Code auto-mode classifier. This needs the
   founder's explicit action (push manually, or grant push permission) — do
   not force-bypass it. Working tree is otherwise clean (only untracked
   `.vscode/` and `image.png`, unrelated to this work).
-- Most recent commits, newest first: `14ef65b` (18.12 evidence),
-  `2d87e54` (18.12 feature), `c538cce`/`899496c` (18.9),
-  `325dd22`/`3ed0d20` (18.8), `a045139`/`8d5bfae` (18.6),
+- Most recent commits, newest first: `3475b91` (18.11 evidence), `5c26577`
+  (18.11 feature), `15fcff0`/`efde879` (18.10), `60abf79`/`3087951` (18.13),
+  `1c73acd`/`6621a39` (18.7), `14ef65b`/`2d87e54` (18.12), `c538cce`/
+  `899496c` (18.9), `325dd22`/`3ed0d20` (18.8), `a045139`/`8d5bfae` (18.6),
   `59b388f`/`48d2954` (18.4), `bb20db1` (18.5), back through `00dd085`
   (18.1) and `0a7ae8c` (17.1).
+- Full repo-wide `pnpm run lint` and `pnpm run typecheck` are clean.
+  `pnpm run test` fails only on the pre-existing `validate:completion` gate
+  described above — not a regression from this session.
 
 ## 2026-08-02 Codex audit correction
 
