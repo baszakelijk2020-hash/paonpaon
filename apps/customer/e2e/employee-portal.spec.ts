@@ -10,7 +10,9 @@ import { TEST_RETAILER_SLUG } from "./fixtures";
  * shoppers use, lands on their own portal page (never the shopper
  * dashboard), and sees their real entitlement balance — the same
  * `computeEntitlementBalance` the retailer-staff corporate page already
- * calls.
+ * calls. Also closes 18.5's own named gap: cross-employee isolation — a
+ * second wearer in the SAME programme, with their own real entitlement
+ * balance, never appears anywhere on the first wearer's own portal page.
  *
  * Session-type isolation itself (a `corporate_wearer` session refused
  * where a `customer` session is required) is not re-proven here in the
@@ -75,6 +77,17 @@ test("a corporate wearer signs in to the Employee Portal and sees their own enti
   });
   await repo.setWearerLoginEmail(wearer.id, loginEmail);
 
+  // A second wearer in the SAME programme — never signed in during this
+  // test, so anything of theirs appearing on the first wearer's own
+  // portal page would be a real cross-employee isolation failure.
+  const otherWearer = await repo.createWearer(retailerId, {
+    programmeId: programme.id,
+    employeeReference: `E2E-OTHER-${unique}`,
+    displayName: `E2E Other Wearer ${unique}`,
+    roleKey: "associate",
+    joinedOn: "2025-01-01",
+  });
+
   try {
     const { error: createUserError } = await admin.auth.admin.createUser({
       email: loginEmail,
@@ -106,6 +119,10 @@ test("a corporate wearer signs in to the Employee Portal and sees their own enti
     await expect(page.getByText(programme.name)).toBeVisible();
     await expect(page.getByText("suit")).toBeVisible();
     await expect(page.getByText("2/2 left")).toBeVisible();
+
+    // Cross-employee isolation (PHASE 18.5's own named gap, closed): the
+    // other wearer's own identity never appears on this wearer's page.
+    await expect(page.getByText(otherWearer.displayName)).toHaveCount(0);
   } finally {
     await admin.from("corporate_accounts").delete().eq("id", account.id);
   }

@@ -4480,10 +4480,14 @@ access" control (`setWearerLoginEmail`) — there was previously no
     `customerId` link (not every wearer has one) or new corporate-scoped
     work this slice didn't attempt, so this page shows only what it can
     show honestly rather than a page that silently shows nothing where
-    those sections would be. Cross-_employee_ isolation (one wearer
-    reading another's row) is guaranteed by the RLS policies added here
-    but is not directly e2e-proven with two wearers in the same test —
-    a real gap, not a false claim.
+    those sections would be.
+  - **Fix (2026-08-05, takeover branch):** cross-employee isolation is
+    now e2e-proven. `apps/customer/e2e/employee-portal.spec.ts` seeds a
+    second wearer in the SAME programme (their own real name, never
+    signed in during the test) and asserts their display name appears
+    nowhere on the first wearer's own signed-in portal page. The
+    underlying RLS guarantee was already real; what was missing was
+    proof it holds with two real wearers in play, not just one.
 
 - [x] **18.6 Measurement and fitting rollout planning**
   - **Requirement IDs:** BD-106.
