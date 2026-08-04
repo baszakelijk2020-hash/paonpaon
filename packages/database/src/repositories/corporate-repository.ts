@@ -1,9 +1,13 @@
 import {
   asId,
+  computeExceptionDueAt,
   type CorporateAccount,
   type CorporateAccountId,
   type CorporateException,
+  type CorporateExceptionEvent,
+  type CorporateExceptionEventType,
   type CorporateExceptionKind,
+  type CorporateExceptionPriority,
   type CorporateIssueRecordEntity,
   type CorporateProgramme,
   type CorporateWearer,
@@ -126,6 +130,11 @@ function toException(row: ExceptionRow): CorporateException {
     ...(row.action ? { action: row.action as LeaverAction } : {}),
     detail: row.detail,
     ...(row.resolved_at ? { resolvedAt: row.resolved_at } : {}),
+    ...(row.priority ? { priority: row.priority } : {}),
+    ...(row.due_at ? { dueAt: row.due_at } : {}),
+    ...(row.assigned_staff_id
+      ? { assignedStaffId: row.assigned_staff_id }
+      : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -423,6 +432,8 @@ export class CorporateRepository {
     retailerId: RetailerId,
     input: CreateCorporateExceptionInput,
   ): Promise<CorporateException> {
+    const now = new Date().toISOString();
+    const priority = input.priority ?? "normal";
     const { data, error } = await this.client
       .from("corporate_exceptions")
       .insert({
@@ -434,14 +445,24 @@ export class CorporateRepository {
         quantity: input.quantity ?? null,
         action: input.action ?? null,
         detail: input.detail,
+        priority,
+        due_at: computeExceptionDueAt({ priority, fromIso: now }),
       })
       .select("*")
       .single();
     if (error) throw error;
+    await this.writeExceptionEvent({
+      retailerId,
+      exceptionId: data.id,
+      eventType: "created",
+    });
     return toException(data);
   }
 
-  async resolveException(exceptionId: string): Promise<CorporateException> {
+  async resolveException(
+    exceptionId: string,
+    retailerId: RetailerId,
+  ): Promise<CorporateException> {
     const { data, error } = await this.client
       .from("corporate_exceptions")
       .update({ resolved_at: new Date().toISOString() })
@@ -449,6 +470,103 @@ export class CorporateRepository {
       .select("*")
       .single();
     if (error) throw error;
+    await this.writeExceptionEvent({
+      retailerId,
+      exceptionId,
+      eventType: "resolved",
+    });
     return toException(data);
+  }
+
+  /** Reassignment is visible on the ticket AND on its audit trail — the
+   * row alone cannot answer "who had this before". */
+  async assignException(args: {
+    readonly retailerId: RetailerId;
+    readonly exceptionId: string;
+    readonly staffId: string;
+  }): Promise<CorporateException> {
+    const { data, error } = await this.client
+      .from("corporate_exceptions")
+      .update({ assigned_staff_id: args.staffId })
+      .eq("id", args.exceptionId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    await this.writeExceptionEvent({
+      retailerId: args.retailerId,
+      exceptionId: args.exceptionId,
+      eventType: "assigned",
+      detail: args.staffId,
+    });
+    return toException(data);
+  }
+
+  /** Recomputes `due_at` from the moment of the change, not the ticket's
+   * original creation — an SLA that started counting down under the old
+   * priority should not silently keep that old clock. */
+  async changeExceptionPriority(args: {
+    readonly retailerId: RetailerId;
+    readonly exceptionId: string;
+    readonly priority: CorporateExceptionPriority;
+  }): Promise<CorporateException> {
+    const now = new Date().toISOString();
+    const { data, error } = await this.client
+      .from("corporate_exceptions")
+      .update({
+        priority: args.priority,
+        due_at: computeExceptionDueAt({
+          priority: args.priority,
+          fromIso: now,
+        }),
+      })
+      .eq("id", args.exceptionId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    await this.writeExceptionEvent({
+      retailerId: args.retailerId,
+      exceptionId: args.exceptionId,
+      eventType: "priority_changed",
+      detail: args.priority,
+    });
+    return toException(data);
+  }
+
+  async listExceptionEvents(
+    exceptionId: string,
+  ): Promise<readonly CorporateExceptionEvent[]> {
+    const { data, error } = await this.client
+      .from("corporate_exception_events")
+      .select("*")
+      .eq("exception_id", exceptionId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data.map((row) => ({
+      id: row.id,
+      exceptionId: row.exception_id,
+      eventType: row.event_type as CorporateExceptionEventType,
+      ...(row.detail ? { detail: row.detail } : {}),
+      ...(row.actor_staff_id ? { actorStaffId: row.actor_staff_id } : {}),
+      createdAt: row.created_at,
+    }));
+  }
+
+  private async writeExceptionEvent(args: {
+    readonly retailerId: RetailerId;
+    readonly exceptionId: string;
+    readonly eventType: CorporateExceptionEventType;
+    readonly detail?: string;
+    readonly actorStaffId?: string;
+  }): Promise<void> {
+    const { error } = await this.client
+      .from("corporate_exception_events")
+      .insert({
+        retailer_id: args.retailerId,
+        exception_id: args.exceptionId,
+        event_type: args.eventType,
+        detail: args.detail ?? null,
+        actor_staff_id: args.actorStaffId ?? null,
+      });
+    if (error) throw error;
   }
 }

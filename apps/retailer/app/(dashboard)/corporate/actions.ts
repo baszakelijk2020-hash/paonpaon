@@ -10,12 +10,14 @@ import {
   checkAccommodationNote,
   checkIssue,
   computeEntitlementBalance,
+  CORPORATE_EXCEPTION_PRIORITIES,
   createCorporateAccountInputSchema,
   createCorporateEntitlementVersionInputSchema,
   createCorporateExceptionInputSchema,
   createCorporateProgrammeInputSchema,
   createCorporateWearerInputSchema,
   recordCorporateIssueInputSchema,
+  type CorporateExceptionPriority,
   type CorporateOfficeVisitRequestStatus,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
@@ -194,11 +196,13 @@ export async function createException(
 ): Promise<void> {
   const session = await requireModuleSession("enterprise_verticals");
   const wearerId = (formData.get("wearerId") as string | null) || undefined;
+  const priorityRaw = formData.get("priority");
   const values = createCorporateExceptionInputSchema.parse({
     programmeId,
     wearerId,
     kind: formData.get("kind"),
     detail: formData.get("detail"),
+    priority: priorityRaw ? priorityRaw : undefined,
   });
   await new CorporateRepository(
     await getSupabaseServerClient(),
@@ -206,14 +210,53 @@ export async function createException(
   revalidatePath(`/corporate/${programmeId}`);
 }
 
+export async function assignExceptionToStaff(
+  programmeId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const exceptionId = String(formData.get("exceptionId") ?? "");
+  const staffId = String(formData.get("staffId") ?? "");
+  if (!exceptionId || !staffId) return;
+  await new CorporateRepository(
+    await getSupabaseServerClient(),
+  ).assignException({ retailerId: session.retailerId, exceptionId, staffId });
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+export async function changeExceptionPriority(
+  programmeId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const exceptionId = String(formData.get("exceptionId") ?? "");
+  const priority = String(formData.get("priority") ?? "");
+  if (
+    !exceptionId ||
+    !CORPORATE_EXCEPTION_PRIORITIES.includes(
+      priority as CorporateExceptionPriority,
+    )
+  ) {
+    return;
+  }
+  await new CorporateRepository(
+    await getSupabaseServerClient(),
+  ).changeExceptionPriority({
+    retailerId: session.retailerId,
+    exceptionId,
+    priority: priority as CorporateExceptionPriority,
+  });
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
 export async function resolveException(
   programmeId: string,
   exceptionId: string,
 ): Promise<void> {
-  await requireModuleSession("enterprise_verticals");
+  const session = await requireModuleSession("enterprise_verticals");
   await new CorporateRepository(
     await getSupabaseServerClient(),
-  ).resolveException(exceptionId);
+  ).resolveException(exceptionId, session.retailerId);
   revalidatePath(`/corporate/${programmeId}`);
 }
 

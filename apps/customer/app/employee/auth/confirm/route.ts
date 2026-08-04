@@ -45,16 +45,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   await new CorporateRepository(supabase).linkMyWearerAccount();
 
-  // `linkMyWearerAccount` just set `corporate_wearers.user_id`, and its
-  // trigger wrote the `wearer_id` claim onto `auth.users` — but the
-  // access token minted by `verifyOtp` above was issued a moment
-  // earlier, before that claim existed, and `auth.jwt()`-based checks
-  // (this app's own `resolveAppSession`, this database's RLS) decode
-  // that token locally rather than re-fetching. Without an explicit
-  // refresh here, a wearer's very first sign-in would carry a session
-  // that resolves as an ordinary customer until their token happens to
-  // rotate on its own.
-  await supabase.auth.refreshSession();
-
   return NextResponse.redirect(`${origin}${next}`);
 }

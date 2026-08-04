@@ -102,6 +102,12 @@ export const CORPORATE_EXCEPTION_KINDS = [
   "service_required",
   "fit_issue",
   "entitlement_dispute",
+  // Corporate service desk (PHASE 18.8 / BD-108) — extends this same
+  // vocabulary rather than forking a second ticketing table.
+  "damaged",
+  "missing",
+  "alteration_request",
+  "replacement_request",
 ] as const;
 export type CorporateExceptionKind = (typeof CORPORATE_EXCEPTION_KINDS)[number];
 
@@ -116,6 +122,11 @@ export interface CorporateException extends Timestamps {
   readonly action?: LeaverAction;
   readonly detail: string;
   readonly resolvedAt?: string;
+  /** PHASE 18.8: service-desk fields, all optional so 14.1's original
+   * exceptions (leaver/service/fit/dispute) keep working unchanged. */
+  readonly priority?: string;
+  readonly dueAt?: string;
+  readonly assignedStaffId?: string;
 }
 
 export interface EntitlementRule {

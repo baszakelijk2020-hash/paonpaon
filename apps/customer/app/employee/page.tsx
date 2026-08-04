@@ -1,23 +1,36 @@
 import { CorporateRepository } from "@paon/database";
 import { computeEntitlementBalance } from "@paon/domain";
+import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
+
+import { RaiseRequestForm } from "./raise-request-form";
 
 import { requireWearerAppSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
+const KIND_LABELS: Record<string, string> = {
+  damaged: "Damaged",
+  missing: "Missing",
+  fit_issue: "Fit issue",
+  alteration_request: "Alteration request",
+  replacement_request: "Replacement request",
+  leaver_return: "Leaver return",
+  service_required: "Service required",
+  entitlement_dispute: "Entitlement dispute",
+};
+
 /**
- * The Employee Portal home (PHASE 18.5 / BD-105). Scoped narrowly to
- * this MVP: who the wearer is, which programme they're under, and their
- * own live entitlement balance and issue history — the same
- * `computeEntitlementBalance` the retailer-staff corporate page already
- * calls, never a second computation of the same number.
+ * The Employee Portal home (PHASE 18.5 / BD-105). Who the wearer is,
+ * their programme, live entitlement balance and issue history — the
+ * same `computeEntitlementBalance` the retailer-staff corporate page
+ * already calls, never a second computation of the same number — plus
+ * (PHASE 18.8) raising a service-desk request directly, the one owner-
+ * boundary item from 18.5 the service desk unblocked.
  *
- * Deliberately not yet here: appointments, orders, alterations, tickets
- * and announcements — the owner boundary names all of these, but they
- * need either the wearer's optional `customerId` link (not every wearer
- * has one) or the not-yet-built corporate service desk (18.8). Shipping
- * a page that silently shows nothing for those would look like a bug;
- * this page shows only what it can show honestly.
+ * Still deliberately not here: appointments, orders and alterations —
+ * those need the wearer's optional `customerId` link, which not every
+ * wearer has. Shipping a page that silently shows nothing for those
+ * would look like a bug; this page shows only what it can show honestly.
  */
 export default async function EmployeePortalPage() {
   const session = await requireWearerAppSession();
@@ -35,10 +48,14 @@ export default async function EmployeePortalPage() {
     );
   }
 
-  const [programme, versions, issues] = await Promise.all([
+  const [programme, versions, issues, myRequests] = await Promise.all([
     repo.findProgrammeById(wearer.programmeId),
     repo.findEntitlementVersions(wearer.programmeId),
     repo.findIssuesByWearer(wearer.id),
+    // RLS scopes this to the signed-in wearer's own rows only — the
+    // wearer-select policy (18.8) is the only one their session
+    // satisfies, so this never leaks a colleague's request.
+    repo.findExceptionsByProgramme(wearer.programmeId),
   ]);
   const latestVersion = versions[0] ?? null;
   const balances = latestVersion
@@ -119,6 +136,35 @@ export default async function EmployeePortalPage() {
             ))}
           </ul>
         )}
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+          Report a problem
+        </h2>
+        {myRequests.length > 0 ? (
+          <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
+            {myRequests.map((request) => (
+              <li
+                key={request.id}
+                className="flex items-center justify-between gap-2 py-2 text-sm"
+              >
+                <div>
+                  <p className="text-[var(--color-stone-900)]">
+                    {KIND_LABELS[request.kind] ?? request.kind}
+                  </p>
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    {request.detail}
+                  </p>
+                </div>
+                <Badge tone={request.resolvedAt ? "success" : "neutral"}>
+                  {request.resolvedAt ? "Resolved" : "Open"}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <RaiseRequestForm />
       </Card>
     </main>
   );

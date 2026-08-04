@@ -3,11 +3,14 @@ import {
   CorporateRepository,
   CorporateRolloutRepository,
   RetailerRepository,
+  RetailerStaffRepository,
 } from "@paon/database";
 import {
   CORPORATE_EXCEPTION_KINDS,
+  CORPORATE_EXCEPTION_PRIORITIES,
   computeEntitlementBalance,
   ENTITLEMENT_PERIODS,
+  isExceptionOverdue,
   summarizeProgrammeReadiness,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
@@ -19,7 +22,9 @@ import { Select } from "@paon/ui/components/Select";
 import { notFound } from "next/navigation";
 
 import {
+  assignExceptionToStaff,
   assignWearerToRolloutDay,
+  changeExceptionPriority,
   createEntitlementVersion,
   createException,
   createRolloutDay,
@@ -41,6 +46,17 @@ const EXCEPTION_KIND_LABELS: Record<string, string> = {
   service_required: "Service required",
   fit_issue: "Fit issue",
   entitlement_dispute: "Entitlement dispute",
+  damaged: "Damaged",
+  missing: "Missing",
+  alteration_request: "Alteration request",
+  replacement_request: "Replacement request",
+};
+
+const EXCEPTION_PRIORITY_LABELS: Record<string, string> = {
+  low: "Low",
+  normal: "Normal",
+  high: "High",
+  urgent: "Urgent",
 };
 
 export default async function CorporateProgrammePage({
@@ -65,6 +81,7 @@ export default async function CorporateProgrammePage({
     retailer,
     rolloutDays,
     rolloutSlots,
+    staffMembers,
   ] = await Promise.all([
     repo.findAccountById(programme.accountId),
     repo.findEntitlementVersions(programmeId),
@@ -74,7 +91,12 @@ export default async function CorporateProgrammePage({
     new RetailerRepository(client).findById(session.retailerId),
     new CorporateRolloutRepository(client).findDaysByProgramme(programme.id),
     new CorporateRolloutRepository(client).findSlotsByProgramme(programme.id),
+    new RetailerStaffRepository(client).findByRetailer(session.retailerId),
   ]);
+  const staffById = new Map<string, (typeof staffMembers)[number]>(
+    staffMembers.map((s) => [s.id, s]),
+  );
+  const nowIso = new Date().toISOString();
   const wearersById = new Map<string, (typeof wearers)[number]>(
     wearers.map((w) => [w.id, w]),
   );
@@ -458,36 +480,128 @@ export default async function CorporateProgrammePage({
           </p>
         ) : (
           <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
-            {exceptions.map((exception) => (
-              <li
-                key={exception.id}
-                className="flex items-center justify-between gap-3 py-2"
-              >
-                <div>
-                  <p className="text-sm font-medium text-[var(--color-stone-900)]">
-                    {EXCEPTION_KIND_LABELS[exception.kind] ?? exception.kind}
-                  </p>
-                  <p className="text-xs text-[var(--color-stone-500)]">
-                    {exception.detail}
-                  </p>
-                </div>
-                {exception.resolvedAt ? (
-                  <Badge tone="success">Resolved</Badge>
-                ) : (
-                  <form
-                    action={resolveException.bind(
-                      null,
-                      programmeId,
-                      exception.id,
-                    )}
-                  >
-                    <Button type="submit" variant="secondary" size="sm">
-                      Resolve
-                    </Button>
-                  </form>
-                )}
-              </li>
-            ))}
+            {exceptions.map((exception) => {
+              const overdue = isExceptionOverdue({
+                ...(exception.dueAt ? { dueAt: exception.dueAt } : {}),
+                ...(exception.resolvedAt
+                  ? { resolvedAt: exception.resolvedAt }
+                  : {}),
+                now: nowIso,
+              });
+              const assignedStaff = exception.assignedStaffId
+                ? staffById.get(exception.assignedStaffId)
+                : undefined;
+              return (
+                <li key={exception.id} className="flex flex-col gap-2 py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                        {EXCEPTION_KIND_LABELS[exception.kind] ??
+                          exception.kind}
+                      </p>
+                      <p className="text-xs text-[var(--color-stone-500)]">
+                        {exception.detail}
+                      </p>
+                      <p className="text-xs text-[var(--color-stone-500)]">
+                        {exception.priority
+                          ? EXCEPTION_PRIORITY_LABELS[exception.priority]
+                          : "Normal"}{" "}
+                        priority
+                        {assignedStaff
+                          ? ` · assigned to ${assignedStaff.fullName}`
+                          : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {exception.resolvedAt ? (
+                        <Badge tone="success">Resolved</Badge>
+                      ) : overdue ? (
+                        <Badge tone="danger">Overdue</Badge>
+                      ) : (
+                        <Badge tone="neutral">Open</Badge>
+                      )}
+                    </div>
+                  </div>
+                  {!exception.resolvedAt ? (
+                    <div className="flex flex-wrap items-end gap-2">
+                      <form
+                        action={changeExceptionPriority.bind(null, programmeId)}
+                        className="flex items-end gap-2"
+                      >
+                        <input
+                          type="hidden"
+                          name="exceptionId"
+                          value={exception.id}
+                        />
+                        <FormField
+                          label="Priority"
+                          htmlFor={`priority-${exception.id}`}
+                        >
+                          <Select
+                            id={`priority-${exception.id}`}
+                            name="priority"
+                            defaultValue={exception.priority ?? "normal"}
+                          >
+                            {CORPORATE_EXCEPTION_PRIORITIES.map((priority) => (
+                              <option key={priority} value={priority}>
+                                {EXCEPTION_PRIORITY_LABELS[priority]}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormField>
+                        <Button type="submit" variant="secondary" size="sm">
+                          Update priority
+                        </Button>
+                      </form>
+                      <form
+                        action={assignExceptionToStaff.bind(null, programmeId)}
+                        className="flex items-end gap-2"
+                      >
+                        <input
+                          type="hidden"
+                          name="exceptionId"
+                          value={exception.id}
+                        />
+                        <FormField
+                          label="Assign to"
+                          htmlFor={`assign-staff-${exception.id}`}
+                        >
+                          <Select
+                            id={`assign-staff-${exception.id}`}
+                            name="staffId"
+                            required
+                            defaultValue=""
+                          >
+                            <option value="" disabled>
+                              Choose staff
+                            </option>
+                            {staffMembers.map((staff) => (
+                              <option key={staff.id} value={staff.id}>
+                                {staff.fullName}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormField>
+                        <Button type="submit" variant="secondary" size="sm">
+                          Assign
+                        </Button>
+                      </form>
+                      <form
+                        action={resolveException.bind(
+                          null,
+                          programmeId,
+                          exception.id,
+                        )}
+                      >
+                        <Button type="submit" variant="secondary" size="sm">
+                          Resolve
+                        </Button>
+                      </form>
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         )}
         <details className="text-sm">
@@ -513,6 +627,15 @@ export default async function CorporateProgrammePage({
                 {CORPORATE_EXCEPTION_KINDS.map((kind) => (
                   <option key={kind} value={kind}>
                     {EXCEPTION_KIND_LABELS[kind] ?? kind}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+            <FormField label="Priority" htmlFor="priority">
+              <Select id="priority" name="priority" defaultValue="normal">
+                {CORPORATE_EXCEPTION_PRIORITIES.map((priority) => (
+                  <option key={priority} value={priority}>
+                    {EXCEPTION_PRIORITY_LABELS[priority]}
                   </option>
                 ))}
               </Select>

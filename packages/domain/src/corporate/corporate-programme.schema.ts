@@ -5,10 +5,14 @@ import {
   ENTITLEMENT_PERIODS,
   LEAVER_ACTIONS,
 } from "./corporate-programme";
+import { CORPORATE_EXCEPTION_PRIORITIES } from "./service-desk";
 
 export const entitlementPeriodSchema = z.enum(ENTITLEMENT_PERIODS);
 export const corporateExceptionKindSchema = z.enum(CORPORATE_EXCEPTION_KINDS);
 export const leaverActionSchema = z.enum(LEAVER_ACTIONS);
+export const corporateExceptionPrioritySchema = z.enum(
+  CORPORATE_EXCEPTION_PRIORITIES,
+);
 
 export const entitlementRuleInputSchema = z.object({
   roleKey: z.string().trim().min(1).max(64),
@@ -76,6 +80,7 @@ export const createCorporateExceptionInputSchema = z.object({
   quantity: z.number().int().min(1).optional(),
   action: leaverActionSchema.optional(),
   detail: z.string().trim().min(5).max(2000),
+  priority: corporateExceptionPrioritySchema.optional(),
 });
 export type CreateCorporateExceptionInput = z.infer<
   typeof createCorporateExceptionInputSchema

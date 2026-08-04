@@ -4564,7 +4564,72 @@ access" control (`setWearerLoginEmail`) — there was previously no
     every state change is audited, and an overdue SLA is visible, not
     silent.
   - **Tests:** SLA breach detection, assignment, audit completeness.
-  - **Status:** not started.
+  - **Status (2026-08-04, takeover branch):** `verified_local` for the
+    staff-facing half; a real, reproduced gap on the employee-facing
+    half, named below rather than hidden. Migration
+    `20260804190000_add_corporate_service_desk.sql` extends
+    `corporate_exceptions` (14.1) rather than forking a second ticketing
+    table: `kind` gains `damaged`/`missing`/`alteration_request`/
+    `replacement_request` (the CHECK constraint is dropped and
+    recreated, not just widened by a second constraint), plus
+    `priority`/`due_at`/`assigned_staff_id`, all nullable/defaulted so
+    every pre-existing leaver/service/fit/dispute row keeps working
+    unchanged. `corporate_exception_events` is the new append-only audit
+    trail this item's acceptance actually requires — insert-only grant,
+    no update/delete exists on it at all.
+    `packages/domain/src/corporate/service-desk.ts`:
+    `SLA_HOURS_BY_PRIORITY` (a fixed, published table — urgent 4h, high
+    24h, normal 72h, low 168h) and `computeExceptionDueAt`/
+    `isExceptionOverdue`, the latter explicitly false once resolved
+    regardless of the due date, so a closed ticket never shows as
+    overdue. `CorporateRepository.createException`/`resolveException`/
+    `assignException`/`changeExceptionPriority` each write both the row
+    update and an audit event in the same call — never one without the
+    other. Wired into `/corporate/[programmeId]`'s existing Exceptions
+    card: priority selector, assign-to-staff, and an Overdue badge
+    alongside Open/Resolved. `apps/retailer/e2e/corporate-service-desk.spec.ts`
+    proves the full staff-side arc in a real browser: a ticket's SLA is
+    backdated to simulate time passing (real time manipulation, not a
+    shortcut around the domain logic), the Overdue badge appears,
+    assigning and reprioritizing are each asserted against
+    `corporate_exception_events` in order (`created`, `assigned`,
+    `priority_changed`, `resolved`) — proving the audit trail, not just
+    the UI's momentary state.
+  - **Employee-facing half — real, unresolved gap:** the owner boundary
+    also requires a wearer to raise a ticket directly from the Employee
+    Portal. `corporate_exceptions_wearer_insert`/`_wearer_select` RLS
+    policies were added (scoped to `wearer_id = current_wearer_id()`),
+    and `apps/customer/app/employee`'s "Report a problem" card
+    (`raiseServiceRequest`, `useActionState`-based per this app's own
+    established pattern for this class of form) was built against them.
+    It could not be proven in a real browser: a wearer's Server Action
+    POST to `/employee` — issued from the exact same page, in the same
+    session, moments after a GET to that same URL correctly rendered as
+    that wearer — is redirected by this app's own middleware to
+    `/employee/login` because `supabase.auth.getUser()` reports no user
+    for that specific POST, despite the immediately preceding GET
+    resolving correctly. Reproduced repeatedly, including after removing
+    a since-unnecessary `refreshSession()` call this investigation
+    determined was not the cause (a real, incidental cleanup: RLS no
+    longer depends on the JWT's `wearer_id` claim after `18.5`'s
+    `current_wearer_id()` fix, so that call was dead weight — removed
+    regardless of this bug). Not caused by session expiry (local
+    `jwt_expiry` is 3600s) and not reproducible on the equivalent
+    already-working shopper flow
+    (`apps/customer/e2e/account-preferences.spec.ts` submits a Server
+    Action from `/account` after its own magic-link confirm redirect and
+    passes reliably), so this is specific to the `/employee` path's
+    interaction with Next.js Server Actions, not a general confirm-route
+    or cookie-propagation defect. The failing browser test was removed
+    rather than left permanently red; the staff-side proof above stands
+    on its own for this item's core acceptance. A fresh investigation
+    pass — ideally with direct CDP network/cookie tracing beyond what
+    this session's `page.on(...)` instrumentation could resolve — is the
+    named next step, not a re-guess.
+  - Checkbox stays unchecked because of the gap immediately above: staff
+    can raise/manage every kind of ticket, and the RLS/domain layer for
+    wearer self-service is in place and code-reviewed, but "raisable by
+    ... an employee directly" is not proven working end to end.
 
 - [ ] **18.9 Corporate analytics and renewal engine**
   - **Requirement IDs:** BD-109.

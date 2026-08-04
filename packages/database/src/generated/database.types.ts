@@ -3502,14 +3502,69 @@ export type Database = {
           },
         ];
       };
+      corporate_exception_events: {
+        Row: {
+          actor_staff_id: string | null;
+          created_at: string;
+          detail: string | null;
+          event_type: string;
+          exception_id: string;
+          id: string;
+          retailer_id: string;
+        };
+        Insert: {
+          actor_staff_id?: string | null;
+          created_at?: string;
+          detail?: string | null;
+          event_type: string;
+          exception_id: string;
+          id?: string;
+          retailer_id: string;
+        };
+        Update: {
+          actor_staff_id?: string | null;
+          created_at?: string;
+          detail?: string | null;
+          event_type?: string;
+          exception_id?: string;
+          id?: string;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_exception_events_actor_staff_id_fkey";
+            columns: ["actor_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_exception_events_exception_id_fkey";
+            columns: ["exception_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_exceptions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_exception_events_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       corporate_exceptions: {
         Row: {
           action: string | null;
+          assigned_staff_id: string | null;
           created_at: string;
           detail: string;
+          due_at: string | null;
           garment_key: string | null;
           id: string;
           kind: string;
+          priority: string;
           programme_id: string;
           quantity: number | null;
           resolved_at: string | null;
@@ -3519,11 +3574,14 @@ export type Database = {
         };
         Insert: {
           action?: string | null;
+          assigned_staff_id?: string | null;
           created_at?: string;
           detail: string;
+          due_at?: string | null;
           garment_key?: string | null;
           id?: string;
           kind: string;
+          priority?: string;
           programme_id: string;
           quantity?: number | null;
           resolved_at?: string | null;
@@ -3533,11 +3591,14 @@ export type Database = {
         };
         Update: {
           action?: string | null;
+          assigned_staff_id?: string | null;
           created_at?: string;
           detail?: string;
+          due_at?: string | null;
           garment_key?: string | null;
           id?: string;
           kind?: string;
+          priority?: string;
           programme_id?: string;
           quantity?: number | null;
           resolved_at?: string | null;
@@ -3546,6 +3607,13 @@ export type Database = {
           wearer_id?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "corporate_exceptions_assigned_staff_id_fkey";
+            columns: ["assigned_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "corporate_exceptions_programme_id_fkey";
             columns: ["programme_id"];
