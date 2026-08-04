@@ -2,6 +2,7 @@
 
 import { requireRetailerRole } from "@paon/auth";
 import {
+  AcademyRepository,
   InternalCommunityRepository,
   RetailerStaffRepository,
 } from "@paon/database";
@@ -114,4 +115,62 @@ export async function moderateContribution(
   return {
     notice: nextState === "approved" ? "Approved and published." : "Rejected.",
   };
+}
+
+const GRADE_REJECTION_MESSAGES: Record<string, string> = {
+  no_criteria: "Add at least one criterion.",
+  grade_without_evidence:
+    "Describe what was actually observed — at least 10 characters. Ungrounded feedback teaches nothing.",
+  evidence_ref_required: "Cite where this was observed.",
+  self_grading_not_permitted: "You can't grade your own roleplay.",
+};
+
+/**
+ * A manager records a graded roleplay observation, always citing evidence.
+ * `academy_roleplay_grades` is append-only, so there is no edit action —
+ * a mistaken grade is corrected by recording a new one, not editing history.
+ */
+export async function recordRoleplayGrade(
+  _previous: LearningActionState,
+  formData: FormData,
+): Promise<LearningActionState> {
+  const session = await requireModuleSession("retail_operations", "mutate");
+  requireRetailerRole(session.retailerRole, "manager");
+
+  const supabase = await getSupabaseServerClient();
+  const grader = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!grader) {
+    return { formError: "Your staff record could not be found." };
+  }
+
+  const staffId = String(formData.get("staffId") ?? "").trim();
+  const lessonKey = String(formData.get("lessonKey") ?? "").trim();
+  const criterionKey = String(formData.get("criterionKey") ?? "").trim();
+  const evidenceRef = String(formData.get("evidenceRef") ?? "").trim();
+  const observedBehaviour = String(
+    formData.get("observedBehaviour") ?? "",
+  ).trim();
+  if (!staffId || !lessonKey) {
+    return { formError: "Choose a staff member and name the lesson." };
+  }
+
+  const result = await new AcademyRepository(supabase).recordRoleplayGrade({
+    retailerId: session.retailerId,
+    staffId,
+    lessonKey,
+    evidence: [{ criterionKey, evidenceRef, observedBehaviour }],
+    gradedByStaffId: grader.id,
+  });
+  if (!result.ok) {
+    return {
+      formError:
+        GRADE_REJECTION_MESSAGES[result.reason] ??
+        "That grade could not be recorded.",
+    };
+  }
+
+  revalidatePath("/staff/learning");
+  return { notice: "Grade recorded." };
 }

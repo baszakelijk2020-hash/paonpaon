@@ -1,4 +1,5 @@
 import {
+  AcademyRepository,
   InternalCommunityRepository,
   RetailerStaffRepository,
 } from "@paon/database";
@@ -9,6 +10,7 @@ import { formatDate } from "@paon/utils";
 
 import {
   ModerateContributionForm,
+  RecordRoleplayGradeForm,
   SubmitContributionForm,
 } from "./learning-forms";
 
@@ -37,8 +39,9 @@ export default async function LearningPage() {
   }
 
   const isManager = retailerRoleAtLeast(session.retailerRole, "manager");
+  const academyRepo = new AcademyRepository(supabase);
 
-  const [approved, mine, queue] = await Promise.all([
+  const [approved, mine, queue, allStaff, myGrades] = await Promise.all([
     communityRepo.listApprovedContributions({ retailerId: session.retailerId }),
     communityRepo.listContributionsByAuthor({
       retailerId: session.retailerId,
@@ -49,7 +52,17 @@ export default async function LearningPage() {
           retailerId: session.retailerId,
         })
       : Promise.resolve([]),
+    isManager
+      ? staffRepo.findByRetailer(session.retailerId)
+      : Promise.resolve([]),
+    academyRepo.listGradesForStaff({
+      retailerId: session.retailerId,
+      staffId: viewer.id,
+    }),
   ]);
+  const staffOptions = allStaff
+    .filter((member) => member.id !== viewer.id)
+    .map((member) => ({ id: member.id, label: member.fullName }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -153,6 +166,59 @@ export default async function LearningPage() {
                 </p>
                 <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--color-stone-700)]">
                   {item.body}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      {isManager ? (
+        <Card>
+          <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
+            Record a roleplay grade
+          </h2>
+          <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+            Every grade cites what was actually observed and where — an
+            ungrounded grade teaches nothing and cannot be disputed.
+          </p>
+          <RecordRoleplayGradeForm staff={staffOptions} />
+        </Card>
+      ) : null}
+
+      <Card>
+        <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
+          Your roleplay grades ({myGrades.length})
+        </h2>
+        {myGrades.length === 0 ? (
+          <p className="mt-3 text-sm text-[var(--color-stone-500)]">
+            No graded roleplay yet.
+          </p>
+        ) : (
+          <ul id="learning-grades" className="mt-3 flex flex-col gap-3">
+            {myGrades.map((grade) => (
+              <li
+                key={grade.id}
+                data-grade-id={grade.id}
+                className="flex flex-col gap-1 border-b border-[var(--color-stone-100)] pb-3 last:border-0"
+              >
+                <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                  {grade.lessonKey}
+                </p>
+                {grade.evidence.map((item, index) => (
+                  <p
+                    key={index}
+                    className="text-xs text-[var(--color-stone-700)]"
+                  >
+                    <span className="font-medium">{item.criterionKey}:</span>{" "}
+                    {item.observedBehaviour}{" "}
+                    <span className="text-[var(--color-stone-500)]">
+                      ({item.evidenceRef})
+                    </span>
+                  </p>
+                ))}
+                <p className="text-xs text-[var(--color-stone-500)]">
+                  {formatDate(grade.createdAt, "en-US")}
                 </p>
               </li>
             ))}

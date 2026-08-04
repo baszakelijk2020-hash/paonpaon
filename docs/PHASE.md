@@ -3623,6 +3623,39 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     without their approval. Missing: the libraries themselves, DailyBriefing,
     MunroMentor, all UI and browser proof. Licensed media stays
     `blocked_external` for that content only.
+  - **Update (2026-08-04, takeover branch):** the roleplay/coaching half of
+    the acceptance criterion is wired end to end and browser-proven —
+    the first UI or persistence this item has had. `AcademyRepository`
+    (`packages/database`) is thin persistence over the existing
+    `checkRoleplayGrade`: ungrounded feedback (no evidence ref, or an
+    observed-behaviour string under 10 characters) is refused before it is
+    ever written, and self-grading is refused with a friendly reason ahead
+    of the schema's own `academy_grade_self_grading` CHECK. Added to the
+    existing `/staff/learning` page (`apps/retailer/app/(dashboard)/staff/learning`)
+    rather than a new route, since it is already this workspace's coaching
+    surface: a manager records a grade citing a criterion, an evidence ref
+    and the specific observed behaviour; the graded staff member sees it
+    on their own page. `academy_roleplay_grades` is append-only (no
+    UPDATE/DELETE grant for any role, including service_role), so a
+    mistaken grade is corrected by recording a new one, never by editing
+    the old one — there is deliberately no edit affordance anywhere.
+    `academy-roleplay.spec.ts` proves the full loop in the browser: signed
+    in as the manager persona, the manager's own staff id is asserted
+    absent from the staff picker (self-grading has no path through the UI
+    at all, not just a refused submission), a real grade is recorded for
+    the advisor persona and read back from the DB with the exact evidence
+    array and the correct grader/gradee ids, then — after an explicit
+    sign-out/sign-in, since a live session does not switch personas by
+    itself — the advisor's own page is asserted to show that exact grade,
+    cited in full, with no grading form offered (grading is a manager
+    action, not a peer one). The checkbox stays unchecked: this item's
+    owner boundary is five subsystems (separate customer/staff/owner/media
+    libraries, guided MTM tiers, DailyBriefing, MunroMentor, and the AMAM
+    consultancy request/project/milestone workflow) and only the roleplay
+    grading loop exists. Missing: the knowledge libraries, guided tier
+    selection UI, DailyBriefing, MunroMentor, and the consultancy project
+    workflow — all still domain-and-schema-only with no UI. Licensed media
+    stays `blocked_external` for that content only, unchanged.
 
 - [ ] **16.2 Media and future-products incubation**
   - **Requirement IDs:** `KNW-105`, `NET-103`.
