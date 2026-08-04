@@ -2134,6 +2134,28 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     `migration-write-through.spec.ts` passed with
     `docs/evidence/runs/9.1.json` `status=passed`. Provider adapters remain
     Stage 9.2.
+  - **Fix (2026-08-04, takeover branch):** "idempotently" in the acceptance
+    criterion was not actually true — found while re-running the full
+    retailer e2e suite for unrelated work, on a persistent local DB that had
+    accumulated a real prior publish. `publishJob`'s reconciliation
+    (`migration_publish_receipts`) is scoped to one `job_id`, but "Load
+    fixture job" mints a fresh job id every click; republishing the same
+    fixture under a new job therefore always tried to `create()` the same
+    product slug and `insert()` the same order number a second time,
+    throwing on the retailer-wide unique constraints instead of reconciling
+    against what an earlier job already published — the previous single
+    passing run had only ever exercised a clean database, never this path.
+    Fixed by checking for an existing product (by slug) and order (by
+    order_number) before creating either, reconciling against them when
+    found rather than attempting a duplicate insert. Verified by publishing
+    a fresh fixture job twice in a row against the same database: both runs
+    now pass, and the second is faster (`~3s` vs `~23s`) because it
+    reconciles instead of writing. A full retailer e2e run afterward found
+    one unrelated failure — `message-attachments.spec.ts`'s inline image
+    resolves a correctly signed URL but Playwright reports the `<img>`
+    hidden — reproduced twice, not caused by this change, and left
+    uninvestigated for a separate pass rather than expanding this fix's
+    scope.
 
 - [ ] **9.2 Shopify and Faden executable adapters**
   - **Status:** `implemented_unverified`; contracts/fixtures exist, but the

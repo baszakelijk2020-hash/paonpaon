@@ -271,23 +271,36 @@ export class MigrationJobRepository {
           .toLowerCase()
           .replace(/[^a-z0-9-]+/g, "-")
           .slice(0, 80);
-        const product = await productRepo.create({
-          retailerId: args.retailerId,
-          name: row.payload.name || row.externalId,
-          slug,
-          description: `Imported via staged-file migration (${row.externalId})`,
-          status: "active",
-          isMadeToOrder: false,
-          isAlterable: true,
-        });
-        const priceMinor = Number(row.payload.price_minor ?? 0);
-        const currency = row.payload.currency || "EUR";
-        const variant = await variantRepo.create({
-          productId: product.id,
-          sku,
-          price: { amountMinorUnits: priceMinor, currency },
-          inventoryQuantity: 0,
-        });
+        // Reconciliation above is scoped to this job's own receipts, but the
+        // slug is unique per retailer regardless of job — republishing the
+        // same fixture under a fresh job id (exactly what re-running the
+        // dry-run fixture does) must reconcile against a product an earlier
+        // job already created, not attempt a second insert and fail.
+        const product =
+          (await productRepo.findBySlug(args.retailerId, slug)) ??
+          (await productRepo.create({
+            retailerId: args.retailerId,
+            name: row.payload.name || row.externalId,
+            slug,
+            description: `Imported via staged-file migration (${row.externalId})`,
+            status: "active",
+            isMadeToOrder: false,
+            isAlterable: true,
+          }));
+        const existingVariant = (
+          await variantRepo.findByProduct(product.id)
+        ).find((candidate) => candidate.sku === sku);
+        const variant =
+          existingVariant ??
+          (await variantRepo.create({
+            productId: product.id,
+            sku,
+            price: {
+              amountMinorUnits: Number(row.payload.price_minor ?? 0),
+              currency: row.payload.currency || "EUR",
+            },
+            inventoryQuantity: 0,
+          }));
         canonicalId = product.id;
         productIdsByExternal.set(row.externalId, product.id);
         variantIdsBySku.set(sku, variant.id);
@@ -340,38 +353,57 @@ export class MigrationJobRepository {
         const currency = row.payload.currency || "EUR";
         const status =
           row.payload.status === "completed" ? "completed" : "placed";
-        const { data: order, error: orderError } = await this.client
-          .from("orders")
-          .insert({
-            retailer_id: args.retailerId,
-            customer_id: customerId,
-            order_number: `MIG-${row.externalId}`,
-            status,
-            channel: "in_store",
-            currency,
-            subtotal_amount_minor_units: totalMinor,
-            total_amount_minor_units: totalMinor,
-            placed_at: new Date().toISOString(),
-          })
-          .select("id")
-          .single();
-        if (orderError) throw orderError;
-        canonicalId = order.id;
+        const orderNumber = `MIG-${row.externalId}`;
 
-        // Attach one line from the first published variant when available so
-        // order consumers see a real line, not a receipt-only shell.
-        const firstVariantId = variantIdsBySku.values().next().value;
-        if (firstVariantId) {
-          const { error: lineError } = await this.client
-            .from("order_lines")
+        // Same reconciliation gap as the product branch above: order_number
+        // is unique per retailer regardless of job, so republishing the
+        // fixture under a fresh job id must reconcile against an order an
+        // earlier job already created, not attempt a second insert.
+        const { data: existingOrder, error: existingOrderError } =
+          await this.client
+            .from("orders")
+            .select("id")
+            .eq("retailer_id", args.retailerId)
+            .eq("order_number", orderNumber)
+            .maybeSingle();
+        if (existingOrderError) throw existingOrderError;
+
+        if (existingOrder) {
+          canonicalId = existingOrder.id;
+        } else {
+          const { data: order, error: orderError } = await this.client
+            .from("orders")
             .insert({
-              order_id: order.id,
-              product_variant_id: firstVariantId,
-              quantity: 1,
-              unit_price_amount_minor_units: totalMinor,
-              unit_price_currency: currency,
-            });
-          if (lineError) throw lineError;
+              retailer_id: args.retailerId,
+              customer_id: customerId,
+              order_number: orderNumber,
+              status,
+              channel: "in_store",
+              currency,
+              subtotal_amount_minor_units: totalMinor,
+              total_amount_minor_units: totalMinor,
+              placed_at: new Date().toISOString(),
+            })
+            .select("id")
+            .single();
+          if (orderError) throw orderError;
+          canonicalId = order.id;
+
+          // Attach one line from the first published variant when available
+          // so order consumers see a real line, not a receipt-only shell.
+          const firstVariantId = variantIdsBySku.values().next().value;
+          if (firstVariantId) {
+            const { error: lineError } = await this.client
+              .from("order_lines")
+              .insert({
+                order_id: order.id,
+                product_variant_id: firstVariantId,
+                quantity: 1,
+                unit_price_amount_minor_units: totalMinor,
+                unit_price_currency: currency,
+              });
+            if (lineError) throw lineError;
+          }
         }
       }
 
