@@ -1,6 +1,7 @@
 import {
   CorporateOpportunityRepository,
   CorporateTenderRepository,
+  RetailerRepository,
 } from "@paon/database";
 import {
   asId,
@@ -77,6 +78,12 @@ export default async function OpportunityDetailPage({
     })),
   );
   const canCreateTender = opportunity.stage !== "lost";
+  const retailer = await new RetailerRepository(
+    await getSupabaseServerClient(),
+  ).findById(session.retailerId);
+  const customerAppBase = (
+    process.env["NEXT_PUBLIC_CUSTOMER_APP_URL"] ?? "http://localhost:3002"
+  ).replace(/\/$/, "");
 
   const nextStages = CORPORATE_OPPORTUNITY_STAGES.filter(
     (stage) =>
@@ -177,6 +184,11 @@ export default async function OpportunityDetailPage({
                 <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
                   {tender.title}
                 </h3>
+                <p className="break-all text-xs text-[var(--color-stone-500)]">
+                  Public link (shows only the latest approved version):{" "}
+                  {customerAppBase}/r/{retailer?.slug}/tenders/
+                  {tender.shareToken}
+                </p>
                 {versions.length === 0 ? (
                   <p className="text-xs text-[var(--color-stone-500)]">
                     No version authored yet.

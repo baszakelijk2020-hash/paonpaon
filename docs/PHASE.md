@@ -4285,7 +4285,38 @@ nowhere honest to store it.
   - **Tests:** token scoping, draft-content non-exposure, expiry/revocation.
   - **Non-goals:** no general-purpose public CMS.
   - **Hard blockers:** none identified yet.
-  - **Status:** not started.
+  - **Status (2026-08-04, takeover branch):** `verified_local`, with a
+    named gap kept unchecked below. Migration
+    `20260804150000_add_corporate_tender_public_page.sql` adds a
+    `share_token` column to `corporate_tenders` and
+    `resolve_corporate_tender` (SECURITY DEFINER), extending the exact
+    anonymous-opaque-token pattern `resolve_gift_invitation` already
+    established rather than inventing a second public-page mechanism —
+    the audit note at the top of this stage named this reuse explicitly.
+    The function resolves the tender's latest version that has a row in
+    `corporate_tender_approvals`; a tender with zero approved versions
+    returns `not_published` with no summary/concepts/pricing fields at
+    all, enforced in the SQL function itself, not left to the calling
+    page to withhold. `CorporateTenderRepository.resolvePublic` wraps
+    the RPC (mirroring `GiftRepository.resolveInvitation`). Wired to
+    `apps/customer/app/r/[slug]/tenders/[token]/page.tsx`, and the
+    retailer's opportunity page now prints the public link inline for
+    staff to copy. `apps/customer/e2e/corporate-tender-reveal.spec.ts`
+    proves the arc in a real browser: before approval the page reads
+    "not yet published" and a probe for the (already-authored) draft
+    summary text finds nothing, then after approving that exact version
+    the page shows its summary, garment concepts and version number —
+    directly proving the SQL function's join-on-approval, not just the
+    page's rendering choice. This customer-app spec is not wired to
+    `writeBrowserProofRun`/`docs/evidence/runs/*.json`, matching this
+    codebase's existing convention that ADR-068 evidence tracking is a
+    retailer-app-only harness — no existing `apps/customer/e2e/*.spec.ts`
+    uses it either (checked `gift.spec.ts` for precedent). The checkbox
+    stays unchecked: this item's own **Tests** line named
+    "expiry/revocation" and none exists — `share_token` is permanent
+    with no revoke action anywhere, so a link, once shared, is
+    shareable forever. That is a real gap against this item's own
+    acceptance, not a future nice-to-have.
 
 - [ ] **18.4 Corporate campaign and office-visit landing pages**
   - **Requirement IDs:** BD-104.

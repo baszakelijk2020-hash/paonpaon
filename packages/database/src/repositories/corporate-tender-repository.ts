@@ -6,6 +6,7 @@ import {
   type CorporateTender,
   type CorporateTenderApproval,
   type CorporateTenderId,
+  type CorporateTenderPublicReveal,
   type CorporateTenderVersion,
   type CorporateTenderVersionId,
   type RetailerId,
@@ -26,6 +27,7 @@ function toTender(row: TenderRow): CorporateTender {
     retailerId: asId<"RetailerId">(row.retailer_id),
     opportunityId: row.opportunity_id,
     title: row.title,
+    shareToken: row.share_token,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -221,5 +223,20 @@ export class CorporateTenderRepository {
       throw error;
     }
     return { ok: true, approval: toApproval(data) };
+  }
+
+  /** Anonymous, opaque-token reveal (`resolve_corporate_tender`, SECURITY
+   * DEFINER) — the only way an external viewer sees a tender. Exposes the
+   * latest APPROVED version only; a tender with none resolves to
+   * `not_published` with no draft content, enforced in the function
+   * itself. */
+  async resolvePublic(
+    shareToken: string,
+  ): Promise<CorporateTenderPublicReveal> {
+    const { data, error } = await this.client.rpc("resolve_corporate_tender", {
+      p_share_token: shareToken,
+    });
+    if (error) throw error;
+    return data as unknown as CorporateTenderPublicReveal;
   }
 }

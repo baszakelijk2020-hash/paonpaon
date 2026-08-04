@@ -3891,6 +3891,7 @@ export type Database = {
           id: string;
           opportunity_id: string;
           retailer_id: string;
+          share_token: string;
           title: string;
           updated_at: string;
         };
@@ -3899,6 +3900,7 @@ export type Database = {
           id?: string;
           opportunity_id: string;
           retailer_id: string;
+          share_token?: string;
           title: string;
           updated_at?: string;
         };
@@ -3907,6 +3909,7 @@ export type Database = {
           id?: string;
           opportunity_id?: string;
           retailer_id?: string;
+          share_token?: string;
           title?: string;
           updated_at?: string;
         };
@@ -18068,6 +18071,10 @@ export type Database = {
           p_retailer_id: string;
           p_variant_id: string;
         };
+        Returns: Json;
+      };
+      resolve_corporate_tender: {
+        Args: { p_share_token: string };
         Returns: Json;
       };
       resolve_gift_invitation: {

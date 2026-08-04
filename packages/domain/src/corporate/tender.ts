@@ -30,6 +30,7 @@ export interface CorporateTender extends Timestamps {
   readonly retailerId: RetailerId;
   readonly opportunityId: string;
   readonly title: string;
+  readonly shareToken: string;
 }
 
 export interface CorporateTenderVersion {
@@ -69,6 +70,27 @@ export function checkCreateTender(args: {
     return { ok: false, reason: "title_required" };
   }
   return { ok: true };
+}
+
+export const CORPORATE_TENDER_PUBLIC_STATUSES = [
+  "not_published",
+  "published",
+] as const;
+export type CorporateTenderPublicStatus =
+  (typeof CORPORATE_TENDER_PUBLIC_STATUSES)[number];
+
+/** The full payload `resolve_corporate_tender` returns to an anonymous
+ * viewer — the tender's latest APPROVED version only, or `not_published`
+ * with zero content if none exists yet. Mirrors `GiftReveal`'s shape. */
+export interface CorporateTenderPublicReveal {
+  readonly retailerDisplayName: string;
+  readonly companyName: string;
+  readonly tenderTitle: string;
+  readonly status: CorporateTenderPublicStatus;
+  readonly version?: number;
+  readonly summary?: string;
+  readonly garmentConcepts?: readonly string[];
+  readonly pricingNote?: string;
 }
 
 export type CreateTenderVersionCheck =
