@@ -1,6 +1,30 @@
 import { expect, test } from "@playwright/test";
 
 import { TEST_OWNER_EMAIL, TEST_OWNER_PASSWORD } from "./fixtures";
+import { writeBrowserProofRun } from "./write-browser-proof-run";
+
+const PHASE_ITEM_ID = "16.5";
+const BROWSER_PROOF_SPEC =
+  "apps/retailer/e2e/wedding-party-coordination.spec.ts";
+
+let baseFlowPassed = false;
+let aftercarePassed = false;
+let groupFittingPassed = false;
+let guestVoucherPassed = false;
+
+test.afterAll(async () => {
+  await writeBrowserProofRun({
+    phaseItemId: PHASE_ITEM_ID,
+    spec: BROWSER_PROOF_SPEC,
+    status:
+      baseFlowPassed &&
+      aftercarePassed &&
+      groupFittingPassed &&
+      guestVoucherPassed
+        ? "passed"
+        : "failed",
+  });
+});
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/login");
@@ -48,6 +72,7 @@ test("owner starts a wedding party, adds a groomsman, and messages the party", a
   // (/messages?c=<id>), not a path segment. Accept either so this
   // assertion tracks "a conversation is open", which is what it means.
   await expect(page).toHaveURL(/\/messages(\/[0-9a-f-]+|\?c=[0-9a-f-]+)$/);
+  baseFlowPassed = true;
 });
 
 test("owner adds a delivery & pickup readiness instruction for the whole party", async ({
@@ -75,6 +100,7 @@ test("owner adds a delivery & pickup readiness instruction for the whole party",
   await expect(planItem).toBeVisible();
   await expect(planItem.getByText("Whole party")).toBeVisible();
   await expect(planItem.getByText("Pending", { exact: true })).toBeVisible();
+  aftercarePassed = true;
 });
 
 test("owner schedules a group fitting for the wedding party", async ({
@@ -103,6 +129,7 @@ test("owner schedules a group fitting for the wedding party", async ({
   const fittingItem = page.locator("li", { hasText: "Capacity 8" });
   await expect(fittingItem).toBeVisible();
   await expect(fittingItem).toContainText("Mar 15, 2027");
+  groupFittingPassed = true;
 });
 
 test("owner issues a guest voucher and marks it redeemed", async ({ page }) => {
@@ -142,4 +169,5 @@ test("owner issues a guest voucher and marks it redeemed", async ({ page }) => {
   await expect(
     voucherItem.getByRole("button", { name: "Mark redeemed" }),
   ).toHaveCount(0);
+  guestVoucherPassed = true;
 });

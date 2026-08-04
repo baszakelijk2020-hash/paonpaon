@@ -3829,6 +3829,40 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     start disagreeing about what a leap-year date means. Missing: invite
     and inspiration UI, fitting scheduling, browser proof. The live
     occasionwear pilot stays `blocked_external`; the pack contracts do not.
+  - **Correction (2026-08-04, takeover branch):** the line above is stale.
+    Auditing this item while working the roadmap found that fitting
+    scheduling, guest vouchers, aftercare, inspiration and design choices
+    were **already built and browser-proven** by earlier work on this
+    branch — just never reflected here, and never given evidence tracking,
+    so they were invisible to the ADR-068 discipline. Correcting rather
+    than silently trusting the checkbox: on the retailer side,
+    `apps/retailer/e2e/wedding-party-coordination.spec.ts` (now wired to
+    `writeBrowserProofRun`, `docs/evidence/runs/16.5.json`) proves an owner
+    creating a party, adding a member, messaging it, adding an aftercare
+    instruction, scheduling a group fitting, and issuing + redeeming a
+    guest voucher. On the customer side — genuinely new territory this
+    pass, since retailer staff cannot exercise it: `set_wedding_design_choice`
+    and the other write RPCs for `wedding_inspiration_items`/
+    `wedding_design_choices`/`wedding_date_candidates` all re-derive
+    `auth.uid()` against the _customer_ (organizer or member) row, so a
+    retailer-staff session is refused by design — this UI can only exist
+    in the customer app. Six specs there
+    (`apps/customer/e2e/wedding-party-{inspiration,design-choice,
+date-agreement,group-fitting,guest-voucher,aftercare}.spec.ts`) were
+    run fresh and all six pass: an organizer pins an inspiration note,
+    sets a party-wide outfit choice, proposes and finalizes a wedding
+    date, and sees the fitting/voucher/aftercare the retailer created.
+    These six are not yet wired to `writeBrowserProofRun` themselves — a
+    real remaining gap, not claimed as evidence-tracked — but their
+    passing runs are the basis for this correction. The checkbox stays
+    unchecked: `checkGroupFittingCapacity`'s "group exceptions" summary
+    and `nextAnniversary`'s continuation have no caller anywhere in either
+    app, and no spec exercises the invite/join-link flow
+    (`joinViaInvite`, `/r/[slug]/wedding-parties/join/[token]`) despite
+    the route existing. Missing: retailer-facing group-exceptions view,
+    anniversary continuation UI, invite-flow browser proof, and evidence
+    tracking for the six customer specs. The live occasionwear pilot
+    stays `blocked_external`; the pack contracts do not.
 
 ## Real hard blockers
 
