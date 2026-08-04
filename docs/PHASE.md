@@ -4870,7 +4870,67 @@ access" control (`setWearerLoginEmail`) — there was previously no
     a browser proof; every step names the real object/table it produced,
     not a stub.
   - **Tests:** full-chain browser proof.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `verified_local`, deliberately
+    scoped — named explicitly below, not hidden. This item's own
+    **Dependencies** line reads "18.1–18.12 all complete", which is not
+    literally true (18.10/18.11 are `blocked_external` and will not be
+    "complete" without external provider/data-source access this build
+    cannot obtain) — proceeding anyway is a deliberate, named deviation
+    from that dependency line, the same class of judgment call this
+    stage's own build order note already exercised elsewhere: the
+    acceptance itself ("one fixture company runs the full chain end to
+    end... every step names the real object/table it produced") is
+    independently satisfiable for every item that is actually built,
+    and waiting indefinitely on two blocked-external items to prove the
+    other eleven would leave a real, working chain unproven for no
+    honest reason.
+    `apps/retailer/e2e/corporate-full-lifecycle.spec.ts` is that
+    fixture-company run: one company moves through signal → opportunity
+    (18.1) → qualification (18.1) → tender authored and approved (18.2,
+    project auto-advances `opportunity` → `tender`) → win, a real
+    `corporate_accounts` row (18.1, project auto-advances `tender` →
+    `award`) → a real `corporate_programmes` row (14.1) → a real
+    employee/`corporate_wearers` row with portal access granted (14.1 /
+    18.5) → a fitting day and assignment (18.6) → a service-desk
+    exception logged and resolved (18.8) → renewal analytics recomputed
+    (18.9) → every remaining named checkpoint
+    (`design_approval`/`sample_approval`/`material_approval`/
+    `employee_import`/`fitting`/`production`/`qc`/`distribution`/
+    `launch`/`renewal`) advanced one at a time through the real staff UI
+    (18.7). The test's final assertion reads the full
+    `corporate_project_events` audit trail directly and asserts its
+    `to_stage` sequence equals the entire 13-stage chain in order — proof
+    that no step was skipped or silently stalled, not just that the last
+    page load looked right. Full corporate/business-development e2e
+    regression run alongside it: 10/10 green together (this spec plus
+    `corporate.spec.ts`, `corporate-rollout.spec.ts`,
+    `corporate-service-desk.spec.ts`, `corporate-renewal-analytics.spec.ts`,
+    `corporate-tender.spec.ts`, `business-development.spec.ts`,
+    `corporate-project-lifecycle.spec.ts`,
+    `corporate-relationship-crossref.spec.ts`,
+    `corporate-office-visit.spec.ts`), confirming this run does not
+    disturb any existing item's own proof.
+  - **Deliberately not re-proven here** (each already has its own
+    dedicated browser proof and this spec stays retailer-app-only, no
+    cross-app auth switching): the public tender "share" reveal
+    (18.3's own `apps/customer/e2e/corporate-tender-reveal.spec.ts`), the
+    office-visit landing page submission (18.4's own
+    `apps/customer/e2e/corporate-office-visit.spec.ts`), and employee
+    portal sign-in/self-service (18.5's own
+    `apps/customer/e2e/employee-portal.spec.ts`) — raising a request
+    from that side hits 18.8's own separately-documented open bug and is
+    not attempted here.
+  - Checkbox stays unchecked: **18.10 and 18.11 are not proven at all**
+    (`blocked_external`, not started) — this item's acceptance is met
+    for the built portion of the chain only, not literally "the full
+    chain" the owner boundary names. No bulk "employee import" exists
+    (one wearer is added here, not a batch — a real, named gap inherited
+    from 18.5's own scope). `production`/`qc`/`distribution`/`launch`
+    advance as staff-decided checkpoints with a real audit trail but no
+    live production-order or measurement object behind them yet — this
+    proves every stage has a real, audited transition, not that those
+    specific stages are wired to Stage 12 production, exactly as 18.7's
+    own status already names.
 
 ## Real hard blockers
 
