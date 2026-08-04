@@ -3,6 +3,7 @@
 import {
   CorporateOfficeVisitRepository,
   CorporateRepository,
+  CorporateRolloutRepository,
 } from "@paon/database";
 import {
   asId,
@@ -230,6 +231,88 @@ export async function resolveOfficeVisitRequest(
   ).resolve({
     requestId: asId<"CorporateOfficeVisitRequestId">(requestId),
     status,
+  });
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+export async function createRolloutDay(
+  programmeId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const fittingDate = String(formData.get("fittingDate") ?? "");
+  const capacity = Number(formData.get("capacity"));
+  const advisorNote = String(formData.get("advisorNote") ?? "").trim();
+  if (!fittingDate || !Number.isFinite(capacity) || capacity <= 0) {
+    throw new Error("Enter a date and a capacity greater than zero.");
+  }
+  await new CorporateRolloutRepository(
+    await getSupabaseServerClient(),
+  ).createDay({
+    retailerId: session.retailerId,
+    programmeId: asId<"CorporateProgrammeId">(programmeId),
+    fittingDate,
+    capacity,
+    ...(advisorNote ? { advisorNote } : {}),
+  });
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+const ASSIGN_REJECTION_MESSAGES: Record<string, string> = {
+  day_at_capacity: "That day is already at capacity.",
+};
+
+export async function assignWearerToRolloutDay(
+  programmeId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const rolloutDayId = String(formData.get("rolloutDayId") ?? "");
+  const wearerId = String(formData.get("wearerId") ?? "");
+  const capacity = Number(formData.get("capacity"));
+  if (!rolloutDayId || !wearerId) return;
+  const result = await new CorporateRolloutRepository(
+    await getSupabaseServerClient(),
+  ).assignWearer({
+    retailerId: session.retailerId,
+    rolloutDayId: asId<"CorporateRolloutDayId">(rolloutDayId),
+    wearerId,
+    capacity,
+  });
+  if (!result.ok) {
+    throw new Error(
+      ASSIGN_REJECTION_MESSAGES[result.reason] ??
+        "That wearer could not be assigned.",
+    );
+  }
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+export async function markRolloutSlotCompleted(
+  programmeId: string,
+  slotId: string,
+): Promise<void> {
+  await requireModuleSession("enterprise_verticals");
+  await new CorporateRolloutRepository(
+    await getSupabaseServerClient(),
+  ).markCompleted(asId<"CorporateRolloutSlotId">(slotId));
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+export async function markRolloutSlotNoShow(
+  programmeId: string,
+  slotId: string,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  // Reslot failure (no day has spare capacity) is a real, visible gap in
+  // the plan, not an error — the no-show is still recorded either way,
+  // so this never throws on that path.
+  await new CorporateRolloutRepository(
+    await getSupabaseServerClient(),
+  ).markNoShowAndReslot({
+    retailerId: session.retailerId,
+    slotId: asId<"CorporateRolloutSlotId">(slotId),
+    programmeId: asId<"CorporateProgrammeId">(programmeId),
   });
   revalidatePath(`/corporate/${programmeId}`);
 }

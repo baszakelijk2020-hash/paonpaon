@@ -4482,7 +4482,59 @@ access" control (`setWearerLoginEmail`) — there was previously no
     without silently dropping the employee from the rollout.
   - **Tests:** capacity limits, no-show re-slotting, department/location
     grouping.
-  - **Status:** not started.
+  - **Status (2026-08-04, takeover branch):** `verified_local`, one
+    dependency deviated from and named honestly, one acceptance line
+    partly built. Migration
+    `20260804180000_add_corporate_rollout_planning.sql` adds
+    `corporate_rollout_days` (per-programme, per-date, capacity) and
+    `corporate_rollout_slots` (one wearer per day). The dependency line
+    above says rollout schedules through the existing `appointments`
+    table — this deliberately does not: `appointments.customer_id` is
+    `NOT NULL`, and not every `corporate_wearers` row has a linked
+    `customer_id` (most never do — see `14.1`'s own header on exactly
+    this). Forcing a shadow `customers` row into existence per wearer
+    just to satisfy that column, purely to reuse the appointments table,
+    would have created the "shadow customer per employee" `14.1`
+    explicitly built `corporate_wearers.customer_id` as nullable to
+    avoid. `corporate_rollout_slots_wearer_active_unique` (a unique
+    index on `wearer_id` where `status = 'planned'`) is the actual
+    capacity/one-live-slot enforcement, not application code alone — the
+    same "the constraint is what really stops it" pattern this stage
+    already used for tender approvals (`18.2`).
+    `packages/domain/src/corporate/rollout-planning.ts`:
+    `checkAssignWearerToDay` (capacity), `planNoShowReslot` (earliest
+    day with spare capacity, refusing honestly rather than silently
+    dropping the wearer when none exists) — deliberately separate from
+    `checkGroupFittingCapacity` (`packages/domain/src/wedding/moonstruck-pack.ts`),
+    which answers a different question (can N people be fitted before a
+    date at all) and is not duplicated here.
+    `CorporateRolloutRepository.markNoShowAndReslot` marks the original
+    slot `no_show` (never edited into the new one — the miss stays on
+    record) and inserts a fresh `planned` row on whichever day the
+    reslot lands. Wired to `/corporate/[programmeId]` as a "Fitting
+    rollout" card: add a day, assign an unassigned wearer while a day
+    has spare capacity (the assign form disappears once full), mark a
+    slot completed or no-show, and a visible "No-shows awaiting a new
+    day" panel for anyone a reslot attempt found no capacity for — the
+    UI-level version of "never silently dropped."
+    `apps/retailer/e2e/corporate-rollout.spec.ts` proves the arc for
+    real: a full day refuses a further assignment (DB-level, asserted
+    against the actual repository result, not just the UI hiding the
+    form), and marking a wearer no-show on a later-dated full day
+    reslots them onto an earlier, still-open day — asserted against the
+    database that exactly two rows exist for that wearer, one `no_show`
+    on the original day and one `planned` on the new one, not a status
+    silently rewritten in place. An early draft of this test used a
+    `div`-with-text locator to find "the day's card," which matched
+    every ancestor `div` containing that date string and made the
+    per-day scoping meaningless; fixed by adding a `data-rollout-day`
+    attribute for exact scoping — a real test-authoring bug found and
+    fixed while proving the item, not a product bug.
+  - Checkbox stays unchecked: department/location grouping (named in
+    the owner boundary and Tests line) does not exist — `corporate_wearers`
+    has a `siteKey` field but rollout days/slots do not group or filter
+    by it at all, so a large multi-site programme's rollout plan is
+    currently one flat list of days, not grouped per site.
 
 - [ ] **18.7 Corporate project and rollout management**
   - **Requirement IDs:** BD-107.

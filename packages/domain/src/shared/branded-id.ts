@@ -218,6 +218,8 @@ export type CorporateOfficeVisitRequestId = Brand<
   string,
   "CorporateOfficeVisitRequestId"
 >;
+export type CorporateRolloutDayId = Brand<string, "CorporateRolloutDayId">;
+export type CorporateRolloutSlotId = Brand<string, "CorporateRolloutSlotId">;
 export type MicroCapsuleDropId = Brand<string, "MicroCapsuleDropId">;
 export type MicroCapsuleDropProductId = Brand<
   string,

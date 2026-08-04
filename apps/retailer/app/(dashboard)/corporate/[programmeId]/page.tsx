@@ -1,6 +1,7 @@
 import {
   CorporateOfficeVisitRepository,
   CorporateRepository,
+  CorporateRolloutRepository,
   RetailerRepository,
 } from "@paon/database";
 import {
@@ -18,9 +19,13 @@ import { Select } from "@paon/ui/components/Select";
 import { notFound } from "next/navigation";
 
 import {
+  assignWearerToRolloutDay,
   createEntitlementVersion,
   createException,
+  createRolloutDay,
   createWearer,
+  markRolloutSlotCompleted,
+  markRolloutSlotNoShow,
   recordIssue,
   resolveException,
   resolveOfficeVisitRequest,
@@ -58,6 +63,8 @@ export default async function CorporateProgrammePage({
     exceptions,
     officeVisitRequests,
     retailer,
+    rolloutDays,
+    rolloutSlots,
   ] = await Promise.all([
     repo.findAccountById(programme.accountId),
     repo.findEntitlementVersions(programmeId),
@@ -65,7 +72,40 @@ export default async function CorporateProgrammePage({
     repo.findExceptionsByProgramme(programmeId),
     new CorporateOfficeVisitRepository(client).findByProgramme(programme.id),
     new RetailerRepository(client).findById(session.retailerId),
+    new CorporateRolloutRepository(client).findDaysByProgramme(programme.id),
+    new CorporateRolloutRepository(client).findSlotsByProgramme(programme.id),
   ]);
+  const wearersById = new Map<string, (typeof wearers)[number]>(
+    wearers.map((w) => [w.id, w]),
+  );
+  const plannedSlotsByDay = new Map<
+    string,
+    (typeof rolloutSlots extends readonly (infer S)[] ? S : never)[]
+  >();
+  for (const slot of rolloutSlots) {
+    if (slot.status !== "planned") continue;
+    const list = plannedSlotsByDay.get(slot.rolloutDayId) ?? [];
+    list.push(slot);
+    plannedSlotsByDay.set(slot.rolloutDayId, list);
+  }
+  const activelyPlannedWearerIds = new Set(
+    rolloutSlots.filter((s) => s.status === "planned").map((s) => s.wearerId),
+  );
+  const unassignedWearers = wearers.filter(
+    (w) => w.active && !activelyPlannedWearerIds.has(w.id),
+  );
+  // A no-show whose auto-reslot found no spare capacity anywhere —
+  // stuck with no current planned slot, needing a person to solve it,
+  // not silently forgotten. `unassignedWearers` already includes them;
+  // this is the subset also worth calling out with their miss history.
+  const strandedNoShowWearerIds = new Set(
+    rolloutSlots
+      .filter(
+        (s) =>
+          s.status === "no_show" && !activelyPlannedWearerIds.has(s.wearerId),
+      )
+      .map((s) => s.wearerId),
+  );
   const customerAppBase = (
     process.env["NEXT_PUBLIC_CUSTOMER_APP_URL"] ?? "http://localhost:3002"
   ).replace(/\/$/, "");
@@ -578,6 +618,172 @@ export default async function CorporateProgrammePage({
             ))}
           </ul>
         )}
+      </Card>
+
+      <Card className="flex flex-col gap-4">
+        <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+          Fitting rollout
+        </h2>
+        {rolloutDays.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No fitting days planned yet.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {rolloutDays.map((day) => {
+              const planned = plannedSlotsByDay.get(day.id) ?? [];
+              return (
+                <div
+                  key={day.id}
+                  data-rollout-day={day.fittingDate}
+                  className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                      {day.fittingDate}
+                    </p>
+                    <Badge
+                      tone={
+                        planned.length >= day.capacity ? "warning" : "neutral"
+                      }
+                    >
+                      {planned.length}/{day.capacity}
+                    </Badge>
+                  </div>
+                  {day.advisorNote ? (
+                    <p className="text-xs text-[var(--color-stone-500)]">
+                      {day.advisorNote}
+                    </p>
+                  ) : null}
+                  {planned.length > 0 ? (
+                    <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
+                      {planned.map((slot) => (
+                        <li
+                          key={slot.id}
+                          className="flex items-center justify-between gap-2 py-1.5 text-sm"
+                        >
+                          <span className="text-[var(--color-stone-900)]">
+                            {wearersById.get(slot.wearerId)?.displayName ??
+                              slot.wearerId}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <form
+                              action={markRolloutSlotCompleted.bind(
+                                null,
+                                programmeId,
+                                slot.id,
+                              )}
+                            >
+                              <Button
+                                type="submit"
+                                variant="secondary"
+                                size="sm"
+                              >
+                                Completed
+                              </Button>
+                            </form>
+                            <form
+                              action={markRolloutSlotNoShow.bind(
+                                null,
+                                programmeId,
+                                slot.id,
+                              )}
+                            >
+                              <Button
+                                type="submit"
+                                variant="secondary"
+                                size="sm"
+                              >
+                                No-show
+                              </Button>
+                            </form>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {unassignedWearers.length > 0 &&
+                  planned.length < day.capacity ? (
+                    <form
+                      action={assignWearerToRolloutDay.bind(null, programmeId)}
+                      className="flex flex-wrap items-end gap-2 pt-1"
+                    >
+                      <input type="hidden" name="rolloutDayId" value={day.id} />
+                      <input
+                        type="hidden"
+                        name="capacity"
+                        value={day.capacity}
+                      />
+                      <FormField
+                        label="Assign wearer"
+                        htmlFor={`assign-${day.id}`}
+                      >
+                        <Select
+                          id={`assign-${day.id}`}
+                          name="wearerId"
+                          required
+                        >
+                          {unassignedWearers.map((wearer) => (
+                            <option key={wearer.id} value={wearer.id}>
+                              {wearer.displayName}
+                            </option>
+                          ))}
+                        </Select>
+                      </FormField>
+                      <Button type="submit" variant="secondary" size="sm">
+                        Assign
+                      </Button>
+                    </form>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {strandedNoShowWearerIds.size > 0 ? (
+          <div className="border-[var(--color-warning-500)]/40 rounded-[var(--radius-md)] border p-3">
+            <p className="text-sm font-medium text-[var(--color-stone-900)]">
+              No-shows awaiting a new day
+            </p>
+            <p className="text-xs text-[var(--color-stone-500)]">
+              No fitting day currently has spare capacity for:{" "}
+              {[...strandedNoShowWearerIds]
+                .map((id) => wearersById.get(id)?.displayName ?? id)
+                .join(", ")}
+              . Add another fitting day to reslot them.
+            </p>
+          </div>
+        ) : null}
+
+        <details className="text-sm">
+          <summary className="cursor-pointer text-[var(--color-stone-700)]">
+            Add a fitting day
+          </summary>
+          <form
+            action={createRolloutDay.bind(null, programmeId)}
+            className="mt-3 grid gap-3 sm:grid-cols-3"
+          >
+            <FormField label="Date" htmlFor="fittingDate">
+              <Input id="fittingDate" name="fittingDate" type="date" required />
+            </FormField>
+            <FormField label="Capacity" htmlFor="capacity">
+              <Input
+                id="capacity"
+                name="capacity"
+                type="number"
+                min={1}
+                required
+              />
+            </FormField>
+            <FormField label="Advisor note (optional)" htmlFor="advisorNote">
+              <Input id="advisorNote" name="advisorNote" />
+            </FormField>
+            <Button type="submit" className="self-start sm:col-span-3">
+              Add fitting day
+            </Button>
+          </form>
+        </details>
       </Card>
     </div>
   );

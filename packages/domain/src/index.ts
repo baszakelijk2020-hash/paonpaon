@@ -162,6 +162,7 @@ export * from "./corporate/business-development";
 export * from "./corporate/corporate-programme";
 export * from "./corporate/corporate-programme.schema";
 export * from "./corporate/office-visit-request";
+export * from "./corporate/rollout-planning";
 export * from "./corporate/tender";
 export * from "./merchandising/micro-capsule";
 export * from "./merchandising/micro-capsule.schema";

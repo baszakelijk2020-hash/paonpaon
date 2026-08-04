@@ -3838,6 +3838,106 @@ export type Database = {
           },
         ];
       };
+      corporate_rollout_days: {
+        Row: {
+          advisor_note: string | null;
+          capacity: number;
+          created_at: string;
+          fitting_date: string;
+          id: string;
+          programme_id: string;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          advisor_note?: string | null;
+          capacity: number;
+          created_at?: string;
+          fitting_date: string;
+          id?: string;
+          programme_id: string;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          advisor_note?: string | null;
+          capacity?: number;
+          created_at?: string;
+          fitting_date?: string;
+          id?: string;
+          programme_id?: string;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_rollout_days_programme_id_fkey";
+            columns: ["programme_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_rollout_days_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_rollout_slots: {
+        Row: {
+          created_at: string;
+          id: string;
+          retailer_id: string;
+          rollout_day_id: string;
+          status: string;
+          updated_at: string;
+          wearer_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          retailer_id: string;
+          rollout_day_id: string;
+          status?: string;
+          updated_at?: string;
+          wearer_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          retailer_id?: string;
+          rollout_day_id?: string;
+          status?: string;
+          updated_at?: string;
+          wearer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_rollout_slots_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_rollout_slots_rollout_day_id_fkey";
+            columns: ["rollout_day_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_rollout_days";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_rollout_slots_wearer_id_fkey";
+            columns: ["wearer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_wearers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       corporate_tender_approvals: {
         Row: {
           approved_at: string;
