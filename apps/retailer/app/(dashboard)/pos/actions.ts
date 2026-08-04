@@ -211,6 +211,69 @@ export async function recordCardPayment(
   return { notice: "Payment recorded." };
 }
 
+/**
+ * Parks the current sale aside and clears the counter for someone else.
+ * Nothing held is released — the reservation stays exactly as it was — so
+ * resuming picks up with the same garments still off the shelf.
+ */
+export async function suspendSale(
+  _previous: PosActionState,
+  formData: FormData,
+): Promise<PosActionState> {
+  const { session, pos } = await context();
+  const transactionId = field(formData, "transactionId");
+  if (!transactionId) return { formError: "No sale is open." };
+
+  const result = await pos.transition({
+    retailerId: session.retailerId,
+    transactionId,
+    to: "suspended",
+  });
+  if (!result.ok) return { formError: message(result.reason) };
+
+  revalidatePath("/pos");
+  return { notice: "Suspended. The counter is free for the next client." };
+}
+
+/**
+ * Brings a parked sale back to the counter. Refused while another sale is
+ * already open at this till — a physical counter has one sale on it at a
+ * time, and silently overwriting a colleague's in-progress sale would
+ * strand it.
+ */
+export async function resumeSale(
+  _previous: PosActionState,
+  formData: FormData,
+): Promise<PosActionState> {
+  const { session, pos } = await context();
+  const transactionId = field(formData, "transactionId");
+  const locationId = field(formData, "locationId");
+  if (!transactionId || !locationId) {
+    return { formError: "Choose a sale to resume." };
+  }
+
+  const alreadyOpen = await pos.findOpenTransaction({
+    retailerId: session.retailerId,
+    locationId,
+  });
+  if (alreadyOpen) {
+    return {
+      formError:
+        "There is already a sale on this counter. Finish, cancel or suspend it first.",
+    };
+  }
+
+  const result = await pos.transition({
+    retailerId: session.retailerId,
+    transactionId,
+    to: "open",
+  });
+  if (!result.ok) return { formError: message(result.reason) };
+
+  revalidatePath("/pos");
+  return { notice: "Resumed." };
+}
+
 /** Cancels an unfinished sale and puts every held garment back. */
 export async function cancelSale(
   _previous: PosActionState,

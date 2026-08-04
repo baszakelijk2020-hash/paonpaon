@@ -94,6 +94,14 @@ export class PosRepository {
     return data;
   }
 
+  /**
+   * The sale currently on the counter. Deliberately excludes `suspended`:
+   * suspending exists to clear the counter for a different customer while
+   * holding the first one's cart aside, so a suspended sale must never
+   * silently reappear here as if it were still being worked — the till
+   * only shows it again once someone explicitly resumes it (see
+   * `listSuspended` / `transition` to `open`).
+   */
   async findOpenTransaction(args: {
     readonly retailerId: RetailerId;
     readonly locationId: string;
@@ -103,12 +111,29 @@ export class PosRepository {
       .select("*")
       .eq("retailer_id", args.retailerId)
       .eq("location_id", args.locationId)
-      .in("state", ["open", "suspended", "quoted", "awaiting_payment"])
+      .in("state", ["open", "quoted", "awaiting_payment"])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
     if (error) throw error;
     return data;
+  }
+
+  /** Sales parked aside, oldest first — a queue, not a stack, so the first
+   * customer suspended is the first one staff are reminded to return to. */
+  async listSuspended(args: {
+    readonly retailerId: RetailerId;
+    readonly locationId: string;
+  }): Promise<readonly TransactionRow[]> {
+    const { data, error } = await this.client
+      .from("pos_transactions")
+      .select("*")
+      .eq("retailer_id", args.retailerId)
+      .eq("location_id", args.locationId)
+      .eq("state", "suspended")
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data ?? [];
   }
 
   async load(args: {

@@ -12,7 +12,9 @@ import {
   CancelSaleForm,
   CardPaymentForm,
   OpenSaleForm,
+  ResumeSaleForm,
   ReturnLineForm,
+  SuspendSaleForm,
   TakeCashForm,
   type Option,
 } from "./pos-forms";
@@ -129,6 +131,20 @@ export default async function PosPage({
     locationId: activeLocationId,
     limit: 5,
   });
+
+  const suspended = await pos.listSuspended({
+    retailerId: session.retailerId,
+    locationId: activeLocationId,
+  });
+  const suspendedWithTotals = await Promise.all(
+    suspended.map(async (transaction) => {
+      const loaded = await pos.load({
+        retailerId: session.retailerId,
+        transactionId: transaction.id,
+      });
+      return { transaction, totals: loaded?.totals ?? null };
+    }),
+  );
 
   const outstanding = openSale
     ? openSale.totals.subtotalMinorUnits - capturedSoFar
@@ -325,7 +341,8 @@ export default async function PosPage({
                 </>
               )}
 
-              <div className="border-t border-[var(--color-stone-100)] pt-4">
+              <div className="flex flex-col gap-3 border-t border-[var(--color-stone-100)] pt-4">
+                <SuspendSaleForm transactionId={openSale.transaction.id} />
                 <CancelSaleForm
                   transactionId={openSale.transaction.id}
                   locationId={activeLocationId}
@@ -335,6 +352,45 @@ export default async function PosPage({
           </div>
         </section>
       )}
+
+      {suspendedWithTotals.length > 0 ? (
+        <section className="flex flex-col gap-4" data-suspended-sales>
+          <div className="flex flex-col gap-1">
+            <h2 className="font-[family-name:var(--font-display)] text-xl">
+              Parked for later
+            </h2>
+            <p className="text-sm text-[var(--color-stone-600)]">
+              Suspended while another client was served. Everything held is
+              still off the shelf, exactly as it was.
+            </p>
+          </div>
+          <ul className="flex flex-col gap-3">
+            {suspendedWithTotals.map(({ transaction, totals }) => (
+              <li key={transaction.id}>
+                <Card
+                  className="flex flex-wrap items-center justify-between gap-3 p-5"
+                  data-suspended-sale={transaction.id}
+                  data-suspended-total={totals?.subtotalMinorUnits ?? 0}
+                >
+                  <div className="flex flex-col gap-1">
+                    <p className="font-[family-name:var(--font-mono)] text-lg tabular-nums">
+                      {euros(totals?.subtotalMinorUnits ?? 0)}
+                    </p>
+                    <p className="text-xs text-[var(--color-stone-500)]">
+                      {totals?.lineCount ?? 0} item
+                      {(totals?.lineCount ?? 0) === 1 ? "" : "s"} held
+                    </p>
+                  </div>
+                  <ResumeSaleForm
+                    transactionId={transaction.id}
+                    locationId={activeLocationId}
+                  />
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">

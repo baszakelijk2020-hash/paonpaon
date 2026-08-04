@@ -11,7 +11,9 @@ import {
   cancelSale,
   openSale,
   recordCardPayment,
+  resumeSale,
   returnSaleLine,
+  suspendSale,
   takeCash,
   type PosActionState,
 } from "./actions";
@@ -201,6 +203,54 @@ export function CardPaymentForm({
       </div>
       <Button type="submit" variant="secondary" disabled={pending}>
         Record a card payment
+      </Button>
+      <Feedback state={state} />
+    </form>
+  );
+}
+
+/** Parks the current sale aside and frees the counter for someone else. */
+export function SuspendSaleForm({
+  transactionId,
+}: {
+  readonly transactionId: string;
+}) {
+  const [state, action, pending] = useActionState(suspendSale, initial);
+  return (
+    <form action={action} className="flex flex-col gap-2" id="pos-suspend-form">
+      <input type="hidden" name="transactionId" value={transactionId} />
+      <Button type="submit" variant="secondary" size="sm" disabled={pending}>
+        Suspend this sale
+      </Button>
+      <Feedback state={state} />
+    </form>
+  );
+}
+
+/** Brings a parked sale back to the counter. */
+export function ResumeSaleForm({
+  transactionId,
+  locationId,
+}: {
+  readonly transactionId: string;
+  readonly locationId: string;
+}) {
+  const [state, action, pending] = useActionState(resumeSale, initial);
+  return (
+    <form
+      action={action}
+      className="flex flex-col gap-2"
+      data-resume-form={transactionId}
+    >
+      <input type="hidden" name="transactionId" value={transactionId} />
+      <input type="hidden" name="locationId" value={locationId} />
+      <Button
+        type="submit"
+        size="sm"
+        disabled={pending}
+        id={`resume-${transactionId}`}
+      >
+        Resume
       </Button>
       <Feedback state={state} />
     </form>

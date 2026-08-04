@@ -10,12 +10,13 @@ const PHASE_ITEM_ID = "13.3";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/pos.spec.ts";
 
 let proofPassed = false;
+let suspendResumeProofPassed = false;
 
 test.afterAll(async () => {
   await writeBrowserProofRun({
     phaseItemId: PHASE_ITEM_ID,
     spec: BROWSER_PROOF_SPEC,
-    status: proofPassed ? "passed" : "failed",
+    status: proofPassed && suspendResumeProofPassed ? "passed" : "failed",
   });
 });
 
@@ -396,4 +397,151 @@ test("made-to-measure cannot be returned, and the till says why", async ({
     .select("id")
     .eq("returns_transaction_id", saleId!);
   expect(returns ?? []).toHaveLength(0);
+});
+
+test("a suspended sale frees the counter, stays held, is refused mid-resume while another sale is open, and resumes once it is not", async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
+
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const proof = await ensureProgrammeProofSeed({
+    supabaseUrl,
+    anonKey,
+    serviceRoleKey,
+  });
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const stamp = Date.now();
+  const { data: till } = await admin
+    .from("stock_locations")
+    .insert({
+      retailer_id: proof.retailerId,
+      code: `E2E-SUSPEND-TILL-${stamp}`,
+      name: `E2E Suspend Till ${stamp}`,
+      active: true,
+    })
+    .select("id")
+    .single();
+  const locationId = till!.id;
+
+  const { data: variant } = await admin
+    .from("product_variants")
+    .select("id, products!inner(retailer_id)")
+    .eq("products.retailer_id", proof.retailerId)
+    .limit(1)
+    .single();
+  const variantId = variant!.id;
+
+  await admin.from("stock_ledger_entries").insert({
+    retailer_id: proof.retailerId,
+    variant_id: variantId,
+    location_id: locationId,
+    kind: "receipt",
+    quantity: 4,
+  });
+
+  const url = `/pos?location=${locationId}`;
+
+  async function waitFor(
+    attribute: string,
+    predicate: (value: string | null) => boolean,
+  ): Promise<void> {
+    await expect
+      .poll(
+        async () => {
+          await page.goto(url);
+          const section = page.locator(`[${attribute}]`);
+          if ((await section.count()) === 0) return predicate(null);
+          return predicate(await section.first().getAttribute(attribute));
+        },
+        { timeout: 60_000 },
+      )
+      .toBe(true);
+  }
+
+  await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
+
+  // ---- open a sale and hold a garment -----------------------------------
+  await page.goto(url);
+  await page.locator("#open-location").selectOption(locationId);
+  await page.getByRole("button", { name: "Start a sale" }).click();
+  await waitFor("data-sale-id", (v) => v !== null);
+
+  await page.locator("#line-kind").selectOption("rtw");
+  await page.locator("#line-variant").selectOption(variantId);
+  await page.locator("#line-quantity").fill("1");
+  await page.locator("#line-price").fill("50");
+  await page.getByRole("button", { name: "Add to sale" }).click();
+  await waitFor("data-sale-line-count", (v) => v === "1");
+
+  const { data: suspendedTx } = await admin
+    .from("pos_transactions")
+    .select("id")
+    .eq("retailer_id", proof.retailerId)
+    .eq("location_id", locationId)
+    .eq("state", "open")
+    .single();
+  const suspendedId = suspendedTx!.id;
+
+  // ---- suspend: the counter clears, the hold does not -------------------
+  await page.goto(url);
+  await page.getByRole("button", { name: "Suspend this sale" }).click();
+  await expect(page.locator("#pos-no-sale")).toBeVisible({ timeout: 30_000 });
+
+  await expect
+    .poll(
+      async () => {
+        const { data } = await admin
+          .from("pos_transactions")
+          .select("state")
+          .eq("id", suspendedId)
+          .single();
+        return data?.state;
+      },
+      { timeout: 30_000 },
+    )
+    .toBe("suspended");
+
+  const parkedRow = page.locator(`[data-suspended-sale="${suspendedId}"]`);
+  await expect(parkedRow).toBeVisible({ timeout: 15_000 });
+  await expect(parkedRow).toHaveAttribute("data-suspended-total", "5000");
+
+  // ---- open a second sale on the same till -------------------------------
+  await page.goto(url);
+  await page.locator("#open-location").selectOption(locationId);
+  await page.getByRole("button", { name: "Start a sale" }).click();
+  await waitFor("data-sale-id", (v) => v !== null && v !== suspendedId);
+
+  // ---- resuming is refused while that second sale is on the counter -----
+  await page.goto(url);
+  await page.locator(`#resume-${suspendedId}`).click();
+  await expect(page.getByText(/already a sale on this counter/i)).toBeVisible({
+    timeout: 15_000,
+  });
+
+  // Still suspended — the refusal did not half-apply.
+  const { data: stillSuspended } = await admin
+    .from("pos_transactions")
+    .select("state")
+    .eq("id", suspendedId)
+    .single();
+  expect(stillSuspended!.state).toBe("suspended");
+
+  // ---- cancel the second sale, freeing the counter -----------------------
+  await page.goto(url);
+  await page.locator("#cancel-reason").fill("Test cleanup — wrong till.");
+  await page.getByRole("button", { name: "Cancel this sale" }).click();
+  await expect(page.locator("#pos-no-sale")).toBeVisible({ timeout: 30_000 });
+
+  // ---- now the parked sale resumes, with its held line intact -----------
+  await page.goto(url);
+  await page.locator(`#resume-${suspendedId}`).click();
+  await waitFor("data-sale-id", (v) => v === suspendedId);
+  await waitFor("data-sale-state", (v) => v === "open");
+  await waitFor("data-sale-line-count", (v) => v === "1");
+
+  suspendResumeProofPassed = true;
 });

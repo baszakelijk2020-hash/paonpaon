@@ -3223,6 +3223,25 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     return), suspended and remote sale. Card activation remains
     `blocked_external`.
 
+  - **Update (2026-08-04, takeover branch):** suspend is now real and
+    browser-proven, closing that part of the "still open" list above.
+    `checkTransactionTransition` already modelled `open ↔ suspended` in its
+    graph; nothing in the UI or repository reached it — `findOpenTransaction`
+    included `suspended` in the states it treats as "the counter", so a
+    parked sale had no way to ever be created through the running app (the
+    till would have kept showing it as the active cart). Fixed by excluding
+    `suspended` from that query and adding `listSuspended`, so suspending
+    genuinely clears the counter and a parked sale only reappears once
+    someone explicitly resumes it. `apps/retailer/e2e/pos.spec.ts`'s third
+    case proves: adding a line holds it, suspending clears the counter back
+    to the empty state while the hold survives untouched, resuming is
+    refused while a different sale is already on the same counter (a
+    physical till has one sale on it at a time), and resuming succeeds once
+    that second sale is cleared — with the held line still on it.
+
+    Still open: receipt/fulfilment, the exchange flow (as distinct from a
+    return), remote sale. Card activation remains `blocked_external`.
+
 ### Stage 14 — Corporate fashion and advanced intelligence
 
 - [ ] **14.1 PAON Métier corporate pilot**
