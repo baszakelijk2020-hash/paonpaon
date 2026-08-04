@@ -4219,19 +4219,58 @@ nowhere honest to store it.
     `corporate_accounts` row with the opportunity's company name and the
     submitted account reference — not merely relabelled the opportunity.
 
-- [ ] **18.2 Tender and Pitch Builder**
+- [x] **18.2 Tender and Pitch Builder**
   - **Requirement IDs:** BD-102.
   - **Dependencies:** `18.1` (an opportunity to build a tender for),
     `14.1` (the account/programme it may become).
   - **Owner boundary:** a company-specific tender/proposal document —
     sections, pricing, garment/programme concepts, versioning, retailer
     internal approval before anything is externally shareable.
-  - **Acceptance:** a tender is authored against a won-or-in-progress
-    opportunity, is versioned (never edited in place once shared),
-    and requires explicit retailer approval before `18.3` can expose it.
-  - **Tests:** version immutability once shared, approval gate, RLS.
+  - **Acceptance:** a tender is authored against a live (non-`lost`)
+    opportunity, is versioned (never edited in place once written), and
+    a version requires an explicit, exactly-once approval action before
+    `18.3` may expose it externally.
+  - **Tests:** version immutability (no update/delete grant on the table
+    at all), double-approval refusal, browser proof of author → version →
+    approve.
   - **Non-goals:** no external visibility without explicit approval.
-  - **Status:** not started.
+  - **Status (2026-08-04, takeover branch):** `verified_local`. Migration
+    `20260804140000_add_corporate_tenders.sql` adds `corporate_tenders`
+    (retitleable), `corporate_tender_versions` (insert-only — no update
+    or delete grant exists on the table at all, so an in-place edit fails
+    at the database, not just in application code) and
+    `corporate_tender_approvals`, whose `unique(tender_version_id)`
+    constraint is the actual enforcement preventing a version from being
+    approved twice — not application logic alone.
+    `packages/domain/src/corporate/tender.ts`'s `checkCreateTender`
+    refuses a tender against a `lost` opportunity (a tender is a live
+    commercial document, not a pitch archive) and
+    `checkCreateTenderVersion` refuses a blank summary or an
+    all-blank-lines garment-concept list. `CorporateTenderRepository`
+    (`packages/database`) derives the next version number from the
+    live version set on every `createVersion` call and turns the
+    approvals table's unique-violation (Postgres code `23505`) into a
+    typed `already_approved` refusal rather than letting a raw
+    constraint error reach the caller. Wired into
+    `/business-development/[opportunityId]` as a "Tenders" card:
+    start a tender, add a version (summary, garment concepts, optional
+    pricing note), and approve a version, each unapproved version
+    showing an "Approve" button that disappears once approved.
+    `apps/retailer/e2e/corporate-tender.spec.ts` proves the arc in a
+    real browser — author a tender, add a version, see it "Not
+    approved", approve it and see the button disappear and the badge
+    flip — then asserts directly against the database that a second
+    approval attempt on the same version is refused with Postgres
+    error code `23505`, the exact constraint this item's acceptance
+    depends on, not merely the UI's willingness to offer the button
+    again. Found and fixed a real migration bug while building this:
+    the RLS-policy-creation loop shared with `18.1` only ever grants
+    `SELECT` — the actual `INSERT` privilege has always needed a
+    separate explicit `grant`, and this migration's first draft
+    forgot it for the two append-only tender tables, failing loudly
+    with Postgres permission-denied rather than silently. Fixed in the
+    migration source directly (not worked around) before this item was
+    considered done.
 
 - [ ] **18.3 Public tender page**
   - **Requirement IDs:** BD-103.

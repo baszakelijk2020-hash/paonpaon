@@ -205,6 +205,15 @@ export type CorporateOpportunitySignalId = Brand<
   string,
   "CorporateOpportunitySignalId"
 >;
+export type CorporateTenderId = Brand<string, "CorporateTenderId">;
+export type CorporateTenderVersionId = Brand<
+  string,
+  "CorporateTenderVersionId"
+>;
+export type CorporateTenderApprovalId = Brand<
+  string,
+  "CorporateTenderApprovalId"
+>;
 export type MicroCapsuleDropId = Brand<string, "MicroCapsuleDropId">;
 export type MicroCapsuleDropProductId = Brand<
   string,

@@ -1,6 +1,10 @@
 "use server";
 
-import { CorporateOpportunityRepository } from "@paon/database";
+import {
+  CorporateOpportunityRepository,
+  CorporateTenderRepository,
+  RetailerStaffRepository,
+} from "@paon/database";
 import {
   asId,
   CORPORATE_OPPORTUNITY_SIGNAL_SOURCES,
@@ -75,4 +79,64 @@ export async function winOpportunity(formData: FormData): Promise<void> {
   revalidatePath(`/business-development/${opportunityId}`);
   revalidatePath("/business-development");
   revalidatePath("/corporate");
+}
+
+export async function createTender(formData: FormData): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const client = await getSupabaseServerClient();
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  const title = String(formData.get("title") ?? "");
+  const opportunity = await new CorporateOpportunityRepository(client).findById(
+    asId<"CorporateOpportunityId">(opportunityId),
+  );
+  if (!opportunity || opportunity.retailerId !== session.retailerId) return;
+  await new CorporateTenderRepository(client).create({
+    retailerId: session.retailerId,
+    opportunityId,
+    opportunityStage: opportunity.stage,
+    title,
+  });
+  revalidatePath(`/business-development/${opportunityId}`);
+}
+
+export async function createTenderVersion(formData: FormData): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const client = await getSupabaseServerClient();
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  const tenderId = String(formData.get("tenderId") ?? "");
+  const summary = String(formData.get("summary") ?? "");
+  const pricingNote = String(formData.get("pricingNote") ?? "");
+  const garmentConcepts = String(formData.get("garmentConcepts") ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const staff = await new RetailerStaffRepository(client).findByUserId(
+    session.userId,
+  );
+  await new CorporateTenderRepository(client).createVersion({
+    retailerId: session.retailerId,
+    tenderId: asId<"CorporateTenderId">(tenderId),
+    summary,
+    garmentConcepts,
+    ...(pricingNote ? { pricingNote } : {}),
+    ...(staff ? { createdByStaffId: staff.id } : {}),
+  });
+  revalidatePath(`/business-development/${opportunityId}`);
+}
+
+export async function approveTenderVersion(formData: FormData): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const client = await getSupabaseServerClient();
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  const tenderVersionId = String(formData.get("tenderVersionId") ?? "");
+  const staff = await new RetailerStaffRepository(client).findByUserId(
+    session.userId,
+  );
+  if (!staff) return;
+  await new CorporateTenderRepository(client).approveVersion({
+    retailerId: session.retailerId,
+    tenderVersionId: asId<"CorporateTenderVersionId">(tenderVersionId),
+    approvedByStaffId: staff.id,
+  });
+  revalidatePath(`/business-development/${opportunityId}`);
 }

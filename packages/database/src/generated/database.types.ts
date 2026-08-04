@@ -3781,6 +3781,152 @@ export type Database = {
           },
         ];
       };
+      corporate_tender_approvals: {
+        Row: {
+          approved_at: string;
+          approved_by_staff_id: string;
+          id: string;
+          retailer_id: string;
+          tender_version_id: string;
+        };
+        Insert: {
+          approved_at?: string;
+          approved_by_staff_id: string;
+          id?: string;
+          retailer_id: string;
+          tender_version_id: string;
+        };
+        Update: {
+          approved_at?: string;
+          approved_by_staff_id?: string;
+          id?: string;
+          retailer_id?: string;
+          tender_version_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_tender_approvals_approved_by_staff_id_fkey";
+            columns: ["approved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_tender_approvals_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_tender_approvals_tender_version_id_fkey";
+            columns: ["tender_version_id"];
+            isOneToOne: true;
+            referencedRelation: "corporate_tender_versions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_tender_versions: {
+        Row: {
+          created_at: string;
+          created_by_staff_id: string | null;
+          garment_concepts: string[];
+          id: string;
+          pricing_note: string | null;
+          retailer_id: string;
+          summary: string;
+          tender_id: string;
+          version: number;
+        };
+        Insert: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          garment_concepts: string[];
+          id?: string;
+          pricing_note?: string | null;
+          retailer_id: string;
+          summary: string;
+          tender_id: string;
+          version: number;
+        };
+        Update: {
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          garment_concepts?: string[];
+          id?: string;
+          pricing_note?: string | null;
+          retailer_id?: string;
+          summary?: string;
+          tender_id?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_tender_versions_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_tender_versions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_tender_versions_tender_id_fkey";
+            columns: ["tender_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_tenders";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_tenders: {
+        Row: {
+          created_at: string;
+          id: string;
+          opportunity_id: string;
+          retailer_id: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          opportunity_id: string;
+          retailer_id: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          opportunity_id?: string;
+          retailer_id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_tenders_opportunity_id_fkey";
+            columns: ["opportunity_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_opportunities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_tenders_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       corporate_wearers: {
         Row: {
           active: boolean;

@@ -1,4 +1,7 @@
-import { CorporateOpportunityRepository } from "@paon/database";
+import {
+  CorporateOpportunityRepository,
+  CorporateTenderRepository,
+} from "@paon/database";
 import {
   asId,
   checkOpportunityStageTransition,
@@ -15,7 +18,14 @@ import { Select } from "@paon/ui/components/Select";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { addSignal, transitionStage, winOpportunity } from "../actions";
+import {
+  addSignal,
+  approveTenderVersion,
+  createTender,
+  createTenderVersion,
+  transitionStage,
+  winOpportunity,
+} from "../actions";
 
 import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -54,6 +64,19 @@ export default async function OpportunityDetailPage({
     notFound();
   }
   const signals = await repo.listSignals(opportunity.id);
+
+  const tenderRepo = new CorporateTenderRepository(
+    await getSupabaseServerClient(),
+  );
+  const tenders = await tenderRepo.findByOpportunity(opportunity.id);
+  const tenderDetails = await Promise.all(
+    tenders.map(async (tender) => ({
+      tender,
+      versions: await tenderRepo.listVersions(tender.id),
+      approvals: await tenderRepo.listApprovals(tender.id),
+    })),
+  );
+  const canCreateTender = opportunity.stage !== "lost";
 
   const nextStages = CORPORATE_OPPORTUNITY_STAGES.filter(
     (stage) =>
@@ -131,6 +154,150 @@ export default async function OpportunityDetailPage({
             Add signal
           </Button>
         </form>
+      </Card>
+
+      <Card className="flex flex-col gap-4">
+        <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+          Tenders
+        </h2>
+        {tenderDetails.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No tender authored yet.
+          </p>
+        ) : (
+          tenderDetails.map(({ tender, versions, approvals }) => {
+            const approvedVersionIds = new Set(
+              approvals.map((a) => a.tenderVersionId),
+            );
+            return (
+              <div
+                key={tender.id}
+                className="flex flex-col gap-3 border-b border-[var(--color-stone-200)] pb-4 last:border-b-0 last:pb-0"
+              >
+                <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
+                  {tender.title}
+                </h3>
+                {versions.length === 0 ? (
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    No version authored yet.
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {versions.map((version) => {
+                      const approved = approvedVersionIds.has(version.id);
+                      return (
+                        <li
+                          key={version.id}
+                          className="flex flex-col gap-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-medium text-[var(--color-stone-900)]">
+                              Version {version.version}
+                            </span>
+                            <Badge tone={approved ? "success" : "neutral"}>
+                              {approved ? "Approved" : "Not approved"}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-[var(--color-stone-700)]">
+                            {version.summary}
+                          </p>
+                          <ul className="list-disc pl-4 text-xs text-[var(--color-stone-500)]">
+                            {version.garmentConcepts.map((concept) => (
+                              <li key={concept}>{concept}</li>
+                            ))}
+                          </ul>
+                          {!approved ? (
+                            <form
+                              action={approveTenderVersion}
+                              className="self-start pt-1"
+                            >
+                              <input
+                                type="hidden"
+                                name="opportunityId"
+                                value={opportunity.id}
+                              />
+                              <input
+                                type="hidden"
+                                name="tenderVersionId"
+                                value={version.id}
+                              />
+                              <Button
+                                type="submit"
+                                variant="secondary"
+                                size="sm"
+                              >
+                                Approve
+                              </Button>
+                            </form>
+                          ) : null}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                <form
+                  action={createTenderVersion}
+                  className="flex flex-col gap-3 pt-2"
+                >
+                  <input
+                    type="hidden"
+                    name="opportunityId"
+                    value={opportunity.id}
+                  />
+                  <input type="hidden" name="tenderId" value={tender.id} />
+                  <FormField label="Summary" htmlFor={`summary-${tender.id}`}>
+                    <textarea
+                      id={`summary-${tender.id}`}
+                      name="summary"
+                      required
+                      minLength={3}
+                      maxLength={4000}
+                      className="min-h-16 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm"
+                    />
+                  </FormField>
+                  <FormField
+                    label="Garment concepts (one per line)"
+                    htmlFor={`garmentConcepts-${tender.id}`}
+                  >
+                    <textarea
+                      id={`garmentConcepts-${tender.id}`}
+                      name="garmentConcepts"
+                      required
+                      className="min-h-16 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm"
+                    />
+                  </FormField>
+                  <FormField
+                    label="Pricing note (optional)"
+                    htmlFor={`pricingNote-${tender.id}`}
+                  >
+                    <Input id={`pricingNote-${tender.id}`} name="pricingNote" />
+                  </FormField>
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    className="self-start"
+                  >
+                    Add version
+                  </Button>
+                </form>
+              </div>
+            );
+          })
+        )}
+        {canCreateTender ? (
+          <form
+            action={createTender}
+            className="flex flex-col gap-3 border-t border-[var(--color-stone-200)] pt-4"
+          >
+            <input type="hidden" name="opportunityId" value={opportunity.id} />
+            <FormField label="Tender title" htmlFor="title">
+              <Input id="title" name="title" required minLength={2} />
+            </FormField>
+            <Button type="submit" className="self-start">
+              Start a tender
+            </Button>
+          </form>
+        ) : null}
       </Card>
 
       {opportunity.stage !== "won" && opportunity.stage !== "lost" ? (
