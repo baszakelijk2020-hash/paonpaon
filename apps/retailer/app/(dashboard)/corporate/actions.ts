@@ -287,6 +287,7 @@ export async function createRolloutDay(
   const fittingDate = String(formData.get("fittingDate") ?? "");
   const capacity = Number(formData.get("capacity"));
   const advisorNote = String(formData.get("advisorNote") ?? "").trim();
+  const siteKey = String(formData.get("siteKey") ?? "").trim();
   if (!fittingDate || !Number.isFinite(capacity) || capacity <= 0) {
     throw new Error("Enter a date and a capacity greater than zero.");
   }
@@ -298,12 +299,14 @@ export async function createRolloutDay(
     fittingDate,
     capacity,
     ...(advisorNote ? { advisorNote } : {}),
+    ...(siteKey ? { siteKey } : {}),
   });
   revalidatePath(`/corporate/${programmeId}`);
 }
 
 const ASSIGN_REJECTION_MESSAGES: Record<string, string> = {
   day_at_capacity: "That day is already at capacity.",
+  site_mismatch: "That wearer's site does not match this day's site.",
 };
 
 export async function assignWearerToRolloutDay(
@@ -311,17 +314,23 @@ export async function assignWearerToRolloutDay(
   formData: FormData,
 ): Promise<void> {
   const session = await requireModuleSession("enterprise_verticals");
+  const client = await getSupabaseServerClient();
   const rolloutDayId = String(formData.get("rolloutDayId") ?? "");
   const wearerId = String(formData.get("wearerId") ?? "");
   const capacity = Number(formData.get("capacity"));
+  const daySiteKey = String(formData.get("daySiteKey") ?? "").trim();
   if (!rolloutDayId || !wearerId) return;
-  const result = await new CorporateRolloutRepository(
-    await getSupabaseServerClient(),
-  ).assignWearer({
+  // Re-derived server-side from the real wearer row, never trusted from
+  // the form — the same "never trust caller input for an authorization
+  // check" discipline used throughout this stage.
+  const wearer = await new CorporateRepository(client).findWearerById(wearerId);
+  const result = await new CorporateRolloutRepository(client).assignWearer({
     retailerId: session.retailerId,
     rolloutDayId: asId<"CorporateRolloutDayId">(rolloutDayId),
     wearerId,
     capacity,
+    ...(daySiteKey ? { daySiteKey } : {}),
+    ...(wearer?.siteKey ? { wearerSiteKey: wearer.siteKey } : {}),
   });
   if (!result.ok) {
     throw new Error(

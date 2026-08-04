@@ -4144,6 +4144,7 @@ export type Database = {
           id: string;
           programme_id: string;
           retailer_id: string;
+          site_key: string | null;
           updated_at: string;
         };
         Insert: {
@@ -4154,6 +4155,7 @@ export type Database = {
           id?: string;
           programme_id: string;
           retailer_id: string;
+          site_key?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -4164,6 +4166,7 @@ export type Database = {
           id?: string;
           programme_id?: string;
           retailer_id?: string;
+          site_key?: string | null;
           updated_at?: string;
         };
         Relationships: [

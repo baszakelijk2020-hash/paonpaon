@@ -777,9 +777,14 @@ export default async function CorporateProgrammePage({
                   className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-medium text-[var(--color-stone-900)]">
-                      {day.fittingDate}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                        {day.fittingDate}
+                      </p>
+                      {day.siteKey ? (
+                        <Badge tone="neutral">{day.siteKey}</Badge>
+                      ) : null}
+                    </div>
                     <Badge
                       tone={
                         planned.length >= day.capacity ? "warning" : "neutral"
@@ -840,39 +845,64 @@ export default async function CorporateProgrammePage({
                       ))}
                     </ul>
                   ) : null}
-                  {unassignedWearers.length > 0 &&
-                  planned.length < day.capacity ? (
-                    <form
-                      action={assignWearerToRolloutDay.bind(null, programmeId)}
-                      className="flex flex-wrap items-end gap-2 pt-1"
-                    >
-                      <input type="hidden" name="rolloutDayId" value={day.id} />
-                      <input
-                        type="hidden"
-                        name="capacity"
-                        value={day.capacity}
-                      />
-                      <FormField
-                        label="Assign wearer"
-                        htmlFor={`assign-${day.id}`}
+                  {(() => {
+                    // Department/location grouping (PHASE 18.6): a
+                    // site-scoped day only ever offers wearers from that
+                    // same site; a company-wide day (no siteKey) offers
+                    // everyone unassigned, exactly as before.
+                    const eligibleWearers = day.siteKey
+                      ? unassignedWearers.filter(
+                          (wearer) => wearer.siteKey === day.siteKey,
+                        )
+                      : unassignedWearers;
+                    return eligibleWearers.length > 0 &&
+                      planned.length < day.capacity ? (
+                      <form
+                        action={assignWearerToRolloutDay.bind(
+                          null,
+                          programmeId,
+                        )}
+                        className="flex flex-wrap items-end gap-2 pt-1"
                       >
-                        <Select
-                          id={`assign-${day.id}`}
-                          name="wearerId"
-                          required
+                        <input
+                          type="hidden"
+                          name="rolloutDayId"
+                          value={day.id}
+                        />
+                        <input
+                          type="hidden"
+                          name="capacity"
+                          value={day.capacity}
+                        />
+                        {day.siteKey ? (
+                          <input
+                            type="hidden"
+                            name="daySiteKey"
+                            value={day.siteKey}
+                          />
+                        ) : null}
+                        <FormField
+                          label="Assign wearer"
+                          htmlFor={`assign-${day.id}`}
                         >
-                          {unassignedWearers.map((wearer) => (
-                            <option key={wearer.id} value={wearer.id}>
-                              {wearer.displayName}
-                            </option>
-                          ))}
-                        </Select>
-                      </FormField>
-                      <Button type="submit" variant="secondary" size="sm">
-                        Assign
-                      </Button>
-                    </form>
-                  ) : null}
+                          <Select
+                            id={`assign-${day.id}`}
+                            name="wearerId"
+                            required
+                          >
+                            {eligibleWearers.map((wearer) => (
+                              <option key={wearer.id} value={wearer.id}>
+                                {wearer.displayName}
+                              </option>
+                            ))}
+                          </Select>
+                        </FormField>
+                        <Button type="submit" variant="secondary" size="sm">
+                          Assign
+                        </Button>
+                      </form>
+                    ) : null;
+                  })()}
                 </div>
               );
             })}
@@ -916,6 +946,13 @@ export default async function CorporateProgrammePage({
             </FormField>
             <FormField label="Advisor note (optional)" htmlFor="advisorNote">
               <Input id="advisorNote" name="advisorNote" />
+            </FormField>
+            <FormField
+              label="Site key (optional)"
+              htmlFor="siteKey"
+              hint="Leave blank for a company-wide day open to any wearer; set it to scope this day to one site."
+            >
+              <Input id="siteKey" name="siteKey" />
             </FormField>
             <Button type="submit" className="self-start sm:col-span-3">
               Add fitting day

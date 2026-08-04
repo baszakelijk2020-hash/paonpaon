@@ -16,13 +16,15 @@ import { writeBrowserProofRun } from "./write-browser-proof-run";
 const PHASE_ITEM_ID = "18.6";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/corporate-rollout.spec.ts";
 
-let proofPassed = false;
+let capacityReslotProofPassed = false;
+let siteScopingProofPassed = false;
 
 test.afterAll(async () => {
   await writeBrowserProofRun({
     phaseItemId: PHASE_ITEM_ID,
     spec: BROWSER_PROOF_SPEC,
-    status: proofPassed ? "passed" : "failed",
+    status:
+      capacityReslotProofPassed && siteScopingProofPassed ? "passed" : "failed",
   });
 });
 
@@ -137,7 +139,110 @@ test("a full fitting day refuses another assignment, and a no-show reslots onto 
       rollout_day_id: dayEarly.id,
     });
 
-    proofPassed = true;
+    capacityReslotProofPassed = true;
+  } finally {
+    await admin.from("corporate_accounts").delete().eq("id", account.id);
+  }
+});
+
+/**
+ * Proves department/location grouping (PHASE 18.6's own named gap,
+ * closed): a site-scoped fitting day only ever offers a wearer from the
+ * matching site through the real UI — a different-site wearer with
+ * spare capacity elsewhere never appears in that day's dropdown — and a
+ * direct repository assignment attempt for the mismatched wearer is
+ * refused at the same write path the UI uses, not merely hidden by the
+ * page's own choice of options. A company-wide day (no site set)
+ * continues to accept any wearer, unaffected.
+ */
+test("a site-scoped fitting day only offers wearers from that site", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+  const repo = new CorporateRepository(admin);
+  const rolloutRepo = new CorporateRolloutRepository(admin);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailer) throw new Error("fixture retailer missing");
+  const retailerId = asId<"RetailerId">(retailer.id);
+
+  const unique = Date.now();
+  const account = await repo.createAccount(retailerId, {
+    legalName: `E2E Site Rollout Co ${unique}`,
+    accountReference: `E2E-SITE-${unique}`,
+  });
+  const programme = await repo.createProgramme(retailerId, {
+    accountId: account.id,
+    name: `E2E Site Rollout Programme ${unique}`,
+    siteKeys: [],
+  });
+  const londonWearer = await repo.createWearer(retailerId, {
+    programmeId: programme.id,
+    employeeReference: `E2E-LDN-${unique}`,
+    displayName: `E2E London Wearer ${unique}`,
+    roleKey: "associate",
+    joinedOn: "2025-01-01",
+    siteKey: "london",
+  });
+  const manchesterWearer = await repo.createWearer(retailerId, {
+    programmeId: programme.id,
+    employeeReference: `E2E-MCR-${unique}`,
+    displayName: `E2E Manchester Wearer ${unique}`,
+    roleKey: "associate",
+    joinedOn: "2025-01-01",
+    siteKey: "manchester",
+  });
+
+  const londonDay = await rolloutRepo.createDay({
+    retailerId,
+    programmeId: programme.id,
+    fittingDate: "2026-04-01",
+    capacity: 5,
+    siteKey: "london",
+  });
+
+  try {
+    // Direct repository proof: the same write path the UI uses refuses
+    // a cross-site assignment.
+    const refused = await rolloutRepo.assignWearer({
+      retailerId,
+      rolloutDayId: londonDay.id,
+      wearerId: manchesterWearer.id,
+      capacity: londonDay.capacity,
+      daySiteKey: "london",
+      wearerSiteKey: "manchester",
+    });
+    expect(refused).toEqual({ ok: false, reason: "site_mismatch" });
+
+    await page.goto(`/corporate/${programme.id}`);
+    const londonDayCard = page.locator('[data-rollout-day="2026-04-01"]');
+    await expect(
+      londonDayCard.getByText("london", { exact: true }),
+    ).toBeVisible();
+
+    const assignSelect = londonDayCard.locator(`select[name="wearerId"]`);
+    await expect(
+      assignSelect.locator("option", { hasText: londonWearer.displayName }),
+    ).toHaveCount(1);
+    await expect(
+      assignSelect.locator("option", {
+        hasText: manchesterWearer.displayName,
+      }),
+    ).toHaveCount(0);
+
+    await assignSelect.selectOption({ label: londonWearer.displayName });
+    await londonDayCard.getByRole("button", { name: "Assign" }).click();
+    await expect(
+      londonDayCard.getByText(londonWearer.displayName),
+    ).toBeVisible();
+
+    siteScopingProofPassed = true;
   } finally {
     await admin.from("corporate_accounts").delete().eq("id", account.id);
   }

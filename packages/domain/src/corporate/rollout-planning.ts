@@ -14,16 +14,31 @@
 
 export type AssignWearerToDayCheck =
   | { readonly ok: true }
-  | { readonly ok: false; readonly reason: "day_at_capacity" };
+  | {
+      readonly ok: false;
+      readonly reason: "day_at_capacity" | "site_mismatch";
+    };
 
-/** The capacity enforcement itself — a day cannot silently take a
- * (capacity + 1)th person. */
+/**
+ * The capacity enforcement itself — a day cannot silently take a
+ * (capacity + 1)th person — plus department/location grouping (PHASE
+ * 18.6's own named gap, closed): a day scoped to one `siteKey` refuses a
+ * wearer from a different site, so a large multi-site programme's
+ * rollout plan cannot silently cross sites. A day with no `siteKey`
+ * (`undefined`) is company-wide and accepts any wearer, matching a
+ * programme that hasn't opted into per-site scheduling at all.
+ */
 export function checkAssignWearerToDay(args: {
   readonly currentlyAssignedCount: number;
   readonly capacity: number;
+  readonly daySiteKey?: string;
+  readonly wearerSiteKey?: string;
 }): AssignWearerToDayCheck {
   if (args.currentlyAssignedCount >= args.capacity) {
     return { ok: false, reason: "day_at_capacity" };
+  }
+  if (args.daySiteKey && args.daySiteKey !== args.wearerSiteKey) {
+    return { ok: false, reason: "site_mismatch" };
   }
   return { ok: true };
 }
@@ -33,6 +48,7 @@ export interface RolloutDayCapacity {
   readonly fittingDate: string;
   readonly currentlyAssignedCount: number;
   readonly capacity: number;
+  readonly siteKey?: string;
 }
 
 export type PlanNoShowReslotResult =
@@ -42,14 +58,21 @@ export type PlanNoShowReslotResult =
 /**
  * A no-show must never silently drop the employee from the rollout —
  * that is this item's own stated acceptance criterion. Picks the
- * earliest still-open day with spare capacity; refuses honestly (rather
- * than overbooking) when none exists, so a planner sees a real gap to
- * solve instead of a wearer quietly disappearing from the plan.
+ * earliest still-open day with spare capacity that is also either
+ * company-wide or scoped to the wearer's own site — a reslot must never
+ * cross sites just because a day elsewhere happens to have room.
+ * Refuses honestly (rather than overbooking or cross-site reslotting)
+ * when none exists, so a planner sees a real gap to solve instead of a
+ * wearer quietly disappearing from the plan.
  */
 export function planNoShowReslot(args: {
   readonly candidateDays: readonly RolloutDayCapacity[];
+  readonly wearerSiteKey?: string;
 }): PlanNoShowReslotResult {
-  const sorted = [...args.candidateDays].sort((a, b) =>
+  const eligible = args.candidateDays.filter(
+    (day) => !day.siteKey || day.siteKey === args.wearerSiteKey,
+  );
+  const sorted = [...eligible].sort((a, b) =>
     a.fittingDate.localeCompare(b.fittingDate),
   );
   const openDay = sorted.find(

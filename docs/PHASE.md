@@ -4485,7 +4485,7 @@ access" control (`setWearerLoginEmail`) — there was previously no
     but is not directly e2e-proven with two wearers in the same test —
     a real gap, not a false claim.
 
-- [ ] **18.6 Measurement and fitting rollout planning**
+- [x] **18.6 Measurement and fitting rollout planning**
   - **Requirement IDs:** BD-106.
   - **Dependencies:** existing appointment domain/repository — bulk
     rollout schedules through it, not around it; `14.1` wearers/programmes.
@@ -4546,11 +4546,34 @@ access" control (`setWearerLoginEmail`) — there was previously no
     per-day scoping meaningless; fixed by adding a `data-rollout-day`
     attribute for exact scoping — a real test-authoring bug found and
     fixed while proving the item, not a product bug.
-  - Checkbox stays unchecked: department/location grouping (named in
-    the owner boundary and Tests line) does not exist — `corporate_wearers`
-    has a `siteKey` field but rollout days/slots do not group or filter
-    by it at all, so a large multi-site programme's rollout plan is
-    currently one flat list of days, not grouped per site.
+  - **Fix (2026-08-05, takeover branch):** department/location grouping
+    closed — the last unmet line on this item's own **Tests** list.
+    Migration `20260805140000_add_corporate_rollout_site_scoping.sql`
+    adds a nullable `site_key` to `corporate_rollout_days`. Unset (the
+    default, and every pre-existing day), a day stays company-wide,
+    exactly as before — no existing programme's rollout plan changes
+    unless a manager opts in. Set, a day only accepts a wearer whose own
+    `corporate_wearers.site_key` matches, enforced twice: `checkAssignWearerToDay`
+    and `planNoShowReslot` (`packages/domain/src/corporate/rollout-planning.ts`,
+    both extended, never a second copy of the rule) refuse a cross-site
+    assignment or reslot before the write, and the retailer UI's per-day
+    "Assign wearer" dropdown only ever lists wearers from that day's own
+    site — the actual grouping this item's owner boundary named. A
+    no-show reslot also now only considers days the wearer's own site is
+    eligible for, so a reslot can no longer silently cross sites just
+    because a day elsewhere happens to have room. Proof: 7 new domain
+    unit tests (4 `checkAssignWearerToDay` site cases, 2 `planNoShowReslot`
+    site cases) and a second test in
+    `apps/retailer/e2e/corporate-rollout.spec.ts` proving a site-scoped
+    day's dropdown really excludes a different-site wearer (not merely
+    reasoned about) and a direct repository assignment attempt for that
+    mismatched wearer is refused (`site_mismatch`) at the same write path
+    the UI uses. Both tests in that file pass together, and the wider
+    corporate e2e suite (`corporate-full-lifecycle.spec.ts`,
+    `corporate.spec.ts`, `corporate-service-desk.spec.ts`,
+    `corporate-renewal-analytics.spec.ts`) is unaffected. This item's own
+    **Tests** line (capacity limits, no-show re-slotting, department/
+    location grouping) is now fully covered.
 
 - [ ] **18.7 Corporate project and rollout management**
   - **Requirement IDs:** BD-107.

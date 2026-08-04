@@ -21,6 +21,9 @@ export interface CorporateRolloutDay {
   readonly fittingDate: string;
   readonly capacity: number;
   readonly advisorNote?: string;
+  /** Company-wide (any wearer may be assigned) when unset — see
+   * `checkAssignWearerToDay` (PHASE 18.6). */
+  readonly siteKey?: string;
 }
 
 export type CorporateRolloutSlotStatus = "planned" | "completed" | "no_show";
@@ -41,6 +44,7 @@ function toDay(row: DayRow): CorporateRolloutDay {
     fittingDate: row.fitting_date,
     capacity: row.capacity,
     ...(row.advisor_note ? { advisorNote: row.advisor_note } : {}),
+    ...(row.site_key ? { siteKey: row.site_key } : {}),
   };
 }
 
@@ -56,7 +60,10 @@ function toSlot(row: SlotRow): CorporateRolloutSlot {
 
 export type AssignWearerResult =
   | { readonly ok: true; readonly slot: CorporateRolloutSlot }
-  | { readonly ok: false; readonly reason: "day_at_capacity" };
+  | {
+      readonly ok: false;
+      readonly reason: "day_at_capacity" | "site_mismatch";
+    };
 
 export type ReslotNoShowResult =
   | { readonly ok: true; readonly slot: CorporateRolloutSlot }
@@ -107,6 +114,7 @@ export class CorporateRolloutRepository {
     readonly fittingDate: string;
     readonly capacity: number;
     readonly advisorNote?: string;
+    readonly siteKey?: string;
   }): Promise<CorporateRolloutDay> {
     const { data, error } = await this.client
       .from("corporate_rollout_days")
@@ -116,6 +124,7 @@ export class CorporateRolloutRepository {
         fitting_date: args.fittingDate,
         capacity: args.capacity,
         ...(args.advisorNote ? { advisor_note: args.advisorNote } : {}),
+        ...(args.siteKey ? { site_key: args.siteKey } : {}),
       })
       .select("*")
       .single();
@@ -138,11 +147,15 @@ export class CorporateRolloutRepository {
     readonly rolloutDayId: CorporateRolloutDayId;
     readonly wearerId: string;
     readonly capacity: number;
+    readonly daySiteKey?: string;
+    readonly wearerSiteKey?: string;
   }): Promise<AssignWearerResult> {
     const currentlyAssignedCount = await this.countPlanned(args.rolloutDayId);
     const check = checkAssignWearerToDay({
       currentlyAssignedCount,
       capacity: args.capacity,
+      ...(args.daySiteKey ? { daySiteKey: args.daySiteKey } : {}),
+      ...(args.wearerSiteKey ? { wearerSiteKey: args.wearerSiteKey } : {}),
     });
     if (!check.ok) return check;
 
@@ -184,6 +197,13 @@ export class CorporateRolloutRepository {
       .single();
     if (findError) throw findError;
 
+    const { data: wearer, error: wearerError } = await this.client
+      .from("corporate_wearers")
+      .select("site_key")
+      .eq("id", current.wearer_id)
+      .single();
+    if (wearerError) throw wearerError;
+
     const { error: updateError } = await this.client
       .from("corporate_rollout_slots")
       .update({ status: "no_show" })
@@ -197,9 +217,13 @@ export class CorporateRolloutRepository {
         fittingDate: day.fittingDate,
         currentlyAssignedCount: await this.countPlanned(day.id),
         capacity: day.capacity,
+        ...(day.siteKey ? { siteKey: day.siteKey } : {}),
       })),
     );
-    const plan = planNoShowReslot({ candidateDays });
+    const plan = planNoShowReslot({
+      candidateDays,
+      ...(wearer.site_key ? { wearerSiteKey: wearer.site_key } : {}),
+    });
     if (!plan.ok) return plan;
 
     const { data, error } = await this.client
