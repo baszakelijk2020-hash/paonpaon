@@ -114,3 +114,20 @@ export function requireCustomerSession(
     throw new ForbiddenError("Requires a Customer Portal session");
   }
 }
+
+/** Throws unless the session belongs to a corporate wearer's Employee
+ * Portal login (PHASE 18.5) — never a retailer staff or ordinary
+ * customer session, even one signed in to the same customer app. */
+export function requireWearerSession(
+  session: AppSession | null,
+): asserts session is AppSession & {
+  accountType: "corporate_wearer";
+  wearerId: NonNullable<AppSession["wearerId"]>;
+} {
+  if (!session) {
+    throw new UnauthorizedError();
+  }
+  if (session.accountType !== "corporate_wearer" || !session.wearerId) {
+    throw new ForbiddenError("Requires an Employee Portal session");
+  }
+}

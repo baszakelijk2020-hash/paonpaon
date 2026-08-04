@@ -39,6 +39,15 @@ const PUBLIC_PATHS = [
 // visiting it (unlike the protected paths below).
 const STOREFRONT_PATH_PREFIX = "/r/";
 
+// The Employee Portal (PHASE 18.5) — a corporate wearer, never an
+// ordinary customer. Lives inside this app under its own path prefix
+// rather than a fourth Next.js app (see docs/PHASE.md 18.5's Status for
+// why), so it needs its own carve-out from the customer-only check
+// below: a wearer must never be treated as "not a customer account" on
+// their own pages, and a signed-in customer wandering onto `/employee`
+// must be redirected there, never signed out of their real session.
+const EMPLOYEE_PATH_PREFIX = "/employee";
+
 // Server-to-server routes with their own auth (Stripe signature
 // verification) — never gate them behind a browser session. A real
 // Stripe webhook call never sends this app's session cookie, so
@@ -93,9 +102,13 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // /auth/confirm establishes the session itself (verifyOtp) — never
-  // gate it behind an existing session check.
-  if (pathname.startsWith("/auth/confirm")) {
+  // /auth/confirm and /employee/auth/confirm establish the session
+  // themselves (verifyOtp) — never gate either behind an existing
+  // session check.
+  if (
+    pathname.startsWith("/auth/confirm") ||
+    pathname.startsWith(`${EMPLOYEE_PATH_PREFIX}/auth/confirm`)
+  ) {
     return response;
   }
 
@@ -103,24 +116,57 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+  const isEmployeePath = pathname.startsWith(EMPLOYEE_PATH_PREFIX);
+  const isEmployeeLoginPath = pathname.startsWith(
+    `${EMPLOYEE_PATH_PREFIX}/login`,
+  );
+  const isPublicPath =
+    isEmployeeLoginPath ||
+    PUBLIC_PATHS.some((path) => pathname.startsWith(path));
   const { data } = await supabase.auth.getUser();
 
   if (!data.user) {
     if (isPublicPath) {
       return response;
     }
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = new URL(
+      isEmployeePath ? `${EMPLOYEE_PATH_PREFIX}/login` : "/login",
+      request.url,
+    );
     loginUrl.searchParams.set("redirectTo", pathname);
     return redirectWithCookies(loginUrl, response);
   }
 
   const session = resolveAppSession(data.user);
 
+  if (isEmployeePath) {
+    // A wearer is welcome here; anyone else (customer, retailer staff,
+    // platform) is blocked from this one area WITHOUT touching their
+    // session — visiting `/employee` by mistake must never sign a
+    // shopper out of their own account.
+    if (session.accountType !== "corporate_wearer") {
+      if (isEmployeeLoginPath) {
+        return response;
+      }
+      const loginUrl = new URL(`${EMPLOYEE_PATH_PREFIX}/login`, request.url);
+      loginUrl.searchParams.set("error", "not_an_employee_account");
+      return redirectWithCookies(loginUrl, response);
+    }
+    if (isEmployeeLoginPath) {
+      return redirectWithCookies(
+        new URL(EMPLOYEE_PATH_PREFIX, request.url),
+        response,
+      );
+    }
+    return response;
+  }
+
   if (session.accountType !== "customer") {
     await supabase.auth.signOut();
     // Marketing and /demo/[token] are public — clear the wrong session and
     // continue, instead of trapping the visitor on the customer login page.
+    // A corporate_wearer session lands here exactly like retailer_staff or
+    // platform always has: this app's ordinary paths are not theirs either.
     if (isPublicPath) {
       return response;
     }

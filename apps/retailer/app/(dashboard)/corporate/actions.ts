@@ -111,6 +111,21 @@ export async function setWearerActive(
   revalidatePath(`/corporate/${programmeId}`);
 }
 
+/** Grants (a non-empty email) or revokes (empty submission) Employee
+ * Portal login access — see PHASE 18.5. */
+export async function setWearerLoginEmail(
+  programmeId: string,
+  wearerId: string,
+  formData: FormData,
+): Promise<void> {
+  await requireModuleSession("enterprise_verticals");
+  const raw = String(formData.get("loginEmail") ?? "").trim();
+  await new CorporateRepository(
+    await getSupabaseServerClient(),
+  ).setWearerLoginEmail(wearerId, raw.length > 0 ? raw : null);
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
 export async function recordIssue(
   programmeId: string,
   formData: FormData,

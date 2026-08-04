@@ -4354,7 +4354,80 @@ nowhere honest to store it.
     `14.1` already deliberately excludes.
   - **Hard blockers:** new auth-path design must be settled before this
     can start — not an implementation blocker, a decision blocker.
-  - **Status:** not started.
+  - **Status (2026-08-04, takeover branch):** `verified_local`, hard
+    blocker resolved, real gaps named below. The auth-path decision
+    (researched first rather than guessed at): a wearer lives inside
+    `apps/customer` under `/employee`, not a fourth Next.js app — the
+    customer app's own middleware already signs out any session whose
+    `accountType` isn't `customer`, so a wearer needed to be a session
+    the middleware recognises and carves out, not bolted on beside it.
+    `AccountType` (`packages/domain/src/identity/role.ts`) gained
+    `corporate_wearer`, with an explicit doc comment on the resulting
+    resolution priority (`platform > retailer_staff > corporate_wearer
+    > customer`) — the same "highest wins, only one wins" tradeoff
+already accepted between `retailer_staff`and`customer`, extended
+one level deeper; a person who is somehow both a wearer and a
+shopper resolves as the former only. Migration
+`20260804160000_add_corporate_wearer_portal_auth.sql`adds`corporate_wearers.login_email`/`user_id`, a `sync_corporate_wearer_claim`trigger and`link_my_wearer_account()`RPC mirroring`retailer_staff_members`'s claim-sync trigger and `customers`'
+`link_my_customer_accounts()`exactly — the third time this
+codebase needed "link an auth user to a domain row", done the same
+way a third time rather than a new way.`packages/auth`gained`wearerId`on`AppSession`and`requireWearerSession`. Wired to
+`apps/customer/middleware.ts`with a path-aware carve-out:`/employee/**`accepts only`corporate_wearer`sessions and redirects anyone else
+to`/employee/login`WITHOUT signing them out (a shopper mis-clicking
+an employee link must never lose their own session), while every
+other path treats a`corporate_wearer`session exactly like a`retailer_staff`session always has — not a customer account, signed
+out on any non-public path.`/employee/login`(own magic-link form),`/employee/auth/confirm`(mirrors`/auth/confirm`, links via
+`link_my_wearer_account`) and `/employee`(the portal home — wearer
+name, programme name, live entitlement balance via the same`computeEntitlementBalance`the retailer-staff corporate page
+already calls, and issue history) are built. The retailer's own`/corporate/[programmeId]` page gained a per-wearer "grant portal
+access" control (`setWearerLoginEmail`) — there was previously no
+    > way for anyone to actually turn this on for a wearer.
+  - **Bug found and fixed while building this:** the RLS helper
+    `current_wearer_id()` was first written to read the `wearer_id`
+    claim from `auth.jwt()`, mirroring `current_retailer_id()` exactly
+    — but that pattern is only safe for retailer staff because they are
+    admin-provisioned: `user_id` is linked (and the claim-sync trigger
+    fires) before their first sign-in ever mints a JWT. A wearer's
+    _first_ magic-link click both creates their session and, in the
+    same request, calls `link_my_wearer_account` — the trigger updates
+    `auth.users.raw_app_meta_data` correctly, but the access token
+    already in hand was minted a moment earlier and `auth.jwt()` decodes
+    it locally rather than re-fetching, so RLS saw an empty claim and
+    every wearer-scoped query returned nothing on first login. Fixed two
+    ways: `current_wearer_id()` now does a direct, `security definer`
+    table lookup on `auth.uid()` (the JWT's `sub`, correct from the
+    instant the token exists) instead of trusting `app_metadata`; and
+    `/employee/auth/confirm` calls `supabase.auth.refreshSession()`
+    after linking, so the session used for the very next request already
+    carries a fresh token. Found by reproducing "your employee record
+    could not be found" against a freshly seeded wearer in a real
+    browser, not by inspection.
+  - **Tests:** `packages/auth/src/session.test.ts` and `guards.test.ts`
+    cover the new `corporate_wearer` resolution and priority ordering.
+    `apps/customer/e2e/employee-portal.spec.ts` proves the real arc in a
+    browser: a retailer grants portal access, a magic link signs the
+    wearer in, and the portal shows their real programme name and a
+    computed `2/2 left` entitlement balance against a seeded rule — not
+    a static fixture. The full `apps/customer` suite (57 tests) was run
+    after this change; 8 unrelated failures were investigated and
+    confirmed pre-existing (stock-fixture depletion, unrelated content
+    assertions, the same message-attachment-image flake already
+    documented against the retailer app) by rerunning each failing spec
+    file in isolation, where all passed — not fixed here, out of scope,
+    and not caused by this change.
+  - **Non-goals:** not an HR login; no employment data beyond what
+    `14.1` already deliberately excludes.
+  - Checkbox stays unchecked: the owner boundary names appointments,
+    measurements beyond entitlement, orders, alterations, tickets and
+    announcements, and none of those are wired — tickets need `18.8`
+    (not built), and the rest need either the wearer's optional
+    `customerId` link (not every wearer has one) or new corporate-scoped
+    work this slice didn't attempt, so this page shows only what it can
+    show honestly rather than a page that silently shows nothing where
+    those sections would be. Cross-_employee_ isolation (one wearer
+    reading another's row) is guaranteed by the RLS policies added here
+    but is not directly e2e-proven with two wearers in the same test —
+    a real gap, not a false claim.
 
 - [ ] **18.6 Measurement and fitting rollout planning**
   - **Requirement IDs:** BD-106.

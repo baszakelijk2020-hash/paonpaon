@@ -53,6 +53,31 @@ describe("resolveAppSession", () => {
     expect(session.accountType).toBe("platform");
   });
 
+  it("resolves a corporate_wearer session from the wearer_id claim", () => {
+    const session = resolveAppSession({
+      id: "user-6",
+      email: "wearer@company.com",
+      app_metadata: { wearer_id: "wearer-1" },
+    });
+
+    expect(session.accountType).toBe("corporate_wearer");
+    expect(session.wearerId).toBe("wearer-1");
+  });
+
+  it("prefers retailer_staff over the wearer claim if both are somehow present", () => {
+    const session = resolveAppSession({
+      id: "user-7",
+      email: "weird2@example.com",
+      app_metadata: {
+        retailer_id: "retailer-1",
+        retailer_role: "owner",
+        wearer_id: "wearer-1",
+      },
+    });
+
+    expect(session.accountType).toBe("retailer_staff");
+  });
+
   it("defaults email to an empty string when absent", () => {
     const session = resolveAppSession({
       id: "user-5",

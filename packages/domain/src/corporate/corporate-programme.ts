@@ -79,6 +79,10 @@ export interface CorporateWearer extends Timestamps {
   readonly joinedOn: string;
   readonly active: boolean;
   readonly garmentAdaptationNote?: string;
+  /** Employee Portal login identity (PHASE 18.5) — separate from
+   * `customerId`'s linked customer email; see the migration header. */
+  readonly loginEmail?: string;
+  readonly userId?: string;
 }
 
 export interface CorporateIssueRecordEntity {

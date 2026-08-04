@@ -88,6 +88,8 @@ function toWearer(row: WearerRow): CorporateWearer {
     ...(row.garment_adaptation_note
       ? { garmentAdaptationNote: row.garment_adaptation_note }
       : {}),
+    ...(row.login_email ? { loginEmail: row.login_email } : {}),
+    ...(row.user_id ? { userId: row.user_id } : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -289,6 +291,27 @@ export class CorporateRepository {
     return data ? toWearer(data) : null;
   }
 
+  /** The Employee Portal's own lookup — `user_id` is set by
+   * `linkMyWearerAccount`, never chosen by the caller. */
+  async findWearerByUserId(userId: string): Promise<CorporateWearer | null> {
+    const { data, error } = await this.client
+      .from("corporate_wearers")
+      .select("*")
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toWearer(data) : null;
+  }
+
+  /** Links every still-unlinked `corporate_wearers` row matching the
+   * caller's own verified email to their Employee Portal login.
+   * Idempotent; mirrors `CustomerRepository.linkMyAccounts` exactly. */
+  async linkMyWearerAccount(): Promise<void> {
+    const { error } = await this.client.rpc("link_my_wearer_account");
+    if (error) throw error;
+  }
+
   async createWearer(
     retailerId: RetailerId,
     input: CreateCorporateWearerInput,
@@ -315,6 +338,20 @@ export class CorporateRepository {
     const { error } = await this.client
       .from("corporate_wearers")
       .update({ active })
+      .eq("id", wearerId);
+    if (error) throw error;
+  }
+
+  /** Grants (or revokes, with `null`) Employee Portal login access —
+   * see the migration header for why this is a separate column from
+   * any linked customer's email. */
+  async setWearerLoginEmail(
+    wearerId: string,
+    loginEmail: string | null,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("corporate_wearers")
+      .update({ login_email: loginEmail })
       .eq("id", wearerId);
     if (error) throw error;
   }

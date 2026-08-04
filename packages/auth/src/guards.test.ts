@@ -9,6 +9,7 @@ import {
   requirePlatformSession,
   requireRetailerRole,
   requireRetailerSession,
+  requireWearerSession,
 } from "./guards";
 import type { AppSession } from "./session";
 
@@ -36,6 +37,15 @@ function customerSession(): AppSession {
     userId: "user-3",
     email: "a@shopper.com",
     accountType: "customer",
+  } as unknown as AppSession;
+}
+
+function wearerSession(): AppSession {
+  return {
+    userId: "user-4",
+    email: "a@company.com",
+    accountType: "corporate_wearer",
+    wearerId: "wearer-1",
   } as unknown as AppSession;
 }
 
@@ -154,5 +164,36 @@ describe("requireCustomerSession", () => {
 
   it("throws UnauthorizedError for a null session", () => {
     expect(() => requireCustomerSession(null)).toThrow(UnauthorizedError);
+  });
+});
+
+describe("requireWearerSession", () => {
+  it("passes for a corporate_wearer session with a wearerId", () => {
+    expect(() => requireWearerSession(wearerSession())).not.toThrow();
+  });
+
+  it("throws ForbiddenError for a corporate_wearer accountType with no wearerId", () => {
+    const session = {
+      userId: "user-4",
+      email: "a@company.com",
+      accountType: "corporate_wearer",
+    } as unknown as AppSession;
+    expect(() => requireWearerSession(session)).toThrow(ForbiddenError);
+  });
+
+  it("throws ForbiddenError for a customer session", () => {
+    expect(() => requireWearerSession(customerSession())).toThrow(
+      ForbiddenError,
+    );
+  });
+
+  it("throws ForbiddenError for a retailer_staff session", () => {
+    expect(() => requireWearerSession(retailerSession("owner"))).toThrow(
+      ForbiddenError,
+    );
+  });
+
+  it("throws UnauthorizedError for a null session", () => {
+    expect(() => requireWearerSession(null)).toThrow(UnauthorizedError);
   });
 });

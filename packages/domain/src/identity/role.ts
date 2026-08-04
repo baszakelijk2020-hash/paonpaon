@@ -1,5 +1,16 @@
-/** Which of the three applications a User authenticates into. */
-export type AccountType = "platform" | "retailer_staff" | "customer";
+/**
+ * Which application a User authenticates into. `corporate_wearer` is an
+ * individual employee under a corporate wardrobe programme (PHASE 18.5) —
+ * it lives inside the customer app under `/employee`, not a fourth app,
+ * but is its own account type because a wearer must never fall through
+ * to ordinary customer access by accident. Priority when a person could
+ * resolve as more than one (see `resolveAppSession`) is
+ * platform > retailer_staff > corporate_wearer > customer — the same
+ * "highest-privilege wins, and only one wins" tradeoff already accepted
+ * between retailer_staff and customer, extended one level deeper.
+ */
+export type AccountType =
+  "platform" | "retailer_staff" | "corporate_wearer" | "customer";
 
 /** Roles within PAON Admin — platform staff, not tied to any retailer. */
 export type PlatformRole =

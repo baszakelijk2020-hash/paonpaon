@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   requireCustomerSession,
+  requireWearerSession,
   resolveAppSession,
   type AppSession,
 } from "@paon/auth";
@@ -29,6 +30,20 @@ export async function requireSession(): Promise<
     requireCustomerSession(session);
   } catch {
     redirect("/login");
+  }
+  return session;
+}
+
+/** Employee Portal (PHASE 18.5) equivalent of `requireSession` — redirects
+ * to `/employee/login` instead of throwing when not a wearer session. */
+export async function requireWearerAppSession(): Promise<
+  AppSession & { accountType: "corporate_wearer"; wearerId: string }
+> {
+  const session = await getSession();
+  try {
+    requireWearerSession(session);
+  } catch {
+    redirect("/employee/login");
   }
   return session;
 }

@@ -3941,11 +3941,13 @@ export type Database = {
           garment_adaptation_note: string | null;
           id: string;
           joined_on: string;
+          login_email: string | null;
           programme_id: string;
           retailer_id: string;
           role_key: string;
           site_key: string | null;
           updated_at: string;
+          user_id: string | null;
         };
         Insert: {
           active?: boolean;
@@ -3957,11 +3959,13 @@ export type Database = {
           garment_adaptation_note?: string | null;
           id?: string;
           joined_on: string;
+          login_email?: string | null;
           programme_id: string;
           retailer_id: string;
           role_key: string;
           site_key?: string | null;
           updated_at?: string;
+          user_id?: string | null;
         };
         Update: {
           active?: boolean;
@@ -3973,11 +3977,13 @@ export type Database = {
           garment_adaptation_note?: string | null;
           id?: string;
           joined_on?: string;
+          login_email?: string | null;
           programme_id?: string;
           retailer_id?: string;
           role_key?: string;
           site_key?: string | null;
           updated_at?: string;
+          user_id?: string | null;
         };
         Relationships: [
           {
@@ -17489,6 +17495,7 @@ export type Database = {
       current_retailer_id: { Args: never; Returns: string };
       current_retailer_role: { Args: never; Returns: string };
       current_staff_id: { Args: never; Returns: string };
+      current_wearer_id: { Args: never; Returns: string };
       current_workshop_id: { Args: never; Returns: string };
       decide_alteration_price_change: {
         Args: {
@@ -17670,6 +17677,7 @@ export type Database = {
         Returns: Json;
       };
       link_my_customer_accounts: { Args: never; Returns: undefined };
+      link_my_wearer_account: { Args: never; Returns: undefined };
       link_service_booking_appointment: {
         Args: { p_appointment_id: string; p_booking_id: string };
         Returns: string;

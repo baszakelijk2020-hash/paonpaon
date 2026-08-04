@@ -20,6 +20,7 @@ import {
   recordIssue,
   resolveException,
   setWearerActive,
+  setWearerLoginEmail,
 } from "../actions";
 
 import { requireModuleSession } from "@/lib/module-session";
@@ -250,6 +251,35 @@ export default async function CorporateProgrammePage({
                       </form>
                     </div>
                   </div>
+                  <form
+                    action={setWearerLoginEmail.bind(
+                      null,
+                      programmeId,
+                      wearer.id,
+                    )}
+                    className="flex flex-wrap items-end gap-2"
+                  >
+                    <FormField
+                      label="Employee Portal login email"
+                      htmlFor={`loginEmail-${wearer.id}`}
+                      hint={
+                        wearer.loginEmail
+                          ? `Portal access: ${wearer.loginEmail}`
+                          : "No portal access yet."
+                      }
+                    >
+                      <Input
+                        id={`loginEmail-${wearer.id}`}
+                        name="loginEmail"
+                        type="email"
+                        defaultValue={wearer.loginEmail ?? ""}
+                        placeholder="employee@company.com"
+                      />
+                    </FormField>
+                    <Button type="submit" variant="secondary" size="sm">
+                      {wearer.loginEmail ? "Update" : "Grant access"}
+                    </Button>
+                  </form>
                   {balances.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {balances.map((balance) => (

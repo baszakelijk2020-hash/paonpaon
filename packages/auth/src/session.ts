@@ -21,6 +21,8 @@ export interface AppSession {
   readonly retailerId?: RetailerId;
   readonly retailerRole?: RetailerRole;
   readonly customerId?: CustomerId;
+  /** Set only when `accountType` is `corporate_wearer` (PHASE 18.5). */
+  readonly wearerId?: string;
 }
 
 /** Minimal shape of the Supabase auth user this package needs — avoids a hard dependency on @supabase/supabase-js's full type surface. */
@@ -46,24 +48,35 @@ function asCustomerId(value: unknown): CustomerId | undefined {
   return typeof value === "string" ? (value as CustomerId) : undefined;
 }
 
+function asWearerId(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
 /**
  * Maps a Supabase auth user onto an `AppSession`. accountType is
  * derived from which claim is present — platform_role wins over
- * retailer claims, which win over the customer default — because a
- * person's User row belongs to exactly one accountType by construction
- * (see @paon/domain `User`).
+ * retailer claims, which win over the wearer claim, which wins over the
+ * customer default — because a person's User row belongs to exactly one
+ * accountType by construction (see @paon/domain `User`). A person who
+ * is somehow both a corporate wearer and an ordinary customer resolves
+ * as `corporate_wearer` only, the same accepted tradeoff already made
+ * between retailer_staff and customer, extended one level deeper — see
+ * `AccountType`'s own doc comment.
  */
 export function resolveAppSession(user: AuthUserLike): AppSession {
   const platformRole = asPlatformRole(user.app_metadata["platform_role"]);
   const retailerRole = asRetailerRole(user.app_metadata["retailer_role"]);
   const retailerId = asRetailerId(user.app_metadata["retailer_id"]);
   const customerId = asCustomerId(user.app_metadata["customer_id"]);
+  const wearerId = asWearerId(user.app_metadata["wearer_id"]);
 
   const accountType: AccountType = platformRole
     ? "platform"
     : retailerId && retailerRole
       ? "retailer_staff"
-      : "customer";
+      : wearerId
+        ? "corporate_wearer"
+        : "customer";
 
   return {
     userId: user.id as UserId,
@@ -73,5 +86,6 @@ export function resolveAppSession(user: AuthUserLike): AppSession {
     ...(retailerId ? { retailerId } : {}),
     ...(retailerRole ? { retailerRole } : {}),
     ...(customerId ? { customerId } : {}),
+    ...(wearerId ? { wearerId } : {}),
   };
 }
