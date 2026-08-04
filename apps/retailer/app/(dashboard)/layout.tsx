@@ -343,6 +343,11 @@ export default async function DashboardLayout({
                 label: "Performance",
                 description: "Commercial and service signals",
               },
+              {
+                href: "/network",
+                label: "Network",
+                description: "Disclosed partner listings and attribution",
+              },
             ],
           },
         ]

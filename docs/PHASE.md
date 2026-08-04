@@ -3405,6 +3405,37 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     cannot tell is commercial is an advertisement pretending to be advice.
     Missing: listing curation UI, customer placement surface, partner
     reporting, browser proof. Live listings stay `blocked_external`.
+  - **Update (2026-08-04, takeover branch):** retailer curation and the
+    attribution lifecycle are wired end to end and proven in the browser.
+    `NetworkRepository` (`packages/database`) is thin persistence over the
+    existing domain checks: `createPartner`/`createListing` write through
+    the ordinary session-scoped client (RLS already restricts writes to
+    owner/manager/admin), `resolvePseudonym` is the one method that takes
+    an admin/service-role client — `network_pseudonym_map` grants no other
+    access, by design — and reuses an existing (customer, partner) ref
+    rather than minting a new one per visit. Attribution state is never
+    stored: `resolveListingAttribution` recomputes it from the full event
+    history via `resolveAttribution` on every read, so a refund recorded
+    after the fact is reflected immediately with nothing to go back and
+    edit. Wired to a new `/network` page (`apps/retailer/app/(dashboard)/network`,
+    gated to manager+, added to the `network_ecosystem` module's nav in
+    both `module-kernel.ts` and the dashboard layout — the 11.4 lesson
+    about needing both). `network.spec.ts` proves the full arc through the
+    real UI: a manager adds a partner and a listing (active by default),
+    records a click for a real seeded customer, confirms an order into
+    `holding`, then refunds it to `reversed` with the attributable amount
+    at €0.00 — and the DB is asserted to hold exactly one pseudonymous ref
+    across all three events, distinct from the customer's own id. The
+    partner-payload preview rendered in the browser is asserted never to
+    contain the customer's name, email or id — scoped specifically to that
+    payload block, since the retailer's own customer picker on the same
+    page legitimately lists every customer by name and is not itself
+    partner-facing data. The checkbox stays unchecked: the owner boundary
+    also names a **customer placement surface** (nothing shows a listing to
+    a customer in the customer app) and **partner reporting** (no summary
+    view of a partner's own conversions), neither of which exists yet.
+    Missing: customer-facing placement, partner reporting. Live listings
+    stay `blocked_external`, unchanged.
 
 - [ ] **15.2 Rewards and concierge activation**
   - **Requirement IDs:** `NET-103`, `NET-104`.

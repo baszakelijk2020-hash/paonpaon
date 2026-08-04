@@ -104,4 +104,5 @@ export * from "./repositories/service-partner-repository";
 export * from "./repositories/supplier-intelligence-repository";
 export * from "./repositories/production-piece-repository";
 export * from "./repositories/cited-recommendation-repository";
+export * from "./repositories/network-repository";
 export type { Database } from "./generated/database.types";

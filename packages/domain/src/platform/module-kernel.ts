@@ -310,7 +310,7 @@ export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
       "commerce_growth",
       "garment_service_operations",
     ],
-    navigation: [],
+    navigation: [{ href: "/network", label: "Network", roles: MANAGER_ROLES }],
     authorityDomains: ["catalogue", "order", "payment", "production"],
     jobs: ["partner_attribution_reconciliation", "audience_release_expiry"],
   },
