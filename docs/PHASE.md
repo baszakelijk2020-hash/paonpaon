@@ -4034,13 +4034,53 @@ now.
     file pass together (6/6 alongside the unaffected `dashboard-digest.spec.ts`
     suite, confirming no regression from the shared repository calls).
 
-- [ ] **17.3 Pre/during/post-appointment advisor dashboard**
+- [x] **17.3 Pre/during/post-appointment advisor dashboard**
   - **Requirement IDs:** ADV-103.
   - **Dependencies:** `17.1`, `9.x` Self-Portrait, wishlist, wardrobe.
   - **Owner boundary:** a per-appointment view: purchase history, Self-
     Portrait, favourited-vs-owned gaps, price-comfort band, prior notes; a
     sensitive-information show/hide toggle for in-front-of-customer use.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `verified_local`. Audited
+    first: the appointment detail page
+    (`apps/retailer/app/(dashboard)/appointments/[id]/page.tsx`) already
+    had Self-Portrait and prior notes via `AdvisorPreparationBriefCard`
+    (built earlier under FT-05) and loaded raw orders/garments without
+    displaying them — purchase history, favourited-vs-owned gaps,
+    price-comfort band and the sensitive-info toggle were the real gap.
+    Two new plain, published-formula functions in
+    `packages/domain/src/intelligence/appointment-brief.ts`:
+    `computePriceComfortSummary` (average order value against a fixed,
+    published minor-units threshold table — `value`/`mid`/`premium`/
+    `luxury` — returns `null` for a customer with no orders rather than
+    fabricating a band with nothing behind it) and
+    `computeWishlistOwnershipGaps` (a wishlisted product variant the
+    customer has never actually bought, matched against real
+    `order_lines.product_variant_id` values only — never guessed from
+    category or price similarity). The appointment page gained a
+    "Purchase and fit intelligence" card: the comfort band and average
+    order value, the five most recent orders with date/total/status, and
+    a "Favourited, never bought" list linking each gap to its product
+    page. A new `SensitiveInfoToggle` client component (local state only,
+    no server round trip) wraps the customer's contact details and any
+    pinned private team preference, defaulting hidden — "for
+    in-front-of-customer use" named in this item's own owner boundary —
+    distinct from `AdvisorPreparationBriefCard`'s existing consent-driven
+    visibility, which is about compliance, not in-person screen
+    discipline.
+  - **Tests:** `packages/domain/src/intelligence/appointment-brief.test.ts`
+    (10: null for zero orders, each band boundary exactly at its
+    threshold, averaging across multiple orders, gap exclusion for a
+    bought variant, no duplicate gaps, empty-gap list when everything is
+    owned). `apps/retailer/e2e/appointment-brief.spec.ts` proves the
+    whole card in a real browser against real seeded data: one $2,000
+    order resolves to exactly `premium comfort` with the real average
+    displayed, the order number appears in purchase history, a wishlisted
+    product the customer already bought never appears in "Favourited,
+    never bought" while an unbought one does, and the customer's real
+    email is invisible until the "Show" button is explicitly clicked.
+    Full regression run alongside `mission-control.spec.ts` and
+    `dashboard-digest.spec.ts` (7/7 green together — both share the
+    appointment/order/notification repositories this change touches).
 
 - [ ] **17.4 Fabric-pairing upsell engine**
   - **Requirement IDs:** ADV-104.

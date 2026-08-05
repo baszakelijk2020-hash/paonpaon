@@ -7,17 +7,23 @@ import {
   MetadataRepository,
   OrderRepository,
   PhysicalGarmentRepository,
+  ProductRepository,
+  ProductVariantRepository,
   RetailerBranchRepository,
   RetailerStaffRepository,
+  WishlistRepository,
 } from "@paon/database";
 import {
   asId,
   APPOINTMENT_TYPE_LABELS,
+  computePriceComfortSummary,
+  computeWishlistOwnershipGaps,
   retailerRoleAtLeast,
 } from "@paon/domain";
+import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { formatDate } from "@paon/utils";
+import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -27,6 +33,7 @@ import { AppointmentStatusBadge } from "../status-badge";
 
 import { AppointmentActionsForm } from "./appointment-actions-form";
 import { AppointmentCloseoutCapture } from "./appointment-closeout-capture";
+import { SensitiveInfoToggle } from "./sensitive-info-toggle";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -58,7 +65,7 @@ export default async function AppointmentDetailPage({
       ),
       new MetadataRepository(supabase).findVisibleConcepts(session.retailerId),
     ]);
-  const [notes, orders, garments, advisorBrief] = customer
+  const [notes, orders, garments, advisorBrief, wishlist] = customer
     ? await Promise.all([
         new ClientelingRepository(supabase).findByCustomer(customer.id),
         new OrderRepository(supabase).findByCustomer(customer.id),
@@ -69,13 +76,52 @@ export default async function AppointmentDetailPage({
           advisorRetailerId: session.retailerId,
           ...(appointment.notes ? { appointmentNotes: appointment.notes } : {}),
         }),
+        new WishlistRepository(supabase).findByCustomer(customer.id),
       ])
-    : [[], [], [], null];
+    : [[], [], [], null, null];
   const pinnedNote = notes.find((note) => note.pinned);
   const assignedAdvisor = staff.find(
     (member) => member.id === appointment.staffId,
   );
   const branch = branches.find((item) => item.id === appointment.branchId);
+
+  // PHASE 17.3: price comfort band from real order totals, and
+  // favourited-vs-owned gaps matched against real order-line purchases —
+  // both plain published formulas, never a hidden score.
+  const orderRepo = new OrderRepository(supabase);
+  const orderLines = await Promise.all(
+    orders.map((order) => orderRepo.findLinesByOrder(order.id)),
+  );
+  const purchasedProductVariantIds = new Set(
+    orderLines.flat().map((line) => line.productVariantId),
+  );
+  const priceComfortSummary = computePriceComfortSummary(
+    orders.map((order) => order.total),
+  );
+  const wishlistItems = wishlist
+    ? await new WishlistRepository(supabase).findItems(wishlist.id)
+    : [];
+  const wishlistGaps = computeWishlistOwnershipGaps({
+    wishlistProductVariantIds: wishlistItems.map(
+      (item) => item.productVariantId,
+    ),
+    purchasedProductVariantIds,
+  });
+  const wishlistGapDetails = (
+    await Promise.all(
+      wishlistGaps.map(async (gap) => {
+        const variant = await new ProductVariantRepository(supabase).findById(
+          asId<"ProductVariantId">(gap.productVariantId),
+        );
+        if (!variant) return null;
+        const product = await new ProductRepository(supabase).findById(
+          variant.productId,
+        );
+        if (!product) return null;
+        return { variant, product };
+      }),
+    )
+  ).filter((item): item is NonNullable<typeof item> => item !== null);
 
   const canManage = retailerRoleAtLeast(
     session.retailerRole,
@@ -161,9 +207,13 @@ export default async function AppointmentDetailPage({
               What should the advisor know?
             </h2>
             {pinnedNote ? (
-              <blockquote className="mt-5 border-l-2 border-[var(--color-stone-900)] pl-5 text-lg leading-7">
-                {pinnedNote.body}
-              </blockquote>
+              <div className="mt-5">
+                <SensitiveInfoToggle label="Team preference (private)">
+                  <blockquote className="border-l-2 border-[var(--color-stone-900)] pl-5 text-lg leading-7">
+                    {pinnedNote.body}
+                  </blockquote>
+                </SensitiveInfoToggle>
+              </div>
             ) : (
               <p className="mt-4 text-sm leading-6 text-[var(--color-stone-500)]">
                 No team preference is pinned yet. Open the relationship after
@@ -189,6 +239,109 @@ export default async function AppointmentDetailPage({
                   : "/messages"
               }
             />
+          ) : null}
+
+          {customer ? (
+            <Card className="rounded-[var(--radius-md)]">
+              <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+                Purchase and fit intelligence
+              </p>
+              <h2 className="font-display mt-2 text-2xl">
+                What they buy, and what they haven&rsquo;t yet.
+              </h2>
+
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                {priceComfortSummary ? (
+                  <>
+                    <Badge tone="neutral">
+                      {priceComfortSummary.band} comfort
+                    </Badge>
+                    <p className="text-sm text-[var(--color-stone-500)]">
+                      Average order{" "}
+                      {formatMoney(
+                        priceComfortSummary.averageOrderValue,
+                        "en-US",
+                      )}{" "}
+                      across {priceComfortSummary.orderCount} order
+                      {priceComfortSummary.orderCount === 1 ? "" : "s"}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-[var(--color-stone-500)]">
+                    No orders yet — no price comfort band to show.
+                  </p>
+                )}
+              </div>
+
+              {orders.length > 0 ? (
+                <ul className="mt-4 flex flex-col divide-y divide-[var(--color-stone-100)]">
+                  {orders
+                    .slice()
+                    .sort(
+                      (a, b) =>
+                        Date.parse(b.placedAt ?? b.createdAt) -
+                        Date.parse(a.placedAt ?? a.createdAt),
+                    )
+                    .slice(0, 5)
+                    .map((order) => (
+                      <li
+                        key={order.id}
+                        className="flex items-center justify-between gap-3 py-2 text-sm"
+                      >
+                        <div>
+                          <p className="font-medium text-[var(--color-stone-900)]">
+                            {order.orderNumber}
+                          </p>
+                          <p className="text-xs text-[var(--color-stone-500)]">
+                            {formatDate(
+                              order.placedAt ?? order.createdAt,
+                              "en-US",
+                            )}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium">
+                            {formatMoney(order.total, "en-US")}
+                          </p>
+                          <p className="text-xs text-[var(--color-stone-500)]">
+                            {order.status.replaceAll("_", " ")}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              ) : null}
+
+              <div className="mt-6">
+                <p className="text-xs uppercase tracking-wide text-[var(--color-stone-500)]">
+                  Favourited, never bought
+                </p>
+                {wishlistGapDetails.length === 0 ? (
+                  <p className="mt-2 text-sm text-[var(--color-stone-500)]">
+                    Nothing wishlisted is still unowned.
+                  </p>
+                ) : (
+                  <ul className="mt-2 flex flex-col gap-2">
+                    {wishlistGapDetails.map(({ variant, product }) => (
+                      <li key={variant.id}>
+                        <Link
+                          href={`/products/${product.id}`}
+                          className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2 text-sm hover:bg-[var(--color-stone-50)]"
+                        >
+                          <span>
+                            {product.name}
+                            {variant.size || variant.color
+                              ? ` — ${[variant.size, variant.color].filter(Boolean).join(" / ")}`
+                              : ""}
+                          </span>
+                          <span>{formatMoney(variant.price, "en-US")}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </Card>
           ) : null}
 
           {canManage ? (
@@ -230,9 +383,16 @@ export default async function AppointmentDetailPage({
                   <p className="font-display text-3xl">
                     {customer?.fullName ?? "Customer unavailable"}
                   </p>
-                  <p className="mt-1 text-sm text-[var(--color-stone-500)]">
-                    {customer?.email ?? "No email on file"}
-                  </p>
+                  {customer ? (
+                    <div className="mt-2">
+                      <SensitiveInfoToggle label="Contact">
+                        <p className="text-sm text-[var(--color-stone-500)]">
+                          {customer.email}
+                          {customer.phone ? ` · ${customer.phone}` : ""}
+                        </p>
+                      </SensitiveInfoToggle>
+                    </div>
+                  ) : null}
                 </div>
                 {customer ? (
                   <LifecycleBadge stage={customer.lifecycleStage} />

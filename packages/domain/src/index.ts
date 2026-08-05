@@ -99,6 +99,7 @@ export * from "./intelligence/interaction-session";
 export * from "./intelligence/style-profile";
 export * from "./intelligence/style-profile.schema";
 export * from "./intelligence/advisor-brief";
+export * from "./intelligence/appointment-brief";
 export * from "./intelligence/customer-interest";
 export * from "./intelligence/customer-fact";
 export * from "./intelligence/clienteling-opportunity";
