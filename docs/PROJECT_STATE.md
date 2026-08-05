@@ -1497,8 +1497,11 @@ return 0 forever; non-zero means a new write path is bypassing the ledger.
   cart contains the expected item. The failures are drift between the
   founder's HTML template and what the specs expect, plus shared-context
   pollution. Needs its own pass.
-- `/staff/roster` and `/services` are built but have never been operated.
-  Every page operated so far has yielded at least one real defect.
+- `/staff/roster` is now operated (2026-08-06): `apps/retailer/e2e/staff-roster.spec.ts`
+  proves adding/removing a shift and the dashboard clock-in/out round trip
+  through a real browser; `totalHours` (previously untested) gets a direct
+  unit test. No defect found this time — the feature works as built.
+  `/services` (FT-14) is still built but never operated.
 - 12.2, 12.3, 12.4, 14.x, 15.x, 16.x remain domain-and-schema only.
 - Four e2e specs use `@paon.test` addresses on paths that reach Supabase Auth;
   Auth rejects the reserved `.test` TLD. Use `AUTH_DELIVERABLE_DOMAIN` from
