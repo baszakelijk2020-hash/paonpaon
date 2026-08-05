@@ -216,9 +216,17 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
       .delete()
       .eq("retailer_id", retailerId)
       .eq("customer_id", customer.id);
+    // `customer_facts` has no DELETE grant for any role, including
+    // service_role — append-only by design, soft-delete only (see
+    // docs/PROJECT_STATE.md's 2026-08-05 handoff). A plain `.delete()`
+    // here silently fails and does nothing; the actual cleanup happens
+    // below when the customer row itself is deleted (`customer_id`
+    // cascades `on delete cascade`), but this soft-delete is kept as
+    // the correct, non-misleading write in case that ordering ever
+    // changes.
     await admin
       .from("customer_facts")
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq("retailer_id", retailerId)
       .eq("customer_id", customer.id);
     // advisor_capture_sessions/bundles cascade from the customer via
