@@ -10,7 +10,40 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-05 FT-03 QR try-on / concept order — customer-side gap closed (READ FIRST — supersedes every section below)
+## 2026-08-05 Founder scope cut — FT-03/FT-04/FT-07/FT-12 remaining gaps killed (READ FIRST — supersedes every section below)
+
+Founder decision, same session as the FT-03/FT-05 work below. Given a
+numbered list of everything still partially built (all FT-* blueprint
+remaining gaps, Stage 17/18 remainder, R0.x remainder, known bugs), the
+founder killed four specific items — not whole tools, the _named
+remaining gaps_ on top of what's already shipped:
+
+- **FT-03** (QR try-on/concept order): tampered/concurrent-republish
+  proof, scan-to-proposal continuation past "send to advisor,"
+  retailer-side pre-curated multi-item batches, camera QR decoding.
+- **FT-04** (first-fitting automation): the full
+  scheduled→observed→proposal_ready automation sequencing.
+- **FT-07** (lapel/pocket/shoulder configurator): prohibited
+  combinations, version pinning, retired-option recovery, cross-House
+  asset/rule isolation, configuration-to-proposal/MTM continuation. A
+  same-session subagent had already built "prohibited combinations"
+  (migration, domain, repository, Server Action, retailer UI, e2e spec)
+  before this decision landed — fully reverted, local DB reset to drop
+  the orphaned table, zero trace left in migrations or code.
+- **FT-12** (six-rail wardrobe): composed-look transition,
+  concurrent-correction/order-fed-ownership/service-away/cross-House
+  isolation proof, rail-to-look-to-MorningRoutine continuation.
+
+`FOUNDER_TOOL_BLUEPRINTS.md` marks each with "**Killed by founder
+decision (2026-08-05), not planned**" at the exact point in each tool's
+`**Current:**` paragraph. Do not re-propose these as "Pick up here"
+candidates in a future session — read the marker, not just the
+checkbox state, before touching FT-03/04/07/12 again. Every other item
+on that same numbered list (FT-01/02/05/09/10/11/13/14 remaining gaps,
+Stage 17/18 remainder, R0.x remainder, the two known latent bugs)
+was _not_ killed and remains open backlog.
+
+## 2026-08-05 FT-03 QR try-on / concept order — customer-side gap closed
 
 Continuation of the FT-03 WIP handoff immediately below this section, same
 session/lane (`agent/grok-takeover-2026-07-30`). Re-diagnosed

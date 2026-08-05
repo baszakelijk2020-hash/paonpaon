@@ -378,9 +378,11 @@ narrow customer-read policy scoped to codes already in one of their own
 selections closed it. pgTAP `concept_scan_test.sql` 9/9 green. Camera QR
 decoding itself is not attempted (no barcode library in this codebase;
 manual entry is the blueprint's own mandatory path, not just a
-fallback). Not built: tampered/concurrent-republish proof, a real
-scan-to-proposal continuation past "send to advisor," retailer-side
-pre-curated multi-item batches.
+fallback). **Killed by founder decision (2026-08-05), not planned:**
+tampered/concurrent-republish proof, a real scan-to-proposal
+continuation past "send to advisor," retailer-side pre-curated
+multi-item batches, camera QR decoding. FT-03 stops here — this is its
+final scope, not a paused increment.
 
 ## FT-04 — First-fitting automation
 
@@ -425,9 +427,11 @@ untouched until the task is priced through the existing, unmodified
 approval governance rather than inventing a parallel one; it stays inside
 R0.2's boundary the same way `wedding_guest_vouchers` does — no new
 money-movement path, only a fact (a task exists) recorded ahead of its own
-priced approval. The full first-fitting-to-work automation sequencing
-(scheduled → observed → proposal_ready → …) is still not built; this closes
-one identified structural gap in it.
+priced approval. **Killed by founder decision (2026-08-05), not
+planned:** the full first-fitting-to-work automation sequencing
+(scheduled → observed → proposal_ready → …). This closed one
+identified structural gap in it and stops there — FT-04's final scope,
+not a paused increment.
 
 ## FT-05 — Mission Control and Self-Portrait
 
@@ -671,10 +675,14 @@ table's retailer-staff SELECT policy and grant were already in place,
 unused. Proof: `suit-configuration-intents.spec.ts` — seeds a pick through
 the real `save_suit_configuration_intent` RPC as an authenticated shopper
 (not a direct table insert; the table grants no INSERT to any role but
-that RPC), then asserts the owner sees it on the client's profile. Not
-built yet: prohibited combinations, version pinning, retired-option
-recovery, cross-House asset/rule isolation, and configuration-to-
-proposal/MTM production continuation.
+that RPC), then asserts the owner sees it on the client's profile.
+**Killed by founder decision (2026-08-05), not planned:** prohibited
+combinations, version pinning, retired-option recovery, cross-House
+asset/rule isolation, and configuration-to-proposal/MTM production
+continuation. A same-day attempt at "prohibited combinations" was
+built by a subagent, reviewed, and explicitly discarded before commit
+per this decision — no trace of it remains in migrations or code.
+FT-07 stops here — this is its final scope, not a paused increment.
 
 ## FT-08 — Swipe deck
 
@@ -964,11 +972,11 @@ headers. `prefers-reduced-motion` disables the transform/transition.
 Existing add/retire actions and provenance labelling are unchanged. Proof:
 one browser journey — default-open state, close/reopen collapse, keyboard
 navigation between rails, and the pre-existing add/retire flow still
-working through the new UI. Not built: composed-look transition, concurrent-
-correction proof, order-fed ownership proof, service-away return, cross-
-House isolation proof, and the rail-to-look-to-MorningRoutine/service
-continuation — the blueprint's fuller interaction and proof scope remains
-open.
+working through the new UI. **Killed by founder decision (2026-08-05),
+not planned:** composed-look transition, concurrent-correction proof,
+order-fed ownership proof, service-away return, cross-House isolation
+proof, and the rail-to-look-to-MorningRoutine/service continuation.
+FT-12 stops here — this is its final scope, not a paused increment.
 
 ## FT-13 — Moonstruck groom and best-men planner
 
