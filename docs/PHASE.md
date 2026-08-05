@@ -4178,7 +4178,32 @@ now.
   - **Owner boundary:** best-customer rankings, seasonal/one-time/suit/
     casual buyer segments and similar retailer-facing cohorts, computed
     from existing order/behavioural data — no new customer ledger.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `implemented_unverified` —
+    session ended (weekly limit) before a browser proof could be run;
+    do not mark `verified_local` until one passes. What exists and
+    typechecks/lints clean: `packages/domain/src/intelligence/customer-segmentation.ts`
+    (`rankCustomersBySpend` — plain sort by real total spend, never a
+    hidden score; `classifyBuyerSegments` — `one_time`/`repeat`/
+    `seasonal`/`dormant` from real order dates/counts, plus `suit_focused`/
+    `casual_focused` only when real garment-type metadata exists for a
+    customer's order lines, omitted entirely — never zero-filled — when
+    it doesn't), with 10 passing domain unit tests
+    (`customer-segmentation.test.ts`). New retailer page
+    `/customers/rankings` (nav entry added under Relationships, manager+)
+    composes `OrderRepository.findByRetailer` +
+    `MetadataRepository.findAcceptedConceptIdsForProduct` per line's
+    product to build the ranking; no new schema. A first e2e spec,
+    `apps/retailer/e2e/customer-rankings.spec.ts`, was written (seeds a
+    high-spend one-order customer and a lower-spend two-order
+    same-month customer, asserts rank order, "One-time", "Repeat" and
+    "Seasonal") but was **never run** — the next session must run it
+    (`pnpm --filter=@paon/retailer build` then
+    `npx playwright test e2e/customer-rankings.spec.ts --workers=1`
+    twice for stability), fix whatever it finds, then follow this
+    branch's established two-commit evidence pattern (rerun at the
+    commit's own HEAD, confirm `docs/evidence/runs/17.6.json`'s
+    `gitSha` matches, commit evidence separately) before flipping this
+    to `verified_local`.
 
 - [ ] **17.7 Per-customer MTM price lists**
   - **Requirement IDs:** ADV-107.

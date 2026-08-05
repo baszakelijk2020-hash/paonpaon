@@ -10,6 +10,84 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
+## 2026-08-05 Stage 17 advisor-intelligence sweep — session handoff (READ FIRST)
+
+**This section is the most current — read it before the Stage 18 section
+below.** Same branch (`agent/grok-takeover-2026-07-30`), same session,
+continued after Stage 18 (below) was finished. Ended because of the
+weekly usage limit, not because the queue ran out — there is real,
+well-scoped work immediately available; see "Pick up here" below.
+
+### What shipped this stretch (all `verified_local`, pushed)
+
+Stage 18's own named gaps, closed:
+
+- **18.3**: tender public-link revocation (SQL-enforced, one-way).
+- **18.5**: cross-employee isolation now e2e-proven (two real wearers).
+- **18.6**: department/location grouping for fitting rollout — item now
+  fully `[x]`.
+
+Stage 17 (founder-directed "frictionless advisor intelligence" backlog),
+each a real vertical slice with domain unit tests + a passing Playwright
+browser proof against local Supabase, evidence committed at
+`docs/evidence/runs/17.*.json`:
+
+- **17.2** Mission Control unified brief — `/mission-control` gained the
+  three attention sources `/dashboard` already had (price approvals,
+  unread messages, low stock), same repositories, no new query path.
+- **17.3** Pre/during/post-appointment advisor dashboard — purchase
+  history, a published price-comfort-band formula, honest
+  favourited-vs-owned wishlist gaps (matched against real order lines),
+  and a `SensitiveInfoToggle` (defaults hidden, for in-front-of-customer
+  screen discipline) added to `/appointments/[id]`.
+- **17.4** Fabric-pairing upsell engine — new `fabric_lining_rules`
+  (sibling of Stage 12.4's existing `fabric_button_rules`, same
+  "missing rule = undecided" discipline, standard-vs-upsell tier per
+  option) plus complete-the-look via the existing metadata graph
+  (`MetadataRepository.findProductIdsByConcepts`, real edges only, never
+  fabricated). New `/fabric-pairing` page.
+- **17.5** Promise-matching on inbound stock news — plain keyword-overlap
+  match (`matchStockNewsToPromises`, published stopword list, no AI) over
+  `clienteling_opportunities` (`advisor_commitment`/`interest_follow_up`,
+  live statuses only). New `/promise-matching` page, one-tap `mailto:`
+  contact.
+
+Every slice above: two-commit pattern (feature commit, then a separate
+evidence commit at a rebuilt HEAD), full domain suite green throughout
+(ended at 1004 tests), repo-wide `lint`/`typecheck` clean at every step.
+
+### Pick up here — 17.6 is real code, NOT yet proven
+
+`packages/domain/src/intelligence/customer-segmentation.ts`
+(`rankCustomersBySpend`, `classifyBuyerSegments` —
+`one_time`/`repeat`/`seasonal`/`dormant`/`suit_focused`/`casual_focused`,
+10 passing unit tests) and a new `/customers/rankings` page both exist,
+typecheck and lint clean, and are **committed**. `apps/retailer/e2e/customer-rankings.spec.ts`
+is written but was **never run** — the session ended before that step.
+Next session: `pnpm --filter=@paon/retailer build`, then
+`npx playwright test e2e/customer-rankings.spec.ts --workers=1` (twice,
+for stability), fix whatever it finds, then the usual two-commit
+evidence pattern before flipping 17.6 to `verified_local` in
+`docs/PHASE.md` (currently `implemented_unverified` — see its own status
+block for exact detail). After 17.6, the natural next items in the same
+Stage 17 backlog are 17.7–17.13 (see `docs/PHASE.md`), all `not started`.
+
+### Standing, unresolved from earlier in this same session
+
+- **18.4** (office-visit request → real appointment/measurement wiring)
+  and **18.7**'s auto-wiring of `fitting`/`production`/`qc`/`distribution`/
+  `launch` to Stage 12 — deliberately deferred, per explicit founder
+  instruction, to be picked up last, not now.
+- **18.8**'s employee-portal Server Action session bug — see Stage 18
+  section below, still unresolved, do not re-attempt without new
+  information.
+- The pre-existing `validate:completion` tranche-evidence gate failure
+  (`docs/evidence/tranches/` only ever had 8.4/9.1) — predates this
+  entire session, unrelated to anything built here.
+- Everything is pushed to `origin/agent/grok-takeover-2026-07-30` as of
+  this handoff, except the final 17.6 commit made right at session end —
+  confirm with `git log --oneline -3` and `git status` before assuming.
+
 ## 2026-08-04/05 Stage 18 corporate suite — session handoff
 
 **Read this section first if you are resuming cold (new session, new LLM,

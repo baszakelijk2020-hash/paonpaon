@@ -100,6 +100,7 @@ export * from "./intelligence/style-profile";
 export * from "./intelligence/style-profile.schema";
 export * from "./intelligence/advisor-brief";
 export * from "./intelligence/appointment-brief";
+export * from "./intelligence/customer-segmentation";
 export * from "./intelligence/stock-promise-matching";
 export * from "./intelligence/customer-interest";
 export * from "./intelligence/customer-fact";

@@ -282,6 +282,11 @@ export default async function DashboardLayout({
               ...(canManageCatalog
                 ? [
                     {
+                      href: "/customers/rankings",
+                      label: "Rankings",
+                      description: "Best customers and buyer segments",
+                    },
+                    {
                       href: "/loyalty",
                       label: "Loyalty",
                       description: "Recognition and rewards",
