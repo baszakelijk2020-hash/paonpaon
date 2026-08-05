@@ -51,6 +51,50 @@ commit pushed to the currently authorized task branch. Never infer permission
 to update `main` from a stale document. `PROJECT_STATE.md` is a factual
 snapshot only; it is never a queue or authority.
 
+## Multi-lane parallel work
+
+More than one agent/session may work the queue at once, each on its own
+lane. A lane is a dedicated branch forked from the currently authorized
+task branch, named `agent/lane-<letter>-<module>` (e.g.
+`agent/lane-b-stage15-lifestyle-network`). Never two lanes on one branch.
+
+Assigning a module to a lane:
+
+- Pick a `PHASE.md` stage/item range whose tables, migrations and files are
+  disjoint from every other active lane's range. Verify disjointness by
+  grep, not assumption — a shared table (even read-only) still forces
+  serialized migration ordering.
+- Record the assignment (lane branch name, module, start SHA) in
+  `PROJECT_STATE.md` when the lane is created, and again whenever it
+  changes. `PROJECT_STATE.md` stays a factual snapshot, never an authority.
+- A lane never edits a table, migration or shared package export another
+  active lane owns, even in passing. If a slice needs that, stop and
+  reconcile lanes first rather than guessing at the other lane's intent.
+
+`PHASE.md` conflicts (the one file nearly every item touches):
+
+- Each lane appends only its own dated status/addendum text to the items
+  in its assigned module. Never edit another lane's addendum, and never
+  reflow or renumber sections outside your module to "clean up" a merge.
+- Do not continuously co-edit `PHASE.md` on a shared branch. Lanes merge
+  back into the authorized task branch at deliberate checkpoints, not
+  continuously.
+- At merge time, a `PHASE.md` conflict is resolved by hand: keep both
+  lanes' item blocks verbatim: an automatic "ours"/"theirs" resolution is
+  never applied, since it silently deletes the other lane's evidence
+  trail.
+
+Migration filename collisions: before naming a new migration, check the
+other active lane's branch (not just your own) for already-used timestamp
+prefixes. If a collision surfaces at merge time, the migration merged
+second is renamed forward in time; an existing applied migration's
+filename is never rewritten.
+
+Every other rule in this charter (continuous-build contract, engineering
+invariants, environment safety, proving a slice, definition of done,
+evidence discipline) applies identically inside each lane. A lane is a
+branching discipline, not an exemption from any of it.
+
 ## Product invariant
 
 PAON's destination is the complete entitlement-controlled modular platform in

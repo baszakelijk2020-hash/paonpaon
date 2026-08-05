@@ -10,7 +10,44 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-05 Stage 17 advisor-intelligence sweep — session handoff (READ FIRST)
+## 2026-08-05 Multi-lane parallel work + Stage 17 continued (READ FIRST — supersedes the section below)
+
+Two agent lanes now exist, per the new "Multi-lane parallel work" section
+in `AGENTS.md`:
+
+- **Lane A** (this section's author): branch
+  `agent/grok-takeover-2026-07-30` (the pre-existing, authorized task
+  branch — unchanged name/role). Scope: Stage 17 (advisor intelligence)
+  and Stage 18 remainder, i.e. whatever this lane was already doing.
+- **Lane B**: branch `agent/lane-b-stage15-lifestyle-network`, forked
+  from `agent/grok-takeover-2026-07-30` at `2a05777` (2026-08-05), pushed
+  to origin. Scope: Stage 15 (Lifestyle network and MunroMerchant),
+  items 15.1–15.5 — all `implemented_unverified` at fork time (domain +
+  schema real, no UI/browser proof), tables disjoint from Lane A's work
+  (`network_attribution_events`, `advertising_events`, `munro_merchant`,
+  rewards tables vs. Lane A's `fabric_lining_rules`,
+  `academy_roleplay_grades.persona_key`, `wardrobe_items.public_token`,
+  `communication-channel.ts`, `customer-segmentation.ts`,
+  `appointment-brief.ts`). Lane B's job: take 15.1–15.5 the rest of the
+  way to `verified_local` (Playwright browser proof), following the same
+  two-commit/evidence-discipline pattern as every other item.
+
+Since fork, Lane A has continued: **17.8** (sales-academy roleplay
+persona catalogue + grading, `verified_local` for the buildable half —
+live AI conversation stays `blocked_external`/unbuilt) and **17.9**
+(omnichannel communication hub's deep-link core — `sms:`/`wa.me`/
+`mailto:` links into the advisor's own device, zero provider credentials
+— `verified_local` for that half; live provider sending stays
+`blocked_external`). **17.13** (QR wardrobe card public reveal) is
+mid-flight: migration `20260805170000_add_wardrobe_item_public_reveal.sql`
+written and applied locally, not yet committed; repository method,
+public page, action-button wiring, e2e spec and `PHASE.md` update all
+still outstanding.
+
+Do not duplicate Lane B's Stage 15 work from Lane A, and vice versa —
+check which lane/branch a resuming session is on before picking an item.
+
+## 2026-08-05 Stage 17 advisor-intelligence sweep — session handoff
 
 **This section is the most current — read it before the Stage 18 section
 below.** Same branch (`agent/grok-takeover-2026-07-30`), same session,
