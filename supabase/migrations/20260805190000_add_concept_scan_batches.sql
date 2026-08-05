@@ -103,6 +103,26 @@ create policy "retailer managers manage concept scan codes"
     retailer_id = public.current_retailer_id()
     and public.current_retailer_role() in ('manager', 'admin', 'owner')
   );
+-- A customer has no general read access to this table (codes are the
+-- retailer's own issued stock, not customer data), but "My concept list"
+-- needs to embed each item's kind/variant via a PostgREST join to
+-- `concept_scan_codes`, which silently resolves to null under RLS rather
+-- than erroring — so without this, a customer's own already-added items
+-- render as an empty list despite the underlying rows being correct.
+-- Scoped narrowly to codes the customer has already added to one of
+-- their own selections, mirroring the selection-items policy above.
+create policy "a customer reads concept scan codes in their own selection items"
+  on public.concept_scan_codes for select
+  using (
+    exists (
+      select 1
+      from public.concept_order_selection_items i
+      join public.concept_order_selections s on s.id = i.selection_id
+      join public.customers c on c.id = s.customer_id
+      where i.scan_code_id = concept_scan_codes.id
+        and c.user_id = auth.uid()
+    )
+  );
 
 -- Selections/items are written only through the RPCs below (same "narrow
 -- RPC, self-deriving caller identity" shape as toggle_wishlist_item) —
