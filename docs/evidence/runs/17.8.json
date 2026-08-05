@@ -1,7 +1,7 @@
 {
-  "phaseItemId": "16.1",
+  "phaseItemId": "17.8",
   "gitSha": "9e503b38be6b1da41646a351838f6a63d7108f47",
   "spec": "apps/retailer/e2e/academy-roleplay.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-05T05:04:53.096Z"
+  "timestamp": "2026-08-05T05:04:53.113Z"
 }
