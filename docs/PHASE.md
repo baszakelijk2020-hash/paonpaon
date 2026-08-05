@@ -4133,14 +4133,45 @@ now.
     item's own schema design but means a brand-new retailer starts with
     an empty upsell engine until they author their own rules.
 
-- [ ] **17.5 Promise-matching on inbound stock news**
+- [x] **17.5 Promise-matching on inbound stock news**
   - **Requirement IDs:** ADV-105.
   - **Dependencies:** `17.1`, `7.4` clienteling_opportunities.
   - **Owner boundary:** a staff-entered stock update ("new linen jackets
     arrived") matched against open `advisor_commitment`/follow-up
     opportunities, surfaced as a pairable list with one-tap customer
     contact.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `verified_local`. A plain,
+    published keyword-overlap match — never a semantic/AI black box —
+    in `packages/domain/src/intelligence/stock-promise-matching.ts`'s
+    `matchStockNewsToPromises`: tokenizes the stock update and each
+    candidate's `whyNow`/`suggestedAction` text (stopwords removed), and
+    returns only opportunities sharing at least one real word, ranked by
+    overlap count, with the exact overlapping words named — so an
+    advisor sees _why_ a promise was surfaced, never just that it was.
+    Reuses the existing `clienteling_opportunities` object exactly as
+    this item's own owner boundary names — `advisor_commitment` (17.1's
+    confirmed follow-ups) and `interest_follow_up` types only, and only
+    the three still-live statuses (`draft`/`accepted`/`snoozed`) — a
+    dismissed or completed promise is not waiting on anything and is
+    never matched even if its words would otherwise overlap. New
+    retailer page `/promise-matching`: a plain GET-form stock-update
+    field (no client JS needed), matched promises listed with their
+    overlapping words as badges and one-tap contact via a real `mailto:`
+    link to the customer's own email plus a link to their relationship
+    page.
+  - **Tests:** `packages/domain/src/intelligence/stock-promise-matching.test.ts`
+    (7: real overlap match, no match on disjoint text, dismissed and
+    completed statuses excluded even with identical text, a type outside
+    the owner boundary excluded, ranking a stronger overlap above a
+    weaker one, blank input returns nothing).
+    `apps/retailer/e2e/promise-matching.spec.ts` proves the full arc in
+    a real browser: a stock update surfaces the one real matching
+    promise with its overlapping words shown and a working `mailto:`
+    link, while a same-status opportunity with disjoint words and an
+    identical-text opportunity that is merely `dismissed` both correctly
+    never appear. Regression run alongside `mission-control.spec.ts`
+    (3/3 green together, confirming the shared `clienteling_opportunities`
+    read path is unaffected). Full domain suite: 1004/1004 passing.
 
 - [ ] **17.6 Customer segmentation and rankings**
   - **Requirement IDs:** ADV-106.

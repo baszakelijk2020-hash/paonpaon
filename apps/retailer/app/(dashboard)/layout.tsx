@@ -129,6 +129,11 @@ export default async function DashboardLayout({
                 description: "Today, time-blocked — appointments and picks",
               },
               {
+                href: "/promise-matching",
+                label: "Promise matching",
+                description: "Pair inbound stock news with open promises",
+              },
+              {
                 href: "/appointments",
                 label: "Appointments",
                 description: "Calendar, fittings and follow-up",
