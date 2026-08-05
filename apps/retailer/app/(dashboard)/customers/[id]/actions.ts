@@ -8,6 +8,7 @@ import {
   AnalyticsRepository,
   ClientelingRepository,
   CustomerRepository,
+  FitProfileCandidateRepository,
   OrderRepository,
   RetailerRepository,
   RetailerStaffRepository,
@@ -420,5 +421,26 @@ export async function decideSilhouetteAnalysisCandidate(
     asId<"SilhouetteAnalysisSessionId">(sessionId),
     decision,
   );
+  revalidatePath(`/customers/${customerId}`);
+}
+
+export async function decideFitProfileCandidate(
+  customerId: string,
+  formData: FormData,
+): Promise<void> {
+  await requireModuleSession("garment_service_operations");
+  const candidateId = String(formData.get("candidateId") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  if (!candidateId || (decision !== "approved" && decision !== "rejected")) {
+    return;
+  }
+
+  const client = await getSupabaseServerClient();
+  const repo = new FitProfileCandidateRepository(client);
+  if (decision === "approved") {
+    await repo.approve(asId<"FitProfileCandidateId">(candidateId));
+  } else {
+    await repo.reject(asId<"FitProfileCandidateId">(candidateId));
+  }
   revalidatePath(`/customers/${customerId}`);
 }

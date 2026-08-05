@@ -10,6 +10,7 @@ import {
   CustomerFactRepository,
   CustomerInterestRepository,
   CustomerRepository,
+  FitProfileCandidateRepository,
   LoyaltyRepository,
   MetadataRepository,
   OrderRepository,
@@ -52,6 +53,7 @@ import { CartSoftCloseCard } from "./cart-soft-close-card";
 import { ClientelingOpportunityInbox } from "./clienteling-opportunity-inbox";
 import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
+import { FitProfileCandidateCard } from "./fit-profile-candidate-card";
 import { SelfPortrait } from "./self-portrait";
 import { SilhouetteAnalysisCard } from "./silhouette-analysis-card";
 import { SuitConfigurationIntentsCard } from "./suit-configuration-intents-card";
@@ -114,6 +116,7 @@ export default async function CustomerDetailPage({
     catalogueProducts,
     roadmaps,
     suitConfigurationIntents,
+    fitProfileCandidates,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -146,6 +149,7 @@ export default async function CustomerDetailPage({
     new ProductRepository(supabase).findByRetailer(session.retailerId),
     new WardrobeRoadmapRepository(supabase).findByCustomer(customer.id),
     new SuitConfiguratorRepository(supabase).findRecentByCustomer(customer.id),
+    new FitProfileCandidateRepository(supabase).listByCustomer(customer.id),
   ]);
 
   const orderRepo = new OrderRepository(supabase);
@@ -776,6 +780,11 @@ export default async function CustomerDetailPage({
         customerId={customer.id}
         sessions={silhouetteAnalysisSessions}
         capturesBySessionId={silhouetteCapturesBySessionId}
+      />
+
+      <FitProfileCandidateCard
+        customerId={customer.id}
+        candidates={fitProfileCandidates}
       />
 
       <div>
