@@ -56,21 +56,26 @@ Every slice above: two-commit pattern (feature commit, then a separate
 evidence commit at a rebuilt HEAD), full domain suite green throughout
 (ended at 1004 tests), repo-wide `lint`/`typecheck` clean at every step.
 
-### Pick up here — 17.6 is real code, NOT yet proven
+### 17.6 finished and verified since the last handoff update
 
-`packages/domain/src/intelligence/customer-segmentation.ts`
-(`rankCustomersBySpend`, `classifyBuyerSegments` —
-`one_time`/`repeat`/`seasonal`/`dormant`/`suit_focused`/`casual_focused`,
-10 passing unit tests) and a new `/customers/rankings` page both exist,
-typecheck and lint clean, and are **committed**. `apps/retailer/e2e/customer-rankings.spec.ts`
-is written but was **never run** — the session ended before that step.
-Next session: `pnpm --filter=@paon/retailer build`, then
-`npx playwright test e2e/customer-rankings.spec.ts --workers=1` (twice,
-for stability), fix whatever it finds, then the usual two-commit
-evidence pattern before flipping 17.6 to `verified_local` in
-`docs/PHASE.md` (currently `implemented_unverified` — see its own status
-block for exact detail). After 17.6, the natural next items in the same
-Stage 17 backlog are 17.7–17.13 (see `docs/PHASE.md`), all `not started`.
+`customer-rankings.spec.ts`'s first draft asserted an absolute `#2` rank,
+which was correctly flaky (the shared fixture retailer can carry other
+customers with real orders) — fixed to a relative-order assertion plus a
+$500,000 fixture order safely above anything else in that shared
+retailer. 2/2 green runs at the committing HEAD, evidence committed,
+`docs/PHASE.md` now reads `[x]` / `verified_local`. Docker/Supabase local
+had stopped between sessions — `open -a Docker` then `npx supabase start`
+brought it back; if a fresh session hits `ECONNREFUSED 127.0.0.1:54321`
+on any Playwright/live-DB run, that's the same fix.
+
+### Pick up here — Stage 17 continues at 17.7
+
+17.7–17.13 (see `docs/PHASE.md`) are all `not started`. Two are flagged
+`blocked_external` for their live path only (17.9 live channels, 17.10
+live try-on) but have a real buildable local core, same shape as 17.4's
+provider-neutral half. 17.11 explicitly says "needs its own scoping pass
+before implementation begins" — treat that as a signal to scope it
+carefully before writing code, not to skip it.
 
 ### Standing, unresolved from earlier in this same session
 
