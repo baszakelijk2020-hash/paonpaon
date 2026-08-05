@@ -15,7 +15,12 @@ must never target the protected original project directly.
   stock references.
 
 The synthetic populated fixture is
-`supabase/tests/fixtures/pre_stock_single_truth_upgrade.sql`.
+`supabase/rehearsals/pre_stock_single_truth_upgrade.sql` — deliberately
+outside `supabase/tests/` so `supabase test db`'s default recursive scan
+never loads it (it has no `begin`/`rollback` wrapper by design, since a
+rehearsal needs its rows to persist for inspection; loaded into the
+pgTAP tree, its non-transactional inserts leaked into later test files
+and collided with their own hardcoded fixture IDs).
 
 ## Local sequence
 

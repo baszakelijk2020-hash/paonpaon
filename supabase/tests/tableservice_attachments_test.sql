@@ -11,7 +11,7 @@ select has_column('public', 'message_attachments', 'scan_status',
   'consultation attachments expose validation/scan state');
 select has_function(
   'public', 'record_consultation_attachment',
-  array['uuid', 'text', 'text', 'text', 'text', 'bigint', 'text', 'text'],
+  array['uuid', 'text', 'text', 'text', 'text', 'bigint', 'text', 'text', 'uuid', 'uuid'],
   'typed consultation attachment command exists'
 );
 select ok(
@@ -26,10 +26,10 @@ select ok(
 );
 select ok(
   lower(pg_get_functiondef(
-    'public.record_consultation_attachment(uuid,text,text,text,text,bigint,text,text)'::regprocedure
+    'public.record_consultation_attachment(uuid,text,text,text,text,bigint,text,text,uuid,uuid)'::regprocedure
   )) like '%invalid pinterest reference%'
   and pg_get_functiondef(
-    'public.record_consultation_attachment(uuid,text,text,text,text,bigint,text,text)'::regprocedure
+    'public.record_consultation_attachment(uuid,text,text,text,text,bigint,text,text,uuid,uuid)'::regprocedure
   ) like '%p_source_url !~%',
   'database command independently constrains Pinterest references'
 );
