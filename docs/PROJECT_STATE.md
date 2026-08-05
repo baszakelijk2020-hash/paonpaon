@@ -10,7 +10,61 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-05 18.8's real employee-portal bug found and fixed (READ FIRST — supersedes every section below)
+## 2026-08-05 FT-02 silhouette analysis consent/capture session state machine built (READ FIRST — supersedes every section below)
+
+Same session, continued after 18.8's fix below. Picked FT-02 as the
+next item because its blueprint gives an exact, unambiguous session
+state list (`consented, capturing, candidate, advisor_reviewed,
+customer_confirmed, rejected, expired`) rather than requiring product
+decisions the way the other remaining large items do (FT-01's voice
+recognition, FT-09's undefined "shared look" concept, FT-14's whole
+customer/advisor/partner journey).
+
+Built: migration `20260805230000` (the exact state machine, a private
+capture-media table mirroring `wardrobe-evidence`'s bucket/RLS shape,
+six narrow self-deriving RPCs), `packages/domain/src/wardrobe/
+silhouette-analysis.ts`, `SilhouetteAnalysisRepository`, customer route
+`/silhouette-analysis` (consent, real photo upload, confirm/withdraw),
+retailer review card on the customer detail page (approve/reject with
+the real uploaded photo via a signed URL). Two real bugs found and
+fixed while proving it end to end in a real browser: the storage RLS
+helper function was missing its own EXECUTE grant (revoked from PUBLIC
+per this session's earlier security fix, never re-granted to
+`authenticated` — caught immediately by a real upload failing with
+"permission denied for function"), and the start-session RPC didn't
+self-create a first-time visitor's `customers` row, unlike the
+established `add_concept_scan_selection` precedent it should have
+matched from the start. `apps/customer/e2e/silhouette-analysis.spec.ts`
+and `apps/retailer/e2e/silhouette-analysis-review.spec.ts`, both 2/2
+green; full customer (59/62) and retailer (87/89) e2e suites reran
+clean aside from pre-existing flakes confirmed unrelated (two
+already-documented magic-link/animation-timing flakes, plus a
+time-of-day-dependent `mission-control.spec.ts` scheduling flake and
+ordinary worker-contention on `network.spec.ts` — none touch anything
+this session changed).
+
+Deliberately not built, named honestly in `FOUNDER_TOOL_BLUEPRINTS.md`'s
+FT-02 entry: automatic expiry (no TTL duration specified anywhere,
+same discipline as 18.3), the `customer_style_profiles` connection
+(needs a silhouette-panel-to-`metadata_concepts` taxonomy that doesn't
+exist — a taxonomy decision, not an engineering one), storage-object
+deletion propagation on withdrawal (DB row only), and Level 2/3
+analysis (explicitly out of scope per the blueprint itself).
+
+### Pick up here
+
+FT-02's consent/capture plumbing is done. The remaining backlog is
+unchanged from the prior handoff below except this item moved from
+"large, needs scoping" to done: FT-01/09/13/14's own remaining gaps
+(each still genuinely large — voice recognition, an undefined "shared
+look" concept, a vague "planner workflow," or a whole unbuilt
+customer/advisor/partner journey respectively), Stage 17.7 (parked)/
+17.11 (needs scoping)/18.3 (needs a TTL policy decision)/18.4's public
+self-service-booking remainder/18.7 (needs a founder decision)/18.9
+(no `contract_value`/`repair` schema field), and everything blocked on
+external credentials.
+
+## 2026-08-05 18.8's real employee-portal bug found and fixed
 
 Same session, continued after the backlog hygiene sweep below. 18.8's
 own status text explicitly named the next step as direct CDP network/
