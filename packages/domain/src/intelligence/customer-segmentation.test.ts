@@ -3,15 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   classifyBuyerSegments,
   rankCustomersBySpend,
+  type CustomerOrderSummary,
 } from "./customer-segmentation";
 
 const asOf = new Date("2026-08-05T00:00:00Z");
 
-function summary(
-  overrides: Partial<
-    import("./customer-segmentation").CustomerOrderSummary
-  > = {},
-) {
+function summary(overrides: Partial<CustomerOrderSummary> = {}) {
   return {
     customerId: "cust-1",
     customerName: "Test Customer",
