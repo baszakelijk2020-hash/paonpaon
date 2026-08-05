@@ -38,11 +38,12 @@ live AI conversation stays `blocked_external`/unbuilt) and **17.9**
 (omnichannel communication hub's deep-link core — `sms:`/`wa.me`/
 `mailto:` links into the advisor's own device, zero provider credentials
 — `verified_local` for that half; live provider sending stays
-`blocked_external`). **17.13** (QR wardrobe card public reveal) is
-mid-flight: migration `20260805170000_add_wardrobe_item_public_reveal.sql`
-written and applied locally, not yet committed; repository method,
-public page, action-button wiring, e2e spec and `PHASE.md` update all
-still outstanding.
+`blocked_external`), and **17.13** (QR wardrobe card anonymous public
+reveal — `resolve_wardrobe_item_public`, new
+`/r/[slug]/wardrobe/[token]` page, real retire/re-order actions, sign-in
+deep link for the rest — `verified_local`; alteration/cleaning booking,
+fit-check-photo → Self-Portrait updates, complete-the-look and the
+"unattached item" scenario are named gaps, not attempted).
 
 Do not duplicate Lane B's Stage 15 work from Lane A, and vice versa —
 check which lane/branch a resuming session is on before picking an item.
