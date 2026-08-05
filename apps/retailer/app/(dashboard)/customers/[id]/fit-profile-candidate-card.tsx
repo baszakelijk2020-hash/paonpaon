@@ -54,6 +54,25 @@ export function FitProfileCandidateCard({
                 {formatDate(candidate.createdAt, "en-US")}
               </p>
             </div>
+            {Object.keys(candidate.proposedMeasurements).length > 0 ? (
+              <div className="mt-2 border-t border-[var(--color-stone-100)] pt-2">
+                <p className="text-xs font-medium text-[var(--color-stone-600)] mb-2">
+                  Proposed measurements:
+                </p>
+                <ul className="space-y-1">
+                  {Object.entries(candidate.proposedMeasurements).map(
+                    ([key, value]) => (
+                      <li
+                        key={key}
+                        className="text-sm text-[var(--color-stone-700)]"
+                      >
+                        {key}: <span className="font-medium">{String(value)}</span>
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            ) : null}
             {candidate.status === "proposed" ? (
               <div className="mt-3 flex gap-2">
                 <form action={decideAction}>
