@@ -3994,7 +3994,7 @@ now.
     settlement, the established fix for this exact class of timing issue
     elsewhere in this suite (`pos.spec.ts`'s `waitForSaleState`).
 
-- [ ] **17.2 Mission Control unified brief**
+- [x] **17.2 Mission Control unified brief**
   - **Requirement IDs:** ADV-102.
   - **Dependencies:** `17.1`.
   - **Owner boundary:** extend the existing Mission Control aggregation
@@ -4005,7 +4005,34 @@ now.
     four sources that needs their attention today; each item deep-links to
     where it is actually actioned.
   - **Non-goals:** no new approval workflow — this aggregates existing ones.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `verified_local`. Audited
+    first, per this file's own discipline: `/dashboard`'s "Needs your
+    attention" brief (built earlier this session under FT-05, before
+    Stage 17 existed as numbered items) already aggregates pending price
+    approvals, today's appointments, unread messages and low stock in one
+    place with real deep-links — but the item's own owner boundary names
+    "the existing Mission Control aggregation (today's appointments +
+    draft clienteling opportunities)" specifically, which is
+    `/mission-control`'s literal current scope, not `/dashboard`'s. Rather
+    than leave two overlapping-but-different "everything that needs
+    attention" surfaces (`/dashboard` with five sources, `/mission-control`
+    with two), the three missing sources were added to `/mission-control`
+    itself, reusing the exact same repository calls and role gates
+    `/dashboard` already uses (`AlterationWorkflowRepository.findPendingProposalsByRetailer`,
+    `NotificationRepository.findByUser`,
+    `ProductVariantRepository.countLowStockForRetailer`) — never a second
+    query path for the same fact. `/dashboard` is untouched; both pages
+    now show the same underlying facts through the same queries, just
+    framed differently for their own purpose (a role-brief landing page
+    vs. a calendar-first daily-planning page). Proof: a new second test in
+    `apps/retailer/e2e/mission-control.spec.ts` (now evidence-tracked)
+    seeding a real price-change proposal (via `AlterationRepository.createIntake`,
+    not a raw table hack), an unread notification and a low-stock variant
+    — mirroring `dashboard-digest.spec.ts`'s own already-proven fixtures
+    exactly — and asserting all three render together under Mission
+    Control's own `#mission-control-attention` card. Both tests in the
+    file pass together (6/6 alongside the unaffected `dashboard-digest.spec.ts`
+    suite, confirming no regression from the shared repository calls).
 
 - [ ] **17.3 Pre/during/post-appointment advisor dashboard**
   - **Requirement IDs:** ADV-103.

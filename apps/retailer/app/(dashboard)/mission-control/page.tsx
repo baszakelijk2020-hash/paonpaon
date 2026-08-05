@@ -1,16 +1,21 @@
 import {
+  AlterationWorkflowRepository,
   AppointmentRepository,
   ClientelingOpportunityRepository,
   CustomerRepository,
+  NotificationRepository,
+  ProductVariantRepository,
 } from "@paon/database";
 import {
   APPOINTMENT_TYPE_LABELS,
   retailerRoleAtLeast,
+  retailerRoleHasAlterationsPermission,
   type Appointment,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
+import { formatMoney } from "@paon/utils";
 import Link from "next/link";
 
 import {
@@ -64,7 +69,18 @@ export default async function MissionControlPage() {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
 
-  const [appointments, customers, draftOpportunities] = await Promise.all([
+  const canApprovePrice = retailerRoleHasAlterationsPermission(
+    session.retailerRole,
+    "approve_pricing",
+  );
+  const [
+    appointments,
+    customers,
+    draftOpportunities,
+    pendingProposals,
+    notifications,
+    lowStockCount,
+  ] = await Promise.all([
     new AppointmentRepository(supabase).findByRetailer(session.retailerId),
     new CustomerRepository(supabase).findByRetailer(session.retailerId),
     retailerRoleAtLeast(session.retailerRole, "sales_associate")
@@ -73,7 +89,23 @@ export default async function MissionControlPage() {
           30,
         )
       : Promise.resolve([]),
+    // PHASE 17.2: the same three sources /dashboard's own "Needs your
+    // attention" brief already aggregates — reused here verbatim (same
+    // repository calls, same role gates), not a second query path.
+    canApprovePrice
+      ? new AlterationWorkflowRepository(
+          supabase,
+        ).findPendingProposalsByRetailer(session.retailerId)
+      : Promise.resolve([]),
+    new NotificationRepository(supabase).findByUser(session.userId),
+    retailerRoleAtLeast(session.retailerRole, "manager")
+      ? new ProductVariantRepository(supabase).countLowStockForRetailer(
+          session.retailerId,
+          5,
+        )
+      : Promise.resolve(0),
   ]);
+  const unreadCount = notifications.filter((item) => !item.readAt).length;
 
   const nameByCustomerId = new Map(
     customers.map((customer) => [customer.id, customer.fullName]),
@@ -103,6 +135,9 @@ export default async function MissionControlPage() {
     (opportunity) => !opportunity.dueAt || isToday(opportunity.dueAt),
   );
 
+  const hasAttentionItems =
+    pendingProposals.length > 0 || unreadCount > 0 || lowStockCount > 0;
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -114,6 +149,60 @@ export default async function MissionControlPage() {
           picks worth acting on before end of day.
         </p>
       </div>
+
+      {hasAttentionItems ? (
+        <Card id="mission-control-attention" className="flex flex-col gap-3">
+          <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+            Needs your attention
+          </h2>
+          <div className="flex flex-col gap-3">
+            {pendingProposals.map((proposal) => (
+              <Link
+                key={proposal.id}
+                href={`/alterations/${proposal.alterationId}#pricing`}
+                className="group"
+              >
+                <div className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] border border-l-4 border-[var(--color-stone-200)] border-l-[var(--color-warning-500)] p-3 group-hover:bg-[var(--color-stone-50)]">
+                  <div>
+                    <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                      Price approval needed · {proposal.workOrderNumber}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                      {formatMoney(proposal.originalAmount, "en-US")} →{" "}
+                      {formatMoney(proposal.proposedAmount, "en-US")}
+                    </p>
+                  </div>
+                  <span aria-hidden="true">→</span>
+                </div>
+              </Link>
+            ))}
+            {unreadCount > 0 ? (
+              <Link href="/messages" className="group">
+                <div className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 group-hover:bg-[var(--color-stone-50)]">
+                  <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                    {unreadCount === 1
+                      ? "1 conversation waiting"
+                      : `${unreadCount} conversations waiting`}
+                  </p>
+                  <span aria-hidden="true">→</span>
+                </div>
+              </Link>
+            ) : null}
+            {lowStockCount > 0 ? (
+              <Link href="/products" className="group">
+                <div className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-l-4 border-[var(--color-stone-200)] border-l-[var(--color-warning-500)] p-3 group-hover:bg-[var(--color-stone-50)]">
+                  <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                    {lowStockCount === 1
+                      ? "1 variant at or below 5 units"
+                      : `${lowStockCount} variants at or below 5 units`}
+                  </p>
+                  <span aria-hidden="true">→</span>
+                </div>
+              </Link>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
         <Card className="flex flex-col gap-0 divide-y divide-[var(--color-stone-100)] p-0">
