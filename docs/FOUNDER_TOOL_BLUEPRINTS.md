@@ -316,11 +316,51 @@ source has none — records the active panel as a fit-tool observation
 through the existing `recordFitToolObservation` path, unchanged from the
 prior implementation's contract. This is Level 1 visual classification
 only; individual analysis and prediction (Level 2/3) remain unbuilt and are
-not claimed. No consent/capture/session state machine exists yet — this
-tool has no camera capture at all, only the visual carousel — so the
-`consented/capturing/candidate/...` states, private-media-asset isolation,
-advisor review and connected-journey proof described above all remain
-outstanding.
+not claimed.
+
+The consent/capture session state machine (2026-08-05) is now built —
+the exact `consented, capturing, candidate, advisor_reviewed,
+customer_confirmed, rejected, expired` states from this blueprint's
+own State-and-wiring section, migration `20260805230000`. A customer
+explicitly starts a session (the act of starting is the consent — no
+covert camera start), uploads a photo through a private storage bucket
+(`silhouette-evidence`, same isolation shape as `wardrobe-evidence`),
+their advisor reviews and approves/rejects
+(`decide_silhouette_analysis_candidate`, gated on
+`is_alterations_advisor()`, never touching any approved-fit/
+measurement record), and the customer gives the final confirmation.
+Withdrawal is available at any non-terminal state and deletes the
+capture row. New customer route `/silhouette-analysis`; new "Silhouette
+analysis" review card on the retailer's customer detail page. Proof:
+`apps/customer/e2e/silhouette-analysis.spec.ts` (consent → real upload
+→ advisor-approved → confirm, plus a second request withdrawn) and
+`apps/retailer/e2e/silhouette-analysis-review.spec.ts` (a real
+candidate submitted through the actual customer RPCs, reviewed and
+approved through the retailer's own browser UI), both 2/2 green.
+Two real bugs found and fixed while proving this: the RLS helper
+`can_access_silhouette_storage_object` was missing its own EXECUTE
+grant to `authenticated` (revoked from PUBLIC but never re-granted —
+caught immediately by the live upload failing with "permission
+denied"), and `start_silhouette_analysis_session` didn't self-create
+the caller's `customers` row for a first-time visitor, unlike the
+established `add_concept_scan_selection`/
+`save_suit_configuration_intent` precedent it should have matched from
+the start.
+
+Deliberately not built in this slice, named honestly: automatic
+time-based expiry (the `expired` status is real and reachable, but no
+TTL duration is specified anywhere in the founder brief or blueprint,
+so none is invented — same discipline as PHASE.md 18.3's TTL gap), and
+the connection to `customer_style_profiles` this blueprint's own
+State-and-wiring section describes — doing that meaningfully requires
+mapping each silhouette panel (S1–S5) to a real `metadata_concepts`
+taxonomy row, which doesn't exist anywhere in this codebase and is a
+taxonomy decision, not an engineering one. Also not built: private-
+media-asset deletion propagation to storage on withdrawal (the DB
+capture row is deleted; the underlying storage object is not — no
+automated storage-cleanup job exists anywhere in this codebase to
+extend), and individual analysis/prediction (Level 2/3, explicitly out
+of scope per this blueprint's own text).
 
 ## FT-03 — QR try-on and fabric-batch concept order
 

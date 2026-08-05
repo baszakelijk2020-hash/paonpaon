@@ -1,0 +1,13 @@
+{
+  "phaseItemId": "FT-02",
+  "gitSha": "af8a9a62228856039d831be020243a5fc82e8ad2",
+  "specs": [
+    "apps/customer/e2e/silhouette-analysis.spec.ts",
+    "apps/retailer/e2e/silhouette-analysis-review.spec.ts"
+  ],
+  "pgtap": "full suite 160/160 (no dedicated silhouette-analysis pgTAP file; covered by both browser specs plus the RLS/grant fixes they surfaced)",
+  "status": "passed",
+  "runs": 2,
+  "note": "Consent/capture session state machine — customer spec proves start/upload/advisor-approved/confirm/withdraw; retailer spec proves the real decide_silhouette_analysis_candidate RPC and its is_alterations_advisor() authorization boundary through the browser.",
+  "timestamp": "2026-08-05T19:55:00.000Z"
+}
