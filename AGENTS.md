@@ -135,6 +135,19 @@ Retail Operations, Enterprise/Vertical or Network/Ecosystem modules.
 - Preserve unrelated user/agent work. Inspect a dirty tree before editing;
   never reset or overwrite it for convenience.
 
+## Frontend implementation rules
+
+The existing PAON design system is authoritative.
+
+- Follow the existing design tokens, typography, spacing, radii, colors,
+  shadows, and interaction patterns.
+- Reuse components from `@paon/ui` before creating new components.
+- Do not introduce new fonts, colors, gradients, animations, visual styles,
+  or component patterns unless explicitly requested.
+- Do not reinterpret or redesign supplied screens or design specifications.
+- Match existing adjacent screens and components.
+- Treat frontend tasks as implementation work, not independent art direction.
+
 ## Environment safety
 
 - Never run integration/e2e or apply migrations until the exact target project
