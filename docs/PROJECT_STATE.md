@@ -10,7 +10,61 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-05 Backlog hygiene sweep — known bugs closed, pgTAP suite restored to 160/160 (READ FIRST — supersedes every section below)
+## 2026-08-05 18.8's real employee-portal bug found and fixed (READ FIRST — supersedes every section below)
+
+Same session, continued after the backlog hygiene sweep below. 18.8's
+own status text explicitly named the next step as direct CDP network/
+cookie tracing, not another guess — did exactly that (Playwright's
+`response.headers()` hides `Set-Cookie` the same way real browser JS
+can't see it, which is why an earlier session's `page.on(...)`
+instrumentation couldn't resolve this; used `page.context()
+.newCDPSession(page)` + `Network.responseReceivedExtraInfo` instead).
+
+**Real root cause, confirmed empirically, not theorized:** the bug was
+never in the Server Action POST. `apps/customer/middleware.ts`'s
+matcher does not exclude `/fonts/*` (the same-origin `@font-face` proxy
+for `paon-template.html`, fetched as a background subresource by every
+page). A signed-in wearer's font request missed the `isEmployeePath`
+carve-out (pathname is `/fonts/...`, not `/employee/...`) and fell
+through to the generic "not a customer account → sign out" branch —
+correct for a `retailer_staff`/`platform` session wandering onto a real
+customer-app page, wrong for a legitimate `corporate_wearer` loading an
+unrelated font byte stream. That request's response carried
+`Set-Cookie: ...; Max-Age=0`, deleting the session cookie seconds after
+`/employee` rendered — by the time a human finished filling the "Report
+a problem" form, the cookie was already gone. Fixed with an early
+return for `/fonts/*` in middleware, mirroring the existing storefront/
+confirm-route carve-outs.
+
+A second, independent gap surfaced once past the middleware bug:
+`corporate_exception_events` (the append-only audit trail
+`createException` always writes alongside the exception row) had no
+wearer-scoped INSERT policy — a wearer's own ticket-creation correctly
+inserted the exception row, then failed outright on the audit event,
+leaving no ticket behind at all. New migration `20260805220000`.
+
+`employee-portal.spec.ts` extended with the real raise-a-request
+journey, 2/2 green. Full customer e2e suite reran clean except two
+already-documented pre-existing flakes, confirmed unrelated via
+`git stash` (`corporate-tender-reveal.spec.ts` fails identically with
+and without this change; `swipe-deck.spec.ts`'s animation-timing flake
+is separately pre-documented). `docs/PHASE.md`'s 18.8 is now `[x]`.
+
+### Pick up here
+
+18.8 is closed. Every item from the earlier numbered backlog list is
+now either killed (FT-03/04/07/12 remaining gaps, founder decision) or
+closed (both known bugs, the pgTAP suite, 18.8) except: FT-01/02/09/10/
+13/14's own remaining gaps (some blocked_external — supplier
+write-back, AI retrieval/citation, malware scanning; some buildable —
+FT-01's trust/recovery state machine, FT-02's consent/capture session
+state machine, FT-09's shared-look→appointment/proposal continuation),
+Stage 17.7 (parked)/17.11 (needs scoping)/18.3 (needs a TTL policy
+decision)/18.4's public self-service-booking remainder/18.7 (needs a
+founder decision)/18.9 (no `contract_value`/`repair` schema field), and
+everything blocked on external credentials.
+
+## 2026-08-05 Backlog hygiene sweep — known bugs closed, pgTAP suite restored to 160/160
 
 Same session, continued after the founder scope cut below. Closed both
 "known latent bugs" named in the earlier Stage 17/18 handoff plus a
