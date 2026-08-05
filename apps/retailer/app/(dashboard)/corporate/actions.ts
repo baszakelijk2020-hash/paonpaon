@@ -443,3 +443,40 @@ export async function resolveRenewalTask(
   ).resolveRenewalTask(taskId);
   revalidatePath(`/corporate/${programmeId}`);
 }
+
+export async function setContractValue(
+  programmeId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const contractValueMinorUnitsRaw = formData.get("contractValueMinorUnits");
+  const contractValueCurrency = formData.get("contractValueCurrency");
+
+  const contractValueMinorUnits = contractValueMinorUnitsRaw
+    ? Number(contractValueMinorUnitsRaw)
+    : null;
+  if (
+    contractValueMinorUnits !== null &&
+    !Number.isFinite(contractValueMinorUnits)
+  ) {
+    throw new Error("Enter a valid contract value.");
+  }
+
+  const client = await getSupabaseServerClient();
+  // PHASE 18.9: contract_value fields are new; use any to bypass strict types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (client
+    .from("corporate_programmes" as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    .update({
+      contract_value_minor_units: contractValueMinorUnits,
+      contract_value_currency:
+        contractValueCurrency && contractValueCurrency !== ""
+          ? String(contractValueCurrency).toUpperCase()
+          : null,
+    })
+    .eq("id", programmeId)
+    .eq("retailer_id", session.retailerId) as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+
+  if (error) throw error;
+  revalidatePath(`/corporate/${programmeId}`);
+}

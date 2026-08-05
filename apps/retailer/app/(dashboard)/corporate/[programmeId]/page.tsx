@@ -39,6 +39,7 @@ import {
   resolveOfficeVisitRequest,
   resolveRenewalTask,
   scheduleOfficeVisitAppointment,
+  setContractValue,
   setWearerActive,
   setWearerLoginEmail,
 } from "../actions";
@@ -55,6 +56,7 @@ const EXCEPTION_KIND_LABELS: Record<string, string> = {
   missing: "Missing",
   alteration_request: "Alteration request",
   replacement_request: "Replacement request",
+  repair: "Repair",
 };
 
 const EXCEPTION_PRIORITY_LABELS: Record<string, string> = {
@@ -1024,6 +1026,42 @@ export default async function CorporateProgrammePage({
             </Button>
           </form>
         </div>
+
+        <form
+          action={setContractValue.bind(null, programmeId)}
+          className="flex flex-wrap items-end gap-2 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
+        >
+          <FormField label="Contract value (minor units)" htmlFor="valueMinor">
+            <Input
+              id="valueMinor"
+              name="contractValueMinorUnits"
+              type="number"
+              min={0}
+              defaultValue={
+                (programme as unknown as Record<string, number | string>)
+                  ?.contract_value_minor_units ?? ""
+              }
+              placeholder="0"
+            />
+          </FormField>
+          <FormField label="Currency" htmlFor="currency">
+            <Input
+              id="currency"
+              name="contractValueCurrency"
+              type="text"
+              maxLength={3}
+              defaultValue={
+                (programme as unknown as Record<string, number | string>)
+                  ?.contract_value_currency ?? ""
+              }
+              placeholder="GBP"
+            />
+          </FormField>
+          <Button type="submit" variant="secondary" size="sm">
+            Set contract value
+          </Button>
+        </form>
+
         {renewalRiskRecommendation ? (
           <div className="flex flex-col gap-1">
             <p className="text-sm text-[var(--color-stone-700)]">

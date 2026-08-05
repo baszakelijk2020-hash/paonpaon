@@ -283,16 +283,37 @@ export class CitedRecommendationRepository {
     const damageEventCount = exceptions.filter((e) =>
       ["damaged", "missing", "replacement_request"].includes(e.kind),
     ).length;
+    const repairEventCount = exceptions.filter((e) => {
+      // PHASE 18.9: repair is a new kind; gracefully handle it when present
+      return (e.kind as string) === "repair";
+    }).length;
+
+    const { data: programme } = await this.client
+      .from("corporate_programmes")
+      .select("id, contract_value_minor_units, contract_value_currency")
+      .eq("id", args.programmeId)
+      .single();
+
+    // PHASE 18.9: contract value fields are new; safely extract if present
+    const contractValueMinorUnits = (
+      programme as Record<string, unknown> | null
+    )?.["contract_value_minor_units"] as number | null;
+    const contractValueCurrency = (
+      programme as Record<string, unknown> | null
+    )?.["contract_value_currency"] as string | null;
 
     const metrics = computeCorporateProgrammeMetrics({
       wearerCount: wearers.length,
       activeWearerCount: wearers.filter((w) => w.active).length,
       fulfilledWearerCount,
       damageEventCount,
+      repairEventCount,
+      contractValueMinorUnits: contractValueMinorUnits ?? null,
+      contractValueCurrency: contractValueCurrency ?? null,
     });
     const risk = assessRenewalRisk(metrics);
 
-    const statement = `${Math.round(metrics.participationRate * 100)}% active, ${Math.round(metrics.fulfilmentRate * 100)}% fulfilled, ${damageEventCount} damage/replacement event${damageEventCount === 1 ? "" : "s"} across ${wearers.length} wearers — renewal risk ${risk.level} (score ${risk.score}/100).`;
+    const statement = `${Math.round(metrics.participationRate * 100)}% active, ${Math.round(metrics.fulfilmentRate * 100)}% fulfilled, ${damageEventCount} damage/replacement event${damageEventCount === 1 ? "" : "s"}, ${repairEventCount} repair event${repairEventCount === 1 ? "" : "s"} across ${wearers.length} wearers — renewal risk ${risk.level} (score ${risk.score}/100).`;
 
     const result = buildRecommendation({
       kind: "corporate_renewal_risk",

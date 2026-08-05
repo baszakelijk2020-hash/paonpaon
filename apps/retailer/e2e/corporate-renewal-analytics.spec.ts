@@ -95,9 +95,44 @@ test("a struggling programme's renewal risk is computed and cited, auto-creates 
     kind: "missing",
     detail: `E2E missing garment for renewal risk ${unique}`,
   });
+  // PHASE 18.9: repair is a new kind
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await repo.createException(retailerId, {
+    programmeId: programme.id,
+    wearerId: wearer1.id,
+    kind: "repair" as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    detail: `E2E repair needed for renewal risk ${unique}`,
+  });
 
   try {
     await page.goto(`/corporate/${programme.id}`);
+
+    // Set contract value and verify it persists
+    await page.getByLabel("Contract value (minor units)").fill("250000");
+    await page.getByLabel("Currency").fill("GBP");
+    await page.getByRole("button", { name: "Set contract value" }).click();
+    await expect(page).toHaveURL(/\/corporate\/[^/]+$/);
+    await page.reload();
+    await expect(page.getByLabel("Contract value (minor units)")).toHaveValue(
+      "250000",
+    );
+    await expect(page.getByLabel("Currency")).toHaveValue("GBP");
+
+    // Verify contract value was persisted to the database
+    const { data: programmeFetched } = await admin
+      .from("corporate_programmes")
+      .select("*")
+      .eq("id", programme.id)
+      .single();
+    const contractValueMinor = (programmeFetched as Record<string, unknown>)?.[
+      "contract_value_minor_units"
+    ];
+    const contractValueCurrency = (
+      programmeFetched as Record<string, unknown>
+    )?.["contract_value_currency"];
+    expect(contractValueMinor).toBe(250000);
+    expect(contractValueCurrency).toBe("GBP");
+
     await page.getByRole("button", { name: "Recompute" }).click();
     await expect(
       page.getByText(/renewal risk (medium|high)/).first(),
