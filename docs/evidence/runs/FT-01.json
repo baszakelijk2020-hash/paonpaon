@@ -1,0 +1,12 @@
+{
+  "phaseItemId": "FT-01",
+  "gitSha": "9945837f2d18936919f1fc083a7ff6dcb5b8a2c9",
+  "specs": [
+    "apps/retailer/e2e/fit-tools.spec.ts"
+  ],
+  "pgtap": "Not run — migration 20260806000000_add_fit_profile_candidates.sql not yet applied to test environment",
+  "status": "incomplete — feature code written, migration/types/E2E not yet verified",
+  "runs": 0,
+  "note": "FT-01 reviewed FitProfile candidate/version (blueprint item 1/2): fit_profile_candidates table with state machine (proposed → advisor_approved → customer_confirmed), SECURITY DEFINER RPCs (propose/approve/reject/confirm), idempotency key for duplicate-submit prevention, corrections-append pattern via fitting_observations.supersedes_observation_id. Advisor review card mirrors silhouette-analysis-card.tsx. Server Actions, repository, domain types complete. E2E tests outline full workflow. NOT YET BUILT: trust/recovery full state machine (permission-denied/no-speech/low-confidence voice capture states — real Web Speech API integration deferred to follow-on slice; chip-tap fallback exists but voice transcription is not wired; this keeps offline-draft idempotency focus scoped). Migration/database types generation and test run pending local environment setup.",
+  "timestamp": "2026-08-06T00:00:00.000Z"
+}
