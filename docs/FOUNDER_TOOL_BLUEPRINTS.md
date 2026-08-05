@@ -524,9 +524,20 @@ order is `assigned`/`in_progress` — flipped the seeded work order to
 `assigned` directly first, the same "out of scope for what this test
 verifies" reasoning the file's own docstring already uses for seeding
 the proposal itself (the workshop-assignment flow has its own coverage
-elsewhere). Not proven this round: the `usable`-visibility
-composited-customer-view path, ranking-rule/evidence-window versioning,
-and cross-module degrade-independently behavior.
+elsewhere). The `usable`-visibility composited-customer-view path is now
+proven too (2026-08-05): a consented customer with real
+interests/shortlist/StyleProfile evidence renders that real data in
+`advisor-preparation-brief.tsx` (`workspace.spec.ts`'s "advisor sees
+consented customer intelligence" journey), not just the fail-closed
+empty state. Surfaced one real fixture-level finding while proving it,
+not a product bug: `behavioral_events` has no direct INSERT grant for
+any role — by design, every real capture goes through
+`capture_behavioral_event`, which enforces the personalization
+fail-closed consent check and stamps a consent snapshot server-side —
+so the test seeds through `AnalyticsRepository.capture`, the same path
+production code uses, not a raw table insert. Not proven:
+ranking-rule/evidence-window versioning and cross-module
+degrade-independently behavior.
 
 ## FT-06 — MorningRoutine complete-look canvas
 
