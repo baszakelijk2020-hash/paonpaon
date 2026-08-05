@@ -464,7 +464,6 @@ export async function setContractValue(
 
   const client = await getSupabaseServerClient();
   // PHASE 18.9: contract_value fields are new; use any to bypass strict types
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (client
     .from("corporate_programmes" as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({

@@ -96,7 +96,6 @@ test("a struggling programme's renewal risk is computed and cited, auto-creates 
     detail: `E2E missing garment for renewal risk ${unique}`,
   });
   // PHASE 18.9: repair is a new kind
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await repo.createException(retailerId, {
     programmeId: programme.id,
     wearerId: wearer1.id,
