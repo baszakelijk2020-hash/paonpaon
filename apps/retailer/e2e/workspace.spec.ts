@@ -203,6 +203,299 @@ test("owner adds a client to the book", async ({ page }) => {
   await expect(page.getByText(`jamie-${unique}@paon.test`)).toBeVisible();
 });
 
+/**
+ * FT-05's advisor preparation brief (ADV-003) composited-customer-view path
+ * with personalization consent and real intelligence data — interests,
+ * shortlist, evidence — proving that the usable-visibility case actually
+ * renders the real data correctly, not just "no longer says empty."
+ * Fixtures are created directly via admin Supabase access to avoid the
+ * live-database constraint during orchestration (see AGENTS.md environment
+ * safety).
+ */
+test("advisor sees consented customer intelligence: interests, shortlist, evidence", async ({
+  page,
+}) => {
+  const { createSupabaseAdminClient } = await import("@paon/database");
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+    );
+  }
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const unique = Date.now();
+
+  // Get the retailer from the test fixture.
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", "e2e-retailer-workspace")
+    .single();
+  if (!retailer) throw new Error("fixture retailer missing");
+
+  // Create a product and variant for shortlist/evidence.
+  const productSlug = `e2e-advisor-brief-product-${unique}`;
+  const productName = "E2E Advisor Brief Test Wool Jacket";
+  const { data: product, error: productError } = await admin
+    .from("products")
+    .insert({
+      retailer_id: retailer.id,
+      name: productName,
+      slug: productSlug,
+      description: "Fixture for advisor brief shortlist and evidence.",
+      status: "active",
+      is_made_to_order: false,
+      is_alterable: true,
+    })
+    .select("id")
+    .single();
+  if (productError) throw productError;
+  if (!product) throw new Error("failed to create product");
+
+  const { error: variantError } = await admin.from("product_variants").insert({
+    product_id: product.id,
+    sku: `E2E-BRIEF-${unique}`,
+    size: "50",
+    color: "Navy",
+    price_amount_minor_units: 450000,
+    price_currency: "USD",
+    inventory_quantity: 3,
+  });
+  if (variantError) throw variantError;
+
+  // Get variant for wishlist.
+  const { data: variant } = await admin
+    .from("product_variants")
+    .select("id")
+    .eq("product_id", product.id)
+    .limit(1)
+    .single();
+  if (!variant) throw new Error("variant not created");
+
+  // Create a style concept for evidence and interests.
+  const conceptSlug = `e2e-advisor-brief-concept-${unique}`;
+  const { data: concept, error: conceptError } = await admin
+    .from("metadata_concepts")
+    .insert({
+      retailer_id: retailer.id,
+      kind: "style",
+      slug: conceptSlug,
+      canonical_name: "Business casual",
+      attributes: {},
+      active: true,
+    })
+    .select("id")
+    .single();
+  if (conceptError) throw conceptError;
+  if (!concept) throw new Error("failed to create concept");
+
+  // Assign the concept to the product for metadata linking.
+  const { data: reviewer } = await admin
+    .from("retailer_staff_members")
+    .select("id")
+    .eq("retailer_id", retailer.id)
+    .limit(1)
+    .single();
+  if (!reviewer) throw new Error("fixture metadata reviewer missing");
+
+  const { error: assignmentError } = await admin
+    .from("entity_metadata_assignments")
+    .insert({
+      retailer_id: retailer.id,
+      target_type: "product",
+      target_id: product.id,
+      concept_id: concept.id,
+      source: "paon",
+      confidence: 1,
+      review_status: "accepted",
+      evidence: { summary: "E2E advisor brief test fixture" },
+      reviewed_by_staff_id: reviewer.id,
+      reviewed_at: new Date().toISOString(),
+    });
+  if (assignmentError) throw assignmentError;
+
+  // Create a customer with personalization consent.
+  const { data: customer, error: customerError } = await admin
+    .from("customers")
+    .insert({
+      retailer_id: retailer.id,
+      email: `advisor-brief-${unique}@paon.test`,
+      full_name: "Consented Customer",
+      lifecycle_stage: "prospect",
+    })
+    .select("id")
+    .single();
+  if (customerError) throw customerError;
+  if (!customer) throw new Error("failed to create customer");
+
+  // Grant personalization consent.
+  const { error: consentError } = await admin
+    .from("customer_preferences")
+    .upsert(
+      {
+        customer_id: customer.id,
+        personalization_opt_in: true,
+        personalization_withdrawn_at: null,
+      },
+      { onConflict: "customer_id" },
+    );
+  if (consentError) throw consentError;
+
+  // Create a wishlist for the customer.
+  const { data: wishlist, error: wishlistError } = await admin
+    .from("wishlists")
+    .insert({
+      customer_id: customer.id,
+      name: "Saved",
+      is_default: true,
+    })
+    .select("id")
+    .single();
+  if (wishlistError) throw wishlistError;
+  if (!wishlist) throw new Error("failed to create wishlist");
+
+  // Add variant to wishlist (shortlist).
+  const now = new Date();
+  const { error: wishlistItemError } = await admin
+    .from("wishlist_items")
+    .insert({
+      wishlist_id: wishlist.id,
+      product_variant_id: variant.id,
+      added_at: now.toISOString(),
+    });
+  if (wishlistItemError) throw wishlistItemError;
+
+  // Record a behavioral event (interest) — `behavioral_events` has no
+  // direct INSERT grant for any role (by design: every real capture goes
+  // through `capture_behavioral_event`, which enforces the personalization
+  // consent fail-closed check and stamps a consent snapshot server-side),
+  // so this must go through the same `AnalyticsRepository.capture` path
+  // production code uses, not a raw table insert.
+  const { AnalyticsRepository } = await import("@paon/database");
+  const eventOccurredAt = new Date(
+    now.getTime() - 2 * 60 * 60 * 1000,
+  ).toISOString(); // 2 hours ago
+  await new AnalyticsRepository(admin).capture({
+    retailerId: retailer.id as never,
+    customerId: customer.id as never,
+    name: "product_viewed",
+    properties: {
+      productId: product.id,
+      productVariantId: variant.id,
+      productName,
+    },
+    occurredAt: eventOccurredAt,
+    source: "customer_portal",
+    purpose: "personalization",
+    consentBasis: "explicit_opt_in",
+    consentSnapshot: {
+      personalization: "granted",
+      marketing: "denied",
+      location: "denied",
+      capturedAt: eventOccurredAt,
+      basis: "explicit_opt_in",
+    },
+    retentionClass: "personalization_signal",
+    retentionExpiresAt: new Date(
+      now.getTime() + 365 * 24 * 60 * 60 * 1000,
+    ).toISOString(),
+  });
+
+  // Create style profile and add explicit preference.
+  const { data: styleProfile, error: profileError } = await admin
+    .from("customer_style_profiles")
+    .insert({
+      retailer_id: retailer.id,
+      customer_id: customer.id,
+      explicit_preferences: [
+        {
+          conceptId: concept.id,
+          polarity: "positive",
+          note: "Prefers structured fits",
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+      inferred_preferences: [],
+      confidence: {
+        overall: 0.8,
+        inferredCount: 0,
+        explicitCount: 1,
+        activeEvidenceCount: 1,
+      },
+    })
+    .select("id")
+    .single();
+  if (profileError) throw profileError;
+  if (!styleProfile) throw new Error("failed to create style profile");
+
+  // Create style preference evidence.
+  const { error: evidenceError } = await admin
+    .from("customer_style_preference_evidence")
+    .insert({
+      retailer_id: retailer.id,
+      customer_id: customer.id,
+      concept_id: concept.id,
+      source: "product_favorited",
+      polarity: "positive",
+      confidence: 1,
+      created_at: new Date(now.getTime() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
+    });
+  if (evidenceError) throw evidenceError;
+
+  // Now load the customer detail page as the retailer owner.
+  // We're already logged in from the beforeEach hook.
+  await page.goto(`/customers/${customer.id}`);
+
+  // Wait for the page to fully load.
+  await expect(
+    page.getByRole("heading", { name: "Consented Customer" }),
+  ).toBeVisible();
+
+  // Scoped to the advisor preparation brief card specifically — the
+  // customer detail page has more than one "Recent interests"-style
+  // section (e.g. the AI insights card), so an unscoped page-wide
+  // getByText is ambiguous under Playwright's strict mode.
+  const briefCard = page.locator(
+    '[aria-labelledby="advisor-preparation-brief-heading"]',
+  );
+
+  // Assert the advisor brief visibility is "usable" (success badge).
+  await expect(briefCard.getByText("Consented intelligence")).toBeVisible();
+
+  // Assert the visibility body text.
+  await expect(
+    briefCard.getByText(
+      "Showing same-retailer signals the client has opted into.",
+    ),
+  ).toBeVisible();
+
+  // Assert interests section shows the product_viewed event.
+  // The interest is derived from the behavioral event.
+  await expect(briefCard.getByText("Recent interests")).toBeVisible();
+  await expect(briefCard.getByText("product viewed")).toBeVisible();
+
+  // Assert shortlist section shows the wishlist item.
+  // The label should be: "E2E Advisor Brief Test Wool Jacket / 50 / Navy".
+  await expect(briefCard.getByText("Shortlist", { exact: true })).toBeVisible();
+  await expect(
+    briefCard.getByText("E2E Advisor Brief Test Wool Jacket / 50 / Navy"),
+  ).toBeVisible();
+  await expect(briefCard.getByText("wishlist")).toBeVisible();
+
+  // Assert evidence section shows the style preference evidence. The same
+  // concept also renders as a "declared" interest (from the style
+  // profile's explicit preference) and inside the "Likely need" summary,
+  // so "Business casual" alone is ambiguous within the card — match the
+  // full evidence line (concept + source + polarity together) instead,
+  // which only the Evidence list item's own text contains.
+  await expect(briefCard.getByText("Evidence", { exact: true })).toBeVisible();
+  await expect(
+    briefCard.getByText(/Business casual.*product favorited.*positive/),
+  ).toBeVisible();
+});
+
 test("owner adds a product with its first variant", async ({ page }) => {
   const unique = Date.now();
 
