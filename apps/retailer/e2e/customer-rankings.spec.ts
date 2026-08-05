@@ -34,7 +34,9 @@ test.beforeEach(async ({ page }) => {
  * Proves customer segmentation and rankings (PHASE 17.6 / ADV-106) end
  * to end: a real single high-value order outranks a real lower-spend
  * customer (never a hidden loyalty score, a plain sort by real total
- * spend), a one-order customer is labelled "One-time", and a
+ * spend — checked as relative order, not an absolute rank number,
+ * since the shared fixture retailer may have other customers with
+ * orders), a one-order customer is labelled "One-time", and a
  * two-order-same-month customer is labelled both "Repeat" and
  * "Seasonal" — every segment computed from real order data, no new
  * customer ledger.
@@ -81,8 +83,8 @@ test("the highest real spender ranks first, and buyer segments are computed hone
       order_number: `E2E-RANK-HIGH-${unique}`,
       status: "completed",
       currency: "USD",
-      subtotal_amount_minor_units: 500_000,
-      total_amount_minor_units: 500_000,
+      subtotal_amount_minor_units: 50_000_000,
+      total_amount_minor_units: 50_000_000,
       placed_at: placedThisMonth.toISOString(),
     })
     .select("id")
@@ -129,16 +131,31 @@ test("the highest real spender ranks first, and buyer segments are computed hone
     await expect(highRow).toBeVisible();
     await expect(repeatRow).toBeVisible();
 
-    // Real spend ($5,000 vs $200) determines rank — never a hidden score.
+    // Real spend ($500,000, comfortably above anything else in this
+    // shared fixture retailer) ranks first — never a hidden score.
     await expect(highRow.getByText("#1", { exact: true })).toBeVisible();
     await expect(highRow.getByText("One-time", { exact: true })).toBeVisible();
-    await expect(highRow.getByText("$5,000.00")).toBeVisible();
+    await expect(highRow.getByText("$500,000.00")).toBeVisible();
 
-    await expect(repeatRow.getByText("#2", { exact: true })).toBeVisible();
     await expect(repeatRow.getByText("Repeat", { exact: true })).toBeVisible();
     await expect(
       repeatRow.getByText("Seasonal", { exact: true }),
     ).toBeVisible();
+
+    // Relative order, not an absolute rank number (the shared fixture
+    // retailer may have other customers with orders interleaved): the
+    // real $500,000 spender must rank strictly above the real $200
+    // spender, proving the sort is by real spend, not display order.
+    const highRankText = await highRow
+      .locator("span", { hasText: /^#\d+$/ })
+      .textContent();
+    const repeatRankText = await repeatRow
+      .locator("span", { hasText: /^#\d+$/ })
+      .textContent();
+    const highRank = Number(highRankText?.replace("#", ""));
+    const repeatRank = Number(repeatRankText?.replace("#", ""));
+    expect(highRank).toBeGreaterThan(0);
+    expect(repeatRank).toBeGreaterThan(highRank);
 
     proofPassed = true;
   } finally {
