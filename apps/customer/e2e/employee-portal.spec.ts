@@ -123,6 +123,36 @@ test("a corporate wearer signs in to the Employee Portal and sees their own enti
     // Cross-employee isolation (PHASE 18.5's own named gap, closed): the
     // other wearer's own identity never appears on this wearer's page.
     await expect(page.getByText(otherWearer.displayName)).toHaveCount(0);
+
+    // PHASE 18.8's own named, real, previously-reproduced gap: a
+    // wearer's Server Action POST from this exact page was redirected
+    // to /employee/login moments after the GET above correctly
+    // resolved as this wearer. Root cause (found via CDP-level
+    // Network.responseReceivedExtraInfo tracing, since Playwright's own
+    // response.headers() hides Set-Cookie the same way real browser JS
+    // can't see it): middleware.ts's /fonts/* proxy requests — a
+    // background subresource fetch every page makes, unrelated to this
+    // form — fell through to the generic "not a customer account"
+    // branch and silently signed the wearer out (Max-Age=0) seconds
+    // after page load, so the cookie was already gone by the time a
+    // human would finish filling this form. Fixed with an early return
+    // for /fonts/* in middleware.ts, mirroring the existing storefront/
+    // confirm-route carve-outs. This is the real regression proof for
+    // that fix — if the middleware carve-out regresses, this hangs on
+    // the redirect to /employee/login instead of finding the new
+    // request in the list below.
+    await page.getByLabel("What's the problem?").selectOption("fit_issue");
+    const detail = `Diagnostic-proof request ${unique}`;
+    await page.getByLabel("Details").fill(detail);
+    await page.getByRole("button", { name: "Send to my advisor" }).click();
+
+    await expect(page).toHaveURL(/\/employee$/);
+    await expect(page.getByText(detail)).toBeVisible();
+    await expect(
+      page
+        .locator("li", { hasText: detail })
+        .getByText("Open", { exact: true }),
+    ).toBeVisible();
   } finally {
     await admin.from("corporate_accounts").delete().eq("id", account.id);
   }

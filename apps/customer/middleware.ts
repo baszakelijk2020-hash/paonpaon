@@ -116,6 +116,28 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  // Same-origin proxy for paon-template.html's @font-face URLs (see
+  // PUBLIC_PATHS above) — a pure byte-serving utility path with no
+  // account-specific content, fetched as a background subresource by
+  // every page that embeds the template regardless of who is signed
+  // in. Real bug this fixed (PHASE 18.8): without this early return, a
+  // signed-in corporate_wearer's font request fell through to the
+  // generic "not a customer account" branch below (which correctly
+  // signs out a retailer_staff/platform session that wanders onto an
+  // actual customer-app page) and silently signed the wearer OUT —
+  // `Set-Cookie: ...; Max-Age=0` on the font response itself — seconds
+  // after `/employee` rendered correctly. The Server Action POST that
+  // failed moments later with "no user" was a real symptom, not the
+  // cause: the cookie was already gone by the time the wearer finished
+  // filling out the form, deleted by a font byte request they never
+  // saw. Confirmed via CDP-level `Network.responseReceivedExtraInfo`
+  // tracing (Playwright's own `response.headers()` does not expose
+  // `Set-Cookie`, matching real browser JS restrictions, and hid this
+  // from an earlier investigation's `page.on(...)` instrumentation).
+  if (pathname.startsWith("/fonts")) {
+    return response;
+  }
+
   const isEmployeePath = pathname.startsWith(EMPLOYEE_PATH_PREFIX);
   const isEmployeeLoginPath = pathname.startsWith(
     `${EMPLOYEE_PATH_PREFIX}/login`,

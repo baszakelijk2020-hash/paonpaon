@@ -4984,7 +4984,7 @@ access" control (`setWearerLoginEmail`) — there was previously no
     "automatic wiring to the objects that dependency line names" is not
     yet built for seven of the thirteen stages.
 
-- [ ] **18.8 Corporate service desk**
+- [x] **18.8 Corporate service desk**
   - **Requirement IDs:** BD-108.
   - **Dependencies:** `14.1`'s `corporate_exceptions` (extend its
     kind/action vocabulary and generalise its scope; do not fork a
@@ -4997,9 +4997,8 @@ access" control (`setWearerLoginEmail`) — there was previously no
     every state change is audited, and an overdue SLA is visible, not
     silent.
   - **Tests:** SLA breach detection, assignment, audit completeness.
-  - **Status (2026-08-04, takeover branch):** `verified_local` for the
-    staff-facing half; a real, reproduced gap on the employee-facing
-    half, named below rather than hidden. Migration
+  - **Status (2026-08-05, takeover branch):** `verified_local`, both
+    halves. Migration
     `20260804190000_add_corporate_service_desk.sql` extends
     `corporate_exceptions` (14.1) rather than forking a second ticketing
     table: `kind` gains `damaged`/`missing`/`alteration_request`/
@@ -5028,41 +5027,54 @@ access" control (`setWearerLoginEmail`) — there was previously no
     `corporate_exception_events` in order (`created`, `assigned`,
     `priority_changed`, `resolved`) — proving the audit trail, not just
     the UI's momentary state.
-  - **Employee-facing half — real, unresolved gap:** the owner boundary
-    also requires a wearer to raise a ticket directly from the Employee
-    Portal. `corporate_exceptions_wearer_insert`/`_wearer_select` RLS
-    policies were added (scoped to `wearer_id = current_wearer_id()`),
-    and `apps/customer/app/employee`'s "Report a problem" card
-    (`raiseServiceRequest`, `useActionState`-based per this app's own
-    established pattern for this class of form) was built against them.
-    It could not be proven in a real browser: a wearer's Server Action
-    POST to `/employee` — issued from the exact same page, in the same
-    session, moments after a GET to that same URL correctly rendered as
-    that wearer — is redirected by this app's own middleware to
-    `/employee/login` because `supabase.auth.getUser()` reports no user
-    for that specific POST, despite the immediately preceding GET
-    resolving correctly. Reproduced repeatedly, including after removing
-    a since-unnecessary `refreshSession()` call this investigation
-    determined was not the cause (a real, incidental cleanup: RLS no
-    longer depends on the JWT's `wearer_id` claim after `18.5`'s
-    `current_wearer_id()` fix, so that call was dead weight — removed
-    regardless of this bug). Not caused by session expiry (local
-    `jwt_expiry` is 3600s) and not reproducible on the equivalent
-    already-working shopper flow
-    (`apps/customer/e2e/account-preferences.spec.ts` submits a Server
-    Action from `/account` after its own magic-link confirm redirect and
-    passes reliably), so this is specific to the `/employee` path's
-    interaction with Next.js Server Actions, not a general confirm-route
-    or cookie-propagation defect. The failing browser test was removed
-    rather than left permanently red; the staff-side proof above stands
-    on its own for this item's core acceptance. A fresh investigation
-    pass — ideally with direct CDP network/cookie tracing beyond what
-    this session's `page.on(...)` instrumentation could resolve — is the
-    named next step, not a re-guess.
-  - Checkbox stays unchecked because of the gap immediately above: staff
-    can raise/manage every kind of ticket, and the RLS/domain layer for
-    wearer self-service is in place and code-reviewed, but "raisable by
-    ... an employee directly" is not proven working end to end.
+  - **Employee-facing half — closed (2026-08-05).** Root cause found via
+    the named next step (direct CDP `Network.responseReceivedExtraInfo`
+    tracing — Playwright's own `response.headers()` hides `Set-Cookie`
+    the same way real browser JS can't see it, which is exactly what
+    made the earlier `page.on(...)` instrumentation insufficient): the
+    bug was never in the Server Action POST itself. `middleware.ts`'s
+    matcher does not exclude `/fonts/*` (the same-origin proxy for
+    `paon-template.html`'s `@font-face` URLs, fetched as a background
+    subresource by every page). A signed-in wearer's font request hit
+    middleware, missed the `isEmployeePath` carve-out (the pathname is
+    `/fonts/...`, not `/employee/...`), and fell through to the generic
+    "not a customer account → sign out" branch — which correctly signs
+    out a `retailer_staff`/`platform` session wandering onto an actual
+    customer-app page, but incorrectly also signed out a legitimate
+    `corporate_wearer` session over an unrelated byte-serving request.
+    The Set-Cookie: `Max-Age=0` on that font response deleted the
+    session cookie seconds after `/employee` rendered — by the time a
+    human finished filling the form, the cookie was already gone; the
+    Server Action's "no user" was a real symptom of an already-cleared
+    cookie, not its own defect. Fixed with an early return for
+    `/fonts/*` in `middleware.ts`, mirroring the existing storefront/
+    confirm-route carve-outs — a pure asset-serving path has no
+    account-specific content and should never gate or sign out any
+    session, matching its own comment ("every page that embeds this
+    template, signed in or not, needs this reachable unauthenticated").
+    A second, independent real gap surfaced once past the middleware
+    bug: `CorporateRepository.createException` always writes both the
+    exception row and its `created` audit event in the same call, but
+    `corporate_exception_events` only ever got a staff-scoped INSERT
+    policy (`corporate_exception_events_staff_insert`) — a wearer's own
+    ticket-creation correctly inserted the exception row, then failed
+    outright on the audit event with a plain RLS permission-denied,
+    leaving no ticket at all. Migration `20260805220000` adds
+    `corporate_exception_events_wearer_insert`, scoped to events whose
+    `exception_id` belongs to the caller's own wearer-owned exception.
+    Proof: `apps/customer/e2e/employee-portal.spec.ts` extended with the
+    real raise-a-request journey (select a kind, fill details, submit,
+    see the new ticket in "Issued to you" with an Open badge) — 2/2
+    green. Full customer e2e suite reran clean aside from two
+    already-documented pre-existing flakes unrelated to this change
+    (`swipe-deck.spec.ts`'s rapid-keyboard animation-timing flake;
+    `corporate-tender-reveal.spec.ts`'s `page.reload` timeout, confirmed
+    identical with and without this fix via `git stash` — both fail the
+    same way on a `/r/` storefront path middleware returns from before
+    ever reaching the changed code).
+  - Checkbox now checked: staff can raise/manage every kind of ticket,
+    and "raisable by ... an employee directly" is now proven end to end
+    in a real browser.
 
 - [ ] **18.9 Corporate analytics and renewal engine**
   - **Requirement IDs:** BD-109.
