@@ -1,10 +1,10 @@
 import { createSupabaseAdminClient } from "@paon/database";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
 
 async function signInCustomer(
-  page: any,
+  page: Page,
   admin: ReturnType<typeof createSupabaseAdminClient>,
   email: string,
 ): Promise<void> {
@@ -20,7 +20,7 @@ async function signInCustomer(
       `/auth/confirm?token_hash=${data.properties.hashed_token}&type=magiclink`,
     );
     const hasAuthCookie = (await page.context().cookies()).some(
-      (cookie) =>
+      (cookie: { name: string }) =>
         cookie.name.startsWith("sb-") &&
         cookie.name.includes("auth-token") &&
         !cookie.name.includes("code-verifier"),
@@ -87,7 +87,7 @@ test("FT-09: customer books appointment from conversation thread via UI", async 
   ).toBeVisible();
 
   // STEP 2: Customer clicks "Book an appointment" and fills form
-  await page.getByRole("button", {name: /Book an appointment/i}).click();
+  await page.getByRole("button", { name: /Book an appointment/i }).click();
 
   // Set appointment details
   await page.getByLabel("Appointment type").selectOption("consultation");
@@ -109,9 +109,9 @@ test("FT-09: customer books appointment from conversation thread via UI", async 
 
   await page.getByLabel("Start time").fill(formatDateTime(startTime));
   await page.getByLabel("End time").fill(formatDateTime(endTime));
-  await page.getByLabel(/Notes \(optional\)/).fill(
-    "Consultation from message thread about work style",
-  );
+  await page
+    .getByLabel(/Notes \(optional\)/)
+    .fill("Consultation from message thread about work style");
 
   // STEP 3: Submit the form
   await page.getByRole("button", { name: "Book Appointment" }).click();
@@ -172,14 +172,16 @@ test("FT-09: unauthorized customer cannot book appointment for other customer's 
     password: "TestPassword123!",
     email_confirm: true,
   });
-  if (!customer2) throw new Error("failed to create customer2");
+  if (!customer2?.user) throw new Error("failed to create customer2");
+  const customer2User = customer2.user;
+  if (!customer2User.email) throw new Error("customer2 has no email");
 
   const { data: customer2Record } = await admin
     .from("customers")
     .insert({
       retailer_id: retailer.id,
-      user_id: customer2.user.id,
-      email: customer2.user.email,
+      user_id: customer2User.id,
+      email: customer2User.email,
       full_name: "Test Customer 2",
     })
     .select("id")
@@ -199,15 +201,19 @@ test("FT-09: unauthorized customer cannot book appointment for other customer's 
   if (!conversation) throw new Error("failed to create conversation");
 
   // Sign in as customer2 (different customer)
-  await signInCustomer(page, admin, customer2.user.email!);
+  await signInCustomer(page, admin, customer2User.email);
 
   // Try to navigate to customer1's conversation
   // The page should reject access or the RPC should fail
   await page.goto(`/messages/${conversation.id}`);
 
   // The page should not find the conversation (404 or redirect)
-  const isNotFound = page.url().includes("404") ||
-    (await page.getByText(/not found|no access/i).isVisible().catch(() => false));
+  const isNotFound =
+    page.url().includes("404") ||
+    (await page
+      .getByText(/not found|no access/i)
+      .isVisible()
+      .catch(() => false));
 
   if (!isNotFound) {
     // If page loaded, try to book an appointment
@@ -245,5 +251,5 @@ test("FT-09: unauthorized customer cannot book appointment for other customer's 
   }
 
   // Cleanup
-  await admin.auth.admin.deleteUser(customer2.user.id);
+  await admin.auth.admin.deleteUser(customer2User.id);
 });

@@ -1420,6 +1420,7 @@ export type Database = {
           id: string;
           location_id: string | null;
           notes: string | null;
+          origin_message_thread_id: string | null;
           retailer_id: string;
           staff_id: string | null;
           starts_at: string;
@@ -1436,6 +1437,7 @@ export type Database = {
           id?: string;
           location_id?: string | null;
           notes?: string | null;
+          origin_message_thread_id?: string | null;
           retailer_id: string;
           staff_id?: string | null;
           starts_at: string;
@@ -1452,6 +1454,7 @@ export type Database = {
           id?: string;
           location_id?: string | null;
           notes?: string | null;
+          origin_message_thread_id?: string | null;
           retailer_id?: string;
           staff_id?: string | null;
           starts_at?: string;
@@ -1472,6 +1475,13 @@ export type Database = {
             columns: ["customer_id"];
             isOneToOne: false;
             referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointments_origin_message_thread_id_fkey";
+            columns: ["origin_message_thread_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
             referencedColumns: ["id"];
           },
           {
@@ -18293,6 +18303,17 @@ export type Database = {
       begin_silhouette_capture: {
         Args: { p_session_id: string };
         Returns: undefined;
+      };
+      book_appointment_from_consultation: {
+        Args: {
+          p_conversation_id: string;
+          p_ends_at: string;
+          p_message_attachment_id?: string;
+          p_notes?: string;
+          p_starts_at: string;
+          p_type: Database["public"]["Enums"]["appointment_type"];
+        };
+        Returns: string;
       };
       can_access_alteration_storage_object: {
         Args: { p_name: string };

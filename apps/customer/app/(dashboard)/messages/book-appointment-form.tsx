@@ -3,7 +3,11 @@
 import { Button } from "@paon/ui/components/Button";
 import { useActionState, useState } from "react";
 
-import { bookAppointmentFromConsultation } from "../actions";
+import { bookAppointmentFromConsultation } from "./actions";
+
+type BookAppointmentState =
+  | { success: true; appointmentId: string; error: null }
+  | { success: false; appointmentId: null; error: string | null };
 
 export function BookAppointmentForm({
   conversationId,
@@ -13,8 +17,11 @@ export function BookAppointmentForm({
   isOpen?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(initialOpen);
-  const [state, formAction, isPending] = useActionState(
-    async (prevState: any, formData: FormData) => {
+  const [state, formAction, isPending] = useActionState<
+    BookAppointmentState,
+    FormData
+  >(
+    async (_prevState, formData) => {
       try {
         const result = await bookAppointmentFromConsultation(formData);
         return {
@@ -58,17 +65,17 @@ export function BookAppointmentForm({
           action={formAction}
           className="mt-3 space-y-3 border-t border-[var(--color-stone-100)] pt-3"
         >
-          <input
-            type="hidden"
-            name="conversationId"
-            value={conversationId}
-          />
+          <input type="hidden" name="conversationId" value={conversationId} />
 
           <div>
-            <label className="block text-xs font-medium text-[var(--color-stone-700)]">
+            <label
+              htmlFor="book-appointment-type"
+              className="block text-xs font-medium text-[var(--color-stone-700)]"
+            >
               Appointment type
             </label>
             <select
+              id="book-appointment-type"
               name="type"
               defaultValue="consultation"
               className="mt-1 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-2 text-sm"
@@ -82,10 +89,14 @@ export function BookAppointmentForm({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--color-stone-700)]">
+            <label
+              htmlFor="book-appointment-starts-at"
+              className="block text-xs font-medium text-[var(--color-stone-700)]"
+            >
               Start time
             </label>
             <input
+              id="book-appointment-starts-at"
               type="datetime-local"
               name="startsAt"
               required
@@ -94,10 +105,14 @@ export function BookAppointmentForm({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--color-stone-700)]">
+            <label
+              htmlFor="book-appointment-ends-at"
+              className="block text-xs font-medium text-[var(--color-stone-700)]"
+            >
               End time
             </label>
             <input
+              id="book-appointment-ends-at"
               type="datetime-local"
               name="endsAt"
               required
@@ -106,10 +121,14 @@ export function BookAppointmentForm({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[var(--color-stone-700)]">
+            <label
+              htmlFor="book-appointment-notes"
+              className="block text-xs font-medium text-[var(--color-stone-700)]"
+            >
               Notes (optional)
             </label>
             <textarea
+              id="book-appointment-notes"
               name="notes"
               maxLength={500}
               className="mt-1 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-2 text-sm"
@@ -117,9 +136,7 @@ export function BookAppointmentForm({
             />
           </div>
 
-          {state.error && (
-            <p className="text-xs text-red-600">{state.error}</p>
-          )}
+          {state.error && <p className="text-xs text-red-600">{state.error}</p>}
 
           <Button type="submit" disabled={isPending} className="w-full">
             {isPending ? "Creating..." : "Book Appointment"}

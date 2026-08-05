@@ -1,8 +1,5 @@
 "use server";
-import {
-  AppointmentRepository,
-  MessagingRepository,
-} from "@paon/database";
+import { AppointmentRepository, MessagingRepository } from "@paon/database";
 import {
   sendMessageSchema,
   startCustomerConversationSchema,
@@ -61,14 +58,15 @@ export async function bookAppointmentFromConsultation(
   }
 
   const supabase = await getSupabaseServerClient();
-  const appointmentId = await new AppointmentRepository(supabase)
-    .bookFromConsultation({
-      conversationId,
-      type: appointmentType as never,
-      startsAt,
-      endsAt,
-      notes,
-    });
+  const appointmentId = await new AppointmentRepository(
+    supabase,
+  ).bookFromConsultation({
+    conversationId,
+    type: appointmentType as never,
+    startsAt,
+    endsAt,
+    ...(notes ? { notes } : {}),
+  });
 
   revalidatePath(`/messages/${conversationId}`);
   return appointmentId;
