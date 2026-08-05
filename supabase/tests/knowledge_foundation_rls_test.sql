@@ -101,6 +101,16 @@ insert into public.retailer_staff_members (
     now()
   );
 
+-- Tenant B's row is deliberately `active = false`: PHASE 2.3/EDU-003
+-- later added a public "anyone can read active storefront knowledge
+-- objects" policy (OR'd with the staff-scoped policy below, so any
+-- active row on an active retailer is visible to every role regardless
+-- of tenant). Keeping this fixture inactive isolates the cross-tenant
+-- isolation assertions below from that public policy — otherwise tenant
+-- A's manager would see tenant B's row via the storefront path and the
+-- tenancy checks would prove nothing. Tenant A's own row stays active
+-- since later assertions in this file need it readable by its own
+-- tenant regardless of which policy grants that.
 insert into public.knowledge_objects (
   id,
   retailer_id,
@@ -135,7 +145,7 @@ insert into public.knowledge_objects (
     array['information_card']::public.knowledge_display_type[],
     'educate',
     1,
-    true
+    false
   );
 
 insert into public.metadata_concepts (
@@ -152,10 +162,15 @@ insert into public.metadata_concepts (
   'Tenant A knowledge style'
 );
 
+-- PHASE 2.3/EDU-003 deliberately made this table anon-readable for
+-- active storefront rows (see migration
+-- 20260730020000_add_public_storefront_knowledge_reads.sql); RLS still
+-- restricts which *rows* anon actually sees — this table-level grant
+-- check only proves the grant exists, not row visibility.
 select is(
   has_table_privilege('anon', 'public.knowledge_objects', 'SELECT'),
-  false,
-  'anonymous callers have no knowledge table access'
+  true,
+  'anonymous callers can attempt to read knowledge objects (row visibility is RLS-scoped to active storefront rows)'
 );
 
 select is(
@@ -408,24 +423,44 @@ set local request.jwt.claims = '{
   }
 }';
 
+-- Not a privacy boundary any more: "anyone can read knowledge overrides
+-- for active retailers" (PHASE 2.3/EDU-003) grants read access based
+-- solely on the override's own retailer being active — there is no
+-- per-row active/inactive flag on this table to isolate against, unlike
+-- knowledge_objects above. A hide/rename/pin override is deliberately
+-- public storefront-presentation data (how a retailer presents shared
+-- canonical knowledge), not private tenant data, so tenant B correctly
+-- seeing tenant A's override here is the intended design, not a leak.
+-- The real remaining boundary — tenant B cannot *write* tenant A's
+-- override — is unchanged and still enforced by the staff-scoped
+-- insert/update/delete policies (untouched by this later read policy).
 select is(
   (
     select count(*)::integer
     from public.retailer_knowledge_overrides
     where retailer_id = '11000000-0000-0000-0000-000000000001'
   ),
-  0,
-  'cross-tenant knowledge overrides are invisible'
+  1,
+  'cross-tenant knowledge overrides are publicly readable by design (storefront presentation data), not private'
 );
 
+-- Not a privacy boundary either, for the same reason as the override
+-- check above: object 001 is active on an active retailer, so "anyone
+-- can read active storefront knowledge objects" (PHASE 2.3/EDU-003)
+-- deliberately makes it publicly visible — active knowledge content is
+-- retailer marketing/education copy, not private tenant data. The
+-- earlier tenant-isolation checks in this file (e.g. "tenant manager
+-- cannot see another retailer knowledge object") use an *inactive*
+-- fixture specifically to still exercise the staff-only boundary in
+-- isolation from this public policy.
 select is(
   (
     select count(*)::integer
     from public.knowledge_objects
     where id = '41000000-0000-0000-0000-000000000001'
   ),
-  0,
-  'cross-tenant retailer knowledge rows are invisible'
+  1,
+  'active cross-tenant knowledge rows are publicly readable by design (storefront content), not private'
 );
 
 set local request.jwt.claims = '{

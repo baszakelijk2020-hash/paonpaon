@@ -86,39 +86,57 @@ insert into public.retailer_staff_members (
   now()
 );
 
+-- `active = false` deliberately: PHASE 2.4/SRCH-001 later added a public
+-- "anyone can read active storefront metadata concepts" policy (OR'd with
+-- the staff-scoped policy below, so any active row is visible to every
+-- role regardless of tenant). Keeping these test fixtures inactive
+-- isolates the staff-tenancy assertions below from that public policy —
+-- otherwise every role, including 'worker' and anonymous, would see them
+-- via the storefront path and the tenant-scoping checks would prove
+-- nothing.
 insert into public.metadata_concepts (
   id,
   retailer_id,
   kind,
   slug,
-  canonical_name
+  canonical_name,
+  active
 ) values
   (
     '40000000-0000-0000-0000-000000000001',
     null,
     'fibre',
     'canonical-wool',
-    'Canonical wool'
+    'Canonical wool',
+    false
   ),
   (
     '40000000-0000-0000-0000-000000000002',
     '10000000-0000-0000-0000-000000000001',
     'fibre',
     'tenant-a-fibre',
-    'Tenant A fibre'
+    'Tenant A fibre',
+    false
   ),
   (
     '40000000-0000-0000-0000-000000000003',
     '10000000-0000-0000-0000-000000000002',
     'fibre',
     'tenant-b-fibre',
-    'Tenant B fibre'
+    'Tenant B fibre',
+    false
   );
 
+-- PHASE 2.4/SRCH-001 deliberately made this table anon-readable for
+-- active storefront rows (see migration
+-- 20260730030000_add_catalogue_query_indexes.sql); RLS still restricts
+-- which *rows* anon actually sees (only active, non-deleted, canonical or
+-- active-retailer concepts) — this table-level grant check only proves
+-- the grant exists, not row visibility.
 select is(
   has_table_privilege('anon', 'public.metadata_concepts', 'SELECT'),
-  false,
-  'anonymous callers have no metadata table access'
+  true,
+  'anonymous callers can attempt to read metadata concepts (row visibility is RLS-scoped to active storefront rows, proven separately)'
 );
 
 select is(
@@ -151,24 +169,39 @@ set local request.jwt.claims = '{
   }
 }';
 
+-- Scoped to this test's own three concept ids rather than a table-wide
+-- count: the shared local database also carries a large amount of real
+-- seed/feature metadata unrelated to this test, so an unscoped count is
+-- not a stable assertion.
 select is(
-  (select count(*) from public.metadata_concepts),
+  (
+    select count(*) from public.metadata_concepts
+    where id in (
+      '40000000-0000-0000-0000-000000000001',
+      '40000000-0000-0000-0000-000000000002',
+      '40000000-0000-0000-0000-000000000003'
+    )
+  ),
   2::bigint,
-  'a retailer manager sees canonical plus own concepts only'
+  'a retailer manager sees canonical plus own concepts only, not the other tenant''s'
 );
 
 select lives_ok(
   $$
     insert into public.metadata_concepts (
+      id,
       retailer_id,
       kind,
       slug,
-      canonical_name
+      canonical_name,
+      active
     ) values (
+      '40000000-0000-0000-0000-000000000004',
       '10000000-0000-0000-0000-000000000001',
       'weave',
       'tenant-a-twill',
-      'Tenant A twill'
+      'Tenant A twill',
+      false
     )
   $$,
   'a retailer manager can create a local concept'
@@ -209,6 +242,12 @@ select throws_ok(
       'retailer'
     )
   $$,
+  -- The referenced concept (tenant B's) is inactive in this fixture, so
+  -- it is invisible under RLS to the trigger's own lookup (running as
+  -- invoker = the calling manager role) before the cross-tenant check
+  -- ever runs — "unavailable", not "wrong tenant". A stronger isolation
+  -- property than the reverse: tenant A can't even discover tenant B's
+  -- private concept exists to attempt referencing it.
   'P0001',
   'Metadata concept is unavailable',
   'a local assignment cannot reference another retailer concept'
@@ -249,6 +288,7 @@ select throws_ok(
       'related'
     )
   $$,
+  -- Same RLS-invisibility reasoning as the assignment test above.
   'P0001',
   'Target metadata concept is unavailable',
   'a local edge cannot reference another retailer concept'
@@ -266,6 +306,7 @@ select throws_ok(
       'Hidden foreign concept'
     )
   $$,
+  -- Same RLS-invisibility reasoning as the assignment test above.
   'P0001',
   'Metadata concept is unavailable',
   'an override cannot reference another retailer concept'
@@ -436,7 +477,15 @@ set local request.jwt.claims = '{
 }';
 
 select is(
-  (select count(*) from public.metadata_concepts),
+  (
+    select count(*) from public.metadata_concepts
+    where id in (
+      '40000000-0000-0000-0000-000000000001',
+      '40000000-0000-0000-0000-000000000002',
+      '40000000-0000-0000-0000-000000000003',
+      '40000000-0000-0000-0000-000000000004'
+    )
+  ),
   0::bigint,
   'workshop identities receive no metadata access'
 );
@@ -448,7 +497,15 @@ set local request.jwt.claims = '{
 }';
 
 select is(
-  (select count(*) from public.metadata_concepts),
+  (
+    select count(*) from public.metadata_concepts
+    where id in (
+      '40000000-0000-0000-0000-000000000001',
+      '40000000-0000-0000-0000-000000000002',
+      '40000000-0000-0000-0000-000000000003',
+      '40000000-0000-0000-0000-000000000004'
+    )
+  ),
   4::bigint,
   'platform staff can see canonical and all tenant concepts'
 );
