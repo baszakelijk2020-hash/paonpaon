@@ -4216,7 +4216,37 @@ now.
     browser, know-it-all, couple, etc.) for delivery/complaint-handling/
     white-glove practice, feeding the existing `academy_roleplay_grades`
     evidence-cited grading loop rather than a second one.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `verified_local` for the
+    persona-catalog-and-grading half; the live AI-driven conversation
+    that plays a persona out loud is genuinely `blocked_external` (no
+    provider key in this environment) and was not attempted — no
+    `@paon/ai` provider method was added for this item, unlike 18.10's
+    fabricated-nothing-but-honest-failure pattern, because there is no
+    live-call surface to gate yet without inventing the conversation
+    engine itself, a separate, larger scope this slice did not attempt.
+    `ACADEMY_ROLEPLAY_PERSONAS`/`ACADEMY_ROLEPLAY_PERSONA_LABELS`
+    (`packages/domain/src/knowledge/academy-consultancy.ts`) is a
+    published, fixed six-persona catalog naming exactly the examples
+    this item's owner boundary lists. Migration
+    `20260805160000_add_academy_roleplay_personas.sql` adds a nullable
+    `persona_key` to the existing `academy_roleplay_grades` table
+    (append-only, unchanged) with a `check` constraint restricting it to
+    the published catalog — enforced in SQL, not only in the form.
+    `AcademyRepository.recordRoleplayGrade` gained an optional
+    `personaKey` param; the existing `/staff/learning` grading form
+    gained a "Persona practiced" select, and a manager's own recorded
+    persona is shown on the graded advisor's own grade list. No second
+    grading loop, no new table beyond the one column. Proof: extended
+    `apps/retailer/e2e/academy-roleplay.spec.ts` (16.1's own existing
+    proof) with a real persona selection, a database assertion that
+    `persona_key` was recorded exactly, and a real-browser assertion
+    that the graded advisor sees "Know-it-all" on their own page — this
+    file now writes evidence for both `16.1` and `17.8`, since it is one
+    real grading loop with a persona tag layered on, not two.
+  - Checkbox stays unchecked: the "AI-driven" half of the owner
+    boundary — an actual AI conversation partner playing a persona
+    during practice, not just a label a human grader tags after the
+    fact — remains unbuilt and `blocked_external`.
 
 - [ ] **17.9 Omnichannel communication hub**
   - **Requirement IDs:** ADV-109.

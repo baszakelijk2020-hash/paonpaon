@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  ACADEMY_ROLEPLAY_PERSONA_LABELS,
+  ACADEMY_ROLEPLAY_PERSONAS,
+} from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
@@ -161,6 +165,16 @@ export function RecordRoleplayGradeForm({
           placeholder="e.g., fitting-room-consultation"
           disabled={pending}
         />
+      </FormField>
+      <FormField htmlFor="grade-persona" label="Persona practiced (optional)">
+        <Select id="grade-persona" name="personaKey" defaultValue="">
+          <option value="">No specific persona</option>
+          {ACADEMY_ROLEPLAY_PERSONAS.map((persona) => (
+            <option key={persona} value={persona}>
+              {ACADEMY_ROLEPLAY_PERSONA_LABELS[persona]}
+            </option>
+          ))}
+        </Select>
       </FormField>
       <FormField htmlFor="grade-criterion" label="Criterion">
         <Input

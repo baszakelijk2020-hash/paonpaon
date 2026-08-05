@@ -3,7 +3,10 @@ import {
   InternalCommunityRepository,
   RetailerStaffRepository,
 } from "@paon/database";
-import { retailerRoleAtLeast } from "@paon/domain";
+import {
+  ACADEMY_ROLEPLAY_PERSONA_LABELS,
+  retailerRoleAtLeast,
+} from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
@@ -204,6 +207,16 @@ export default async function LearningPage() {
               >
                 <p className="text-sm font-medium text-[var(--color-stone-900)]">
                   {grade.lessonKey}
+                  {grade.personaKey ? (
+                    <span className="ml-2 text-xs font-normal text-[var(--color-stone-500)]">
+                      ·{" "}
+                      {
+                        ACADEMY_ROLEPLAY_PERSONA_LABELS[grade.personaKey].split(
+                          " — ",
+                        )[0]
+                      }
+                    </span>
+                  ) : null}
                 </p>
                 {grade.evidence.map((item, index) => (
                   <p

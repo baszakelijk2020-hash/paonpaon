@@ -8,6 +8,7 @@
 
 import {
   checkRoleplayGrade,
+  type AcademyRoleplayPersona,
   type RetailerId,
   type RoleplayGradeCheck,
   type RubricEvidence,
@@ -25,6 +26,7 @@ export interface RoleplayGrade {
   readonly lessonKey: string;
   readonly evidence: readonly RubricEvidence[];
   readonly gradedByStaffId: string | null;
+  readonly personaKey: AcademyRoleplayPersona | null;
   readonly createdAt: string;
 }
 
@@ -36,6 +38,7 @@ function toDomain(row: GradeRow): RoleplayGrade {
     lessonKey: row.lesson_key,
     evidence: (row.evidence as unknown as RubricEvidence[]) ?? [],
     gradedByStaffId: row.graded_by_staff_id,
+    personaKey: row.persona_key as AcademyRoleplayPersona | null,
     createdAt: row.created_at,
   };
 }
@@ -60,6 +63,7 @@ export class AcademyRepository {
     readonly lessonKey: string;
     readonly evidence: readonly RubricEvidence[];
     readonly gradedByStaffId: string;
+    readonly personaKey?: AcademyRoleplayPersona;
   }): Promise<RecordRoleplayGradeResult> {
     const check = checkRoleplayGrade({ evidence: args.evidence });
     if (!check.ok) return check;
@@ -75,6 +79,7 @@ export class AcademyRepository {
         lesson_key: args.lessonKey.trim(),
         evidence: args.evidence as unknown as Json,
         graded_by_staff_id: args.gradedByStaffId,
+        ...(args.personaKey ? { persona_key: args.personaKey } : {}),
       })
       .select("*")
       .single();

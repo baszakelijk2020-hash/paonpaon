@@ -155,6 +155,44 @@ export function checkTierCoherence(args: {
   return { ok: true };
 }
 
+/**
+ * Roleplay training personas (ADV-108 / PHASE 17.8) — a published,
+ * fixed catalog, not AI-invented on the fly, so every advisor practices
+ * against the same named scenarios regardless of who is running the
+ * session. The live AI conversation that plays a persona out loud is a
+ * separate, provider-backed concern (`@paon/ai`); this catalog is only
+ * the scenario definition a grade can be tagged against, layered onto
+ * the existing `academy_roleplay_grades` grading loop rather than a
+ * second one.
+ */
+export const ACADEMY_ROLEPLAY_PERSONAS = [
+  "first_time_buyer",
+  "browser",
+  "know_it_all",
+  "couple",
+  "complaint_handling",
+  "white_glove",
+] as const;
+export type AcademyRoleplayPersona = (typeof ACADEMY_ROLEPLAY_PERSONAS)[number];
+
+export const ACADEMY_ROLEPLAY_PERSONA_LABELS: Record<
+  AcademyRoleplayPersona,
+  string
+> = {
+  first_time_buyer:
+    "First-time buyer — never owned a tailored garment, needs education before a decision.",
+  browser:
+    "Browser — no urgency, testing whether the advisor adds value before committing time.",
+  know_it_all:
+    "Know-it-all — has strong opinions (often wrong), needs correcting without condescension.",
+  couple:
+    "Couple — two decision-makers with different priorities in the same conversation.",
+  complaint_handling:
+    "Complaint handling — dissatisfied with a past purchase or service, needs recovery, not just an apology.",
+  white_glove:
+    "White-glove — an established client expecting a fully anticipatory, low-friction experience.",
+};
+
 export interface RubricEvidence {
   readonly criterionKey: string;
   readonly evidenceRef: string;

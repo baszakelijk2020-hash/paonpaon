@@ -6,6 +6,10 @@ import {
   InternalCommunityRepository,
   RetailerStaffRepository,
 } from "@paon/database";
+import {
+  ACADEMY_ROLEPLAY_PERSONAS,
+  type AcademyRoleplayPersona,
+} from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
 import { requireModuleSession } from "@/lib/module-session";
@@ -152,6 +156,12 @@ export async function recordRoleplayGrade(
   const observedBehaviour = String(
     formData.get("observedBehaviour") ?? "",
   ).trim();
+  const personaKeyRaw = String(formData.get("personaKey") ?? "").trim();
+  const personaKey = ACADEMY_ROLEPLAY_PERSONAS.includes(
+    personaKeyRaw as AcademyRoleplayPersona,
+  )
+    ? (personaKeyRaw as AcademyRoleplayPersona)
+    : undefined;
   if (!staffId || !lessonKey) {
     return { formError: "Choose a staff member and name the lesson." };
   }
@@ -162,6 +172,7 @@ export async function recordRoleplayGrade(
     lessonKey,
     evidence: [{ criterionKey, evidenceRef, observedBehaviour }],
     gradedByStaffId: grader.id,
+    ...(personaKey ? { personaKey } : {}),
   });
   if (!result.ok) {
     return {

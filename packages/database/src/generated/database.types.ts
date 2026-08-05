@@ -41,6 +41,7 @@ export type Database = {
           graded_by_staff_id: string | null;
           id: string;
           lesson_key: string;
+          persona_key: string | null;
           retailer_id: string;
           staff_id: string;
         };
@@ -50,6 +51,7 @@ export type Database = {
           graded_by_staff_id?: string | null;
           id?: string;
           lesson_key: string;
+          persona_key?: string | null;
           retailer_id: string;
           staff_id: string;
         };
@@ -59,6 +61,7 @@ export type Database = {
           graded_by_staff_id?: string | null;
           id?: string;
           lesson_key?: string;
+          persona_key?: string | null;
           retailer_id?: string;
           staff_id?: string;
         };

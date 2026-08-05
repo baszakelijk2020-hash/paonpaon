@@ -7,6 +7,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { writeBrowserProofRun } from "./write-browser-proof-run";
 
 const PHASE_ITEM_ID = "16.1";
+const PERSONA_PHASE_ITEM_ID = "17.8";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/academy-roleplay.spec.ts";
 
 let proofPassed = false;
@@ -14,6 +15,13 @@ let proofPassed = false;
 test.afterAll(async () => {
   await writeBrowserProofRun({
     phaseItemId: PHASE_ITEM_ID,
+    spec: BROWSER_PROOF_SPEC,
+    status: proofPassed ? "passed" : "failed",
+  });
+  // PHASE 17.8 layers a persona tag onto this exact grading loop rather
+  // than a second one — same spec, same proof, a second evidence entry.
+  await writeBrowserProofRun({
+    phaseItemId: PERSONA_PHASE_ITEM_ID,
     spec: BROWSER_PROOF_SPEC,
     status: proofPassed ? "passed" : "failed",
   });
@@ -82,9 +90,11 @@ test("a manager grades an advisor's roleplay citing evidence, self-grading is re
     page.locator(`#grade-staff option[value="${managerStaff.id}"]`),
   ).toHaveCount(0);
 
-  // ---- a real grade, citing what was observed and where -----------------
+  // ---- a real grade, citing what was observed and where, tagged with a
+  // real published persona (PHASE 17.8) -----------------------------------
   await page.locator("#grade-staff").selectOption(advisorStaff.id);
   await page.locator("#grade-lesson").fill(lessonKey);
+  await page.locator("#grade-persona").selectOption("know_it_all");
   await page.locator("#grade-criterion").fill(criterionKey);
   await page.locator("#grade-evidence-ref").fill(evidenceRef);
   await page.locator("#grade-observed").fill(observedBehaviour);
@@ -98,7 +108,9 @@ test("a manager grades an advisor's roleplay citing evidence, self-grading is re
 
   const { data: gradeRows } = await admin
     .from("academy_roleplay_grades")
-    .select("id, staff_id, graded_by_staff_id, lesson_key, evidence")
+    .select(
+      "id, staff_id, graded_by_staff_id, lesson_key, evidence, persona_key",
+    )
     .eq("retailer_id", proof.retailerId)
     .eq("lesson_key", lessonKey);
   expect(gradeRows).toHaveLength(1);
@@ -108,14 +120,17 @@ test("a manager grades an advisor's roleplay citing evidence, self-grading is re
   expect(grade.evidence).toEqual([
     { criterionKey, evidenceRef, observedBehaviour },
   ]);
+  expect(grade.persona_key).toBe("know_it_all");
 
-  // ---- the graded advisor sees it on their own page, cited in full ------
+  // ---- the graded advisor sees it on their own page, cited in full,
+  // including the real persona it was recorded against -------------------
   await signOut(page);
   await signIn(page, PROGRAMME_PROOF_PERSONAS.advisor.email);
   await page.goto("/staff/learning");
   const gradeRow = page.locator(`[data-grade-id="${grade.id}"]`);
   await expect(gradeRow).toBeVisible({ timeout: 15_000 });
   await expect(gradeRow).toContainText(lessonKey);
+  await expect(gradeRow).toContainText("Know-it-all");
   await expect(gradeRow).toContainText(criterionKey);
   await expect(gradeRow).toContainText(observedBehaviour);
   await expect(gradeRow).toContainText(evidenceRef);
