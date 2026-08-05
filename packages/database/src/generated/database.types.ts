@@ -3262,6 +3262,155 @@ export type Database = {
           },
         ];
       };
+      concept_order_selection_items: {
+        Row: {
+          added_at: string;
+          id: string;
+          scan_code_id: string;
+          selection_id: string;
+        };
+        Insert: {
+          added_at?: string;
+          id?: string;
+          scan_code_id: string;
+          selection_id: string;
+        };
+        Update: {
+          added_at?: string;
+          id?: string;
+          scan_code_id?: string;
+          selection_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "concept_order_selection_items_scan_code_id_fkey";
+            columns: ["scan_code_id"];
+            isOneToOne: false;
+            referencedRelation: "concept_scan_codes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concept_order_selection_items_selection_id_fkey";
+            columns: ["selection_id"];
+            isOneToOne: false;
+            referencedRelation: "concept_order_selections";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      concept_order_selections: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          id: string;
+          retailer_id: string;
+          status: string;
+          submitted_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          retailer_id: string;
+          status?: string;
+          submitted_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          retailer_id?: string;
+          status?: string;
+          submitted_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "concept_order_selections_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concept_order_selections_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      concept_scan_codes: {
+        Row: {
+          code: string;
+          created_at: string;
+          created_by_staff_id: string | null;
+          expires_at: string | null;
+          id: string;
+          kind: string;
+          product_variant_id: string;
+          retailer_id: string;
+          status: string;
+          superseded_by_code_id: string | null;
+        };
+        Insert: {
+          code?: string;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          kind: string;
+          product_variant_id: string;
+          retailer_id: string;
+          status?: string;
+          superseded_by_code_id?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          expires_at?: string | null;
+          id?: string;
+          kind?: string;
+          product_variant_id?: string;
+          retailer_id?: string;
+          status?: string;
+          superseded_by_code_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "concept_scan_codes_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concept_scan_codes_product_variant_id_fkey";
+            columns: ["product_variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concept_scan_codes_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "concept_scan_codes_superseded_by_code_id_fkey";
+            columns: ["superseded_by_code_id"];
+            isOneToOne: false;
+            referencedRelation: "concept_scan_codes";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       consultancy_deliverables: {
         Row: {
           created_at: string;
@@ -17794,6 +17943,10 @@ export type Database = {
         Args: { p_note: string; p_task_id: string };
         Returns: string;
       };
+      add_concept_scan_selection: {
+        Args: { p_code: string; p_retailer_id: string };
+        Returns: Json;
+      };
       add_fitting_observation: {
         Args: {
           p_area: string;
@@ -18117,6 +18270,7 @@ export type Database = {
         Returns: string;
       };
       expire_due_prospect_demo_environments: { Args: never; Returns: number };
+      generate_concept_scan_code: { Args: never; Returns: string };
       generate_prospect_demo_environment: {
         Args: {
           p_access_code: string;
@@ -18608,6 +18762,7 @@ export type Database = {
         };
         Returns: Json;
       };
+      resolve_concept_scan_code: { Args: { p_code: string }; Returns: Json };
       resolve_corporate_office_visit_page: {
         Args: { p_programme_id: string };
         Returns: Json;
@@ -18806,6 +18961,10 @@ export type Database = {
           p_website_url: string;
         };
         Returns: string;
+      };
+      submit_concept_selection: {
+        Args: { p_selection_id: string };
+        Returns: undefined;
       };
       submit_corporate_office_visit_request: {
         Args: {

@@ -10,7 +10,117 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-05 Multi-lane parallel work + Stage 17/18 sweep — session handoff (READ FIRST — supersedes every section below)
+## 2026-08-05 FT-03 QR try-on / concept order — first slice, WIP handoff (READ FIRST — supersedes every section below)
+
+Lane A continuation on `agent/grok-takeover-2026-07-30`. Picked up per the
+prior handoff's "Pick up here" list: Lane B
+(`agent/lane-b-stage15-lifestyle-network`) had zero commits past its fork
+point (`2a05777`, verified via `git log 2a05777..lane-b`), so nothing to
+reconcile. Went to R0.3's founder-tool blueprint work (not the legacy
+Stage 9–16 mapping specifically — R0.3's own status block in `PHASE.md`
+shows that work is really "implement the next unbuilt `FT-*` blueprint",
+same pattern as FT-01 through FT-13 already landed there), picked
+**FT-03 QR try-on and fabric-batch concept order** — the one designated
+tool with no prior implementation attempt (`FOUNDER_TOOL_BLUEPRINTS.md`
+listed it "missing"; FT-11 is deliberately quarantined, FT-14 already has
+strong primitives, so FT-03 was the clearest gap).
+
+**`pag1.html`'s own QR fragment (`#qr`) is decorative marketing mockup
+imagery, not an interactive widget** — confirmed directly (static QR-icon
+SVGs inside a garment-tag illustration, "Scanning multiple Try-Ons and
+fabric swatches..." is narrative copy only). Built with PAON primitives
+against the blueprint's PAON-job/state description, per AGENTS.md's
+non-designated-source path, same as FT-06/10/12/13 before it.
+
+### What's built and real
+
+- Migration `20260805190000_add_concept_scan_batches.sql`: retailer-issued
+  opaque short codes per product variant + kind (`concept_scan_codes`,
+  rotatable via recall-and-reissue, expiring), a customer's accumulated
+  scans across a visit (`concept_order_selections`/`_items`, one open
+  draft per customer/retailer), `resolve_concept_scan_code` (anonymous),
+  `add_concept_scan_selection` / `submit_concept_selection` (SECURITY
+  DEFINER, self-deriving caller identity — same shape as
+  `toggle_wishlist_item`). Deliberately creates no Order, touches no
+  stock — records a selection outcome for the advisor to convert
+  manually, same boundary as FT-10's gift booklet.
+- `packages/domain/src/concept-scan/`, `ConceptScanRepository` in
+  `@paon/database`.
+- Retailer `/concepts`: issue/rotate/recall codes, review customers'
+  submitted concept orders. **Proof: `concept-scan-codes.spec.ts`,
+  2/2 green.**
+- Customer `/r/[slug]/concepts` (+ `/concepts/[code]` reveal): manual
+  code entry (the blueprint's own "mandatory," not a camera fallback —
+  camera QR decoding itself is deliberately not built, no barcode
+  library in this codebase, same reasoning as GSAP/Cesium avoidance
+  elsewhere), add-to-selection, explicit "send to advisor". Named states
+  covered: unknown, active (signed-in/out), recalled, expired, wrong
+  House.
+- pgTAP `concept_scan_test.sql`: **9/9 green** — case-insensitive
+  resolve, recalled/expired/unknown status folding, unauthenticated
+  refusal, cross-House refusal at write time, recalled-code refusal at
+  write time, idempotent draft-selection creation.
+- Fixed a real bug found while building this: the migration's original
+  final `grant select on concept_order_selections, ...` (read-only) broke
+  the codebase's own admin/service-role fixture-seeding convention used
+  everywhere else (e.g. `gift_experiences`/`wishlists` grant full CRUD to
+  `service_role` precisely so `service_role` — which bypasses RLS
+  entirely — can seed/clean up fixtures in tests; `authenticated` still
+  can't write directly because no RLS policy permits it). Fixed to match.
+
+### Not yet proven — customer-side Playwright spec fails, root cause only partly found
+
+`apps/customer/e2e/concept-scan.spec.ts` reaches "Added to your concept
+list." after a real successful `add_concept_scan_selection` RPC call
+(confirmed via direct DB query — the row exists), but the very next
+`/concepts` page load renders "Nothing added yet." instead of the item.
+
+One real bug in `ConceptScanRepository.findSelectionItems` was found and
+fixed while investigating: the PostgREST embedded select
+`concept_scan_codes(kind, product_variant_id, products:product_variants(product_id))`
+had an invalid nested alias, which made the entire `concept_scan_codes`
+embed resolve to `null` (confirmed via added-then-removed debug logging
+against a real running server — `concept_scan_codes: null` in the raw
+response, no error). Fixed by removing the invalid inner alias down to
+`concept_scan_codes(kind, product_variant_id)`. **This fix alone did not
+close the gap** — the spec still fails at the same assertion afterward.
+Not yet re-diagnosed past this point in this session; the next step is
+re-attaching the same kind of raw debug logging (temporarily, removed
+before any commit) to see the actual post-fix `data`/`error` shape
+returned by both `findDraftSelectionForCustomer` and
+`findSelectionItems` on a real request, since the DB-level state was
+confirmed correct (a `concept_order_selection_items` row referencing the
+right `scan_code_id` does exist immediately after a successful add).
+
+A real process-management trap cost significant time mid-investigation
+and is worth naming so it isn't repeated: `pkill -f "next start"` does
+not kill the actual listening process — Next's production server runs as
+a child `next-server` process with a different argv, so the old server
+kept serving requests (and holding its stdout fd open on a log file that
+had since been `rm`'d, silently discarding all further log output) while
+a second `pnpm start` failed silently in the background with
+`EADDRINUSE`. Always verify with `lsof -i :<port> -sTCP:LISTEN` and read
+the actual PID before trusting a "server restarted" assumption.
+
+The retailer-side proof, the pgTAP proof and the migration/domain/
+repository layer are all real and independently green. Only the
+customer-side read-after-write path for the "My concept list" surface is
+unproven. **Do not mark this item any form of "verified" or touch
+`FOUNDER_TOOL_BLUEPRINTS.md`'s FT-03 "Current" line past "in progress"
+until `concept-scan.spec.ts` is actually green 2/2.**
+
+### Pick up here
+
+1. Re-diagnose `concept-scan.spec.ts`'s remaining failure (see above —
+   likely one more small, real bug in the read path, not a flake; it has
+   reproduced identically across multiple clean-DB runs).
+2. Once green 2/2, do the evidence half of the two-commit pattern and
+   update `FOUNDER_TOOL_BLUEPRINTS.md`'s FT-03 "Current" line.
+3. Otherwise, the rest of the prior handoff's "Pick up here" list still
+   applies unchanged (Lane B check-in is done/clean; 18.7 still needs a
+   founder decision; R0.1/R0.2 still blocked on external dependencies).
+
+## 2026-08-05 Multi-lane parallel work + Stage 17/18 sweep — session handoff
 
 ### Lanes
 

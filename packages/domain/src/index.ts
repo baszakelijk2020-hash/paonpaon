@@ -88,6 +88,8 @@ export * from "./engagement/wedding-party";
 export * from "./engagement/wedding-party.schema";
 export * from "./gifting/gift";
 export * from "./gifting/gift.schema";
+export * from "./concept-scan/concept-scan";
+export * from "./concept-scan/concept-scan.schema";
 
 export * from "./analytics/ai-generation";
 export * from "./analytics/audit-log";

@@ -242,6 +242,12 @@ export type ServicePartnerInvoiceLineId = Brand<
   string,
   "ServicePartnerInvoiceLineId"
 >;
+export type ConceptScanCodeId = Brand<string, "ConceptScanCodeId">;
+export type ConceptOrderSelectionId = Brand<string, "ConceptOrderSelectionId">;
+export type ConceptOrderSelectionItemId = Brand<
+  string,
+  "ConceptOrderSelectionItemId"
+>;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

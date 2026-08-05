@@ -354,7 +354,28 @@ and availability are read at decision time from their declared authority.
 cross Houses. Recall and expiry produce a designed recovery route to the
 retailer, not a dead screen. Prove tampered/expired/cross-tenant tokens,
 concurrent batch republish, camera/manual paths, recalled products and one
-scan-to-reviewed-proposal journey. **Current:** missing.
+scan-to-reviewed-proposal journey. **Current:** in progress (2026-08-05).
+No interactive source fragment exists (`pag1.html`'s `#qr` is decorative
+marketing imagery, not a widget) — built with PAON primitives per
+AGENTS.md's non-designated-source path. Migration
+`20260805190000_add_concept_scan_batches.sql` adds opaque rotatable/
+expiring `concept_scan_codes` and a customer's accumulated
+`concept_order_selections`/`_items` (creates no Order, matching FT-10's
+boundary); `resolve_concept_scan_code`/`add_concept_scan_selection`/
+`submit_concept_selection` RPCs. Retailer `/concepts` (issue/rotate/
+recall, review submitted orders) is real and proven: `concept-scan-
+codes.spec.ts` 2/2 green. pgTAP `concept_scan_test.sql` 9/9 green. The
+customer-side `/r/[slug]/concepts` manual-entry-and-add path is built but
+**not proven** — `concept-scan.spec.ts` still fails: an add genuinely
+succeeds (confirmed by direct DB query) but the customer's own "My
+concept list" re-read renders empty afterward. One real bug already
+found and fixed in the process (an invalid nested PostgREST embed alias
+in `ConceptScanRepository.findSelectionItems` silently nulled the joined
+row) but did not close the gap — see `PROJECT_STATE.md`'s 2026-08-05 FT-03
+handoff for the full diagnostic trail. Camera QR decoding itself is not
+attempted (no barcode library in this codebase; manual entry is the
+blueprint's own mandatory path, not just a fallback). Do not advance this
+past "in progress" until `concept-scan.spec.ts` is green 2/2.
 
 ## FT-04 — First-fitting automation
 
