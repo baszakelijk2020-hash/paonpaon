@@ -1,18 +1,13 @@
-import type { PostgrestError } from "@supabase/supabase-js";
-
-import type {
-  FitProfileCandidate,
-  FitProfileCandidateAction,
-} from "@paon/domain";
 import {
   asId,
   type CustomerId,
-  type FitProfileCandidateActionId,
+  type FitProfileCandidate,
+  type FitProfileCandidateAction,
   type FitProfileCandidateId,
   type RetailerId,
 } from "@paon/domain";
 
-import type { PaonSupabaseClient } from "../client";
+import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
 type FitProfileCandidateRow =
@@ -28,32 +23,37 @@ export class FitProfileCandidateRepository {
       id: asId<"FitProfileCandidateId">(row.id),
       retailerId: asId<"RetailerId">(row.retailer_id),
       customerId: asId<"CustomerId">(row.customer_id),
-      fittingSessionId: row.fitting_session_id
-        ? asId<"FitProfileCandidateId">(row.fitting_session_id)
-        : undefined,
+      ...(row.fitting_session_id
+        ? {
+            fittingSessionId: asId<"FittingSessionId">(row.fitting_session_id),
+          }
+        : {}),
       status: row.status as
         | "proposed"
         | "advisor_approved"
         | "advisor_rejected"
         | "customer_confirmed",
-      proposedMeasurements: row.proposed_measurements ?? {},
+      proposedMeasurements:
+        (row.proposed_measurements as Record<string, unknown>) ?? {},
       idempotencyKey: row.idempotency_key,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
   }
 
-  private actionToDomain(row: FitProfileCandidateActionRow): FitProfileCandidateAction {
+  private actionToDomain(
+    row: FitProfileCandidateActionRow,
+  ): FitProfileCandidateAction {
     return {
       id: asId<"FitProfileCandidateActionId">(row.id),
       fitProfileCandidateId: asId<"FitProfileCandidateId">(
         row.fit_profile_candidate_id,
       ),
-      actionByStaffId: row.action_by_staff_id
-        ? asId<"RetailerId">(row.action_by_staff_id)
-        : undefined,
+      ...(row.action_by_staff_id
+        ? { actionByStaffId: asId<"StaffId">(row.action_by_staff_id) }
+        : {}),
       action: row.action as "approved" | "rejected",
-      note: row.note ?? undefined,
+      ...(row.note ? { note: row.note } : {}),
       createdAt: row.created_at,
     };
   }
@@ -79,12 +79,18 @@ export class FitProfileCandidateRepository {
       .eq("customer_id", customerId)
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return (data ?? []).map((row) => this.candidateToDomain(row));
+    return (data ?? []).map((row: FitProfileCandidateRow) =>
+      this.candidateToDomain(row),
+    );
   }
 
   async listByRetailerAndStatus(
     retailerId: RetailerId,
-    status: "proposed" | "advisor_approved" | "advisor_rejected" | "customer_confirmed",
+    status:
+      | "proposed"
+      | "advisor_approved"
+      | "advisor_rejected"
+      | "customer_confirmed",
   ): Promise<readonly FitProfileCandidate[]> {
     const { data, error } = await this.client
       .from("fit_profile_candidates")
@@ -93,7 +99,9 @@ export class FitProfileCandidateRepository {
       .eq("status", status)
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return (data ?? []).map((row) => this.candidateToDomain(row));
+    return (data ?? []).map((row: FitProfileCandidateRow) =>
+      this.candidateToDomain(row),
+    );
   }
 
   async propose(params: {
@@ -117,13 +125,10 @@ export class FitProfileCandidateRepository {
     candidateId: FitProfileCandidateId,
     note?: string,
   ): Promise<void> {
-    const { error } = await this.client.rpc(
-      "approve_fit_profile_candidate",
-      {
-        p_candidate_id: candidateId,
-        p_note: note ?? null,
-      },
-    );
+    const { error } = await this.client.rpc("approve_fit_profile_candidate", {
+      p_candidate_id: candidateId,
+      p_note: note ?? null,
+    });
     if (error) throw error;
   }
 
@@ -131,23 +136,17 @@ export class FitProfileCandidateRepository {
     candidateId: FitProfileCandidateId,
     note?: string,
   ): Promise<void> {
-    const { error } = await this.client.rpc(
-      "reject_fit_profile_candidate",
-      {
-        p_candidate_id: candidateId,
-        p_note: note ?? null,
-      },
-    );
+    const { error } = await this.client.rpc("reject_fit_profile_candidate", {
+      p_candidate_id: candidateId,
+      p_note: note ?? null,
+    });
     if (error) throw error;
   }
 
   async confirm(candidateId: FitProfileCandidateId): Promise<void> {
-    const { error } = await this.client.rpc(
-      "confirm_fit_profile_candidate",
-      {
-        p_candidate_id: candidateId,
-      },
-    );
+    const { error } = await this.client.rpc("confirm_fit_profile_candidate", {
+      p_candidate_id: candidateId,
+    });
     if (error) throw error;
   }
 
@@ -160,6 +159,8 @@ export class FitProfileCandidateRepository {
       .eq("fit_profile_candidate_id", candidateId)
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return (data ?? []).map((row) => this.actionToDomain(row));
+    return (data ?? []).map((row: FitProfileCandidateActionRow) =>
+      this.actionToDomain(row),
+    );
   }
 }
