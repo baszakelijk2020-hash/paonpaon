@@ -387,6 +387,31 @@ export class MetadataRepository {
     return toEdge(data);
   }
 
+  /**
+   * "Complete the look" (PHASE 17.4 / ADV-104): real, currently active
+   * products carrying at least one of the given concepts, reviewed and
+   * accepted only — never a pending/rejected assignment, and never a
+   * fabricated list when no product carries any of them.
+   */
+  async findProductIdsByConcepts(
+    retailerId: RetailerId,
+    conceptIds: readonly MetadataConceptId[],
+    limit = 6,
+  ): Promise<readonly ProductId[]> {
+    if (conceptIds.length === 0) return [];
+    const { data, error } = await this.client
+      .from("entity_metadata_assignments")
+      .select("target_id")
+      .eq("retailer_id", retailerId)
+      .eq("target_type", "product")
+      .eq("review_status", "accepted")
+      .in("concept_id", conceptIds)
+      .is("deleted_at", null);
+    if (error) throw error;
+    const uniqueIds = [...new Set(data.map((row) => row.target_id))];
+    return uniqueIds.slice(0, limit).map((id) => asId<"ProductId">(id));
+  }
+
   async findAssignmentsForTarget(
     retailerId: RetailerId,
     target: MetadataTarget,

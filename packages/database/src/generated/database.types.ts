@@ -5671,6 +5671,47 @@ export type Database = {
           },
         ];
       };
+      fabric_lining_rules: {
+        Row: {
+          created_at: string;
+          fabric_key: string;
+          id: string;
+          note: string;
+          retailer_id: string;
+          standard_lining_keys: string[];
+          updated_at: string;
+          upsell_lining_keys: string[];
+        };
+        Insert: {
+          created_at?: string;
+          fabric_key: string;
+          id?: string;
+          note: string;
+          retailer_id: string;
+          standard_lining_keys: string[];
+          updated_at?: string;
+          upsell_lining_keys?: string[];
+        };
+        Update: {
+          created_at?: string;
+          fabric_key?: string;
+          id?: string;
+          note?: string;
+          retailer_id?: string;
+          standard_lining_keys?: string[];
+          updated_at?: string;
+          upsell_lining_keys?: string[];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fabric_lining_rules_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       familiarity_presets: {
         Row: {
           created_at: string;

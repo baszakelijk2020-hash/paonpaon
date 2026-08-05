@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   checkComplaintTransition,
   checkFabricButtonPairing,
+  checkFabricLiningPairing,
   checkSupplyException,
   describeFactoryWriteBack,
   resolveSupplierFact,
@@ -151,6 +152,62 @@ describe("checkFabricButtonPairing", () => {
         rules,
         fabricKey: "linen-oat",
         buttonKey: "anything",
+      }),
+    ).toEqual({ ok: false, reason: "no_rule_for_fabric" });
+  });
+});
+
+describe("checkFabricLiningPairing", () => {
+  const rules = [
+    {
+      fabricKey: "flannel-grey",
+      options: [
+        { liningKey: "bemberg-charcoal", tier: "standard" as const },
+        { liningKey: "silk-jacquard-house", tier: "upsell" as const },
+      ],
+      note: "House jacquard is the signature upgrade for flannel.",
+    },
+  ];
+
+  it("allows a standard lining and reports its tier", () => {
+    expect(
+      checkFabricLiningPairing({
+        rules,
+        fabricKey: "flannel-grey",
+        liningKey: "bemberg-charcoal",
+      }),
+    ).toEqual({ ok: true, tier: "standard" });
+  });
+
+  it("allows an upsell lining and reports its tier", () => {
+    expect(
+      checkFabricLiningPairing({
+        rules,
+        fabricKey: "flannel-grey",
+        liningKey: "silk-jacquard-house",
+      }),
+    ).toEqual({ ok: true, tier: "upsell" });
+  });
+
+  it("refuses an undocumented lining and returns the real options", () => {
+    const result = checkFabricLiningPairing({
+      rules,
+      fabricKey: "flannel-grey",
+      liningKey: "polyester-black",
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      reason: "pairing_not_allowed",
+      options: rules[0]!.options,
+    });
+  });
+
+  it("treats a fabric with no rule as undecided, not as permitted", () => {
+    expect(
+      checkFabricLiningPairing({
+        rules,
+        fabricKey: "linen-oat",
+        liningKey: "anything",
       }),
     ).toEqual({ ok: false, reason: "no_rule_for_fabric" });
   });

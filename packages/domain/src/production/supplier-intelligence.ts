@@ -155,6 +155,54 @@ export function checkFabricButtonPairing(args: {
   return { ok: true };
 }
 
+export interface FabricLiningOption {
+  readonly liningKey: string;
+  readonly tier: "standard" | "upsell";
+}
+
+export interface FabricLiningRule {
+  readonly fabricKey: string;
+  readonly options: readonly FabricLiningOption[];
+  readonly note: string;
+}
+
+export type LiningPairingCheck =
+  | { readonly ok: true; readonly tier: "standard" | "upsell" }
+  | {
+      readonly ok: false;
+      readonly reason: "no_rule_for_fabric" | "pairing_not_allowed";
+      readonly options?: readonly FabricLiningOption[];
+      readonly note?: string;
+    };
+
+/**
+ * Fabric/lining pairing (PHASE 17.4 / ADV-104) — the same "a missing rule
+ * is undecided, not permissive" discipline as `checkFabricButtonPairing`,
+ * extended with the standard-vs-upsell distinction this item's owner
+ * boundary names explicitly: which linings are the default and which are
+ * a genuine upgrade an advisor can offer, never guessed from price alone.
+ */
+export function checkFabricLiningPairing(args: {
+  readonly rules: readonly FabricLiningRule[];
+  readonly fabricKey: string;
+  readonly liningKey: string;
+}): LiningPairingCheck {
+  const rule = args.rules.find((entry) => entry.fabricKey === args.fabricKey);
+  if (!rule) return { ok: false, reason: "no_rule_for_fabric" };
+  const option = rule.options.find(
+    (entry) => entry.liningKey === args.liningKey,
+  );
+  if (!option) {
+    return {
+      ok: false,
+      reason: "pairing_not_allowed",
+      options: rule.options,
+      note: rule.note,
+    };
+  }
+  return { ok: true, tier: option.tier };
+}
+
 export const SUPPLY_EXCEPTION_KINDS = [
   "order_overdue",
   "material_shortage",

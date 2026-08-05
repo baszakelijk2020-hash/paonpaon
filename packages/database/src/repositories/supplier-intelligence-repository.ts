@@ -8,11 +8,14 @@
 import {
   checkComplaintTransition,
   checkFabricButtonPairing,
+  checkFabricLiningPairing,
   checkSupplyException,
   resolveSupplierFact,
   type ComplaintCheck,
   type ComplaintState,
   type ExceptionCheck,
+  type FabricLiningOption,
+  type LiningPairingCheck,
   type PairingCheck,
   type RetailerId,
   type SupplierFact,
@@ -27,6 +30,8 @@ import type { Database, Json } from "../generated/database.types";
 type SupplierFactRow = Database["public"]["Tables"]["supplier_facts"]["Row"];
 type FabricButtonRuleRow =
   Database["public"]["Tables"]["fabric_button_rules"]["Row"];
+type FabricLiningRuleRow =
+  Database["public"]["Tables"]["fabric_lining_rules"]["Row"];
 type SupplyExceptionRow =
   Database["public"]["Tables"]["supply_exceptions"]["Row"];
 type SupplyComplaintCaseRow =
@@ -160,6 +165,67 @@ export class SupplierIntelligenceRepository {
         retailer_id: args.retailerId,
         fabric_key: args.fabricKey,
         allowed_button_keys: [...args.allowedButtonKeys],
+        note: args.note.trim(),
+      },
+      { onConflict: "retailer_id,fabric_key" },
+    );
+    if (error) throw error;
+  }
+
+  async findFabricLiningRules(args: {
+    readonly retailerId: RetailerId;
+  }): Promise<readonly FabricLiningRuleRow[]> {
+    const { data, error } = await this.client
+      .from("fabric_lining_rules")
+      .select("*")
+      .eq("retailer_id", args.retailerId)
+      .order("fabric_key", { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  /** Checks the pairing against the retailer's own rules before returning. */
+  async checkLiningPairing(args: {
+    readonly retailerId: RetailerId;
+    readonly fabricKey: string;
+    readonly liningKey: string;
+  }): Promise<LiningPairingCheck> {
+    const rules = await this.findFabricLiningRules({
+      retailerId: args.retailerId,
+    });
+    return checkFabricLiningPairing({
+      rules: rules.map((row) => ({
+        fabricKey: row.fabric_key,
+        options: [
+          ...row.standard_lining_keys.map((liningKey): FabricLiningOption => ({
+            liningKey,
+            tier: "standard",
+          })),
+          ...row.upsell_lining_keys.map((liningKey): FabricLiningOption => ({
+            liningKey,
+            tier: "upsell",
+          })),
+        ],
+        note: row.note,
+      })),
+      fabricKey: args.fabricKey,
+      liningKey: args.liningKey,
+    });
+  }
+
+  async upsertFabricLiningRule(args: {
+    readonly retailerId: RetailerId;
+    readonly fabricKey: string;
+    readonly standardLiningKeys: readonly string[];
+    readonly upsellLiningKeys: readonly string[];
+    readonly note: string;
+  }): Promise<void> {
+    const { error } = await this.client.from("fabric_lining_rules").upsert(
+      {
+        retailer_id: args.retailerId,
+        fabric_key: args.fabricKey,
+        standard_lining_keys: [...args.standardLiningKeys],
+        upsell_lining_keys: [...args.upsellLiningKeys],
         note: args.note.trim(),
       },
       { onConflict: "retailer_id,fabric_key" },

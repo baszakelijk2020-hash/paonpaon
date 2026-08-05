@@ -245,6 +245,12 @@ export default async function DashboardLayout({
                 description: "Material facts, exceptions and complaint cases",
               },
               {
+                href: "/fabric-pairing",
+                label: "Fabric pairing",
+                description:
+                  "Buttons, linings and complete-the-look, by fabric",
+              },
+              {
                 href: "/production",
                 label: "Production",
                 description: "Serialized pieces, stages and work tickets",

@@ -4082,14 +4082,56 @@ now.
     `dashboard-digest.spec.ts` (7/7 green together — both share the
     appointment/order/notification repositories this change touches).
 
-- [ ] **17.4 Fabric-pairing upsell engine**
+- [x] **17.4 Fabric-pairing upsell engine**
   - **Requirement IDs:** ADV-104.
   - **Dependencies:** `2.x` metadata graph, product catalogue.
   - **Owner boundary:** given a selected fabric, surface top-matching
     buttons, lining options (standard + upsell), and complete-the-look
     items — a rules/metadata-graph engine, not a black box, so every
     advisor has the same upsell breadth regardless of seniority.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `verified_local`. Audited
+    first: fabric→button pairing already existed in full from Stage 12.4
+    (`fabric_button_rules`, `checkFabricButtonPairing`,
+    `SupplierIntelligenceRepository`) but had no advisor-facing UI at
+    all; lining pairing and complete-the-look did not exist. Reused
+    12.4's exact shape rather than a second pairing mechanism: a new
+    sibling `fabric_lining_rules` table and `checkFabricLiningPairing`
+    (`packages/domain/src/production/supplier-intelligence.ts`), same
+    "a missing rule means undecided, never permissive" discipline,
+    extended with the standard-vs-upsell split this item's owner
+    boundary names — a lining option carries its tier explicitly, never
+    guessed from price. Complete-the-look reuses the existing metadata
+    graph unchanged: a new `MetadataRepository.findProductIdsByConcepts`
+    resolves a fabric concept's real `suggests`/`compatible_with` edges
+    to real, currently active, reviewed-and-accepted catalogue products
+    only — an unruled or unlinked fabric returns an empty list, never a
+    fabricated one. New retailer page `/fabric-pairing`: pick a fabric
+    concept, see and (manager+) edit its button rule and lining rule, and
+    see its complete-the-look products, all keyed off the same real
+    `MetadataConcept.slug`/`id` rather than a second free-text fabric
+    identifier.
+  - **Tests:** `packages/domain/src/production/supplier-intelligence.test.ts`
+    (4 new: standard tier, upsell tier, undocumented-lining refusal
+    returning the real options, no-rule-for-fabric refusal).
+    `apps/retailer/e2e/fabric-pairing.spec.ts` proves the full arc in a
+    real browser: an unruled fabric shows "undecided" for both buttons
+    and linings (never a permissive default), a real metadata-graph edge
+    resolves to a real accepted product under "Complete the look", and
+    saving a button rule and a lining rule through the real forms is
+    asserted directly against `fabric_button_rules`/`fabric_lining_rules`
+    — not just the page's own rendering choice. Regression run alongside
+    `supplier-intelligence.spec.ts` (2/2 green together, confirming the
+    shared repository/domain file is unaffected). Full domain suite:
+    997/997 passing.
+  - Named gap: no advisor-facing "given a selected fabric during a live
+    fitting" entry point exists yet from the customer/appointment
+    workflow itself — `/fabric-pairing` is a standalone lookup tool
+    reachable from the nav, not yet linked from the appointment brief
+    (17.3) or the suit configurator (FT-07). Real-canonical (retailer_id
+    null) fabric concepts and edges also do not exist yet — every rule
+    and edge is currently retailer-authored, which is correct per this
+    item's own schema design but means a brand-new retailer starts with
+    an empty upsell engine until they author their own rules.
 
 - [ ] **17.5 Promise-matching on inbound stock news**
   - **Requirement IDs:** ADV-105.
