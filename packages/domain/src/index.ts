@@ -135,6 +135,7 @@ export * from "./wardrobe/morning-routine";
 export * from "./wardrobe/morning-routine.schema";
 export * from "./wardrobe/morning-routine-delivery";
 export * from "./wardrobe/morning-routine-delivery.schema";
+export * from "./wardrobe/morning-routine-occasions";
 export * from "./wardrobe/suit-configurator";
 export * from "./wardrobe/suit-configurator.schema";
 export * from "./wardrobe/style-quiz";

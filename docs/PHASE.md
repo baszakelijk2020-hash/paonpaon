@@ -4314,7 +4314,25 @@ now.
     an approved credit/billing model — build the budget ledger, provider
     interface and MorningRoutine card structure now; live generation stays
     `blocked_external`.
-  - **Status:** not started.
+  - **Status (2026-08-05):** `verified_local` for spec §14's "Coming up"
+    card only. Today's OOTD card (`packages/domain/src/wardrobe/morning-
+routine.ts`, `morning-routine-delivery-orchestrator.ts`) already
+    existed before this slice and needed no new work. New
+    `selectUpcomingOccasions` (`packages/domain/src/wardrobe/morning-
+routine-occasions.ts`) reuses 10.4's existing
+    `evaluateRelationshipDateWindow`/`nextYearlyOccurrence` recurrence
+    math against Self-Portrait's existing `customer_facts` (anniversary/
+    wedding_date/occasion/travel_window types) — no new fact schema,
+    same correction 10.4's own history already made once against writing
+    a second copy of the date math. Surfaces on `/morning-routine` as its
+    own card, separate from today's OOTD, only for facts within a 45-day
+    lead window; a fact whose value isn't a clean ISO date is silently
+    skipped, never guessed at. Checkbox left unchecked: **complete-the-
+    look** (spec §14 item 3) is not attempted; the **`VirtualTryOnProvider`
+    interface**, the **AI usage/budget ledger** (spec §8), and all actual
+    image/video generation remain unbuilt — real product value (the
+    try-on itself) stays blocked on a live provider key and an approved
+    credit/billing model exactly as flagged above.
 
 - [ ] **17.11 Supplier-CRM data import and ownership**
   - **Requirement IDs:** ADV-111.
