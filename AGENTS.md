@@ -172,6 +172,41 @@ Live integration suites are gated by `PAON_INTEGRATION=1` and skipped by
 ordinary `pnpm test`. Check every Supabase write result; `.update()` errors do
 not throw automatically. Specs own and clean the rows they create.
 
+## Claude Code agent configuration
+
+Model assignments for Claude Code work in this repository:
+
+- **Main implementation** — Sonnet.
+- **Repository explorer** (`.claude/agents/repository-explorer.md`, read-only
+  search/history) — Haiku.
+- **Security reviewer** (`.claude/agents/security-reviewer.md`, RLS/tenancy/
+  auth/payments review) — Sonnet.
+- **Frontend reviewer** (`.claude/agents/paon-frontend-reviewer.md`, reviews
+  and enriches NEW operational-module UI against design authority) — Sonnet.
+- Opus is reserved for deep architectural reasoning, major system redesign,
+  or exceptionally difficult debugging — not routine implementation.
+
+Workflow:
+
+- One active `PHASE.md` item at a time per lane.
+- Preserve existing architecture; do not refactor unrelated code.
+- Preserve design authority — see "Frontend implementation rules" above and
+  `paon-frontend-reviewer`'s authority order.
+- Boundary-first implementation: domain rules in `@paon/domain`, Supabase
+  access behind `@paon/database` repositories, per the engineering
+  invariants above.
+- Reach for a specialist subagent when it gives genuine parallel benefit
+  (independent exploration, an independent review pass) — not by default
+  for sequential work with hard dependencies.
+- Verify before completion: run the checks in "Definition of done" below.
+- Never claim completion without a successful, executed validation run —
+  a plausible-looking diff is not evidence.
+
+`.claude/settings.json` wires a `PostToolUse` hook that formats the touched
+file with `prettier` after `Edit`/`Write`/`MultiEdit`, and a `Stop` hook
+(`scripts/claude-stop-check.sh`) that runs `pnpm lint` then `pnpm typecheck`
+and fails the turn if either fails.
+
 ## Definition of done
 
 Run the checks CI runs, proportionate focused checks while iterating and the
