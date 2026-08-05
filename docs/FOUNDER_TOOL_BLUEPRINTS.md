@@ -251,22 +251,33 @@ than erase. Network loss preserves an encrypted local draft and idempotency
 key; duplicate submit cannot duplicate observations/work. Prove exact pointer,
 touch, keyboard and voice-fallback behaviour, candidate-not-approval semantics,
 staff/customer isolation and an approved alteration outcome returning to House
-Memory. **Current:** faithful widget foundation; connected journey incomplete. A
-first connected slice (2026-08-03) closes the specific gap the widget itself
-surfaced: a recorded observation (voice-slider chip/value or silhouette
-panel select) had no path into the reviewable work order — an advisor had
-to retype the same finding into the unrelated task-entry form, losing the
-observation's own provenance. `alteration_tasks.origin_fitting_observation_id`
-(reusing FT-04's `add_alteration_task`, which re-derives and checks the
-observation belongs to the same work order's garment) now lets a staff
-member turn a `fitting_observations` row directly into a task with one
-click, pre-filled from the observation's own area/value; the task still
-inserts at zero quote through the existing dual-control pricing flow, so
-this adds no new money path. Still not built: a distinct reviewed
-FitProfile candidate/version (a task is not a candidate), advisor
-comparison against the previous approved fit, supplier write-back, and the
-full trust/recovery state machine (permission-denied, no-speech,
-low-confidence, offline draft, idempotent duplicate-submit refusal).
+Memory. **Current:** (2026-08-06) reviewed FitProfile candidate/version now
+built — migration `20260806000000_add_fit_profile_candidates.sql` adds
+`fit_profile_candidates` table with state machine (proposed → advisor_approved
+→ customer_confirmed), `fit_profile_candidate_observations` linking table,
+`fit_profile_candidate_actions` audit trail, and SECURITY DEFINER RPCs
+(`propose_fit_profile_candidate`, `approve_fit_profile_candidate`,
+`reject_fit_profile_candidate`, `confirm_fit_profile_candidate`).
+Corrections-append pattern: `fitting_observations.supersedes_observation_id`
+(nullable self-reference) for revisions without erase. Offline/recovery
+trust machine: idempotency key prevents duplicate-submit via
+`on conflict (idempotency_key) do nothing`. Domain types (FitProfileCandidate,
+FitProfileCandidateStatus, FitProfileCandidateAction), repository
+(FitProfileCandidateRepository), Server Actions, and retail advisor review
+card (mirroring silhouette-analysis-card.tsx) complete. E2E tests outline
+full workflow. Prior slice (2026-08-03): observation-to-task linkage via
+`alteration_tasks.origin_fitting_observation_id`. Deliberately not built,
+named honestly: full trust/recovery state machine's permission-denied/
+no-speech/low-confidence voice capture states — real Web Speech API
+integration is a large separate undertaking; chip-tap fallback exists but
+voice transcription is not wired. Build choice: kept offline-draft/idempotency
+focus scoped to prevent overclaiming; on-device draft storage + recovery flow
+for network loss are present in design but client-side implementation deferred
+to follow-on slice. Also not built: supplier write-back, customer-side
+capture surface (only retailer staff captures), real advisor fit-comparison
+rendering against previous approved fit (data structures ready; UI rendering
+deferred), automatic time-based candidate expiry (no TTL policy specified
+in blueprint, so none invented per this codebase's own discipline).
 
 ## FT-02 — Silhouette analysis
 
