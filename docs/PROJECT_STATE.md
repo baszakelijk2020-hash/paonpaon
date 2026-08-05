@@ -10,7 +10,85 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-05 Founder scope cut — FT-03/FT-04/FT-07/FT-12 remaining gaps killed (READ FIRST — supersedes every section below)
+## 2026-08-05 Backlog hygiene sweep — known bugs closed, pgTAP suite restored to 160/160 (READ FIRST — supersedes every section below)
+
+Same session, continued after the founder scope cut below. Closed both
+"known latent bugs" named in the earlier Stage 17/18 handoff plus a
+real security gap surfaced while investigating them — four pushed
+commits, all `pnpm lint`/`typecheck`/domain(1027)/database(476) green
+throughout:
+
+- **`advisor-capture.spec.ts`**'s `customer_facts` cleanup used
+  `.delete()` against a table with no DELETE grant for any role
+  (append-only by design) — silently failed every run. Fixed to the
+  correct soft-delete (`update({ deleted_at: ... })`); confirmed 2/2.
+- **pgTAP suite hygiene**: `tableservice_attachments_test.sql`
+  referenced `record_consultation_attachment`'s old 8-arg signature,
+  deliberately dropped when FT-09 added party/garment linking — updated
+  to the real current 10-arg signature.
+  `supabase/tests/fixtures/pre_stock_single_truth_upgrade.sql` was a
+  manual migration-rehearsal fixture (`docs/runbooks/
+STOCK_UPGRADE_REHEARSAL.md`), deliberately non-transactional so its
+  rows persist for inspection — its presence under `supabase/tests/`
+  meant `supabase test db`'s default recursive scan loaded and
+  committed it, colliding with `metadata_foundation_rls_test.sql`'s own
+  hardcoded fixture retailer id and crashing it before any assertion
+  ran. Moved to `supabase/rehearsals/`, outside the pgTAP tree.
+- **Real security gap found and fixed**: `stock_tenant_boundaries_test.sql`'s
+  own standing invariant ("no public SECURITY DEFINER function is
+  executable by PUBLIC") was failing 1/11. Three functions
+  (`current_wearer_id()`, `sync_corporate_wearer_claim()`,
+  `enqueue_gift_invitation_email(uuid, text)`) were missing this
+  codebase's own revoke-all-then-grant-specific convention — Postgres
+  grants EXECUTE to PUBLIC by default on creation. Practical exposure
+  was low in each case (self-scoped by `auth.uid()`, a trigger function
+  triggers don't need EXECUTE to fire, and an RPC that already
+  re-derives authorization server-side) but the explicit allow-list is
+  the project's stated defense-in-depth convention. New migration
+  `20260805210000`; verified `employee-portal.spec.ts` and
+  `gifts.spec.ts` both still pass after the revoke.
+- **`knowledge_foundation_rls_test.sql` (6/18 failing) and
+  `metadata_foundation_rls_test.sql` (7/23 failing) repaired**: both
+  predate later, deliberate public-storefront-read policies (PHASE
+  2.3/EDU-003, 2.4/SRCH-001 — any `active = true` row on an active
+  retailer is readable by anyone, real product design, not a leak)
+  that silently swamped every tenant-isolation assertion in both
+  files. Fixture rows meant to prove isolation are now explicitly
+  `active = false` to actually exercise the staff-only policy; count
+  assertions are now scoped to each test's own known fixture ids
+  instead of an unscoped table-wide count (which had separately
+  drifted from organic seed growth). A subtlety worth remembering:
+  flipping a fixture row to inactive also changes which validation-
+  trigger branch fires for cross-tenant-reference checks (the row
+  becomes RLS-invisible to the trigger's own invoker-scoped lookup —
+  "unavailable" rather than "wrong tenant") — in every case here that
+  turned out to match each test's _original_ expected message exactly,
+  so two message-text edits attempted first were reverted once this
+  was understood, rather than kept as an unnecessary divergence.
+  Two assertions (`retailer_knowledge_overrides` has no per-row active
+  flag to isolate against; its public-read policy keys only on the
+  parent retailer's status) test an invariant that no longer holds by
+  deliberate design — rewritten to assert the current, correct
+  cross-tenant-visible behavior with an explanation, not forced back
+  into a stale privacy claim.
+
+Full pgTAP suite: **160/160 green** (was 4 files failing/crashing).
+
+### Pick up here
+
+Everything named in the earlier "known latent bugs" list is now
+closed. Remaining open backlog is whatever wasn't killed in the
+founder scope cut below: FT-01/02/09/10/13/14's own named remaining
+gaps, Stage 17.7 (parked, no MTM pricing engine)/17.11 (needs its own
+scoping pass)/18.3 (no TTL policy specified)/18.4's public
+self-service-booking remainder/18.7 (needs a founder decision)/18.8
+(real, reproduced, unsolved Employee Portal session bug — needs
+CDP-level network tracing, not another guess)/18.9 (no
+`contract_value`/`repair` field in schema), and everything blocked on
+external credentials (17.1/17.9/17.10/17.12/18.10/18.11/R0.1/R0.2).
+FT-11 stays quarantined pending a founder-named launch journey.
+
+## 2026-08-05 Founder scope cut — FT-03/FT-04/FT-07/FT-12 remaining gaps killed
 
 Founder decision, same session as the FT-03/FT-05 work below. Given a
 numbered list of everything still partially built (all FT-* blueprint
