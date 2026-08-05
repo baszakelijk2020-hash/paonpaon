@@ -3775,8 +3775,10 @@ export type Database = {
       };
       corporate_office_visit_requests: {
         Row: {
+          appointment_id: string | null;
           contact_email: string | null;
           created_at: string;
+          customer_id: string | null;
           employee_reference: string | null;
           id: string;
           note: string | null;
@@ -3788,8 +3790,10 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          appointment_id?: string | null;
           contact_email?: string | null;
           created_at?: string;
+          customer_id?: string | null;
           employee_reference?: string | null;
           id?: string;
           note?: string | null;
@@ -3801,8 +3805,10 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          appointment_id?: string | null;
           contact_email?: string | null;
           created_at?: string;
+          customer_id?: string | null;
           employee_reference?: string | null;
           id?: string;
           note?: string | null;
@@ -3814,6 +3820,20 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "corporate_office_visit_requests_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_office_visit_requests_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "corporate_office_visit_requests_programme_id_fkey";
             columns: ["programme_id"];

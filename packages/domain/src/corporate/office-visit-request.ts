@@ -34,6 +34,11 @@ export interface CorporateOfficeVisitRequest extends Timestamps {
   readonly note?: string;
   readonly status: CorporateOfficeVisitRequestStatus;
   readonly resolvedAt?: string;
+  /** Set only when staff actually scheduled a real appointment for this
+   * request (PHASE 18.4's own dependency-line gap, closed) — never set
+   * merely because the request was marked "scheduled". */
+  readonly customerId?: string;
+  readonly appointmentId?: string;
 }
 
 export interface CorporateOfficeVisitPage {
@@ -69,6 +74,33 @@ export function checkResolveOfficeVisitRequest(args: {
 }): ResolveOfficeVisitRequestCheck {
   if (TERMINAL_STATUSES.has(args.currentStatus)) {
     return { ok: false, reason: "already_resolved" };
+  }
+  return { ok: true };
+}
+
+export type ScheduleOfficeVisitAppointmentCheck =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly reason: "contact_email_required" }
+  | { readonly ok: false; readonly reason: "invalid_time_window" };
+
+/**
+ * A real appointment needs a real way to reach the person and a real
+ * time — never fabricated. A requester who left no contact email can
+ * still be marked "scheduled" (staff coordinated it another way, e.g.
+ * by phone) but this codebase has no channel to book a real appointment
+ * for them, so that path stays honestly appointment-less rather than
+ * inventing one.
+ */
+export function checkScheduleOfficeVisitAppointment(args: {
+  readonly contactEmail?: string;
+  readonly startsAt: string;
+  readonly endsAt: string;
+}): ScheduleOfficeVisitAppointmentCheck {
+  if (!args.contactEmail || args.contactEmail.trim().length === 0) {
+    return { ok: false, reason: "contact_email_required" };
+  }
+  if (!(Date.parse(args.startsAt) < Date.parse(args.endsAt))) {
+    return { ok: false, reason: "invalid_time_window" };
   }
   return { ok: true };
 }

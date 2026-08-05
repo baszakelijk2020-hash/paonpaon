@@ -85,6 +85,32 @@ export class CustomerRepository {
     return data.map(toDomain);
   }
 
+  /** First (oldest) matching customer row for this retailer + email —
+   * `email` has no uniqueness constraint on this table, so this reuses
+   * the earliest-known relationship rather than assuming there is only
+   * one. Used to avoid creating a duplicate prospect for someone who
+   * already has a real relationship on file. */
+  async findByEmail(
+    retailerId: RetailerId,
+    email: string,
+  ): Promise<Customer | null> {
+    const { data, error } = await this.client
+      .from("customers")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .ilike("email", email)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return data ? toDomain(data) : null;
+  }
+
   /** Every `Customer` row linked to this Customer Portal login, across every retailer relationship — see docs/DECISIONS.md ADR-013. */
   async findByUserId(userId: UserId): Promise<Customer[]> {
     const { data, error } = await this.client

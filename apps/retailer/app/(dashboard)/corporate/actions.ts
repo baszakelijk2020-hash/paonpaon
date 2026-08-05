@@ -18,6 +18,7 @@ import {
   createCorporateProgrammeInputSchema,
   createCorporateWearerInputSchema,
   recordCorporateIssueInputSchema,
+  wallTimeInZoneToUtcIso,
   type CorporateExceptionPriority,
   type CorporateOfficeVisitRequestStatus,
 } from "@paon/domain";
@@ -276,6 +277,57 @@ export async function resolveOfficeVisitRequest(
     requestId: asId<"CorporateOfficeVisitRequestId">(requestId),
     status,
   });
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+const SCHEDULE_APPOINTMENT_REJECTION_MESSAGES: Record<string, string> = {
+  already_resolved: "This request was already resolved.",
+  request_not_found: "That request no longer exists.",
+  contact_email_required:
+    "This requester left no contact email — mark it Scheduled without an appointment instead.",
+  invalid_time_window: "Choose a real end time after the start time.",
+};
+
+/**
+ * Closes 18.4's own named gap: a real appointment, not just a status
+ * label. `DateTimePicker` submits an offset-less wall-clock value
+ * (`YYYY-MM-DDTHH:MM`) — interpreted in UTC since an office-visit
+ * request has no branch/timezone of its own, matching this app's own
+ * fallback for every other timezone-less booking surface.
+ */
+export async function scheduleOfficeVisitAppointment(
+  programmeId: string,
+  requestId: string,
+  formData: FormData,
+): Promise<void> {
+  await requireModuleSession("enterprise_verticals");
+  const startsAtLocal = String(formData.get("startsAt") ?? "");
+  const endsAtLocal = String(formData.get("endsAt") ?? "");
+  const [startDate, startTime] = startsAtLocal.split("T");
+  const [endDate, endTime] = endsAtLocal.split("T");
+  if (!startDate || !startTime || !endDate || !endTime) {
+    throw new Error("Choose a day and a time for both start and end.");
+  }
+  const startsAt = wallTimeInZoneToUtcIso(
+    startDate,
+    startTime.slice(0, 5),
+    "UTC",
+  );
+  const endsAt = wallTimeInZoneToUtcIso(endDate, endTime.slice(0, 5), "UTC");
+
+  const result = await new CorporateOfficeVisitRepository(
+    await getSupabaseServerClient(),
+  ).scheduleAppointment({
+    requestId: asId<"CorporateOfficeVisitRequestId">(requestId),
+    startsAt,
+    endsAt,
+  });
+  if (!result.ok) {
+    throw new Error(
+      SCHEDULE_APPOINTMENT_REJECTION_MESSAGES[result.reason] ??
+        "That appointment could not be scheduled.",
+    );
+  }
   revalidatePath(`/corporate/${programmeId}`);
 }
 

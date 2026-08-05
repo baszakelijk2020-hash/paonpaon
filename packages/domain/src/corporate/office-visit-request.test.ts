@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   checkResolveOfficeVisitRequest,
+  checkScheduleOfficeVisitAppointment,
   checkSubmitOfficeVisitRequest,
 } from "./office-visit-request";
 
@@ -43,5 +44,46 @@ describe("checkResolveOfficeVisitRequest", () => {
     expect(
       checkResolveOfficeVisitRequest({ currentStatus: "declined" }),
     ).toEqual({ ok: false, reason: "already_resolved" });
+  });
+});
+
+describe("checkScheduleOfficeVisitAppointment", () => {
+  it("refuses scheduling a real appointment with no contact email", () => {
+    expect(
+      checkScheduleOfficeVisitAppointment({
+        startsAt: "2026-09-01T10:00:00.000Z",
+        endsAt: "2026-09-01T10:30:00.000Z",
+      }),
+    ).toEqual({ ok: false, reason: "contact_email_required" });
+  });
+
+  it("refuses a blank contact email", () => {
+    expect(
+      checkScheduleOfficeVisitAppointment({
+        contactEmail: "  ",
+        startsAt: "2026-09-01T10:00:00.000Z",
+        endsAt: "2026-09-01T10:30:00.000Z",
+      }),
+    ).toEqual({ ok: false, reason: "contact_email_required" });
+  });
+
+  it("refuses an end time at or before the start time", () => {
+    expect(
+      checkScheduleOfficeVisitAppointment({
+        contactEmail: "a@example.com",
+        startsAt: "2026-09-01T10:00:00.000Z",
+        endsAt: "2026-09-01T10:00:00.000Z",
+      }),
+    ).toEqual({ ok: false, reason: "invalid_time_window" });
+  });
+
+  it("accepts a real contact email and a real time window", () => {
+    expect(
+      checkScheduleOfficeVisitAppointment({
+        contactEmail: "a@example.com",
+        startsAt: "2026-09-01T10:00:00.000Z",
+        endsAt: "2026-09-01T10:30:00.000Z",
+      }),
+    ).toEqual({ ok: true });
   });
 });

@@ -4661,17 +4661,54 @@ nowhere honest to store it.
     actually worked; caught by adding a DB-level assertion and fixed by
     asserting the button's removal instead, a real test bug found and
     fixed, not a product bug).
-  - Checkbox stays unchecked: the owner boundary/acceptance names
-    booking an appointment or starting measurement capture directly from
-    this page, and neither exists here — a submitted request is a
-    lead-capture record in a staff-reviewed queue, not a live
-    appointment or a measurement session. Turning a request into an
-    actual scheduled slot against real advisor/room capacity is `18.6`'s
-    own item by design (see this file's migration header), not
-    attempted here. Cross-company isolation is structural (the RPC
-    validates `p_programme_id` against a real active programme/account/
-    retailer and returns only that scoped data) but has no dedicated
-    "company A cannot see company B's page" browser test.
+  - **Fix (2026-08-05, takeover branch):** the named gap's real half is
+    closed — "Scheduled" now produces a real `appointments` row, not
+    only a status label. Migration
+    `20260805180000_add_corporate_office_visit_appointment_link.sql`
+    adds nullable `customer_id`/`appointment_id` to
+    `corporate_office_visit_requests`. New
+    `checkScheduleOfficeVisitAppointment` (`packages/domain/src/corporate/office-visit-request.ts`)
+    refuses to fabricate a contact channel or a time: a real appointment
+    requires both a real contact email on the request and a real
+    end-after-start window. `CorporateOfficeVisitRepository.scheduleAppointment`
+    finds-or-creates a real `customers` row by email (new
+    `CustomerRepository.findByEmail`, reusing an existing relationship
+    rather than creating a duplicate prospect) and books a real
+    `appointments` row (`styling_consultation`) — a scheduled office
+    visit is a real person choosing to engage the retailer directly,
+    exactly what `customers` already models, deliberately not the
+    per-wearer shadow-customer pattern `18.6` explicitly rejected for
+    its own different (bulk-census) case. The retailer's "Scheduled"
+    button is now a `DateTimePicker` form when the requester left an
+    email (reusing the shared picker, not a second one), and stays the
+    original single-click status-only path when they did not — never
+    guessing at a missing contact channel. Proof: 4 new domain unit
+    tests (`checkScheduleOfficeVisitAppointment`: no email, blank email,
+    invalid window, real window+email) and
+    `apps/retailer/e2e/corporate-office-visit.spec.ts` extended to prove
+    both paths in the same browser run — a no-email request stays
+    status-only (DB-asserted `customer_id`/`appointment_id` both null),
+    and an emailed request gets a real `customers` row (email/name/
+    `prospect` lifecycle asserted) and a real `appointments` row (real
+    retailer, type, and a real end-after-start window) linked back onto the
+    request row. Full corporate e2e regression run alongside it
+    (`corporate.spec.ts`, `corporate-full-lifecycle.spec.ts`,
+    `corporate-project-lifecycle.spec.ts`, `business-development.spec.ts`):
+    4/4 green together.
+  - Checkbox stays unchecked: the acceptance line names a company-
+    branded page that books an appointment "directly from this page"
+    (i.e. the anonymous public page performing live, availability-aware
+    self-service booking) — what is real instead is staff-mediated:
+    the public page still only submits a lead, and a staff member picks
+    the real time from the retailer side. That is a genuine, deliberate
+    difference from live self-service booking, not merely an unproven
+    claim of it, and "starting measurement capture" from this page is
+    still not attempted. Turning a request into a slot against real
+    advisor/room capacity remains `18.6`'s own item by design. Cross-
+    company isolation is structural (the RPC validates `p_programme_id`
+    against a real active programme/account/retailer and returns only
+    that scoped data) but has no dedicated "company A cannot see company
+    B's page" browser test.
 
 - [ ] **18.5 Employee portal (auth and self-service)**
   - **Requirement IDs:** BD-105.

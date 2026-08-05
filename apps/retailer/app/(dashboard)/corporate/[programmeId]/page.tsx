@@ -17,6 +17,7 @@ import {
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
+import { DateTimePicker } from "@paon/ui/components/DateTimePicker";
 import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
@@ -37,6 +38,7 @@ import {
   resolveException,
   resolveOfficeVisitRequest,
   resolveRenewalTask,
+  scheduleOfficeVisitAppointment,
   setWearerActive,
   setWearerLoginEmail,
 } from "../actions";
@@ -718,18 +720,56 @@ export default async function CorporateProgrammePage({
                         </Button>
                       </form>
                     ) : null}
-                    <form
-                      action={resolveOfficeVisitRequest.bind(
-                        null,
-                        programmeId,
-                        request.id,
-                        "scheduled",
-                      )}
-                    >
-                      <Button type="submit" variant="secondary" size="sm">
-                        Scheduled
-                      </Button>
-                    </form>
+                    {request.contactEmail ? (
+                      <details>
+                        <summary className="cursor-pointer text-sm text-[var(--color-stone-700)] underline">
+                          Schedule appointment
+                        </summary>
+                        <form
+                          action={scheduleOfficeVisitAppointment.bind(
+                            null,
+                            programmeId,
+                            request.id,
+                          )}
+                          className="mt-3 flex flex-col gap-3"
+                        >
+                          <FormField
+                            label="Starts"
+                            htmlFor="startsAt"
+                            labelledGroup
+                          >
+                            <DateTimePicker name="startsAt" label="Starts" />
+                          </FormField>
+                          <FormField
+                            label="Ends"
+                            htmlFor="endsAt"
+                            labelledGroup
+                          >
+                            <DateTimePicker name="endsAt" label="Ends" />
+                          </FormField>
+                          <Button
+                            type="submit"
+                            size="sm"
+                            className="self-start"
+                          >
+                            Book real appointment
+                          </Button>
+                        </form>
+                      </details>
+                    ) : (
+                      <form
+                        action={resolveOfficeVisitRequest.bind(
+                          null,
+                          programmeId,
+                          request.id,
+                          "scheduled",
+                        )}
+                      >
+                        <Button type="submit" variant="secondary" size="sm">
+                          Scheduled (no contact email on file)
+                        </Button>
+                      </form>
+                    )}
                     <form
                       action={resolveOfficeVisitRequest.bind(
                         null,
@@ -744,13 +784,25 @@ export default async function CorporateProgrammePage({
                     </form>
                   </div>
                 ) : (
-                  <Badge
-                    tone={
-                      request.status === "scheduled" ? "success" : "neutral"
-                    }
-                  >
-                    {request.status === "scheduled" ? "Scheduled" : "Declined"}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      tone={
+                        request.status === "scheduled" ? "success" : "neutral"
+                      }
+                    >
+                      {request.status === "scheduled"
+                        ? "Scheduled"
+                        : "Declined"}
+                    </Badge>
+                    {request.status === "scheduled" && request.appointmentId ? (
+                      <span
+                        className="text-xs text-[var(--color-stone-500)]"
+                        data-office-visit-appointment-booked
+                      >
+                        Appointment booked
+                      </span>
+                    ) : null}
+                  </div>
                 )}
               </li>
             ))}

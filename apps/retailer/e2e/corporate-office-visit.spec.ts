@@ -36,11 +36,16 @@ test.beforeEach(async ({ page }) => {
 
 /**
  * Proves the office-visit request queue (PHASE 18.4 / BD-104) end to
- * end: a request lands in the programme's intake queue, and marking it
- * "Scheduled" is real — asserted against the database, including that
- * `resolved_at` is actually set, not just the badge text changing.
+ * end: a request lands in the programme's intake queue; a requester
+ * with no contact email can only be marked "Scheduled" as a status
+ * label (asserted against the database, including that `resolved_at`
+ * is actually set); a requester who left a real email gets a real
+ * appointment booked — this item's own previously-named gap, now
+ * closed — asserted against both the new `appointments` row and the
+ * `corporate_office_visit_requests` row's `customer_id`/`appointment_id`
+ * linkage, not just the page's own rendering choice.
  */
-test("an office-visit request appears in the programme's queue and can be marked scheduled", async ({
+test("an office-visit request appears in the programme's queue, a no-email request can only be marked scheduled, and an emailed request gets a real appointment booked", async ({
   page,
 }) => {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
@@ -73,6 +78,15 @@ test("an office-visit request appears in the programme's queue and can be marked
     note: "Would like to book a fitting during the office visit.",
   });
 
+  const emailedRequesterName = `E2E Emailed Requester ${unique}`;
+  const contactEmail = `e2e-office-visit-${unique}@paon.test`;
+  await new CorporateOfficeVisitRepository(admin).submit({
+    programmeId: programme.id,
+    requesterName: emailedRequesterName,
+    contactEmail,
+    note: "Please book me directly.",
+  });
+
   try {
     await page.goto(`/corporate/${programme.id}`);
     const row = page.locator("li", { hasText: requesterName });
@@ -85,15 +99,86 @@ test("an office-visit request appears in the programme's queue and can be marked
 
     const { data: requestRow } = await admin
       .from("corporate_office_visit_requests")
-      .select("status, resolved_at")
+      .select("status, resolved_at, customer_id, appointment_id")
       .eq("programme_id", programme.id)
       .eq("requester_name", requesterName)
       .single();
     expect(requestRow?.status).toBe("scheduled");
     expect(requestRow?.resolved_at).toBeTruthy();
+    expect(requestRow?.customer_id).toBeNull();
+    expect(requestRow?.appointment_id).toBeNull();
+
+    // The emailed requester gets a real appointment, not a status label.
+    const emailedRow = page.locator("li", { hasText: emailedRequesterName });
+    await expect(emailedRow).toBeVisible();
+    await emailedRow.getByText("Schedule appointment").click();
+
+    const startsField = emailedRow.locator('[data-datetime-field="startsAt"]');
+    const endsField = emailedRow.locator('[data-datetime-field="endsAt"]');
+    await startsField.locator("[data-day]").first().click();
+    await startsField.locator('[data-time="10:00"]').click();
+    await endsField.locator("[data-day]").first().click();
+    await endsField.locator('[data-time="10:30"]').click();
+    await emailedRow
+      .getByRole("button", { name: "Book real appointment" })
+      .click();
+
+    await expect(emailedRow.getByText("Appointment booked")).toBeVisible();
+
+    const { data: emailedRequestRow } = await admin
+      .from("corporate_office_visit_requests")
+      .select("status, resolved_at, customer_id, appointment_id")
+      .eq("programme_id", programme.id)
+      .eq("requester_name", emailedRequesterName)
+      .single();
+    expect(emailedRequestRow?.status).toBe("scheduled");
+    expect(emailedRequestRow?.customer_id).toBeTruthy();
+    expect(emailedRequestRow?.appointment_id).toBeTruthy();
+
+    const { data: createdCustomer } = await admin
+      .from("customers")
+      .select("id, email, full_name, lifecycle_stage")
+      .eq("id", emailedRequestRow!.customer_id!)
+      .single();
+    expect(createdCustomer?.email).toBe(contactEmail);
+    expect(createdCustomer?.full_name).toBe(emailedRequesterName);
+    expect(createdCustomer?.lifecycle_stage).toBe("prospect");
+
+    const { data: createdAppointment } = await admin
+      .from("appointments")
+      .select("id, customer_id, retailer_id, type, starts_at, ends_at")
+      .eq("id", emailedRequestRow!.appointment_id!)
+      .single();
+    expect(createdAppointment?.customer_id).toBe(
+      emailedRequestRow!.customer_id,
+    );
+    expect(createdAppointment?.retailer_id).toBe(retailerId);
+    expect(createdAppointment?.type).toBe("styling_consultation");
+    expect(Date.parse(createdAppointment!.starts_at)).toBeLessThan(
+      Date.parse(createdAppointment!.ends_at),
+    );
 
     proofPassed = true;
   } finally {
+    // customer_id/appointment_id must be read BEFORE the account delete
+    // below — that cascades away the programme and this request row,
+    // and neither `customers` nor `appointments` cascades from a
+    // corporate account (no FK between them at all).
+    const { data: cleanupRow } = await admin
+      .from("corporate_office_visit_requests")
+      .select("customer_id, appointment_id")
+      .eq("programme_id", programme.id)
+      .eq("requester_name", emailedRequesterName)
+      .maybeSingle();
     await admin.from("corporate_accounts").delete().eq("id", account.id);
+    if (cleanupRow?.appointment_id) {
+      await admin
+        .from("appointments")
+        .delete()
+        .eq("id", cleanupRow.appointment_id);
+    }
+    if (cleanupRow?.customer_id) {
+      await admin.from("customers").delete().eq("id", cleanupRow.customer_id);
+    }
   }
 });
