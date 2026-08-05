@@ -1,0 +1,12 @@
+{
+  "phaseItemId": "FT-03",
+  "gitSha": "0f97599e8d0120d4b11371732381f58b346e6524",
+  "specs": [
+    "apps/customer/e2e/concept-scan.spec.ts",
+    "apps/retailer/e2e/concept-scan-codes.spec.ts"
+  ],
+  "pgtap": "supabase/tests/concept_scan_test.sql",
+  "status": "passed",
+  "runs": 2,
+  "timestamp": "2026-08-05T16:10:00.000Z"
+}

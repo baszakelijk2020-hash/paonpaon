@@ -10,7 +10,64 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-05 FT-03 QR try-on / concept order — first slice, WIP handoff (READ FIRST — supersedes every section below)
+## 2026-08-05 FT-03 QR try-on / concept order — customer-side gap closed (READ FIRST — supersedes every section below)
+
+Continuation of the FT-03 WIP handoff immediately below this section, same
+session/lane (`agent/grok-takeover-2026-07-30`). Re-diagnosed
+`concept-scan.spec.ts`'s remaining failure per that section's own "Pick up
+here" item 1.
+
+**Root cause found and fixed, not the previously-suspected embed-alias
+issue (that fix was real but insufficient):** `concept_scan_codes` had RLS
+SELECT policies for platform staff and retailer staff only — no policy let
+a plain signed-in customer read it at all. `ConceptScanRepository
+.findSelectionItems` embeds `concept_scan_codes(kind, product_variant_id)`
+into its `concept_order_selection_items` query; PostgREST silently
+resolves a denied embed to `null` rather than erroring, so the join
+vanished even though the base `concept_order_selection_items` row (and its
+`scan_code_id`) read correctly — matching exactly what re-attached debug
+logging showed: `concept_scan_codes: null` on the raw response, DB state
+otherwise correct. This is why retailer-side already worked (retailer
+staff already had a read policy on that table) and only the customer side
+failed. Added a narrow policy — a customer may read a `concept_scan_codes`
+row only if it's referenced by one of their own
+`concept_order_selection_items` — to the same still-unlocked migration
+(`20260805190000`, not yet evidence-locked, same precedent as the earlier
+grant fix already logged in this migration's own comments), then
+`supabase db reset` to reapply and confirm.
+
+**Now green:** `concept-scan.spec.ts` (customer) 2/2 at commit `0f97599`,
+`concept-scan-codes.spec.ts` (retailer) 2/2 at the same commit (no
+regression), pgTAP `concept_scan_test.sql` 9/9. Domain (1027) and database
+(476) unit suites, repo-wide `lint`/`typecheck` all green throughout.
+Evidence committed at `docs/evidence/runs/FT-03.json`;
+`FOUNDER_TOOL_BLUEPRINTS.md`'s FT-03 "Current" line updated to "first
+connected slice," no longer "in progress." Named remaining gaps
+(tampered/concurrent-republish proof, scan-to-proposal continuation past
+"send to advisor," retailer pre-curated multi-item batches, camera QR
+decoding) are unchanged from the blueprint's own text — none attempted
+this stretch.
+
+Unrelated, noticed while running the full `supabase test db` suite: four
+pre-existing pgTAP files (`knowledge_foundation_rls_test.sql`,
+`metadata_foundation_rls_test.sql`, `stock_tenant_boundaries_test.sql`,
+`tableservice_attachments_test.sql`) have failures/parse errors on a fresh
+reset, on tables this session never touched — not investigated or fixed
+here, flagging for whoever next touches those tables.
+
+### Pick up here
+
+The prior handoff's list (below) still applies: Lane B check-in is
+done/clean (zero commits past its fork point, reconfirmed this session),
+18.7 still needs a founder decision, R0.1/R0.2 still blocked on external
+dependencies. With FT-03's customer-side gap closed, the next open item
+in R0.3's founder-tool sequence is picking the next unbuilt/gapped `FT-*`
+blueprint (FT-11 is deliberately quarantined; check each blueprint's own
+"Not built"/"Current" line before choosing, not just its presence in the
+list) — or fixing one of the four newly-noticed pre-existing pgTAP
+failures above, which is smaller-scoped and disjoint from any lane.
+
+## 2026-08-05 FT-03 QR try-on / concept order — first slice, WIP handoff
 
 Lane A continuation on `agent/grok-takeover-2026-07-30`. Picked up per the
 prior handoff's "Pick up here" list: Lane B
