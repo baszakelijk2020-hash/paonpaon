@@ -200,4 +200,38 @@ export class AppointmentRepository {
     if (error) throw error;
     return asId<"AppointmentId">(data);
   }
+
+  /**
+   * Book an appointment directly from within a consultation thread.
+   * FT-09 consultation-outcome journey: customer or retailer staff in a
+   * TableService message thread can create an appointment linked to the
+   * thread for provenance and visibility. Optionally reference a specific
+   * attachment (e.g. a wardrobe-item-tagged photo, the "shared look").
+   */
+  async bookFromConsultation(params: {
+    conversationId: string;
+    type: AppointmentType;
+    startsAt: string;
+    endsAt: string;
+    notes?: string;
+    messageAttachmentId?: string;
+  }): Promise<AppointmentId> {
+    const { data, error } = await this.client.rpc(
+      "book_appointment_from_consultation",
+      {
+        p_conversation_id: params.conversationId,
+        p_type: params.type,
+        p_starts_at: params.startsAt,
+        p_ends_at: params.endsAt,
+        p_notes: (params.notes ?? null) as never,
+        p_message_attachment_id: (params.messageAttachmentId ?? null) as never,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return asId<"AppointmentId">(data);
+  }
 }
