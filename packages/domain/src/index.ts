@@ -73,6 +73,7 @@ export * from "./loyalty/loyalty.schema";
 export * from "./loyalty/loyalty-milestones";
 export * from "./loyalty/loyalty-milestones.schema";
 
+export * from "./engagement/communication-channel";
 export * from "./engagement/email-outbox";
 export * from "./engagement/sms-outbox";
 export * from "./engagement/newsletter";

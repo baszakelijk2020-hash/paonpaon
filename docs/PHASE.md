@@ -4259,7 +4259,44 @@ now.
     Twilio/SMS, email provider) need real provider accounts and keys —
     build the provider-neutral core and message model now; live channels
     stay `blocked_external` per channel until credentials exist.
-  - **Status:** not started.
+  - **Status (2026-08-05, takeover branch):** `verified_local` for the
+    "native app on the advisor's own phone" half; PAON-sent live
+    messages (the actual Twilio/WhatsApp Business API/email-provider
+    sends this item's own hard-blockers line names) remain genuinely
+    `blocked_external` and untouched. `packages/domain/src/engagement/communication-channel.ts`'s
+    `buildChannelContactLinks` is the one provider-neutral core every
+    surface reuses — real `sms:`/`https://wa.me/`/`mailto:` deep links
+    built from a customer's own real phone/email, opening the advisor's
+    own native app so the message is sent from the advisor's own
+    number/account, never a PAON-hosted send (needs zero provider
+    credentials, works today). A channel with no real contact detail
+    behind it reports `available: false` with an empty href rather than
+    a fabricated or broken link. New shared
+    `apps/retailer/app/(dashboard)/channel-contact-buttons.tsx`
+    (`ChannelContactButtons`) renders these consistently — light and
+    dark tone variants — wired onto the customer relationship
+    workspace's own header, the highest-traffic surface with a
+    customer's contact details in view. `promise-matching`'s (17.5)
+    pre-existing, already-evidenced `mailto:` link was deliberately left
+    untouched rather than migrated: its own e2e spec asserts an exact
+    personalized link text and href, and swapping it for the generic
+    component would have risked a real regression on an already-shipped
+    item for no user-facing benefit — a future pass can migrate it
+    alongside a spec update, not as a side effect of this item. Proof:
+    `apps/retailer/e2e/channel-contact.spec.ts` — a customer with a real
+    phone and email produces the three real deep links (asserted by
+    exact `href`, phone-formatting characters stripped for `wa.me`), and
+    a customer with only an email shows SMS/WhatsApp as a disabled
+    `<span>`, never an `<a>`, proving the unavailable state is real, not
+    just visually similar. Regression: the customer workspace's own
+    12-test `workspace.spec.ts` suite is unaffected, 12/12 green.
+  - Checkbox stays unchecked: "unifies... TableService chat with
+    SMS/WhatsApp/email" and "surfaced... in Mission Control" are both
+    still open — this item only closes the "native app" deep-link half
+    named in the owner boundary's second clause, not the inbox
+    unification named in its first. Live channel sending remains
+    `blocked_external`, unchanged from this item's own hard-blockers
+    line.
 
 - [ ] **17.10 AI try-on, daily/ahead-of-time/complete-the-look MorningRoutine**
   - **Requirement IDs:** ADV-110.

@@ -37,6 +37,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AlterationStatusBadge } from "../../alterations/status-badge";
+import { ChannelContactButtons } from "../../channel-contact-buttons";
 import { startConversation } from "../../messages/actions";
 import { LifecycleBadge, LIFECYCLE_STAGE_LABEL } from "../lifecycle-badge";
 
@@ -260,6 +261,12 @@ export default async function CustomerDetailPage({
                 {customer.email ?? "No email on file"}
                 {customer.phone ? ` · ${customer.phone}` : ""}
               </p>
+              <ChannelContactButtons
+                {...(customer.phone ? { phone: customer.phone } : {})}
+                {...(customer.email ? { email: customer.email } : {})}
+                tone="dark"
+                className="mt-3"
+              />
               {pinnedNote ? (
                 <p className="mt-4 max-w-2xl border-l border-white/40 pl-4 text-sm leading-6 text-white/80">
                   “{pinnedNote.body}”
