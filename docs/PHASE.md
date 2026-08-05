@@ -976,6 +976,25 @@ orchestrator.ts` was the only other one still uncovered (the
     customer e2e suite reran green (the pre-existing rapid-keyboard
     swipe-deck flake reconfirmed once more, passing on retry); full
     retailer suite reran green at 53/53.
+    FT-01's reviewed FitProfile candidate/version (landed 2026-08-06 as
+    schema/RPC/repository only, per the evidence run recorded against that
+    commit) is now actually connected end to end — the prior evidence
+    honestly noted it could not execute against a stopped local Supabase,
+    and wiring the first real caller found three live bugs no pgTAP test
+    had exercised (`propose_fit_profile_candidate` inserting a garment id
+    into `customer_id`; `approve_fit_profile_candidate` writing to a table
+    renamed away under the garment-first model two weeks earlier; a
+    `perform` loop missing its `from`) plus a review-card UI that wrote
+    correctly but did not reliably show the result without a manual
+    reload. Fixed by migrations `20260806000002`/`20260806000003`, a new
+    "propose from checked observations" control on the alteration's Fit
+    tools panel with a deterministic idempotency key, and moving the
+    Approve/Reject decision to a `useActionState`-backed client component.
+    Full detail and remaining named gaps in `FOUNDER_TOOL_BLUEPRINTS.md`'s
+    FT-01 entry. Proof: `fit-tools.spec.ts`'s four tests exercise the real
+    UI (propose, review, approve, and a genuine duplicate-submit verified
+    against the database, not just the screen); pgTAP 160/160; targeted
+    retailer regression across six other specs green.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

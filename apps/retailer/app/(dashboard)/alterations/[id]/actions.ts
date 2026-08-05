@@ -9,6 +9,7 @@ import {
   AlterationTaskRepository,
   AlterationHandoffRepository,
   AlterationWorkflowRepository,
+  FitProfileCandidateRepository,
   PhysicalGarmentRepository,
   RetailerStaffRepository,
 } from "@paon/database";
@@ -549,6 +550,71 @@ export async function recordFitToolObservation(
   }
   revalidatePath(`/alterations/${alterationId}`);
   return { successMessage: "Observation recorded." };
+}
+
+/**
+ * FT-01's advisor-side proposal step: turns one or more recorded
+ * fitting_observations into a reviewed fit profile candidate. Gated on
+ * the "intake" alterations permission (owner/admin/manager/sales_associate)
+ * — the same role set propose_fit_profile_candidate's own
+ * is_alterations_advisor() enforces server-side, so a role check here is
+ * UX only, not the real boundary.
+ */
+export async function proposeFitProfileCandidate(
+  alterationId: string,
+  physicalGarmentId: string,
+  _state: WorkflowActionState,
+  formData: FormData,
+): Promise<WorkflowActionState> {
+  const session = await requireModuleSession("garment_service_operations");
+  if (!retailerRoleHasAlterationsPermission(session.retailerRole, "intake")) {
+    throw new ForbiddenError();
+  }
+  const selectedIds = formData.getAll("observationIds").map(String);
+  if (selectedIds.length === 0) {
+    return { formError: "Select at least one observation to propose." };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const garmentId = asId<"PhysicalGarmentId">(physicalGarmentId);
+  const observations = (
+    await new PhysicalGarmentRepository(supabase).findObservationsByGarment(
+      garmentId,
+    )
+  ).filter((observation) => selectedIds.includes(observation.id));
+  if (observations.length === 0) {
+    return { formError: "Selected observations were not found." };
+  }
+
+  const proposedMeasurements = Object.fromEntries(
+    observations.map((observation) => [
+      observation.area,
+      observation.observation,
+    ]),
+  );
+  // Deterministic, not random: proposing the exact same observation set
+  // twice (a real duplicate-submit — double-click, network retry after a
+  // lost response) must resolve to the same candidate rather than minting
+  // a second one, matching FT-08/FT-09's established idempotency-key shape.
+  const idempotencyKey = `fit-profile-candidate:${garmentId}:${observations
+    .map((observation) => observation.id)
+    .sort()
+    .join(",")}`;
+
+  try {
+    await new FitProfileCandidateRepository(supabase).propose({
+      observationIds: observations.map((observation) => observation.id),
+      proposedMeasurements,
+      idempotencyKey,
+    });
+  } catch (error) {
+    return workflowError(error, "Unable to propose fit profile candidate.");
+  }
+  revalidatePath(`/alterations/${alterationId}`);
+  return {
+    successMessage:
+      "Proposed. Visible on the customer's profile for advisor review.",
+  };
 }
 
 export async function addAlterationUpdate(

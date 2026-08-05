@@ -278,6 +278,57 @@ capture surface (only retailer staff captures), real advisor fit-comparison
 rendering against previous approved fit (data structures ready; UI rendering
 deferred), automatic time-based candidate expiry (no TTL policy specified
 in blueprint, so none invented per this codebase's own discipline).
+**Fix (2026-08-06):** the 2026-08-06 slice above was schema/RPC/repository
+only — "E2E tests outline full workflow" and "review card ... complete"
+overclaimed a UI that did not yet exist: `propose_fit_profile_candidate`
+had no caller anywhere in the app, so no candidate could ever be proposed
+outside a direct RPC call, and wiring the first real one surfaced three
+more real bugs, none caught by the original migration's pgTAP coverage
+because it never exercised the actual insert paths: (1)
+`propose_fit_profile_candidate` inserted `physical_garment_id` into the
+`customer_id` column, guaranteed to fail its own foreign key on every
+real call; (2) `approve_fit_profile_candidate` wrote into
+`customer_fit_profile_entries`, a table `20260719000101` renamed to
+`legacy_customer_fit_profile_entries` two weeks earlier with an explicit
+founder clarification that PAON owns garment-tied fitting_observations,
+not a generic measurement ledger — fixed by dropping that write entirely,
+since the contributing observations already are the durable record; (3) a
+`foreach`/`perform` validation loop was missing its `from` clause. Fixed
+by migrations `20260806000002`/`20260806000003`. The advisor now proposes
+a candidate from one or more checked observations directly on the
+alteration's Fit tools panel (`proposeFitProfileCandidate`, a deterministic
+`fit-profile-candidate:<garment>:<sorted observation ids>` idempotency key
+so a real duplicate-submit — double-click, retried request — resolves to
+the same candidate rather than a second row) and approves/rejects it from
+the customer profile. A second real bug surfaced wiring that same review
+card: its Approve/Reject forms were plain `<form action={fn}>` calls with
+no `useActionState`, and the write always completed correctly but the
+page did not reliably show the new status without a manual reload; fixed
+by moving the decision to its own `useActionState`-backed client
+component whose action redirects back to the same page on success (also
+found: `apps/retailer/app/(dashboard)/customers/[id]/silhouette-analysis-card.tsx`
+uses the identical plain-form pattern for FT-02's own review card and
+likely shares this gap — named here, not fixed, out of scope for FT-01).
+Proof: `apps/retailer/e2e/fit-tools.spec.ts`'s four tests now exercise the
+real UI end to end (propose → review card renders → approve → status
+label updates; a genuine duplicate-submit proposes the same observation
+set twice through the real form and a direct database assertion — not
+just the UI — confirms exactly one candidate row). Full retailer
+lint/typecheck clean; `supabase test db` 160/160; targeted regression
+across `silhouette-analysis-review.spec.ts`, `alteration-add-task.spec.ts`,
+`customer-rankings.spec.ts`, `message-attachments.spec.ts`,
+`wedding-party-coordination.spec.ts` and `module-navigation.spec.ts`
+green. Real advisor fit-comparison rendering, customer-side capture and
+supplier write-back remain the honestly-named gaps above.
+Noted, not chased further: the "advisor creates a fit profile candidate"
+spec intermittently timed out waiting for the approved status label
+(~2 of 9 observed runs), every time as the very first heavy render
+immediately after a fresh `supabase db reset` — never on a warm rerun of
+the identical test, and the database write itself was always already
+correct (confirmed directly) within a second regardless. Consistent with
+this suite's own documented Server-Action-round-trip timeout headroom
+(`playwright.config.ts`), not a data or logic defect; not reproduced in a
+normal warm run and out of proportion to chase further here.
 
 ## FT-02 — Silhouette analysis
 
@@ -855,24 +906,24 @@ implementations (the raw founder landing page and the React child-route
 port) got the selector; the retailer inbox resolves and shows the item's
 name next to the attachment.
 
-The conversation-to-appointment outcome journey (2026-08-06) is now closed, 
-addressing the "full conversation -> shared look -> appointment/proposal 
-outcome journey" gap. Migration `20260806000000` adds `appointments.origin_message_thread_id` 
-FK and a narrow SECURITY DEFINER `book_appointment_from_consultation()` RPC 
-re-deriving caller authorization and validating thread ownership (customer 
-or retailer staff on that retailer), following the alteration_tasks provenance 
-pattern (ADR-032/052 narrow RPC, revoke-all-then-grant ACL convention). 
-`AppointmentRepository.bookFromConsultation()` calls the RPC; Server Actions 
-for both customer and retailer staff (`apps/customer` and `apps/retailer` 
-messages actions) invoke it. E2E proof: `consultation-outcome.spec.ts` covers 
-customer and retailer appointment creation from thread, authorization 
-validation, and conversation-ownership enforcement via all three caller types 
-(customer, retailer staff, unauthorized rejection). Explicitly deferred, named 
-honestly: UI button/form integration (Founder control decision on widget 
-placement in both implementations; Server Action proven separately via RPC). 
-Proposal/cart creation path (requires Commerce module wiring beyond this 
-slice's scope). Async malware/quarantine service (state is `basic_validated`), 
-attachment progress, consent withdrawal/retention proof, and AI citation proof 
+The conversation-to-appointment outcome journey (2026-08-06) is now closed,
+addressing the "full conversation -> shared look -> appointment/proposal
+outcome journey" gap. Migration `20260806000000` adds `appointments.origin_message_thread_id`
+FK and a narrow SECURITY DEFINER `book_appointment_from_consultation()` RPC
+re-deriving caller authorization and validating thread ownership (customer
+or retailer staff on that retailer), following the alteration_tasks provenance
+pattern (ADR-032/052 narrow RPC, revoke-all-then-grant ACL convention).
+`AppointmentRepository.bookFromConsultation()` calls the RPC; Server Actions
+for both customer and retailer staff (`apps/customer` and `apps/retailer`
+messages actions) invoke it. E2E proof: `consultation-outcome.spec.ts` covers
+customer and retailer appointment creation from thread, authorization
+validation, and conversation-ownership enforcement via all three caller types
+(customer, retailer staff, unauthorized rejection). Explicitly deferred, named
+honestly: UI button/form integration (Founder control decision on widget
+placement in both implementations; Server Action proven separately via RPC).
+Proposal/cart creation path (requires Commerce module wiring beyond this
+slice's scope). Async malware/quarantine service (state is `basic_validated`),
+attachment progress, consent withdrawal/retention proof, and AI citation proof
 (blocked on external providers per project backlog).
 
 ## FT-10 — Inspiration Box and gift booklet

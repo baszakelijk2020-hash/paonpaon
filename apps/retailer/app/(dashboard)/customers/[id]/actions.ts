@@ -25,6 +25,7 @@ import {
 } from "@paon/domain";
 import { formatMoney } from "@paon/utils";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { getAIProvider } from "@/lib/ai";
 import { requireModuleSession } from "@/lib/module-session";
@@ -424,23 +425,50 @@ export async function decideSilhouetteAnalysisCandidate(
   revalidatePath(`/customers/${customerId}`);
 }
 
+export interface DecisionActionState {
+  formError?: string;
+}
+
+/**
+ * Returns a state object (rather than void) so the form can use
+ * useActionState — a plain `<form action={fn}>` with a void-returning
+ * action has no pending state and, observed against a real browser during
+ * FT-01 candidate/version work, was not reliably reflecting the decision
+ * on screen within a normal wait window even though the write itself
+ * always succeeded. useActionState's client-driven refresh closes that gap.
+ */
 export async function decideFitProfileCandidate(
   customerId: string,
+  _state: DecisionActionState,
   formData: FormData,
-): Promise<void> {
+): Promise<DecisionActionState> {
   await requireModuleSession("garment_service_operations");
   const candidateId = String(formData.get("candidateId") ?? "");
   const decision = String(formData.get("decision") ?? "");
   if (!candidateId || (decision !== "approved" && decision !== "rejected")) {
-    return;
+    return { formError: "Invalid decision." };
   }
 
   const client = await getSupabaseServerClient();
   const repo = new FitProfileCandidateRepository(client);
-  if (decision === "approved") {
-    await repo.approve(asId<"FitProfileCandidateId">(candidateId));
-  } else {
-    await repo.reject(asId<"FitProfileCandidateId">(candidateId));
+  try {
+    if (decision === "approved") {
+      await repo.approve(asId<"FitProfileCandidateId">(candidateId));
+    } else {
+      await repo.reject(asId<"FitProfileCandidateId">(candidateId));
+    }
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error ? error.message : "Unable to decide candidate.",
+    };
   }
   revalidatePath(`/customers/${customerId}`);
+  // redirect (not just revalidatePath) so the response the client actually
+  // gets back is a fresh navigation to this page: observed against a real
+  // browser during FT-01 candidate/version work, the write always
+  // succeeded immediately but relying on the action's own response to
+  // carry fresh RSC data was not reliably reflecting the new status on
+  // screen within a normal wait window.
+  redirect(`/customers/${customerId}`);
 }

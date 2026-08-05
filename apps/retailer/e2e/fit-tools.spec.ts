@@ -1,3 +1,4 @@
+import { createSupabaseAdminClient } from "@paon/database";
 import { expect, test } from "@playwright/test";
 
 import { TEST_OWNER_EMAIL, TEST_OWNER_PASSWORD } from "./fixtures";
@@ -122,6 +123,12 @@ test("advisor creates a fit profile candidate from observations and approves it 
   // Create an alteration work order with observations.
   await page.goto("/alterations/new");
   await page.getByLabel("Customer").selectOption({ index: 1 });
+  // Capture the selected customer's own id (the <option> value) so the
+  // later navigation targets this exact customer directly, rather than
+  // guessing from list position — the customers list is shared with every
+  // other parallel worker/spec, and a concurrently-created customer shifts
+  // "most recent" out from under a position-based guess.
+  const customerId = await page.getByLabel("Customer").inputValue();
   await page.getByLabel("Garment type").fill("Navy blazer");
   await page
     .getByLabel("Description")
@@ -148,37 +155,53 @@ test("advisor creates a fit profile candidate from observations and approves it 
   await expect(page.getByText("Observation recorded.")).toBeVisible();
   await expect(page.getByText("Kraag · -0.5")).toBeVisible();
 
-  // Navigate to customer detail to review the proposed fit profile candidate.
-  // Extract the customer ID from the URL by going back to the customer list
-  // and selecting the same customer.
-  await page.goto("/customers");
-  // The test fixtures should have consistent customer IDs.
-  // For now, just navigate to customers page and find the card.
-  await page.getByRole("link", { name: /Customer [0-9]/ }).first().click();
+  // Propose both observations as a reviewed fit profile candidate — the
+  // advisor step is a deliberate action, not an automatic side effect of
+  // recording an observation.
+  await page
+    .getByLabel("Include Neiging observation in fit profile proposal")
+    .check();
+  await page
+    .getByLabel("Include Kraag observation in fit profile proposal")
+    .check();
+  await page
+    .getByRole("button", { name: "Propose fit profile candidate" })
+    .click();
+  await expect(
+    page.getByText(
+      "Proposed. Visible on the customer's profile for advisor review.",
+    ),
+  ).toBeVisible();
+
+  // Navigate directly to the same customer's detail page to review the
+  // proposed fit profile candidate — using the id captured from the
+  // "Customer" select above, not a position-based guess against the
+  // shared customers list.
+  await page.goto(`/customers/${customerId}`);
   await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+$/);
 
   // Look for the fit profile candidate review card.
   // This should show pending candidates awaiting advisor review.
   await expect(
-    page.getByRole("heading", { name: "Fit profile candidates" })
+    page.getByRole("heading", { name: "Fit profile candidates" }),
   ).toBeVisible();
 
   const candidateCard = page
     .locator("li", { has: page.getByText("Awaiting your review") })
     .first();
   await expect(candidateCard).toBeVisible();
+  // Both observations' values are folded into the proposed measurements.
+  await expect(candidateCard.getByText("Neiging:")).toBeVisible();
+  await expect(candidateCard.getByText("Kraag:")).toBeVisible();
 
-  // Click approve button on the candidate.
+  // Click approve button on the candidate. decideFitProfileCandidate is a
+  // plain Server Action (revalidatePath, no client toast) — the proof is
+  // the status label changing on the refreshed page, not a transient
+  // message.
   await candidateCard.getByRole("button", { name: "Approve" }).click();
-  await expect(page.getByText("Candidate approved.")).toBeVisible();
-
-  // After approval, status should show "Confirmed".
-  await page.reload();
   const approvedCandidate = page
     .locator("li", {
-      has: page.getByText(
-        "Approved"
-      ),
+      has: page.getByText("Approved — awaiting client confirmation"),
     })
     .first();
   await expect(approvedCandidate).toBeVisible();
@@ -195,16 +218,10 @@ test("fit profile candidate idempotency prevents duplicate-submit (FT-01 offline
   await page.goto("/alterations/new");
   await page.getByLabel("Customer").selectOption({ index: 1 });
   await page.getByLabel("Garment type").fill("Grey wool suit jacket");
-  await page
-    .getByLabel("Description")
-    .fill("Customer-owned grey wool jacket.");
-  await page
-    .getByLabel("Intake condition")
-    .fill("Good condition.");
+  await page.getByLabel("Description").fill("Customer-owned grey wool jacket.");
+  await page.getByLabel("Intake condition").fill("Good condition.");
   await page.getByLabel("Observation area").fill("Chest");
-  await page
-    .getByLabel("Observation", { exact: true })
-    .fill("Chest is snug.");
+  await page.getByLabel("Observation", { exact: true }).fill("Chest is snug.");
   await page.getByLabel("Work-now task").fill("Let out chest");
   await page.getByRole("button", { name: "Create work order" }).click();
   await expect(page).toHaveURL(/\/alterations\/[0-9a-f-]+$/);
@@ -214,22 +231,65 @@ test("fit profile candidate idempotency prevents duplicate-submit (FT-01 offline
   await neigingRow.getByRole("button", { name: "+1.5" }).click();
   await expect(page.getByText("Observation recorded.")).toBeVisible();
 
-  // Navigate to customer detail.
-  await page.goto("/customers");
-  await page.getByRole("link", { name: /Customer [0-9]/ }).first().click();
-  await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+$/);
+  // Propose it once, then submit the exact same selection again — a real
+  // duplicate-submit (double-click, or a retried request after a lost
+  // response on a flaky connection). proposeFitProfileCandidate derives a
+  // deterministic idempotency key from the garment + observation id set,
+  // so both submits must resolve to the same underlying candidate row.
+  const checkbox = page.getByLabel(
+    "Include Neiging observation in fit profile proposal",
+  );
+  const proposeButton = page.getByRole("button", {
+    name: "Propose fit profile candidate",
+  });
+  await checkbox.check();
+  await proposeButton.click();
+  await expect(
+    page.getByText(
+      "Proposed. Visible on the customer's profile for advisor review.",
+    ),
+  ).toBeVisible();
 
-  // Look for fit profile candidates, create one by clicking "Propose Candidate"
-  // (this button would be wired up in the actual implementation).
-  // For now, this test assumes the UI exists; the actual proposal is done
-  // via the propose_fit_profile_candidate RPC.
+  await checkbox.check();
+  await proposeButton.click();
+  await expect(
+    page.getByText(
+      "Proposed. Visible on the customer's profile for advisor review.",
+    ),
+  ).toBeVisible();
 
-  // The key part: if we submit the same proposal twice with the same
-  // idempotency key, the second submission should return the existing
-  // candidate ID without creating a new row. This is verified in the
-  // database layer and confirmed by checking the database directly in
-  // the test setup/teardown.
-
-  // TODO: Implement the actual idempotency verification once the
-  // propose candidate UI is built.
+  // The database, not just the UI, must show exactly one candidate row —
+  // a client-side dedup could hide a real duplicate-insert bug. Scope by
+  // this test's own garment/observation, not customer_id: every test in
+  // this file shares the same fixture customer (all select dropdown
+  // index 1), so a customer-scoped query would also catch candidates the
+  // other tests in this file created.
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+  const alterationId = page.url().match(/\/alterations\/([0-9a-f-]+)/)?.[1];
+  if (!alterationId) throw new Error("Could not read alteration id from URL");
+  const { data: workOrder, error: workOrderError } = await admin
+    .from("alteration_work_orders")
+    .select("physical_garment_id")
+    .eq("id", alterationId)
+    .single();
+  if (workOrderError) throw workOrderError;
+  const { data: observations, error: observationsError } = await admin
+    .from("fitting_observations")
+    .select("id")
+    .eq("physical_garment_id", workOrder.physical_garment_id);
+  if (observationsError) throw observationsError;
+  const { data: links, error: linksError } = await admin
+    .from("fit_profile_candidate_observations")
+    .select("fit_profile_candidate_id")
+    .in(
+      "fitting_observation_id",
+      observations.map((observation) => observation.id),
+    );
+  if (linksError) throw linksError;
+  const uniqueCandidateIds = new Set(
+    links.map((link) => link.fit_profile_candidate_id),
+  );
+  expect(uniqueCandidateIds.size).toBe(1);
 });

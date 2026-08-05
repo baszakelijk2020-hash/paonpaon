@@ -36,6 +36,7 @@ import {
   addAlterationTask,
   addTaskNote,
   assignWorkOrder,
+  proposeFitProfileCandidate,
   recordCustodyEvent,
   recordFitToolObservation,
   recordFulfillment,
@@ -745,6 +746,16 @@ export default async function AlterationDetailPage({
                   );
                   return (
                     <div key={observation.id} className="py-2 text-sm">
+                      {canAddTask ? (
+                        <input
+                          type="checkbox"
+                          form="propose-fit-profile-form"
+                          name="observationIds"
+                          value={observation.id}
+                          aria-label={`Include ${observation.area} observation in fit profile proposal`}
+                          className="mr-2 align-middle"
+                        />
+                      ) : null}
                       <span className="font-medium">{observation.area}</span> ·{" "}
                       {observation.observation}
                       <span className="block text-xs text-[var(--color-stone-500)]">
@@ -797,6 +808,24 @@ export default async function AlterationDetailPage({
                   );
                 })}
               </div>
+            ) : null}
+            {canAddTask && fitObservations.length > 0 ? (
+              <WorkflowActionForm
+                id="propose-fit-profile-form"
+                action={proposeFitProfileCandidate.bind(
+                  null,
+                  alteration.id,
+                  alteration.physicalGarmentId,
+                )}
+                className="flex flex-wrap items-center gap-2 border-t border-[var(--color-stone-100)] pt-3"
+                submitLabel="Propose fit profile candidate"
+                pendingLabel="Proposing…"
+              >
+                <p className="w-full text-xs text-[var(--color-stone-500)]">
+                  Check one or more observations above, then propose them as a
+                  reviewed fit profile candidate on the customer&apos;s profile.
+                </p>
+              </WorkflowActionForm>
             ) : null}
           </Card>
         </div>

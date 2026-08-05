@@ -1,9 +1,8 @@
 import type { FitProfileCandidate } from "@paon/domain";
-import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 
-import { decideFitProfileCandidate } from "./actions";
+import { FitProfileCandidateDecision } from "./fit-profile-candidate-decision";
 
 const STATUS_LABELS: Record<FitProfileCandidate["status"], string> = {
   proposed: "Awaiting your review",
@@ -16,9 +15,10 @@ const STATUS_LABELS: Record<FitProfileCandidate["status"], string> = {
  * FT-01's advisor review step — the distinct reviewed FitProfile candidate/version
  * the blueprint names as not yet built. A fitting_observations row (or batch)
  * is proposed by staff as a candidate fit revision — advisor reviews it
- * against the previous approved fit and either approves (writes new
- * customer_fit_profile_entries) or rejects. This mirrors the
- * silhouette-analysis-card.tsx pattern exactly.
+ * against the previous approved fit and either approves (advancing the
+ * candidate's own status; the contributing fitting_observations rows
+ * already are the durable record under the garment-first model) or
+ * rejects. This mirrors the silhouette-analysis-card.tsx pattern exactly.
  */
 export function FitProfileCandidateCard({
   customerId,
@@ -28,7 +28,6 @@ export function FitProfileCandidateCard({
   candidates: readonly FitProfileCandidate[];
 }) {
   if (candidates.length === 0) return null;
-  const decideAction = decideFitProfileCandidate.bind(null, customerId);
 
   return (
     <Card className="flex flex-col gap-4">
@@ -56,7 +55,7 @@ export function FitProfileCandidateCard({
             </div>
             {Object.keys(candidate.proposedMeasurements).length > 0 ? (
               <div className="mt-2 border-t border-[var(--color-stone-100)] pt-2">
-                <p className="text-xs font-medium text-[var(--color-stone-600)] mb-2">
+                <p className="mb-2 text-xs font-medium text-[var(--color-stone-600)]">
                   Proposed measurements:
                 </p>
                 <ul className="space-y-1">
@@ -66,7 +65,8 @@ export function FitProfileCandidateCard({
                         key={key}
                         className="text-sm text-[var(--color-stone-700)]"
                       >
-                        {key}: <span className="font-medium">{String(value)}</span>
+                        {key}:{" "}
+                        <span className="font-medium">{String(value)}</span>
                       </li>
                     ),
                   )}
@@ -74,39 +74,10 @@ export function FitProfileCandidateCard({
               </div>
             ) : null}
             {candidate.status === "proposed" ? (
-              <div className="mt-3 flex gap-2">
-                <form action={decideAction}>
-                  <input
-                    type="hidden"
-                    name="candidateId"
-                    value={candidate.id}
-                  />
-                  <input type="hidden" name="decision" value="approved" />
-                  <button
-                    type="submit"
-                    className={buttonVariants({ size: "sm" })}
-                  >
-                    Approve
-                  </button>
-                </form>
-                <form action={decideAction}>
-                  <input
-                    type="hidden"
-                    name="candidateId"
-                    value={candidate.id}
-                  />
-                  <input type="hidden" name="decision" value="rejected" />
-                  <button
-                    type="submit"
-                    className={buttonVariants({
-                      size: "sm",
-                      variant: "outline",
-                    })}
-                  >
-                    Not this one
-                  </button>
-                </form>
-              </div>
+              <FitProfileCandidateDecision
+                customerId={customerId}
+                candidateId={candidate.id}
+              />
             ) : null}
           </li>
         ))}
