@@ -25,7 +25,6 @@ import {
 } from "@paon/domain";
 import { formatMoney } from "@paon/utils";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { getAIProvider } from "@/lib/ai";
 import { requireModuleSession } from "@/lib/module-session";
@@ -402,27 +401,49 @@ export async function dismissCaptureBundle(
   return {};
 }
 
-/** FT-02's advisor review decision — the human step, never mutating any
+/**
+ * FT-02's advisor review decision — the human step, never mutating any
  * approved-fit/measurement record. `decide_silhouette_analysis_candidate`
  * itself enforces `is_alterations_advisor()` server-side; this action
- * doesn't duplicate that check, just surfaces its rejection honestly. */
+ * doesn't duplicate that check, just surfaces its rejection honestly.
+ *
+ * Returns a state object rather than the void-returning plain-form-action
+ * shape this used before, so the client component (silhouette-analysis-
+ * decision.tsx) has a real pending state and can surface a failure
+ * inline. Does not attempt to auto-refresh the page: `redirect()` back to
+ * this same path and an explicit client-side `router.refresh()` were
+ * both tried and confirmed unreliable against a real browser — the
+ * mutation always completed with no error, but the status text did not
+ * reliably update without a hard reload. `silhouette-analysis-
+ * review.spec.ts` and `advisor-capture.spec.ts` both still `page.reload()`
+ * after this decision for that reason.
+ */
 export async function decideSilhouetteAnalysisCandidate(
   customerId: string,
+  _state: DecisionActionState,
   formData: FormData,
-): Promise<void> {
+): Promise<DecisionActionState> {
   await requireModuleSession("wardrobe_styling");
   const sessionId = String(formData.get("sessionId") ?? "");
   const decision = String(formData.get("decision") ?? "");
   if (!sessionId || (decision !== "approved" && decision !== "rejected")) {
-    return;
+    return { formError: "Invalid decision." };
   }
 
   const client = await getSupabaseServerClient();
-  await new SilhouetteAnalysisRepository(client).decideCandidate(
-    asId<"SilhouetteAnalysisSessionId">(sessionId),
-    decision,
-  );
+  try {
+    await new SilhouetteAnalysisRepository(client).decideCandidate(
+      asId<"SilhouetteAnalysisSessionId">(sessionId),
+      decision,
+    );
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error ? error.message : "Unable to decide candidate.",
+    };
+  }
   revalidatePath(`/customers/${customerId}`);
+  return {};
 }
 
 export interface DecisionActionState {
@@ -432,10 +453,15 @@ export interface DecisionActionState {
 /**
  * Returns a state object (rather than void) so the form can use
  * useActionState — a plain `<form action={fn}>` with a void-returning
- * action has no pending state and, observed against a real browser during
- * FT-01 candidate/version work, was not reliably reflecting the decision
- * on screen within a normal wait window even though the write itself
- * always succeeded. useActionState's client-driven refresh closes that gap.
+ * action has no pending state and no way to surface a failure inline.
+ * Does not attempt to auto-refresh the page after success: a bare
+ * `redirect()` back to this same `/customers/[id]` path, and separately
+ * an explicit client-side `router.refresh()`, were both tried and both
+ * confirmed unreliable against a real browser (network trace showed the
+ * mutating request complete with no error every time, but the status
+ * text not updating without a hard reload) — a genuine Next.js 15.1
+ * quirk on this route, not something either approach fixed. See
+ * `fit-tools.spec.ts`'s `page.reload()` after this decision.
  */
 export async function decideFitProfileCandidate(
   customerId: string,
@@ -464,11 +490,5 @@ export async function decideFitProfileCandidate(
     };
   }
   revalidatePath(`/customers/${customerId}`);
-  // redirect (not just revalidatePath) so the response the client actually
-  // gets back is a fresh navigation to this page: observed against a real
-  // browser during FT-01 candidate/version work, the write always
-  // succeeded immediately but relying on the action's own response to
-  // carry fresh RSC data was not reliably reflecting the new status on
-  // screen within a normal wait window.
-  redirect(`/customers/${customerId}`);
+  return {};
 }

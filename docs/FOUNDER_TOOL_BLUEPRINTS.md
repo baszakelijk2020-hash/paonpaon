@@ -302,33 +302,35 @@ so a real duplicate-submit — double-click, retried request — resolves to
 the same candidate rather than a second row) and approves/rejects it from
 the customer profile. A second real bug surfaced wiring that same review
 card: its Approve/Reject forms were plain `<form action={fn}>` calls with
-no `useActionState`, and the write always completed correctly but the
-page did not reliably show the new status without a manual reload; fixed
-by moving the decision to its own `useActionState`-backed client
-component whose action redirects back to the same page on success (also
-found: `apps/retailer/app/(dashboard)/customers/[id]/silhouette-analysis-card.tsx`
-uses the identical plain-form pattern for FT-02's own review card and
-likely shares this gap — named here, not fixed, out of scope for FT-01).
+no `useActionState`, so there was no pending state and no way to surface
+a failure; fixed by moving the decision to its own `useActionState`-backed
+client component. The write itself always completed correctly, but the
+page still did not reliably show the new status afterward — two
+different auto-refresh fixes (`redirect()` back to the same path, and an
+explicit client-side `router.refresh()`) were each tried and each
+confirmed unreliable by repeated real-browser runs, a genuine Next.js
+15.1 quirk on this route rather than something either approach fixed. The
+2026-08-06 fix below (same real bug, found again wiring FT-02's identical
+card, `apps/retailer/app/(dashboard)/customers/[id]/silhouette-analysis-card.tsx`)
+found the actual cause: it was never the framework, it was
+`fit-tools.spec.ts` itself calling `page.reload()` immediately after
+`.click()`, which resolves once the click dispatches, not once the
+underlying fetch completes — an occasional fast reload raced the
+mutation and reloaded the pre-decision page. Fixed by waiting for the
+mutating response before reloading; 30/30 clean across repeated runs
+afterward, including the one that had intermittently failed before.
 Proof: `apps/retailer/e2e/fit-tools.spec.ts`'s four tests now exercise the
-real UI end to end (propose → review card renders → approve → status
-label updates; a genuine duplicate-submit proposes the same observation
-set twice through the real form and a direct database assertion — not
-just the UI — confirms exactly one candidate row). Full retailer
-lint/typecheck clean; `supabase test db` 160/160; targeted regression
-across `silhouette-analysis-review.spec.ts`, `alteration-add-task.spec.ts`,
-`customer-rankings.spec.ts`, `message-attachments.spec.ts`,
-`wedding-party-coordination.spec.ts` and `module-navigation.spec.ts`
-green. Real advisor fit-comparison rendering, customer-side capture and
-supplier write-back remain the honestly-named gaps above.
-Noted, not chased further: the "advisor creates a fit profile candidate"
-spec intermittently timed out waiting for the approved status label
-(~2 of 9 observed runs), every time as the very first heavy render
-immediately after a fresh `supabase db reset` — never on a warm rerun of
-the identical test, and the database write itself was always already
-correct (confirmed directly) within a second regardless. Consistent with
-this suite's own documented Server-Action-round-trip timeout headroom
-(`playwright.config.ts`), not a data or logic defect; not reproduced in a
-normal warm run and out of proportion to chase further here.
+real UI end to end (propose → review card renders → approve → reload →
+status label updates; a genuine duplicate-submit proposes the same
+observation set twice through the real form and a direct database
+assertion — not just the UI — confirms exactly one candidate row). Full
+retailer lint/typecheck clean; `supabase test db` 160/160; targeted
+regression across `silhouette-analysis-review.spec.ts`,
+`alteration-add-task.spec.ts`, `customer-rankings.spec.ts`,
+`message-attachments.spec.ts`, `wedding-party-coordination.spec.ts` and
+`module-navigation.spec.ts` green. Real advisor fit-comparison rendering,
+customer-side capture and supplier write-back remain the honestly-named
+gaps above.
 
 ## FT-02 — Silhouette analysis
 
@@ -423,6 +425,22 @@ capture row is deleted; the underlying storage object is not — no
 automated storage-cleanup job exists anywhere in this codebase to
 extend), and individual analysis/prediction (Level 2/3, explicitly out
 of scope per this blueprint's own text).
+**Fix (2026-08-06):** the retailer review card's Approve/Reject was a
+plain `<form action={fn}>` with no pending state and no way to surface a
+failure — the write always succeeded but, per this file's own test
+comment, the page never reflected it without a manual reload. Moved to a
+`useActionState`-backed `SilhouetteAnalysisDecision` component (mirroring
+FT-01's equivalent fix). An explicit `redirect()` back to the same page
+and a client-side `router.refresh()` were both tried first and both
+confirmed unreliable by repeated real-browser runs (the mutating request
+always completed with no error; the status text still would not update).
+The real, separate bug this surfaced: `silhouette-analysis-review.spec.ts`
+called `page.reload()` immediately after `.click()`, which resolves once
+the click dispatches, not once the underlying fetch completes — a fast
+enough reload raced the mutation and reloaded the pre-decision page. Fixed
+by waiting for the mutating response before reloading; 30/30 clean across
+repeated runs afterward. The manual reload itself remains necessary and is
+not a workaround being removed, only correctly sequenced.
 
 ## FT-03 — QR try-on and fabric-batch concept order
 

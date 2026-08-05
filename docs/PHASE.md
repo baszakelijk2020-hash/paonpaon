@@ -995,6 +995,18 @@ orchestrator.ts` was the only other one still uncovered (the
     UI (propose, review, approve, and a genuine duplicate-submit verified
     against the database, not just the screen); pgTAP 160/160; targeted
     retailer regression across six other specs green.
+    FT-02 Silhouette analysis had the identical Approve/Reject reliability
+    gap on its own review card (same plain-form-with-no-pending-state
+    shape); fixed the same way. Wiring it found the actual root cause
+    behind the intermittent timeout noted above for FT-01's card, which
+    had been provisionally attributed to environment cold-start: it was
+    never the framework, it was the test calling `page.reload()`
+    immediately after `.click()`, which resolves once the click
+    dispatches, not once the underlying mutation's fetch completes — an
+    occasionally-fast reload raced the write and reloaded the pre-decision
+    page. Fixed in both specs by waiting for the mutating response before
+    reloading; 30 repeated runs across both cards afterward were clean.
+    Full detail in `FOUNDER_TOOL_BLUEPRINTS.md`'s FT-02 entry.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

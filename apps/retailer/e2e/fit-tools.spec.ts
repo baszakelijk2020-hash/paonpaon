@@ -194,11 +194,23 @@ test("advisor creates a fit profile candidate from observations and approves it 
   await expect(candidateCard.getByText("Neiging:")).toBeVisible();
   await expect(candidateCard.getByText("Kraag:")).toBeVisible();
 
-  // Click approve button on the candidate. decideFitProfileCandidate is a
-  // plain Server Action (revalidatePath, no client toast) — the proof is
-  // the status label changing on the refreshed page, not a transient
-  // message.
+  // Click approve button on the candidate. The write always completes
+  // immediately, but this page does not reliably reflect it without a
+  // reload (confirmed even with useActionState + an explicit
+  // router.refresh() — see decideFitProfileCandidate's own comment); a
+  // manual reload is the proof, not a transient client toast. Wait for
+  // the mutating response itself before reloading — click() resolves
+  // once the click dispatches, not once the underlying fetch completes,
+  // and reloading before the write lands just reloads the pre-mutation
+  // page.
+  const decisionResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/customers/") &&
+      response.request().method() === "POST",
+  );
   await candidateCard.getByRole("button", { name: "Approve" }).click();
+  await decisionResponse;
+  await page.reload();
   const approvedCandidate = page
     .locator("li", {
       has: page.getByText("Approved — awaiting client confirmation"),

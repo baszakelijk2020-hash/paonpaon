@@ -109,12 +109,21 @@ test("an advisor approves a client's submitted silhouette photo", async ({
       page.getByRole("img", { name: "Client submission" }),
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Approve" }).click();
     // This page's writes don't visibly reflect via the Server Action's
-    // own automatic revalidation without a reload — same established
-    // pattern as advisor-capture.spec.ts on this exact page (which
-    // polls the database rather than the DOM right after its own
-    // clicks, then reloads before checking rendered text).
+    // own automatic revalidation without a reload — confirmed still true
+    // even after moving this decision to useActionState with an explicit
+    // router.refresh() (see decideSilhouetteAnalysisCandidate's own
+    // comment); same established pattern as advisor-capture.spec.ts on
+    // this exact page. Wait for the mutating response itself before
+    // reloading — click() resolves once the click dispatches, not once
+    // the underlying fetch completes.
+    const decisionResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes("/customers/") &&
+        response.request().method() === "POST",
+    );
+    await page.getByRole("button", { name: "Approve" }).click();
+    await decisionResponse;
     await page.reload();
     await expect(
       page.getByText("Approved — awaiting client confirmation"),
