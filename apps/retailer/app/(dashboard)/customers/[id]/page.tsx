@@ -47,6 +47,7 @@ import { AdvisorCapture } from "./advisor-capture";
 import { AdvisorPreparationBriefCard } from "./advisor-preparation-brief";
 import { AdvisorRectangleCapture } from "./advisor-rectangle-capture";
 import { AIInsights } from "./ai-insights";
+import { CartSoftCloseCard } from "./cart-soft-close-card";
 import { ClientelingOpportunityInbox } from "./clienteling-opportunity-inbox";
 import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
@@ -144,6 +145,13 @@ export default async function CustomerDetailPage({
     new WardrobeRoadmapRepository(supabase).findByCustomer(customer.id),
     new SuitConfiguratorRepository(supabase).findRecentByCustomer(customer.id),
   ]);
+
+  const orderRepo = new OrderRepository(supabase);
+  const draftCart = await orderRepo.findCart(session.retailerId, customer.id);
+  const draftCartLines = draftCart
+    ? await orderRepo.findLinesByOrder(draftCart.id)
+    : [];
+
   const wardrobeRepo = new WardrobeRepository(supabase);
   const wardrobeLifecycleRepo = new WardrobeLifecycleRepository(supabase);
   const wardrobeHistoryEntries = await Promise.all(
@@ -706,6 +714,16 @@ export default async function CustomerDetailPage({
           </Card>
         )}
       </div>
+
+      {draftCart && retailer ? (
+        <CartSoftCloseCard
+          cart={draftCart}
+          lineCount={draftCartLines.length}
+          customerAppUrl={`${customerAppBase}/r/${retailer.slug}/cart`}
+          {...(customer.phone ? { phone: customer.phone } : {})}
+          {...(customer.email ? { email: customer.email } : {})}
+        />
+      ) : null}
 
       <CustomerWardrobeCard
         customerId={customer.id}

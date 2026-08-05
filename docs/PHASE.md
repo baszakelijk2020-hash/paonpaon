@@ -4339,7 +4339,22 @@ now.
   - **Hard blockers:** live payment capture is already `blocked_external`
     on ADR-062 (13.3) — this item's UX layer can be built provider-neutral
     now, but no real charge can flow until that decision lands.
-  - **Status:** not started.
+  - **Status (2026-08-05):** `verified_local` for the soft-close deep-
+    link core. The customer's `orders` "draft" row is already a real,
+    server-persisted cart (digital-to-physical persistence needed no
+    new schema). New `CartSoftCloseCard` on the retailer's customer page
+    surfaces it — item count, total, and a real SMS/WhatsApp/Email deep
+    link to the customer's own `/r/[slug]/cart` page, reusing 17.9's
+    `ChannelContactButtons`/`buildChannelContactLinks` rather than a
+    second link builder — so the advisor sends a review-and-pay gesture
+    to the customer's own device instead of ringing up a register sale.
+    No card renders when there's no draft cart (e2e-proven, not a
+    fabricated empty state). Checkbox left unchecked: real payment
+    capture stays `blocked_external` on ADR-062 (13.3) exactly as
+    flagged above — the customer still completes payment through the
+    existing storefront checkout, unchanged by this card; tap-to-pay/
+    mobile-POS terminal hand-off is not attempted (needs real terminal
+    hardware/SDK, a genuinely separate integration).
 
 - [ ] **17.13 QR wardrobe card**
   - **Requirement IDs:** ADV-113.
