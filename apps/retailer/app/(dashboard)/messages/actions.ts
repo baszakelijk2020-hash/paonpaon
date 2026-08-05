@@ -1,6 +1,9 @@
 "use server";
 import { requireRetailerRole } from "@paon/auth";
-import { MessagingRepository } from "@paon/database";
+import {
+  AppointmentRepository,
+  MessagingRepository,
+} from "@paon/database";
 import {
   asId,
   sendMessageSchema,
@@ -89,4 +92,40 @@ export async function linkConversationOutcome(formData: FormData) {
     outcomeOrderId: orderId,
   });
   revalidatePath("/messages");
+}
+
+/**
+ * FT-09: Book an appointment directly from within a consultation thread.
+ * A retailer staff member can click a button to create an appointment
+ * linked to the conversation, with the thread recorded as the origin
+ * for provenance and visibility.
+ */
+export async function bookAppointmentFromConsultation(
+  formData: FormData,
+): Promise<string> {
+  const session = await requireModuleSession("relationship_intelligence");
+  requireRetailerRole(session.retailerRole, "sales_associate");
+
+  const conversationId = String(formData.get("conversationId") ?? "");
+  const appointmentType = String(formData.get("type") ?? "");
+  const startsAt = String(formData.get("startsAt") ?? "");
+  const endsAt = String(formData.get("endsAt") ?? "");
+  const notes = String(formData.get("notes") ?? "") || undefined;
+
+  if (!conversationId || !appointmentType || !startsAt || !endsAt) {
+    throw new Error("Missing required appointment fields");
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const appointmentId = await new AppointmentRepository(supabase)
+    .bookFromConsultation({
+      conversationId,
+      type: appointmentType as never,
+      startsAt,
+      endsAt,
+      notes,
+    });
+
+  revalidatePath("/messages");
+  return appointmentId;
 }
