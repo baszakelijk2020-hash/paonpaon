@@ -4102,6 +4102,8 @@ export type Database = {
         Row: {
           account_id: string;
           active: boolean;
+          contract_value_currency: string | null;
+          contract_value_minor_units: number | null;
           created_at: string;
           deleted_at: string | null;
           id: string;
@@ -4113,6 +4115,8 @@ export type Database = {
         Insert: {
           account_id: string;
           active?: boolean;
+          contract_value_currency?: string | null;
+          contract_value_minor_units?: number | null;
           created_at?: string;
           deleted_at?: string | null;
           id?: string;
@@ -4124,6 +4128,8 @@ export type Database = {
         Update: {
           account_id?: string;
           active?: boolean;
+          contract_value_currency?: string | null;
+          contract_value_minor_units?: number | null;
           created_at?: string;
           deleted_at?: string | null;
           id?: string;
@@ -5911,6 +5917,136 @@ export type Database = {
         };
         Relationships: [];
       };
+      fit_profile_candidate_actions: {
+        Row: {
+          action: string;
+          action_by_staff_id: string | null;
+          created_at: string;
+          fit_profile_candidate_id: string;
+          id: string;
+          note: string | null;
+        };
+        Insert: {
+          action: string;
+          action_by_staff_id?: string | null;
+          created_at?: string;
+          fit_profile_candidate_id: string;
+          id?: string;
+          note?: string | null;
+        };
+        Update: {
+          action?: string;
+          action_by_staff_id?: string | null;
+          created_at?: string;
+          fit_profile_candidate_id?: string;
+          id?: string;
+          note?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fit_profile_candidate_actions_action_by_staff_id_fkey";
+            columns: ["action_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fit_profile_candidate_actions_fit_profile_candidate_id_fkey";
+            columns: ["fit_profile_candidate_id"];
+            isOneToOne: false;
+            referencedRelation: "fit_profile_candidates";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      fit_profile_candidate_observations: {
+        Row: {
+          fit_profile_candidate_id: string;
+          fitting_observation_id: string;
+        };
+        Insert: {
+          fit_profile_candidate_id: string;
+          fitting_observation_id: string;
+        };
+        Update: {
+          fit_profile_candidate_id?: string;
+          fitting_observation_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fit_profile_candidate_observation_fit_profile_candidate_id_fkey";
+            columns: ["fit_profile_candidate_id"];
+            isOneToOne: false;
+            referencedRelation: "fit_profile_candidates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fit_profile_candidate_observations_fitting_observation_id_fkey";
+            columns: ["fitting_observation_id"];
+            isOneToOne: false;
+            referencedRelation: "fitting_observations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      fit_profile_candidates: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          fitting_session_id: string | null;
+          id: string;
+          idempotency_key: string;
+          proposed_measurements: Json;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          fitting_session_id?: string | null;
+          id?: string;
+          idempotency_key: string;
+          proposed_measurements?: Json;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          fitting_session_id?: string | null;
+          id?: string;
+          idempotency_key?: string;
+          proposed_measurements?: Json;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fit_profile_candidates_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fit_profile_candidates_fitting_session_id_fkey";
+            columns: ["fitting_session_id"];
+            isOneToOne: false;
+            referencedRelation: "fitting_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fit_profile_candidates_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       fitting_observations: {
         Row: {
           area: string;
@@ -5922,6 +6058,7 @@ export type Database = {
           physical_garment_id: string;
           recorded_by_staff_id: string | null;
           retailer_id: string;
+          supersedes_observation_id: string | null;
         };
         Insert: {
           area: string;
@@ -5933,6 +6070,7 @@ export type Database = {
           physical_garment_id: string;
           recorded_by_staff_id?: string | null;
           retailer_id: string;
+          supersedes_observation_id?: string | null;
         };
         Update: {
           area?: string;
@@ -5944,6 +6082,7 @@ export type Database = {
           physical_garment_id?: string;
           recorded_by_staff_id?: string | null;
           retailer_id?: string;
+          supersedes_observation_id?: string | null;
         };
         Relationships: [
           {
@@ -5972,6 +6111,13 @@ export type Database = {
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fitting_observations_supersedes_observation_id_fkey";
+            columns: ["supersedes_observation_id"];
+            isOneToOne: false;
+            referencedRelation: "fitting_observations";
             referencedColumns: ["id"];
           },
         ];
@@ -18123,6 +18269,10 @@ export type Database = {
         Args: { p_limit?: number };
         Returns: number;
       };
+      approve_fit_profile_candidate: {
+        Args: { p_candidate_id: string; p_note?: string };
+        Returns: undefined;
+      };
       assert_pos_actor: { Args: { p_retailer_id: string }; Returns: undefined };
       assert_retailer_module_dependencies: {
         Args: { p_retailer_id: string };
@@ -18270,6 +18420,10 @@ export type Database = {
         Args: { p_plan_id: string };
         Returns: undefined;
       };
+      confirm_fit_profile_candidate: {
+        Args: { p_candidate_id: string };
+        Returns: undefined;
+      };
       confirm_silhouette_analysis_candidate: {
         Args: { p_session_id: string };
         Returns: undefined;
@@ -18319,11 +18473,7 @@ export type Database = {
         Returns: undefined;
       };
       decide_silhouette_analysis_candidate: {
-        Args: {
-          p_decision: string;
-          p_note?: string;
-          p_session_id: string;
-        };
+        Args: { p_decision: string; p_note?: string; p_session_id: string };
         Returns: undefined;
       };
       enqueue_campaign_delivery_notification: {
@@ -18584,6 +18734,14 @@ export type Database = {
         };
         Returns: string;
       };
+      propose_fit_profile_candidate: {
+        Args: {
+          p_idempotency_key: string;
+          p_observation_ids: string[];
+          p_proposed_measurements: Json;
+        };
+        Returns: string;
+      };
       propose_wedding_date_candidate: {
         Args: { p_candidate_date: string; p_wedding_party_id: string };
         Returns: string;
@@ -18841,6 +18999,10 @@ export type Database = {
         Returns: Json;
       };
       redeem_my_reward: { Args: { p_reward_id: string }; Returns: string };
+      reject_fit_profile_candidate: {
+        Args: { p_candidate_id: string; p_note?: string };
+        Returns: undefined;
+      };
       remove_inferred_style_preference: {
         Args: {
           p_concept_id: string;

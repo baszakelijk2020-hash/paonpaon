@@ -8,7 +8,7 @@ import {
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
-import type { Database } from "../generated/database.types";
+import type { Database, Json } from "../generated/database.types";
 
 type FitProfileCandidateRow =
   Database["public"]["Tables"]["fit_profile_candidates"]["Row"];
@@ -113,7 +113,7 @@ export class FitProfileCandidateRepository {
       "propose_fit_profile_candidate",
       {
         p_observation_ids: params.observationIds,
-        p_proposed_measurements: params.proposedMeasurements,
+        p_proposed_measurements: params.proposedMeasurements as unknown as Json,
         p_idempotency_key: params.idempotencyKey,
       },
     );
@@ -127,7 +127,7 @@ export class FitProfileCandidateRepository {
   ): Promise<void> {
     const { error } = await this.client.rpc("approve_fit_profile_candidate", {
       p_candidate_id: candidateId,
-      p_note: note ?? null,
+      ...(note ? { p_note: note } : {}),
     });
     if (error) throw error;
   }
@@ -138,7 +138,7 @@ export class FitProfileCandidateRepository {
   ): Promise<void> {
     const { error } = await this.client.rpc("reject_fit_profile_candidate", {
       p_candidate_id: candidateId,
-      p_note: note ?? null,
+      ...(note ? { p_note: note } : {}),
     });
     if (error) throw error;
   }
