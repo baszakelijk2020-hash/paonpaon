@@ -10,43 +10,171 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-05 Multi-lane parallel work + Stage 17 continued (READ FIRST — supersedes the section below)
+## 2026-08-05 Multi-lane parallel work + Stage 17/18 sweep — session handoff (READ FIRST — supersedes every section below)
 
-Two agent lanes now exist, per the new "Multi-lane parallel work" section
-in `AGENTS.md`:
+### Lanes
+
+Two agent lanes exist, per the "Multi-lane parallel work" section now in
+`AGENTS.md`:
 
 - **Lane A** (this section's author): branch
   `agent/grok-takeover-2026-07-30` (the pre-existing, authorized task
   branch — unchanged name/role). Scope: Stage 17 (advisor intelligence)
-  and Stage 18 remainder, i.e. whatever this lane was already doing.
+  and Stage 18 (corporate business development) remainder.
 - **Lane B**: branch `agent/lane-b-stage15-lifestyle-network`, forked
   from `agent/grok-takeover-2026-07-30` at `2a05777` (2026-08-05), pushed
-  to origin. Scope: Stage 15 (Lifestyle network and MunroMerchant),
-  items 15.1–15.5 — all `implemented_unverified` at fork time (domain +
-  schema real, no UI/browser proof), tables disjoint from Lane A's work
-  (`network_attribution_events`, `advertising_events`, `munro_merchant`,
-  rewards tables vs. Lane A's `fabric_lining_rules`,
-  `academy_roleplay_grades.persona_key`, `wardrobe_items.public_token`,
-  `communication-channel.ts`, `customer-segmentation.ts`,
-  `appointment-brief.ts`). Lane B's job: take 15.1–15.5 the rest of the
-  way to `verified_local` (Playwright browser proof), following the same
-  two-commit/evidence-discipline pattern as every other item.
-
-Since fork, Lane A has continued: **17.8** (sales-academy roleplay
-persona catalogue + grading, `verified_local` for the buildable half —
-live AI conversation stays `blocked_external`/unbuilt) and **17.9**
-(omnichannel communication hub's deep-link core — `sms:`/`wa.me`/
-`mailto:` links into the advisor's own device, zero provider credentials
-— `verified_local` for that half; live provider sending stays
-`blocked_external`), and **17.13** (QR wardrobe card anonymous public
-reveal — `resolve_wardrobe_item_public`, new
-`/r/[slug]/wardrobe/[token]` page, real retire/re-order actions, sign-in
-deep link for the rest — `verified_local`; alteration/cleaning booking,
-fit-check-photo → Self-Portrait updates, complete-the-look and the
-"unattached item" scenario are named gaps, not attempted).
+  to origin, not yet checked for progress by this lane. Scope: Stage 15
+  (Lifestyle network and MunroMerchant), items 15.1–15.5 — all
+  `implemented_unverified` at fork time, tables disjoint from Lane A's
+  work. Job: take 15.1–15.5 to `verified_local` (Playwright browser
+  proof), same two-commit/evidence pattern as everything else.
 
 Do not duplicate Lane B's Stage 15 work from Lane A, and vice versa —
 check which lane/branch a resuming session is on before picking an item.
+
+### What Lane A shipped this session (all `verified_local` or better, pushed)
+
+Each item below: two-commit pattern (feature commit, then a separate
+evidence commit at the rebuilt HEAD), 2/2 green Playwright runs before
+the evidence commit, domain suite green throughout (ended at 1033+
+tests), repo-wide `lint`/`typecheck` clean at every step.
+
+- **17.8** Sales-academy AI roleplay personas — catalogue + grading
+  half `verified_local`; live AI conversation stays
+  `blocked_external`/unbuilt.
+- **17.9** Omnichannel communication hub — `sms:`/`wa.me`/`mailto:`
+  deep links into the advisor's own device (zero provider credentials)
+  `verified_local`; live provider sending stays `blocked_external`.
+- **17.13** QR wardrobe card — anonymous opaque-token public reveal
+  (`resolve_wardrobe_item_public`, same pattern as
+  `resolve_gift_invitation`/`resolve_corporate_tender`), new
+  `/r/[slug]/wardrobe/[token]` page, real retire/re-order actions,
+  sign-in deep link for the rest. Named gaps: alteration/cleaning
+  booking, fit-check-photo → Self-Portrait updates, complete-the-look,
+  "unattached item" scenario — none attempted.
+- **17.12** Ambient/frictionless checkout — `CartSoftCloseCard` surfaces
+  a customer's real draft cart (`orders.status = 'draft'`, already
+  digital-to-physical) with a real SMS/WhatsApp/Email deep link to their
+  own cart page, reusing 17.9's channel-link infra. Real payment capture
+  stays `blocked_external` on ADR-062; tap-to-pay/mobile-POS hand-off
+  not attempted.
+- **17.10** MorningRoutine "Coming up" card — `selectUpcomingOccasions`
+  reuses 10.4's existing `evaluateRelationshipDateWindow`/
+  `nextYearlyOccurrence` recurrence math against Self-Portrait's
+  `customer_facts` (anniversary/wedding_date/occasion/travel_window),
+  no new fact schema. **Correction of a bad research claim**: a
+  subagent first reported "Self-Portrait doesn't exist in the
+  codebase" — false; it's substantial (`self-portrait.tsx`,
+  `advisor-capture.ts`, `customer_facts`). Verify subagent research
+  against the actual codebase before trusting a "doesn't exist" claim.
+  Complete-the-look, `VirtualTryOnProvider`, the AI usage/budget
+  ledger, and all real generation remain unbuilt (`blocked_external`
+  live path).
+- **18.4** Corporate office-visit requests — closed this item's own
+  named gap. "Scheduled" now books a real `appointments` row (not just
+  a status label) when the requester left a contact email: finds-or-
+  creates a real `customers` row by email (new
+  `CustomerRepository.findByEmail`) and books via the existing
+  appointment domain — a scheduled office visit is a real person
+  engaging the retailer directly, exactly what `customers` already
+  models (deliberately **not** 18.6's rejected per-wearer shadow-
+  customer pattern, which was for a different, bulk-census case).
+  Checkbox still unchecked: the _public_ page still only submits a
+  lead — a staff member picks the time from the retailer side, not
+  live self-service booking as the acceptance line's literal wording
+  asks for; "measurement capture" from the page is also unbuilt.
+
+### Real gap found: `customer_facts` has no DELETE grant for any role
+
+Discovered while building 17.10's e2e spec: `customer_facts` grants
+`select, insert, update` to `authenticated, service_role` only — no
+`DELETE` at all, for anyone, including `service_role` (confirmed via a
+direct `curl` against PostgREST: `42501 permission denied`). This is
+deliberate (append-only/soft-delete-via-`deleted_at` by design,
+matching this table's `superseded_by_fact_id` semantics), not a bug.
+**Any future e2e spec that seeds `customer_facts` must clean up via
+`update({ deleted_at: ... })`, never `.delete()`** — a plain `.delete()`
+call fails silently in a fire-and-forget `finally` block (no `error`
+check), leaving orphaned rows behind. `apps/retailer/e2e/advisor-capture.spec.ts`
+has this exact latent bug in its own cleanup (`.from("customer_facts").delete()`)
+— not fixed here (out of scope for this session's own work), but worth
+a look next time that spec is touched.
+
+### Stage 17/18 buildable backlog is now exhausted without external unblocks or a founder decision
+
+Read every remaining unchecked Stage 17/18 item's full status text this
+session (not just the checkbox) before concluding this. What's left:
+
+- **17.7** (per-customer MTM price lists) — parked, its own stated
+  dependency (an "MTM pricing engine") doesn't exist anywhere in the
+  codebase.
+- **17.11** (supplier-CRM import) — its own status text says "needs its
+  own scoping pass before implementation begins." Not attempted.
+- **17.1, 18.10, 18.11** — `verified_local` for everything except a
+  live external provider/data-source call, which is genuinely
+  `blocked_external` in this environment (no `OPENAI_API_KEY`, no
+  external signal-source access). Checkbox correctly stays unchecked;
+  there is nothing further to build here without a real credential.
+- **18.3, 18.5, 18.8, 18.9, 18.13** — each `verified_local` with a
+  specific, legitimately-scoped remaining gap already named in its own
+  status text (18.3: no TTL policy was ever specified, so none was
+  invented; 18.9: no `contract_value`/`repair` field exists anywhere in
+  the schema; 18.13: deliberately proceeded past its own literal
+  "18.1–18.12 all complete" dependency line, named as a judgment call).
+  **18.8 specifically** has a real, reproduced, _not-yet-solved_ bug:
+  an Employee Portal wearer's Server Action POST is redirected to
+  `/employee/login` by this app's own middleware despite the
+  immediately-preceding GET on the same URL correctly resolving as
+  that wearer — investigated at length (ruled out session expiry, a
+  stale `refreshSession()` call, and the equivalent shopper flow, which
+  works fine). **Do not re-attempt without new information** — the
+  next real step is CDP-level network/cookie tracing this session's
+  Playwright instrumentation couldn't reach, not another guess.
+- **18.7** (production/QC/distribution/launch auto-wiring) —
+  investigated this session and found to be **not** a quick wiring
+  task: `orders`/`production_pieces` have **no FK or column linking
+  them to `corporate_programmes`/`corporate_wearers` at all**, and
+  `order_status` has no distinct "QC" state. Auto-wiring these 5
+  checkpoints to "real Stage 12 objects" as the item's own dependency
+  line asks for would require inventing a new
+  programme↔order/production linkage with real, unspecified design
+  ambiguity (per-wearer orders vs. one combined programme order; what
+  "launch" even means at the object level) — a founder decision, not
+  an engineering judgment call this session was positioned to make
+  safely. Left alone; flag for founder scoping before attempting.
+
+### R0.1–R0.3 reading note
+
+`PHASE.md`'s own top instruction reads "take the first unchecked item
+here," and R0.1/R0.2/R0.3 are still `[ ]`. **This does not mean stop
+and work R0.1 next** — read the surrounding sentence: R0.1/R0.2 gate
+_live-data/deployment_ and _stock/money_ operations specifically, and
+R0.3 gates resuming a **legacy Stage 9–16** item specifically (per
+`AGENTS.md`'s own "do not continue a legacy Stage 9–16 item until R0.3
+maps it" line). Stage 17/18 are the newest founder-directed additions,
+not legacy, so they're unaffected by the R0.3 gate — confirmed by the
+fact that this and prior sessions have legitimately built through most
+of Stage 17/18 already. R0.1/R0.2's own remaining gaps are themselves
+external (a Vercel-protected production project reference, a founder
+cash-policy decision) — not locally buildable either.
+
+### Pick up here
+
+With Stage 17/18's freely-buildable backlog exhausted, the real
+options for a resuming session are, in rough priority order:
+
+1. Check in on **Lane B**'s progress (`agent/lane-b-stage15-lifestyle-network`)
+   and merge/reconcile per `AGENTS.md`'s multi-lane protocol.
+2. Get a founder decision on **18.7**'s real scope question (order
+   granularity per wearer vs. per programme) before attempting it.
+3. Pivot to **R0.3**'s legacy Stage 9–16 mapping work — large,
+   different-shaped task (an audit/mapping effort, not a crisp vertical
+   slice), already has substantial prior-session investment
+   (`CAPABILITY_DISPOSITION.md`, `FOUNDER_TOOL_BLUEPRINTS.md`) — read
+   R0.3's full status block in `PHASE.md` before starting.
+4. Get external credentials (OpenAI key, live signal-source access,
+   Vercel production project confirmation) to unblock 17.1/17.10/18.10/
+   18.11/R0.1's remaining gaps.
 
 ## 2026-08-05 Stage 17 advisor-intelligence sweep — session handoff
 
