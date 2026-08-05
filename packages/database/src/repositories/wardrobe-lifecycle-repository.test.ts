@@ -182,6 +182,7 @@ describe("WardrobeLifecycleRepository", () => {
         ),
         createdAt: "2026-01-01T00:00:00.000Z",
         updatedAt: "2026-01-01T00:00:00.000Z",
+        publicToken: "66666666-6666-4666-8666-666666666666",
       },
       "2026-07-30T12:00:00.000Z",
     );

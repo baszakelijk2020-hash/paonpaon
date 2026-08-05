@@ -37,6 +37,7 @@ const itemRow: WardrobeItemRow = {
   created_at: "2026-07-30T00:00:00.000Z",
   updated_at: "2026-07-30T00:00:00.000Z",
   deleted_at: null,
+  public_token: "33333333-3333-4333-8333-333333333333",
 };
 
 const catalogueRow: WardrobeItemRow = {

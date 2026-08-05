@@ -121,6 +121,9 @@ export interface WardrobeItem extends Timestamps {
   readonly createdByStaffId?: StaffId;
   readonly retiredAt?: string;
   readonly deletedAt?: string;
+  /** Permanent opaque token for the QR wardrobe card's anonymous public
+   * reveal (PHASE 17.13 / ADV-113) — never the customer's identity. */
+  readonly publicToken: string;
 }
 
 export interface WardrobeOwnershipEvent {

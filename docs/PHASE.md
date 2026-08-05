@@ -4353,7 +4353,30 @@ now.
     item-specific complete-the-look).
   - **Non-goals:** never requires an account to see the item's own
     information from the scan.
-  - **Status:** not started.
+  - **Status (2026-08-05):** `verified_local` for the physical-to-
+    digital bridge itself (browser proof below); the wider spec's
+    remaining pieces (named below) are unbuilt. `wardrobe_items` gained
+    a permanent `public_token` (same
+    anonymous opaque-token SECURITY DEFINER pattern as
+    `resolve_gift_invitation`/`resolve_corporate_tender`) and
+    `resolve_wardrobe_item_public` returns the garment's own curated
+    info only — never the owning customer's name/email — plus the
+    linked product's slug when one exists. New
+    `/r/[slug]/wardrobe/[token]` page (apps/customer) renders it
+    logged-out. Real, working actions: **retire** (reuses
+    `WardrobeRepository.retire`, not duplicated) and **re-order**
+    (real link to the linked catalogue product's own page when
+    `productId` is set). **Ask advisor** is not a dedicated button on
+    this anonymous page — the page instead deep-links "Recognize this
+    item? Sign in to manage it" to `/login?redirectTo=/wardrobe`, the
+    existing full authenticated wardrobe dashboard, which already has
+    messaging. Checkbox left unchecked: **alteration/cleaning
+    booking**, the **periodic fit-check photo → Self-Portrait update**,
+    **item-specific complete-the-look**, and the spec's **unattached
+    (logged-out-created) item** scenario are all real gaps, not
+    attempted — the current schema requires a non-null `customerId` on
+    every wardrobe item, so "unattached" isn't representable without a
+    schema change this slice didn't make.
 
 ### Stage 18 — Corporate business development, tenders, and rollout (Métier expansion)
 

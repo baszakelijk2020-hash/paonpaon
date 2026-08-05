@@ -77,7 +77,23 @@ function toItem(row: WardrobeItemRow): WardrobeItem {
     ...(row.deleted_at ? { deletedAt: row.deleted_at } : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    publicToken: row.public_token,
   };
+}
+
+export interface WardrobeItemPublicReveal {
+  readonly retailerDisplayName: string;
+  readonly retailerSlug: string;
+  readonly itemId: string;
+  readonly categoryCode: string;
+  readonly displayName: string;
+  readonly brand: string | null;
+  readonly description: string | null;
+  readonly condition: string;
+  readonly careState: string;
+  readonly identifyingPhotoUrl: string | null;
+  readonly retired: boolean;
+  readonly productSlug: string | null;
 }
 
 function toEvent(row: WardrobeOwnershipEventRow): WardrobeOwnershipEvent {
@@ -335,5 +351,20 @@ export class WardrobeRepository {
       .single();
     if (error) throw error;
     return toItem(data);
+  }
+
+  /** Anonymous, opaque-token reveal (`resolve_wardrobe_item_public`,
+   * SECURITY DEFINER) for the QR wardrobe card's physical-to-digital
+   * bridge — the only way an external scanner sees an item; never the
+   * owning customer's identity. */
+  async resolvePublicItem(
+    publicToken: string,
+  ): Promise<WardrobeItemPublicReveal> {
+    const { data, error } = await this.client.rpc(
+      "resolve_wardrobe_item_public",
+      { p_token: publicToken },
+    );
+    if (error) throw error;
+    return data as unknown as WardrobeItemPublicReveal;
   }
 }

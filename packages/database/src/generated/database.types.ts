@@ -16025,6 +16025,7 @@ export type Database = {
           physical_garment_id: string | null;
           product_id: string | null;
           provenance_source: string;
+          public_token: string;
           retailer_id: string;
           retired_at: string | null;
           updated_at: string;
@@ -16053,6 +16054,7 @@ export type Database = {
           physical_garment_id?: string | null;
           product_id?: string | null;
           provenance_source: string;
+          public_token?: string;
           retailer_id: string;
           retired_at?: string | null;
           updated_at?: string;
@@ -16081,6 +16083,7 @@ export type Database = {
           physical_garment_id?: string | null;
           product_id?: string | null;
           provenance_source?: string;
+          public_token?: string;
           retailer_id?: string;
           retired_at?: string | null;
           updated_at?: string;
@@ -18605,6 +18608,10 @@ export type Database = {
           source: string;
           state: string;
         }[];
+      };
+      resolve_wardrobe_item_public: {
+        Args: { p_token: string };
+        Returns: Json;
       };
       restore_retailer_brand_theme: {
         Args: { p_retailer_id: string; p_version_number: number };

@@ -15,6 +15,7 @@ import {
   OrderRepository,
   PhysicalGarmentRepository,
   ProductRepository,
+  RetailerRepository,
   SuitConfiguratorRepository,
   WardrobeLifecycleRepository,
   WardrobeRepository,
@@ -81,6 +82,16 @@ export default async function CustomerDetailPage({
   if (!customer) {
     notFound();
   }
+
+  const retailer = await new RetailerRepository(supabase).findById(
+    session.retailerId,
+  );
+  const customerAppBase = (
+    process.env["NEXT_PUBLIC_CUSTOMER_APP_URL"] ?? "http://localhost:3002"
+  ).replace(/\/$/, "");
+  const wardrobeCardBaseUrl = retailer
+    ? `${customerAppBase}/r/${retailer.slug}/wardrobe`
+    : null;
 
   const [
     garments,
@@ -706,6 +717,7 @@ export default async function CustomerDetailPage({
           name: product.name,
         }))}
         canManage={canManage}
+        wardrobeCardBaseUrl={wardrobeCardBaseUrl}
       />
 
       <CustomerRoadmapCard

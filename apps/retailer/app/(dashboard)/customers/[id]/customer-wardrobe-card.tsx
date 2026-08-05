@@ -31,6 +31,7 @@ export function CustomerWardrobeCard({
   serviceViewsByItemId,
   catalogueProducts,
   canManage,
+  wardrobeCardBaseUrl,
 }: {
   customerId: string;
   items: readonly WardrobeItem[];
@@ -38,6 +39,11 @@ export function CustomerWardrobeCard({
   serviceViewsByItemId: Readonly<Record<string, WardrobeItemServiceView>>;
   catalogueProducts: readonly { id: string; name: string }[];
   canManage: boolean;
+  /** Base URL for the QR wardrobe card's public reveal page (PHASE
+   * 17.13 / ADV-113), e.g. `https://shop.example/r/slug/wardrobe`; each
+   * item's card link is `${wardrobeCardBaseUrl}/${item.publicToken}`.
+   * `null` when the retailer slug couldn't be resolved. */
+  wardrobeCardBaseUrl: string | null;
 }) {
   const initialState: RetailerWardrobeActionState = { fieldErrors: {} };
   const [externalState, externalAction, externalPending] = useActionState(
@@ -163,6 +169,22 @@ export function CustomerWardrobeCard({
                     ))}
                   </ul>
                 </details>
+              ) : null}
+              {wardrobeCardBaseUrl ? (
+                <p
+                  className="mt-1 truncate text-xs text-[var(--color-stone-400)]"
+                  data-wardrobe-card-link
+                >
+                  QR wardrobe card:{" "}
+                  <a
+                    href={`${wardrobeCardBaseUrl}/${item.publicToken}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline"
+                  >
+                    {`${wardrobeCardBaseUrl}/${item.publicToken}`}
+                  </a>
+                </p>
               ) : null}
             </li>
           ))}
