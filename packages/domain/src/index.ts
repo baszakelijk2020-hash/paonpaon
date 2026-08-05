@@ -140,6 +140,7 @@ export * from "./wardrobe/morning-routine-delivery.schema";
 export * from "./wardrobe/morning-routine-occasions";
 export * from "./wardrobe/suit-configurator";
 export * from "./wardrobe/suit-configurator.schema";
+export * from "./wardrobe/silhouette-analysis";
 export * from "./wardrobe/style-quiz";
 export * from "./campaign/campaign";
 export * from "./campaign/campaign.schema";

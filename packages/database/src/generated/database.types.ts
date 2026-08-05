@@ -14139,6 +14139,127 @@ export type Database = {
           },
         ];
       };
+      silhouette_analysis_captures: {
+        Row: {
+          created_at: string;
+          file_name: string;
+          id: string;
+          mime_type: string;
+          retailer_id: string;
+          session_id: string;
+          size_bytes: number;
+          storage_bucket: string;
+          storage_path: string;
+        };
+        Insert: {
+          created_at?: string;
+          file_name: string;
+          id?: string;
+          mime_type: string;
+          retailer_id: string;
+          session_id: string;
+          size_bytes: number;
+          storage_bucket: string;
+          storage_path: string;
+        };
+        Update: {
+          created_at?: string;
+          file_name?: string;
+          id?: string;
+          mime_type?: string;
+          retailer_id?: string;
+          session_id?: string;
+          size_bytes?: number;
+          storage_bucket?: string;
+          storage_path?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "silhouette_analysis_captures_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "silhouette_analysis_captures_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "silhouette_analysis_sessions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      silhouette_analysis_sessions: {
+        Row: {
+          advisor_decision: string | null;
+          advisor_note: string | null;
+          advisor_reviewed_at: string | null;
+          advisor_reviewed_by_staff_id: string | null;
+          consented_at: string;
+          created_at: string;
+          customer_confirmed_at: string | null;
+          customer_id: string;
+          id: string;
+          rejected_reason: string | null;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          advisor_decision?: string | null;
+          advisor_note?: string | null;
+          advisor_reviewed_at?: string | null;
+          advisor_reviewed_by_staff_id?: string | null;
+          consented_at?: string;
+          created_at?: string;
+          customer_confirmed_at?: string | null;
+          customer_id: string;
+          id?: string;
+          rejected_reason?: string | null;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          advisor_decision?: string | null;
+          advisor_note?: string | null;
+          advisor_reviewed_at?: string | null;
+          advisor_reviewed_by_staff_id?: string | null;
+          consented_at?: string;
+          created_at?: string;
+          customer_confirmed_at?: string | null;
+          customer_id?: string;
+          id?: string;
+          rejected_reason?: string | null;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "silhouette_analysis_sessions_advisor_reviewed_by_staff_id_fkey";
+            columns: ["advisor_reviewed_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "silhouette_analysis_sessions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "silhouette_analysis_sessions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sms_outbox: {
         Row: {
           attempts: number;
@@ -18019,6 +18140,10 @@ export type Database = {
         Args: { p_advisor_staff_id: string; p_membership_id: string };
         Returns: string;
       };
+      begin_silhouette_capture: {
+        Args: { p_session_id: string };
+        Returns: undefined;
+      };
       can_access_alteration_storage_object: {
         Args: { p_name: string };
         Returns: boolean;
@@ -18033,6 +18158,10 @@ export type Database = {
       };
       can_access_physical_garment: {
         Args: { p_garment_id: string };
+        Returns: boolean;
+      };
+      can_access_silhouette_storage_object: {
+        Args: { p_name: string };
         Returns: boolean;
       };
       can_access_wardrobe_storage_object: {
@@ -18141,6 +18270,10 @@ export type Database = {
         Args: { p_plan_id: string };
         Returns: undefined;
       };
+      confirm_silhouette_analysis_candidate: {
+        Args: { p_session_id: string };
+        Returns: undefined;
+      };
       convert_pilot_to_live_retailer: {
         Args: { p_prospect_id: string };
         Returns: string;
@@ -18182,6 +18315,14 @@ export type Database = {
           p_decision: Database["public"]["Enums"]["price_change_proposal_status"];
           p_proposal_id: string;
           p_reason: string;
+        };
+        Returns: undefined;
+      };
+      decide_silhouette_analysis_candidate: {
+        Args: {
+          p_decision: string;
+          p_note?: string;
+          p_session_id: string;
         };
         Returns: undefined;
       };
@@ -18615,6 +18756,16 @@ export type Database = {
         };
         Returns: string;
       };
+      record_silhouette_capture: {
+        Args: {
+          p_file_name: string;
+          p_mime_type: string;
+          p_session_id: string;
+          p_size_bytes: number;
+          p_storage_path: string;
+        };
+        Returns: string;
+      };
       record_stripe_payment_event: {
         Args: {
           p_amount_minor_units: number;
@@ -18942,6 +19093,10 @@ export type Database = {
         };
         Returns: string;
       };
+      start_silhouette_analysis_session: {
+        Args: { p_retailer_id: string };
+        Returns: string;
+      };
       stock_available_at: {
         Args: {
           p_location_id: string;
@@ -19190,6 +19345,10 @@ export type Database = {
       wedding_party_retailer_for_invite: {
         Args: { p_invite_token: string };
         Returns: string;
+      };
+      withdraw_silhouette_analysis_consent: {
+        Args: { p_session_id: string };
+        Returns: undefined;
       };
     };
     Enums: {

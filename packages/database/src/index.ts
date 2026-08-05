@@ -82,6 +82,7 @@ export * from "./repositories/table-service-guidance-repository";
 export * from "./repositories/ai-generation-repository";
 export * from "./repositories/wishlist-repository";
 export * from "./repositories/suit-configurator-repository";
+export * from "./repositories/silhouette-analysis-repository";
 export * from "./repositories/wardrobe-repository";
 export * from "./repositories/wardrobe-lifecycle-repository";
 export * from "./repositories/sartorial-rule-repository";

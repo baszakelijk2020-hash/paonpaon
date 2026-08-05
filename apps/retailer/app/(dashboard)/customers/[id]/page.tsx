@@ -16,6 +16,7 @@ import {
   PhysicalGarmentRepository,
   ProductRepository,
   RetailerRepository,
+  SilhouetteAnalysisRepository,
   SuitConfiguratorRepository,
   WardrobeLifecycleRepository,
   WardrobeRepository,
@@ -52,6 +53,7 @@ import { ClientelingOpportunityInbox } from "./clienteling-opportunity-inbox";
 import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
 import { SelfPortrait } from "./self-portrait";
+import { SilhouetteAnalysisCard } from "./silhouette-analysis-card";
 import { SuitConfigurationIntentsCard } from "./suit-configuration-intents-card";
 
 import { getAIProvider } from "@/lib/ai";
@@ -151,6 +153,23 @@ export default async function CustomerDetailPage({
   const draftCartLines = draftCart
     ? await orderRepo.findLinesByOrder(draftCart.id)
     : [];
+
+  const silhouetteRepo = new SilhouetteAnalysisRepository(supabase);
+  const silhouetteAnalysisSessions =
+    await silhouetteRepo.findSessionsByCustomer(customer.id);
+  const silhouetteCapturesBySessionId = new Map(
+    await Promise.all(
+      silhouetteAnalysisSessions.map(
+        async (silhouetteSession) =>
+          [
+            silhouetteSession.id,
+            await silhouetteRepo.findCapturesForSessionWithUrls(
+              silhouetteSession.id,
+            ),
+          ] as const,
+      ),
+    ),
+  );
 
   const wardrobeRepo = new WardrobeRepository(supabase);
   const wardrobeLifecycleRepo = new WardrobeLifecycleRepository(supabase);
@@ -751,6 +770,12 @@ export default async function CustomerDetailPage({
       <SuitConfigurationIntentsCard
         intents={suitConfigurationIntents}
         customerId={customer.id}
+      />
+
+      <SilhouetteAnalysisCard
+        customerId={customer.id}
+        sessions={silhouetteAnalysisSessions}
+        capturesBySessionId={silhouetteCapturesBySessionId}
       />
 
       <div>

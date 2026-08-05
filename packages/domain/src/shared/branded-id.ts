@@ -248,6 +248,14 @@ export type ConceptOrderSelectionItemId = Brand<
   string,
   "ConceptOrderSelectionItemId"
 >;
+export type SilhouetteAnalysisSessionId = Brand<
+  string,
+  "SilhouetteAnalysisSessionId"
+>;
+export type SilhouetteAnalysisCaptureId = Brand<
+  string,
+  "SilhouetteAnalysisCaptureId"
+>;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

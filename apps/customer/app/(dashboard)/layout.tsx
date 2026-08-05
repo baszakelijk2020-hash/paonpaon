@@ -44,6 +44,11 @@ const navigation: AppShellNavGroup[] = [
         description: "Sixty seconds, no typing",
       },
       {
+        href: "/silhouette-analysis",
+        label: "Silhouette analysis",
+        description: "Share a photo, your advisor reviews it",
+      },
+      {
         href: "/capsule",
         label: "Capsule",
         description: "This week's small, considered set",

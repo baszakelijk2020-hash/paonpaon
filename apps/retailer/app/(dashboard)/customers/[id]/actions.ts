@@ -11,6 +11,7 @@ import {
   OrderRepository,
   RetailerRepository,
   RetailerStaffRepository,
+  SilhouetteAnalysisRepository,
 } from "@paon/database";
 import {
   asId,
@@ -397,4 +398,27 @@ export async function dismissCaptureBundle(
   }
   revalidatePath(`/customers/${customerId}`);
   return {};
+}
+
+/** FT-02's advisor review decision — the human step, never mutating any
+ * approved-fit/measurement record. `decide_silhouette_analysis_candidate`
+ * itself enforces `is_alterations_advisor()` server-side; this action
+ * doesn't duplicate that check, just surfaces its rejection honestly. */
+export async function decideSilhouetteAnalysisCandidate(
+  customerId: string,
+  formData: FormData,
+): Promise<void> {
+  await requireModuleSession("wardrobe_styling");
+  const sessionId = String(formData.get("sessionId") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  if (!sessionId || (decision !== "approved" && decision !== "rejected")) {
+    return;
+  }
+
+  const client = await getSupabaseServerClient();
+  await new SilhouetteAnalysisRepository(client).decideCandidate(
+    asId<"SilhouetteAnalysisSessionId">(sessionId),
+    decision,
+  );
+  revalidatePath(`/customers/${customerId}`);
 }
