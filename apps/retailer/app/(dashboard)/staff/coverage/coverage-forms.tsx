@@ -43,14 +43,24 @@ export function CoveragePlanForm({ planDate }: { readonly planDate: string }) {
           required
         />
       </label>
-      <CoverageBand label="morning" headcountName="morningHeadcount" skillName="morningSkill" />
-      <CoverageBand label="afternoon" headcountName="afternoonHeadcount" skillName="afternoonSkill" />
+      <CoverageBand
+        label="morning"
+        headcountName="morningHeadcount"
+        skillName="morningSkill"
+      />
+      <CoverageBand
+        label="afternoon"
+        headcountName="afternoonHeadcount"
+        skillName="afternoonSkill"
+      />
       <div className="md:col-span-2">
         <Button type="submit" size="sm" disabled={pending}>
           {pending ? "Publishing…" : "Publish coverage"}
         </Button>
       </div>
-      <div className="md:col-span-2"><Result state={state} /></div>
+      <div className="md:col-span-2">
+        <Result state={state} />
+      </div>
     </form>
   );
 }
@@ -69,7 +79,14 @@ function CoverageBand({
       <legend className="px-1 text-sm font-medium capitalize">{label}</legend>
       <label className="flex flex-col gap-1 text-sm">
         {label} headcount
-        <input className={fieldClass} type="number" min="0" step="1" name={headcountName} defaultValue="0" />
+        <input
+          className={fieldClass}
+          type="number"
+          min="0"
+          step="1"
+          name={headcountName}
+          defaultValue="0"
+        />
       </label>
       <label className="flex flex-col gap-1 text-sm">
         Required skill (optional)
@@ -86,21 +103,38 @@ export function ObservationForm({
   readonly planDate: string;
   readonly team: readonly { readonly id: string; readonly fullName: string }[];
 }) {
-  const [state, action, pending] = useActionState(recordCoachingObservation, initial);
+  const [state, action, pending] = useActionState(
+    recordCoachingObservation,
+    initial,
+  );
   return (
     <form action={action} className="mt-3 flex flex-col gap-3">
       <input type="hidden" name="observedOn" value={planDate} />
       <label className="flex flex-col gap-1 text-sm">
         Colleague
         <select name="observedStaffId" className={fieldClass} required>
-          {team.map((member) => <option key={member.id} value={member.id}>{member.fullName}</option>)}
+          {team.map((member) => (
+            <option key={member.id} value={member.id}>
+              {member.fullName}
+            </option>
+          ))}
         </select>
       </label>
       <label className="flex flex-col gap-1 text-sm">
         What you actually saw
-        <textarea name="evidence" minLength={10} required rows={3} className={fieldClass} />
+        <textarea
+          name="evidence"
+          minLength={10}
+          required
+          rows={3}
+          className={fieldClass}
+        />
       </label>
-      <div><Button type="submit" size="sm" disabled={pending}>{pending ? "Recording…" : "Record observation"}</Button></div>
+      <div>
+        <Button type="submit" size="sm" disabled={pending}>
+          {pending ? "Recording…" : "Record observation"}
+        </Button>
+      </div>
       <Result state={state} />
     </form>
   );
@@ -113,17 +147,41 @@ export function CoachingStepForm({
   readonly observationId: string;
   readonly state: string;
 }) {
-  const [result, action, pending] = useActionState(advanceCoachingLoop, initial);
-  const next = state === "observed" ? "discussed" : state === "discussed" ? "plan_agreed" : "outcome_recorded";
+  const [result, action, pending] = useActionState(
+    advanceCoachingLoop,
+    initial,
+  );
+  const next =
+    state === "observed"
+      ? "discussed"
+      : state === "discussed"
+        ? "plan_agreed"
+        : "outcome_recorded";
   return (
     <form action={action} className="mt-2 flex flex-col gap-2">
       <input type="hidden" name="observationId" value={observationId} />
       <input type="hidden" name="next" value={next} />
-      {state === "discussed" ? <input name="agreedAction" placeholder="Action you both agreed" className={fieldClass} /> : null}
-      {state === "plan_agreed" ? <input name="outcomeNote" placeholder="What changed afterwards" className={fieldClass} /> : null}
+      {state === "discussed" ? (
+        <input
+          name="agreedAction"
+          placeholder="Action you both agreed"
+          className={fieldClass}
+        />
+      ) : null}
+      {state === "plan_agreed" ? (
+        <input
+          name="outcomeNote"
+          placeholder="What changed afterwards"
+          className={fieldClass}
+        />
+      ) : null}
       <div>
         <Button type="submit" size="sm" disabled={pending}>
-          {state === "observed" ? "Mark as discussed" : state === "discussed" ? "Agree a plan" : "Record the outcome"}
+          {state === "observed"
+            ? "Mark as discussed"
+            : state === "discussed"
+              ? "Agree a plan"
+              : "Record the outcome"}
         </Button>
       </div>
       <Result state={result} />
