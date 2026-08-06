@@ -10,7 +10,77 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-05 FT-02 silhouette analysis consent/capture session state machine built (READ FIRST — supersedes every section below)
+## 2026-08-06 formatting fix pushed, FT-14 next-slice scoped but not started (READ FIRST — supersedes every section below)
+
+Session found stale uncommitted work sitting in the tree from an earlier,
+apparently interrupted session: prettier-only reformatting on
+`apps/retailer/app/(dashboard)/staff/coverage/{actions.ts,coverage-forms.tsx,
+page.tsx}` and `apps/retailer/components/fit-tools/vox-source.ts`. Verified
+before committing — extracted and unicode-unescaped both `VOX_CSS`/
+`VOX_SCRIPT` string literals from HEAD and the working tree and diffed the
+decoded content: byte-identical. The coverage files' diff is JSX line-wrap
+only (confirmed by reading every hunk). A `fit-tools.spec.ts` failure seen
+mid-verification (2/4 failing on `--workers=4`) was chased down with
+`git stash`: reproduces identically on unmodified HEAD, and passes clean 4/4
+on `--workers=1` both with and without the change — pre-existing
+seed/parallelism flake (`workflow_definition_versions` unique-constraint
+race in `global-setup.ts`), not a regression. Committed and pushed as
+`18d8c1a` on `agent/grok-takeover-2026-07-30`.
+
+Then surveyed for the next buildable item (delegated the `PHASE.md` scan to
+a subagent, then independently re-verified its recommendation before acting
+on it — its first-pass FT-14 write-up undersold the scope). R0.1/R0.2's
+remaining acceptance gaps are founder-only (deployment target attestation,
+approved original-data restore, cash policy — see `PAON_INTELLIGENCE_
+PLATFORM.md`'s Resume Protocol, unchanged). Three lanes are already active
+as separate worktrees and off-limits: `agent/lane-a-ft01-fitprofile` (FT-01),
+`agent/lane-b-ft09-consultation-outcome` (FT-09),
+`agent/lane-c-18-9-contract-value` (18.9). R0.3's one open local piece is
+FT-14 (`docs/FOUNDER_TOOL_BLUEPRINTS.md` line 1224): "faithful customer,
+advisor and partner journey absent" over otherwise-proven `/services`
+primitives (`apps/retailer/e2e/services.spec.ts`).
+
+Checked `downloaded_pages/pag3.html` directly rather than trusting
+`DESIGN_PORTS.md`'s one-line summary: unlike FT-01/FT-02/FT-07's designated
+widgets (`vox-widget-root`, `nbs-silhouette-widget-a91k`,
+`#suit-configurator-widget`), the Preferred Tailoring section (roughly line
+4250–5430) is Muse-exported narrative/marketing copy — no discrete
+interactive fragment id, nothing to pixel-port. Per AGENTS.md's
+non-designated-source rule, this means curating the underlying job/
+interaction grammar into PAON primitives (the FT-10/FT-12/FT-13 pattern),
+not a byte-exact port.
+
+FT-14's full remaining gap — weekly plan authorship/versioning, customer
+authorization, serialized custody handoffs, a scoped partner portal, cost
+variance reconciliation, and the full trust/recovery proof ladder
+(entitlement exhaustion, RLS, offline/retry, custody chain) — is FT-01-sized
+(that tool took several dated sessions: 2026-08-02, 2026-08-03, 2026-08-06),
+not one coherent slice. Decided with the founder to scope the first slice
+down on purpose: a customer-facing weekly wardrobe plan view, read-only
+authorize/accept over real `service_plans`/`service_plan_memberships` data,
+explicitly deferring custody handoffs, the partner portal and cost
+reconciliation to later slices — same incremental pattern FT-01/FT-02 used
+(faithful surface first, wiring depth after).
+
+**Not started.** No FT-14 code, migration or test exists yet — the paragraph
+above is a scoping decision only, recorded here so the next session doesn't
+redo the survey.
+
+### Pick up here
+
+Start FT-14's first slice: the customer-facing weekly wardrobe plan view.
+Read `docs/FOUNDER_TOOL_BLUEPRINTS.md`'s FT-14 entry (line 1224) and
+`docs/DESIGN_PORTS.md` line 32 first. Existing primitives to reuse (do not
+duplicate — see `packages/database` for `service_plans`/
+`service_plan_memberships`/related repositories, and
+`apps/retailer/app/(dashboard)/services` plus its `e2e/services.spec.ts` for
+the retailer-side shape already proven). Build only the read-only
+customer-facing weekly plan view + authorize/accept in this slice; custody
+handoffs, partner portal and cost reconciliation are explicitly out of
+scope until a follow-on slice. Everything else in the backlog below is
+unchanged from the 2026-08-05 handoff it supersedes.
+
+## 2026-08-05 FT-02 silhouette analysis consent/capture session state machine built
 
 Same session, continued after 18.8's fix below. Picked FT-02 as the
 next item because its blueprint gives an exact, unambiguous session
