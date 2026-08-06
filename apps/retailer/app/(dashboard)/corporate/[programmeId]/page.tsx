@@ -1037,10 +1037,7 @@ export default async function CorporateProgrammePage({
               name="contractValueMinorUnits"
               type="number"
               min={0}
-              defaultValue={
-                (programme as unknown as Record<string, number | string>)
-                  ?.contract_value_minor_units ?? ""
-              }
+              defaultValue={programme?.contractValueMinorUnits ?? ""}
               placeholder="0"
             />
           </FormField>
@@ -1050,10 +1047,7 @@ export default async function CorporateProgrammePage({
               name="contractValueCurrency"
               type="text"
               maxLength={3}
-              defaultValue={
-                (programme as unknown as Record<string, number | string>)
-                  ?.contract_value_currency ?? ""
-              }
+              defaultValue={programme?.contractValueCurrency ?? ""}
               placeholder="GBP"
             />
           </FormField>

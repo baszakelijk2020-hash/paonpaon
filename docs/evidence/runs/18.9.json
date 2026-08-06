@@ -1,10 +1,7 @@
 {
   "phaseItemId": "18.9",
-  "gitSha": "b17873e542556a5d8eca8d5deabcbd94e61fc8fb",
-  "specs": ["apps/retailer/e2e/corporate-renewal-analytics.spec.ts"],
-  "pgtap": "@paon/domain renewal-analytics.test.ts 10/10; @paon/database 476/546 (includes all corporate & cited-recommendation tests)",
+  "gitSha": "e44fa62fbedecfdc4b70273101047be687e74c79",
+  "spec": "apps/retailer/e2e/corporate-renewal-analytics.spec.ts",
   "status": "passed",
-  "runs": 1,
-  "note": "Contract value (nullable currency + amount fields on corporate_programmes) and repair exception kind added. Contract value persists and reloads correctly; captured as separate cited metric. Repair exceptions tracked separately from damage rate in renewal risk computation. E2E proves contract value form submission/persistence/reload and DB assertion. Domain tests verify repair rate computation alongside damage rate, contract value fields optional and defaulting to null.",
-  "timestamp": "2026-08-05T21:46:00.000Z"
+  "timestamp": "2026-08-06T01:45:28.693Z"
 }

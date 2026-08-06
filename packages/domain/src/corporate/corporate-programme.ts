@@ -55,6 +55,8 @@ export interface CorporateProgramme extends Timestamps {
   readonly name: string;
   readonly siteKeys: readonly string[];
   readonly active: boolean;
+  readonly contractValueMinorUnits: number | null;
+  readonly contractValueCurrency: string | null;
 }
 
 export interface CorporateEntitlementVersionRecord {

@@ -5184,16 +5184,30 @@ access" control (`setWearerLoginEmail`) — there was previously no
     rows" case `.single()` cannot express as a pass — fixed by scoping to
     this test's own programme marker, matching what the production
     repository method itself already did correctly.
-  - Checkbox stays unchecked: "contract value" (named explicitly in the
-    owner boundary) has no source anywhere in the corporate data model —
-    no pricing, no contract-value field exists on `corporate_accounts`/
-    `corporate_programmes` at all — so it is not part of the computed
-    metrics, a real absence rather than a zero. "Repair" rate is also not
-    separately tracked (only `damaged`/`missing`/`replacement_request`
-    exception kinds feed the damage rate; there is no `repair` kind).
-    `18.7`'s full lifecycle remains not started, so nothing here is
-    wired to a contract-award or renewal-execution workflow beyond the
-    task itself.
+  - **Update (2026-08-05):** the "checkbox stays unchecked" note above is
+    now stale on its "contract value has no source anywhere" claim.
+    Migration `20260805240000` added nullable `contract_value_minor_units`/
+    `contract_value_currency` to `corporate_programmes` and a `repair`
+    exception kind alongside the existing `damaged`/`missing`/
+    `replacement_request`. `18.7`'s full contract-award/renewal-execution
+    lifecycle is still not started, so contract value still is not wired
+    into a workflow — only recorded and displayed.
+  - **Fix (2026-08-06):** wiring the already-added `contract_value_*`
+    columns surfaced a real display bug: `CorporateProgramme` (the domain
+    type) and `CorporateRepository`'s row mapper never carried the two
+    new fields, so `/corporate/[programmeId]`'s "Set contract value" form
+    read them by reaching for snake_case keys
+    (`contract_value_minor_units`) directly off the typed, camelCase
+    domain object via an `as unknown as Record<string, ...>` cast — always
+    `undefined`, regardless of what was actually stored. The value saved
+    correctly (`setContractValue` writes the real columns) but never
+    displayed on reload, silently discarding real data from the advisor's
+    view. Fixed by adding `contractValueMinorUnits`/`contractValueCurrency`
+    to the `CorporateProgramme` domain type and `toProgramme`'s mapper,
+    and reading the typed fields directly on the page instead of the
+    unsafe cast. `corporate-renewal-analytics.spec.ts` (which already
+    asserted the reload value, and had been failing on exactly this)
+    reran green.
 
 - [ ] **18.10 AI-assisted concept, moodboard, and image generation**
   - **Requirement IDs:** BD-110.

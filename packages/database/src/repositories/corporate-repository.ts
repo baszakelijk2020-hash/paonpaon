@@ -55,6 +55,8 @@ function toProgramme(row: ProgrammeRow): CorporateProgramme {
     name: row.name,
     siteKeys: row.site_keys,
     active: row.active,
+    contractValueMinorUnits: row.contract_value_minor_units,
+    contractValueCurrency: row.contract_value_currency,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
