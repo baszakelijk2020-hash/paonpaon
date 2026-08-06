@@ -11,6 +11,13 @@ import {
   type StaffId,
 } from "@paon/domain";
 
+type AdvanceStageArgs = {
+  readonly retailerId: RetailerId;
+  readonly to: CorporateProjectStage;
+  readonly note?: string;
+  readonly staffId?: StaffId;
+};
+
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
@@ -94,6 +101,26 @@ export class CorporateProjectRepository {
     return data ? toProject(data) : null;
   }
 
+  /** A project's `account_id` is set once, at award (`linkAccount`), and
+   * never reused across a second concurrent project for the same
+   * account in this codebase's current flow — the most recently
+   * updated match is the real one. Used by rollout planning (18.6),
+   * which only ever knows a programme's account, never its originating
+   * opportunity. */
+  async findByAccountId(
+    accountId: CorporateAccountId,
+  ): Promise<CorporateProject | null> {
+    const { data, error } = await this.client
+      .from("corporate_projects")
+      .select("*")
+      .eq("account_id", accountId)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toProject(data) : null;
+  }
+
   async listEvents(
     projectId: CorporateProjectId,
   ): Promise<readonly CorporateProjectEvent[]> {
@@ -155,22 +182,14 @@ export class CorporateProjectRepository {
     if (error) throw error;
   }
 
-  /**
-   * The single write path for every stage transition. `staffId` is null
-   * for the two transitions this repository fires automatically
-   * (opportunity -> tender, tender -> award) so the event log honestly
-   * shows "the system, because X happened" rather than attributing an
-   * automatic move to whichever staff member happened to be signed in.
-   */
-  async advanceStage(args: {
-    readonly retailerId: RetailerId;
-    readonly opportunityId: CorporateOpportunityId;
-    readonly to: CorporateProjectStage;
-    readonly note?: string;
-    readonly staffId?: StaffId;
-  }): Promise<AdvanceProjectStageResult> {
-    const current = await this.findByOpportunity(args.opportunityId);
-    if (!current) return { ok: false, reason: "project_not_found" };
+  /** Shared write path behind both `advanceStage` and
+   * `advanceStageForAccount`: given the project already resolved by
+   * whichever lookup the caller had on hand, apply the one legal move
+   * or return the same refusal reasons either lookup path can hit. */
+  private async applyAdvance(
+    current: CorporateProject,
+    args: AdvanceStageArgs,
+  ): Promise<AdvanceProjectStageResult> {
     const check = checkAdvanceProjectStage({
       from: current.stage,
       to: args.to,
@@ -194,6 +213,40 @@ export class CorporateProjectRepository {
       staffId: args.staffId ?? null,
     });
     return { ok: true, project };
+  }
+
+  /**
+   * The single write path for every stage transition reached through an
+   * opportunity. `staffId` is null for the transitions this repository
+   * fires automatically (opportunity -> tender, tender -> award) so the
+   * event log honestly shows "the system, because X happened" rather
+   * than attributing an automatic move to whichever staff member
+   * happened to be signed in.
+   */
+  async advanceStage(
+    args: AdvanceStageArgs & { readonly opportunityId: CorporateOpportunityId },
+  ): Promise<AdvanceProjectStageResult> {
+    const current = await this.findByOpportunity(args.opportunityId);
+    if (!current) return { ok: false, reason: "project_not_found" };
+    return this.applyAdvance(current, args);
+  }
+
+  /**
+   * The same single write path, reached through a project's linked
+   * account instead of its originating opportunity — for callers (like
+   * rollout planning, 18.6) that only ever know a programme's account,
+   * never the opportunity that created it. `staffId` is null for the
+   * transitions this repository fires automatically (employee_import ->
+   * fitting on first rollout assignment, fitting -> production once
+   * every planned slot for the programme is completed), matching
+   * `advanceStage`'s own "the system, because X happened" discipline.
+   */
+  async advanceStageForAccount(
+    args: AdvanceStageArgs & { readonly accountId: CorporateAccountId },
+  ): Promise<AdvanceProjectStageResult> {
+    const current = await this.findByAccountId(args.accountId);
+    if (!current) return { ok: false, reason: "project_not_found" };
+    return this.applyAdvance(current, args);
   }
 
   /** Called once an opportunity's account exists (win time) — links the

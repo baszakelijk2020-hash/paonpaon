@@ -5060,19 +5060,64 @@ access" control (`setWearerLoginEmail`) — there was previously no
     `corporate-tender.spec.ts`: 3/3 green together, confirming the new
     opportunity-create and tender-create hooks did not disturb either
     existing item.
-  - Checkbox stays unchecked: this item's own **Dependencies** line names
-    `14.1` production/order domains (Stage 12) and `18.6` fitting rollout
-    — neither `production`/`qc`/`distribution`/`launch` nor `fitting` is
-    wired to any real production-order or rollout-completion event yet;
-    all nine post-award checkpoints (including `fitting`) are staff
-    button-driven only, with no automatic trigger from 18.6's rollout
-    slots reaching completion or from any Stage 12 production/order
-    object. That is a real, named scope gap against the dependency line,
-    not a hidden one: the acceptance line's bar ("every named step has a
-    real state and a real transition into the next") is met by every
-    stage having a genuine, audited, human-decided transition, but
-    "automatic wiring to the objects that dependency line names" is not
-    yet built for seven of the thirteen stages.
+  - **Fix (2026-08-07, lane-e):** half of this item's own named gap is
+    closed — `employee_import`/`fitting` now wire to real 18.6 rollout
+    events, not only a staff button. Reused the exact "call
+    unconditionally, let the state machine's own no-op decide"
+    discipline `corporate-tender-repository.ts`'s `opportunity ->
+tender` trigger already established, rather than each call site
+    re-deriving "was this really the first/last one" itself.
+    `CorporateProjectRepository` gained `findByAccountId` and
+    `advanceStageForAccount` (a second public entry point sharing
+    `advanceStage`'s existing private write path) for callers, like
+    rollout planning, that only ever know a programme's account, never
+    its originating opportunity. `CorporateRolloutRepository.assignWearer`
+    now calls `advanceStageForAccount(..., to: "fitting")` after every
+    successful assignment — a real project already past
+    `employee_import` simply no-ops, matching precedent, so this is safe
+    to call on every assignment, not only the first.
+    `CorporateRolloutRepository.markCompleted` re-counts the programme's
+    remaining `planned` slots after the write and calls
+    `advanceStageForAccount(..., to: "production")` only when zero
+    remain — the honest "everyone fitted" signal, not fired on every
+    intermediate completion. A wearer whose no-show can never be
+    reslotted (already-existing `markNoShowAndReslot` behaviour, PHASE
+    18.6) stays `no_show` forever with no fresh `planned` row, so a
+    programme with an unresolved no-show never falsely reaches
+    "everyone fitted" — deliberate, not an oversight. No schema or RLS
+    change: `corporate_projects`/`corporate_rollout_slots`/
+    `corporate_programmes.account_id` already existed; this is pure
+    repository-layer wiring, reached under the same staff session/RLS
+    the retailer UI's rollout actions already run under. Proof: extended
+    `apps/retailer/e2e/corporate-project-lifecycle.spec.ts` with a new
+    test that assigns the first rollout wearer and asserts the project
+    stage flips to `fitting` with no button clicked, asserts completing
+    one of two assigned wearers does NOT yet advance the project, then
+    completes the last one and asserts the flip to `production` — plus
+    the automatic event's own `staffId` is asserted `null`, matching the
+    existing opportunity/tender triggers' own "the system, not whoever
+    was signed in" discipline. Full corporate/business-development
+    regression run alongside it: 8/8 green
+    (`corporate-full-lifecycle.spec.ts`, `corporate.spec.ts`,
+    `corporate-service-desk.spec.ts`, `corporate-renewal-analytics.spec.ts`,
+    `corporate-tender.spec.ts`, `business-development.spec.ts`,
+    `corporate-relationship-crossref.spec.ts`,
+    `corporate-office-visit.spec.ts`), confirming `corporate-full-lifecycle.spec.ts`'s
+    own pre-existing manual "Advance to Fitting"/"Advance to Production"
+    clicks are unaffected — that fixture's rollout step happens to run
+    before its project reaches `employee_import`, so the new automatic
+    trigger correctly no-ops there and the manual clicks later in that
+    test still do the real work, unchanged.
+  - Checkbox stays unchecked: `production`/`qc`/`distribution`/`launch`
+    still have no automatic trigger from any Stage 12 production/order
+    object — that half of the original gap remains, deliberately not
+    attempted here since it requires touching
+    `packages/domain/src/production/production.ts`, a file an active
+    concurrent lane has open uncommitted work on; reconcile lanes before
+    picking that half up. The acceptance line's bar ("every named step
+    has a real state and a real transition into the next") continues to
+    be met by every stage having a genuine, audited transition, human- or
+    system-decided.
 
 - [x] **18.8 Corporate service desk**
   - **Requirement IDs:** BD-108.

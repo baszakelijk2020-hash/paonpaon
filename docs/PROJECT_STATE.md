@@ -10,7 +10,92 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-06 (lane-e) FT-14 first customer slice built — weekly plan authorize/accept (READ FIRST — supersedes every section below)
+## 2026-08-07 (lane-e) 18.7 rollout-to-project auto-advance wired (READ FIRST — supersedes every section below)
+
+Continued on the same branch (`agent/lane-e-core-roadmap`), same isolated
+worktree, forked from `934b540`. Baseline commit for this slice: `5e02b3b`
+(this branch's own prior commits — FT-14 weekly plan, the Stop-hook
+`CLAUDE_PROJECT_DIR` fix). No pre-existing failures at that baseline:
+`pnpm lint`/`typecheck`/`test` all green; pgTAP 193/193 (unrelated to this
+slice, from the prior session).
+
+Surveyed `docs/PHASE.md`'s Stage 17/18 unchecked items for the next
+non-overlapping slice, cross-checked against every active worktree's
+uncommitted state (`git status` in each of lane-a/b/c/d's own worktrees, not
+just their pushed tips). Lane-d (Virtual Studio) owns wardrobe/outfit/
+style-portrait; lane-a (FT-01) has uncommitted work in
+`packages/domain/src/production/production.ts`; lane-b (FT-09) has
+uncommitted work in customer/retailer messages actions and
+`consultation-outcome.spec.ts`; lane-c (18.9) is clean at its own commit
+tip. **18.5's** remaining gap (appointments/orders/alterations for a wearer)
+needs a genuine new auth/linking design decision — `corporate_wearers
+.customer_id` is schema-real but nothing in the codebase ever sets it, so
+wiring against it would be a permanently-empty feature, not a real slice.
+**18.7's** remaining gap — `employee_import`/`fitting` checkpoints had no
+automatic trigger from 18.6's real rollout events, only a staff button —
+was concrete, buildable without any new design decision, and touched files
+(`corporate-project-repository.ts`, `corporate-rollout-repository.ts`,
+`corporate/actions.ts`, two retailer e2e specs) none of the four other
+active lanes have open. Picked this.
+
+Built: `CorporateProjectRepository.findByAccountId`/`advanceStageForAccount`
+(a second entry point sharing `advanceStage`'s existing write path, for
+callers that only know a programme's account, never its opportunity).
+`CorporateRolloutRepository.assignWearer` now fires
+`employee_import -> fitting` on every successful assignment (safe to call
+unconditionally — a project already past that stage no-ops, the exact
+"call it every time, let the state machine decide" pattern
+`corporate-tender-repository.ts`'s own `opportunity -> tender` trigger
+already established). `markCompleted` fires `fitting -> production` only
+once zero `planned` slots remain for the whole programme — re-counted after
+the write, not assumed from "this must be the last one." No schema/RLS
+change: every table this touches already existed from prior committed
+migrations; this is pure repository-layer wiring under the same staff
+session/RLS the retailer UI's rollout actions already run under.
+
+Proof: extended `apps/retailer/e2e/corporate-project-lifecycle.spec.ts`
+with a new test proving the first assignment flips the project to
+`fitting` with no button clicked, completing one of two wearers does NOT
+yet advance it, completing the last one flips it to `production`, and the
+automatic event's `staffId` is `null` (system-attributed, matching the
+existing opportunity/tender triggers). Ran it against the real local stack,
+not just typechecked: 4/4 green
+(`corporate-project-lifecycle.spec.ts` ×2, `corporate-rollout.spec.ts` ×2).
+Full corporate/business-development regression alongside it: 8/8 green,
+confirming `corporate-full-lifecycle.spec.ts`'s own pre-existing manual
+"Advance to Fitting"/"Advance to Production" clicks are unaffected (that
+fixture's rollout step runs before its project reaches `employee_import`,
+so the new trigger correctly no-ops there). Full monorepo
+`lint`/`typecheck`/`format:check` green for this diff.
+
+**Cross-worktree database interference, again:** the shared local Supabase
+Docker container was reset by another lane's session mid-investigation —
+migration count jumped from the previous session's `20260806110000`
+(this branch's own FT-14 migration, hand-applied out-of-band) to
+`20260806140000`, and the hand-applied `service_weekly_plans` table from
+that prior session no longer exists in the live container (though the
+migration FILE is still committed on this branch — only the live DB state
+was affected, unaffected by this slice since it needed no migration at
+all). Documented, not fixed: reapplying that table is out of scope for
+this slice.
+
+Deferred, named honestly: `production`/`qc`/`distribution`/`launch` still
+have no automatic trigger from any Stage 12 production/order object —
+that requires touching `packages/domain/src/production/production.ts`,
+which lane-a currently has open with uncommitted work
+(`FitProfileCandidateStatus` reformatting) — reconcile lanes before
+picking that half up, per `AGENTS.md`'s "never edit a file another active
+lane owns, even in passing" rule.
+
+### Pick up here
+
+18.7's rollout-triggered half is done. Next: either the
+`production`/`qc`/`distribution`/`launch` half of 18.7 (once lane-a's
+`production.ts` work lands and this branch rebases past it), or the next
+highest-priority non-overlapping Stage 17/18 item. Everything else in the
+backlog below is unchanged from the 2026-08-06 handoff it supersedes.
+
+## 2026-08-06 (lane-e) FT-14 first customer slice built — weekly plan authorize/accept
 
 New session on an isolated branch (`agent/lane-e-core-roadmap`, forked from
 this commit; the main worktree was occupied by an active Virtual Studio
