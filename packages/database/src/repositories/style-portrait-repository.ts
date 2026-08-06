@@ -9,6 +9,7 @@ import {
   asId,
   type CreateStylePortraitInput,
   type CustomerId,
+  type RetailerId,
   type StylePortrait,
   type StylePortraitId,
   type StylePortraitReference,
@@ -137,6 +138,47 @@ export class StylePortraitRepository {
       data,
       await this.listReferences(asId<"StylePortraitId">(data.id)),
     );
+  }
+
+  /** Adds one reference photo to an existing draft portrait — the first
+   * photo goes through `create`, every subsequent one through here. */
+  async addReference(
+    stylePortraitId: StylePortraitId,
+    retailerId: RetailerId,
+    reference: {
+      readonly kind: StylePortraitReferenceKind;
+      readonly storageBucket: string;
+      readonly storagePath: string;
+    },
+  ): Promise<StylePortrait> {
+    const { error } = await this.client
+      .from("style_portrait_references")
+      .insert({
+        style_portrait_id: stylePortraitId,
+        retailer_id: retailerId,
+        kind: reference.kind,
+        storage_bucket: reference.storageBucket,
+        storage_path: reference.storagePath,
+      });
+    if (error) throw error;
+
+    const portrait = await this.findById(stylePortraitId);
+    if (!portrait) throw new Error("Style portrait not found after insert.");
+    return portrait;
+  }
+
+  async setFitArchetype(
+    id: StylePortraitId,
+    fitArchetypeConceptId: string,
+  ): Promise<StylePortrait> {
+    const { data, error } = await this.client
+      .from("style_portraits")
+      .update({ fit_archetype_concept_id: fitArchetypeConceptId })
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toPortrait(data, await this.listReferences(id));
   }
 
   async recordPreview(

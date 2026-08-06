@@ -7,6 +7,8 @@ import {
 import { sendEmail } from "@paon/email";
 import { NextResponse } from "next/server";
 
+import { processWardrobeVisualizationJobs } from "../process-wardrobe-visualizations/route";
+
 import { getResendClient } from "@/lib/email";
 import { env } from "@/lib/env";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
@@ -42,6 +44,7 @@ async function handleDispatch(request: Request): Promise<Response> {
 
   const morningRoutine = await orchestrateMorningRoutineDeliveries(admin);
   const campaigns = await orchestrateCampaignDeliveries(admin);
+  const wardrobeVisualizations = await processWardrobeVisualizationJobs(admin);
 
   const resend = getResendClient();
   const fromEmail = env.resendFromEmail;
@@ -50,6 +53,7 @@ async function handleDispatch(request: Request): Promise<Response> {
       demosExpired,
       morningRoutine,
       campaigns,
+      wardrobeVisualizations,
       email: {
         skipped: true,
         reason: "Resend is not configured on this deployment.",
@@ -89,6 +93,7 @@ async function handleDispatch(request: Request): Promise<Response> {
     demosExpired,
     morningRoutine,
     campaigns,
+    wardrobeVisualizations,
   });
 }
 

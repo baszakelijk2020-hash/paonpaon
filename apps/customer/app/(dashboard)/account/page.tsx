@@ -3,11 +3,14 @@ import {
   CustomerRepository,
   MetadataRepository,
   RetailerRepository,
+  StylePortraitConsentRepository,
+  StylePortraitRepository,
   StyleProfileRepository,
 } from "@paon/database";
-import type { MetadataConceptId } from "@paon/domain";
+import { buildFitArchetypeOptions, type MetadataConceptId } from "@paon/domain";
 
 import { PreferencesForm } from "./preferences-form";
+import { StylePortraitPanel } from "./style-portrait-panel";
 import { StyleProfilePanel } from "./style-profile-panel";
 
 import { requireSession } from "@/lib/session";
@@ -24,6 +27,8 @@ export default async function AccountPage() {
   const preferencesRepo = new CustomerPreferencesRepository(supabase);
   const styleProfileRepo = new StyleProfileRepository(supabase);
   const metadataRepo = new MetadataRepository(supabase);
+  const consentRepo = new StylePortraitConsentRepository(supabase);
+  const portraitRepo = new StylePortraitRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
@@ -33,6 +38,16 @@ export default async function AccountPage() {
         customer.retailerId,
         customer.id,
       );
+      const consent = await consentRepo.findForCustomer(
+        customer.retailerId,
+        customer.id,
+      );
+      const portrait = await portraitRepo.findLatestForCustomer(customer.id);
+      const fitConcepts = await metadataRepo.findVisibleConcepts(
+        customer.retailerId,
+        "fit",
+      );
+      const fitArchetypes = buildFitArchetypeOptions(fitConcepts);
 
       const conceptIds = new Set<string>();
       for (const row of styleProfile?.explicitPreferences ?? []) {
@@ -61,6 +76,9 @@ export default async function AccountPage() {
         preferences,
         styleProfile,
         conceptLabels,
+        consent,
+        portrait,
+        fitArchetypes,
       };
     }),
   );
@@ -91,6 +109,9 @@ export default async function AccountPage() {
             preferences,
             styleProfile,
             conceptLabels,
+            consent,
+            portrait,
+            fitArchetypes,
           }) => (
             <div key={customer.id} className="flex flex-col gap-4">
               <PreferencesForm
@@ -103,6 +124,13 @@ export default async function AccountPage() {
                 retailerName={retailer?.displayName ?? "Retailer"}
                 profile={styleProfile}
                 conceptLabels={conceptLabels}
+              />
+              <StylePortraitPanel
+                retailerId={customer.retailerId}
+                retailerName={retailer?.displayName ?? "Retailer"}
+                consent={consent}
+                portrait={portrait}
+                fitArchetypes={fitArchetypes}
               />
             </div>
           ),

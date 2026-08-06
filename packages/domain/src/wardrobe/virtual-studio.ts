@@ -12,6 +12,7 @@
 
 import type {
   CustomerId,
+  MetadataConceptId,
   OutfitId,
   RetailerId,
   RetailerVisualPresetId,
@@ -171,6 +172,64 @@ export const FIT_ARCHETYPE_SLUGS = [
   "fashion_wide",
 ] as const;
 export type FitArchetypeSlug = (typeof FIT_ARCHETYPE_SLUGS)[number];
+
+export interface FitArchetypeOption {
+  readonly conceptId: MetadataConceptId;
+  readonly slug: FitArchetypeSlug;
+  readonly label: string;
+  readonly description: string;
+  readonly order: number;
+}
+
+function isFitArchetypeSlug(slug: string): slug is FitArchetypeSlug {
+  return (FIT_ARCHETYPE_SLUGS as readonly string[]).includes(slug);
+}
+
+/** A `metadata_concepts.slug` like `fit-archetype-fashion-wide` ->
+ * `"fashion_wide"`, or `null` if it isn't one of the seeded archetypes.
+ * Shared by `buildFitArchetypeOptions` and generation-input assembly, so
+ * the two never drift on how the prefix/hyphen convention is parsed. */
+export function parseFitArchetypeSlug(
+  conceptSlug: string,
+): FitArchetypeSlug | null {
+  const normalized = conceptSlug
+    .replace(/^fit-archetype-/, "")
+    .replace(/-/g, "_");
+  return isFitArchetypeSlug(normalized) ? normalized : null;
+}
+
+/**
+ * Mirrors `buildStyleQuizArchetypes`'s exact shape for the seeded
+ * `fit`-kind concepts flagged `attributes.isFitArchetype` (ADR-074 §3.2) —
+ * a single tap still declares a real preference through the existing
+ * `upsert_declared_style_preference` RPC, no new schema.
+ */
+export function buildFitArchetypeOptions(
+  concepts: readonly {
+    readonly id: MetadataConceptId;
+    readonly slug: string;
+    readonly canonicalName: string;
+    readonly attributes: Readonly<Record<string, unknown>>;
+  }[],
+): FitArchetypeOption[] {
+  return concepts
+    .filter((concept) => concept.attributes["isFitArchetype"] === true)
+    .map((concept) => {
+      const normalized = parseFitArchetypeSlug(concept.slug);
+      if (!normalized) return null;
+      const description = concept.attributes["description"];
+      const order = concept.attributes["order"];
+      return {
+        conceptId: concept.id,
+        slug: normalized,
+        label: concept.canonicalName,
+        description: typeof description === "string" ? description : "",
+        order: typeof order === "number" ? order : 0,
+      };
+    })
+    .filter((option): option is FitArchetypeOption => option !== null)
+    .sort((a, b) => a.order - b.order);
+}
 
 export const TAILORING_WIDTH_VALUES = ["narrow", "moderate", "wide"] as const;
 export type TailoringWidth = (typeof TAILORING_WIDTH_VALUES)[number];

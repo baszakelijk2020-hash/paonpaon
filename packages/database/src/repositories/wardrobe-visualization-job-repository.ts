@@ -1,13 +1,16 @@
 /**
  * WardrobeVisualizationJob persistence (VWS-001 / PHASE 4.6 / ADR-074).
- * Every write goes through the narrow RPCs in migration `20260806100000` —
- * this repository never inserts/updates the job row directly, same
- * discipline as `SilhouetteAnalysisRepository`. The sha256 digest uses the
- * Web Crypto `SubtleCrypto` API (available in Node, Edge and the browser)
- * rather than `node:crypto` — this package is bundled into the Next.js
- * apps' webpack graph via `@paon/database`'s index, which cannot resolve a
- * `node:`-scheme import. `canonicalizeWardrobeVisualizationInput` stays
- * pure and unit-testable in `@paon/domain`.
+ * Every write goes through the narrow RPCs in migration `20260806100000`/
+ * `20260806120000` — this repository never inserts/updates the job row
+ * directly, same discipline as `SilhouetteAnalysisRepository`. A ready
+ * job's image lives in the private `wardrobe-studio` bucket
+ * (`output_storage_bucket`/`output_storage_path`), never a bare provider
+ * URL; `toJob` signs it on read, same pattern as
+ * `SilhouetteAnalysisRepository.findCapturesForSessionWithUrls`. The
+ * sha256 digest uses the Web Crypto `SubtleCrypto` API (available in
+ * Node, Edge and the browser) rather than `node:crypto` — this package is
+ * bundled into the Next.js apps' webpack graph via `@paon/database`'s
+ * index, which cannot resolve a `node:`-scheme import.
  */
 
 import {
@@ -28,6 +31,8 @@ import type { Database, Json } from "../generated/database.types";
 type JobRow =
   Database["public"]["Tables"]["wardrobe_visualization_jobs"]["Row"];
 
+const SIGNED_URL_TTL_SECONDS = 15 * 60;
+
 export async function hashWardrobeVisualizationInput(
   input: WardrobeVisualizationInputSnapshot,
 ): Promise<string> {
@@ -44,7 +49,19 @@ function parseInputSnapshot(value: Json): WardrobeVisualizationInputSnapshot {
   return value as unknown as WardrobeVisualizationInputSnapshot;
 }
 
-function toJob(row: JobRow): WardrobeVisualizationJob {
+async function toJob(
+  client: PaonSupabaseClient,
+  row: JobRow,
+): Promise<WardrobeVisualizationJob> {
+  let outputImageUrl: string | undefined;
+  if (row.output_storage_bucket && row.output_storage_path) {
+    const { data: signed, error } = await client.storage
+      .from(row.output_storage_bucket)
+      .createSignedUrl(row.output_storage_path, SIGNED_URL_TTL_SECONDS);
+    if (error) throw error;
+    outputImageUrl = signed.signedUrl;
+  }
+
   return {
     id: asId<"WardrobeVisualizationJobId">(row.id),
     retailerId: asId<"RetailerId">(row.retailer_id),
@@ -60,7 +77,7 @@ function toJob(row: JobRow): WardrobeVisualizationJob {
     inputHash: row.input_hash,
     status: row.status as WardrobeVisualizationJobStatus,
     attempt: row.attempt,
-    ...(row.output_image_url ? { outputImageUrl: row.output_image_url } : {}),
+    ...(outputImageUrl ? { outputImageUrl } : {}),
     ...(row.error_message ? { errorMessage: row.error_message } : {}),
     ...(row.estimated_cost_cents !== null
       ? { estimatedCostCents: row.estimated_cost_cents }
@@ -100,7 +117,7 @@ export class WardrobeVisualizationJobRepository {
       },
     );
     if (error) throw error;
-    return toJob(data);
+    return toJob(this.client, data);
   }
 
   async cancel(jobId: WardrobeVisualizationJobId): Promise<void> {
@@ -121,14 +138,18 @@ export class WardrobeVisualizationJobRepository {
       { p_limit: limit },
     );
     if (error) throw error;
-    return (data ?? []).map(toJob);
+    return Promise.all((data ?? []).map((row) => toJob(this.client, row)));
   }
 
-  /** service_role only — the runner reports the terminal result. */
+  /** service_role only — the runner reports the terminal result. The
+   * output image must already be uploaded into `wardrobe-studio` before
+   * this is called; only its storage location is ever recorded, never a
+   * raw provider URL. */
   async complete(params: {
     readonly jobId: WardrobeVisualizationJobId;
     readonly status: "ready" | "failed";
-    readonly outputImageUrl?: string;
+    readonly outputStorageBucket?: string;
+    readonly outputStoragePath?: string;
     readonly errorMessage?: string;
     readonly actualCostCents?: number;
   }): Promise<WardrobeVisualizationJob> {
@@ -137,8 +158,11 @@ export class WardrobeVisualizationJobRepository {
       {
         p_job_id: params.jobId,
         p_status: params.status,
-        ...(params.outputImageUrl !== undefined
-          ? { p_output_image_url: params.outputImageUrl }
+        ...(params.outputStorageBucket !== undefined
+          ? { p_output_storage_bucket: params.outputStorageBucket }
+          : {}),
+        ...(params.outputStoragePath !== undefined
+          ? { p_output_storage_path: params.outputStoragePath }
           : {}),
         ...(params.errorMessage !== undefined
           ? { p_error_message: params.errorMessage }
@@ -149,7 +173,7 @@ export class WardrobeVisualizationJobRepository {
       },
     );
     if (error) throw error;
-    return toJob(data);
+    return toJob(this.client, data);
   }
 
   async findById(
@@ -161,7 +185,7 @@ export class WardrobeVisualizationJobRepository {
       .eq("id", id)
       .maybeSingle();
     if (error) throw error;
-    return data ? toJob(data) : null;
+    return data ? await toJob(this.client, data) : null;
   }
 
   async findByOutfit(outfitId: OutfitId): Promise<WardrobeVisualizationJob[]> {
@@ -171,7 +195,7 @@ export class WardrobeVisualizationJobRepository {
       .eq("outfit_id", outfitId)
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return data.map(toJob);
+    return Promise.all(data.map((row) => toJob(this.client, row)));
   }
 
   async findByCustomer(
@@ -183,6 +207,6 @@ export class WardrobeVisualizationJobRepository {
       .eq("customer_id", customerId)
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return data.map(toJob);
+    return Promise.all(data.map((row) => toJob(this.client, row)));
   }
 }
