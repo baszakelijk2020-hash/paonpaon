@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { asId } from "../shared/branded-id";
 
 import {
+  buildFitArchetypeOptions,
   canCancelWardrobeVisualizationJob,
   canGenerateWardrobeVisualization,
   canonicalizeWardrobeVisualizationInput,
@@ -219,5 +220,54 @@ describe("isPositiveWardrobeVisualizationSignal", () => {
     expect(isPositiveWardrobeVisualizationSignal("looks_like_me_no")).toBe(
       false,
     );
+  });
+});
+
+describe("buildFitArchetypeOptions", () => {
+  const concepts = [
+    {
+      id: asId<"MetadataConceptId">("concept-slim"),
+      slug: "fit-archetype-slim",
+      canonicalName: "Slim",
+      attributes: { isFitArchetype: true, order: 1, description: "Close cut." },
+    },
+    {
+      id: asId<"MetadataConceptId">("concept-fashion-wide"),
+      slug: "fit-archetype-fashion-wide",
+      canonicalName: "Fashion Wide",
+      attributes: {
+        isFitArchetype: true,
+        order: 4,
+        description: "Expressive.",
+      },
+    },
+    {
+      id: asId<"MetadataConceptId">("concept-regular"),
+      slug: "fit-regular",
+      canonicalName: "Regular",
+      attributes: {},
+    },
+  ];
+
+  it("only includes concepts flagged isFitArchetype", () => {
+    const options = buildFitArchetypeOptions(concepts);
+    expect(options).toHaveLength(2);
+    expect(options.every((option) => option.slug !== undefined)).toBe(true);
+  });
+
+  it("maps the slug prefix to the FitArchetypeSlug, converting hyphens", () => {
+    const options = buildFitArchetypeOptions(concepts);
+    const fashionWide = options.find(
+      (option) => option.label === "Fashion Wide",
+    );
+    expect(fashionWide?.slug).toBe("fashion_wide");
+  });
+
+  it("sorts by declared order", () => {
+    const options = buildFitArchetypeOptions(concepts);
+    expect(options.map((option) => option.label)).toEqual([
+      "Slim",
+      "Fashion Wide",
+    ]);
   });
 });

@@ -93,6 +93,7 @@ export * from "./repositories/style-portrait-repository";
 export * from "./repositories/retailer-visual-preset-repository";
 export * from "./repositories/wardrobe-visualization-job-repository";
 export * from "./repositories/wardrobe-visualization-feedback-repository";
+export * from "./repositories/style-portrait-consent-repository";
 export * from "./repositories/morning-routine-repository";
 export * from "./repositories/morning-routine-delivery-repository";
 export * from "./morning-routine-delivery-orchestrator";

@@ -15957,6 +15957,61 @@ export type Database = {
         };
         Relationships: [];
       };
+      style_portrait_consents: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          disclosures_acknowledged: boolean;
+          granted_at: string | null;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+          withdrawn_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          disclosures_acknowledged?: boolean;
+          granted_at?: string | null;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+          withdrawn_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          disclosures_acknowledged?: boolean;
+          granted_at?: string | null;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+          withdrawn_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "style_portrait_consents_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: true;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "style_portrait_consents_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "style_portrait_consents_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       style_portrait_references: {
         Row: {
           created_at: string;
@@ -17348,7 +17403,8 @@ export type Database = {
           input_snapshot: Json;
           model: string;
           outfit_id: string;
-          output_image_url: string | null;
+          output_storage_bucket: string | null;
+          output_storage_path: string | null;
           provider: string;
           retailer_id: string;
           retailer_visual_preset_id: string;
@@ -17368,7 +17424,8 @@ export type Database = {
           input_snapshot: Json;
           model: string;
           outfit_id: string;
-          output_image_url?: string | null;
+          output_storage_bucket?: string | null;
+          output_storage_path?: string | null;
           provider?: string;
           retailer_id: string;
           retailer_visual_preset_id: string;
@@ -17388,7 +17445,8 @@ export type Database = {
           input_snapshot?: Json;
           model?: string;
           outfit_id?: string;
-          output_image_url?: string | null;
+          output_storage_bucket?: string | null;
+          output_storage_path?: string | null;
           provider?: string;
           retailer_id?: string;
           retailer_visual_preset_id?: string;
@@ -18763,7 +18821,8 @@ export type Database = {
           input_snapshot: Json;
           model: string;
           outfit_id: string;
-          output_image_url: string | null;
+          output_storage_bucket: string | null;
+          output_storage_path: string | null;
           provider: string;
           retailer_id: string;
           retailer_visual_preset_id: string;
@@ -18798,7 +18857,8 @@ export type Database = {
           p_actual_cost_cents?: number;
           p_error_message?: string;
           p_job_id: string;
-          p_output_image_url?: string;
+          p_output_storage_bucket?: string;
+          p_output_storage_path?: string;
           p_status: string;
         };
         Returns: {
@@ -18813,7 +18873,8 @@ export type Database = {
           input_snapshot: Json;
           model: string;
           outfit_id: string;
-          output_image_url: string | null;
+          output_storage_bucket: string | null;
+          output_storage_path: string | null;
           provider: string;
           retailer_id: string;
           retailer_visual_preset_id: string;
@@ -18938,7 +18999,8 @@ export type Database = {
           input_snapshot: Json;
           model: string;
           outfit_id: string;
-          output_image_url: string | null;
+          output_storage_bucket: string | null;
+          output_storage_path: string | null;
           provider: string;
           retailer_id: string;
           retailer_visual_preset_id: string;

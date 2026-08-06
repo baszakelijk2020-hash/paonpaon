@@ -70,6 +70,10 @@ export const env = {
   get cronSecret() {
     return optionalEnv("CRON_SECRET");
   },
+  /** Same key the Retailer/Customer Portals read (ADR-033/ADR-035) — absent until a platform operator provisions one, see docs/PROJECT_STATE.md "Credentials needed". */
+  get openaiApiKey() {
+    return optionalEnv("OPENAI_API_KEY");
+  },
   /** Twilio covers both SMS and WhatsApp through one account — absent until a platform operator provisions one, see docs/PROJECT_STATE.md "Credentials needed". */
   get twilioAccountSid() {
     return optionalEnv("TWILIO_ACCOUNT_SID");

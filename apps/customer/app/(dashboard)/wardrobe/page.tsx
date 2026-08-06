@@ -1,15 +1,29 @@
 import {
   CustomerRepository,
+  OutfitRepository,
+  ProductRepository,
+  ProductVariantRepository,
   RetailerRepository,
+  RetailerVisualPresetRepository,
+  StylePortraitRepository,
   WardrobeLifecycleRepository,
   WardrobeRepository,
   WardrobeRoadmapRepository,
+  WardrobeVisualizationJobRepository,
+  WishlistRepository,
   type WardrobeItemServiceView,
 } from "@paon/database";
-import type { WardrobeOwnershipEvent } from "@paon/domain";
+import { garmentCategoryToOutfitSlot } from "@paon/domain";
+import type {
+  Outfit,
+  WardrobeOwnershipEvent,
+  WardrobeVisualizationJob,
+} from "@paon/domain";
 
 import { WardrobeLifecyclePanel } from "./lifecycle-panel";
 import { WardrobeRoadmapPanel } from "./roadmap-panel";
+import type { ComposableItem } from "./virtual-studio-panel";
+import { VirtualStudioPanel } from "./virtual-studio-panel";
 import { WardrobeHousePanel } from "./wardrobe-panel";
 
 import { requireSession } from "@/lib/session";
@@ -26,6 +40,13 @@ export default async function WardrobePage() {
   const wardrobeRepo = new WardrobeRepository(supabase);
   const roadmapRepo = new WardrobeRoadmapRepository(supabase);
   const lifecycleRepo = new WardrobeLifecycleRepository(supabase);
+  const wishlistRepo = new WishlistRepository(supabase);
+  const variantRepo = new ProductVariantRepository(supabase);
+  const productRepo = new ProductRepository(supabase);
+  const outfitRepo = new OutfitRepository(supabase);
+  const jobRepo = new WardrobeVisualizationJobRepository(supabase);
+  const portraitRepo = new StylePortraitRepository(supabase);
+  const presetRepo = new RetailerVisualPresetRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
@@ -45,6 +66,66 @@ export default async function WardrobePage() {
       const serviceViews: WardrobeItemServiceView[] = await Promise.all(
         items.map((item) => lifecycleRepo.projectItemServiceView(item)),
       );
+
+      const composableItems: ComposableItem[] = items
+        .filter((item) => !item.retiredAt && !item.deletedAt)
+        .map((item) => {
+          const suggestedSlotKind = garmentCategoryToOutfitSlot(
+            item.categoryCode,
+          );
+          return {
+            key: `wardrobe:${item.id}`,
+            kind: "wardrobe" as const,
+            id: item.id,
+            label: item.displayName,
+            ...(item.identifyingPhotoUrl
+              ? { imageUrl: item.identifyingPhotoUrl }
+              : {}),
+            ...(suggestedSlotKind ? { suggestedSlotKind } : {}),
+          };
+        });
+
+      const wishlist = await wishlistRepo.findByCustomer(customer.id);
+      if (wishlist) {
+        const wishlistItems = await wishlistRepo.findItems(wishlist.id);
+        const seenProductIds = new Set<string>();
+        for (const wishlistItem of wishlistItems) {
+          const variant = await variantRepo.findById(
+            wishlistItem.productVariantId,
+          );
+          if (!variant || seenProductIds.has(variant.productId)) continue;
+          seenProductIds.add(variant.productId);
+          const product = await productRepo.findById(variant.productId);
+          if (!product) continue;
+          composableItems.push({
+            key: `product:${product.id}`,
+            kind: "product",
+            id: product.id,
+            label: product.name,
+            ...(product.primaryImageUrl
+              ? { imageUrl: product.primaryImageUrl }
+              : {}),
+          });
+        }
+      }
+
+      const outfits: Outfit[] = await outfitRepo.findByCustomer(customer.id);
+      const latestJobByOutfitId: Record<string, WardrobeVisualizationJob> = {};
+      await Promise.all(
+        outfits.map(async (outfit) => {
+          const jobs = await jobRepo.findByOutfit(outfit.id);
+          if (jobs[0]) latestJobByOutfitId[outfit.id] = jobs[0];
+        }),
+      );
+
+      const approvedPortrait = await portraitRepo.findApprovedForCustomer(
+        customer.id,
+      );
+      const defaultPreset = await presetRepo.findDefaultForRetailer(
+        customer.retailerId,
+      );
+      const canGenerate = Boolean(approvedPortrait && defaultPreset);
+
       return {
         customer,
         retailer,
@@ -52,6 +133,10 @@ export default async function WardrobePage() {
         historyByItemId,
         roadmaps,
         serviceViews,
+        composableItems,
+        outfits,
+        latestJobByOutfitId,
+        canGenerate,
       };
     }),
   );
@@ -87,6 +172,10 @@ export default async function WardrobePage() {
             historyByItemId,
             roadmaps,
             serviceViews,
+            composableItems,
+            outfits,
+            latestJobByOutfitId,
+            canGenerate,
           }) => (
             <div key={customer.id} className="flex flex-col gap-4">
               <WardrobeHousePanel
@@ -96,6 +185,14 @@ export default async function WardrobePage() {
                 items={items}
                 historyByItemId={historyByItemId}
                 roadmaps={roadmaps}
+              />
+              <VirtualStudioPanel
+                retailerId={customer.retailerId}
+                retailerName={retailer?.displayName ?? "Retailer"}
+                composableItems={composableItems}
+                outfits={outfits}
+                latestJobByOutfitId={latestJobByOutfitId}
+                canGenerate={canGenerate}
               />
               <WardrobeLifecyclePanel views={serviceViews} />
               <WardrobeRoadmapPanel
