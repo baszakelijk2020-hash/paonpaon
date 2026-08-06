@@ -1,50 +1,9 @@
 # Founder Tool Build Blueprints
 
-> **Status:** Active — authoritative R0.3 implementation contracts.
-> **Authority:** Rank 2 — Ratified PAON product contract.
-> **Purpose:** for each of the 14 founder-designated tools, fix the
-> designated source experience, the PAON job, the state/permission
-> boundaries, and record current implementation status in one place — see
-> the "Single canonical source" note directly below for why status stays
-> here rather than splitting to a second document. **Audience:** engineers
-> and agents building or reviewing a founder-tool slice. **Canonical
-> scope:** FT-01 through FT-14 only — not the storefront, not
-> non-designated PAON-native surfaces. **Depends on:**
-> `downloaded_pages/pag1.html`/`pag2.html`/`pag3.html` (experience
-> authority under ADR-052/071), `NORTH_STAR.md`. **Supersedes:** nothing.
-> **Related documents:** `DESIGN_PORTS.md` (derived summary index of this
-> document — see below), `CAPABILITY_DISPOSITION.md` (Stage 8–16
-> disposition), `docs/documentation-audit/DOCUMENT_CONFLICTS.md` #2.
-> **Implementation verification date:** per-FT, stated inline in each
-> `**Current:**`/`**Fix (…):**` paragraph — this document is updated the
-> same session any FT status changes, so no single document-level date
-> applies.
-
 **Status:** authoritative R0.3 implementation contracts for the fourteen
 founder-designated tools. This is product specification, not a claim that the
 tools are shipped and not an alternative work queue. `PHASE.md` remains the
 only queue; code, migrations and tests remain the truth for what exists.
-
-### Single canonical source for contract and status (2026-08-06)
-
-The 2026-08-06 documentation audit (`docs/documentation-audit/DOCUMENT_CONFLICTS.md`
-#2) found `DESIGN_PORTS.md`'s per-FT status table had drifted behind this
-document's per-FT `**Current:**`/`**Fix (…):**` paragraphs for several
-tools (FT-01, FT-09, FT-13, FT-14 at minimum). The original migration plan
-called for physically splitting each FT section's contract from its status
-prose across two documents. That split was not executed mechanically: the
-status prose is interleaved inline within dense, technically precise
-paragraphs (exact migration IDs, RPC names, bug narratives), and extracting
-it by hand risked exactly the kind of information loss the rearchitecture
-was instructed never to cause. **Deliberate deviation, smallest correction
-applied instead:** this document remains the single, complete source for
-both contract _and_ current status per FT — nothing has been removed or
-shortened. `DESIGN_PORTS.md` is now explicitly a derived, refreshed summary
-index of this document (see its own header), not an independent status
-source — so "no two active documents own the same concept" is satisfied by
-subordination rather than physical separation. See
-`docs/documentation-audit/DOCUMENTATION_MIGRATION_REPORT.md` for the full
-reasoning.
 
 ## How to use this document
 

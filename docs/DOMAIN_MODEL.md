@@ -1,5 +1,24 @@
 # Domain Model
 
+> **Status:** Active. **Authority:** Rank 8 — Current domain description.
+> **Purpose:** explain the shape of the domain model that lives in code,
+> the reasoning behind its bounded-context boundaries, and the product ↔
+> code term pairings a reader needs to cross between founder/product
+> language and type names. **Audience:** architects, senior engineers,
+> agents crossing a domain boundary. **Canonical scope:** current
+> bounded-context shape and modeling conventions only — never product
+> intent (`NORTH_STAR.md`) or schema/RLS mechanics (`DATABASE.md`).
+> **Depends on:** `packages/domain/src` (code is the ultimate source of
+> truth; this document must be fixed, not the code, on disagreement).
+> **Supersedes:** its own pre-2026-08-06 bounded-context list (9–11 named
+> contexts), refreshed to the current 34 top-level modules — see
+> `docs/archive/pre-documentation-rearchitecture-2026-08-06/`.
+> **Related documents:** `docs/documentation-audit/ONTOLOGY_AUDIT.md`,
+> `docs/documentation-audit/TERMINOLOGY_AUDIT.md`, `ARCHITECTURE.md`,
+> `DATABASE.md`. **Implementation verification date:** 2026-08-06 (module
+> list verified against a live `find packages/domain/src -maxdepth 1
+-type d` run).
+
 The canonical domain model lives in code at `packages/domain/src`, as
 TypeScript types and value objects. This document explains the shape of
 that model, the reasoning behind its boundaries, and must be kept in
@@ -29,19 +48,95 @@ correct and this document is stale and should be fixed.
 
 ## Bounded contexts
 
-| Context      | Path            | Owns                                                                                                                                                                                               |
-| ------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Identity     | `identity/`     | `User`, `PlatformStaffMember`, `RetailerStaffMember`, role hierarchies, `StaffShift` / `StaffTimeEntry`                                                                                            |
-| Retailer     | `retailer/`     | `Retailer` (the tenant root), `RetailerSubscription`, `SubscriptionPlan`, `FeatureFlagOverride`                                                                                                    |
-| Customer     | `customer/`     | `Customer` (incl. `preferredCarrier`), `CustomerAccountLink`, `CustomerPreferences`, `Wishlist`                                                                                                    |
-| Catalog      | `catalog/`      | `Product`, `ProductVariant`, `Collection`                                                                                                                                                          |
-| Metadata     | `metadata/`     | Canonical/retailer concepts, edges, entity assignments, provenance/review, retailer overrides, exact product fabric profiles, and pure tenancy compatibility rules                                 |
-| Commerce     | `commerce/`     | `Order`, `OrderLine`, `Payment`                                                                                                                                                                    |
-| Production   | `production/`   | Physical garments, fittings/observations, alteration work orders/tasks, workshops, pricing, handoffs and fulfillment                                                                               |
-| Appointments | `appointments/` | `Appointment`, `AvailabilityWindow`                                                                                                                                                                |
-| Loyalty      | `loyalty/`      | `LoyaltyAccount`, `LoyaltyLedgerEntry`, `Reward`, `Referral`                                                                                                                                       |
-| Engagement   | `engagement/`   | `Notification`, `Conversation` / `Message`, `RetailerEvent` / `EventRsvp`, `ClientelingNote`, `WeddingParty` / `WeddingPartyMember`, `NewsletterSubscriber`, `EmailOutboxEntry` / `SmsOutboxEntry` |
-| Analytics    | `analytics/`    | `AuditLogEntry`, `BehavioralEvent`                                                                                                                                                                 |
+`packages/domain/src` currently has **34 top-level modules** (verified
+2026-08-06 — re-run `find packages/domain/src -maxdepth 1 -type d` before
+trusting this count on any later date, per the self-correcting rule at the
+top of this document).
+
+| Context       | Path             | Owns                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identity      | `identity/`      | `User`, `PlatformStaffMember`, `RetailerStaffMember`, role hierarchy (`role.ts`), `StaffRoster`                                                                                                                                                                                                                                                                                           |
+| Retailer      | `retailer/`      | `Retailer` (tenant root), `RetailerBranch`, `Subscription`/`SubscriptionPlan`, `CommercialProspect`/`CommercialInquiry`                                                                                                                                                                                                                                                                   |
+| Customer      | `customer/`      | `Customer`, `Wishlist`                                                                                                                                                                                                                                                                                                                                                                    |
+| Catalog       | `catalog/`       | `Product`, `ProductVariant`, `CatalogueQuery`/`CatalogueIntent`, `CatalogueStorefront` projections, `TieMate`                                                                                                                                                                                                                                                                             |
+| Metadata      | `metadata/`      | Canonical/retailer `MetadataConcept`/`MetadataConceptEdge`, `EntityMetadataAssignment`, `MetadataRetailerForm`                                                                                                                                                                                                                                                                            |
+| Commerce      | `commerce/`      | `Order`, `OrderLine`, `Payment`, `PosTransaction`                                                                                                                                                                                                                                                                                                                                         |
+| Production    | `production/`    | `PhysicalGarment`, `FittingObservation`, `Alteration`/`AlterationTask`, `SerializedPiece`, `SupplierIntelligence`                                                                                                                                                                                                                                                                         |
+| Appointments  | `appointments/`  | `Appointment`, `AppointmentCloseout`, `CustomerMoment`                                                                                                                                                                                                                                                                                                                                    |
+| Loyalty       | `loyalty/`       | `LoyaltyAccount`, `LoyaltyLedgerEntry`, `LoyaltyMilestones`, `Referral` (consumer loyalty referral only — see "Proposal, Referral and other ambiguous terms" below)                                                                                                                                                                                                                       |
+| Engagement    | `engagement/`    | `Notification`, `Messaging`/`Conversation`, `ClientelingNote` (code name for "Relationship Intelligence" — see pairing note below), `RetailerEvent`/`EventRsvp`, `WeddingParty` schema, `NewsletterSubscriber`, `EmailOutboxEntry`/`SmsOutboxEntry`, `CommunicationChannel`                                                                                                               |
+| Analytics     | `analytics/`     | `AiGeneration` run records, `BehavioralEvent`, `AuditLogEntry` — see "Retail analytics/KPIs" gap noted in `docs/documentation-audit/ONTOLOGY_AUDIT.md` (no dedicated KPI domain type yet; `analytics-repository.ts` computes ad hoc)                                                                                                                                                      |
+| Campaign      | `campaign/`      | `Campaign`, `CampaignLibrary` entries, `RelationshipCalendar` windows, `SevenDayHoneymoon` programme                                                                                                                                                                                                                                                                                      |
+| Concept-scan  | `concept-scan/`  | `ConceptScanCode`, concept-order selections (FT-03 QR try-on)                                                                                                                                                                                                                                                                                                                             |
+| Concierge     | `concierge/`     | `ServicePlan`, `ServiceMembership`/`ServiceBooking`, `PartnerNetwork` (FT-14 Preferred Tailoring/HighMaintenance)                                                                                                                                                                                                                                                                         |
+| Corporate     | `corporate/`     | `CorporateProgramme`, `Tender`, business-development/renewal analytics, `OfficeVisitRequest`, `ProjectLifecycle`, `ServiceDesk`, `RolloutPlanning`, `ConceptGeneration`                                                                                                                                                                                                                   |
+| Experience    | `experience/`    | `StoreInstrumentation`                                                                                                                                                                                                                                                                                                                                                                    |
+| Fit           | `fit/`           | `MeasurementMonitor` (`MeasurementVersion`, drift/decision types)                                                                                                                                                                                                                                                                                                                         |
+| Gifting       | `gifting/`       | `GiftExperience`, `GiftCuratedItem`, `GiftInvitation` (FT-10 Inspiration Box/gift booklet)                                                                                                                                                                                                                                                                                                |
+| Import        | `import/`        | Catalogue import pipeline (`ImportPreview`/`Csv`/`Contract`/`Templates`/`Parser`/`Publish`), `ImportEnrichment`                                                                                                                                                                                                                                                                           |
+| Integrations  | `integrations/`  | `ProviderAdapters`, `SourceAuthority`, calendar/weather provider clients, `ConnectionLifecycle`, Faden read-only fixture                                                                                                                                                                                                                                                                  |
+| Intelligence  | `intelligence/`  | `CustomerFact` (code name for "Self-Portrait" — see pairing note below), `CitedRecommendation`, `AdvisorBrief`, `ClientelingOpportunity`/`ClientelingDashboard`, `Consent`, `StyleProfile`, `ForYou`, `InteractionEvent`/`InteractionSession`, `GroundedAnswer`, `IntelligencePolicy`, `StockPromiseMatching`, `CustomerSegmentation`, `AdvisorCapture` (incl. `SelfPortraitFactPayload`) |
+| Inventory     | `inventory/`     | `StockLedger`, `LossPrevention`                                                                                                                                                                                                                                                                                                                                                           |
+| Knowledge     | `knowledge/`     | `KnowledgeObject` (Academy), `KnowledgeDiscovery`, `AcademyConsultancy`, `KnowledgeStorefrontPanels`                                                                                                                                                                                                                                                                                      |
+| Merchandising | `merchandising/` | `MicroCapsule`/`MicroCapsuleDrop`                                                                                                                                                                                                                                                                                                                                                         |
+| Merchant      | `merchant/`      | `MunroMerchant` (retailer marketplace/supply concept)                                                                                                                                                                                                                                                                                                                                     |
+| Migration     | `migration/`     | `StagedFileMigration` (data-migration cockpit primitive)                                                                                                                                                                                                                                                                                                                                  |
+| Network       | `network/`       | `PartnerAttribution`, `AudienceGovernance`                                                                                                                                                                                                                                                                                                                                                |
+| Platform      | `platform/`      | `ModuleKernel` — the 8 module families, entitlement and lifecycle state (R0.3)                                                                                                                                                                                                                                                                                                            |
+| Programme     | `programme/`     | `ValidatePhaseCompletion`, `CompletionEvidence`, `ProgrammeProofSeed` — the ADR-068 evidence-discipline machinery itself, expressed as domain code                                                                                                                                                                                                                                        |
+| Shared        | `shared/`        | `BrandedId`, `Money`, `Timestamps`, `Address` — cross-cutting value objects every other module builds on                                                                                                                                                                                                                                                                                  |
+| Wardrobe      | `wardrobe/`      | `WardrobeItem`, `MorningRoutine` (+`Delivery`/`Occasions`), `Roadmap`, `Lifecycle`, `SuitConfigurator`, `StyleQuiz`, `Sartorial` rules, `SilhouetteAnalysis`, `Outfit`                                                                                                                                                                                                                    |
+| Wedding       | `wedding/`       | `MoonstruckPack` (FT-13 groom/best-men journey content — note `WeddingParty` itself is schema-defined in `engagement/`, not here; see `docs/documentation-audit/ONTOLOGY_AUDIT.md` if consolidating)                                                                                                                                                                                      |
+| Workflow      | `workflow/`      | `WorkflowDefinition` — the versioned SOP/workflow primitive `docs/RELATIONSHIP_INTELLIGENCE_BLUEPRINT.md` §3 builds its SOP engine proposal on top of                                                                                                                                                                                                                                     |
+| Workforce     | `workforce/`     | `Coaching`, `Coverage` (staff shifts), `Community`, `PayrollPeriod`, `Recognition`                                                                                                                                                                                                                                                                                                        |
+
+## Product ↔ code term pairings
+
+Product and founder documents sometimes use a different word for the same
+concept code uses. These are intentional two-register vocabularies (product
+voice vs. system name), not drift — but a reader moving between the two
+needs the pairing stated explicitly:
+
+- **House** (product/founder documents, e.g. `NORTH_STAR.md`) = `Retailer`
+  (code, `retailer/retailer.ts`).
+- **Self-Portrait** (product documents, e.g. `docs/FOUNDER_TOOL_BLUEPRINTS.md`
+  FT-05) = `CustomerFact` (code, `intelligence/customer-fact.ts`). The
+  advisor-capture _input_ shape is separately named `SelfPortraitFactPayload`
+  (`intelligence/advisor-capture.ts`) — the payload carries the product name,
+  the persisted entity does not.
+- **Relationship Intelligence** (product documents, the Module 2 family name
+  in `NORTH_STAR.md` and the title of `docs/RELATIONSHIP_INTELLIGENCE_BLUEPRINT.md`)
+  = `Clienteling*` types (code, primarily `engagement/clienteling.ts` and
+  `intelligence/clienteling-opportunity.ts`/`clienteling-dashboard.ts`). No
+  single module owns the whole concept — it is an aggregation across
+  `intelligence`, `engagement`, and `customer`, by design (see
+  `docs/documentation-audit/ONTOLOGY_AUDIT.md`, "House Memory").
+
+### Proposal, Referral and other ambiguous terms
+
+"Proposal" is unsafe to use unqualified. Three unrelated domain types share
+the word, each solving a genuinely different problem, correctly kept
+separate: `CaptureBundleProposal` (`intelligence/advisor-capture.ts` — an
+AI advisor-capture bundle awaiting review), `PriceChangeProposal`
+(`production/production.ts` — an alteration pricing negotiation), and
+`ImportEnrichmentFieldProposal` (`import/import-enrichment.ts` — a
+catalogue-import field suggestion). None of these is the golden-journey's
+"composed proposal" step (`NORTH_STAR.md`) — that step currently has no
+dedicated aggregate at all; it is realized as ordinary recommendation
+composition plus eventual `Order`/`OrderLine` creation. Always qualify
+which "proposal" you mean. Whether the golden-journey step needs its own
+tracked entity is an open founder question — see
+`docs/documentation-audit/FOUNDER_QUESTIONS.md` Q2.
+
+"Referral" similarly has a narrow, specific meaning today: only
+`loyalty/loyalty.ts`'s `Referral`/`ReferralStatus` (a consumer
+loyalty-reward mechanic) is implemented. The business-development
+"introduction candidate" concept proposed in
+`docs/RELATIONSHIP_INTELLIGENCE_BLUEPRINT.md` §12 (part of the unbuilt
+Relationship Graph) is a different, adjacent concept with zero code
+cross-references to the loyalty `Referral` today — see
+`docs/documentation-audit/FOUNDER_QUESTIONS.md` Q3 for whether these should
+ever unify.
 
 ## Key relationships
 

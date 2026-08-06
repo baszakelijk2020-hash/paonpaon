@@ -61,6 +61,12 @@ authorization and completed workflows while rebuilding demo truth, entry,
 shells, role navigation, attention dashboards, high-frequency journeys and
 remaining routes. It is not a current gate or queue.
 
+_(2026-08-06 note, added without altering the historical text above: the
+live governing experience document, `EXPERIENCE_REBUILD.md`, no longer
+cites this out-of-repository path — see its source-of-truth correction and
+`docs/documentation-audit/FOUNDER_ANSWERS.md` Q5. This paragraph is
+preserved as-written for historical accuracy only.)_
+
 ### Immediate commercialisation track
 
 The Experience Rebuild now includes the Commercialisation and Retailer Demo

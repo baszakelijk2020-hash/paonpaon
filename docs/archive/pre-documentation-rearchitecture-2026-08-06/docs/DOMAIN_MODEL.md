@@ -1,0 +1,179 @@
+# Domain Model
+
+The canonical domain model lives in code at `packages/domain/src`, as
+TypeScript types and value objects. This document explains the shape of
+that model, the reasoning behind its boundaries, and must be kept in
+sync with the code — if they disagree, the code's exported types are
+correct and this document is stale and should be fixed.
+
+## Modeling conventions
+
+- **Branded IDs.** Every entity ID is a nominal type (`CustomerId`,
+  `RetailerId`, ...), not a bare `string`. See
+  `packages/domain/src/shared/branded-id.ts`. This makes "passed a
+  CustomerId where a RetailerId was expected" a compile error instead of
+  a cross-tenant data bug discovered in production.
+- **Money is never a float.** `Money` is an integer minor-unit amount
+  plus an ISO 4217 currency code. See `shared/money.ts`.
+- **Timestamps and tenancy are structural, not incidental.** Every
+  persisted entity extends `Timestamps` (`createdAt`, `updatedAt`,
+  soft-delete `deletedAt`). Every tenant-scoped entity carries a
+  `retailerId` directly on the entity, not just in the database row.
+- **Entities are read models, not classes.** `@paon/domain` defines
+  what an entity looks like and the value objects it's built from. It
+  does not contain persistence logic (that's `@paon/database`
+  repositories) or framework code. Where an invariant needs enforcing
+  (e.g. loyalty point arithmetic, role hierarchy), a pure function lives
+  alongside the type it operates on — see `retailerRoleAtLeast` in
+  `identity/role.ts` as the pattern to follow.
+
+## Bounded contexts
+
+| Context      | Path            | Owns                                                                                                                                                                                               |
+| ------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Identity     | `identity/`     | `User`, `PlatformStaffMember`, `RetailerStaffMember`, role hierarchies, `StaffShift` / `StaffTimeEntry`                                                                                            |
+| Retailer     | `retailer/`     | `Retailer` (the tenant root), `RetailerSubscription`, `SubscriptionPlan`, `FeatureFlagOverride`                                                                                                    |
+| Customer     | `customer/`     | `Customer` (incl. `preferredCarrier`), `CustomerAccountLink`, `CustomerPreferences`, `Wishlist`                                                                                                    |
+| Catalog      | `catalog/`      | `Product`, `ProductVariant`, `Collection`                                                                                                                                                          |
+| Metadata     | `metadata/`     | Canonical/retailer concepts, edges, entity assignments, provenance/review, retailer overrides, exact product fabric profiles, and pure tenancy compatibility rules                                 |
+| Commerce     | `commerce/`     | `Order`, `OrderLine`, `Payment`                                                                                                                                                                    |
+| Production   | `production/`   | Physical garments, fittings/observations, alteration work orders/tasks, workshops, pricing, handoffs and fulfillment                                                                               |
+| Appointments | `appointments/` | `Appointment`, `AvailabilityWindow`                                                                                                                                                                |
+| Loyalty      | `loyalty/`      | `LoyaltyAccount`, `LoyaltyLedgerEntry`, `Reward`, `Referral`                                                                                                                                       |
+| Engagement   | `engagement/`   | `Notification`, `Conversation` / `Message`, `RetailerEvent` / `EventRsvp`, `ClientelingNote`, `WeddingParty` / `WeddingPartyMember`, `NewsletterSubscriber`, `EmailOutboxEntry` / `SmsOutboxEntry` |
+| Analytics    | `analytics/`    | `AuditLogEntry`, `BehavioralEvent`                                                                                                                                                                 |
+
+## Key relationships
+
+```
+Retailer 1───* RetailerStaffMember ──1 User
+Retailer 1───* Customer ──0..1 User (via CustomerAccountLink, many-to-one from the User side)
+Retailer 1───* Product 1───* ProductVariant
+MetadataConcept 1───* MetadataConceptEdge
+MetadataConcept 1───* EntityMetadataAssignment *───1 Product / ProductVariant / future WardrobeItem
+EntityMetadataAssignment 1───* MetadataAssignmentReview (append-only decisions)
+Retailer 1───* RetailerConceptOverride *───1 MetadataConcept
+Customer 1───* Order 1───* OrderLine ──1 ProductVariant
+OrderLine 0..1─── ProductionOrder
+Customer 1───* PhysicalGarment 0..1─── OrderLine
+PhysicalGarment 1───* FittingObservation *───1 FittingSession
+PhysicalGarment 1───* Alteration 1───* AlterationTask
+Alteration 1───* AlterationStatusHistory       (append-only; validated transitions only)
+Alteration 0..1───1 WorkOrderAssignment ──1 Workshop
+Alteration 1───* PriceChangeProposal / AlterationPricingHistory
+Alteration 1───* ChainOfCustodyEvent / CompletionReview / FulfillmentEvent
+Customer 1───1 LoyaltyAccount 1───* LoyaltyLedgerEntry
+Customer 1───* Appointment ──0..1 RetailerStaffMember
+RetailerStaffMember 1───* AvailabilityWindow
+Customer 1───1 Conversation 1───* Message
+Customer 1───* WeddingParty (as organizer) 1───* WeddingPartyMember ──1 Customer (each member is also a Customer)
+```
+
+## Metadata ownership and review
+
+The Intelligence Platform metadata contracts live in
+`packages/domain/src/metadata/`. Their persistence lives in the seven
+metadata/fabric tables created by
+`20260729174939_create_metadata_foundation.sql`, the review transition in
+`20260729181443_add_metadata_review_workflow.sql`, and the typed
+`MetadataRepository` / `ProductFabricProfileRepository`.
+
+- `MetadataConcept.retailerId = null` means PAON canonical ownership. A
+  retailer-owned concept carries that retailer's branded ID.
+- `MetadataConceptEdge` has the same nullable ownership boundary. A canonical
+  edge can join canonical concepts only; a retailer edge can join canonical
+  concepts and that retailer's own concepts.
+- `EntityMetadataAssignment` is always retailer-owned and targets exactly one
+  discriminated `Product`, `ProductVariant`, or future `WardrobeItem`. It
+  records source, review state, raw supplier value, confidence/evidence, and
+  completed-review provenance.
+- AI assignments require confidence and evidence. Supplier assignments retain
+  the supplier's raw value. Accepted/rejected assignments require reviewer and
+  time; pending assignments cannot pretend review already occurred.
+- `MetadataAssignmentReview` is an append-only decision snapshot. Terminal
+  decisions are submitted through `review_metadata_assignment`, which derives
+  the reviewer and time, rejects cross-tenant callers, and makes a repeated
+  identical decision a no-op rather than duplicate audit evidence.
+- `ProductFabricProfile` keeps numeric fabric weight and concept-linked
+  composition outside the concept-label graph. Non-empty composition has
+  unique fibre concepts and totals exactly 100%.
+
+Pure compatibility rules reject target/concept/edge ownership combinations;
+database triggers, RLS, explicit grants, and the atomic fabric-profile RPC
+enforce the same boundary for persisted data.
+
+## Why a Customer is scoped to one Retailer
+
+A `Customer` record — purchase history, loyalty balance, clienteling
+notes and relationship preferences — belongs entirely to one retailer relationship. A
+shopper who buys from two PAON retailers has two independent `Customer`
+rows, each invisible to the other retailer. What is shared is the
+**login**: one `User` in the Customer Portal, linked to each per-retailer
+`Customer` via `CustomerAccountLink`, so a shopper signs in once and sees
+each relationship separately. This mirrors how the business actually
+works (retailers do not share client books) and makes tenant isolation
+in [DATABASE.md](./DATABASE.md) simple to reason about: nearly every
+table's RLS policy is "rows where `retailer_id` matches the caller's
+retailer," full stop.
+
+## Why Order, ProductionOrder and Alteration are separate aggregates
+
+**Persistence note (2026-07-29).** `ProductionOrder` exists as a **domain
+type** in `@paon/domain` for the intended manufacturing-status projection.
+There is **no** `production_orders` table, repository, or generated DB type
+today. Supplier/connector work is not started ([ROADMAP.md](./ROADMAP.md),
+[ai_snapshot](./ai_snapshot/03_domain_map.md)). Do not treat ProductionOrder
+as shipped persistence. Order and Alteration aggregates below **are**
+persisted.
+
+Collapsing manufacturing and alteration status onto the `Order` would
+force every order to model a superset of every possible workflow,
+and would make it impossible to alter a purchase made months earlier
+(there is no live order to attach it to). Keeping them separate
+aggregates, linked by `orderLineId`, keeps each aggregate's invariants
+simple and lets an alteration exist entirely independently of a current
+order. See [PRODUCT.md](./PRODUCT.md) "Order vs. Production vs.
+Alteration". Because `orderLineId` is genuinely optional on
+`Alteration` (a standalone alteration on a past purchase has none),
+`Alteration.customerId` is a separate, required field, not derived
+transitively through the order line — see docs/DECISIONS.md ADR-015.
+
+An alteration always identifies a `PhysicalGarment`. Fitting data belongs to
+that garment through a `FittingObservation`; PAON has no generic customer
+measurement or manufacturing fit-profile aggregate. The older
+`CustomerFitProfileEntry` foundation is archived by an additive migration and
+removed from the active domain (ADR-016). `work_now` tasks can be quoted,
+assigned and completed. `future_order_note` tasks remain visible history for
+manual future entry into GoCreate and cannot be assigned as current work.
+
+`Alteration` is the work-order aggregate root. Its original quote is immutable;
+approved workshop increases/decreases are separate proposal and pricing-history
+records. Status history, task notes, pricing history and custody events are
+append-only. Employee attribution is part of each operational record: task
+notes, status/pricing changes, evidence uploads, custody, completion review and
+pickup/delivery identify the responsible staff member; direct-RLS writes derive
+that identity in Postgres instead of trusting a submitted staff id. Customer
+Portal reads purpose-built safe projections rather than the base aggregate, so
+internal notes, evidence, employee identities and unapproved prices are not part
+of the customer security surface. Assigned workers likewise read worker-specific
+work-order/task projections with customer and pricing fields removed; private
+images are reached only through short-lived signed URLs backed by
+assignment-aware Storage policies.
+
+## Extending the model
+
+When a new entity is needed:
+
+1. Decide which bounded context it belongs to (add a new one only if it
+   genuinely doesn't fit an existing context).
+2. Define it in `packages/domain/src/<context>/`, following the
+   conventions above (branded ID, `Timestamps`, `retailerId` if
+   tenant-scoped).
+3. Export it from `packages/domain/src/index.ts`.
+4. Add the corresponding table and RLS policy — see
+   [DATABASE.md](./DATABASE.md).
+5. Update the relationship diagram and table above in this document.
+
+Never define a shape that duplicates an existing entity's purpose with
+minor field differences — extend the existing entity or compose a new
+value object instead.

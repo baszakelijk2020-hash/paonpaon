@@ -1,42 +1,10 @@
 # PAON Experience Rebuild
 
-> **Status:** Active — Foundation checkpoint, visual acceptance pending.
-> **Authority:** Rank 13 — Factual handoff (experience-acceptance status);
-> see `docs/README.md` topic-owner table. **Purpose:** the governing
-> product-_experience_ document — checkpoints, experience principles,
-> visual system, demo personas, screen-by-screen acceptance criteria.
-> **Audience:** product, UX, engineering. **Canonical scope:** experience
-> acceptance and visual-system detail only — domain/schema/RLS/business
-> logic remain authoritative in their own documents (`DOMAIN_MODEL.md`,
-> `DATABASE.md`, `PRODUCT.md`); this document changes how people
-> _understand and operate_ them, not what they are. **Depends on:**
-> `apps/customer/app/r/[slug]/paon-template.html` (committed storefront
-> Route Handler) and `downloaded_pages/pag1.html` (committed font-face and
-> visual-system source) — see the correction note directly below.
-> **Supersedes:** its own pre-2026-08-06 citation of an out-of-repository
-> path. **Related documents:** `DESIGN_PORTS.md`, `PRODUCT.md`, `VISION.md`,
-> `docs/documentation-audit/FOUNDER_ANSWERS.md` Q5. **Implementation
-> verification date:** 2026-08-06 (citation correction only; visual
-> acceptance itself remains pending per the Acceptance status section
-> below, unchanged by this correction).
-
-This is the governing product-experience document for PAON.
-
-**Source-of-truth correction (2026-08-06):** this document previously cited
-`/Users/nguyen/Downloads/paon.html` — a path on one machine, outside the
-repository — as its visual source of truth. Per founder decision (see
-`docs/documentation-audit/FOUNDER_ANSWERS.md` Q5), that local file is
-treated as a working copy, not a second documentation authority, unless it
-is later shown to hold unique content, in which case it will be imported
-deliberately under version control. The reproducible, committed visual
-source for the material this document describes is
-[`apps/customer/app/r/[slug]/paon-template.html`](../apps/customer/app/r/[slug]/paon-template.html)
-(the committed storefront Route Handler — see `DESIGN_PORTS.md`) together
-with [`downloaded_pages/pag1.html`](../downloaded_pages/pag1.html) (the
-committed font-face and visual-system source referenced throughout this
-document). Existing domain concepts, repositories, migrations, RLS
-policies, authorization and business workflows remain authoritative; this
-rebuild changes how people understand and operate them.
+This is the governing product-experience document for PAON. The original
+`/Users/nguyen/Downloads/paon.html` is the visual source of truth. Existing
+domain concepts, repositories, migrations, RLS policies, authorization and
+business workflows remain authoritative; this rebuild changes how people
+understand and operate them.
 
 ## Acceptance status
 
@@ -309,10 +277,7 @@ before the Studio can be accepted.
    never depends on horizontal scrolling, primary actions remain reachable,
    and dense records become ordered sections rather than compressed desktop.
 
-## Visual system derived from `paon-template.html` and `pag1.html`
-
-(Previously cited as derived from an out-of-repository `paon.html` — see
-the source-of-truth correction at the top of this document.)
+## Visual system derived from `paon.html`
 
 ### Typography
 

@@ -205,7 +205,18 @@ Workflow:
 `.claude/settings.json` wires a `PostToolUse` hook that formats the touched
 file with `prettier` after `Edit`/`Write`/`MultiEdit`, and a `Stop` hook
 (`scripts/claude-stop-check.sh`) that runs `pnpm lint` then `pnpm typecheck`
-and fails the turn if either fails.
+and fails the turn if either fails. It also enables the `supabase`,
+`typescript-lsp`, `context7`, `security-guidance`, and `frontend-design`
+plugins, and explicitly disables `superpowers`.
+
+This section is the single source for Claude Code agent/hook/plugin
+configuration in this repository — folded in from the one-time bootstrap
+recipe that originally provisioned `.claude/`, archived at
+`docs/archive/pre-documentation-rearchitecture-2026-08-06/.claude/prompts/bootstrap-claude-environment.md`
+once its target state (this section, `.claude/settings.json`, and the three
+`.claude/agents/*.md` files) was confirmed to match. Update this section
+directly if that configuration ever changes; do not recreate a second
+setup-recipe document.
 
 ## Definition of done
 
