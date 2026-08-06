@@ -3286,3 +3286,68 @@ without spending an entire session rediscovering it. The founder can change
 the product, but models cannot do so silently. Ambition remains broad; delivery
 remains dependency-ordered; current status remains falsifiable. No additional
 roadmap or handoff document is created.
+
+## ADR-074: Virtual Wardrobe Studio — visualization fit preference is not a manufacturing fit profile; generation reuses Outfit/WardrobeRoadmap
+
+**Context.** The founder specified a customer- and advisor-facing AI wardrobe
+visualization capability (virtual try-on for the customer's existing
+wardrobe/wishlist library; a generated visual version of the advisor's
+wardrobe roadmap) — recorded in full in
+[VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md](./VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md).
+Two things needed an explicit decision before any schema could be written.
+First, the brief asks for a persistent customer "fit preference profile"
+(slim/classic/contemporary/fashion-wide, expanded into lapel width, waist
+suppression, and similar tailoring attributes) — vocabulary close enough to
+the archived `CustomerFitProfileEntry` that ADR-016 and ADR-055 both
+explicitly require a new ADR before anything resembling it is reintroduced.
+Second, the brief's "outfit composition" and "advisor roadmap of up to twelve
+looks" already exist in this codebase as `Outfit` and `WardrobeRoadmap`
+(PHASE 4.2) under different names, and building parallel entities for them
+would violate the engineering charter's reuse rule.
+
+**Decision.**
+
+1. The fit-preference concept in this feature is **stylistic and
+   visualization-only**: it changes how a generated image is rendered and
+   nothing else. It is never treated as a measurement, is never written to
+   `Customer`, `PhysicalGarment` or `FittingObservation`, and never feeds
+   MTM/manufacturing/alteration decisions. This is the boundary ADR-016 and
+   ADR-055 protect, and this feature stays on the correct side of it by
+   construction, not by convention.
+2. No new fit-preference table is created. The four fit archetypes are
+   modeled as four canonical, platform-owned `MetadataConcept` rows of the
+   existing `"fit"` kind (`metadata.schema.ts` already declares `"fit"` as a
+   first-class `MetadataConceptKind`), each carrying its structured tailoring
+   attributes in `attributes`. A customer's declared choice is written through
+   the existing `upsert_declared_style_preference` RPC into
+   `customer_style_preference_evidence`/`customer_style_profiles` — the exact
+   mechanism `StyleQuiz` already uses for style archetypes. Look-specific fit
+   overrides live only on the generation input snapshot (§6 of the blueprint)
+   and never silently promote to the persistent declared preference.
+3. Image generation attaches to the existing `Outfit` entity, not a new "Look"
+   entity. `Outfit.createdByStaffId` becomes optional and a new
+   `createdByCustomerId` is added, since customers — not just advisors — must
+   be able to author outfits; exactly one of the two is required by a new
+   pure guard. The advisor's "grid of up to twelve looks" is the existing
+   `WardrobeRoadmap`/`WardrobeRoadmapStage` with a UI-level cap, not a new
+   roadmap entity.
+4. New entities are limited to what has no existing PAON equivalent:
+   `StylePortrait` (approved identity/reference photos — distinct from
+   `SilhouetteAnalysisSession`, which serves a different purpose and must
+   never be conflated with generation references), `RetailerVisualPreset`,
+   `WardrobeVisualizationJob` (the generation snapshot/queue/result), and
+   `WardrobeVisualizationFeedback`. `RetailerVisualPreset.
+bodyModificationProhibited` is a literal, non-configurable `true` — slimming,
+   age reduction, body reshaping and skin-tone change are refused at the
+   domain/schema level, not left to prompt wording.
+5. Generation is provider-swappable: `AIProvider.generateWardrobeVisualization`
+   joins the existing `generateConceptImages` method on the same
+   provider-neutral interface (ADR-033); nothing outside `@paon/ai` may import
+   a vendor SDK type.
+
+**Consequences.** The wardrobe visualization feature ships without reopening
+ADR-016/055 and without a parallel outfit/roadmap data model. A future reader
+searching for "fit profile" finds this ADR and the distinction it draws,
+rather than assuming the banned manufacturing concept was quietly revived.
+Slice 4.6 (shared foundation) proceeds under `PHASE.md` Stage 4; later slices
+(4.7–4.10) are committed scope per the blueprint, not optional.

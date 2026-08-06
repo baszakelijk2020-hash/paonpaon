@@ -96,7 +96,12 @@ fitting planner in pag2, the Preferred Tailoring/HighMaintenance experience in
 pag3, and tools explicitly called out in the founder brief preserve their
 source experience under ADR-052/071. Their Atelier Munro business shell is not
 PAON's company plan; their specified interaction, motion and workflow are
-product requirements.
+product requirements. See
+[VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md](./VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md)
+for the founder-level specification of virtual try-on/generated visual
+roadmap capability inside this module's existing wardrobe, `Outfit` and
+`WardrobeRoadmap` primitives — a specification to be implemented feature by
+feature under `PHASE.md`, not a claim that it is already built.
 
 ### 4. Commerce and Growth
 

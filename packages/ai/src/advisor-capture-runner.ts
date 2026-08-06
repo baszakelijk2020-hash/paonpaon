@@ -121,4 +121,10 @@ export class MockAdvisorCaptureProvider implements AIProvider {
       "MockAdvisorCaptureProvider does not implement concept images",
     );
   }
+
+  async generateWardrobeVisualization(): Promise<never> {
+    throw new Error(
+      "MockAdvisorCaptureProvider does not implement wardrobe visualization",
+    );
+  }
 }

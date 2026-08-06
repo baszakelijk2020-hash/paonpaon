@@ -101,7 +101,10 @@ export type PhysicalGarmentId = Brand<string, "PhysicalGarmentId">;
 export type FittingSessionId = Brand<string, "FittingSessionId">;
 export type FittingObservationId = Brand<string, "FittingObservationId">;
 export type FitProfileCandidateId = Brand<string, "FitProfileCandidateId">;
-export type FitProfileCandidateActionId = Brand<string, "FitProfileCandidateActionId">;
+export type FitProfileCandidateActionId = Brand<
+  string,
+  "FitProfileCandidateActionId"
+>;
 export type AlterationTaskId = Brand<string, "AlterationTaskId">;
 export type AlterationTaskNoteId = Brand<string, "AlterationTaskNoteId">;
 export type AlterationStatusHistoryId = Brand<
@@ -257,6 +260,20 @@ export type SilhouetteAnalysisSessionId = Brand<
 export type SilhouetteAnalysisCaptureId = Brand<
   string,
   "SilhouetteAnalysisCaptureId"
+>;
+export type StylePortraitId = Brand<string, "StylePortraitId">;
+export type StylePortraitReferenceId = Brand<
+  string,
+  "StylePortraitReferenceId"
+>;
+export type RetailerVisualPresetId = Brand<string, "RetailerVisualPresetId">;
+export type WardrobeVisualizationJobId = Brand<
+  string,
+  "WardrobeVisualizationJobId"
+>;
+export type WardrobeVisualizationFeedbackId = Brand<
+  string,
+  "WardrobeVisualizationFeedbackId"
 >;
 
 export function asId<T extends string>(value: string): Brand<string, T> {

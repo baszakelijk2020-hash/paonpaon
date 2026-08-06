@@ -10,6 +10,30 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
+## 2026-08-06 new lane opened: agent/lane-d-virtual-wardrobe-studio (VWS 4.6) — does not supersede the FT-14 section below
+
+Founder opened a new, separate scope in a live session: the Virtual Wardrobe
+Studio (virtual try-on for the customer's existing wardrobe/wishlist, and a
+generated visual version of the advisor's wardrobe roadmap). Spec recorded in
+`docs/VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md`; architecture decision in
+ADR-074; queue item in `PHASE.md` Stage 4 item 4.6.
+
+**Lane:** `agent/lane-d-virtual-wardrobe-studio`, forked from
+`_integration-check` at `934b540`. Runs alongside, not instead of, the three
+already-active lanes below (`agent/lane-a-ft01-fitprofile`,
+`agent/lane-b-ft09-consultation-outcome`, `agent/lane-c-18-9-contract-value`)
+and the FT-14 pickup decision in the section immediately below this one —
+this section does not invalidate that one. Module/file footprint is disjoint
+from all four: new `wardrobe/virtual-studio.ts` domain module, a new
+migration, new repositories, and additive-only changes to `Outfit` and
+`CONSENT_PURPOSES` (no shared table another lane owns is touched).
+
+**This session's slice:** 4.6 shared foundation only (domain, migration, RLS,
+repositories, `AIProvider.generateWardrobeVisualization`, queue, storage) —
+no UI. See `docs/VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md` §5 for 4.7–4.10.
+
+---
+
 ## 2026-08-06 formatting fix pushed, FT-14 next-slice scoped but not started (READ FIRST — supersedes every section below)
 
 Session found stale uncommitted work sitting in the tree from an earlier,

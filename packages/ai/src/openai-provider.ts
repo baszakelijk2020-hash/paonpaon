@@ -12,6 +12,8 @@ import type {
   NextBestActionResult,
   ProductRecommendationContext,
   ProductRecommendationResult,
+  WardrobeVisualizationContext,
+  WardrobeVisualizationResult,
 } from "./provider";
 
 const DEFAULT_MODEL = "gpt-4o-mini";
@@ -177,6 +179,37 @@ function buildConceptImagePrompt(context: ConceptImageContext): string {
     `Garment concepts: ${context.garmentConcepts.join(", ")}.`,
     ...(context.styleNotes ? [`Style notes: ${context.styleNotes}.`] : []),
     "Studio lighting, premium menswear editorial style, no visible text or logos.",
+  ];
+  return lines.join(" ");
+}
+
+/**
+ * v1 is text-to-image only: `images.generate` has no reliable multi-
+ * reference identity-preserving mode on the model this codebase already
+ * calls elsewhere. Reference photo URLs are named in the prompt as
+ * context, not passed as true image-to-image input — that upgrade is a
+ * follow-on provider capability (ADR-074/§2: the call is provider-
+ * swappable specifically so a better virtual try-on model can replace
+ * this without touching anything outside this method), named honestly
+ * rather than invented.
+ */
+function buildWardrobeVisualizationPrompt(
+  context: WardrobeVisualizationContext,
+): string {
+  const lines = [
+    `A photorealistic, editorial-quality wardrobe visualization for ${context.retailerName}.`,
+    `The same person shown in these reference photos, identity and proportions preserved exactly, wearing: ${context.garmentDescriptions.join(", ")}.`,
+    `Reference photos: ${context.referenceImageUrls.join(", ")}.`,
+    `Tailoring: ${context.tailoringInstructions}.`,
+    ...(context.writtenInstructions
+      ? [`Styling direction: ${context.writtenInstructions}.`]
+      : []),
+    `Background: ${context.backgroundType}. Pose: ${context.poseFamily}. Camera height: ${context.cameraHeight}, distance: ${context.cameraDistance}, crop: ${context.crop}, aspect ratio: ${context.aspectRatio}.`,
+    `Lighting: ${context.lighting}. Expression: ${context.expression}. Visual treatment: ${context.visualTreatment}.`,
+    "Do not slim, reshape, age-reduce or change the skin tone of the person.",
+    ...(context.negativeConstraints.length
+      ? [`Avoid: ${context.negativeConstraints.join(", ")}.`]
+      : []),
   ];
   return lines.join(" ");
 }
@@ -380,5 +413,28 @@ export class OpenAIProvider implements AIProvider {
       throw new Error("OpenAI returned no concept images");
     }
     return { images };
+  }
+
+  async generateWardrobeVisualization(
+    context: WardrobeVisualizationContext,
+  ): Promise<WardrobeVisualizationResult> {
+    const prompt = buildWardrobeVisualizationPrompt(context);
+    const response = await this.client.images.generate({
+      model: DEFAULT_IMAGE_MODEL,
+      prompt,
+      n: 1,
+      size: "1024x1024",
+    });
+
+    const image = (response.data ?? [])[0];
+    if (!image?.url) {
+      throw new Error(
+        "OpenAI wardrobe visualization response was missing a url",
+      );
+    }
+    return {
+      imageUrl: image.url,
+      revisedPrompt: image.revised_prompt ?? prompt,
+    };
   }
 }

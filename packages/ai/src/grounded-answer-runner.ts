@@ -85,6 +85,12 @@ export class MockGroundedAnswerProvider implements AIProvider {
       "MockGroundedAnswerProvider does not implement concept images",
     );
   }
+
+  async generateWardrobeVisualization(): Promise<never> {
+    throw new Error(
+      "MockGroundedAnswerProvider does not implement wardrobe visualization",
+    );
+  }
 }
 
 export async function runGroundedAnswerJob(

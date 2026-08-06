@@ -1636,10 +1636,44 @@ replacement of human advice for uncertain high-value decisions.
     retailer pause + eligible-product allowlist, cron enqueue from the exact
     selection via existing notification/email outbox path.
 
+- [ ] **4.6 Virtual Wardrobe Studio — shared foundation**
+  - **Requirement IDs:** `VWS-001`, `VWS-002`, `VWS-003`.
+  - **Dependencies:** `4.2`; ADR-033, ADR-061, ADR-063, ADR-074.
+  - **Owner boundary:** wardrobe/AI-integration domain, forward migration/RLS,
+    repositories, `@paon/ai` provider adapter, queue and private storage. No
+    UI in this item — see `docs/VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md` §5 for
+    4.7–4.10.
+  - **Acceptance:** founder-level spec recorded in
+    `docs/VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md`; `StylePortrait`,
+    `RetailerVisualPreset`, `WardrobeVisualizationJob`,
+    `WardrobeVisualizationFeedback` exist with tenant RLS; `Outfit` accepts
+    customer authorship alongside advisor authorship; a fourth `"image_generation"`
+    consent purpose gates generation; four canonical `"fit"`-kind
+    `MetadataConcept` archetypes are seeded and reachable through the existing
+    `upsert_declared_style_preference` RPC; `AIProvider.
+generateWardrobeVisualization` exists behind the same provider-neutral
+    interface as `generateConceptImages`; a claim-and-process queue function
+    mirrors `claim_pending_emails`; a private storage bucket holds reference
+    and generated images with tenant-scoped object RLS; no image is exposed to
+    a customer or advisor except through the immutable job snapshot.
+  - **Tests:** domain unit tests for the new pure functions (author guard,
+    tailoring-attribute derivation, transition/consistency checks), repository
+    tenant-isolation tests for every new table, migrated-schema assertions.
+  - **Non-goals:** no new fit-profile table (ADR-074) — fit archetypes reuse
+    `MetadataConcept`/`customer_style_preference_evidence`; no new "Look" or
+    "roadmap" entity — generation attaches to the existing `Outfit`/
+    `WardrobeRoadmap`; no UI, no live provider credential requirement, no
+    body-modification-capable preset field.
+  - **Hard blockers:** none for local implementation; live end-to-end image
+    generation requires a configured provider credential, same posture as
+    every other `ai_generations`-backed feature.
+  - **Landed:** _(update on completion of this session's slice)_
+
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
-and 055 remain), no retailer sharing of wardrobe data, no required location,
-no native mobile app, no automatic purchase, and no recommendation without an
-explanation path.
+and 055 remain — see ADR-074 for the visualization-only fit-preference
+distinction 4.6 relies on), no retailer sharing of wardrobe data, no required
+location, no native mobile app, no automatic purchase, and no recommendation
+without an explanation path.
 
 ### Stage 5 — Relationship programmes and concierge services
 
