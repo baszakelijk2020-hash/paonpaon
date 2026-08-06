@@ -1007,6 +1007,22 @@ orchestrator.ts` was the only other one still uncovered (the
     page. Fixed in both specs by waiting for the mutating response before
     reloading; 30 repeated runs across both cards afterward were clean.
     Full detail in `FOUNDER_TOOL_BLUEPRINTS.md`'s FT-02 entry.
+    FT-07's suit_configuration_intents and FT-10's gift-experience revoke
+    path both had real UI/RPCs but zero pgTAP or e2e proof for their own
+    named "cross-House isolation"/"revoke" gaps; added
+    `suit_configuration_intents_test.sql` (11 pgTAP assertions) and
+    `gift-revoke.spec.ts` — no defects found in either, both already
+    correct. Writing the equivalent pgTAP coverage for FT-13's
+    `wedding_guest_vouchers` (also previously untested despite holding
+    real monetary value) found a real one: the bulk staff-insert RLS
+    policy shared by all five wedding-party child tables never checked
+    that a written `wedding_party_id` actually belonged to the caller's
+    own `retailer_id`, so a staff member could attach a row to a
+    different retailer's wedding party, readable by that retailer's own
+    organizer. Fixed by migration `20260806000004` — a composite foreign
+    key on `(wedding_party_id, retailer_id)` closes it at the database
+    level across all five tables. Full detail in
+    `FOUNDER_TOOL_BLUEPRINTS.md`'s FT-13 entry.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

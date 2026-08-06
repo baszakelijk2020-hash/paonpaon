@@ -1199,6 +1199,27 @@ customer-facing SELECT policy; retailer issue/mark-redeemed use plain
 insert/update through the already-granted staff RLS, no RPC. FT-13 is now
 fully wired across every table the schema already had — planner
 workflow/experience otherwise partial.
+**Fix (2026-08-06):** writing pgTAP coverage for `wedding_guest_vouchers`
+(zero tests existed for any of FT-13's five wedding-party child tables
+despite one holding real monetary value) found a real cross-tenant
+integrity bug, reproduced directly: the bulk staff-insert RLS policy
+these five tables share (`wedding_inspiration_items`,
+`wedding_design_choices`, `wedding_group_fittings`,
+`wedding_guest_vouchers`, `wedding_aftercare_plans`) only ever checked
+`retailer_id = current_retailer_id()` — never that the `wedding_party_id`
+being written actually belonged to that same retailer. A House B staff
+member could insert a row with their own `retailer_id` paired with House
+A's `wedding_party_id`, and House A's organizer would then read it via
+`is_wedding_party_organizer_or_member`, which does not check
+`retailer_id` either. Fixed by migration `20260806000004`: a composite
+foreign key `(wedding_party_id, retailer_id)` referencing a new
+`wedding_parties (id, retailer_id)` unique constraint on all five tables,
+making a cross-tenant reference impossible at the database level. New
+`wedding_guest_vouchers_test.sql` (6 pgTAP assertions) proves the fixed
+insert now fails with a real foreign-key violation, plus ordinary
+cross-House staff and organizer read isolation. Full
+`wedding-party-coordination.spec.ts` reran green — the constraint does
+not affect any real (same-tenant) write path.
 
 ## FT-14 — Preferred Tailoring and HighMaintenance
 
