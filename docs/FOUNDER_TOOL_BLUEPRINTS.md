@@ -1023,10 +1023,18 @@ sending stays an explicit manager decision distinct from creating the
 link — matching this codebase's repeated "explicit action, not implicit
 side effect" precedent. Proof: extended `gifts.spec.ts` — click "Email
 invitation", assert a real `email_outbox` row with the invite link,
-reload, assert the button now reads "Resend email". Not yet built:
-expiry/revoke UI polish beyond the raw fields, giver payment/request
-flow, and recall/refund handling — the blueprint's fuller giver-side and
-commercial-instrument scope remains open.
+reload, assert the button now reads "Resend email".
+**Fix (2026-08-06):** "expiry/revoke UI polish" turned out to already be
+fully wired (the Revoke button, `revokeGiftExperience`, and
+`resolve_gift_invitation`'s effective-status derivation from the parent
+experience) — just never exercised end to end, so a real regression
+there would have gone unnoticed. New `gift-revoke.spec.ts`: create an
+experience, invite, confirm the reveal resolves normally, revoke through
+the real retailer UI, then prove `resolve_gift_invitation` reports
+`revoked` and `redeem_gift_invitation` refuses outright — not only that
+the retailer list shows "revoked". No defect found. Remaining, still
+open: giver payment/request flow and recall/refund handling — the
+blueprint's fuller giver-side and commercial-instrument scope.
 
 ## FT-11 — Location globe and monthly visual grid
 
