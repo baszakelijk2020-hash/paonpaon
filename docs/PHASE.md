@@ -4500,6 +4500,38 @@ routine-occasions.ts`) reuses 10.4's existing
     attempted — the current schema requires a non-null `customerId` on
     every wardrobe item, so "unattached" isn't representable without a
     schema change this slice didn't make.
+  - **Fix (2026-08-07, lane-f):** the spec's own scoping (§17: action
+    buttons exist "once genuinely part of a customer's digital
+    wardrobe," not on the anonymous scan) put alteration/cleaning
+    booking on the signed-in `/wardrobe` dashboard, not the anonymous
+    `/r/[slug]/wardrobe/[token]` page — matching the "Ask a question"
+    button's own existing precedent on that same page, which already
+    defers to login rather than acting anonymously. Two new buttons
+    ("Book an alteration"/"Book a cleaning") on each owned wardrobe item
+    card send a real message — naming the item — through the customer's
+    existing conversation with their advisor
+    (`MessagingRepository.getOrCreateForCustomer`/`.send`, both already
+    re-deriving the caller's own identity server-side), landing in the
+    same Messages inbox staff already triage. Deliberately not a new
+    `ConversationIntent` value: that enum is a designated ADR-034 source
+    contract every existing consumer depends on; this reuses the
+    existing freeform channel instead. Deliberately not a new request
+    table either: a real alteration/cleaning work order needs the
+    garment physically in hand regardless, so a message the retailer
+    already sees and can act on is the honest real touchpoint, not a
+    fabricated downstream object. Proof: 2 new domain unit tests
+    (`wardrobeServiceRequestMessage`, both kinds); a new customer
+    browser journey (`wardrobe.spec.ts`) proving a real click sends a
+    real message with the exact item-naming body, the success banner's
+    own link resolves to that real conversation, and the conversation's
+    `customer_id`/`retailer_id` match the caller — not just a
+    success-looking UI state. Full `wardrobe.spec.ts` reran twice
+    consecutively (3/3 both times) to confirm the new test cleans up its
+    own message row and does not collide with a repeat run. Checkbox
+    stays unchecked: the **periodic fit-check photo → Self-Portrait
+    update**, **item-specific complete-the-look**, and the **unattached
+    item** scenario remain unbuilt — continue with one of those or the
+    next founder-tool contract.
 
 ### Stage 18 — Corporate business development, tenders, and rollout (Métier expansion)
 

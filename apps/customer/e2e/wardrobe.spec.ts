@@ -218,3 +218,125 @@ test("an approved roadmap's open gap appears as an aspirational card in its cate
     await admin.from("wardrobe_roadmaps").delete().eq("id", roadmap.id);
   }
 });
+
+/**
+ * PHASE 17.13's own named gap: "Book an alteration"/"Book a cleaning" from
+ * a specific wardrobe item. Proves the real write path — a real message
+ * lands in the customer's own conversation with this retailer, naming the
+ * exact item — not just a success-looking UI state, and that the success
+ * banner's own link resolves to that same real conversation.
+ */
+test("booking an alteration for a wardrobe item sends a real message naming the item", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+    );
+  }
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id, display_name")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailer) throw new Error("fixture retailer missing");
+  const { data: customerRow } = await admin
+    .from("customers")
+    .select("id")
+    .eq("retailer_id", retailer.id)
+    .eq("email", TEST_CUSTOMER_EMAIL)
+    .maybeSingle();
+  if (!customerRow) throw new Error("fixture customer missing");
+
+  await admin
+    .from("wardrobe_items")
+    .delete()
+    .eq("customer_id", customerRow.id)
+    .eq("retailer_id", retailer.id)
+    .eq("display_name", "E2E Alteration Request Blazer");
+
+  const wardrobeRepo = new WardrobeRepository(admin);
+  const item = await wardrobeRepo.createExternalItem({
+    retailerId: retailer.id,
+    customerId: customerRow.id,
+    categoryCode: "jacket",
+    displayName: "E2E Alteration Request Blazer",
+    brand: "E2E House",
+    condition: "good",
+    careState: "current",
+    fitPerception: "true_to_size",
+  });
+  let sentMessageId: string | undefined;
+
+  try {
+    const { data, error } = await admin.auth.admin.generateLink({
+      type: "magiclink",
+      email: TEST_CUSTOMER_EMAIL,
+    });
+    if (error || !data.properties) {
+      throw new Error(
+        `Failed to generate magic link: ${error?.message ?? "unknown error"}`,
+      );
+    }
+    await page.goto(
+      `/auth/confirm?token_hash=${data.properties.hashed_token}&type=magiclink`,
+    );
+    await expect(page).toHaveURL(/\/dashboard$/);
+
+    await page.goto("/wardrobe");
+    const jacketsCarousel = page
+      .locator("section", {
+        has: page.getByRole("heading", { name: "Jackets" }),
+      })
+      .first();
+    const card = jacketsCarousel.locator("article", {
+      hasText: "E2E Alteration Request Blazer",
+    });
+    await expect(card).toBeVisible();
+
+    await card.getByRole("button", { name: "Book an alteration" }).click();
+    await expect(page.getByText("Request sent to your advisor.")).toBeVisible();
+    const messagesLink = page.getByRole("link", { name: "View in Messages" });
+    await expect(messagesLink).toBeVisible();
+    const href = await messagesLink.getAttribute("href");
+    expect(href).toMatch(/^\/messages\/[0-9a-f-]{36}$/);
+
+    const conversationId = href!.split("/").pop()!;
+    const { data: conversation } = await admin
+      .from("conversations")
+      .select("id, customer_id, retailer_id")
+      .eq("id", conversationId)
+      .single();
+    expect(conversation?.customer_id).toBe(customerRow.id);
+    expect(conversation?.retailer_id).toBe(retailer.id);
+
+    const { data: messages } = await admin
+      .from("messages")
+      .select("id, body, sender_type")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    sentMessageId = messages?.[0]?.id;
+    expect(messages?.[0]?.sender_type).toBe("customer");
+    expect(messages?.[0]?.body).toBe(
+      "I'd like to book an alteration for this item from my wardrobe: " +
+        "E2E House E2E Alteration Request Blazer.",
+    );
+
+    // Following the banner's own link really opens the real conversation.
+    await messagesLink.click();
+    await expect(page).toHaveURL(new RegExp(`/messages/${conversationId}$`));
+    await expect(
+      page.getByText("E2E Alteration Request Blazer", { exact: false }).last(),
+    ).toBeVisible();
+  } finally {
+    await admin.from("wardrobe_items").delete().eq("id", item.id);
+    if (sentMessageId) {
+      await admin.from("messages").delete().eq("id", sentMessageId);
+    }
+  }
+});

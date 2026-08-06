@@ -10,7 +10,93 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-07 (lane-e) 18.7 rollout-to-project auto-advance wired (READ FIRST — supersedes every section below)
+## 2026-08-07 (lane-f) 17.13 alteration/cleaning booking from the wardrobe (READ FIRST — supersedes every section below)
+
+New isolated worktree/branch (`agent/lane-f-wardrobe-service-request`),
+forked from lane-e's own pushed tip `d3af01d` (FT-14 weekly plan, the Stop
+hook `CLAUDE_PROJECT_DIR` fix, 18.7's rollout auto-advance) rather than
+continuing that lane directly, per this session's own instruction not to
+continue the previous lane. Baseline `pnpm lint`/`typecheck`/`test`/
+`format:check` all green before any change (validate:completion's own
+pre-existing, unrelated evidence-gitSha gap for 8.4/9.1 confirmed present
+at this exact commit, same as the previous two sessions' findings).
+
+Ran a full dependency-graph sweep of `docs/PHASE.md` before picking a
+slice, not just Stage 17/18: `docs/CAPABILITY_DISPOSITION.md` (R0.3's own
+Stage 8–16 inheritance map) confirms every unchecked Stage 6/9–16 item is
+either **Quarantine** (9.2, needs a real provider contract),
+**Replace** (9.3, needs real named-buyer demand PAON cannot fabricate) or
+**Consolidate** (10.1–16.5, meant to be absorbed into a real connected
+journey via Stage 17/18-style work, not resumed as a standalone numbered
+item) — confirming `AGENTS.md`'s own rule against continuing a legacy
+Stage 9–16 item without that mapping, and that Stage 17/18 remains the
+only currently executable frontier. R0.4–R0.6 are broad rollup acceptance
+gates satisfied by the accumulation of FT-*/17.x/18.x work, not
+independently implementable slices.
+
+Checked every active lane's actual uncommitted worktree state (not just
+pushed tips) before picking: lane-d (Virtual Wardrobe Studio) owns
+wardrobe/outfit/style-portrait's shared foundation and has advanced past
+`ba93039` to `d55efe6` (4.6/4.7/4.8 landed); lane-a (FT-01) has
+uncommitted work on `packages/domain/src/production/production.ts` and
+`fit-profile-candidate-repository.ts`; lane-b (FT-09) has uncommitted work
+on customer/retailer messages actions and `consultation-outcome.spec.ts`;
+lane-c (18.9) is clean/idle at its own commit tip. None of these touch
+`packages/domain/src/wardrobe/wardrobe.ts`, its schema file, or
+`apps/customer/app/(dashboard)/wardrobe/*` — verified by `git status`
+against each lane's own worktree, not assumed.
+
+Picked **17.13 QR wardrobe card**'s named "alteration/cleaning booking"
+gap: read the actual founder source (`docs/vision/
+PAON_VIRTUAL_TRYON_AND_OOTD_ECONOMICS.md` §17) rather than inferring scope
+from PHASE.md's own summary — the spec itself scopes action buttons to
+"once genuinely part of a customer's digital wardrobe," not the anonymous
+QR scan page, which matches that page's own already-existing "Ask a
+question" precedent (deep-links to login rather than acting anonymously).
+Reused `MessagingRepository.getOrCreateForCustomer`/`.send` verbatim — the
+exact same primitives the existing Messages feature already uses,
+re-deriving the caller's identity server-side — rather than a new request
+table or widening `ConversationIntent` (a designated ADR-034 source
+contract every existing consumer depends on).
+
+Built: `WARDROBE_SERVICE_REQUEST_KINDS`/labels and
+`wardrobeServiceRequestMessage` (`packages/domain/src/wardrobe/
+wardrobe.ts`), `requestWardrobeItemServiceInputSchema`
+(`wardrobe.schema.ts`), `requestWardrobeItemService` Server Action
+(`apps/customer/app/(dashboard)/wardrobe/actions.ts`), two new buttons per
+owned item card ("Book an alteration"/"Book a cleaning") threaded through
+`WardrobeItemCard`/`WardrobeCarousel`/`WardrobeHousePanel` via the same
+`useActionState` pattern the existing Retire button already uses, plus a
+success banner linking to the real `/messages/[id]` conversation. No
+migration: every table this touches already existed. Proof: 2 domain unit
+tests (`wardrobe.test.ts`), a new customer browser journey extending
+`apps/customer/e2e/wardrobe.spec.ts` — a real click sends a real message
+naming the item, the success banner's link resolves to the real
+conversation, and the conversation's `customer_id`/`retailer_id` are
+asserted to match the caller. Full `wardrobe.spec.ts` (3 tests) reran
+twice consecutively, 3/3 both times, confirming the new test's own
+message-row cleanup prevents a repeat-run collision (an earlier draft
+without that cleanup produced a real strict-mode Playwright locator
+ambiguity on the second run — found and fixed, not theorized). Full
+monorepo `lint`/`typecheck`/`format:check`/`build` green; domain suite
+1039/1039; database suite 481/481.
+
+### Pick up here
+
+17.13's alteration/cleaning-booking gap is closed. The three remaining
+named gaps — periodic fit-check photo → Self-Portrait size update
+(needs a consent/review flow, likely reusable structure from FT-02's
+silhouette-analysis session state machine though a genuinely different,
+garment-scoped concept, not customer-body-scoped), item-specific
+complete-the-look (overlaps conceptually with 17.10's own separate
+MorningRoutine-level complete-the-look gap — worth scoping both
+together), and the unattached/logged-out-created item scenario (needs a
+schema change: `wardrobe_items.customer_id` is currently non-null) — are
+each their own genuinely separate design pass, not attempted here.
+Everything else in the backlog below is unchanged from the 2026-08-07
+handoff it supersedes.
+
+## 2026-08-07 (lane-e) 18.7 rollout-to-project auto-advance wired
 
 Continued on the same branch (`agent/lane-e-core-roadmap`), same isolated
 worktree, forked from `934b540`. Baseline commit for this slice: `5e02b3b`

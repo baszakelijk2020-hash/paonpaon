@@ -10,6 +10,7 @@ import {
   WARDROBE_OWNERSHIP_EVENT_KINDS,
   WARDROBE_OWNERSHIP_KINDS,
   WARDROBE_PROVENANCE_SOURCES,
+  WARDROBE_SERVICE_REQUEST_KINDS,
   WARDROBE_WEAR_FREQUENCIES,
   isWardrobeItemConsistent,
   type WardrobeItemConsistencyInput,
@@ -187,4 +188,18 @@ export const retireWardrobeItemInputSchema = z.object({
 
 export type RetireWardrobeItemInput = z.infer<
   typeof retireWardrobeItemInputSchema
+>;
+
+export const wardrobeServiceRequestKindSchema = z.enum(
+  WARDROBE_SERVICE_REQUEST_KINDS,
+);
+
+export const requestWardrobeItemServiceInputSchema = z.object({
+  wardrobeItemId: z.string().uuid(),
+  retailerId: z.string().uuid(),
+  kind: wardrobeServiceRequestKindSchema,
+});
+
+export type RequestWardrobeItemServiceInput = z.infer<
+  typeof requestWardrobeItemServiceInputSchema
 >;
