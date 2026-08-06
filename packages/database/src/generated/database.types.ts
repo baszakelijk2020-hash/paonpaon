@@ -14295,6 +14295,158 @@ export type Database = {
           },
         ];
       };
+      service_weekly_plan_days: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          day_of_week: number;
+          id: string;
+          occasion_tag: string;
+          outfit_notes: string;
+          retailer_id: string;
+          updated_at: string;
+          weekly_plan_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          day_of_week: number;
+          id?: string;
+          occasion_tag: string;
+          outfit_notes: string;
+          retailer_id: string;
+          updated_at?: string;
+          weekly_plan_id: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          day_of_week?: number;
+          id?: string;
+          occasion_tag?: string;
+          outfit_notes?: string;
+          retailer_id?: string;
+          updated_at?: string;
+          weekly_plan_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_weekly_plan_days_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_weekly_plan_days_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_weekly_plan_days_plan_fk";
+            columns: ["weekly_plan_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_weekly_plans";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_weekly_plan_days_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      service_weekly_plans: {
+        Row: {
+          advisor_notes: string | null;
+          created_at: string;
+          created_by_staff_id: string | null;
+          customer_id: string;
+          decided_at: string | null;
+          decline_reason: string | null;
+          id: string;
+          membership_id: string;
+          proposed_at: string | null;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+          version: number;
+          week_start_date: string;
+        };
+        Insert: {
+          advisor_notes?: string | null;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          customer_id: string;
+          decided_at?: string | null;
+          decline_reason?: string | null;
+          id?: string;
+          membership_id: string;
+          proposed_at?: string | null;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+          version?: number;
+          week_start_date: string;
+        };
+        Update: {
+          advisor_notes?: string | null;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          customer_id?: string;
+          decided_at?: string | null;
+          decline_reason?: string | null;
+          id?: string;
+          membership_id?: string;
+          proposed_at?: string | null;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+          version?: number;
+          week_start_date?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "service_weekly_plans_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_weekly_plans_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "service_weekly_plans_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_weekly_plans_membership_fk";
+            columns: ["membership_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "service_memberships";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "service_weekly_plans_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       silhouette_analysis_captures: {
         Row: {
           created_at: string;
@@ -18493,6 +18645,14 @@ export type Database = {
         };
         Returns: undefined;
       };
+      decide_service_weekly_plan: {
+        Args: {
+          p_decision: string;
+          p_decline_reason?: string;
+          p_plan_id: string;
+        };
+        Returns: string;
+      };
       decide_silhouette_analysis_candidate: {
         Args: { p_decision: string; p_note?: string; p_session_id: string };
         Returns: undefined;
@@ -18760,6 +18920,15 @@ export type Database = {
           p_idempotency_key: string;
           p_observation_ids: string[];
           p_proposed_measurements: Json;
+        };
+        Returns: string;
+      };
+      propose_service_weekly_plan: {
+        Args: {
+          p_advisor_notes?: string;
+          p_days: Json;
+          p_membership_id: string;
+          p_week_start_date: string;
         };
         Returns: string;
       };

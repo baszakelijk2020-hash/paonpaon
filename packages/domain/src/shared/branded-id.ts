@@ -101,7 +101,10 @@ export type PhysicalGarmentId = Brand<string, "PhysicalGarmentId">;
 export type FittingSessionId = Brand<string, "FittingSessionId">;
 export type FittingObservationId = Brand<string, "FittingObservationId">;
 export type FitProfileCandidateId = Brand<string, "FitProfileCandidateId">;
-export type FitProfileCandidateActionId = Brand<string, "FitProfileCandidateActionId">;
+export type FitProfileCandidateActionId = Brand<
+  string,
+  "FitProfileCandidateActionId"
+>;
 export type AlterationTaskId = Brand<string, "AlterationTaskId">;
 export type AlterationTaskNoteId = Brand<string, "AlterationTaskNoteId">;
 export type AlterationStatusHistoryId = Brand<
@@ -147,6 +150,8 @@ export type ServiceFulfilmentEventId = Brand<
 export type ServiceCareRecordId = Brand<string, "ServiceCareRecordId">;
 export type ServiceCostRecordId = Brand<string, "ServiceCostRecordId">;
 export type ServiceHistoryEventId = Brand<string, "ServiceHistoryEventId">;
+export type ServiceWeeklyPlanId = Brand<string, "ServiceWeeklyPlanId">;
+export type ServiceWeeklyPlanDayId = Brand<string, "ServiceWeeklyPlanDayId">;
 export type RewardId = Brand<string, "RewardId">;
 export type RewardRedemptionId = Brand<string, "RewardRedemptionId">;
 export type ReferralId = Brand<string, "ReferralId">;

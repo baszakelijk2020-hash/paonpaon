@@ -15,11 +15,17 @@ import {
   SERVICE_FULFILMENT_METHODS,
   SERVICE_KIND_LABELS,
   SERVICE_KINDS,
+  SERVICE_WEEKLY_PLAN_DAY_LABELS,
+  SERVICE_WEEKLY_PLAN_OCCASION_TAG_LABELS,
+  SERVICE_WEEKLY_PLAN_OCCASION_TAGS,
+  SERVICE_WEEKLY_PLAN_STATUS_LABELS,
   canTransitionServiceBooking,
   recommendedAppointmentType,
   retailerRoleAtLeast,
   type ServiceBookingStatus,
   type ServiceKind,
+  type ServiceWeeklyPlan,
+  type ServiceWeeklyPlanDay,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
@@ -30,6 +36,7 @@ import {
   enrollServiceMembership,
   grantEntitlement,
   linkAppointment,
+  proposeWeeklyPlan,
   recordCare,
   recordCost,
   recordFulfilment,
@@ -73,14 +80,27 @@ export default async function RetailerServicesPage() {
   );
 
   const membershipDetails = await Promise.all(
-    memberships.slice(0, 40).map(async (membership) => ({
-      membership,
-      plan: plans.find((plan) => plan.id === membership.planId),
-      entitlements: await services.listEntitlementsForMembership(membership.id),
-      care: await services.listCareForMembership(membership.id),
-      costs: await services.listCostsForMembership(membership.id),
-      history: await services.listHistoryForMembership(membership.id),
-    })),
+    memberships.slice(0, 40).map(async (membership) => {
+      const weeklyPlans = await services.listWeeklyPlansForMembership(
+        membership.id,
+      );
+      return {
+        membership,
+        plan: plans.find((plan) => plan.id === membership.planId),
+        entitlements: await services.listEntitlementsForMembership(
+          membership.id,
+        ),
+        care: await services.listCareForMembership(membership.id),
+        costs: await services.listCostsForMembership(membership.id),
+        history: await services.listHistoryForMembership(membership.id),
+        weeklyPlans: await Promise.all(
+          weeklyPlans.map(async (plan) => ({
+            plan,
+            days: await services.listWeeklyPlanDays(plan.id),
+          })),
+        ),
+      };
+    }),
   );
 
   return (
@@ -388,7 +408,15 @@ export default async function RetailerServicesPage() {
       </section>
 
       {membershipDetails.map(
-        ({ membership, plan, entitlements, care, costs, history }) => {
+        ({
+          membership,
+          plan,
+          entitlements,
+          care,
+          costs,
+          history,
+          weeklyPlans,
+        }) => {
           if (!plan) return null;
           const bookingKinds =
             BOOKING_KINDS_BY_SERVICE[plan.kind as ServiceKind];
@@ -599,6 +627,13 @@ export default async function RetailerServicesPage() {
                 </div>
               </div>
 
+              {plan.kind === "preferred_tailoring" ? (
+                <WeeklyPlanPanel
+                  membershipId={membership.id}
+                  weeklyPlans={weeklyPlans}
+                />
+              ) : null}
+
               {history.length > 0 ? (
                 <div className="mt-4">
                   <h3 className="text-sm font-medium">Audit history</h3>
@@ -616,6 +651,141 @@ export default async function RetailerServicesPage() {
           );
         },
       )}
+    </div>
+  );
+}
+
+function nextMondayIsoDate(): string {
+  const now = new Date();
+  const day = now.getUTCDay();
+  const daysUntilMonday = day === 1 ? 7 : ((1 - day + 7) % 7) + 7;
+  const next = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+  next.setUTCDate(next.getUTCDate() + daysUntilMonday);
+  return next.toISOString().slice(0, 10);
+}
+
+function WeeklyPlanPanel({
+  membershipId,
+  weeklyPlans,
+}: {
+  membershipId: string;
+  weeklyPlans: readonly {
+    plan: ServiceWeeklyPlan;
+    days: readonly ServiceWeeklyPlanDay[];
+  }[];
+}) {
+  return (
+    <div className="mt-4">
+      <h3 className="text-sm font-medium">Weekly wardrobe plan</h3>
+      <form action={proposeWeeklyPlan} className="mt-2 flex flex-col gap-3">
+        <input type="hidden" name="membershipId" value={membershipId} />
+        <label className="flex flex-col gap-1 text-sm">
+          Week starting (Monday)
+          <input
+            type="date"
+            name="weekStartDate"
+            required
+            defaultValue={nextMondayIsoDate()}
+            className="rounded border border-[var(--color-stone-200)] px-3 py-2 text-sm"
+          />
+        </label>
+        <div className="grid gap-2">
+          {SERVICE_WEEKLY_PLAN_DAY_LABELS.map((label, dayOfWeek) => (
+            <div
+              key={label}
+              className="grid grid-cols-[auto_1fr_2fr] items-center gap-2 rounded border border-[var(--color-stone-100)] px-2 py-2 text-sm"
+            >
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  name={`day_${dayOfWeek}_included`}
+                  aria-label={`Include ${label}`}
+                />
+                {label}
+              </label>
+              <select
+                name={`day_${dayOfWeek}_occasionTag`}
+                aria-label={`${label} occasion`}
+                defaultValue="neutral"
+                className="rounded border border-[var(--color-stone-200)] px-2 py-1 text-sm"
+              >
+                {SERVICE_WEEKLY_PLAN_OCCASION_TAGS.map((tag) => (
+                  <option key={tag} value={tag}>
+                    {SERVICE_WEEKLY_PLAN_OCCASION_TAG_LABELS[tag]}
+                  </option>
+                ))}
+              </select>
+              <input
+                name={`day_${dayOfWeek}_outfitNotes`}
+                placeholder="Outfit / wardrobe notes"
+                maxLength={500}
+                aria-label={`${label} outfit notes`}
+                className="rounded border border-[var(--color-stone-200)] px-2 py-1 text-sm"
+              />
+            </div>
+          ))}
+        </div>
+        <label className="flex flex-col gap-1 text-sm">
+          Advisor notes (optional)
+          <textarea
+            name="advisorNotes"
+            maxLength={1000}
+            rows={2}
+            className="rounded border border-[var(--color-stone-200)] px-3 py-2 text-sm"
+          />
+        </label>
+        <Button type="submit" variant="secondary" className="self-start">
+          Propose weekly plan
+        </Button>
+      </form>
+
+      <ul className="mt-3 flex flex-col gap-2">
+        {weeklyPlans.map(({ plan, days }) => (
+          <li
+            key={plan.id}
+            className="rounded border border-[var(--color-stone-100)] px-3 py-2 text-sm"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-medium">
+                Week of {plan.weekStartDate}
+                {plan.version > 1 ? ` (v${plan.version})` : ""}
+              </span>
+              <Badge
+                tone={
+                  plan.status === "customer_accepted"
+                    ? "success"
+                    : plan.status === "customer_declined"
+                      ? "danger"
+                      : "neutral"
+                }
+              >
+                {SERVICE_WEEKLY_PLAN_STATUS_LABELS[plan.status]}
+              </Badge>
+            </div>
+            <ul className="mt-1 space-y-0.5 text-[var(--color-stone-600)]">
+              {days.map((day) => (
+                <li key={day.id}>
+                  {SERVICE_WEEKLY_PLAN_DAY_LABELS[day.dayOfWeek]}:{" "}
+                  {SERVICE_WEEKLY_PLAN_OCCASION_TAG_LABELS[day.occasionTag]} —{" "}
+                  {day.outfitNotes}
+                </li>
+              ))}
+            </ul>
+            {plan.declineReason ? (
+              <p className="mt-1 text-[var(--color-stone-600)]">
+                Decline reason: {plan.declineReason}
+              </p>
+            ) : null}
+          </li>
+        ))}
+        {weeklyPlans.length === 0 ? (
+          <li className="text-sm text-[var(--color-stone-500)]">
+            No weekly plans proposed yet.
+          </li>
+        ) : null}
+      </ul>
     </div>
   );
 }

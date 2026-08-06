@@ -6,6 +6,7 @@ import {
   enrollServiceMembershipInputSchema,
   grantServiceEntitlementInputSchema,
   linkServiceBookingAppointmentInputSchema,
+  proposeServiceWeeklyPlanInputSchema,
   recordServiceCareInputSchema,
   recordServiceCostInputSchema,
   recordServiceFulfilmentInputSchema,
@@ -14,6 +15,7 @@ import {
   transitionServiceBookingInputSchema,
   upsertServicePlanInputSchema,
   type ServicePlanStatus,
+  type ServiceWeeklyPlanOccasionTag,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
@@ -179,6 +181,36 @@ export async function recordCare(formData: FormData): Promise<void> {
   await new ServicePlanRepository(await getSupabaseServerClient()).recordCare(
     parsed,
   );
+  revalidateServices();
+}
+
+export async function proposeWeeklyPlan(formData: FormData): Promise<void> {
+  await requireModuleSession("garment_service_operations");
+  const days: {
+    dayOfWeek: number;
+    occasionTag: ServiceWeeklyPlanOccasionTag;
+    outfitNotes: string;
+  }[] = [];
+  for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek += 1) {
+    const included = formData.get(`day_${dayOfWeek}_included`);
+    const outfitNotes = String(
+      formData.get(`day_${dayOfWeek}_outfitNotes`) ?? "",
+    ).trim();
+    if (!included || outfitNotes.length === 0) continue;
+    const occasionTag = String(
+      formData.get(`day_${dayOfWeek}_occasionTag`) ?? "neutral",
+    ) as ServiceWeeklyPlanOccasionTag;
+    days.push({ dayOfWeek, occasionTag, outfitNotes });
+  }
+  const parsed = proposeServiceWeeklyPlanInputSchema.parse({
+    membershipId: formData.get("membershipId"),
+    weekStartDate: formData.get("weekStartDate"),
+    advisorNotes: formData.get("advisorNotes") || undefined,
+    days,
+  });
+  await new ServicePlanRepository(
+    await getSupabaseServerClient(),
+  ).proposeWeeklyPlan(parsed);
   revalidateServices();
 }
 

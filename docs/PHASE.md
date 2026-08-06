@@ -1023,6 +1023,49 @@ orchestrator.ts` was the only other one still uncovered (the
     key on `(wedding_party_id, retailer_id)` closes it at the database
     level across all five tables. Full detail in
     `FOUNDER_TOOL_BLUEPRINTS.md`'s FT-13 entry.
+    **2026-08-06 (lane-e):** FT-14 Preferred Tailoring moved from "strong
+    operational primitives; faithful customer, advisor and partner journey
+    absent" to a first connected slice, per the founder-agreed scope cut
+    recorded in `PROJECT_STATE.md`: a customer-facing weekly wardrobe plan
+    view with read-only authorize/accept over real
+    `service_plans`/`service_memberships` data. Custody handoffs, the
+    partner portal and cost reconciliation remain explicitly deferred.
+    Migration `20260806110000` adds `service_weekly_plans` (versioned,
+    `draft`/`proposed`/`customer_accepted`/`customer_declined`) and
+    `service_weekly_plan_days` (day-of-week, occasion tag, outfit notes),
+    plus `propose_service_weekly_plan` (staff, reuses
+    `_service_assert_staff_retailer`) and `decide_service_weekly_plan`
+    (customer, SECURITY DEFINER, re-derives the caller's own customer row
+    server-side — mirrors `complete_wedding_aftercare_plan`'s pattern
+    rather than trusting a client-supplied id; idempotent on repeating the
+    same decision, rejects flipping an already-decided plan). An advisor
+    proposes a week from the existing `/services` membership card; the
+    customer sees it on their own `/services` page and accepts or declines.
+    `pag3.html`'s Preferred Tailoring section (roughly line 4250–5430) was
+    checked directly and confirmed Muse-exported narrative copy with no
+    discrete interactive fragment (matching `PROJECT_STATE.md`'s prior
+    finding), so the day-grid/occasion-tag information architecture is
+    built from the blueprint's own description, not a pixel port, per
+    AGENTS.md's non-designated-source path. Proof: 12 pgTAP assertions in
+    `service_weekly_plans_test.sql` (anonymous denial, cross-House staff
+    proposal refused, the owning customer's read/accept, a different
+    customer's decision refused, idempotent re-accept, decision-flip
+    refused); one retailer browser journey extending the existing
+    `services.spec.ts` (propose a day, see it listed "Awaiting your
+    decision"); one customer browser journey (`weekly-plan.spec.ts`:
+    advisor-seeded plan visible with its day and advisor notes, accept,
+    database asserts `customer_accepted`/`decided_at`). Full pgTAP suite
+    193/193; full retailer e2e suite green aside from the already-documented
+    `mission-control.spec.ts` time-of-day scheduling flake; full customer
+    e2e suite green aside from already-flaky/unrelated specs in FT-08/FT-09
+    (swipe-deck rapid-keyboard timing, FT-09 consultation-outcome — the
+    latter actively owned by a concurrent lane on the same shared local
+    Supabase instance, not reproducible against this slice's own code).
+    Per-day linkage to an actual `WardrobeItem`/composed look (outfit notes
+    are advisor free text, matching FT-13's design-choice precedent since
+    the blueprint specifies no vocabulary), a customer-initiated
+    request/edit path, and any reminder/cadence job remain unbuilt —
+    continue with those or the next founder-tool contract.
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.

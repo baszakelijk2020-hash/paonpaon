@@ -10,7 +10,85 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-06 formatting fix pushed, FT-14 next-slice scoped but not started (READ FIRST — supersedes every section below)
+## 2026-08-06 (lane-e) FT-14 first customer slice built — weekly plan authorize/accept (READ FIRST — supersedes every section below)
+
+New session on an isolated branch (`agent/lane-e-core-roadmap`, forked from
+this commit; the main worktree was occupied by an active Virtual Studio
+session with its own uncommitted work — never touched). Followed the prior
+session's scoping decision below exactly: built FT-14's first slice, the
+customer-facing weekly wardrobe plan view with read-only authorize/accept
+over real `service_plans`/`service_memberships` data.
+
+**Cross-lane environment note:** the shared local Supabase container (one
+Docker stack for every worktree on this machine) had another lane's
+uncommitted migration (`20260806100000`) already applied when this session
+started. `supabase migration up`/`db reset` both refuse or would have
+discarded that lane's state, so this session's own migration
+(`20260806110000`) was applied directly via `psql` and hand-recorded in
+`supabase_migrations.schema_migrations` — additive only, never touching
+another lane's rows. Mid-session, another active lane restarted/reset that
+same shared container (its own migration count moved to `20260806120000`),
+which silently dropped this session's not-yet-committed table until it was
+noticed via a failing pgTAP run and reapplied. Anyone continuing this branch
+should expect the same: re-run
+`psql ... -f supabase/migrations/20260806110000_add_service_weekly_plans.sql`
+against local Supabase if `service_weekly_plans` is missing, since it was
+applied by hand rather than tracked by the CLI in the shared container.
+
+Built: migration `20260806110000` (`service_weekly_plans`,
+`service_weekly_plan_days`, `propose_service_weekly_plan` staff RPC,
+`decide_service_weekly_plan` customer RPC re-deriving the caller
+server-side — mirrors `complete_wedding_aftercare_plan`, not a
+client-trusted id); `packages/domain/src/concierge/service-plan.ts`/
+`.schema.ts` additions; `ServicePlanRepository` weekly-plan methods; a
+"Propose weekly plan" section on the existing retailer
+`/services` membership card (`apps/retailer/app/(dashboard)/services`);
+a weekly-plan card with Accept/Decline on the existing customer
+`/services` page (`apps/customer/app/(dashboard)/services`). `pag3.html`'s
+Preferred Tailoring section (~line 4250–5430) was checked directly per
+AGENTS.md's reading protocol and confirmed to have no discrete interactive
+fragment (Muse-exported narrative only), so the day-grid/occasion-tag UI is
+curated from the blueprint's own description, not a pixel port.
+
+Proof: `service_weekly_plans_test.sql`, 12 pgTAP assertions (anonymous
+denial on both new tables, cross-House staff proposal refused by
+`_service_assert_staff_retailer`, the owning customer's read and accept,
+a different customer's decision refused, idempotent re-accept, decision-flip
+after deciding refused); full pgTAP suite 193/193 (18 files). One retailer
+browser journey extending `apps/retailer/e2e/services.spec.ts` (propose a
+day, see "Awaiting your decision"); one new customer browser journey
+`apps/customer/e2e/weekly-plan.spec.ts` (advisor-seeded plan visible with
+day/notes, accept, database asserts `customer_accepted`/`decided_at`).
+Full retailer e2e suite green except the already-documented
+`mission-control.spec.ts` time-of-day scheduling flake (reproduces
+identically in isolation, unrelated to this change — no file this session
+touched is referenced by that spec). Full customer e2e suite green except
+two specs unrelated to this change and not touching any file this session
+edited: `consultation-outcome.spec.ts` (FT-09, actively owned by a
+concurrent lane on the same shared local Supabase instance — fails even in
+isolation with "failed to create conversation" in its own fixture setup,
+not this session's code) and `swipe-deck.spec.ts`'s already-documented
+rapid-keyboard timing flake. `pnpm lint`/`typecheck`/`test`/`format:check`
+all green repo-wide; `pnpm test`'s `validate:completion` step fails on a
+pre-existing, unrelated evidence gap (11.4, 12.2, 12.4, 13.1, 13.2, 17.2–6,
+18.1, 18.2, 18.6, 18.8, 18.12) confirmed present on a clean checkout of
+this same commit before any of this session's changes.
+
+Not built: custody handoffs, the scoped partner portal, cost variance
+reconciliation, per-day linkage to an actual wardrobe item or composed
+look (outfit notes are advisor free text — the blueprint specifies no
+vocabulary, same discipline as FT-13's design choices), and a
+customer-initiated request/edit path. These were explicitly out of scope
+for this slice per the prior session's founder-agreed scope cut below.
+
+### Pick up here
+
+FT-14's first slice (weekly plan view + accept/decline) is done. Continue
+with the deferred FT-14 pieces above, or the next founder-tool contract.
+Everything else in the backlog below is unchanged from the 2026-08-06
+handoff it supersedes.
+
+## 2026-08-06 formatting fix pushed, FT-14 next-slice scoped but not started
 
 Session found stale uncommitted work sitting in the tree from an earlier,
 apparently interrupted session: prettier-only reformatting on

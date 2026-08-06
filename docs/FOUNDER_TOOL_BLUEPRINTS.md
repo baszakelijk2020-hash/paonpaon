@@ -1307,6 +1307,31 @@ care records and operational cost records all work correctly through the
 real browser and real RPCs; no defect found. This proves the primitives
 underneath, not the faithful customer/advisor/partner journey the
 blueprint requires — that gap is unchanged.
+**Fix (2026-08-06, lane-e):** the customer journey gap has its first
+connected slice: a versioned weekly wardrobe plan the advisor proposes
+per membership (day-of-week, occasion tag, free-text outfit notes) and
+the customer authorizes. Migration `20260806110000` adds
+`service_weekly_plans`/`service_weekly_plan_days`; `propose_service_weekly_plan`
+(staff) and `decide_service_weekly_plan` (customer, SECURITY DEFINER,
+re-derives the caller server-side rather than trusting a client id, same
+pattern as `complete_wedding_aftercare_plan`) are the only write paths —
+the tables themselves grant customers select-only. `pag3.html`'s
+Preferred Tailoring section (~line 4250–5430) was checked directly and
+confirmed Muse-exported narrative copy with no discrete interactive
+fragment, so the day-grid information architecture is curated from the
+blueprint's own weekly-calendar/occasion-pacing description rather than
+pixel-ported. Proof: `service_weekly_plans_test.sql` (12 pgTAP
+assertions — anonymous denial, cross-House staff proposal refused,
+owning-customer read/accept, a different customer's decision refused,
+idempotent re-accept, decision-flip refused), a retailer browser journey
+extending `services.spec.ts`, and a customer browser journey
+(`weekly-plan.spec.ts`) proving an advisor-seeded plan is visible with
+its day/notes, accept updates the database, and the UI reflects
+"Accepted." Advisor/customer journey is now real for the accept/decline
+decision; still absent: custody handoffs, the partner portal, cost
+variance reconciliation, per-day linkage to an actual wardrobe item or
+composed look, and a customer-initiated request/edit path — continue with
+those.
 
 ## Broader founder-intent crosswalk
 

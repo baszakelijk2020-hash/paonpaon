@@ -124,6 +124,26 @@ test("owner creates a service plan, enrolls a client, grants a credit, books, ca
     await expect(
       membershipSection.getByText("E2E labour: 5.00 EUR").first(),
     ).toBeVisible();
+
+    // FT-14: propose a weekly wardrobe plan for this same membership.
+    await membershipSection
+      .getByLabel("Include Monday", { exact: true })
+      .check();
+    await membershipSection
+      .getByLabel("Monday outfit notes", { exact: true })
+      .fill("Navy suit, silk tie");
+    await membershipSection
+      .getByRole("button", { name: "Propose weekly plan" })
+      .click();
+    await expect(
+      membershipSection.getByText(/^Week of \d{4}-\d{2}-\d{2}/).first(),
+    ).toBeVisible();
+    await expect(
+      membershipSection.getByText("Awaiting your decision").first(),
+    ).toBeVisible();
+    await expect(
+      membershipSection.getByText("Navy suit, silk tie").first(),
+    ).toBeVisible();
   } finally {
     await admin.from("service_plans").delete().eq("title", planTitle);
   }

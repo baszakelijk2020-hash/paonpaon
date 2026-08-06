@@ -24,6 +24,8 @@ import type {
   ServiceHistoryEventId,
   ServiceMembershipId,
   ServicePlanId,
+  ServiceWeeklyPlanDayId,
+  ServiceWeeklyPlanId,
   StaffId,
   WardrobeItemId,
 } from "../shared/branded-id";
@@ -240,9 +242,65 @@ export const SERVICE_HISTORY_KINDS = [
   "appointment_linked",
   "alteration_linked",
   "advisor_assigned",
+  "weekly_plan_proposed",
+  "weekly_plan_accepted",
+  "weekly_plan_declined",
 ] as const;
 
 export type ServiceHistoryKind = (typeof SERVICE_HISTORY_KINDS)[number];
+
+/** FT-14 Preferred Tailoring: versioned weekly wardrobe plan. */
+export const SERVICE_WEEKLY_PLAN_STATUSES = [
+  "draft",
+  "proposed",
+  "customer_accepted",
+  "customer_declined",
+] as const;
+
+export type ServiceWeeklyPlanStatus =
+  (typeof SERVICE_WEEKLY_PLAN_STATUSES)[number];
+
+export const SERVICE_WEEKLY_PLAN_STATUS_LABELS: Record<
+  ServiceWeeklyPlanStatus,
+  string
+> = {
+  draft: "Draft",
+  proposed: "Awaiting your decision",
+  customer_accepted: "Accepted",
+  customer_declined: "Declined",
+};
+
+/** Day-level occasion pacing — the vocabulary `pag3.html`'s Preferred
+ * Tailoring narrative itself uses for how formal each day's wardrobe is. */
+export const SERVICE_WEEKLY_PLAN_OCCASION_TAGS = [
+  "distinguished",
+  "refined",
+  "elevated",
+  "neutral",
+] as const;
+
+export type ServiceWeeklyPlanOccasionTag =
+  (typeof SERVICE_WEEKLY_PLAN_OCCASION_TAGS)[number];
+
+export const SERVICE_WEEKLY_PLAN_OCCASION_TAG_LABELS: Record<
+  ServiceWeeklyPlanOccasionTag,
+  string
+> = {
+  distinguished: "Distinguished",
+  refined: "Refined",
+  elevated: "Elevated",
+  neutral: "Neutral",
+};
+
+export const SERVICE_WEEKLY_PLAN_DAY_LABELS: readonly string[] = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 /** Default non-monetary credits seeded when a plan activates. */
 export const DEFAULT_PLAN_ENTITLEMENTS: Record<
@@ -436,6 +494,41 @@ export interface ServiceHistoryEvent {
   readonly summary: string;
   readonly recordedByStaffId?: StaffId;
   readonly createdAt: string;
+}
+
+export interface ServiceWeeklyPlanDay {
+  readonly id: ServiceWeeklyPlanDayId;
+  readonly weeklyPlanId: ServiceWeeklyPlanId;
+  readonly retailerId: RetailerId;
+  readonly customerId: CustomerId;
+  readonly dayOfWeek: number;
+  readonly occasionTag: ServiceWeeklyPlanOccasionTag;
+  readonly outfitNotes: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface ServiceWeeklyPlan {
+  readonly id: ServiceWeeklyPlanId;
+  readonly membershipId: ServiceMembershipId;
+  readonly retailerId: RetailerId;
+  readonly customerId: CustomerId;
+  readonly weekStartDate: string;
+  readonly version: number;
+  readonly status: ServiceWeeklyPlanStatus;
+  readonly advisorNotes?: string;
+  readonly declineReason?: string;
+  readonly createdByStaffId?: StaffId;
+  readonly proposedAt?: string;
+  readonly decidedAt?: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export function canDecideServiceWeeklyPlan(
+  status: ServiceWeeklyPlanStatus,
+): boolean {
+  return status === "proposed";
 }
 
 export function canTransitionServiceBooking(

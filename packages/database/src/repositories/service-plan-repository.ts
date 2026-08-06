@@ -5,9 +5,11 @@
 import {
   asId,
   type AssignServiceAdvisorInput,
+  type DecideServiceWeeklyPlanInput,
   type EnrollServiceMembershipInput,
   type GrantServiceEntitlementInput,
   type LinkServiceBookingAppointmentInput,
+  type ProposeServiceWeeklyPlanInput,
   type RecordServiceCareInput,
   type RecordServiceCostInput,
   type RecordServiceFulfilmentInput,
@@ -33,6 +35,10 @@ import {
   type ServicePlan,
   type ServicePlanId,
   type ServicePlanStatus,
+  type ServiceWeeklyPlan,
+  type ServiceWeeklyPlanDay,
+  type ServiceWeeklyPlanOccasionTag,
+  type ServiceWeeklyPlanStatus,
   type SetServiceMembershipStatusInput,
   type TransitionServiceBookingInput,
   type UpsertServicePlanInput,
@@ -54,6 +60,10 @@ type FulfilmentRow =
 type CareRow = Database["public"]["Tables"]["service_care_records"]["Row"];
 type CostRow = Database["public"]["Tables"]["service_cost_records"]["Row"];
 type HistoryRow = Database["public"]["Tables"]["service_history_events"]["Row"];
+type WeeklyPlanRow =
+  Database["public"]["Tables"]["service_weekly_plans"]["Row"];
+type WeeklyPlanDayRow =
+  Database["public"]["Tables"]["service_weekly_plan_days"]["Row"];
 
 function toPlan(row: PlanRow): ServicePlan {
   return {
@@ -237,6 +247,41 @@ function toHistory(row: HistoryRow): ServiceHistoryEvent {
       ? { recordedByStaffId: asId<"StaffId">(row.recorded_by_staff_id) }
       : {}),
     createdAt: row.created_at,
+  };
+}
+
+function toWeeklyPlan(row: WeeklyPlanRow): ServiceWeeklyPlan {
+  return {
+    id: asId<"ServiceWeeklyPlanId">(row.id),
+    membershipId: asId<"ServiceMembershipId">(row.membership_id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    customerId: asId<"CustomerId">(row.customer_id),
+    weekStartDate: row.week_start_date,
+    version: row.version,
+    status: row.status as ServiceWeeklyPlanStatus,
+    ...(row.advisor_notes ? { advisorNotes: row.advisor_notes } : {}),
+    ...(row.decline_reason ? { declineReason: row.decline_reason } : {}),
+    ...(row.created_by_staff_id
+      ? { createdByStaffId: asId<"StaffId">(row.created_by_staff_id) }
+      : {}),
+    ...(row.proposed_at ? { proposedAt: row.proposed_at } : {}),
+    ...(row.decided_at ? { decidedAt: row.decided_at } : {}),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toWeeklyPlanDay(row: WeeklyPlanDayRow): ServiceWeeklyPlanDay {
+  return {
+    id: asId<"ServiceWeeklyPlanDayId">(row.id),
+    weeklyPlanId: asId<"ServiceWeeklyPlanId">(row.weekly_plan_id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    customerId: asId<"CustomerId">(row.customer_id),
+    dayOfWeek: row.day_of_week,
+    occasionTag: row.occasion_tag as ServiceWeeklyPlanOccasionTag,
+    outfitNotes: row.outfit_notes,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -619,5 +664,88 @@ export class ServicePlanRepository {
       .limit(100);
     if (error) throw error;
     return data.map(toHistory);
+  }
+
+  async listWeeklyPlansForMembership(
+    membershipId: string,
+  ): Promise<ServiceWeeklyPlan[]> {
+    const { data, error } = await this.client
+      .from("service_weekly_plans")
+      .select("*")
+      .eq("membership_id", membershipId)
+      .order("week_start_date", { ascending: false })
+      .order("version", { ascending: false });
+    if (error) throw error;
+    return data.map(toWeeklyPlan);
+  }
+
+  async listWeeklyPlansForCustomer(
+    customerId: string,
+  ): Promise<ServiceWeeklyPlan[]> {
+    const { data, error } = await this.client
+      .from("service_weekly_plans")
+      .select("*")
+      .eq("customer_id", customerId)
+      .order("week_start_date", { ascending: false })
+      .order("version", { ascending: false });
+    if (error) throw error;
+    return data.map(toWeeklyPlan);
+  }
+
+  async findWeeklyPlanById(planId: string): Promise<ServiceWeeklyPlan | null> {
+    const { data, error } = await this.client
+      .from("service_weekly_plans")
+      .select("*")
+      .eq("id", planId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toWeeklyPlan(data) : null;
+  }
+
+  async listWeeklyPlanDays(
+    weeklyPlanId: string,
+  ): Promise<ServiceWeeklyPlanDay[]> {
+    const { data, error } = await this.client
+      .from("service_weekly_plan_days")
+      .select("*")
+      .eq("weekly_plan_id", weeklyPlanId)
+      .order("day_of_week", { ascending: true });
+    if (error) throw error;
+    return data.map(toWeeklyPlanDay);
+  }
+
+  async proposeWeeklyPlan(
+    input: ProposeServiceWeeklyPlanInput,
+  ): Promise<string> {
+    const { data, error } = await this.client.rpc(
+      "propose_service_weekly_plan",
+      {
+        p_membership_id: input.membershipId,
+        p_week_start_date: input.weekStartDate,
+        p_days: input.days.map((day) => ({
+          dayOfWeek: day.dayOfWeek,
+          occasionTag: day.occasionTag,
+          outfitNotes: day.outfitNotes,
+        })),
+        ...(input.advisorNotes ? { p_advisor_notes: input.advisorNotes } : {}),
+      },
+    );
+    if (error) throw error;
+    return data;
+  }
+
+  async decideWeeklyPlan(input: DecideServiceWeeklyPlanInput): Promise<string> {
+    const { data, error } = await this.client.rpc(
+      "decide_service_weekly_plan",
+      {
+        p_plan_id: input.planId,
+        p_decision: input.decision,
+        ...(input.declineReason
+          ? { p_decline_reason: input.declineReason }
+          : {}),
+      },
+    );
+    if (error) throw error;
+    return data;
   }
 }
