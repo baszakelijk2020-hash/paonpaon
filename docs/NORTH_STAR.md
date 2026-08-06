@@ -79,7 +79,13 @@ and outcome capture. Every other module depends on this foundation.
 
 Client memory, advisor preparation and Mission Control, appointments,
 conversations, preferences, milestones, promises, messaging, explainable
-recommendations, quick capture and outcomes.
+recommendations, quick capture and outcomes. See
+[RELATIONSHIP_INTELLIGENCE_BLUEPRINT.md](./RELATIONSHIP_INTELLIGENCE_BLUEPRINT.md)
+for the founder-level specification of this module's post-appointment
+intelligence, SOP engine, advisor dashboard, KPI platform, AI business
+analysis, buying intelligence, Mission Control, relationship graph and
+customer education — a specification to be implemented feature by feature
+under `PHASE.md`, not a claim that it is already built.
 
 ### 3. Wardrobe and Styling Intelligence
 
