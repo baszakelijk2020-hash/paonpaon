@@ -1229,6 +1229,14 @@ exhaustion, customer authorization, custody chain, partner RLS, cost variance,
 offline/retry handoff, care outcome and returned garment re-entering the weekly
 wardrobe. **Current:** strong operational primitives; faithful customer,
 advisor and partner journey absent.
+**Note (2026-08-06):** the retailer-side operational primitives
+(`/services`) were previously unproven — nothing had ever exercised them
+end to end. `apps/retailer/e2e/services.spec.ts` now proves plan
+creation, activation, client enrollment, credit grants, booking requests,
+care records and operational cost records all work correctly through the
+real browser and real RPCs; no defect found. This proves the primitives
+underneath, not the faithful customer/advisor/partner journey the
+blueprint requires — that gap is unchanged.
 
 ## Broader founder-intent crosswalk
 

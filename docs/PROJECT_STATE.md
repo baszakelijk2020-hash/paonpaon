@@ -1501,7 +1501,15 @@ return 0 forever; non-zero means a new write path is bypassing the ledger.
   proves adding/removing a shift and the dashboard clock-in/out round trip
   through a real browser; `totalHours` (previously untested) gets a direct
   unit test. No defect found this time — the feature works as built.
-  `/services` (FT-14) is still built but never operated.
+- `/services` (FT-14's operational primitives, not the founder-tool
+  experience) is now operated too (2026-08-06):
+  `apps/retailer/e2e/services.spec.ts` proves create plan → activate →
+  enroll a client → grant a credit → request a booking → record care →
+  record an operational cost, all through the real browser and the real
+  RPCs. No defect found — the built primitives work end to end. FT-14's
+  own named gap (a faithful customer/advisor/partner journey, per
+  `FOUNDER_TOOL_BLUEPRINTS.md`) remains unbuilt; this only proves the
+  Retail Operations primitives underneath it.
 - 12.2, 12.3, 12.4, 14.x, 15.x, 16.x remain domain-and-schema only.
 - Four e2e specs use `@paon.test` addresses on paths that reach Supabase Auth;
   Auth rejects the reserved `.test` TLD. Use `AUTH_DELIVERABLE_DOMAIN` from
