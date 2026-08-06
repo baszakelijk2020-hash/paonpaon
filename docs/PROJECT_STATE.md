@@ -10,27 +10,49 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-06 new lane opened: agent/lane-d-virtual-wardrobe-studio (VWS 4.6) — does not supersede the FT-14 section below
+## 2026-08-07 VWS 4.6 and 4.7/4.8 landed on agent/lane-d-virtual-wardrobe-studio — does not supersede the FT-14 section below
 
 Founder opened a new, separate scope in a live session: the Virtual Wardrobe
 Studio (virtual try-on for the customer's existing wardrobe/wishlist, and a
 generated visual version of the advisor's wardrobe roadmap). Spec recorded in
 `docs/VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md`; architecture decision in
-ADR-074; queue item in `PHASE.md` Stage 4 item 4.6.
+ADR-074; queue items in `PHASE.md` Stage 4 items 4.6 and 4.7/4.8, both now
+checked `[x]` with landed-commit evidence.
 
 **Lane:** `agent/lane-d-virtual-wardrobe-studio`, forked from
-`_integration-check` at `934b540`. Runs alongside, not instead of, the three
-already-active lanes below (`agent/lane-a-ft01-fitprofile`,
+`_integration-check` at `934b540`, two commits pushed
+(`ba93039` shared foundation, `d655957` Style Portrait onboarding + customer
+single-look Studio). Runs alongside, not instead of, the three already-active
+lanes below (`agent/lane-a-ft01-fitprofile`,
 `agent/lane-b-ft09-consultation-outcome`, `agent/lane-c-18-9-contract-value`)
 and the FT-14 pickup decision in the section immediately below this one —
-this section does not invalidate that one. Module/file footprint is disjoint
-from all four: new `wardrobe/virtual-studio.ts` domain module, a new
-migration, new repositories, and additive-only changes to `Outfit` and
-`CONSENT_PURPOSES` (no shared table another lane owns is touched).
+this section does not invalidate that one. Module/file footprint stayed
+disjoint from all four across both commits: `wardrobe/virtual-studio.ts`
+domain module, new migrations/repositories, additive-only changes to
+`Outfit` (customer authorship added). `CONSENT_PURPOSES` was deliberately
+left untouched — image-generation consent got its own
+`style_portrait_consents` table instead, specifically to avoid widening a
+shared type every other consent consumer in the codebase depends on.
 
-**This session's slice:** 4.6 shared foundation only (domain, migration, RLS,
-repositories, `AIProvider.generateWardrobeVisualization`, queue, storage) —
-no UI. See `docs/VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md` §5 for 4.7–4.10.
+**Status:** 4.6 (shared foundation) and 4.7/4.8 (Style Portrait onboarding +
+customer single-look Virtual Studio, on the existing `/account` and
+`/wardrobe` pages) are both landed and verified — see `PHASE.md` for full
+acceptance detail and landed-commit notes. Full monorepo
+`pnpm lint/typecheck/test/build` green; a committed Playwright e2e spec
+(`apps/customer/e2e/virtual-studio.spec.ts`) proves the real flow end-to-end
+against local Supabase. Two real bugs were found only by that live browser
+proof (an unlabeled file-upload `<label>`, and a missing customer-insert RLS
+policy on `outfit_slots`) — both fixed and re-verified.
+
+**Remaining per the blueprint's own slice plan** (`docs/
+VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md` §5): 4.9 (advisor visual roadmap, on
+the existing retailer client profile roadmap card) and 4.10 (multi-look
+queue + personalization loop). Live image rendering itself is unverified in
+this sandbox — no `OPENAI_API_KEY` configured, same documented hard-blocker
+posture as every other AI-assisted surface in this codebase; the enqueue
+path is proven to reach `queued` and the admin queue processor
+(`apps/admin/app/api/cron/process-wardrobe-visualizations`) is implemented
+and typechecked but not live-smoke-tested against a real provider.
 
 ---
 

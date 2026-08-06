@@ -1636,7 +1636,7 @@ replacement of human advice for uncertain high-value decisions.
     retailer pause + eligible-product allowlist, cron enqueue from the exact
     selection via existing notification/email outbox path.
 
-- [ ] **4.6 Virtual Wardrobe Studio — shared foundation**
+- [x] **4.6 Virtual Wardrobe Studio — shared foundation**
   - **Requirement IDs:** `VWS-001`, `VWS-002`, `VWS-003`.
   - **Dependencies:** `4.2`; ADR-033, ADR-061, ADR-063, ADR-074.
   - **Owner boundary:** wardrobe/AI-integration domain, forward migration/RLS,
@@ -1647,9 +1647,12 @@ replacement of human advice for uncertain high-value decisions.
     `docs/VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md`; `StylePortrait`,
     `RetailerVisualPreset`, `WardrobeVisualizationJob`,
     `WardrobeVisualizationFeedback` exist with tenant RLS; `Outfit` accepts
-    customer authorship alongside advisor authorship; a fourth `"image_generation"`
-    consent purpose gates generation; four canonical `"fit"`-kind
-    `MetadataConcept` archetypes are seeded and reachable through the existing
+    customer authorship alongside advisor authorship; a standalone
+    `style_portrait_consents` table (not a fourth `ConsentPurpose` — that
+    would have widened a shared interface every existing consent consumer
+    depends on) gates generation on explicit grant + acknowledged
+    disclosures; four canonical `"fit"`-kind `MetadataConcept` archetypes
+    are seeded and reachable through the existing
     `upsert_declared_style_preference` RPC; `AIProvider.
 generateWardrobeVisualization` exists behind the same provider-neutral
     interface as `generateConceptImages`; a claim-and-process queue function
@@ -1667,7 +1670,59 @@ generateWardrobeVisualization` exists behind the same provider-neutral
   - **Hard blockers:** none for local implementation; live end-to-end image
     generation requires a configured provider credential, same posture as
     every other `ai_generations`-backed feature.
-  - **Landed:** _(update on completion of this session's slice)_
+  - **Landed:** `ba93039` — domain module, migration/RLS, repositories,
+    `AIProvider.generateWardrobeVisualization` + mock/runner, queue RPCs,
+    private `wardrobe-studio` bucket. Local `pnpm lint/typecheck/test/build`
+    green across the full monorepo; RPCs functionally smoke-tested via
+    direct SQL (tenancy triggers, queue claim, status transitions,
+    idempotency). Caught and fixed one real build-breaking bug during this
+    slice: a `node:crypto` import broke the Next.js webpack build for all
+    three apps — replaced with Web Crypto.
+
+- [x] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
+      customer single-look Studio**
+  - **Requirement IDs:** `VWS-001`, `VWS-002`.
+  - **Dependencies:** `4.6`.
+  - **Owner boundary:** customer-app Server Actions/UI on the existing
+    `/account` (Style Portrait, folded into the existing StyleProfile/
+    Self-Portrait area, not a new destination) and `/wardrobe` (Virtual
+    Studio panel) pages; admin-app queue processor.
+  - **Acceptance:** a customer can grant/withdraw consent, upload real
+    face/full-body reference photos into the private bucket, declare a fit
+    archetype through the existing StyleProfile RPC, generate an onboarding
+    preview and approve/reject/supersede it; a customer can compose an
+    `Outfit` from owned wardrobe items and wishlist products into slots
+    (customer-authored, not advisor), enqueue generation (blocked without an
+    approved Style Portrait and a retailer default preset — a new database
+    trigger seeds one default preset per retailer automatically), see
+    queued/generating/ready/failed status, cancel a queued job, and record
+    feedback. `apps/admin/app/api/cron/process-wardrobe-visualizations`
+    claims jobs sequentially, resolves outfit/portrait/preset context, calls
+    the provider adapter, copies the result into private Storage
+    (`output_storage_bucket`/`output_storage_path`, replacing the original
+    raw-URL column), and completes the job; piggybacked onto the existing
+    `dispatch-emails` cron tick rather than a dead third Vercel Hobby cron
+    slot, same pattern MorningRoutine/campaign delivery already use.
+  - **Tests:** a committed Playwright e2e spec
+    (`apps/customer/e2e/virtual-studio.spec.ts`) drives the real flow
+    end-to-end against local Supabase.
+  - **Non-goals:** no live image rendering proof (requires a configured
+    `OPENAI_API_KEY`, same documented hard-blocker posture as every other
+    AI-assisted surface in this codebase); no retailer-side preset
+    authoring UI (a trigger-seeded sensible default exists; editing it is a
+    fast-follow); no advisor-facing surface (4.9).
+  - **Hard blockers:** none for local implementation; live image rendering
+    requires a configured provider credential.
+  - **Landed:** `d655957` — Style Portrait onboarding
+    (`style_portrait_consents` table, Server Actions, UI panel on
+    `/account`), single-look Virtual Studio (`Outfit` customer authorship,
+    compose/generate/feedback UI on `/wardrobe`), the admin queue
+    processor, and the output-storage migration. Two real bugs found only
+    by actual browser e2e proof, not inspection: an unlabeled file-upload
+    `<label>` (a real accessibility bug) and a missing "customers insert
+    own outfit slots" RLS policy that silently rejected every
+    customer-composed look — both fixed and re-verified with a second e2e
+    run. Full monorepo `pnpm lint/typecheck/test/build` green.
 
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain — see ADR-074 for the visualization-only fit-preference
