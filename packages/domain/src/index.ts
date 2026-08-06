@@ -143,6 +143,8 @@ export * from "./wardrobe/suit-configurator";
 export * from "./wardrobe/suit-configurator.schema";
 export * from "./wardrobe/silhouette-analysis";
 export * from "./wardrobe/style-quiz";
+export * from "./wardrobe/virtual-studio";
+export * from "./wardrobe/virtual-studio.schema";
 export * from "./campaign/campaign";
 export * from "./campaign/campaign.schema";
 export * from "./campaign/campaign-library";

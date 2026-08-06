@@ -362,6 +362,13 @@ export type Database = {
             referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "advisor_capture_bundles_session_retailer_fkey";
+            columns: ["capture_session_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "advisor_capture_sessions";
+            referencedColumns: ["id", "retailer_id"];
+          },
         ];
       };
       advisor_capture_sessions: {
@@ -2881,6 +2888,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "clienteling_notes_customer_retailer_fkey";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "clienteling_notes_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -3746,6 +3760,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "corporate_entitlement_versions_programme_retailer_fkey";
+            columns: ["programme_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "corporate_entitlement_versions_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -3874,6 +3895,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "corporate_exceptions_programme_retailer_fkey";
+            columns: ["programme_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "corporate_exceptions_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -3886,6 +3914,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_wearers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_exceptions_wearer_retailer_fkey";
+            columns: ["wearer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_wearers";
+            referencedColumns: ["id", "retailer_id"];
           },
         ];
       };
@@ -3925,6 +3960,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "corporate_issue_records_entitlement_retailer_fkey";
+            columns: ["entitlement_version_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_entitlement_versions";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "corporate_issue_records_entitlement_version_id_fkey";
             columns: ["entitlement_version_id"];
             isOneToOne: false;
@@ -3951,6 +3993,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_wearers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_issue_records_wearer_retailer_fkey";
+            columns: ["wearer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_wearers";
+            referencedColumns: ["id", "retailer_id"];
           },
         ];
       };
@@ -4074,6 +4123,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "corporate_opportunities_linked_account_retailer_fkey";
+            columns: ["linked_account_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "corporate_opportunities_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -4120,6 +4176,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_opportunities";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_opportunity_signals_opportunity_retailer_fkey";
+            columns: ["opportunity_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_opportunities";
+            referencedColumns: ["id", "retailer_id"];
           },
           {
             foreignKeyName: "corporate_opportunity_signals_retailer_id_fkey";
@@ -4171,6 +4234,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_accounts";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_programmes_account_retailer_fkey";
+            columns: ["account_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id", "retailer_id"];
           },
           {
             foreignKeyName: "corporate_programmes_retailer_id_fkey";
@@ -4382,6 +4452,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "corporate_rollout_days_programme_retailer_fkey";
+            columns: ["programme_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "corporate_rollout_days_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -4486,6 +4563,13 @@ export type Database = {
             referencedRelation: "corporate_tender_versions";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "corporate_tender_approvals_version_retailer_fkey";
+            columns: ["tender_version_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_tender_versions";
+            referencedColumns: ["id", "retailer_id"];
+          },
         ];
       };
       corporate_tender_versions: {
@@ -4544,6 +4628,13 @@ export type Database = {
             referencedRelation: "corporate_tenders";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "corporate_tender_versions_tender_retailer_fkey";
+            columns: ["tender_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_tenders";
+            referencedColumns: ["id", "retailer_id"];
+          },
         ];
       };
       corporate_tenders: {
@@ -4584,6 +4675,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_opportunities";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_tenders_opportunity_retailer_fkey";
+            columns: ["opportunity_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_opportunities";
+            referencedColumns: ["id", "retailer_id"];
           },
           {
             foreignKeyName: "corporate_tenders_retailer_id_fkey";
@@ -4663,6 +4761,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_programmes";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_wearers_programme_retailer_fkey";
+            columns: ["programme_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id", "retailer_id"];
           },
           {
             foreignKeyName: "corporate_wearers_retailer_id_fkey";
@@ -10060,7 +10165,8 @@ export type Database = {
       outfits: {
         Row: {
           created_at: string;
-          created_by_staff_id: string;
+          created_by_customer_id: string | null;
+          created_by_staff_id: string | null;
           customer_id: string;
           deleted_at: string | null;
           id: string;
@@ -10073,7 +10179,8 @@ export type Database = {
         };
         Insert: {
           created_at?: string;
-          created_by_staff_id: string;
+          created_by_customer_id?: string | null;
+          created_by_staff_id?: string | null;
           customer_id: string;
           deleted_at?: string | null;
           id?: string;
@@ -10086,7 +10193,8 @@ export type Database = {
         };
         Update: {
           created_at?: string;
-          created_by_staff_id?: string;
+          created_by_customer_id?: string | null;
+          created_by_staff_id?: string | null;
           customer_id?: string;
           deleted_at?: string | null;
           id?: string;
@@ -10098,6 +10206,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "outfits_created_by_customer_id_fkey";
+            columns: ["created_by_customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "outfits_created_by_staff_id_fkey";
             columns: ["created_by_staff_id"];
@@ -12512,6 +12627,77 @@ export type Database = {
             foreignKeyName: "retailer_subscriptions_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: true;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      retailer_visual_presets: {
+        Row: {
+          aspect_ratio: string;
+          background_image_url: string | null;
+          background_type: string;
+          body_modification_prohibited: boolean;
+          camera_distance: string;
+          camera_height: string;
+          created_at: string;
+          crop: string;
+          expression: string;
+          id: string;
+          is_default: boolean;
+          lighting: string;
+          name: string;
+          negative_constraints: Json;
+          pose_family: string;
+          retailer_id: string;
+          updated_at: string;
+          visual_treatment: string;
+        };
+        Insert: {
+          aspect_ratio: string;
+          background_image_url?: string | null;
+          background_type: string;
+          body_modification_prohibited?: boolean;
+          camera_distance: string;
+          camera_height: string;
+          created_at?: string;
+          crop: string;
+          expression: string;
+          id?: string;
+          is_default?: boolean;
+          lighting: string;
+          name: string;
+          negative_constraints?: Json;
+          pose_family: string;
+          retailer_id: string;
+          updated_at?: string;
+          visual_treatment: string;
+        };
+        Update: {
+          aspect_ratio?: string;
+          background_image_url?: string | null;
+          background_type?: string;
+          body_modification_prohibited?: boolean;
+          camera_distance?: string;
+          camera_height?: string;
+          created_at?: string;
+          crop?: string;
+          expression?: string;
+          id?: string;
+          is_default?: boolean;
+          lighting?: string;
+          name?: string;
+          negative_constraints?: Json;
+          pose_family?: string;
+          retailer_id?: string;
+          updated_at?: string;
+          visual_treatment?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_visual_presets_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
             referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
@@ -15876,6 +16062,125 @@ export type Database = {
         };
         Relationships: [];
       };
+      style_portrait_references: {
+        Row: {
+          created_at: string;
+          id: string;
+          kind: string;
+          retailer_id: string;
+          storage_bucket: string;
+          storage_path: string;
+          style_portrait_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          kind: string;
+          retailer_id: string;
+          storage_bucket: string;
+          storage_path: string;
+          style_portrait_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          retailer_id?: string;
+          storage_bucket?: string;
+          storage_path?: string;
+          style_portrait_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "style_portrait_references_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "style_portrait_references_style_portrait_id_fkey";
+            columns: ["style_portrait_id"];
+            isOneToOne: false;
+            referencedRelation: "style_portraits";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      style_portraits: {
+        Row: {
+          approved_at: string | null;
+          created_at: string;
+          customer_id: string;
+          fit_archetype_concept_id: string | null;
+          id: string;
+          preview_image_url: string | null;
+          rejected_reason: string | null;
+          retailer_id: string;
+          status: string;
+          superseded_at: string | null;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          approved_at?: string | null;
+          created_at?: string;
+          customer_id: string;
+          fit_archetype_concept_id?: string | null;
+          id?: string;
+          preview_image_url?: string | null;
+          rejected_reason?: string | null;
+          retailer_id: string;
+          status?: string;
+          superseded_at?: string | null;
+          updated_at?: string;
+          version?: number;
+        };
+        Update: {
+          approved_at?: string | null;
+          created_at?: string;
+          customer_id?: string;
+          fit_archetype_concept_id?: string | null;
+          id?: string;
+          preview_image_url?: string | null;
+          rejected_reason?: string | null;
+          retailer_id?: string;
+          status?: string;
+          superseded_at?: string | null;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "style_portraits_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "style_portraits_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "style_portraits_fit_archetype_concept_id_fkey";
+            columns: ["fit_archetype_concept_id"];
+            isOneToOne: false;
+            referencedRelation: "metadata_concepts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "style_portraits_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       subscription_plan_entitlements: {
         Row: {
           created_at: string;
@@ -17083,6 +17388,164 @@ export type Database = {
           },
         ];
       };
+      wardrobe_visualization_feedback: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          id: string;
+          job_id: string;
+          note: string | null;
+          retailer_id: string;
+          signal: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          job_id: string;
+          note?: string | null;
+          retailer_id: string;
+          signal: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          job_id?: string;
+          note?: string | null;
+          retailer_id?: string;
+          signal?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_visualization_feedback_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_visualization_feedback_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "wardrobe_visualization_jobs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_visualization_feedback_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      wardrobe_visualization_jobs: {
+        Row: {
+          actual_cost_cents: number | null;
+          attempt: number;
+          created_at: string;
+          customer_id: string;
+          error_message: string | null;
+          estimated_cost_cents: number | null;
+          id: string;
+          input_hash: string;
+          input_snapshot: Json;
+          model: string;
+          outfit_id: string;
+          output_image_url: string | null;
+          provider: string;
+          retailer_id: string;
+          retailer_visual_preset_id: string;
+          status: string;
+          style_portrait_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          actual_cost_cents?: number | null;
+          attempt?: number;
+          created_at?: string;
+          customer_id: string;
+          error_message?: string | null;
+          estimated_cost_cents?: number | null;
+          id?: string;
+          input_hash: string;
+          input_snapshot: Json;
+          model: string;
+          outfit_id: string;
+          output_image_url?: string | null;
+          provider?: string;
+          retailer_id: string;
+          retailer_visual_preset_id: string;
+          status?: string;
+          style_portrait_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          actual_cost_cents?: number | null;
+          attempt?: number;
+          created_at?: string;
+          customer_id?: string;
+          error_message?: string | null;
+          estimated_cost_cents?: number | null;
+          id?: string;
+          input_hash?: string;
+          input_snapshot?: Json;
+          model?: string;
+          outfit_id?: string;
+          output_image_url?: string | null;
+          provider?: string;
+          retailer_id?: string;
+          retailer_visual_preset_id?: string;
+          status?: string;
+          style_portrait_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "wardrobe_visualization_jobs_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_visualization_jobs_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "wardrobe_visualization_jobs_outfit_id_fkey";
+            columns: ["outfit_id"];
+            isOneToOne: false;
+            referencedRelation: "outfits";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_visualization_jobs_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_visualization_jobs_retailer_visual_preset_id_fkey";
+            columns: ["retailer_visual_preset_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_visual_presets";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wardrobe_visualization_jobs_style_portrait_id_fkey";
+            columns: ["style_portrait_id"];
+            isOneToOne: false;
+            referencedRelation: "style_portraits";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       wedding_aftercare_plans: {
         Row: {
           completed_at: string | null;
@@ -17118,6 +17581,13 @@ export type Database = {
           wedding_party_member_id?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "wedding_aftercare_plans_party_retailer_fkey";
+            columns: ["wedding_party_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id", "retailer_id"];
+          },
           {
             foreignKeyName: "wedding_aftercare_plans_retailer_id_fkey";
             columns: ["retailer_id"];
@@ -17249,6 +17719,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "wedding_design_choices_party_retailer_fkey";
+            columns: ["wedding_party_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "wedding_design_choices_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -17300,6 +17777,13 @@ export type Database = {
           wedding_party_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "wedding_group_fittings_party_retailer_fkey";
+            columns: ["wedding_party_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id", "retailer_id"];
+          },
           {
             foreignKeyName: "wedding_group_fittings_retailer_id_fkey";
             columns: ["retailer_id"];
@@ -17358,6 +17842,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "wedding_guest_vouchers_party_retailer_fkey";
+            columns: ["wedding_party_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "wedding_guest_vouchers_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -17414,6 +17905,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "customers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_inspiration_items_party_retailer_fkey";
+            columns: ["wedding_party_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id", "retailer_id"];
           },
           {
             foreignKeyName: "wedding_inspiration_items_retailer_id_fkey";
@@ -18296,6 +18794,10 @@ export type Database = {
         Args: { p_name: string };
         Returns: boolean;
       };
+      can_access_wardrobe_studio_object: {
+        Args: { p_name: string };
+        Returns: boolean;
+      };
       can_manage_party_photo_object: {
         Args: { p_name: string };
         Returns: boolean;
@@ -18307,6 +18809,10 @@ export type Database = {
       can_write_knowledge_object: {
         Args: { p_object_id: string };
         Returns: boolean;
+      };
+      cancel_wardrobe_visualization_job: {
+        Args: { p_job_id: string };
+        Returns: undefined;
       };
       capture_behavioral_event: {
         Args: {
@@ -18383,6 +18889,35 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      claim_pending_wardrobe_visualization_jobs: {
+        Args: { p_limit?: number };
+        Returns: {
+          actual_cost_cents: number | null;
+          attempt: number;
+          created_at: string;
+          customer_id: string;
+          error_message: string | null;
+          estimated_cost_cents: number | null;
+          id: string;
+          input_hash: string;
+          input_snapshot: Json;
+          model: string;
+          outfit_id: string;
+          output_image_url: string | null;
+          provider: string;
+          retailer_id: string;
+          retailer_visual_preset_id: string;
+          status: string;
+          style_portrait_id: string;
+          updated_at: string;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "wardrobe_visualization_jobs";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
       clock_in: { Args: never; Returns: string };
       clock_out: { Args: never; Returns: undefined };
       complete_campaign_challenge: {
@@ -18397,6 +18932,41 @@ export type Database = {
           p_transaction_id: string;
         };
         Returns: Json;
+      };
+      complete_wardrobe_visualization_job: {
+        Args: {
+          p_actual_cost_cents?: number;
+          p_error_message?: string;
+          p_job_id: string;
+          p_output_image_url?: string;
+          p_status: string;
+        };
+        Returns: {
+          actual_cost_cents: number | null;
+          attempt: number;
+          created_at: string;
+          customer_id: string;
+          error_message: string | null;
+          estimated_cost_cents: number | null;
+          id: string;
+          input_hash: string;
+          input_snapshot: Json;
+          model: string;
+          outfit_id: string;
+          output_image_url: string | null;
+          provider: string;
+          retailer_id: string;
+          retailer_visual_preset_id: string;
+          status: string;
+          style_portrait_id: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "wardrobe_visualization_jobs";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       complete_wedding_aftercare_plan: {
         Args: { p_plan_id: string };
@@ -18483,6 +19053,45 @@ export type Database = {
           p_title: string;
         };
         Returns: string;
+      };
+      enqueue_wardrobe_visualization_job: {
+        Args: {
+          p_customer_id: string;
+          p_input_hash: string;
+          p_input_snapshot: Json;
+          p_model: string;
+          p_outfit_id: string;
+          p_provider: string;
+          p_retailer_id: string;
+          p_retailer_visual_preset_id: string;
+          p_style_portrait_id: string;
+        };
+        Returns: {
+          actual_cost_cents: number | null;
+          attempt: number;
+          created_at: string;
+          customer_id: string;
+          error_message: string | null;
+          estimated_cost_cents: number | null;
+          id: string;
+          input_hash: string;
+          input_snapshot: Json;
+          model: string;
+          outfit_id: string;
+          output_image_url: string | null;
+          provider: string;
+          retailer_id: string;
+          retailer_visual_preset_id: string;
+          status: string;
+          style_portrait_id: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "wardrobe_visualization_jobs";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       enroll_campaign_challenge: {
         Args: {

@@ -41,9 +41,37 @@ export interface Outfit extends Timestamps {
   readonly title: string;
   readonly occasionLabel?: string;
   readonly notes?: string;
-  readonly createdByStaffId: StaffId;
+  /**
+   * Exactly one of `createdByStaffId` / `createdByCustomerId` is set — an
+   * outfit is authored either by an advisor (the original ROAD-002 shape)
+   * or, since Virtual Wardrobe Studio (VWS-001 / PHASE 4.6), by the
+   * customer composing their own try-on look. See `outfitAuthorIssues`.
+   */
+  readonly createdByStaffId?: StaffId;
+  readonly createdByCustomerId?: CustomerId;
   readonly deletedAt?: string;
   readonly slots: readonly OutfitSlot[];
+}
+
+export type OutfitAuthorIssue = "missing_author" | "both_authors_set";
+
+/** Exactly one author. Mirrors the outfit-slot consistency guard's shape. */
+export function outfitAuthorIssues(params: {
+  readonly createdByStaffId?: StaffId | string | null;
+  readonly createdByCustomerId?: CustomerId | string | null;
+}): readonly OutfitAuthorIssue[] {
+  const hasStaff =
+    params.createdByStaffId !== undefined &&
+    params.createdByStaffId !== null &&
+    params.createdByStaffId !== "";
+  const hasCustomer =
+    params.createdByCustomerId !== undefined &&
+    params.createdByCustomerId !== null &&
+    params.createdByCustomerId !== "";
+
+  if (hasStaff && hasCustomer) return ["both_authors_set"];
+  if (!hasStaff && !hasCustomer) return ["missing_author"];
+  return [];
 }
 
 export type OutfitSlotConsistencyIssue =

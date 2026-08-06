@@ -134,4 +134,10 @@ export class MockConceptImageProvider implements AIProvider {
       }
     );
   }
+
+  async generateWardrobeVisualization(): Promise<never> {
+    throw new Error(
+      "MockConceptImageProvider does not implement wardrobe visualization",
+    );
+  }
 }

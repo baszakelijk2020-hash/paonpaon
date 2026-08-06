@@ -33,10 +33,14 @@ The frontier-authored virtual-try-on authorization/ledger contract is in
 accepted as `cbc3df6`. The 25-case domain suite, workspace lint/typecheck,
 build, and format check are green. The completion-evidence validator remains
 red on historical stale/missing checked-item records, so 17.10 is not claimed
-complete and no evidence record was fabricated. Persisted usage settlement
-must first reconcile the adjacent generation-job schema already present on
-the unmerged `agent/lane-d-virtual-wardrobe-studio` branch; no migration was
-authored in lane H.
+complete and no evidence record was fabricated.
+
+This turn is reconciling Lane D's already-authored Virtual Wardrobe Studio
+foundation into Lane H so 17.10 can reuse its canonical Outfit-linked queue,
+RLS, provider runner, and visualization entities rather than create a second
+generation-job model. Migration `20260806100000` has no filename collision in
+Lane H. Integration verification and the resulting commit are not claimed
+until the active cherry-pick completes and the checks pass.
 
 Last hand-maintained update: 2026-08-05 (FT-02 silhouette analysis
 consent/capture state machine landed on `agent/grok-takeover-2026-07-30`).

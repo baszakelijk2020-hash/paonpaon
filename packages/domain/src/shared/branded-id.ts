@@ -256,6 +256,20 @@ export type SilhouetteAnalysisCaptureId = Brand<
   string,
   "SilhouetteAnalysisCaptureId"
 >;
+export type StylePortraitId = Brand<string, "StylePortraitId">;
+export type StylePortraitReferenceId = Brand<
+  string,
+  "StylePortraitReferenceId"
+>;
+export type RetailerVisualPresetId = Brand<string, "RetailerVisualPresetId">;
+export type WardrobeVisualizationJobId = Brand<
+  string,
+  "WardrobeVisualizationJobId"
+>;
+export type WardrobeVisualizationFeedbackId = Brand<
+  string,
+  "WardrobeVisualizationFeedbackId"
+>;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

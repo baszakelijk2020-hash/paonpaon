@@ -47,7 +47,12 @@ function toOutfit(row: OutfitRow, slots: readonly OutfitSlot[]): Outfit {
     title: row.title,
     ...(row.occasion_label ? { occasionLabel: row.occasion_label } : {}),
     ...(row.notes ? { notes: row.notes } : {}),
-    createdByStaffId: asId<"StaffId">(row.created_by_staff_id),
+    ...(row.created_by_staff_id
+      ? { createdByStaffId: asId<"StaffId">(row.created_by_staff_id) }
+      : {}),
+    ...(row.created_by_customer_id
+      ? { createdByCustomerId: asId<"CustomerId">(row.created_by_customer_id) }
+      : {}),
     ...(row.deleted_at ? { deletedAt: row.deleted_at } : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -90,6 +95,32 @@ export class OutfitRepository {
     input: CreateOutfitInput,
     createdByStaffId: StaffId,
   ): Promise<Outfit> {
+    return this.insertOutfitAndSlots(input, {
+      created_by_staff_id: createdByStaffId as string,
+      created_by_customer_id: null,
+    });
+  }
+
+  /** Customer composing their own try-on look (VWS-001 / PHASE 4.6) —
+   * same slot-consistency rules as advisor authorship, just a different
+   * author column. RLS enforces the caller is that exact customer. */
+  async createByCustomer(
+    input: CreateOutfitInput,
+    createdByCustomerId: CustomerId,
+  ): Promise<Outfit> {
+    return this.insertOutfitAndSlots(input, {
+      created_by_staff_id: null,
+      created_by_customer_id: createdByCustomerId as string,
+    });
+  }
+
+  private async insertOutfitAndSlots(
+    input: CreateOutfitInput,
+    author: {
+      readonly created_by_staff_id: string | null;
+      readonly created_by_customer_id: string | null;
+    },
+  ): Promise<Outfit> {
     if (
       !isOutfitSlotsConsistent({
         slots: input.slots.map((slot) => ({
@@ -112,7 +143,8 @@ export class OutfitRepository {
         title: input.title,
         occasion_label: input.occasionLabel ?? null,
         notes: input.notes ?? null,
-        created_by_staff_id: createdByStaffId,
+        created_by_staff_id: author.created_by_staff_id,
+        created_by_customer_id: author.created_by_customer_id,
       })
       .select("*")
       .single();

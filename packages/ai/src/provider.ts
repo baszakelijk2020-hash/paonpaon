@@ -140,6 +140,36 @@ export interface ConceptImageResult {
   }[];
 }
 
+/**
+ * One Virtual Wardrobe Studio generation request (VWS-001 / PHASE 4.6 /
+ * ADR-074). Built entirely from the immutable input snapshot already
+ * assembled outside this package — the retailer visual preset's
+ * `bodyModificationProhibited` constraint travels with the request as an
+ * explicit negative instruction, never left to prompt wording alone.
+ */
+export interface WardrobeVisualizationContext {
+  readonly retailerName: string;
+  readonly referenceImageUrls: readonly string[];
+  readonly garmentDescriptions: readonly string[];
+  readonly tailoringInstructions: string;
+  readonly writtenInstructions?: string;
+  readonly backgroundType: string;
+  readonly poseFamily: string;
+  readonly cameraHeight: string;
+  readonly cameraDistance: string;
+  readonly crop: string;
+  readonly aspectRatio: string;
+  readonly lighting: string;
+  readonly expression: string;
+  readonly visualTreatment: string;
+  readonly negativeConstraints: readonly string[];
+}
+
+export interface WardrobeVisualizationResult {
+  readonly imageUrl: string;
+  readonly revisedPrompt: string;
+}
+
 export interface AIProvider {
   readonly providerName: string;
   readonly model: string;
@@ -185,4 +215,14 @@ export interface AIProvider {
   generateConceptImages(
     context: ConceptImageContext,
   ): Promise<ConceptImageResult>;
+  /**
+   * Generates one Virtual Wardrobe Studio visualization image (VWS-001).
+   * The result is never shown to a customer or advisor on its own
+   * authority — persistence into an immutable job row and the copy into
+   * PAON-controlled Storage happen outside this package, same split as
+   * `generateConceptImages`.
+   */
+  generateWardrobeVisualization(
+    context: WardrobeVisualizationContext,
+  ): Promise<WardrobeVisualizationResult>;
 }
