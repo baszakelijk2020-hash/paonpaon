@@ -1814,13 +1814,19 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     covers that surface).
   - **Hard blockers:** none for local implementation; live image rendering
     requires a configured provider credential.
-  - **Landed:** domain `styleEvidenceForWardrobeVisualizationFeedback`,
-    customer `generateAllSavedLooks`/`cancelAllQueuedLooks`/
-    `feedStyleProfileEvidence` Server Actions and `BatchLookActions` UI,
-    deterministic-claim-order migration. Full monorepo
-    `pnpm lint/typecheck/test/build/format:check` green; evidence recorded
-    per ADR-068 (`docs/evidence/runs/
-4.10-customer-batch-and-feedback-evidence.json`).
+  - **Landed:** `5756a22` — domain
+    `styleEvidenceForWardrobeVisualizationFeedback`, customer
+    `generateAllSavedLooks`/`cancelAllQueuedLooks`/`feedStyleProfileEvidence`
+    Server Actions and `BatchLookActions` UI, deterministic-claim-order
+    migration. Full monorepo `pnpm lint/typecheck/test/build/format:check`
+    green; the new spec re-run three times together with
+    `virtual-studio.spec.ts` and `roadmap-look-review.spec.ts` (10/10 total
+    passes, no regression); evidence recorded per ADR-068
+    (`docs/evidence/runs/4.10-customer-batch-and-feedback-evidence.json`).
+    This completes the blueprint's §5 slice plan (4.6–4.10); Virtual
+    Wardrobe Studio's local implementation is fully landed subject to the
+    documented `OPENAI_API_KEY` live-rendering hard-blocker every slice has
+    carried since 4.6.
 
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain — see ADR-074 for the visualization-only fit-preference
