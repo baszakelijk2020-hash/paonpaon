@@ -103,6 +103,60 @@ invariants, environment safety, proving a slice, definition of done,
 evidence discipline) applies identically inside each lane. A lane is a
 branching discipline, not an exemption from any of it.
 
+## Cheap-worker delegation
+
+A bounded, mechanical remainder of a `PHASE.md` item may be handed to a
+cheaper model (OpenRouter/Zoo or equivalent) instead of a frontier session.
+This is the same lane discipline above, not a second system: no task
+database, no YAML, no scheduler. The cheap worker gets its own lane branch,
+reads the same `AGENTS.md`/`PHASE.md`/ADR path any agent reads, runs the
+same definition-of-done command, and hands back a normal commit. Nothing
+about resuming afterward changes — the next frontier session still reads
+`PHASE.md`, the Resume Protocol and `git log`, never a special handoff file.
+
+**Delegable** — already has a settled shape and needs no judgment call:
+missing tests that follow an existing pattern in the same package, fixtures,
+repetitive repository/RPC wiring once the schema and RLS are already
+committed, type/lint cleanup, UI wiring that only calls an already-tested
+repository method, evidence-file updates for a run that already passed.
+
+**Never delegable** — reserve for a frontier session: RLS/tenant-isolation
+authorship, any migration touching money/stock/tenant boundaries, payments,
+AI-authorization or prompt/grounding design, an `FT-*` fidelity judgment
+call, or anything `PHASE.md`/a blueprint already flags as needing a founder
+decision. If the cheap worker's own slice would touch one of these, its
+instruction is to stop and leave a status note, not guess.
+
+To delegate one, the frontier session:
+
+1. Picks one `PHASE.md` item, or an already-named gap inside one (its own
+   "Not yet built"/non-goals text is usually the exact scope), that is fully
+   `Delegable` per the list above.
+2. Creates or reuses that item's lane branch (`agent/lane-<letter>-<module>`,
+   same convention as any other lane).
+3. Sends the cheap worker this prompt, filled in — nothing more, no pasted
+   file contents:
+
+   ```text
+   Repo: <absolute path>. Branch: <agent/lane-x-...>, already checked out.
+   Read AGENTS.md, then PHASE.md item <ID> (only that item), then the ADR/
+   blueprint it names if any. Implement only what its Acceptance/Tests text
+   asks. Do not touch RLS, migrations outside this item's own schema, money/
+   stock/tenant boundaries, AI-authorization logic, or anything marked
+   founder-decision-needed — stop and write a one-line status note instead.
+   Run: pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck &&
+   pnpm test && pnpm build && pnpm format:check. Commit only if it's green,
+   with a plain-language message. Do not push, do not touch main.
+   ```
+
+4. Reviews the resulting commit(s) like any other diff before pushing the
+   lane and merging per the multi-lane protocol above.
+
+**Recovery:** the lane branch is the entire blast radius. A cheap worker
+that goes sideways is `git reset --hard` to the lane's fork point (or the
+branch is simply abandoned) — nothing outside that branch was ever touched,
+same guarantee any lane already gives.
+
 ## Product invariant
 
 PAON's destination is the complete entitlement-controlled modular platform in
