@@ -1,8 +1,10 @@
 import {
   asId,
+  type BuyingIntentClassification,
   type Conversation,
   type ConversationId,
   type ConversationIntent,
+  type ConversationStatus,
   type CustomerId,
   type Message,
   type MessageAttachment,
@@ -33,6 +35,20 @@ const conversation = (row: ConversationRow): Conversation => ({
   ...(row.outcome_recorded_at
     ? { outcomeRecordedAt: row.outcome_recorded_at }
     : {}),
+  status: row.status as ConversationStatus,
+  ...(row.claimed_by_staff_id
+    ? { claimedByStaffId: asId<"StaffId">(row.claimed_by_staff_id) }
+    : {}),
+  ...(row.claimed_at ? { claimedAt: row.claimed_at } : {}),
+  ...(row.buying_intent_level
+    ? {
+        buyingIntentLevel: row.buying_intent_level as NonNullable<
+          Conversation["buyingIntentLevel"]
+        >,
+      }
+    : {}),
+  buyingIntentSignals: (row.buying_intent_signals ??
+    []) as unknown as Conversation["buyingIntentSignals"],
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   deletedAt: row.deleted_at,
@@ -345,5 +361,117 @@ export class MessagingRepository {
       .single();
     if (fetchError) throw fetchError;
     return messageAttachment(row);
+  }
+
+  /** PHASE 17.14: claim a conversation for triage. Re-derives the
+   * caller's own staff row server-side via `claim_conversation`
+   * (security definer) — never trusts a client-supplied staff id.
+   * Returns false when someone else already claimed it first, so the
+   * caller can show "already claimed" instead of silently no-op-ing. */
+  async claimConversation(id: ConversationId): Promise<boolean> {
+    const { data, error } = await this.client.rpc("claim_conversation", {
+      p_conversation_id: id,
+    });
+    if (error) throw error;
+    return data === true;
+  }
+
+  /** PHASE 17.14: staff-driven queue transitions (waiting_for_customer,
+   * follow_up_required, converted, closed). `set_conversation_status`
+   * restricts this to whoever claimed the conversation or a manager+. */
+  async setConversationStatus(
+    id: ConversationId,
+    status: Exclude<ConversationStatus, "ai_handling">,
+  ): Promise<void> {
+    const { error } = await this.client.rpc("set_conversation_status", {
+      p_conversation_id: id,
+      p_status: status,
+    });
+    if (error) throw error;
+  }
+
+  /**
+   * PHASE 17.14: records an explainable buying-intent classification
+   * computed server-side (in the calling Server Action, from a message
+   * it just validated and sent through the ordinary RPC path — never
+   * from raw client input trusted at face value) and, when the
+   * classification crosses this item's own escalation rule, flips a
+   * still-`ai_handling` conversation to `needs_human` and notifies every
+   * eligible retailer staff member the same way a fresh TableService
+   * inquiry already does. Uses the admin client for the same reason as
+   * `linkOutcome` — `conversations` grants no authenticated write at
+   * all — so the caller is responsible for its own authorization; both
+   * call sites here run inside an already-authorized message-send path.
+   */
+  async recordIntentClassification(args: {
+    readonly conversationId: ConversationId;
+    readonly retailerId: RetailerId;
+    readonly classification: BuyingIntentClassification;
+    readonly escalateToHuman: boolean;
+  }): Promise<void> {
+    const { error: signalsError } = await this.client
+      .from("conversations")
+      .update({
+        buying_intent_level: args.classification.level,
+        buying_intent_signals: args.classification.signals as unknown as never,
+      })
+      .eq("id", args.conversationId)
+      .eq("retailer_id", args.retailerId);
+    if (signalsError) throw signalsError;
+
+    if (!args.escalateToHuman) return;
+
+    // Only escalate a conversation still in its default AI-handled state
+    // — never clobber one a human has already claimed/progressed.
+    const { data: escalated, error: escalateError } = await this.client
+      .from("conversations")
+      .update({ status: "needs_human" })
+      .eq("id", args.conversationId)
+      .eq("retailer_id", args.retailerId)
+      .eq("status", "ai_handling")
+      .select("id")
+      .maybeSingle();
+    if (escalateError) throw escalateError;
+    if (!escalated) return;
+
+    const { data: eligibleStaff, error: staffError } = await this.client
+      .from("retailer_staff_members")
+      .select("user_id")
+      .eq("retailer_id", args.retailerId)
+      .in("role", ["sales_associate", "manager", "admin", "owner"])
+      .not("user_id", "is", null)
+      .not("accepted_at", "is", null)
+      .is("deleted_at", null);
+    if (staffError) throw staffError;
+
+    const { data: customer, error: customerError } = await this.client
+      .from("conversations")
+      .select("customer_id")
+      .eq("id", args.conversationId)
+      .single();
+    if (customerError) throw customerError;
+
+    const topSignal = args.classification.signals[0];
+    const summary = topSignal
+      ? `High-intent enquiry: ${topSignal.label.toLowerCase()}`
+      : "High-intent enquiry needs a human";
+
+    if (eligibleStaff.length > 0) {
+      const { error: notifyError } = await this.client
+        .from("notifications")
+        .insert(
+          eligibleStaff.map((staff) => ({
+            retailer_id: args.retailerId,
+            recipient_user_id: staff.user_id as string,
+            customer_id: customer.customer_id,
+            category: "message" as const,
+            title: summary,
+            body: "A prospect message needs a human response.",
+            action_href: `/messages?c=${args.conversationId}`,
+            sent_at: new Date().toISOString(),
+          })),
+        );
+      if (notifyError) throw notifyError;
+    }
   }
 }

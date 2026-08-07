@@ -1,4 +1,8 @@
 import type {
+  BuyingIntentLevel,
+  ConversationIntentSignal,
+} from "../intelligence/conversation-intent";
+import type {
   ConversationId,
   CustomerId,
   MessageAttachmentId,
@@ -12,6 +16,31 @@ import type { Timestamps } from "../shared/timestamps";
 
 export type ConversationIntent =
   "wedding" | "shirts" | "style_help" | "freeform";
+
+/** PHASE 17.14: the conversation's own triage state, distinct from the
+ * per-message AI-vs-human authorship on `Message.senderType`. Defaults to
+ * `ai_handling` — a fresh inbound conversation the AI layer may address
+ * without a human yet. */
+export const CONVERSATION_STATUSES = [
+  "ai_handling",
+  "needs_human",
+  "claimed",
+  "waiting_for_customer",
+  "follow_up_required",
+  "converted",
+  "closed",
+] as const;
+export type ConversationStatus = (typeof CONVERSATION_STATUSES)[number];
+
+export const CONVERSATION_STATUS_LABELS: Record<ConversationStatus, string> = {
+  ai_handling: "AI handling",
+  needs_human: "Needs human",
+  claimed: "Claimed",
+  waiting_for_customer: "Waiting for customer",
+  follow_up_required: "Follow-up required",
+  converted: "Converted",
+  closed: "Closed",
+};
 
 /** A single thread between one Customer and one retailer (staff rotate within it). */
 export interface Conversation extends Timestamps {
@@ -29,6 +58,12 @@ export interface Conversation extends Timestamps {
   readonly outcomeAppointmentId?: string;
   readonly outcomeOrderId?: string;
   readonly outcomeRecordedAt?: string;
+  /** PHASE 17.14 — team conversation queue. */
+  readonly status: ConversationStatus;
+  readonly claimedByStaffId?: StaffId;
+  readonly claimedAt?: string;
+  readonly buyingIntentLevel?: BuyingIntentLevel;
+  readonly buyingIntentSignals: readonly ConversationIntentSignal[];
 }
 
 export type MessageSenderType = "customer" | "staff" | "ai_assistant" | "guest";
@@ -196,4 +231,29 @@ export interface MessageAttachment extends Pick<Timestamps, "createdAt"> {
   readonly wardrobeItemId?: WardrobeItemId;
   readonly uploadedByStaffId?: StaffId;
   readonly uploadedByUserId?: string;
+}
+
+/** PHASE 17.14: an AI-proposed reply, grounded on the same approved
+ * knowledge/product allowlist as TableService guidance. A proposal, never
+ * a sent message — see `message_ai_drafts`' own resolution constraint. */
+export const MESSAGE_AI_DRAFT_STATUSES = [
+  "proposed",
+  "sent",
+  "edited_and_sent",
+  "dismissed",
+] as const;
+export type MessageAiDraftStatus = (typeof MESSAGE_AI_DRAFT_STATUSES)[number];
+
+export interface MessageAiDraft extends Pick<Timestamps, "createdAt"> {
+  readonly id: string;
+  readonly retailerId: RetailerId;
+  readonly conversationId: ConversationId;
+  readonly basedOnMessageId?: MessageId;
+  readonly draftText: string;
+  readonly knowledgeObjectIds: readonly string[];
+  readonly productIds: readonly string[];
+  readonly status: MessageAiDraftStatus;
+  readonly resolvedByStaffId?: StaffId;
+  readonly resolvedAt?: string;
+  readonly sentMessageId?: MessageId;
 }

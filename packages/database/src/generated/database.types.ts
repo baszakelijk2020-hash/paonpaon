@@ -1420,6 +1420,7 @@ export type Database = {
           id: string;
           location_id: string | null;
           notes: string | null;
+          origin_message_thread_id: string | null;
           retailer_id: string;
           staff_id: string | null;
           starts_at: string;
@@ -1436,6 +1437,7 @@ export type Database = {
           id?: string;
           location_id?: string | null;
           notes?: string | null;
+          origin_message_thread_id?: string | null;
           retailer_id: string;
           staff_id?: string | null;
           starts_at: string;
@@ -1452,6 +1454,7 @@ export type Database = {
           id?: string;
           location_id?: string | null;
           notes?: string | null;
+          origin_message_thread_id?: string | null;
           retailer_id?: string;
           staff_id?: string | null;
           starts_at?: string;
@@ -1472,6 +1475,13 @@ export type Database = {
             columns: ["customer_id"];
             isOneToOne: false;
             referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointments_origin_message_thread_id_fkey";
+            columns: ["origin_message_thread_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
             referencedColumns: ["id"];
           },
           {
@@ -3499,6 +3509,10 @@ export type Database = {
       };
       conversations: {
         Row: {
+          buying_intent_level: string | null;
+          buying_intent_signals: Json;
+          claimed_at: string | null;
+          claimed_by_staff_id: string | null;
           created_at: string;
           customer_id: string;
           deleted_at: string | null;
@@ -3509,9 +3523,14 @@ export type Database = {
           outcome_order_id: string | null;
           outcome_recorded_at: string | null;
           retailer_id: string;
+          status: string;
           updated_at: string;
         };
         Insert: {
+          buying_intent_level?: string | null;
+          buying_intent_signals?: Json;
+          claimed_at?: string | null;
+          claimed_by_staff_id?: string | null;
           created_at?: string;
           customer_id: string;
           deleted_at?: string | null;
@@ -3522,9 +3541,14 @@ export type Database = {
           outcome_order_id?: string | null;
           outcome_recorded_at?: string | null;
           retailer_id: string;
+          status?: string;
           updated_at?: string;
         };
         Update: {
+          buying_intent_level?: string | null;
+          buying_intent_signals?: Json;
+          claimed_at?: string | null;
+          claimed_by_staff_id?: string | null;
           created_at?: string;
           customer_id?: string;
           deleted_at?: string | null;
@@ -3535,9 +3559,17 @@ export type Database = {
           outcome_order_id?: string | null;
           outcome_recorded_at?: string | null;
           retailer_id?: string;
+          status?: string;
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "conversations_claimed_by_staff_id_fkey";
+            columns: ["claimed_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "conversations_customer_id_fkey";
             columns: ["customer_id"];
@@ -8266,6 +8298,87 @@ export type Database = {
             columns: ["retailer_id"];
             isOneToOne: false;
             referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      message_ai_drafts: {
+        Row: {
+          based_on_message_id: string | null;
+          conversation_id: string;
+          created_at: string;
+          draft_text: string;
+          id: string;
+          knowledge_object_ids: Json;
+          product_ids: Json;
+          resolved_at: string | null;
+          resolved_by_staff_id: string | null;
+          retailer_id: string;
+          sent_message_id: string | null;
+          status: string;
+        };
+        Insert: {
+          based_on_message_id?: string | null;
+          conversation_id: string;
+          created_at?: string;
+          draft_text: string;
+          id?: string;
+          knowledge_object_ids?: Json;
+          product_ids?: Json;
+          resolved_at?: string | null;
+          resolved_by_staff_id?: string | null;
+          retailer_id: string;
+          sent_message_id?: string | null;
+          status?: string;
+        };
+        Update: {
+          based_on_message_id?: string | null;
+          conversation_id?: string;
+          created_at?: string;
+          draft_text?: string;
+          id?: string;
+          knowledge_object_ids?: Json;
+          product_ids?: Json;
+          resolved_at?: string | null;
+          resolved_by_staff_id?: string | null;
+          retailer_id?: string;
+          sent_message_id?: string | null;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "message_ai_drafts_based_on_message_id_fkey";
+            columns: ["based_on_message_id"];
+            isOneToOne: false;
+            referencedRelation: "messages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "message_ai_drafts_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "message_ai_drafts_resolved_by_staff_id_fkey";
+            columns: ["resolved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "message_ai_drafts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "message_ai_drafts_sent_message_id_fkey";
+            columns: ["sent_message_id"];
+            isOneToOne: false;
+            referencedRelation: "messages";
             referencedColumns: ["id"];
           },
         ];
@@ -18144,6 +18257,17 @@ export type Database = {
         Args: { p_session_id: string };
         Returns: undefined;
       };
+      book_appointment_from_consultation: {
+        Args: {
+          p_conversation_id: string;
+          p_ends_at: string;
+          p_message_attachment_id?: string;
+          p_notes?: string;
+          p_starts_at: string;
+          p_type: Database["public"]["Enums"]["appointment_type"];
+        };
+        Returns: string;
+      };
       can_access_alteration_storage_object: {
         Args: { p_name: string };
         Returns: boolean;
@@ -18206,6 +18330,10 @@ export type Database = {
       checkout_cart: {
         Args: { p_order_id: string; p_shipping_address: Json };
         Returns: string;
+      };
+      claim_conversation: {
+        Args: { p_conversation_id: string };
+        Returns: boolean;
       };
       claim_pending_emails: {
         Args: { p_limit?: number };
@@ -18319,11 +18447,7 @@ export type Database = {
         Returns: undefined;
       };
       decide_silhouette_analysis_candidate: {
-        Args: {
-          p_decision: string;
-          p_note?: string;
-          p_session_id: string;
-        };
+        Args: { p_decision: string; p_note?: string; p_session_id: string };
         Returns: undefined;
       };
       enqueue_campaign_delivery_notification: {
@@ -19043,6 +19167,10 @@ export type Database = {
           p_operation_id: string;
           p_workshop_id?: string;
         };
+        Returns: undefined;
+      };
+      set_conversation_status: {
+        Args: { p_conversation_id: string; p_status: string };
         Returns: undefined;
       };
       set_customer_consent: {

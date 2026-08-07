@@ -3,6 +3,8 @@
 import { CustomerRepository, MessagingRepository } from "@paon/database";
 import {
   asId,
+  classifyBuyingIntent,
+  conversationNeedsHuman,
   normalizePinterestUrl,
   validateMessageAttachmentUpload,
   type MessageAttachmentPurpose,
@@ -14,6 +16,7 @@ import { validateTableServiceInquiry } from "./table-service-validation";
 
 import { assertRetailerModuleActive } from "@/lib/module-session";
 import { requireSession } from "@/lib/session";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface TableServiceFormState {
@@ -212,13 +215,34 @@ export async function submitTableServiceInquiry(
       rId,
       "relationship_intelligence",
     );
-    await new MessagingRepository(supabase).submitTableServiceInquiry({
+    const conversationId = await new MessagingRepository(
+      supabase,
+    ).submitTableServiceInquiry({
       retailerId: rId,
       name,
       email,
       intent,
       message,
     });
+
+    // PHASE 17.14: classify this anonymous prospect's first message for
+    // buying intent and escalate to the retailer queue when it warrants
+    // a human. Never blocks the inquiry itself on classification failure
+    // — the inquiry is already durably recorded by this point.
+    try {
+      const classification = classifyBuyingIntent(message);
+      await new MessagingRepository(
+        getSupabaseAdminClient(),
+      ).recordIntentClassification({
+        conversationId,
+        retailerId: rId,
+        classification,
+        escalateToHuman: conversationNeedsHuman(classification),
+      });
+    } catch {
+      // Best-effort: a classification failure must never surface as an
+      // inquiry-submission error to the anonymous visitor.
+    }
   } catch (error) {
     const formError =
       error instanceof Error ? error.message : "Something went wrong.";

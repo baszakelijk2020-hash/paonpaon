@@ -4411,6 +4411,98 @@ routine-occasions.ts`) reuses 10.4's existing
     every wardrobe item, so "unattached" isn't representable without a
     schema change this slice didn't make.
 
+- [ ] **17.14 Prospect AI conversation, buying-intent queue, and human handoff**
+  - **Requirement IDs:** ADV-114.
+  - **Dependencies:** `17.9` (channel core, unrelated tables); FT-09
+    TableService (`conversations`/`messages`/`message_attachments`,
+    consultation-to-appointment journey).
+  - **Owner boundary:** founder brief "PAON customer communication, AI
+    styling, lead-capture and advisor-response layer" — first vertical
+    slice only, scoped to the brief's own "FIRST DELIVERY" sequencing
+    (prospect/first-time buyer first; authenticated-existing-customer
+    depth, deeper Virtual Studio integration and voice are later slices,
+    not attempted here). Extends the existing TableService/Conversation
+    model rather than a second chat system or a generic floating
+    chatbot: an explainable (never opaque-score) buying-intent
+    classification on each customer/guest message, a conversation queue
+    state (`ai_handling`/`needs_human`/`claimed`/`waiting_for_customer`/
+    `follow_up_required`/`converted`/`closed`), a claim mechanism so the
+    retailer inbox becomes a real triage queue, and an AI-drafted reply
+    that a human advisor must review/edit/approve before it ever reaches
+    a customer — never an autonomous customer-facing send.
+  - **Acceptance:** a high-intent prospect message (occasion + deadline
+    - appointment-readiness signals) is classified with cited, real
+      substring evidence and flips the conversation to `needs_human`;
+      eligible staff are notified through the existing notification path;
+      a claim records `claimed_by_staff_id`/`claimed_at` and is visible in
+      the inbox; an AI-proposed draft reply is grounded only on the
+      approved knowledge/product allowlist exactly like existing grounded
+      guidance (reuses the same refusal-on-thin-basis discipline) and
+      writes nothing to `messages` until a staff member sends it as-is or
+      edited; every AI call is recorded through `AIGenerationRepository`
+      (`kind: "communication_draft"`); cross-tenant claim/draft-resolve is
+      rejected.
+  - **Tests:** domain unit tests for the buying-intent classifier (every
+    signal cites a real matched substring, level thresholds, no false
+    escalation on a low-intent question) and a permanent jailbreak/
+    adversarial corpus (system-prompt extraction, competitor hijack,
+    off-topic/banana-recipe, roleplay, punctuation/repetition, fake
+    admin, encoded instructions) against the safety heuristic and the
+    draft-reply system prompt; pgTAP tenant-isolation on the new
+    columns/table; Playwright e2e covering a real anonymous high-intent
+    TableService inquiry reaching the retailer queue, claim, AI draft
+    (mock provider — no live key in this environment), edit-and-send,
+    and the customer seeing the reply.
+  - **Non-goals:** need-to-know RLS narrowing on `conversations`/
+    `customer_facts` to the assigned advisor only (existing blanket
+    retailer-staff read, unchanged — a real, explicitly named gap, not
+    silently dropped); duty-advisor/after-hours routing beyond "notify
+    every eligible staff member" (existing coverage-planning schema has
+    no "who is on duty right now" resolver yet — building one is a
+    separate slice); retailer-configurable AI budget/rate limiting;
+    voice; deeper Virtual Studio actions from within a conversation.
+  - **Hard blockers:** live grounded/drafted AI answers need
+    `OPENAI_API_KEY` (same posture as every other AI-assisted surface in
+    this codebase); the deterministic buying-intent classifier and the
+    queue/claim/handoff mechanics need no provider and are fully
+    verified locally.
+  - **Status (2026-08-07):** functional foundation, not yet connected or
+    proven. Real and unit-tested: the explainable buying-intent
+    classifier and adversarial-safety heuristic
+    (`packages/domain/src/intelligence/conversation-intent.ts`, 24
+    passing tests covering every signal's real matched substring, level
+    thresholds, the no-false-escalation case, and the four safety-flag
+    categories against benign off-topic/competitor/punctuation text).
+    Real schema: migration `20260806010000` (queue `status`, claim
+    columns, `buying_intent_level`/`_signals`, `message_ai_drafts`,
+    `claim_conversation`/`set_conversation_status` RPCs). Real
+    repository: `MessagingRepository.claimConversation`/
+    `setConversationStatus`/`recordIntentClassification` (escalates
+    `ai_handling` → `needs_human` and notifies eligible staff through
+    the existing `notifications` table, mirroring the TableService
+    inquiry path) and `ConversationDraftRepository`
+    (`propose`/`dismiss`/`approveAndSend`, always sending through the
+    ordinary `send_conversation_message` RPC). Newly wired this session:
+    both real message-send paths — the signed-in customer's
+    `sendMessage`/`startConversation` and the anonymous prospect's
+    `submitTableServiceInquiry` — now call the classifier and record the
+    result after the message is durably sent, fail-open (a
+    classification error never blocks the real message). Fixed two real
+    pre-existing typecheck breaks discovered while verifying this slice,
+    unrelated to 17.14 itself: FT-09's `bookAppointmentFromConsultation`
+    call sites in both the customer and retailer apps passed an explicit
+    `notes: undefined` key, which `exactOptionalPropertyTypes` rejects
+    (fixed to the codebase's own conditional-spread idiom).
+    **Not yet built:** the retailer inbox has no claim button, queue
+    status display, or AI-draft review/approve UI; no Server Action or
+    UI triggers `ConversationDraftRepository.propose` (the AI draft-
+    generation call itself, gated on `OPENAI_API_KEY`, is unbuilt); no
+    `AIGenerationRepository` wiring for `kind: "communication_draft"`;
+    no pgTAP tenant-isolation coverage for the new table/columns; no
+    Playwright e2e. Do not mark this item's checkbox or claim it
+    "connected" until the retailer-side claim/draft UI and at least one
+    real end-to-end browser proof exist.
+
 ### Stage 18 — Corporate business development, tenders, and rollout (Métier expansion)
 
 Founder-directed mega-directive, added 2026-08-04: InsiderTailoring

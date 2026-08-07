@@ -1,9 +1,6 @@
 "use server";
 import { requireRetailerRole } from "@paon/auth";
-import {
-  AppointmentRepository,
-  MessagingRepository,
-} from "@paon/database";
+import { AppointmentRepository, MessagingRepository } from "@paon/database";
 import {
   asId,
   sendMessageSchema,
@@ -117,14 +114,15 @@ export async function bookAppointmentFromConsultation(
   }
 
   const supabase = await getSupabaseServerClient();
-  const appointmentId = await new AppointmentRepository(supabase)
-    .bookFromConsultation({
-      conversationId,
-      type: appointmentType as never,
-      startsAt,
-      endsAt,
-      notes,
-    });
+  const appointmentId = await new AppointmentRepository(
+    supabase,
+  ).bookFromConsultation({
+    conversationId,
+    type: appointmentType as never,
+    startsAt,
+    endsAt,
+    ...(notes ? { notes } : {}),
+  });
 
   revalidatePath("/messages");
   return appointmentId;
