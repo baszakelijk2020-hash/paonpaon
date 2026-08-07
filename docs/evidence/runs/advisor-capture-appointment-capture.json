@@ -1,0 +1,7 @@
+{
+  "phaseItemId": "advisor-capture-appointment-capture",
+  "gitSha": "9f5b55b8cf5597ec35097a98f5b6e2ef095d9eba",
+  "spec": "apps/retailer/e2e/advisor-capture.spec.ts (appointment capture)",
+  "status": "passed",
+  "timestamp": "2026-08-07T09:25:44.529Z"
+}
