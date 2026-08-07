@@ -1,21 +1,151 @@
 "use client";
 
-import type { WardrobeRoadmap } from "@paon/domain";
-import { Button } from "@paon/ui/components/Button";
+import type {
+  Outfit,
+  WardrobeRoadmap,
+  WardrobeVisualizationJob,
+} from "@paon/domain";
+import { Button, buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { useActionState } from "react";
+import { useActionState, useState, useTransition } from "react";
 
 import {
   decideWardrobeRoadmap,
   type CustomerRoadmapActionState,
 } from "./roadmap-actions";
+import { recordLookFeedback } from "./virtual-studio-actions";
+
+const JOB_STATUS_COPY: Record<WardrobeVisualizationJob["status"], string> = {
+  queued: "Queued",
+  generating: "Generating…",
+  ready: "Ready",
+  failed: "Generation failed",
+  cancelled: "Cancelled",
+};
+
+function RoadmapLookReview({
+  retailerId,
+  look,
+  latestJob,
+}: {
+  retailerId: string;
+  look: Outfit;
+  latestJob: WardrobeVisualizationJob | null;
+}) {
+  const [note, setNote] = useState("");
+  const [showRequestChange, setShowRequestChange] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  function feedback(
+    signal: Parameters<typeof recordLookFeedback>[2],
+    withNote?: string,
+  ) {
+    if (!latestJob) return;
+    startTransition(() =>
+      recordLookFeedback(retailerId, latestJob.id, signal, withNote),
+    );
+    setShowRequestChange(false);
+    setNote("");
+  }
+
+  return (
+    <li className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3">
+      <div>
+        <p className="text-sm font-medium text-[var(--color-stone-900)]">
+          {look.title}
+        </p>
+        {look.occasionLabel ? (
+          <p className="text-xs text-[var(--color-stone-500)]">
+            {look.occasionLabel}
+          </p>
+        ) : null}
+      </div>
+
+      {latestJob?.status === "ready" && latestJob.outputImageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={latestJob.outputImageUrl}
+          alt={look.title}
+          className="max-h-72 rounded-[var(--radius-md)] border border-[var(--color-stone-200)]"
+        />
+      ) : (
+        <p className="text-xs text-[var(--color-stone-500)]" role="status">
+          {latestJob ? JOB_STATUS_COPY[latestJob.status] : "Not generated yet."}
+        </p>
+      )}
+
+      {latestJob?.status === "ready" ? (
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => feedback("love_it")}
+              disabled={isPending}
+              className={buttonVariants({ variant: "secondary", size: "sm" })}
+            >
+              Love it
+            </button>
+            <button
+              type="button"
+              onClick={() => feedback("maybe")}
+              disabled={isPending}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Maybe
+            </button>
+            <button
+              type="button"
+              onClick={() => feedback("not_for_me")}
+              disabled={isPending}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Not for me
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowRequestChange((current) => !current)}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              Request change
+            </button>
+          </div>
+          {showRequestChange ? (
+            <div className="flex flex-col gap-2">
+              <textarea
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="What would you like different about this look?"
+                maxLength={2000}
+                rows={2}
+                className="w-full rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-sm"
+              />
+              <Button
+                size="sm"
+                onClick={() => feedback("not_for_me", note)}
+                disabled={isPending || note.trim().length === 0}
+              >
+                Send request
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </li>
+  );
+}
 
 export function WardrobeRoadmapPanel({
+  retailerId,
   retailerName,
   roadmaps,
+  looksByRoadmapId,
+  latestJobByOutfitId,
 }: {
+  retailerId: string;
   retailerName: string;
   roadmaps: readonly WardrobeRoadmap[];
+  looksByRoadmapId: Readonly<Record<string, readonly Outfit[]>>;
+  latestJobByOutfitId: Readonly<Record<string, WardrobeVisualizationJob>>;
 }) {
   const initialState: CustomerRoadmapActionState = { fieldErrors: {} };
   const [state, action, pending] = useActionState(
@@ -138,6 +268,24 @@ export function WardrobeRoadmapPanel({
                 ))}
               </ul>
             </div>
+
+            {(looksByRoadmapId[roadmap.id] ?? []).length > 0 ? (
+              <div className="mt-3">
+                <p className="text-xs uppercase tracking-wide text-[var(--color-stone-500)]">
+                  Looks
+                </p>
+                <ul className="mt-2 grid gap-3 sm:grid-cols-2">
+                  {(looksByRoadmapId[roadmap.id] ?? []).map((look) => (
+                    <RoadmapLookReview
+                      key={look.id}
+                      retailerId={retailerId}
+                      look={look}
+                      latestJob={latestJobByOutfitId[look.id] ?? null}
+                    />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             {roadmap.status === "pending_approval" ? (
               <div className="mt-4 flex flex-wrap gap-2">

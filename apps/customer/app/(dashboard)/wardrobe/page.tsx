@@ -201,14 +201,22 @@ export default async function WardrobePage() {
                 retailerId={customer.retailerId}
                 retailerName={retailer?.displayName ?? "Retailer"}
                 composableItems={composableItems}
-                outfits={outfits}
+                outfits={outfits.filter((outfit) => !outfit.roadmapId)}
                 latestJobByOutfitId={latestJobByOutfitId}
                 canGenerate={canGenerate}
               />
               <WardrobeLifecyclePanel views={serviceViews} />
               <WardrobeRoadmapPanel
+                retailerId={customer.retailerId}
                 retailerName={retailer?.displayName ?? "Retailer"}
                 roadmaps={roadmaps}
+                looksByRoadmapId={Object.fromEntries(
+                  roadmaps.map((roadmap) => [
+                    roadmap.id,
+                    outfits.filter((outfit) => outfit.roadmapId === roadmap.id),
+                  ]),
+                )}
+                latestJobByOutfitId={latestJobByOutfitId}
               />
             </div>
           ),

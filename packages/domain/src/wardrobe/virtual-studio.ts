@@ -444,6 +444,7 @@ export function canonicalizeWardrobeVisualizationInput(
 export const WARDROBE_VISUALIZATION_FEEDBACK_SIGNALS = [
   "love_it",
   "save",
+  "maybe",
   "not_for_me",
   "regenerate",
   "looks_like_me_no",

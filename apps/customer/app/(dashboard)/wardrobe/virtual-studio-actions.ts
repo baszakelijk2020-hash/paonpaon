@@ -207,6 +207,7 @@ export async function recordLookFeedback(
   retailerId: string,
   jobId: string,
   signal: WardrobeVisualizationFeedbackSignal,
+  note?: string,
 ): Promise<void> {
   const { customer, supabase } = await resolveCustomer(retailerId);
   await assertRetailerModuleActive(
@@ -219,6 +220,7 @@ export async function recordLookFeedback(
     customerId: customer.id,
     jobId,
     signal,
+    ...(note?.trim() ? { note: note.trim() } : {}),
   });
   await new WardrobeVisualizationFeedbackRepository(supabase).record(parsed);
   revalidatePath("/wardrobe");

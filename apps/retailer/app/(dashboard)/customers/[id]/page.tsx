@@ -13,6 +13,7 @@ import {
   LoyaltyRepository,
   MetadataRepository,
   OrderRepository,
+  OutfitRepository,
   PhysicalGarmentRepository,
   ProductRepository,
   RetailerRepository,
@@ -21,6 +22,7 @@ import {
   WardrobeLifecycleRepository,
   WardrobeRepository,
   WardrobeRoadmapRepository,
+  WardrobeVisualizationJobRepository,
   type WardrobeItemServiceView,
 } from "@paon/database";
 import {
@@ -29,7 +31,9 @@ import {
   APPOINTMENT_TYPE_LABELS,
   ORDER_STATUS_LABELS,
   retailerRoleAtLeast,
+  type Outfit,
   type WardrobeOwnershipEvent,
+  type WardrobeVisualizationJob,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
@@ -55,6 +59,7 @@ import { CustomerWardrobeCard } from "./customer-wardrobe-card";
 import { SelfPortrait } from "./self-portrait";
 import { SilhouetteAnalysisCard } from "./silhouette-analysis-card";
 import { SuitConfigurationIntentsCard } from "./suit-configuration-intents-card";
+import { VisualRoadmapCard } from "./visual-roadmap-card";
 
 import { getAIProvider } from "@/lib/ai";
 import { requireSession } from "@/lib/session";
@@ -153,6 +158,48 @@ export default async function CustomerDetailPage({
   const draftCartLines = draftCart
     ? await orderRepo.findLinesByOrder(draftCart.id)
     : [];
+
+  // Advisor visual roadmap (VWS-001 / PHASE 4.9) — outfits linked to each
+  // roadmap via roadmapId, plus each one's latest generation job.
+  const outfitRepo = new OutfitRepository(supabase);
+  const visualizationJobRepo = new WardrobeVisualizationJobRepository(supabase);
+  const looksByRoadmapId = new Map<string, Outfit[]>(
+    await Promise.all(
+      roadmaps.map(
+        async (roadmap) =>
+          [roadmap.id, await outfitRepo.findByRoadmap(roadmap.id)] as const,
+      ),
+    ),
+  );
+  const allRoadmapLooks = [...looksByRoadmapId.values()].flat();
+  const latestJobByOutfitId: Record<string, WardrobeVisualizationJob> =
+    Object.fromEntries(
+      (
+        await Promise.all(
+          allRoadmapLooks.map(async (look) => {
+            const jobs = await visualizationJobRepo.findByOutfit(look.id);
+            return jobs[0] ? ([look.id as string, jobs[0]] as const) : null;
+          }),
+        )
+      ).filter(
+        (entry): entry is readonly [string, WardrobeVisualizationJob] =>
+          entry !== null,
+      ),
+    );
+  const roadmapComposableItems = [
+    ...wardrobeItems.map((item) => ({
+      key: `wardrobe:${item.id}`,
+      kind: "wardrobe" as const,
+      id: item.id,
+      label: item.displayName,
+    })),
+    ...catalogueProducts.map((product) => ({
+      key: `product:${product.id}`,
+      kind: "product" as const,
+      id: product.id,
+      label: product.name,
+    })),
+  ];
 
   const silhouetteRepo = new SilhouetteAnalysisRepository(supabase);
   const silhouetteAnalysisSessions =
@@ -766,6 +813,18 @@ export default async function CustomerDetailPage({
         }))}
         canManage={canManage}
       />
+
+      {roadmaps.map((roadmap) => (
+        <VisualRoadmapCard
+          key={roadmap.id}
+          customerId={customer.id}
+          roadmap={roadmap}
+          looks={looksByRoadmapId.get(roadmap.id) ?? []}
+          latestJobByOutfitId={latestJobByOutfitId}
+          composableItems={roadmapComposableItems}
+          canManage={canManage}
+        />
+      ))}
 
       <SuitConfigurationIntentsCard
         intents={suitConfigurationIntents}

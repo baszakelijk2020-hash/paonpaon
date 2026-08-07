@@ -214,7 +214,8 @@ describe("isPositiveWardrobeVisualizationSignal", () => {
     expect(isPositiveWardrobeVisualizationSignal("save")).toBe(true);
   });
 
-  it("treats everything else as not positive", () => {
+  it("treats everything else as not positive, including maybe", () => {
+    expect(isPositiveWardrobeVisualizationSignal("maybe")).toBe(false);
     expect(isPositiveWardrobeVisualizationSignal("not_for_me")).toBe(false);
     expect(isPositiveWardrobeVisualizationSignal("fit_correction")).toBe(false);
     expect(isPositiveWardrobeVisualizationSignal("looks_like_me_no")).toBe(
