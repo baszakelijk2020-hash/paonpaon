@@ -12,6 +12,7 @@ import {
   type OutfitSlot,
   type OutfitSlotKind,
   type StaffId,
+  type WardrobeRoadmapId,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
@@ -83,6 +84,24 @@ export class OutfitRepository {
       .eq("customer_id", customerId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
+    if (error) throw error;
+    return Promise.all(
+      data.map(async (row) =>
+        toOutfit(row, await this.listSlots(asId<"OutfitId">(row.id))),
+      ),
+    );
+  }
+
+  /** The advisor visual roadmap's "up to 12 looks" (VWS-001 / PHASE 4.9) —
+   * outfits linked to one WardrobeRoadmap via `roadmapId`, in creation
+   * order so the advisor's authored sequence is stable. */
+  async findByRoadmap(roadmapId: WardrobeRoadmapId): Promise<Outfit[]> {
+    const { data, error } = await this.client
+      .from("outfits")
+      .select("*")
+      .eq("roadmap_id", roadmapId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true });
     if (error) throw error;
     return Promise.all(
       data.map(async (row) =>
