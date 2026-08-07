@@ -174,6 +174,37 @@ At each `FT-*` transition and chapter boundary, compare the exact source,
 order. This is a targeted control check, not permission to reread the entire
 repository on every turn.
 
+### Founder knowledge areas
+
+The decision-rights table above says _who_ decides; this table names _where_
+an agent will hit the edge of what it can safely infer on its own. These are
+not new blockers — every row already surfaces as a named gap somewhere in an
+`FT-*` "Current" paragraph, a `CAPABILITY_DISPOSITION.md` disposition, or a
+"needs a founder decision"/"needs its own scoping pass" line in `PHASE.md`.
+This table exists only to consolidate the pattern so a future agent recognizes
+it faster instead of rediscovering it per tool. Adding a row here does not
+authorize work or create a queue item; it is a lens, not a gate.
+
+| Knowledge area                                             | Where it recurs                                                                          | Why AI cannot resolve it alone                                                                                                                                                     |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Body measurement and fit truth                             | FT-01 (fit slider), FT-02 (silhouette), FT-04 (first-fitting), MeasurementMonitor (12.1) | Only a human tailor's written review may promote a self-scan or automated observation into approved measurement truth; no model may assert an unsupported body fact.               |
+| Alteration/production scope and pricing                    | FT-04, 12.2, 18.9 (no `contract_value`/`repair` field)                                   | What counts as a billable alteration vs. included service, and how repair work prices, is retailer/house-specific commercial policy, not inferable from schema.                    |
+| Retention/expiry policy for consented captures             | FT-02 (18.3-equivalent TTL gap), 18.3 (tender link revocation)                           | No duration was ever specified by the founder for several consent-gated capture flows; inventing one substitutes engineering preference for a privacy/commercial decision.         |
+| Calendar-led wardrobe/care orchestration (pag3 domain)     | FT-14 Preferred Tailoring / HighMaintenance                                              | The choreography of what a house does across a client's calendar (travel, occasion, care cadence) is bespoke luxury-retail practice not derivable from generic scheduling.         |
+| Wedding-party/group coordination norms                     | FT-13 Moonstruck                                                                         | Which decisions are organizer-only vs. member-consensus, and what "group readiness" means operationally, is a designed social contract, not an engineering default.                |
+| Clienteling judgment (what to surface, when, to whom)      | FT-05 Mission Control/Self-Portrait, 11.2 Advisor Today                                  | Deciding what evidence is worth an advisor's attention "now" is a house-specific service-quality judgment; the platform can cite evidence but not decide taste.                    |
+| Loyalty/rewards value definition                           | 15.2 (rewards/concierge)                                                                 | Explicitly gated against becoming "points theatre" — what constitutes real house value is a commercial design decision, not a formula.                                             |
+| Cash/payment activation policy                             | R0.2, ADR-072                                                                            | Legal/commercial risk requires founder-named operational and legal inputs before any activation, per the decision-rights table above.                                              |
+| Supplier/partner fulfilment terms (MunroMerchant, atelier) | 12.4, 15.3                                                                               | Real buyer, catalogue, terms and fulfilment ownership are commercial facts external to the codebase; no sample data may stand in as provider truth.                                |
+| Corporate/B2B project scope granularity                    | 18.7 (per-wearer vs. per-programme order linkage)                                        | No FK or shared object models this relationship yet; choosing one is a product-shape decision with real data-migration consequences, flagged and deliberately left to the founder. |
+| Undefined product concepts named only in the founder brief | FT-09 "shared look" continuation, FT-13 "planner workflow"                               | The brief names a concept without specifying its data shape or interaction; engineering cannot safely invent the missing definition without narrowing founder intent.              |
+
+When a slice hits one of these areas and the specific instance isn't already
+named in the relevant `FT-*` paragraph or `PHASE.md` item, record it there
+using the same language ("needs a founder decision", "no policy specified")
+rather than guessing — that keeps this table accurate as a pointer instead of
+becoming a second, driftable copy of the same information.
+
 ### Shared product and technical spine
 
 Every retained tool attaches to the same connected graph rather than creating
@@ -844,24 +875,24 @@ implementations (the raw founder landing page and the React child-route
 port) got the selector; the retailer inbox resolves and shows the item's
 name next to the attachment.
 
-The conversation-to-appointment outcome journey (2026-08-06) is now closed, 
-addressing the "full conversation -> shared look -> appointment/proposal 
-outcome journey" gap. Migration `20260806000000` adds `appointments.origin_message_thread_id` 
-FK and a narrow SECURITY DEFINER `book_appointment_from_consultation()` RPC 
-re-deriving caller authorization and validating thread ownership (customer 
-or retailer staff on that retailer), following the alteration_tasks provenance 
-pattern (ADR-032/052 narrow RPC, revoke-all-then-grant ACL convention). 
-`AppointmentRepository.bookFromConsultation()` calls the RPC; Server Actions 
-for both customer and retailer staff (`apps/customer` and `apps/retailer` 
-messages actions) invoke it. E2E proof: `consultation-outcome.spec.ts` covers 
-customer and retailer appointment creation from thread, authorization 
-validation, and conversation-ownership enforcement via all three caller types 
-(customer, retailer staff, unauthorized rejection). Explicitly deferred, named 
-honestly: UI button/form integration (Founder control decision on widget 
-placement in both implementations; Server Action proven separately via RPC). 
-Proposal/cart creation path (requires Commerce module wiring beyond this 
-slice's scope). Async malware/quarantine service (state is `basic_validated`), 
-attachment progress, consent withdrawal/retention proof, and AI citation proof 
+The conversation-to-appointment outcome journey (2026-08-06) is now closed,
+addressing the "full conversation -> shared look -> appointment/proposal
+outcome journey" gap. Migration `20260806000000` adds `appointments.origin_message_thread_id`
+FK and a narrow SECURITY DEFINER `book_appointment_from_consultation()` RPC
+re-deriving caller authorization and validating thread ownership (customer
+or retailer staff on that retailer), following the alteration_tasks provenance
+pattern (ADR-032/052 narrow RPC, revoke-all-then-grant ACL convention).
+`AppointmentRepository.bookFromConsultation()` calls the RPC; Server Actions
+for both customer and retailer staff (`apps/customer` and `apps/retailer`
+messages actions) invoke it. E2E proof: `consultation-outcome.spec.ts` covers
+customer and retailer appointment creation from thread, authorization
+validation, and conversation-ownership enforcement via all three caller types
+(customer, retailer staff, unauthorized rejection). Explicitly deferred, named
+honestly: UI button/form integration (Founder control decision on widget
+placement in both implementations; Server Action proven separately via RPC).
+Proposal/cart creation path (requires Commerce module wiring beyond this
+slice's scope). Async malware/quarantine service (state is `basic_validated`),
+attachment progress, consent withdrawal/retention proof, and AI citation proof
 (blocked on external providers per project backlog).
 
 ## FT-10 — Inspiration Box and gift booklet

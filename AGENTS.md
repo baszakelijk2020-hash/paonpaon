@@ -14,6 +14,14 @@ For an ordinary implementation turn, read only:
 4. the ADR named by the item;
 5. directly relevant code, tests, repository and migration.
 
+Escalate past this list only when it fails to resolve a specific question in
+front of you, and escalate to the narrowest source that can answer it — one
+more ADR, one blueprint section, `docs/README.md` to find the right document,
+`docs/PROJECT_STATE.md`'s current snapshot — not a wider read by default. An
+ordinary slice does not require reading `PHASE.md` end to end, every ADR in
+`DECISIONS.md`, every `FT-*` blueprint, `PROJECT_STATE.md`'s history, or the
+repository at large; each of those is on-demand, not baseline.
+
 For work derived from `downloaded_pages/pag1.html`, `pag2.html`, `pag3.html`
 or a founder-linked Nebelspiegel tool, also read the relevant `FT-*` contract
 in `docs/FOUNDER_TOOL_BLUEPRINTS.md`, its row in `docs/DESIGN_PORTS.md`, and

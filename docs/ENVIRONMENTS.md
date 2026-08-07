@@ -68,3 +68,8 @@ safety.
 - Repair and redeploy customer production only after schema/application
   compatibility is decided; do not solve the current 500 by blindly pushing
   all migrations.
+- **Unresolved credential exposure (found 2026-08-01):** a Supabase secret key
+  was pasted into a chat transcript. No later record confirms rotation.
+  Treat as still needing rotation until explicitly confirmed done; rotating it
+  requires updating the corresponding Vercel environment variable in the same
+  change or the affected production deployment breaks.
