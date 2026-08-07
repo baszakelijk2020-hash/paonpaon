@@ -1724,6 +1724,57 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     customer-composed look — both fixed and re-verified with a second e2e
     run. Full monorepo `pnpm lint/typecheck/test/build` green.
 
+- [x] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
+      per-look review**
+  - **Requirement IDs:** `VWS-001`.
+  - **Dependencies:** `4.2`, `4.6`, `4.7/4.8`.
+  - **Owner boundary:** retailer-app Server Actions/UI inside the existing
+    `customers/[id]` client profile (alongside the existing goals/gaps/stages
+    `CustomerRoadmapCard`, not replacing it); customer-app UI inside the
+    existing `/wardrobe` roadmap panel.
+  - **Acceptance:** an advisor adds up to 12 "looks" to a `WardrobeRoadmap` —
+    each a real `Outfit` with `roadmapId` set and staff authorship, composed
+    from the customer's owned wardrobe items or the retailer's catalogue,
+    reusing the existing slot-consistency rules and `OutfitRepository`
+    (new `findByRoadmap` method); the advisor can generate one look or all
+    pending looks (enqueued sequentially, processed by the existing 4.6/4.8
+    queue); the customer reviews each generated look one at a time inside
+    the existing roadmap panel with Love it / Maybe / Not for me / Request
+    change, each recording a real `WardrobeVisualizationFeedback` row
+    attached to the exact job via `job_id` — "maybe" added to the feedback
+    signal vocabulary (additive forward migration), "Request change" reuses
+    the existing `not_for_me` signal plus the feedback row's own free-text
+    note rather than a new signal.
+  - **Tests:** two committed Playwright e2e specs
+    (`apps/retailer/e2e/visual-roadmap.spec.ts`,
+    `apps/customer/e2e/roadmap-look-review.spec.ts`) drive the real
+    advisor-compose→generate and customer-review flows end-to-end against
+    local Supabase, run together with the 4.6–4.8 specs to confirm no
+    regression.
+  - **Non-goals:** no new "Look" or "roadmap" entity; no live image
+    rendering proof for the advisor path (same documented
+    `OPENAI_API_KEY` hard-blocker posture as 4.7/4.8); the customer-review
+    spec fixtures a `ready` job directly rather than re-proving generation,
+    which 4.7/4.8's and this item's advisor spec already prove; multi-look
+    queue _processing_ order beyond sequential enqueue and personalization-
+    signal aggregation from feedback are deferred to 4.10.
+  - **Hard blockers:** none for local implementation; live image rendering
+    requires a configured provider credential.
+  - **Landed:** `7ee8dba` — advisor `visual-roadmap-actions.ts`/
+    `visual-roadmap-card.tsx` (create/generate/generate-all/cancel, 12-look
+    UI cap), customer `roadmap-panel.tsx` per-look review UI, `"maybe"`
+    feedback signal migration. Real bug found only by live browser proof,
+    not inspection: this exact `/customers/[id]` route has a Next.js 15.1
+    quirk (already independently documented elsewhere on the same page —
+    `FitProfileCandidateDecision`'s own comment, `fit-tools.spec.ts`) where
+    neither a bare redirect nor an explicit `router.refresh()` reliably
+    repaints after a Server Action mutation; fixed by adopting the same
+    already-proven wait-for-response-then-reload pattern rather than
+    fighting it. Full monorepo `pnpm lint/typecheck/test/build` green;
+    evidence recorded per ADR-068 (`docs/evidence/runs/
+4.9-advisor-visual-roadmap.json`, `docs/evidence/runs/
+4.9-customer-roadmap-review.json`).
+
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain — see ADR-074 for the visualization-only fit-preference
 distinction 4.6 relies on), no retailer sharing of wardrobe data, no required

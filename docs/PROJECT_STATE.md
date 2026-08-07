@@ -10,49 +10,60 @@ The 2026-07-30 save-game seal below still describes `main`; the section
 **"2026-08-01 takeover-branch snapshot"** at the end of this file describes
 what is true on the takeover branch and supersedes it there.
 
-## 2026-08-07 VWS 4.6 and 4.7/4.8 landed on agent/lane-d-virtual-wardrobe-studio — does not supersede the FT-14 section below
+## 2026-08-07 VWS 4.6, 4.7/4.8 and 4.9 landed on agent/lane-d-virtual-wardrobe-studio — does not supersede the FT-14 section below
 
 Founder opened a new, separate scope in a live session: the Virtual Wardrobe
 Studio (virtual try-on for the customer's existing wardrobe/wishlist, and a
 generated visual version of the advisor's wardrobe roadmap). Spec recorded in
 `docs/VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md`; architecture decision in
-ADR-074; queue items in `PHASE.md` Stage 4 items 4.6 and 4.7/4.8, both now
-checked `[x]` with landed-commit evidence.
+ADR-074; queue items in `PHASE.md` Stage 4 items 4.6, 4.7/4.8 and 4.9, all
+now checked `[x]` with landed-commit evidence.
 
 **Lane:** `agent/lane-d-virtual-wardrobe-studio`, forked from
-`_integration-check` at `934b540`, two commits pushed
-(`ba93039` shared foundation, `d655957` Style Portrait onboarding + customer
-single-look Studio). Runs alongside, not instead of, the three already-active
-lanes below (`agent/lane-a-ft01-fitprofile`,
+`_integration-check` at `934b540`, four commits pushed (`ba93039` shared
+foundation, `d655957` Style Portrait onboarding + customer single-look
+Studio, `7ee8dba` advisor visual roadmap + customer per-look review,
+`a7d64ce` ADR-068 evidence for 4.9). Runs alongside, not instead of, the
+three already-active lanes below (`agent/lane-a-ft01-fitprofile`,
 `agent/lane-b-ft09-consultation-outcome`, `agent/lane-c-18-9-contract-value`)
 and the FT-14 pickup decision in the section immediately below this one —
 this section does not invalidate that one. Module/file footprint stayed
-disjoint from all four across both commits: `wardrobe/virtual-studio.ts`
+disjoint from all four across every commit: `wardrobe/virtual-studio.ts`
 domain module, new migrations/repositories, additive-only changes to
-`Outfit` (customer authorship added). `CONSENT_PURPOSES` was deliberately
-left untouched — image-generation consent got its own
-`style_portrait_consents` table instead, specifically to avoid widening a
-shared type every other consent consumer in the codebase depends on.
+`Outfit` (customer and now also within-roadmap-staff authorship).
+`CONSENT_PURPOSES` was deliberately left untouched — image-generation
+consent got its own `style_portrait_consents` table instead, specifically to
+avoid widening a shared type every other consent consumer in the codebase
+depends on.
 
-**Status:** 4.6 (shared foundation) and 4.7/4.8 (Style Portrait onboarding +
-customer single-look Virtual Studio, on the existing `/account` and
-`/wardrobe` pages) are both landed and verified — see `PHASE.md` for full
-acceptance detail and landed-commit notes. Full monorepo
-`pnpm lint/typecheck/test/build` green; a committed Playwright e2e spec
-(`apps/customer/e2e/virtual-studio.spec.ts`) proves the real flow end-to-end
-against local Supabase. Two real bugs were found only by that live browser
-proof (an unlabeled file-upload `<label>`, and a missing customer-insert RLS
-policy on `outfit_slots`) — both fixed and re-verified.
+**Status:** 4.6 (shared foundation), 4.7/4.8 (Style Portrait onboarding +
+customer single-look Virtual Studio) and 4.9 (advisor visual roadmap +
+customer per-look review) are all landed and verified — see `PHASE.md` for
+full acceptance detail and landed-commit notes. Full monorepo
+`pnpm lint/typecheck/test/build` green; four committed Playwright e2e specs
+(`apps/customer/e2e/virtual-studio.spec.ts`,
+`apps/customer/e2e/roadmap-look-review.spec.ts`,
+`apps/retailer/e2e/visual-roadmap.spec.ts`, run together to confirm no
+regression) prove the real flows end-to-end against local Supabase. Real
+bugs found only by that live browser proof, not inspection: an unlabeled
+file-upload `<label>`, a missing customer-insert RLS policy on
+`outfit_slots`, and (4.9) a Next.js 15.1 route-repaint quirk on
+`/customers/[id]` — all fixed and re-verified. The 4.9 quirk turned out to
+already be independently documented elsewhere on that same page
+(`FitProfileCandidateDecision`'s own comment, `fit-tools.spec.ts`); the fix
+adopted that same established wait-for-response-then-reload pattern rather
+than re-litigating it.
 
 **Remaining per the blueprint's own slice plan** (`docs/
-VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md` §5): 4.9 (advisor visual roadmap, on
-the existing retailer client profile roadmap card) and 4.10 (multi-look
-queue + personalization loop). Live image rendering itself is unverified in
-this sandbox — no `OPENAI_API_KEY` configured, same documented hard-blocker
-posture as every other AI-assisted surface in this codebase; the enqueue
-path is proven to reach `queued` and the admin queue processor
-(`apps/admin/app/api/cron/process-wardrobe-visualizations`) is implemented
-and typechecked but not live-smoke-tested against a real provider.
+VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md` §5): 4.10 (multi-look queue
+processing order beyond sequential enqueue, and personalization-signal
+aggregation from feedback into StyleProfile evidence). Live image rendering
+itself is unverified in this sandbox — no `OPENAI_API_KEY` configured, same
+documented hard-blocker posture as every other AI-assisted surface in this
+codebase; every enqueue path is proven to reach `queued` and the admin queue
+processor (`apps/admin/app/api/cron/process-wardrobe-visualizations`) is
+implemented and typechecked but not live-smoke-tested against a real
+provider.
 
 ---
 
