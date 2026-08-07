@@ -6,8 +6,10 @@ import { Card } from "@paon/ui/components/Card";
 import { useActionState, useState, useTransition } from "react";
 
 import {
+  cancelAllQueuedLooks,
   cancelOutfitGeneration,
   composeCustomerOutfit,
+  generateAllSavedLooks,
   generateOutfitLook,
   recordLookFeedback,
   type ComposeOutfitState,
@@ -301,6 +303,76 @@ function OutfitCard({
   );
 }
 
+function BatchLookActions({
+  retailerId,
+  hasOutfits,
+}: {
+  retailerId: string;
+  hasOutfits: boolean;
+}) {
+  const [generateResult, setGenerateResult] = useState<{
+    enqueued: number;
+    errors: readonly string[];
+  } | null>(null);
+  const [cancelResult, setCancelResult] = useState<{
+    cancelled: number;
+  } | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function generateAll() {
+    setGenerateResult(null);
+    setCancelResult(null);
+    startTransition(async () => {
+      const result = await generateAllSavedLooks(retailerId);
+      setGenerateResult(result);
+    });
+  }
+
+  function cancelAll() {
+    setGenerateResult(null);
+    setCancelResult(null);
+    startTransition(async () => {
+      const result = await cancelAllQueuedLooks(retailerId);
+      setCancelResult(result);
+    });
+  }
+
+  if (!hasOutfits) return null;
+
+  return (
+    <div className="flex flex-col gap-2 border-t border-[var(--color-stone-100)] pt-4">
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" onClick={generateAll} disabled={isPending}>
+          {isPending ? "Enqueuing…" : "Create all saved looks"}
+        </Button>
+        <button
+          type="button"
+          onClick={cancelAll}
+          disabled={isPending}
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          Cancel all queued
+        </button>
+      </div>
+      {generateResult ? (
+        <p className="text-xs text-[var(--color-stone-500)]" role="status">
+          {generateResult.enqueued} look
+          {generateResult.enqueued === 1 ? "" : "s"} enqueued.
+          {generateResult.errors.length > 0
+            ? ` ${generateResult.errors.length} skipped: ${generateResult.errors.join("; ")}`
+            : ""}
+        </p>
+      ) : null}
+      {cancelResult ? (
+        <p className="text-xs text-[var(--color-stone-500)]" role="status">
+          {cancelResult.cancelled} queued look
+          {cancelResult.cancelled === 1 ? "" : "s"} cancelled.
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 export function VirtualStudioPanel({
   retailerId,
   retailerName,
@@ -347,6 +419,11 @@ export function VirtualStudioPanel({
           ))}
         </ul>
       ) : null}
+
+      <BatchLookActions
+        retailerId={retailerId}
+        hasOutfits={outfits.length > 0}
+      />
     </Card>
   );
 }
