@@ -132,30 +132,37 @@ To delegate one, the frontier session:
 1. Picks one `PHASE.md` item, or an already-named gap inside one (its own
    "Not yet built"/non-goals text is usually the exact scope), that is fully
    `Delegable` per the list above.
-2. Creates or reuses that item's lane branch (`agent/lane-<letter>-<module>`,
-   same convention as any other lane).
-3. Sends the cheap worker this prompt, filled in — nothing more, no pasted
-   file contents:
+2. Runs `pnpm paon:delegate -- --item <ID> --scope "<one bounded task,
+one paragraph>"` (see `scripts/paon-delegate.sh` for the full flag list —
+   `--model` selects the OpenRouter worker model, required, never assumed).
+   This alone creates or reuses an isolated `.claude/worktrees/` lane
+   worktree on its own branch, installs dependencies, runs the worker
+   sandboxed to that worktree with the exact bounded prompt above (nothing
+   pasted by hand — the worker reads `AGENTS.md`/`PHASE.md` itself), waits
+   for it, independently reruns the full definition-of-done inside the
+   worktree regardless of what the worker claims, and prints one JSON
+   result (`status`, `branch`, `worktree`, `baseSha`, `resultSha`,
+   `diffStat`, `verification`, `stopReason`).
+3. Reviews the resulting commit(s) — `git -C <worktree> log`/`diff` — like
+   any other diff. `status: "blocked"` means the worker stopped itself on a
+   non-delegable boundary per `stopReason`; `status: "failed"` means its
+   commit (if any) did not survive independent re-verification. Either way,
+   nothing outside that worktree's own branch was touched.
+4. On acceptance, push and merge the worktree's branch per the multi-lane
+   protocol above like any other lane. On rejection, ask the worker for a
+   bounded correction (rerun the command with the same `--branch` to reuse
+   the worktree) or abandon it.
 
-   ```text
-   Repo: <absolute path>. Branch: <agent/lane-x-...>, already checked out.
-   Read AGENTS.md, then PHASE.md item <ID> (only that item), then the ADR/
-   blueprint it names if any. Implement only what its Acceptance/Tests text
-   asks. Do not touch RLS, migrations outside this item's own schema, money/
-   stock/tenant boundaries, AI-authorization logic, or anything marked
-   founder-decision-needed — stop and write a one-line status note instead.
-   Run: pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck &&
-   pnpm test && pnpm build && pnpm format:check. Commit only if it's green,
-   with a plain-language message. Do not push, do not touch main.
-   ```
+Requires `OPENROUTER_API_KEY` in the environment (never committed) and the
+`codex` CLI on `PATH`; the script fails fast and explains which is missing
+rather than guessing. It writes one small additive profile,
+`~/.codex/paon-worker.config.toml`, the first time it runs — it layers on
+top of the machine's own `~/.codex/config.toml` and never edits that file.
 
-4. Reviews the resulting commit(s) like any other diff before pushing the
-   lane and merging per the multi-lane protocol above.
-
-**Recovery:** the lane branch is the entire blast radius. A cheap worker
-that goes sideways is `git reset --hard` to the lane's fork point (or the
-branch is simply abandoned) — nothing outside that branch was ever touched,
-same guarantee any lane already gives.
+**Recovery:** the worktree/branch is the entire blast radius. A cheap
+worker that goes sideways is `git worktree remove --force` (or
+`git reset --hard` to the lane's fork point) — nothing outside that branch
+was ever touched, same guarantee any lane already gives.
 
 ## Product invariant
 

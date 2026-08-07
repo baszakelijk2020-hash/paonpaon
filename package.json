@@ -20,7 +20,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "turbo run clean && rm -rf node_modules",
-    "prepare": "husky"
+    "prepare": "husky",
+    "paon:delegate": "bash scripts/paon-delegate.sh"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
