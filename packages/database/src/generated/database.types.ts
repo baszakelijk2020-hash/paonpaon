@@ -273,6 +273,7 @@ export type Database = {
           created_at: string;
           id: string;
           kind: string;
+          linked_appointment_id: string | null;
           linked_fact_id: string | null;
           linked_note_id: string | null;
           linked_opportunity_id: string | null;
@@ -291,6 +292,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           kind: string;
+          linked_appointment_id?: string | null;
           linked_fact_id?: string | null;
           linked_note_id?: string | null;
           linked_opportunity_id?: string | null;
@@ -309,6 +311,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           kind?: string;
+          linked_appointment_id?: string | null;
           linked_fact_id?: string | null;
           linked_note_id?: string | null;
           linked_opportunity_id?: string | null;
@@ -332,6 +335,13 @@ export type Database = {
             columns: ["confirmed_by_staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_linked_appointment_id_fkey";
+            columns: ["linked_appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
             referencedColumns: ["id"];
           },
           {
@@ -362,10 +372,18 @@ export type Database = {
             referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "advisor_capture_bundles_session_retailer_fkey";
+            columns: ["capture_session_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "advisor_capture_sessions";
+            referencedColumns: ["id", "retailer_id"];
+          },
         ];
       };
       advisor_capture_sessions: {
         Row: {
+          appointment_id: string | null;
           created_at: string;
           customer_id: string | null;
           id: string;
@@ -375,6 +393,7 @@ export type Database = {
           staff_id: string;
         };
         Insert: {
+          appointment_id?: string | null;
           created_at?: string;
           customer_id?: string | null;
           id?: string;
@@ -384,6 +403,7 @@ export type Database = {
           staff_id: string;
         };
         Update: {
+          appointment_id?: string | null;
           created_at?: string;
           customer_id?: string | null;
           id?: string;
@@ -393,6 +413,13 @@ export type Database = {
           staff_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "advisor_capture_sessions_appointment_id_fkey";
+            columns: ["appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "advisor_capture_sessions_customer_id_fkey";
             columns: ["customer_id"];
@@ -2881,6 +2908,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "clienteling_notes_customer_retailer_fkey";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "clienteling_notes_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -3724,6 +3758,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "corporate_entitlement_versions_programme_retailer_fkey";
+            columns: ["programme_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "corporate_entitlement_versions_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -3852,6 +3893,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "corporate_exceptions_programme_retailer_fkey";
+            columns: ["programme_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "corporate_exceptions_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -3864,6 +3912,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_wearers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_exceptions_wearer_retailer_fkey";
+            columns: ["wearer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_wearers";
+            referencedColumns: ["id", "retailer_id"];
           },
         ];
       };
@@ -3903,6 +3958,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "corporate_issue_records_entitlement_retailer_fkey";
+            columns: ["entitlement_version_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_entitlement_versions";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "corporate_issue_records_entitlement_version_id_fkey";
             columns: ["entitlement_version_id"];
             isOneToOne: false;
@@ -3929,6 +3991,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_wearers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_issue_records_wearer_retailer_fkey";
+            columns: ["wearer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_wearers";
+            referencedColumns: ["id", "retailer_id"];
           },
         ];
       };
@@ -4052,6 +4121,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "corporate_opportunities_linked_account_retailer_fkey";
+            columns: ["linked_account_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "corporate_opportunities_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -4098,6 +4174,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_opportunities";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_opportunity_signals_opportunity_retailer_fkey";
+            columns: ["opportunity_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_opportunities";
+            referencedColumns: ["id", "retailer_id"];
           },
           {
             foreignKeyName: "corporate_opportunity_signals_retailer_id_fkey";
@@ -4155,6 +4238,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_accounts";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_programmes_account_retailer_fkey";
+            columns: ["account_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id", "retailer_id"];
           },
           {
             foreignKeyName: "corporate_programmes_retailer_id_fkey";
@@ -4366,6 +4456,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "corporate_rollout_days_programme_retailer_fkey";
+            columns: ["programme_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "corporate_rollout_days_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -4470,6 +4567,13 @@ export type Database = {
             referencedRelation: "corporate_tender_versions";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "corporate_tender_approvals_version_retailer_fkey";
+            columns: ["tender_version_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_tender_versions";
+            referencedColumns: ["id", "retailer_id"];
+          },
         ];
       };
       corporate_tender_versions: {
@@ -4528,6 +4632,13 @@ export type Database = {
             referencedRelation: "corporate_tenders";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "corporate_tender_versions_tender_retailer_fkey";
+            columns: ["tender_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_tenders";
+            referencedColumns: ["id", "retailer_id"];
+          },
         ];
       };
       corporate_tenders: {
@@ -4568,6 +4679,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_opportunities";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_tenders_opportunity_retailer_fkey";
+            columns: ["opportunity_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_opportunities";
+            referencedColumns: ["id", "retailer_id"];
           },
           {
             foreignKeyName: "corporate_tenders_retailer_id_fkey";
@@ -4647,6 +4765,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "corporate_programmes";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_wearers_programme_retailer_fkey";
+            columns: ["programme_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id", "retailer_id"];
           },
           {
             foreignKeyName: "corporate_wearers_retailer_id_fkey";
@@ -17162,6 +17287,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "wedding_aftercare_plans_party_retailer_fkey";
+            columns: ["wedding_party_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "wedding_aftercare_plans_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -17292,6 +17424,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "wedding_design_choices_party_retailer_fkey";
+            columns: ["wedding_party_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "wedding_design_choices_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -17343,6 +17482,13 @@ export type Database = {
           wedding_party_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "wedding_group_fittings_party_retailer_fkey";
+            columns: ["wedding_party_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id", "retailer_id"];
+          },
           {
             foreignKeyName: "wedding_group_fittings_retailer_id_fkey";
             columns: ["retailer_id"];
@@ -17401,6 +17547,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "wedding_guest_vouchers_party_retailer_fkey";
+            columns: ["wedding_party_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
             foreignKeyName: "wedding_guest_vouchers_retailer_id_fkey";
             columns: ["retailer_id"];
             isOneToOne: false;
@@ -17457,6 +17610,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "customers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "wedding_inspiration_items_party_retailer_fkey";
+            columns: ["wedding_party_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "wedding_parties";
+            referencedColumns: ["id", "retailer_id"];
           },
           {
             foreignKeyName: "wedding_inspiration_items_retailer_id_fkey";

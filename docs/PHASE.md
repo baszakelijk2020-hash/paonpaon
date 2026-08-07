@@ -4040,6 +4040,72 @@ now.
     used; the test itself polls the database rather than the DOM for
     settlement, the established fix for this exact class of timing issue
     elsewhere in this suite (`pos.spec.ts`'s `waitForSaleState`).
+  - **Status (2026-08-07):** `verified_local`, extended. The founder's
+    Conversation Intelligence brief asked for capture opened from an
+    appointment (not only from the customer page) and for the pipeline to
+    allocate a note into more than the original three bundle kinds — this
+    extension reuses the same session/bundle tables and review UI rather
+    than starting a parallel pipeline. Migration
+    `20260806000007_extend_advisor_capture_appointment.sql` adds a
+    nullable `appointment_id` to `advisor_capture_sessions` and a
+    nullable `linked_appointment_id` to `advisor_capture_bundles`
+    (both `on delete set null`, so an appointment's later cancellation
+    never deletes the capture history), and widens the bundle `kind`
+    check constraint with two new kinds: `appointment_proposal` (a
+    genuinely new, dated future booking mentioned in the note — the
+    highest-impact kind, since confirming it calls
+    `AppointmentRepository.create` and writes a real `appointments` row
+    at status `requested`) and `unresolved` (something the extractor
+    cannot safely resolve on its own — an ambiguous date, an unclear
+    reference — surfaced for a human decision with only an "Acknowledge"
+    action, never a "Confirm", since it has no write target).
+    `checkCaptureBundleProposal` refuses an `appointment_proposal` whose
+    `startsAt` is not an already-resolved absolute date-time (an
+    extractor that cannot resolve "next Tuesday" must emit `unresolved`
+    instead of guessing one), an unknown `appointmentType`, or a
+    nonsensical duration; it refuses an `unresolved` bundle with a blank
+    `question`. The retailer appointment detail page
+    (`/appointments/[id]`) now renders the same `AdvisorCapture` card
+    used on the customer page, scoped to that appointment: `captureNote`
+    accepts an optional `appointmentId`, links the session to it, and
+    passes the appointment's type/start time to the AI provider as
+    `appointmentContext` so it can distinguish a note about the
+    appointment already on the books from a genuinely new booking
+    request; `confirmCaptureBundle`/`dismissCaptureBundle` accept the
+    same `appointmentId` to revalidate both the customer and appointment
+    pages after a review action. `advisor-capture.spec.ts` gained a
+    second real-browser test covering this path end to end: seeds an
+    `appointment_proposal` and an `unresolved` bundle against a real
+    appointment, confirms the proposal from `/appointments/[id]` and
+    asserts the resulting `appointments` row (retailer, customer, type,
+    `requested` status, and that its `notes` carries the proposal's
+    reason) plus the bundle's `linked_appointment_id`, acknowledges the
+    unresolved item and asserts no additional appointment was written,
+    and confirms the review section empties on reload. Found and fixed a
+    real evidence-race along the way: this file's two tests each write
+    their own pass/fail through a shared `test.afterAll`, and
+    `fullyParallel: true` can assign them to different worker processes
+    — each with its own copy of the _other_ test's flag stuck at its
+    unset `false` default, so the worker that finishes last silently
+    overwrote the other test's real "passed" with a false "failed" in
+    its evidence file. `test.describe.configure({ mode: "serial" })`
+    keeps both tests in one worker so both flags stay accurate; this is
+    a latent risk in every other multi-test spec in this suite that
+    combines flags into one shared `afterAll` (e.g. `inventory.spec.ts`),
+    not something newly introduced here, and is left as a follow-up
+    rather than fixed globally in this slice. Local Supabase is a
+    single shared Postgres per machine across every git worktree of this
+    project (container names are keyed by `supabase/config.toml`'s
+    project id, not by working directory) — proving this migration
+    required detecting that a concurrent lane's own `supabase db reset`
+    had raced mine and removed these columns, then reapplying this
+    migration's DDL directly (idempotent, additive-only, scoped to the
+    two columns/one constraint this item owns) rather than resetting
+    again, to avoid destroying whatever that lane was mid-test against.
+    Full `pnpm lint`, `pnpm typecheck`, `pnpm test` (1043 domain +
+    481 database assertions) and `pnpm format:check` (on every file this
+    extension touches) are green; a from-scratch `supabase db reset`
+    applied all 175 migrations, including this one, cleanly.
 
 - [x] **17.2 Mission Control unified brief**
   - **Requirement IDs:** ADV-102.

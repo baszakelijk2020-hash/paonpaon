@@ -1,5 +1,6 @@
 import {
   AdvisorBriefRepository,
+  AdvisorCaptureRepository,
   AppointmentCloseoutRepository,
   AppointmentRepository,
   ClientelingRepository,
@@ -27,6 +28,7 @@ import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AdvisorCapture } from "../../customers/[id]/advisor-capture";
 import { AdvisorPreparationBriefCard } from "../../customers/[id]/advisor-preparation-brief";
 import { LifecycleBadge } from "../../customers/lifecycle-badge";
 import { AppointmentStatusBadge } from "../status-badge";
@@ -35,6 +37,7 @@ import { AppointmentActionsForm } from "./appointment-actions-form";
 import { AppointmentCloseoutCapture } from "./appointment-closeout-capture";
 import { SensitiveInfoToggle } from "./sensitive-info-toggle";
 
+import { getAIProvider } from "@/lib/ai";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -84,6 +87,25 @@ export default async function AppointmentDetailPage({
     (member) => member.id === appointment.staffId,
   );
   const branch = branches.find((item) => item.id === appointment.branchId);
+
+  const captureRepo = new AdvisorCaptureRepository(supabase);
+  const captureSessions = customer
+    ? await captureRepo.listSessionsForCustomer({
+        retailerId: session.retailerId,
+        customerId: customer.id,
+      })
+    : [];
+  const captureBundlesBySession = await Promise.all(
+    captureSessions.map((captureSession) =>
+      captureRepo.listBundlesForSession({
+        retailerId: session.retailerId,
+        sessionId: captureSession.id,
+      }),
+    ),
+  );
+  const pendingCaptureBundles = captureBundlesBySession
+    .flat()
+    .filter((bundle) => bundle.status === "proposed");
 
   // PHASE 17.3: price comfort band from real order totals, and
   // favourited-vs-owned gaps matched against real order-line purchases —
@@ -371,6 +393,15 @@ export default async function AppointmentDetailPage({
               customerId={customer.id}
               concepts={rectangleConcepts}
               alreadyClosedOut={Boolean(closeout)}
+            />
+          ) : null}
+
+          {canManage && customer ? (
+            <AdvisorCapture
+              customerId={customer.id}
+              appointmentId={appointment.id}
+              aiConfigured={!!getAIProvider()}
+              pendingBundles={pendingCaptureBundles}
             />
           ) : null}
         </div>

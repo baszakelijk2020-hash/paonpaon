@@ -147,4 +147,115 @@ describe("checkCaptureBundleProposal", () => {
       }),
     ).toEqual({ ok: false, reason: "source_excerpt_required" });
   });
+
+  it("accepts a valid appointment proposal with a resolved date", () => {
+    expect(
+      checkCaptureBundleProposal({
+        rawText,
+        proposal: {
+          kind: "appointment_proposal",
+          summary: "Book a fitting for Mr Brown",
+          sourceExcerpt: "Promised to call him Friday",
+          confidence: 0.7,
+          payload: {
+            appointmentType: "fitting",
+            startsAt: "2026-08-14T10:00:00.000Z",
+            durationMinutes: 45,
+            reason:
+              "Promised to call him Friday when the new linen jackets arrive",
+          },
+        },
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("refuses an appointment proposal with an unresolvable date rather than inventing one", () => {
+    expect(
+      checkCaptureBundleProposal({
+        rawText,
+        proposal: {
+          kind: "appointment_proposal",
+          summary: "Book a fitting",
+          sourceExcerpt: "Promised to call him Friday",
+          confidence: 0.7,
+          payload: {
+            appointmentType: "fitting",
+            startsAt: "next Tuesday",
+            durationMinutes: 45,
+            reason: "unclear",
+          },
+        },
+      }),
+    ).toEqual({ ok: false, reason: "appointment_starts_at_invalid" });
+  });
+
+  it("refuses an appointment proposal with an unknown type", () => {
+    expect(
+      checkCaptureBundleProposal({
+        rawText,
+        proposal: {
+          kind: "appointment_proposal",
+          summary: "Book something",
+          sourceExcerpt: "black shoes",
+          confidence: 0.5,
+          payload: {
+            appointmentType: "not_a_real_type" as never,
+            startsAt: "2026-08-14T10:00:00.000Z",
+            durationMinutes: 45,
+            reason: "reason",
+          },
+        },
+      }),
+    ).toEqual({ ok: false, reason: "appointment_type_required" });
+  });
+
+  it("refuses an appointment proposal with a nonsensical duration", () => {
+    expect(
+      checkCaptureBundleProposal({
+        rawText,
+        proposal: {
+          kind: "appointment_proposal",
+          summary: "Book a fitting",
+          sourceExcerpt: "black shoes",
+          confidence: 0.5,
+          payload: {
+            appointmentType: "fitting",
+            startsAt: "2026-08-14T10:00:00.000Z",
+            durationMinutes: 0,
+            reason: "reason",
+          },
+        },
+      }),
+    ).toEqual({ ok: false, reason: "appointment_duration_invalid" });
+  });
+
+  it("accepts an unresolved item with a question", () => {
+    expect(
+      checkCaptureBundleProposal({
+        rawText,
+        proposal: {
+          kind: "unresolved",
+          summary: "Unclear which jacket was meant",
+          sourceExcerpt: "black shoes",
+          confidence: 0.4,
+          payload: { question: "Which jacket did the customer mean?" },
+        },
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("refuses an unresolved item with no question", () => {
+    expect(
+      checkCaptureBundleProposal({
+        rawText,
+        proposal: {
+          kind: "unresolved",
+          summary: "x",
+          sourceExcerpt: "black shoes",
+          confidence: 0.4,
+          payload: { question: "  " },
+        },
+      }),
+    ).toEqual({ ok: false, reason: "unresolved_question_required" });
+  });
 });

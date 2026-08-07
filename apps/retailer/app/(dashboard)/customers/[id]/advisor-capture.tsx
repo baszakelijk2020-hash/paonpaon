@@ -22,6 +22,14 @@ const KIND_LABELS: Record<AdvisorCaptureBundle["kind"], string> = {
   self_portrait_fact: "Self-Portrait",
   follow_up: "Follow-up",
   task_note: "Note",
+  appointment_proposal: "Appointment",
+  unresolved: "Needs a decision",
+};
+
+const COMMITMENT_KIND_LABELS: Record<string, string> = {
+  task: "Task",
+  reminder: "Reminder",
+  deliverable: "Customer deliverable",
 };
 
 function summarizePayload(bundle: AdvisorCaptureBundle): string {
@@ -34,8 +42,29 @@ function summarizePayload(bundle: AdvisorCaptureBundle): string {
       whyNow: string;
       suggestedAction: string;
       dueAt?: string;
+      commitmentKind?: string;
     };
-    return `${payload.suggestedAction}${payload.dueAt ? ` — due ${payload.dueAt}` : ""}`;
+    const kindLabel = payload.commitmentKind
+      ? `${COMMITMENT_KIND_LABELS[payload.commitmentKind] ?? payload.commitmentKind} — `
+      : "";
+    return `${kindLabel}${payload.suggestedAction}${payload.dueAt ? ` — due ${payload.dueAt}` : ""}`;
+  }
+  if (bundle.kind === "appointment_proposal") {
+    const payload = bundle.payload as {
+      appointmentType: string;
+      startsAt: string;
+      durationMinutes: number;
+      reason: string;
+    };
+    const when = new Date(payload.startsAt).toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+    return `${payload.appointmentType.replaceAll("_", " ")} — ${when} (${payload.durationMinutes} min)`;
+  }
+  if (bundle.kind === "unresolved") {
+    const payload = bundle.payload as { question: string };
+    return payload.question;
   }
   const payload = bundle.payload as { note: string };
   return payload.note;
@@ -44,9 +73,11 @@ function summarizePayload(bundle: AdvisorCaptureBundle): string {
 function BundleCard({
   bundle,
   customerId,
+  appointmentId,
 }: {
   readonly bundle: AdvisorCaptureBundle;
   readonly customerId: string;
+  readonly appointmentId?: string;
 }) {
   const router = useRouter();
   const [confirmState, confirmAction, confirmPending] = useActionState(
@@ -57,6 +88,7 @@ function BundleCard({
     dismissCaptureBundle.bind(null, customerId),
     bundleInitial,
   );
+  const isUnresolved = bundle.kind === "unresolved";
 
   // revalidatePath alone does not reliably repaint this list client-side
   // (same class of issue `advisor-rectangle-capture.tsx` already works
@@ -99,21 +131,29 @@ function BundleCard({
         &ldquo;{bundle.sourceExcerpt}&rdquo;
       </p>
       <div className="flex items-center gap-2">
-        <form action={confirmAction}>
-          <input type="hidden" name="bundleId" value={bundle.id} />
-          <Button type="submit" size="sm" disabled={confirmPending}>
-            Confirm
-          </Button>
-        </form>
+        {isUnresolved ? null : (
+          <form action={confirmAction}>
+            <input type="hidden" name="bundleId" value={bundle.id} />
+            {appointmentId ? (
+              <input type="hidden" name="appointmentId" value={appointmentId} />
+            ) : null}
+            <Button type="submit" size="sm" disabled={confirmPending}>
+              Confirm
+            </Button>
+          </form>
+        )}
         <form action={dismissAction}>
           <input type="hidden" name="bundleId" value={bundle.id} />
+          {appointmentId ? (
+            <input type="hidden" name="appointmentId" value={appointmentId} />
+          ) : null}
           <Button
             type="submit"
             size="sm"
             variant="outline"
             disabled={dismissPending}
           >
-            Dismiss
+            {isUnresolved ? "Acknowledge" : "Dismiss"}
           </Button>
         </form>
       </div>
@@ -139,10 +179,12 @@ function BundleCard({
  */
 export function AdvisorCapture({
   customerId,
+  appointmentId,
   aiConfigured,
   pendingBundles,
 }: {
   readonly customerId: string;
+  readonly appointmentId?: string;
   readonly aiConfigured: boolean;
   readonly pendingBundles: readonly AdvisorCaptureBundle[];
 }) {
@@ -160,12 +202,15 @@ export function AdvisorCapture({
         </p>
       ) : (
         <form action={action} className="flex flex-col gap-3">
+          {appointmentId ? (
+            <input type="hidden" name="appointmentId" value={appointmentId} />
+          ) : null}
           <textarea
             name="rawText"
             required
             maxLength={8000}
             className="min-h-24 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm"
-            placeholder="Type what came up — preferences, a promise, anything worth keeping. The system proposes what to do with it; nothing is saved until you confirm."
+            placeholder="Type what came up — preferences, a promise, a new appointment to book, anything worth keeping. The system proposes what to do with it; nothing is saved until you confirm."
           />
           <Button type="submit" disabled={pending} className="self-start">
             {pending ? "Extracting…" : "Extract"}
@@ -195,6 +240,7 @@ export function AdvisorCapture({
                 key={bundle.id}
                 bundle={bundle}
                 customerId={customerId}
+                {...(appointmentId ? { appointmentId } : {})}
               />
             ))}
           </ul>

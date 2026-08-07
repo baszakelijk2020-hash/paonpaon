@@ -11,6 +11,8 @@
 
 import {
   checkCaptureBundleProposal,
+  type AppointmentId,
+  type AppointmentProposalPayload,
   type CaptureBundleKind,
   type CaptureBundleProposal,
   type CaptureBundleStatus,
@@ -26,6 +28,7 @@ import {
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database, Json } from "../generated/database.types";
 
+import { AppointmentRepository } from "./appointment-repository";
 import { ClientelingOpportunityRepository } from "./clienteling-opportunity-repository";
 import { ClientelingRepository } from "./clienteling-repository";
 import { CustomerFactRepository } from "./customer-fact-repository";
@@ -41,6 +44,7 @@ export interface AdvisorCaptureSession {
   readonly retailerId: RetailerId;
   readonly staffId: StaffId;
   readonly customerId: CustomerId | null;
+  readonly appointmentId: AppointmentId | null;
   readonly source: CaptureSource;
   readonly rawText: string;
   readonly createdAt: string;
@@ -58,6 +62,7 @@ export interface AdvisorCaptureBundle {
   readonly linkedFactId: string | null;
   readonly linkedOpportunityId: string | null;
   readonly linkedNoteId: string | null;
+  readonly linkedAppointmentId: string | null;
   readonly createdAt: string;
 }
 
@@ -67,6 +72,7 @@ function sessionToDomain(row: SessionRow): AdvisorCaptureSession {
     retailerId: row.retailer_id as RetailerId,
     staffId: row.staff_id as StaffId,
     customerId: row.customer_id as CustomerId | null,
+    appointmentId: row.appointment_id as AppointmentId | null,
     source: row.source as CaptureSource,
     rawText: row.raw_text,
     createdAt: row.created_at,
@@ -87,6 +93,7 @@ function bundleToDomain(row: BundleRow): AdvisorCaptureBundle {
     linkedFactId: row.linked_fact_id,
     linkedOpportunityId: row.linked_opportunity_id,
     linkedNoteId: row.linked_note_id,
+    linkedAppointmentId: row.linked_appointment_id,
     createdAt: row.created_at,
   };
 }
@@ -102,6 +109,7 @@ export class AdvisorCaptureRepository {
     readonly retailerId: RetailerId;
     readonly staffId: StaffId;
     readonly customerId?: CustomerId;
+    readonly appointmentId?: AppointmentId;
     readonly source?: CaptureSource;
     readonly rawText: string;
   }): Promise<AdvisorCaptureSession> {
@@ -111,6 +119,7 @@ export class AdvisorCaptureRepository {
         retailer_id: args.retailerId,
         staff_id: args.staffId,
         ...(args.customerId ? { customer_id: args.customerId } : {}),
+        ...(args.appointmentId ? { appointment_id: args.appointmentId } : {}),
         source: args.source ?? "text",
         raw_text: args.rawText.trim(),
       })
@@ -212,6 +221,7 @@ export class AdvisorCaptureRepository {
       readonly linked_fact_id?: string;
       readonly linked_opportunity_id?: string;
       readonly linked_note_id?: string;
+      readonly linked_appointment_id?: string;
     };
     readonly editedPayload?: unknown;
     readonly editedSummary?: string;
@@ -343,24 +353,57 @@ export class AdvisorCaptureRepository {
       return { ok: true, bundle };
     }
 
-    // task_note: kept as a House note against the customer.
-    const note = payload as TaskNotePayload;
-    const created = await new ClientelingRepository(this.client).create({
-      retailerId: args.retailerId,
-      customerId: args.customerId,
-      authorStaffId: args.staffId,
-      body: note.note,
-      pinned: false,
-    });
-    const bundle = await this.markResolved({
-      retailerId: args.retailerId,
-      bundleId: args.bundleId,
-      staffId: args.staffId,
-      status: "confirmed",
-      link: { linked_note_id: created.id },
-      editedPayload: args.editedPayload,
-      ...(args.editedSummary ? { editedSummary: summary } : {}),
-    });
-    return { ok: true, bundle };
+    if (kind === "task_note") {
+      const note = payload as TaskNotePayload;
+      const created = await new ClientelingRepository(this.client).create({
+        retailerId: args.retailerId,
+        customerId: args.customerId,
+        authorStaffId: args.staffId,
+        body: note.note,
+        pinned: false,
+      });
+      const bundle = await this.markResolved({
+        retailerId: args.retailerId,
+        bundleId: args.bundleId,
+        staffId: args.staffId,
+        status: "confirmed",
+        link: { linked_note_id: created.id },
+        editedPayload: args.editedPayload,
+        ...(args.editedSummary ? { editedSummary: summary } : {}),
+      });
+      return { ok: true, bundle };
+    }
+
+    if (kind === "appointment_proposal") {
+      const proposal = payload as AppointmentProposalPayload;
+      const startsAt = new Date(proposal.startsAt);
+      const endsAt = new Date(
+        startsAt.getTime() + proposal.durationMinutes * 60_000,
+      );
+      const created = await new AppointmentRepository(this.client).create({
+        retailerId: args.retailerId,
+        customerId: args.customerId,
+        type: proposal.appointmentType,
+        startsAt: startsAt.toISOString(),
+        endsAt: endsAt.toISOString(),
+        staffId: args.staffId,
+        notes: `From conversation capture: ${proposal.reason}`,
+      });
+      const bundle = await this.markResolved({
+        retailerId: args.retailerId,
+        bundleId: args.bundleId,
+        staffId: args.staffId,
+        status: "confirmed",
+        link: { linked_appointment_id: created.id },
+        editedPayload: args.editedPayload,
+        ...(args.editedSummary ? { editedSummary: summary } : {}),
+      });
+      return { ok: true, bundle };
+    }
+
+    // unresolved: never has a write target — nothing to confirm. The
+    // review UI only ever offers "Acknowledge" (dismissBundle) for this
+    // kind; this is the server-side backstop against a stray confirm call.
+    return { ok: false, reason: "already_resolved" };
   }
 }

@@ -98,6 +98,14 @@ export interface AdvisorCaptureContext {
   /** ISO date, so the model can resolve "Friday" or "next month" against
    * a real anchor instead of guessing one. */
   readonly asOfDate: string;
+  /** Set when the capture happened during/after a specific appointment —
+   * gives the model a real anchor for "the appointment" and lets it
+   * recognise a note is confirming/rescheduling the one already on the
+   * books rather than always proposing a new one. */
+  readonly appointmentContext?: {
+    readonly type: string;
+    readonly startsAt: string;
+  };
 }
 
 /** One tender's garment concepts, turned into a moodboard/concept image

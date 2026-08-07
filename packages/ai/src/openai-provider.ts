@@ -147,14 +147,16 @@ function parseGroundedAnswer(
   };
 }
 
-const CAPTURE_SYSTEM_PROMPT = `You are an assistant that reads one advisor's note about a customer interaction and proposes a short list of confirmable action bundles. Never invent anything not implied by the note. Every bundle must quote a real, exact, contiguous substring of the note as "sourceExcerpt" — copy it verbatim, do not paraphrase it, and never propose a bundle with no excerpt.
+const CAPTURE_SYSTEM_PROMPT = `You are an assistant that reads one advisor's note about a customer interaction (typed or spoken, then transcribed) and proposes a short list of confirmable action bundles. Never invent anything not implied by the note. Every bundle must quote a real, exact, contiguous substring of the note as "sourceExcerpt" — copy it verbatim, do not paraphrase it, and never propose a bundle with no excerpt.
 
 Each bundle has one "kind":
-- "self_portrait_fact": something to remember about the customer's taste or circumstances. payload: {"factType": one of "preference_concept"|"occasion"|"employer"|"industry"|"bonus_month"|"anniversary"|"wedding_date"|"travel_window"|"fit_note"|"fabric_interest"|"colour_interest"|"pattern_interest"|"rejected_concept"|"other", "valueLabel": short string}.
-- "follow_up": a commitment or promise to act later. payload: {"whyNow": short string explaining why this follow-up exists, "suggestedAction": short string of what to do, "dueAt": optional ISO date if a date was mentioned, resolved against the given "as of" date, "channel": optional one of "in_person"|"message"|"email"|"phone"|"appointment"}.
+- "self_portrait_fact": something to remember about the customer's taste, circumstances, or a rejected preference. payload: {"factType": one of "preference_concept"|"occasion"|"employer"|"industry"|"bonus_month"|"anniversary"|"wedding_date"|"travel_window"|"fit_note"|"fabric_interest"|"colour_interest"|"pattern_interest"|"rejected_concept"|"other", "valueLabel": short string}. Use "rejected_concept" for something the customer disliked or turned down, not "other".
+- "follow_up": a commitment, task, reminder, or promised deliverable. payload: {"whyNow": short string explaining why this exists, "suggestedAction": short string of what to do, "dueAt": optional ISO date if a date was mentioned, resolved against the given "as of" date, "channel": optional one of "in_person"|"message"|"email"|"phone"|"appointment", "commitmentKind": one of "task" (something staff will do internally, e.g. "check with production"), "reminder" (a personal ping for the advisor, e.g. "remind me to call"), or "deliverable" (something promised to the customer, e.g. "send fabric options")}.
+- "appointment_proposal": the note describes booking a **new, specific, dated** future appointment — not the current one being captured. payload: {"appointmentType": one of "styling_consultation"|"fitting"|"alteration_fitting"|"personal_shopping"|"event", "startsAt": a resolved, absolute ISO date-time — you MUST resolve any relative phrase ("next Tuesday", "in three weeks") against the given "as of" date; if you cannot resolve it to a specific date and time with confidence, do NOT emit this kind — emit "unresolved" instead, "durationMinutes": a reasonable duration (45 if unspecified), "reason": short string}.
+- "unresolved": something worth flagging that you cannot safely resolve on your own — an ambiguous date, an unclear product reference, a request that conflicts with something else in the note. payload: {"question": short string naming exactly what needs a human decision}. Never guess just to avoid this kind — an "unresolved" bundle is the correct output for uncertain speech, not a failure.
 - "task_note": anything else worth keeping that doesn't fit the above. payload: {"note": short string}.
 
-Respond only as JSON: {"bundles": [{"kind": string, "summary": short string, "sourceExcerpt": string, "confidence": number between 0 and 1, "payload": object}]}. Return an empty array if the note has nothing actionable. Never merge two unrelated topics into one bundle.`;
+Respond only as JSON: {"bundles": [{"kind": string, "summary": short string, "sourceExcerpt": string, "confidence": number between 0 and 1, "payload": object}]}. Return an empty array if the note has nothing actionable. Never merge two unrelated topics into one bundle. Never propose an "appointment_proposal" for the appointment already given as context below — only for a genuinely new future booking mentioned in the note.`;
 
 function buildCapturePrompt(context: AdvisorCaptureContext): string {
   return JSON.stringify(
@@ -162,6 +164,7 @@ function buildCapturePrompt(context: AdvisorCaptureContext): string {
       retailer: context.retailerName,
       customer: context.customerName ?? "unspecified",
       asOfDate: context.asOfDate,
+      currentAppointment: context.appointmentContext ?? null,
       note: context.rawText,
     },
     null,

@@ -6,6 +6,7 @@ import {
   AdvisorCaptureRepository,
   AIGenerationRepository,
   AnalyticsRepository,
+  AppointmentRepository,
   ClientelingRepository,
   CustomerRepository,
   FitProfileCandidateRepository,
@@ -243,6 +244,7 @@ export async function captureNote(
   if (rawText.length === 0) {
     return { formError: "Write or paste a note first." };
   }
+  const appointmentIdRaw = String(formData.get("appointmentId") ?? "").trim();
 
   const client = await getSupabaseServerClient();
   const customer = await new CustomerRepository(client).findById(
@@ -264,6 +266,19 @@ export async function captureNote(
     };
   }
 
+  const appointment = appointmentIdRaw
+    ? await new AppointmentRepository(client).findById(
+        asId<"AppointmentId">(appointmentIdRaw),
+      )
+    : null;
+  if (
+    appointment &&
+    (appointment.retailerId !== session.retailerId ||
+      appointment.customerId !== customer.id)
+  ) {
+    return { formError: "Appointment not found." };
+  }
+
   const retailer = await new RetailerRepository(client).findById(
     session.retailerId,
   );
@@ -274,6 +289,7 @@ export async function captureNote(
     retailerId: session.retailerId,
     staffId: staff.id,
     customerId: customer.id,
+    ...(appointment ? { appointmentId: appointment.id } : {}),
     source: "text",
     rawText,
   });
@@ -284,6 +300,14 @@ export async function captureNote(
     retailerName: retailer?.displayName ?? "the retailer",
     customerName: customer.fullName,
     asOfDate: new Date().toISOString().slice(0, 10),
+    ...(appointment
+      ? {
+          appointmentContext: {
+            type: appointment.type,
+            startsAt: appointment.startsAt,
+          },
+        }
+      : {}),
   });
 
   if (!result.ok) {
@@ -300,6 +324,7 @@ export async function captureNote(
       latencyMs: Date.now() - startedAt,
     });
     revalidatePath(`/customers/${customerId}`);
+    if (appointment) revalidatePath(`/appointments/${appointment.id}`);
     return { formError: result.errorMessage, sessionId: captureSession.id };
   }
 
@@ -324,6 +349,7 @@ export async function captureNote(
   });
 
   revalidatePath(`/customers/${customerId}`);
+  if (appointment) revalidatePath(`/appointments/${appointment.id}`);
   return { sessionId: captureSession.id, bundleCount: bundles.length };
 }
 
@@ -345,6 +371,7 @@ export async function confirmCaptureBundle(
   requireRetailerRole(session.retailerRole, "sales_associate");
   const bundleId = String(formData.get("bundleId") ?? "");
   if (!bundleId) return { formError: "Missing suggestion id." };
+  const appointmentId = String(formData.get("appointmentId") ?? "").trim();
 
   const client = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(client).findByUserId(
@@ -366,6 +393,7 @@ export async function confirmCaptureBundle(
     };
   }
   revalidatePath(`/customers/${customerId}`);
+  if (appointmentId) revalidatePath(`/appointments/${appointmentId}`);
   return {};
 }
 
@@ -378,6 +406,7 @@ export async function dismissCaptureBundle(
   requireRetailerRole(session.retailerRole, "sales_associate");
   const bundleId = String(formData.get("bundleId") ?? "");
   if (!bundleId) return { formError: "Missing suggestion id." };
+  const appointmentId = String(formData.get("appointmentId") ?? "").trim();
 
   const client = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(client).findByUserId(
@@ -398,6 +427,7 @@ export async function dismissCaptureBundle(
     };
   }
   revalidatePath(`/customers/${customerId}`);
+  if (appointmentId) revalidatePath(`/appointments/${appointmentId}`);
   return {};
 }
 
