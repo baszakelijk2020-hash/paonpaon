@@ -38,6 +38,8 @@ export const STYLE_EVIDENCE_SOURCES = [
   "advisor_question",
   "appointment_intent",
   "conversion_recorded",
+  "generation_loved",
+  "generation_rejected",
 ] as const;
 
 export type StyleEvidenceSource = (typeof STYLE_EVIDENCE_SOURCES)[number];
@@ -71,6 +73,8 @@ export const STYLE_EVIDENCE_SOURCE_WEIGHTS: Readonly<
   advisor_question: 0.6,
   appointment_intent: 0.7,
   conversion_recorded: 1.2,
+  generation_loved: 1.0,
+  generation_rejected: 0.9,
 };
 
 export interface DeclaredStylePreference {

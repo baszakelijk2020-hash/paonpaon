@@ -11,6 +11,10 @@
  */
 
 import type {
+  StyleEvidenceSource,
+  StylePreferencePolarity,
+} from "../intelligence/style-profile";
+import type {
   CustomerId,
   MetadataConceptId,
   OutfitId,
@@ -471,4 +475,31 @@ export interface WardrobeVisualizationFeedback {
   readonly signal: WardrobeVisualizationFeedbackSignal;
   readonly note?: string;
   readonly createdAt: string;
+}
+
+const NEGATIVE_FEEDBACK_SIGNALS: readonly WardrobeVisualizationFeedbackSignal[] =
+  ["not_for_me"];
+
+/**
+ * Maps a look-feedback signal to the StyleProfile evidence it contributes,
+ * per §7 of the blueprint: only a garment-taste signal (loved/rejected)
+ * feeds `customer_style_preference_evidence`, exactly like a product view
+ * or favorite does — no second preference-evidence system. The remaining
+ * signals (maybe, regenerate, looks_like_me_no, fit_correction,
+ * colour_correction) are either ambivalent or concern generation quality /
+ * identity preservation, not garment taste, and never feed this system.
+ */
+export function styleEvidenceForWardrobeVisualizationFeedback(
+  signal: WardrobeVisualizationFeedbackSignal,
+): {
+  readonly source: StyleEvidenceSource;
+  readonly polarity: StylePreferencePolarity;
+} | null {
+  if (isPositiveWardrobeVisualizationSignal(signal)) {
+    return { source: "generation_loved", polarity: "positive" };
+  }
+  if (NEGATIVE_FEEDBACK_SIGNALS.includes(signal)) {
+    return { source: "generation_rejected", polarity: "negative" };
+  }
+  return null;
 }

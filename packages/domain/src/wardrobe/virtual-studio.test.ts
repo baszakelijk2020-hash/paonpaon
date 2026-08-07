@@ -12,6 +12,7 @@ import {
   isPresetSafeForGeneration,
   isStylePortraitTerminal,
   isWardrobeVisualizationJobTerminal,
+  styleEvidenceForWardrobeVisualizationFeedback,
   stylePortraitTransitionIssues,
   type WardrobeVisualizationInputSnapshot,
 } from "./virtual-studio";
@@ -270,5 +271,43 @@ describe("buildFitArchetypeOptions", () => {
       "Slim",
       "Fashion Wide",
     ]);
+  });
+});
+
+describe("styleEvidenceForWardrobeVisualizationFeedback", () => {
+  it("maps love_it to positive generation_loved evidence", () => {
+    expect(styleEvidenceForWardrobeVisualizationFeedback("love_it")).toEqual({
+      source: "generation_loved",
+      polarity: "positive",
+    });
+  });
+
+  it("maps save to positive generation_loved evidence", () => {
+    expect(styleEvidenceForWardrobeVisualizationFeedback("save")).toEqual({
+      source: "generation_loved",
+      polarity: "positive",
+    });
+  });
+
+  it("maps not_for_me to negative generation_rejected evidence", () => {
+    expect(styleEvidenceForWardrobeVisualizationFeedback("not_for_me")).toEqual(
+      {
+        source: "generation_rejected",
+        polarity: "negative",
+      },
+    );
+  });
+
+  it("does not feed StyleProfile evidence for ambivalent or generation-quality signals", () => {
+    const nonEvidenceSignals = [
+      "maybe",
+      "regenerate",
+      "looks_like_me_no",
+      "fit_correction",
+      "colour_correction",
+    ] as const;
+    for (const signal of nonEvidenceSignals) {
+      expect(styleEvidenceForWardrobeVisualizationFeedback(signal)).toBeNull();
+    }
   });
 });

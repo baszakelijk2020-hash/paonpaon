@@ -1715,6 +1715,55 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     still red on pre-existing stale/missing evidence for unrelated checked
     items; no false completion claim is made.
 
+- [ ] **4.10 Virtual Wardrobe Studio — multi-look queue and
+      personalization loop**
+  - **Requirement IDs:** `VWS-001`.
+  - **Dependencies:** `4.6`, `4.7/4.8`, `4.9`.
+  - **Owner boundary:** customer-app Server Actions/UI inside the existing
+    `/wardrobe` Virtual Studio panel; the existing
+    `claim_pending_wardrobe_visualization_jobs` queue RPC; the existing
+    `customer_style_preference_evidence` evidence path.
+  - **Acceptance:** a customer can enqueue generation for every one of
+    their own saved (non-roadmap) outfits that has no active/ready job yet
+    in one action ("Create all saved looks"), enqueuing sequentially
+    through a shared `enqueueLook` helper so the single-look and batch
+    paths never drift; a customer can bulk-cancel every still-`queued` job
+    across their own looks ("Cancel all queued") — a `generating` job runs
+    to completion, per the existing `canCancelWardrobeVisualizationJob`
+    guard; the queue claim function orders by `(created_at, id)` instead of
+    `created_at` alone, giving concurrent batch enqueues a deterministic
+    claim order; `love_it`/`save`/`not_for_me` feedback on a `ready` look
+    feeds `customer_style_preference_evidence` through the existing
+    `record_style_preference_evidence` RPC (two new sources,
+    `generation_loved`/`generation_rejected`, additive forward migration),
+    resolving concepts from the outfit's own slots exactly like a product
+    interaction does today — gated by the same personalization-consent
+    check every other inferred-evidence capture site uses, and never
+    blocking the feedback write itself if evidence capture fails.
+  - **Tests:** a committed Playwright e2e spec
+    (`apps/customer/e2e/virtual-studio-batch-and-feedback-evidence.spec.ts`)
+    drives the real batch-enqueue, deterministic-claim, bulk-cancel, and
+    feedback-to-evidence flows end-to-end against local Supabase, including
+    proving a second, distinct feedback signal on the same look appends a
+    new evidence row rather than mutating the first.
+  - **Non-goals:** no new preference-evidence table (§7 of the blueprint);
+    no change to the single-look enqueue/cancel/feedback paths landed in
+    4.7–4.9; no live image rendering proof (same documented
+    `OPENAI_API_KEY` hard-blocker posture as every prior VWS slice); no
+    advisor-side batch changes (4.9's advisor "generate all pending" already
+    covers that surface).
+  - **Hard blockers:** none for local implementation; live image rendering
+    requires a configured provider credential.
+  - **Status (2026-08-09, Lane H reconciliation in progress):** Lane D authored
+    domain `styleEvidenceForWardrobeVisualizationFeedback`,
+    customer `generateAllSavedLooks`/`cancelAllQueuedLooks`/
+    `feedStyleProfileEvidence` Server Actions and `BatchLookActions` UI,
+    deterministic-claim-order migration and a connected browser spec. Lane H
+    is preserving the canonical module/image-consent guards and restoring the
+    event-provenance/idempotency guarantees lost by the older-branch RPC
+    rewrite before making any completion claim. Dependencies remain formally
+    unchecked and no current-branch ADR-068 proof exists yet.
+
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain — see ADR-074 for the visualization-only fit-preference
 distinction 4.6 relies on), no retailer sharing of wardrobe data, no required
