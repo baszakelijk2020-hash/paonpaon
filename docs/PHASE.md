@@ -4411,7 +4411,7 @@ routine-occasions.ts`) reuses 10.4's existing
     every wardrobe item, so "unattached" isn't representable without a
     schema change this slice didn't make.
 
-- [ ] **17.14 Prospect AI conversation, buying-intent queue, and human handoff**
+- [x] **17.14 Prospect AI conversation, buying-intent queue, and human handoff**
   - **Requirement IDs:** ADV-114.
   - **Dependencies:** `17.9` (channel core, unrelated tables); FT-09
     TableService (`conversations`/`messages`/`message_attachments`,
@@ -4524,6 +4524,23 @@ routine-occasions.ts`) reuses 10.4's existing
     Still required before completion: add and run the specified anonymous
     inquiry -> retailer claim -> mock draft -> edited send -> customer-visible
     Playwright journey. No checkbox/evidence claim is made yet.
+  - **Completed (2026-08-09):** the anonymous founder-storefront inquiry now
+    enters the same explainable queue as signed-in messages, notifies eligible
+    staff, exposes cited intent signals and claim state in the retailer inbox,
+    and supports a grounded draft that cannot become a customer message until
+    an assigned advisor or manager reviews and sends it. Provider attempts are
+    audited as `communication_draft`; proposal sources, resolution authority,
+    sent-message linkage and tenant references fail closed in the database.
+    The permanent connected proof at
+    `apps/retailer/e2e/prospect-ai-conversation.spec.ts` passes against the
+    ledger-approved disposable local Supabase target with the deterministic
+    loopback-only mock provider: anonymous high-intent inquiry -> cited
+    classification and staff notification -> retailer claim -> approved-basis
+    draft -> edited send -> linked customer sees the reply. Verification also
+    passes the 17-assertion pgTAP isolation suite, all 43 AI-package tests and
+    all 479 database-package assertions (70 integration tests correctly
+    skipped outside their explicit gate). ADR-068 evidence:
+    `docs/evidence/runs/17.14.json`, recording code SHA `964d9db`.
 
 ### Stage 18 — Corporate business development, tenders, and rollout (Métier expansion)
 
