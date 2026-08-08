@@ -21,11 +21,24 @@ import { env } from "./env";
  */
 export function getAIProvider(): AIProvider | null {
   if (
-    process.env.NODE_ENV !== "production" &&
-    process.env.PAON_E2E_MOCK_AI === "1"
+    process.env.PAON_E2E_MOCK_AI === "1" &&
+    isLoopbackSupabaseUrl(env.supabaseUrl)
   ) {
     return new MockCommunicationDraftProvider();
   }
   const apiKey = env.openaiApiKey;
   return apiKey ? new OpenAIProvider(createOpenAIClient(apiKey)) : null;
+}
+
+function isLoopbackSupabaseUrl(value: string): boolean {
+  try {
+    const hostname = new URL(value).hostname;
+    return (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "[::1]"
+    );
+  } catch {
+    return false;
+  }
 }

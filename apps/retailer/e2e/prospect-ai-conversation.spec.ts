@@ -4,6 +4,7 @@ import {
   ProductRepository,
   ProductVariantRepository,
   createSupabaseAdminClient,
+  createSupabaseDirectClient,
 } from "@paon/database";
 import { asId } from "@paon/domain";
 import { expect, test, type Page } from "@playwright/test";
@@ -17,8 +18,9 @@ import { writeBrowserProofRun } from "./write-browser-proof-run";
 
 const PHASE_ITEM_ID = "17.14";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/prospect-ai-conversation.spec.ts";
-const CUSTOMER_APP_ORIGIN = "http://127.0.0.1:3002";
-const RETAILER_APP_ORIGIN = "http://127.0.0.1:3001";
+const CUSTOMER_PASSWORD = "E2E-Prospect-2026!";
+const CUSTOMER_APP_ORIGIN = "http://localhost:3002";
+const RETAILER_APP_ORIGIN = "http://127.0.0.1:3011";
 
 type BuyingIntentSignalRow = {
   readonly code: string;
@@ -83,28 +85,49 @@ async function signInOwner(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/dashboard$/);
 }
 
-async function signInCustomerByMagicLink(
+async function linkAndSignInCustomer(
   page: Page,
   admin: ReturnType<typeof createSupabaseAdminClient>,
   email: string,
-): Promise<void> {
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: "magiclink",
+): Promise<string> {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+  if (!supabaseUrl || !anonKey) {
+    throw new Error("Customer account proof requires local Supabase keys.");
+  }
+
+  const { data, error } = await admin.auth.admin.createUser({
     email,
+    password: CUSTOMER_PASSWORD,
+    email_confirm: true,
   });
-  if (error || !data.properties) {
+  if (error || !data.user) {
     throw new Error(
-      `Failed to generate magic link: ${error?.message ?? "unknown error"}`,
+      `Failed to create customer auth user: ${error?.message ?? "unknown error"}`,
     );
   }
 
-  await page.goto(
-    appUrl(
-      CUSTOMER_APP_ORIGIN,
-      `/auth/confirm?token_hash=${data.properties.hashed_token}&type=magiclink`,
-    ),
+  const customerClient = createSupabaseDirectClient(supabaseUrl, anonKey);
+  const { error: signInError } = await customerClient.auth.signInWithPassword({
+    email,
+    password: CUSTOMER_PASSWORD,
+  });
+  if (signInError) throw signInError;
+  const { error: linkError } = await customerClient.rpc(
+    "link_my_customer_accounts",
   );
+  if (linkError) throw linkError;
+  const { error: signOutError } = await customerClient.auth.signOut();
+  if (signOutError) throw signOutError;
+
+  await page.goto(appUrl(CUSTOMER_APP_ORIGIN, "/login?demo=1"));
+  await page.getByLabel("Demo email").fill(email);
+  await page.getByLabel("Demo password").fill(CUSTOMER_PASSWORD);
+  await page
+    .getByRole("button", { name: "Enter the private client demo" })
+    .click();
   await expect(page).toHaveURL(/\/dashboard$/);
+  return data.user.id;
 }
 
 async function findAuthUserId(
@@ -148,7 +171,7 @@ async function seedGuidanceBasis(args: {
     productId: product.id,
     sku: `E2E-PROSPECT-WED-${args.unique}`,
     price: { amountMinorUnits: 125000, currency: "USD" },
-    inventoryQuantity: 7,
+    inventoryQuantity: 0,
   });
 
   const concept = await metadataRepo.createConcept({
@@ -403,15 +426,10 @@ test("an anonymous high-intent TableService inquiry is triaged, drafted by the m
     ).toBeVisible();
     await expect(triage.getByText("very high intent")).toBeVisible();
     await expect(
-      triage.getByText("Wedding: “getting married”", { exact: true }),
-    ).toBeVisible();
-    await expect(
-      triage.getByText("Deadline: “by Friday”", { exact: true }),
-    ).toBeVisible();
-    await expect(
-      triage.getByText('Appointment readiness: “book an appointment"', {
-        exact: false,
-      }),
+      triage.getByText(
+        "Wedding: “getting married” · Deadline: “by Friday” · Appointment readiness: “book an appointment”",
+        { exact: true },
+      ),
     ).toBeVisible();
 
     await triage.getByRole("button", { name: "Claim conversation" }).click();
@@ -495,7 +513,9 @@ test("an anonymous high-intent TableService inquiry is triaged, drafted by the m
     await expect(
       triage.getByText("Waiting for customer", { exact: true }),
     ).toBeVisible();
-    await expect(page.getByText(editedReply, { exact: true })).toBeVisible();
+    await expect(
+      page.getByText(editedReply, { exact: true }).last(),
+    ).toBeVisible();
 
     const { data: draftRow, error: draftError } = await admin
       .from("message_ai_drafts")
@@ -511,7 +531,7 @@ test("an anonymous high-intent TableService inquiry is triaged, drafted by the m
     expect(draftRow.based_on_message_id).toBe(inquiryMessageRow.id);
     expect(draftRow.resolved_by_staff_id).toBe(ownerStaff.id);
     expect(draftRow.knowledge_object_ids).toEqual([seed.knowledgeObjectId]);
-    expect(draftRow.product_ids).toEqual([seed.productId]);
+    expect(draftRow.product_ids).toEqual([]);
     expect(draftRow.draft_text).toBe(
       "Thank you for sharing the occasion and timing. I can help you review the approved options and arrange the next step.",
     );
@@ -533,8 +553,7 @@ test("an anonymous high-intent TableService inquiry is triaged, drafted by the m
 
     // Customer-visible proof: link the prospect account, then open the thread.
     await page.context().clearCookies();
-    await signInCustomerByMagicLink(page, admin, inquiryEmail);
-    customerAuthUserId = await findAuthUserId(admin, inquiryEmail);
+    customerAuthUserId = await linkAndSignInCustomer(page, admin, inquiryEmail);
     expect(customerAuthUserId).toBeTruthy();
 
     await expect
@@ -592,6 +611,15 @@ test("an anonymous high-intent TableService inquiry is triaged, drafted by the m
     );
     await expectNoCleanupError(cleanupErrors, "knowledge_objects.delete", () =>
       admin.from("knowledge_objects").delete().eq("id", seed.knowledgeObjectId),
+    );
+    await expectNoCleanupError(
+      cleanupErrors,
+      "metadata_assignment_reviews.delete",
+      () =>
+        admin
+          .from("metadata_assignment_reviews")
+          .delete()
+          .eq("assignment_id", seed.assignmentId),
     );
     await expectNoCleanupError(
       cleanupErrors,

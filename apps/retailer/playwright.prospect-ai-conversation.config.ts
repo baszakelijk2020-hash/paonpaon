@@ -6,8 +6,8 @@ import { defineConfig, devices } from "@playwright/test";
 const configDir = path.dirname(fileURLToPath(import.meta.url));
 const retailerDir = configDir;
 const customerDir = path.resolve(configDir, "../customer");
-const CUSTOMER_APP_ORIGIN = "http://127.0.0.1:3002";
-const RETAILER_APP_ORIGIN = "http://127.0.0.1:3001";
+const CUSTOMER_APP_ORIGIN = "http://localhost:3002";
+const RETAILER_APP_ORIGIN = "http://127.0.0.1:3011";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -33,14 +33,14 @@ export default defineConfig({
       cwd: customerDir,
       command: "pnpm exec next start -p 3002 -H 127.0.0.1",
       url: CUSTOMER_APP_ORIGIN,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
     },
     {
       name: "retailer-production",
       cwd: retailerDir,
-      command: "pnpm exec next start -p 3001 -H 127.0.0.1",
+      command: "pnpm exec next start -p 3011 -H 127.0.0.1",
       url: RETAILER_APP_ORIGIN,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
     },
   ],
 });
