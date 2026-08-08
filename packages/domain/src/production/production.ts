@@ -108,10 +108,7 @@ export interface FittingObservation {
 }
 
 export type FitProfileCandidateStatus =
-  | "proposed"
-  | "advisor_approved"
-  | "advisor_rejected"
-  | "customer_confirmed";
+  "proposed" | "advisor_approved" | "advisor_rejected" | "customer_confirmed";
 
 export interface FitProfileCandidate extends Timestamps {
   readonly id: FitProfileCandidateId;

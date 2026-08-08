@@ -1,4 +1,4 @@
-import { CustomerRepository } from "@paon/database";
+import { CustomerRepository, RetailerStaffRepository } from "@paon/database";
 import { buttonVariants } from "@paon/ui/components/Button";
 import Link from "next/link";
 
@@ -10,9 +10,19 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 export default async function CustomersPage() {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
-  const customers = await new CustomerRepository(supabase).findByRetailer(
-    session.retailerId,
+  const staff = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
   );
+  // ADR-074 — masks contact detail for customers not assigned to this
+  // staff member (management roles see everything); the list/search
+  // surface must not become an unassigned-customer contact-exfiltration
+  // path.
+  const customers = await new CustomerRepository(
+    supabase,
+  ).findByRetailerForStaffView(session.retailerId, {
+    staffId: staff?.id,
+    role: session.retailerRole,
+  });
 
   return (
     <div className="flex flex-col gap-6">

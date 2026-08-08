@@ -1,9 +1,7 @@
 {
   "phaseItemId": "FT-09",
   "gitSha": "739f2b7e423498549fd776a5fff8d42ea32a660e",
-  "specs": [
-    "apps/customer/e2e/consultation-outcome.spec.ts"
-  ],
+  "specs": ["apps/customer/e2e/consultation-outcome.spec.ts"],
   "pgtap": "160/160 green (supabase test db full suite; migration applies cleanly)",
   "status": "passed",
   "runs": 1,

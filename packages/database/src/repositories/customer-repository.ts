@@ -1,11 +1,15 @@
 import {
   asId,
+  isManagementRole,
+  maskEmail,
+  maskPhone,
   type Address,
   type Customer,
   type CustomerLifecycleStage,
   type CustomerId,
   type PreferredCarrier,
   type RetailerId,
+  type RetailerRole,
   type StaffId,
   type UserId,
 } from "@paon/domain";
@@ -83,6 +87,36 @@ export class CustomerRepository {
     }
 
     return data.map(toDomain);
+  }
+
+  /**
+   * The staff-facing customer list/search surface (ADR-074 Slice 1). RLS
+   * still returns every tenant row — full-row hiding would also hide
+   * unassigned customers from the coverage/handoff workflows that
+   * legitimately need minimal identification — so masking of contact
+   * detail happens here, server-side, before the result ever reaches a
+   * Server Component or Server Action response. Unassigned + non-
+   * management staff see masked `email`/`phone`; everyone else (the
+   * assigned advisor, or manager/admin/owner) sees the real value. This
+   * is the search/list path specifically; `findById`'s callers include
+   * non-staff-viewer contexts (checkout, the customer's own portal,
+   * background jobs) that must keep receiving real values unchanged.
+   */
+  async findByRetailerForStaffView(
+    retailerId: RetailerId,
+    viewer: { staffId: StaffId | undefined; role: RetailerRole },
+  ): Promise<Customer[]> {
+    const customers = await this.findByRetailer(retailerId);
+    if (isManagementRole(viewer.role)) return customers;
+
+    return customers.map((customer) => {
+      if (customer.assignedStaffId === viewer.staffId) return customer;
+      return {
+        ...customer,
+        ...(customer.email ? { email: maskEmail(customer.email) } : {}),
+        ...(customer.phone ? { phone: maskPhone(customer.phone) } : {}),
+      };
+    });
   }
 
   /** First (oldest) matching customer row for this retailer + email —

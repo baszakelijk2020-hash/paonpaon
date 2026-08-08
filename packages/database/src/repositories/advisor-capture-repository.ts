@@ -351,6 +351,7 @@ export class AdvisorCaptureRepository {
       authorStaffId: args.staffId,
       body: note.note,
       pinned: false,
+      visibility: "assigned_advisor",
     });
     const bundle = await this.markResolved({
       retailerId: args.retailerId,

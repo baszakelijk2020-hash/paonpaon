@@ -21,6 +21,7 @@ import {
   PREFERRED_CARRIERS,
   type CaptureBundleKind,
   type CaptureBundleProposal,
+  type NoteVisibility,
   type PreferredCarrier,
 } from "@paon/domain";
 import { formatMoney } from "@paon/utils";
@@ -155,10 +156,14 @@ export async function setPreferredCarrier(formData: FormData) {
 export async function createClientelingNote(formData: FormData) {
   const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
+  const rawVisibility = formData.get("visibility");
   const value = createClientelingNoteSchema.parse({
     customerId: formData.get("customerId"),
     body: formData.get("body"),
     pinned: formData.get("pinned") === "on",
+    ...(typeof rawVisibility === "string" && rawVisibility.length > 0
+      ? { visibility: rawVisibility }
+      : {}),
   });
   const client = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(client).findByUserId(
@@ -172,6 +177,7 @@ export async function createClientelingNote(formData: FormData) {
     authorStaffId: staff.id,
     body: value.body,
     pinned: value.pinned,
+    visibility: value.visibility as NoteVisibility,
   });
   revalidatePath(`/customers/${value.customerId}`);
 }

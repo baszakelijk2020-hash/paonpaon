@@ -3286,3 +3286,100 @@ without spending an entire session rediscovering it. The founder can change
 the product, but models cannot do so silently. Ambition remains broad; delivery
 remains dependency-ordered; current status remains falsifiable. No additional
 roadmap or handoff document is created.
+
+## ADR-074: Customer relationship-intelligence access boundary — assignment is a security boundary, not just a CRM label
+
+**Status: accepted.**
+
+**Context.** Every retailer-tenant table built so far enforces tenant
+isolation (`retailer_id = current_retailer_id()`) but not a second,
+narrower boundary: `customers.assigned_staff_id` already exists and is
+populated by CRM assignment flows, but no RLS policy, repository method or
+Server Action reads it as an authorization signal. Concretely: `customers`'
+own RLS grants every non-workshop retailer role blanket `select` across the
+whole tenant (20260719000007), `clienteling_notes` grants the same blanket
+read to every non-workshop role regardless of `author_staff_id` or which
+customer the note is about (20260720000003), and `AdvisorBriefRepository`
+composes consent-gated events, wishlist, StyleProfile and conversation
+history for any customer any retailer-authenticated staff member names, with
+no assignment check at all. A retailer with real relationship intelligence —
+advisor notes, family/travel context, purchase intent — currently grants
+that intelligence to every logged-in employee with a CRM-capable role, not
+just the advisor with the actual client relationship. This is a real,
+present gap, not a hypothetical one, and directly contradicts this
+codebase's own tenant-isolation discipline applied to the wrong boundary
+(retailer-wide instead of relationship-scoped).
+
+**Decision.**
+
+1. **Reuse `customers.assigned_staff_id` as the access boundary.** No second
+   assignment model is introduced. "Assigned" means this column is set to
+   the requesting staff member's `retailer_staff_members.id` (via the
+   already-existing `current_staff_id()` helper). Management roles
+   (`manager`, `admin`, `owner`) retain broader access as an audited
+   override — matching `AGENTS.md`'s existing role hierarchy and this
+   codebase's established "manager sees more, audited" pattern
+   (`is_alterations_management()` precedent).
+2. **`clienteling_notes` gets a narrow, author-controlled visibility tier**,
+   not a blanket retailer-wide read. A new `note_visibility` enum
+   (`author_only`, `assigned_advisor`, `management`, `retailer_shared`)
+   defaults new rows to `assigned_advisor` — narrow by default, per the
+   product requirement that sensitive relationship intelligence must not be
+   silently retailer-wide. Existing rows backfill to `retailer_shared`
+   (preserving current behavior for content authored before this boundary
+   existed, since there is no signal distinguishing which historical notes
+   are sensitive) rather than retroactively locking staff out of notes they
+   already depend on operationally. The author may narrow further at
+   creation or edit time; only the author or management may change it.
+3. **Customer contact detail (phone/email) is masked, not schema-split.**
+   `customers.phone`/`email` stay on the existing row — moving them to a
+   separate table would touch every existing consumer (checkout, order
+   confirmation, messaging, the customer's own portal) for a single slice,
+   violating `AGENTS.md`'s "keep shared changes narrow" and "preserve
+   unrelated user/agent work" invariants. Instead, masking is applied at the
+   repository layer for the customer list/search surface specifically
+   (`CustomerRepository.findByRetailerForStaffView`), and the customer
+   detail page gates full contact display on assignment/role server-side
+   (a Server Component check, not client-side hiding). A raw-value reveal
+   is a distinct, audited action (`record_customer_access_event`), not the
+   default render path. This is real server-side enforcement — Server
+   Components and Server Actions run only on the server in this
+   architecture — but is not defense-in-depth to the same degree the notes'
+   RLS change is; a future slice may still split contact into its own
+   RLS-protected table if a subsequent audit shows a direct repository
+   bypass. Recorded here rather than silently deferred.
+4. **The sensitive-access ledger reuses `audit_log_entries`**, not a new
+   table. That table (20260719000101) is already generic
+   (`actor_staff_id`/`action`/`entity_type`/`entity_id`/`before_state`/
+   `after_state`) and already has a working write pattern
+   (`audit_alteration_sensitive_change()` trigger) and read policy
+   (`is_alterations_management()`-gated retailer select,
+   `is_platform_staff()` platform select) from the alterations subsystem.
+   A new `record_customer_access_event` SECURITY DEFINER RPC (same
+   self-deriving-caller shape as `current_staff_id()`'s other callers)
+   writes `action`/`reason` into `after_state` as metadata only — never the
+   note body, contact value or any other sensitive payload — matching the
+   product requirement not to duplicate sensitive content into general
+   logs.
+5. **This is Slice 1 of a six-slice program** (customer access boundary;
+   access-request/temporary grants; sensitive-access ledger surfacing;
+   export controls; anomaly detection; AI-boundary verification — see
+   `PHASE.md` R0.7). Slice 1 delivers the DB-enforced boundary, masking,
+   audit writes and adversarial tests. Request-access workflow, break-glass,
+   a reviewable anomaly surface, export gating and AI-context permission
+   filtering are named, tracked follow-on gaps, not silently dropped scope.
+
+**Consequences.** An unassigned `sales_associate` can still find and
+minimally identify a customer (tenant-wide row read is unchanged — this
+preserves legitimate coverage/handoff workflows and matches the product
+requirement that "operationally necessary minimal customer identity may
+remain visible") but can no longer read that customer's `assigned_advisor`-
+or-narrower notes, nor the masked contact detail, without either being the
+assigned advisor, being a manager, or (in a later slice) an approved
+temporary grant. Existing e2e/pgTAP fixtures that create notes without
+specifying a role, or that assert unassigned-staff note visibility, will
+need updating to this slice's new default — expected, and is exactly the
+behavior this ADR intends to change. `AdvisorBriefRepository`'s own
+assignment gate is deferred to Slice 6 (AI boundary) rather than folded into
+this slice, since it is a distinct call path (AI context composition, not
+direct CRUD) with its own adversarial test shape.
