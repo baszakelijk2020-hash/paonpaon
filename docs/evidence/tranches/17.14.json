@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "17.14",
+  "requirementIds": ["ADV-114"],
+  "status": "verified_local",
+  "title": "Prospect AI conversation, buying-intent queue, and human handoff",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/intelligence/conversation-intent.ts; packages/domain/src/intelligence/conversation-intent.test.ts",
+    "persistence": "supabase/migrations/20260806010000_add_conversation_intent_queue.sql; supabase/migrations/20260808170000_harden_conversation_ai_drafts.sql",
+    "service": "packages/database/src/repositories/messaging-repository.ts; packages/database/src/repositories/conversation-draft-repository.ts; packages/database/src/repositories/ai-generation-repository.ts",
+    "origin_ui": "apps/customer/app/r/[slug]/route.ts; apps/customer/app/r/[slug]/table-service-widget.tsx; apps/customer/app/r/[slug]/api/table-service-inquiry/route.ts",
+    "receiver_ui": "apps/retailer/app/(dashboard)/messages/page.tsx; apps/retailer/app/(dashboard)/messages/conversation-triage.tsx; apps/customer/app/(dashboard)/messages/[id]/page.tsx",
+    "rls": "supabase/tests/conversation_ai_handoff_test.sql; supabase/migrations/20260808170000_harden_conversation_ai_drafts.sql",
+    "exceptions": "packages/domain/src/intelligence/conversation-intent.test.ts; packages/ai/src/openai-provider.communication-draft.test.ts; packages/database/src/repositories/conversation-draft-repository.test.ts",
+    "browser": "apps/retailer/e2e/prospect-ai-conversation.spec.ts + docs/evidence/runs/17.14.json status=passed",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json",
+    "live_gap": "The deterministic local mock proves provider-neutral orchestration; live provider activation remains outside this local tranche without OPENAI_API_KEY."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "n_a",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/prospect-ai-conversation.spec.ts",
+  "assertedAt": "2026-08-08T23:06:26.282Z"
+}
