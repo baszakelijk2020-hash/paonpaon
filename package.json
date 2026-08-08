@@ -21,7 +21,9 @@
     "format:check": "prettier --check .",
     "clean": "turbo run clean && rm -rf node_modules",
     "prepare": "husky",
-    "paon:delegate": "bash scripts/paon-delegate.sh"
+    "paon:delegate": "bash scripts/paon-delegate.sh",
+    "paon:run": "bash scripts/paon-run.sh",
+    "paon:run:test": "bash scripts/paon-runner.test.sh"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

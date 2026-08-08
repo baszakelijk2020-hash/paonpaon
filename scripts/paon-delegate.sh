@@ -1,21 +1,33 @@
 #!/usr/bin/env bash
 # PAON cheap-worker delegation bridge — see AGENTS.md "Cheap-worker delegation".
 #
-# Hands one bounded PHASE.md slice to an OpenRouter-backed worker (the
-# already-installed `codex` CLI, pointed at OpenRouter through a per-machine
-# additive profile — the founder's own OpenAI/ChatGPT config.toml is never
-# edited) inside an isolated git worktree, waits for it, independently
+# Hands one bounded PHASE.md slice to a cheap worker (the already-installed
+# `codex` CLI) inside an isolated git worktree, waits for it, independently
 # re-verifies the result, and prints one JSON line the calling agent can act
 # on. No task database, no scheduler, no daemon: one process, one exit.
 #
+# Two providers, same worktree/verify/JSON contract either way:
+#   openrouter    (default) codex pointed at OpenRouter through a per-machine
+#                 additive profile — the founder's own OpenAI/ChatGPT
+#                 config.toml is never edited. Pay-per-token; needs
+#                 OPENROUTER_API_KEY.
+#   subscription  codex runs with whatever auth `codex login` already set up
+#                 on this machine (a ChatGPT/Codex subscription) — no key,
+#                 no profile file, no OpenRouter involved. Model must be one
+#                 the subscription actually serves (check
+#                 ~/.codex/models_cache.json); the light/mini tier there is
+#                 the intended worker model, same spirit as the OpenRouter
+#                 cheap-model default.
+#
 # Usage:
 #   pnpm paon:delegate -- --item <PHASE_ID> --scope "<bounded task text>" \
-#     [--branch <name>] [--base <ref>] [--model <openrouter/model-id>] \
-#     [--timeout <seconds>]
+#     --model <model-id> [--provider openrouter|subscription] \
+#     [--branch <name>] [--base <ref>] [--timeout <seconds>]
 #
-# Requires OPENROUTER_API_KEY in the environment. This script never reads it
-# from, or writes it to, any file — codex resolves it at call time via the
-# profile's command-based auth (see OpenRouter's own Codex CLI cookbook).
+# openrouter provider only: requires OPENROUTER_API_KEY in the environment.
+# This script never reads it from, or writes it to, any file — codex
+# resolves it at call time via the profile's command-based auth (see
+# OpenRouter's own Codex CLI cookbook).
 
 set -euo pipefail
 
@@ -24,22 +36,25 @@ SCOPE=""
 BRANCH=""
 BASE_REF=""
 MODEL="${PAON_DELEGATE_MODEL:-}"
+PROVIDER="${PAON_DELEGATE_PROVIDER:-openrouter}"
 TIMEOUT="${PAON_DELEGATE_TIMEOUT_SECONDS:-1800}"
 
 while [ $# -gt 0 ]; do
   case "$1" in
+    --) shift ;;
     --item) ITEM="$2"; shift 2 ;;
     --scope) SCOPE="$2"; shift 2 ;;
     --branch) BRANCH="$2"; shift 2 ;;
     --base) BASE_REF="$2"; shift 2 ;;
     --model) MODEL="$2"; shift 2 ;;
+    --provider) PROVIDER="$2"; shift 2 ;;
     --timeout) TIMEOUT="$2"; shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
 
 usage() {
-  echo 'Usage: pnpm paon:delegate -- --item <PHASE_ID> --scope "<bounded task>" [--branch <name>] [--base <ref>] [--model <openrouter/model-id>] [--timeout <seconds>]' >&2
+  echo 'Usage: pnpm paon:delegate -- --item <PHASE_ID> --scope "<bounded task>" --model <model-id> [--provider openrouter|subscription] [--branch <name>] [--base <ref>] [--timeout <seconds>]' >&2
 }
 
 if [ -z "$ITEM" ] || [ -z "$SCOPE" ]; then
@@ -47,14 +62,29 @@ if [ -z "$ITEM" ] || [ -z "$SCOPE" ]; then
   exit 1
 fi
 
-if [ -z "${OPENROUTER_API_KEY:-}" ]; then
-  echo "OPENROUTER_API_KEY is not set. Export it in your shell (never commit it) and retry." >&2
-  exit 1
+case "$PROVIDER" in
+  openrouter|subscription) ;;
+  *) echo "Unknown --provider '$PROVIDER'. Use 'openrouter' or 'subscription'." >&2; exit 1 ;;
+esac
+
+# Same JSON shape as a full run for every pre-flight exit too, so a frontier
+# agent parsing the result never has to special-case a stderr-only failure
+# to decide the next backend.
+preflight_fail() {
+  local reason="$1" message="$2"
+  echo "$message" >&2
+  jq -n --arg reason "$reason" --arg item "$ITEM" --arg provider "$PROVIDER" \
+    --arg model "$MODEL" --arg message "$message" \
+    '{status:"blocked",reason:$reason,item:$item,branch:"",worktree:"",baseSha:"",resultSha:"",diffStat:"",verification:"skipped",workerLastMessage:"",stopReason:$message,model:$model,provider:$provider}'
+  exit 2
+}
+
+if [ "$PROVIDER" = "openrouter" ] && [ -z "${OPENROUTER_API_KEY:-}" ]; then
+  preflight_fail "missing_credential" "OPENROUTER_API_KEY is not set. Export it in your shell (never commit it) and retry, or pass --provider subscription to use the machine's own codex/ChatGPT login instead."
 fi
 
 if [ -z "$MODEL" ]; then
-  echo "No worker model given. Pass --model <openrouter/model-id> or set PAON_DELEGATE_MODEL — this script never assumes one for you." >&2
-  exit 1
+  preflight_fail "missing_model_config" "No worker model given. Pass --model <model-id> or set PAON_DELEGATE_MODEL — this script never assumes one for you. For --provider subscription, check ~/.codex/models_cache.json for the light/mini tier your login actually serves."
 fi
 
 if ! command -v codex >/dev/null 2>&1; then
@@ -95,16 +125,21 @@ ACTUAL_BRANCH="$(git -C "$WORKTREE_DIR" rev-parse --abbrev-ref HEAD)"
 # --- deps up front, so the sandboxed worker call below needs no network ---
 (cd "$WORKTREE_DIR" && pnpm install --frozen-lockfile) >&2
 
-# --- additive, non-secret OpenRouter provider profile, rewritten each run
-# so a stale copy never lingers. Layers on top of the machine's own
-# ~/.codex/config.toml via --profile below; that file is never edited.
-# env_key + wire_api="responses" verified live against openrouter.ai (a
-# malformed key correctly produced a real 401 from OpenRouter itself, not
-# a local config error) — wire_api="chat" is rejected by this codex build.
-CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
-PROFILE_PATH="$CODEX_HOME_DIR/paon-worker.config.toml"
-mkdir -p "$CODEX_HOME_DIR"
-cat > "$PROFILE_PATH" <<'TOML'
+# --- provider setup ---
+# openrouter: additive, non-secret profile, rewritten each run so a stale
+# copy never lingers. Layers on top of the machine's own ~/.codex/config.toml
+# via --profile below; that file is never edited. env_key + wire_api are
+# verified live against openrouter.ai (a malformed key correctly produced a
+# real 401 from OpenRouter itself, not a local config error) —
+# wire_api="chat" is rejected by this codex build. subscription: no profile
+# file at all — codex runs with whatever `codex login` already set up on
+# this machine, untouched.
+CODEX_PROFILE_ARGS=()
+if [ "$PROVIDER" = "openrouter" ]; then
+  CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
+  PROFILE_PATH="$CODEX_HOME_DIR/paon-worker.config.toml"
+  mkdir -p "$CODEX_HOME_DIR"
+  cat > "$PROFILE_PATH" <<'TOML'
 model_provider = "openrouter"
 
 [model_providers.openrouter]
@@ -113,10 +148,13 @@ base_url = "https://openrouter.ai/api/v1"
 env_key = "OPENROUTER_API_KEY"
 wire_api = "responses"
 TOML
+  CODEX_PROFILE_ARGS=(--profile paon-worker)
+fi
 
 PROMPT_FILE="$(mktemp)"
 LAST_MSG_FILE="$(mktemp)"
-trap 'rm -f "$PROMPT_FILE" "$LAST_MSG_FILE"' EXIT
+CODEX_LOG_FILE="$(mktemp)"
+trap 'rm -f "$PROMPT_FILE" "$LAST_MSG_FILE" "$CODEX_LOG_FILE"' EXIT
 
 cat > "$PROMPT_FILE" <<PROMPT
 Repo: ${REPO_ROOT}/${WORKTREE_DIR}. Branch: ${ACTUAL_BRANCH}, already checked out.
@@ -139,15 +177,16 @@ set +e
 "$TIMEOUT_BIN" "$TIMEOUT" codex exec \
   --cd "${REPO_ROOT}/${WORKTREE_DIR}" \
   --sandbox workspace-write \
-  --profile paon-worker \
+  ${CODEX_PROFILE_ARGS[@]+"${CODEX_PROFILE_ARGS[@]}"} \
   -m "$MODEL" \
   --output-last-message "$LAST_MSG_FILE" \
-  - < "$PROMPT_FILE" >&2
-WORKER_EXIT=$?
+  - < "$PROMPT_FILE" 2>&1 | tee "$CODEX_LOG_FILE" >&2
+WORKER_EXIT="${PIPESTATUS[0]}"
 set -e
 
 RESULT_SHA="$(git -C "$WORKTREE_DIR" rev-parse HEAD)"
 LAST_MESSAGE="$(cat "$LAST_MSG_FILE" 2>/dev/null || true)"
+CODEX_LOG="$(cat "$CODEX_LOG_FILE" 2>/dev/null || true)"
 
 # --- independent re-verification: never trust the worker's own claim ---
 VERIFY_STATUS="skipped"
@@ -176,6 +215,31 @@ else
   STOP_REASON="independent re-verification: ${VERIFY_STATUS}; codex exit ${WORKER_EXIT}"
 fi
 
+# --- machine-readable reason, so a frontier agent can pick the next backend
+# without asking the founder. Every pattern below is a real error string
+# this bridge has actually produced, not a guess. Unmatched blocks/failures
+# fall through to a generic bucket rather than inventing a false diagnosis.
+REASON="success"
+if [ "$STATUS" != "success" ]; then
+  if echo "$LAST_MESSAGE" | grep -q "^BLOCKED:"; then
+    REASON="non_delegable"
+  elif echo "$CODEX_LOG" | grep -qi "401 Unauthorized"; then
+    REASON="invalid_credential"
+  elif echo "$CODEX_LOG" | grep -qi "Key limit exceeded"; then
+    REASON="paid_fallback_disabled"
+  elif echo "$CODEX_LOG" | grep -qi "usage limit"; then
+    REASON="quota_exhausted"
+  elif echo "$CODEX_LOG" | grep -qi "Server tool request failed\|model metadata.*not found"; then
+    REASON="provider_incompatible"
+  elif [ "$WORKER_EXIT" -eq 124 ] || [ "$WORKER_EXIT" -eq 137 ]; then
+    REASON="timeout"
+  elif [ "$STATUS" = "blocked" ]; then
+    REASON="worker_made_no_commit"
+  else
+    REASON="implementation_failure"
+  fi
+fi
+
 jq -n \
   --arg status "$STATUS" \
   --arg item "$ITEM" \
@@ -187,8 +251,10 @@ jq -n \
   --arg verify "$VERIFY_STATUS" \
   --arg lastMessage "$LAST_MESSAGE" \
   --arg stopReason "$STOP_REASON" \
+  --arg reason "$REASON" \
   --arg model "$MODEL" \
-  '{status:$status,item:$item,branch:$branch,worktree:$worktree,baseSha:$baseSha,resultSha:$resultSha,diffStat:$diffStat,verification:$verify,workerLastMessage:$lastMessage,stopReason:$stopReason,model:$model}'
+  --arg provider "$PROVIDER" \
+  '{status:$status,reason:$reason,item:$item,branch:$branch,worktree:$worktree,baseSha:$baseSha,resultSha:$resultSha,diffStat:$diffStat,verification:$verify,workerLastMessage:$lastMessage,stopReason:$stopReason,model:$model,provider:$provider}'
 
 case "$STATUS" in
   success) exit 0 ;;
