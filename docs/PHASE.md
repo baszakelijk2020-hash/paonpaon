@@ -1062,7 +1062,7 @@ orchestrator.ts` was the only other one still uncovered (the
     pilot proof only. It does not stop safe implementation of later modular
     chapters once their dependencies and local proof contracts are met.
 
-- [ ] **R0.7 Customer relationship-intelligence access boundary (need-to-know security hardening)**
+- [x] **R0.7 Customer relationship-intelligence access boundary (need-to-know security hardening)**
   - **Dependencies:** none (independent hardening of already-landed
     `customers`/`clienteling_notes`/audit tables; disjoint from R0.4–R0.6's
     Golden Relationship module work and every other active lane).
