@@ -15,13 +15,10 @@ import {
   type MessageAiDraft,
   type MessageId,
   type RetailerId,
-  type StaffId,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database, Json } from "../generated/database.types";
-
-import { MessagingRepository } from "./messaging-repository";
 
 type DraftRow = Database["public"]["Tables"]["message_ai_drafts"]["Row"];
 
@@ -47,10 +44,6 @@ function toDomain(row: DraftRow): MessageAiDraft {
     createdAt: row.created_at,
   };
 }
-
-export type ResolveDraftResult =
-  | { readonly ok: true; readonly draft: MessageAiDraft }
-  | { readonly ok: false; readonly reason: "not_found" | "already_resolved" };
 
 export class ConversationDraftRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
@@ -94,99 +87,35 @@ export class ConversationDraftRepository {
     return data ? toDomain(data) : null;
   }
 
-  private async loadProposedDraft(
-    retailerId: RetailerId,
-    draftId: string,
-  ): Promise<DraftRow | null> {
-    const { data, error } = await this.client
-      .from("message_ai_drafts")
-      .select("*")
-      .eq("retailer_id", retailerId)
-      .eq("id", draftId)
-      .maybeSingle();
+  async dismiss(draftId: string): Promise<boolean> {
+    const { data, error } = await this.client.rpc(
+      "dismiss_conversation_ai_draft",
+      { p_draft_id: draftId },
+    );
     if (error) throw error;
     return data;
-  }
-
-  async dismiss(args: {
-    readonly retailerId: RetailerId;
-    readonly draftId: string;
-    readonly staffId: StaffId;
-  }): Promise<ResolveDraftResult> {
-    const existing = await this.loadProposedDraft(
-      args.retailerId,
-      args.draftId,
-    );
-    if (!existing) return { ok: false, reason: "not_found" };
-    if (existing.status !== "proposed") {
-      return { ok: false, reason: "already_resolved" };
-    }
-    const { data, error } = await this.client
-      .from("message_ai_drafts")
-      .update({
-        status: "dismissed",
-        resolved_by_staff_id: args.staffId,
-        resolved_at: new Date().toISOString(),
-      })
-      .eq("retailer_id", args.retailerId)
-      .eq("id", args.draftId)
-      .eq("status", "proposed")
-      .select("*")
-      .single();
-    if (error) throw error;
-    return { ok: true, draft: toDomain(data) };
   }
 
   /**
    * Sends the draft as a real message — as-is, or edited — and links the
    * resulting message back to this draft row. Always goes through
-   * `MessagingRepository.send` (the ordinary `send_conversation_message`
-   * RPC), so the sent message's own `sender_type`/`sender_staff_id` are
-   * exactly as true as any other staff-sent message; this row is the
-   * only place the AI origin is recorded.
+   * `approve_conversation_ai_draft`, which invokes the ordinary
+   * `send_conversation_message` function inside the same transaction.
    */
   async approveAndSend(args: {
-    readonly retailerId: RetailerId;
-    readonly conversationId: ConversationId;
     readonly draftId: string;
-    readonly staffId: StaffId;
     readonly editedText?: string;
-  }): Promise<
-    | { readonly ok: true; readonly messageId: MessageId }
-    | { readonly ok: false; readonly reason: "not_found" | "already_resolved" }
-  > {
-    const existing = await this.loadProposedDraft(
-      args.retailerId,
-      args.draftId,
+  }): Promise<MessageId> {
+    const { data, error } = await this.client.rpc(
+      "approve_conversation_ai_draft",
+      {
+        p_draft_id: args.draftId,
+        ...(args.editedText !== undefined
+          ? { p_edited_text: args.editedText }
+          : {}),
+      },
     );
-    if (!existing) return { ok: false, reason: "not_found" };
-    if (existing.status !== "proposed") {
-      return { ok: false, reason: "already_resolved" };
-    }
-
-    const edited =
-      args.editedText !== undefined &&
-      args.editedText.trim() !== existing.draft_text.trim();
-    const finalText = (args.editedText ?? existing.draft_text).trim();
-
-    const messageId = await new MessagingRepository(this.client).send(
-      args.conversationId,
-      finalText,
-    );
-
-    const { error } = await this.client
-      .from("message_ai_drafts")
-      .update({
-        status: edited ? "edited_and_sent" : "sent",
-        resolved_by_staff_id: args.staffId,
-        resolved_at: new Date().toISOString(),
-        sent_message_id: messageId,
-      })
-      .eq("retailer_id", args.retailerId)
-      .eq("id", args.draftId)
-      .eq("status", "proposed");
     if (error) throw error;
-
-    return { ok: true, messageId };
+    return asId<"MessageId">(data);
   }
 }

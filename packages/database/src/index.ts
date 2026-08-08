@@ -59,6 +59,7 @@ export * from "./repositories/stock-ledger-repository";
 export * from "./repositories/pos-repository";
 export * from "./repositories/loss-prevention-repository";
 export * from "./repositories/messaging-repository";
+export * from "./repositories/conversation-draft-repository";
 export * from "./repositories/notification-repository";
 export * from "./repositories/email-outbox-repository";
 export * from "./repositories/sms-outbox-repository";

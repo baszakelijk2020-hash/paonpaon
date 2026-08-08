@@ -1,12 +1,18 @@
 import {
   ClientelingRepository,
+  ConversationDraftRepository,
   CustomerRepository,
   MessagingRepository,
   OrderRepository,
+  RetailerStaffRepository,
   WardrobeRepository,
   WeddingPartyRepository,
 } from "@paon/database";
-import { CONVERSATION_INTENT_LABELS, ORDER_STATUS_LABELS } from "@paon/domain";
+import {
+  CONVERSATION_INTENT_LABELS,
+  CONVERSATION_STATUS_LABELS,
+  ORDER_STATUS_LABELS,
+} from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -22,6 +28,7 @@ import {
   ConversationList,
   type ConversationListItem,
 } from "./conversation-list";
+import { ConversationTriage } from "./conversation-triage";
 import { MessageTextarea } from "./message-textarea";
 
 import { requireSession } from "@/lib/session";
@@ -46,11 +53,13 @@ export default async function MessagesPage({
   const customerRepo = new CustomerRepository(client);
   const explicitSelection = Boolean(selectedId);
 
-  const [conversations, customers] = await Promise.all([
+  const [conversations, customers, staffMembers] = await Promise.all([
     messagingRepo.findByRetailer(session.retailerId),
     customerRepo.findByRetailer(session.retailerId),
+    new RetailerStaffRepository(client).findByRetailer(session.retailerId),
   ]);
   const customerById = new Map(customers.map((item) => [item.id, item]));
+  const staffById = new Map(staffMembers.map((item) => [item.id, item]));
 
   const sorted = [...conversations].sort((a, b) =>
     (b.lastMessageAt ?? "").localeCompare(a.lastMessageAt ?? ""),
@@ -72,6 +81,8 @@ export default async function MessagesPage({
         awaitingReply: last
           ? last.senderType === "customer" || last.senderType === "guest"
           : false,
+        statusLabel: CONVERSATION_STATUS_LABELS[conversation.status],
+        buyingIntentLevel: conversation.buyingIntentLevel ?? null,
       };
     }),
   );
@@ -92,25 +103,36 @@ export default async function MessagesPage({
     null;
   let orders: Awaited<ReturnType<OrderRepository["findByCustomer"]>> = [];
   let notes: Awaited<ReturnType<ClientelingRepository["findByCustomer"]>> = [];
+  let activeDraft: Awaited<
+    ReturnType<ConversationDraftRepository["findLatestProposedForConversation"]>
+  > = null;
 
   if (activeConversation) {
     await messagingRepo.markRead(activeConversation.id);
-    const [messages, attachments, customer, orderHistory, clientelingNotes] =
-      await Promise.all([
-        messagingRepo.findMessages(activeConversation.id),
-        messagingRepo.findAttachmentsByConversation(activeConversation.id),
-        customerRepo.findById(activeConversation.customerId),
-        new OrderRepository(client).findByCustomer(
-          activeConversation.customerId,
-        ),
-        new ClientelingRepository(client).findByCustomer(
-          activeConversation.customerId,
-        ),
-      ]);
+    const [
+      messages,
+      attachments,
+      customer,
+      orderHistory,
+      clientelingNotes,
+      proposedDraft,
+    ] = await Promise.all([
+      messagingRepo.findMessages(activeConversation.id),
+      messagingRepo.findAttachmentsByConversation(activeConversation.id),
+      customerRepo.findById(activeConversation.customerId),
+      new OrderRepository(client).findByCustomer(activeConversation.customerId),
+      new ClientelingRepository(client).findByCustomer(
+        activeConversation.customerId,
+      ),
+      new ConversationDraftRepository(client).findLatestProposedForConversation(
+        activeConversation.id,
+      ),
+    ]);
     thread = messages;
     activeCustomer = customer;
     orders = orderHistory;
     notes = clientelingNotes;
+    activeDraft = proposedDraft;
 
     const grouped = new Map<string, AttachmentEntry[]>();
     for (const entry of attachments) {
@@ -212,6 +234,26 @@ export default async function MessagesPage({
                 </div>
               </div>
             </div>
+
+            <ConversationTriage
+              conversationId={activeConversation.id}
+              claimedByName={
+                activeConversation.claimedByStaffId
+                  ? (staffById.get(activeConversation.claimedByStaffId)
+                      ?.fullName ?? "an advisor")
+                  : null
+              }
+              statusLabel={
+                CONVERSATION_STATUS_LABELS[activeConversation.status]
+              }
+              buyingIntentLevel={activeConversation.buyingIntentLevel ?? null}
+              buyingIntentSignals={activeConversation.buyingIntentSignals}
+              draft={
+                activeDraft
+                  ? { id: activeDraft.id, draftText: activeDraft.draftText }
+                  : null
+              }
+            />
 
             <div className="flex-1 space-y-3 overflow-y-auto p-5">
               {thread.map((msg) => {

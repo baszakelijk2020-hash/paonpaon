@@ -1,6 +1,11 @@
 import "server-only";
 
-import { createOpenAIClient, OpenAIProvider, type AIProvider } from "@paon/ai";
+import {
+  createOpenAIClient,
+  MockCommunicationDraftProvider,
+  OpenAIProvider,
+  type AIProvider,
+} from "@paon/ai";
 
 import { env } from "./env";
 
@@ -15,6 +20,12 @@ import { env } from "./env";
  * `@paon/ai` and changing only this one construction site.
  */
 export function getAIProvider(): AIProvider | null {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.PAON_E2E_MOCK_AI === "1"
+  ) {
+    return new MockCommunicationDraftProvider();
+  }
   const apiKey = env.openaiApiKey;
   return apiKey ? new OpenAIProvider(createOpenAIClient(apiKey)) : null;
 }

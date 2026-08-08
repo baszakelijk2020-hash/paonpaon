@@ -1,6 +1,16 @@
 "use server";
+import { runCommunicationDraftJob } from "@paon/ai";
 import { requireRetailerRole } from "@paon/auth";
-import { AppointmentRepository, MessagingRepository } from "@paon/database";
+import {
+  AIGenerationRepository,
+  AppointmentRepository,
+  ConversationDraftRepository,
+  CustomerRepository,
+  MessagingRepository,
+  RetailerRepository,
+  RetailerStaffRepository,
+  TableServiceGuidanceRepository,
+} from "@paon/database";
 import {
   asId,
   sendMessageSchema,
@@ -10,6 +20,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { getAIProvider } from "@/lib/ai";
 import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -62,6 +73,202 @@ export async function sendMessage(formData: FormData) {
     });
   }
 
+  revalidatePath("/messages");
+}
+
+export async function claimConversation(formData: FormData) {
+  const session = await requireModuleSession("relationship_intelligence");
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const conversationId = asId<"ConversationId">(
+    String(formData.get("conversationId") ?? ""),
+  );
+  const repo = new MessagingRepository(await getSupabaseServerClient());
+  const conversation = await repo.findConversation(conversationId);
+  if (!conversation || conversation.retailerId !== session.retailerId) {
+    throw new Error("Conversation not found.");
+  }
+  await repo.claimConversation(conversationId);
+  revalidatePath("/messages");
+}
+
+export interface ConversationDraftActionState {
+  readonly formError?: string;
+}
+
+export async function generateConversationDraft(
+  conversationIdValue: string,
+  _previous: ConversationDraftActionState,
+  _formData: FormData,
+): Promise<ConversationDraftActionState> {
+  const session = await requireModuleSession("relationship_intelligence");
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const provider = getAIProvider();
+  if (!provider) {
+    return {
+      formError:
+        "AI drafting is not configured on this deployment. Reply manually.",
+    };
+  }
+
+  const conversationId = asId<"ConversationId">(conversationIdValue);
+  const client = await getSupabaseServerClient();
+  const messaging = new MessagingRepository(client);
+  const drafts = new ConversationDraftRepository(client);
+  const conversation = await messaging.findConversation(conversationId);
+  if (!conversation || conversation.retailerId !== session.retailerId) {
+    return { formError: "Conversation not found." };
+  }
+  if (await drafts.findLatestProposedForConversation(conversationId)) {
+    return { formError: "A draft is already waiting for review." };
+  }
+
+  const [messages, customer, retailer, staff] = await Promise.all([
+    messaging.findMessages(conversationId),
+    new CustomerRepository(client).findById(conversation.customerId),
+    new RetailerRepository(client).findById(session.retailerId),
+    new RetailerStaffRepository(client).findByUserId(session.userId),
+  ]);
+  if (
+    !customer ||
+    customer.retailerId !== session.retailerId ||
+    !staff ||
+    staff.retailerId !== session.retailerId
+  ) {
+    return { formError: "Conversation participants are unavailable." };
+  }
+  if (!conversation.claimedByStaffId) {
+    return { formError: "Claim this conversation before generating a draft." };
+  }
+  if (
+    conversation.claimedByStaffId !== staff.id &&
+    !["manager", "admin", "owner"].includes(session.retailerRole)
+  ) {
+    return { formError: "Only the assigned advisor can generate this draft." };
+  }
+  const latestCustomerMessage = [...messages]
+    .reverse()
+    .find(
+      (message) =>
+        message.senderType === "customer" || message.senderType === "guest",
+    );
+  if (!latestCustomerMessage) {
+    return { formError: "No customer message is available to draft from." };
+  }
+
+  const retrieval = await new TableServiceGuidanceRepository(
+    client,
+  ).retrieveBasis({
+    retailerId: session.retailerId,
+    slug: retailer?.slug ?? "",
+    ...(conversation.intent ? { intent: conversation.intent } : {}),
+    freeText: latestCustomerMessage.body,
+  });
+  const context = {
+    retailerName: retailer?.displayName ?? "the retailer",
+    customerName: customer.fullName,
+    latestCustomerMessage: latestCustomerMessage.body,
+    recentMessages: messages.slice(-10).map((message) => ({
+      speaker:
+        message.senderType === "staff"
+          ? ("staff" as const)
+          : ("customer" as const),
+      text: message.body,
+    })),
+    knowledge:
+      retrieval?.knowledgeResults.map((result) => ({
+        knowledgeObjectId: String(result.knowledgeObjectId),
+        title: result.presentation.title,
+        summary: result.presentation.summary,
+      })) ?? [],
+    products:
+      retrieval?.shortlist.map((item) => ({
+        productId: String(item.productId),
+        name: item.name,
+        explanation: item.explanation,
+      })) ?? [],
+  };
+  const inputSummary = `conversation=${conversationId} recentMessages=${context.recentMessages.length} knowledge=${context.knowledge.length} products=${context.products.length}`;
+  const generation = await runCommunicationDraftJob(provider, context);
+  const audit = new AIGenerationRepository(client);
+
+  if (!generation.ok || !generation.result) {
+    try {
+      await audit.record({
+        retailerId: session.retailerId,
+        customerId: customer.id,
+        requestedByStaffId: staff.id,
+        kind: "communication_draft",
+        status: "failed",
+        provider: generation.provider,
+        model: generation.model,
+        inputSummary,
+        errorMessage: generation.errorMessage ?? "Communication draft failed",
+        latencyMs: generation.latencyMs,
+      });
+    } catch {
+      return { formError: "Draft generation failed and could not be audited." };
+    }
+    return {
+      formError: generation.errorMessage ?? "Draft generation failed.",
+    };
+  }
+
+  await audit.record({
+    retailerId: session.retailerId,
+    customerId: customer.id,
+    requestedByStaffId: staff.id,
+    kind: "communication_draft",
+    status: "succeeded",
+    provider: generation.provider,
+    model: generation.model,
+    inputSummary,
+    output: {
+      refuse: generation.result.refuse,
+      draftCharacterCount: generation.result.draftText.length,
+      knowledgeObjectIds: [...generation.result.knowledgeObjectIds],
+      productIds: [...generation.result.productIds],
+    },
+    latencyMs: generation.latencyMs,
+  });
+  if (generation.result.refuse) {
+    return {
+      formError:
+        "The approved knowledge was too thin for a grounded draft. Reply manually.",
+    };
+  }
+
+  await new ConversationDraftRepository(getSupabaseAdminClient()).propose({
+    retailerId: session.retailerId,
+    conversationId,
+    basedOnMessageId: latestCustomerMessage.id,
+    draftText: generation.result.draftText,
+    knowledgeObjectIds: generation.result.knowledgeObjectIds,
+    productIds: generation.result.productIds,
+  });
+  revalidatePath("/messages");
+  return {};
+}
+
+export async function approveConversationDraft(formData: FormData) {
+  const session = await requireModuleSession("relationship_intelligence");
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const draftId = String(formData.get("draftId") ?? "");
+  const editedText = String(formData.get("draftText") ?? "").trim();
+  if (!draftId || !editedText) throw new Error("Draft reply is required.");
+  await new ConversationDraftRepository(
+    await getSupabaseServerClient(),
+  ).approveAndSend({ draftId, editedText });
+  revalidatePath("/messages");
+}
+
+export async function dismissConversationDraft(formData: FormData) {
+  const session = await requireModuleSession("relationship_intelligence");
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const draftId = String(formData.get("draftId") ?? "");
+  if (!draftId) throw new Error("Draft is required.");
+  await new ConversationDraftRepository(
+    await getSupabaseServerClient(),
+  ).dismiss(draftId);
   revalidatePath("/messages");
 }
 

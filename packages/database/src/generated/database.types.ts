@@ -18236,6 +18236,10 @@ export type Database = {
         Args: { p_limit?: number };
         Returns: number;
       };
+      approve_conversation_ai_draft: {
+        Args: { p_draft_id: string; p_edited_text?: string };
+        Returns: string;
+      };
       assert_pos_actor: { Args: { p_retailer_id: string }; Returns: undefined };
       assert_retailer_module_dependencies: {
         Args: { p_retailer_id: string };
@@ -18449,6 +18453,10 @@ export type Database = {
       decide_silhouette_analysis_candidate: {
         Args: { p_decision: string; p_note?: string; p_session_id: string };
         Returns: undefined;
+      };
+      dismiss_conversation_ai_draft: {
+        Args: { p_draft_id: string };
+        Returns: boolean;
       };
       enqueue_campaign_delivery_notification: {
         Args: {

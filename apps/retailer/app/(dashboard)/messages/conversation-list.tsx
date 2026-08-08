@@ -12,6 +12,8 @@ export interface ConversationListItem {
   lastMessageAt: string | null;
   preview: string;
   awaitingReply: boolean;
+  statusLabel: string;
+  buyingIntentLevel: string | null;
 }
 
 const STATUS_FILTERS = ["all", "awaiting", "replied"] as const;
@@ -117,6 +119,12 @@ export function ConversationList({
                 {item.preview}
               </p>
               <div className="flex items-center gap-2 text-xs text-[var(--color-stone-400)]">
+                <span>{item.statusLabel}</span>
+                {item.buyingIntentLevel ? (
+                  <span className="capitalize">
+                    {item.buyingIntentLevel.replace("_", " ")} intent
+                  </span>
+                ) : null}
                 {item.intentLabel ? <span>{item.intentLabel}</span> : null}
                 {item.lastMessageAt ? (
                   <span>{formatDate(item.lastMessageAt, "en-US")}</span>

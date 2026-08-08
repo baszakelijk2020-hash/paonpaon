@@ -4502,6 +4502,28 @@ routine-occasions.ts`) reuses 10.4's existing
     Playwright e2e. Do not mark this item's checkbox or claim it
     "connected" until the retailer-side claim/draft UI and at least one
     real end-to-end browser proof exist.
+  - **Working-tree continuation (2026-08-09; not yet browser/database
+    verified):** the retailer inbox now projects queue status, explainable
+    matched buying-intent evidence, assignment, claim, grounded-draft review,
+    edit/send and dismissal controls. Draft generation requires a claimed
+    same-House conversation, reuses `TableServiceGuidanceRepository`'s
+    approved knowledge/product retrieval, treats all conversation text as
+    untrusted, refuses a non-grounded response, and records every provider
+    attempt as `communication_draft` before any proposal is persisted. The
+    database continuation closes cross-House claim/source/resolver/sent-message
+    references, revokes direct authenticated proposal mutation, limits
+    resolution to the assigned advisor or manager+, prevents concurrent
+    proposed drafts, and makes approve + real advisor message + queue advance
+    one transaction. `ConversationDraftRepository` now calls those narrow
+    RPCs rather than the revoked split update path. AI/provider and repository
+    suites are green (43 and 479 assertions respectively). The ledger-approved
+    disposable local Supabase target now resets cleanly through the complete
+    migration chain, generated types exactly match the migrated schema, and
+    the expanded 17-assertion pgTAP proof passes, including cross-House and
+    same-House unassigned-advisor refusal plus concurrent-proposal exclusion.
+    Still required before completion: add and run the specified anonymous
+    inquiry -> retailer claim -> mock draft -> edited send -> customer-visible
+    Playwright journey. No checkbox/evidence claim is made yet.
 
 ### Stage 18 — Corporate business development, tenders, and rollout (Métier expansion)
 

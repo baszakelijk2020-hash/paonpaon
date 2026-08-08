@@ -20,8 +20,8 @@ export interface MockGroundedAnswerProviderOptions {
  * live model. Returns an allowlisted refusal or the provided result.
  */
 export class MockGroundedAnswerProvider implements AIProvider {
-  readonly providerName = "mock";
-  readonly model = "mock-grounded";
+  readonly providerName: string = "mock";
+  readonly model: string = "mock-grounded";
 
   constructor(
     private readonly options: MockGroundedAnswerProviderOptions = {},
