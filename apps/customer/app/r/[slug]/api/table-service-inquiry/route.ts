@@ -1,10 +1,15 @@
 import { MessagingRepository } from "@paon/database";
-import { asId } from "@paon/domain";
+import {
+  asId,
+  classifyBuyingIntent,
+  conversationNeedsHuman,
+} from "@paon/domain";
 import { NextResponse } from "next/server";
 
 import { validateTableServiceInquiry } from "../../table-service-validation";
 
 import { assertRetailerModuleActive } from "@/lib/module-session";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 /**
@@ -57,13 +62,33 @@ export async function POST(request: Request) {
   }
 
   try {
-    await new MessagingRepository(supabase).submitTableServiceInquiry({
+    const conversationId = await new MessagingRepository(
+      supabase,
+    ).submitTableServiceInquiry({
       retailerId: rId,
       name,
       email,
       intent,
       message,
     });
+
+    // The raw founder storefront posts to this Route Handler rather than the
+    // React Server Action. Keep its durable inquiry and best-effort triage
+    // semantics identical so the entry point cannot bypass the human queue.
+    try {
+      const classification = classifyBuyingIntent(message);
+      await new MessagingRepository(
+        getSupabaseAdminClient(),
+      ).recordIntentClassification({
+        conversationId,
+        retailerId: rId,
+        classification,
+        escalateToHuman: conversationNeedsHuman(classification),
+      });
+    } catch {
+      // The inquiry is already durable; classification must not turn a
+      // successful anonymous submission into a visitor-facing error.
+    }
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Something went wrong.";
