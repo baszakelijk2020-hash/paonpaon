@@ -88,6 +88,28 @@ export interface GroundedAnswerResult {
   readonly productIds: readonly string[];
 }
 
+/** Human-review-only reply drafting over the same ADR-060 allowlist used by
+ * TableService guidance. Customer text is untrusted data, never instructions. */
+export interface CommunicationDraftContext {
+  readonly retailerName: string;
+  readonly customerName: string;
+  readonly latestCustomerMessage: string;
+  readonly recentMessages: readonly {
+    readonly speaker: "customer" | "staff";
+    readonly text: string;
+  }[];
+  readonly knowledge: readonly GroundedAnswerKnowledgeCandidate[];
+  readonly products: readonly GroundedAnswerProductCandidate[];
+}
+
+export interface CommunicationDraftResult {
+  readonly refuse: boolean;
+  readonly refuseReason?: string;
+  readonly draftText: string;
+  readonly knowledgeObjectIds: readonly string[];
+  readonly productIds: readonly string[];
+}
+
 /** One advisor note/voice/photo capture — the raw text is already
  * transcribed by the time it reaches this context; speech-to-text is a
  * separate, swappable concern from the extraction call itself. */
@@ -141,6 +163,10 @@ export interface AIProvider {
   generateGroundedAnswer(
     context: GroundedAnswerContext,
   ): Promise<GroundedAnswerResult>;
+  /** Optional provider capability: callers must fail closed when absent. */
+  generateCommunicationDraft?(
+    context: CommunicationDraftContext,
+  ): Promise<CommunicationDraftResult>;
   /**
    * Returns parsed JSON (an array of proposed capture bundles) from the
    * model. `checkCaptureBundleProposal` (`@paon/domain`) validates every
