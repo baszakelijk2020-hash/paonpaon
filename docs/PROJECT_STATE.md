@@ -64,6 +64,15 @@ consent. Local proof is 188/188 pgTAP plus both 4.9 browser journeys; the
 formal checkbox remains open behind 4.6/4.7/4.8 dependency state and the
 repository-wide historical evidence backlog.
 
+Virtual Wardrobe Studio 4.10 is also reconciled on Lane H as `18210d2`:
+customer batch enqueue/cancel and consented feedback-to-StyleProfile evidence
+now compose with the canonical 4.7–4.9 boundaries. `7cb3c19` restores the
+pre-existing event-provenance/replay guarantees after the older Lane D RPC
+rewrite, and delegated `07f1bda` grants the persisted generation consent in
+the browser fixture. Clean local proof is 190/190 pgTAP and 1/1 connected
+customer browser; the formal checkbox remains open behind the unchecked VWS
+dependency chain and repository-wide historical evidence backlog.
+
 Last hand-maintained update: 2026-08-05 (FT-02 silhouette analysis
 consent/capture state machine landed on `agent/grok-takeover-2026-07-30`).
 Commits since then — including FT-09's consultation-to-appointment journey —

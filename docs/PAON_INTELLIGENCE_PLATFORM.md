@@ -434,13 +434,16 @@ spec.ts` proved exactly one of five "Needs your attention" card types
   Both TableService widget implementations got the selector; the retailer
   inbox shows the linked item. Full customer and retailer e2e suites reran
   green.
-  Virtual Wardrobe Studio 4.9 is reconciled on Lane H: advisors compose and
-  enqueue roadmap-linked Outfits and customers review each ready look. The
-  same-House advisor cancellation boundary and persisted-consent browser
-  fixture are repaired; local proof is 188/188 pgTAP plus both retailer and
-  customer journeys. Keep 4.9 formally open behind its unchecked 4.6 and
-  4.7/4.8 dependencies and the historical ADR-068 backlog; the next VWS slice
-  is 4.10 unless a 4.9 invariant fails.
+  Virtual Wardrobe Studio 4.9 and 4.10 are reconciled on Lane H: advisors
+  compose and enqueue roadmap-linked Outfits, customers review each ready
+  look, batch-enqueue/cancel their saved looks and feed consented garment-taste
+  feedback into the existing StyleProfile evidence path. The same-House
+  advisor cancellation boundary, persisted-consent browser fixtures and the
+  StyleProfile event-provenance/replay guarantees are repaired; local proof is
+  190/190 pgTAP plus the retailer and both customer journeys. Keep the VWS
+  items formally open behind their unchecked dependency chain and the
+  historical ADR-068 backlog; do not reopen 4.6–4.10 unless an invariant
+  fails.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

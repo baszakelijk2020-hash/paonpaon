@@ -1754,15 +1754,22 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     covers that surface).
   - **Hard blockers:** none for local implementation; live image rendering
     requires a configured provider credential.
-  - **Status (2026-08-09, Lane H reconciliation in progress):** Lane D authored
-    domain `styleEvidenceForWardrobeVisualizationFeedback`,
+  - **Status (2026-08-09, Lane H reconciliation):** `18210d2` integrates Lane
+    D's domain `styleEvidenceForWardrobeVisualizationFeedback`,
     customer `generateAllSavedLooks`/`cancelAllQueuedLooks`/
     `feedStyleProfileEvidence` Server Actions and `BatchLookActions` UI,
-    deterministic-claim-order migration and a connected browser spec. Lane H
-    is preserving the canonical module/image-consent guards and restoring the
-    event-provenance/idempotency guarantees lost by the older-branch RPC
-    rewrite before making any completion claim. Dependencies remain formally
-    unchecked and no current-branch ADR-068 proof exists yet.
+    deterministic-claim-order migration and a connected browser spec while
+    preserving the canonical module/image-consent guards. `7cb3c19` adds a
+    forward migration restoring the event-provenance and replay-idempotency
+    guarantees lost by the older-branch RPC rewrite; `07f1bda` is the
+    delegated persisted-consent fixture repair. Clean local proof is 190/190
+    pgTAP, 25/25 focused Virtual Studio domain tests, 1/1 customer browser,
+    1,109 domain tests, 496 database tests (70 gated live tests skipped), all
+    production builds, lint/typecheck and format. The ADR-068 browser record
+    points to reachable code SHA `07f1bda`. The checkbox remains unchecked
+    because dependencies 4.6, 4.7/4.8 and 4.9 remain formally unchecked and
+    the global completion validator is still red on the pre-existing
+    historical evidence backlog.
 
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain — see ADR-074 for the visualization-only fit-preference
