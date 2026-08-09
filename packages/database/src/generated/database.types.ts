@@ -12527,6 +12527,59 @@ export type Database = {
           },
         ];
       };
+      retailer_virtual_try_on_policies: {
+        Row: {
+          allow_image: boolean;
+          allow_video: boolean;
+          created_at: string;
+          currency: string;
+          enabled: boolean;
+          max_customer_generations_per_day: number;
+          max_customer_generations_per_month: number;
+          max_customer_generations_per_week: number;
+          monthly_budget_minor_units: number;
+          per_customer_monthly_budget_minor_units: number;
+          retailer_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          allow_image?: boolean;
+          allow_video?: boolean;
+          created_at?: string;
+          currency?: string;
+          enabled?: boolean;
+          max_customer_generations_per_day?: number;
+          max_customer_generations_per_month?: number;
+          max_customer_generations_per_week?: number;
+          monthly_budget_minor_units?: number;
+          per_customer_monthly_budget_minor_units?: number;
+          retailer_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          allow_image?: boolean;
+          allow_video?: boolean;
+          created_at?: string;
+          currency?: string;
+          enabled?: boolean;
+          max_customer_generations_per_day?: number;
+          max_customer_generations_per_month?: number;
+          max_customer_generations_per_week?: number;
+          monthly_budget_minor_units?: number;
+          per_customer_monthly_budget_minor_units?: number;
+          retailer_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "retailer_virtual_try_on_policies_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: true;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       retailer_visual_presets: {
         Row: {
           aspect_ratio: string;
@@ -16582,6 +16635,151 @@ export type Database = {
           },
         ];
       };
+      virtual_try_on_usage_ledger: {
+        Row: {
+          actual_cost_currency: string | null;
+          actual_cost_minor_units: number | null;
+          attributed_revenue_currency: string | null;
+          attributed_revenue_minor_units: number | null;
+          cache_hit: boolean;
+          campaign_id: string | null;
+          conversion_event: string | null;
+          created_at: string;
+          credits_consumed: number | null;
+          credits_reserved: number | null;
+          customer_id: string;
+          denial_reason: string | null;
+          endpoint: string;
+          estimated_cost_currency: string;
+          estimated_cost_minor_units: number;
+          failure_code: string | null;
+          id: string;
+          input_asset_ids: string[];
+          internal_cost_currency: string | null;
+          internal_cost_minor_units: number | null;
+          media_kind: string;
+          model: string;
+          output_asset_id: string | null;
+          provider: string;
+          quality: string;
+          requested_by_staff_id: string | null;
+          retailer_id: string;
+          settled_at: string | null;
+          status: string;
+          store_id: string | null;
+          trigger: string;
+        };
+        Insert: {
+          actual_cost_currency?: string | null;
+          actual_cost_minor_units?: number | null;
+          attributed_revenue_currency?: string | null;
+          attributed_revenue_minor_units?: number | null;
+          cache_hit?: boolean;
+          campaign_id?: string | null;
+          conversion_event?: string | null;
+          created_at?: string;
+          credits_consumed?: number | null;
+          credits_reserved?: number | null;
+          customer_id: string;
+          denial_reason?: string | null;
+          endpoint: string;
+          estimated_cost_currency: string;
+          estimated_cost_minor_units: number;
+          failure_code?: string | null;
+          id?: string;
+          input_asset_ids?: string[];
+          internal_cost_currency?: string | null;
+          internal_cost_minor_units?: number | null;
+          media_kind: string;
+          model: string;
+          output_asset_id?: string | null;
+          provider: string;
+          quality: string;
+          requested_by_staff_id?: string | null;
+          retailer_id: string;
+          settled_at?: string | null;
+          status: string;
+          store_id?: string | null;
+          trigger: string;
+        };
+        Update: {
+          actual_cost_currency?: string | null;
+          actual_cost_minor_units?: number | null;
+          attributed_revenue_currency?: string | null;
+          attributed_revenue_minor_units?: number | null;
+          cache_hit?: boolean;
+          campaign_id?: string | null;
+          conversion_event?: string | null;
+          created_at?: string;
+          credits_consumed?: number | null;
+          credits_reserved?: number | null;
+          customer_id?: string;
+          denial_reason?: string | null;
+          endpoint?: string;
+          estimated_cost_currency?: string;
+          estimated_cost_minor_units?: number;
+          failure_code?: string | null;
+          id?: string;
+          input_asset_ids?: string[];
+          internal_cost_currency?: string | null;
+          internal_cost_minor_units?: number | null;
+          media_kind?: string;
+          model?: string;
+          output_asset_id?: string | null;
+          provider?: string;
+          quality?: string;
+          requested_by_staff_id?: string | null;
+          retailer_id?: string;
+          settled_at?: string | null;
+          status?: string;
+          store_id?: string | null;
+          trigger?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "virtual_try_on_usage_ledger_campaign_id_fkey";
+            columns: ["campaign_id"];
+            isOneToOne: false;
+            referencedRelation: "campaigns";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "virtual_try_on_usage_ledger_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "virtual_try_on_usage_ledger_customer_retailer_fk";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "virtual_try_on_usage_ledger_requested_by_staff_id_fkey";
+            columns: ["requested_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "virtual_try_on_usage_ledger_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "virtual_try_on_usage_ledger_store_id_fkey";
+            columns: ["store_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       wardrobe_attachments: {
         Row: {
           created_at: string;
@@ -19622,6 +19820,65 @@ export type Database = {
         };
         Returns: Json;
       };
+      reserve_virtual_try_on_generation: {
+        Args: {
+          p_cache_hit: boolean;
+          p_campaign_id: string;
+          p_commercially_justified: boolean;
+          p_customer_id: string;
+          p_endpoint: string;
+          p_input_asset_ids: string[];
+          p_media_kind: string;
+          p_model: string;
+          p_persist_portrait: boolean;
+          p_provider: string;
+          p_provider_estimate_currency: string;
+          p_provider_estimate_minor_units: number;
+          p_quality: string;
+          p_retailer_id: string;
+          p_store_id: string;
+          p_trigger: string;
+        };
+        Returns: {
+          actual_cost_currency: string | null;
+          actual_cost_minor_units: number | null;
+          attributed_revenue_currency: string | null;
+          attributed_revenue_minor_units: number | null;
+          cache_hit: boolean;
+          campaign_id: string | null;
+          conversion_event: string | null;
+          created_at: string;
+          credits_consumed: number | null;
+          credits_reserved: number | null;
+          customer_id: string;
+          denial_reason: string | null;
+          endpoint: string;
+          estimated_cost_currency: string;
+          estimated_cost_minor_units: number;
+          failure_code: string | null;
+          id: string;
+          input_asset_ids: string[];
+          internal_cost_currency: string | null;
+          internal_cost_minor_units: number | null;
+          media_kind: string;
+          model: string;
+          output_asset_id: string | null;
+          provider: string;
+          quality: string;
+          requested_by_staff_id: string | null;
+          retailer_id: string;
+          settled_at: string | null;
+          status: string;
+          store_id: string | null;
+          trigger: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "virtual_try_on_usage_ledger";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       resolve_concept_scan_code: { Args: { p_code: string }; Returns: Json };
       resolve_corporate_office_visit_page: {
         Args: { p_programme_id: string };
@@ -19805,6 +20062,61 @@ export type Database = {
           p_wedding_party_member_id?: string;
         };
         Returns: string;
+      };
+      settle_virtual_try_on_generation: {
+        Args: {
+          p_actual_cost_currency?: string;
+          p_actual_cost_minor_units?: number;
+          p_attributed_revenue_currency?: string;
+          p_attributed_revenue_minor_units?: number;
+          p_conversion_event?: string;
+          p_credits_consumed?: number;
+          p_failure_code?: string;
+          p_internal_cost_currency?: string;
+          p_internal_cost_minor_units?: number;
+          p_ledger_id: string;
+          p_output_asset_id?: string;
+          p_status: string;
+        };
+        Returns: {
+          actual_cost_currency: string | null;
+          actual_cost_minor_units: number | null;
+          attributed_revenue_currency: string | null;
+          attributed_revenue_minor_units: number | null;
+          cache_hit: boolean;
+          campaign_id: string | null;
+          conversion_event: string | null;
+          created_at: string;
+          credits_consumed: number | null;
+          credits_reserved: number | null;
+          customer_id: string;
+          denial_reason: string | null;
+          endpoint: string;
+          estimated_cost_currency: string;
+          estimated_cost_minor_units: number;
+          failure_code: string | null;
+          id: string;
+          input_asset_ids: string[];
+          internal_cost_currency: string | null;
+          internal_cost_minor_units: number | null;
+          media_kind: string;
+          model: string;
+          output_asset_id: string | null;
+          provider: string;
+          quality: string;
+          requested_by_staff_id: string | null;
+          retailer_id: string;
+          settled_at: string | null;
+          status: string;
+          store_id: string | null;
+          trigger: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "virtual_try_on_usage_ledger";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       start_silhouette_analysis_session: {
         Args: { p_retailer_id: string };

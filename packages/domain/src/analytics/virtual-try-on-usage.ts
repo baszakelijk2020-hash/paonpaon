@@ -15,6 +15,7 @@ import type {
   RetailerBranchId,
   RetailerId,
   StaffId,
+  VirtualTryOnUsageLedgerId,
 } from "../shared/branded-id";
 import type { Money } from "../shared/money";
 
@@ -288,7 +289,7 @@ export function evaluateVirtualTryOnAuthorization(
  * PAON-controlled references, never vendor payloads or public URLs.
  */
 export interface VirtualTryOnUsageLedgerEntry {
-  readonly id: string;
+  readonly id: VirtualTryOnUsageLedgerId;
   readonly retailerId: RetailerId;
   readonly storeId?: RetailerBranchId;
   readonly customerId: CustomerId;
@@ -315,4 +316,46 @@ export interface VirtualTryOnUsageLedgerEntry {
   readonly failureCode?: string;
   readonly createdAt: string;
   readonly settledAt?: string;
+}
+
+/** `VirtualTryOnUsagePolicy` plus the retailer it belongs to — the shape a
+ * repository read returns, as opposed to the shape the pure authorization
+ * function consumes. */
+export interface RetailerVirtualTryOnPolicy extends VirtualTryOnUsagePolicy {
+  readonly retailerId: RetailerId;
+}
+
+/** Persistence input for `reserve_virtual_try_on_generation`. The RPC
+ * re-derives every authorization gate server-side (see the migration's own
+ * comment); this is only the request shape, not a client-trusted decision. */
+export interface ReserveVirtualTryOnGenerationInput {
+  readonly retailerId: RetailerId;
+  readonly customerId: CustomerId;
+  readonly storeId?: RetailerBranchId;
+  readonly campaignId?: CampaignId;
+  readonly provider: string;
+  readonly model: string;
+  readonly endpoint: string;
+  readonly mediaKind: VirtualTryOnMediaKind;
+  readonly quality: VirtualTryOnQualityLevel;
+  readonly trigger: VirtualTryOnTrigger;
+  readonly inputAssetIds: readonly string[];
+  readonly persistPortrait: boolean;
+  readonly providerEstimate: Money;
+  readonly cacheHit: boolean;
+  readonly commerciallyJustified: boolean;
+}
+
+/** Persistence input for `settle_virtual_try_on_generation` — service_role
+ * only, called once per reserved/cache_hit row. */
+export interface SettleVirtualTryOnGenerationInput {
+  readonly ledgerId: VirtualTryOnUsageLedgerId;
+  readonly status: "succeeded" | "failed" | "cancelled";
+  readonly outputAssetId?: string;
+  readonly creditsConsumed?: number;
+  readonly actualCost?: Money;
+  readonly internalCost?: Money;
+  readonly conversionEvent?: string;
+  readonly attributedRevenue?: Money;
+  readonly failureCode?: string;
 }

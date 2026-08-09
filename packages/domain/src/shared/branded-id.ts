@@ -270,6 +270,10 @@ export type WardrobeVisualizationFeedbackId = Brand<
   string,
   "WardrobeVisualizationFeedbackId"
 >;
+export type VirtualTryOnUsageLedgerId = Brand<
+  string,
+  "VirtualTryOnUsageLedgerId"
+>;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;
