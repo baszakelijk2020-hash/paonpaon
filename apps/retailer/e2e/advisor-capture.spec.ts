@@ -13,7 +13,7 @@ import {
 } from "./fixtures";
 import { writeBrowserProofRun } from "./write-browser-proof-run";
 
-const PHASE_ITEM_ID = "advisor-capture";
+const PHASE_ITEM_ID = "17.1";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/advisor-capture.spec.ts";
 
 let proofPassed = false;
