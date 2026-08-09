@@ -5,6 +5,7 @@ import {
   ProductVariantRepository,
   RetailerRepository,
   RetailerVisualPresetRepository,
+  StylePortraitConsentRepository,
   StylePortraitRepository,
   WardrobeLifecycleRepository,
   WardrobeRepository,
@@ -46,6 +47,7 @@ export default async function WardrobePage() {
   const outfitRepo = new OutfitRepository(supabase);
   const jobRepo = new WardrobeVisualizationJobRepository(supabase);
   const portraitRepo = new StylePortraitRepository(supabase);
+  const portraitConsentRepo = new StylePortraitConsentRepository(supabase);
   const presetRepo = new RetailerVisualPresetRepository(supabase);
 
   const groups = await Promise.all(
@@ -121,10 +123,19 @@ export default async function WardrobePage() {
       const approvedPortrait = await portraitRepo.findApprovedForCustomer(
         customer.id,
       );
+      const portraitConsent = await portraitConsentRepo.findForCustomer(
+        customer.retailerId,
+        customer.id,
+      );
       const defaultPreset = await presetRepo.findDefaultForRetailer(
         customer.retailerId,
       );
-      const canGenerate = Boolean(approvedPortrait && defaultPreset);
+      const canGenerate = Boolean(
+        approvedPortrait &&
+        defaultPreset &&
+        portraitConsent.status === "granted" &&
+        portraitConsent.disclosuresAcknowledged,
+      );
 
       return {
         customer,

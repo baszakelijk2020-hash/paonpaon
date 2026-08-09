@@ -5,6 +5,7 @@ import {
   MetadataRepository,
   OutfitRepository,
   RetailerVisualPresetRepository,
+  StylePortraitConsentRepository,
   StylePortraitRepository,
   WardrobeVisualizationFeedbackRepository,
   WardrobeVisualizationJobRepository,
@@ -21,6 +22,7 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -52,6 +54,11 @@ export async function composeCustomerOutfit(
   formData: FormData,
 ): Promise<ComposeOutfitState> {
   const { customer, supabase } = await resolveCustomer(retailerId);
+  await assertRetailerModuleActive(
+    supabase,
+    customer.retailerId,
+    "wardrobe_styling",
+  );
 
   const title = String(formData.get("title") ?? "").trim();
   const slotEntries = formData.getAll("slotItem");
@@ -113,6 +120,18 @@ export async function generateOutfitLook(
   writtenInstructions: string | undefined,
 ): Promise<{ readonly error?: string }> {
   const { customer, supabase } = await resolveCustomer(retailerId);
+  await assertRetailerModuleActive(
+    supabase,
+    customer.retailerId,
+    "wardrobe_styling",
+  );
+
+  const consent = await new StylePortraitConsentRepository(
+    supabase,
+  ).findForCustomer(customer.retailerId, customer.id);
+  if (consent.status !== "granted" || !consent.disclosuresAcknowledged) {
+    return { error: "Grant image-generation consent in Settings first." };
+  }
 
   const portrait = await new StylePortraitRepository(
     supabase,
@@ -190,6 +209,11 @@ export async function recordLookFeedback(
   signal: WardrobeVisualizationFeedbackSignal,
 ): Promise<void> {
   const { customer, supabase } = await resolveCustomer(retailerId);
+  await assertRetailerModuleActive(
+    supabase,
+    customer.retailerId,
+    "wardrobe_styling",
+  );
   const parsed = recordWardrobeVisualizationFeedbackInputSchema.parse({
     retailerId: customer.retailerId,
     customerId: customer.id,

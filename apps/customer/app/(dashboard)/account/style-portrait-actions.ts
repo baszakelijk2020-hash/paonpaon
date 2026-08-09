@@ -15,6 +15,7 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
+import { assertRetailerModuleActive } from "@/lib/module-session";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -42,6 +43,11 @@ export async function grantStylePortraitConsent(
 ): Promise<void> {
   const retailerId = String(formData.get("retailerId"));
   const { customer, supabase } = await resolveCustomer(retailerId);
+  await assertRetailerModuleActive(
+    supabase,
+    customer.retailerId,
+    "wardrobe_styling",
+  );
   await new StylePortraitConsentRepository(supabase).grant(
     customer.retailerId,
     customer.id,
@@ -72,6 +78,11 @@ export async function uploadStylePortraitReference(
   formData: FormData,
 ): Promise<UploadReferenceState> {
   const { customer, supabase } = await resolveCustomer(retailerId);
+  await assertRetailerModuleActive(
+    supabase,
+    customer.retailerId,
+    "wardrobe_styling",
+  );
 
   const consent = await new StylePortraitConsentRepository(
     supabase,
@@ -149,6 +160,11 @@ export async function declareFitArchetype(
   conceptId: string,
 ): Promise<void> {
   const { customer, supabase } = await resolveCustomer(retailerId);
+  await assertRetailerModuleActive(
+    supabase,
+    customer.retailerId,
+    "wardrobe_styling",
+  );
   await new StyleProfileRepository(supabase).upsertDeclared(customer.id, {
     conceptId: asId<"MetadataConceptId">(conceptId),
     polarity: "positive",
@@ -176,6 +192,11 @@ export async function generateStylePortraitPreview(
 ): Promise<void> {
   const retailerId = String(formData.get("retailerId"));
   const { customer, supabase } = await resolveCustomer(retailerId);
+  await assertRetailerModuleActive(
+    supabase,
+    customer.retailerId,
+    "wardrobe_styling",
+  );
 
   const portraitRepo = new StylePortraitRepository(supabase);
   const portrait = await portraitRepo.findLatestForCustomer(customer.id);
@@ -205,6 +226,11 @@ export async function generateStylePortraitPreview(
 export async function approveStylePortrait(formData: FormData): Promise<void> {
   const retailerId = String(formData.get("retailerId"));
   const { customer, supabase } = await resolveCustomer(retailerId);
+  await assertRetailerModuleActive(
+    supabase,
+    customer.retailerId,
+    "wardrobe_styling",
+  );
   const portraitRepo = new StylePortraitRepository(supabase);
   const portrait = await portraitRepo.findLatestForCustomer(customer.id);
   if (!portrait) throw new Error("No Style Portrait draft to approve.");

@@ -1,9 +1,11 @@
 import { runWardrobeVisualizationJob } from "@paon/ai";
 import {
   OutfitRepository,
+  PlatformModuleRepository,
   ProductRepository,
   RetailerRepository,
   RetailerVisualPresetRepository,
+  StylePortraitConsentRepository,
   StylePortraitRepository,
   WardrobeRepository,
   WardrobeVisualizationJobRepository,
@@ -98,7 +100,9 @@ export async function processWardrobeVisualizationJobs(
   const jobRepo = new WardrobeVisualizationJobRepository(admin);
   const outfitRepo = new OutfitRepository(admin);
   const portraitRepo = new StylePortraitRepository(admin);
+  const consentRepo = new StylePortraitConsentRepository(admin);
   const presetRepo = new RetailerVisualPresetRepository(admin);
+  const moduleRepo = new PlatformModuleRepository(admin);
   const retailerRepo = new RetailerRepository(admin);
 
   const claimed = await jobRepo.claimPending(BATCH_SIZE);
@@ -110,16 +114,25 @@ export async function processWardrobeVisualizationJobs(
   // sequential generation for a customer/advisor batch, not fan-out.
   for (const job of claimed) {
     try {
-      const [outfit, portrait, preset, retailer] = await Promise.all([
-        outfitRepo.findById(job.outfitId),
-        portraitRepo.findById(job.stylePortraitId),
-        presetRepo.findById(job.retailerVisualPresetId),
-        retailerRepo.findById(job.retailerId),
-      ]);
+      const [outfit, portrait, preset, retailer, consent, moduleState] =
+        await Promise.all([
+          outfitRepo.findById(job.outfitId),
+          portraitRepo.findById(job.stylePortraitId),
+          presetRepo.findById(job.retailerVisualPresetId),
+          retailerRepo.findById(job.retailerId),
+          consentRepo.findForCustomer(job.retailerId, job.customerId),
+          moduleRepo.publicAccessState(job.retailerId, "wardrobe_styling"),
+        ]);
       if (!outfit || !portrait || !preset || !retailer) {
         throw new Error(
           "Job references a missing outfit/portrait/preset/retailer.",
         );
+      }
+      if (consent.status !== "granted" || !consent.disclosuresAcknowledged) {
+        throw new Error("Image-generation consent is not active.");
+      }
+      if (moduleState !== "active") {
+        throw new Error("Wardrobe styling is not active for this house.");
       }
 
       const referenceImageUrls: string[] = [];
