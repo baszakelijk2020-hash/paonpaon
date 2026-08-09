@@ -4189,7 +4189,7 @@ stage's own item text; nothing here jumps ahead of Stage 15/16's own queue,
 it runs alongside it per explicit founder instruction to build this backlog
 now.
 
-- [ ] **17.1 Advisor capture — AI-proposed, human-confirmed action bundles**
+- [x] **17.1 Advisor capture — AI-proposed, human-confirmed action bundles**
   - **Requirement IDs:** ADV-101.
   - **Dependencies:** `7.3` (customer_facts), `7.4` (clienteling_opportunities).
   - **Owner boundary:** typed/voiced/photographed advisor note → AI-proposed
@@ -4242,6 +4242,27 @@ now.
     used; the test itself polls the database rather than the DOM for
     settlement, the established fix for this exact class of timing issue
     elsewhere in this suite (`pos.spec.ts`'s `waitForSaleState`).
+  - **Status (2026-08-09, evidence closure, Lane H):** the 2026-08-04
+    implementation above was real and complete but had never been checked:
+    no ADR-068 tranche evidence existed, no dedicated RLS/security content
+    test existed, and its browser-proof run was writing to
+    `docs/evidence/runs/advisor-capture.json` — the wrong filename for the
+    repo-wide completion gate, which looks up a checked item's own id
+    (`17.1`). Independently re-verified every acceptance line before
+    checking the box: `checkCaptureBundleProposal`'s evidence-grounding
+    refusal is real (`advisor-capture.test.ts`); nothing writes to
+    `customer_facts`/`clienteling_opportunities` before confirm
+    (`advisor-capture.spec.ts`); every extraction attempt — success or
+    failure — is recorded through `AIGenerationRepository` in
+    `apps/retailer/app/(dashboard)/customers/[id]/actions.ts`'s
+    `captureNote` (initially missed on a narrower grep of the wrong file,
+    then found and confirmed real). `5242f66` adds
+    `advisor-capture-security.test.ts` (6 RLS/tenancy content assertions)
+    and renames the spec's own evidence id to `17.1`; both dependencies
+    (`7.3`, `7.4`) are already checked, satisfying the queue rule.
+    `docs/evidence/tranches/17.1.json` records the full ten-dimension
+    evidence map; `docs/evidence/runs/17.1.json` records the passing run
+    at `5242f66`. Checkbox now checked.
 
 - [x] **17.2 Mission Control unified brief**
   - **Requirement IDs:** ADV-102.

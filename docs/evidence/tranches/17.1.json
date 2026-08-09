@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "17.1",
+  "requirementIds": ["ADV-101"],
+  "status": "verified_local",
+  "title": "Advisor capture — AI-proposed, human-confirmed action bundles",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "required"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/intelligence/advisor-capture.ts; packages/domain/src/intelligence/advisor-capture.test.ts",
+    "persistence": "supabase/migrations/20260804120000_add_advisor_capture.sql",
+    "service": "packages/database/src/repositories/advisor-capture-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/customers/[id]/advisor-capture.tsx",
+    "receiver_ui": "apps/retailer/app/(dashboard)/customers/[id]/page.tsx; apps/retailer/app/(dashboard)/customers/[id]/clienteling-opportunity-inbox.tsx",
+    "rls": "packages/database/src/repositories/advisor-capture-security.test.ts",
+    "exceptions": "packages/domain/src/intelligence/advisor-capture.test.ts (fabricated source excerpt, unknown fact type, missing required field per kind — checkCaptureBundleProposal refusal)",
+    "browser": "apps/retailer/e2e/advisor-capture.spec.ts + docs/evidence/runs/17.1.json status=passed",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "Live extraction requires a configured OPENAI_API_KEY; apps/retailer/app/(dashboard)/customers/[id]/actions.ts's captureNote records every attempt (success or failure) through AIGenerationRepository, the same transparency surface next_best_action already uses, but the browser spec seeds three realistic proposals directly (AdvisorCaptureRepository.proposeBundles) since this sandbox has no live provider credential — same posture every other AI-assisted surface in this codebase documents."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/advisor-capture.spec.ts",
+  "assertedAt": "2026-08-09T09:32:15.606Z"
+}
