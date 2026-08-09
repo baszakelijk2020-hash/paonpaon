@@ -1,8 +1,16 @@
-import { createSupabaseAdminClient, WardrobeRepository } from "@paon/database";
+import {
+  createSupabaseAdminClient,
+  WardrobeRepository,
+  WardrobeVisualizationJobRepository,
+} from "@paon/database";
 import { asId } from "@paon/domain";
 import { expect, test, type Page } from "@playwright/test";
 
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
+import { writeBrowserProofRun } from "./write-browser-proof-run";
+
+const PHASE_ITEM_ID = "4.7-4.8-customer-style-portrait-onboarding";
+const BROWSER_PROOF_SPEC = "apps/customer/e2e/virtual-studio.spec.ts";
 
 // A genuine minimal 1x1 PNG — same fixture bytes already proven against
 // this codebase's own magic-byte validation (silhouette-analysis.spec.ts,
@@ -47,6 +55,16 @@ async function signIn(
   throw new Error(`local magic-link sign-in did not complete: ${page.url()}`);
 }
 
+let proofPassed = false;
+
+test.afterAll(async () => {
+  await writeBrowserProofRun({
+    phaseItemId: PHASE_ITEM_ID,
+    spec: BROWSER_PROOF_SPEC,
+    status: proofPassed ? "passed" : "failed",
+  });
+});
+
 /**
  * Virtual Wardrobe Studio (VWS-001..003 / PHASE 4.6-4.8 / ADR-074) —
  * Style Portrait onboarding on /account through to composing and
@@ -54,11 +72,16 @@ async function signIn(
  * private-bucket upload, fit-archetype declaration through the existing
  * StyleProfile RPC, the onboarding preview/approve state machine, outfit
  * composition with real slot-consistency rules, and generation enqueue
- * with idempotency. This sandbox has no OPENAI_API_KEY, so the enqueued
- * job is proven to reach `queued` and stay there — actual image
- * rendering is the queue processor's own concern
- * (apps/admin/app/api/cron/process-wardrobe-visualizations), out of
- * scope for this spec, same "hard blocker: missing provider credential
+ * with idempotency. This sandbox has no OPENAI_API_KEY, so no real AI
+ * rendering happens: the onboarding Style Portrait preview job is
+ * fixture-completed to `ready` (same simulated-queue-processor pattern as
+ * `roadmap-look-review.spec.ts` and
+ * `virtual-studio-batch-and-feedback-evidence.spec.ts`) so the
+ * approve/compose flow that depends on an approved portrait can run, while
+ * the later outfit generation job is only proven to reach `queued` and
+ * stay there — actual image rendering is the queue processor's own
+ * concern (apps/admin/app/api/cron/process-wardrobe-visualizations), out
+ * of scope for this spec, same "hard blocker: missing provider credential
  * blocks only live smoke verification" posture every other AI-assisted
  * surface in this codebase already documents.
  */
@@ -178,6 +201,52 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
 
     await page.getByRole("button", { name: "Continue" }).click();
     await expect(
+      page.getByText("Your neutral Style Portrait is queued."),
+    ).toBeVisible();
+
+    const { data: previewJobAfterEnqueue } = await admin
+      .from("wardrobe_visualization_jobs")
+      .select("id, status")
+      .eq("style_portrait_id", portraitAfterUploads.id)
+      .eq("job_kind", "style_portrait_preview")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+    if (!previewJobAfterEnqueue) {
+      throw new Error("style portrait preview job was not created");
+    }
+    expect(previewJobAfterEnqueue.status).toBe("queued");
+
+    // Simulate the queue processor — this sandbox has no OPENAI_API_KEY, so
+    // real generation is out of scope here (same posture the outfit
+    // generation enqueue proof below already documents). Claim the job into
+    // `generating` the way `claim_pending_wardrobe_visualization_jobs`
+    // would, then complete it the same way
+    // `apps/admin/app/api/cron/process-wardrobe-visualizations` does:
+    // `complete_wardrobe_visualization_job` only accepts a `generating` job
+    // and atomically advances the portrait to `preview_generated`.
+    const { error: claimError } = await admin
+      .from("wardrobe_visualization_jobs")
+      .update({ status: "generating" })
+      .eq("id", previewJobAfterEnqueue.id)
+      .eq("status", "queued");
+    if (claimError) throw claimError;
+
+    const previewOutputPath = `${retailer.id}/${customerRow.id}/generations/e2e-portrait-preview-${previewJobAfterEnqueue.id}.png`;
+    const { error: previewUploadError } = await admin.storage
+      .from("wardrobe-studio")
+      .upload(previewOutputPath, PNG, { contentType: "image/png" });
+    if (previewUploadError) throw previewUploadError;
+
+    await new WardrobeVisualizationJobRepository(admin).complete({
+      jobId: asId<"WardrobeVisualizationJobId">(previewJobAfterEnqueue.id),
+      status: "ready",
+      outputStorageBucket: "wardrobe-studio",
+      outputStoragePath: previewOutputPath,
+    });
+
+    await page.reload();
+    await expect(
       page.getByText(
         "Check your photo, then approve to activate your Style Portrait.",
       ),
@@ -246,6 +315,8 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
     if (!jobAfterEnqueue) throw new Error("visualization job was not created");
     expect(jobAfterEnqueue.status).toBe("queued");
     expect(jobAfterEnqueue.customer_id).toBe(customerRow.id);
+
+    proofPassed = true;
   } finally {
     if (outfitIds.length > 0) {
       const { error: jobDeleteError } = await admin
@@ -271,6 +342,19 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
       }
     }
     if (portraitIds.length > 0) {
+      // `wardrobe_visualization_jobs.style_portrait_id` is `on delete
+      // restrict` — the style portrait preview job must go before the
+      // portrait it references.
+      const { error: previewJobDeleteError } = await admin
+        .from("wardrobe_visualization_jobs")
+        .delete()
+        .in("style_portrait_id", portraitIds);
+      if (previewJobDeleteError) {
+        console.error(
+          "cleanup: style portrait preview job delete failed",
+          previewJobDeleteError,
+        );
+      }
       const { error: referenceDeleteError } = await admin
         .from("style_portrait_references")
         .delete()
@@ -291,6 +375,19 @@ test("a customer builds a Style Portrait, composes a look, and enqueues generati
             objects.map(
               (object) =>
                 `${retailer.id}/${customerRow.id}/references/${object.name}`,
+            ),
+          );
+      }
+      const { data: generatedObjects } = await admin.storage
+        .from("wardrobe-studio")
+        .list(`${retailer.id}/${customerRow.id}/generations`);
+      if (generatedObjects && generatedObjects.length > 0) {
+        await admin.storage
+          .from("wardrobe-studio")
+          .remove(
+            generatedObjects.map(
+              (object) =>
+                `${retailer.id}/${customerRow.id}/generations/${object.name}`,
             ),
           );
       }
