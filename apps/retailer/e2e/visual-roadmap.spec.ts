@@ -2,6 +2,7 @@ import {
   CustomerRepository,
   ProductRepository,
   SartorialRuleRepository,
+  StylePortraitConsentRepository,
   StylePortraitRepository,
   WardrobeRoadmapRepository,
   createSupabaseAdminClient,
@@ -78,6 +79,12 @@ test("an advisor adds a look to a roadmap and enqueues generation", async ({
     email: `visual-roadmap-${unique}@paon.test`,
     lifecycleStage: "returning",
   });
+  const consent = await new StylePortraitConsentRepository(admin).grant(
+    retailerId,
+    customer.id,
+  );
+  expect(consent.status).toBe("granted");
+  expect(consent.disclosuresAcknowledged).toBe(true);
 
   const products = await new ProductRepository(admin).findByRetailer(
     retailerId,
@@ -253,6 +260,10 @@ test("an advisor adds a look to a roadmap and enqueues generation", async ({
         .eq("outfit_id", cleanupIds.outfitId);
       await admin.from("outfits").delete().eq("id", cleanupIds.outfitId);
     }
+    await admin
+      .from("style_portrait_consents")
+      .delete()
+      .eq("customer_id", customer.id);
     await admin
       .from("style_portrait_references")
       .delete()
