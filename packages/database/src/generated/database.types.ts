@@ -17401,8 +17401,9 @@ export type Database = {
           id: string;
           input_hash: string;
           input_snapshot: Json;
+          job_kind: string;
           model: string;
-          outfit_id: string;
+          outfit_id: string | null;
           output_storage_bucket: string | null;
           output_storage_path: string | null;
           provider: string;
@@ -17422,8 +17423,9 @@ export type Database = {
           id?: string;
           input_hash: string;
           input_snapshot: Json;
+          job_kind?: string;
           model: string;
-          outfit_id: string;
+          outfit_id?: string | null;
           output_storage_bucket?: string | null;
           output_storage_path?: string | null;
           provider?: string;
@@ -17443,8 +17445,9 @@ export type Database = {
           id?: string;
           input_hash?: string;
           input_snapshot?: Json;
+          job_kind?: string;
           model?: string;
-          outfit_id?: string;
+          outfit_id?: string | null;
           output_storage_bucket?: string | null;
           output_storage_path?: string | null;
           provider?: string;
@@ -18819,8 +18822,9 @@ export type Database = {
           id: string;
           input_hash: string;
           input_snapshot: Json;
+          job_kind: string;
           model: string;
-          outfit_id: string;
+          outfit_id: string | null;
           output_storage_bucket: string | null;
           output_storage_path: string | null;
           provider: string;
@@ -18871,8 +18875,9 @@ export type Database = {
           id: string;
           input_hash: string;
           input_snapshot: Json;
+          job_kind: string;
           model: string;
-          outfit_id: string;
+          outfit_id: string | null;
           output_storage_bucket: string | null;
           output_storage_path: string | null;
           provider: string;
@@ -18975,6 +18980,46 @@ export type Database = {
         };
         Returns: string;
       };
+      enqueue_style_portrait_preview_job: {
+        Args: {
+          p_customer_id: string;
+          p_input_hash: string;
+          p_input_snapshot: Json;
+          p_model: string;
+          p_provider: string;
+          p_retailer_id: string;
+          p_retailer_visual_preset_id: string;
+          p_style_portrait_id: string;
+        };
+        Returns: {
+          actual_cost_cents: number | null;
+          attempt: number;
+          created_at: string;
+          customer_id: string;
+          error_message: string | null;
+          estimated_cost_cents: number | null;
+          id: string;
+          input_hash: string;
+          input_snapshot: Json;
+          job_kind: string;
+          model: string;
+          outfit_id: string | null;
+          output_storage_bucket: string | null;
+          output_storage_path: string | null;
+          provider: string;
+          retailer_id: string;
+          retailer_visual_preset_id: string;
+          status: string;
+          style_portrait_id: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "wardrobe_visualization_jobs";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       enqueue_wardrobe_visualization_job: {
         Args: {
           p_customer_id: string;
@@ -18997,8 +19042,9 @@ export type Database = {
           id: string;
           input_hash: string;
           input_snapshot: Json;
+          job_kind: string;
           model: string;
-          outfit_id: string;
+          outfit_id: string | null;
           output_storage_bucket: string | null;
           output_storage_path: string | null;
           provider: string;

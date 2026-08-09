@@ -4,6 +4,7 @@ import type {
   FitArchetypeOption,
   StylePortrait,
   StylePortraitConsent,
+  WardrobeVisualizationJob,
 } from "@paon/domain";
 import { Button, buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -80,12 +81,14 @@ export function StylePortraitPanel({
   retailerName,
   consent,
   portrait,
+  previewJob,
   fitArchetypes,
 }: {
   retailerId: string;
   retailerName: string;
   consent: StylePortraitConsent;
   portrait: StylePortrait | null;
+  previewJob: WardrobeVisualizationJob | null;
   fitArchetypes: readonly FitArchetypeOption[];
 }) {
   const consentGranted =
@@ -137,10 +140,10 @@ export function StylePortraitPanel({
                 Your Style Portrait is approved and ready for the Virtual
                 Studio.
               </p>
-              {portrait.previewImageUrl ? (
+              {previewJob?.outputImageUrl || portrait.previewImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={portrait.previewImageUrl}
+                  src={previewJob?.outputImageUrl ?? portrait.previewImageUrl}
                   alt="Your Style Portrait reference"
                   className="max-h-64 rounded-[var(--radius-md)] border border-[var(--color-stone-200)]"
                 />
@@ -163,10 +166,10 @@ export function StylePortraitPanel({
               >
                 Check your photo, then approve to activate your Style Portrait.
               </p>
-              {portrait.previewImageUrl ? (
+              {previewJob?.outputImageUrl || portrait.previewImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={portrait.previewImageUrl}
+                  src={previewJob?.outputImageUrl ?? portrait.previewImageUrl}
                   alt="Your Style Portrait reference"
                   className="max-h-64 rounded-[var(--radius-md)] border border-[var(--color-stone-200)]"
                 />
@@ -192,6 +195,13 @@ export function StylePortraitPanel({
                 </form>
               </div>
             </div>
+          ) : previewJob?.status === "queued" ||
+            previewJob?.status === "generating" ? (
+            <p className="text-sm text-[var(--color-stone-600)]" role="status">
+              {previewJob.status === "queued"
+                ? "Your neutral Style Portrait is queued."
+                : "Creating your neutral Style Portrait…"}
+            </p>
           ) : (
             <div className="flex flex-col gap-4">
               <div className="grid gap-3 sm:grid-cols-2">
@@ -260,11 +270,18 @@ export function StylePortraitPanel({
                     !portrait?.references.some((ref) => ref.kind === "face") ||
                     !portrait?.references.some(
                       (ref) => ref.kind === "full_body",
-                    )
+                    ) ||
+                    !portrait.fitArchetypeConceptId
                   }
                 >
-                  Continue
+                  {previewJob?.status === "failed" ? "Try again" : "Continue"}
                 </Button>
+                {previewJob?.status === "failed" ? (
+                  <p className="mt-2 text-sm text-[var(--color-danger-500)]">
+                    {previewJob.errorMessage ??
+                      "The preview could not be created."}
+                  </p>
+                ) : null}
               </form>
             </div>
           )}

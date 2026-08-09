@@ -2,15 +2,21 @@
 
 import {
   CustomerRepository,
+  MetadataRepository,
+  RetailerVisualPresetRepository,
   StylePortraitConsentRepository,
   StylePortraitRepository,
   StyleProfileRepository,
+  WardrobeVisualizationJobRepository,
 } from "@paon/database";
 import {
   asId,
+  deriveTailoringAttributesFromFitArchetype,
   fileBytesMatchMimeType,
+  parseFitArchetypeSlug,
   safeAttachmentFileName,
   stylePortraitTransitionIssues,
+  type StylePortraitPreviewInputSnapshot,
   type StylePortraitReferenceKind,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
@@ -179,14 +185,9 @@ export async function declareFitArchetype(
   revalidatePath("/account");
 }
 
-/**
- * The onboarding "preview" step (founder brief §Step 7): confirms the
- * uploaded full-body reference looks right before it locks in as
- * approved. Not an AI render in this slice — `WardrobeVisualizationJob`
- * requires an `Outfit`, which doesn't exist yet during onboarding; a
- * true rendered preview is a fast-follow once outfit-agnostic generation
- * is supported. Named honestly here rather than faked.
- */
+/** The onboarding preview is an actual neutral AI render. It uses the same
+ * bounded queue/private-storage path as outfit generation, but has no Outfit:
+ * the customer is choosing their identity reference before composing looks. */
 export async function generateStylePortraitPreview(
   formData: FormData,
 ): Promise<void> {
@@ -203,23 +204,59 @@ export async function generateStylePortraitPreview(
   if (!portrait) throw new Error("No Style Portrait draft to preview.");
 
   const hasFace = portrait.references.some((ref) => ref.kind === "face");
-  const fullBody = portrait.references.find((ref) => ref.kind === "full_body");
+  const hasFullBody = portrait.references.some(
+    (ref) => ref.kind === "full_body",
+  );
   const issues = stylePortraitTransitionIssues({
     action: "generate_preview",
     currentStatus: portrait.status,
     hasFaceReference: hasFace,
-    hasFullBodyReference: Boolean(fullBody),
+    hasFullBodyReference: hasFullBody,
   });
-  if (issues.length > 0 || !fullBody) {
+  if (issues.length > 0) {
     throw new Error("Upload both a face and a full-body photo first.");
   }
+  if (!portrait.fitArchetypeConceptId) {
+    throw new Error("Choose a fit preference first.");
+  }
 
-  const { data: signed, error } = await supabase.storage
-    .from(fullBody.storageBucket)
-    .createSignedUrl(fullBody.storagePath, 15 * 60);
-  if (error) throw error;
+  const preset = await new RetailerVisualPresetRepository(
+    supabase,
+  ).findDefaultForRetailer(customer.retailerId);
+  if (!preset) {
+    throw new Error("This house has not configured a visual preset yet.");
+  }
 
-  await portraitRepo.recordPreview(portrait.id, signed.signedUrl);
+  const concept = await new MetadataRepository(supabase).findConceptById(
+    customer.retailerId,
+    asId<"MetadataConceptId">(portrait.fitArchetypeConceptId),
+  );
+  const archetype = concept ? parseFitArchetypeSlug(concept.slug) : null;
+  if (!archetype) throw new Error("Choose a valid fit preference first.");
+
+  const snapshot: StylePortraitPreviewInputSnapshot = {
+    kind: "style_portrait_preview",
+    stylePortraitId: portrait.id,
+    stylePortraitVersion: portrait.version,
+    retailerVisualPresetId: preset.id,
+    tailoringAttributes: deriveTailoringAttributesFromFitArchetype(archetype),
+    writtenInstructions:
+      "Create a neutral studio Style Portrait in an understated plain outfit. Preserve identity and natural body proportions exactly.",
+    providerName: "openai",
+    model: "gpt-image-2",
+  };
+
+  await new WardrobeVisualizationJobRepository(
+    supabase,
+  ).enqueueStylePortraitPreview(
+    {
+      retailerId: customer.retailerId,
+      customerId: customer.id,
+      stylePortraitId: portrait.id,
+      retailerVisualPresetId: preset.id,
+    },
+    snapshot,
+  );
   revalidatePath("/account");
 }
 

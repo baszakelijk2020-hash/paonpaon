@@ -114,19 +114,16 @@ export async function processWardrobeVisualizationJobs(
   // sequential generation for a customer/advisor batch, not fan-out.
   for (const job of claimed) {
     try {
-      const [outfit, portrait, preset, retailer, consent, moduleState] =
+      const [portrait, preset, retailer, consent, moduleState] =
         await Promise.all([
-          outfitRepo.findById(job.outfitId),
           portraitRepo.findById(job.stylePortraitId),
           presetRepo.findById(job.retailerVisualPresetId),
           retailerRepo.findById(job.retailerId),
           consentRepo.findForCustomer(job.retailerId, job.customerId),
           moduleRepo.publicAccessState(job.retailerId, "wardrobe_styling"),
         ]);
-      if (!outfit || !portrait || !preset || !retailer) {
-        throw new Error(
-          "Job references a missing outfit/portrait/preset/retailer.",
-        );
+      if (!portrait || !preset || !retailer) {
+        throw new Error("Job references a missing portrait/preset/retailer.");
       }
       if (consent.status !== "granted" || !consent.disclosuresAcknowledged) {
         throw new Error("Image-generation consent is not active.");
@@ -144,9 +141,17 @@ export async function processWardrobeVisualizationJobs(
         referenceImageUrls.push(signed.signedUrl);
       }
 
-      const garmentDescriptions = (
-        await Promise.all(outfit.slots.map((slot) => describeSlot(admin, slot)))
-      ).filter((value): value is string => value !== null);
+      let garmentDescriptions: string[] = [];
+      if (job.kind === "outfit") {
+        if (!job.outfitId) throw new Error("Outfit job has no Outfit.");
+        const outfit = await outfitRepo.findById(job.outfitId);
+        if (!outfit) throw new Error("Job references a missing Outfit.");
+        garmentDescriptions = (
+          await Promise.all(
+            outfit.slots.map((slot) => describeSlot(admin, slot)),
+          )
+        ).filter((value): value is string => value !== null);
+      }
 
       const tailoring = job.inputSnapshot.tailoringAttributes;
       const tailoringInstructions = Object.entries(tailoring)

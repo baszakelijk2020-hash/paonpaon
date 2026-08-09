@@ -180,6 +180,7 @@ async function enqueueLook(
   }
 
   const snapshot: WardrobeVisualizationInputSnapshot = {
+    kind: "outfit",
     outfitId: asId<"OutfitId">(params.outfitId),
     stylePortraitId: portrait.id,
     stylePortraitVersion: portrait.version,
@@ -189,7 +190,7 @@ async function enqueueLook(
       ? { writtenInstructions: params.writtenInstructions.trim() }
       : {}),
     providerName: "openai",
-    model: "dall-e-3",
+    model: "gpt-image-2",
   };
 
   try {
@@ -348,7 +349,7 @@ async function feedStyleProfileEvidence(
   const job = await new WardrobeVisualizationJobRepository(supabase).findById(
     asId<"WardrobeVisualizationJobId">(params.jobId),
   );
-  if (!job) return;
+  if (!job?.outfitId) return;
 
   const outfit = await new OutfitRepository(supabase).findById(job.outfitId);
   if (!outfit) return;

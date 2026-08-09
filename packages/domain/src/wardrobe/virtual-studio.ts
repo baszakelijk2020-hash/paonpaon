@@ -378,7 +378,14 @@ export function canCancelWardrobeVisualizationJob(
   return status === "queued";
 }
 
-export interface WardrobeVisualizationInputSnapshot {
+export const WARDROBE_VISUALIZATION_JOB_KINDS = [
+  "outfit",
+  "style_portrait_preview",
+] as const;
+export type WardrobeVisualizationJobKind =
+  (typeof WARDROBE_VISUALIZATION_JOB_KINDS)[number];
+
+interface WardrobeVisualizationInputSnapshotBase {
   readonly outfitId: OutfitId;
   readonly stylePortraitId: StylePortraitId;
   readonly stylePortraitVersion: number;
@@ -389,11 +396,27 @@ export interface WardrobeVisualizationInputSnapshot {
   readonly model: string;
 }
 
+export interface OutfitVisualizationInputSnapshot extends WardrobeVisualizationInputSnapshotBase {
+  readonly kind: "outfit";
+  readonly outfitId: OutfitId;
+}
+
+export interface StylePortraitPreviewInputSnapshot extends Omit<
+  WardrobeVisualizationInputSnapshotBase,
+  "outfitId"
+> {
+  readonly kind: "style_portrait_preview";
+}
+
+export type WardrobeVisualizationInputSnapshot =
+  OutfitVisualizationInputSnapshot | StylePortraitPreviewInputSnapshot;
+
 export interface WardrobeVisualizationJob extends Timestamps {
   readonly id: WardrobeVisualizationJobId;
   readonly retailerId: RetailerId;
   readonly customerId: CustomerId;
-  readonly outfitId: OutfitId;
+  readonly kind: WardrobeVisualizationJobKind;
+  readonly outfitId?: OutfitId;
   readonly stylePortraitId: StylePortraitId;
   readonly retailerVisualPresetId: RetailerVisualPresetId;
   readonly providerName: string;
@@ -430,7 +453,8 @@ export function canonicalizeWardrobeVisualizationInput(
     }, {});
 
   return JSON.stringify({
-    outfitId: input.outfitId,
+    kind: input.kind,
+    ...(input.kind === "outfit" ? { outfitId: input.outfitId } : {}),
     stylePortraitId: input.stylePortraitId,
     stylePortraitVersion: input.stylePortraitVersion,
     retailerVisualPresetId: input.retailerVisualPresetId,

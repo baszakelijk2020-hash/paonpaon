@@ -306,8 +306,8 @@ test("batch-enqueues saved looks deterministically, bulk-cancels them, and feeds
       { p_limit: 10 },
     );
     if (claimError) throw claimError;
-    const claimedForFixture = (claimed ?? []).filter((job) =>
-      outfitIds.includes(job.outfit_id),
+    const claimedForFixture = (claimed ?? []).filter(
+      (job) => job.outfit_id !== null && outfitIds.includes(job.outfit_id),
     );
     expect(claimedForFixture.map((job) => job.id)).toEqual(
       queuedJobs.map((job) => job.id),

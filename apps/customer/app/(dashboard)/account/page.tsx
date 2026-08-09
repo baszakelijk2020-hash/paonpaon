@@ -6,6 +6,7 @@ import {
   StylePortraitConsentRepository,
   StylePortraitRepository,
   StyleProfileRepository,
+  WardrobeVisualizationJobRepository,
 } from "@paon/database";
 import { buildFitArchetypeOptions, type MetadataConceptId } from "@paon/domain";
 
@@ -29,6 +30,7 @@ export default async function AccountPage() {
   const metadataRepo = new MetadataRepository(supabase);
   const consentRepo = new StylePortraitConsentRepository(supabase);
   const portraitRepo = new StylePortraitRepository(supabase);
+  const visualizationRepo = new WardrobeVisualizationJobRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
@@ -43,6 +45,9 @@ export default async function AccountPage() {
         customer.id,
       );
       const portrait = await portraitRepo.findLatestForCustomer(customer.id);
+      const portraitPreviewJob = portrait
+        ? await visualizationRepo.findLatestStylePortraitPreview(portrait.id)
+        : null;
       const fitConcepts = await metadataRepo.findVisibleConcepts(
         customer.retailerId,
         "fit",
@@ -78,6 +83,7 @@ export default async function AccountPage() {
         conceptLabels,
         consent,
         portrait,
+        portraitPreviewJob,
         fitArchetypes,
       };
     }),
@@ -111,6 +117,7 @@ export default async function AccountPage() {
             conceptLabels,
             consent,
             portrait,
+            portraitPreviewJob,
             fitArchetypes,
           }) => (
             <div key={customer.id} className="flex flex-col gap-4">
@@ -130,6 +137,7 @@ export default async function AccountPage() {
                 retailerName={retailer?.displayName ?? "Retailer"}
                 consent={consent}
                 portrait={portrait}
+                previewJob={portraitPreviewJob}
                 fitArchetypes={fitArchetypes}
               />
             </div>

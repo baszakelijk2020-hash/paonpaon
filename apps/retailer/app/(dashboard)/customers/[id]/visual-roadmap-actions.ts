@@ -157,13 +157,14 @@ async function enqueueLook(
   }
 
   const snapshot: WardrobeVisualizationInputSnapshot = {
+    kind: "outfit",
     outfitId: asId<"OutfitId">(params.outfitId),
     stylePortraitId: portrait.id,
     stylePortraitVersion: portrait.version,
     retailerVisualPresetId: preset.id,
     tailoringAttributes: tailoring,
     providerName: "openai",
-    model: "dall-e-3",
+    model: "gpt-image-2",
   };
 
   try {

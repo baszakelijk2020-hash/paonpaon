@@ -143,6 +143,7 @@ describe("isPresetSafeForGeneration", () => {
 
 describe("canonicalizeWardrobeVisualizationInput", () => {
   const baseSnapshot: WardrobeVisualizationInputSnapshot = {
+    kind: "outfit",
     outfitId: asId("outfit-1"),
     stylePortraitId: asId("portrait-1"),
     stylePortraitVersion: 2,

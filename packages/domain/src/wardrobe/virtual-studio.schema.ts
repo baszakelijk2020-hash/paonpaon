@@ -75,6 +75,17 @@ export type EnqueueWardrobeVisualizationJobInput = z.infer<
   typeof enqueueWardrobeVisualizationJobInputSchema
 >;
 
+export const enqueueStylePortraitPreviewJobInputSchema = z.object({
+  retailerId: z.string().uuid(),
+  customerId: z.string().uuid(),
+  stylePortraitId: z.string().uuid(),
+  retailerVisualPresetId: z.string().uuid(),
+});
+
+export type EnqueueStylePortraitPreviewJobInput = z.infer<
+  typeof enqueueStylePortraitPreviewJobInputSchema
+>;
+
 export const recordWardrobeVisualizationFeedbackInputSchema = z.object({
   retailerId: z.string().uuid(),
   customerId: z.string().uuid(),

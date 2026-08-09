@@ -17,8 +17,11 @@ import {
   asId,
   canonicalizeWardrobeVisualizationInput,
   type CustomerId,
+  type EnqueueStylePortraitPreviewJobInput,
   type EnqueueWardrobeVisualizationJobInput,
   type OutfitId,
+  type StylePortraitId,
+  type StylePortraitPreviewInputSnapshot,
   type WardrobeVisualizationInputSnapshot,
   type WardrobeVisualizationJob,
   type WardrobeVisualizationJobId,
@@ -66,7 +69,8 @@ async function toJob(
     id: asId<"WardrobeVisualizationJobId">(row.id),
     retailerId: asId<"RetailerId">(row.retailer_id),
     customerId: asId<"CustomerId">(row.customer_id),
-    outfitId: asId<"OutfitId">(row.outfit_id),
+    kind: row.job_kind as WardrobeVisualizationJob["kind"],
+    ...(row.outfit_id ? { outfitId: asId<"OutfitId">(row.outfit_id) } : {}),
     stylePortraitId: asId<"StylePortraitId">(row.style_portrait_id),
     retailerVisualPresetId: asId<"RetailerVisualPresetId">(
       row.retailer_visual_preset_id,
@@ -108,6 +112,30 @@ export class WardrobeVisualizationJobRepository {
         p_retailer_id: input.retailerId,
         p_customer_id: input.customerId,
         p_outfit_id: input.outfitId,
+        p_style_portrait_id: input.stylePortraitId,
+        p_retailer_visual_preset_id: input.retailerVisualPresetId,
+        p_provider: snapshot.providerName,
+        p_model: snapshot.model,
+        p_input_snapshot: snapshot as unknown as Json,
+        p_input_hash: inputHash,
+      },
+    );
+    if (error) throw error;
+    return toJob(this.client, data);
+  }
+
+  /** Customer-only onboarding preview enqueue. The RPC re-derives module,
+   * consent, reference, fit and tenant gates in the insert transaction. */
+  async enqueueStylePortraitPreview(
+    input: EnqueueStylePortraitPreviewJobInput,
+    snapshot: StylePortraitPreviewInputSnapshot,
+  ): Promise<WardrobeVisualizationJob> {
+    const inputHash = await hashWardrobeVisualizationInput(snapshot);
+    const { data, error } = await this.client.rpc(
+      "enqueue_style_portrait_preview_job",
+      {
+        p_retailer_id: input.retailerId,
+        p_customer_id: input.customerId,
         p_style_portrait_id: input.stylePortraitId,
         p_retailer_visual_preset_id: input.retailerVisualPresetId,
         p_provider: snapshot.providerName,
@@ -196,6 +224,21 @@ export class WardrobeVisualizationJobRepository {
       .order("created_at", { ascending: false });
     if (error) throw error;
     return Promise.all(data.map((row) => toJob(this.client, row)));
+  }
+
+  async findLatestStylePortraitPreview(
+    stylePortraitId: StylePortraitId,
+  ): Promise<WardrobeVisualizationJob | null> {
+    const { data, error } = await this.client
+      .from("wardrobe_visualization_jobs")
+      .select("*")
+      .eq("style_portrait_id", stylePortraitId)
+      .eq("job_kind", "style_portrait_preview")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? await toJob(this.client, data) : null;
   }
 
   async findByCustomer(
