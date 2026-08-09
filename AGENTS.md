@@ -25,6 +25,12 @@ switching accounts/logins automatically; it means leaving the repository
 ready for whichever frontier seat resumes next, through the same minimal
 cold-start path above.
 
+Elapsed runtime, a completed slice, a self-estimated token count, context
+pressure, or a guess that capacity may be low is **not** a native quota
+warning. Without an actual CLI/API warning or hard quota/auth error, take the
+next independent buildable item. Never end with "stopping per capacity
+guidance" merely because one slice was committed.
+
 ## Minimum context
 
 For an ordinary implementation turn, read only:
@@ -88,6 +94,18 @@ Start the session-owned outer loop once from the authorized task branch:
 ```text
 pnpm paon:run
 ```
+
+For a terminal-independent named session that survives a closed terminal,
+start the same foreground loop inside macOS `screen`:
+
+```text
+pnpm paon:start
+```
+
+Check it with `pnpm paon:status` and stop it explicitly with
+`pnpm paon:stop`. Add `-- --provider claude` to `paon:start` to use Claude.
+Launching plain `codex` or plain `claude` directly bypasses the outer loop and
+will stop normally after a model turn; it is never the unattended entry point.
 
 That uses the installed Codex CLI and the machine's existing
 `approval_policy = "never"` / `sandbox_mode = "danger-full-access"`

@@ -23,7 +23,10 @@
     "prepare": "husky",
     "paon:delegate": "bash scripts/paon-delegate.sh",
     "paon:run": "bash scripts/paon-run.sh",
-    "paon:run:test": "bash scripts/paon-runner.test.sh"
+    "paon:run:test": "bash scripts/paon-runner.test.sh",
+    "paon:start": "bash scripts/paon-session.sh start",
+    "paon:status": "bash scripts/paon-session.sh status",
+    "paon:stop": "bash scripts/paon-session.sh stop"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
