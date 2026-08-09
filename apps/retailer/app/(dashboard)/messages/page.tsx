@@ -20,6 +20,7 @@ import { formatDate, formatMoney } from "@paon/utils";
 import Image from "next/image";
 import Link from "next/link";
 
+import { ChannelContactButtons } from "../channel-contact-buttons";
 import { LifecycleBadge } from "../customers/lifecycle-badge";
 
 import { linkConversationOutcome, sendMessage } from "./actions";
@@ -231,6 +232,17 @@ export default async function MessagesPage({
                       ? "Shared retailer conversation"
                       : "Storefront inquiry — no portal account yet"}
                   </p>
+                  {activeCustomer ? (
+                    <ChannelContactButtons
+                      {...(activeCustomer.phone
+                        ? { phone: activeCustomer.phone }
+                        : {})}
+                      {...(activeCustomer.email
+                        ? { email: activeCustomer.email }
+                        : {})}
+                      className="mt-3"
+                    />
+                  ) : null}
                 </div>
               </div>
             </div>

@@ -3,6 +3,7 @@ import {
   AppointmentRepository,
   ClientelingOpportunityRepository,
   CustomerRepository,
+  MessagingRepository,
   NotificationRepository,
   ProductVariantRepository,
 } from "@paon/database";
@@ -29,6 +30,7 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const DAY_START_HOUR = 8;
 const DAY_END_HOUR = 20;
+const MESSAGE_ACTION_HREF_PATTERN = /^\/messages\?c=([0-9a-f-]+)$/;
 
 const STATUS_TONE: Record<
   Appointment["status"],
@@ -65,9 +67,16 @@ function formatHourLabel(hour: number): string {
   return `${twelveHour}:00 ${period}`;
 }
 
+function getConversationIdFromActionHref(actionHref?: string): string | null {
+  if (!actionHref) return null;
+  const match = actionHref.match(MESSAGE_ACTION_HREF_PATTERN);
+  return match?.[1] ?? null;
+}
+
 export default async function MissionControlPage() {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
+  const messagingRepo = new MessagingRepository(supabase);
 
   const canApprovePrice = retailerRoleHasAlterationsPermission(
     session.retailerRole,
@@ -76,6 +85,7 @@ export default async function MissionControlPage() {
   const [
     appointments,
     customers,
+    conversations,
     draftOpportunities,
     pendingProposals,
     notifications,
@@ -83,6 +93,7 @@ export default async function MissionControlPage() {
   ] = await Promise.all([
     new AppointmentRepository(supabase).findByRetailer(session.retailerId),
     new CustomerRepository(supabase).findByRetailer(session.retailerId),
+    messagingRepo.findByRetailer(session.retailerId),
     retailerRoleAtLeast(session.retailerRole, "sales_associate")
       ? new ClientelingOpportunityRepository(supabase).listDraftInbox(
           session.retailerId,
@@ -105,11 +116,48 @@ export default async function MissionControlPage() {
         )
       : Promise.resolve(0),
   ]);
-  const unreadCount = notifications.filter((item) => !item.readAt).length;
+  const unreadNotifications = notifications.filter((item) => !item.readAt);
 
   const nameByCustomerId = new Map(
     customers.map((customer) => [customer.id, customer.fullName]),
   );
+  const customerById = new Map(
+    customers.map((customer) => [customer.id, customer]),
+  );
+
+  const conversationById = new Map(
+    conversations.map((conversation) => [
+      String(conversation.id),
+      conversation,
+    ]),
+  );
+  const conversationAttentionItems = [];
+  const conversationNotificationIds = new Set<string>();
+  const seenConversationHrefs = new Set<string>();
+  for (const notification of unreadNotifications) {
+    const conversationId = getConversationIdFromActionHref(
+      notification.actionHref,
+    );
+    if (notification.category !== "message" || !conversationId) continue;
+    const conversation = conversationById.get(conversationId);
+    if (!conversation) continue;
+
+    conversationNotificationIds.add(String(notification.id));
+    const href = `/messages?c=${conversationId}`;
+    if (seenConversationHrefs.has(href)) continue;
+    seenConversationHrefs.add(href);
+    const customer = customerById.get(conversation.customerId);
+    conversationAttentionItems.push({
+      notificationId: notification.id,
+      href,
+      customerName: customer?.fullName ?? "Customer",
+      title: notification.title,
+      body: notification.body,
+    });
+  }
+  const otherUnreadCount = unreadNotifications.filter(
+    (notification) => !conversationNotificationIds.has(String(notification.id)),
+  ).length;
 
   const todaysAppointments = appointments
     .filter(
@@ -136,7 +184,10 @@ export default async function MissionControlPage() {
   );
 
   const hasAttentionItems =
-    pendingProposals.length > 0 || unreadCount > 0 || lowStockCount > 0;
+    pendingProposals.length > 0 ||
+    conversationAttentionItems.length > 0 ||
+    otherUnreadCount > 0 ||
+    lowStockCount > 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -176,13 +227,44 @@ export default async function MissionControlPage() {
                 </div>
               </Link>
             ))}
-            {unreadCount > 0 ? (
-              <Link href="/messages" className="group">
+            {conversationAttentionItems.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                <p className="text-xs uppercase tracking-[0.14em] text-[var(--color-stone-400)]">
+                  {conversationAttentionItems.length === 1
+                    ? "1 conversation waiting"
+                    : `${conversationAttentionItems.length} conversations waiting`}
+                </p>
+                {conversationAttentionItems.map((item) => (
+                  <Link
+                    key={item.notificationId}
+                    href={item.href}
+                    className="group"
+                  >
+                    <div className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 group-hover:bg-[var(--color-stone-50)]">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-[var(--color-stone-900)]">
+                          {item.customerName}
+                        </p>
+                        <p className="mt-1 truncate text-xs text-[var(--color-stone-500)]">
+                          {item.title}
+                        </p>
+                        <p className="mt-1 line-clamp-2 text-xs text-[var(--color-stone-500)]">
+                          {item.body}
+                        </p>
+                      </div>
+                      <span aria-hidden="true">→</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+            {otherUnreadCount > 0 ? (
+              <Link href="/notifications" className="group">
                 <div className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 group-hover:bg-[var(--color-stone-50)]">
                   <p className="text-sm font-medium text-[var(--color-stone-900)]">
-                    {unreadCount === 1
-                      ? "1 conversation waiting"
-                      : `${unreadCount} conversations waiting`}
+                    {otherUnreadCount === 1
+                      ? "1 other unread update"
+                      : `${otherUnreadCount} other unread updates`}
                   </p>
                   <span aria-hidden="true">→</span>
                 </div>

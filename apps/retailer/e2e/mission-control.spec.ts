@@ -138,7 +138,7 @@ test("today's appointment slots into its hour, and a priority task can be accept
  * own already-proven fixtures exactly (same repository calls render both
  * pages; this proves the render, not a second copy of the query logic).
  */
-test("Mission Control surfaces pending price approvals, unread messages, and low stock", async ({
+test("Mission Control surfaces a real conversation thread and keeps non-message updates out of the conversation count", async ({
   page,
 }) => {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
@@ -163,14 +163,13 @@ test("Mission Control surfaces pending price approvals, unread messages, and low
 
   const unique = Date.now();
 
-  // 1. Price approval: seed a real work order via the repository (not
-  // the full UI intake journey — that flow has its own coverage) and a
-  // pending price-change proposal on it directly, matching
-  // dashboard-digest.spec.ts's own precedent for exactly this fixture.
+  // Seed a customer and a real work order so the attention card still
+  // has a price-approval item alongside the message threads.
   const customer = await new CustomerRepository(admin).create({
     retailerId,
-    fullName: `E2E Mission Control Attention Client ${unique}`,
-    email: `mission-control-attention-${unique}@paon.test`,
+    fullName: `E2E Mission Control Shared Client ${unique}`,
+    email: `mission-control-shared-${unique}@paon.test`,
+    phone: "+1 (555) 222-3344",
     lifecycleStage: "prospect",
   });
   const alterationId = await new AlterationRepository(admin).createIntake({
@@ -212,21 +211,50 @@ test("Mission Control surfaces pending price approvals, unread messages, and low
     .single();
   if (proposalError) throw proposalError;
 
-  // 2. Unread message.
-  const { data: notification, error: notificationError } = await admin
-    .from("notifications")
-    .insert({
-      retailer_id: retailerId,
-      recipient_user_id: staffRow.user_id,
-      category: "message",
-      title: "Mission Control fixture notification",
-      body: "Seeded for the unread-messages attention card e2e proof.",
-    })
-    .select("id")
-    .single();
-  if (notificationError) throw notificationError;
+  await page.goto(`/customers/${customer.id}`);
+  await page.getByRole("button", { name: "Message client" }).click();
+  await expect(page).toHaveURL(/\/messages\?c=[0-9a-f-]+$/);
+  const conversationId = new URL(page.url()).searchParams.get("c");
+  if (!conversationId) throw new Error("Conversation id missing from URL");
 
-  // 3. Low stock.
+  const { data: messageNotifications, error: messageNotificationError } =
+    await admin
+      .from("notifications")
+      .insert([
+        {
+          retailer_id: retailerId,
+          recipient_user_id: staffRow.user_id,
+          category: "message",
+          title: "Mission Control thread ping",
+          body: "Seeded for the deduped shared-thread proof.",
+          action_href: `/messages?c=${conversationId}`,
+        },
+        {
+          retailer_id: retailerId,
+          recipient_user_id: staffRow.user_id,
+          category: "message",
+          title: "Mission Control thread follow-up",
+          body: "Seeded for the deduped shared-thread proof.",
+          action_href: `/messages?c=${conversationId}`,
+        },
+      ])
+      .select("id");
+  if (messageNotificationError) throw messageNotificationError;
+
+  const { data: updateNotification, error: updateNotificationError } =
+    await admin
+      .from("notifications")
+      .insert({
+        retailer_id: retailerId,
+        recipient_user_id: staffRow.user_id,
+        category: "marketing",
+        title: "Mission Control update fixture",
+        body: "Seeded for the non-message unread proof.",
+      })
+      .select("id")
+      .single();
+  if (updateNotificationError) throw updateNotificationError;
+
   const { data: product, error: productError } = await admin
     .from("products")
     .insert({
@@ -261,18 +289,49 @@ test("Mission Control surfaces pending price approvals, unread messages, and low
         `Price approval needed · ${workOrder.work_order_number}`,
       ),
     ).toBeVisible();
-    await expect(attention.locator('a[href="/messages"]')).toContainText(
-      "conversation",
+    const conversationLink = attention.locator(
+      `a[href="/messages?c=${conversationId}"]`,
+    );
+    await expect(conversationLink).toHaveCount(1);
+    await expect(conversationLink).toContainText(customer.fullName);
+    await expect(attention.locator('a[href="/messages"]')).toHaveCount(0);
+    await expect(attention.locator('a[href="/notifications"]')).toContainText(
+      /other unread update/,
     );
     await expect(attention.locator('a[href="/products"]')).toContainText(
       "variant",
     );
+    await conversationLink.click();
+    await expect(page).toHaveURL(
+      new RegExp(`/messages\\?c=${conversationId}$`),
+    );
 
     attentionProofPassed = true;
   } finally {
+    if (conversationId) {
+      await admin
+        .from("messages")
+        .delete()
+        .eq("conversation_id", conversationId);
+      await admin.from("conversations").delete().eq("id", conversationId);
+    }
+    if (messageNotifications?.length) {
+      await admin
+        .from("notifications")
+        .delete()
+        .in(
+          "id",
+          messageNotifications.map((notification) => notification.id),
+        );
+    }
+    if (updateNotification?.id) {
+      await admin
+        .from("notifications")
+        .delete()
+        .eq("id", updateNotification.id);
+    }
     await admin.from("product_variants").delete().eq("id", variant.id);
     await admin.from("products").delete().eq("id", product.id);
-    await admin.from("notifications").delete().eq("id", notification.id);
     await admin.from("price_change_proposals").delete().eq("id", proposal.id);
     await admin.from("alteration_work_orders").delete().eq("id", alterationId);
     await admin.from("customers").delete().eq("id", customer.id);
