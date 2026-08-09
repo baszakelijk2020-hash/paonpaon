@@ -8,6 +8,7 @@ pnpm-lock.yaml
 supabase/.branches
 supabase/.temp
 .vscode
+/.claude/worktrees
 
 # Verbatim HTML that must never be reformatted.
 # paon-template.html is the founder's own file, served byte-for-byte
