@@ -1638,6 +1638,47 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     The global completion validator remains red on pre-existing stale/missing
     evidence for other checked PHASE items, so no ADR-068 evidence record or
     formal completion claim is fabricated here.
+  - **Status (2026-08-09, Lane H consent-boundary follow-up):** the earlier
+    persisted-consent gap is closed by `486418a`. Enqueue now re-derives the
+    authenticated customer/advisor, requires an active `wardrobe_styling`
+    module, acknowledged granted consent and an approved same-House portrait
+    transactionally before inserting; the service runner rechecks module and
+    consent immediately before provider invocation. `ff0be5a` executes the
+    real RPC under preview/suspended/off, missing/withdrawn consent, draft
+    portrait and allowed states; all 185 pgTAP assertions pass. The checkbox
+    remains unchecked because ADR-068 connected evidence has not been recorded
+    and the onboarding preview is not yet an AI-rendered neutral preview.
+
+- [ ] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
+      customer single-look Studio**
+  - **Requirement IDs:** `VWS-001`, `VWS-002`.
+  - **Dependencies:** `4.6`; ADR-074.
+  - **Owner boundary:** customer Server Actions/UI on existing `/account` and
+    `/wardrobe` surfaces; admin queue processor and PAON-controlled output
+    ingestion. No new customer destination.
+  - **Acceptance:** explicit grant/withdrawal, private face/full-body uploads,
+    existing-StyleProfile fit archetype, customer approval/supersession,
+    customer-authored single-look `Outfit`, consent/module-gated enqueue,
+    queued status/cancellation/feedback, sequential processing and private
+    output storage.
+  - **Tests:** real customer Playwright flow plus pgTAP refusal matrix for the
+    persisted generation boundary.
+  - **Hard blockers:** live rendered-image proof requires the configured
+    provider credential already named by 4.6; local composition/queue proof
+    remains buildable without it.
+  - **Status (2026-08-09, Lane H reconciliation):** `939c537` integrates the
+    Lane D onboarding, customer Studio, output-storage migrations and admin
+    processor. `486418a` composes the R0.3 module kernel and explicit persisted
+    consent into every customer generation boundary while keeping withdrawal
+    and queued cancellation available after suspension. The disposable local
+    stack applies through migration `20260809130000`; the committed Playwright
+    journey grants consent, uploads both references, declares a fit archetype,
+    approves the portrait, composes an owned-item look and observes a queued
+    job. `ff0be5a` proves all seven denial/allow states and exact queued-row
+    creation through pgTAP. Checkbox remains unchecked: the current onboarding
+    “preview” is a signed view of the uploaded full-body reference rather than
+    a neutral AI render, advisor handoff is 4.9, and no current ADR-068 evidence
+    run records this connected tranche.
 
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain — see ADR-074 for the visualization-only fit-preference
@@ -4427,6 +4468,14 @@ routine-occasions.ts`) reuses 10.4's existing
     compose the new authorization contract with the queue; MorningRoutine's
     complete-the-look entry point still needs the customer Studio/UI tranche;
     live generation remains externally blocked as documented above.
+  - **Status (2026-08-09, customer Studio composition):** the canonical
+    customer Studio and its consent/module-gated queue now exist on Lane H in
+    `939c537`/`486418a`, with browser and 185-assertion pgTAP proof including
+    the exact enqueue refusal matrix. This removes the customer-UI prerequisite
+    from the previous status but does not complete 17.10: the provider-neutral
+    usage contract still lacks persisted transactional budget reservation and
+    settlement, MorningRoutine has no complete-the-look handoff into this
+    Studio, and live provider behavior remains `blocked_external`.
 
 - [ ] **17.11 Supplier-CRM data import and ownership**
   - **Requirement IDs:** ADV-111.

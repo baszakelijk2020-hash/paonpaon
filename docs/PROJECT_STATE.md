@@ -43,9 +43,16 @@ the focused 58 domain/AI/database assertions. Workspace lint/typecheck, all
 unit suites, all three production builds and format check pass. The global
 completion validator remains red on historical stale/missing evidence for
 unrelated checked items, so neither 4.6 nor 17.10 is falsely checked complete.
-Next buildable work is the already-settled 4.7/4.8 customer consent/Studio
-tranche from Lane D, followed by composing 17.10 budget reservation and
-settlement into that canonical queue.
+Lane D's 4.7/4.8 customer tranche is now reconciled as `939c537`; `486418a`
+adds the R0.3 module and persisted-consent boundary at enqueue and immediately
+before provider invocation. `ff0be5a` adds eight real RPC authorization
+assertions, bringing disposable-local pgTAP to 185/185, and the committed
+customer Playwright journey passes from consent/private uploads through an
+approved portrait, owned-item composition and queued generation. Formal 4.6,
+4.7/4.8 and 17.10 completion remains unclaimed: the onboarding preview is not
+yet an AI-rendered neutral preview, no current ADR-068 connected evidence run
+exists for this tranche, and 17.10 still needs persisted budget reservation/
+settlement plus MorningRoutine complete-the-look composition.
 
 Last hand-maintained update: 2026-08-05 (FT-02 silhouette analysis
 consent/capture state machine landed on `agent/grok-takeover-2026-07-30`).
