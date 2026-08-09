@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "17.5",
+  "requirementIds": ["ADV-105"],
+  "status": "verified_local",
+  "title": "Promise-matching on inbound stock news",
+  "applicability": {
+    "domain": "required",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/intelligence/stock-promise-matching.ts (matchStockNewsToPromises); packages/domain/src/intelligence/stock-promise-matching.test.ts",
+    "persistence": "no new schema — reuses the existing clienteling_opportunities table (advisor_commitment/interest_follow_up types from 17.1/7.4)",
+    "service": "packages/database/src/repositories/clienteling-opportunity-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/promise-matching/page.tsx",
+    "receiver_ui": "n_a — single-page feature, one-tap contact is a plain mailto: link, not a second consuming surface",
+    "rls": "no new table — reuses tenant RLS already proven on clienteling_opportunities",
+    "exceptions": "packages/domain/src/intelligence/stock-promise-matching.test.ts (no match on disjoint text; dismissed/completed statuses excluded even with identical text; a type outside the owner boundary excluded; blank input returns nothing)",
+    "browser": "apps/retailer/e2e/promise-matching.spec.ts + docs/evidence/runs/17.5.json status=passed",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/promise-matching.spec.ts",
+  "assertedAt": "2026-08-09T09:44:32.669Z"
+}

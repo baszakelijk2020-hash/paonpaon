@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "17.2",
+  "requirementIds": ["ADV-102"],
+  "status": "verified_local",
+  "title": "Mission Control unified brief",
+  "applicability": {
+    "domain": "n_a",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "n_a",
+    "exceptions": "n_a",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "no new pure logic — this item composes existing repository reads only, same shape as /dashboard's already-shipped brief",
+    "persistence": "no new schema — reuses existing alteration_work_orders/price_change_proposals, notifications, and product_variants tables",
+    "service": "packages/database/src/repositories/alteration-workflow-repository.ts (findPendingProposalsByRetailer); packages/database/src/repositories/messaging-repository.ts; packages/database/src/repositories/product-variant-repository.ts (countLowStockForRetailer)",
+    "origin_ui": "apps/retailer/app/(dashboard)/mission-control/page.tsx",
+    "receiver_ui": "apps/retailer/app/(dashboard)/mission-control/page.tsx (same page — the attention card links out to /messages, /notifications, /products where each item is actually actioned)",
+    "rls": "no new table — reuses the tenant RLS already proven on the composed tables' own repository tests",
+    "exceptions": "no new domain refusal logic to test — a pure aggregation of already-validated repository reads",
+    "browser": "apps/retailer/e2e/mission-control.spec.ts + docs/evidence/runs/17.2.json status=passed",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/mission-control.spec.ts",
+  "assertedAt": "2026-08-09T09:42:48.766Z"
+}

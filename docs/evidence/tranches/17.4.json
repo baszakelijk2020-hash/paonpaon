@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "17.4",
+  "requirementIds": ["ADV-104"],
+  "status": "verified_local",
+  "title": "Fabric-pairing upsell engine",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/production/supplier-intelligence.ts (checkFabricButtonPairing from Stage 12.4, checkFabricLiningPairing new); packages/domain/src/production/supplier-intelligence.test.ts",
+    "persistence": "supabase/migrations/20260805150000_add_fabric_lining_rules.sql (fabric_lining_rules table); fabric_button_rules pre-existing from Stage 12.4",
+    "service": "packages/database/src/repositories/supplier-intelligence-repository.ts; packages/database/src/repositories/metadata-repository.ts (findProductIdsByConcepts)",
+    "origin_ui": "apps/retailer/app/(dashboard)/fabric-pairing/page.tsx; apps/retailer/app/(dashboard)/fabric-pairing/actions.ts",
+    "receiver_ui": "n_a — standalone lookup tool reachable from nav, not yet linked from a second consuming surface (named as a gap in this item's own status)",
+    "rls": "supabase/migrations/20260805150000_add_fabric_lining_rules.sql (retailer-scoped RLS on fabric_lining_rules, same shape as fabric_button_rules)",
+    "exceptions": "packages/domain/src/production/supplier-intelligence.test.ts (undocumented-lining refusal returning the real options, no-rule-for-fabric refusal — a missing rule means undecided, never permissive)",
+    "browser": "apps/retailer/e2e/fabric-pairing.spec.ts + docs/evidence/runs/17.4.json status=passed",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/fabric-pairing.spec.ts",
+  "assertedAt": "2026-08-09T09:44:33.893Z"
+}

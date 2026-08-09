@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "17.6",
+  "requirementIds": ["ADV-106"],
+  "status": "verified_local",
+  "title": "Customer segmentation and rankings",
+  "applicability": {
+    "domain": "required",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/intelligence/customer-segmentation.ts (rankCustomersBySpend, classifyBuyerSegments); packages/domain/src/intelligence/customer-segmentation.test.ts",
+    "persistence": "no new schema — computed from existing orders/order_lines and metadata concepts",
+    "service": "packages/database/src/repositories/order-repository.ts (findByRetailer); packages/database/src/repositories/metadata-repository.ts (findAcceptedConceptIdsForProduct)",
+    "origin_ui": "apps/retailer/app/(dashboard)/customers/rankings/page.tsx",
+    "receiver_ui": "n_a — standalone rankings page, no second consuming surface",
+    "rls": "no new table — reuses tenant RLS already proven on orders",
+    "exceptions": "packages/domain/src/intelligence/customer-segmentation.test.ts (suit_focused/casual_focused omitted entirely, never zero-filled, when no garment-type metadata exists for a customer's order lines)",
+    "browser": "apps/retailer/e2e/customer-rankings.spec.ts + docs/evidence/runs/17.6.json status=passed",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/customer-rankings.spec.ts",
+  "assertedAt": "2026-08-09T09:44:32.554Z"
+}

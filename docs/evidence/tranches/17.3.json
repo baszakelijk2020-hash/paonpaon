@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "17.3",
+  "requirementIds": ["ADV-103"],
+  "status": "verified_local",
+  "title": "Pre/during/post-appointment advisor dashboard",
+  "applicability": {
+    "domain": "required",
+    "persistence": "n_a",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "n_a",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/intelligence/appointment-brief.ts (computePriceComfortSummary, computeWishlistOwnershipGaps); packages/domain/src/intelligence/appointment-brief.test.ts",
+    "persistence": "no new schema — reuses existing orders/order_lines/wishlist tables",
+    "service": "apps/retailer/app/(dashboard)/appointments/[id]/page.tsx composes OrderRepository, WishlistRepository, ProductVariantRepository, ProductRepository against the existing appointment/customer repositories",
+    "origin_ui": "apps/retailer/app/(dashboard)/appointments/[id]/page.tsx (Purchase and fit intelligence card, SensitiveInfoToggle)",
+    "receiver_ui": "n_a — single-page feature, no second consuming surface",
+    "rls": "no new table — reuses tenant RLS already proven on orders/wishlist",
+    "exceptions": "packages/domain/src/intelligence/appointment-brief.test.ts (null for zero orders rather than a fabricated band; gap exclusion for an actually-bought variant, never guessed from category/price similarity)",
+    "browser": "apps/retailer/e2e/appointment-brief.spec.ts + docs/evidence/runs/17.3.json status=passed",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts",
+    "live_gap": "n_a"
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "n_a",
+    "task_continuation": "n_a",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/appointment-brief.spec.ts",
+  "assertedAt": "2026-08-09T09:44:32.825Z"
+}

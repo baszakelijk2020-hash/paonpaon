@@ -4303,6 +4303,19 @@ now.
     Control's own `#mission-control-attention` card. Both tests in the
     file pass together (6/6 alongside the unaffected `dashboard-digest.spec.ts`
     suite, confirming no regression from the shared repository calls).
+  - **Status (2026-08-09, evidence closure + real bug fix, Lane H):**
+    `docs/evidence/tranches/17.2.json` records the ten-dimension evidence
+    map. While regenerating its run at current HEAD, found and fixed a
+    real race in `mission-control.spec.ts` (`cc47e0d`): its two tests each
+    set their own module-level proof flag, combined by one shared
+    `afterAll` — under the config's `fullyParallel: true`, Playwright can
+    run them in separate worker processes with separate module instances,
+    so one test's flag is invisible to the other worker's `afterAll`,
+    which can silently overwrite a real "both passed" result with
+    `status: "failed"` (observed directly: both tests passed in the
+    terminal, the written evidence said failed). `test.describe.serial`
+    fixes it. `docs/evidence/runs/17.2.json` now records a genuinely
+    passing run at `cc47e0d`.
 
 - [x] **17.3 Pre/during/post-appointment advisor dashboard**
   - **Requirement IDs:** ADV-103.
@@ -4351,6 +4364,10 @@ now.
     Full regression run alongside `mission-control.spec.ts` and
     `dashboard-digest.spec.ts` (7/7 green together — both share the
     appointment/order/notification repositories this change touches).
+  - **Status (2026-08-09, evidence closure, Lane H):**
+    `docs/evidence/tranches/17.3.json` records the ten-dimension evidence
+    map; `docs/evidence/runs/17.3.json` records a fresh passing run at
+    `cc47e0d`.
 
 - [x] **17.4 Fabric-pairing upsell engine**
   - **Requirement IDs:** ADV-104.
@@ -4402,6 +4419,10 @@ now.
     and edge is currently retailer-authored, which is correct per this
     item's own schema design but means a brand-new retailer starts with
     an empty upsell engine until they author their own rules.
+  - **Status (2026-08-09, evidence closure, Lane H):**
+    `docs/evidence/tranches/17.4.json` records the ten-dimension evidence
+    map; `docs/evidence/runs/17.4.json` records a fresh passing run at
+    `cc47e0d`.
 
 - [x] **17.5 Promise-matching on inbound stock news**
   - **Requirement IDs:** ADV-105.
@@ -4442,6 +4463,10 @@ now.
     never appear. Regression run alongside `mission-control.spec.ts`
     (3/3 green together, confirming the shared `clienteling_opportunities`
     read path is unaffected). Full domain suite: 1004/1004 passing.
+  - **Status (2026-08-09, evidence closure, Lane H):**
+    `docs/evidence/tranches/17.5.json` records the ten-dimension evidence
+    map; `docs/evidence/runs/17.5.json` records a fresh passing run at
+    `cc47e0d`.
 
 - [x] **17.6 Customer segmentation and rankings**
   - **Requirement IDs:** ADV-106.
@@ -4470,6 +4495,10 @@ now.
     construction, fixed to a relative-order check), and asserts
     "One-time" on the first and both "Repeat" and "Seasonal" on the
     second. 2/2 consecutive green runs at the committing HEAD.
+  - **Status (2026-08-09, evidence closure, Lane H):**
+    `docs/evidence/tranches/17.6.json` records the ten-dimension evidence
+    map; `docs/evidence/runs/17.6.json` records a fresh passing run at
+    `cc47e0d`.
 
 - [ ] **17.7 Per-customer MTM price lists**
   - **Requirement IDs:** ADV-107.
