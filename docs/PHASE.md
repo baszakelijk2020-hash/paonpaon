@@ -5683,6 +5683,52 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     `format:check` all clean at this commit. Checkbox remains unchecked:
     **announcements** and **write-capable** self-service are the two
     remaining real gaps.
+  - **Status (2026-08-10, corporate announcements, AGENTS.md
+    Material-progress gate):** **announcements** is closed too, the last
+    owner-boundary surface with no schema at all (tickets already exist
+    via 18.8). New migration `20260809220000` adds
+    `corporate_announcements` — programme-scoped, draft-until-published
+    (`published_at` nullable, same posture `staff_announcements` already
+    uses), deliberately a separate table from `staff_announcements`
+    since the audience (a programme's wearers) is a different reader
+    population than retailer staff. RLS: staff (manager+) insert/update
+    within their own retailer; a wearer reads only **published**
+    announcements for their **own** programme, via the same
+    `corporate_wearers`-keyed pattern the four surfaces above already
+    established. A tenant-invariant trigger
+    (`corporate_announcement_programme_tenant_chk`) closes a real gap
+    the pgTAP suite itself caught while writing it: `retailer_id` and
+    `programme_id` are two independent FKs with no cross-check, so a
+    same-retailer-shaped insert whose `programme_id` actually belonged
+    to a different retailer would have passed RLS's own `retailer_id`
+    check alone — same shape as `corporate_wearer_customer_tenant_chk`
+    (20260809200000). `CorporateRepository` gains
+    `createAnnouncement`/`publishAnnouncement`/
+    `findAnnouncementsByProgramme`/
+    `findPublishedAnnouncementsForProgramme`. `/corporate/[programmeId]`
+    gains a post-draft/publish UI; `/employee` renders published
+    announcements for the wearer's own programme — RLS itself, not page
+    logic, is what keeps a draft or another programme's news from ever
+    reaching a wearer's session. Proof: 9 new pgTAP assertions
+    (`corporate_announcements_test.sql` — role-gated insert, draft
+    invisible to the wearer, published visible to the wearer's own
+    programme only, cross-programme and cross-retailer isolation, the
+    tenant-invariant trigger itself), a new connected Playwright spec
+    per app (`apps/retailer/e2e/corporate-announcements.spec.ts` — a
+    manager writes and publishes through the real UI, asserted against
+    the database; `apps/customer/e2e/employee-portal-announcements.spec.ts`
+    — a wearer sees a published announcement for their own programme,
+    never a draft, never another programme's), zero regressions on the
+    three existing employee-portal specs. Fresh `supabase db reset`,
+    251/251 pgTAP, 518 database tests, `pnpm lint`/`typecheck`/`build`/
+    `format:check` all clean at this commit. **This closes every
+    18.5-named surface except write-capable self-service** (booking,
+    not just reading — appointments/orders/alterations/wardrobe/
+    announcements are all read-only today) — the one remaining real
+    gap, plus the blueprint-proposed opt-in customer-account creation
+    for a wearer with no existing linked customer. Checkbox stays
+    unchecked until that write-capable surface exists or a founder
+    decision scopes it out.
 
 - [x] **18.6 Measurement and fitting rollout planning**
   - **Requirement IDs:** BD-106.

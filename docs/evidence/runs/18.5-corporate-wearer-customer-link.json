@@ -1,7 +1,7 @@
 {
   "phaseItemId": "18.5-corporate-wearer-customer-link",
-  "gitSha": "af1e6d76f2e97b39975460226fa125d1899bc56a",
+  "gitSha": "505179d14e875876a29dbadc98fbc6b13b97407c",
   "spec": "apps/retailer/e2e/employee-portal-customer-link.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-09T14:43:10.769Z"
+  "timestamp": "2026-08-09T17:59:37.080Z"
 }

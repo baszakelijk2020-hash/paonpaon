@@ -3,6 +3,7 @@ import {
   computeExceptionDueAt,
   type CorporateAccount,
   type CorporateAccountId,
+  type CorporateAnnouncement,
   type CorporateException,
   type CorporateExceptionEvent,
   type CorporateExceptionEventType,
@@ -33,6 +34,22 @@ type WearerRow = Database["public"]["Tables"]["corporate_wearers"]["Row"];
 type IssueRecordRow =
   Database["public"]["Tables"]["corporate_issue_records"]["Row"];
 type ExceptionRow = Database["public"]["Tables"]["corporate_exceptions"]["Row"];
+type AnnouncementRow =
+  Database["public"]["Tables"]["corporate_announcements"]["Row"];
+
+function toAnnouncement(row: AnnouncementRow): CorporateAnnouncement {
+  return {
+    id: asId<"CorporateAnnouncementId">(row.id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    programmeId: asId<"CorporateProgrammeId">(row.programme_id),
+    title: row.title,
+    body: row.body,
+    authoredByStaffId: row.authored_by_staff_id,
+    ...(row.published_at ? { publishedAt: row.published_at } : {}),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
 
 function toAccount(row: AccountRow): CorporateAccount {
   return {
@@ -606,5 +623,72 @@ export class CorporateRepository {
       .update({ status: "done", resolved_at: new Date().toISOString() })
       .eq("id", taskId);
     if (error) throw error;
+  }
+
+  /** A manager writes a draft; `publishedAt` stays unset until
+   * `publishAnnouncement` is called — never visible to a wearer before
+   * that (PHASE 18.5 / BD-105). */
+  async createAnnouncement(
+    retailerId: RetailerId,
+    input: {
+      readonly programmeId: string;
+      readonly title: string;
+      readonly body: string;
+      readonly authoredByStaffId: string;
+    },
+  ): Promise<CorporateAnnouncement> {
+    const { data, error } = await this.client
+      .from("corporate_announcements")
+      .insert({
+        retailer_id: retailerId,
+        programme_id: input.programmeId,
+        title: input.title,
+        body: input.body,
+        authored_by_staff_id: input.authoredByStaffId,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toAnnouncement(data);
+  }
+
+  async publishAnnouncement(announcementId: string): Promise<void> {
+    const { error } = await this.client
+      .from("corporate_announcements")
+      .update({ published_at: new Date().toISOString() })
+      .eq("id", announcementId);
+    if (error) throw error;
+  }
+
+  /** Staff view: every announcement for the programme, draft and
+   * published, most recent first. */
+  async findAnnouncementsByProgramme(
+    programmeId: string,
+  ): Promise<readonly CorporateAnnouncement[]> {
+    const { data, error } = await this.client
+      .from("corporate_announcements")
+      .select("*")
+      .eq("programme_id", programmeId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(toAnnouncement);
+  }
+
+  /** Wearer view: RLS itself already restricts this to published
+   * announcements for the caller's own programme — no extra filter
+   * needed here, same posture `findExceptionsByProgramme` already
+   * documents for the wearer-select policy. */
+  async findPublishedAnnouncementsForProgramme(
+    programmeId: string,
+  ): Promise<readonly CorporateAnnouncement[]> {
+    const { data, error } = await this.client
+      .from("corporate_announcements")
+      .select("*")
+      .eq("programme_id", programmeId)
+      .is("deleted_at", null)
+      .order("published_at", { ascending: false });
+    if (error) throw error;
+    return data.map(toAnnouncement);
   }
 }

@@ -21,6 +21,7 @@
 
 import type {
   CorporateAccountId,
+  CorporateAnnouncementId,
   CorporateEntitlementVersionId,
   CorporateExceptionId,
   CorporateIssueRecordId,
@@ -83,6 +84,21 @@ export interface CorporateWearer extends Timestamps {
    * `customerId`'s linked customer email; see the migration header. */
   readonly loginEmail?: string;
   readonly userId?: string;
+}
+
+/** PHASE 18.5 / BD-105: programme-scoped news for a programme's wearers.
+ * Draft until `publishedAt` is set — never visible to a wearer before
+ * that. */
+export interface CorporateAnnouncement {
+  readonly id: CorporateAnnouncementId;
+  readonly retailerId: RetailerId;
+  readonly programmeId: CorporateProgrammeId;
+  readonly title: string;
+  readonly body: string;
+  readonly authoredByStaffId: string;
+  readonly publishedAt?: string;
+  readonly createdAt: string;
+  readonly updatedAt: string;
 }
 
 export interface CorporateIssueRecordEntity {

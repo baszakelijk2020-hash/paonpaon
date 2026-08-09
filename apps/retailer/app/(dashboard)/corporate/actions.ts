@@ -6,6 +6,7 @@ import {
   CorporateRepository,
   CorporateRolloutRepository,
   CustomerRepository,
+  RetailerStaffRepository,
 } from "@paon/database";
 import {
   asId,
@@ -223,6 +224,41 @@ export async function recordIssue(
   }
 
   await repo.recordIssue(session.retailerId, values);
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+/** A manager writes a draft programme announcement (PHASE 18.5 / BD-105) —
+ * invisible to any wearer until `publishAnnouncement` is called. */
+export async function createAnnouncement(
+  programmeId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const supabase = await getSupabaseServerClient();
+  const staff = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!staff) throw new Error("Your staff record could not be found.");
+
+  const title = String(formData.get("title") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+  if (!title || !body) return;
+
+  await new CorporateRepository(supabase).createAnnouncement(
+    session.retailerId,
+    { programmeId, title, body, authoredByStaffId: staff.id },
+  );
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+export async function publishAnnouncement(
+  programmeId: string,
+  announcementId: string,
+): Promise<void> {
+  await requireModuleSession("enterprise_verticals");
+  await new CorporateRepository(
+    await getSupabaseServerClient(),
+  ).publishAnnouncement(announcementId);
   revalidatePath(`/corporate/${programmeId}`);
 }
 

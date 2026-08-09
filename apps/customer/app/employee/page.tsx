@@ -51,8 +51,11 @@ const KIND_LABELS: Record<string, string> = {
  * facing dashboard already uses, never a duplicate read path. Unlinked
  * wearers see nothing for those sections (never a placeholder that looks
  * broken) — the same "show only what it can show honestly" posture this
- * page has always used for issue history. Announcements and write-
- * capable self-service (booking, not just reading) remain unbuilt.
+ * page has always used for issue history. Published programme
+ * announcements (migration 20260809220000) render whenever any exist —
+ * RLS itself, not this page, is what keeps a wearer from ever seeing a
+ * draft or another programme's news. Write-capable self-service
+ * (booking, not just reading) remains unbuilt.
  */
 export default async function EmployeePortalPage() {
   const session = await requireWearerAppSession();
@@ -71,15 +74,19 @@ export default async function EmployeePortalPage() {
     );
   }
 
-  const [programme, versions, issues, myRequests] = await Promise.all([
-    repo.findProgrammeById(wearer.programmeId),
-    repo.findEntitlementVersions(wearer.programmeId),
-    repo.findIssuesByWearer(wearer.id),
-    // RLS scopes this to the signed-in wearer's own rows only — the
-    // wearer-select policy (18.8) is the only one their session
-    // satisfies, so this never leaks a colleague's request.
-    repo.findExceptionsByProgramme(wearer.programmeId),
-  ]);
+  const [programme, versions, issues, myRequests, announcements] =
+    await Promise.all([
+      repo.findProgrammeById(wearer.programmeId),
+      repo.findEntitlementVersions(wearer.programmeId),
+      repo.findIssuesByWearer(wearer.id),
+      // RLS scopes this to the signed-in wearer's own rows only — the
+      // wearer-select policy (18.8) is the only one their session
+      // satisfies, so this never leaks a colleague's request.
+      repo.findExceptionsByProgramme(wearer.programmeId),
+      // RLS itself already restricts this to published announcements
+      // for the caller's own programme — no extra filter needed here.
+      repo.findPublishedAnnouncementsForProgramme(wearer.programmeId),
+    ]);
 
   const linkedCustomerId = wearer.customerId;
   const [appointments, orders, alterations, measurementVersion, wardrobeItems] =
@@ -128,6 +135,31 @@ export default async function EmployeePortalPage() {
           {programme?.name ?? "Programme"}
         </p>
       </div>
+
+      {announcements.length > 0 ? (
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+            Announcements
+          </h2>
+          <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
+            {announcements.map((announcement) => (
+              <li key={announcement.id} className="flex flex-col gap-1 py-2">
+                <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                  {announcement.title}
+                </p>
+                <p className="text-sm text-[var(--color-stone-700)]">
+                  {announcement.body}
+                </p>
+                {announcement.publishedAt ? (
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    {formatDate(announcement.publishedAt, "en-US")}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       <Card className="flex flex-col gap-3">
         <h2 className="text-lg font-medium text-[var(--color-stone-900)]">

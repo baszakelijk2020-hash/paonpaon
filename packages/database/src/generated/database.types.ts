@@ -3737,6 +3737,67 @@ export type Database = {
           },
         ];
       };
+      corporate_announcements: {
+        Row: {
+          authored_by_staff_id: string;
+          body: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          programme_id: string;
+          published_at: string | null;
+          retailer_id: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          authored_by_staff_id: string;
+          body: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          programme_id: string;
+          published_at?: string | null;
+          retailer_id: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          authored_by_staff_id?: string;
+          body?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          programme_id?: string;
+          published_at?: string | null;
+          retailer_id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_announcements_authored_by_staff_id_fkey";
+            columns: ["authored_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_announcements_programme_id_fkey";
+            columns: ["programme_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_announcements_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       corporate_concept_assets: {
         Row: {
           ai_generation_id: string;

@@ -28,12 +28,14 @@ import {
   assignExceptionToStaff,
   assignWearerToRolloutDay,
   changeExceptionPriority,
+  createAnnouncement,
   createEntitlementVersion,
   createException,
   createRolloutDay,
   createWearer,
   markRolloutSlotCompleted,
   markRolloutSlotNoShow,
+  publishAnnouncement,
   recomputeRenewalRisk,
   recordIssue,
   resolveException,
@@ -91,6 +93,7 @@ export default async function CorporateProgrammePage({
     staffMembers,
     liveRenewalRiskRows,
     openRenewalTask,
+    announcements,
   ] = await Promise.all([
     repo.findAccountById(programme.accountId),
     repo.findEntitlementVersions(programmeId),
@@ -106,6 +109,7 @@ export default async function CorporateProgrammePage({
       kind: "corporate_renewal_risk",
     }),
     repo.findOpenRenewalTask(programmeId),
+    repo.findAnnouncementsByProgramme(programmeId),
   ]);
   const renewalRiskRecommendation = liveRenewalRiskRows.find((row) =>
     (row.sources as unknown as { sourceRef: string }[]).some(
@@ -236,6 +240,85 @@ export default async function CorporateProgrammePage({
           </p>
         </Card>
       ) : null}
+
+      <Card className="flex flex-col gap-3">
+        <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+          Announcements
+        </h2>
+        <p className="text-xs text-[var(--color-stone-500)]">
+          Published announcements appear on every wearer&apos;s Employee Portal
+          for this programme. Drafts stay visible only to staff until published.
+        </p>
+        {announcements.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No announcements yet.
+          </p>
+        ) : (
+          <ul
+            id="corporate-announcements"
+            className="flex flex-col divide-y divide-[var(--color-stone-200)]"
+          >
+            {announcements.map((announcement) => (
+              <li key={announcement.id} className="flex flex-col gap-1 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                    {announcement.title}
+                  </p>
+                  {announcement.publishedAt ? (
+                    <Badge tone="success">Published</Badge>
+                  ) : (
+                    <Badge tone="neutral">Draft</Badge>
+                  )}
+                </div>
+                <p className="text-xs text-[var(--color-stone-500)]">
+                  {announcement.body}
+                </p>
+                {!announcement.publishedAt ? (
+                  <form
+                    action={publishAnnouncement.bind(
+                      null,
+                      programmeId,
+                      announcement.id,
+                    )}
+                  >
+                    <Button type="submit" variant="secondary" size="sm">
+                      Publish
+                    </Button>
+                  </form>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+        <form
+          action={createAnnouncement.bind(null, programmeId)}
+          className="flex flex-col gap-2"
+        >
+          <FormField label="Title" htmlFor="announcement-title">
+            <Input
+              id="announcement-title"
+              name="title"
+              placeholder="e.g., Fitting week reminder"
+            />
+          </FormField>
+          <FormField label="Message" htmlFor="announcement-body">
+            <textarea
+              id="announcement-body"
+              name="body"
+              required
+              minLength={10}
+              rows={3}
+              placeholder="What should every wearer in this programme know?"
+              className="rounded border border-[var(--color-stone-200)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-stone-400)]"
+            />
+          </FormField>
+          <div>
+            <Button type="submit" variant="secondary" size="sm">
+              Save as draft
+            </Button>
+          </div>
+        </form>
+      </Card>
 
       <Card className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
