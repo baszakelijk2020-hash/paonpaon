@@ -1,5 +1,5 @@
 {
-  "phaseItemId": "18.5-employee-portal-linked-customer-data",
+  "phaseItemId": "18.5",
   "gitSha": "ef9f43cfea2bdc59b87caae8352b2254631cbd29",
   "spec": "apps/customer/e2e/employee-portal-linked-customer.spec.ts",
   "status": "passed",

@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "18.5",
+  "requirementIds": ["BD-105"],
+  "status": "verified_local",
+  "title": "Employee portal (auth and self-service)",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "n_a"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/identity/role.ts (corporate_wearer AccountType, resolution priority); packages/domain/src/corporate/corporate-programme.ts (CorporateWearer.customerId, CorporateAnnouncement); packages/auth/src/session.ts (AppSession.wearerId); packages/auth/src/guards.ts (requireWearerSession)",
+    "persistence": "supabase/migrations/20260804160000_add_corporate_wearer_portal_auth.sql; 20260809200000_add_employee_portal_customer_data_access.sql (tenant-invariant trigger, additive RLS on appointments/orders/alteration views/measurement versions, silent auto-link); 20260809210000_add_employee_portal_wardrobe_access.sql; 20260809220000_add_corporate_announcements.sql (draft-until-published, programme-scoped, tenant-invariant trigger); 20260810100000_add_wearer_appointment_request.sql (request_appointment_as_wearer — books only through an existing link, never fabricates a customer)",
+    "service": "packages/database/src/repositories/corporate-repository.ts (setWearerCustomerId, createAnnouncement/publishAnnouncement/findAnnouncementsByProgramme/findPublishedAnnouncementsForProgramme); packages/database/src/repositories/appointment-repository.ts (requestAppointmentAsWearer); AppointmentRepository/OrderRepository/CustomerAlterationRepository/MeasurementMonitorRepository/WardrobeRepository.findByCustomer (reused unchanged from the customer-facing dashboard)",
+    "origin_ui": "apps/customer/app/employee/page.tsx; apps/customer/app/employee/actions.ts; apps/customer/app/employee/request-appointment-form.tsx; apps/customer/app/employee/login/page.tsx; apps/customer/app/employee/auth/confirm/route.ts; apps/retailer/app/(dashboard)/corporate/[programmeId]/page.tsx (link-by-email form, announcement post/publish form)",
+    "receiver_ui": "apps/customer/app/employee/page.tsx (appointments/orders/alterations/measurements/wardrobe/announcements sections, each rendered only when real data exists); apps/retailer/app/(dashboard)/corporate/[programmeId]/page.tsx (linked-customer display, announcement draft/published list)",
+    "rls": "supabase/tests/employee_portal_customer_data_access_test.sql (16 assertions); supabase/tests/employee_portal_wardrobe_access_test.sql (3); supabase/tests/corporate_announcements_test.sql (9); supabase/tests/wearer_appointment_request_test.sql (6) — 34 pgTAP assertions total for this tranche",
+    "exceptions": "wearer_appointment_request_test.sql (unlinked wearer refused with a clear reason, not a shadow-customer fallback; a different authenticated user cannot request on another wearer's behalf; starts_at/ends_at ordering); employee_portal_customer_data_access_test.sql (cross-tenant link refused, unlinked colleague reads nothing, cross-House manager cannot see or relink another House's wearer); corporate_announcements_test.sql (role-gated insert, draft invisible to wearers, cross-programme/cross-retailer isolation, tenant-invariant trigger)",
+    "browser": "apps/customer/e2e/employee-portal.spec.ts; employee-portal-linked-customer.spec.ts; employee-portal-announcements.spec.ts; employee-portal-request-appointment.spec.ts; apps/retailer/e2e/employee-portal-customer-link.spec.ts; corporate-announcements.spec.ts — six connected Playwright specs across both apps, all re-run and passing at this exact commit (docs/evidence/runs/18.5*.json status=passed).",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json (validate:completion)",
+    "live_gap": "No external provider dependency — this item is entirely first-party auth/RLS/UI work with no live-credential gap."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "proven",
+    "denied": "proven",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/customer/e2e/employee-portal-linked-customer.spec.ts",
+  "assertedAt": "2026-08-10T01:25:00.000Z"
+}

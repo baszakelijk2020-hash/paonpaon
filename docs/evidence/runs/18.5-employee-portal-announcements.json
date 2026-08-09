@@ -1,7 +1,7 @@
 {
   "phaseItemId": "18.5-employee-portal-announcements",
-  "gitSha": "505179d14e875876a29dbadc98fbc6b13b97407c",
+  "gitSha": "ef9f43cfea2bdc59b87caae8352b2254631cbd29",
   "spec": "apps/customer/e2e/employee-portal-announcements.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-09T17:59:03.907Z"
+  "timestamp": "2026-08-09T18:21:04.188Z"
 }

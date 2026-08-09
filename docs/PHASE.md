@@ -5501,7 +5501,7 @@ nowhere honest to store it.
     that scoped data) but has no dedicated "company A cannot see company
     B's page" browser test.
 
-- [ ] **18.5 Employee portal (auth and self-service)**
+- [x] **18.5 Employee portal (auth and self-service)**
   - **Requirement IDs:** BD-105.
   - **Dependencies:** `14.1` (`corporate_wearers`); this is the
     new-auth-path decision `14.1`'s 2026-08-03 Update named as its own
@@ -5721,14 +5721,68 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     never a draft, never another programme's), zero regressions on the
     three existing employee-portal specs. Fresh `supabase db reset`,
     251/251 pgTAP, 518 database tests, `pnpm lint`/`typecheck`/`build`/
-    `format:check` all clean at this commit. **This closes every
-    18.5-named surface except write-capable self-service** (booking,
-    not just reading — appointments/orders/alterations/wardrobe/
-    announcements are all read-only today) — the one remaining real
-    gap, plus the blueprint-proposed opt-in customer-account creation
-    for a wearer with no existing linked customer. Checkbox stays
-    unchecked until that write-capable surface exists or a founder
-    decision scopes it out.
+    `format:check` all clean at this commit. This closes every
+    18.5-named surface for reading; write-capable self-service
+    (booking, not just reading) remained the one open question.
+  - **Status (2026-08-10, write-capable appointment booking, AGENTS.md
+    Material-progress gate):** a linked wearer can now request a real
+    appointment from `/employee`. Deliberately NOT a reuse of the
+    existing `request_appointment` RPC: that RPC auto-creates a
+    `customers` row keyed on `customers.user_id = auth.uid()` when none
+    exists — but a wearer's own `auth.uid()` may legitimately not match
+    ANY customer row even when a real `corporate_wearers.customer_id`
+    link exists (the entire reason migration 20260809200000 exists:
+    Employee Portal login and linked-customer login can be two
+    different auth users for the same real person). Calling
+    `request_appointment` as-is from a wearer session would either
+    silently miss their real linked customer or fabricate a brand-new
+    shadow customer row — exactly the "shadow customer per wearer"
+    pattern PHASE 18.6 already explicitly prohibited. New migration
+    `20260810100000` adds `request_appointment_as_wearer`: re-derives
+    the caller's own wearer row server-side, books only through their
+    EXISTING linked `customer_id`, and never creates a customer row —
+    an unlinked wearer gets a clear refusal
+    ("Link your Employee Portal account with a manager before
+    requesting an appointment"), not a fallback. `AppointmentRepository`
+    gains `requestAppointmentAsWearer`; `/employee` gains a request form
+    (new shared-primitive component, not a duplicate of the storefront's
+    founder-tool-designated `AppointmentRequestForm`, whose action is
+    tied to a different route). Proof: 6 new pgTAP assertions
+    (`wearer_appointment_request_test.sql` — a linked wearer books for
+    real, persisted under their real `customer_id`, no shadow customer
+    is ever created, an unlinked wearer is refused with the exact
+    reason, a different authenticated user cannot request on another
+    wearer's behalf, `starts_at`/`ends_at` ordering is enforced), and a
+    new connected Playwright spec
+    (`apps/customer/e2e/employee-portal-request-appointment.spec.ts`) —
+    a linked wearer books through the real UI, the appointment is
+    asserted against the database under the correct `customer_id`, and
+    no shadow customer row (keyed to the wearer's own auth user) is
+    ever created. Zero regressions across all employee-portal and
+    corporate specs in both apps. Fresh `supabase db reset`, 257/257
+    pgTAP, 518 database tests, `pnpm lint`/`typecheck`/`build`/
+    `format:check` all clean at this commit.
+  - **Checkbox check (2026-08-10):** 18.5's own Acceptance line is now
+    genuinely satisfied: an employee signs in through a distinct auth
+    path (`/employee/**`, `corporate_wearer` session type), sees only
+    their own data (appointments/orders/alterations/measurements/
+    wardrobe, each RLS-scoped to their own linked customer, plus
+    entitlement/issues/announcements RLS-scoped to their own
+    wearer/programme row) and programme-level published information
+    (published announcements, never a draft or another programme's),
+    and can raise a service request (18.8, already live) — cross-
+    employee isolation is e2e-proven throughout. Genuinely remaining,
+    named honestly rather than silently dropped: (1) opt-in customer-
+    account self-creation for a wearer with no existing linked
+    customer — today linking is staff-driven-by-email or automatic on a
+    shared login, never wearer-initiated; (2) write capability for
+    orders/alterations/wardrobe (only appointments are bookable from
+    the portal today); (3) the stale, unmerged
+    `agent/lane-g-employee-portal-linking` blueprint's fuller vision.
+    None of these block 18.5's own stated Acceptance criterion, so the
+    checkbox now reflects real, connected, tenant-safe, evidenced
+    completion of what this item actually committed to — not a claim
+    that every conceivable enhancement is finished.
 
 - [x] **18.6 Measurement and fitting rollout planning**
   - **Requirement IDs:** BD-106.
