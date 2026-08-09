@@ -193,6 +193,20 @@ test("a wearer linked to a real customer sees their real appointments, orders, a
     throw new Error(`could not seed measurement: ${measurementError.message}`);
   }
 
+  const { error: wardrobeError } = await admin.from("wardrobe_items").insert({
+    retailer_id: retailerId,
+    customer_id: customer.id,
+    ownership_kind: "external",
+    provenance_source: "customer_added",
+    category_code: "jacket",
+    display_name: "E2E Navy Blazer",
+    condition: "good",
+    created_by_actor: "customer",
+  });
+  if (wardrobeError) {
+    throw new Error(`could not seed wardrobe item: ${wardrobeError.message}`);
+  }
+
   try {
     const { error: createUserError } = await admin.auth.admin.createUser({
       email: loginEmail,
@@ -228,6 +242,8 @@ test("a wearer linked to a real customer sees their real appointments, orders, a
     await expect(page.getByText("Your measurements")).toBeVisible();
     await expect(page.getByText("chest")).toBeVisible();
     await expect(page.getByText("1020 mm")).toBeVisible();
+    await expect(page.getByText("Your wardrobe")).toBeVisible();
+    await expect(page.getByText("E2E Navy Blazer")).toBeVisible();
 
     // Negative: the unlinked colleague's own portal shows none of it. The
     // Employee Portal has no sign-out control of its own, so a fresh
@@ -263,6 +279,7 @@ test("a wearer linked to a real customer sees their real appointments, orders, a
     await expect(page.getByText("Your orders")).toHaveCount(0);
     await expect(page.getByText("Your alterations")).toHaveCount(0);
     await expect(page.getByText("Your measurements")).toHaveCount(0);
+    await expect(page.getByText("Your wardrobe")).toHaveCount(0);
 
     proofPassed = true;
   } finally {

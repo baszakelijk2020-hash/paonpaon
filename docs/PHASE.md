@@ -5665,6 +5665,24 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     from the customer app. A future session closing wardrobe/
     announcements/write-capability should read that document first
     rather than re-deriving the same design from scratch.
+  - **Status (2026-08-09, linked-customer wardrobe access):** the
+    "wardrobe" surface named above is closed too, same slice, same
+    session. Migration `20260809210000` adds one more additive SELECT
+    policy on `wardrobe_items`, same shape as the four surfaces above.
+    `/employee` renders a fifth section (active, non-retired wardrobe
+    pieces) through the existing `WardrobeRepository.findByCustomer`,
+    filtered with the exact same `condition !== "retired"` rule the
+    customer-facing `/wardrobe` page already uses. Proof: 3 new pgTAP
+    assertions (`employee_portal_wardrobe_access_test.sql` — linked
+    wearer reads it, an unlinked colleague does not, an unrelated
+    authenticated user does not), and
+    `apps/customer/e2e/employee-portal-linked-customer.spec.ts` extended
+    with a real seeded wardrobe item, asserted visible for the linked
+    wearer and absent for the unlinked colleague. Fresh
+    `supabase db reset`, 242/242 pgTAP, `pnpm lint`/`typecheck`/`build`/
+    `format:check` all clean at this commit. Checkbox remains unchecked:
+    **announcements** and **write-capable** self-service are the two
+    remaining real gaps.
 
 - [x] **18.6 Measurement and fitting rollout planning**
   - **Requirement IDs:** BD-106.

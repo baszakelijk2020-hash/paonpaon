@@ -4,6 +4,7 @@ import {
   CustomerAlterationRepository,
   MeasurementMonitorRepository,
   OrderRepository,
+  WardrobeRepository,
 } from "@paon/database";
 import {
   ALTERATION_STATUS_LABELS,
@@ -43,13 +44,15 @@ const KIND_LABELS: Record<string, string> = {
  * boundary item from 18.5 the service desk unblocked.
  *
  * When a retailer has linked this wearer to a real Customer relationship
- * (`corporate_wearers.customer_id`, migration 20260809200000), the wearer's
- * own appointments, orders, alterations and latest approved measurement
- * version also render here — through the exact same repositories and RLS
- * boundary the customer-facing dashboard already uses, never a duplicate
- * read path. Unlinked wearers see nothing for those sections (never a
- * placeholder that looks broken) — the same "show only what it can show
- * honestly" posture this page has always used for issue history.
+ * (`corporate_wearers.customer_id`, migrations 20260809200000/210000), the
+ * wearer's own appointments, orders, alterations, latest approved
+ * measurement version and active wardrobe pieces also render here —
+ * through the exact same repositories and RLS boundary the customer-
+ * facing dashboard already uses, never a duplicate read path. Unlinked
+ * wearers see nothing for those sections (never a placeholder that looks
+ * broken) — the same "show only what it can show honestly" posture this
+ * page has always used for issue history. Announcements and write-
+ * capable self-service (booking, not just reading) remain unbuilt.
  */
 export default async function EmployeePortalPage() {
   const session = await requireWearerAppSession();
@@ -79,7 +82,7 @@ export default async function EmployeePortalPage() {
   ]);
 
   const linkedCustomerId = wearer.customerId;
-  const [appointments, orders, alterations, measurementVersion] =
+  const [appointments, orders, alterations, measurementVersion, wardrobeItems] =
     linkedCustomerId
       ? await Promise.all([
           new AppointmentRepository(supabase).findByCustomer(linkedCustomerId),
@@ -90,8 +93,12 @@ export default async function EmployeePortalPage() {
           new MeasurementMonitorRepository(supabase).latestApprovedVersion({
             customerId: linkedCustomerId,
           }),
+          new WardrobeRepository(supabase).findByCustomer(linkedCustomerId),
         ])
-      : [[], [], [], null];
+      : [[], [], [], null, []];
+  const activeWardrobeItems = wardrobeItems.filter(
+    (item) => item.condition !== "retired",
+  );
   const latestVersion = versions[0] ?? null;
   const balances = latestVersion
     ? computeEntitlementBalance({
@@ -302,6 +309,38 @@ export default async function EmployeePortalPage() {
                   ))}
                 </ul>
               </>
+            )}
+          </Card>
+
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+              Your wardrobe
+            </h2>
+            {activeWardrobeItems.length === 0 ? (
+              <p className="text-sm text-[var(--color-stone-500)]">
+                No wardrobe pieces on file yet.
+              </p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
+                {activeWardrobeItems.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center justify-between gap-2 py-2 text-sm"
+                  >
+                    <div>
+                      <p className="text-[var(--color-stone-900)]">
+                        {item.displayName}
+                      </p>
+                      {item.brand ? (
+                        <p className="text-xs text-[var(--color-stone-500)]">
+                          {item.brand}
+                        </p>
+                      ) : null}
+                    </div>
+                    <Badge tone="neutral">{item.condition}</Badge>
+                  </li>
+                ))}
+              </ul>
             )}
           </Card>
         </>
