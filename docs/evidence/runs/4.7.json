@@ -1,5 +1,5 @@
 {
-  "phaseItemId": "4.7-4.8-customer-style-portrait-onboarding",
+  "phaseItemId": "4.7",
   "gitSha": "d5e66de9cb58623935f9a689e856e27df63879aa",
   "spec": "apps/customer/e2e/virtual-studio.spec.ts",
   "status": "passed",

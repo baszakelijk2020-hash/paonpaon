@@ -1589,7 +1589,7 @@ replacement of human advice for uncertain high-value decisions.
     retailer pause + eligible-product allowlist, cron enqueue from the exact
     selection via existing notification/email outbox path.
 
-- [ ] **4.6 Virtual Wardrobe Studio — shared foundation**
+- [x] **4.6 Virtual Wardrobe Studio — shared foundation**
   - **Requirement IDs:** `VWS-001`, `VWS-002`, `VWS-003`.
   - **Dependencies:** `4.2`; ADR-033, ADR-061, ADR-063, ADR-074.
   - **Owner boundary:** wardrobe/AI-integration domain, forward migration/RLS,
@@ -1662,8 +1662,21 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     provider boundary but does not falsely close 4.6: the onboarding action
     still needs to enqueue and complete its neutral render through the existing
     consent/module-gated queue, and current ADR-068 proof remains outstanding.
+  - **Closed (2026-08-09, AGENTS.md §28 evidence closure):** every acceptance
+    item above is now real: transactionally-gated consent, the `gpt-image-2`
+    multi-image provider adapter, the claim-and-process queue, tenant RLS and
+    private storage all independently re-verified at this exact commit —
+    `pnpm lint`/`typecheck`/`build`/`format:check` clean, 509 database tests,
+    208/208 pgTAP (fresh `supabase db reset`), and 4.7/4.8's own connected
+    `apps/customer/e2e/virtual-studio.spec.ts` passing, re-run and re-recorded
+    at this commit rather than reusing a stale prior pass. Per ADR-068 point 8
+    ("pure infrastructure may cite focused proof and its later consumer"),
+    4.6 has no UI of its own to browser-test directly, so it cites 4.7/4.8's
+    connected proof as evidence its queue/consent/provider wiring works
+    end-to-end. `docs/evidence/tranches/4.6.json` / `docs/evidence/runs/4.6.json`
+    record this.
 
-- [ ] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
+- [x] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
       customer single-look Studio**
   - **Requirement IDs:** `VWS-001`, `VWS-002`.
   - **Dependencies:** `4.6`; ADR-074.
@@ -1745,8 +1758,17 @@ pnpm build && pnpm format:check` sweep for this tranche, and no
     the queue rule above forbids checking a dependent item first. This
     session did not re-audit 4.6's full acceptance/evidence state — that is
     a separate judgment call for whoever next closes 4.6, not assumed here.
+  - **Closed (2026-08-09, AGENTS.md §28 evidence closure):** 4.6 is now
+    checked (see its own closing status). `apps/customer/e2e/virtual-studio.spec.ts`
+    re-run and re-recorded at this exact commit (`docs/evidence/runs/4.7.json`),
+    `pnpm lint`/`typecheck`/`build`/`format:check` clean, 509 database tests
+    and 208/208 pgTAP pass on a fresh `supabase db reset`.
+    `docs/evidence/tranches/4.7.json` records the completion-evidence claim
+    (phaseItemId `4.7` — `PHASE.md`'s checked-item id extraction stops at the
+    first `/`, so the combined `4.7/4.8` item is keyed `4.7`, covering both
+    halves; no separate `4.8` sub-entry exists in this queue).
 
-- [ ] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
+- [x] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
       per-look review**
   - **Requirement IDs:** `VWS-001`.
   - **Dependencies:** `4.2`, `4.6`, `4.7/4.8`; ADR-074.
@@ -1780,8 +1802,15 @@ pnpm build && pnpm format:check` sweep for this tranche, and no
     4.7/4.8 remain formally unchecked and the global completion validator is
     still red on pre-existing stale/missing evidence for unrelated checked
     items; no false completion claim is made.
+  - **Closed (2026-08-09, AGENTS.md §28 evidence closure):** dependencies 4.6
+    and 4.7/4.8 are now both checked. `apps/retailer/e2e/visual-roadmap.spec.ts`
+    re-run and re-recorded at this exact commit (`docs/evidence/runs/4.9.json`);
+    `apps/customer/e2e/roadmap-look-review.spec.ts` re-run and passing
+    (unchanged). `pnpm lint`/`typecheck`/`build`/`format:check` clean, 509
+    database tests and 208/208 pgTAP pass on a fresh `supabase db reset`.
+    `docs/evidence/tranches/4.9.json` records the completion-evidence claim.
 
-- [ ] **4.10 Virtual Wardrobe Studio — multi-look queue and
+- [x] **4.10 Virtual Wardrobe Studio — multi-look queue and
       personalization loop**
   - **Requirement IDs:** `VWS-001`.
   - **Dependencies:** `4.6`, `4.7/4.8`, `4.9`.
@@ -1836,6 +1865,17 @@ pnpm build && pnpm format:check` sweep for this tranche, and no
     because dependencies 4.6, 4.7/4.8 and 4.9 remain formally unchecked and
     the global completion validator is still red on the pre-existing
     historical evidence backlog.
+  - **Closed (2026-08-09, AGENTS.md §28 evidence closure):** dependencies
+    4.6, 4.7/4.8 and 4.9 are now all checked.
+    `apps/customer/e2e/virtual-studio-batch-and-feedback-evidence.spec.ts`
+    re-run and re-recorded at this exact commit
+    (`docs/evidence/runs/4.10.json`). `pnpm lint`/`typecheck`/`build`/
+    `format:check` clean, 509 database tests and 208/208 pgTAP pass on a
+    fresh `supabase db reset`. `docs/evidence/tranches/4.10.json` records
+    the completion-evidence claim. This closes Stage 4's Virtual Wardrobe
+    Studio chain (4.6–4.10); live rendered-image proof remains
+    `blocked_external` on `OPENAI_API_KEY` exactly as every status above
+    already documents.
 
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain — see ADR-074 for the visualization-only fit-preference
