@@ -242,6 +242,7 @@ test("batch-enqueues saved looks deterministically, bulk-cancels them, and feeds
       retailerId,
       customerId,
       title: `E2E Batch Look One ${unique}`,
+      isSuggestionGeneration: false,
       slots: [
         {
           slotKind: "jacket",
@@ -259,6 +260,7 @@ test("batch-enqueues saved looks deterministically, bulk-cancels them, and feeds
       retailerId,
       customerId,
       title: `E2E Batch Look Two ${unique}`,
+      isSuggestionGeneration: false,
       slots: [
         {
           slotKind: "trousers",

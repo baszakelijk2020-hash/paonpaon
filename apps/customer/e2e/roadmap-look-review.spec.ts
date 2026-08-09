@@ -189,6 +189,7 @@ test("a customer reviews a roadmap-linked look with Love it, Maybe, and Request 
       roadmapId: roadmap.id,
       title: "E2E Presentation Look",
       occasionLabel: "Client presentation",
+      isSuggestionGeneration: false,
       slots: [
         {
           slotKind: "jacket",

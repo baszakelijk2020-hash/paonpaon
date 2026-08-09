@@ -99,6 +99,7 @@ export const createOutfitInputSchema = z
     title: z.string().trim().min(1).max(200),
     occasionLabel: z.string().trim().max(120).optional(),
     notes: optionalNotes,
+    isSuggestionGeneration: z.boolean().default(false),
     slots: z.array(outfitSlotInputSchema).min(1).max(6),
   })
   .superRefine((value, ctx) => {

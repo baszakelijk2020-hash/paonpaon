@@ -10065,6 +10065,7 @@ export type Database = {
           customer_id: string;
           deleted_at: string | null;
           id: string;
+          is_suggestion_generation: boolean;
           notes: string | null;
           occasion_label: string | null;
           retailer_id: string;
@@ -10079,6 +10080,7 @@ export type Database = {
           customer_id: string;
           deleted_at?: string | null;
           id?: string;
+          is_suggestion_generation?: boolean;
           notes?: string | null;
           occasion_label?: string | null;
           retailer_id: string;
@@ -10093,6 +10095,7 @@ export type Database = {
           customer_id?: string;
           deleted_at?: string | null;
           id?: string;
+          is_suggestion_generation?: boolean;
           notes?: string | null;
           occasion_label?: string | null;
           retailer_id?: string;

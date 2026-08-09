@@ -54,6 +54,7 @@ function toOutfit(row: OutfitRow, slots: readonly OutfitSlot[]): Outfit {
     ...(row.created_by_customer_id
       ? { createdByCustomerId: asId<"CustomerId">(row.created_by_customer_id) }
       : {}),
+    isSuggestionGeneration: row.is_suggestion_generation,
     ...(row.deleted_at ? { deletedAt: row.deleted_at } : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -164,6 +165,7 @@ export class OutfitRepository {
         notes: input.notes ?? null,
         created_by_staff_id: author.created_by_staff_id,
         created_by_customer_id: author.created_by_customer_id,
+        is_suggestion_generation: input.isSuggestionGeneration,
       })
       .select("*")
       .single();

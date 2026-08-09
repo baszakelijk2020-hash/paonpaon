@@ -14,7 +14,7 @@ import {
   WishlistRepository,
   type WardrobeItemServiceView,
 } from "@paon/database";
-import { garmentCategoryToOutfitSlot } from "@paon/domain";
+import { garmentCategoryToOutfitSlot, isSavedLook } from "@paon/domain";
 import type {
   Outfit,
   WardrobeOwnershipEvent,
@@ -219,7 +219,7 @@ export default async function WardrobePage() {
                 retailerId={customer.retailerId}
                 retailerName={retailer?.displayName ?? "Retailer"}
                 composableItems={composableItems}
-                outfits={outfits.filter((outfit) => !outfit.roadmapId)}
+                outfits={outfits.filter(isSavedLook)}
                 latestJobByOutfitId={latestJobByOutfitId}
                 canGenerate={canGenerate}
               />

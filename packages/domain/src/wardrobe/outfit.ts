@@ -49,8 +49,28 @@ export interface Outfit extends Timestamps {
    */
   readonly createdByStaffId?: StaffId;
   readonly createdByCustomerId?: CustomerId;
+  /**
+   * True only for a throwaway single-slot outfit built solely to carry a
+   * Complete the Look suggestion (PHASE 17.10/17.13) into the try-on
+   * enqueue pipeline — never a real saved/composed look. See
+   * `isSavedLook`.
+   */
+  readonly isSuggestionGeneration?: boolean;
   readonly deletedAt?: string;
   readonly slots: readonly OutfitSlot[];
+}
+
+/**
+ * An outfit belongs in "my saved looks" listings/bulk actions only when it
+ * is neither a roadmap-authored look (its own dedicated surface) nor a
+ * Complete the Look throwaway generation vehicle. Single source of truth
+ * for the filter every saved-looks surface applies.
+ */
+export function isSavedLook(outfit: {
+  readonly roadmapId?: WardrobeRoadmapId | string | null;
+  readonly isSuggestionGeneration?: boolean;
+}): boolean {
+  return !outfit.roadmapId && !outfit.isSuggestionGeneration;
 }
 
 export type OutfitAuthorIssue = "missing_author" | "both_authors_set";

@@ -17,6 +17,7 @@ import {
   asId,
   createOutfitInputSchema,
   deriveTailoringAttributesFromFitArchetype,
+  isSavedLook,
   mayCapturePersonalizationForCustomer,
   outfitSlotKindForGarmentCategory,
   parseFitArchetypeSlug,
@@ -246,7 +247,7 @@ export async function generateAllSavedLooks(
   const outfitRepo = new OutfitRepository(supabase);
   const jobRepo = new WardrobeVisualizationJobRepository(supabase);
   const looks = (await outfitRepo.findByCustomer(customer.id))
-    .filter((outfit) => !outfit.roadmapId)
+    .filter(isSavedLook)
     .slice()
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
@@ -302,7 +303,7 @@ export async function cancelAllQueuedLooks(
   const outfitRepo = new OutfitRepository(supabase);
   const jobRepo = new WardrobeVisualizationJobRepository(supabase);
   const looks = (await outfitRepo.findByCustomer(customer.id)).filter(
-    (outfit) => !outfit.roadmapId,
+    isSavedLook,
   );
 
   let cancelled = 0;
@@ -458,11 +459,39 @@ export async function generateSuggestedLookTryOn(
     return { error: "Missing suggestion details." };
   }
 
+  const outfitRepo = new OutfitRepository(supabase);
+  const jobRepo = new WardrobeVisualizationJobRepository(supabase);
+
+  // Idempotency (protects the generate-on-demand cost ratio this feature
+  // area exists for, vision spec §0): a repeat "See it on me" tap for the
+  // exact same suggested product reuses an in-flight or already-generated
+  // job rather than enqueueing a duplicate paid generation.
+  const existingOutfits = await outfitRepo.findByCustomer(customer.id);
+  for (const candidate of existingOutfits) {
+    if (!candidate.isSuggestionGeneration) continue;
+    if (!candidate.slots.some((slot) => slot.productId === productId)) {
+      continue;
+    }
+    const jobs = await jobRepo.findByOutfit(candidate.id);
+    const hasActiveOrReady = jobs.some(
+      (job) =>
+        job.status === "queued" ||
+        job.status === "generating" ||
+        job.status === "ready",
+    );
+    if (hasActiveOrReady) {
+      revalidatePath("/wardrobe");
+      revalidatePath("/morning-routine");
+      return {};
+    }
+  }
+
   const slotKind = outfitSlotKindForGarmentCategory(categoryCode);
   const parsed = createOutfitInputSchema.safeParse({
     retailerId: customer.retailerId,
     customerId: customer.id,
     title: `See it on me: ${displayName}`,
+    isSuggestionGeneration: true,
     slots: [
       {
         slotKind,
@@ -481,10 +510,7 @@ export async function generateSuggestedLookTryOn(
 
   let outfitId: string;
   try {
-    const outfit = await new OutfitRepository(supabase).createByCustomer(
-      parsed.data,
-      customer.id,
-    );
+    const outfit = await outfitRepo.createByCustomer(parsed.data, customer.id);
     outfitId = outfit.id;
   } catch (error) {
     return {
