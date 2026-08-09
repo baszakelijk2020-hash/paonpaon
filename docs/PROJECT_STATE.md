@@ -73,6 +73,15 @@ the browser fixture. Clean local proof is 190/190 pgTAP and 1/1 connected
 customer browser; the formal checkbox remains open behind the unchecked VWS
 dependency chain and repository-wide historical evidence backlog.
 
+The provider invariant found while closing the neutral Style Portrait preview
+is repaired in `a690d7d`/`8fa3af8`: `gpt-image-2` now receives the signed
+customer references as actual multi-image edit inputs instead of seeing their
+URLs only as text in a DALL-E 3 prompt. Supported type/size validation, transient
+base64 output and the existing private-storage ingestion boundary are covered
+by 7 focused AI assertions. The next buildable VWS unit is still the
+consent/module-gated onboarding preview job itself; no 4.6/4.7 completion claim
+has been made.
+
 Last hand-maintained update: 2026-08-05 (FT-02 silhouette analysis
 consent/capture state machine landed on `agent/grok-takeover-2026-07-30`).
 Commits since then — including FT-09's consultation-to-appointment journey —

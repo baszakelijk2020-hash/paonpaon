@@ -442,8 +442,14 @@ spec.ts` proved exactly one of five "Needs your attention" card types
   StyleProfile event-provenance/replay guarantees are repaired; local proof is
   190/190 pgTAP plus the retailer and both customer journeys. Keep the VWS
   items formally open behind their unchecked dependency chain and the
-  historical ADR-068 backlog; do not reopen 4.6–4.10 unless an invariant
-  fails.
+  historical ADR-068 backlog. One provider invariant did fail during the
+  neutral-preview audit: the OpenAI adapter passed reference URLs only as
+  DALL-E 3 prompt text. Lane H now uses `gpt-image-2` multi-image edits with
+  actual signed JPEG/PNG/WEBP inputs, bounded download validation and transient
+  base64 output that the existing processor copies into private PAON storage.
+  The onboarding action still needs to reuse the consent/module-gated queue for
+  its neutral render; do not claim 4.6/4.7 complete until that connected path
+  and current ADR-068 proof exist.
 - **Product frame:** House Memory -> Advisor Today -> visual wardrobe/composed
   proposal -> order/fitting/alteration -> aftercare -> captured outcome is the
   first demonstrator and shared intelligence spine, not PAON's scope. The

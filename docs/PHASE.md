@@ -1648,6 +1648,20 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     portrait and allowed states; all 185 pgTAP assertions pass. The checkbox
     remains unchecked because ADR-068 connected evidence has not been recorded
     and the onboarding preview is not yet an AI-rendered neutral preview.
+  - **Status (2026-08-09, Lane H reference-input repair):** review of the
+    remaining neutral-preview gap exposed a deeper provider invariant failure:
+    the OpenAI adapter named signed reference URLs only inside a DALL-E 3 text
+    prompt, so neither outfit renders nor a future onboarding preview actually
+    supplied the customer's images to the model. `a690d7d` moves wardrobe
+    generation to `gpt-image-2` multi-image `images.edit`, downloads only
+    JPEG/PNG/WEBP references with a 50 MB ceiling, and returns transient base64
+    output for the existing processor to copy into PAON-controlled private
+    storage. Delegated `8fa3af8` proves two real Uploadable inputs, prompt/body
+    safety constraints, transient output and missing/unsupported/oversized
+    fail-closed paths; the focused AI suite is 7/7. This repairs the shared
+    provider boundary but does not falsely close 4.6: the onboarding action
+    still needs to enqueue and complete its neutral render through the existing
+    consent/module-gated queue, and current ADR-068 proof remains outstanding.
 
 - [ ] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
       customer single-look Studio**
