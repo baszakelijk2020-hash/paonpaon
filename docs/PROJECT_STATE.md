@@ -25,62 +25,46 @@ authoritative for what is built; `git log --oneline` and
 
 ## Current snapshot
 
-Lane H snapshot (2026-08-09):
-`agent/lane-h-customer-ai-conversation` advanced Stage 17.10 from `c1121a3`.
-The frontier-authored virtual-try-on authorization/ledger contract is in
-`aacf40f`; bounded tests were delegated to
-`agent/lane-delegate-17-10-20260809114417`, independently reviewed, and
-accepted as `cbc3df6`. The 25-case domain suite, workspace lint/typecheck,
-build, and format check are green. The completion-evidence validator remains
-red on historical stale/missing checked-item records, so 17.10 is not claimed
-complete and no evidence record was fabricated.
+Lane H snapshot (2026-08-09, `73f9480`): Stage 4's Virtual Wardrobe Studio
+chain (4.6, 4.7/4.8, 4.9, 4.10) is now checked complete with ADR-068 evidence
+(`docs/evidence/tranches/4.6.json`, `4.7.json`, `4.9.json`, `4.10.json`) —
+all four items were already functionally done across many prior sessions
+(transactionally consent-gated enqueue, `gpt-image-2` multi-image provider
+adapter, claim-and-process queue, tenant RLS, private storage, advisor
+roadmap composition, customer batch queue and StyleProfile feedback loop)
+but stayed unchecked purely on missing connected evidence and the resulting
+dependency-chain gate. Re-verified at `73f9480` itself: fresh
+`supabase db reset`, 208/208 pgTAP, 509 database tests, all four owning
+Playwright specs (`virtual-studio`, `roadmap-look-review`,
+`virtual-studio-batch-and-feedback-evidence`, `visual-roadmap`) passing,
+`pnpm lint`/`typecheck`/`build`/`format:check` clean. Live rendered-image
+proof remains `blocked_external` on `OPENAI_API_KEY`.
 
-Lane D's already-authored Virtual Wardrobe Studio foundation is now reconciled
-into Lane H as `7cc9ba7`; `933ef29` regenerates database types from the exact
-Lane H migrated schema. Migration `20260806100000` has no filename collision,
-applies cleanly on disposable local Supabase, and passes 177/177 pgTAP plus
-the focused 58 domain/AI/database assertions. Workspace lint/typecheck, all
-unit suites, all three production builds and format check pass. The global
-completion validator remains red on historical stale/missing evidence for
-unrelated checked items, so neither 4.6 nor 17.10 is falsely checked complete.
-Lane D's 4.7/4.8 customer tranche is now reconciled as `939c537`; `486418a`
-adds the R0.3 module and persisted-consent boundary at enqueue and immediately
-before provider invocation. `ff0be5a` adds eight real RPC authorization
-assertions, bringing disposable-local pgTAP to 185/185, and the committed
-customer Playwright journey passes from consent/private uploads through an
-approved portrait, owned-item composition and queued generation. Formal 4.6,
-4.7/4.8 and 17.10 completion remains unclaimed: the onboarding preview is not
-yet an AI-rendered neutral preview, no current ADR-068 connected evidence run
-exists for this tranche, and 17.10 still needs persisted budget reservation/
-settlement plus MorningRoutine complete-the-look composition.
+Stage 17.10 (AI try-on / MorningRoutine) remains unchecked: the provider-
+neutral authorization contract, persisted budget-reservation/settlement
+RPCs (`reserve_virtual_try_on_generation`/`settle_virtual_try_on_generation`,
+migration `20260809170000`) and complete-the-look tap-to-generate UI
+(wardrobe-level and item-specific, 17.13) all exist and are proven
+(`885ca9f`, `259fc78`, `581fde7`, `7999202`, `7ba5e45`), but the ledger is
+deliberately **not wired to gate today's generation path**
+(`enqueueLook`/`WardrobeVisualizationJobRepository`) — every retailer's
+policy row seeds `enabled = false` by design (no invented billing default),
+so wiring the gate now would silently block all existing generation for
+every retailer. This is a real founder-controlled product decision (an
+approved credit/billing model), not an oversight — do not wire it without
+that decision. 17.10's own "Hard blockers" line already documents this.
 
-The next Virtual Wardrobe Studio tranche is reconciled on Lane H as
-`9a751bc`: advisors compose and enqueue up to twelve roadmap-linked Outfits,
-and customers review each generated look through the existing wardrobe
-roadmap. `14235c8` closes the same-House advisor cancellation boundary,
-delegated `ad1c133` covers roadmap repository filtering/mapping, and `890ea0f`
-keeps the real browser fixture aligned with persisted image-generation
-consent. Local proof is 188/188 pgTAP plus both 4.9 browser journeys; the
-formal checkbox remains open behind 4.6/4.7/4.8 dependency state and the
-repository-wide historical evidence backlog.
+Stage 17.14 (prospect AI conversation/buying-intent queue/human handoff) is
+checked complete with connected evidence
+(`docs/evidence/runs/17.14.json`, code SHA `964d9db`).
 
-Virtual Wardrobe Studio 4.10 is also reconciled on Lane H as `18210d2`:
-customer batch enqueue/cancel and consented feedback-to-StyleProfile evidence
-now compose with the canonical 4.7–4.9 boundaries. `7cb3c19` restores the
-pre-existing event-provenance/replay guarantees after the older Lane D RPC
-rewrite, and delegated `07f1bda` grants the persisted generation consent in
-the browser fixture. Clean local proof is 190/190 pgTAP and 1/1 connected
-customer browser; the formal checkbox remains open behind the unchecked VWS
-dependency chain and repository-wide historical evidence backlog.
-
-The provider invariant found while closing the neutral Style Portrait preview
-is repaired in `a690d7d`/`8fa3af8`: `gpt-image-2` now receives the signed
-customer references as actual multi-image edit inputs instead of seeing their
-URLs only as text in a DALL-E 3 prompt. Supported type/size validation, transient
-base64 output and the existing private-storage ingestion boundary are covered
-by 7 focused AI assertions. The next buildable VWS unit is still the
-consent/module-gated onboarding preview job itself; no 4.6/4.7 completion claim
-has been made.
+Repository-wide: the completion-evidence validator (`pnpm validate:completion`)
+remains red on a pre-existing historical backlog unrelated to any of the
+above — stale/missing evidence on already-checked 8.4, 9.1, 11.4, 12.2, 12.4,
+13.1, 13.2, 17.1–17.6, 17.9, 17.14, 18.1, 18.2, 18.6, 18.8, 18.12. This is
+documented across many prior sessions' own status text as out of scope for
+whichever capability they were closing; re-verify before assuming it's still
+accurate.
 
 Last hand-maintained update: 2026-08-05 (FT-02 silhouette analysis
 consent/capture state machine landed on `agent/grok-takeover-2026-07-30`).
