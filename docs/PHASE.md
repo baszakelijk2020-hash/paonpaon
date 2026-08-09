@@ -4761,6 +4761,46 @@ pnpm build && pnpm format:check` are clean and `pnpm turbo run test`
     settle the ledger row when the job completes. Real schema/migration-
     ordering work belongs in its own slice, not rushed alongside UI
     wiring.
+  - **Status (2026-08-09, complete-the-look tap-to-generate integration):**
+    `581fde7` connects the suggestion engine to a real "see it on me"
+    action, closing spec §14 item 3's UI gap. MorningRoutine gathers
+    wardrobe ownership and catalogue availability the same way the daily
+    selection already does, then resolves each catalogue product's
+    `GarmentCategoryCode` from its accepted `garment_type` metadata
+    concepts via a new `resolveGarmentCategoryFromConcepts` slug/label
+    heuristic (same precedent as `catalog/tie-mate.ts`'s
+    `resolveTieConceptIds`) — `products` itself carries no category
+    column, a real gap discovered while wiring this, not assumed away.
+    A new `CompleteTheLookCard` renders on `/morning-routine`, never when
+    empty. Tapping "See it on me" builds a throwaway single-slot `Outfit`
+    (`outfitSlotKindForGarmentCategory` maps the suggestion's 15-value
+    category onto the 6 real `OutfitSlotKind` values) and enqueues it
+    through the exact same `enqueueLook` Virtual Wardrobe Studio already
+    uses on `/wardrobe` — the only generation pipeline that actually
+    works today — rather than a second path, and rather than gating on
+    the still-unconnected `virtual_try_on_usage_ledger` (deliberately: the
+    rest of Virtual Wardrobe Studio's tap-to-generate is itself ungated by
+    that ledger today, and gating only this one card would make it the
+    single dead entry point while everything else works). The
+    ledger-to-job correlation column named above remains a separate,
+    still-open follow-up, unchanged from the prior status. Checkbox
+    remains unchecked: this item's own hard blocker (a live try-on
+    provider key and an approved credit/billing model) is still unmet,
+    same posture 17.9/17.12 already document for a `verified_local`
+    non-blocked half. Proof: `apps/customer/e2e/complete-the-look.spec.ts`
+    — a fixture product tagged with an accepted `garment_type` concept the
+    customer owns nothing in surfaces on the card, and tapping "See it on
+    me" reaches a real `queued` `WardrobeVisualizationJob`; no
+    `OPENAI_API_KEY` in this sandbox, so generation itself stays out of
+    scope, same posture `virtual-studio.spec.ts` already documents.
+    Regression: `virtual-studio.spec.ts`,
+    `virtual-studio-batch-and-feedback-evidence.spec.ts`,
+    `morning-routine.spec.ts`, `morning-routine-occasions.spec.ts` and
+    `dashboard-morning-routine-hero.spec.ts` all pass unchanged (5/5).
+    `pnpm lint`/`typecheck`/`build` are clean and `pnpm turbo run test` is
+    green (1122 domain tests, 509 database tests, 70 integration tests
+    correctly skipped outside their explicit gate) at `581fde7`. ADR-068
+    evidence: `docs/evidence/runs/17.10.json`.
 
 - [ ] **17.11 Supplier-CRM data import and ownership**
   - **Requirement IDs:** ADV-111.
