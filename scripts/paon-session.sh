@@ -55,7 +55,9 @@ if [ -z "$REPO_ROOT" ]; then
 fi
 
 session_exists() {
-  screen -ls 2>/dev/null | grep -Eq "[0-9]+[.]${SESSION_NAME}[[:space:]]"
+  local sessions
+  sessions="$(screen -ls 2>/dev/null || true)"
+  printf '%s\n' "$sessions" | grep -Eq "[0-9]+[.]${SESSION_NAME}[[:space:]]"
 }
 
 case "$ACTION" in
