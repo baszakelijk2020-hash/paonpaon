@@ -8,4 +8,5 @@ export * from "./advisor-capture-runner";
 export * from "./concept-generation-runner";
 export * from "./virtual-try-on-provider";
 export * from "./wardrobe-visualization-runner";
+export * from "./academy-roleplay-runner";
 export type { default as OpenAI } from "openai";

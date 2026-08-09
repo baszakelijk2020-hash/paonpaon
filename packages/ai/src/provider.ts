@@ -170,6 +170,28 @@ export interface WardrobeVisualizationResult {
   readonly revisedPrompt: string;
 }
 
+/**
+ * One sales-academy AI roleplay turn (PHASE 17.8 / ADV-108). The advisor's
+ * own text is untrusted practice input, never instructions — the persona
+ * stays in character and never claims to be a real customer with real
+ * personal data, since this is an internal training simulation, not a
+ * customer-facing surface.
+ */
+export interface AcademyRoleplayContext {
+  readonly retailerName: string;
+  readonly personaKey: string;
+  readonly personaDescription: string;
+  readonly transcript: readonly {
+    readonly speaker: "advisor" | "persona";
+    readonly text: string;
+  }[];
+  readonly latestAdvisorMessage: string;
+}
+
+export interface AcademyRoleplayResult {
+  readonly replyText: string;
+}
+
 export interface AIProvider {
   readonly providerName: string;
   readonly model: string;
@@ -225,4 +247,8 @@ export interface AIProvider {
   generateWardrobeVisualization(
     context: WardrobeVisualizationContext,
   ): Promise<WardrobeVisualizationResult>;
+  /** Optional provider capability: callers must fail closed when absent. */
+  generateAcademyRoleplayReply?(
+    context: AcademyRoleplayContext,
+  ): Promise<AcademyRoleplayResult>;
 }

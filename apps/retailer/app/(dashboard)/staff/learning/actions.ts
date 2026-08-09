@@ -127,6 +127,8 @@ const GRADE_REJECTION_MESSAGES: Record<string, string> = {
     "Describe what was actually observed — at least 10 characters. Ungrounded feedback teaches nothing.",
   evidence_ref_required: "Cite where this was observed.",
   self_grading_not_permitted: "You can't grade your own roleplay.",
+  roleplay_session_staff_mismatch:
+    "That practice session belongs to a different staff member.",
 };
 
 /**
@@ -162,6 +164,8 @@ export async function recordRoleplayGrade(
   )
     ? (personaKeyRaw as AcademyRoleplayPersona)
     : undefined;
+  const roleplaySessionId =
+    String(formData.get("roleplaySessionId") ?? "").trim() || undefined;
   if (!staffId || !lessonKey) {
     return { formError: "Choose a staff member and name the lesson." };
   }
@@ -173,6 +177,7 @@ export async function recordRoleplayGrade(
     evidence: [{ criterionKey, evidenceRef, observedBehaviour }],
     gradedByStaffId: grader.id,
     ...(personaKey ? { personaKey } : {}),
+    ...(roleplaySessionId ? { roleplaySessionId } : {}),
   });
   if (!result.ok) {
     return {

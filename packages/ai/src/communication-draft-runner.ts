@@ -1,5 +1,7 @@
 import { MockGroundedAnswerProvider } from "./grounded-answer-runner";
 import type {
+  AcademyRoleplayContext,
+  AcademyRoleplayResult,
   AIProvider,
   CommunicationDraftContext,
   CommunicationDraftResult,
@@ -10,7 +12,13 @@ export interface MockCommunicationDraftProviderOptions {
   readonly errorMessage?: string;
 }
 
-/** Deterministic provider used only by tests and local browser proof. */
+/**
+ * Deterministic provider used only by tests and local browser proof. This
+ * is the one mock class `apps/retailer/lib/ai.ts` wires under
+ * `PAON_E2E_MOCK_AI=1`, so it also carries academy-roleplay replies
+ * (PHASE 17.8 / ADV-108) rather than adding a second retailer-app mock
+ * selection mechanism for one more capability.
+ */
 export class MockCommunicationDraftProvider extends MockGroundedAnswerProvider {
   override readonly providerName = "mock";
   override readonly model = "mock-communication-draft";
@@ -46,6 +54,15 @@ export class MockCommunicationDraftProvider extends MockGroundedAnswerProvider {
         .slice(0, 2)
         .map((item) => item.knowledgeObjectId),
       productIds: context.products.slice(0, 3).map((item) => item.productId),
+    };
+  }
+
+  async generateAcademyRoleplayReply(
+    context: AcademyRoleplayContext,
+  ): Promise<AcademyRoleplayResult> {
+    const turnNumber = context.transcript.length;
+    return {
+      replyText: `[mock ${context.personaKey} reply #${turnNumber}] Responding to: "${context.latestAdvisorMessage.slice(0, 60)}"`,
     };
   }
 }

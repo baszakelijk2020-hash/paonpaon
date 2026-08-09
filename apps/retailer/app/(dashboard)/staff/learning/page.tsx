@@ -1,5 +1,6 @@
 import {
   AcademyRepository,
+  AcademyRoleplayRepository,
   InternalCommunityRepository,
   RetailerStaffRepository,
 } from "@paon/database";
@@ -16,6 +17,7 @@ import {
   RecordRoleplayGradeForm,
   SubmitContributionForm,
 } from "./learning-forms";
+import { RoleplayPractice } from "./roleplay-practice";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -43,9 +45,20 @@ export default async function LearningPage() {
 
   const isManager = retailerRoleAtLeast(session.retailerRole, "manager");
   const academyRepo = new AcademyRepository(supabase);
+  const roleplayRepo = new AcademyRoleplayRepository(supabase);
 
-  const [approved, mine, queue, allStaff, myGrades] = await Promise.all([
-    communityRepo.listApprovedContributions({ retailerId: session.retailerId }),
+  const [
+    approved,
+    mine,
+    queue,
+    allStaff,
+    myGrades,
+    activeRoleplaySession,
+    completedRoleplaySessions,
+  ] = await Promise.all([
+    communityRepo.listApprovedContributions({
+      retailerId: session.retailerId,
+    }),
     communityRepo.listContributionsByAuthor({
       retailerId: session.retailerId,
       authorStaffId: viewer.id,
@@ -62,10 +75,24 @@ export default async function LearningPage() {
       retailerId: session.retailerId,
       staffId: viewer.id,
     }),
+    roleplayRepo.findActiveSessionForStaff(viewer.id),
+    isManager
+      ? roleplayRepo.findCompletedSessionsForRetailer(session.retailerId)
+      : Promise.resolve([]),
   ]);
+  const staffNameById = new Map(
+    allStaff.map((member) => [String(member.id), member.fullName]),
+  );
+  const roleplaySessionOptions = completedRoleplaySessions.map((rp) => ({
+    id: rp.id,
+    label: `${staffNameById.get(rp.staffId) ?? "Unknown"} · ${ACADEMY_ROLEPLAY_PERSONA_LABELS[rp.personaKey].split(" — ")[0]} · ${formatDate(rp.startedAt, "en-US")}`,
+  }));
   const staffOptions = allStaff
     .filter((member) => member.id !== viewer.id)
     .map((member) => ({ id: member.id, label: member.fullName }));
+  const activeRoleplayMessages = activeRoleplaySession
+    ? await roleplayRepo.findMessagesBySession(activeRoleplaySession.id)
+    : [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -176,6 +203,20 @@ export default async function LearningPage() {
         )}
       </Card>
 
+      <Card>
+        <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
+          Practice with an AI persona
+        </h2>
+        <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+          Practice a real conversation against one of the published personas
+          before a manager grades it.
+        </p>
+        <RoleplayPractice
+          activeSession={activeRoleplaySession}
+          activeMessages={activeRoleplayMessages}
+        />
+      </Card>
+
       {isManager ? (
         <Card>
           <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
@@ -185,7 +226,10 @@ export default async function LearningPage() {
             Every grade cites what was actually observed and where — an
             ungrounded grade teaches nothing and cannot be disputed.
           </p>
-          <RecordRoleplayGradeForm staff={staffOptions} />
+          <RecordRoleplayGradeForm
+            staff={staffOptions}
+            roleplaySessions={roleplaySessionOptions}
+          />
         </Card>
       ) : null}
 

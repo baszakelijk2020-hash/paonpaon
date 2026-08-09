@@ -137,10 +137,17 @@ export interface StaffOption {
  * lesson again adds a second row rather than editing the first, which
  * matches the table's own append-only design.
  */
+export interface RoleplaySessionOption {
+  readonly id: string;
+  readonly label: string;
+}
+
 export function RecordRoleplayGradeForm({
   staff,
+  roleplaySessions,
 }: {
   readonly staff: readonly StaffOption[];
+  readonly roleplaySessions: readonly RoleplaySessionOption[];
 }) {
   const [state, action, pending] = useActionState(recordRoleplayGrade, initial);
 
@@ -176,6 +183,25 @@ export function RecordRoleplayGradeForm({
           ))}
         </Select>
       </FormField>
+      {roleplaySessions.length > 0 ? (
+        <FormField
+          htmlFor="grade-roleplay-session"
+          label="Real AI-practice transcript reviewed (optional)"
+        >
+          <Select
+            id="grade-roleplay-session"
+            name="roleplaySessionId"
+            defaultValue=""
+          >
+            <option value="">Not from a recorded session</option>
+            {roleplaySessions.map((rp) => (
+              <option key={rp.id} value={rp.id}>
+                {rp.label}
+              </option>
+            ))}
+          </Select>
+        </FormField>
+      ) : null}
       <FormField htmlFor="grade-criterion" label="Criterion">
         <Input
           id="grade-criterion"

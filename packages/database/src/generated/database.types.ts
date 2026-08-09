@@ -43,6 +43,7 @@ export type Database = {
           lesson_key: string;
           persona_key: string | null;
           retailer_id: string;
+          roleplay_session_id: string | null;
           staff_id: string;
         };
         Insert: {
@@ -53,6 +54,7 @@ export type Database = {
           lesson_key: string;
           persona_key?: string | null;
           retailer_id: string;
+          roleplay_session_id?: string | null;
           staff_id: string;
         };
         Update: {
@@ -63,6 +65,7 @@ export type Database = {
           lesson_key?: string;
           persona_key?: string | null;
           retailer_id?: string;
+          roleplay_session_id?: string | null;
           staff_id?: string;
         };
         Relationships: [
@@ -81,7 +84,100 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "academy_roleplay_grades_roleplay_session_id_fkey";
+            columns: ["roleplay_session_id"];
+            isOneToOne: false;
+            referencedRelation: "academy_roleplay_sessions";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "academy_roleplay_grades_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      academy_roleplay_messages: {
+        Row: {
+          content: string;
+          created_at: string;
+          id: string;
+          session_id: string;
+          speaker: string;
+          turn_index: number;
+        };
+        Insert: {
+          content: string;
+          created_at?: string;
+          id?: string;
+          session_id: string;
+          speaker: string;
+          turn_index: number;
+        };
+        Update: {
+          content?: string;
+          created_at?: string;
+          id?: string;
+          session_id?: string;
+          speaker?: string;
+          turn_index?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "academy_roleplay_messages_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "academy_roleplay_sessions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      academy_roleplay_sessions: {
+        Row: {
+          created_at: string;
+          ended_at: string | null;
+          id: string;
+          persona_key: string;
+          retailer_id: string;
+          staff_id: string;
+          started_at: string;
+          status: string;
+          turn_count: number;
+        };
+        Insert: {
+          created_at?: string;
+          ended_at?: string | null;
+          id?: string;
+          persona_key: string;
+          retailer_id: string;
+          staff_id: string;
+          started_at?: string;
+          status?: string;
+          turn_count?: number;
+        };
+        Update: {
+          created_at?: string;
+          ended_at?: string | null;
+          id?: string;
+          persona_key?: string;
+          retailer_id?: string;
+          staff_id?: string;
+          started_at?: string;
+          status?: string;
+          turn_count?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "academy_roleplay_sessions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "academy_roleplay_sessions_staff_id_fkey";
             columns: ["staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
@@ -19155,6 +19251,26 @@ export type Database = {
         Args: { p_draft_id: string };
         Returns: boolean;
       };
+      end_academy_roleplay_session: {
+        Args: { p_session_id: string; p_status: string };
+        Returns: {
+          created_at: string;
+          ended_at: string | null;
+          id: string;
+          persona_key: string;
+          retailer_id: string;
+          staff_id: string;
+          started_at: string;
+          status: string;
+          turn_count: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "academy_roleplay_sessions";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       enqueue_campaign_delivery_notification: {
         Args: {
           p_action_href?: string;
@@ -20121,6 +20237,26 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      start_academy_roleplay_session: {
+        Args: { p_persona_key: string; p_retailer_id: string };
+        Returns: {
+          created_at: string;
+          ended_at: string | null;
+          id: string;
+          persona_key: string;
+          retailer_id: string;
+          staff_id: string;
+          started_at: string;
+          status: string;
+          turn_count: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "academy_roleplay_sessions";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       start_silhouette_analysis_session: {
         Args: { p_retailer_id: string };
         Returns: string;
@@ -20132,6 +20268,27 @@ export type Database = {
           p_variant_id: string;
         };
         Returns: number;
+      };
+      submit_academy_roleplay_turn: {
+        Args: {
+          p_advisor_text: string;
+          p_persona_text: string;
+          p_session_id: string;
+        };
+        Returns: {
+          content: string;
+          created_at: string;
+          id: string;
+          session_id: string;
+          speaker: string;
+          turn_index: number;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "academy_roleplay_messages";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       submit_commercial_inquiry: {
         Args: {
@@ -20387,7 +20544,8 @@ export type Database = {
         | "import_enrichment"
         | "tableservice_grounded"
         | "advisor_capture"
-        | "corporate_concept";
+        | "corporate_concept"
+        | "academy_roleplay";
       ai_generation_status: "succeeded" | "failed";
       alteration_attachment_kind:
         "intake" | "label" | "evidence" | "progress" | "completion";
@@ -20758,6 +20916,7 @@ export const Constants = {
         "tableservice_grounded",
         "advisor_capture",
         "corporate_concept",
+        "academy_roleplay",
       ],
       ai_generation_status: ["succeeded", "failed"],
       alteration_attachment_kind: [

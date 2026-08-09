@@ -27,6 +27,7 @@ export interface RoleplayGrade {
   readonly evidence: readonly RubricEvidence[];
   readonly gradedByStaffId: string | null;
   readonly personaKey: AcademyRoleplayPersona | null;
+  readonly roleplaySessionId: string | null;
   readonly createdAt: string;
 }
 
@@ -39,6 +40,7 @@ function toDomain(row: GradeRow): RoleplayGrade {
     evidence: (row.evidence as unknown as RubricEvidence[]) ?? [],
     gradedByStaffId: row.graded_by_staff_id,
     personaKey: row.persona_key as AcademyRoleplayPersona | null,
+    roleplaySessionId: row.roleplay_session_id,
     createdAt: row.created_at,
   };
 }
@@ -46,7 +48,8 @@ function toDomain(row: GradeRow): RoleplayGrade {
 export type RecordRoleplayGradeResult =
   | { readonly ok: true; readonly grade: RoleplayGrade }
   | Exclude<RoleplayGradeCheck, { readonly ok: true }>
-  | { readonly ok: false; readonly reason: "self_grading_not_permitted" };
+  | { readonly ok: false; readonly reason: "self_grading_not_permitted" }
+  | { readonly ok: false; readonly reason: "roleplay_session_staff_mismatch" };
 
 export class AcademyRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
@@ -55,7 +58,12 @@ export class AcademyRepository {
    * `checkRoleplayGrade` refuses ungrounded feedback before it is ever
    * written. Self-grading is refused here too — the schema's own CHECK
    * constraint would catch it, but a friendly reason beats a raw
-   * constraint-violation error reaching the form.
+   * constraint-violation error reaching the form. A supplied
+   * `roleplaySessionId` (PHASE 17.8's real AI-conversation transcript) is
+   * validated here to belong to the same staff member being graded — the
+   * database trigger only enforces same-tenant, not same-staff, since a
+   * manager reviewing a real transcript must be reviewing the right
+   * advisor's own practice, not merely a same-House one.
    */
   async recordRoleplayGrade(args: {
     readonly retailerId: RetailerId;
@@ -64,11 +72,23 @@ export class AcademyRepository {
     readonly evidence: readonly RubricEvidence[];
     readonly gradedByStaffId: string;
     readonly personaKey?: AcademyRoleplayPersona;
+    readonly roleplaySessionId?: string;
   }): Promise<RecordRoleplayGradeResult> {
     const check = checkRoleplayGrade({ evidence: args.evidence });
     if (!check.ok) return check;
     if (args.gradedByStaffId === args.staffId) {
       return { ok: false, reason: "self_grading_not_permitted" };
+    }
+    if (args.roleplaySessionId) {
+      const { data: session, error: sessionError } = await this.client
+        .from("academy_roleplay_sessions")
+        .select("staff_id")
+        .eq("id", args.roleplaySessionId)
+        .maybeSingle();
+      if (sessionError) throw sessionError;
+      if (!session || session.staff_id !== args.staffId) {
+        return { ok: false, reason: "roleplay_session_staff_mismatch" };
+      }
     }
 
     const { data, error } = await this.client
@@ -80,6 +100,9 @@ export class AcademyRepository {
         evidence: args.evidence as unknown as Json,
         graded_by_staff_id: args.gradedByStaffId,
         ...(args.personaKey ? { persona_key: args.personaKey } : {}),
+        ...(args.roleplaySessionId
+          ? { roleplay_session_id: args.roleplaySessionId }
+          : {}),
       })
       .select("*")
       .single();
