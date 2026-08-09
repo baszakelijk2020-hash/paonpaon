@@ -1,6 +1,7 @@
 import {
   createSupabaseAdminClient,
   OutfitRepository,
+  StylePortraitConsentRepository,
   StylePortraitRepository,
 } from "@paon/database";
 import { asId } from "@paon/domain";
@@ -119,6 +120,12 @@ test("batch-enqueues saved looks deterministically, bulk-cancels them, and feeds
     .eq("slug", TEST_PRODUCT_SLUG)
     .single();
   if (!product) throw new Error("fixture product missing");
+  const consent = await new StylePortraitConsentRepository(admin).grant(
+    retailerId,
+    customerId,
+  );
+  expect(consent.status).toBe("granted");
+  expect(consent.disclosuresAcknowledged).toBe(true);
 
   // A reviewed, accepted style concept on the fixture product — the exact
   // accepted-taxonomy shape `findAcceptedConceptIdsForProduct` reads,
@@ -471,6 +478,10 @@ test("batch-enqueues saved looks deterministically, bulk-cancels them, and feeds
       .from("style_portrait_references")
       .delete()
       .eq("style_portrait_id", portrait.id);
+    await admin
+      .from("style_portrait_consents")
+      .delete()
+      .eq("customer_id", customerId);
     await admin.storage
       .from("wardrobe-studio")
       .remove([facePath, fullBodyPath]);
