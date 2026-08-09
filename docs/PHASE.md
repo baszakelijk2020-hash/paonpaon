@@ -5957,6 +5957,46 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     stage having a genuine, audited, human-decided transition, but
     "automatic wiring to the objects that dependency line names" is not
     yet built for seven of the thirteen stages.
+  - **Status (2026-08-10, rollout auto-advance, AGENTS.md
+    Material-progress gate):** the `18.6` half of the dependency gap is
+    closed. `employee_import` → `fitting` and `fitting` → `production`
+    now fire from 18.6's own real rollout events instead of only a
+    staff button. `CorporateProjectRepository` gains
+    `findByAccountId`/`advanceStageForAccount` (a shared `applyAdvance`
+    write path behind both the existing opportunity-keyed `advanceStage`
+    and this account-keyed sibling) for callers — like rollout planning
+    — that only ever know a programme's account, never the opportunity
+    that created it. `CorporateRolloutRepository.assignWearer` fires the
+    `fitting` transition on every successful assignment (a project
+    already past `employee_import` simply no-ops, same "call
+    unconditionally, let the state machine decide" discipline
+    `corporate-tender-repository.ts`'s own `opportunity` → `tender`
+    trigger already uses); `markCompleted` fires the `production`
+    transition only once zero `planned` slots remain for the whole
+    programme, re-counted after the write rather than assumed — a
+    wearer whose no-show can never be reslotted stays `no_show` forever
+    with no fresh `planned` row, so an unresolved no-show never falsely
+    reads as "everyone fitted." No schema or RLS change: every table
+    this touches already existed; pure repository-layer wiring under the
+    same staff session/RLS the retailer UI's rollout actions already run
+    under. Proof:
+    `apps/retailer/e2e/corporate-project-lifecycle.spec.ts` gains a
+    second connected test proving the first rollout assignment flips the
+    project to `fitting` with no button clicked, completing one of two
+    assigned wearers does NOT yet advance it, completing the last one
+    flips it to `production`, and the automatic event's `staffId` is
+    null (attributed to the system, not whichever staff session
+    happened to trigger it). Full corporate/business-development
+    regression (8 specs: `corporate-project-lifecycle`,
+    `corporate-rollout`, `corporate-full-lifecycle`,
+    `business-development`, `corporate-tender`) all green, confirming
+    `corporate-full-lifecycle.spec.ts`'s own pre-existing manual advance
+    clicks are unaffected. Fresh `pnpm lint`/`typecheck`/`build`/
+    `format:check` all clean; 518 database tests green. Checkbox stays
+    unchecked: `production`/`qc`/`distribution`/`launch` still need
+    Stage 12 production-order wiring (touches
+    `packages/domain/src/production/production.ts`), a separate,
+    larger integration this slice does not attempt.
 
 - [x] **18.8 Corporate service desk**
   - **Requirement IDs:** BD-108.
