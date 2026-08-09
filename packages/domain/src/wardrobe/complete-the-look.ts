@@ -13,13 +13,18 @@
  * "Coming up" card.
  */
 
-import type { MetadataConceptId } from "../shared/branded-id";
+import type { MetadataConceptId, RetailerId } from "../shared/branded-id";
 
 import type {
   MorningRoutineCatalogueCandidate,
   MorningRoutineWardrobeCandidate,
 } from "./morning-routine";
-import type { OutfitSlotKind } from "./sartorial";
+import {
+  complementarySlotKindsFor,
+  garmentCategoryToOutfitSlot,
+  type OutfitSlotKind,
+  type SartorialRule,
+} from "./sartorial";
 import type { GarmentCategoryCode } from "./wardrobe";
 
 export interface CompleteTheLookSuggestion {
@@ -147,35 +152,64 @@ export function resolveGarmentCategoryFromConcepts(args: {
   return result;
 }
 
-const CATEGORY_TO_OUTFIT_SLOT_KIND: Record<
-  GarmentCategoryCode,
-  OutfitSlotKind
-> = {
-  suit: "jacket",
-  jacket: "jacket",
-  waistcoat: "jacket",
-  overcoat: "jacket",
-  coat: "jacket",
-  formalwear: "jacket",
-  leather: "jacket",
-  trousers: "trousers",
-  denim: "trousers",
-  shirt: "shirt",
-  knitwear: "shirt",
-  shoes: "shoes",
-  pocket_square: "pocket_square",
-  accessories: "accessories",
-  other: "accessories",
-};
-
 /**
  * A throwaway single-slot Outfit needs a valid `OutfitSlotKind` (6 values)
  * to carry a suggestion's real `GarmentCategoryCode` (15 values) into the
- * existing try-on enqueue pipeline — a many-to-one placement, never a new
- * slot kind.
+ * existing try-on enqueue pipeline. Reuses `garmentCategoryToOutfitSlot`
+ * (`./sartorial`, ROAD-002's own canonical mapping) rather than a second,
+ * independently-drifting copy of it; `other` has no dedicated slot, so it
+ * falls back to `accessories` — a placeholder good enough to carry the
+ * product into the pipeline, never asserted as a real accessory.
  */
 export function outfitSlotKindForGarmentCategory(
   categoryCode: GarmentCategoryCode,
 ): OutfitSlotKind {
-  return CATEGORY_TO_OUTFIT_SLOT_KIND[categoryCode];
+  return garmentCategoryToOutfitSlot(categoryCode) ?? "accessories";
+}
+
+/**
+ * The QR wardrobe card's item-specific "Complete the look" (PHASE 17.13 /
+ * ADV-113, vision spec §17) — distinct from the wardrobe-level card: scoped
+ * to what pairs with one specific owned item, not general category gaps.
+ * Reuses `complementarySlotKindsFor` (`./sartorial`) so a suggestion only
+ * surfaces for a slot pairing an approved, tenant-usable sartorial rule
+ * actually supports — fail closed, same "unfounded" discipline
+ * `evaluateOutfitCompatibility` already applies, never a generic menswear
+ * assumption. Still gap-driven (the customer owns zero active items in the
+ * suggested category) — a completion aid, not a merchandising placement.
+ */
+export function selectItemSpecificCompleteTheLookSuggestions(args: {
+  readonly itemCategoryCode: GarmentCategoryCode;
+  readonly wardrobe: readonly MorningRoutineWardrobeCandidate[];
+  readonly catalogue: readonly MorningRoutineCatalogueCandidate[];
+  readonly approvedRules: readonly SartorialRule[];
+  readonly retailerId: RetailerId | string;
+  readonly maxSuggestions?: number;
+}): readonly CompleteTheLookSuggestion[] {
+  const itemSlotKind = garmentCategoryToOutfitSlot(args.itemCategoryCode);
+  if (!itemSlotKind) return [];
+
+  const complementaryKinds = new Set(
+    complementarySlotKindsFor({
+      slotKind: itemSlotKind,
+      retailerId: args.retailerId,
+      approvedRules: args.approvedRules,
+    }),
+  );
+  if (complementaryKinds.size === 0) return [];
+
+  return selectCompleteTheLookSuggestions({
+    wardrobe: args.wardrobe,
+    catalogue: args.catalogue.filter((product) => {
+      const productSlotKind = product.categoryCode
+        ? garmentCategoryToOutfitSlot(product.categoryCode)
+        : null;
+      return (
+        productSlotKind !== null && complementaryKinds.has(productSlotKind)
+      );
+    }),
+    ...(args.maxSuggestions !== undefined
+      ? { maxSuggestions: args.maxSuggestions }
+      : {}),
+  });
 }

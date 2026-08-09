@@ -4,6 +4,7 @@ import { asId } from "../shared/branded-id";
 
 import { createSartorialRuleInputSchema } from "./roadmap.schema";
 import {
+  complementarySlotKindsFor,
   evaluateOutfitCompatibility,
   garmentCategoryToOutfitSlot,
   isApprovedSartorialRule,
@@ -185,6 +186,80 @@ describe("evaluateOutfitCompatibility", () => {
           claim.objectSlotKind === "trousers",
       )?.status,
     ).toBe("unfounded");
+  });
+});
+
+describe("complementarySlotKindsFor", () => {
+  it("returns every slot an approved canonical rule pairs with jacket", () => {
+    const result = complementarySlotKindsFor({
+      slotKind: "jacket",
+      retailerId: retailer,
+      approvedRules: NEUTRAL_SARTORIAL_RULE_FIXTURES,
+    });
+    expect(new Set(result)).toEqual(
+      new Set(["trousers", "shirt", "shoes", "pocket_square"]),
+    );
+  });
+
+  it("fails closed with no approved rules", () => {
+    expect(
+      complementarySlotKindsFor({
+        slotKind: "jacket",
+        retailerId: retailer,
+        approvedRules: [],
+      }),
+    ).toEqual([]);
+  });
+
+  it("ignores an incompatible-relation rule", () => {
+    const conflictRule: SartorialRule = {
+      id: asId<"SartorialRuleId">("00000000-0000-4000-8000-00000000c001"),
+      ownershipKind: "canonical",
+      slug: "jacket-shoes-conflict",
+      title: "Conflict fixture",
+      summary: "Conflict fixture",
+      ruleKind: "slot_compatibility",
+      relation: "incompatible",
+      subjectSlotKind: "jacket",
+      objectSlotKind: "shoes",
+      explanation: "Fixture-only conflict.",
+      reviewStatus: "accepted",
+      createdAt: "2026-07-30T00:00:00.000Z",
+      updatedAt: "2026-07-30T00:00:00.000Z",
+    };
+    expect(
+      complementarySlotKindsFor({
+        slotKind: "jacket",
+        retailerId: retailer,
+        approvedRules: [conflictRule],
+      }),
+    ).toEqual([]);
+  });
+
+  it("ignores a canonical rule scoped to another retailer's local rule", () => {
+    const otherRetailerRule: SartorialRule = {
+      id: asId<"SartorialRuleId">("00000000-0000-4000-8000-00000000c002"),
+      ownershipKind: "retailer",
+      retailerId: asId<"RetailerId">("00000000-0000-4000-8000-000000000099"),
+      slug: "jacket-trousers-other-retailer",
+      title: "Other retailer fixture",
+      summary: "Other retailer fixture",
+      ruleKind: "slot_compatibility",
+      relation: "compatible",
+      subjectSlotKind: "jacket",
+      objectSlotKind: "trousers",
+      explanation: "Fixture-only.",
+      reviewStatus: "accepted",
+      createdAt: "2026-07-30T00:00:00.000Z",
+      updatedAt: "2026-07-30T00:00:00.000Z",
+    };
+    expect(
+      complementarySlotKindsFor({
+        slotKind: "jacket",
+        retailerId: retailer,
+        approvedRules: [otherRetailerRule],
+      }),
+    ).toEqual([]);
   });
 });
 

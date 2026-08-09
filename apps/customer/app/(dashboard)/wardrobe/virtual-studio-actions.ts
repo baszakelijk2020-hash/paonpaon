@@ -18,10 +18,12 @@ import {
   createOutfitInputSchema,
   deriveTailoringAttributesFromFitArchetype,
   mayCapturePersonalizationForCustomer,
+  outfitSlotKindForGarmentCategory,
   parseFitArchetypeSlug,
   recordWardrobeVisualizationFeedbackInputSchema,
   styleEvidenceForWardrobeVisualizationFeedback,
   type CustomerId,
+  type GarmentCategoryCode,
   type OutfitSlotKind,
   type ProductId,
   type RetailerId,
@@ -423,4 +425,81 @@ export async function recordLookFeedback(
   } catch {
     // Best-effort: a failed evidence capture must never break feedback.
   }
+}
+
+export interface SuggestedLookGenerateState {
+  readonly error?: string;
+}
+
+/**
+ * Shared "see it on me" tap-to-generate entry point for a suggested
+ * (not-yet-owned) product — used by both MorningRoutine's wardrobe-level
+ * Complete the Look card (PHASE 17.10 / ADV-110) and the QR wardrobe
+ * card's item-specific one (PHASE 17.13 / ADV-113). A throwaway
+ * single-slot Outfit carries the suggestion into this same file's
+ * `enqueueLook` — never a second generation path, and never gated on the
+ * still-unconnected `virtual_try_on_usage_ledger` (the rest of Virtual
+ * Wardrobe Studio's tap-to-generate is itself ungated by that ledger
+ * today).
+ */
+export async function generateSuggestedLookTryOn(
+  retailerId: string,
+  _previous: SuggestedLookGenerateState,
+  formData: FormData,
+): Promise<SuggestedLookGenerateState> {
+  const { customer, supabase } = await resolveCustomer(retailerId);
+
+  const productId = String(formData.get("productId") ?? "");
+  const categoryCode = String(
+    formData.get("categoryCode") ?? "",
+  ) as GarmentCategoryCode;
+  const displayName = String(formData.get("displayName") ?? "this item");
+  if (!productId || !categoryCode) {
+    return { error: "Missing suggestion details." };
+  }
+
+  const slotKind = outfitSlotKindForGarmentCategory(categoryCode);
+  const parsed = createOutfitInputSchema.safeParse({
+    retailerId: customer.retailerId,
+    customerId: customer.id,
+    title: `See it on me: ${displayName}`,
+    slots: [
+      {
+        slotKind,
+        label: slotKind,
+        available: true,
+        displayOrder: 0,
+        productId,
+      },
+    ],
+  });
+  if (!parsed.success) {
+    return {
+      error: parsed.error.issues[0]?.message ?? "Could not build the look.",
+    };
+  }
+
+  let outfitId: string;
+  try {
+    const outfit = await new OutfitRepository(supabase).createByCustomer(
+      parsed.data,
+      customer.id,
+    );
+    outfitId = outfit.id;
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error ? error.message : "Could not create the look.",
+    };
+  }
+
+  const result = await enqueueLook(supabase, {
+    retailerId: customer.retailerId,
+    customerId: customer.id,
+    outfitId,
+  });
+
+  revalidatePath("/wardrobe");
+  revalidatePath("/morning-routine");
+  return result.error ? { error: result.error } : {};
 }

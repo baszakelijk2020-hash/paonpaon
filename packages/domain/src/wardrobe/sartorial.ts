@@ -304,6 +304,25 @@ function toRuleCitation(rule: SartorialRule): CompatibilityRuleCitation {
 }
 
 /**
+ * The fixed set of complete-look slot pairings this codebase evaluates
+ * compatibility for — shared by `evaluateOutfitCompatibility` and
+ * `complementarySlotKindsFor` so there is exactly one definition of "which
+ * slots pair with which."
+ */
+export const SLOT_COMPATIBILITY_PAIRS: readonly (readonly [
+  OutfitSlotKind,
+  OutfitSlotKind,
+])[] = [
+  ["jacket", "trousers"],
+  ["jacket", "shirt"],
+  ["trousers", "shirt"],
+  ["jacket", "shoes"],
+  ["shirt", "accessories"],
+  ["jacket", "pocket_square"],
+  ["shirt", "pocket_square"],
+];
+
+/**
  * Evaluate pairwise slot compatibility for a complete look.
  * Claims without an approved applicable rule are `unfounded` (fail closed).
  * Missing or unavailable items are `unavailable` and never invent compatibility.
@@ -325,19 +344,9 @@ export function evaluateOutfitCompatibility(params: {
     byKind.set(slot.slotKind, slot);
   }
 
-  const pairs: readonly (readonly [OutfitSlotKind, OutfitSlotKind])[] = [
-    ["jacket", "trousers"],
-    ["jacket", "shirt"],
-    ["trousers", "shirt"],
-    ["jacket", "shoes"],
-    ["shirt", "accessories"],
-    ["jacket", "pocket_square"],
-    ["shirt", "pocket_square"],
-  ];
-
   const claims: CompatibilityClaim[] = [];
 
-  for (const [subjectKind, objectKind] of pairs) {
+  for (const [subjectKind, objectKind] of SLOT_COMPATIBILITY_PAIRS) {
     const subject = byKind.get(subjectKind);
     const object = byKind.get(objectKind);
 
@@ -436,4 +445,48 @@ export function isCompleteLookCovered(
     const slot = slots.find((entry) => entry.slotKind === kind);
     return Boolean(slot?.available);
   });
+}
+
+/**
+ * Which slot kinds are approved as pairing with `slotKind`, restricted to
+ * pairs an approved, tenant-usable `slot_compatibility`/`complete_look`
+ * rule actually supports (never `incompatible`) — same fail-closed
+ * discipline as `evaluateOutfitCompatibility`'s `unfounded` status: a pair
+ * with no approved rule is not returned, never assumed compatible from
+ * `SLOT_COMPATIBILITY_PAIRS` alone.
+ */
+export function complementarySlotKindsFor(params: {
+  readonly slotKind: OutfitSlotKind;
+  readonly retailerId: RetailerId | string;
+  readonly approvedRules: readonly SartorialRule[];
+}): readonly OutfitSlotKind[] {
+  const usableRules = params.approvedRules.filter((rule) =>
+    canUseSartorialRuleForRetailer({
+      rule,
+      retailerId: params.retailerId,
+    }),
+  );
+
+  const result: OutfitSlotKind[] = [];
+  for (const [subjectKind, objectKind] of SLOT_COMPATIBILITY_PAIRS) {
+    if (subjectKind !== params.slotKind && objectKind !== params.slotKind) {
+      continue;
+    }
+    const otherKind =
+      subjectKind === params.slotKind ? objectKind : subjectKind;
+    const supported = usableRules.some(
+      (rule) =>
+        (rule.ruleKind === "slot_compatibility" ||
+          rule.ruleKind === "complete_look") &&
+        rule.relation !== "incompatible" &&
+        ((rule.subjectSlotKind === subjectKind &&
+          rule.objectSlotKind === objectKind) ||
+          (rule.subjectSlotKind === objectKind &&
+            rule.objectSlotKind === subjectKind)),
+    );
+    if (supported && !result.includes(otherKind)) {
+      result.push(otherKind);
+    }
+  }
+  return result;
 }

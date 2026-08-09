@@ -6,7 +6,11 @@ import {
   outfitSlotKindForGarmentCategory,
   resolveGarmentCategoryFromConcepts,
   selectCompleteTheLookSuggestions,
+  selectItemSpecificCompleteTheLookSuggestions,
 } from "./complete-the-look";
+import { NEUTRAL_SARTORIAL_RULE_FIXTURES } from "./sartorial-fixtures";
+
+const retailer = asId<"RetailerId">("00000000-0000-4000-8000-000000000001");
 
 describe("selectCompleteTheLookSuggestions", () => {
   it("suggests a catalogue category the customer owns nothing in", () => {
@@ -285,5 +289,90 @@ describe("outfitSlotKindForGarmentCategory", () => {
     );
     expect(outfitSlotKindForGarmentCategory("accessories")).toBe("accessories");
     expect(outfitSlotKindForGarmentCategory("other")).toBe("accessories");
+  });
+});
+
+describe("selectItemSpecificCompleteTheLookSuggestions", () => {
+  const trousersProduct = {
+    productId: "product-trousers",
+    displayName: "Grey trousers",
+    productSlug: "grey-trousers",
+    categoryCode: "trousers" as const,
+    available: true,
+  };
+  const shoesProduct = {
+    productId: "product-shoes",
+    displayName: "Oxford shoes",
+    productSlug: "oxford-shoes",
+    categoryCode: "shoes" as const,
+    available: true,
+  };
+  const shirtProduct = {
+    productId: "product-shirt",
+    displayName: "White shirt",
+    productSlug: "white-shirt",
+    categoryCode: "shirt" as const,
+    available: true,
+  };
+
+  it("suggests only catalogue categories an approved rule pairs with the viewed item", () => {
+    const result = selectItemSpecificCompleteTheLookSuggestions({
+      itemCategoryCode: "jacket",
+      wardrobe: [],
+      catalogue: [trousersProduct, shoesProduct, shirtProduct],
+      approvedRules: NEUTRAL_SARTORIAL_RULE_FIXTURES,
+      retailerId: retailer,
+    });
+    expect(new Set(result.map((s) => s.categoryCode))).toEqual(
+      new Set(["trousers", "shoes", "shirt"]),
+    );
+  });
+
+  it("never suggests the item's own category as complementary to itself", () => {
+    const jacketProduct = {
+      productId: "product-jacket",
+      displayName: "Navy jacket",
+      productSlug: "navy-jacket",
+      categoryCode: "jacket" as const,
+      available: true,
+    };
+    const result = selectItemSpecificCompleteTheLookSuggestions({
+      itemCategoryCode: "jacket",
+      wardrobe: [],
+      catalogue: [jacketProduct, trousersProduct],
+      approvedRules: NEUTRAL_SARTORIAL_RULE_FIXTURES,
+      retailerId: retailer,
+    });
+    expect(result.map((s) => s.categoryCode)).toEqual(["trousers"]);
+  });
+
+  it("fails closed with no approved rules — no complementary category is assumed", () => {
+    const result = selectItemSpecificCompleteTheLookSuggestions({
+      itemCategoryCode: "jacket",
+      wardrobe: [],
+      catalogue: [trousersProduct, shoesProduct, shirtProduct],
+      approvedRules: [],
+      retailerId: retailer,
+    });
+    expect(result).toEqual([]);
+  });
+
+  it("still excludes a complementary category the customer already owns", () => {
+    const result = selectItemSpecificCompleteTheLookSuggestions({
+      itemCategoryCode: "jacket",
+      wardrobe: [
+        {
+          wardrobeItemId: "item-1",
+          displayName: "Grey trousers",
+          categoryCode: "trousers",
+          condition: "good",
+          careState: "current",
+        },
+      ],
+      catalogue: [trousersProduct, shoesProduct],
+      approvedRules: NEUTRAL_SARTORIAL_RULE_FIXTURES,
+      retailerId: retailer,
+    });
+    expect(result.map((s) => s.categoryCode)).toEqual(["shoes"]);
   });
 });

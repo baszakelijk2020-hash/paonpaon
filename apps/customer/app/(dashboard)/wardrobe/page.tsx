@@ -21,6 +21,7 @@ import type {
   WardrobeVisualizationJob,
 } from "@paon/domain";
 
+import { buildItemSpecificCompleteTheLookSuggestionsByCategory } from "./item-specific-complete-the-look-data";
 import { WardrobeLifecyclePanel } from "./lifecycle-panel";
 import { WardrobeRoadmapPanel } from "./roadmap-panel";
 import type { ComposableItem } from "./virtual-studio-panel";
@@ -54,6 +55,20 @@ export default async function WardrobePage() {
     customers.map(async (customer) => {
       const retailer = await retailerRepo.findById(customer.retailerId);
       const items = await wardrobeRepo.findByCustomer(customer.id);
+      const ownedActiveCategories = [
+        ...new Set(
+          items
+            .filter((item) => !item.retiredAt && !item.deletedAt)
+            .map((item) => item.categoryCode),
+        ),
+      ];
+      const completeTheLookByCategory =
+        await buildItemSpecificCompleteTheLookSuggestionsByCategory({
+          supabase,
+          retailerId: customer.retailerId,
+          customerId: customer.id,
+          ownedActiveCategories,
+        });
       const historyEntries = await Promise.all(
         items.map(async (item) => {
           const events = await wardrobeRepo.listOwnershipHistory(item.id);
@@ -145,6 +160,7 @@ export default async function WardrobePage() {
         roadmaps,
         serviceViews,
         composableItems,
+        completeTheLookByCategory,
         outfits,
         latestJobByOutfitId,
         canGenerate,
@@ -184,6 +200,7 @@ export default async function WardrobePage() {
             roadmaps,
             serviceViews,
             composableItems,
+            completeTheLookByCategory,
             outfits,
             latestJobByOutfitId,
             canGenerate,
@@ -196,6 +213,7 @@ export default async function WardrobePage() {
                 items={items}
                 historyByItemId={historyByItemId}
                 roadmaps={roadmaps}
+                completeTheLookByCategory={completeTheLookByCategory}
               />
               <VirtualStudioPanel
                 retailerId={customer.retailerId}

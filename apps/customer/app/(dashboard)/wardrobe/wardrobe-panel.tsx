@@ -6,6 +6,7 @@ import {
   WARDROBE_CONDITION_STATES,
   WARDROBE_FIT_PERCEPTIONS,
   WARDROBE_WEAR_FREQUENCIES,
+  type CompleteTheLookSuggestion,
   type GarmentCategoryCode,
   type WardrobeItem,
   type WardrobeOwnershipEvent,
@@ -22,6 +23,7 @@ import {
   retireWardrobeItem,
   type WardrobeActionState,
 } from "./actions";
+import { SuggestedLookTile } from "./suggested-look-tile";
 
 function ownershipLabel(item: WardrobeItem): string {
   if (item.ownershipKind === "retailer_purchased") {
@@ -72,12 +74,14 @@ function WardrobeItemCard({
   retailerId,
   item,
   history,
+  completeTheLookSuggestions,
   retireAction,
   retirePending,
 }: {
   retailerId: string;
   item: WardrobeItem;
   history: readonly WardrobeOwnershipEvent[];
+  completeTheLookSuggestions: readonly CompleteTheLookSuggestion[];
   retireAction: (payload: FormData) => void;
   retirePending: boolean;
 }) {
@@ -163,6 +167,23 @@ function WardrobeItemCard({
             </ul>
           </details>
         ) : null}
+        {completeTheLookSuggestions.length > 0 ? (
+          <details
+            className="text-xs text-[var(--color-stone-500)]"
+            data-item-complete-the-look
+          >
+            <summary className="cursor-pointer">Complete the look</summary>
+            <ul className="-mx-1 mt-2 flex snap-x gap-2 overflow-x-auto px-1 pb-1">
+              {completeTheLookSuggestions.map((suggestion) => (
+                <SuggestedLookTile
+                  key={suggestion.productId}
+                  retailerId={retailerId}
+                  suggestion={suggestion}
+                />
+              ))}
+            </ul>
+          </details>
+        ) : null}
         <form action={retireAction} className="mt-auto pt-1">
           <input type="hidden" name="retailerId" value={retailerId} />
           <input type="hidden" name="wardrobeItemId" value={item.id} />
@@ -232,6 +253,7 @@ function WardrobeCarousel({
   gaps,
   retailerId,
   historyByItemId,
+  completeTheLookByCategory,
   retireAction,
   retirePending,
 }: {
@@ -241,6 +263,9 @@ function WardrobeCarousel({
   gaps: readonly WardrobeRoadmapGap[];
   retailerId: string;
   historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
+  completeTheLookByCategory: Readonly<
+    Partial<Record<GarmentCategoryCode, readonly CompleteTheLookSuggestion[]>>
+  >;
   retireAction: (payload: FormData) => void;
   retirePending: boolean;
 }) {
@@ -271,6 +296,9 @@ function WardrobeCarousel({
               retailerId={retailerId}
               item={item}
               history={historyByItemId[item.id] ?? []}
+              completeTheLookSuggestions={
+                completeTheLookByCategory[item.categoryCode] ?? []
+              }
               retireAction={retireAction}
               retirePending={retirePending}
             />
@@ -297,6 +325,7 @@ export function WardrobeHousePanel({
   items,
   historyByItemId,
   roadmaps,
+  completeTheLookByCategory,
 }: {
   retailerId: string;
   retailerName: string;
@@ -304,6 +333,9 @@ export function WardrobeHousePanel({
   items: readonly WardrobeItem[];
   historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
   roadmaps: readonly WardrobeRoadmap[];
+  completeTheLookByCategory: Readonly<
+    Partial<Record<GarmentCategoryCode, readonly CompleteTheLookSuggestion[]>>
+  >;
 }) {
   const initialState: WardrobeActionState = { fieldErrors: {} };
   const [addState, addAction, addPending] = useActionState(
@@ -376,6 +408,7 @@ export function WardrobeHousePanel({
             gaps={gaps}
             retailerId={retailerId}
             historyByItemId={historyByItemId}
+            completeTheLookByCategory={completeTheLookByCategory}
             retireAction={retireAction}
             retirePending={retirePending}
           />

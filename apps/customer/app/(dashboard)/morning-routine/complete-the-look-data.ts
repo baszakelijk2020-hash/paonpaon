@@ -1,102 +1,38 @@
+import type { PaonSupabaseClient } from "@paon/database";
 import {
-  MetadataRepository,
-  ProductRepository,
-  ProductVariantRepository,
-  WardrobeRepository,
-  type PaonSupabaseClient,
-} from "@paon/database";
-import {
-  resolveGarmentCategoryFromConcepts,
   selectCompleteTheLookSuggestions,
   type CompleteTheLookSuggestion,
   type CustomerId,
-  type MorningRoutineCatalogueCandidate,
   type RetailerId,
 } from "@paon/domain";
 
-const MAX_CATALOGUE_PRODUCTS_SCANNED = 30;
+import {
+  buildCategorizedCatalogue,
+  buildWardrobeCandidates,
+} from "@/app/(dashboard)/wardrobe/complete-the-look-catalogue";
 
 /**
+ * MorningRoutine's wardrobe-level Complete the Look card (PHASE 17.10).
  * Gathers the same wardrobe-ownership and catalogue-availability facts
  * `generation.ts` already gathers for the daily selection, then runs
  * `selectCompleteTheLookSuggestions` — a separate query, not a second copy
- * of that engine. Catalogue products carry no `category_code` column, so
- * each candidate's category is resolved via `resolveGarmentCategoryFromConcepts`
- * against its accepted `garment_type` metadata concepts; a product with no
- * resolvable category is excluded rather than guessed at, same fail-closed
- * posture the suggestion engine itself already uses for a missing
- * `categoryCode`.
+ * of that engine.
  */
 export async function buildCompleteTheLookSuggestions(params: {
   readonly supabase: PaonSupabaseClient;
   readonly retailerId: RetailerId;
   readonly customerId: CustomerId;
 }): Promise<readonly CompleteTheLookSuggestion[]> {
-  const { supabase, retailerId, customerId } = params;
-
-  const wardrobeItems = await new WardrobeRepository(supabase).findByCustomer(
-    customerId,
-  );
-  const wardrobe = wardrobeItems.map((item) => ({
-    wardrobeItemId: item.id,
-    displayName: item.displayName,
-    categoryCode: item.categoryCode,
-    condition: item.condition,
-    careState: item.careState,
-    ...(item.retiredAt ? { retiredAt: item.retiredAt } : {}),
-    ...(item.deletedAt ? { deletedAt: item.deletedAt } : {}),
-  }));
-
-  const metadataRepo = new MetadataRepository(supabase);
-  const garmentConcepts = await metadataRepo.findVisibleConcepts(
-    retailerId,
-    "garment_type",
-  );
-  const categoryByConceptId = resolveGarmentCategoryFromConcepts({
-    concepts: garmentConcepts.map((concept) => ({
-      id: concept.id,
-      kind: concept.kind,
-      slug: concept.slug,
-      label: concept.canonicalName,
-    })),
-  });
-
-  const products = (
-    await new ProductRepository(supabase).findByRetailer(retailerId)
-  )
-    .filter((product) => product.status === "active")
-    .slice(0, MAX_CATALOGUE_PRODUCTS_SCANNED);
-  const variantRepo = new ProductVariantRepository(supabase);
-
-  const catalogue: MorningRoutineCatalogueCandidate[] = [];
-  for (const product of products) {
-    const acceptedConceptIds =
-      await metadataRepo.findAcceptedConceptIdsForProduct(
-        retailerId,
-        product.id,
-      );
-    const categoryCode = acceptedConceptIds
-      .map((conceptId) => categoryByConceptId.get(conceptId))
-      .find((category): category is NonNullable<typeof category> =>
-        Boolean(category),
-      );
-    if (!categoryCode) continue;
-
-    const variants = await variantRepo.findByProduct(product.id);
-    const inStock =
-      variants.find((variant) => variant.inventoryQuantity > 0) ?? variants[0];
-    catalogue.push({
-      productId: product.id,
-      ...(inStock ? { productVariantId: inStock.id } : {}),
-      displayName: product.name,
-      productSlug: product.slug,
-      categoryCode,
-      available: Boolean(inStock),
-      ...(product.primaryImageUrl
-        ? { primaryImageUrl: product.primaryImageUrl }
-        : {}),
-    });
-  }
+  const [wardrobe, catalogue] = await Promise.all([
+    buildWardrobeCandidates({
+      supabase: params.supabase,
+      customerId: params.customerId,
+    }),
+    buildCategorizedCatalogue({
+      supabase: params.supabase,
+      retailerId: params.retailerId,
+    }),
+  ]);
 
   return selectCompleteTheLookSuggestions({ wardrobe, catalogue });
 }
