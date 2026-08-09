@@ -6191,6 +6191,35 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     `18.7`'s full lifecycle remains not started, so nothing here is
     wired to a contract-award or renewal-execution workflow beyond the
     task itself.
+  - **Status (2026-08-10, contract value + repair kind):** closes both
+    named gaps above. `corporate_programmes` gains nullable
+    `contract_value_minor_units`/`contract_value_currency` (migration
+    `20260810110000`, same money-field convention as every other amount
+    in PAON); staff set it via a new "Set contract value" form on
+    `/corporate/[programmeId]`, backed by `CorporateRepository.
+setContractValue`. `corporate_exceptions.kind` gains a `repair`
+    value (added to the domain's own `CORPORATE_EXCEPTION_KINDS`
+    vocabulary, not bypassed with an `as any` cast), tracked separately
+    from the damage rate: `computeCorporateProgrammeMetrics` gains
+    `repairEventCount`/`repairRatePerWearer` alongside
+    `contractValueMinorUnits`/`contractValueCurrency`, both nullable and
+    absent from the score itself — `assessRenewalRisk`'s formula is
+    unchanged, so this is cited context, not a new scoring input, still
+    matching this item's own "no black-box renewal score" non-goal.
+    `CitedRecommendationRepository.computeCorporateRenewalRisk`'s
+    statement now names repair events alongside damage events. Proof:
+    extends `apps/retailer/e2e/corporate-renewal-analytics.spec.ts` — a
+    real contract value is set through the UI, persisted, and reloads
+    correctly; a real `repair` exception is created and counted.
+    Regression: `corporate-renewal-analytics`, `corporate-rollout`,
+    `corporate-project-lifecycle`, `corporate-announcements`,
+    `corporate-service-desk` all green. Full pgTAP suite green
+    (257/257); domain suite 1138/1138; database suite 518/518; full
+    monorepo `pnpm lint`/`typecheck`/`format:check` clean;
+    `apps/retailer` build clean. Checkbox remains unchecked: `18.7`'s
+    full lifecycle (`production`/`qc`/`distribution`/`launch`) is still
+    not wired to a contract-award or renewal-execution workflow beyond
+    the task itself.
 
 - [ ] **18.10 AI-assisted concept, moodboard, and image generation**
   - **Requirement IDs:** BD-110.
