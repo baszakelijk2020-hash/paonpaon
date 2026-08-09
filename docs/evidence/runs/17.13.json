@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.13",
-  "gitSha": "4859df6687bafb1274b22283776815953a2dc1ad",
-  "spec": "apps/customer/e2e/wardrobe-card-reveal.spec.ts",
+  "gitSha": "799920287fa06409273e0d3a37e62108fdd80ea4",
+  "spec": "apps/customer/e2e/item-specific-complete-the-look.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-05T11:08:20.752Z"
+  "timestamp": "2026-08-09T11:49:07.496Z"
 }

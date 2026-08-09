@@ -4878,6 +4878,61 @@ pnpm build && pnpm format:check` are clean and `pnpm turbo run test`
     attempted — the current schema requires a non-null `customerId` on
     every wardrobe item, so "unattached" isn't representable without a
     schema change this slice didn't make.
+  - **Correction (2026-08-09):** the above status's "retire" claim for the
+    anonymous `/r/[slug]/wardrobe/[token]` page does not match the code —
+    that page only reads and displays `reveal.retired`; it never rendered
+    a retire form or action (checked directly, only one commit has ever
+    touched this file). Retire genuinely lives only on the authenticated
+    `/wardrobe` dashboard, same place this status already says
+    alteration/cleaning/photo/complete-the-look live. Recorded here
+    rather than silently left wrong now that this item is being
+    continued.
+  - **Status (2026-08-09, item-specific complete-the-look):** `7999202`
+    closes one of the four remaining gaps above. Each owned wardrobe item
+    card on `/wardrobe` now has its own "Complete the look" disclosure —
+    vision spec §17's "distinct from the wardrobe-level complete-the-look
+    surface: scoped to what pairs with _this_ item specifically." Reuses
+    the existing ROAD-002 sartorial compatibility engine
+    (`evaluateOutfitCompatibility`'s slot pairs, extracted to shared
+    `SLOT_COMPATIBILITY_PAIRS`) via a new `complementarySlotKindsFor`: a
+    complementary category only surfaces when an approved, tenant-usable
+    `slot_compatibility`/`complete_look` rule actually supports that
+    pairing (never `incompatible`) — same `unfounded`-fails-closed
+    discipline the compatibility engine already applies, not a generic
+    menswear assumption. The canonical rules seeded in migration
+    `20260730170000` cover all seven ROAD-002 pairs, so this works
+    end-to-end today with zero new configuration. New
+    `selectItemSpecificCompleteTheLookSuggestions` (domain) and
+    `buildItemSpecificCompleteTheLookSuggestionsByCategory`
+    (`apps/customer/app/(dashboard)/wardrobe/item-specific-complete-the-look-data.ts`)
+    compute suggestions once per distinct owned category, not once per
+    item. The wardrobe-level (17.10) and item-specific tap-to-generate
+    actions and tile UI are now shared
+    (`generateSuggestedLookTryOn`/`SuggestedLookTile` in
+    `wardrobe/virtual-studio-actions.ts`) rather than duplicated; wardrobe
+    and catalogue gathering are shared too
+    (`wardrobe/complete-the-look-catalogue.ts`). Independent review while
+    building this caught and fixed a real bug 17.10's own slice had
+    introduced: its throwaway-outfit slot-kind mapping had silently
+    drifted from this codebase's one canonical
+    `GarmentCategoryCode -> OutfitSlotKind` mapping
+    (`garmentCategoryToOutfitSlot`, e.g. `waistcoat`/`leather` mapped to
+    `jacket` instead of the canonical `accessories`) — removed the
+    second copy. Proof:
+    `apps/customer/e2e/item-specific-complete-the-look.spec.ts` — an
+    owned jacket with no owned trousers surfaces a real approved-rule
+    trousers suggestion under its own card, and tapping "See it on me"
+    reaches a real queued `WardrobeVisualizationJob`. Regression: 8/8
+    across `complete-the-look`, `item-specific-complete-the-look`,
+    `morning-routine`, `morning-routine-occasions`,
+    `dashboard-morning-routine-hero`, `roadmap-look-review`,
+    `virtual-studio` and `virtual-studio-batch-and-feedback-evidence`.
+    `pnpm lint`/`typecheck`/`build` clean, `pnpm turbo run test` green
+    (1130 domain tests, 509 database tests) at `7999202`. Checkbox
+    remains unchecked: **alteration/cleaning booking**, the **periodic
+    fit-check photo → Self-Portrait update**, and the **unattached
+    (logged-out-created) item** schema change remain real, unattempted
+    gaps.
 
 - [x] **17.14 Prospect AI conversation, buying-intent queue, and human handoff**
   - **Requirement IDs:** ADV-114.
