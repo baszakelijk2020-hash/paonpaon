@@ -1,5 +1,5 @@
 begin;
-select plan(8);
+select plan(11);
 
 insert into public.retailers (
   id, legal_name, display_name, slug, status
@@ -29,6 +29,34 @@ insert into auth.users (
   '{}'::jsonb,
   now(),
   now()
+), (
+  'f1000000-0000-0000-0000-000000000009',
+  'authenticated',
+  'authenticated',
+  'wardrobe-try-on-advisor@example.test',
+  '{}'::jsonb,
+  '{}'::jsonb,
+  now(),
+  now()
+), (
+  'f1000000-0000-0000-0000-00000000000a',
+  'authenticated',
+  'authenticated',
+  'other-house-advisor@example.test',
+  '{}'::jsonb,
+  '{}'::jsonb,
+  now(),
+  now()
+);
+
+insert into public.retailers (
+  id, legal_name, display_name, slug, status
+) values (
+  'f1000000-0000-0000-0000-00000000000b',
+  'Other Wardrobe House Ltd',
+  'Other Wardrobe House',
+  'other-wardrobe-house',
+  'active'
 );
 
 insert into public.customers (
@@ -46,9 +74,17 @@ insert into public.retailer_staff_members (
 ) values (
   'f1000000-0000-0000-0000-000000000004',
   'f1000000-0000-0000-0000-000000000001',
-  null,
+  'f1000000-0000-0000-0000-000000000009',
   'Wardrobe Try-On Staff',
   'wardrobe-try-on-staff@example.test',
+  'manager',
+  now()
+), (
+  'f1000000-0000-0000-0000-00000000000c',
+  'f1000000-0000-0000-0000-00000000000b',
+  'f1000000-0000-0000-0000-00000000000a',
+  'Other House Staff',
+  'other-house-advisor@example.test',
   'manager',
   now()
 );
@@ -314,6 +350,80 @@ select is(
   ),
   1::bigint,
   'the successful enqueue creates exactly one queued job'
+);
+
+-- Cancellation is a recovery path, so an authorized same-House advisor may
+-- stop queued work even after the module becomes suspended.
+select set_config('role', 'none', true);
+select set_config(
+  'paon.test_visualization_job_id',
+  (
+    select id::text
+    from public.wardrobe_visualization_jobs
+    where input_hash = 'wardrobe-try-on-hash'
+  ),
+  true
+);
+update public.retailer_module_configurations
+set state = 'suspended'
+where retailer_id = 'f1000000-0000-0000-0000-000000000001'
+  and module_key = 'wardrobe_styling';
+select set_config('role', 'authenticated', true);
+select set_config(
+  'request.jwt.claim.sub',
+  'f1000000-0000-0000-0000-000000000009',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"f1000000-0000-0000-0000-000000000009","role":"authenticated","app_metadata":{"retailer_id":"f1000000-0000-0000-0000-000000000001","retailer_role":"manager"}}',
+  true
+);
+
+select lives_ok(
+  $$
+    select public.cancel_wardrobe_visualization_job(
+      current_setting('paon.test_visualization_job_id')::uuid
+    )
+  $$,
+  'an authorized same-House advisor can cancel queued work after module suspension'
+);
+
+select is(
+  (
+    select status
+    from public.wardrobe_visualization_jobs
+    where input_hash = 'wardrobe-try-on-hash'
+  ),
+  'cancelled',
+  'advisor cancellation moves only the queued job to cancelled'
+);
+
+select set_config('role', 'none', true);
+update public.wardrobe_visualization_jobs
+set status = 'queued'
+where input_hash = 'wardrobe-try-on-hash';
+select set_config('role', 'authenticated', true);
+select set_config(
+  'request.jwt.claim.sub',
+  'f1000000-0000-0000-0000-00000000000a',
+  true
+);
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"f1000000-0000-0000-0000-00000000000a","role":"authenticated","app_metadata":{"retailer_id":"f1000000-0000-0000-0000-00000000000b","retailer_role":"manager"}}',
+  true
+);
+
+select throws_ok(
+  $$
+    select public.cancel_wardrobe_visualization_job(
+      current_setting('paon.test_visualization_job_id')::uuid
+    )
+  $$,
+  'P0001',
+  'Not authorized to cancel this job',
+  'an advisor from another House cannot cancel the queued job'
 );
 
 select set_config('role', 'none', true);
