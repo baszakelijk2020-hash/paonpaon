@@ -5600,6 +5600,71 @@ access" control (`setWearerLoginEmail`) — there was previously no
     nowhere on the first wearer's own signed-in portal page. The
     underlying RLS guarantee was already real; what was missing was
     proof it holds with two real wearers in play, not just one.
+  - **Status (2026-08-09, linked-customer data access, AGENTS.md
+    Material-progress gate):** the `customerId` gap named above is
+    closed for appointments, orders, alterations and body measurements
+    (tickets are separately already live via 18.8; wardrobe and
+    announcements remain real, unattempted gaps — see below). Migration
+    `20260809200000` adds: a tenant-invariant trigger refusing a
+    cross-retailer `corporate_wearers.customer_id` link; additive
+    (never-replacing) SELECT RLS on `appointments`/`orders` keyed off
+    the wearer's own linked `corporate_wearers` row rather than the
+    customer row's own auth identity — required because
+    `login_email`'s own header comment already documents that a
+    wearer's Employee Portal login and their linked customer's login
+    can legitimately be two different auth users for the same real
+    person, so the existing `customers.user_id = auth.uid()` self-read
+    policy alone would never pass for a linked wearer; the three
+    `customer_alteration_*` security-barrier views' WHERE clauses
+    extended the same way (views can't carry multiple OR'd table
+    policies); and the same additive pattern on
+    `customer_measurement_versions`. `CorporateRepository.
+setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
+    manager link a wearer to an existing customer by email from
+    `/corporate/[programmeId]`. `link_my_wearer_account()` also gained a
+    safe silent auto-link: when a wearer's own `auth.uid()` already owns
+    a same-retailer `customers` row (the common case where the same
+    login serves both), it links automatically with no staff action and
+    no new `customers` row ever created (18.6's own standing
+    "no shadow customer per wearer" constraint is preserved — a wearer
+    with no existing same-login customer relationship simply stays
+    unlinked). `/employee` renders four new sections
+    (appointments/orders/alterations/measurements) only when
+    `customerId` is set, through the exact same
+    `AppointmentRepository`/`OrderRepository`/`CustomerAlterationRepository`/
+    `MeasurementMonitorRepository` the customer-facing dashboard already
+    uses — no parallel read path. Proof: 16 new pgTAP assertions
+    (`employee_portal_customer_data_access_test.sql` — cross-tenant link
+    refused, linked wearer reads all four surfaces, an unlinked
+    colleague reads none of them, the customer's own separate login
+    still reads its own data unchanged, a cross-House manager cannot
+    see or relink another House's wearer, silent auto-link on a shared
+    login); two new connected Playwright specs —
+    `apps/retailer/e2e/employee-portal-customer-link.spec.ts` (a
+    manager links a wearer to a real customer by email through the real
+    UI form, and a cross-tenant email is refused) and
+    `apps/customer/e2e/employee-portal-linked-customer.spec.ts` (a
+    linked wearer sees real seeded appointment/order/alteration/
+    measurement data on `/employee`; an unlinked colleague in the same
+    programme sees none of it) — both asserted against the database,
+    not just the UI. `apps/customer/e2e/employee-portal.spec.ts` (the
+    prior connected proof) re-run unchanged, 1/1 green — no regression.
+    Fresh `supabase db reset`, 239/239 pgTAP, 518 database tests,
+    `pnpm lint`/`typecheck`/`build`/`format:check` all clean at this
+    commit. Checkbox remains unchecked: **wardrobe** and
+    **announcements** (the owner boundary's other two named surfaces)
+    are real, unattempted gaps, and no **write-capable** self-service
+    exists yet (booking a new appointment, requesting an alteration
+    directly from `/employee` — today's surfaces are read-only). A more
+    ambitious design exists but was never implemented: a stale,
+    unmerged branch (`agent/lane-g-employee-portal-linking`, last
+    touched 2026-08-07, `docs/EMPLOYEE_PORTAL_SELF_SERVICE_BLUEPRINT.md`)
+    independently proposed the same silent-auto-link mechanism this
+    slice built, plus an opt-in wearer-initiated customer-account-
+    creation flow and a write-capable appointment-booking form reused
+    from the customer app. A future session closing wardrobe/
+    announcements/write-capability should read that document first
+    rather than re-deriving the same design from scratch.
 
 - [x] **18.6 Measurement and fitting rollout planning**
   - **Requirement IDs:** BD-106.

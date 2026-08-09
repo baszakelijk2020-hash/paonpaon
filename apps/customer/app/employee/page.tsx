@@ -1,7 +1,22 @@
-import { CorporateRepository } from "@paon/database";
-import { computeEntitlementBalance } from "@paon/domain";
+import {
+  AppointmentRepository,
+  CorporateRepository,
+  CustomerAlterationRepository,
+  MeasurementMonitorRepository,
+  OrderRepository,
+} from "@paon/database";
+import {
+  ALTERATION_STATUS_LABELS,
+  APPOINTMENT_TYPE_LABELS,
+  computeEntitlementBalance,
+  ORDER_STATUS_LABELS,
+  type MeasurementValue,
+} from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
+import { formatDate, formatMoney } from "@paon/utils";
+
+import { AppointmentStatusBadge } from "../(dashboard)/appointments/status-badge";
 
 import { RaiseRequestForm } from "./raise-request-form";
 
@@ -27,14 +42,19 @@ const KIND_LABELS: Record<string, string> = {
  * (PHASE 18.8) raising a service-desk request directly, the one owner-
  * boundary item from 18.5 the service desk unblocked.
  *
- * Still deliberately not here: appointments, orders and alterations —
- * those need the wearer's optional `customerId` link, which not every
- * wearer has. Shipping a page that silently shows nothing for those
- * would look like a bug; this page shows only what it can show honestly.
+ * When a retailer has linked this wearer to a real Customer relationship
+ * (`corporate_wearers.customer_id`, migration 20260809200000), the wearer's
+ * own appointments, orders, alterations and latest approved measurement
+ * version also render here — through the exact same repositories and RLS
+ * boundary the customer-facing dashboard already uses, never a duplicate
+ * read path. Unlinked wearers see nothing for those sections (never a
+ * placeholder that looks broken) — the same "show only what it can show
+ * honestly" posture this page has always used for issue history.
  */
 export default async function EmployeePortalPage() {
   const session = await requireWearerAppSession();
-  const repo = new CorporateRepository(await getSupabaseServerClient());
+  const supabase = await getSupabaseServerClient();
+  const repo = new CorporateRepository(supabase);
 
   const wearer = await repo.findWearerById(session.wearerId);
   if (!wearer) {
@@ -57,6 +77,21 @@ export default async function EmployeePortalPage() {
     // satisfies, so this never leaks a colleague's request.
     repo.findExceptionsByProgramme(wearer.programmeId),
   ]);
+
+  const linkedCustomerId = wearer.customerId;
+  const [appointments, orders, alterations, measurementVersion] =
+    linkedCustomerId
+      ? await Promise.all([
+          new AppointmentRepository(supabase).findByCustomer(linkedCustomerId),
+          new OrderRepository(supabase).findByCustomer(linkedCustomerId),
+          new CustomerAlterationRepository(supabase).findByCustomer(
+            linkedCustomerId,
+          ),
+          new MeasurementMonitorRepository(supabase).latestApprovedVersion({
+            customerId: linkedCustomerId,
+          }),
+        ])
+      : [[], [], [], null];
   const latestVersion = versions[0] ?? null;
   const balances = latestVersion
     ? computeEntitlementBalance({
@@ -137,6 +172,140 @@ export default async function EmployeePortalPage() {
           </ul>
         )}
       </Card>
+
+      {linkedCustomerId ? (
+        <>
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+              Your appointments
+            </h2>
+            {appointments.length === 0 ? (
+              <p className="text-sm text-[var(--color-stone-500)]">
+                No appointments yet.
+              </p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
+                {appointments.map((appointment) => (
+                  <li
+                    key={appointment.id}
+                    className="flex items-center justify-between gap-2 py-2 text-sm"
+                  >
+                    <div>
+                      <p className="text-[var(--color-stone-900)]">
+                        {APPOINTMENT_TYPE_LABELS[appointment.type]}
+                      </p>
+                      <p className="text-xs text-[var(--color-stone-500)]">
+                        {formatDate(appointment.startsAt, "en-US")}
+                      </p>
+                    </div>
+                    <AppointmentStatusBadge status={appointment.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+              Your orders
+            </h2>
+            {orders.length === 0 ? (
+              <p className="text-sm text-[var(--color-stone-500)]">
+                No orders yet.
+              </p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
+                {orders.map((order) => (
+                  <li
+                    key={order.id}
+                    className="flex items-center justify-between gap-2 py-2 text-sm"
+                  >
+                    <div>
+                      <p className="text-[var(--color-stone-900)]">
+                        {order.orderNumber}
+                      </p>
+                      <p className="text-xs text-[var(--color-stone-500)]">
+                        {formatMoney(order.total, "en-US")}
+                      </p>
+                    </div>
+                    <Badge tone="neutral">
+                      {ORDER_STATUS_LABELS[order.status]}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+              Your alterations
+            </h2>
+            {alterations.length === 0 ? (
+              <p className="text-sm text-[var(--color-stone-500)]">
+                No alterations yet.
+              </p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
+                {alterations.map((alteration) => (
+                  <li
+                    key={alteration.id}
+                    className="flex items-center justify-between gap-2 py-2 text-sm"
+                  >
+                    <div>
+                      <p className="text-[var(--color-stone-900)]">
+                        {alteration.garmentType}
+                      </p>
+                      {alteration.dueDate ? (
+                        <p className="text-xs text-[var(--color-stone-500)]">
+                          Due {formatDate(alteration.dueDate, "en-US")}
+                        </p>
+                      ) : null}
+                    </div>
+                    <Badge tone="neutral">
+                      {ALTERATION_STATUS_LABELS[alteration.status]}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card className="flex flex-col gap-3">
+            <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+              Your measurements
+            </h2>
+            {!measurementVersion ? (
+              <p className="text-sm text-[var(--color-stone-500)]">
+                No approved measurements on file yet.
+              </p>
+            ) : (
+              <>
+                <p className="text-xs text-[var(--color-stone-500)]">
+                  Approved {formatDate(measurementVersion.approved_at, "en-US")}
+                </p>
+                <ul className="flex flex-col divide-y divide-[var(--color-stone-200)]">
+                  {(
+                    measurementVersion.values as unknown as MeasurementValue[]
+                  ).map((value) => (
+                    <li
+                      key={value.key}
+                      className="flex items-center justify-between py-2 text-sm"
+                    >
+                      <span className="text-[var(--color-stone-900)]">
+                        {value.key}
+                      </span>
+                      <span className="text-[var(--color-stone-500)]">
+                        {value.millimetres} mm
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </Card>
+        </>
+      ) : null}
 
       <Card className="flex flex-col gap-3">
         <h2 className="text-lg font-medium text-[var(--color-stone-900)]">

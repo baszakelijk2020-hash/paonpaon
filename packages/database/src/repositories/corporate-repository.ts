@@ -365,6 +365,22 @@ export class CorporateRepository {
     if (error) throw error;
   }
 
+  /** Links (or unlinks, with `null`) this wearer's real retail Customer
+   * relationship (PHASE 18.5 / migration 20260809200000) — surfaces
+   * appointments/orders/alterations/measurements on the Employee Portal.
+   * `check_corporate_wearer_customer_tenant` refuses a cross-tenant
+   * customer_id server-side; this is only the request shape. */
+  async setWearerCustomerId(
+    wearerId: string,
+    customerId: string | null,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("corporate_wearers")
+      .update({ customer_id: customerId })
+      .eq("id", wearerId);
+    if (error) throw error;
+  }
+
   async findIssuesByWearer(
     wearerId: string,
   ): Promise<CorporateIssueRecordEntity[]> {

@@ -5,6 +5,7 @@ import {
   CorporateOfficeVisitRepository,
   CorporateRepository,
   CorporateRolloutRepository,
+  CustomerRepository,
 } from "@paon/database";
 import {
   asId,
@@ -133,6 +134,39 @@ export async function setWearerLoginEmail(
   await new CorporateRepository(
     await getSupabaseServerClient(),
   ).setWearerLoginEmail(wearerId, raw.length > 0 ? raw : null);
+  revalidatePath(`/corporate/${programmeId}`);
+}
+
+/** Links (a matched email) or unlinks (empty submission) this wearer's
+ * real retail Customer relationship (PHASE 18.5) — surfaces
+ * appointments/orders/alterations/measurements on the Employee Portal.
+ * Same minimal-feedback shape as `setWearerLoginEmail` above: an email
+ * that matches no customer in this retailer is a silent no-op, not an
+ * error boundary, so a typo never crashes the page.
+ */
+export async function setWearerCustomerId(
+  programmeId: string,
+  wearerId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const supabase = await getSupabaseServerClient();
+  const raw = String(formData.get("customerEmail") ?? "").trim();
+
+  if (raw.length === 0) {
+    await new CorporateRepository(supabase).setWearerCustomerId(wearerId, null);
+  } else {
+    const customer = await new CustomerRepository(supabase).findByEmail(
+      session.retailerId,
+      raw,
+    );
+    if (customer) {
+      await new CorporateRepository(supabase).setWearerCustomerId(
+        wearerId,
+        customer.id,
+      );
+    }
+  }
   revalidatePath(`/corporate/${programmeId}`);
 }
 

@@ -3,6 +3,7 @@ import {
   CorporateOfficeVisitRepository,
   CorporateRepository,
   CorporateRolloutRepository,
+  CustomerRepository,
   RetailerRepository,
   RetailerStaffRepository,
 } from "@paon/database";
@@ -40,6 +41,7 @@ import {
   resolveRenewalTask,
   scheduleOfficeVisitAppointment,
   setWearerActive,
+  setWearerCustomerId,
   setWearerLoginEmail,
 } from "../actions";
 
@@ -117,6 +119,16 @@ export default async function CorporateProgrammePage({
   const wearersById = new Map<string, (typeof wearers)[number]>(
     wearers.map((w) => [w.id, w]),
   );
+  const linkedCustomerRepo = new CustomerRepository(client);
+  const linkedCustomerEntries = await Promise.all(
+    wearers
+      .filter((w) => w.customerId)
+      .map(async (w) => {
+        const customer = await linkedCustomerRepo.findById(w.customerId!);
+        return [w.id, customer] as const;
+      }),
+  );
+  const linkedCustomerByWearerId = new Map(linkedCustomerEntries);
   const plannedSlotsByDay = new Map<
     string,
     (typeof rolloutSlots extends readonly (infer S)[] ? S : never)[]
@@ -375,6 +387,39 @@ export default async function CorporateProgrammePage({
                     </FormField>
                     <Button type="submit" variant="secondary" size="sm">
                       {wearer.loginEmail ? "Update" : "Grant access"}
+                    </Button>
+                  </form>
+                  <form
+                    action={setWearerCustomerId.bind(
+                      null,
+                      programmeId,
+                      wearer.id,
+                    )}
+                    className="flex flex-wrap items-end gap-2"
+                  >
+                    <FormField
+                      label="Linked customer account (email)"
+                      htmlFor={`customerEmail-${wearer.id}`}
+                      hint={
+                        wearer.customerId
+                          ? linkedCustomerByWearerId.get(wearer.id)
+                            ? `Linked: ${linkedCustomerByWearerId.get(wearer.id)!.fullName} — appointments, orders, alterations and measurements now show on their Employee Portal.`
+                            : "Linked customer record not found."
+                          : "Not linked — Employee Portal shows only entitlement and issues."
+                      }
+                    >
+                      <Input
+                        id={`customerEmail-${wearer.id}`}
+                        name="customerEmail"
+                        type="email"
+                        defaultValue={
+                          linkedCustomerByWearerId.get(wearer.id)?.email ?? ""
+                        }
+                        placeholder="customer@example.com"
+                      />
+                    </FormField>
+                    <Button type="submit" variant="secondary" size="sm">
+                      {wearer.customerId ? "Update link" : "Link customer"}
                     </Button>
                   </form>
                   {balances.length > 0 ? (

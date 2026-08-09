@@ -25,38 +25,45 @@ authoritative for what is built; `git log --oneline` and
 
 ## Current snapshot
 
-Lane H snapshot (2026-08-09, `73f9480`): Stage 4's Virtual Wardrobe Studio
-chain (4.6, 4.7/4.8, 4.9, 4.10) is now checked complete with ADR-068 evidence
-(`docs/evidence/tranches/4.6.json`, `4.7.json`, `4.9.json`, `4.10.json`) —
-all four items were already functionally done across many prior sessions
-(transactionally consent-gated enqueue, `gpt-image-2` multi-image provider
-adapter, claim-and-process queue, tenant RLS, private storage, advisor
-roadmap composition, customer batch queue and StyleProfile feedback loop)
-but stayed unchecked purely on missing connected evidence and the resulting
-dependency-chain gate. Re-verified at `73f9480` itself: fresh
-`supabase db reset`, 208/208 pgTAP, 509 database tests, all four owning
-Playwright specs (`virtual-studio`, `roadmap-look-review`,
-`virtual-studio-batch-and-feedback-evidence`, `visual-roadmap`) passing,
-`pnpm lint`/`typecheck`/`build`/`format:check` clean. Live rendered-image
-proof remains `blocked_external` on `OPENAI_API_KEY`.
+Lane H snapshot (2026-08-09): AGENTS.md gained a binding "Material-progress
+gate" — classify every candidate task as BLOCKER/MATERIAL_BUILD/
+MATERIAL_INTEGRATION/ADMINISTRATION; formal PHASE checkbox closure is
+subordinate to material product progress. `docs/PHASE.md`'s control-gate
+instruction now points at this classification instead of raw document order.
 
-Stage 17.10 (AI try-on / MorningRoutine) remains unchecked: the provider-
-neutral authorization contract, persisted budget-reservation/settlement
-RPCs (`reserve_virtual_try_on_generation`/`settle_virtual_try_on_generation`,
-migration `20260809170000`) and complete-the-look tap-to-generate UI
-(wardrobe-level and item-specific, 17.13) all exist and are proven
-(`885ca9f`, `259fc78`, `581fde7`, `7999202`, `7ba5e45`), but the ledger is
-deliberately **not wired to gate today's generation path**
-(`enqueueLook`/`WardrobeVisualizationJobRepository`) — every retailer's
-policy row seeds `enabled = false` by design (no invented billing default),
-so wiring the gate now would silently block all existing generation for
-every retailer. This is a real founder-controlled product decision (an
-approved credit/billing model), not an oversight — do not wire it without
-that decision. 17.10's own "Hard blockers" line already documents this.
+Under that gate, two real capabilities were built this session:
 
-Stage 17.14 (prospect AI conversation/buying-intent queue/human handoff) is
-checked complete with connected evidence
-(`docs/evidence/runs/17.14.json`, code SHA `964d9db`).
+1. **PHASE 17.8** — the AI sales-roleplay conversation partner that was
+   genuinely missing (persona catalog/grading loop already existed; the
+   actual AI conversation itself did not). New `academy_roleplay_sessions`/
+   `academy_roleplay_messages` tables, three identity-re-deriving RPCs,
+   `@paon/ai`'s `generateAcademyRoleplayReply` provider capability, a
+   `/staff/learning` practice UI, and grading integration
+   (`roleplay_session_id`). Checked complete with evidence.
+
+2. **PHASE 18.5** — closed the long-named gap: `corporate_wearers.
+customer_id` existed since 20260801000012 with no write path and no read
+   path in either direction. Added the tenant-invariant link trigger,
+   additive RLS on appointments/orders/alteration views/measurement
+   versions (keyed off the wearer's own `corporate_wearers` row, since a
+   wearer's Employee Portal login and their linked customer's login can be
+   different auth users for the same real person), a staff-driven link-by-
+   email UI, a safe silent auto-link for the same-login case, and four new
+   read sections on `/employee`. Checkbox remains unchecked: wardrobe,
+   announcements and write-capable self-service (booking, not just
+   reading) are real, unattempted gaps. **A more complete design already
+   exists but was never implemented**: `agent/lane-g-employee-portal-
+linking` (stale since 2026-08-07,
+   `docs/EMPLOYEE_PORTAL_SELF_SERVICE_BLUEPRINT.md`) independently proposed
+   the same auto-link mechanism plus opt-in customer-account creation and a
+   write-capable booking form — read it before extending this area further.
+
+Stage 17.10 (AI try-on / MorningRoutine) remains unchecked: the ledger is
+deliberately **not wired to gate today's generation path** — every
+retailer's policy row seeds `enabled = false` by design, so wiring the gate
+now would silently block all existing generation. This is a founder-
+controlled billing decision, not an oversight; do not wire it without that
+decision (17.10's own "Hard blockers" line documents this).
 
 Repository-wide: the completion-evidence validator (`pnpm validate:completion`)
 remains red on a pre-existing historical backlog unrelated to any of the
@@ -65,6 +72,12 @@ above — stale/missing evidence on already-checked 8.4, 9.1, 11.4, 12.2, 12.4,
 documented across many prior sessions' own status text as out of scope for
 whichever capability they were closing; re-verify before assuming it's still
 accurate.
+
+Several stale delegated worktrees exist under `.claude/worktrees/` (lanes
+a/b/c/e/f/g and various `delegate-*`) from earlier takeover sessions,
+mostly last touched 2026-08-07 or older. They are not active concurrent
+writers — check each lane's own last-commit date before assuming otherwise,
+per AGENTS.md §36.
 
 Last hand-maintained update: 2026-08-05 (FT-02 silhouette analysis
 consent/capture state machine landed on `agent/grok-takeover-2026-07-30`).
