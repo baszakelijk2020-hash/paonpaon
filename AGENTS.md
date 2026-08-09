@@ -197,6 +197,16 @@ the frontier agent MUST invoke the `feature-slice-delegation` skill before
 implementing directly. Direct implementation is allowed only when the
 skill itself determines delegation is inappropriate for that task.
 
+A delegated task is accepted only after the frontier agent independently
+verifies: (1) the delegated worktree exists; (2) the expected files were
+actually changed; (3) a valid git commit exists on the delegated branch;
+(4) the commit SHA resolves with `git cat-file -e <sha>^{commit}`; (5) the
+required tests/checks pass when rerun by the frontier agent. A delegate's
+textual completion report is never evidence of completion. If any
+verification fails, the delegation is considered failed and the frontier
+agent may implement the bounded task directly without delegating it a
+second time.
+
 **Autonomous delegation rule — binding on every frontier agent (Claude,
 Codex, or any other model occupying the frontier seat), not a
 model-specific optimization.** The active frontier agent is the only
