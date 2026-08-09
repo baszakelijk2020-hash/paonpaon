@@ -101,6 +101,7 @@ test("a full fitting day refuses another assignment, and a no-show reslots onto 
   });
   await rolloutRepo.assignWearer({
     retailerId,
+    programmeId: programme.id,
     rolloutDayId: dayLate.id,
     wearerId: wearer1.id,
     capacity: dayLate.capacity,
@@ -110,6 +111,7 @@ test("a full fitting day refuses another assignment, and a no-show reslots onto 
     // DB-level capacity refusal: dayLate is already full.
     const refused = await rolloutRepo.assignWearer({
       retailerId,
+      programmeId: programme.id,
       rolloutDayId: dayLate.id,
       wearerId: wearer2.id,
       capacity: dayLate.capacity,
@@ -212,6 +214,7 @@ test("a site-scoped fitting day only offers wearers from that site", async ({
     // a cross-site assignment.
     const refused = await rolloutRepo.assignWearer({
       retailerId,
+      programmeId: programme.id,
       rolloutDayId: londonDay.id,
       wearerId: manchesterWearer.id,
       capacity: londonDay.capacity,

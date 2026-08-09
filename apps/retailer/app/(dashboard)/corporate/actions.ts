@@ -448,6 +448,7 @@ export async function assignWearerToRolloutDay(
   const wearer = await new CorporateRepository(client).findWearerById(wearerId);
   const result = await new CorporateRolloutRepository(client).assignWearer({
     retailerId: session.retailerId,
+    programmeId: asId<"CorporateProgrammeId">(programmeId),
     rolloutDayId: asId<"CorporateRolloutDayId">(rolloutDayId),
     wearerId,
     capacity,
@@ -467,10 +468,14 @@ export async function markRolloutSlotCompleted(
   programmeId: string,
   slotId: string,
 ): Promise<void> {
-  await requireModuleSession("enterprise_verticals");
+  const session = await requireModuleSession("enterprise_verticals");
   await new CorporateRolloutRepository(
     await getSupabaseServerClient(),
-  ).markCompleted(asId<"CorporateRolloutSlotId">(slotId));
+  ).markCompleted({
+    retailerId: session.retailerId,
+    programmeId: asId<"CorporateProgrammeId">(programmeId),
+    slotId: asId<"CorporateRolloutSlotId">(slotId),
+  });
   revalidatePath(`/corporate/${programmeId}`);
 }
 

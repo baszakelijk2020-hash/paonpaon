@@ -2,6 +2,7 @@ import {
   asId,
   checkAssignWearerToDay,
   planNoShowReslot,
+  type CorporateAccountId,
   type CorporateProgrammeId,
   type CorporateRolloutDayId,
   type CorporateRolloutSlotId,
@@ -10,6 +11,8 @@ import {
 
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
+
+import { CorporateProjectRepository } from "./corporate-project-repository";
 
 type DayRow = Database["public"]["Tables"]["corporate_rollout_days"]["Row"];
 type SlotRow = Database["public"]["Tables"]["corporate_rollout_slots"]["Row"];
@@ -142,8 +145,92 @@ export class CorporateRolloutRepository {
     return count ?? 0;
   }
 
+  /** A rollout day belongs to a programme, not directly to the account
+   * the project lifecycle (18.7) tracks — this is the one join between
+   * them, used only by the auto-advance calls below. */
+  private async findProgrammeAccountId(
+    programmeId: CorporateProgrammeId,
+  ): Promise<CorporateAccountId | null> {
+    const { data, error } = await this.client
+      .from("corporate_programmes")
+      .select("account_id")
+      .eq("id", programmeId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? asId<"CorporateAccountId">(data.account_id) : null;
+  }
+
+  /** Counts every slot still `planned` for the whole programme (across
+   * all its rollout days), not just one day — the real-world signal for
+   * "is anyone still waiting to be fitted at all." */
+  private async countPlannedForProgramme(
+    programmeId: CorporateProgrammeId,
+  ): Promise<number> {
+    const days = await this.findDaysByProgramme(programmeId);
+    if (days.length === 0) return 0;
+    const { count, error } = await this.client
+      .from("corporate_rollout_slots")
+      .select("*", { count: "exact", head: true })
+      .in(
+        "rollout_day_id",
+        days.map((d) => d.id),
+      )
+      .eq("status", "planned");
+    if (error) throw error;
+    return count ?? 0;
+  }
+
+  /**
+   * PHASE 18.7's own named gap: the project lifecycle's `fitting`
+   * checkpoint had no automatic trigger from 18.6's real rollout
+   * events, only a staff button. `advanceStageForAccount` already
+   * no-ops silently when the project isn't at the one legal
+   * predecessor stage (`employee_import`), matching the exact
+   * "call unconditionally, let the state machine decide" discipline
+   * `corporate-tender-repository.ts`'s own `opportunity -> tender`
+   * trigger already established — so every call site below fires this
+   * on every relevant event rather than re-deriving "was this the
+   * first one" itself.
+   */
+  private async advanceToFittingIfDue(
+    retailerId: RetailerId,
+    programmeId: CorporateProgrammeId,
+  ): Promise<void> {
+    const accountId = await this.findProgrammeAccountId(programmeId);
+    if (!accountId) return;
+    await new CorporateProjectRepository(this.client).advanceStageForAccount({
+      retailerId,
+      accountId,
+      to: "fitting",
+    });
+  }
+
+  /** The other half of 18.7's gap: once every planned slot for the
+   * programme has actually been completed (fitted), the project moves
+   * on to `production` — checked, not assumed, by re-counting after the
+   * write rather than trusting that this call is the last one. A wearer
+   * whose no-show could never be reslotted (see `markNoShowAndReslot`)
+   * stays `no_show` forever with no fresh `planned` row, so a programme
+   * with an unresolved no-show never falsely reaches "everyone fitted"
+   * — the honest behaviour, not a fabricated completion. */
+  private async advanceToProductionIfDue(
+    retailerId: RetailerId,
+    programmeId: CorporateProgrammeId,
+  ): Promise<void> {
+    const remaining = await this.countPlannedForProgramme(programmeId);
+    if (remaining > 0) return;
+    const accountId = await this.findProgrammeAccountId(programmeId);
+    if (!accountId) return;
+    await new CorporateProjectRepository(this.client).advanceStageForAccount({
+      retailerId,
+      accountId,
+      to: "production",
+    });
+  }
+
   async assignWearer(args: {
     readonly retailerId: RetailerId;
+    readonly programmeId: CorporateProgrammeId;
     readonly rolloutDayId: CorporateRolloutDayId;
     readonly wearerId: string;
     readonly capacity: number;
@@ -169,15 +256,21 @@ export class CorporateRolloutRepository {
       .select("*")
       .single();
     if (error) throw error;
+    await this.advanceToFittingIfDue(args.retailerId, args.programmeId);
     return { ok: true, slot: toSlot(data) };
   }
 
-  async markCompleted(slotId: CorporateRolloutSlotId): Promise<void> {
+  async markCompleted(args: {
+    readonly retailerId: RetailerId;
+    readonly programmeId: CorporateProgrammeId;
+    readonly slotId: CorporateRolloutSlotId;
+  }): Promise<void> {
     const { error } = await this.client
       .from("corporate_rollout_slots")
       .update({ status: "completed" })
-      .eq("id", slotId);
+      .eq("id", args.slotId);
     if (error) throw error;
+    await this.advanceToProductionIfDue(args.retailerId, args.programmeId);
   }
 
   /** Marks the slot a no-show, then immediately tries to reslot the
