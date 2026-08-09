@@ -6,4 +6,5 @@ export * from "./grounded-answer-runner";
 export * from "./communication-draft-runner";
 export * from "./advisor-capture-runner";
 export * from "./concept-generation-runner";
+export * from "./virtual-try-on-provider";
 export type { default as OpenAI } from "openai";

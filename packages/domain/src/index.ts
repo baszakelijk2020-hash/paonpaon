@@ -94,6 +94,7 @@ export * from "./concept-scan/concept-scan.schema";
 export * from "./analytics/ai-generation";
 export * from "./analytics/audit-log";
 export * from "./analytics/behavioral-event";
+export * from "./analytics/virtual-try-on-usage";
 
 export * from "./intelligence/consent";
 export * from "./intelligence/consent.schema";
