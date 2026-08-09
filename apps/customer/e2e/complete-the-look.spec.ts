@@ -253,6 +253,23 @@ test("a Complete the Look suggestion generates a real try-on job for the suggest
     if (!outfitAfterCreate) throw new Error("outfit was not created");
     outfitIds.push(outfitAfterCreate.id);
 
+    // The outfit and its enqueue commit as two sequential statements inside
+    // the same server action — the outfit row can become visible here
+    // before the action has finished awaiting the enqueue RPC, so poll for
+    // the job too rather than a single-shot read.
+    await expect
+      .poll(async () => {
+        const { data } = await admin
+          .from("wardrobe_visualization_jobs")
+          .select("id")
+          .eq("outfit_id", outfitAfterCreate.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        return data?.id ?? null;
+      })
+      .not.toBeNull();
+
     const { data: jobAfterEnqueue } = await admin
       .from("wardrobe_visualization_jobs")
       .select("id, status, outfit_id, customer_id")
