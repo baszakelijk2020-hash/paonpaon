@@ -1739,10 +1739,12 @@ pnpm build && pnpm format:check` sweep for this tranche, and no
     13.2, 17.2–17.6, 17.9, 17.14, 18.1, 18.2, 18.6, 18.8, 18.12 — confirmed by
     re-running it against the prior commit before this tranche's changes.
     `docs/evidence/runs/4.7-4.8-customer-style-portrait-onboarding.json`
-    records the passing run at `8ecc84f`. Checkbox stays unchecked: `4.9`
-    (advisor handoff) still depends on this item per the queue rule above,
-    and the unrelated `validate:completion` debt is a separate, still-open
-    gap outside this tranche's scope.
+    records the passing run at `8ecc84f`. Checkbox stays unchecked: this
+    item's own **Dependencies** line names `4.6`, which remains unchecked
+    (its own status still names outstanding ADR-068 connected evidence);
+    the queue rule above forbids checking a dependent item first. This
+    session did not re-audit 4.6's full acceptance/evidence state — that is
+    a separate judgment call for whoever next closes 4.6, not assumed here.
 
 - [ ] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
       per-look review**
