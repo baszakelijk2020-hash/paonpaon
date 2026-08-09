@@ -25,11 +25,11 @@ authoritative for what is built; `git log --oneline` and
 
 ## Current snapshot
 
-Delegation record (2026-08-09): `agent/lane-delegate-17-14-20260809001442`
-returned commit `83e4910` for the bounded grounded communication-draft core.
-The frontier lane reviewed and hardened its prompt/allowlist, tenant-reference
-and atomic approve/send boundaries before accepting it; the delegate lane is
-no longer active.
+Delegation record (2026-08-09): `agent/lane-delegate-17-9-20260809105856`
+produced the bounded 17.9 inbox/Mission Control wiring. Lane H reviewed it,
+fixed duplicate-thread notification accounting, and accepted it as `29b2177`.
+The provider-neutral omnichannel core is locally browser-proven; live provider
+delivery remains externally blocked per PHASE 17.9.
 
 Last hand-maintained update: 2026-08-05 (FT-02 silhouette analysis
 consent/capture state machine landed on `agent/grok-takeover-2026-07-30`).

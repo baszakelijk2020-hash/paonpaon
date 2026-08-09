@@ -4248,7 +4248,7 @@ now.
     during practice, not just a label a human grader tags after the
     fact — remains unbuilt and `blocked_external`.
 
-- [ ] **17.9 Omnichannel communication hub**
+- [x] **17.9 Omnichannel communication hub**
   - **Requirement IDs:** ADV-109.
   - **Owner boundary:** a provider-neutral core that unifies the existing
     TableService chat with SMS/WhatsApp/email, surfaced both in Mission
@@ -4290,13 +4290,22 @@ now.
     `<span>`, never an `<a>`, proving the unavailable state is real, not
     just visually similar. Regression: the customer workspace's own
     12-test `workspace.spec.ts` suite is unaffected, 12/12 green.
-  - Checkbox stays unchecked: "unifies... TableService chat with
-    SMS/WhatsApp/email" and "surfaced... in Mission Control" are both
-    still open — this item only closes the "native app" deep-link half
-    named in the owner boundary's second clause, not the inbox
-    unification named in its first. Live channel sending remains
-    `blocked_external`, unchanged from this item's own hard-blockers
-    line.
+  - **Completion (2026-08-09, lane H):** `verified_local`. The selected
+    TableService conversation now reuses the same provider-neutral
+    `ChannelContactButtons` as the customer workspace, so SMS, WhatsApp
+    and email continue from the canonical shared thread into the advisor's
+    native app. Mission Control now derives its conversation queue only
+    from unread `message` notifications carrying a canonical, tenant-valid
+    `/messages?c=<conversation-id>` target, deduplicates repeated
+    notifications for the same thread, names the real customer and links
+    directly into that thread. Other notification categories remain a
+    separate `/notifications` count and are never mislabeled as
+    conversations. Local browser proof is 4/4 green across
+    `channel-contact.spec.ts` and `mission-control.spec.ts`; run evidence is
+    `docs/evidence/runs/17.9.json` (with 17.2's Mission Control regression
+    evidence refreshed by the same run). PAON-sent Twilio/WhatsApp Business
+    API/email-provider delivery remains `blocked_external` exactly as this
+    item's hard-blockers line permits; no provider behavior was fabricated.
 
 - [ ] **17.10 AI try-on, daily/ahead-of-time/complete-the-look MorningRoutine**
   - **Requirement IDs:** ADV-110.

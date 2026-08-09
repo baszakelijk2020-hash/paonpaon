@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "17.9",
+  "requirementIds": ["ADV-109"],
+  "status": "verified_local",
+  "title": "Omnichannel communication hub",
+  "applicability": {
+    "domain": "required",
+    "persistence": "n_a",
+    "service": "n_a",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "n_a",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "required"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/engagement/communication-channel.ts; packages/domain/src/engagement/communication-channel.test.ts",
+    "persistence": "n/a; this tranche reuses existing customer and conversation persistence and adds no table or migration.",
+    "service": "n/a; the provider-neutral continuation uses native device links and adds no provider send path.",
+    "origin_ui": "apps/retailer/app/(dashboard)/channel-contact-buttons.tsx; apps/retailer/app/(dashboard)/customers/[id]/page.tsx",
+    "receiver_ui": "apps/retailer/app/(dashboard)/messages/page.tsx; apps/retailer/app/(dashboard)/mission-control/page.tsx",
+    "rls": "n/a; no data boundary or write path changes in this tranche, and Mission Control validates links against tenant-scoped conversations.",
+    "exceptions": "apps/retailer/e2e/channel-contact.spec.ts proves unavailable channels never render fabricated links; apps/retailer/e2e/mission-control.spec.ts proves duplicate and non-message notifications are not mislabeled as conversations.",
+    "browser": "apps/retailer/e2e/channel-contact.spec.ts; apps/retailer/e2e/mission-control.spec.ts; docs/evidence/runs/17.9.json status=passed; docs/evidence/runs/17.2.json status=passed",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json",
+    "live_gap": "Live SMS, WhatsApp Business API and email-provider delivery remains blocked on real provider accounts and credentials; this tranche proves only the provider-neutral shared-thread and advisor-device continuation."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "proven",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/channel-contact.spec.ts",
+  "assertedAt": "2026-08-09T04:28:23.998Z"
+}
