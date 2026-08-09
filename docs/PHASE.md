@@ -4801,6 +4801,16 @@ pnpm build && pnpm format:check` are clean and `pnpm turbo run test`
     green (1122 domain tests, 509 database tests, 70 integration tests
     correctly skipped outside their explicit gate) at `581fde7`. ADR-068
     evidence: `docs/evidence/runs/17.10.json`.
+  - **Production-convergence fix (2026-08-09, `7ba5e45`, AGENTS.md §31):**
+    every "See it on me" tap created a real `Outfit` with no way to tell it
+    apart from a customer's actual composed look, so it permanently
+    cluttered `/wardrobe`'s saved-looks list and bulk actions. New
+    `outfits.is_suggestion_generation` column (migration `20260809180000`)
+    plus a shared `isSavedLook` domain helper exclude it everywhere;
+    repeat taps for the same suggested product now reuse an in-flight/
+    already-generated job instead of enqueueing a duplicate paid
+    generation. See 17.13's own status for the same fix's detail (this is
+    one fix covering both items' tap-to-generate paths, not two).
 
 - [ ] **17.11 Supplier-CRM data import and ownership**
   - **Requirement IDs:** ADV-111.
@@ -4933,6 +4943,28 @@ pnpm build && pnpm format:check` are clean and `pnpm turbo run test`
     fit-check photo → Self-Portrait update**, and the **unattached
     (logged-out-created) item** schema change remain real, unattempted
     gaps.
+  - **Production-convergence fix (2026-08-09, `7ba5e45`, AGENTS.md §31):**
+    both this item's and 17.10's "See it on me" tap created a real
+    `Outfit` with no marker distinguishing it from a customer's actual
+    composed look, so it permanently cluttered `/wardrobe`'s saved-looks
+    list (its own Cancel/regenerate/feedback controls) and was swept into
+    "Create all saved looks"/"Cancel all queued". New
+    `outfits.is_suggestion_generation` column (migration
+    `20260809180000`, additive, defaulted `false`, no backfill risk) plus
+    a single shared `isSavedLook(outfit)` domain helper (roadmap-linked or
+    suggestion-generation outfits are never a saved look) now excludes it
+    at all three filter sites, replacing three independent copies of
+    `!outfit.roadmapId`. Also adds idempotency: a repeat tap for the same
+    suggested product reuses an existing queued/generating/ready job
+    instead of enqueueing a duplicate paid generation — vision spec §0's
+    own generate-on-demand cost-ratio rationale. `database.types.ts`
+    regenerated against the new column. Regression: 8/8 across
+    `complete-the-look`, `item-specific-complete-the-look`,
+    `morning-routine`, `morning-routine-occasions`,
+    `dashboard-morning-routine-hero`, `roadmap-look-review`,
+    `virtual-studio` and `virtual-studio-batch-and-feedback-evidence`.
+    `pnpm lint`/`typecheck`/`build` clean, `pnpm turbo run test` green
+    (1134 domain tests, 509 database tests) at `7ba5e45`.
 
 - [x] **17.14 Prospect AI conversation, buying-intent queue, and human handoff**
   - **Requirement IDs:** ADV-114.
