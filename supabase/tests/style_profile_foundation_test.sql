@@ -1,7 +1,7 @@
 -- StyleProfile foundation assertions (PHASE 3.2).
 
 begin;
-select plan(13);
+select plan(15);
 
 select has_table('public', 'customer_style_profiles',
   'style profiles table exists');
@@ -79,6 +79,26 @@ select ok(
     )
   ) > 0,
   'evidence command verifies event provenance'
+);
+
+select ok(
+  position(
+    'generation_loved'
+    in pg_get_functiondef(
+      'public.record_style_preference_evidence(uuid,uuid,text,text,numeric,uuid)'::regprocedure
+    )
+  ) > 0,
+  'evidence command accepts wardrobe-generation signals'
+);
+
+select ok(
+  position(
+    'on conflict (source_event_id, concept_id)'
+    in pg_get_functiondef(
+      'public.record_style_preference_evidence(uuid,uuid,text,text,numeric,uuid)'::regprocedure
+    )
+  ) > 0,
+  'evidence command keeps event replay idempotent'
 );
 
 select * from finish();
