@@ -1,4 +1,4 @@
-import type OpenAI from "openai";
+import { toFile, type default as OpenAI } from "openai";
 
 import type {
   AdvisorCaptureContext,
@@ -260,7 +260,8 @@ function buildCapturePrompt(context: AdvisorCaptureContext): string {
   );
 }
 
-const DEFAULT_IMAGE_MODEL = "dall-e-3";
+const DEFAULT_CONCEPT_IMAGE_MODEL = "dall-e-3";
+const DEFAULT_WARDROBE_IMAGE_MODEL = "gpt-image-2";
 
 function buildConceptImagePrompt(context: ConceptImageContext): string {
   const lines = [
@@ -272,23 +273,15 @@ function buildConceptImagePrompt(context: ConceptImageContext): string {
   return lines.join(" ");
 }
 
-/**
- * v1 is text-to-image only: `images.generate` has no reliable multi-
- * reference identity-preserving mode on the model this codebase already
- * calls elsewhere. Reference photo URLs are named in the prompt as
- * context, not passed as true image-to-image input — that upgrade is a
- * follow-on provider capability (ADR-074/§2: the call is provider-
- * swappable specifically so a better virtual try-on model can replace
- * this without touching anything outside this method), named honestly
- * rather than invented.
- */
 function buildWardrobeVisualizationPrompt(
   context: WardrobeVisualizationContext,
 ): string {
+  const garmentDirection = context.garmentDescriptions.length
+    ? `wearing: ${context.garmentDescriptions.join(", ")}`
+    : "wearing a simple, unbranded neutral studio outfit that does not distract from identity and silhouette calibration";
   const lines = [
     `A photorealistic, editorial-quality wardrobe visualization for ${context.retailerName}.`,
-    `The same person shown in these reference photos, identity and proportions preserved exactly, wearing: ${context.garmentDescriptions.join(", ")}.`,
-    `Reference photos: ${context.referenceImageUrls.join(", ")}.`,
+    `The same person shown in the supplied reference images, identity and proportions preserved exactly, ${garmentDirection}.`,
     `Tailoring: ${context.tailoringInstructions}.`,
     ...(context.writtenInstructions
       ? [`Styling direction: ${context.writtenInstructions}.`]
@@ -301,6 +294,63 @@ function buildWardrobeVisualizationPrompt(
       : []),
   ];
   return lines.join(" ");
+}
+
+const WARDROBE_REFERENCE_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+type WardrobeReferenceMimeType = (typeof WARDROBE_REFERENCE_MIME_TYPES)[number];
+
+function isWardrobeReferenceMimeType(
+  value: string,
+): value is WardrobeReferenceMimeType {
+  return (WARDROBE_REFERENCE_MIME_TYPES as readonly string[]).includes(value);
+}
+
+function extensionForReferenceMimeType(
+  mimeType: WardrobeReferenceMimeType,
+): string {
+  if (mimeType === "image/jpeg") return "jpg";
+  if (mimeType === "image/webp") return "webp";
+  return "png";
+}
+
+async function downloadWardrobeReference(
+  url: string,
+  index: number,
+): Promise<Awaited<ReturnType<typeof toFile>>> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to download wardrobe reference ${index + 1} (${response.status})`,
+    );
+  }
+
+  const mimeType = (response.headers.get("content-type") ?? "")
+    .split(";", 1)[0]
+    ?.trim()
+    .toLowerCase();
+  if (!mimeType || !isWardrobeReferenceMimeType(mimeType)) {
+    throw new Error(
+      `Wardrobe reference ${index + 1} has an unsupported image type`,
+    );
+  }
+
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (bytes.byteLength === 0 || bytes.byteLength > 50 * 1024 * 1024) {
+    throw new Error(
+      `Wardrobe reference ${index + 1} must be between 1 byte and 50 MB`,
+    );
+  }
+
+  return toFile(
+    bytes,
+    `wardrobe-reference-${index + 1}.${extensionForReferenceMimeType(mimeType)}`,
+    { type: mimeType },
+  );
 }
 
 export class OpenAIProvider implements AIProvider {
@@ -518,7 +568,7 @@ export class OpenAIProvider implements AIProvider {
   ): Promise<ConceptImageResult> {
     const prompt = buildConceptImagePrompt(context);
     const response = await this.client.images.generate({
-      model: DEFAULT_IMAGE_MODEL,
+      model: DEFAULT_CONCEPT_IMAGE_MODEL,
       prompt,
       n: 1,
       size: "1024x1024",
@@ -542,22 +592,33 @@ export class OpenAIProvider implements AIProvider {
   async generateWardrobeVisualization(
     context: WardrobeVisualizationContext,
   ): Promise<WardrobeVisualizationResult> {
+    if (context.referenceImageUrls.length === 0) {
+      throw new Error(
+        "Wardrobe visualization requires at least one reference image",
+      );
+    }
+
     const prompt = buildWardrobeVisualizationPrompt(context);
-    const response = await this.client.images.generate({
-      model: DEFAULT_IMAGE_MODEL,
+    const images = await Promise.all(
+      context.referenceImageUrls.map(downloadWardrobeReference),
+    );
+    const response = await this.client.images.edit({
+      model: DEFAULT_WARDROBE_IMAGE_MODEL,
+      image: images,
       prompt,
       n: 1,
       size: "1024x1024",
+      output_format: "png",
     });
 
     const image = (response.data ?? [])[0];
-    if (!image?.url) {
+    if (!image?.b64_json) {
       throw new Error(
-        "OpenAI wardrobe visualization response was missing a url",
+        "OpenAI wardrobe visualization response was missing image data",
       );
     }
     return {
-      imageUrl: image.url,
+      imageUrl: `data:image/png;base64,${image.b64_json}`,
       revisedPrompt: image.revised_prompt ?? prompt,
     };
   }
