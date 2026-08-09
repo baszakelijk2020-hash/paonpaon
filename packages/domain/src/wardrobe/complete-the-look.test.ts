@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { selectCompleteTheLookSuggestions } from "./complete-the-look";
+import { asId } from "../shared/branded-id";
+
+import {
+  outfitSlotKindForGarmentCategory,
+  resolveGarmentCategoryFromConcepts,
+  selectCompleteTheLookSuggestions,
+} from "./complete-the-look";
 
 describe("selectCompleteTheLookSuggestions", () => {
   it("suggests a catalogue category the customer owns nothing in", () => {
@@ -206,5 +212,78 @@ describe("selectCompleteTheLookSuggestions", () => {
         explanation: "You don't have a pair of shoes yet.",
       },
     ]);
+  });
+});
+
+describe("resolveGarmentCategoryFromConcepts", () => {
+  it("matches a garment_type concept by slug/label keyword", () => {
+    const conceptId = asId<"MetadataConceptId">("concept-1");
+    const result = resolveGarmentCategoryFromConcepts({
+      concepts: [
+        {
+          id: conceptId,
+          kind: "garment_type",
+          slug: "oxford-shoe",
+          label: "Oxford Shoe",
+        },
+      ],
+    });
+    expect(result.get(conceptId)).toBe("shoes");
+  });
+
+  it("prefers the more specific keyword over a substring it contains", () => {
+    const conceptId = asId<"MetadataConceptId">("concept-overcoat");
+    const result = resolveGarmentCategoryFromConcepts({
+      concepts: [
+        {
+          id: conceptId,
+          kind: "garment_type",
+          slug: "overcoat",
+          label: "Overcoat",
+        },
+      ],
+    });
+    expect(result.get(conceptId)).toBe("overcoat");
+  });
+
+  it("ignores a concept of a different kind", () => {
+    const result = resolveGarmentCategoryFromConcepts({
+      concepts: [
+        {
+          id: asId<"MetadataConceptId">("concept-1"),
+          kind: "fabric",
+          slug: "wool",
+          label: "Wool",
+        },
+      ],
+    });
+    expect(result.size).toBe(0);
+  });
+
+  it("leaves an unresolvable garment_type concept unmapped", () => {
+    const result = resolveGarmentCategoryFromConcepts({
+      concepts: [
+        {
+          id: asId<"MetadataConceptId">("concept-1"),
+          kind: "garment_type",
+          slug: "mystery",
+          label: "Mystery",
+        },
+      ],
+    });
+    expect(result.size).toBe(0);
+  });
+});
+
+describe("outfitSlotKindForGarmentCategory", () => {
+  it("maps every GarmentCategoryCode to a valid OutfitSlotKind", () => {
+    expect(outfitSlotKindForGarmentCategory("suit")).toBe("jacket");
+    expect(outfitSlotKindForGarmentCategory("trousers")).toBe("trousers");
+    expect(outfitSlotKindForGarmentCategory("shoes")).toBe("shoes");
+    expect(outfitSlotKindForGarmentCategory("pocket_square")).toBe(
+      "pocket_square",
+    );
+    expect(outfitSlotKindForGarmentCategory("accessories")).toBe("accessories");
+    expect(outfitSlotKindForGarmentCategory("other")).toBe("accessories");
   });
 });

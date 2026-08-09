@@ -34,7 +34,7 @@ import { assertRetailerModuleActive } from "@/lib/module-session";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
-type Supabase = Awaited<ReturnType<typeof getSupabaseServerClient>>;
+export type Supabase = Awaited<ReturnType<typeof getSupabaseServerClient>>;
 
 async function resolveCustomer(retailerId: string) {
   const session = await requireSession();
@@ -131,7 +131,7 @@ interface EnqueueResult {
  * drift on enqueue logic, mirroring the retailer roadmap's own
  * `enqueueLook` helper (PHASE 4.9).
  */
-async function enqueueLook(
+export async function enqueueLook(
   supabase: Supabase,
   params: {
     readonly retailerId: string;

@@ -13,10 +13,13 @@
  * "Coming up" card.
  */
 
+import type { MetadataConceptId } from "../shared/branded-id";
+
 import type {
   MorningRoutineCatalogueCandidate,
   MorningRoutineWardrobeCandidate,
 } from "./morning-routine";
+import type { OutfitSlotKind } from "./sartorial";
 import type { GarmentCategoryCode } from "./wardrobe";
 
 export interface CompleteTheLookSuggestion {
@@ -92,4 +95,87 @@ export function selectCompleteTheLookSuggestions(args: {
     });
   }
   return suggestions;
+}
+
+const GARMENT_CATEGORY_KEYWORDS: readonly (readonly [
+  GarmentCategoryCode,
+  readonly string[],
+])[] = [
+  ["suit", ["suit"]],
+  ["waistcoat", ["waistcoat", "vest"]],
+  ["overcoat", ["overcoat"]],
+  ["coat", ["coat"]],
+  ["jacket", ["jacket", "blazer"]],
+  ["trousers", ["trouser", "pant", "chino", "slack"]],
+  ["shirt", ["shirt"]],
+  ["shoes", ["shoe", "loafer", "boot", "oxford", "derby", "sneaker"]],
+  ["pocket_square", ["pocket square", "pocket-square"]],
+  ["denim", ["denim", "jean"]],
+  ["knitwear", ["knit", "sweater", "cardigan", "jumper"]],
+  ["leather", ["leather"]],
+  ["accessories", ["accessor", "tie", "belt", "scarf", "cufflink"]],
+];
+
+/**
+ * Best-effort catalogue product -> `GarmentCategoryCode` resolution for
+ * Complete the Look's gap detection. `products` carries no category column
+ * (only `wardrobe_items` does) — same slug/label substring heuristic
+ * precedent as `resolveTieConceptIds` (`catalog/tie-mate.ts`) against the
+ * shared `garment_type` metadata-concept kind, not a second taxonomy.
+ * Checked in declaration order so a more specific keyword (`overcoat`)
+ * wins over a substring of it (`coat`).
+ */
+export function resolveGarmentCategoryFromConcepts(args: {
+  readonly concepts: readonly {
+    readonly id: MetadataConceptId;
+    readonly kind: string;
+    readonly slug: string;
+    readonly label: string;
+  }[];
+}): ReadonlyMap<MetadataConceptId, GarmentCategoryCode> {
+  const result = new Map<MetadataConceptId, GarmentCategoryCode>();
+  for (const concept of args.concepts) {
+    if (concept.kind !== "garment_type") continue;
+    const haystack = `${concept.slug} ${concept.label}`.toLowerCase();
+    for (const [category, keywords] of GARMENT_CATEGORY_KEYWORDS) {
+      if (keywords.some((keyword) => haystack.includes(keyword))) {
+        result.set(concept.id, category);
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+const CATEGORY_TO_OUTFIT_SLOT_KIND: Record<
+  GarmentCategoryCode,
+  OutfitSlotKind
+> = {
+  suit: "jacket",
+  jacket: "jacket",
+  waistcoat: "jacket",
+  overcoat: "jacket",
+  coat: "jacket",
+  formalwear: "jacket",
+  leather: "jacket",
+  trousers: "trousers",
+  denim: "trousers",
+  shirt: "shirt",
+  knitwear: "shirt",
+  shoes: "shoes",
+  pocket_square: "pocket_square",
+  accessories: "accessories",
+  other: "accessories",
+};
+
+/**
+ * A throwaway single-slot Outfit needs a valid `OutfitSlotKind` (6 values)
+ * to carry a suggestion's real `GarmentCategoryCode` (15 values) into the
+ * existing try-on enqueue pipeline — a many-to-one placement, never a new
+ * slot kind.
+ */
+export function outfitSlotKindForGarmentCategory(
+  categoryCode: GarmentCategoryCode,
+): OutfitSlotKind {
+  return CATEGORY_TO_OUTFIT_SLOT_KIND[categoryCode];
 }

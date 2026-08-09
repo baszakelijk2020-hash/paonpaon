@@ -7,6 +7,8 @@ import {
 } from "@paon/database";
 import { selectUpcomingOccasions } from "@paon/domain";
 
+import { CompleteTheLookCard } from "./complete-the-look-card";
+import { buildCompleteTheLookSuggestions } from "./complete-the-look-data";
 import { MorningRoutineDeliveryPanel } from "./delivery-panel";
 import { MorningRoutinePanel } from "./routine-panel";
 import { UpcomingOccasionsCard } from "./upcoming-occasions-card";
@@ -57,7 +59,19 @@ export default async function MorningRoutinePage() {
         todayIso: forDate,
         leadDays: UPCOMING_OCCASION_LEAD_DAYS,
       });
-      return { customer, retailer, latest, subscription, upcomingOccasions };
+      const completeTheLookSuggestions = await buildCompleteTheLookSuggestions({
+        supabase,
+        retailerId: customer.retailerId,
+        customerId: customer.id,
+      });
+      return {
+        customer,
+        retailer,
+        latest,
+        subscription,
+        upcomingOccasions,
+        completeTheLookSuggestions,
+      };
     }),
   );
 
@@ -85,7 +99,14 @@ export default async function MorningRoutinePage() {
         </div>
       ) : (
         groups.map(
-          ({ customer, retailer, latest, subscription, upcomingOccasions }) => (
+          ({
+            customer,
+            retailer,
+            latest,
+            subscription,
+            upcomingOccasions,
+            completeTheLookSuggestions,
+          }) => (
             <div key={customer.id} className="flex flex-col gap-4">
               <UpcomingOccasionsCard occasions={upcomingOccasions} />
               <MorningRoutinePanel
@@ -145,6 +166,10 @@ export default async function MorningRoutinePage() {
                       }
                     : null
                 }
+              />
+              <CompleteTheLookCard
+                retailerId={customer.retailerId}
+                suggestions={completeTheLookSuggestions}
               />
             </div>
           ),
