@@ -144,6 +144,61 @@ capabilities remain materially unfinished.
 
 ---
 
+## Material-progress gate — binding priority override
+
+The purpose of autonomous execution is to increase materially working,
+production-grade PAON capability. Formal queue closure is subordinate to
+material product progress.
+
+Before selecting ANY next task, classify each candidate as:
+
+- MATERIAL_BUILD — materially missing product/backend capability;
+- MATERIAL_INTEGRATION — existing capability not yet genuinely connected
+  end-to-end or production-safe;
+- BLOCKER — security, privacy, tenant isolation, data integrity, dependency,
+  or verification defect preventing MATERIAL_BUILD/MATERIAL_INTEGRATION;
+- ADMINISTRATION — evidence, PHASE checkbox/status, stale SHA, documentation,
+  proof refresh of already-working functionality, formatting, cleanup or
+  cosmetic hardening.
+
+Selection order is mandatory:
+
+1. BLOCKER that directly blocks active material work;
+2. MATERIAL_BUILD;
+3. MATERIAL_INTEGRATION;
+4. ADMINISTRATION.
+
+ADMINISTRATION MUST NOT become the frontier while any buildable
+MATERIAL_BUILD or MATERIAL_INTEGRATION exists.
+
+An unchecked PHASE item does NOT by itself outrank material work.
+
+"First unchecked item" means first unchecked MATERIAL item after applying
+this gate. It does not mean first unchecked evidence/admin item in textual
+document order.
+
+Missing ADR-068 evidence, stale evidence, missing proof records, unchecked
+boxes, documentation status and completion-validator failures for
+already-working capabilities are Route A administrative backlog unless they
+directly block deployment or acceptance of the active material capability.
+
+The frontier MUST NOT spend a coherent frontier slice solely closing
+ADMINISTRATION while buildable MATERIAL_BUILD or MATERIAL_INTEGRATION exists.
+
+Before starting a task, internally answer:
+
+1. What new user-visible, authoritative backend, operational or security
+   capability will exist after this work that does not exist now?
+2. If the answer is "none; this only improves proof/status/evidence/cleanup",
+   classify it as ADMINISTRATION and do not make it the frontier.
+
+After every commit, select again using this ordering.
+
+A run that repeatedly closes already-built items while materially unbuilt
+capabilities exist is a governance failure, not productive queue progress.
+
+---
+
 ## 5. Active-frontier lock
 
 Once the frontier begins a major `PHASE.md` capability, that capability becomes

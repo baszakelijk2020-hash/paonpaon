@@ -38,11 +38,15 @@ The source audit and rationale are recorded in
 
 ## 2026-08-01 control gate — active queue
 
-**Take the first unchecked item here. R0.1 is a hard gate for any operation
-that can affect live data or deployments. R0.2 is a hard gate for stock or
-money flows. Provider-neutral design and local implementation may continue
-when an external activation dependency is unavailable, but no legacy item may
-be resumed without the module mapping required by R0.3.**
+**Take the highest-priority buildable material capability according to
+AGENTS.md's Material-progress gate. Document order does not override that
+gate. An unchecked item requiring only evidence, proof refresh, status
+administration or other formal closure is not the active frontier while a
+materially incomplete buildable capability exists. R0.1 is a hard gate for
+any operation that can affect live data or deployments. R0.2 is a hard gate
+for stock or money flows. Provider-neutral design and local implementation
+may continue when an external activation dependency is unavailable, but no
+legacy item may be resumed without the module mapping required by R0.3.**
 
 - [ ] **R0.1 Environment truth and safety containment**
   - **Dependencies:** none; ADR-069.
