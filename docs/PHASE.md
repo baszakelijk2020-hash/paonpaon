@@ -1693,6 +1693,34 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     “preview” is a signed view of the uploaded full-body reference rather than
     a neutral AI render, advisor handoff is 4.9, and no current ADR-068 evidence
     run records this connected tranche.
+  - **Status (2026-08-09, Lane H, in progress — not verified):** `d4b0d1d`
+    replaces the signed-reference "preview" with a real queued neutral AI
+    render: `generateStylePortraitPreview` now enqueues a
+    `style_portrait_preview`-kind `WardrobeVisualizationJob` (new
+    `job_kind` column and `enqueue_style_portrait_preview_job` SECURITY
+    DEFINER RPC, migration `20260809160000`) instead of writing
+    `portrait.previewImageUrl` synchronously; the admin cron processor and
+    `complete_wardrobe_visualization_job` now transition the portrait to
+    `preview_generated` only once the job reaches `ready`, and
+    `style-portrait-panel.tsx` renders queued/generating/failed states.
+    **Known regression, not yet fixed:** this makes
+    `apps/customer/e2e/virtual-studio.spec.ts` (lines ~179-198) stale — it
+    still asserts that clicking "Continue" synchronously shows "Check your
+    photo, then approve..." and reaches `approved`, which no longer happens
+    without a completed job. The fix is the same fixture pattern already
+    used by `roadmap-look-review.spec.ts` and
+    `virtual-studio-batch-and-feedback-evidence.spec.ts`: after asserting
+    the queued state and the enqueued `style_portrait_preview` job row,
+    call `WardrobeVisualizationJobRepository(admin).complete({ jobId,
+status: "ready", outputStorageBucket, outputStoragePath })` to
+    simulate the queue processor (this sandbox has no `OPENAI_API_KEY`),
+    reload, then continue the existing Approve/compose/enqueue assertions.
+    Not yet run: the full `pnpm lint && pnpm typecheck && pnpm test &&
+pnpm build && pnpm format:check` sweep for this tranche, and no
+    ADR-068 evidence file has been recorded for it. Do not treat `d4b0d1d`
+    as verified until that spec is repaired and the definition-of-done
+    passes; the next session should start there before taking any other
+    PHASE item.
 
 - [ ] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
       per-look review**
