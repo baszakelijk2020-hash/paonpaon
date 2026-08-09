@@ -56,6 +56,10 @@ export interface CorporateProgramme extends Timestamps {
   readonly name: string;
   readonly siteKeys: readonly string[];
   readonly active: boolean;
+  /** Nullable: only set once staff has explicitly entered a contract
+   * value (18.9 / BD-109). */
+  readonly contractValueMinorUnits: number | null;
+  readonly contractValueCurrency: string | null;
 }
 
 export interface CorporateEntitlementVersionRecord {
@@ -124,6 +128,8 @@ export const CORPORATE_EXCEPTION_KINDS = [
   "missing",
   "alteration_request",
   "replacement_request",
+  // 18.9 (BD-109): tracked separately from damage in renewal-risk metrics.
+  "repair",
 ] as const;
 export type CorporateExceptionKind = (typeof CORPORATE_EXCEPTION_KINDS)[number];
 

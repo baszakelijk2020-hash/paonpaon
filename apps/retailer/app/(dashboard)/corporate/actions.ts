@@ -518,3 +518,35 @@ export async function resolveRenewalTask(
   ).resolveRenewalTask(taskId);
   revalidatePath(`/corporate/${programmeId}`);
 }
+
+export async function setContractValue(
+  programmeId: string,
+  formData: FormData,
+): Promise<void> {
+  const session = await requireModuleSession("enterprise_verticals");
+  const rawMinorUnits = formData.get("contractValueMinorUnits");
+  const rawCurrency = formData.get("contractValueCurrency");
+
+  const contractValueMinorUnits =
+    typeof rawMinorUnits === "string" && rawMinorUnits.trim() !== ""
+      ? Number(rawMinorUnits)
+      : null;
+  if (
+    contractValueMinorUnits !== null &&
+    (!Number.isFinite(contractValueMinorUnits) || contractValueMinorUnits < 0)
+  ) {
+    throw new Error("Enter a valid contract value.");
+  }
+  const contractValueCurrency =
+    typeof rawCurrency === "string" && rawCurrency.trim() !== ""
+      ? rawCurrency.trim().toUpperCase()
+      : null;
+
+  await new CorporateRepository(
+    await getSupabaseServerClient(),
+  ).setContractValue(session.retailerId, programmeId, {
+    contractValueMinorUnits,
+    contractValueCurrency,
+  });
+  revalidatePath(`/corporate/${programmeId}`);
+}

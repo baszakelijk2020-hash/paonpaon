@@ -283,16 +283,23 @@ export class CitedRecommendationRepository {
     const damageEventCount = exceptions.filter((e) =>
       ["damaged", "missing", "replacement_request"].includes(e.kind),
     ).length;
+    const repairEventCount = exceptions.filter(
+      (e) => e.kind === "repair",
+    ).length;
+    const programme = await corporateRepo.findProgrammeById(args.programmeId);
 
     const metrics = computeCorporateProgrammeMetrics({
       wearerCount: wearers.length,
       activeWearerCount: wearers.filter((w) => w.active).length,
       fulfilledWearerCount,
       damageEventCount,
+      repairEventCount,
+      contractValueMinorUnits: programme?.contractValueMinorUnits ?? null,
+      contractValueCurrency: programme?.contractValueCurrency ?? null,
     });
     const risk = assessRenewalRisk(metrics);
 
-    const statement = `${Math.round(metrics.participationRate * 100)}% active, ${Math.round(metrics.fulfilmentRate * 100)}% fulfilled, ${damageEventCount} damage/replacement event${damageEventCount === 1 ? "" : "s"} across ${wearers.length} wearers — renewal risk ${risk.level} (score ${risk.score}/100).`;
+    const statement = `${Math.round(metrics.participationRate * 100)}% active, ${Math.round(metrics.fulfilmentRate * 100)}% fulfilled, ${damageEventCount} damage/replacement event${damageEventCount === 1 ? "" : "s"}, ${repairEventCount} repair event${repairEventCount === 1 ? "" : "s"} across ${wearers.length} wearers — renewal risk ${risk.level} (score ${risk.score}/100).`;
 
     const result = buildRecommendation({
       kind: "corporate_renewal_risk",

@@ -95,9 +95,35 @@ test("a struggling programme's renewal risk is computed and cited, auto-creates 
     kind: "missing",
     detail: `E2E missing garment for renewal risk ${unique}`,
   });
+  await repo.createException(retailerId, {
+    programmeId: programme.id,
+    wearerId: wearer1.id,
+    kind: "repair",
+    detail: `E2E repair needed for renewal risk ${unique}`,
+  });
 
   try {
     await page.goto(`/corporate/${programme.id}`);
+
+    // Set contract value and verify it persists.
+    await page.getByLabel("Contract value (minor units)").fill("250000");
+    await page.getByLabel("Currency").fill("GBP");
+    await page.getByRole("button", { name: "Set contract value" }).click();
+    await expect(page).toHaveURL(/\/corporate\/[^/]+$/);
+    await page.reload();
+    await expect(page.getByLabel("Contract value (minor units)")).toHaveValue(
+      "250000",
+    );
+    await expect(page.getByLabel("Currency")).toHaveValue("GBP");
+
+    const { data: programmeFetched } = await admin
+      .from("corporate_programmes")
+      .select("contract_value_minor_units, contract_value_currency")
+      .eq("id", programme.id)
+      .single();
+    expect(programmeFetched?.contract_value_minor_units).toBe(250000);
+    expect(programmeFetched?.contract_value_currency).toBe("GBP");
+
     await page.getByRole("button", { name: "Recompute" }).click();
     await expect(
       page.getByText(/renewal risk (medium|high)/).first(),

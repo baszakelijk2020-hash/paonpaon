@@ -15,11 +15,22 @@ export interface CorporateProgrammeMetrics {
   readonly fulfilledWearerCount: number;
   /** Exceptions of kind damaged/missing/replacement_request. */
   readonly damageEventCount: number;
+  /** Exceptions of kind repair. */
+  readonly repairEventCount: number;
   readonly participationRate: number;
   readonly fulfilmentRate: number;
   /** Damage events per wearer — not a rate capped at 1, since one wearer
    * can have more than one damage event. */
   readonly damageRatePerWearer: number;
+  /** Repair events per wearer — not a rate capped at 1, since one wearer
+   * can have more than one repair event. */
+  readonly repairRatePerWearer: number;
+  /** Contract value in minor units (e.g., cents). Nullable: only set
+   * when staff has explicitly entered a contract value. */
+  readonly contractValueMinorUnits: number | null;
+  /** Currency code for contract value (e.g., "GBP"). Nullable: only set
+   * when staff has explicitly entered a contract value. */
+  readonly contractValueCurrency: string | null;
 }
 
 function safeRatio(numerator: number, denominator: number): number {
@@ -31,15 +42,25 @@ export function computeCorporateProgrammeMetrics(args: {
   readonly activeWearerCount: number;
   readonly fulfilledWearerCount: number;
   readonly damageEventCount: number;
+  readonly repairEventCount?: number;
+  readonly contractValueMinorUnits?: number | null;
+  readonly contractValueCurrency?: string | null;
 }): CorporateProgrammeMetrics {
   return {
     wearerCount: args.wearerCount,
     activeWearerCount: args.activeWearerCount,
     fulfilledWearerCount: args.fulfilledWearerCount,
     damageEventCount: args.damageEventCount,
+    repairEventCount: args.repairEventCount ?? 0,
     participationRate: safeRatio(args.activeWearerCount, args.wearerCount),
     fulfilmentRate: safeRatio(args.fulfilledWearerCount, args.wearerCount),
     damageRatePerWearer: safeRatio(args.damageEventCount, args.wearerCount),
+    repairRatePerWearer: safeRatio(
+      args.repairEventCount ?? 0,
+      args.wearerCount,
+    ),
+    contractValueMinorUnits: args.contractValueMinorUnits ?? null,
+    contractValueCurrency: args.contractValueCurrency ?? null,
   };
 }
 

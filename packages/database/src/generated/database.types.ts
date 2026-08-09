@@ -4291,6 +4291,8 @@ export type Database = {
         Row: {
           account_id: string;
           active: boolean;
+          contract_value_currency: string | null;
+          contract_value_minor_units: number | null;
           created_at: string;
           deleted_at: string | null;
           id: string;
@@ -4302,6 +4304,8 @@ export type Database = {
         Insert: {
           account_id: string;
           active?: boolean;
+          contract_value_currency?: string | null;
+          contract_value_minor_units?: number | null;
           created_at?: string;
           deleted_at?: string | null;
           id?: string;
@@ -4313,6 +4317,8 @@ export type Database = {
         Update: {
           account_id?: string;
           active?: boolean;
+          contract_value_currency?: string | null;
+          contract_value_minor_units?: number | null;
           created_at?: string;
           deleted_at?: string | null;
           id?: string;

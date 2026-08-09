@@ -13,10 +13,16 @@ describe("computeCorporateProgrammeMetrics", () => {
       activeWearerCount: 8,
       fulfilledWearerCount: 5,
       damageEventCount: 2,
+      repairEventCount: 1,
+      contractValueMinorUnits: 50000,
+      contractValueCurrency: "GBP",
     });
     expect(metrics.participationRate).toBe(0.8);
     expect(metrics.fulfilmentRate).toBe(0.5);
     expect(metrics.damageRatePerWearer).toBe(0.2);
+    expect(metrics.repairRatePerWearer).toBe(0.1);
+    expect(metrics.contractValueMinorUnits).toBe(50000);
+    expect(metrics.contractValueCurrency).toBe("GBP");
   });
 
   it("never divides by zero for an empty programme", () => {
@@ -29,6 +35,22 @@ describe("computeCorporateProgrammeMetrics", () => {
     expect(metrics.participationRate).toBe(0);
     expect(metrics.fulfilmentRate).toBe(0);
     expect(metrics.damageRatePerWearer).toBe(0);
+    expect(metrics.repairRatePerWearer).toBe(0);
+    expect(metrics.contractValueMinorUnits).toBeNull();
+    expect(metrics.contractValueCurrency).toBeNull();
+  });
+
+  it("handles missing repair and contract value fields gracefully", () => {
+    const metrics = computeCorporateProgrammeMetrics({
+      wearerCount: 10,
+      activeWearerCount: 8,
+      fulfilledWearerCount: 5,
+      damageEventCount: 2,
+    });
+    expect(metrics.repairEventCount).toBe(0);
+    expect(metrics.repairRatePerWearer).toBe(0);
+    expect(metrics.contractValueMinorUnits).toBeNull();
+    expect(metrics.contractValueCurrency).toBeNull();
   });
 });
 
@@ -72,6 +94,24 @@ describe("assessRenewalRisk", () => {
     const result = assessRenewalRisk(metrics);
     const damageFactor = result.factors.find((f) => f.factor === "damage_rate");
     expect(damageFactor?.value).toBe(1);
+  });
+
+  it("tracks repair rate separately from damage rate", () => {
+    const metrics = computeCorporateProgrammeMetrics({
+      wearerCount: 10,
+      activeWearerCount: 10,
+      fulfilledWearerCount: 10,
+      damageEventCount: 3,
+      repairEventCount: 2,
+      contractValueMinorUnits: 100000,
+      contractValueCurrency: "GBP",
+    });
+    expect(metrics.damageEventCount).toBe(3);
+    expect(metrics.repairEventCount).toBe(2);
+    expect(metrics.damageRatePerWearer).toBe(0.3);
+    expect(metrics.repairRatePerWearer).toBe(0.2);
+    expect(metrics.contractValueMinorUnits).toBe(100000);
+    expect(metrics.contractValueCurrency).toBe("GBP");
   });
 });
 

@@ -72,6 +72,8 @@ function toProgramme(row: ProgrammeRow): CorporateProgramme {
     name: row.name,
     siteKeys: row.site_keys,
     active: row.active,
+    contractValueMinorUnits: row.contract_value_minor_units,
+    contractValueCurrency: row.contract_value_currency,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -228,6 +230,25 @@ export class CorporateRepository {
       .maybeSingle();
     if (error) throw error;
     return data ? toProgramme(data) : null;
+  }
+
+  async setContractValue(
+    retailerId: RetailerId,
+    programmeId: string,
+    input: {
+      readonly contractValueMinorUnits: number | null;
+      readonly contractValueCurrency: string | null;
+    },
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("corporate_programmes")
+      .update({
+        contract_value_minor_units: input.contractValueMinorUnits,
+        contract_value_currency: input.contractValueCurrency,
+      })
+      .eq("id", programmeId)
+      .eq("retailer_id", retailerId);
+    if (error) throw error;
   }
 
   async createProgramme(
