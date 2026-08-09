@@ -4552,7 +4552,7 @@ now.
     pricing rather than replacing it.
   - **Status:** not started.
 
-- [ ] **17.8 Sales academy AI roleplay personas**
+- [x] **17.8 Sales academy AI roleplay personas**
   - **Requirement IDs:** ADV-108.
   - **Dependencies:** `16.1` (roleplay grading — shipped).
   - **Owner boundary:** AI-driven training personas (first-time buyer,
@@ -4590,6 +4590,67 @@ now.
     boundary — an actual AI conversation partner playing a persona
     during practice, not just a label a human grader tags after the
     fact — remains unbuilt and `blocked_external`.
+  - **Status (2026-08-09, real AI roleplay conversation partner,
+    AGENTS.md Material-progress gate):** the "AI-driven" half named
+    above is now built, closing the last real gap. Migration
+    `20260809190000` adds `academy_roleplay_sessions` (one active session
+    per staff member, enforced by a partial unique index) and
+    `academy_roleplay_messages` (append-only transcript), written only
+    through three re-derives-identity-server-side RPCs —
+    `start_academy_roleplay_session`, `submit_academy_roleplay_turn`
+    (always inserts the advisor line and the AI reply together, in
+    order, so a "persona" row can never exist without the real advisor
+    line that prompted it) and `end_academy_roleplay_session` — same
+    defense-in-depth posture as `enqueue_wardrobe_visualization_job` and
+    `reserve_virtual_try_on_generation`. `@paon/ai` gains
+    `generateAcademyRoleplayReply` on the existing provider-neutral
+    `AIProvider` interface (optional capability, same shape as
+    `generateCommunicationDraft`), a dedicated system prompt that stays
+    in-persona and refuses to break character/reveal instructions/adopt
+    another role, and `runAcademyRoleplayTurn` composes it with
+    `AIGenerationRepository` so every attempt — success or failure — is
+    audited under the new `academy_roleplay` `AIGenerationKind`. New
+    `AcademyRoleplayRepository` (`@paon/database`) wraps the RPCs. The
+    retailer `/staff/learning` page gains a "Practice with an AI
+    persona" card (`roleplay-actions.ts` / `roleplay-practice.tsx`): an
+    advisor picks a persona, starts (or resumes) their one active
+    session, and exchanges real turns rendered from the real persisted
+    transcript, never a client-only echo. Grading integration: a new
+    `academy_roleplay_grades.roleplay_session_id` column (same-tenant
+    enforced by a trigger, same-staff enforced in
+    `AcademyRepository.recordRoleplayGrade`) lets a manager cite the
+    exact real transcript they reviewed rather than only tagging a
+    persona label after the fact; the grading form gained an optional
+    "Real AI-practice transcript reviewed" select populated from the
+    retailer's completed sessions. Proof: 15 new pgTAP assertions
+    (`academy_roleplay_conversation_test.sql` — unknown persona refused,
+    cross-tenant start refused, one-active-session-per-staff resume,
+    empty-text refused, a different/cross-House advisor cannot write
+    into someone else's session, strict turn ordering, same-House
+    manager can read the transcript, cross-House manager cannot, ending
+    an already-ended session refused), 9 static migration-security
+    assertions (`academy-roleplay-security.test.ts`), 5 focused OpenAI
+    provider assertions including an adversarial prompt-injection
+    boundary check (`openai-provider.academy-roleplay.test.ts`), and a
+    new connected Playwright spec
+    (`apps/retailer/e2e/academy-roleplay-conversation.spec.ts`): an
+    advisor starts a session, sends a real line, receives and sees a
+    real persisted reply from the deterministic
+    `MockCommunicationDraftProvider` (no `OPENAI_API_KEY` in this
+    sandbox, same posture every other AI-assisted surface in this
+    codebase already documents), ends the session, and a manager grades
+    it citing that exact real session — all asserted against the
+    database, not just the UI. `apps/retailer/e2e/academy-roleplay.spec.ts`
+    (16.1's own proof) re-run unchanged, 1/1 green — no regression to the
+    existing grading loop. Fresh `supabase db reset`, 223/223 pgTAP,
+    518 database tests, 55 `@paon/ai` tests, `pnpm lint`/`typecheck`/
+    `build`/`format:check` all clean at this commit. ADR-068 evidence:
+    `docs/evidence/runs/17.8-roleplay-conversation.json`. Live
+    generation remains `blocked_external` on a configured provider
+    credential, same posture as every other AI-assisted surface — local
+    behavior is independently verified without it, same precedent
+    4.7/4.8, 4.9, 4.10 and 17.14 already established for their own
+    checkboxes.
 
 - [x] **17.9 Omnichannel communication hub**
   - **Requirement IDs:** ADV-109.

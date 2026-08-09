@@ -1,0 +1,48 @@
+{
+  "phaseItemId": "17.8",
+  "requirementIds": ["ADV-108"],
+  "status": "verified_local",
+  "title": "Sales academy AI roleplay personas",
+  "applicability": {
+    "domain": "required",
+    "persistence": "required",
+    "service": "required",
+    "origin_ui": "required",
+    "receiver_ui": "required",
+    "rls": "required",
+    "exceptions": "required",
+    "browser": "required",
+    "operations": "required",
+    "live_gap": "required"
+  },
+  "evidence": {
+    "domain": "packages/domain/src/knowledge/academy-consultancy.ts (ACADEMY_ROLEPLAY_PERSONAS/ACADEMY_ROLEPLAY_PERSONA_LABELS); packages/ai/src/provider.ts (AcademyRoleplayContext/AcademyRoleplayResult); packages/ai/src/openai-provider.ts (ACADEMY_ROLEPLAY_SYSTEM_PROMPT, generateAcademyRoleplayReply)",
+    "persistence": "supabase/migrations/20260805160000_add_academy_roleplay_personas.sql; supabase/migrations/20260809190000_add_academy_roleplay_conversation.sql (academy_roleplay_sessions, academy_roleplay_messages, roleplay_session_id, start/submit_turn/end RPCs)",
+    "service": "packages/database/src/repositories/academy-repository.ts; packages/database/src/repositories/academy-roleplay-repository.ts; packages/ai/src/academy-roleplay-runner.ts; packages/database/src/repositories/ai-generation-repository.ts",
+    "origin_ui": "apps/retailer/app/(dashboard)/staff/learning/roleplay-practice.tsx; apps/retailer/app/(dashboard)/staff/learning/roleplay-actions.ts (advisor starts/resumes a session, sends real turns)",
+    "receiver_ui": "apps/retailer/app/(dashboard)/staff/learning/learning-forms.tsx (RecordRoleplayGradeForm's roleplay-session select); apps/retailer/app/(dashboard)/staff/learning/page.tsx (advisor's own graded roleplay list; manager's completed-session pool)",
+    "rls": "supabase/tests/academy_roleplay_conversation_test.sql (15 pgTAP assertions: cross-tenant start refused, one-active-session-per-staff, a different/cross-House advisor cannot write into someone else's session, same-House manager reads the transcript, cross-House manager cannot); packages/database/src/repositories/academy-roleplay-security.test.ts (9 static migration-security assertions)",
+    "exceptions": "supabase/tests/academy_roleplay_conversation_test.sql (unknown persona, empty advisor/persona text, ending an already-ended session); packages/ai/src/openai-provider.academy-roleplay.test.ts (missing replyText, no content, invalid JSON, adversarial prompt-injection boundary); apps/retailer/app/(dashboard)/staff/learning/roleplay-actions.ts's unconfigured-provider fail-closed path",
+    "browser": "apps/retailer/e2e/academy-roleplay.spec.ts + docs/evidence/runs/17.8.json status=passed (persona-catalog-and-grading half, including the new roleplay-session-cited grade); apps/retailer/e2e/academy-roleplay-conversation.spec.ts (the real AI conversation partner: start session, real turn exchange with a persisted transcript, end session, manager grades citing the real session) + docs/evidence/runs/17.8-roleplay-conversation.json status=passed.",
+    "operations": "packages/domain/scripts/validate-completion-evidence.ts; packages/domain/package.json (validate:completion)",
+    "live_gap": "Live AI-driven conversation requires a configured provider credential (OPENAI_API_KEY), same posture as every other AI-assisted surface in this codebase. Local behavior — the real conversation-turn RPC/repository/provider wiring, tenant isolation, and the deterministic mock-provider connected browser proof — is independently verified without it."
+  },
+  "uiChecklist": {
+    "loading": "n_a",
+    "empty": "n_a",
+    "error": "n_a",
+    "denied": "n_a",
+    "stale": "n_a",
+    "conflict": "n_a",
+    "success": "proven",
+    "role_orientation": "proven",
+    "task_continuation": "proven",
+    "phone": "n_a",
+    "tablet": "n_a",
+    "desktop": "proven",
+    "keyboard_a11y": "n_a"
+  },
+  "linkedSeedId": "e2e-retailer-workspace",
+  "browserProofSpec": "apps/retailer/e2e/academy-roleplay.spec.ts",
+  "assertedAt": "2026-08-09T13:48:00.000Z"
+}
