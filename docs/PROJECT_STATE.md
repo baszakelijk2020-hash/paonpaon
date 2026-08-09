@@ -35,12 +35,17 @@ build, and format check are green. The completion-evidence validator remains
 red on historical stale/missing checked-item records, so 17.10 is not claimed
 complete and no evidence record was fabricated.
 
-This turn is reconciling Lane D's already-authored Virtual Wardrobe Studio
-foundation into Lane H so 17.10 can reuse its canonical Outfit-linked queue,
-RLS, provider runner, and visualization entities rather than create a second
-generation-job model. Migration `20260806100000` has no filename collision in
-Lane H. Integration verification and the resulting commit are not claimed
-until the active cherry-pick completes and the checks pass.
+Lane D's already-authored Virtual Wardrobe Studio foundation is now reconciled
+into Lane H as `7cc9ba7`; `933ef29` regenerates database types from the exact
+Lane H migrated schema. Migration `20260806100000` has no filename collision,
+applies cleanly on disposable local Supabase, and passes 177/177 pgTAP plus
+the focused 58 domain/AI/database assertions. Workspace lint/typecheck, all
+unit suites, all three production builds and format check pass. The global
+completion validator remains red on historical stale/missing evidence for
+unrelated checked items, so neither 4.6 nor 17.10 is falsely checked complete.
+Next buildable work is the already-settled 4.7/4.8 customer consent/Studio
+tranche from Lane D, followed by composing 17.10 budget reservation and
+settlement into that canonical queue.
 
 Last hand-maintained update: 2026-08-05 (FT-02 silhouette analysis
 consent/capture state machine landed on `agent/grok-takeover-2026-07-30`).

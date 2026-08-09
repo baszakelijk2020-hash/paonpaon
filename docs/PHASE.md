@@ -1600,8 +1600,9 @@ replacement of human advice for uncertain high-value decisions.
     `docs/VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md`; `StylePortrait`,
     `RetailerVisualPreset`, `WardrobeVisualizationJob`,
     `WardrobeVisualizationFeedback` exist with tenant RLS; `Outfit` accepts
-    customer authorship alongside advisor authorship; a fourth `"image_generation"`
-    consent purpose gates generation; four canonical `"fit"`-kind
+    customer authorship alongside advisor authorship; a standalone
+    `StylePortraitConsent` contract keeps image-generation consent independent
+    from intelligence consent; four canonical `"fit"`-kind
     `MetadataConcept` archetypes are seeded and reachable through the existing
     `upsert_declared_style_preference` RPC; `AIProvider.
 generateWardrobeVisualization` exists behind the same provider-neutral
@@ -1620,7 +1621,23 @@ generateWardrobeVisualization` exists behind the same provider-neutral
   - **Hard blockers:** none for local implementation; live end-to-end image
     generation requires a configured provider credential, same posture as
     every other `ai_generations`-backed feature.
-  - **Landed:** _(update on completion of this session's slice)_
+  - **Status (2026-08-09, Lane H reconciliation):** the Lane D foundation is
+    now integrated as `7cc9ba7` with generated types corrected against the
+    migrated Lane H schema in `933ef29`. Migration `20260806100000` applies
+    cleanly on the ledger-approved disposable local Supabase target; all 177
+    pgTAP assertions, 18 virtual-studio domain assertions, 5 provider-runner
+    assertions, 10 repository security assertions, workspace lint/typecheck,
+    all 1,102 domain tests, all 489 database tests (70 gated live tests
+    skipped), all 48 AI tests, production builds and format check pass. The
+    queue, Outfit-linked immutable input snapshot, tenant triggers/RLS,
+    private storage policy, provider runner and provider-neutral entities are
+    now canonical on this branch. Checkbox remains unchecked: the standalone
+    consent contract is domain-only in this foundation and generation enqueue
+    is not yet transactionally gated by persisted consent; the customer UI,
+    output-storage ingestion and connected browser proof belong to 4.7/4.8.
+    The global completion validator remains red on pre-existing stale/missing
+    evidence for other checked PHASE items, so no ADR-068 evidence record or
+    formal completion claim is fabricated here.
 
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain — see ADR-074 for the visualization-only fit-preference
@@ -4400,6 +4417,16 @@ routine-occasions.ts`) reuses 10.4's existing
     complete-the-look on-demand UI, and connected MorningRoutine proof remain
     to build. Live generation remains `blocked_external` on the provider key
     and approved billing model named above.
+  - **Status (2026-08-09, lane reconciliation):** the adjacent Lane D
+    generation foundation is no longer an unmerged schema unknown on Lane H.
+    Commits `7cc9ba7`/`933ef29` integrate its canonical Outfit-linked
+    visualization queue, tenant/RLS boundary, private asset policy, provider
+    runner and exact regenerated database types. This removes the duplicate-
+    job-model risk that blocked persisted 17.10 work. It does not by itself
+    complete 17.10: transactional budget reservation/settlement still has to
+    compose the new authorization contract with the queue; MorningRoutine's
+    complete-the-look entry point still needs the customer Studio/UI tranche;
+    live generation remains externally blocked as documented above.
 
 - [ ] **17.11 Supplier-CRM data import and ownership**
   - **Requirement IDs:** ADV-111.
