@@ -4633,6 +4633,31 @@ routine-occasions.ts`) reuses 10.4's existing
     usage contract still lacks persisted transactional budget reservation and
     settlement, MorningRoutine has no complete-the-look handoff into this
     Studio, and live provider behavior remains `blocked_external`.
+  - **Status (2026-08-09, transactional budget ledger):** `f3e1459` closes
+    the persisted reservation/settlement gap named above. Migration
+    `20260809170000` adds `retailer_virtual_try_on_policies` (one row per
+    retailer, seeded fail-closed — `enabled = false`, every budget/quota at
+    zero — by an insert trigger; no credit/billing default is invented,
+    matching this item's own "approved credit/billing model" hard blocker
+    and ADR-072's POS-cash precedent) and `virtual_try_on_usage_ledger`
+    (one row per authorization attempt, denials included). Two SECURITY
+    DEFINER RPCs — `reserve_virtual_try_on_generation` and
+    `settle_virtual_try_on_generation` — re-derive caller identity, module
+    state, policy and live usage window server-side in the same decision
+    order `evaluateVirtualTryOnAuthorization` already encodes in
+    TypeScript, same defense-in-depth precedent as
+    `enqueue_wardrobe_visualization_job`. Reuses `style_portrait_consents`
+    as the source for both `imageProcessingConsent` and
+    `portraitStorageConsent` rather than inventing a second consent
+    purpose. Per-campaign budget enforcement is scoped out (`campaigns`
+    has no budget column yet) — a supplied `campaign_id` is tenancy-
+    checked and recorded for attribution only. `VirtualTryOnUsageRepository`
+    (`packages/database`) wraps both RPCs; a branded
+    `VirtualTryOnUsageLedgerId` was added. Checkbox remains unchecked:
+    nothing calls this ledger yet (the MorningRoutine complete-the-look
+    entry point and a real provider adapter are separate, later slices),
+    and live generation remains `blocked_external` exactly as documented
+    above.
 
 - [ ] **17.11 Supplier-CRM data import and ownership**
   - **Requirement IDs:** ADV-111.
