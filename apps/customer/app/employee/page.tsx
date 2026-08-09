@@ -20,6 +20,7 @@ import { formatDate, formatMoney } from "@paon/utils";
 import { AppointmentStatusBadge } from "../(dashboard)/appointments/status-badge";
 
 import { RaiseRequestForm } from "./raise-request-form";
+import { RequestAppointmentForm } from "./request-appointment-form";
 
 import { requireWearerAppSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -54,8 +55,11 @@ const KIND_LABELS: Record<string, string> = {
  * page has always used for issue history. Published programme
  * announcements (migration 20260809220000) render whenever any exist —
  * RLS itself, not this page, is what keeps a wearer from ever seeing a
- * draft or another programme's news. Write-capable self-service
- * (booking, not just reading) remains unbuilt.
+ * draft or another programme's news. A linked wearer can also request a
+ * real appointment (migration 20260810100000,
+ * `request_appointment_as_wearer`) — booked through their EXISTING
+ * linked customer only, never fabricating a shadow one, preserving 18.6's
+ * standing constraint against exactly that.
  */
 export default async function EmployeePortalPage() {
   const session = await requireWearerAppSession();
@@ -242,6 +246,7 @@ export default async function EmployeePortalPage() {
                 ))}
               </ul>
             )}
+            <RequestAppointmentForm />
           </Card>
 
           <Card className="flex flex-col gap-3">

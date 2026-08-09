@@ -176,6 +176,38 @@ export class AppointmentRepository {
     return asId<"AppointmentId">(data);
   }
 
+  /** Employee Portal write-capable self-service (PHASE 18.5 / BD-105) —
+   * `request_appointment_as_wearer` re-derives the caller's own wearer
+   * row and books through their EXISTING linked `customer_id` only. It
+   * never creates a customer row (unlike `requestAppointment` above),
+   * since a wearer's own auth.uid() may legitimately not match any
+   * customer row even when a real link exists — see the migration's own
+   * header comment. */
+  async requestAppointmentAsWearer(params: {
+    wearerId: string;
+    type: AppointmentType;
+    startsAt: string;
+    endsAt: string;
+    notes?: string;
+  }): Promise<AppointmentId> {
+    const { data, error } = await this.client.rpc(
+      "request_appointment_as_wearer",
+      {
+        p_wearer_id: params.wearerId,
+        p_type: params.type,
+        p_starts_at: params.startsAt,
+        p_ends_at: params.endsAt,
+        p_notes: (params.notes ?? null) as never,
+      },
+    );
+
+    if (error) {
+      throw error;
+    }
+
+    return asId<"AppointmentId">(data);
+  }
+
   /** Anonymous storefront Book Appointment — `request_guest_appointment`. */
   async requestGuestAppointment(params: {
     retailerId: RetailerId;

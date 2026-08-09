@@ -234,7 +234,9 @@ test("a wearer linked to a real customer sees their real appointments, orders, a
     await expect(page).toHaveURL(/\/employee$/);
 
     await expect(page.getByText("Your appointments")).toBeVisible();
-    await expect(page.getByText("fitting")).toBeVisible();
+    // .first(): "Fitting" also appears as an <option> in the new
+    // request-appointment form's type select further down this page.
+    await expect(page.getByText("fitting").first()).toBeVisible();
     await expect(page.getByText("Your orders")).toBeVisible();
     await expect(page.getByText(`E2E-LW-ORDER-${unique}`)).toBeVisible();
     await expect(page.getByText("Your alterations")).toBeVisible();

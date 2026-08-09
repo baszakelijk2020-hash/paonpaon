@@ -19966,6 +19966,16 @@ export type Database = {
         };
         Returns: string;
       };
+      request_appointment_as_wearer: {
+        Args: {
+          p_ends_at: string;
+          p_notes?: string;
+          p_starts_at: string;
+          p_type: Database["public"]["Enums"]["appointment_type"];
+          p_wearer_id: string;
+        };
+        Returns: string;
+      };
       request_guest_appointment: {
         Args: {
           p_email: string;
