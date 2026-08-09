@@ -1721,6 +1721,28 @@ pnpm build && pnpm format:check` sweep for this tranche, and no
     as verified until that spec is repaired and the definition-of-done
     passes; the next session should start there before taking any other
     PHASE item.
+  - **Status (2026-08-09, Lane H, verified_local):** `8ecc84f` repairs
+    `virtual-studio.spec.ts` for the queued preview flow: it now asserts
+    the queued job row, drives it to `generating` then `ready` via
+    `WardrobeVisualizationJobRepository.complete` (simulating the queue
+    processor; this sandbox has no `OPENAI_API_KEY`), reloads, then
+    continues the existing approve/compose/enqueue assertions; cleanup
+    deletes the `style_portrait_preview` job before its portrait
+    (`on delete restrict`). `pnpm lint`, `pnpm typecheck`, `pnpm build` and
+    `pnpm format:check` are clean at `8ecc84f`; `pnpm test`'s domain/database
+    suites are green (1109 + 496 passed) and the customer Playwright suite
+    (`virtual-studio.spec.ts`, `roadmap-look-review.spec.ts`,
+    `virtual-studio-batch-and-feedback-evidence.spec.ts`) is 3/3 against a
+    clean `supabase db reset`. `pnpm test`'s repo-wide `validate:completion`
+    gate fails independently of this tranche — pre-existing missing/stale
+    evidence on unrelated checked items 8.4, 9.1, 11.4, 12.2, 12.4, 13.1,
+    13.2, 17.2–17.6, 17.9, 17.14, 18.1, 18.2, 18.6, 18.8, 18.12 — confirmed by
+    re-running it against the prior commit before this tranche's changes.
+    `docs/evidence/runs/4.7-4.8-customer-style-portrait-onboarding.json`
+    records the passing run at `8ecc84f`. Checkbox stays unchecked: `4.9`
+    (advisor handoff) still depends on this item per the queue rule above,
+    and the unrelated `validate:completion` debt is a separate, still-open
+    gap outside this tranche's scope.
 
 - [ ] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
       per-look review**
