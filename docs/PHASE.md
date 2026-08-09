@@ -5070,6 +5070,36 @@ pnpm build && pnpm format:check` are clean and `pnpm turbo run test`
     `virtual-studio` and `virtual-studio-batch-and-feedback-evidence`.
     `pnpm lint`/`typecheck`/`build` clean, `pnpm turbo run test` green
     (1134 domain tests, 509 database tests) at `7ba5e45`.
+  - **Status (2026-08-10, alteration/cleaning booking):** closes another of
+    the four named remaining gaps. Each owned wardrobe item card on
+    `/wardrobe` now has two real per-item buttons — "Book an alteration"
+    and "Book a cleaning" — next to the existing Retire button. No new
+    request table or `ConversationIntent` widening (that enum is a
+    designated ADR-034 source contract every existing consumer depends
+    on): a real alteration/cleaning work order needs the garment
+    physically in hand regardless, so this reuses the existing
+    `MessagingRepository.getOrCreateForCustomer`/`.send` primitives
+    verbatim — the same conversation/message the retailer's own inbox
+    already triages, not a fabricated downstream object. New pure
+    `wardrobeServiceRequestMessage` (domain) is the one place the button
+    label and the message a staff member actually reads are kept from
+    drifting apart. New `requestWardrobeItemService` Server Action
+    (`apps/customer/app/(dashboard)/wardrobe/actions.ts`) verifies item
+    ownership the same way `retireWardrobeItem` already does before
+    sending. No migration: every table this touches already existed.
+    Proof: extends `apps/customer/e2e/wardrobe.spec.ts` — a real click
+    sends a real message naming the item, the success banner's own link
+    resolves to the real conversation, and the conversation's
+    `customer_id`/`retailer_id` match the caller. Full spec file reran
+    twice consecutively (3/3 both times) to confirm the new test's own
+    message-row cleanup prevents a repeat-run collision. Full pgTAP suite
+    green (257/257, `supabase db reset && supabase test db`); domain suite
+    1136/1136 (2 new `wardrobeServiceRequestMessage` unit tests); full
+    monorepo `pnpm lint`/`typecheck`/`format:check` clean;
+    `apps/customer` build clean. Checkbox remains unchecked: the
+    **periodic fit-check photo → Self-Portrait update** and the
+    **unattached (logged-out-created) item** schema change remain real,
+    unattempted gaps.
 
 - [x] **17.14 Prospect AI conversation, buying-intent queue, and human handoff**
   - **Requirement IDs:** ADV-114.
