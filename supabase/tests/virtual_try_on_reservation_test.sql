@@ -1,5 +1,5 @@
 begin;
-select plan(17);
+select plan(18);
 
 -- Fixture setup with distinct prefix f2000000 to avoid collision with other tests
 insert into public.retailers (
@@ -368,8 +368,8 @@ select is(
 );
 
 -- Test 5: cache_hit call → status = cache_hit, settled_at is not null
-select is(
-  (public.reserve_virtual_try_on_generation(
+select set_config('paon.test_cache_hit_ledger_id', (
+  public.reserve_virtual_try_on_generation(
     'f2000000-0000-0000-0000-000000000001',
     'f2000000-0000-0000-0000-000000000003',
     null,
@@ -386,30 +386,25 @@ select is(
     'USD',
     true,
     true
-  )).status,
+  )
+).id::text, true);
+
+select is(
+  (
+    select status
+    from public.virtual_try_on_usage_ledger
+    where id = current_setting('paon.test_cache_hit_ledger_id')::uuid
+  ),
   'cache_hit',
   'cache_hit call returns cache_hit status'
 );
 
 select is(
-  (public.reserve_virtual_try_on_generation(
-    'f2000000-0000-0000-0000-000000000001',
-    'f2000000-0000-0000-0000-000000000003',
-    null,
-    null,
-    'openai',
-    'gpt-image-1',
-    'https://api.openai.com',
-    'image',
-    'preview',
-    'customer_try_on',
-    array[]::text[],
-    false,
-    100000,
-    'USD',
-    true,
-    true
-  )).settled_at is not null,
+  (
+    select settled_at is not null
+    from public.virtual_try_on_usage_ledger
+    where id = current_setting('paon.test_cache_hit_ledger_id')::uuid
+  ),
   true,
   'cache_hit call is settled immediately'
 );
@@ -509,6 +504,24 @@ select throws_ok(
   $$,
   'Ledger row not found or already settled',
   'settling already-settled row throws correct error'
+);
+
+-- A cache_hit row is already terminal at insert time — it must never be
+-- settled through settle_virtual_try_on_generation (only an `authorized`
+-- row may be). Still running as service_role from test 7 above.
+select throws_ok(
+  $$
+    select public.settle_virtual_try_on_generation(
+      current_setting('paon.test_cache_hit_ledger_id')::uuid,
+      'succeeded',
+      null,
+      null,
+      100000,
+      'USD'
+    )
+  $$,
+  'Ledger row not found or already settled',
+  'settling a cache_hit row throws — only an authorized row may be settled'
 );
 
 -- Test 9: tenant isolation via RLS

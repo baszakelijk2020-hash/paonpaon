@@ -442,9 +442,10 @@ comment on function public.reserve_virtual_try_on_generation(
   'decision order server-side. Always inserts one ledger row, including denials.';
 
 -- Settlement: service_role only, matches complete_wardrobe_visualization_job.
--- Exactly one settlement per row (authorized/cache_hit -> a terminal
--- status), enforced by the settled_at check constraint plus this WHERE
--- clause together.
+-- Exactly one settlement per row (authorized -> a terminal status).
+-- cache_hit is never settled here — it is already terminal at insert time
+-- (see the ledger table's own comment) — enforced by this WHERE clause
+-- only allowing an `authorized` row through.
 create or replace function public.settle_virtual_try_on_generation(
   p_ledger_id uuid,
   p_status text,
@@ -487,7 +488,7 @@ begin
       attributed_revenue_currency = p_attributed_revenue_currency,
       failure_code = p_failure_code,
       settled_at = now()
-  where id = p_ledger_id and status in ('authorized', 'cache_hit')
+  where id = p_ledger_id and status = 'authorized'
   returning * into v_row;
 
   if v_row.id is null then
