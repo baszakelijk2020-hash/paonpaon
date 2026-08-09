@@ -25,11 +25,18 @@ authoritative for what is built; `git log --oneline` and
 
 ## Current snapshot
 
-Delegation record (2026-08-09): `agent/lane-delegate-17-9-20260809105856`
-produced the bounded 17.9 inbox/Mission Control wiring. Lane H reviewed it,
-fixed duplicate-thread notification accounting, and accepted it as `29b2177`.
-The provider-neutral omnichannel core is locally browser-proven; live provider
-delivery remains externally blocked per PHASE 17.9.
+Lane H snapshot (2026-08-09):
+`agent/lane-h-customer-ai-conversation` advanced Stage 17.10 from `c1121a3`.
+The frontier-authored virtual-try-on authorization/ledger contract is in
+`aacf40f`; bounded tests were delegated to
+`agent/lane-delegate-17-10-20260809114417`, independently reviewed, and
+accepted as `cbc3df6`. The 25-case domain suite, workspace lint/typecheck,
+build, and format check are green. The completion-evidence validator remains
+red on historical stale/missing checked-item records, so 17.10 is not claimed
+complete and no evidence record was fabricated. Persisted usage settlement
+must first reconcile the adjacent generation-job schema already present on
+the unmerged `agent/lane-d-virtual-wardrobe-studio` branch; no migration was
+authored in lane H.
 
 Last hand-maintained update: 2026-08-05 (FT-02 silhouette analysis
 consent/capture state machine landed on `agent/grok-takeover-2026-07-30`).

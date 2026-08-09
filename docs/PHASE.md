@@ -4342,6 +4342,30 @@ routine-occasions.ts`) reuses 10.4's existing
     image/video generation remain unbuilt — real product value (the
     try-on itself) stays blocked on a live provider key and an approved
     credit/billing model exactly as flagged above.
+  - **Status (2026-08-09, lane H authorization tranche):** `verified_local`
+    for the provider-neutral authorization and accounting contract only.
+    `@paon/ai` now exports the exact `VirtualTryOnProvider` port needed by
+    spec §10 (`createTryOn`, `createAvatar`, `editImage`, `createVideo`,
+    `getStatus`, `cancel`, `estimateCost`) without claiming any provider's
+    unverified wire behavior. `@paon/domain` now owns a fail-closed
+    `evaluateVirtualTryOnAuthorization` rule covering module state,
+    retailer/customer enablement and eligibility, image-processing and
+    separate portrait-storage consent, image/video policy, cache reuse,
+    per-customer quotas, customer/retailer/campaign budgets, currency and
+    provider-estimate validation, and commercial justification. The same
+    domain module defines the provider-neutral usage-ledger entry required
+    by spec §8, including tenant/store/customer/advisor/campaign attribution,
+    provider/model/endpoint/assets, credits and estimated/actual cost,
+    trigger, conversion/revenue, cache, status, and timestamps. A delegated
+    25-case unit suite proves the allow/cache paths and every explicit denial
+    reason. Checkbox remains unchecked: this tranche deliberately adds no
+    table or repository because the unmerged
+    `agent/lane-d-virtual-wardrobe-studio` branch already owns adjacent
+    generation-job schema and must be reconciled before migration ordering;
+    persisted transactional reservation/settlement, a real provider adapter,
+    complete-the-look on-demand UI, and connected MorningRoutine proof remain
+    to build. Live generation remains `blocked_external` on the provider key
+    and approved billing model named above.
 
 - [ ] **17.11 Supplier-CRM data import and ownership**
   - **Requirement IDs:** ADV-111.
