@@ -68,7 +68,7 @@ case "$ACTION" in
     fi
 
     bash "$REPO_ROOT/scripts/paon-run.sh" --provider "$PROVIDER" --dry-run >/dev/null
-    screen -DmS "$SESSION_NAME" /usr/bin/env bash -c \
+    screen -dmS "$SESSION_NAME" /usr/bin/env bash -c \
       'cd "$1" && exec bash scripts/paon-run.sh --provider "$2"' \
       _ "$REPO_ROOT" "$PROVIDER"
 
