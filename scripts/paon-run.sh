@@ -307,23 +307,23 @@ extract_claude_last_message() {
 }
 
 run_codex_turn() {
-  local prompt_file="$1" log_file="$2" last_file="$3" resume_session="$4"
+  local prompt_file="$1" log_file="$2" stderr_file="$3" last_file="$4" resume_session="$5"
   if [ -n "$resume_session" ]; then
-    "$CODEX_BIN" exec resume --json --output-last-message "$last_file" "$resume_session" - <"$prompt_file" 2>&1 | tee "$log_file"
+    "$CODEX_BIN" exec resume --json --output-last-message "$last_file" "$resume_session" - <"$prompt_file" 2> >(tee "$stderr_file" >&2) | tee "$log_file"
   else
-    "$CODEX_BIN" exec --cd "$REPO_ROOT" --json --color never --output-last-message "$last_file" - <"$prompt_file" 2>&1 | tee "$log_file"
+    "$CODEX_BIN" exec --cd "$REPO_ROOT" --json --color never --output-last-message "$last_file" - <"$prompt_file" 2> >(tee "$stderr_file" >&2) | tee "$log_file"
   fi
   return "${PIPESTATUS[0]}"
 }
 
 run_claude_turn() {
-  local prompt_file="$1" log_file="$2" last_file="$3" resume_session="$4"
+  local prompt_file="$1" log_file="$2" stderr_file="$3" last_file="$4" resume_session="$5"
   local prompt_text
   prompt_text="$(<"$prompt_file")"
   if [ -n "$resume_session" ]; then
-    "$CLAUDE_BIN" -p --resume "$resume_session" --output-format stream-json --verbose --dangerously-skip-permissions "$prompt_text" 2>&1 | tee "$log_file"
+    "$CLAUDE_BIN" -p --resume "$resume_session" --output-format stream-json --verbose --dangerously-skip-permissions "$prompt_text" 2> >(tee "$stderr_file" >&2) | tee "$log_file"
   else
-    "$CLAUDE_BIN" -p --output-format stream-json --verbose --dangerously-skip-permissions "$prompt_text" 2>&1 | tee "$log_file"
+    "$CLAUDE_BIN" -p --output-format stream-json --verbose --dangerously-skip-permissions "$prompt_text" 2> >(tee "$stderr_file" >&2) | tee "$log_file"
   fi
   local claude_exit="${PIPESTATUS[0]}"
   extract_claude_last_message "$log_file" >"$last_file"
@@ -331,7 +331,7 @@ run_claude_turn() {
 }
 
 failure_is_quota_or_auth() {
-  grep -Eqi 'usage limit|rate.?limit|quota|credit balance|exhausted|too many requests|(^|[^0-9])429([^0-9]|$)|unauthorized|authentication|auth token|oauth|login required|not logged in|invalid.*(key|token)|expired.*(key|token)' "$1"
+  grep -Eqi 'usage limit|rate.?limit|quota|credit balance|exhausted|too many requests|(^|[^0-9])429([^0-9]|$)|unauthorized|authentication|auth token|oauth|login required|not logged in|invalid.*(key|token)|expired.*(key|token)' "$@"
 }
 
 status_from_last_message() {
@@ -373,6 +373,7 @@ while :; do
   prompt_file="$(mktemp "$RUNTIME_DIR/prompt.XXXXXX")"
   last_file="$(mktemp "$RUNTIME_DIR/last-message.XXXXXX")"
   log_file="$LOG_DIR/${stamp}-${PROVIDER}-turn-${turn}.jsonl"
+  stderr_file="$LOG_DIR/${stamp}-${PROVIDER}-turn-${turn}.stderr.log"
   snapshot_dir="$RUNTIME_DIR/snapshots/${stamp}-turn-${turn}"
 
   if [ -n "$resume_session" ]; then
@@ -394,11 +395,11 @@ while :; do
 
   set +e
   if [ "$PROVIDER" = "codex" ]; then
-    run_codex_turn "$prompt_file" "$log_file" "$last_file" "$resume_session"
+    run_codex_turn "$prompt_file" "$log_file" "$stderr_file" "$last_file" "$resume_session"
     turn_exit=$?
     discovered_session="$(extract_codex_session "$log_file")"
   else
-    run_claude_turn "$prompt_file" "$log_file" "$last_file" "$resume_session"
+    run_claude_turn "$prompt_file" "$log_file" "$stderr_file" "$last_file" "$resume_session"
     turn_exit=$?
     discovered_session="$(extract_claude_session "$log_file")"
   fi
@@ -421,7 +422,7 @@ while :; do
   fi
 
   if [ "$turn_exit" -ne 0 ]; then
-    if failure_is_quota_or_auth "$log_file"; then
+    if failure_is_quota_or_auth "$log_file" "$stderr_file"; then
       echo "Hard stop: $PROVIDER reported quota/auth exhaustion. Repository state and logs were preserved: $log_file" >&2
       exit 3
     fi

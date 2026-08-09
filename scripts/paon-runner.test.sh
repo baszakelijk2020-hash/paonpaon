@@ -35,6 +35,7 @@ count_file="${PAON_STUB_COUNT_FILE:?}"
 count="$(cat "$count_file" 2>/dev/null || echo 0)"
 count=$((count + 1))
 printf '%s\n' "$count" >"$count_file"
+echo "codex startup warning" >&2
 printf '%s\n' '{"type":"thread.started","thread_id":"11111111-1111-1111-1111-111111111111"}'
 if [ "$count" -eq 1 ] && [ "${PAON_STUB_FAIL_FIRST:-0}" = "1" ]; then
   exit 7
@@ -66,6 +67,7 @@ count_file="${PAON_STUB_COUNT_FILE:?}"
 count="$(cat "$count_file" 2>/dev/null || echo 0)"
 count=$((count + 1))
 printf '%s\n' "$count" >"$count_file"
+echo "claude startup warning" >&2
 printf '%s\n' '{"type":"system","subtype":"init","session_id":"22222222-2222-2222-2222-222222222222"}'
 if [ "$count" -eq 1 ] && [ "${PAON_STUB_FAIL_FIRST:-0}" = "1" ]; then
   exit 7
@@ -96,6 +98,8 @@ run_stubbed() {
   test "$(cat "$TEST_DIR/$provider-count")" -eq 2
   test -n "$(find "$TEST_DIR/runtime-$provider/snapshots" -name tracked.patch -print -quit)"
   test -n "$(find "$TEST_DIR/runtime-$provider/snapshots" -name status.v2z -print -quit)"
+  find "$TEST_DIR/runtime-$provider/logs" -name '*.jsonl' -type f -exec jq -e . {} \; >/dev/null
+  grep -q "startup warning" "$TEST_DIR/runtime-$provider/logs/"*.stderr.log
 }
 
 run_stubbed codex "$TEST_DIR/codex" "$TEST_DIR/codex.out"
