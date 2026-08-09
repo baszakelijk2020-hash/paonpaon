@@ -6,6 +6,7 @@ import {
   canCollaborateOnWardrobe,
   isWardrobeItemConsistent,
   wardrobeItemConsistencyIssues,
+  wardrobeServiceRequestMessage,
 } from "./wardrobe";
 import {
   createCatalogueWardrobeItemInputSchema,
@@ -195,5 +196,30 @@ describe("canCollaborateOnWardrobe role matrix", () => {
         actor: { kind: "other" },
       }),
     ).toBe(false);
+  });
+});
+
+describe("wardrobeServiceRequestMessage", () => {
+  it("names the item without a brand", () => {
+    expect(
+      wardrobeServiceRequestMessage({
+        kind: "alteration",
+        itemDisplayName: "Navy Wool Overcoat",
+      }),
+    ).toBe(
+      "I'd like to book an alteration for this item from my wardrobe: Navy Wool Overcoat.",
+    );
+  });
+
+  it("prefixes the brand when set", () => {
+    expect(
+      wardrobeServiceRequestMessage({
+        kind: "cleaning",
+        itemDisplayName: "Overcoat",
+        itemBrand: "Cifonelli",
+      }),
+    ).toBe(
+      "I'd like to book a cleaning for this item from my wardrobe: Cifonelli Overcoat.",
+    );
   });
 });

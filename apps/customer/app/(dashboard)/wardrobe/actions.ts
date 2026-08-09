@@ -1,10 +1,16 @@
 "use server";
 
-import { CustomerRepository, WardrobeRepository } from "@paon/database";
+import {
+  CustomerRepository,
+  MessagingRepository,
+  WardrobeRepository,
+} from "@paon/database";
 import {
   createExternalWardrobeItemInputSchema,
+  requestWardrobeItemServiceInputSchema,
   retireWardrobeItemInputSchema,
   updateWardrobeItemStateInputSchema,
+  wardrobeServiceRequestMessage,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -16,6 +22,10 @@ export interface WardrobeActionState {
   fieldErrors: Record<string, string>;
   formError?: string;
   success?: boolean;
+}
+
+export interface WardrobeServiceRequestState extends WardrobeActionState {
+  conversationId?: string;
 }
 
 async function resolveCustomer(userId: string, retailerId: string) {
@@ -186,6 +196,81 @@ export async function retireWardrobeItem(
 
   revalidatePath("/wardrobe");
   return { fieldErrors: {}, success: true };
+}
+
+/**
+ * PHASE 17.13's own named gap ("Book an alteration"/"Book a cleaning" per
+ * `docs/vision/PAON_VIRTUAL_TRYON_AND_OOTD_ECONOMICS.md` §17) — a customer
+ * viewing their own wardrobe item raises a real service request. Reuses
+ * the existing conversation/messaging primitives verbatim
+ * (`getOrCreateForCustomer`/`send`, both already re-deriving the caller's
+ * own identity server-side via `auth.uid()`) rather than a new request
+ * table: the retailer's existing Messages inbox is where staff already
+ * triage exactly this kind of ask, and a real alteration/cleaning work
+ * order needs the garment physically in hand regardless — this creates
+ * the real touchpoint, not a fabricated downstream object.
+ */
+export async function requestWardrobeItemService(
+  _prevState: WardrobeServiceRequestState,
+  formData: FormData,
+): Promise<WardrobeServiceRequestState> {
+  const session = await requireSession();
+  const parsed = requestWardrobeItemServiceInputSchema.safeParse({
+    wardrobeItemId: formData.get("wardrobeItemId"),
+    retailerId: formData.get("retailerId"),
+    kind: formData.get("kind"),
+  });
+
+  if (!parsed.success) {
+    return { fieldErrors: zodFieldErrors(parsed.error) };
+  }
+
+  const customer = await resolveCustomer(
+    session.userId,
+    parsed.data.retailerId,
+  );
+  if (!customer) {
+    return {
+      fieldErrors: {},
+      formError: "No relationship with this retailer.",
+    };
+  }
+
+  try {
+    const supabase = await getSupabaseServerClient();
+    const wardrobeRepo = new WardrobeRepository(supabase);
+    const item = await wardrobeRepo.findById(
+      parsed.data.wardrobeItemId as never,
+    );
+    if (
+      !item ||
+      item.customerId !== customer.id ||
+      item.retailerId !== customer.retailerId
+    ) {
+      return { fieldErrors: {}, formError: "Wardrobe item not found." };
+    }
+
+    const messagingRepo = new MessagingRepository(supabase);
+    const conversationId = await messagingRepo.getOrCreateForCustomer(
+      customer.retailerId,
+    );
+    await messagingRepo.send(
+      conversationId,
+      wardrobeServiceRequestMessage({
+        kind: parsed.data.kind,
+        itemDisplayName: item.displayName,
+        ...(item.brand ? { itemBrand: item.brand } : {}),
+      }),
+    );
+
+    return { fieldErrors: {}, success: true, conversationId };
+  } catch (error) {
+    return {
+      fieldErrors: {},
+      formError:
+        error instanceof Error ? error.message : "Could not send request.",
+    };
+  }
 }
 
 function optionalString(value: FormDataEntryValue | null): string | undefined {

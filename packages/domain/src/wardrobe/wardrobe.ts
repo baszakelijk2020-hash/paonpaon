@@ -94,6 +94,28 @@ export const WARDROBE_OWNERSHIP_EVENT_KINDS = [
 export type WardrobeOwnershipEventKind =
   (typeof WARDROBE_OWNERSHIP_EVENT_KINDS)[number];
 
+/** FT-14 sibling gap (PHASE 17.13's own named "Book an alteration"/"Book a
+ * cleaning" action buttons, `docs/vision/PAON_VIRTUAL_TRYON_AND_OOTD_ECONOMICS.md`
+ * §17): the two per-item service requests a customer can raise from their
+ * own wardrobe. Deliberately not a new `ConversationIntent` value — that
+ * enum is a designated ADR-034 source contract every existing consumer
+ * depends on; this reuses the existing freeform message channel instead. */
+export const WARDROBE_SERVICE_REQUEST_KINDS = [
+  "alteration",
+  "cleaning",
+] as const;
+
+export type WardrobeServiceRequestKind =
+  (typeof WARDROBE_SERVICE_REQUEST_KINDS)[number];
+
+export const WARDROBE_SERVICE_REQUEST_KIND_LABELS: Record<
+  WardrobeServiceRequestKind,
+  string
+> = {
+  alteration: "Book an alteration",
+  cleaning: "Book a cleaning",
+};
+
 export interface WardrobeItem extends Timestamps {
   readonly id: WardrobeItemId;
   readonly retailerId: RetailerId;
@@ -280,4 +302,20 @@ export function canCollaborateOnWardrobe(params: {
   }
 
   return retailerRoleAtLeast(params.actor.role, "sales_associate");
+}
+
+/** The one place this copy lives, so the button label and the message a
+ * staff member actually reads never drift apart. Sent as an ordinary
+ * message body — never a new `ConversationIntent` — through the
+ * customer's existing conversation with their own advisor. */
+export function wardrobeServiceRequestMessage(params: {
+  readonly kind: WardrobeServiceRequestKind;
+  readonly itemDisplayName: string;
+  readonly itemBrand?: string;
+}): string {
+  const name = params.itemBrand
+    ? `${params.itemBrand} ${params.itemDisplayName}`
+    : params.itemDisplayName;
+  const action = params.kind === "alteration" ? "an alteration" : "a cleaning";
+  return `I'd like to book ${action} for this item from my wardrobe: ${name}.`;
 }

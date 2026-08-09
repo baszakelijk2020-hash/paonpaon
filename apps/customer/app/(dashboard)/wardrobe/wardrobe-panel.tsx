@@ -5,6 +5,8 @@ import {
   WARDROBE_CARE_STATES,
   WARDROBE_CONDITION_STATES,
   WARDROBE_FIT_PERCEPTIONS,
+  WARDROBE_SERVICE_REQUEST_KIND_LABELS,
+  WARDROBE_SERVICE_REQUEST_KINDS,
   WARDROBE_WEAR_FREQUENCIES,
   type CompleteTheLookSuggestion,
   type GarmentCategoryCode,
@@ -16,12 +18,15 @@ import {
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import Image from "next/image";
+import Link from "next/link";
 import { useActionState } from "react";
 
 import {
   addExternalWardrobeItem,
+  requestWardrobeItemService,
   retireWardrobeItem,
   type WardrobeActionState,
+  type WardrobeServiceRequestState,
 } from "./actions";
 import { SuggestedLookTile } from "./suggested-look-tile";
 
@@ -77,6 +82,8 @@ function WardrobeItemCard({
   completeTheLookSuggestions,
   retireAction,
   retirePending,
+  serviceRequestAction,
+  serviceRequestPending,
 }: {
   retailerId: string;
   item: WardrobeItem;
@@ -84,6 +91,8 @@ function WardrobeItemCard({
   completeTheLookSuggestions: readonly CompleteTheLookSuggestion[];
   retireAction: (payload: FormData) => void;
   retirePending: boolean;
+  serviceRequestAction: (payload: FormData) => void;
+  serviceRequestPending: boolean;
 }) {
   return (
     <article className="flex w-[min(78vw,18rem)] shrink-0 snap-start flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white sm:w-72">
@@ -184,18 +193,35 @@ function WardrobeItemCard({
             </ul>
           </details>
         ) : null}
-        <form action={retireAction} className="mt-auto pt-1">
-          <input type="hidden" name="retailerId" value={retailerId} />
-          <input type="hidden" name="wardrobeItemId" value={item.id} />
-          <Button
-            type="submit"
-            size="sm"
-            variant="outline"
-            disabled={retirePending}
-          >
-            Retire
-          </Button>
-        </form>
+        <div className="mt-auto flex flex-wrap gap-2 pt-1">
+          {WARDROBE_SERVICE_REQUEST_KINDS.map((kind) => (
+            <form key={kind} action={serviceRequestAction}>
+              <input type="hidden" name="retailerId" value={retailerId} />
+              <input type="hidden" name="wardrobeItemId" value={item.id} />
+              <input type="hidden" name="kind" value={kind} />
+              <Button
+                type="submit"
+                size="sm"
+                variant="outline"
+                disabled={serviceRequestPending}
+              >
+                {WARDROBE_SERVICE_REQUEST_KIND_LABELS[kind]}
+              </Button>
+            </form>
+          ))}
+          <form action={retireAction}>
+            <input type="hidden" name="retailerId" value={retailerId} />
+            <input type="hidden" name="wardrobeItemId" value={item.id} />
+            <Button
+              type="submit"
+              size="sm"
+              variant="outline"
+              disabled={retirePending}
+            >
+              Retire
+            </Button>
+          </form>
+        </div>
       </div>
     </article>
   );
@@ -256,6 +282,8 @@ function WardrobeCarousel({
   completeTheLookByCategory,
   retireAction,
   retirePending,
+  serviceRequestAction,
+  serviceRequestPending,
 }: {
   id: string;
   label: string;
@@ -268,6 +296,8 @@ function WardrobeCarousel({
   >;
   retireAction: (payload: FormData) => void;
   retirePending: boolean;
+  serviceRequestAction: (payload: FormData) => void;
+  serviceRequestPending: boolean;
 }) {
   const headerId = `wardrobe-carousel-${retailerId}-${id}`;
 
@@ -301,6 +331,8 @@ function WardrobeCarousel({
               }
               retireAction={retireAction}
               retirePending={retirePending}
+              serviceRequestAction={serviceRequestAction}
+              serviceRequestPending={serviceRequestPending}
             />
           ))}
           {gaps.map((gap) => (
@@ -346,6 +378,11 @@ export function WardrobeHousePanel({
     retireWardrobeItem,
     initialState,
   );
+  const initialServiceRequestState: WardrobeServiceRequestState = {
+    fieldErrors: {},
+  };
+  const [serviceRequestState, serviceRequestAction, serviceRequestPending] =
+    useActionState(requestWardrobeItemService, initialServiceRequestState);
 
   const active = items.filter((item) => item.condition !== "retired");
   const retired = items.filter((item) => item.condition === "retired");
@@ -382,9 +419,13 @@ export function WardrobeHousePanel({
         </p>
       </div>
 
-      {addState.formError || retireState.formError ? (
+      {addState.formError ||
+      retireState.formError ||
+      serviceRequestState.formError ? (
         <p role="alert" className="text-sm text-[var(--color-danger-500)]">
-          {addState.formError ?? retireState.formError}
+          {addState.formError ??
+            retireState.formError ??
+            serviceRequestState.formError}
         </p>
       ) : null}
       {addState.success ? (
@@ -395,6 +436,19 @@ export function WardrobeHousePanel({
       {retireState.success ? (
         <p role="status" className="text-sm text-[var(--color-success-500)]">
           Garment marked retired.
+        </p>
+      ) : null}
+      {serviceRequestState.success ? (
+        <p role="status" className="text-sm text-[var(--color-success-500)]">
+          Request sent to your advisor.{" "}
+          {serviceRequestState.conversationId ? (
+            <Link
+              className="underline"
+              href={`/messages/${serviceRequestState.conversationId}`}
+            >
+              View in Messages
+            </Link>
+          ) : null}
         </p>
       ) : null}
 
@@ -411,6 +465,8 @@ export function WardrobeHousePanel({
             completeTheLookByCategory={completeTheLookByCategory}
             retireAction={retireAction}
             retirePending={retirePending}
+            serviceRequestAction={serviceRequestAction}
+            serviceRequestPending={serviceRequestPending}
           />
         ))}
         {active.length === 0 ? (
