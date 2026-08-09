@@ -4687,6 +4687,30 @@ pnpm build && pnpm format:check` are clean and `pnpm turbo run test`
     `pnpm test`'s repo-wide `validate:completion` gate remains red on the
     pre-existing unrelated evidence backlog documented on 4.7/4.8's own
     status above, confirmed unrelated to this tranche.
+  - **Status (2026-08-09, complete-the-look suggestion engine):** `259fc78`
+    adds `selectCompleteTheLookSuggestions`
+    (`packages/domain/src/wardrobe/complete-the-look.ts`), the first piece
+    of spec §14 item 3's third MorningRoutine card: a small dedicated pure
+    function (same precedent as `selectUpcomingOccasions` for "Coming up")
+    that suggests catalogue categories the customer owns zero active items
+    in, data-driven off what the retailer actually carries rather than an
+    assumed "everyone needs N categories" opinion. 8 unit tests cover gap
+    detection, owned/retired/deleted exclusion, unavailable/uncategorized
+    skipping, one-per-category, the `maxSuggestions` cap and field
+    passthrough; `pnpm lint`/`typecheck`/`test`/`build`/`format:check` are
+    clean at `259fc78`. Deliberately scoped to the algorithm only — no
+    card renders yet. Composing "see it on me" into a real tap-to-generate
+    action is a separate, still-open frontier decision, not attempted
+    here: it likely means creating a throwaway single-slot `Outfit` for
+    the suggested (not-yet-owned) product and enqueuing a real
+    `WardrobeVisualizationJob` (the only generation pipeline that actually
+    works today, gated on `OPENAI_API_KEY`) rather than waiting on the
+    unbuilt FASHN `VirtualTryOnProvider` adapter, which in turn needs a
+    new column correlating a `virtual_try_on_usage_ledger` row to the job
+    so `apps/admin/app/api/cron/process-wardrobe-visualizations` can
+    settle the ledger row when the job completes. Real schema/migration-
+    ordering work belongs in its own slice, not rushed alongside UI
+    wiring.
 
 - [ ] **17.11 Supplier-CRM data import and ownership**
   - **Requirement IDs:** ADV-111.
