@@ -1680,6 +1680,41 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     a neutral AI render, advisor handoff is 4.9, and no current ADR-068 evidence
     run records this connected tranche.
 
+- [ ] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
+      per-look review**
+  - **Requirement IDs:** `VWS-001`.
+  - **Dependencies:** `4.2`, `4.6`, `4.7/4.8`; ADR-074.
+  - **Owner boundary:** retailer Server Actions/UI inside the existing client
+    profile roadmap card; customer review inside the existing `/wardrobe`
+    roadmap panel. No new Look or roadmap aggregate.
+  - **Acceptance:** an advisor composes up to twelve roadmap-linked `Outfit`
+    records from owned/catalogue pieces, enqueues one or all pending looks
+    sequentially through the consent/module-gated visualization queue and can
+    cancel queued work; the customer reviews one ready look at a time with
+    Love it, Maybe, Not for me or a written change request attached to the
+    exact visualization job.
+  - **Tests:** repository query/mapping coverage, real pgTAP authorization and
+    recovery matrix, retailer advisor-to-queue Playwright and customer
+    per-look feedback Playwright.
+  - **Hard blockers:** live rendered-image proof still requires the configured
+    provider credential named by 4.6; local queue/review proof is complete.
+  - **Status (2026-08-09, Lane H reconciliation):** `9a751bc` integrates the
+    advisor and customer surfaces without duplicating `Outfit` or
+    `WardrobeRoadmap`. The reconciliation found and repaired two drift gaps:
+    `14235c8` lets an authorized same-House advisor cancel a queued job even
+    after module suspension or consent withdrawal while refusing a
+    cross-House advisor; `890ea0f` updates the browser fixture to grant the
+    persisted image-generation consent now required by the canonical enqueue
+    boundary. Delegated `ad1c133` adds three focused
+    `OutfitRepository.findByRoadmap` assertions. Clean local proof is 188/188
+    pgTAP, 1/1 retailer browser, 1/1 customer browser, 1,105 domain tests,
+    496 database tests (70 gated live tests skipped), all production builds,
+    lint/typecheck and format. ADR-068 browser-run records point to reachable
+    code SHAs. The checkbox remains unchecked because dependencies 4.6 and
+    4.7/4.8 remain formally unchecked and the global completion validator is
+    still red on pre-existing stale/missing evidence for unrelated checked
+    items; no false completion claim is made.
+
 **Stage 4 non-goals:** no generic customer manufacturing fit profile (ADRs 016
 and 055 remain — see ADR-074 for the visualization-only fit-preference
 distinction 4.6 relies on), no retailer sharing of wardrobe data, no required

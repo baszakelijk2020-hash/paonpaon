@@ -1,0 +1,7 @@
+{
+  "phaseItemId": "4.9-advisor-visual-roadmap",
+  "gitSha": "890ea0f7dc7be0bd882595fe00a01b3eb44ce768",
+  "spec": "apps/retailer/e2e/visual-roadmap.spec.ts",
+  "status": "passed",
+  "timestamp": "2026-08-09T06:06:57.776Z"
+}

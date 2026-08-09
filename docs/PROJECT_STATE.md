@@ -54,6 +54,16 @@ yet an AI-rendered neutral preview, no current ADR-068 connected evidence run
 exists for this tranche, and 17.10 still needs persisted budget reservation/
 settlement plus MorningRoutine complete-the-look composition.
 
+The next Virtual Wardrobe Studio tranche is reconciled on Lane H as
+`9a751bc`: advisors compose and enqueue up to twelve roadmap-linked Outfits,
+and customers review each generated look through the existing wardrobe
+roadmap. `14235c8` closes the same-House advisor cancellation boundary,
+delegated `ad1c133` covers roadmap repository filtering/mapping, and `890ea0f`
+keeps the real browser fixture aligned with persisted image-generation
+consent. Local proof is 188/188 pgTAP plus both 4.9 browser journeys; the
+formal checkbox remains open behind 4.6/4.7/4.8 dependency state and the
+repository-wide historical evidence backlog.
+
 Last hand-maintained update: 2026-08-05 (FT-02 silhouette analysis
 consent/capture state machine landed on `agent/grok-takeover-2026-07-30`).
 Commits since then — including FT-09's consultation-to-appointment journey —
