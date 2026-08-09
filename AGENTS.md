@@ -192,6 +192,11 @@ cheaper model (OpenRouter/Zoo or equivalent) instead of a frontier session.
 This is the same lane discipline above, not a second system: no task
 database, no YAML, no scheduler.
 
+**Feature-slice-delegation gate.** For every bounded implementation task,
+the frontier agent MUST invoke the `feature-slice-delegation` skill before
+implementing directly. Direct implementation is allowed only when the
+skill itself determines delegation is inappropriate for that task.
+
 **Autonomous delegation rule — binding on every frontier agent (Claude,
 Codex, or any other model occupying the frontier seat), not a
 model-specific optimization.** The active frontier agent is the only
