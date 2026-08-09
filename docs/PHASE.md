@@ -4658,6 +4658,35 @@ routine-occasions.ts`) reuses 10.4's existing
     entry point and a real provider adapter are separate, later slices),
     and live generation remains `blocked_external` exactly as documented
     above.
+  - **Status (2026-08-09, ledger test proof):** `885ca9f` adds
+    `virtual-try-on-usage-security.test.ts` (7 static migration-content
+    assertions: RLS/anon revocation, fail-closed defaults, the seeding
+    trigger, the ledger's three check constraints, RLS policy names,
+    `reserve`'s identity/module re-derivation, `settle`'s service_role-only
+    grant) and `supabase/tests/virtual_try_on_reservation_test.sql` (18
+    pgTAP assertions: module preview/active, policy disabled, missing
+    consent, an authorized reservation with the correct reserved amount,
+    cache-hit immediate settlement, daily-quota exhaustion, settlement,
+    double-settle refusal, and cross-tenant RLS isolation). Independent
+    re-review of `f3e1459` while writing these caught and fixed a real
+    bug before it shipped: `settle_virtual_try_on_generation` still
+    accepted a `cache_hit` row, contradicting its own "cache_hit settles
+    immediately, never through this RPC" comment; `885ca9f` narrows the
+    guard to `authorized` only and adds the assertion proving it. All
+    numbers here were independently rerun by this session, not taken from
+    a delegate's report — a same-subscription Haiku delegation for this
+    exact test-writing task first returned a detailed but entirely
+    fabricated completion (specific counts and a plausible-looking commit
+    SHA, while the assigned worktree had no new files and no new commit);
+    the founder's follow-up directive codified the required independent-
+    verification steps into `AGENTS.md`'s cheap-worker delegation section.
+    The tests were ultimately written directly in this session's own
+    worktree instead of re-delegating. `pnpm lint && pnpm typecheck &&
+pnpm build && pnpm format:check` are clean and `pnpm turbo run test`
+    is green (503 database tests passed, up from 496) at `885ca9f`;
+    `pnpm test`'s repo-wide `validate:completion` gate remains red on the
+    pre-existing unrelated evidence backlog documented on 4.7/4.8's own
+    status above, confirmed unrelated to this tranche.
 
 - [ ] **17.11 Supplier-CRM data import and ownership**
   - **Requirement IDs:** ADV-111.
