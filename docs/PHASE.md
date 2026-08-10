@@ -3921,6 +3921,34 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     the whole migration names no payout, provider or payment reference
     anywhere. Missing: reward UI, concierge request surface, accounting
     export, browser proof.
+  - **Status (2026-08-10):** concierge request surface built and
+    browser-proven — the one named gap that needed no ADR-062 decision.
+    No new request table: `apps/customer/app/(dashboard)/concierge`
+    reuses `MessagingRepository.getOrCreateForCustomer`/`.send` verbatim,
+    same precedent as PHASE 17.13's wardrobe alteration/cleaning booking
+    — the retailer's existing inbox is where staff already triage this
+    kind of ask. New `conciergeRequestMessage` (domain, next to
+    `checkConciergeRequest`) is the one place the request text and what
+    staff actually read are kept from drifting apart. Server Action
+    calls `checkConciergeRequest({ detail, involvesPayment: false })`
+    before sending — this UI path can never trip the money refusal since
+    it never solicits payment info, but the check still runs so a future
+    caller can't silently skip it. Proof: `apps/customer/e2e/concierge.spec.ts`
+    — a real too-short request is refused server-side (the textarea's own
+    `minlength=10` blocks a raw-short submission natively in the browser
+    first, so the test pads with whitespace to clear that gate while
+    still failing the server's `trim()`-based check, proving the actual
+    server refusal rather than re-proving HTML5 validation), and a real
+    request sends a real message verified directly against the
+    `messages` table. Reran 4× total (twice alone, twice alongside the
+    pre-existing `wardrobe.spec.ts`) to confirm no flake and no
+    interference; one real flake was seen once (a magic-link sign-in
+    race unrelated to this feature — same auth helper `wardrobe.spec.ts`
+    already uses successfully) and did not reproduce on rerun.
+
+    Checkbox stays unchecked: reward UI and accounting export are still
+    genuinely blocked on ADR-062 (ownership boundary and hard blocker
+    both say so explicitly) — not attempted here, not silently dropped.
 
 - [ ] **15.3 MunroMerchant B2B procurement**
   - **Requirement IDs:** `MKT-001`; ADR-064.

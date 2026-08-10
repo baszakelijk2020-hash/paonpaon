@@ -327,3 +327,14 @@ export function checkConciergeRequest(args: {
   }
   return { ok: true };
 }
+
+/** The one place this copy lives, so the request form's own label and the
+ * message a staff member actually reads never drift apart — same shape as
+ * `wardrobeServiceRequestMessage`. Sent as an ordinary message through the
+ * customer's existing conversation, never a new request table: concierge
+ * asks are operational (book, arrange, collect, remind), and the
+ * retailer's existing inbox is where staff already triage this kind of
+ * request. */
+export function conciergeRequestMessage(detail: string): string {
+  return `Concierge request: ${detail.trim()}`;
+}

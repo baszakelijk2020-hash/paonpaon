@@ -68,6 +68,11 @@ const navigation: AppShellNavGroup[] = [
         label: "Services",
         description: "Preferred Tailoring and HighMaintenance",
       },
+      {
+        href: "/concierge",
+        label: "Concierge",
+        description: "Book, arrange, collect, or remind",
+      },
     ],
   },
   {
