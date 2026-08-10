@@ -9,6 +9,7 @@ import {
   AlterationTaskRepository,
   AlterationHandoffRepository,
   AlterationWorkflowRepository,
+  FitProfileCandidateRepository,
   PhysicalGarmentRepository,
   RetailerStaffRepository,
 } from "@paon/database";
@@ -336,6 +337,48 @@ export async function addAlterationTask(
     successMessage:
       "Task added. Price it via a pricing proposal to add it to the total.",
   };
+}
+
+/** FT-01's missing propose trigger — a fit-tool observation had no path
+ * into a reviewable fit profile candidate, mirroring the "Add as task"
+ * gap this same file's `addAlterationTask` already closed. The
+ * observation's own area/value become the proposed measurement entry;
+ * the idempotency key is deterministic per observation so a duplicate
+ * click (or network retry) returns the same candidate rather than
+ * proposing it twice. */
+export async function proposeFitProfileCandidate(
+  alterationId: string,
+  _state: WorkflowActionState,
+  formData: FormData,
+): Promise<WorkflowActionState> {
+  const session = await requireModuleSession("garment_service_operations");
+  if (!retailerRoleHasAlterationsPermission(session.retailerRole, "intake")) {
+    throw new ForbiddenError();
+  }
+  const observationId = formData.get("fittingObservationId");
+  const area = formData.get("area");
+  const value = formData.get("value");
+  if (
+    typeof observationId !== "string" ||
+    !observationId ||
+    typeof area !== "string" ||
+    typeof value !== "string"
+  ) {
+    return { formError: "Observation is required." };
+  }
+  try {
+    await new FitProfileCandidateRepository(
+      await getSupabaseServerClient(),
+    ).propose({
+      observationIds: [observationId],
+      proposedMeasurements: { [area]: value },
+      idempotencyKey: `fit-profile-candidate:${observationId}`,
+    });
+  } catch (error) {
+    return workflowError(error, "Unable to propose fit profile candidate.");
+  }
+  revalidatePath(`/alterations/${alterationId}`);
+  return { successMessage: "Fit profile candidate proposed for review." };
 }
 
 export async function assignWorkOrder(

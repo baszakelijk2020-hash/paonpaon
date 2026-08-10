@@ -36,6 +36,7 @@ import {
   addAlterationTask,
   addTaskNote,
   assignWorkOrder,
+  proposeFitProfileCandidate,
   recordCustodyEvent,
   recordFitToolObservation,
   recordFulfillment,
@@ -790,6 +791,34 @@ export default async function AlterationDetailPage({
                             maxLength={160}
                             required
                             className="h-9 min-w-48 flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 text-sm"
+                          />
+                        </WorkflowActionForm>
+                      ) : null}
+                      {canAddTask &&
+                      !["completed", "canceled"].includes(alteration.status) ? (
+                        <WorkflowActionForm
+                          action={proposeFitProfileCandidate.bind(
+                            null,
+                            alteration.id,
+                          )}
+                          className="mt-2"
+                          submitLabel="Propose fit profile candidate"
+                          pendingLabel="Proposing…"
+                        >
+                          <input
+                            type="hidden"
+                            name="fittingObservationId"
+                            value={observation.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="area"
+                            value={observation.area}
+                          />
+                          <input
+                            type="hidden"
+                            name="value"
+                            value={observation.observation}
                           />
                         </WorkflowActionForm>
                       ) : null}

@@ -100,6 +100,11 @@ export type AlterationUpdateId = Brand<string, "AlterationUpdateId">;
 export type PhysicalGarmentId = Brand<string, "PhysicalGarmentId">;
 export type FittingSessionId = Brand<string, "FittingSessionId">;
 export type FittingObservationId = Brand<string, "FittingObservationId">;
+export type FitProfileCandidateId = Brand<string, "FitProfileCandidateId">;
+export type FitProfileCandidateActionId = Brand<
+  string,
+  "FitProfileCandidateActionId"
+>;
 export type AlterationTaskId = Brand<string, "AlterationTaskId">;
 export type AlterationTaskNoteId = Brand<string, "AlterationTaskNoteId">;
 export type AlterationStatusHistoryId = Brand<

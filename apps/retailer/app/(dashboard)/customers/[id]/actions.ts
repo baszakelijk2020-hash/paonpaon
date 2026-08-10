@@ -8,6 +8,7 @@ import {
   AnalyticsRepository,
   ClientelingRepository,
   CustomerRepository,
+  FitProfileCandidateRepository,
   OrderRepository,
   RetailerRepository,
   RetailerStaffRepository,
@@ -421,4 +422,48 @@ export async function decideSilhouetteAnalysisCandidate(
     decision,
   );
   revalidatePath(`/customers/${customerId}`);
+}
+
+export interface DecideFitProfileCandidateState {
+  formError?: string;
+  decided?: {
+    candidateId: string;
+    decision: "approved" | "rejected";
+  };
+}
+
+/** FT-01's advisor review decision for a proposed fit profile candidate.
+ * `approve_fit_profile_candidate`/`reject_fit_profile_candidate` enforce
+ * `is_alterations_advisor()` server-side; this action doesn't duplicate
+ * that check, just surfaces its rejection honestly. Returns which
+ * candidate/decision settled so the client can update that one card's
+ * status locally from the action's own return value, rather than
+ * depending on a full page data refresh to reflect it. */
+export async function decideFitProfileCandidate(
+  customerId: string,
+  _prevState: DecideFitProfileCandidateState,
+  formData: FormData,
+): Promise<DecideFitProfileCandidateState> {
+  await requireModuleSession("garment_service_operations");
+  const candidateId = String(formData.get("candidateId") ?? "");
+  const decision = String(formData.get("decision") ?? "");
+  if (!candidateId || (decision !== "approved" && decision !== "rejected")) {
+    return { formError: "Invalid decision." };
+  }
+
+  try {
+    const client = await getSupabaseServerClient();
+    const repo = new FitProfileCandidateRepository(client);
+    if (decision === "approved") {
+      await repo.approve(asId<"FitProfileCandidateId">(candidateId));
+    } else {
+      await repo.reject(asId<"FitProfileCandidateId">(candidateId));
+    }
+  } catch (error) {
+    return {
+      formError: error instanceof Error ? error.message : "Could not decide.",
+    };
+  }
+  revalidatePath(`/customers/${customerId}`);
+  return { decided: { candidateId, decision } };
 }

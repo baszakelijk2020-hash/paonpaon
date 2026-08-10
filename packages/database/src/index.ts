@@ -41,6 +41,7 @@ export * from "./repositories/alteration-workflow-repository";
 export * from "./repositories/alteration-handoff-repository";
 export * from "./repositories/alteration-attachment-repository";
 export * from "./repositories/customer-alteration-repository";
+export * from "./repositories/fit-profile-candidate-repository";
 export * from "./repositories/physical-garment-repository";
 export * from "./repositories/workshop-repository";
 export * from "./repositories/loyalty-repository";

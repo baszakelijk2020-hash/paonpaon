@@ -13,6 +13,8 @@ import type {
   ChainOfCustodyEventId,
   CompletionReviewId,
   CustomerId,
+  FitProfileCandidateActionId,
+  FitProfileCandidateId,
   FittingObservationId,
   FittingSessionId,
   FulfillmentEventId,
@@ -101,6 +103,29 @@ export interface FittingObservation {
   readonly area: string;
   readonly observation: string;
   readonly recordedByStaffId?: StaffId;
+  readonly createdAt: string;
+  readonly supersedesObservationId?: FittingObservationId;
+}
+
+export type FitProfileCandidateStatus =
+  "proposed" | "advisor_approved" | "advisor_rejected" | "customer_confirmed";
+
+export interface FitProfileCandidate extends Timestamps {
+  readonly id: FitProfileCandidateId;
+  readonly retailerId: RetailerId;
+  readonly customerId: CustomerId;
+  readonly fittingSessionId?: FittingSessionId;
+  readonly status: FitProfileCandidateStatus;
+  readonly proposedMeasurements: Record<string, unknown>;
+  readonly idempotencyKey: string;
+}
+
+export interface FitProfileCandidateAction {
+  readonly id: FitProfileCandidateActionId;
+  readonly fitProfileCandidateId: FitProfileCandidateId;
+  readonly actionByStaffId?: StaffId;
+  readonly action: "approved" | "rejected";
+  readonly note?: string;
   readonly createdAt: string;
 }
 
