@@ -6,7 +6,11 @@ import {
   CoveragePlanningRepository,
   RetailerStaffRepository,
 } from "@paon/database";
-import type { CoachingState, CoverageInterval } from "@paon/domain";
+import type {
+  CeremonyStep,
+  CoachingState,
+  CoverageInterval,
+} from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
 import { requireModuleSession } from "@/lib/module-session";
@@ -374,4 +378,52 @@ export async function advanceCoachingLoop(
 
   revalidatePath("/staff/coverage");
   return { notice: "Coaching loop updated." };
+}
+
+const CEREMONY_ERROR: Readonly<Record<string, string>> = {
+  already_published: "This version is already published.",
+  no_steps: "Add at least one step.",
+  duplicate_step_key: "Two steps cannot share the same key.",
+  version_not_incremented: "That version number is not newer than the last.",
+};
+
+export async function publishCeremonyVersion(
+  _previous: CoverageActionState,
+  formData: FormData,
+): Promise<CoverageActionState> {
+  const session = await requireModuleSession("retail_operations");
+  requireRetailerRole(session.retailerRole, "manager");
+
+  const ceremonyKey = String(formData.get("ceremonyKey") ?? "").trim();
+  if (!ceremonyKey) return { formError: "Name the ceremony." };
+
+  const steps: CeremonyStep[] = [];
+  for (let i = 0; i < 5; i++) {
+    const key = String(formData.get(`stepKey${i}`) ?? "").trim();
+    const title = String(formData.get(`stepTitle${i}`) ?? "").trim();
+    const guidance = String(formData.get(`stepGuidance${i}`) ?? "").trim();
+    if (!key && !title && !guidance) continue;
+    if (!key || !title || !guidance) {
+      return {
+        formError: `Step ${i + 1} needs a key, title, and guidance, or leave all three blank to skip it.`,
+      };
+    }
+    steps.push({ key, title, guidance });
+  }
+
+  const result = await new CoachingRepository(
+    await getSupabaseServerClient(),
+  ).publishCeremony({
+    retailerId: session.retailerId,
+    ceremonyKey,
+    steps,
+  });
+  if (!result.ok) {
+    return {
+      formError: CEREMONY_ERROR[result.reason] ?? "That could not be published.",
+    };
+  }
+
+  revalidatePath("/staff/coverage");
+  return { notice: `Published version ${result.version}.` };
 }

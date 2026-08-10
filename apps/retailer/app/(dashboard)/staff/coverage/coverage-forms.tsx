@@ -7,6 +7,7 @@ import {
   advanceCoachingLoop,
   approveShiftSwap,
   declareAvailability,
+  publishCeremonyVersion,
   publishCoveragePlan,
   recordCoachingObservation,
   requestShiftSwap,
@@ -108,6 +109,60 @@ function CoverageBand({
         <input className={fieldClass} name={skillName} />
       </label>
     </fieldset>
+  );
+}
+
+const CEREMONY_STEP_SLOTS = [0, 1, 2, 3, 4];
+
+export function CeremonyForm() {
+  const [state, action, pending] = useActionState(
+    publishCeremonyVersion,
+    initial,
+  );
+  return (
+    <form action={action} className="mt-3 flex flex-col gap-3">
+      <label className="flex flex-col gap-1 text-sm">
+        Ceremony name
+        <input
+          className={fieldClass}
+          name="ceremonyKey"
+          placeholder="e.g. fitting_greeting"
+          required
+        />
+      </label>
+      {CEREMONY_STEP_SLOTS.map((slot) => (
+        <fieldset
+          key={slot}
+          className="flex flex-col gap-2 rounded border border-[var(--color-stone-100)] p-3"
+        >
+          <legend className="px-1 text-sm font-medium">
+            Step {slot + 1} (leave blank to skip)
+          </legend>
+          <label className="flex flex-col gap-1 text-sm">
+            Key
+            <input className={fieldClass} name={`stepKey${slot}`} />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Title
+            <input className={fieldClass} name={`stepTitle${slot}`} />
+          </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Guidance
+            <textarea
+              className={fieldClass}
+              name={`stepGuidance${slot}`}
+              rows={2}
+            />
+          </label>
+        </fieldset>
+      ))}
+      <div>
+        <Button type="submit" size="sm" disabled={pending}>
+          {pending ? "Publishing…" : "Publish new version"}
+        </Button>
+      </div>
+      <Result state={state} />
+    </form>
   );
 }
 

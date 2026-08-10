@@ -11,6 +11,7 @@ import { Card } from "@paon/ui/components/Card";
 import {
   ApproveSwapForm,
   AvailabilityForm,
+  CeremonyForm,
   CoachingStepForm,
   CoveragePlanForm,
   ObservationForm,
@@ -41,19 +42,28 @@ export default async function CoveragePage({
   const shiftWindowEnd = new Date(Date.now() + 60 * 86_400_000)
     .toISOString()
     .slice(0, 10);
-  const [plan, shortages, observations, team, viewer, openSwaps, shifts] =
-    await Promise.all([
-      coverage.findPlanForDate({ retailerId: session.retailerId, planDate }),
-      coverage.recommendForDate({ retailerId: session.retailerId, planDate }),
-      coaching.listObservations({ retailerId: session.retailerId }),
-      staff.findByRetailer(session.retailerId),
-      staff.findByUserId(session.userId),
-      coverage.listOpenSwaps({ retailerId: session.retailerId }),
-      roster.findShiftsByRetailer(session.retailerId, {
-        from: today,
-        to: shiftWindowEnd,
-      }),
-    ]);
+  const [
+    plan,
+    shortages,
+    observations,
+    team,
+    viewer,
+    openSwaps,
+    shifts,
+    ceremonies,
+  ] = await Promise.all([
+    coverage.findPlanForDate({ retailerId: session.retailerId, planDate }),
+    coverage.recommendForDate({ retailerId: session.retailerId, planDate }),
+    coaching.listObservations({ retailerId: session.retailerId }),
+    staff.findByRetailer(session.retailerId),
+    staff.findByUserId(session.userId),
+    coverage.listOpenSwaps({ retailerId: session.retailerId }),
+    roster.findShiftsByRetailer(session.retailerId, {
+      from: today,
+      to: shiftWindowEnd,
+    }),
+    coaching.listLatestCeremonies({ retailerId: session.retailerId }),
+  ]);
   const isManager = retailerRoleAtLeast(session.retailerRole, "manager");
   const nameById = new Map(
     team.map((member) => [member.id as string, member.fullName]),
@@ -279,6 +289,42 @@ export default async function CoveragePage({
           />
         </Card>
       ) : null}
+
+      <Card>
+        <h2 className="text-sm font-medium">Service ceremonies</h2>
+        {ceremonies.length === 0 ? (
+          <p
+            id="ceremonies-empty"
+            className="mt-3 text-sm text-[var(--color-stone-500)]"
+          >
+            No ceremony has been published yet.
+          </p>
+        ) : (
+          <ul id="ceremony-versions" className="mt-3 flex flex-col gap-3">
+            {ceremonies.map((ceremony) => (
+              <li
+                key={ceremony.id}
+                data-ceremony-key={ceremony.ceremonyKey}
+                data-ceremony-version={ceremony.version}
+                className="rounded border border-[var(--color-stone-100)] p-3 text-sm"
+              >
+                <p>
+                  <strong>{ceremony.ceremonyKey}</strong>{" "}
+                  <Badge tone="neutral">v{ceremony.version}</Badge>
+                </p>
+                <ul className="mt-2 flex flex-col gap-1 text-xs text-[var(--color-stone-500)]">
+                  {ceremony.steps.map((step) => (
+                    <li key={step.key}>
+                      <strong>{step.title}</strong> — {step.guidance}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        )}
+        {isManager ? <CeremonyForm /> : null}
+      </Card>
 
       <Card>
         <h2 className="text-sm font-medium">Coaching loops</h2>

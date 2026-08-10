@@ -65,6 +65,36 @@ export class CoachingRepository {
   }
 
   /**
+   * The current published version of every ceremony this retailer has,
+   * keyed by ceremony_key. There is no "list all ceremony keys" table —
+   * a key exists only by having a published version — so this fetches
+   * every published row ordered newest-first per key and keeps the first
+   * (highest-version) row seen for each, the same reduce-in-JS shape as
+   * the rest of this repository favours over a DISTINCT ON round-trip for
+   * a table this small.
+   */
+  async listLatestCeremonies(args: {
+    readonly retailerId: RetailerId;
+  }): Promise<readonly (CeremonyVersion & { readonly id: string })[]> {
+    const { data, error } = await this.client
+      .from("service_ceremony_versions")
+      .select("*")
+      .eq("retailer_id", args.retailerId)
+      .eq("published", true)
+      .order("ceremony_key", { ascending: true })
+      .order("version", { ascending: false });
+    if (error) throw error;
+
+    const latestByKey = new Map<string, CeremonyRow>();
+    for (const row of data ?? []) {
+      if (!latestByKey.has(row.ceremony_key)) {
+        latestByKey.set(row.ceremony_key, row);
+      }
+    }
+    return [...latestByKey.values()].map(toCeremony);
+  }
+
+  /**
    * Publishes the next version of a ceremony. Refuses to reuse or lower a
    * version number, which would retroactively change what an existing
    * observation's citation means.

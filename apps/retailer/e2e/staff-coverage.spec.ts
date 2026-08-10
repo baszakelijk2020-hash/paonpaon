@@ -12,6 +12,7 @@ const BROWSER_PROOF_SPEC = "apps/retailer/e2e/staff-coverage.spec.ts";
 let coveragePassed = false;
 let availabilityPassed = false;
 let swapPassed = false;
+let ceremonyPassed = false;
 
 // Both tests write into the same two module-level flags, which only works
 // if they run in one worker process. fullyParallel defaults to sharding
@@ -42,7 +43,9 @@ test.afterAll(async () => {
     phaseItemId: PHASE_ITEM_ID,
     spec: BROWSER_PROOF_SPEC,
     status:
-      coveragePassed && availabilityPassed && swapPassed ? "passed" : "failed",
+      coveragePassed && availabilityPassed && swapPassed && ceremonyPassed
+        ? "passed"
+        : "failed",
   });
 });
 
@@ -565,4 +568,94 @@ test("a manager offers a shift, a colleague accepts, the owner approves", async 
   expect(shiftRow?.staff_id).toBe(advisorStaff.data!.id);
 
   swapPassed = true;
+});
+
+test("a manager publishes a versioned service ceremony", async ({ page }) => {
+  test.setTimeout(300_000);
+
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const proof = await ensureProgrammeProofSeed({
+    supabaseUrl,
+    anonKey,
+    serviceRoleKey,
+  });
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  // A fresh ceremony key per run: publishing is append-only and refuses
+  // to reuse a version number, so a fixed key would collide with a prior
+  // run's already-published version 1.
+  const ceremonyKey = `e2e_fitting_greeting_${Date.now()}`;
+
+  await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
+  await page.goto("/staff/coverage");
+
+  await page.getByLabel("Ceremony name").fill(ceremonyKey);
+  await page.getByLabel("Key").first().fill("greet");
+  await page.getByLabel("Title").first().fill("Greet by name");
+  await page
+    .getByLabel("Guidance")
+    .first()
+    .fill('Use the name on the appointment, not "welcome in".');
+  await page.getByRole("button", { name: "Publish new version" }).click();
+  await page.waitForTimeout(2_000);
+  const publishFormError = page.locator("[role=alert]");
+  if ((await publishFormError.count()) > 0) {
+    const text = (await publishFormError.allInnerTexts()).join(" | ").trim();
+    if (text.length > 0) {
+      throw new Error(`Ceremony publish was refused by the server: ${text}`);
+    }
+  }
+
+  const ceremonyRow = page.locator(`li[data-ceremony-key="${ceremonyKey}"]`);
+  await expect
+    .poll(
+      async () => {
+        await page.goto("/staff/coverage");
+        return ceremonyRow.getAttribute("data-ceremony-version");
+      },
+      { timeout: 60_000 },
+    )
+    .toBe("1");
+  await expect(ceremonyRow).toContainText("Greet by name");
+
+  // ---- publishing a second version replaces what the page shows -------
+  await page.getByLabel("Ceremony name").fill(ceremonyKey);
+  await page.getByLabel("Key").first().fill("greet_v2");
+  await page.getByLabel("Title").first().fill("Greet by name and occasion");
+  await page
+    .getByLabel("Guidance")
+    .first()
+    .fill("Reference the occasion from the appointment note if one exists.");
+  await page.getByRole("button", { name: "Publish new version" }).click();
+  await expect
+    .poll(
+      async () => {
+        await page.goto("/staff/coverage");
+        return ceremonyRow.getAttribute("data-ceremony-version");
+      },
+      { timeout: 60_000 },
+    )
+    .toBe("2");
+  await expect(ceremonyRow).toContainText("Greet by name and occasion");
+  // The card shows the latest version only, not a history list.
+  await expect(ceremonyRow).not.toContainText("Greet by name.");
+
+  // ---- the database agrees with the page --------------------------------
+  const { data: versionRows, error: versionError } = await admin
+    .from("service_ceremony_versions")
+    .select("version, published, steps")
+    .eq("retailer_id", proof.retailerId)
+    .eq("ceremony_key", ceremonyKey)
+    .order("version", { ascending: true });
+  expect(versionError).toBeNull();
+  // Both versions exist -- publishing is append-only, never an update.
+  expect(versionRows?.length).toBe(2);
+  expect(versionRows?.[0]?.version).toBe(1);
+  expect(versionRows?.[0]?.published).toBe(true);
+  expect(versionRows?.[1]?.version).toBe(2);
+  expect(versionRows?.[1]?.published).toBe(true);
+
+  ceremonyPassed = true;
 });

@@ -2844,8 +2844,36 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     to neither side) approves, and the database confirms `staff_shifts`
     only reassigns the shift at approval, never at request or accept.
 
-    The checkbox stays unchecked: service ceremony version management
-    still has no UI, so the owner boundary is not fully met.
+  - **Update (2026-08-10, third session the same day):** service ceremony
+    version management now has a UI. `CoachingRepository.publishCeremony`
+    and `latestPublishedCeremony` already existed (2026-08-01) with no
+    caller; added `listLatestCeremonies` (read — there is no "list all
+    ceremony keys" table, a key exists only by having a published version,
+    so this fetches every published row and keeps the highest-version row
+    per key in JS, the same reduce-in-JS shape the rest of this repository
+    already uses for small tables) and a "Service ceremonies" card: any
+    staff member reads the current published version of every ceremony,
+    a manager publishes a new one with up to five steps. `publishCeremony`
+    already refuses to reuse or lower a version number and refuses
+    duplicate step keys within a version — both enforced through the UI in
+    `staff-coverage.spec.ts` (publishing a second version for the same
+    ceremony key produces version 2, not a duplicate version 1, and the
+    card shows only the latest). Publishing is append-only: both versions
+    exist in the database afterward, verified directly against
+    `service_ceremony_versions`.
+
+    The owner boundary also names "contextual prompts" — `CeremonyStep`
+    already supports an `appliesWhen` trigger (appointment kind, first
+    visit, open alteration) and `selectCeremonyPrompts`/`promptsForContext`
+    already implement it, but nothing in the app actually calls
+    `promptsForContext` yet (grepped for callers outside `.next` build
+    output — none exist). This session's publish form only writes steps
+    with no `appliesWhen`, so every step always applies; a step author
+    cannot set a trigger from the UI, and no live-appointment surface
+    consumes one even if they could. The checkbox stays unchecked for that
+    reason: coverage, availability, swaps, coaching, and ceremony
+    publishing are all built and browser-proven, but contextual prompts —
+    named in the owner boundary — are backend-only.
 
 - [x] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.
