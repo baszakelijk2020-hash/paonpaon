@@ -17,6 +17,7 @@ let availabilityPassed = false;
 let swapPassed = false;
 let ceremonyPassed = false;
 let ceremonyPromptsPassed = false;
+let ceremonyPromptsWithConditionsPassed = false;
 
 // Both tests write into the same two module-level flags, which only works
 // if they run in one worker process. fullyParallel defaults to sharding
@@ -51,7 +52,8 @@ test.afterAll(async () => {
       availabilityPassed &&
       swapPassed &&
       ceremonyPassed &&
-      ceremonyPromptsPassed
+      ceremonyPromptsPassed &&
+      ceremonyPromptsWithConditionsPassed
         ? "passed"
         : "failed",
   });
@@ -748,4 +750,96 @@ test("the appointment brief shows contextual ceremony prompts for that appointme
   );
 
   ceremonyPromptsPassed = true;
+});
+
+test("ceremony steps filter by context conditions (appliesWhen)", async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
+
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const proof = await ensureProgrammeProofSeed({
+    supabaseUrl,
+    anonKey,
+    serviceRoleKey,
+  });
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  // Publish a ceremony step scoped to "fitting" appointments only
+  const ceremonyKey = `e2e_contextual_fitting_${Date.now()}`;
+  const fittingStepTitle = `E2E Fitting-Only Step ${Date.now()}`;
+  const { error: publishError } = await admin
+    .from("service_ceremony_versions")
+    .insert({
+      retailer_id: proof.retailerId,
+      ceremony_key: ceremonyKey,
+      version: 1,
+      published: true,
+      published_at: new Date().toISOString(),
+      steps: [
+        {
+          key: "fitting_only",
+          title: fittingStepTitle,
+          guidance: "This step only applies to fitting appointments.",
+          appliesWhen: {
+            appointmentKind: "fitting",
+          },
+        },
+      ],
+    });
+  expect(publishError).toBeNull();
+
+  const { data: customer, error: customerError } = await admin
+    .from("customers")
+    .insert({
+      retailer_id: proof.retailerId,
+      full_name: `E2E Contextual Prompts Client ${Date.now()}`,
+      email: `contextual-prompts-${Date.now()}@example.com`,
+      lifecycle_stage: "prospect",
+    })
+    .select("id")
+    .single();
+  expect(customerError).toBeNull();
+
+  // Create a fitting appointment (should show the step)
+  const fittingStartsAt = new Date(Date.now() + 3_600_000);
+  const fittingEndsAt = new Date(fittingStartsAt.getTime() + 30 * 60_000);
+  const fittingAppointment = await new AppointmentRepository(admin).create({
+    retailerId: asId<"RetailerId">(proof.retailerId),
+    customerId: asId<"CustomerId">(customer!.id),
+    type: "fitting",
+    startsAt: fittingStartsAt.toISOString(),
+    endsAt: fittingEndsAt.toISOString(),
+  });
+
+  // Create a different appointment type (should NOT show the step)
+  const stylingStartsAt = new Date(Date.now() + 7_200_000);
+  const stylingEndsAt = new Date(stylingStartsAt.getTime() + 30 * 60_000);
+  const stylingAppointment = await new AppointmentRepository(admin).create({
+    retailerId: asId<"RetailerId">(proof.retailerId),
+    customerId: asId<"CustomerId">(customer!.id),
+    type: "styling_consultation",
+    startsAt: stylingStartsAt.toISOString(),
+    endsAt: stylingEndsAt.toISOString(),
+  });
+
+  await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
+
+  // Verify the step appears on the fitting appointment
+  await page.goto(`/appointments/${fittingAppointment.id}`);
+  await expect(page.locator("#ceremony-prompts")).toContainText(
+    fittingStepTitle,
+  );
+
+  // Verify the step does NOT appear on the styling consultation
+  await page.goto(`/appointments/${stylingAppointment.id}`);
+  const ceremonyPromptsSection = page.locator("#ceremony-prompts");
+  const ceremonyPromptsSectionCount = await ceremonyPromptsSection.count();
+  if (ceremonyPromptsSectionCount > 0) {
+    await expect(ceremonyPromptsSection).not.toContainText(fittingStepTitle);
+  }
+
+  ceremonyPromptsWithConditionsPassed = true;
 });

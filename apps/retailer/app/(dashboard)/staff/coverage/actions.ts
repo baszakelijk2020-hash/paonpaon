@@ -6,10 +6,12 @@ import {
   CoveragePlanningRepository,
   RetailerStaffRepository,
 } from "@paon/database";
-import type {
-  CeremonyStep,
-  CoachingState,
-  CoverageInterval,
+import {
+  APPOINTMENT_TYPES,
+  type CeremonyContextMatch,
+  type CeremonyStep,
+  type CoachingState,
+  type CoverageInterval,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
@@ -408,7 +410,40 @@ export async function publishCeremonyVersion(
         formError: `Step ${i + 1} needs a key, title, and guidance, or leave all three blank to skip it.`,
       };
     }
-    steps.push({ key, title, guidance });
+
+    // Read the optional appliesWhen conditions
+    const appointmentKindValue = String(formData.get(`stepAppointmentKind${i}`) ?? "").trim();
+    const firstVisitValue = String(formData.get(`stepFirstVisit${i}`) ?? "").trim();
+    const openAlterationValue = String(formData.get(`stepOpenAlteration${i}`) ?? "").trim();
+
+    // Validate appointmentKind if set
+    if (appointmentKindValue && !APPOINTMENT_TYPES.includes(appointmentKindValue as any)) {
+      return {
+        formError: `Step ${i + 1} has an invalid appointment kind.`,
+      };
+    }
+
+    // Build appliesWhen only if at least one condition was set
+    const appliesWhenProps: Record<string, unknown> = {};
+    if (appointmentKindValue) {
+      appliesWhenProps.appointmentKind = appointmentKindValue;
+    }
+    if (firstVisitValue) {
+      appliesWhenProps.customerIsFirstVisit = firstVisitValue === "true";
+    }
+    if (openAlterationValue) {
+      appliesWhenProps.hasOpenAlteration = openAlterationValue === "true";
+    }
+
+    const step: CeremonyStep = {
+      key,
+      title,
+      guidance,
+      ...(Object.keys(appliesWhenProps).length > 0
+        ? { appliesWhen: appliesWhenProps as CeremonyContextMatch }
+        : {}),
+    };
+    steps.push(step);
   }
 
   const result = await new CoachingRepository(
