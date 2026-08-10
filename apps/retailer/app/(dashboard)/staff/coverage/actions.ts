@@ -86,6 +86,168 @@ export async function publishCoveragePlan(
 
 const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
 
+const SWAP_REQUEST_ERROR: Readonly<Record<string, string>> = {
+  not_own_shift: "You can only offer your own shift.",
+  peer_unavailable:
+    "Your colleague has not declared availability for that day.",
+  peer_already_scheduled: "Your colleague is already scheduled then.",
+};
+
+const SWAP_APPROVAL_ERROR: Readonly<Record<string, string>> = {
+  not_awaiting_approval: "This swap is not awaiting approval.",
+  self_approval_not_allowed:
+    "A manager who is party to the swap cannot approve it.",
+  would_break_required_skill:
+    "Approving this would leave a required skill uncovered.",
+};
+
+export async function requestShiftSwap(
+  _previous: CoverageActionState,
+  formData: FormData,
+): Promise<CoverageActionState> {
+  const session = await requireModuleSession("retail_operations");
+  const shiftId = String(formData.get("shiftId") ?? "").trim();
+  const peerStaffId = String(formData.get("peerStaffId") ?? "").trim();
+  const reason = String(formData.get("reason") ?? "").trim();
+  if (!shiftId || !peerStaffId) {
+    return { formError: "Choose a shift and a colleague to swap with." };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const viewer = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!viewer) return { formError: "Your staff record could not be found." };
+  if (viewer.id === peerStaffId) {
+    return { formError: "Choose a colleague other than yourself." };
+  }
+
+  const result = await new CoveragePlanningRepository(supabase).requestSwap({
+    retailerId: session.retailerId,
+    shiftId,
+    requestingStaffId: viewer.id,
+    peerStaffId,
+    ...(reason ? { reason } : {}),
+  });
+  if (!result.ok) {
+    return {
+      formError:
+        SWAP_REQUEST_ERROR[result.reason] ??
+        "That swap could not be requested.",
+    };
+  }
+
+  revalidatePath("/staff/coverage");
+  return { notice: "Swap requested." };
+}
+
+export async function respondToShiftSwap(
+  _previous: CoverageActionState,
+  formData: FormData,
+): Promise<CoverageActionState> {
+  const session = await requireModuleSession("retail_operations");
+  const swapId = String(formData.get("swapId") ?? "").trim();
+  const accept = formData.get("decision") === "accept";
+  if (!swapId) return { formError: "Choose a swap to respond to." };
+
+  const supabase = await getSupabaseServerClient();
+  const viewer = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!viewer) return { formError: "Your staff record could not be found." };
+
+  const repository = new CoveragePlanningRepository(supabase);
+  const swap = await repository.findSwapById({
+    retailerId: session.retailerId,
+    swapId,
+  });
+  if (!swap) return { formError: "That swap could not be found." };
+  if (swap.peer_staff_id !== viewer.id) {
+    return { formError: "Only the invited colleague can respond to this." };
+  }
+  if (swap.state !== "requested") {
+    return { formError: "This swap is no longer awaiting your response." };
+  }
+
+  await repository.setSwapState({
+    retailerId: session.retailerId,
+    swapId,
+    nextState: accept ? "accepted_by_peer" : "declined",
+  });
+
+  revalidatePath("/staff/coverage");
+  return { notice: accept ? "Swap accepted." : "Swap declined." };
+}
+
+export async function withdrawShiftSwap(
+  _previous: CoverageActionState,
+  formData: FormData,
+): Promise<CoverageActionState> {
+  const session = await requireModuleSession("retail_operations");
+  const swapId = String(formData.get("swapId") ?? "").trim();
+  if (!swapId) return { formError: "Choose a swap to withdraw." };
+
+  const supabase = await getSupabaseServerClient();
+  const viewer = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!viewer) return { formError: "Your staff record could not be found." };
+
+  const repository = new CoveragePlanningRepository(supabase);
+  const swap = await repository.findSwapById({
+    retailerId: session.retailerId,
+    swapId,
+  });
+  if (!swap) return { formError: "That swap could not be found." };
+  if (swap.requesting_staff_id !== viewer.id) {
+    return { formError: "Only the requester can withdraw this swap." };
+  }
+  if (swap.state !== "requested" && swap.state !== "accepted_by_peer") {
+    return { formError: "This swap can no longer be withdrawn." };
+  }
+
+  await repository.setSwapState({
+    retailerId: session.retailerId,
+    swapId,
+    nextState: "withdrawn",
+  });
+
+  revalidatePath("/staff/coverage");
+  return { notice: "Swap withdrawn." };
+}
+
+export async function approveShiftSwap(
+  _previous: CoverageActionState,
+  formData: FormData,
+): Promise<CoverageActionState> {
+  const session = await requireModuleSession("retail_operations");
+  requireRetailerRole(session.retailerRole, "manager");
+  const swapId = String(formData.get("swapId") ?? "").trim();
+  if (!swapId) return { formError: "Choose a swap to approve." };
+
+  const supabase = await getSupabaseServerClient();
+  const viewer = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!viewer) return { formError: "Your staff record could not be found." };
+
+  const result = await new CoveragePlanningRepository(supabase).approveSwap({
+    retailerId: session.retailerId,
+    swapId,
+    approverStaffId: viewer.id,
+  });
+  if (!result.ok) {
+    return {
+      formError:
+        SWAP_APPROVAL_ERROR[result.reason] ??
+        "That swap could not be approved.",
+    };
+  }
+
+  revalidatePath("/staff/coverage");
+  return { notice: "Swap approved." };
+}
+
 export async function declareAvailability(
   _previous: CoverageActionState,
   formData: FormData,

@@ -5,9 +5,13 @@ import { useActionState } from "react";
 
 import {
   advanceCoachingLoop,
+  approveShiftSwap,
   declareAvailability,
   publishCoveragePlan,
   recordCoachingObservation,
+  requestShiftSwap,
+  respondToShiftSwap,
+  withdrawShiftSwap,
   type CoverageActionState,
 } from "./actions";
 
@@ -174,6 +178,110 @@ export function AvailabilityForm({
       <div className="md:col-span-2">
         <Result state={state} />
       </div>
+    </form>
+  );
+}
+
+export function SwapRequestForm({
+  myShifts,
+  team,
+}: {
+  readonly myShifts: readonly { readonly id: string; readonly label: string }[];
+  readonly team: readonly { readonly id: string; readonly fullName: string }[];
+}) {
+  const [state, action, pending] = useActionState(requestShiftSwap, initial);
+  if (myShifts.length === 0 || team.length === 0) return null;
+  return (
+    <form action={action} className="mt-3 grid gap-3 md:grid-cols-2">
+      <label className="flex flex-col gap-1 text-sm">
+        Your shift
+        <select name="shiftId" className={fieldClass} required>
+          {myShifts.map((shift) => (
+            <option key={shift.id} value={shift.id}>
+              {shift.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        Swap with
+        <select name="peerStaffId" className={fieldClass} required>
+          {team.map((member) => (
+            <option key={member.id} value={member.id}>
+              {member.fullName}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-sm md:col-span-2">
+        Reason (optional)
+        <input className={fieldClass} name="reason" maxLength={500} />
+      </label>
+      <div className="md:col-span-2">
+        <Button type="submit" size="sm" disabled={pending}>
+          {pending ? "Requesting…" : "Request swap"}
+        </Button>
+      </div>
+      <div className="md:col-span-2">
+        <Result state={state} />
+      </div>
+    </form>
+  );
+}
+
+export function SwapResponseForm({ swapId }: { readonly swapId: string }) {
+  const [state, action, pending] = useActionState(respondToShiftSwap, initial);
+  return (
+    <form action={action} className="mt-2 flex flex-col gap-2">
+      <input type="hidden" name="swapId" value={swapId} />
+      <div className="flex gap-2">
+        <Button
+          type="submit"
+          name="decision"
+          value="accept"
+          size="sm"
+          disabled={pending}
+        >
+          Accept
+        </Button>
+        <Button
+          type="submit"
+          name="decision"
+          value="decline"
+          size="sm"
+          variant="ghost"
+          disabled={pending}
+        >
+          Decline
+        </Button>
+      </div>
+      <Result state={state} />
+    </form>
+  );
+}
+
+export function WithdrawSwapForm({ swapId }: { readonly swapId: string }) {
+  const [state, action, pending] = useActionState(withdrawShiftSwap, initial);
+  return (
+    <form action={action} className="mt-2 flex flex-col gap-2">
+      <input type="hidden" name="swapId" value={swapId} />
+      <Button type="submit" size="sm" variant="ghost" disabled={pending}>
+        Withdraw
+      </Button>
+      <Result state={state} />
+    </form>
+  );
+}
+
+export function ApproveSwapForm({ swapId }: { readonly swapId: string }) {
+  const [state, action, pending] = useActionState(approveShiftSwap, initial);
+  return (
+    <form action={action} className="mt-2 flex flex-col gap-2">
+      <input type="hidden" name="swapId" value={swapId} />
+      <Button type="submit" size="sm" disabled={pending}>
+        Approve swap
+      </Button>
+      <Result state={state} />
     </form>
   );
 }

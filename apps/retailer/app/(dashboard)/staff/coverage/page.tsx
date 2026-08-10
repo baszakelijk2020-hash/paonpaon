@@ -2,16 +2,21 @@ import {
   CoachingRepository,
   CoveragePlanningRepository,
   RetailerStaffRepository,
+  StaffRosterRepository,
 } from "@paon/database";
 import { retailerRoleAtLeast } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 
 import {
+  ApproveSwapForm,
   AvailabilityForm,
   CoachingStepForm,
   CoveragePlanForm,
   ObservationForm,
+  SwapRequestForm,
+  SwapResponseForm,
+  WithdrawSwapForm,
 } from "./coverage-forms";
 
 import { requireSession } from "@/lib/session";
@@ -31,13 +36,24 @@ export default async function CoveragePage({
   const coverage = new CoveragePlanningRepository(supabase);
   const coaching = new CoachingRepository(supabase);
   const staff = new RetailerStaffRepository(supabase);
-  const [plan, shortages, observations, team, viewer] = await Promise.all([
-    coverage.findPlanForDate({ retailerId: session.retailerId, planDate }),
-    coverage.recommendForDate({ retailerId: session.retailerId, planDate }),
-    coaching.listObservations({ retailerId: session.retailerId }),
-    staff.findByRetailer(session.retailerId),
-    staff.findByUserId(session.userId),
-  ]);
+  const roster = new StaffRosterRepository(supabase);
+  const today = new Date().toISOString().slice(0, 10);
+  const shiftWindowEnd = new Date(Date.now() + 60 * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  const [plan, shortages, observations, team, viewer, openSwaps, shifts] =
+    await Promise.all([
+      coverage.findPlanForDate({ retailerId: session.retailerId, planDate }),
+      coverage.recommendForDate({ retailerId: session.retailerId, planDate }),
+      coaching.listObservations({ retailerId: session.retailerId }),
+      staff.findByRetailer(session.retailerId),
+      staff.findByUserId(session.userId),
+      coverage.listOpenSwaps({ retailerId: session.retailerId }),
+      roster.findShiftsByRetailer(session.retailerId, {
+        from: today,
+        to: shiftWindowEnd,
+      }),
+    ]);
   const isManager = retailerRoleAtLeast(session.retailerRole, "manager");
   const nameById = new Map(
     team.map((member) => [member.id as string, member.fullName]),
@@ -175,6 +191,80 @@ export default async function CoveragePage({
           </ul>
         )}
         <AvailabilityForm defaultEffectiveOn={planDate} />
+      </Card>
+
+      <Card>
+        <h2 className="text-sm font-medium">Shift swaps</h2>
+        {openSwaps.length === 0 ? (
+          <p
+            id="swaps-empty"
+            className="mt-3 text-sm text-[var(--color-stone-500)]"
+          >
+            No open swap requests.
+          </p>
+        ) : (
+          <ul id="open-swaps" className="mt-3 flex flex-col gap-3">
+            {openSwaps.map((swap) => {
+              const shift = shifts.find((s) => s.id === swap.shift_id);
+              const isRequester = viewer?.id === swap.requesting_staff_id;
+              const isPeer = viewer?.id === swap.peer_staff_id;
+              return (
+                <li
+                  key={swap.id}
+                  data-swap-id={swap.id}
+                  data-swap-state={swap.state}
+                  className="rounded border border-[var(--color-stone-100)] p-3 text-sm"
+                >
+                  <p>
+                    <strong>
+                      {nameById.get(swap.requesting_staff_id) ?? "Unknown"}
+                    </strong>{" "}
+                    offers{" "}
+                    {shift
+                      ? `${shift.shiftDate} ${shift.startTime.slice(0, 5)}–${shift.endTime.slice(0, 5)}`
+                      : "a shift"}{" "}
+                    to{" "}
+                    <strong>
+                      {nameById.get(swap.peer_staff_id) ?? "Unknown"}
+                    </strong>
+                    <Badge tone="neutral">
+                      {swap.state.replaceAll("_", " ")}
+                    </Badge>
+                  </p>
+                  {swap.reason ? (
+                    <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                      {swap.reason}
+                    </p>
+                  ) : null}
+                  {isPeer && swap.state === "requested" ? (
+                    <SwapResponseForm swapId={swap.id} />
+                  ) : null}
+                  {isRequester &&
+                  (swap.state === "requested" ||
+                    swap.state === "accepted_by_peer") ? (
+                    <WithdrawSwapForm swapId={swap.id} />
+                  ) : null}
+                  {isManager && swap.state === "accepted_by_peer" ? (
+                    <ApproveSwapForm swapId={swap.id} />
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {viewer ? (
+          <SwapRequestForm
+            myShifts={shifts
+              .filter((s) => s.staffId === viewer.id)
+              .map((s) => ({
+                id: s.id,
+                label: `${s.shiftDate} ${s.startTime.slice(0, 5)}–${s.endTime.slice(0, 5)}`,
+              }))}
+            team={team
+              .filter((member) => member.id !== viewer.id)
+              .map((member) => ({ id: member.id, fullName: member.fullName }))}
+          />
+        ) : null}
       </Card>
 
       {isManager ? (

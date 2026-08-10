@@ -11,6 +11,7 @@ const BROWSER_PROOF_SPEC = "apps/retailer/e2e/staff-coverage.spec.ts";
 
 let coveragePassed = false;
 let availabilityPassed = false;
+let swapPassed = false;
 
 // Both tests write into the same two module-level flags, which only works
 // if they run in one worker process. fullyParallel defaults to sharding
@@ -20,6 +21,12 @@ let availabilityPassed = false;
 test.describe.configure({ mode: "serial" });
 
 async function signIn(page: Page, email: string): Promise<void> {
+  // Clears any prior session first: an already-authenticated visit to
+  // /login redirects straight past the form, so a test that signs in as a
+  // second persona (e.g. the shift-swap proof's requester -> peer ->
+  // approver handoff) would otherwise time out waiting for a login form
+  // that never renders.
+  await page.context().clearCookies();
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(DEMO_PASSWORD);
@@ -34,7 +41,8 @@ test.afterAll(async () => {
   await writeBrowserProofRun({
     phaseItemId: PHASE_ITEM_ID,
     spec: BROWSER_PROOF_SPEC,
-    status: coveragePassed && availabilityPassed ? "passed" : "failed",
+    status:
+      coveragePassed && availabilityPassed && swapPassed ? "passed" : "failed",
   });
 });
 
@@ -384,4 +392,177 @@ test("a staff member declares their own availability", async ({ page }) => {
   expect(declarationRows?.[0]?.note).toBe("Prefers mornings.");
 
   availabilityPassed = true;
+});
+
+test("a manager offers a shift, a colleague accepts, the owner approves", async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
+
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const proof = await ensureProgrammeProofSeed({
+    supabaseUrl,
+    anonKey,
+    serviceRoleKey,
+  });
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const manager = await admin
+    .from("retailer_staff_members")
+    .select("id")
+    .eq("retailer_id", proof.retailerId)
+    .eq("email", PROGRAMME_PROOF_PERSONAS.manager.email)
+    .single();
+  expect(manager.error).toBeNull();
+  const advisorStaff = await admin
+    .from("retailer_staff_members")
+    .select("id, full_name")
+    .eq("retailer_id", proof.retailerId)
+    .eq("email", PROGRAMME_PROOF_PERSONAS.advisor.email)
+    .single();
+  expect(advisorStaff.error).toBeNull();
+
+  // Unlike the coverage/availability proofs above, this date must fall
+  // inside the coverage page's own 60-day shift-fetch window to be
+  // selectable in the "Your shift" dropdown at all — a year-2100 date is
+  // invisible to the page. The shift row's own freshly generated id is
+  // what every assertion below keys off, but the DATE itself is not
+  // collision-free: checkSwapRequest refuses a peer already scheduled
+  // that day, and a prior successful run of this exact test reassigns the
+  // shift to the advisor persona on whatever date it used — a fixed
+  // offset would make every second same-day rerun fail with
+  // peer_already_scheduled against that leftover shift. Spread across
+  // most of the 60-day window instead of one fixed day.
+  const shiftDate = new Date(Date.now() + (5 + (Date.now() % 50)) * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  const weekday = new Date(`${shiftDate}T00:00:00Z`).getUTCDay();
+
+  // The manager's own shift to offer.
+  const { data: shift, error: shiftError } = await admin
+    .from("staff_shifts")
+    .insert({
+      retailer_id: proof.retailerId,
+      staff_id: manager.data!.id,
+      shift_date: shiftDate,
+      start_time: "09:00",
+      end_time: "17:00",
+    })
+    .select("id")
+    .single();
+  expect(shiftError).toBeNull();
+
+  // checkSwapRequest refuses a peer who has not declared availability for
+  // that weekday — seed it directly rather than through the UI, since the
+  // availability proof above already covers that surface on its own.
+  const { error: availabilityError } = await admin
+    .from("staff_availability_declarations")
+    .insert({
+      retailer_id: proof.retailerId,
+      staff_id: advisorStaff.data!.id,
+      effective_on: shiftDate,
+      weekday,
+      start_time: "00:00",
+      end_time: "23:59",
+      available: true,
+    });
+  expect(availabilityError).toBeNull();
+
+  // ---- the manager requests the swap -----------------------------------
+  await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
+  await page.goto("/staff/coverage");
+  await page.selectOption("select[name='shiftId']", { value: shift!.id });
+  await page.selectOption("select[name='peerStaffId']", {
+    label: advisorStaff.data!.full_name,
+  });
+  await page.getByLabel("Reason (optional)").fill("Dentist appointment.");
+  await page.getByRole("button", { name: "Request swap" }).click();
+  await page.waitForTimeout(2_000);
+  const requestFormError = page.locator("[role=alert]");
+  if ((await requestFormError.count()) > 0) {
+    const text = (await requestFormError.allInnerTexts()).join(" | ").trim();
+    if (text.length > 0) {
+      throw new Error(`Swap request was refused by the server: ${text}`);
+    }
+  }
+
+  const { data: requestedRows, error: requestedError } = await admin
+    .from("staff_shift_swap_requests")
+    .select("id, state")
+    .eq("shift_id", shift!.id);
+  expect(requestedError).toBeNull();
+  expect(requestedRows?.length).toBe(1);
+  const swapId = requestedRows![0]!.id;
+
+  // Every prior run of this test leaves its own requested/accepted swap
+  // rows in place (no cleanup, same as the coverage/coaching proofs above),
+  // so any locator not scoped to THIS run's swap id resolves to more than
+  // one row once this test has run more than once against the same
+  // database — exactly the strict-mode violation this scoping avoids.
+  const swapRow = page.locator(`li[data-swap-id="${swapId}"]`);
+
+  async function waitForSwapState(expected: string): Promise<void> {
+    await expect
+      .poll(
+        async () => {
+          await page.goto("/staff/coverage");
+          return swapRow.getAttribute("data-swap-state");
+        },
+        { timeout: 60_000 },
+      )
+      .toBe(expected);
+  }
+
+  await waitForSwapState("requested");
+
+  // ---- the colleague accepts --------------------------------------------
+  await signIn(page, PROGRAMME_PROOF_PERSONAS.advisor.email);
+  await page.goto("/staff/coverage");
+  await expect(swapRow).toContainText("Dentist appointment.");
+  await swapRow.getByRole("button", { name: "Accept" }).click();
+  await waitForSwapState("accepted_by_peer");
+
+  // ---- the owner approves (neither party to the swap) -------------------
+  await signIn(page, PROGRAMME_PROOF_PERSONAS.owner.email);
+  await page.goto("/staff/coverage");
+  await swapRow.getByRole("button", { name: "Approve swap" }).click();
+
+  // An approved swap is no longer "open" — listOpenSwaps only returns
+  // requested/accepted_by_peer — so the correct UI proof here is that the
+  // row DISAPPEARS from #open-swaps, not that it lingers showing
+  // "approved". Polling this list for an "approved" state would wait
+  // forever for a row the query deliberately excludes.
+  await expect
+    .poll(
+      async () => {
+        await page.goto("/staff/coverage");
+        return swapRow.count();
+      },
+      { timeout: 60_000 },
+    )
+    .toBe(0);
+
+  // ---- the database agrees with the page --------------------------------
+  const { data: approvedRows, error: approvedError } = await admin
+    .from("staff_shift_swap_requests")
+    .select("state, approved_by_staff_id")
+    .eq("id", swapId)
+    .single();
+  expect(approvedError).toBeNull();
+  expect(approvedRows?.state).toBe("approved");
+  expect(approvedRows?.approved_by_staff_id).toBeTruthy();
+
+  // The load-bearing claim of this proof: the roster itself only moved as
+  // an explicit consequence of the approved swap, not at request or accept.
+  const { data: shiftRow, error: shiftReadError } = await admin
+    .from("staff_shifts")
+    .select("staff_id")
+    .eq("id", shift!.id)
+    .single();
+  expect(shiftReadError).toBeNull();
+  expect(shiftRow?.staff_id).toBe(advisorStaff.data!.id);
+
+  swapPassed = true;
 });

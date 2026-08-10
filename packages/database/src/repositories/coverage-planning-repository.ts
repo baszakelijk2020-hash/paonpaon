@@ -359,6 +359,26 @@ export class CoveragePlanningRepository {
     return { ok: true, id: data.id };
   }
 
+  /**
+   * Read a swap by id so the caller can be checked against
+   * requesting_staff_id/peer_staff_id before setSwapState — RLS permits
+   * an update by either party OR a manager, but does not distinguish
+   * which of them may drive which transition; that check belongs here.
+   */
+  async findSwapById(args: {
+    readonly retailerId: RetailerId;
+    readonly swapId: string;
+  }): Promise<SwapRow | null> {
+    const { data, error } = await this.client
+      .from("staff_shift_swap_requests")
+      .select("*")
+      .eq("id", args.swapId)
+      .eq("retailer_id", args.retailerId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ?? null;
+  }
+
   async setSwapState(args: {
     readonly retailerId: RetailerId;
     readonly swapId: string;

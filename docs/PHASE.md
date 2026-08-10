@@ -2820,10 +2820,32 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     `/staff/coverage` open to every staff member. Browser-proven in
     `staff-coverage.spec.ts`: a staff member declares a weekday window,
     it appears in their own list, and the database row matches what the
-    page shows. The checkbox stays unchecked: shift-swap requests
-    (`requestSwap`/`setSwapState`/`approveSwap`) and service ceremony
-    version management still have no UI, and the owner boundary is not met
-    until both do.
+    page shows.
+
+  - **Update (2026-08-10, later the same day):** shift-swap requests now
+    have a browser surface, the same session as the availability one
+    above. `requestSwap`/`setSwapState`/`approveSwap` already existed
+    (2026-08-01) with no caller. Added `findSwapById` (read, so the
+    Server Action layer can check which of the two RLS-permitted parties
+    is calling `setSwapState` before applying it — RLS lets either party
+    or a manager update the row, but does not distinguish which
+    transition each of them may drive) and a "Shift swaps" card: any
+    staff member requests a swap of their own upcoming shift with a
+    named colleague, the colleague accepts or declines, the requester can
+    withdraw, and a manager approves — `approveSwap`'s own domain check
+    (`checkSwapApproval`) still refuses an approver who is party to the
+    swap even though the Server Action's `requireRetailerRole(...,
+"manager")` alone would not catch that. Required-skill re-checking at
+    approval time is out of scope for this slice — `requiredSkills` is
+    passed as `[]`, so approval never blocks on a skill gap; that is a
+    known gap, not a silent one. Browser-proven end to end in
+    `staff-coverage.spec.ts`: a manager offers a shift, a colleague who
+    has declared availability for that weekday accepts it, an owner (party
+    to neither side) approves, and the database confirms `staff_shifts`
+    only reassigns the shift at approval, never at request or accept.
+
+    The checkbox stays unchecked: service ceremony version management
+    still has no UI, so the owner boundary is not fully met.
 
 - [x] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.
