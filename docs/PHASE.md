@@ -2714,7 +2714,7 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     ten-minute closeout flow, and the evidence-linked employee profile
     surface. Treat 11.2 as one slice of several, not near-complete.
 
-- [ ] **11.3 Scheduling, demand, ceremony and coaching**
+- [x] **11.3 Scheduling, demand, ceremony and coaching**
   - **Requirement IDs:** `WFM-105`, `WFM-106`.
   - **Dependencies:** `11.1`, `11.2`.
   - **Owner boundary:** availability/swaps/coverage, explainable staffing,
@@ -2907,6 +2907,26 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     fetch → filter → render on the page an advisor is actually looking at)
     is now true; "contextual" as in _manager-configurable per condition_ is
     not. The checkbox stays unchecked for that narrower reason.
+
+  - **Update (2026-08-10, fifth session the same day):** `CeremonyForm`
+    now lets a manager set a step's `appliesWhen` trigger directly — three
+    optional selects per step slot (appointment kind from
+    `APPOINTMENT_TYPES`, first-visit tri-state, open-alteration tri-state),
+    read by `publishCeremonyVersion` and assembled into `CeremonyContextMatch`
+    only from the conditions actually set, so a step with none set still
+    publishes with `appliesWhen` omitted rather than an all-undefined
+    object. The Server Action rejects a tampered `appointmentKind` value
+    outside `APPOINTMENT_TYPES`. No change to `selectCeremonyPrompts` or
+    `promptsForContext` — that matching logic was already correct.
+    Browser-proven in `staff-coverage.spec.ts` ("ceremony steps filter by
+    context conditions (appliesWhen)"): a step scoped to `appointmentKind:
+"fitting"` appears on the brief for a fitting appointment and does not
+    appear on a styling-consultation appointment for the same retailer.
+    "Contextual prompts" is now true both as a live end-to-end capability
+    and as a manager-configurable one — every owner-boundary surface
+    (availability, swaps, coverage, explainable staffing, ceremony
+    versions with contextual prompts, observations/rubrics/plans) has a
+    browser-proven UI. Checkbox now checked.
 
 - [x] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.
