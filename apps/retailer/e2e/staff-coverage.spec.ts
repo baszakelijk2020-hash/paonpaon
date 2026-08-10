@@ -768,14 +768,22 @@ test("ceremony steps filter by context conditions (appliesWhen)", async ({
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
 
   // Publish a ceremony step scoped to "fitting" appointments only
-  const ceremonyKey = `e2e_contextual_fitting_${Date.now()}`;
+  const ceremonyKey = "fitting";
   const fittingStepTitle = `E2E Fitting-Only Step ${Date.now()}`;
+  const { data: latest } = await admin
+    .from("service_ceremony_versions")
+    .select("version")
+    .eq("retailer_id", proof.retailerId)
+    .eq("ceremony_key", ceremonyKey)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
   const { error: publishError } = await admin
     .from("service_ceremony_versions")
     .insert({
       retailer_id: proof.retailerId,
       ceremony_key: ceremonyKey,
-      version: 1,
+      version: (latest?.version ?? 0) + 1,
       published: true,
       published_at: new Date().toISOString(),
       steps: [
