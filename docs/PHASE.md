@@ -2515,9 +2515,9 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 10 — Clienteling, campaign, and remote-selling parity
 
-- [ ] **10.1 Versioned campaign library**
-  - **Status:** `implemented_unverified`; pinned library/copy foundation
-    exists, but the accepted deployment-to-outcome loop does not.
+- [x] **10.1 Versioned campaign library**
+  - **Status:** `verified_local`; pinned library/copy foundation and the
+    accepted deployment-to-outcome loop are both real and browser-proven.
   - **Requirement IDs:** `CMP-101`–`CMP-104`.
   - **Dependencies:** `8.3`, `8.4`; existing campaign/private-offer
     foundations.
@@ -2557,6 +2557,38 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
       correction path when mapped products/audience change after activation
       without silently reinterpreting the pinned snapshot, and multi-role
       browser proof. Those remain required completion work for 10.1.
+
+  - **Update (2026-08-10/11):** all three remaining gaps closed and
+    browser-proven end to end (`apps/retailer/e2e/campaigns.spec.ts`) —
+    a manager's own signed-in session clones/maps/activates a campaign, a
+    _customer's own signed-in session_ (not admin) places an order for the
+    mapped target product and the campaign mission's `outcome_order_id` is
+    genuinely observed to link, the manager's post-activation edit attempt
+    is genuinely refused, and clone-for-correction genuinely produces a new
+    draft. `CampaignRepository.upsertAudienceRule`/`setTargetProduct` now
+    refuse once `campaign.status !== "draft"`; `cloneRetailerCampaignForCorrection`
+    copies an activated campaign's own current rules/targets into a fresh
+    draft (same `library_version_id` pin) so a manager corrects by cloning
+    rather than silently mutating missions/placements that already
+    reference the original.
+
+    The first working implementation of auto-linking wired only
+    `OrderRepository.placeOrder`, using the _caller's own_ Supabase client
+    for the internal `clienteling_opportunities` read/write. That silently
+    no-op'd for the real path: `clienteling_opportunities` RLS requires
+    `current_retailer_role() IS NOT NULL`, so a customer's own session
+    (the actual checkout caller) can never see that table — verified by
+    reproducing the failure, then confirming the linking logic itself was
+    correct via a direct admin-client call before concluding it was an RLS
+    gap, not a logic bug. Fixed by running that one narrow internal step
+    (a single opportunity row already tied to the order the caller's own
+    session just created) through a privileged client, matching this
+    codebase's existing precedent (`rehearseCampaign`/
+    `activateCampaignWithMissions`'s own docblocks explain the same
+    reasoning). Also found and fixed: `placeOrder` is a direct-purchase
+    path, not what `apps/customer`'s real cart checkout calls — that goes
+    through `checkoutCart` (a separate RPC), which had no linking hook at
+    all until this update.
 
 - [ ] **10.2 Seven-Day Wardrobe and Honeymoon Phase**
   - **Requirement IDs:** `CMP-105`, `CMP-106`, `WRD-104`.
