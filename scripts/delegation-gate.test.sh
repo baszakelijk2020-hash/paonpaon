@@ -43,6 +43,11 @@ read_payload() {
   printf '{"tool_name":"%s","tool_input":%s}' "$tool" "$input"
 }
 
+worker_payload() {
+  local tool="$1" input="$2"
+  printf '{"tool_name":"%s","tool_input":%s,"agent_id":"a1","agent_type":"paon-explorer"}' "$tool" "$input"
+}
+
 # --- 1. Un-delegated Route-A investigation is eventually rejected ---------
 reset_ledger
 out=""
@@ -66,12 +71,23 @@ out="$(call_hook "$(read_payload Grep '{"pattern":"foo"}')")"
 denied="$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // empty' 2>/dev/null)"
 assert "budget exhausted before delegation" "$([ "$denied" = "deny" ] && echo 0 || echo 1)"
 
-call_hook "$(read_payload Task '{"subagent_type":"paon-explorer"}')" >/dev/null
+call_hook "$(read_payload Agent '{"subagent_type":"paon-explorer"}')" >/dev/null
 agent="$(jq -r '.lastDelegatedAgent' "$PAON_DELEGATION_STATE_FILE")"
 assert "ledger records the delegated agent" "$([ "$agent" = "paon-explorer" ] && echo 0 || echo 1)"
 
 out="$(call_hook "$(read_payload Read '{"file_path":"AGENTS.md"}')")"
 assert "Sonnet's post-delegation verification read is permitted" "$([ -z "$out" ] && echo 0 || echo 1)"
+
+# --- 2b. A dispatched worker's OWN investigation is never gated, even past
+#         the frontier's budget — agent_id/agent_type on the payload is the
+#         only reliable signal (frontier and worker share one session_id) --
+reset_ledger
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  out="$(call_hook "$(worker_payload Grep '{"pattern":"foo"}')")"
+  assert "worker investigative call #$i is never gated" "$([ -z "$out" ] && echo 0 || echo 1)"
+done
+count="$(jq -r '.investigationCount' "$PAON_DELEGATION_STATE_FILE")"
+assert "worker calls never increment the frontier's investigation counter" "$([ "$count" = "0" ] && echo 0 || echo 1)"
 
 # --- 3. Route-C narrow inspection / final acceptance is never blocked -----
 reset_ledger

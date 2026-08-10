@@ -81,11 +81,19 @@ fi
 # --- Hook mode ------------------------------------------------------------
 payload="$(cat)"
 tool_name="$(printf '%s' "$payload" | jq -r '.tool_name // empty')"
+agent_id="$(printf '%s' "$payload" | jq -r '.agent_id // empty')"
 
 [ -n "$tool_name" ] || allow
 
+# Tool calls carrying agent_id/agent_type originate INSIDE an already-
+# dispatched subagent (a Route-A/B worker), not from the frontier's own
+# direct tool use — the frontier and its workers share one session_id, so
+# agent_id is the only reliable signal that distinguishes them. A worker's
+# own investigation is the delegated work itself and must never be gated.
+[ -z "$agent_id" ] || allow
+
 case "$tool_name" in
-  Task)
+  Agent)
     subagent="$(printf '%s' "$payload" | jq -r '.tool_input.subagent_type // "unknown"')"
     state="$(read_state)"
     new_state="$(printf '%s' "$state" | jq --arg agent "$subagent" --arg at "$(now)" \

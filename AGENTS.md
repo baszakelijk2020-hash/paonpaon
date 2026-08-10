@@ -135,7 +135,7 @@ On Claude Code this invariant is enforced, not advisory: the `PreToolUse`
 hook `scripts/delegation-gate.sh` (registered in `.claude/settings.json`,
 matcher `Read|Grep|Glob|Bash|Task`) counts un-delegated Read/Grep/Glob and
 investigative-Bash calls in the runtime ledger (ch.16) and denies further
-calls once the budget is exceeded. The budget resets when a `Task`
+calls once the budget is exceeded. The budget resets when an `Agent`
 delegation is recorded, when `git commit` closes a unit of work, or when the
 frontier runs `scripts/delegation-gate.sh --acknowledge-route-c "<reason>"`
 to log an explicit, auditable justification for narrow Route-C inspection.

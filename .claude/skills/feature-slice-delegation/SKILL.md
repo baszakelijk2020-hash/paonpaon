@@ -26,7 +26,7 @@ implementation completeness), dispatch the `paon-explorer` agent (Haiku) —
 or `paon-test-investigator` for test/lint/type-failure diagnosis. This is
 enforced, not optional: `scripts/delegation-gate.sh` (a PreToolUse hook)
 rejects sustained un-delegated Read/Grep/Glob/Bash investigation past a
-small budget and only resets it once a `Task` delegation is recorded in
+small budget and only resets it once an `Agent` delegation is recorded in
 `.claude/delegation-state.json`. Only read files yourself when the read is
 the narrow inspection needed for the Route-C judgment itself (e.g. the one
 migration whose RLS shape you're about to design), not to survey the
