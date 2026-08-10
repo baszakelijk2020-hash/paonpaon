@@ -12,6 +12,7 @@ import {
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
+import { createSupabaseAdminClient } from "../clients/admin";
 import type { Database } from "../generated/database.types";
 
 import { CampaignRepository } from "./campaign-repository";
@@ -164,22 +165,38 @@ export class OrderRepository {
     return orderId;
   }
 
+  /**
+   * `clienteling_opportunities` SELECT/UPDATE RLS requires
+   * `current_retailer_role() IS NOT NULL` — a customer's own RLS-scoped
+   * session (the caller for both `placeOrder` and `checkoutCart` on the
+   * real customer-checkout path) can never see that table, so this internal
+   * side effect needs its own privileged client rather than `this.client`.
+   * The order itself was already placed under the caller's own properly
+   * scoped session before this runs; this only reads/writes one narrow,
+   * internal-system row keyed to the order that session just created.
+   */
   private async linkCampaignOutcomeIfApplicable(
     retailerId: RetailerId,
     orderId: OrderId,
   ): Promise<void> {
+    const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+    const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+    if (!supabaseUrl || !serviceRoleKey) return; // no privileged access available, skip silently
+    const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
     // Get the new order to extract customer_id
-    const order = await this.findById(orderId);
+    const orderRepo = new OrderRepository(admin);
+    const order = await orderRepo.findById(orderId);
     if (!order) return; // Should not happen, but be safe
 
     // Look up first order line to get the product
-    const lines = await this.findLinesByOrder(orderId);
+    const lines = await orderRepo.findLinesByOrder(orderId);
     if (lines.length === 0) return; // No lines, nothing to match
 
     const firstLineVariantId = lines[0]!.productVariantId;
 
     // Get the variant to find the product
-    const { data: variant, error: variantError } = await this.client
+    const { data: variant, error: variantError } = await admin
       .from("product_variants")
       .select("product_id")
       .eq("id", firstLineVariantId)
@@ -191,21 +208,21 @@ export class OrderRepository {
 
     // Look up open campaign mission for this customer
     const opportunity = await new ClientelingOpportunityRepository(
-      this.client,
+      admin,
     ).findOpenCampaignMission(retailerId, order.customerId);
 
     if (!opportunity || !opportunity.campaignId) return; // No open mission, nothing to link
 
     // Check if the ordered product is in the campaign's target products
     const targetProducts = await new CampaignRepository(
-      this.client,
+      admin,
     ).listTargetProducts(opportunity.campaignId);
 
     const isTargeted = targetProducts.some((t) => t.productId === productId);
     if (!isTargeted) return; // Product not in targets, skip linking
 
     // Link the outcome — use linkOutcome without status param to default to "completed"
-    await new ClientelingOpportunityRepository(this.client).linkOutcome({
+    await new ClientelingOpportunityRepository(admin).linkOutcome({
       retailerId,
       opportunityId: opportunity.id,
       outcomeOrderId: orderId,
@@ -275,6 +292,27 @@ export class OrderRepository {
         shippingAddress as unknown as Database["public"]["Functions"]["checkout_cart"]["Args"]["p_shipping_address"],
     });
     if (error) throw error;
-    return asId<"OrderId">(data);
+    const checkedOutOrderId = asId<"OrderId">(data);
+
+    // See placeOrder's identical wiring above — checkout_cart is the real
+    // cart-checkout path a customer's own browser session actually calls,
+    // and needs the same best-effort campaign-outcome link.
+    const { data: order } = await this.client
+      .from("orders")
+      .select("retailer_id")
+      .eq("id", checkedOutOrderId)
+      .maybeSingle();
+    if (order) {
+      try {
+        await this.linkCampaignOutcomeIfApplicable(
+          asId<"RetailerId">(order.retailer_id),
+          checkedOutOrderId,
+        );
+      } catch (e) {
+        console.error("Campaign outcome linking failed:", e);
+      }
+    }
+
+    return checkedOutOrderId;
   }
 }
