@@ -25,38 +25,56 @@ authoritative for what is built; `git log --oneline` and
 
 ## Current snapshot
 
-Lane H snapshot (2026-08-09): AGENTS.md gained a binding "Material-progress
-gate" — classify every candidate task as BLOCKER/MATERIAL_BUILD/
-MATERIAL_INTEGRATION/ADMINISTRATION; formal PHASE checkbox closure is
-subordinate to material product progress. `docs/PHASE.md`'s control-gate
-instruction now points at this classification instead of raw document order.
+Lane H snapshot (2026-08-10): this session hardened Claude Code's own
+Route-A delegation enforcement (see `AGENTS.md`'s Hard delegation invariant
+and `scripts/delegation-gate.sh` — a PreToolUse hook, not just prose), then
+resumed material PAON work. Seven feature commits landed on top of that,
+each independently typechecked/linted/browser-proven before push:
 
-Under that gate, two real capabilities were built this session:
+1. **FT-01 fit-profile candidate review** (`d0b8ea1`, `50785f6`) — staff
+   propose a fit-profile candidate from a fitting observation, an advisor
+   approves/rejects from the customer detail page. Migration, repository,
+   Server Actions, UI, e2e, and a pgTAP tenant-isolation test all new.
 
-1. **PHASE 17.8** — the AI sales-roleplay conversation partner that was
-   genuinely missing (persona catalog/grading loop already existed; the
-   actual AI conversation itself did not). New `academy_roleplay_sessions`/
-   `academy_roleplay_messages` tables, three identity-re-deriving RPCs,
-   `@paon/ai`'s `generateAcademyRoleplayReply` provider capability, a
-   `/staff/learning` practice UI, and grading integration
-   (`roleplay_session_id`). Checked complete with evidence.
+2. **PHASE 11.3** (`a2f4064`, `0505e82`, `71a90a1`, `0ba63f0`) — closed out
+   end-to-end. Coverage/coaching already existed; this session added
+   availability declarations, shift-swap requests, service-ceremony
+   version publishing, and contextual ceremony prompts (wired into the
+   PHASE 17.3 appointment-brief page via `promptsForContext`, keyed by
+   `appointment.type`). Still unchecked: the publish form has no UI for a
+   step's `appliesWhen` trigger, so every published step applies
+   unconditionally — a narrower, explicitly named remaining gap, not a
+   missing capability.
 
-2. **PHASE 18.5** — closed the long-named gap: `corporate_wearers.
-customer_id` existed since 20260801000012 with no write path and no read
-   path in either direction. Added the tenant-invariant link trigger,
-   additive RLS on appointments/orders/alteration views/measurement
-   versions (keyed off the wearer's own `corporate_wearers` row, since a
-   wearer's Employee Portal login and their linked customer's login can be
-   different auth users for the same real person), a staff-driven link-by-
-   email UI, a safe silent auto-link for the same-login case, and four new
-   read sections on `/employee`. Checkbox remains unchecked: wardrobe,
-   announcements and write-capable self-service (booking, not just
-   reading) are real, unattempted gaps. **A more complete design already
-   exists but was never implemented**: `agent/lane-g-employee-portal-
-linking` (stale since 2026-08-07,
-   `docs/EMPLOYEE_PORTAL_SELF_SERVICE_BLUEPRINT.md`) independently proposed
-   the same auto-link mechanism plus opt-in customer-account creation and a
-   write-capable booking form — read it before extending this area further.
+3. **PHASE 15.2** (`7f533b5`) — concierge request surface. Reward UI and
+   accounting export remain genuinely blocked on ADR-062 (stored-value
+   decision); concierge requests were never blocked on that (own docblock
+   says so) and just needed wiring — reuses `MessagingRepository`
+   verbatim, no new table, same precedent as PHASE 17.13's alteration/
+   cleaning booking below.
+
+**PHASE 17.13 investigated but NOT built** — its two remaining named gaps
+both turned out to need a real architecture decision, not wiring, so this
+session deliberately stopped rather than rush them at the tail end of a
+long run:
+
+- _Unattached (logged-out-created) item_: `wardrobe_items.customer_id` is
+  `not null` (`20260730160000_add_wardrobe_ownership.sql:12`); making it
+  nullable cascades into RLS/triggers across the table.
+- _Periodic fit-check photo → Self-Portrait update_: the MeasurementMonitor
+  decision gate (`packages/domain/src/fit/measurement-monitor.ts`,
+  `decideMeasurementOutcome`) can only classify a candidate against
+  **numeric millimetre values** compared to the approved version — a photo
+  alone produces no numbers, so representing "customer flagged via photo,
+  needs human judgment" honestly requires a schema/domain extension (a
+  non-numeric candidate type), not a new Server Action calling existing
+  methods. Fabricating placeholder values to force it through the existing
+  pipeline would violate that module's own explicit anti-fabrication
+  design (see its docblock).
+
+Recurring monitor cron paused by explicit founder request 2026-08-10 —
+**do not re-enable autonomous continuation on this lane without being
+asked.**
 
 Stage 17.10 (AI try-on / MorningRoutine) remains unchecked: the ledger is
 deliberately **not wired to gate today's generation path** — every
