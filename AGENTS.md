@@ -1398,7 +1398,185 @@ Do not merely rely on retrospective human inspection.
 
 ---
 
-# 50. Default autonomous loop
+# 50. Product-readiness convergence gate
+
+PAON is now in product-readiness convergence mode.
+
+The purpose of remaining implementation is not to maximize feature breadth.
+It is to turn the existing platform into a deployable, operable,
+founder-independent SaaS product.
+
+Unless explicitly authorized by the founder, do not add a new product concept,
+module, major workflow family, experimental surface or speculative feature
+while material product-readiness work remains.
+
+For every candidate task, classify it as one of:
+
+- PRODUCT_CORE — required for an existing committed customer/retailer
+  workflow;
+- PRODUCT_INTEGRATION — connects existing capabilities into authoritative
+  end-to-end operation;
+- PRODUCT_RELIABILITY — failure handling, retries, idempotency, recovery,
+  observability, performance, migration safety or production correctness;
+- PRODUCT_OPERATIONS — onboarding, tenant lifecycle, administration, support,
+  billing, entitlements, data import/export, monitoring or deployment;
+- PRODUCT_SECURITY — authentication, authorization, RLS, privacy,
+  auditability, secrets, backups or recovery;
+- EXPANSION — new capability, optional module, experiment or speculative
+  improvement.
+
+Priority is binding:
+
+1. critical PRODUCT_SECURITY;
+2. blocker affecting production operation;
+3. incomplete PRODUCT_CORE;
+4. PRODUCT_INTEGRATION;
+5. PRODUCT_RELIABILITY;
+6. PRODUCT_OPERATIONS;
+7. required acceptance/evidence for the above;
+8. EXPANSION.
+
+EXPANSION must not consume frontier implementation capacity while buildable
+items exist in categories 1–6.
+
+### Product-ready definition
+
+A capability is not product-ready merely because it exists in code.
+
+Where applicable, product-ready means:
+
+1. a normal user can discover and understand it without founder explanation;
+2. the complete workflow is reachable through production UI;
+3. authoritative backend state is used;
+4. permissions and tenant boundaries are enforced;
+5. empty, denied, stale, duplicate and failure states behave safely;
+6. retries are safe where operations can repeat;
+7. critical actions are observable and diagnosable;
+8. appropriate audit history exists;
+9. production data volumes do not make the workflow unusable;
+10. applicable browser/database integration is proven;
+11. support staff can understand and recover common failure conditions;
+12. onboarding/configuration does not require direct database manipulation.
+
+### Founder-independence invariant
+
+For every production-critical workflow, prefer a system that another
+competent operator can understand and operate without founder intervention.
+
+The frontier must identify and eliminate hidden founder dependencies such as:
+
+- configuration requiring direct SQL or repository edits;
+- undocumented operational procedures;
+- hard-coded retailer assumptions;
+- manual tenant provisioning;
+- undocumented provider activation;
+- founder-only recovery steps;
+- unclear pricing/entitlement behavior;
+- manual data correction paths;
+- knowledge that exists only in conversation history.
+
+Do not create documentation for its own sake. Remove the dependency by making
+the workflow self-service, explicit or operationally inspectable wherever
+practical.
+
+### Production-control surfaces
+
+Before considering PAON broadly deployable, the roadmap must contain and
+converge the following existing-product control surfaces where absent:
+
+- retailer onboarding and configuration;
+- tenant activation, suspension and closure;
+- staff/user provisioning and role management;
+- module entitlements;
+- subscription/billing lifecycle;
+- data import and export;
+- provider/integration configuration;
+- background-job visibility and retry/recovery;
+- production health/observability;
+- support/admin diagnostics;
+- audit history for sensitive actions;
+- backup/restore and migration procedures;
+- privacy/data-retention/deletion workflows.
+
+These are product work, not secondary administration.
+
+### Production vertical before horizontal expansion
+
+For each major existing capability, finish vertically:
+
+```text
+user entry
+-> permissions
+-> authoritative data
+-> mutation
+-> downstream effects
+-> failure/recovery
+-> observability
+-> supportability
+-> proof
+```
+
+before expanding horizontally into adjacent new capabilities.
+
+### Product-readiness debt
+
+When an existing capability is materially built but lacks one of the
+product-ready properties above, treat the missing property as
+PRODUCT_INTEGRATION, PRODUCT_RELIABILITY, PRODUCT_OPERATIONS or
+PRODUCT_SECURITY rather than declaring the capability complete.
+
+Do not open broad repository-wide hardening campaigns.
+
+Fix product-readiness debt vertically as the active capability is encountered.
+
+### Commercial operability
+
+Where product behavior affects commercial operation, make the behavior
+explicit and configurable rather than founder-dependent.
+
+Examples include:
+
+- module availability;
+- AI/provider usage policy;
+- subscription entitlements;
+- retailer limits;
+- activation state;
+- usage/cost boundaries;
+- trial/founder pricing;
+- suspension behavior.
+
+Do not invent commercial terms.
+
+When a commercial decision is genuinely unresolved, record the blocker and
+continue other material product-readiness work.
+
+### New-feature freeze
+
+A new feature may enter implementation only when at least one is true:
+
+1. it is already an explicit committed PHASE/NORTH_STAR requirement;
+2. it is required to make an existing committed capability usable;
+3. it fixes a critical production/security/data-integrity defect;
+4. the founder explicitly authorizes it.
+
+Interesting ideas discovered during implementation are not authorization.
+
+Record them only in an already-authorized idea/backlog location if one
+exists; otherwise leave them unimplemented.
+
+### Product-readiness selection question
+
+Before every new frontier slice ask:
+
+> Does this make an existing PAON capability more deployable, operable,
+> reliable, secure, understandable, commercially usable or founder-independent?
+
+If no, and product-readiness work remains, do not make it the active
+frontier.
+
+---
+
+# 51. Default autonomous loop
 
 For each material capability:
 
@@ -1435,7 +1613,7 @@ Surface only genuine founder decisions.
 
 ---
 
-# 51. Never-stop material execution
+# 52. Never-stop material execution
 
 A blocker or founder decision on one requirement is NOT a global stopping
 condition.
@@ -1484,7 +1662,7 @@ skipping lane-disjointness checks, or fabricating the blocked decision itself.
 
 ---
 
-# 52. Binding summary
+# 53. Binding summary
 
 **The repository remembers.**
 

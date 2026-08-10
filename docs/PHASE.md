@@ -36,6 +36,34 @@ The product hierarchy is authoritative in [NORTH_STAR.md](./NORTH_STAR.md).
 The source audit and rationale are recorded in
 [audits/FOUNDER_INTENT_AND_PLATFORM_RESET_2026-08-01.md](./audits/FOUNDER_INTENT_AND_PLATFORM_RESET_2026-08-01.md).
 
+## Current programme mode: Product-readiness convergence
+
+PAON is in product-readiness convergence mode.
+
+Do not select new feature expansion ahead of executable work that makes
+existing committed capabilities production-ready.
+
+Queue selection must apply the Product-readiness convergence gate in
+`AGENTS.md`.
+
+Highest-priority programme outcomes are:
+
+1. existing core workflows work end-to-end on authoritative production data;
+2. onboarding/configuration can occur without developer intervention;
+3. tenant/user/module lifecycle is operable;
+4. billing/entitlements and provider activation boundaries are explicit;
+5. imports/exports and retailer migration are operational;
+6. failures, retries and recovery are safe;
+7. production behavior is observable and supportable;
+8. security/privacy/audit/backup requirements are operational;
+9. critical workflows perform acceptably at realistic data volumes;
+10. the system can be operated by a competent team without founder-specific
+    knowledge.
+
+Do not interpret this mode as a repository-wide hardening sweep. Continue
+vertically through the highest-priority material capability and its required
+production-readiness gaps.
+
 ## 2026-08-01 control gate — active queue
 
 **Take the highest-priority buildable material capability according to
