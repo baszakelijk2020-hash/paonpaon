@@ -15,10 +15,11 @@ import {
   cloneCampaignFromLibrary,
   rehearseCampaign,
   setCampaignStatus,
-  setCampaignTargetProduct,
   upsertCampaign,
-  upsertCampaignAudienceRule,
 } from "./actions";
+import { AudienceRuleForm } from "./audience-rule-form";
+import { CloneForCorrectionForm } from "./clone-for-correction-form";
+import { TargetProductForm } from "./target-product-form";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
@@ -318,6 +319,9 @@ export default async function CampaignSettingsPage() {
                     {tracking.lastActivationMissionsCreated} staff mission(s).
                   </p>
                 ) : null}
+                {campaign.status !== "draft" ? (
+                  <CloneForCorrectionForm campaignId={campaign.id} />
+                ) : null}
               </div>
             </div>
 
@@ -339,39 +343,7 @@ export default async function CampaignSettingsPage() {
                   ))
                 )}
               </ul>
-              <form
-                action={upsertCampaignAudienceRule}
-                className="mt-3 grid gap-2 md:grid-cols-3"
-              >
-                <input type="hidden" name="campaignId" value={campaign.id} />
-                <select
-                  name="ruleKind"
-                  className="rounded border border-[var(--color-stone-200)] px-3 py-2 text-sm"
-                  defaultValue="personalization_consent"
-                >
-                  <option value="personalization_consent">
-                    Personalization consent
-                  </option>
-                  <option value="fabric_concept">Fabric concept</option>
-                  <option value="category_concept">Category concept</option>
-                  <option value="style_preference">Style preference</option>
-                  <option value="loyalty_tier">Loyalty tier</option>
-                </select>
-                <input
-                  name="conceptId"
-                  placeholder="Concept UUID (optional)"
-                  className="rounded border border-[var(--color-stone-200)] px-3 py-2 text-sm"
-                />
-                <input
-                  name="explanation"
-                  required
-                  placeholder="Why this member sees it"
-                  className="rounded border border-[var(--color-stone-200)] px-3 py-2 text-sm md:col-span-2"
-                />
-                <Button type="submit" size="sm" variant="outline">
-                  Add rule
-                </Button>
-              </form>
+              <AudienceRuleForm campaignId={campaign.id} />
             </div>
 
             <div className="mt-4 border-t border-[var(--color-stone-100)] pt-4">
@@ -397,26 +369,11 @@ export default async function CampaignSettingsPage() {
                         <span className="text-sm text-[var(--color-stone-900)]">
                           {product.name}
                         </span>
-                        <form action={setCampaignTargetProduct}>
-                          <input
-                            type="hidden"
-                            name="campaignId"
-                            value={campaign.id}
-                          />
-                          <input
-                            type="hidden"
-                            name="productId"
-                            value={product.id}
-                          />
-                          <input
-                            type="hidden"
-                            name="active"
-                            value={active ? "false" : "true"}
-                          />
-                          <Button type="submit" size="sm" variant="outline">
-                            {active ? "Remove" : "Include"}
-                          </Button>
-                        </form>
+                        <TargetProductForm
+                          campaignId={campaign.id}
+                          productId={product.id}
+                          isActive={active}
+                        />
                       </li>
                     );
                   })}

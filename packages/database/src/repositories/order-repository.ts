@@ -14,6 +14,9 @@ import {
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database } from "../generated/database.types";
 
+import { CampaignRepository } from "./campaign-repository";
+import { ClientelingOpportunityRepository } from "./clienteling-opportunity-repository";
+
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 type OrderLineRow = Database["public"]["Tables"]["order_lines"]["Row"];
 
@@ -147,7 +150,66 @@ export class OrderRepository {
       throw error;
     }
 
-    return asId<"OrderId">(data);
+    const orderId = asId<"OrderId">(data);
+
+    // Automatic order-outcome linking for campaign missions (PHASE 10.1).
+    // Wrap in try/catch so a bug in linking can never fail the order.
+    try {
+      await this.linkCampaignOutcomeIfApplicable(params.retailerId, orderId);
+    } catch (e) {
+      // Log but don't rethrow — linking is a best-effort side effect
+      console.error("Campaign outcome linking failed:", e);
+    }
+
+    return orderId;
+  }
+
+  private async linkCampaignOutcomeIfApplicable(
+    retailerId: RetailerId,
+    orderId: OrderId,
+  ): Promise<void> {
+    // Get the new order to extract customer_id
+    const order = await this.findById(orderId);
+    if (!order) return; // Should not happen, but be safe
+
+    // Look up first order line to get the product
+    const lines = await this.findLinesByOrder(orderId);
+    if (lines.length === 0) return; // No lines, nothing to match
+
+    const firstLineVariantId = lines[0]!.productVariantId;
+
+    // Get the variant to find the product
+    const { data: variant, error: variantError } = await this.client
+      .from("product_variants")
+      .select("product_id")
+      .eq("id", firstLineVariantId)
+      .maybeSingle();
+
+    if (variantError || !variant) return; // Variant not found, skip linking
+
+    const productId = variant.product_id;
+
+    // Look up open campaign mission for this customer
+    const opportunity = await new ClientelingOpportunityRepository(
+      this.client,
+    ).findOpenCampaignMission(retailerId, order.customerId);
+
+    if (!opportunity || !opportunity.campaignId) return; // No open mission, nothing to link
+
+    // Check if the ordered product is in the campaign's target products
+    const targetProducts = await new CampaignRepository(
+      this.client,
+    ).listTargetProducts(opportunity.campaignId);
+
+    const isTargeted = targetProducts.some((t) => t.productId === productId);
+    if (!isTargeted) return; // Product not in targets, skip linking
+
+    // Link the outcome — use linkOutcome without status param to default to "completed"
+    await new ClientelingOpportunityRepository(this.client).linkOutcome({
+      retailerId,
+      opportunityId: opportunity.id,
+      outcomeOrderId: orderId,
+    });
   }
 
   async updateStatus(id: OrderId, status: OrderStatus): Promise<Order> {

@@ -70,6 +70,9 @@ function toDomain(row: Row): ClientelingOpportunity {
       ? { outcomeAppointmentId: row.outcome_appointment_id }
       : {}),
     ...(row.outcome_order_id ? { outcomeOrderId: row.outcome_order_id } : {}),
+    ...((row as unknown as { campaign_id?: string }).campaign_id
+      ? { campaignId: (row as unknown as { campaign_id?: string }).campaign_id }
+      : {}),
     projectorVersion: row.projector_version,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -138,6 +141,29 @@ export class ClientelingOpportunityRepository {
       .limit(limit);
     if (error) throw error;
     return data.map(toDomain);
+  }
+
+  /**
+   * Find active campaign mission for automatic order-outcome linking (PHASE 10.1).
+   * Returns the first open campaign mission (draft status, no outcome yet) for a customer.
+   */
+  async findOpenCampaignMission(
+    retailerId: RetailerId,
+    customerId: CustomerId,
+  ): Promise<ClientelingOpportunity | null> {
+    const { data, error } = await this.client
+      .from("clienteling_opportunities")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .eq("customer_id", customerId)
+      .eq("opportunity_type", "campaign_mission")
+      .eq("status", "draft")
+      .is("outcome_order_id", null)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    return data && data.length > 0 ? toDomain(data[0]!) : null;
   }
 
   async listDraftInbox(

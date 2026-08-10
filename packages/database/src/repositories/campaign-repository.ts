@@ -417,10 +417,25 @@ export class CampaignRepository {
     return data.map(toAudienceRule);
   }
 
+  /**
+   * Upsert a campaign audience rule. Returns error if campaign is not draft (PHASE 10.1).
+   */
   async upsertAudienceRule(
     retailerId: string,
     input: UpsertCampaignAudienceRuleInput,
-  ): Promise<string> {
+  ): Promise<{ ok: true; ruleId: string } | { ok: false; reason: string }> {
+    // Guard: campaign must be in draft status
+    const campaign = await this.findById(input.campaignId);
+    if (!campaign) {
+      return { ok: false, reason: "Campaign not found" };
+    }
+    if (campaign.status !== "draft") {
+      return {
+        ok: false,
+        reason: `Cannot modify audience rules after campaign activation. Clone for correction instead.`,
+      };
+    }
+
     const payload = {
       campaign_id: input.campaignId,
       retailer_id: retailerId,
@@ -442,7 +457,7 @@ export class CampaignRepository {
         .select("id")
         .single();
       if (error) throw error;
-      return data.id;
+      return { ok: true, ruleId: data.id };
     }
 
     const { data, error } = await this.client
@@ -451,7 +466,7 @@ export class CampaignRepository {
       .select("id")
       .single();
     if (error) throw error;
-    return data.id;
+    return { ok: true, ruleId: data.id };
   }
 
   async listTargetProducts(
@@ -466,10 +481,25 @@ export class CampaignRepository {
     return data.map(toTarget);
   }
 
+  /**
+   * Set target product for a campaign. Returns error if campaign is not draft (PHASE 10.1).
+   */
   async setTargetProduct(
     retailerId: string,
     input: SetCampaignTargetProductInput,
-  ): Promise<void> {
+  ): Promise<{ ok: true } | { ok: false; reason: string }> {
+    // Guard: campaign must be in draft status
+    const campaign = await this.findById(input.campaignId);
+    if (!campaign) {
+      return { ok: false, reason: "Campaign not found" };
+    }
+    if (campaign.status !== "draft") {
+      return {
+        ok: false,
+        reason: `Cannot modify target products after campaign activation. Clone for correction instead.`,
+      };
+    }
+
     const { error } = await this.client.from("campaign_target_products").upsert(
       {
         campaign_id: input.campaignId,
@@ -480,6 +510,7 @@ export class CampaignRepository {
       { onConflict: "campaign_id,product_id" },
     );
     if (error) throw error;
+    return { ok: true };
   }
 
   async enrollChallenge(args: {
@@ -713,5 +744,117 @@ export class CampaignRepository {
       .limit(limit);
     if (error) throw error;
     return data.map(toAudit);
+  }
+
+  /**
+   * Clone an already-activated retailer campaign into a new draft for correction (PHASE 10.1).
+   * Copies current audience rules and target products into a new campaign row with the same
+   * library_version_id pin and status reset to draft.
+   */
+  async cloneRetailerCampaignForCorrection(args: {
+    readonly retailerId: string;
+    readonly campaignId: string;
+  }): Promise<
+    { ok: true; newCampaignId: string } | { ok: false; reason: string }
+  > {
+    // Get the campaign to clone
+    const campaign = await this.findById(args.campaignId);
+    if (!campaign) {
+      return { ok: false, reason: "Campaign not found" };
+    }
+    if (campaign.retailerId !== args.retailerId) {
+      return { ok: false, reason: "Unauthorized" };
+    }
+
+    // Get its current audience rules and target products
+    const [rules, targets] = await Promise.all([
+      this.listAudienceRules(args.campaignId),
+      this.listTargetProducts(args.campaignId),
+    ]);
+
+    // Get library_version_id and related metadata from the original campaign
+    const { data: campaignRow, error: campaignError } = await this.client
+      .from("campaigns")
+      .select("library_version_id, library_entry_id, library_pinned_at")
+      .eq("id", args.campaignId)
+      .eq("retailer_id", args.retailerId)
+      .maybeSingle();
+
+    if (campaignError || !campaignRow) {
+      return { ok: false, reason: "Campaign not found" };
+    }
+
+    // Create the new draft campaign with the same library pin
+    const { data: newCampaign, error: insertError } = await this.client
+      .from("campaigns")
+      .insert({
+        retailer_id: args.retailerId,
+        kind: campaign.kind,
+        status: "draft",
+        title: campaign.title,
+        summary: campaign.summary,
+        explanation: campaign.explanation,
+        frequency: campaign.frequency,
+        timezone: campaign.timezone,
+        preferred_local_hour: campaign.preferredLocalHour,
+        quiet_start_minute: campaign.quietHours?.startMinute ?? null,
+        quiet_end_minute: campaign.quietHours?.endMinute ?? null,
+        starts_at: campaign.startsAt ?? null,
+        ends_at: campaign.endsAt ?? null,
+        reward_kind: campaign.rewardKind ?? null,
+        reward_label: campaign.rewardLabel ?? null,
+        reward_cap_per_customer: campaign.rewardCapPerCustomer,
+        short_lived_offer_hours: campaign.shortLivedOfferHours,
+        library_entry_id: campaignRow.library_entry_id,
+        library_version_id: campaignRow.library_version_id,
+        library_pinned_at: campaignRow.library_pinned_at,
+      })
+      .select("id")
+      .single();
+
+    if (insertError || !newCampaign) {
+      throw insertError;
+    }
+
+    const newCampaignId = newCampaign.id;
+
+    // Copy over the audience rules
+    if (rules.length > 0) {
+      const rulesToInsert = rules.map((rule) => ({
+        campaign_id: newCampaignId,
+        retailer_id: args.retailerId,
+        rule_kind: rule.ruleKind,
+        concept_id: rule.conceptId ?? null,
+        product_id: rule.productId ?? null,
+        loyalty_tier: rule.loyaltyTier ?? null,
+        require_personalization_consent: rule.requirePersonalizationConsent,
+        explanation: rule.explanation,
+        active: rule.active,
+      }));
+
+      const { error: rulesError } = await this.client
+        .from("campaign_audience_rules")
+        .insert(rulesToInsert);
+
+      if (rulesError) throw rulesError;
+    }
+
+    // Copy over the target products
+    if (targets.length > 0) {
+      const targetsToInsert = targets.map((target) => ({
+        campaign_id: newCampaignId,
+        retailer_id: args.retailerId,
+        product_id: target.productId,
+        active: target.active,
+      }));
+
+      const { error: targetsError } = await this.client
+        .from("campaign_target_products")
+        .insert(targetsToInsert);
+
+      if (targetsError) throw targetsError;
+    }
+
+    return { ok: true, newCampaignId };
   }
 }

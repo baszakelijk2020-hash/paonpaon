@@ -21,6 +21,10 @@ import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
+export interface CampaignFormState {
+  formError?: string;
+}
+
 export async function upsertCampaign(formData: FormData): Promise<void> {
   const session = await requireModuleSession("commerce_growth");
   const quietStart = formData.get("quietStartMinute");
@@ -67,8 +71,9 @@ export async function setCampaignStatus(formData: FormData): Promise<void> {
 }
 
 export async function upsertCampaignAudienceRule(
+  _previous: CampaignFormState,
   formData: FormData,
-): Promise<void> {
+): Promise<CampaignFormState> {
   const session = await requireModuleSession("commerce_growth");
   const parsed = upsertCampaignAudienceRuleInputSchema.parse({
     campaignId: formData.get("campaignId"),
@@ -81,25 +86,38 @@ export async function upsertCampaignAudienceRule(
     explanation: formData.get("explanation"),
     active: formData.get("active") !== "false",
   });
-  await new CampaignRepository(
+  const result = await new CampaignRepository(
     await getSupabaseServerClient(),
   ).upsertAudienceRule(session.retailerId, parsed);
+
+  if (!result.ok) {
+    return { formError: result.reason };
+  }
+
   revalidatePath("/settings/campaigns");
+  return {};
 }
 
 export async function setCampaignTargetProduct(
+  _previous: CampaignFormState,
   formData: FormData,
-): Promise<void> {
+): Promise<CampaignFormState> {
   const session = await requireModuleSession("commerce_growth");
   const parsed = setCampaignTargetProductInputSchema.parse({
     campaignId: formData.get("campaignId"),
     productId: formData.get("productId"),
     active: formData.get("active") === "true",
   });
-  await new CampaignRepository(
+  const result = await new CampaignRepository(
     await getSupabaseServerClient(),
   ).setTargetProduct(session.retailerId, parsed);
+
+  if (!result.ok) {
+    return { formError: result.reason };
+  }
+
   revalidatePath("/settings/campaigns");
+  return {};
 }
 
 /**
@@ -182,4 +200,32 @@ export async function cloneCampaignFromLibrary(): Promise<void> {
     ...(staff?.id ? { createdByStaffId: staff.id } : {}),
   });
   revalidatePath("/settings/campaigns");
+}
+
+/**
+ * Clone an activated campaign for correction (PHASE 10.1).
+ * Creates a new draft with the same audience rules, target products, and library pin.
+ */
+export async function cloneCampaignForCorrection(
+  formData: FormData,
+): Promise<CampaignFormState> {
+  const session = await requireModuleSession("commerce_growth");
+  const campaignId = String(formData.get("campaignId") ?? "");
+  if (!campaignId) {
+    return { formError: "Missing campaign" };
+  }
+
+  const result = await new CampaignRepository(
+    getSupabaseAdminClient(),
+  ).cloneRetailerCampaignForCorrection({
+    retailerId: session.retailerId,
+    campaignId,
+  });
+
+  if (!result.ok) {
+    return { formError: result.reason };
+  }
+
+  revalidatePath("/settings/campaigns");
+  return {};
 }
