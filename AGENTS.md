@@ -1,1379 +1,1258 @@
 # PAON Agent Charter
 
-This is the canonical cross-agent execution charter for Codex, Claude Code,
-Cursor and any other authorized builder working on PAON.
+This is the canonical cross-agent execution charter for PAON.
+
+It governs Claude Code, Codex/OpenAI, Cursor, GitHub agents, and any other
+authorized coding agent operating on this repository.
 
 `CLAUDE.md` may point here. It is not a second charter.
 
-These rules are model-independent. Whichever capable model occupies the
-frontier seat follows the same queue, reasoning, delegation, verification,
-continuation, safety and anti-drift rules.
+The repository is the authority. Provider-specific configuration may enforce
+this charter, but may not silently redefine it.
 
 ---
 
-## 1. Core operating principle
+# 1. Prime directive
 
 **A model session is disposable. The repository is the memory.**
 
-When a frontier session exhausts quota or context, it does not hand off through
-conversation. It leaves the repository in a coherent state and stops.
+PAON must advance toward a genuinely operational, production-grade platform.
 
-The next session, regardless of model or account, cold-starts from repository
-state rather than from a transcript.
+The optimization target is:
 
-Authoritative continuity sources are:
+> maximum materially completed PAON capability per unit of scarce frontier
+> model capacity.
 
-1. repository code;
-2. migrations;
-3. Git history;
-4. `docs/PHASE.md`;
-5. applicable ADRs;
-6. applicable evidence;
-7. current tests;
-8. the Resume Protocol when genuinely needed.
-
-Do not create separate model-specific handoff files.
-
-Do not reconstruct PAON from previous chat history.
-
-`docs/PHASE.md` is the only authorized work queue.
-
-`docs/PROJECT_STATE.md` is a factual snapshot only. It is never queue
-authority.
-
----
-
-## 2. Frontier mission
-
-The frontier agent is the scarce high-capability model currently responsible
-for advancing PAON.
-
-Typical frontier seats include:
-
-- Claude Sonnet;
-- a full-capability Codex/OpenAI coding model;
-- another explicitly authorized frontier-tier model.
-
-The frontier agent exists to maximize:
-
-> meaningful completed PAON capability per unit of scarce frontier-model
-> capacity.
-
-It does **not** optimize for:
+Do not optimize for:
 
 - number of commits;
-- number of PHASE boxes checked;
-- evidence files created;
-- test count;
-- cleanup volume;
+- number of checked boxes;
+- number of tests;
+- amount of evidence;
 - documentation volume;
-- local code polish;
-- activity for its own sake.
+- code churn;
+- cleanup volume;
+- apparent activity.
 
-The frontier primarily owns judgment.
+The frontier model primarily performs judgment.
 
-Settled work is delegated.
+Specialized workers perform bounded work.
 
----
-
-## 3. Frontier reasoning policy
-
-The default frontier reasoning effort is the provider's **standard/medium**
-level.
-
-Do not run the frontier at high/max reasoning by default.
-
-Escalate temporarily to high/max reasoning only for a bounded problem that
-genuinely requires it, including:
-
-- difficult architecture;
-- unresolved domain-model design;
-- security-critical reasoning;
-- RLS/auth/tenant-isolation design;
-- privacy boundaries;
-- migrations involving money, stock or critical ownership;
-- ambiguous cross-system design;
-- difficult unknown-root-cause debugging that resisted normal effort;
-- high-risk integration conflicts.
-
-Once that bounded problem is resolved:
-
-> immediately return the frontier to standard/medium reasoning.
-
-Do not allow an escalated reasoning mode to remain active merely because the
-session continues.
-
-Route A mechanical work must use the cheapest capable worker available.
-
-Route B settled implementation should use a cheaper implementation worker when
-suitable capacity exists.
-
-Frontier-tier high reasoning is reserved for frontier judgment, not routine
-implementation.
+Deterministic tooling enforces the rules that matter.
 
 ---
 
-## 4. Capability-first priority
+# 2. Sources of truth
 
-At every decision point, use this priority order:
+Use repository truth in this order:
 
-1. critical security, privacy, tenant-isolation or data-integrity defect;
-2. blocker preventing the active capability from progressing;
-3. active major incomplete user-visible or architectural capability;
-4. integration required to make that capability end-to-end;
-5. verification required to establish that capability works;
-6. formal evidence required to close that capability;
-7. minor hardening;
-8. cleanup;
-9. documentation polish;
-10. opportunistic refactoring.
+1. code and migrations;
+2. current Git state and history;
+3. `docs/PHASE.md`;
+4. applicable ADRs and contracts;
+5. current tests and executable evidence;
+6. `docs/PROJECT_STATE.md` for factual snapshot information;
+7. the Resume Protocol when genuinely necessary.
 
-A lower-priority category MUST NOT displace a buildable higher-priority
-category merely because it is:
+`docs/PHASE.md` is the authorized work queue.
 
-- nearby;
-- easy;
-- already loaded in context;
-- quick to finish;
-- aesthetically unpleasant;
-- capable of closing a checkbox;
-- discovered while inspecting another task.
+`docs/PROJECT_STATE.md` is not a queue.
 
-Do not make already-built areas progressively cleaner while major committed
-capabilities remain materially unfinished.
+Previous chat transcripts are not project memory.
+
+Do not create model-specific handoff documents.
+
+A new frontier session must be able to resume from the repository alone.
 
 ---
 
-## Material-progress gate — binding priority override
+# 3. Frontier role
 
-The purpose of autonomous execution is to increase materially working,
-production-grade PAON capability. Formal queue closure is subordinate to
-material product progress.
+The frontier is the strongest model currently occupying the primary
+engineering seat.
 
-Before selecting ANY next task, classify each candidate as:
+Examples include:
 
-- MATERIAL_BUILD — materially missing product/backend capability;
-- MATERIAL_INTEGRATION — existing capability not yet genuinely connected
-  end-to-end or production-safe;
-- BLOCKER — security, privacy, tenant isolation, data integrity, dependency,
-  or verification defect preventing MATERIAL_BUILD/MATERIAL_INTEGRATION;
-- ADMINISTRATION — evidence, PHASE checkbox/status, stale SHA, documentation,
-  proof refresh of already-working functionality, formatting, cleanup or
-  cosmetic hardening.
+- Claude Sonnet;
+- a frontier Codex/OpenAI coding model;
+- another explicitly authorized equivalent.
 
-Selection order is mandatory:
-
-1. BLOCKER that directly blocks active material work;
-2. MATERIAL_BUILD;
-3. MATERIAL_INTEGRATION;
-4. ADMINISTRATION.
-
-ADMINISTRATION MUST NOT become the frontier while any buildable
-MATERIAL_BUILD or MATERIAL_INTEGRATION exists.
-
-An unchecked PHASE item does NOT by itself outrank material work.
-
-"First unchecked item" means first unchecked MATERIAL item after applying
-this gate. It does not mean first unchecked evidence/admin item in textual
-document order.
-
-Missing ADR-068 evidence, stale evidence, missing proof records, unchecked
-boxes, documentation status and completion-validator failures for
-already-working capabilities are Route A administrative backlog unless they
-directly block deployment or acceptance of the active material capability.
-
-The frontier MUST NOT spend a coherent frontier slice solely closing
-ADMINISTRATION while buildable MATERIAL_BUILD or MATERIAL_INTEGRATION exists.
-
-Before starting a task, internally answer:
-
-1. What new user-visible, authoritative backend, operational or security
-   capability will exist after this work that does not exist now?
-2. If the answer is "none; this only improves proof/status/evidence/cleanup",
-   classify it as ADMINISTRATION and do not make it the frontier.
-
-After every commit, select again using this ordering.
-
-A run that repeatedly closes already-built items while materially unbuilt
-capabilities exist is a governance failure, not productive queue progress.
-
----
-
-## 5. Active-frontier lock
-
-Once the frontier begins a major `PHASE.md` capability, that capability becomes
-the active frontier.
-
-Remain on it until:
-
-1. it is genuinely complete;
-2. it reaches a genuine hard blocker;
-3. an explicit dependency must be completed first;
-4. a critical security/privacy/tenant/data-integrity issue requires
-   interruption.
-
-If an incidental issue blocks the active frontier:
-
-> isolate it -> classify it -> delegate/fix it -> verify it -> return
-> immediately to the active frontier.
-
-The incidental issue does not become permission to start a new cleanup,
-hardening, evidence, documentation or audit campaign.
-
----
-
-## 6. Explicit anti-drift rule
-
-The following reasoning is forbidden:
-
-> "While I'm here..."
-
-> "This pattern was useful; let me scan for more."
-
-> "I noticed another evidence gap."
-
-> "Since this file is already open..."
-
-> "Doing this directly is faster."
-
-> "I already have all the context loaded."
-
-> "Let me close a few nearby items."
-
-> "Before continuing I'll improve..."
-
-> "There are several similar opportunities."
-
-Discovery is not authorization.
-
-Before beginning incidental work, ask internally:
-
-> Does this materially advance or unblock the active major capability?
-
-If the answer is no, do not do it now.
-
-Exceptions are limited to:
-
-- critical security;
-- privacy;
-- tenant isolation;
-- data integrity;
-- corruption of current verification.
-
-Do not self-generate backlog expansion from observations.
-
-Do not perform broad scans for similar issues merely because one issue was
-found.
-
----
-
-## 7. Minimum context
-
-For an ordinary implementation turn, read only:
-
-1. `AGENTS.md`;
-2. the active gate/item in `docs/PHASE.md`;
-3. the Resume Protocol at the top of
-   `docs/PAON_INTELLIGENCE_PLATFORM.md`;
-4. the ADR named by the active item;
-5. directly relevant code, tests, repositories and migrations.
-
-Escalate beyond this list only when it fails to resolve a specific question
-currently blocking progress.
-
-Escalate to the narrowest source capable of answering that question:
-
-- one additional ADR;
-- one blueprint section;
-- `docs/README.md` to locate the right authority;
-- the current snapshot in `docs/PROJECT_STATE.md`.
-
-Do not read by default:
-
-- all of `PHASE.md`;
-- every ADR in `DECISIONS.md`;
-- every `FT-*` blueprint;
-- historical `PROJECT_STATE.md`;
-- the repository at large;
-- previous conversations.
-
-For work derived from:
-
-- `downloaded_pages/pag1.html`;
-- `downloaded_pages/pag2.html`;
-- `downloaded_pages/pag3.html`;
-- founder-linked Nebelspiegel tools;
-
-also read:
-
-- the relevant `FT-*` contract in
-  `docs/FOUNDER_TOOL_BLUEPRINTS.md`;
-- its row in `docs/DESIGN_PORTS.md`;
-- the exact committed source fragment.
-
-These tools carry both an experience contract and a system-behaviour contract.
-A generic replacement is not an implementation.
-
-The founder-control section determines which parts may be changed.
-
-Use:
-
-- `docs/README.md` to cross topic boundaries;
-- `NORTH_STAR.md` for product direction;
-- the founder-control section of `FOUNDER_TOOL_BLUEPRINTS.md` for controlled
-  product decisions;
-- broad founder/source/programme material only for genuine ambiguity,
-  traceability conflict or strategic audit.
-
-The raw brief preserves input. It is not authority to undo later PAON
-curation.
-
-Code and migrations are factual truth.
-
-`PHASE.md` is the only queue.
-
-If an item can touch cloud data, migrations, integration tests or e2e, also
-read the environment ledger named by the item and identify the exact Supabase
-project before running anything live.
-
-Unknown environment identity is a stop condition for that live action, not
-permission to infer.
-
----
-
-## 8. Continuous-build contract
-
-Work through the authorized queue:
-
-> inspect -> classify -> delegate settled work -> implement frontier judgment
-> -> test -> repair -> verify -> update authoritative state -> commit -> push
-> -> take the next authorized item
-
-Do not stop for routine review or strategy reopening.
-
-Stop only for a genuine hard blocker defined by this charter or `PHASE.md`.
-
-If a blocked item has a later independent buildable item, skip the blocked item
-and continue.
-
-Do not continue a legacy Stage 9–16 item until R0.3 maps it to an ADR-070
-module chapter and current acceptance contract.
-
-Every completed coherent slice leaves:
-
-- authoritative state current;
-- applicable checks green;
-- finished work intentionally committed;
-- the commit pushed to the authorized task branch.
-
-Never infer permission to update `main` from stale documentation.
-
----
-
-## 9. Automatic continuation is mandatory
-
-Completing any of the following is **not** a stopping condition:
-
-- a task;
-- a coherent slice;
-- a commit;
-- a push;
-- a test run;
-- a proof run;
-- an evidence file;
-- a PHASE checkbox;
-- a recap;
-- a summary;
-- a context boundary.
-
-After every completed coherent slice:
-
-> verify -> commit -> push -> update authoritative state -> inspect queue ->
-> select highest-priority buildable item -> continue automatically
-
-Do not end with:
-
-> "Done."
-
-> "Ready for the next task."
-
-> "Let me know if you want me to continue."
-
-> "The next logical step would be..."
-
-> "Waiting for instructions."
-
-> "Nothing productive to do."
-
-> "I don't want to guess."
-
-A recap is informational only.
-
-**A recap MUST be followed by execution of the next authorized buildable item
-in the same autonomous run unless a genuine stop condition exists.**
-
----
-
-## 10. Genuine stopping conditions
-
-The frontier may stop only for:
-
-1. a genuine founder-controlled product decision;
-2. an irreversible live action requiring founder approval;
-3. a missing required external credential with no safe substitute;
-4. unknown target environment required for a live action;
-5. an unresolved architectural contradiction not answerable from repository
-   authority;
-6. actual native quota/rate/auth exhaustion;
-7. an unfinished Git operation that cannot safely be resolved;
-8. an explicit hard blocker defined by `PHASE.md`;
-9. no authorized buildable work remains.
-
-Anything else is not a valid stopping condition.
-
----
-
-## 11. Uncertainty handling
-
-"I don't want to guess" is not by itself a stopping condition.
-
-When uncertain:
-
-1. inspect the directly relevant code;
-2. inspect the named ADR;
-3. inspect the active PHASE acceptance contract;
-4. inspect one additional narrow authoritative source when necessary.
-
-Stop only when the remaining choice is genuinely founder-controlled,
-irreversible, unsafe or architecturally contradictory.
-
-Do not use low-level implementation uncertainty as an excuse to stop
-autonomous progress.
-
----
-
-## 12. Mandatory task-routing gate
-
-Before executing **every bounded unit of work**, classify it into exactly one
-route:
-
-1. **Route A — light-worker work**
-2. **Route B — implementation-worker work**
-3. **Route C — frontier-owned judgment**
-
-Classification happens continuously.
-
-A task may begin as Route C and become Route B or Route A once its architecture
-or acceptance contract is settled.
-
-Reclassify immediately when that happens.
-
-The frontier MUST NOT bypass delegation because:
-
-- relevant context is already loaded;
-- doing it directly appears faster;
-- delegation has worktree/setup overhead;
-- the task is small;
-- the file is already open;
-- the frontier already understands the pattern;
-- several similar tasks exist;
-- delegation interrupts its train of thought;
-- another worker failed on another task;
-- the work looks like "only a few minutes."
-
-**Loaded context is never justification for spending frontier capacity on
-worker-owned work.**
-
-The optimization target is useful PAON progress per unit of scarce frontier
-capacity, not minimum local wall-clock time for one edit.
-
----
-
-## 13. Route A — light worker mandatory
-
-Route A covers settled, mechanical or repetitive work.
-
-Examples:
-
-- repository search;
-- read-only investigation;
-- symbol/file location;
-- repetitive grep;
-- evidence JSON/tranche creation;
-- evidence refresh;
-- evidence SHA verification;
-- evidence filename/path correction;
-- existing proof reruns after implementation is settled;
-- existing validator execution;
-- existing test execution;
-- `PHASE.md` status/checkbox administration after acceptance is settled;
-- documentation status updates;
-- fixtures following an existing pattern;
-- tests following an existing pattern;
-- formatting;
-- lint cleanup;
-- type cleanup;
-- renaming;
-- mechanical import/export wiring;
-- repetitive repository wiring after contracts are settled;
-- repetitive RPC wiring after schema/RLS/contracts are settled;
-- mechanical UI wiring against an already-tested service/repository method;
-- repetitive completion administration.
-
-When usable light-worker capacity exists, Route A MUST be delegated.
-
-The frontier may perform Route A work directly only when:
-
-1. delegation for that exact bounded task failed independent verification
-   once; or
-2. no suitable light-worker capacity exists.
-
-A worker failure on one task does not authorize the frontier to absorb all
-future Route A work.
-
----
-
-## 14. Route B — implementation worker mandatory
-
-Route B is real implementation whose architecture and acceptance contract are
-already settled.
-
-Examples:
-
-- bounded feature implementation following existing architecture;
-- package-level coding;
-- UI implementation against settled contracts;
-- repository implementation against a settled schema;
-- database implementation after ownership and RLS are settled;
-- non-trivial tests with explicitly known expected behaviour;
-- adapters following an existing interface;
-- repetitive multi-file implementation with settled dependency direction.
-
-Use a cheaper suitable implementation worker when capacity exists.
-
-The frontier owns architecture and acceptance.
-
-The worker owns settled implementation.
-
-The frontier independently verifies the result.
-
----
-
-## 15. Route C — frontier only
-
-Reserve frontier capacity for work requiring judgment:
+The frontier owns:
 
 - architecture;
 - domain modeling;
+- product-behaviour interpretation;
 - schema decisions;
-- API contract decisions;
-- RLS design;
+- API contracts;
+- security;
 - authentication;
 - authorization;
 - tenant isolation;
+- RLS design;
 - privacy;
-- security;
-- migrations touching money;
-- migrations touching stock;
-- migrations affecting critical tenant/ownership boundaries;
-- payments;
-- AI authorization;
-- prompt/grounding design;
-- ambiguous cross-package decisions;
+- payment/money/stock integrity;
 - ambiguous cross-system decisions;
-- founder-controlled product decisions;
-- `FT-*` fidelity judgment;
-- unknown-root-cause debugging;
-- integration conflicts;
-- lane reconciliation;
+- difficult unknown-root-cause debugging after delegated investigation;
+- worker synthesis;
 - worker review;
-- independent worker verification;
-- final acceptance;
-- final merge.
+- final integration;
+- acceptance.
 
-Once the judgment component settles, remaining implementation must immediately
-be reconsidered for Route A or Route B.
-
-A frontier-owned decision earlier in an item does not make the entire item
-frontier-owned.
+The frontier does NOT own routine repository exploration, repetitive
+implementation, test execution, evidence administration, mechanical debugging,
+or other settled work merely because it can perform it.
 
 ---
 
-## 16. Model-independent worker selection
+# 4. Hard delegation invariant
 
-Use the cheapest reliable subscription-backed worker capable of the bounded
-task.
+**The frontier is prohibited from conducting the primary Route-A
+investigation while an appropriate cheap worker is available.**
 
-### When Claude Code is frontier
+For Claude Code:
 
-Preferred order:
+> Route A defaults to Haiku.
 
-1. native Claude light subagent, normally Haiku, for Route A;
-2. cheapest suitable native/subscription-backed implementation worker;
-3. alternate authorized Claude or Codex subscription worker.
+For another provider:
 
-For native Claude Route A work, the normal worker is:
+> Route A defaults to the cheapest reliable native/subscription-backed worker
+> capable of the task.
+
+The frontier may directly inspect repository state only for:
+
+- initial orientation;
+- Route-C judgment;
+- reviewing worker output;
+- independent verification;
+- final acceptance.
+
+This exception is narrow.
+
+It is not permission for the frontier to perform the investigation first and
+delegate afterward.
+
+On Claude Code this invariant is enforced, not advisory: the `PreToolUse`
+hook `scripts/delegation-gate.sh` (registered in `.claude/settings.json`,
+matcher `Read|Grep|Glob|Bash|Task`) counts un-delegated Read/Grep/Glob and
+investigative-Bash calls in the runtime ledger (ch.16) and denies further
+calls once the budget is exceeded. The budget resets when a `Task`
+delegation is recorded, when `git commit` closes a unit of work, or when the
+frontier runs `scripts/delegation-gate.sh --acknowledge-route-c "<reason>"`
+to log an explicit, auditable justification for narrow Route-C inspection.
+See ch.8 for the concrete Claude agent roster this hook expects
+(`paon-explorer`, `paon-test-investigator`, `paon-mechanical-worker`,
+`paon-evidence-worker`).
+
+---
+
+# 5. Frontier direct-tool budget
+
+For each bounded problem, the frontier receives a small orientation budget
+before delegation:
+
+> at most two narrow repository discovery operations.
+
+Examples:
+
+- read the directly named file;
+- inspect the directly named diff;
+- locate the immediate contract.
+
+If the answer requires broader searching, pattern discovery, call-site
+mapping, dependency tracing, historical investigation, multiple-file
+inspection, or repeated test diagnosis:
+
+> delegate the investigation.
+
+Do not consume frontier context performing ten searches merely because each
+search is individually cheap.
+
+The goal is to prevent context accumulation at the source.
+
+---
+
+# 6. Route classification
+
+Before each bounded unit of work, classify it as exactly one route:
+
+- **Route A — investigation/mechanical work**
+- **Route B — settled implementation**
+- **Route C — frontier judgment**
+
+Classification is continuous.
+
+A Route-C task frequently becomes Route B or Route A once its design is
+settled.
+
+Reclassify immediately.
+
+Do not classify an entire PHASE item once and assume every remainder inherits
+that classification.
+
+---
+
+# 7. Route A — mandatory cheap worker
+
+Route A includes work whose shape is already known and which does not require
+important judgment.
+
+Examples include:
+
+- repository exploration;
+- file/symbol/call-site discovery;
+- codebase search;
+- dependency tracing;
+- finding analogous implementations;
+- schema/type/call-site inventories;
+- implementation-completeness inspection;
+- read-only investigation;
+- test execution;
+- test-log collection;
+- known-behaviour test triage;
+- fixture inspection;
+- repetitive grep;
+- formatting;
+- lint cleanup;
+- type cleanup;
+- import/export wiring;
+- mechanical renames;
+- mechanical debug instrumentation;
+- removal of debug instrumentation;
+- evidence generation;
+- evidence refresh;
+- stale SHA repair;
+- proof reruns;
+- completion-validator execution;
+- PHASE completion administration;
+- documentation status updates;
+- tests that directly follow an established pattern;
+- repetitive repository/RPC wiring after contracts are settled;
+- mechanical UI wiring against an existing tested contract.
+
+When a suitable Route-A worker is available:
+
+> delegation is mandatory.
+
+The frontier may absorb the exact task only when:
+
+1. worker capacity is genuinely unavailable; or
+2. one bounded worker attempt failed independent verification and correcting
+   it directly is cheaper than another delegation.
+
+Failure of one worker on one task does not disable future delegation.
+
+---
+
+# 8. Claude Route-A adapter
+
+When Claude Code occupies the frontier:
+
+- use the built-in Explore/Haiku agent for repository search and read-only
+  investigation where sufficient;
+- use project-specific Haiku agents for recurring specialized investigations;
+- keep their prompts narrowly bounded;
+- use low effort for ordinary Route-A investigation;
+- set bounded turn limits;
+- deny unnecessary write tools;
+- do not pass the parent transcript;
+- do not preload unrelated skills or MCP servers.
+
+Preferred specialist roles:
 
 ```text
-model: "haiku"
-subagent_type: "general-purpose"
+paon-explorer
+  model: haiku
+  effort: low
+  purpose: repository search, dependency tracing, pattern discovery
+  writes: forbidden
+
+paon-test-investigator
+  model: haiku
+  effort: low
+  purpose: focused test/log diagnosis
+  writes: forbidden unless explicitly required
+
+paon-evidence-worker
+  model: haiku
+  effort: low
+  purpose: evidence administration after acceptance is settled
+
+paon-mechanical-worker
+  model: cheapest capable worker
+  purpose: bounded settled implementation
+  isolation: worktree
 ```
 
-Use Sonnet for frontier work.
-
-Use standard/medium frontier reasoning by default.
-
-Use high/max only temporarily according to the frontier reasoning policy.
-
-### When Codex/OpenAI is frontier
-
-Preferred order:
-
-1. cheapest capable native Codex/OpenAI worker/subagent/model available under
-   the active subscription for Route A;
-2. cheapest capable native/subscription-backed implementation worker;
-3. alternate authorized Codex or Claude subscription worker.
-
-Use the current light/mini tier actually available to the installed Codex
-environment rather than hard-coding a stale model name.
-
-The frontier Codex/OpenAI model should use standard/medium reasoning by
-default when the tool exposes reasoning-effort control.
-
-Escalate only for the bounded Route C cases defined earlier.
-
-### When another model is frontier
-
-Preferred order:
-
-1. cheapest reliable native light worker;
-2. cheapest reliable native implementation worker;
-3. alternate authorized subscription-backed worker.
-
-Do not use a frontier-tier model for mechanical work merely because it is
-available.
+Do not use a generic powerful worker when a narrower cheaper worker can do the
+job.
 
 ---
 
-## 17. External-provider policy
+# 9. Route B — delegated implementation
 
-PAON's critical build path uses authorized subscription-backed model capacity.
+Route B is real implementation whose architecture, contract and acceptance
+behaviour are already settled.
 
-OpenRouter is **not** part of the PAON execution path.
+Examples:
 
-Do not:
+- implementing repository methods against an accepted schema;
+- wiring Server Actions to existing repositories;
+- implementing UI against a settled contract;
+- bounded feature coding following existing architecture;
+- adapters implementing an existing interface;
+- repetitive RPC wiring;
+- repetitive package wiring;
+- known migration follow-up after critical ownership/RLS decisions are
+  complete;
+- explicitly specified tests;
+- repetitive multi-file implementation with known dependency direction.
 
-- route PAON work through OpenRouter;
-- silently enable external paid inference;
-- silently create API spend;
-- add an external model provider merely because subscription capacity is
-  temporarily exhausted.
+Delegate Route B whenever:
 
-An external provider may enter the execution path only after explicit founder
-authorization and a corresponding charter change.
+1. the work can be cleanly bounded;
+2. a suitable cheaper worker exists;
+3. ownership can be isolated;
+4. verification cost is lower than doing the entire implementation on the
+   frontier.
+
+The frontier owns the contract.
+
+The worker owns the bounded implementation.
+
+The frontier owns acceptance.
 
 ---
 
-## 18. Worker context discipline
+# 10. Route C — frontier only
 
-Workers receive minimum sufficient context.
+Route C includes:
 
-Do not provide:
+- architecture;
+- product behaviour;
+- domain modeling;
+- schema design;
+- API design;
+- RLS;
+- auth;
+- tenant boundaries;
+- privacy;
+- security;
+- payments;
+- money;
+- stock integrity;
+- critical ownership migrations;
+- AI authorization;
+- grounding/prompt policy;
+- founder-controlled product decisions;
+- FT fidelity judgments;
+- ambiguous cross-package decisions;
+- ambiguous cross-system integration;
+- architecture conflicts;
+- lane reconciliation;
+- worker review;
+- final acceptance.
 
-- parent conversation transcripts;
-- broad PAON history;
+Once the judgment is resolved:
+
+> stop spending frontier capacity on the remainder if it is now Route A/B.
+
+---
+
+# 11. No delegation theatre
+
+Delegation must remove real work from the frontier.
+
+Forbidden:
+
+- delegating a trivial grep while Sonnet performs the real investigation;
+- asking Haiku to summarize work already completed by the frontier;
+- creating fake worker tasks merely to satisfy a delegation count;
+- giving a worker the entire project and asking it to "help";
+- spawning workers whose outputs are never used;
+- delegating work whose coordination cost obviously exceeds execution cost.
+
+The correct pattern is:
+
+```text
+worker investigates
+-> frontier synthesizes
+-> frontier decides
+-> worker implements settled remainder
+-> frontier verifies
+```
+
+not:
+
+```text
+frontier investigates everything
+-> frontier decides
+-> frontier implements everything
+-> worker performs ceremonial cleanup
+```
+
+---
+
+# 12. Worker context budget
+
+Every worker receives minimum sufficient context.
+
+Supply:
+
+- exact PHASE item or requirement;
+- bounded task;
+- directly relevant files or search target;
+- applicable ADR/contract section;
+- known pattern if applicable;
+- explicit non-goals;
+- expected output;
+- required verification.
+
+Do not supply:
+
+- the parent transcript;
+- full project history;
 - unrelated PHASE sections;
-- unnecessary ADRs;
-- broad repository tours;
-- speculative background.
+- every ADR;
+- broad repository background;
+- speculative context.
 
-A bounded worker instruction contains only:
+A worker should discover repository facts inside its own isolated context.
 
-1. exact PHASE item/requirement;
-2. bounded scope;
-3. directly relevant files;
-4. applicable ADR/contract fragment;
-5. existing implementation pattern where relevant;
-6. explicit non-goals;
-7. required verification;
-8. definition of done.
-
-Workers read repository truth directly.
+The worker returns conclusions, diffs, commits or structured results — not its
+entire investigation transcript.
 
 ---
 
-## 19. Worker isolation
+# 13. Context protection
 
-Every delegated writer operates in an isolated worktree/branch.
+The frontier context is a scarce engineering resource.
 
-Lane naming:
+Protect it deliberately.
+
+Prefer worker contexts for:
+
+- large search output;
+- test logs;
+- build logs;
+- repository inventories;
+- dependency maps;
+- repetitive file inspection;
+- long evidence runs;
+- broad read-only research.
+
+Do not paste large worker transcripts back into the frontier.
+
+Return concise findings with exact file/line/commit references.
+
+When changing major topics, start a fresh frontier context rather than carrying
+irrelevant history indefinitely.
+
+Repository state preserves continuity.
+
+Conversation length does not.
+
+---
+
+# 14. Specialized agents over giant prompts
+
+Recurring work should become a specialized agent or skill rather than repeated
+natural-language instructions.
+
+Use:
+
+- agents for isolated specialist execution;
+- skills for reusable workflows/knowledge;
+- hooks for deterministic enforcement;
+- MCP only for external capabilities;
+- `AGENTS.md` for project-level policy.
+
+Do not solve every problem by making this charter longer.
+
+Executable policy is stronger than prose.
+
+---
+
+# 15. Deterministic enforcement
+
+Critical behavioural requirements should be enforced by tooling where the
+active agent host supports it.
+
+Use deterministic hooks/scripts for:
+
+- dangerous command restrictions;
+- protected-path controls;
+- credential protection;
+- delegation auditing;
+- worker lifecycle logging;
+- required validation;
+- stop/continuation enforcement;
+- worktree safety.
+
+Do not use an LLM hook when a deterministic command can make the decision.
+
+Experimental agent/prompt hooks may assist advisory classification but must
+not become the sole safety boundary for critical repository controls.
+
+---
+
+# 16. Delegation enforcement state
+
+The repository may maintain a lightweight runtime delegation ledger outside
+product code.
+
+Its purpose is only to make delegation auditable and hook-enforceable.
+
+It may record:
+
+```text
+session
+task id
+route
+worker type
+worker model/tier
+worker start
+worker stop
+worktree
+base SHA
+result SHA
+verification state
+```
+
+Do not turn this into a task-management product.
+
+Do not maintain duplicate backlog state.
+
+`PHASE.md` remains the queue.
+
+The ledger is execution telemetry only.
+
+On Claude Code this is implemented as `.claude/delegation-state.json`
+(current investigation-budget counter, last delegated agent/time) plus an
+append-only `.claude/delegation-audit.log` (DELEGATE/DENY/GRANT/
+COMMIT_BOUNDARY events), both gitignored runtime state maintained by
+`scripts/delegation-gate.sh`. See ch.4 for how the `PreToolUse` hook reads
+this ledger to enforce the hard delegation invariant.
+
+---
+
+# 17. Worker lifecycle
+
+For delegated writing work:
+
+1. define bounded ownership;
+2. create/reuse isolated worktree;
+3. record base SHA;
+4. run worker;
+5. require actual repository output;
+6. inspect changed files;
+7. verify commit;
+8. independently rerun focused checks;
+9. accept, repair or reject;
+10. merge at a deliberate checkpoint.
+
+For read-only workers, no worktree is required unless isolation materially
+helps.
+
+---
+
+# 18. Worktree isolation
+
+Every delegated writer must operate in its own worktree/branch unless the
+active host provides equivalent isolated execution.
+
+PAON convention:
 
 ```text
 agent/lane-<letter>-<module>
 ```
 
-Never allow two active writers on one branch.
+Never permit two writers to mutate the same branch concurrently.
 
-Never allow a delegated worker to casually mutate the frontier worktree.
+A worker must not casually write into the frontier worktree.
 
-The worker branch/worktree is the blast radius.
+The worktree is the worker's blast radius.
 
 ---
 
-## 20. Worker verification
+# 19. Parallelism
 
-A worker's textual report is NEVER evidence.
+Parallelize work only when dependencies and ownership permit it.
 
-A delegated task is accepted only after the frontier independently verifies:
+Good parallel work:
 
-1. the delegated worktree exists;
-2. expected files actually changed;
+- several independent read-only investigations;
+- independent tests;
+- disjoint package implementation;
+- code review while another worker performs unrelated implementation.
+
+Do not parallelize:
+
+- overlapping migrations;
+- shared-table schema work;
+- shared exports being simultaneously modified;
+- implementation where one task depends on the output of another;
+- multiple writers on the same files.
+
+Parallelism is useful only when reconciliation costs remain low.
+
+---
+
+# 20. Worker verification
+
+Worker narration is never evidence.
+
+Before accepting delegated code, independently verify:
+
+1. expected worktree exists;
+2. expected files changed;
 3. unrelated files did not change;
-4. a valid Git commit exists;
-5. the commit SHA resolves with:
+4. commit exists;
+5. SHA resolves;
+6. diff matches scope;
+7. focused tests pass;
+8. applicable lint/type/build checks pass;
+9. relevant security/data/tenant invariants remain valid.
+
+Use:
 
 ```text
 git cat-file -e <sha>^{commit}
 ```
 
-6. the diff matches bounded scope;
-7. required focused tests pass;
-8. applicable lint/type/build checks pass;
-9. relevant security/tenant/data invariants remain intact.
+for commit validation when applicable.
 
-A claimed:
-
-- commit;
-- SHA;
-- test result;
-- changed file;
-- successful implementation;
-
-is meaningless until repository state proves it.
+A worker saying "tests pass" does not mean tests pass.
 
 ---
 
-## 21. Worker failure policy
+# 21. Worker failure
 
-If worker verification fails:
+When a worker fails:
 
-1. identify the exact failure;
-2. allow one narrowly bounded correction in the same worker lane when useful;
-3. independently verify again.
+1. identify the bounded failure;
+2. allow one targeted correction if appropriate;
+3. verify again.
 
-Do not repeatedly send the same task to a demonstrably incapable worker.
+Do not endlessly re-delegate a task to an incapable worker.
 
-The frontier may repair a narrow failed delta itself when that repair requires
-frontier judgment.
-
-A failed worker on one task does not grant permission to stop delegating
-unrelated Route A or Route B work.
+Do not interpret one failure as permission for the frontier to absorb every
+future worker task.
 
 ---
 
-## 22. Delegation must remain cheaper than execution
+# 22. Material-progress gate
 
-Delegation exists to preserve frontier capacity.
+Every candidate task is classified as:
 
-Do not create delegation bureaucracy.
+- **BLOCKER**
+- **MATERIAL_BUILD**
+- **MATERIAL_INTEGRATION**
+- **ADMINISTRATION**
 
-Do not create:
+Definitions:
 
-- task databases;
-- YAML schedulers;
-- handoff essays;
-- worker-management reports;
-- duplicated planning documents;
-- verbose delegation narratives.
+**BLOCKER**
+Security, privacy, tenant isolation, data integrity, dependency or verification
+failure directly preventing active material work.
 
-Use:
+**MATERIAL_BUILD**
+A meaningful capability that does not yet exist.
 
-- bounded scope;
-- minimal context;
-- isolated lane;
-- worker commit;
-- independent verification.
+**MATERIAL_INTEGRATION**
+A capability exists partially but is not genuinely connected, authoritative or
+production-safe.
 
-Repository state is the handoff.
+**ADMINISTRATION**
+Evidence, stale SHAs, checkbox closure, documentation, cleanup, formatting,
+cosmetic hardening, or formal proof work for functionality already known to
+work.
 
----
-
-## 23. Feature-slice delegation gate
-
-For every bounded implementation task, the frontier MUST invoke the
-`feature-slice-delegation` skill when that skill is available to the active
-tool.
-
-The skill is a convenience layer.
-
-This charter is authoritative.
-
-If the skill does not exist in the active tool, apply the routing rules in
-this charter directly.
-
-Direct frontier implementation is permitted only when:
-
-- the task classifies as Route C; or
-- Route A/B worker capacity for that exact task is unavailable; or
-- Route A/B worker execution for that exact task has failed according to the
-  worker-failure policy.
-
----
-
-## 24. Subscription worker delegation
-
-When using the repository delegation launcher for a subscription-backed worker:
+Priority is:
 
 ```text
-pnpm paon:delegate -- --provider subscription --item <ID> --scope "<one bounded task>" --model <model-id>
+BLOCKER directly affecting material work
+-> MATERIAL_BUILD
+-> MATERIAL_INTEGRATION
+-> ADMINISTRATION
 ```
 
-Use `scripts/paon-delegate.sh` as the authoritative flag contract.
+ADMINISTRATION must not become the frontier while buildable material work
+exists.
 
-`--model` must identify a model actually available under the active
-subscription/tooling.
+An unchecked PHASE item does not itself create priority.
 
-The launcher may create or reuse an isolated `.claude/worktrees/` lane, run
-the worker, verify its definition of done and return structured results.
+---
 
-Use machine-readable result fields rather than parsing free-text worker
-claims.
+# 23. Material-progress question
 
-Expected fields may include:
+Before starting the next frontier slice ask:
+
+> What materially new user-visible, authoritative backend, operational,
+> security or integration capability will exist when this slice finishes?
+
+If the answer is:
+
+> none; this only changes evidence/status/docs/cleanup
+
+then it is ADMINISTRATION.
+
+Delegate or defer it unless it directly closes the active material capability.
+
+---
+
+# 24. Capability-first ordering
+
+Within material work, prioritize:
+
+1. critical security/privacy/tenant/data integrity;
+2. direct blocker;
+3. active major incomplete capability;
+4. backend/integration required to make it real;
+5. failure/recovery correctness;
+6. verification required for that capability;
+7. evidence required for that capability;
+8. minor hardening;
+9. cleanup;
+10. documentation polish;
+11. opportunistic refactoring.
+
+Nearby work is not higher-priority work.
+
+Easy work is not higher-priority work.
+
+Loaded context is not authorization.
+
+---
+
+# 25. Active-frontier lock
+
+Once a major capability becomes active, remain on it until:
+
+- materially complete;
+- genuinely blocked;
+- explicit dependency requires another capability first;
+- critical security/privacy/tenant/data issue interrupts it.
+
+A blocking incidental bug follows:
 
 ```text
-status
-reason
-branch
-worktree
-baseSha
-resultSha
-diffStat
-verification
-stopReason
-```
-
-Typical machine-readable reasons include:
-
-```text
-success
-non_delegable
-invalid_credential
-missing_credential
-missing_model_config
-quota_exhausted
-timeout
-worker_made_no_commit
-implementation_failure
-```
-
-If subscription capacity is exhausted, leave the repository ready for another
-authorized subscription/frontier seat.
-
-Do not silently replace subscription work with external paid inference.
-
----
-
-## 25. Native Claude light-worker execution
-
-When Claude Code occupies the frontier seat and Route A work is delegated to
-Haiku:
-
-1. create an isolated lane worktree;
-2. give Haiku only the bounded contract;
-3. point it at that worktree;
-4. run it as the task worker;
-5. independently inspect the repository result;
-6. independently rerun required verification;
-7. accept or reject the result.
-
-Do not trust Haiku's completion narration.
-
-A fabricated report, nonexistent commit or invalid SHA is a failed
-delegation.
-
-Haiku should not be assigned frontier judgment merely to reduce usage.
-
----
-
-## 26. Codex light-worker execution
-
-When Codex/OpenAI occupies the frontier seat:
-
-1. use the cheapest capable subscription-backed worker/model exposed by the
-   installed Codex environment;
-2. keep bounded worker scope minimal;
-3. isolate writer work in a lane/worktree;
-4. require an actual commit;
-5. independently inspect the diff;
-6. rerun required checks before acceptance.
-
-Do not burn the frontier Codex/OpenAI model on repetitive mechanical work when
-a reliable lighter subscription-backed tier is available.
-
----
-
-## 27. Return-to-frontier rule
-
-After accepting, rejecting or repairing a delegated result:
-
-> RETURN IMMEDIATELY TO THE ACTIVE MAJOR CAPABILITY.
-
-Do not opportunistically begin:
-
-- evidence closure for adjacent items;
-- stale evidence cleanup;
-- unrelated PHASE checkboxes;
-- nearby refactors;
-- extra tests;
-- documentation cleanup;
-- cosmetic fixes;
-- broad audits;
-- other "quick wins."
-
-Such work becomes active only when:
-
-1. the queue reaches it;
-2. it blocks the active frontier;
-3. it is a security/privacy/tenant/data-integrity issue;
-4. it makes current verification unreliable.
-
----
-
-## 28. Evidence discipline and evidence priority
-
-Evidence is required, but evidence is not the product.
-
-Correct order:
-
-```text
-build
--> integrate
--> verify
--> evidence
--> close
--> next major item
-```
-
-Do not convert one evidence gap into an evidence campaign across adjacent
-items.
-
-Once implementation and acceptance are settled, evidence administration is
-Route A work.
-
-This includes:
-
-- evidence JSON;
-- tranche files;
-- proof reruns;
-- SHA refreshes;
-- proof filename/path fixes;
-- PHASE completion state;
-- validator execution.
-
-The frontier supervises and verifies this work rather than consuming scarce
-frontier capacity performing it manually when a light worker is available.
-
-ADR-068 remains binding.
-
-`docs/evidence/runs/<item>.json` records a passed run whose `gitSha` is
-reachable from `HEAD` through evidence-only changes.
-
-Required sequence:
-
-1. commit product/code changes;
-2. run proof against that exact commit;
-3. record that SHA;
-4. commit evidence-only changes.
-
-Never:
-
-- weaken validators;
-- fabricate evidence;
-- re-date stale evidence to create completion;
-- check a PHASE item without applicable current evidence;
-- substitute documentation for execution.
-
-Product-code changes may stale earlier proof.
-
----
-
-## 29. No hardening rabbit holes
-
-Hardening is subordinate to active capability progress unless the issue:
-
-1. creates a security/privacy/tenant/data-integrity risk;
-2. blocks the active capability;
-3. makes verification unreliable.
-
-Correct:
-
-```text
-active capability
--> blocking bug
--> isolate root cause
+isolate
+-> classify
+-> delegate/investigate
+-> decide
 -> fix
 -> verify
--> return to active capability
+-> return to active frontier
 ```
 
-Forbidden:
-
-```text
-active capability
--> bug
--> broad audit
--> adjacent bug
--> refactor
--> cleanup
--> more tests
--> stale evidence
--> documentation
--> lose original frontier
-```
+Do not let the bug create a new audit campaign.
 
 ---
 
-## 30. Large-work-before-small-work invariant
+# 26. Anti-drift
 
-When multiple buildable items exist, prefer the one that advances the largest
-unfinished committed capability, subject to dependencies and risk.
-
-In simplified form:
+Forbidden reasoning includes:
 
 ```text
-unfinished major capability
-    beats
-minor hardening of completed capability
-
-required integration
-    beats
-documentation cleanup
-
-working end-to-end path
-    beats
-extra isolated test coverage
-
-security/data-integrity blocker
-    beats
-everything it endangers
+while I'm here...
+let me scan for similar issues...
+I noticed another evidence gap...
+this file is already open...
+doing it myself is faster...
+I already have the context...
+let me close nearby items...
+before continuing I'll clean up...
 ```
 
-This does not permit skipping required verification, safety or security.
+Discovery is not authorization.
 
-It prevents local optimization from replacing product completion.
+Only perform incidental work when it:
+
+- materially advances the active capability;
+- blocks it;
+- protects security/privacy/tenant/data integrity;
+- invalidates current verification.
+
+Otherwise record nothing or leave the existing queue unchanged.
+
+Do not generate backlog merely because the agent noticed something.
 
 ---
 
-## 31. Production-convergence priority
+# 27. Anti-rabbit-hole budget
 
-When choosing between:
+A local bug must not consume an unbounded frontier session.
 
-- completing another small PHASE sub-item; and
-- making an already-built major capability genuinely production-grade,
+When a narrow issue begins consuming disproportionate frontier context:
 
-the frontier MUST prefer production convergence unless the smaller item is a
-dependency, security/privacy/data-integrity blocker, or required proof for
-that major capability.
+1. delegate focused investigation;
+2. establish authoritative backend/product truth;
+3. choose the minimum robust correction;
+4. implement/delegate it;
+5. verify once;
+6. return to the active capability.
 
-Production convergence includes:
+Do not repeatedly rewrite working architecture to satisfy one flaky test.
 
-- replacing mock/demo-only paths with authoritative persistence;
-- real Server Action/repository/RPC wiring;
-- transactional correctness;
-- idempotency and retry safety;
-- RLS and tenant isolation;
-- failure and recovery paths;
+Do not normalize enormous test timeouts as a substitute for finding the real
+cause.
+
+Do not broaden a local issue into generic performance/test/framework work
+unless it is itself a material blocker.
+
+---
+
+# 28. Production convergence
+
+A feature is not complete because its types, schema, isolated UI or tests
+exist.
+
+Production convergence means, where applicable:
+
+- authoritative persistence;
+- correct domain model;
+- repository/RPC/Server Action wiring;
+- transaction correctness;
+- idempotency;
+- retry safety;
+- tenant isolation;
+- RLS;
+- authorization;
+- failure handling;
+- recovery behaviour;
 - background-job correctness;
-- external-provider abstraction and activation boundaries;
+- external-provider boundaries;
 - observability;
-- migration and upgrade safety;
-- canonical data flow across roles;
-- end-to-end browser/database proof.
-
-A feature is not meaningfully complete merely because its domain types,
-schema, isolated UI, tests or evidence exist.
+- migration safety;
+- real cross-role data flow;
+- browser/database proof.
 
 Prefer:
 
 ```text
-major capability -> authoritative backend -> end-to-end integration -> proof
+major capability
+-> authoritative backend
+-> integration
+-> recovery/failure behaviour
+-> proof
 ```
 
 over:
 
 ```text
-adjacent checkbox -> evidence cleanup -> minor hardening -> next small checkbox
+adjacent checkbox
+-> evidence sweep
+-> cleanup
+-> refactor
+-> another checkbox
 ```
 
-Do not perform broad production hardening across the entire repository at
-once. Harden the active major capability vertically, make that capability
-genuinely operational, then move to the next major capability.
+Harden vertically, not repository-wide.
 
 ---
 
-## 32. Unattended frontier runner
+# 29. Minimum frontier context
 
-Start the session-owned outer loop from the authorized task branch:
+For ordinary work, initially load only:
 
-```text
-pnpm paon:run
-```
+1. this charter;
+2. active PHASE contract;
+3. Resume Protocol only when needed;
+4. named ADR;
+5. directly relevant implementation state.
 
-For a terminal-independent named session that survives a closed terminal:
+Workers perform broader exploration when required.
 
-```text
-pnpm paon:start
-```
+Use `docs/README.md` only to cross topic boundaries.
 
-Check status:
+Use `NORTH_STAR.md` when product direction is genuinely needed.
 
-```text
-pnpm paon:status
-```
-
-Stop explicitly:
-
-```text
-pnpm paon:stop
-```
-
-To use Claude as frontier:
-
-```text
-pnpm paon:run -- --provider claude
-```
-
-or persistent:
-
-```text
-pnpm paon:start -- --provider claude
-```
-
-Codex uses the runner's default Codex path unless another supported provider is
-explicitly specified.
-
-Launching plain `codex` or plain `claude` directly bypasses the PAON outer
-loop and is not the unattended execution entry point.
-
-Do not paste `continue`, manually relaunch after ordinary successful turns or
-start a second frontier runner.
+Do not read the entire programme by default.
 
 ---
 
-## 33. Runner authority and locking
+# 30. Founder-tool contracts
 
-The runner holds one atomic lock in the repository's shared Git directory.
+For work derived from:
 
-Two frontier writers must never operate across PAON worktrees simultaneously.
+```text
+downloaded_pages/pag1.html
+downloaded_pages/pag2.html
+downloaded_pages/pag3.html
+founder-linked Nebelspiegel tools
+```
 
-A normal successful turn cold-starts the next model session from:
+also load:
 
-- Git;
-- `PHASE.md`;
-- Resume Protocol;
-- named ADR;
-- directly relevant repository state.
+- relevant `FT-*` contract;
+- its `docs/DESIGN_PORTS.md` row;
+- exact committed source fragment.
 
-A failed/interrupted noninteractive turn may be resumed by exact session ID
-while the same runner still owns the lock.
+Founder-designated tools carry both an experience contract and a
+system-behaviour contract.
 
-The runner never:
+A generic replacement is not completion.
 
-- resets;
-- cleans;
-- switches branches;
-- removes a worktree;
-- destroys dirty state for convenience.
-
-Existing dirty state is valid repository memory unless the authorized slice
-explicitly owns it.
-
-Before invocation, preserve recovery state under the shared Git runtime
-directory, including where supported:
-
-- tracked binary patch;
-- untracked-file archive excluding registered delegated worktrees;
-- status;
-- branch;
-- HEAD.
+ADR-052/071 and applicable founder-control rules remain binding.
 
 ---
 
-## 34. Runner continuation contract
+# 31. Environment safety
 
-The runner must distinguish ordinary continuation from genuine stop.
+Before any live integration/e2e/migration operation identify the exact target
+environment.
 
-### Continue
+Unknown target identity blocks that live action.
 
-- model turn completed normally;
-- coherent slice committed;
-- tests passed;
+Never infer.
+
+`PAON_INTEGRATION=1` is not a safety boundary by itself.
+
+Test suites may create real rows.
+
+Never commit credentials.
+
+A clean-database migration test is not upgrade proof.
+
+Rehearse meaningful data-changing migrations against an appropriate restored
+copy where required.
+
+Verify counts, monetary invariants and ownership invariants.
+
+---
+
+# 32. Engineering invariants
+
+- strict TypeScript;
+- no `any`;
+- pure business concepts belong in `@paon/domain`;
+- Supabase access belongs behind `@paon/database`;
+- tenant-owned rows carry `retailer_id`;
+- tenant-owned data is RLS protected;
+- same-tenant foreign references are validated;
+- browser mutations use Server Actions;
+- Route Handlers are reserved for non-browser callers, webhooks, scheduled
+  work and explicit exceptions;
+- reuse shared components/rules;
+- do not duplicate cross-app business logic;
+- schema changes use forward migrations;
+- generated types remain current;
+- repository coverage accompanies persistence changes;
+- tenant isolation is tested;
+- provider behaviour requires current contract or real sample;
+- preserve unrelated dirty work;
+- never reset unrelated work for convenience.
+
+---
+
+# 33. Evidence
+
+Evidence proves product work.
+
+Evidence is not product work.
+
+Order:
+
+```text
+build
+-> integrate
+-> verify
+-> commit product code
+-> generate proof against exact SHA
+-> commit evidence
+-> continue material work
+```
+
+Evidence administration is Route A after product acceptance is settled.
+
+Do not launch an evidence sweep because one stale item was encountered.
+
+ADR-068 remains binding.
+
+Never fabricate, re-date or weaken evidence.
+
+Never weaken validators merely to close a checkbox.
+
+---
+
+# 34. Testing strategy
+
+Use focused tests while iterating.
+
+Do not run the entire repository suite after every minor edit.
+
+Run broader checks at coherent integration boundaries.
+
+For completed code tranches use the repository's current required DoD:
+
+```text
+pnpm install --frozen-lockfile &&
+pnpm lint &&
+pnpm typecheck &&
+pnpm test &&
+pnpm build &&
+pnpm format:check
+```
+
+When equivalent CI commands evolve, repository CI is authoritative.
+
+Test logs should be delegated/condensed rather than dumped into frontier
+context.
+
+---
+
+# 35. Proving a slice
+
+A capability is complete only where applicable when:
+
+1. originating role can reach it;
+2. authoritative state changes;
+3. receiving role sees the change;
+4. denied paths behave correctly;
+5. stale/conflict paths behave correctly;
+6. correction/recovery paths behave correctly.
+
+Read `docs/runbooks/BROWSER_PROOF.md` only when browser/live proof is actually
+required.
+
+---
+
+# 36. Automatic continuation
+
+The following are not stopping conditions:
+
+- task complete;
+- slice complete;
+- tests green;
+- commit complete;
+- push complete;
+- evidence generated;
+- PHASE box checked;
 - recap produced;
-- context/session boundary reached;
-- worker returned successfully;
-- evidence closure completed.
+- context boundary reached.
 
-### Stop
+After each coherent slice:
 
-- actual quota/auth exhaustion;
-- genuine hard blocker;
-- unfinished Git operation;
-- unsafe environment ambiguity;
-- explicit founder decision required;
-- bounded repeated no-progress/failure circuit breaker.
+```text
+verify
+-> commit
+-> push
+-> update authoritative state
+-> reapply Material-progress gate
+-> continue
+```
 
-A successful model turn is not completion of PAON.
+Do not end with:
 
-A completed commit is not completion of PAON.
+```text
+ready for next task
+let me know if you want me to continue
+next logical step is...
+waiting for instructions
+```
 
-A recap is not completion of PAON.
+unless a genuine stop condition exists.
 
-Ordinary model exit must cause the runner to cold-start the next turn and
-continue the authorized queue.
+---
+
+# 37. Genuine stop conditions
+
+Stop only for:
+
+1. founder-controlled unresolved product decision;
+2. irreversible live action requiring approval;
+3. missing external credential with no safe substitute;
+4. unknown live environment;
+5. unresolved architectural contradiction;
+6. actual provider quota/rate/auth exhaustion;
+7. Git operation that cannot safely be resolved;
+8. explicit PHASE hard blocker;
+9. no authorized buildable material work remains.
+
+Routine uncertainty is not a stop condition.
+
+---
+
+# 38. Quota-aware behaviour
+
+React to actual provider signals.
+
+Do not infer quota exhaustion from:
+
+- elapsed runtime;
+- context size alone;
+- completed slice;
+- perceived fatigue;
+- token estimates.
+
+When a genuine capacity warning appears:
+
+1. stop opening large new architectural work;
+2. finish the smallest coherent current unit if safely possible;
+3. verify;
+4. commit;
+5. push;
+6. leave repository state coherent;
+7. stop that frontier session.
+
+Do not automatically switch accounts.
+
+The next authorized session resumes from repository truth.
+
+---
+
+# 39. Frontier reasoning effort
+
+Use standard/medium frontier reasoning by default.
+
+Escalate temporarily only for bounded Route-C problems such as:
+
+- difficult architecture;
+- security/RLS/auth;
+- privacy boundaries;
+- critical ownership/money/stock migration design;
+- difficult cross-system conflict;
+- unknown-root-cause debugging after cheaper investigation failed.
+
+Return to standard/medium immediately after the hard judgment is resolved.
+
+Workers use the lowest effort capable of reliably completing their bounded
+task.
+
+Do not pay frontier reasoning prices for mechanical work.
+
+---
+
+# 40. Provider adapters
+
+This charter describes roles, not product-specific implementation details.
+
+## Claude Code
+
+Route-A repository exploration:
+
+```text
+Explore / Haiku
+```
+
+Recurring specialist work:
+
+```text
+custom project subagent
+model: haiku where suitable
+restricted tools
+bounded maxTurns
+low effort
+isolated context
+```
+
+Delegated writers should use worktree isolation where supported.
+
+## Codex/OpenAI
 
 Use:
 
+- lowest capable subscription-backed worker/model;
+- isolated worktrees;
+- Skills for reusable workflows;
+- parallel agents only for genuinely independent work.
+
+Do not hard-code a stale mini/light model name in this charter.
+
+Use the cheapest currently available capable tier.
+
+## Other hosts
+
+Map their native facilities onto the same roles:
+
 ```text
-pnpm paon:run -- --provider <codex|claude> --dry-run
+frontier
+explorer
+test investigator
+implementation worker
+reviewer
 ```
 
-for a zero-model-call preflight.
-
-Use:
-
-```text
-pnpm paon:run:test
-```
-
-for the bounded local runner harness.
+Do not weaken the separation because a provider uses different terminology.
 
 ---
 
-## 35. Quota-aware handoff
+# 41. External model providers
 
-React only to actual tool signals such as:
+PAON's default critical build path uses authorized subscription-backed model
+capacity.
 
-- approaching usage limit;
-- hard usage limit;
-- rate limit;
-- quota exhaustion;
-- authentication failure;
-- provider capacity failure.
+OpenRouter is not part of the default PAON execution path.
 
-Neither elapsed runtime nor model-estimated remaining tokens constitute a
-quota warning.
+Do not silently:
 
-A completed slice is not a quota warning.
+- route work through OpenRouter;
+- incur API spend;
+- add external inference;
+- bypass exhausted subscription capacity with paid providers.
 
-Context pressure by itself is not a quota warning.
-
-Without an actual native warning/error, take the next independent buildable
-item.
-
-When a real warning appears:
-
-1. stop starting new large architectural slices;
-2. do not launch a new large delegated batch;
-3. finish the smallest coherent current unit when possible;
-4. independently verify it;
-5. commit it;
-6. push it;
-7. update authoritative state as necessary;
-8. leave the repository coherent;
-9. stop that frontier session.
-
-Do not idle waiting for quota reset when a clean stop is available.
-
-Do not automatically switch accounts/logins inside the running agent.
-
-Another authorized account/session may cold-start from repository truth.
+External providers require explicit founder authorization and corresponding
+policy change.
 
 ---
 
-## 36. Multi-lane parallel work
+# 42. Multi-lane ownership
 
-More than one worker/session may work simultaneously only through explicit
-isolated lanes.
+Parallel writers require explicit disjoint ownership.
 
-A lane is a dedicated branch forked from the currently authorized task branch:
+Before creating a writing lane identify:
 
-```text
-agent/lane-<letter>-<module>
-```
+- PHASE scope;
+- tables;
+- migrations;
+- shared exports;
+- files likely to change;
+- active lanes.
 
-Example:
+Verify disjointness.
 
-```text
-agent/lane-b-stage15-lifestyle-network
-```
+Do not assume it.
 
-Never two active writers on one branch.
+A lane must not edit another active lane's owned schema/migration/shared
+surface.
 
-Before assigning a lane:
-
-1. identify its `PHASE.md` range;
-2. identify tables;
-3. identify migrations;
-4. identify shared exports/files;
-5. inspect all active lanes;
-6. verify disjointness by repository inspection.
-
-Do not assume disjointness.
-
-A shared table, even read-only, may force serialized migration ordering.
-
-Record the assignment, module and start SHA in `PROJECT_STATE.md` when the
-lane is created and whenever it materially changes.
-
-`PROJECT_STATE.md` remains factual only.
-
-A lane never edits a table, migration or shared package export owned by
-another active lane.
-
-If that becomes necessary, reconcile lanes first.
+Reconcile first.
 
 ---
 
-## 37. PHASE.md lane discipline
+# 43. PHASE lane discipline
 
-Each lane edits only its own assigned item/status/addendum.
+Each lane updates only its assigned PHASE status.
 
 Never:
 
 - rewrite another lane's status;
-- reflow unrelated sections;
 - renumber unrelated sections;
+- reflow the file for aesthetics;
 - perform general PHASE cleanup.
 
-Do not continuously co-edit `PHASE.md` on a shared branch.
+Resolve PHASE merge conflicts manually.
 
-Merge lanes at deliberate checkpoints.
+Preserve legitimate status history from both lanes.
 
-At merge time, resolve `PHASE.md` conflicts manually.
-
-Preserve valid blocks from all lanes.
-
-Never use blanket `ours` or `theirs` on `PHASE.md`.
+Never blanket-select `ours` or `theirs`.
 
 ---
 
-## 38. Migration collision discipline
+# 44. Migration collision discipline
 
-Before naming a migration, inspect active lane branches for already-used
-timestamp prefixes.
+Before creating a migration, inspect active lane migration prefixes.
 
-If two new migrations collide at merge time, rename the migration merged
-second forward in time.
+If two unapplied new migrations collide, rename the one merged second forward.
 
 Never rename an already-applied migration.
 
 ---
 
-## 39. Product invariant
+# 45. Product invariant
 
-PAON's destination is the complete entitlement-controlled modular platform in
-`NORTH_STAR.md`.
+PAON's destination is the complete entitlement-controlled modular platform
+defined by `NORTH_STAR.md`.
 
 Its shared intelligence spine is:
 
@@ -1386,8 +1265,8 @@ House Memory
 -> captured outcome
 ```
 
-New capabilities compose into role homes and shared Client, Garment,
-Conversation and Order/Service pages before earning unnecessary top-level
+New capabilities compose into shared role homes and core Client, Garment,
+Conversation and Order/Service surfaces before earning unnecessary top-level
 navigation.
 
 The spine is a connected-proof invariant, not a restriction on committed
@@ -1395,204 +1274,220 @@ Retail Operations, Enterprise/Vertical or Network/Ecosystem modules.
 
 ---
 
-## 40. Engineering invariants
+# 46. Unattended runner
 
-- Strict TypeScript; no `any`.
-- Business concepts and pure rules live in `@paon/domain`.
-- Supabase access lives behind `@paon/database` repositories.
-- Every tenant-owned row carries `retailer_id`.
-- Tenant-owned rows are protected by RLS.
-- Same-tenant foreign references are validated.
-- Browser mutations are Server Actions.
-- Route Handlers are for non-browser callers, webhooks, scheduled jobs and
-  explicitly documented exceptions.
-- Reuse shared components and rules.
-- Do not duplicate logic across apps.
-- Founder-specified tools governed by ADR-052/071 remain visually and
-  behaviourally faithful ports.
-- Their source markup, CSS, motion, composition and interaction are experience
-  authority.
-- Real PAON data, permissions, persistence and multi-role continuation are
-  system authority.
-- Brand/commercial framing may be adapted where permitted.
-- A generic Tailwind approximation, static shell or domain-only scaffold is
-  not "built" when the contract requires fidelity.
-- For non-designated source material, preserve the underlying job and
-  interaction grammar rather than blindly copying surface design.
-- New schema changes use forward migrations.
-- Update generated types where required.
-- Add repository coverage.
-- Verify tenant isolation.
-- Rehearse data-changing migrations appropriately.
-- Provider behaviour requires a current contract or real sample.
-- Fixture signatures, headers and write paths are never presented as provider
-  facts.
-- Preserve unrelated user/agent work.
-- Inspect dirty state before editing.
-- Never reset or overwrite unrelated work for convenience.
-
----
-
-## 41. Environment safety
-
-- Never run integration/e2e or apply migrations until the exact target project
-  is identified and classified as disposable or explicitly approved.
-- Test suites create real rows.
-- `PAON_INTEGRATION=1` is not itself a safety boundary.
-- A clean-database run is not upgrade proof.
-- Rehearse data migrations on an appropriate restored copy when required.
-- Verify counts, money and relevant invariants.
-- Never commit credentials.
-- Do not assume external helper scripts or management credentials exist.
-- Stop live `pnpm dev` before a production build when Playwright `webServer`
-  could otherwise test a stale build.
-
----
-
-## 42. Proving a slice
-
-A slice is complete only when the applicable rule:
-
-1. is reachable from the originating role;
-2. changes authoritative state where required;
-3. appears for the receiving role where required;
-4. survives applicable denied paths;
-5. survives stale/conflict paths;
-6. survives applicable correction/recovery.
-
-Read `docs/runbooks/BROWSER_PROOF.md` only for browser/live proof.
-
-Do not pay that context cost for documentation-only or pure domain changes.
-
-Live integration suites are gated by:
+The authorized PAON frontier loop is:
 
 ```text
-PAON_INTEGRATION=1
+pnpm paon:run
 ```
 
-and skipped by ordinary:
+Persistent named execution:
 
 ```text
-pnpm test
+pnpm paon:start
 ```
 
-Check every Supabase write result.
+Status:
 
-`.update()` errors do not throw automatically.
+```text
+pnpm paon:status
+```
 
-Specs own and clean the rows they create.
+Stop:
+
+```text
+pnpm paon:stop
+```
+
+Claude frontier:
+
+```text
+pnpm paon:run -- --provider claude
+```
+
+or:
+
+```text
+pnpm paon:start -- --provider claude
+```
+
+Plain `claude` or `codex` bypasses the PAON outer continuation loop.
+
+Do not start multiple frontier loops against the same repository state.
 
 ---
 
-## 43. Definition of done
+# 47. Runner locking and recovery
 
-Use focused proportionate checks while iterating.
+The runner owns one frontier lock in the shared Git directory.
 
-For a completed code tranche, run:
+Only one frontier writer may operate at a time.
 
-```text
-pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
-```
+Workers operate through isolated lanes/worktrees.
 
-A completed slice must be:
+The runner must never silently:
 
-- implemented;
-- verified;
-- intentionally committed;
-- pushed to the authorized task branch;
-- reflected accurately in authoritative queue state.
+- reset;
+- clean;
+- switch branches;
+- remove unrelated worktrees;
+- destroy dirty state.
 
-Finished but uncommitted work is not complete.
+Existing dirty state is repository memory unless explicitly owned by the
+active slice.
 
-Finished but unpushed work is not complete.
-
-A stale queue is not complete.
+Preserve recovery state before model invocation where the runner supports it.
 
 ---
 
-## 44. Default autonomous execution policy
+# 48. Stop-hook continuation
 
-For every authorized `PHASE.md` item:
+A normal model turn ending does not mean PAON work is complete.
 
-1. identify the active major capability;
-2. load minimum context;
-3. identify the highest-priority buildable unit;
-4. classify it as Route A, B or C;
-5. delegate Route A immediately when light-worker capacity exists;
-6. delegate Route B when suitable cheaper implementation capacity exists;
-7. perform Route C judgment on the frontier;
-8. independently verify worker output;
-9. integrate accepted work;
-10. run proportionate checks;
-11. repair only what blocks or invalidates the active capability;
-12. commit;
-13. push;
-14. update authoritative state;
-15. return to the active capability if incomplete;
-16. otherwise select the next highest-priority major buildable capability;
-17. continue automatically.
+The continuation mechanism should distinguish:
+
+**continue**
+
+```text
+normal end turn
+slice committed
+tests completed
+worker returned
+recap generated
+context rollover
+```
+
+from:
+
+**stop**
+
+```text
+real quota/auth exhaustion
+hard blocker
+unsafe live environment
+founder decision
+unrecoverable Git state
+bounded repeated no-progress circuit breaker
+```
+
+Use deterministic command hooks for continuation enforcement where practical.
+
+Avoid relying solely on the model remembering to continue.
+
+---
+
+# 49. Delegation audit
+
+A frontier run is considered incorrectly routed when substantial Route-A work
+is performed directly despite available worker capacity.
+
+Indicators include:
+
+- repeated Grep/Glob/search calls by frontier;
+- broad repository exploration in frontier context;
+- frontier reading many unrelated files;
+- frontier repeatedly running/debugging tests whose expected behaviour is
+  already settled;
+- worker spawned only after investigation is complete;
+- Haiku available but unused during a long mechanical debugging session.
+
+The runtime should make these events observable.
+
+Do not merely rely on retrospective human inspection.
+
+---
+
+# 50. Default autonomous loop
+
+For each material capability:
+
+```text
+identify material frontier
+-> load minimum context
+-> delegate Route-A investigation
+-> synthesize
+-> make Route-C decisions
+-> delegate settled Route-B work
+-> inspect worker output
+-> independently verify
+-> integrate
+-> test
+-> repair only blocking/correctness issues
+-> commit
+-> push
+-> evidence for this capability only
+-> reapply Material-progress gate
+-> continue
+```
 
 Do not ask the founder to:
 
-- open a worker;
-- relay a prompt;
-- relay worker output;
-- choose routine light-worker routing;
+- start workers;
+- select routine worker models;
+- relay worker prompts;
+- relay worker responses;
+- choose implementation minutiae;
 - approve normal continuation;
-- tell the agent which PHASE item comes next;
-- approve routine evidence refresh;
-- choose between equivalent low-level implementation details.
+- choose the next ordinary PHASE item.
 
-Surface only decisions that genuinely require founder authority.
+Surface only genuine founder decisions.
 
 ---
 
-## 45. Binding execution summary
+# 51. Binding summary
 
 **The repository remembers.**
 
-**PHASE controls the queue.**
+**PHASE authorizes work.**
 
-**The frontier model thinks.**
+**Material capability outranks administrative closure.**
 
-**The frontier uses standard/medium reasoning by default.**
+**The frontier thinks.**
 
-**High/max reasoning is temporary and reserved for bounded hard Route C
-problems.**
+**Cheap workers investigate.**
 
-**Workers execute settled work.**
+**Settled implementation is delegated.**
 
-**The frontier independently verifies workers.**
+**Claude Route A defaults to Haiku.**
 
-**Use the cheapest reliable subscription-backed worker capable of the task.**
+**Worker contexts remain narrow.**
 
-**Claude, Codex and future authorized frontier models follow the same rules.**
+**Writers are isolated.**
 
-**Major unfinished capabilities outrank cleanup and polish.**
+**Parallelism requires disjoint ownership.**
 
-**Security, privacy, tenant isolation and data integrity outrank speed.**
+**Hooks enforce what prose should not be trusted to enforce.**
 
-**Evidence proves completion but must not become the product.**
+**Deterministic command hooks are preferred for critical enforcement.**
 
-**Loaded context is not permission to bypass delegation.**
+**The frontier verifies every worker result.**
 
-**Discovering work is not authorization to perform it.**
+**Worker narration is not evidence.**
 
-**A worker report is not evidence.**
+**Evidence proves the product; evidence is not the product.**
 
-**A recap is not a stopping condition.**
+**Loaded context never justifies bypassing delegation.**
+
+**Discovery does not authorize adjacent work.**
+
+**Local bugs do not become open-ended rabbit holes.**
+
+**Production convergence is vertical, not repository-wide polishing.**
+
+**Medium/standard frontier reasoning is the default.**
+
+**High reasoning is temporary Route-C capacity.**
 
 **A commit is not a stopping condition.**
 
-**A completed slice is not a stopping condition.**
+**A recap is not a stopping condition.**
 
-**After a blocker is resolved, return immediately to the active capability.**
+**A completed PHASE item is not a stopping condition.**
 
-**After a capability is complete, automatically start the next
-highest-priority buildable capability.**
+**After material completion, automatically select the next material frontier.**
 
-**Do not use OpenRouter in the PAON execution path unless the founder
-explicitly changes this charter.**
+**Do not silently incur external model spend.**
 
-**Continue autonomously until the authorized queue is complete or a genuine
-stop condition defined above is reached.**
+**Continue until the authorized material queue is complete or a genuine stop
+condition occurs.**

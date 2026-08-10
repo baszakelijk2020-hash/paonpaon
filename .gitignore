@@ -54,6 +54,16 @@ next-env.d.ts
 # Agent tooling — machine-local settings, never shared
 .claude/settings.local.json
 
+# Delegation-gate runtime ledger — ephemeral per-session state, not source.
+.claude/delegation-state.json
+.claude/delegation-audit.log
+
+# Delegated-worker git worktrees and session lock — runtime state created by
+# scripts/paon-delegate.sh / paon-session.sh, never source.
+.claude/worktrees/
+.claude/scheduled_tasks.lock
+.claude/.DS_Store
+
 # Agent scratch — throwaway verification specs must never be committed.
 # Name any temporary Playwright/vitest file with this prefix so it is
 # ignored by construction rather than by remembering to delete it.
