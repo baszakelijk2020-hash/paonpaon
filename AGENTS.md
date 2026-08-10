@@ -1435,7 +1435,56 @@ Surface only genuine founder decisions.
 
 ---
 
-# 51. Binding summary
+# 51. Never-stop material execution
+
+A blocker or founder decision on one requirement is NOT a global stopping
+condition.
+
+When a material sub-requirement is blocked:
+
+- record the exact blocker in the existing canonical project state;
+- record what is known, why that exact path cannot safely proceed, and what
+  becomes executable after resolution;
+- do not fabricate the missing decision;
+- do not mark the requirement complete;
+- do not repeatedly revisit the blocker until relevant state changes;
+- continue immediately with independent executable work in the same
+  capability;
+- otherwise select the next dependency-ready material capability.
+
+Do not ask the founder during autonomous execution while any safe material
+executable PAON work remains.
+
+Material-work selection order:
+
+1. remaining executable work in the active capability;
+2. another executable requirement in the same PHASE item;
+3. next dependency-ready material item owned by this lane;
+4. another dependency-ready material PAON item that can safely be delegated
+   without lane conflict;
+5. stabilization/cleanup only when no material executable implementation
+   remains.
+
+Acceptable global stopping conditions are only:
+
+- explicit founder stop/pause;
+- actual quota/runtime/tooling exhaustion preventing execution;
+- repository state unsafe to mutate and not safely repairable;
+- literally no material executable PAON work remains.
+
+A completed task, commit, failed attempt, founder decision on one feature,
+missing external credential for one path, or question you would normally ask
+is NOT a global stopping condition.
+
+This chapter sharpens ch.22's Material-progress gate and ch.37's Genuine stop
+conditions; it does not weaken ch.31's Environment safety, ch.32's Engineering
+invariants, ch.33's Evidence discipline, ch.42/43's lane ownership, or ch.26's
+Anti-drift rules. Routing around a blocker never means skipping verification,
+skipping lane-disjointness checks, or fabricating the blocked decision itself.
+
+---
+
+# 52. Binding summary
 
 **The repository remembers.**
 

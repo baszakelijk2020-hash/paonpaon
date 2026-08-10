@@ -72,9 +72,26 @@ long run:
   pipeline would violate that module's own explicit anti-fabrication
   design (see its docblock).
 
-Recurring monitor cron paused by explicit founder request 2026-08-10 —
-**do not re-enable autonomous continuation on this lane without being
-asked.**
+**Update (2026-08-10, later the same day):** the founder explicitly
+re-enabled recurring autonomous continuation on this lane, revoking the
+pause above. The recurring monitor (a 15-minute session cron, per
+AGENTS.md ch.51 "Never-stop material execution") is active. It is a
+safety net only — it resumes execution if the active run idles, stops, or
+gets stuck on one blocker, and otherwise stays out of the way. It remains
+enabled until explicitly paused again by the founder. PHASE 11.3 closed
+end-to-end this session (`718f9d9`): `CeremonyForm` now exposes the
+`appliesWhen` trigger (appointment kind, first-visit, open-alteration) a
+manager can set per step, closing the one gap named above.
+
+Known blockers this lane is routing around per ch.51, not stopping for:
+PHASE 15.2's reward UI/accounting export (needs ADR-062, the stored-value
+decision); PHASE 17.13's two remaining gaps (each needs a schema/RLS
+architecture decision — nullable `wardrobe_items.customer_id` cascades
+into RLS/triggers; a non-numeric fit-check candidate type is a domain
+extension, not wiring); PHASE 17.10's live try-on gate (a founder billing
+decision — wiring it now would silently block all existing generation).
+None of these block other lane-H work; each is recorded here so it is not
+silently retried.
 
 Stage 17.10 (AI try-on / MorningRoutine) remains unchecked: the ledger is
 deliberately **not wired to gate today's generation path** — every
