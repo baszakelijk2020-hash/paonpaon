@@ -1,8 +1,10 @@
 import {
   AdvisorBriefRepository,
+  AlterationRepository,
   AppointmentCloseoutRepository,
   AppointmentRepository,
   ClientelingRepository,
+  CoachingRepository,
   CustomerRepository,
   MetadataRepository,
   OrderRepository,
@@ -65,20 +67,48 @@ export default async function AppointmentDetailPage({
       ),
       new MetadataRepository(supabase).findVisibleConcepts(session.retailerId),
     ]);
-  const [notes, orders, garments, advisorBrief, wishlist] = customer
-    ? await Promise.all([
-        new ClientelingRepository(supabase).findByCustomer(customer.id),
-        new OrderRepository(supabase).findByCustomer(customer.id),
-        new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
-        new AdvisorBriefRepository(supabase).projectForCustomer({
-          retailerId: session.retailerId,
-          customerId: customer.id,
-          advisorRetailerId: session.retailerId,
-          ...(appointment.notes ? { appointmentNotes: appointment.notes } : {}),
-        }),
-        new WishlistRepository(supabase).findByCustomer(customer.id),
-      ])
-    : [[], [], [], null, null];
+  const [notes, orders, garments, advisorBrief, wishlist, alterations] =
+    customer
+      ? await Promise.all([
+          new ClientelingRepository(supabase).findByCustomer(customer.id),
+          new OrderRepository(supabase).findByCustomer(customer.id),
+          new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
+          new AdvisorBriefRepository(supabase).projectForCustomer({
+            retailerId: session.retailerId,
+            customerId: customer.id,
+            advisorRetailerId: session.retailerId,
+            ...(appointment.notes
+              ? { appointmentNotes: appointment.notes }
+              : {}),
+          }),
+          new WishlistRepository(supabase).findByCustomer(customer.id),
+          new AlterationRepository(supabase).findByCustomer(customer.id),
+        ])
+      : [[], [], [], null, null, []];
+  // Same open/terminal split the alterations detail page uses: only
+  // "completed" and "canceled" are terminal, everything else is open work.
+  const hasOpenAlteration = alterations.some(
+    (alteration) =>
+      alteration.status !== "completed" && alteration.status !== "canceled",
+  );
+  // The appointment type IS the ceremony key: one published ceremony per
+  // type covers every appointment of that kind, and a manager who hasn't
+  // published one yet for a given type simply sees no card below rather
+  // than an empty-state message on every appointment.
+  const ceremonyPrompts = customer
+    ? await new CoachingRepository(supabase).promptsForContext({
+        retailerId: session.retailerId,
+        ceremonyKey: appointment.type,
+        context: {
+          appointmentKind: appointment.type,
+          // "First visit" here means no purchase history at this retailer,
+          // not literally the customer's first physical visit — the page
+          // has no visit-count signal, only orders.
+          customerIsFirstVisit: orders.length === 0,
+          hasOpenAlteration,
+        },
+      })
+    : [];
   const pinnedNote = notes.find((note) => note.pinned);
   const assignedAdvisor = staff.find(
     (member) => member.id === appointment.staffId,
@@ -229,6 +259,27 @@ export default async function AppointmentDetailPage({
               </div>
             ) : null}
           </Card>
+
+          {ceremonyPrompts.length > 0 ? (
+            <Card className="rounded-[var(--radius-md)]">
+              <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+                Service ceremony
+              </p>
+              <h2 className="font-display mt-2 text-2xl">
+                What this moment calls for.
+              </h2>
+              <ul id="ceremony-prompts" className="mt-4 flex flex-col gap-3">
+                {ceremonyPrompts.map((step) => (
+                  <li key={step.key} className="text-sm leading-6">
+                    <strong>{step.title}</strong>
+                    <p className="text-[var(--color-stone-500)]">
+                      {step.guidance}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ) : null}
 
           {advisorBrief ? (
             <AdvisorPreparationBriefCard

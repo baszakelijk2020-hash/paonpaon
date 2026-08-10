@@ -1,7 +1,10 @@
-import { createSupabaseAdminClient } from "@paon/database";
+import {
+  AppointmentRepository,
+  createSupabaseAdminClient,
+} from "@paon/database";
 import { DEMO_PASSWORD } from "@paon/database/demo-seed";
 import { ensureProgrammeProofSeed } from "@paon/database/programme-proof-seed";
-import { PROGRAMME_PROOF_PERSONAS } from "@paon/domain";
+import { asId, PROGRAMME_PROOF_PERSONAS } from "@paon/domain";
 import { expect, test, type Page } from "@playwright/test";
 
 import { writeBrowserProofRun } from "./write-browser-proof-run";
@@ -13,6 +16,7 @@ let coveragePassed = false;
 let availabilityPassed = false;
 let swapPassed = false;
 let ceremonyPassed = false;
+let ceremonyPromptsPassed = false;
 
 // Both tests write into the same two module-level flags, which only works
 // if they run in one worker process. fullyParallel defaults to sharding
@@ -43,7 +47,11 @@ test.afterAll(async () => {
     phaseItemId: PHASE_ITEM_ID,
     spec: BROWSER_PROOF_SPEC,
     status:
-      coveragePassed && availabilityPassed && swapPassed && ceremonyPassed
+      coveragePassed &&
+      availabilityPassed &&
+      swapPassed &&
+      ceremonyPassed &&
+      ceremonyPromptsPassed
         ? "passed"
         : "failed",
   });
@@ -658,4 +666,86 @@ test("a manager publishes a versioned service ceremony", async ({ page }) => {
   expect(versionRows?.[1]?.published).toBe(true);
 
   ceremonyPassed = true;
+});
+
+test("the appointment brief shows contextual ceremony prompts for that appointment's type", async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
+
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const proof = await ensureProgrammeProofSeed({
+    supabaseUrl,
+    anonKey,
+    serviceRoleKey,
+  });
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  // "fitting" is a real appointment-type enum value, not a free-form test
+  // key -- the page uses appointment.type AS the ceremony key, so this
+  // proof has to publish under the real value to be observed at all. That
+  // means this key accumulates a new published version every run (publishing
+  // is append-only), same as it would in real use as managers iterate a
+  // ceremony over time; only the highest version matters to the page.
+  const ceremonyKey = "fitting";
+  const stepTitle = `E2E Greet warmly ${Date.now()}`;
+  const { data: latest } = await admin
+    .from("service_ceremony_versions")
+    .select("version")
+    .eq("retailer_id", proof.retailerId)
+    .eq("ceremony_key", ceremonyKey)
+    .order("version", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const { error: publishError } = await admin
+    .from("service_ceremony_versions")
+    .insert({
+      retailer_id: proof.retailerId,
+      ceremony_key: ceremonyKey,
+      version: (latest?.version ?? 0) + 1,
+      published: true,
+      published_at: new Date().toISOString(),
+      steps: [
+        {
+          key: "greet",
+          title: stepTitle,
+          guidance: "Use the name on the appointment record.",
+        },
+      ],
+    });
+  expect(publishError).toBeNull();
+
+  const { data: customer, error: customerError } = await admin
+    .from("customers")
+    .insert({
+      retailer_id: proof.retailerId,
+      full_name: `E2E Ceremony Prompt Client ${Date.now()}`,
+      email: `ceremony-prompt-${Date.now()}@example.com`,
+      lifecycle_stage: "prospect",
+    })
+    .select("id")
+    .single();
+  expect(customerError).toBeNull();
+
+  const startsAt = new Date(Date.now() + 3_600_000);
+  const endsAt = new Date(startsAt.getTime() + 30 * 60_000);
+  const appointment = await new AppointmentRepository(admin).create({
+    retailerId: asId<"RetailerId">(proof.retailerId),
+    customerId: asId<"CustomerId">(customer!.id),
+    type: "fitting",
+    startsAt: startsAt.toISOString(),
+    endsAt: endsAt.toISOString(),
+  });
+
+  await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
+  await page.goto(`/appointments/${appointment.id}`);
+
+  await expect(page.locator("#ceremony-prompts")).toContainText(stepTitle);
+  await expect(page.locator("#ceremony-prompts")).toContainText(
+    "Use the name on the appointment record.",
+  );
+
+  ceremonyPromptsPassed = true;
 });

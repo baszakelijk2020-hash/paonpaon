@@ -2875,6 +2875,39 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     publishing are all built and browser-proven, but contextual prompts —
     named in the owner boundary — are backend-only.
 
+  - **Update (2026-08-10, fourth session the same day):** `promptsForContext`
+    now has a live caller. `apps/retailer/app/(dashboard)/appointments/[id]/page.tsx`
+    — the staff-facing brief a manager or advisor opens to prepare for an
+    upcoming appointment, already the page PHASE 17.3 uses for purchase/fit
+    intelligence — computes real `CeremonyContext` from data it already
+    (mostly) loads: `appointmentKind` is `appointment.type` (one of the
+    fixed appointment-type enum values, e.g. `"fitting"`), `hasOpenAlteration`
+    is `AlterationRepository.findByCustomer` filtered to non-terminal status
+    (same open/terminal split the alterations detail page already used),
+    and `customerIsFirstVisit` is `orders.length === 0` — no purchase
+    history at this retailer, not literally "never physically visited
+    before"; the page has no visit-count signal to make a stronger claim,
+    and the note in the code says so. `ceremonyKey` is the appointment
+    type itself, so one published ceremony per type covers every
+    appointment of that kind with no extra key-naming decision needed. A
+    "Service ceremony" card renders the matched steps only when at least
+    one exists — a manager who has not published a ceremony for that
+    appointment type sees no empty-state card cluttering the brief.
+    Browser-proven in `staff-coverage.spec.ts`: a ceremony step is
+    published for the real `"fitting"` appointment type, a fresh
+    appointment of that type is created, and the appointment brief page
+    shows the step's title and guidance.
+
+    Still not fully met: the publish form (`CeremonyForm`) has no way to
+    set a step's `appliesWhen` from the UI, so every published step
+    applies unconditionally regardless of context — `selectCeremonyPrompts`
+    correctly filters when a step declares a trigger, but nothing in this
+    codebase can currently declare one outside a test fixture. "Contextual
+    prompts" as a live, end-to-end capability (compute real context →
+    fetch → filter → render on the page an advisor is actually looking at)
+    is now true; "contextual" as in _manager-configurable per condition_ is
+    not. The checkbox stays unchecked for that narrower reason.
+
 - [x] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.
   - **Dependencies:** `11.2`, `16.1`.
