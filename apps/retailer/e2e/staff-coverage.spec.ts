@@ -9,7 +9,15 @@ import { writeBrowserProofRun } from "./write-browser-proof-run";
 const PHASE_ITEM_ID = "11.3";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/staff-coverage.spec.ts";
 
-let proofPassed = false;
+let coveragePassed = false;
+let availabilityPassed = false;
+
+// Both tests write into the same two module-level flags, which only works
+// if they run in one worker process. fullyParallel defaults to sharding
+// even within a single file across workers, which would leave each
+// worker's copy of the other test's flag permanently false and the
+// combined evidence status wrongly "failed" even when both tests passed.
+test.describe.configure({ mode: "serial" });
 
 async function signIn(page: Page, email: string): Promise<void> {
   await page.goto("/login");
@@ -26,7 +34,7 @@ test.afterAll(async () => {
   await writeBrowserProofRun({
     phaseItemId: PHASE_ITEM_ID,
     spec: BROWSER_PROOF_SPEC,
-    status: proofPassed ? "passed" : "failed",
+    status: coveragePassed && availabilityPassed ? "passed" : "failed",
   });
 });
 
@@ -299,5 +307,81 @@ test("manager publishes coverage, reads a cited shortage, closes a coaching loop
   expect(shiftError).toBeNull();
   expect(shiftRows?.length).toBe(0);
 
-  proofPassed = true;
+  coveragePassed = true;
+});
+
+test("a staff member declares their own availability", async ({ page }) => {
+  test.setTimeout(300_000);
+
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const proof = await ensureProgrammeProofSeed({
+    supabaseUrl,
+    anonKey,
+    serviceRoleKey,
+  });
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  // A future, collision-free effective date, same reasoning as the coverage
+  // date above: the availability table has no per-run cleanup, so a fixed
+  // date would accumulate rows across test runs and pollute the assertion.
+  const effectiveOn = new Date(
+    Date.UTC(2100, 0, 1) + (Date.now() % 100_000) * 86_400_000,
+  )
+    .toISOString()
+    .slice(0, 10);
+
+  await signIn(page, PROGRAMME_PROOF_PERSONAS.manager.email);
+  await page.goto("/staff/coverage");
+
+  await page.getByLabel("Effective from").fill(effectiveOn);
+  await page.selectOption("select[name='weekday']", { label: "Wednesday" });
+  await page.getByLabel("Start time").fill("09:00");
+  await page.getByLabel("End time").fill("13:00");
+  await page.selectOption("select[name='available']", { label: "Available" });
+  await page.getByLabel("Note (optional)").fill("Prefers mornings.");
+  await page.getByRole("button", { name: "Save availability" }).click();
+
+  await expect
+    .poll(
+      async () => {
+        await page.reload();
+        return page.locator("#availability-declarations > li").count();
+      },
+      { timeout: 60_000 },
+    )
+    .toBeGreaterThan(0);
+
+  const row = page
+    .locator("#availability-declarations > li")
+    .filter({ hasText: "Wednesday" })
+    .first();
+  await expect(row).toContainText("09:00–13:00");
+  await expect(row).toContainText("available");
+  await expect(row).toContainText("Prefers mornings.");
+  await expect(row).toHaveAttribute("data-available", "true");
+
+  // ---- the database agrees with the page ------------------------------
+  const manager = await admin
+    .from("retailer_staff_members")
+    .select("id")
+    .eq("retailer_id", proof.retailerId)
+    .eq("email", PROGRAMME_PROOF_PERSONAS.manager.email)
+    .single();
+  expect(manager.error).toBeNull();
+
+  const { data: declarationRows, error: declarationError } = await admin
+    .from("staff_availability_declarations")
+    .select("weekday, start_time, end_time, available, note, effective_on")
+    .eq("retailer_id", proof.retailerId)
+    .eq("staff_id", manager.data!.id)
+    .eq("effective_on", effectiveOn);
+  expect(declarationError).toBeNull();
+  expect(declarationRows?.length).toBe(1);
+  expect(declarationRows?.[0]?.weekday).toBe(3);
+  expect(declarationRows?.[0]?.available).toBe(true);
+  expect(declarationRows?.[0]?.note).toBe("Prefers mornings.");
+
+  availabilityPassed = true;
 });

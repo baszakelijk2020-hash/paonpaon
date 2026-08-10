@@ -84,6 +84,55 @@ export async function publishCoveragePlan(
   return { notice: "Coverage requirement published." };
 }
 
+const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6];
+
+export async function declareAvailability(
+  _previous: CoverageActionState,
+  formData: FormData,
+): Promise<CoverageActionState> {
+  const session = await requireModuleSession("retail_operations");
+
+  const effectiveOn = String(formData.get("effectiveOn") ?? "").trim();
+  const weekday = Number(formData.get("weekday"));
+  const startTime = String(formData.get("startTime") ?? "").trim();
+  const endTime = String(formData.get("endTime") ?? "").trim();
+  const available = formData.get("available") === "true";
+  const note = String(formData.get("note") ?? "").trim();
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(effectiveOn)) {
+    return { formError: "Choose a valid effective date." };
+  }
+  if (!WEEKDAYS.includes(weekday)) {
+    return { formError: "Choose a day of the week." };
+  }
+  if (!/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime)) {
+    return { formError: "Choose a start and end time." };
+  }
+  if (startTime >= endTime) {
+    return { formError: "End time must be after start time." };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const viewer = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!viewer) return { formError: "Your staff record could not be found." };
+
+  await new CoveragePlanningRepository(supabase).declareAvailability({
+    retailerId: session.retailerId,
+    staffId: viewer.id,
+    effectiveOn,
+    weekday,
+    startTime,
+    endTime,
+    available,
+    ...(note ? { note } : {}),
+  });
+
+  revalidatePath("/staff/coverage");
+  return { notice: "Availability saved." };
+}
+
 export async function recordCoachingObservation(
   _previous: CoverageActionState,
   formData: FormData,
@@ -156,7 +205,8 @@ export async function advanceCoachingLoop(
   });
   if (!result.ok) {
     return {
-      formError: COACHING_ERROR[result.reason] ?? "That step could not be saved.",
+      formError:
+        COACHING_ERROR[result.reason] ?? "That step could not be saved.",
     };
   }
 

@@ -29,6 +29,8 @@ type PlanRow = Database["public"]["Tables"]["coverage_plans"]["Row"];
 type IntervalRow =
   Database["public"]["Tables"]["coverage_plan_intervals"]["Row"];
 type SwapRow = Database["public"]["Tables"]["staff_shift_swap_requests"]["Row"];
+type AvailabilityRow =
+  Database["public"]["Tables"]["staff_availability_declarations"]["Row"];
 
 export interface CoveragePlanWithIntervals extends CoveragePlan {
   readonly id: string;
@@ -255,6 +257,27 @@ export class CoveragePlanningRepository {
         ...(args.note ? { note: args.note } : {}),
       });
     if (error) throw error;
+  }
+
+  /**
+   * A staff member's own declared availability, most recently effective
+   * first. RLS already scopes reads to the caller's retailer; this just
+   * narrows to one person for the "your availability" surface.
+   */
+  async listAvailability(args: {
+    readonly retailerId: RetailerId;
+    readonly staffId: string;
+  }): Promise<readonly AvailabilityRow[]> {
+    const { data, error } = await this.client
+      .from("staff_availability_declarations")
+      .select("*")
+      .eq("retailer_id", args.retailerId)
+      .eq("staff_id", args.staffId)
+      .is("deleted_at", null)
+      .order("effective_on", { ascending: false })
+      .order("weekday", { ascending: true });
+    if (error) throw error;
+    return data ?? [];
   }
 
   /**

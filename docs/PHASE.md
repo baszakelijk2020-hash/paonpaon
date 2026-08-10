@@ -2811,6 +2811,20 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     date. Availability, swaps and ceremony management remain unbuilt, so this
     legacy item correctly stays unchecked pending R0.3 disposition mapping.
 
+  - **Update (2026-08-10):** availability declarations now have a browser
+    surface. `CoveragePlanningRepository.declareAvailability` already
+    existed (2026-08-01) with no caller; added `listAvailability` (read,
+    same repository), the self-service `declareAvailability` Server Action
+    (no manager gate — RLS already pins the insert to the caller's own
+    `retailer_staff_members` row), and a "Your availability" card on
+    `/staff/coverage` open to every staff member. Browser-proven in
+    `staff-coverage.spec.ts`: a staff member declares a weekday window,
+    it appears in their own list, and the database row matches what the
+    page shows. The checkbox stays unchecked: shift-swap requests
+    (`requestSwap`/`setSwapState`/`approveSwap`) and service ceremony
+    version management still have no UI, and the owner boundary is not met
+    until both do.
+
 - [x] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.
   - **Dependencies:** `11.2`, `16.1`.

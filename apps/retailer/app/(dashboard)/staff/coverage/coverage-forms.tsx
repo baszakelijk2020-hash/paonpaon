@@ -5,10 +5,21 @@ import { useActionState } from "react";
 
 import {
   advanceCoachingLoop,
+  declareAvailability,
   publishCoveragePlan,
   recordCoachingObservation,
   type CoverageActionState,
 } from "./actions";
+
+const WEEKDAY_LABELS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 
 const initial: CoverageActionState = {};
 const fieldClass =
@@ -43,14 +54,24 @@ export function CoveragePlanForm({ planDate }: { readonly planDate: string }) {
           required
         />
       </label>
-      <CoverageBand label="morning" headcountName="morningHeadcount" skillName="morningSkill" />
-      <CoverageBand label="afternoon" headcountName="afternoonHeadcount" skillName="afternoonSkill" />
+      <CoverageBand
+        label="morning"
+        headcountName="morningHeadcount"
+        skillName="morningSkill"
+      />
+      <CoverageBand
+        label="afternoon"
+        headcountName="afternoonHeadcount"
+        skillName="afternoonSkill"
+      />
       <div className="md:col-span-2">
         <Button type="submit" size="sm" disabled={pending}>
           {pending ? "Publishing…" : "Publish coverage"}
         </Button>
       </div>
-      <div className="md:col-span-2"><Result state={state} /></div>
+      <div className="md:col-span-2">
+        <Result state={state} />
+      </div>
     </form>
   );
 }
@@ -69,13 +90,91 @@ function CoverageBand({
       <legend className="px-1 text-sm font-medium capitalize">{label}</legend>
       <label className="flex flex-col gap-1 text-sm">
         {label} headcount
-        <input className={fieldClass} type="number" min="0" step="1" name={headcountName} defaultValue="0" />
+        <input
+          className={fieldClass}
+          type="number"
+          min="0"
+          step="1"
+          name={headcountName}
+          defaultValue="0"
+        />
       </label>
       <label className="flex flex-col gap-1 text-sm">
         Required skill (optional)
         <input className={fieldClass} name={skillName} />
       </label>
     </fieldset>
+  );
+}
+
+export function AvailabilityForm({
+  defaultEffectiveOn,
+}: {
+  readonly defaultEffectiveOn: string;
+}) {
+  const [state, action, pending] = useActionState(declareAvailability, initial);
+  return (
+    <form action={action} className="mt-3 grid gap-3 md:grid-cols-2">
+      <label className="flex flex-col gap-1 text-sm">
+        Effective from
+        <input
+          className={fieldClass}
+          type="date"
+          name="effectiveOn"
+          defaultValue={defaultEffectiveOn}
+          required
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        Day of week
+        <select className={fieldClass} name="weekday" defaultValue="1">
+          {WEEKDAY_LABELS.map((label, index) => (
+            <option key={label} value={index}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        Start time
+        <input
+          className={fieldClass}
+          type="time"
+          name="startTime"
+          defaultValue="09:00"
+          required
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        End time
+        <input
+          className={fieldClass}
+          type="time"
+          name="endTime"
+          defaultValue="17:00"
+          required
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        Availability
+        <select className={fieldClass} name="available" defaultValue="true">
+          <option value="true">Available</option>
+          <option value="false">Not available</option>
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-sm">
+        Note (optional)
+        <input className={fieldClass} name="note" maxLength={500} />
+      </label>
+      <div className="md:col-span-2">
+        <Button type="submit" size="sm" disabled={pending}>
+          {pending ? "Saving…" : "Save availability"}
+        </Button>
+      </div>
+      <div className="md:col-span-2">
+        <Result state={state} />
+      </div>
+    </form>
   );
 }
 
@@ -86,21 +185,38 @@ export function ObservationForm({
   readonly planDate: string;
   readonly team: readonly { readonly id: string; readonly fullName: string }[];
 }) {
-  const [state, action, pending] = useActionState(recordCoachingObservation, initial);
+  const [state, action, pending] = useActionState(
+    recordCoachingObservation,
+    initial,
+  );
   return (
     <form action={action} className="mt-3 flex flex-col gap-3">
       <input type="hidden" name="observedOn" value={planDate} />
       <label className="flex flex-col gap-1 text-sm">
         Colleague
         <select name="observedStaffId" className={fieldClass} required>
-          {team.map((member) => <option key={member.id} value={member.id}>{member.fullName}</option>)}
+          {team.map((member) => (
+            <option key={member.id} value={member.id}>
+              {member.fullName}
+            </option>
+          ))}
         </select>
       </label>
       <label className="flex flex-col gap-1 text-sm">
         What you actually saw
-        <textarea name="evidence" minLength={10} required rows={3} className={fieldClass} />
+        <textarea
+          name="evidence"
+          minLength={10}
+          required
+          rows={3}
+          className={fieldClass}
+        />
       </label>
-      <div><Button type="submit" size="sm" disabled={pending}>{pending ? "Recording…" : "Record observation"}</Button></div>
+      <div>
+        <Button type="submit" size="sm" disabled={pending}>
+          {pending ? "Recording…" : "Record observation"}
+        </Button>
+      </div>
       <Result state={state} />
     </form>
   );
@@ -113,17 +229,41 @@ export function CoachingStepForm({
   readonly observationId: string;
   readonly state: string;
 }) {
-  const [result, action, pending] = useActionState(advanceCoachingLoop, initial);
-  const next = state === "observed" ? "discussed" : state === "discussed" ? "plan_agreed" : "outcome_recorded";
+  const [result, action, pending] = useActionState(
+    advanceCoachingLoop,
+    initial,
+  );
+  const next =
+    state === "observed"
+      ? "discussed"
+      : state === "discussed"
+        ? "plan_agreed"
+        : "outcome_recorded";
   return (
     <form action={action} className="mt-2 flex flex-col gap-2">
       <input type="hidden" name="observationId" value={observationId} />
       <input type="hidden" name="next" value={next} />
-      {state === "discussed" ? <input name="agreedAction" placeholder="Action you both agreed" className={fieldClass} /> : null}
-      {state === "plan_agreed" ? <input name="outcomeNote" placeholder="What changed afterwards" className={fieldClass} /> : null}
+      {state === "discussed" ? (
+        <input
+          name="agreedAction"
+          placeholder="Action you both agreed"
+          className={fieldClass}
+        />
+      ) : null}
+      {state === "plan_agreed" ? (
+        <input
+          name="outcomeNote"
+          placeholder="What changed afterwards"
+          className={fieldClass}
+        />
+      ) : null}
       <div>
         <Button type="submit" size="sm" disabled={pending}>
-          {state === "observed" ? "Mark as discussed" : state === "discussed" ? "Agree a plan" : "Record the outcome"}
+          {state === "observed"
+            ? "Mark as discussed"
+            : state === "discussed"
+              ? "Agree a plan"
+              : "Record the outcome"}
         </Button>
       </div>
       <Result state={result} />
