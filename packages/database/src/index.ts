@@ -52,6 +52,7 @@ export * from "./repositories/gift-repository";
 export * from "./repositories/concept-scan-repository";
 export * from "./repositories/staff-roster-repository";
 export * from "./repositories/staff-recognition-repository";
+export * from "./repositories/shift-closeout-repository";
 export * from "./repositories/coverage-planning-repository";
 export * from "./repositories/coaching-repository";
 export * from "./repositories/internal-community-repository";

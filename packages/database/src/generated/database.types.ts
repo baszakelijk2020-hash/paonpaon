@@ -15421,6 +15421,79 @@ export type Database = {
           },
         ];
       };
+      staff_shift_closeouts: {
+        Row: {
+          anomalies_note: string | null;
+          closeout_date: string;
+          created_at: string;
+          extra_mile_act_id: string | null;
+          facts_learned_note: string | null;
+          help_requested_note: string | null;
+          id: string;
+          problems_note: string | null;
+          promises_note: string;
+          retailer_id: string;
+          staff_id: string;
+          submitted_at: string;
+          updated_at: string;
+          what_worked_note: string;
+        };
+        Insert: {
+          anomalies_note?: string | null;
+          closeout_date: string;
+          created_at?: string;
+          extra_mile_act_id?: string | null;
+          facts_learned_note?: string | null;
+          help_requested_note?: string | null;
+          id?: string;
+          problems_note?: string | null;
+          promises_note: string;
+          retailer_id: string;
+          staff_id: string;
+          submitted_at?: string;
+          updated_at?: string;
+          what_worked_note: string;
+        };
+        Update: {
+          anomalies_note?: string | null;
+          closeout_date?: string;
+          created_at?: string;
+          extra_mile_act_id?: string | null;
+          facts_learned_note?: string | null;
+          help_requested_note?: string | null;
+          id?: string;
+          problems_note?: string | null;
+          promises_note?: string;
+          retailer_id?: string;
+          staff_id?: string;
+          submitted_at?: string;
+          updated_at?: string;
+          what_worked_note?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_shift_closeouts_extra_mile_act_id_fkey";
+            columns: ["extra_mile_act_id"];
+            isOneToOne: false;
+            referencedRelation: "staff_recognition_acts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_shift_closeouts_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_shift_closeouts_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       staff_shift_swap_requests: {
         Row: {
           approved_by_staff_id: string | null;
