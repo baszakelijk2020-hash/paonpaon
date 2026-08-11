@@ -14,7 +14,12 @@
 import type { ClientelingChannel } from "./clienteling-opportunity";
 import { CUSTOMER_FACT_TYPES, type CustomerFactType } from "./customer-fact";
 
-export const CAPTURE_SOURCES = ["text", "voice", "photo"] as const;
+export const CAPTURE_SOURCES = [
+  "text",
+  "voice",
+  "photo",
+  "conversation_message",
+] as const;
 export type CaptureSource = (typeof CAPTURE_SOURCES)[number];
 
 export const CAPTURE_BUNDLE_KINDS = [

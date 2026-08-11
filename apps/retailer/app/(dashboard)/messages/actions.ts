@@ -4,6 +4,7 @@ import { requireRetailerRole } from "@paon/auth";
 import {
   AIGenerationRepository,
   AppointmentRepository,
+  AdvisorCaptureRepository,
   ConversationDraftRepository,
   CustomerRepository,
   MessagingRepository,
@@ -13,6 +14,7 @@ import {
 } from "@paon/database";
 import {
   asId,
+  CUSTOMER_FACT_TYPES,
   sendMessageSchema,
   startStaffConversationSchema,
   validateMessageAttachmentUpload,
@@ -270,6 +272,228 @@ export async function dismissConversationDraft(formData: FormData) {
     await getSupabaseServerClient(),
   ).dismiss(draftId);
   revalidatePath("/messages");
+}
+
+export interface ConversationFactActionState {
+  readonly formError?: string;
+  readonly bundleId?: string;
+}
+
+async function requireAssignedConversationMessage(args: {
+  readonly conversationId: string;
+  readonly messageId: string;
+}) {
+  const session = await requireModuleSession("relationship_intelligence");
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const client = await getSupabaseServerClient();
+  const [staff, conversation] = await Promise.all([
+    new RetailerStaffRepository(client).findByUserId(session.userId),
+    new MessagingRepository(client).findConversation(
+      asId<"ConversationId">(args.conversationId),
+    ),
+  ]);
+  if (
+    !staff ||
+    staff.retailerId !== session.retailerId ||
+    !conversation ||
+    conversation.retailerId !== session.retailerId ||
+    conversation.claimedByStaffId !== staff.id
+  ) {
+    throw new Error(
+      "Only the assigned advisor can propose facts from this conversation.",
+    );
+  }
+  const message = (
+    await new MessagingRepository(client).findMessages(conversation.id)
+  ).find((item) => item.id === args.messageId);
+  if (!message) throw new Error("Message not found in this conversation.");
+  return { client, conversation, message, session, staff };
+}
+
+export async function proposeConversationFact(
+  _previous: ConversationFactActionState,
+  formData: FormData,
+): Promise<ConversationFactActionState> {
+  const conversationId = String(formData.get("conversationId") ?? "");
+  const messageId = String(formData.get("messageId") ?? "");
+  const sourceExcerpt = String(formData.get("sourceExcerpt") ?? "").trim();
+  const factType = String(formData.get("factType") ?? "");
+  const valueLabel = String(formData.get("valueLabel") ?? "").trim();
+  const summary = String(formData.get("summary") ?? "").trim();
+  if (
+    !conversationId ||
+    !messageId ||
+    !sourceExcerpt ||
+    !valueLabel ||
+    !summary ||
+    !(CUSTOMER_FACT_TYPES as readonly string[]).includes(factType)
+  ) {
+    return {
+      formError: "Select an exact excerpt and complete the proposed fact.",
+    };
+  }
+
+  try {
+    const { client, conversation, message, session, staff } =
+      await requireAssignedConversationMessage({ conversationId, messageId });
+    if (!message.body.includes(sourceExcerpt)) {
+      return {
+        formError: "The excerpt must be selected from this exact message.",
+      };
+    }
+    const capture = new AdvisorCaptureRepository(client);
+    const captureSession = await capture.startConversationMessageSession({
+      retailerId: session.retailerId,
+      staffId: staff.id,
+      customerId: conversation.customerId,
+      messageId: message.id,
+      rawText: message.body,
+    });
+    const bundles = await capture.proposeBundles({
+      retailerId: session.retailerId,
+      session: captureSession,
+      proposals: [
+        {
+          kind: "self_portrait_fact",
+          summary,
+          sourceExcerpt,
+          confidence: 1,
+          payload: {
+            factType: factType as (typeof CUSTOMER_FACT_TYPES)[number],
+            valueLabel,
+          },
+        },
+      ],
+    });
+    const bundle = bundles[0];
+    if (!bundle)
+      return {
+        formError: "The proposed fact did not pass its evidence check.",
+      };
+    revalidatePath("/messages");
+    return { bundleId: bundle.id };
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not create the proposed fact.",
+    };
+  }
+}
+
+async function requireConversationFactBundle(args: {
+  readonly conversationId: string;
+  readonly messageId: string;
+  readonly bundleId: string;
+}) {
+  const authorized = await requireAssignedConversationMessage(args);
+  const capture = new AdvisorCaptureRepository(authorized.client);
+  const sessions = await capture.listSessionsForCustomer({
+    retailerId: authorized.session.retailerId,
+    customerId: authorized.conversation.customerId,
+    limit: 100,
+  });
+  for (const captureSession of sessions) {
+    if (
+      captureSession.source !== "conversation_message" ||
+      captureSession.messageId !== args.messageId
+    ) {
+      continue;
+    }
+    const bundle = (
+      await capture.listBundlesForSession({
+        retailerId: authorized.session.retailerId,
+        sessionId: captureSession.id,
+      })
+    ).find(
+      (item) => item.id === args.bundleId && item.kind === "self_portrait_fact",
+    );
+    if (bundle) return { ...authorized, capture };
+  }
+  throw new Error("Fact proposal not found in this conversation message.");
+}
+
+export async function confirmConversationFact(
+  _previous: ConversationFactActionState,
+  formData: FormData,
+): Promise<ConversationFactActionState> {
+  const conversationId = String(formData.get("conversationId") ?? "");
+  const messageId = String(formData.get("messageId") ?? "");
+  const bundleId = String(formData.get("bundleId") ?? "");
+  const factType = String(formData.get("factType") ?? "");
+  const valueLabel = String(formData.get("valueLabel") ?? "").trim();
+  const summary = String(formData.get("summary") ?? "").trim();
+  if (
+    !bundleId ||
+    !valueLabel ||
+    !summary ||
+    !(CUSTOMER_FACT_TYPES as readonly string[]).includes(factType)
+  ) {
+    return { formError: "A fact type, value and summary are required." };
+  }
+  try {
+    const { capture, conversation, session, staff } =
+      await requireConversationFactBundle({
+        conversationId,
+        messageId,
+        bundleId,
+      });
+    const result = await capture.confirmBundle({
+      retailerId: session.retailerId,
+      customerId: conversation.customerId,
+      bundleId,
+      staffId: staff.id,
+      editedSummary: summary,
+      editedPayload: {
+        factType: factType as (typeof CUSTOMER_FACT_TYPES)[number],
+        valueLabel,
+      },
+    });
+    if (!result.ok)
+      return { formError: "This proposal can no longer be confirmed." };
+    revalidatePath("/messages");
+    return {};
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not confirm the proposed fact.",
+    };
+  }
+}
+
+export async function dismissConversationFact(
+  _previous: ConversationFactActionState,
+  formData: FormData,
+): Promise<ConversationFactActionState> {
+  const conversationId = String(formData.get("conversationId") ?? "");
+  const messageId = String(formData.get("messageId") ?? "");
+  const bundleId = String(formData.get("bundleId") ?? "");
+  try {
+    const { capture, session, staff } = await requireConversationFactBundle({
+      conversationId,
+      messageId,
+      bundleId,
+    });
+    const result = await capture.dismissBundle({
+      retailerId: session.retailerId,
+      bundleId,
+      staffId: staff.id,
+    });
+    if (!result.ok)
+      return { formError: "This proposal can no longer be dismissed." };
+    revalidatePath("/messages");
+    return {};
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not dismiss the proposed fact.",
+    };
+  }
 }
 
 /**

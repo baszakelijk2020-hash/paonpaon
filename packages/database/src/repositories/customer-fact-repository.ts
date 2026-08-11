@@ -44,6 +44,9 @@ function parseEvidence(value: Json): readonly CustomerFactEvidenceRef[] {
       ...(typeof row.conceptId === "string"
         ? { conceptId: asId<"MetadataConceptId">(row.conceptId) }
         : {}),
+      ...(typeof row.messageId === "string"
+        ? { messageId: asId<"MessageId">(row.messageId) }
+        : {}),
       ...(typeof row.note === "string" ? { note: row.note } : {}),
     });
   }

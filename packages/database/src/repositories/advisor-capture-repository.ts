@@ -17,6 +17,7 @@ import {
   type CaptureSource,
   type CustomerId,
   type FollowUpPayload,
+  type MessageId,
   type RetailerId,
   type SelfPortraitFactPayload,
   type StaffId,
@@ -42,6 +43,7 @@ export interface AdvisorCaptureSession {
   readonly staffId: StaffId;
   readonly customerId: CustomerId | null;
   readonly source: CaptureSource;
+  readonly messageId: MessageId | null;
   readonly rawText: string;
   readonly createdAt: string;
 }
@@ -68,6 +70,7 @@ function sessionToDomain(row: SessionRow): AdvisorCaptureSession {
     staffId: row.staff_id as StaffId,
     customerId: row.customer_id as CustomerId | null,
     source: row.source as CaptureSource,
+    messageId: row.message_id as MessageId | null,
     rawText: row.raw_text,
     createdAt: row.created_at,
   };
@@ -93,7 +96,14 @@ function bundleToDomain(row: BundleRow): AdvisorCaptureBundle {
 
 export type ConfirmBundleResult =
   | { readonly ok: true; readonly bundle: AdvisorCaptureBundle }
-  | { readonly ok: false; readonly reason: "not_found" | "already_resolved" };
+  | {
+      readonly ok: false;
+      readonly reason:
+        | "not_found"
+        | "already_resolved"
+        | "customer_mismatch"
+        | "invalid_proposal";
+    };
 
 export class AdvisorCaptureRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
@@ -113,6 +123,31 @@ export class AdvisorCaptureRepository {
         ...(args.customerId ? { customer_id: args.customerId } : {}),
         source: args.source ?? "text",
         raw_text: args.rawText.trim(),
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return sessionToDomain(data);
+  }
+
+  /** The message remains canonical evidence; this only opens a reviewable
+   * capture session. The database derives and verifies its House/customer. */
+  async startConversationMessageSession(args: {
+    readonly retailerId: RetailerId;
+    readonly staffId: StaffId;
+    readonly customerId: CustomerId;
+    readonly messageId: MessageId;
+    readonly rawText: string;
+  }): Promise<AdvisorCaptureSession> {
+    const { data, error } = await this.client
+      .from("advisor_capture_sessions")
+      .insert({
+        retailer_id: args.retailerId,
+        staff_id: args.staffId,
+        customer_id: args.customerId,
+        source: "conversation_message",
+        message_id: args.messageId,
+        raw_text: args.rawText,
       })
       .select("*")
       .single();
@@ -203,6 +238,16 @@ export class AdvisorCaptureRepository {
     return data;
   }
 
+  private async loadSession(sessionId: string): Promise<SessionRow | null> {
+    const { data, error } = await this.client
+      .from("advisor_capture_sessions")
+      .select("*")
+      .eq("id", sessionId)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
   private async markResolved(args: {
     readonly retailerId: RetailerId;
     readonly bundleId: string;
@@ -286,10 +331,33 @@ export class AdvisorCaptureRepository {
       return { ok: false, reason: "already_resolved" };
     }
 
+    const captureSession = await this.loadSession(existing.capture_session_id);
+    if (
+      !captureSession ||
+      captureSession.retailer_id !== args.retailerId ||
+      captureSession.customer_id !== args.customerId
+    ) {
+      return { ok: false, reason: "customer_mismatch" };
+    }
+
     const summary = args.editedSummary ?? existing.summary;
     const payload = (args.editedPayload ??
       existing.proposed_payload) as unknown as CaptureBundleProposal["payload"];
     const kind = existing.kind as CaptureBundleKind;
+    if (
+      !checkCaptureBundleProposal({
+        rawText: captureSession.raw_text,
+        proposal: {
+          kind,
+          summary,
+          sourceExcerpt: existing.source_excerpt,
+          confidence: Number(existing.confidence),
+          payload,
+        },
+      }).ok
+    ) {
+      return { ok: false, reason: "invalid_proposal" };
+    }
 
     if (kind === "self_portrait_fact") {
       const fact = payload as SelfPortraitFactPayload;
@@ -300,7 +368,12 @@ export class AdvisorCaptureRepository {
         factType: fact.factType,
         valueLabel: fact.valueLabel,
         confidence: Number(existing.confidence),
-        evidence: [{ note: existing.source_excerpt }],
+        evidence: [
+          ...(captureSession.message_id
+            ? [{ messageId: captureSession.message_id as MessageId }]
+            : []),
+          { note: existing.source_excerpt },
+        ],
       });
       const bundle = await this.markResolved({
         retailerId: args.retailerId,

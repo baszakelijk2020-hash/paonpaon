@@ -1,5 +1,6 @@
 import {
   ClientelingRepository,
+  AdvisorCaptureRepository,
   ConversationDraftRepository,
   CustomerRepository,
   MessagingRepository,
@@ -30,6 +31,7 @@ import {
   type ConversationListItem,
 } from "./conversation-list";
 import { ConversationTriage } from "./conversation-triage";
+import { MessageFactProposal } from "./message-fact-proposal";
 import { MessageTextarea } from "./message-textarea";
 
 import { requireSession } from "@/lib/session";
@@ -107,6 +109,10 @@ export default async function MessagesPage({
   let activeDraft: Awaited<
     ReturnType<ConversationDraftRepository["findLatestProposedForConversation"]>
   > = null;
+  let pendingFactBundlesByMessage = new Map<
+    string,
+    Awaited<ReturnType<AdvisorCaptureRepository["listBundlesForSession"]>>
+  >();
 
   if (activeConversation) {
     await messagingRepo.markRead(activeConversation.id);
@@ -117,6 +123,7 @@ export default async function MessagesPage({
       orderHistory,
       clientelingNotes,
       proposedDraft,
+      captureSessions,
     ] = await Promise.all([
       messagingRepo.findMessages(activeConversation.id),
       messagingRepo.findAttachmentsByConversation(activeConversation.id),
@@ -128,12 +135,49 @@ export default async function MessagesPage({
       new ConversationDraftRepository(client).findLatestProposedForConversation(
         activeConversation.id,
       ),
+      new AdvisorCaptureRepository(client).listSessionsForCustomer({
+        retailerId: session.retailerId,
+        customerId: activeConversation.customerId,
+        limit: 100,
+      }),
     ]);
     thread = messages;
     activeCustomer = customer;
     orders = orderHistory;
     notes = clientelingNotes;
     activeDraft = proposedDraft;
+
+    const messageSessions = captureSessions.filter(
+      (captureSession) =>
+        captureSession.source === "conversation_message" &&
+        captureSession.messageId,
+    );
+    const bundles = await Promise.all(
+      messageSessions.map(async (captureSession) => ({
+        messageId: captureSession.messageId!,
+        bundles: await new AdvisorCaptureRepository(
+          client,
+        ).listBundlesForSession({
+          retailerId: session.retailerId,
+          sessionId: captureSession.id,
+        }),
+      })),
+    );
+    pendingFactBundlesByMessage = new Map(
+      bundles
+        .map(
+          ({ messageId, bundles: sessionBundles }) =>
+            [
+              messageId,
+              sessionBundles.filter(
+                (bundle) =>
+                  bundle.kind === "self_portrait_fact" &&
+                  bundle.status === "proposed",
+              ),
+            ] as const,
+        )
+        .filter(([, bundleList]) => bundleList.length > 0),
+    );
 
     const grouped = new Map<string, AttachmentEntry[]>();
     for (const entry of attachments) {
@@ -334,6 +378,14 @@ export default async function MessagesPage({
                     <p className="mt-1 text-xs opacity-60">
                       {formatDate(msg.createdAt, "en-US")}
                     </p>
+                    <MessageFactProposal
+                      conversationId={activeConversation.id}
+                      messageId={msg.id}
+                      messageBody={msg.body}
+                      pendingBundles={
+                        pendingFactBundlesByMessage.get(msg.id) ?? []
+                      }
+                    />
                   </div>
                 );
               })}

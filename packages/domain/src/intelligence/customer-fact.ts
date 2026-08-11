@@ -10,6 +10,7 @@ import type {
   CustomerFactId,
   CustomerId,
   MetadataConceptId,
+  MessageId,
   ProductId,
   RetailerId,
   StaffId,
@@ -90,6 +91,8 @@ export interface CustomerFactEvidenceRef {
   readonly styleEvidenceId?: StylePreferenceEvidenceId;
   readonly productId?: ProductId;
   readonly conceptId?: MetadataConceptId;
+  /** Canonical message authority; a shown excerpt is only a citation. */
+  readonly messageId?: MessageId;
   readonly note?: string;
 }
 
