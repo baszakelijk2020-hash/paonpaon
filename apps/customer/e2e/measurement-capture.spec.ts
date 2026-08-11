@@ -1,16 +1,35 @@
 import { createSupabaseAdminClient } from "@paon/database";
-import { DEMO_PASSWORD } from "@paon/database/demo-seed";
 import { ensureProgrammeProofSeed } from "@paon/database/programme-proof-seed";
 import { expect, test, type Page } from "@playwright/test";
 
 // Measurement capture suite for PHASE 12.1 — customer app guided self-measurement
 
-async function signInCustomer(page: Page, email: string): Promise<void> {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(DEMO_PASSWORD);
-  await page.getByRole("button", { name: /enter|atelier/i }).click();
-  await expect(page).not.toHaveURL(/\/login/, { timeout: 30_000 });
+async function signInCustomer(
+  page: Page,
+  email: string,
+  admin: Awaited<ReturnType<typeof createSupabaseAdminClient>>,
+): Promise<void> {
+  // Generate a magic link using the admin client
+  const { data, error } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email: email,
+  });
+  if (error || !data.properties) {
+    throw new Error(
+      `Failed to generate magic link: ${error?.message ?? "unknown error"}`,
+    );
+  }
+
+  // Navigate directly to the auth confirm URL with the token
+  await page.goto(
+    `/auth/confirm?token_hash=${data.properties.hashed_token}&type=magiclink`,
+  );
+
+  // Wait for redirect to dashboard
+  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 30_000 });
+
+  // Wait for the dashboard to fully load - look for main content to confirm we're authenticated
+  await expect(page.getByRole("main")).toBeVisible({ timeout: 30_000 });
 }
 
 /**
@@ -37,32 +56,41 @@ test("customer can capture guided self-measurements and see the outcome", async 
   });
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
 
-  // Find or create a customer for this test.
-  const { data: customer } = await admin
-    .from("customers")
-    .select("id")
-    .eq("retailer_id", proof.retailerId)
-    .is("deleted_at", null)
-    .limit(1)
-    .single();
-  expect(customer).toBeDefined();
-  const customerId = customer!.id;
-
-  // Ensure no existing approved measurements (clean state for this test).
-  const { data: existingVersions } = await admin
-    .from("customer_measurement_versions")
-    .select("id")
-    .eq("customer_id", customerId);
-  if ((existingVersions?.length ?? 0) > 0) {
-    await admin
-      .from("customer_measurement_versions")
-      .delete()
-      .eq("customer_id", customerId);
+  // A fresh, dedicated customer, not the shared programme-proof-seed
+  // customer: customer_measurement_versions has no DELETE grant at all
+  // (an approved version's id may already be pinned to a garment cut, per
+  // Stage 12.2) so any version this test's submission causes to be
+  // approved would permanently pollute the shared seed customer for every
+  // other test that expects it to have no approved measurements.
+  const testEmail = `e2e-measurement-capture-${Date.now()}@paon.test`;
+  const { data: authUser, error: authError } =
+    await admin.auth.admin.createUser({
+      email: testEmail,
+      email_confirm: true,
+    });
+  if (authError || !authUser.user) {
+    throw new Error(`Failed to create test customer: ${authError?.message}`);
   }
+  const { data: createdCustomer, error: customerError } = await admin
+    .from("customers")
+    .insert({
+      retailer_id: proof.retailerId,
+      user_id: authUser.user.id,
+      full_name: "E2E Measurement Capture Test Customer",
+      email: testEmail,
+      lifecycle_stage: "prospect",
+    })
+    .select("id")
+    .single();
+  if (customerError || !createdCustomer) {
+    throw new Error(
+      `Failed to create test customer record: ${customerError?.message}`,
+    );
+  }
+  const customerId = createdCustomer.id;
 
   // Sign in as the customer.
-  const customerEmail = proof.customerEmail ?? "customer@example.com";
-  await signInCustomer(page, customerEmail);
+  await signInCustomer(page, testEmail, admin);
 
   // Navigate to measurements page.
   await page.goto("/measurements");
@@ -106,8 +134,8 @@ test("customer can capture guided self-measurements and see the outcome", async 
   // "no_action" (if the system treats the first measurement as matching nothing)
   // or "advisor_review" (if the system wants review on the first capture).
   // Both are valid outcomes; we just verify the outcome is displayed.
-  const successMessage = page.locator(
-    'div:has-text("Your measurements match|Thanks|Please try")',
+  const successMessage = page.getByText(
+    /Your measurements match|Thanks|Please try/,
   );
   await expect(successMessage).toBeVisible({ timeout: 30_000 });
 
@@ -177,29 +205,42 @@ test("reorder gate status card shows allowed and blocked states", async ({
   });
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
 
-  const { data: customer } = await admin
+  // This test approves a measurement version, which is permanent by design
+  // (customer_measurement_versions has no DELETE grant at all — an approved
+  // version's id may already be pinned to a garment cut, per Stage 12.2 —
+  // so it can never be cleaned up afterward). Reusing the shared programme-
+  // proof-seed customer here would permanently pollute every other test
+  // that expects that customer to have no approved measurements. Use a
+  // fresh, dedicated customer instead.
+  const testEmail = `e2e-measurement-reorder-${Date.now()}@paon.test`;
+  const { data: authUser, error: authError } =
+    await admin.auth.admin.createUser({
+      email: testEmail,
+      email_confirm: true,
+    });
+  if (authError || !authUser.user) {
+    throw new Error(`Failed to create test customer: ${authError?.message}`);
+  }
+  const { data: createdCustomer, error: customerError } = await admin
     .from("customers")
-    .select("id, user_id")
-    .eq("retailer_id", proof.retailerId)
-    .is("deleted_at", null)
-    .limit(1)
+    .insert({
+      retailer_id: proof.retailerId,
+      user_id: authUser.user.id,
+      full_name: "E2E Reorder Gate Test Customer",
+      email: testEmail,
+      lifecycle_stage: "prospect",
+    })
+    .select("id")
     .single();
-  expect(customer).toBeDefined();
-  const customerId = customer!.id;
-
-  // Clean up any existing data.
-  await admin
-    .from("customer_measurement_versions")
-    .delete()
-    .eq("customer_id", customerId);
-  await admin
-    .from("customer_measurement_candidates")
-    .delete()
-    .eq("customer_id", customerId);
+  if (customerError || !createdCustomer) {
+    throw new Error(
+      `Failed to create test customer record: ${customerError?.message}`,
+    );
+  }
+  const customerId = createdCustomer.id;
 
   // First, verify the blocked state (no approved measurements).
-  const customerEmail = proof.customerEmail ?? "customer@example.com";
-  await signInCustomer(page, customerEmail);
+  await signInCustomer(page, testEmail, admin);
   await page.goto("/measurements");
 
   await expect(
