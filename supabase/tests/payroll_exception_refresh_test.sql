@@ -1,5 +1,8 @@
 begin;
-select plan(4);
+select plan(5);
+
+select ok(has_table_privilege('service_role', 'public.staff_time_entries', 'INSERT'),
+  'trusted integration setup can seed authoritative staff time entries');
 
 select has_function('public', 'refresh_payroll_period_exceptions', array['uuid'],
   'payroll snapshot exceptions are recomputed per version');
