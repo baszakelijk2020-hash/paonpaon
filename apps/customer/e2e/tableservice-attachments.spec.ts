@@ -120,6 +120,19 @@ test("TableService sends each founder attachment type into the private advisor c
     .check();
   await sendWidgetMessage(page, "This board captures the mood.");
 
+  // The attachment RPC runs after the message write. A Pinterest recovery
+  // must never turn an attachment problem into a second customer message.
+  await expect
+    .poll(async () => {
+      const { data } = await admin
+        .from("messages")
+        .select("id")
+        .eq("body", "This board captures the mood.")
+        .gte("created_at", startedAt);
+      return data?.length ?? 0;
+    })
+    .toBe(1);
+
   await attachFile(page, "Upload Wedding Dress fabric", {
     name: "dress-fabric.png",
     mimeType: "image/png",
@@ -178,16 +191,16 @@ test("TableService sends each founder attachment type into the private advisor c
 
   await page.goto(`/messages/${conversation.id}`);
   await expect(
-    page.getByText(/look.png — queued for safety scan/),
+    page.getByText(/look.png — queued for safety scan/).last(),
   ).toBeVisible();
   await expect(
-    page.getByText(/brief.pdf — queued for safety scan/),
+    page.getByText(/brief.pdf — queued for safety scan/).last(),
   ).toBeVisible();
   await expect(
     page.getByText("Pinterest reference", { exact: true }).last(),
   ).toBeVisible();
   await expect(
-    page.getByText(/dress-fabric.png — queued for safety scan/),
+    page.getByText(/dress-fabric.png — queued for safety scan/).last(),
   ).toBeVisible();
 
   const { data: uploadRows } = await admin

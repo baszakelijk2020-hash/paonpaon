@@ -29,7 +29,12 @@ export interface TableServiceFormState {
 export interface SignedInTableServiceResult {
   readonly ok: boolean;
   readonly conversationId?: string;
+  /** Present once the canonical message write has succeeded. Attachment
+   * failure is deliberately reported separately so the caller never retries
+   * the message and creates a duplicate conversation entry. */
+  readonly messageId?: string;
   readonly attachmentPurpose?: MessageAttachmentPurpose;
+  readonly attachmentError?: string;
   readonly error?: string;
 }
 
@@ -162,18 +167,34 @@ export async function sendSignedInTableServiceMessage(
       });
     }
     if (pinterestUrl) {
-      await repository.recordReferenceAttachment({
-        conversationId,
-        messageId,
-        purpose: "pinterest_link",
-        sourceUrl: pinterestUrl,
-      });
+      try {
+        await repository.recordReferenceAttachment({
+          conversationId,
+          messageId,
+          purpose: "pinterest_link",
+          sourceUrl: pinterestUrl,
+        });
+      } catch (error) {
+        revalidatePath("/messages");
+        revalidatePath(`/messages/${conversationId}`);
+        return {
+          ok: true,
+          conversationId,
+          messageId,
+          attachmentPurpose: "pinterest_link",
+          attachmentError:
+            error instanceof Error
+              ? error.message
+              : "Pinterest reference could not be attached.",
+        };
+      }
     }
     revalidatePath("/messages");
     revalidatePath(`/messages/${conversationId}`);
     return {
       ok: true,
       conversationId,
+      messageId,
       ...(validatedUpload
         ? { attachmentPurpose: validatedUpload.purpose }
         : {}),
@@ -184,6 +205,64 @@ export async function sendSignedInTableServiceMessage(
       ok: false,
       error:
         error instanceof Error ? error.message : "Message could not be sent.",
+    };
+  }
+}
+
+/** Retries only recording a Pinterest reference against an already-persisted
+ * message. This is intentionally separate from `sendSignedInTableServiceMessage`:
+ * recovering an attachment must never re-send the customer's message. */
+export async function retrySignedInTableServiceReferenceAttachment(
+  retailerIdInput: string,
+  messageIdInput: string,
+  sourceUrlInput: string,
+): Promise<SignedInTableServiceResult> {
+  const parsedRetailerId = retailerIdSchema.safeParse(retailerIdInput);
+  const parsedMessageId = z.string().uuid().safeParse(messageIdInput);
+  const pinterestUrl = normalizePinterestUrl(sourceUrlInput);
+  if (!parsedRetailerId.success || !parsedMessageId.success || !pinterestUrl) {
+    return { ok: false, error: "Invalid Pinterest attachment recovery." };
+  }
+
+  const session = await requireSession();
+  const supabase = await getSupabaseServerClient();
+  const retailerId = asId<"RetailerId">(parsedRetailerId.data);
+  const customers = await new CustomerRepository(supabase).findByUserId(
+    session.userId,
+  );
+  if (!customers.some((row) => row.retailerId === retailerId)) {
+    return { ok: false, error: "No relationship with this retailer." };
+  }
+
+  try {
+    await assertRetailerModuleActive(
+      supabase,
+      retailerId,
+      "relationship_intelligence",
+    );
+    const repository = new MessagingRepository(supabase);
+    const conversationId = await repository.getOrCreateForCustomer(retailerId);
+    await repository.recordReferenceAttachment({
+      conversationId,
+      messageId: asId<"MessageId">(parsedMessageId.data),
+      purpose: "pinterest_link",
+      sourceUrl: pinterestUrl,
+    });
+    revalidatePath("/messages");
+    revalidatePath(`/messages/${conversationId}`);
+    return {
+      ok: true,
+      conversationId,
+      messageId: parsedMessageId.data,
+      attachmentPurpose: "pinterest_link",
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Pinterest reference could not be attached.",
     };
   }
 }

@@ -15,6 +15,7 @@ import {
 } from "react";
 
 import {
+  retrySignedInTableServiceReferenceAttachment,
   submitTableServiceInquiry,
   sendSignedInTableServiceMessage,
   type TableServiceFormState,
@@ -162,6 +163,8 @@ export function TableServiceWidget({
   const [weddingPartyId, setWeddingPartyId] = useState("");
   const [wardrobeItemId, setWardrobeItemId] = useState("");
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [referenceAttachmentRecovery, setReferenceAttachmentRecovery] =
+    useState<{ messageId: string; sourceUrl: string } | null>(null);
   const [linkComposerOpen, setLinkComposerOpen] = useState(false);
   const [linkValue, setLinkValue] = useState("");
 
@@ -202,6 +205,7 @@ export function TableServiceWidget({
     setAttachmentDraft(null);
     setAttachmentRightsConfirmed(false);
     setAttachmentError(null);
+    setReferenceAttachmentRecovery(null);
     setWeddingPartyId("");
     setWardrobeItemId("");
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -388,10 +392,28 @@ export function TableServiceWidget({
           setHistory((rows) => [
             ...rows,
             text,
-            result.attachmentPurpose
-              ? "Uploaded securely. It is queued for a safety scan before either of you can open it."
-              : "Sent securely to your advisor.",
+            result.attachmentError
+              ? "Sent securely to your advisor."
+              : result.attachmentPurpose === "pinterest_link"
+                ? "Pinterest reference attached securely."
+                : result.attachmentPurpose
+                  ? "Uploaded securely. It is queued for a safety scan before either of you can open it."
+                  : "Sent securely to your advisor.",
           ]);
+          if (
+            result.attachmentError &&
+            attachmentDraft?.kind === "link" &&
+            result.messageId
+          ) {
+            setAttachmentError(
+              `Your message was sent, but the Pinterest reference was not attached: ${result.attachmentError}`,
+            );
+            setReferenceAttachmentRecovery({
+              messageId: result.messageId,
+              sourceUrl: attachmentDraft.url,
+            });
+            return;
+          }
           clearAttachment();
         });
         return;
@@ -680,9 +702,39 @@ export function TableServiceWidget({
             ) : null}
 
             {attachmentError ? (
-              <p role="alert" className="mx-5 mb-2 text-xs text-red-700">
-                {attachmentError}
-              </p>
+              <div className="mx-5 mb-2 text-xs text-red-700">
+                <p role="alert">{attachmentError}</p>
+                {referenceAttachmentRecovery ? (
+                  <button
+                    type="button"
+                    className="mt-1 underline"
+                    disabled={sendPending}
+                    onClick={() => {
+                      startSend(async () => {
+                        const result =
+                          await retrySignedInTableServiceReferenceAttachment(
+                            retailerId,
+                            referenceAttachmentRecovery.messageId,
+                            referenceAttachmentRecovery.sourceUrl,
+                          );
+                        if (!result.ok) {
+                          setAttachmentError(
+                            `Your message remains sent. The Pinterest reference is still pending: ${result.error ?? "Attachment could not be recorded."}`,
+                          );
+                          return;
+                        }
+                        setHistory((rows) => [
+                          ...rows,
+                          "Pinterest reference attached securely.",
+                        ]);
+                        clearAttachment();
+                      });
+                    }}
+                  >
+                    Retry attachment
+                  </button>
+                ) : null}
+              </div>
             ) : null}
           </div>
 
