@@ -240,6 +240,8 @@ export async function captureNote(
   requireRetailerRole(session.retailerRole, "sales_associate");
 
   const rawText = String(formData.get("rawText") ?? "").trim();
+  const requestedSource = String(formData.get("source") ?? "text");
+  const source = requestedSource === "voice" ? "voice" : "text";
   if (rawText.length === 0) {
     return { formError: "Write or paste a note first." };
   }
@@ -274,7 +276,7 @@ export async function captureNote(
     retailerId: session.retailerId,
     staffId: staff.id,
     customerId: customer.id,
-    source: "text",
+    source,
     rawText,
   });
 

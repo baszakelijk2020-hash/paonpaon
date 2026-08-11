@@ -167,6 +167,19 @@ export function AdvisorCapture({
             className="min-h-24 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3 text-sm"
             placeholder="Type what came up — preferences, a promise, anything worth keeping. The system proposes what to do with it; nothing is saved until you confirm."
           />
+          <label className="flex max-w-xs flex-col gap-1 text-sm">
+            <span className="text-xs font-medium uppercase tracking-wide text-[var(--color-stone-500)]">
+              Capture source
+            </span>
+            <select
+              name="source"
+              defaultValue="text"
+              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-2"
+            >
+              <option value="text">Typed note</option>
+              <option value="voice">Voice memo transcript</option>
+            </select>
+          </label>
           <Button type="submit" disabled={pending} className="self-start">
             {pending ? "Extracting…" : "Extract"}
           </Button>
