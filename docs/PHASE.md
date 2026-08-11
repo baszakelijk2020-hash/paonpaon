@@ -2774,6 +2774,28 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     ten-minute closeout flow, and the evidence-linked employee profile
     surface. Treat 11.2 as one slice of several, not near-complete.
 
+  - **Update (2026-08-11):** the ten-minute closeout flow (the other half
+    of WFM-104) now has a UI at `/staff/closeout`, browser-proven in
+    `apps/retailer/e2e/staff-closeout.spec.ts`. New `staff_shift_closeouts`
+    table, one row per (retailer, staff, day) via upsert on conflict, so a
+    second same-day submission updates rather than duplicates. `promises_note`
+    and `what_worked_note` are required; facts/problems/anomalies/help notes
+    are optional; `extra_mile_act_id` optionally links a `staff_recognition_acts`
+    row already logged that day (validated to belong to the same
+    retailer/staff before the link is allowed — a repository-layer check,
+    not just the FK, per the same-tenant foreign-reference invariant).
+    RLS mirrors `staff_recognition_acts`' insert-pins-to-caller pattern, but
+    SELECT deliberately differs: a staff member sees only their own
+    closeout, managers/owners/admins see the whole team's — unlike
+    recognition, this surface's notes (`help_requested_note`,
+    `problems_note`) can carry content a peer has no reason to read.
+    Missing: unified role home, WFM-103's tasks/promises/briefing
+    architecture (this closeout's `promises_note` is freeform text for
+    this MVP, not a structured promise entity with its own due-date
+    tracking), and the evidence-linked employee profile surface. 11.2
+    remains unchecked — treat as two slices done (extra-mile, closeout) of
+    several still needed.
+
 - [x] **11.3 Scheduling, demand, ceremony and coaching**
   - **Requirement IDs:** `WFM-105`, `WFM-106`.
   - **Dependencies:** `11.1`, `11.2`.
