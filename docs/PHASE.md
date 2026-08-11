@@ -2502,6 +2502,35 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     executable connection/scheduling/webhook lifecycle and multi-role browser
     proof. Live provider smoke remains `blocked_external` without credentials.
 
+  - **Update (2026-08-11):** this status text undercredited the retailer
+    surface — `apps/retailer/app/(dashboard)/settings/integrations/page.tsx`
+    already had connection lifecycle controls (pause/resume/disconnect),
+    a manual Shopify sync trigger, sync-runs/dead-letters display, and a
+    passing e2e proof (`apps/retailer/e2e/integration-connection-lifecycle.spec.ts`,
+    "pause blocks a live webhook...") before this session touched it —
+    only connection _creation_ itself had no UI. Added a provider/
+    display-name form wired to the already-existing
+    `SourceAuthorityRepository.createConnection()`, browser-proven end to
+    end: an admin creates a connection through the real form, it appears
+    in the list, and the existing manual-sync button produces a real
+    `integration_sync_runs` row for it.
+
+    Found `integration_connections` grants INSERT to `service_role` only
+    — no authenticated-role policy exists (connections were originally
+    meant to be created by service-role jobs, per this page's own prior
+    placeholder copy: "Service-role jobs can create a Faden read-only
+    connection without claiming live credentials here"). Since the Server
+    Action already authorizes the caller via `requireRetailerRole(admin)`
+    before this write, uses the admin client for this one insert — the
+    same precedent this codebase already established for
+    `rehearseCampaign`/`activateCampaignToStaffMissions`.
+
+    Still missing for this item as a whole: scheduled/webhook-triggered
+    execution (today's sync is manual-trigger only), reconciliation UI,
+    and live provider smoke (`blocked_external`, does not gate this
+    checkbox per the item's own hard-blocker framing). Checkbox stays
+    unchecked — connection creation was one gap among several.
+
 - [ ] **9.3 Demand-led connector expansion**
   - **Requirement IDs:** `INT-002`–`INT-005`.
   - **Dependencies:** `9.1`; live prospect evidence.
