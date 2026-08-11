@@ -1905,7 +1905,74 @@ Then immediately move to the next bounded PHASE item.
 
 ---
 
-# 55. Binding summary
+# 55. Automatic frontier context rollover
+
+Frontier context is disposable. Repository state is authoritative.
+
+Do not allow a frontier Claude session to grow indefinitely merely because
+it can still continue.
+
+At the first safe coherent boundary after frontier context becomes
+materially large, perform an automatic cold-session rollover.
+
+A safe rollover boundary requires:
+
+- no unresolved Git merge/rebase/cherry-pick operation;
+- no uncommitted frontier-owned implementation that would be difficult to
+  reconstruct;
+- no running worker whose result must be interpreted using transient
+  conversation-only information;
+- current material capability and blocker state recorded in existing
+  repository authority;
+- completed accepted work committed;
+- repository/worktree ownership inspectable from disk.
+
+Preferred behavior:
+
+```text
+finish current bounded slice
+-> verify
+-> commit/push when appropriate
+-> update PHASE/PROJECT_STATE only where materially necessary
+-> terminate current frontier session
+-> start a fresh frontier session
+-> read AGENTS.md + active PHASE/repository state
+-> continue
+```
+
+Do not preserve a large conversation merely to preserve context already
+represented by repository state.
+
+For Claude frontier execution, treat approximately 150k–200k active context
+as the point at which rollover should be considered aggressively.
+
+By approximately 250k active context, rollover SHOULD occur at the next
+safe coherent boundary unless a bounded Route-C decision is actively in
+progress and restarting would materially lose unresolved reasoning.
+
+Do not intentionally allow ordinary implementation sessions to grow toward
+500k+ context.
+
+Use `/compact` only when a safe cold rollover cannot yet occur because the
+current bounded reasoning thread must temporarily remain intact.
+
+Do not rollover:
+
+- in the middle of an unresolved architecture decision;
+- during an unfinished Git operation;
+- while integrating an unverified worker result;
+- before preserving material repository state.
+
+The continuation runner must treat a deliberate context rollover as
+CONTINUE, never STOP.
+
+The new session must cold-start from repository truth and must not
+reconstruct or summarize the old conversation unless repository authority
+is genuinely insufficient.
+
+---
+
+# 56. Binding summary
 
 **The repository remembers.**
 
