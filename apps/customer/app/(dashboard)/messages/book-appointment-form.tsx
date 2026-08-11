@@ -13,9 +13,11 @@ type BookAppointmentFormState =
 export function BookAppointmentForm({
   conversationId,
   isOpen: initialOpen = false,
+  linkableAttachments = [],
 }: {
   conversationId: string;
   isOpen?: boolean;
+  linkableAttachments?: { id: string; label: string }[];
 }) {
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [state, formAction, isPending] = useActionState(
@@ -78,14 +80,14 @@ export function BookAppointmentForm({
             <select
               id="book-appointment-type"
               name="type"
-              defaultValue="consultation"
+              defaultValue="styling_consultation"
               className="mt-1 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-2 text-sm"
             >
-              <option value="consultation">Consultation</option>
+              <option value="styling_consultation">Styling consultation</option>
               <option value="fitting">Fitting</option>
-              <option value="measurement">Measurement</option>
-              <option value="alteration">Alteration Review</option>
-              <option value="general">General</option>
+              <option value="alteration_fitting">Alteration fitting</option>
+              <option value="personal_shopping">Personal shopping</option>
+              <option value="event">Event</option>
             </select>
           </div>
 
@@ -120,6 +122,30 @@ export function BookAppointmentForm({
               className="mt-1 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-2 text-sm"
             />
           </div>
+
+          {linkableAttachments.length > 0 && (
+            <div>
+              <label
+                htmlFor="book-appointment-attachment"
+                className="block text-xs font-medium text-[var(--color-stone-700)]"
+              >
+                Link a shared look (optional)
+              </label>
+              <select
+                id="book-appointment-attachment"
+                name="messageAttachmentId"
+                defaultValue=""
+                className="mt-1 w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-2 text-sm"
+              >
+                <option value="">None</option>
+                {linkableAttachments.map((att) => (
+                  <option key={att.id} value={att.id}>
+                    {att.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label

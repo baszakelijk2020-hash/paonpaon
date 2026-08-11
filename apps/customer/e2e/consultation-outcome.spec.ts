@@ -58,16 +58,30 @@ test("FT-09: customer books appointment from conversation thread via UI", async 
     .single();
   if (!customer) throw new Error("fixture customer missing");
 
-  // Create a real conversation and message
-  const { data: conversation } = await admin
+  // conversations has a unique(retailer_id, customer_id) constraint and
+  // service_role has no DELETE grant on it, so a prior run's row can't be
+  // cleared -- reuse it instead of a blind insert, keeping this test
+  // self-contained across reruns against a non-reset local database.
+  const { data: existingConversation } = await admin
     .from("conversations")
-    .insert({
-      retailer_id: retailer.id,
-      customer_id: customer.id,
-      intent: "style_help",
-    })
     .select("id")
-    .single();
+    .eq("retailer_id", retailer.id)
+    .eq("customer_id", customer.id)
+    .maybeSingle();
+
+  const conversation =
+    existingConversation ??
+    (
+      await admin
+        .from("conversations")
+        .insert({
+          retailer_id: retailer.id,
+          customer_id: customer.id,
+          intent: "style_help",
+        })
+        .select("id")
+        .single()
+    ).data;
   if (!conversation) throw new Error("failed to create conversation");
 
   await admin.from("messages").insert({
@@ -81,16 +95,19 @@ test("FT-09: customer books appointment from conversation thread via UI", async 
   await signInCustomer(page, admin, TEST_CUSTOMER_EMAIL);
   await page.goto(`/messages/${conversation.id}`);
 
-  // Verify message is visible
+  // Verify message is visible (the reused conversation may carry the same
+  // body from an earlier, non-reset local run, hence .last()).
   await expect(
-    page.getByText("I need help finding the right style for work"),
+    page.getByText("I need help finding the right style for work").last(),
   ).toBeVisible();
 
   // STEP 2: Customer clicks "Book an appointment" and fills form
   await page.getByRole("button", { name: /Book an appointment/i }).click();
 
   // Set appointment details
-  await page.getByLabel("Appointment type").selectOption("consultation");
+  await page
+    .getByLabel("Appointment type")
+    .selectOption("styling_consultation");
 
   // Set start time to now + 1 hour
   const now = new Date();
@@ -135,9 +152,144 @@ test("FT-09: customer books appointment from conversation thread via UI", async 
 
   expect(appointment).toBeDefined();
   expect(appointment?.origin_message_thread_id).toBe(conversation.id);
-  expect(appointment?.type).toBe("consultation");
+  expect(appointment?.type).toBe("styling_consultation");
   expect(appointment?.status).toBe("requested");
   expect(appointment?.customer_id).toBe(customer.id);
+});
+
+test("FT-09: customer links a shared look to an appointment booked from the thread", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Consultation outcome test requires local Supabase.");
+  }
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailer) throw new Error("fixture retailer missing");
+
+  const { data: customer } = await admin
+    .from("customers")
+    .select("id, user_id")
+    .eq("retailer_id", retailer.id)
+    .eq("email", TEST_CUSTOMER_EMAIL)
+    .single();
+  if (!customer) throw new Error("fixture customer missing");
+
+  // conversations has a unique(retailer_id, customer_id) constraint and
+  // service_role has no DELETE grant on it, so a prior run's row can't be
+  // cleared -- reuse it instead of a blind insert, keeping this test
+  // self-contained across reruns against a non-reset local database.
+  const { data: existingConversation } = await admin
+    .from("conversations")
+    .select("id")
+    .eq("retailer_id", retailer.id)
+    .eq("customer_id", customer.id)
+    .maybeSingle();
+
+  const conversation =
+    existingConversation ??
+    (
+      await admin
+        .from("conversations")
+        .insert({
+          retailer_id: retailer.id,
+          customer_id: customer.id,
+          intent: "style_help",
+        })
+        .select("id")
+        .single()
+    ).data;
+  if (!conversation) throw new Error("failed to create conversation");
+
+  const { data: message } = await admin
+    .from("messages")
+    .insert({
+      conversation_id: conversation.id,
+      sender_type: "customer",
+      sender_user_id: customer.user_id,
+      body: "Found this look I'd love to try",
+    })
+    .select("id")
+    .single();
+  if (!message) throw new Error("failed to create message");
+
+  // A Pinterest "shared look" attachment on the message, already cleared
+  // (source_kind "link" bypasses the async quarantine screen entirely).
+  // file_name/source_url are made unique per run so the picker option can
+  // be matched unambiguously even when the reused conversation carries
+  // attachments from earlier runs against a non-reset local database.
+  const runId = message.id;
+  const fileName = `shared-look-${runId}.jpg`;
+  const { data: attachment } = await admin
+    .from("message_attachments")
+    .insert({
+      retailer_id: retailer.id,
+      message_id: message.id,
+      file_name: fileName,
+      size_bytes: 0,
+      source_kind: "link",
+      purpose: "pinterest_link",
+      source_url: `https://pinterest.com/pin/${runId}`,
+      uploaded_by_user_id: customer.user_id,
+    })
+    .select("id")
+    .single();
+  if (!attachment) throw new Error("failed to create attachment");
+
+  await signInCustomer(page, admin, TEST_CUSTOMER_EMAIL);
+  await page.goto(`/messages/${conversation.id}`);
+
+  await expect(
+    page.getByText("Found this look I'd love to try").last(),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: /Book an appointment/i }).click();
+  await page
+    .getByLabel("Appointment type")
+    .selectOption("styling_consultation");
+
+  const now = new Date();
+  const startTime = new Date(now.getTime() + 3600000);
+  const endTime = new Date(startTime.getTime() + 3600000);
+  const formatDateTime = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+  await page.getByLabel("Start time").fill(formatDateTime(startTime));
+  await page.getByLabel("End time").fill(formatDateTime(endTime));
+
+  await page
+    .getByLabel(/Link a shared look/i)
+    .selectOption({ label: fileName });
+
+  await page.getByRole("button", { name: "Book Appointment" }).click();
+
+  const successMessage = page.getByText(/Appointment created!/);
+  await expect(successMessage).toBeVisible();
+  const messageText = await successMessage.textContent();
+  const appointmentIdMatch = messageText?.match(/ID: ([a-f0-9-]{36})/);
+  const appointmentId = appointmentIdMatch?.[1];
+  expect(appointmentId).toBeTruthy();
+
+  const { data: bookedAppointment } = await admin
+    .from("appointments")
+    .select("id, origin_message_thread_id, origin_message_attachment_id")
+    .eq("id", appointmentId!)
+    .single();
+
+  expect(bookedAppointment?.origin_message_thread_id).toBe(conversation.id);
+  expect(bookedAppointment?.origin_message_attachment_id).toBe(attachment.id);
 });
 
 test("FT-09: unauthorized customer cannot book appointment for other customer's thread", async ({
@@ -187,16 +339,27 @@ test("FT-09: unauthorized customer cannot book appointment for other customer's 
     .single();
   if (!customer2Record) throw new Error("failed to create customer2 record");
 
-  // Create a conversation for customer1
-  const { data: conversation } = await admin
+  // Create a conversation for customer1 (reuse if a prior run's row for
+  // this fixture pair still exists -- see the reuse note above).
+  const { data: existingConversation } = await admin
     .from("conversations")
-    .insert({
-      retailer_id: retailer.id,
-      customer_id: customer1.id,
-      intent: "style_help",
-    })
     .select("id")
-    .single();
+    .eq("retailer_id", retailer.id)
+    .eq("customer_id", customer1.id)
+    .maybeSingle();
+
+  const { data: conversation } =
+    existingConversation !== null
+      ? { data: existingConversation }
+      : await admin
+          .from("conversations")
+          .insert({
+            retailer_id: retailer.id,
+            customer_id: customer1.id,
+            intent: "style_help",
+          })
+          .select("id")
+          .single();
   if (!conversation) throw new Error("failed to create conversation");
 
   // Sign in as customer2 (different customer)
@@ -224,7 +387,9 @@ test("FT-09: unauthorized customer cannot book appointment for other customer's 
 
     if (bookButton) {
       await page.getByRole("button", { name: /Book an appointment/i }).click();
-      await page.getByLabel("Appointment type").selectOption("consultation");
+      await page
+        .getByLabel("Appointment type")
+        .selectOption("styling_consultation");
 
       const now = new Date();
       const startTime = new Date(now.getTime() + 3600000);
