@@ -172,17 +172,18 @@ test("HighMaintenance shows only the customer's booking-linked care state and ne
       page.getByText("Internal care instruction — never customer-visible."),
     ).toHaveCount(0);
 
-    const { data: directPartnerRows, error: directPartnerError } = await page
+    const directPartnerResponse = await page
       .context()
       .request.get(`${supabaseUrl}/rest/v1/service_partner_engagements`, {
         headers: { apikey: process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]! },
-      })
-      .then(async (response) => ({
-        data: await response.json(),
-        error: response.ok() ? null : await response.text(),
-      }));
-    expect(directPartnerError).toBeNull();
-    expect(directPartnerRows).toEqual([]);
+      });
+    const directPartnerBody: unknown = await directPartnerResponse.json();
+    expect(directPartnerResponse.ok()).toBe(false);
+    expect(directPartnerBody).toMatchObject({
+      code: "42501",
+      message: expect.stringContaining("permission denied"),
+    });
+    expect(Array.isArray(directPartnerBody)).toBe(false);
   } finally {
     if (engagementId)
       await admin
