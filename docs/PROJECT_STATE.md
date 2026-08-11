@@ -25,73 +25,78 @@ authoritative for what is built; `git log --oneline` and
 
 ## Current snapshot
 
-Lane H snapshot (2026-08-10): this session hardened Claude Code's own
-Route-A delegation enforcement (see `AGENTS.md`'s Hard delegation invariant
-and `scripts/delegation-gate.sh` — a PreToolUse hook, not just prose), then
-resumed material PAON work. Seven feature commits landed on top of that,
-each independently typechecked/linted/browser-proven before push:
+Lane H (branch `agent/lane-h-customer-ai-conversation`), updated 2026-08-11.
+Governance: AGENTS.md ch.50 (Product-readiness convergence gate), ch.51
+(Never-stop material execution), ch.53 (Visual Wardrobe Precision
+Authority), ch.54 (Claude quota/parallel-execution policy) all active. A
+15-minute session cron enforces ch.51 as a safety net — resumes if the
+active run idles/stops/gets stuck on one blocker, stays out of the way
+otherwise. Founder-enabled 2026-08-10, remains enabled until explicitly
+paused.
 
-1. **FT-01 fit-profile candidate review** (`d0b8ea1`, `50785f6`) — staff
-   propose a fit-profile candidate from a fitting observation, an advisor
-   approves/rejects from the customer detail page. Migration, repository,
-   Server Actions, UI, e2e, and a pgTAP tenant-isolation test all new.
+**PHASE items closed this session, each independently verified (not just
+worker-claimed) before merge:**
 
-2. **PHASE 11.3** (`a2f4064`, `0505e82`, `71a90a1`, `0ba63f0`) — closed out
-   end-to-end. Coverage/coaching already existed; this session added
-   availability declarations, shift-swap requests, service-ceremony
-   version publishing, and contextual ceremony prompts (wired into the
-   PHASE 17.3 appointment-brief page via `promptsForContext`, keyed by
-   `appointment.type`). Still unchecked: the publish form has no UI for a
-   step's `appliesWhen` trigger, so every published step applies
-   unconditionally — a narrower, explicitly named remaining gap, not a
-   missing capability.
+1. **11.3** (`718f9d9`) — `CeremonyForm` exposes the `appliesWhen` trigger
+   per step; closed the item's last named gap.
+2. **10.1** (`ae329ad`) — versioned campaign library: order-outcome
+   auto-linking, post-activation correction-via-clone, multi-role browser
+   proof. Independent verification found the auto-link silently no-op'd
+   under real customer RLS (the delegated build only tested with an admin
+   client) and that `placeOrder` — the only method wired — isn't what
+   `apps/customer`'s real cart checkout calls (`checkoutCart` is); both
+   fixed.
+3. **11.2 partial** (`e54ecba`) — ten-minute shift closeout flow
+   (`staff_shift_closeouts`). Verification found an over-broad RLS SELECT
+   policy (any staff role could read any colleague's closeout notes) and
+   an unvalidated cross-tenant `extra_mile_act_id` reference; both fixed.
+   Checkbox stays unchecked — unified role home and WFM-103's tasks/
+   promises/briefing architecture remain.
+4. **12.1** (`00f71c2`) — guided self-measurement capture (customer app)
+   and reorder-gate status surface. Verification found the original
+   migration only granted staff INSERT on `customer_measurement_candidates`
+   (customers had no path to self-insert at all) and that
+   `customer_measurement_versions`' deliberate immutability meant e2e
+   tests polluting the shared seed customer would do so permanently; both
+   fixed (new customer-scoped insert policy; tests use dedicated throwaway
+   customers).
+5. **9.2 partial** (`441f168`) — connector connection-creation UI. Most of
+   the item's retailer lifecycle surface (pause/resume/disconnect, manual
+   sync, sync-runs/dead-letters) already existed and worked before this
+   slice; only creation had no UI. The delegated first pass silently
+   rewrote the page instead of extending it, deleting that pre-existing,
+   already-tested functionality — caught by the pre-existing "pause blocks
+   a live webhook" e2e test failing on independent verification, reverted
+   and re-applied minimally. Also found `integration_connections` grants
+   INSERT to `service_role` only; fixed using this codebase's own
+   established admin-client-for-authorized-write precedent
+   (`rehearseCampaign`/`activateCampaignToStaffMissions`).
 
-3. **PHASE 15.2** (`7f533b5`) — concierge request surface. Reward UI and
-   accounting export remain genuinely blocked on ADR-062 (stored-value
-   decision); concierge requests were never blocked on that (own docblock
-   says so) and just needed wiring — reuses `MessagingRepository`
-   verbatim, no new table, same precedent as PHASE 17.13's alteration/
-   cleaning booking below.
+**Recurring pattern worth naming:** every one of the above had a real,
+independently-found defect the delegated build either introduced or missed
+— stale/broken RLS assumptions, wrong client scoping, or (once) an outright
+regression from an unrequested rewrite. Trust the verification step, not
+worker narration, per AGENTS.md ch.20.
 
-**PHASE 17.13 investigated but NOT built** — its two remaining named gaps
-both turned out to need a real architecture decision, not wiring, so this
-session deliberately stopped rather than rush them at the tail end of a
-long run:
+**PHASE 15.2** (`7f533b5`, prior session) — concierge request surface done;
+reward UI/accounting export remain genuinely blocked on ADR-062.
+
+**PHASE 17.13 investigated but NOT built** (prior session) — its two
+remaining named gaps both need a real architecture decision, not wiring:
 
 - _Unattached (logged-out-created) item_: `wardrobe_items.customer_id` is
   `not null` (`20260730160000_add_wardrobe_ownership.sql:12`); making it
   nullable cascades into RLS/triggers across the table.
 - _Periodic fit-check photo → Self-Portrait update_: the MeasurementMonitor
-  decision gate (`packages/domain/src/fit/measurement-monitor.ts`,
-  `decideMeasurementOutcome`) can only classify a candidate against
-  **numeric millimetre values** compared to the approved version — a photo
-  alone produces no numbers, so representing "customer flagged via photo,
-  needs human judgment" honestly requires a schema/domain extension (a
-  non-numeric candidate type), not a new Server Action calling existing
-  methods. Fabricating placeholder values to force it through the existing
-  pipeline would violate that module's own explicit anti-fabrication
-  design (see its docblock).
+  decision gate can only classify against **numeric millimetre values** —
+  a photo alone produces no numbers, so this needs a schema/domain
+  extension (a non-numeric candidate type), not a new Server Action.
 
-**Update (2026-08-10, later the same day):** the founder explicitly
-re-enabled recurring autonomous continuation on this lane, revoking the
-pause above. The recurring monitor (a 15-minute session cron, per
-AGENTS.md ch.51 "Never-stop material execution") is active. It is a
-safety net only — it resumes execution if the active run idles, stops, or
-gets stuck on one blocker, and otherwise stays out of the way. It remains
-enabled until explicitly paused again by the founder. PHASE 11.3 closed
-end-to-end this session (`718f9d9`): `CeremonyForm` now exposes the
-`appliesWhen` trigger (appointment kind, first-visit, open-alteration) a
-manager can set per step, closing the one gap named above.
-
-Known blockers this lane is routing around per ch.51, not stopping for:
-PHASE 15.2's reward UI/accounting export (needs ADR-062, the stored-value
-decision); PHASE 17.13's two remaining gaps (each needs a schema/RLS
-architecture decision — nullable `wardrobe_items.customer_id` cascades
-into RLS/triggers; a non-numeric fit-check candidate type is a domain
-extension, not wiring); PHASE 17.10's live try-on gate (a founder billing
-decision — wiring it now would silently block all existing generation).
-None of these block other lane-H work; each is recorded here so it is not
-silently retried.
+Known blockers this lane routes around per ch.51, not stopping for: PHASE
+15.2's reward UI/accounting export (ADR-062); PHASE 17.13's two gaps
+(architecture decisions above); PHASE 17.10's live try-on gate (founder
+billing decision — wiring it now would silently block all existing
+generation). None block other lane-H work.
 
 Stage 17.10 (AI try-on / MorningRoutine) remains unchecked: the ledger is
 deliberately **not wired to gate today's generation path** — every
