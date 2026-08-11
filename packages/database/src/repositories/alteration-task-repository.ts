@@ -1,6 +1,7 @@
 import {
   asId,
   money,
+  type AlterationCostAllocationHistoryEntry,
   type AlterationId,
   type AlterationOperationId,
   type AlterationTask,
@@ -19,6 +20,8 @@ import type { Database } from "../generated/database.types";
 type TaskRow = Database["public"]["Tables"]["alteration_tasks"]["Row"];
 type WorkerTaskRow =
   Database["public"]["Views"]["worker_alteration_tasks"]["Row"];
+type CostAllocationHistoryRow =
+  Database["public"]["Tables"]["alteration_cost_allocation_history"]["Row"];
 
 function toDomain(row: TaskRow): AlterationTask {
   return {
@@ -55,9 +58,58 @@ function toDomain(row: TaskRow): AlterationTask {
           ),
         }
       : {}),
+    ...(row.labour_cost_amount_minor_units !== null &&
+    row.material_cost_amount_minor_units !== null &&
+    row.partner_cost_amount_minor_units !== null &&
+    row.cost_allocation_currency
+      ? {
+          costAllocation: {
+            labourCost: money(
+              row.labour_cost_amount_minor_units,
+              row.cost_allocation_currency as CurrencyCode,
+            ),
+            materialCost: money(
+              row.material_cost_amount_minor_units,
+              row.cost_allocation_currency as CurrencyCode,
+            ),
+            partnerCost: money(
+              row.partner_cost_amount_minor_units,
+              row.cost_allocation_currency as CurrencyCode,
+            ),
+          },
+        }
+      : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
+  };
+}
+
+function costAllocationHistoryToDomain(
+  row: CostAllocationHistoryRow,
+): AlterationCostAllocationHistoryEntry {
+  return {
+    id: row.id,
+    alterationId: asId<"AlterationId">(row.alteration_id),
+    taskId: asId<"AlterationTaskId">(row.task_id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    labourCost: money(
+      row.labour_cost_amount_minor_units,
+      row.currency as CurrencyCode,
+    ),
+    materialCost: money(
+      row.material_cost_amount_minor_units,
+      row.currency as CurrencyCode,
+    ),
+    partnerCost: money(
+      row.partner_cost_amount_minor_units,
+      row.currency as CurrencyCode,
+    ),
+    ...(row.reason ? { reason: row.reason } : {}),
+    ...(row.actor_staff_id
+      ? { actorStaffId: asId<"StaffId">(row.actor_staff_id) }
+      : {}),
+    createdAt: row.created_at,
   };
 }
 
@@ -144,6 +196,40 @@ export class AlterationTaskRepository {
     });
     if (error) throw error;
     return asId<"AlterationTaskId">(data as string);
+  }
+
+  async recordCostAllocation(params: {
+    taskId: AlterationTaskId;
+    labourCostAmountMinorUnits: number;
+    materialCostAmountMinorUnits: number;
+    partnerCostAmountMinorUnits: number;
+    currency: string;
+    reason: string;
+  }): Promise<void> {
+    const { error } = await this.client.rpc(
+      "record_alteration_task_cost_allocation",
+      {
+        p_task_id: params.taskId,
+        p_labour_cost_amount_minor_units: params.labourCostAmountMinorUnits,
+        p_material_cost_amount_minor_units: params.materialCostAmountMinorUnits,
+        p_partner_cost_amount_minor_units: params.partnerCostAmountMinorUnits,
+        p_currency: params.currency,
+        p_reason: params.reason,
+      },
+    );
+    if (error) throw error;
+  }
+
+  async findCostAllocationHistory(
+    alterationId: AlterationId,
+  ): Promise<AlterationCostAllocationHistoryEntry[]> {
+    const { data, error } = await this.client
+      .from("alteration_cost_allocation_history")
+      .select("*")
+      .eq("alteration_id", alterationId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data.map(costAllocationHistoryToDomain);
   }
 
   async findNotesByAlteration(

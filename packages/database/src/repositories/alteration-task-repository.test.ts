@@ -40,4 +40,29 @@ describe("AlterationTaskRepository", () => {
       p_note: "Sleeve opened and basted.",
     });
   });
+
+  it("records labour/material/partner cost allocation through the management-gated RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const repository = new AlterationTaskRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+
+    await repository.recordCostAllocation({
+      taskId: "11111111-1111-1111-1111-111111111111" as never,
+      labourCostAmountMinorUnits: 2000,
+      materialCostAmountMinorUnits: 500,
+      partnerCostAmountMinorUnits: 0,
+      currency: "usd",
+      reason: "Workshop invoice #4821",
+    });
+
+    expect(rpc).toHaveBeenCalledWith("record_alteration_task_cost_allocation", {
+      p_task_id: "11111111-1111-1111-1111-111111111111",
+      p_labour_cost_amount_minor_units: 2000,
+      p_material_cost_amount_minor_units: 500,
+      p_partner_cost_amount_minor_units: 0,
+      p_currency: "usd",
+      p_reason: "Workshop invoice #4821",
+    });
+  });
 });

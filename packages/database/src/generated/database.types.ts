@@ -750,6 +750,98 @@ export type Database = {
         };
         Relationships: [];
       };
+      alteration_cost_allocation_history: {
+        Row: {
+          actor_staff_id: string | null;
+          alteration_id: string;
+          created_at: string;
+          currency: string;
+          id: string;
+          labour_cost_amount_minor_units: number;
+          material_cost_amount_minor_units: number;
+          partner_cost_amount_minor_units: number;
+          reason: string | null;
+          retailer_id: string;
+          task_id: string;
+        };
+        Insert: {
+          actor_staff_id?: string | null;
+          alteration_id: string;
+          created_at?: string;
+          currency: string;
+          id?: string;
+          labour_cost_amount_minor_units: number;
+          material_cost_amount_minor_units: number;
+          partner_cost_amount_minor_units: number;
+          reason?: string | null;
+          retailer_id: string;
+          task_id: string;
+        };
+        Update: {
+          actor_staff_id?: string | null;
+          alteration_id?: string;
+          created_at?: string;
+          currency?: string;
+          id?: string;
+          labour_cost_amount_minor_units?: number;
+          material_cost_amount_minor_units?: number;
+          partner_cost_amount_minor_units?: number;
+          reason?: string | null;
+          retailer_id?: string;
+          task_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "alteration_cost_allocation_history_actor_staff_id_fkey";
+            columns: ["actor_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_cost_allocation_history_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_cost_allocation_history_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_cost_allocation_history_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "worker_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_cost_allocation_history_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_cost_allocation_history_task_id_fkey";
+            columns: ["task_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_tasks";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_cost_allocation_history_task_id_fkey";
+            columns: ["task_id"];
+            isOneToOne: false;
+            referencedRelation: "worker_alteration_tasks";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       alteration_fulfillment_events: {
         Row: {
           actor_staff_id: string | null;
@@ -1253,14 +1345,18 @@ export type Database = {
           alteration_id: string;
           assigned_worker_id: string | null;
           classification: Database["public"]["Enums"]["work_classification"];
+          cost_allocation_currency: string | null;
           created_at: string;
           deleted_at: string | null;
           id: string;
           instructions: string | null;
+          labour_cost_amount_minor_units: number | null;
+          material_cost_amount_minor_units: number | null;
           operation_id: string | null;
           origin_fitting_observation_id: string | null;
           original_quote_amount_minor_units: number;
           original_quote_currency: string;
+          partner_cost_amount_minor_units: number | null;
           retailer_id: string;
           status: Database["public"]["Enums"]["alteration_task_status"];
           title: string;
@@ -1272,14 +1368,18 @@ export type Database = {
           alteration_id: string;
           assigned_worker_id?: string | null;
           classification: Database["public"]["Enums"]["work_classification"];
+          cost_allocation_currency?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           id?: string;
           instructions?: string | null;
+          labour_cost_amount_minor_units?: number | null;
+          material_cost_amount_minor_units?: number | null;
           operation_id?: string | null;
           origin_fitting_observation_id?: string | null;
           original_quote_amount_minor_units?: number;
           original_quote_currency: string;
+          partner_cost_amount_minor_units?: number | null;
           retailer_id: string;
           status?: Database["public"]["Enums"]["alteration_task_status"];
           title: string;
@@ -1291,14 +1391,18 @@ export type Database = {
           alteration_id?: string;
           assigned_worker_id?: string | null;
           classification?: Database["public"]["Enums"]["work_classification"];
+          cost_allocation_currency?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           id?: string;
           instructions?: string | null;
+          labour_cost_amount_minor_units?: number | null;
+          material_cost_amount_minor_units?: number | null;
           operation_id?: string | null;
           origin_fitting_observation_id?: string | null;
           original_quote_amount_minor_units?: number;
           original_quote_currency?: string;
+          partner_cost_amount_minor_units?: number | null;
           retailer_id?: string;
           status?: Database["public"]["Enums"]["alteration_task_status"];
           title?: string;
@@ -20042,6 +20146,46 @@ export type Database = {
         Args: { p_prospect_id: string };
         Returns: string;
       };
+      correct_own_customer_fact: {
+        Args: {
+          p_fact_id: string;
+          p_reason?: string;
+          p_replacement_value_label: string;
+          p_replacement_value_text?: string;
+        };
+        Returns: {
+          author_customer_id: string | null;
+          author_staff_id: string | null;
+          confidence: number;
+          correction_of_fact_id: string | null;
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          evidence: Json;
+          expires_at: string | null;
+          fact_type: string;
+          id: string;
+          observed_at: string;
+          provenance_class: string;
+          retailer_id: string;
+          review_by: string | null;
+          sensitivity: string;
+          superseded_by_fact_id: string | null;
+          updated_at: string;
+          valid_from: string | null;
+          valid_until: string | null;
+          value_concept_id: string | null;
+          value_label: string;
+          value_text: string | null;
+          visibility: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "customer_facts";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       correct_payroll_entry: {
         Args: {
           p_clock_in_at: string;
@@ -20116,46 +20260,6 @@ export type Database = {
         SetofOptions: {
           from: "*";
           to: "academy_roleplay_sessions";
-          isOneToOne: true;
-          isSetofReturn: false;
-        };
-      };
-      correct_own_customer_fact: {
-        Args: {
-          p_fact_id: string;
-          p_reason?: string;
-          p_replacement_value_label: string;
-          p_replacement_value_text?: string;
-        };
-        Returns: {
-          author_customer_id: string | null;
-          author_staff_id: string | null;
-          confidence: number;
-          correction_of_fact_id: string | null;
-          created_at: string;
-          customer_id: string;
-          deleted_at: string | null;
-          evidence: Json;
-          expires_at: string | null;
-          fact_type: string;
-          id: string;
-          observed_at: string;
-          provenance_class: string;
-          retailer_id: string;
-          review_by: string | null;
-          sensitivity: string;
-          superseded_by_fact_id: string | null;
-          updated_at: string;
-          valid_from: string | null;
-          valid_until: string | null;
-          value_concept_id: string | null;
-          value_label: string;
-          value_text: string | null;
-          visibility: string;
-        };
-        SetofOptions: {
-          from: "customer_facts";
-          to: "customer_facts";
           isOneToOne: true;
           isSetofReturn: false;
         };
@@ -20580,6 +20684,17 @@ export type Database = {
           isOneToOne: false;
           isSetofReturn: true;
         };
+      };
+      record_alteration_task_cost_allocation: {
+        Args: {
+          p_currency: string;
+          p_labour_cost_amount_minor_units: number;
+          p_material_cost_amount_minor_units: number;
+          p_partner_cost_amount_minor_units: number;
+          p_reason: string;
+          p_task_id: string;
+        };
+        Returns: undefined;
       };
       record_campaign_delivery_audit: {
         Args: {

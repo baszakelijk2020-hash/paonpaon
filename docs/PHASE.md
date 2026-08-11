@@ -110,6 +110,40 @@ is complete until the full advisor/client journey is production-proven.
    communication, delivery and outcome capture. Every cost or work-order
    change must remain tenant-safe, auditable and explicitly human-approved.
 
+**Status (2026-08-12, item 6, first slice):** an audit of the existing
+`alteration_work_orders`/`alteration_tasks`/`work_order_assignments`/
+`chain_of_custody_events` chain found job cards
+(`apps/retailer/app/alterations/[id]/print/page.tsx`), work orders, task
+assignment/workshop handoff, custody/status checkpoints and quote/price
+approval already real (built earlier under the garment-first alterations
+foundation) — the one named gap with zero existing schema support was
+"labour/material/partner cost allocation." Migration
+`20260812000003_add_alteration_task_cost_allocation.sql` adds three nullable
+cost columns to `alteration_tasks` plus an append-only
+`alteration_cost_allocation_history` audit table (RLS mirrors
+`alteration_pricing_history`'s own: retailer staff excluding `worker`, plus
+platform staff), and a `record_alteration_task_cost_allocation` RPC gated to
+`is_alterations_management()` (owner/admin/manager — the same gate
+`decide_alteration_price_change` uses), refusing while the work order is
+`completed`/`canceled`. `AlterationTaskRepository.recordCostAllocation`/
+`findCostAllocationHistory`, a new `CostAllocationForm` on the alteration
+detail page (management-only, per task, shows the current breakdown), and a
+`recordTaskCostAllocation` Server Action gated on the existing
+`approve_pricing` permission. Proof: `production.schema.test.ts` (4 new
+validation tests), `alteration-task-repository.test.ts` (1 new RPC-call
+test), and a new browser-proof test in
+`apps/retailer/e2e/alteration-add-task.spec.ts` — an owner records a
+labour/material/partner breakdown on a real task and sees it rendered back.
+Full regression: domain 1144/1144, database 526/527 (the one failure,
+`order-repository.test.ts`'s cart checkout, is pre-existing and unrelated —
+reproduces identically on the pre-change commit), pgTAP 337/337
+(`supabase test db`), `apps/retailer` `tsc --noEmit` clean. Checkbox not
+added: this item has no dedicated numbered checklist entry (it is founder-
+priority prose, not a Stage item) and several of its named pieces —
+quality-checkpoint attribution distinct from custody, and alteration-specific
+customer communication threaded into the Communication Centre — remain real,
+unattempted gaps.
+
 The two founder-described "Chinese wall" workstreams are explicitly not part
 of this active priority. Do not select, expand or use them to displace the four
 Mission Control capabilities above without a new founder instruction.

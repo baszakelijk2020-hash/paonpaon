@@ -125,6 +125,14 @@ export const decidePriceChangeInputSchema = z.object({
   reason: z.string().trim().min(3).max(2000),
 });
 
+export const recordCostAllocationInputSchema = z.object({
+  labourCostAmountMinorUnits: z.number().int().min(0).max(100_000_000),
+  materialCostAmountMinorUnits: z.number().int().min(0).max(100_000_000),
+  partnerCostAmountMinorUnits: z.number().int().min(0).max(100_000_000),
+  currency: z.string().trim().length(3),
+  reason: z.string().trim().min(3).max(2000),
+});
+
 export const addAlterationTaskInputSchema = z.object({
   operationId: z.string().uuid().optional(),
   title: z.string().trim().min(2).max(160),

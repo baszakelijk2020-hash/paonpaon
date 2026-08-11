@@ -10,7 +10,11 @@ import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
 import { useActionState } from "react";
 
-import { decidePriceChange, proposePriceChange } from "./actions";
+import {
+  decidePriceChange,
+  proposePriceChange,
+  recordTaskCostAllocation,
+} from "./actions";
 
 export function PriceProposalForm({
   alterationId,
@@ -65,6 +69,98 @@ export function PriceProposalForm({
       </Button>
       {state.formError ? (
         <p role="alert" className="text-sm text-[var(--color-danger-500)]">
+          {state.formError}
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
+/** Internal labour/material/partner cost breakdown behind a task's agreed
+ * price — never shown to the customer. Management-only, mirroring
+ * `PriceDecisionForm`'s own permission boundary. */
+export function CostAllocationForm({
+  alterationId,
+  task,
+  currency,
+}: {
+  alterationId: string;
+  task: AlterationTask;
+  currency: string;
+}) {
+  const [state, action, pending] = useActionState(
+    recordTaskCostAllocation.bind(null, task.id, alterationId),
+    {},
+  );
+  return (
+    <form
+      action={action}
+      className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4"
+    >
+      <Input
+        name="labourCost"
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Labour"
+        aria-label={`${task.title} labour cost`}
+        defaultValue={
+          task.costAllocation
+            ? task.costAllocation.labourCost.amountMinorUnits / 100
+            : undefined
+        }
+        required
+      />
+      <Input
+        name="materialCost"
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Material"
+        aria-label={`${task.title} material cost`}
+        defaultValue={
+          task.costAllocation
+            ? task.costAllocation.materialCost.amountMinorUnits / 100
+            : undefined
+        }
+        required
+      />
+      <Input
+        name="partnerCost"
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="Partner"
+        aria-label={`${task.title} partner cost`}
+        defaultValue={
+          task.costAllocation
+            ? task.costAllocation.partnerCost.amountMinorUnits / 100
+            : undefined
+        }
+        required
+      />
+      <input type="hidden" name="currency" value={currency} />
+      <Input
+        name="reason"
+        className="col-span-2 sm:col-span-4"
+        placeholder="Reason (e.g. workshop invoice reference)"
+        aria-label={`${task.title} cost allocation reason`}
+        minLength={3}
+        required
+      />
+      <Button
+        type="submit"
+        size="sm"
+        disabled={pending}
+        className="col-span-2 sm:col-span-4"
+      >
+        {pending ? "Saving…" : "Record cost allocation"}
+      </Button>
+      {state.formError ? (
+        <p
+          role="alert"
+          className="col-span-2 text-sm text-[var(--color-danger-500)] sm:col-span-4"
+        >
           {state.formError}
         </p>
       ) : null}

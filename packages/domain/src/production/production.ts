@@ -246,6 +246,13 @@ export interface CustomerAlterationSummary {
   readonly updatedAt: string;
 }
 
+/** Internal margin breakdown for a task's agreed price. Never customer-visible. */
+export interface AlterationTaskCostAllocation {
+  readonly labourCost: Money;
+  readonly materialCost: Money;
+  readonly partnerCost: Money;
+}
+
 export interface AlterationTask extends Timestamps {
   readonly id: AlterationTaskId;
   readonly alterationId: AlterationId;
@@ -259,6 +266,20 @@ export interface AlterationTask extends Timestamps {
   readonly agreedPrice?: Money;
   readonly assignedWorkerId?: StaffId;
   readonly originFittingObservationId?: FittingObservationId;
+  readonly costAllocation?: AlterationTaskCostAllocation;
+}
+
+export interface AlterationCostAllocationHistoryEntry {
+  readonly id: string;
+  readonly alterationId: AlterationId;
+  readonly taskId: AlterationTaskId;
+  readonly retailerId: RetailerId;
+  readonly labourCost: Money;
+  readonly materialCost: Money;
+  readonly partnerCost: Money;
+  readonly reason?: string;
+  readonly actorStaffId?: StaffId;
+  readonly createdAt: string;
 }
 
 /** Assigned task projection with customer and pricing data removed. */

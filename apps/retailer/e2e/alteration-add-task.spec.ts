@@ -67,3 +67,43 @@ test("owner adds a task to an existing alteration work order after intake", asyn
   await expect(newTaskCard.getByText("Now · Proposed")).toBeVisible();
   await expect(newTaskCard.getByText("Original quote 0 USD")).toBeVisible();
 });
+
+test("owner records labour/material/partner cost allocation on a task", async ({
+  page,
+}) => {
+  await page.goto("/alterations/new");
+  await page.getByLabel("Customer").selectOption({ index: 1 });
+  await page.getByLabel("Garment type").fill("Navy two-piece suit");
+  await page
+    .getByLabel("Description")
+    .fill("Customer-owned suit, jacket and trousers.");
+  await page
+    .getByLabel("Intake condition")
+    .fill("Good condition, dry cleaned.");
+  await page.getByLabel("Observation area").fill("Waist");
+  await page
+    .getByLabel("Observation", { exact: true })
+    .fill("Waistband is snug.");
+  await page.getByLabel("Work-now task").fill("Let out waistband");
+  await page.getByRole("button", { name: "Create work order" }).click();
+  await expect(page).toHaveURL(/\/alterations\/[0-9a-f-]+$/);
+
+  const taskCard = page
+    .locator("div.px-6.py-4", { hasText: "Let out waistband" })
+    .first();
+  await taskCard.getByLabel("Let out waistband labour cost").fill("40");
+  await taskCard.getByLabel("Let out waistband material cost").fill("15");
+  await taskCard.getByLabel("Let out waistband partner cost").fill("0");
+  await taskCard
+    .getByLabel("Let out waistband cost allocation reason")
+    .fill("Workshop invoice #4821");
+  await taskCard
+    .getByRole("button", { name: "Record cost allocation" })
+    .click();
+
+  await expect(
+    taskCard.getByText(
+      "Cost allocation — labour 40, material 15, partner 0 USD",
+    ),
+  ).toBeVisible();
+});

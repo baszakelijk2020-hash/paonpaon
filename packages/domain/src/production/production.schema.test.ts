@@ -8,6 +8,7 @@ import {
   addAlterationUpdateInputSchema,
   createAlterationInputSchema,
   proposePriceChangeInputSchema,
+  recordCostAllocationInputSchema,
   recordCustodyEventInputSchema,
   recordFulfillmentInputSchema,
 } from "./production.schema";
@@ -118,6 +119,49 @@ describe("pricing and update validation", () => {
     expect(
       addAlterationUpdateInputSchema.parse({ status: "quoted" })
         .customerVisible,
+    ).toBe(false);
+  });
+});
+
+describe("cost allocation validation", () => {
+  const validAllocation = {
+    labourCostAmountMinorUnits: 1000,
+    materialCostAmountMinorUnits: 500,
+    partnerCostAmountMinorUnits: 0,
+    currency: "USD",
+    reason: "Workshop invoice #4821",
+  };
+
+  it("accepts a fully specified allocation", () => {
+    expect(
+      recordCostAllocationInputSchema.safeParse(validAllocation).success,
+    ).toBe(true);
+  });
+
+  it("rejects a negative cost component", () => {
+    expect(
+      recordCostAllocationInputSchema.safeParse({
+        ...validAllocation,
+        materialCostAmountMinorUnits: -100,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a currency code that is not three letters", () => {
+    expect(
+      recordCostAllocationInputSchema.safeParse({
+        ...validAllocation,
+        currency: "US",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("requires a substantive reason", () => {
+    expect(
+      recordCostAllocationInputSchema.safeParse({
+        ...validAllocation,
+        reason: "x",
+      }).success,
     ).toBe(false);
   });
 });

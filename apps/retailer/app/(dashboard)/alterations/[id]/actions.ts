@@ -20,6 +20,7 @@ import {
   retailerRoleHasAlterationsPermission,
   decidePriceChangeInputSchema,
   proposePriceChangeInputSchema,
+  recordCostAllocationInputSchema,
   recordCustodyEventInputSchema,
   recordFulfillmentInputSchema,
 } from "@paon/domain";
@@ -211,6 +212,61 @@ export async function decidePriceChange(
     return {
       formError:
         error instanceof Error ? error.message : "Unable to decide proposal.",
+    };
+  }
+  revalidatePath(`/alterations/${alterationId}`);
+  return { success: true };
+}
+
+export async function recordTaskCostAllocation(
+  taskId: string,
+  alterationId: string,
+  _state: PricingActionState,
+  formData: FormData,
+): Promise<PricingActionState> {
+  const session = await requireModuleSession("garment_service_operations");
+  if (
+    !retailerRoleHasAlterationsPermission(
+      session.retailerRole,
+      "approve_pricing",
+    )
+  ) {
+    throw new ForbiddenError();
+  }
+  const toMinorUnits = (value: FormDataEntryValue | null): number => {
+    const amount =
+      typeof value === "string" && value.trim() ? Number(value) : Number.NaN;
+    return Number.isFinite(amount) ? Math.round(amount * 100) : Number.NaN;
+  };
+  const parsed = recordCostAllocationInputSchema.safeParse({
+    labourCostAmountMinorUnits: toMinorUnits(formData.get("labourCost")),
+    materialCostAmountMinorUnits: toMinorUnits(formData.get("materialCost")),
+    partnerCostAmountMinorUnits: toMinorUnits(formData.get("partnerCost")),
+    currency: formData.get("currency"),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    return {
+      formError: parsed.error.issues[0]?.message ?? "Invalid cost allocation.",
+    };
+  }
+  try {
+    await new AlterationTaskRepository(
+      await getSupabaseServerClient(),
+    ).recordCostAllocation({
+      taskId: asId<"AlterationTaskId">(taskId),
+      labourCostAmountMinorUnits: parsed.data.labourCostAmountMinorUnits,
+      materialCostAmountMinorUnits: parsed.data.materialCostAmountMinorUnits,
+      partnerCostAmountMinorUnits: parsed.data.partnerCostAmountMinorUnits,
+      currency: parsed.data.currency,
+      reason: parsed.data.reason,
+    });
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Unable to record cost allocation.",
     };
   }
   revalidatePath(`/alterations/${alterationId}`);

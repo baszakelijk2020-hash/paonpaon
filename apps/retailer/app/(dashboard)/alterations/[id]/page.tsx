@@ -44,7 +44,11 @@ import {
   updateWorkshopAssignment,
   uploadAlterationPhoto,
 } from "./actions";
-import { PriceDecisionForm, PriceProposalForm } from "./pricing-actions";
+import {
+  CostAllocationForm,
+  PriceDecisionForm,
+  PriceProposalForm,
+} from "./pricing-actions";
 import { UpdateForm } from "./update-form";
 import { WorkflowActionForm } from "./workflow-action-form";
 
@@ -925,6 +929,29 @@ export default async function AlterationDetailPage({
                   Original quote {task.originalQuote.amountMinorUnits / 100}{" "}
                   {task.originalQuote.currency}
                 </p>
+              ) : null}
+              {"originalQuote" in task && task.costAllocation ? (
+                <p className="text-xs text-[var(--color-stone-500)]">
+                  Cost allocation — labour{" "}
+                  {task.costAllocation.labourCost.amountMinorUnits / 100},
+                  material{" "}
+                  {task.costAllocation.materialCost.amountMinorUnits / 100},
+                  partner{" "}
+                  {task.costAllocation.partnerCost.amountMinorUnits / 100}{" "}
+                  {task.costAllocation.labourCost.currency}
+                </p>
+              ) : null}
+              {"originalQuote" in task &&
+              canApprovePrice &&
+              task.classification === "work_now" &&
+              !["completed", "canceled"].includes(alteration.status) ? (
+                <CostAllocationForm
+                  alterationId={alteration.id}
+                  task={task}
+                  currency={
+                    task.agreedPrice?.currency ?? task.originalQuote.currency
+                  }
+                />
               ) : null}
               {taskNotes
                 .filter((note) => note.taskId === task.id)
