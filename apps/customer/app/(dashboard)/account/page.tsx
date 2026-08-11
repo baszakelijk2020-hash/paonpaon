@@ -1,5 +1,6 @@
 import {
   CustomerPreferencesRepository,
+  CustomerFactRepository,
   CustomerRepository,
   MetadataRepository,
   RetailerRepository,
@@ -10,6 +11,7 @@ import {
 } from "@paon/database";
 import { buildFitArchetypeOptions, type MetadataConceptId } from "@paon/domain";
 
+import { CustomerFactsPanel } from "./customer-facts-panel";
 import { PreferencesForm } from "./preferences-form";
 import { StylePortraitPanel } from "./style-portrait-panel";
 import { StyleProfilePanel } from "./style-profile-panel";
@@ -31,6 +33,7 @@ export default async function AccountPage() {
   const consentRepo = new StylePortraitConsentRepository(supabase);
   const portraitRepo = new StylePortraitRepository(supabase);
   const visualizationRepo = new WardrobeVisualizationJobRepository(supabase);
+  const customerFactRepo = new CustomerFactRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
@@ -53,6 +56,15 @@ export default async function AccountPage() {
         "fit",
       );
       const fitArchetypes = buildFitArchetypeOptions(fitConcepts);
+      const customerFacts = (
+        await customerFactRepo.listForCustomer(customer.retailerId, customer.id)
+      ).filter(
+        (fact) =>
+          fact.sensitivity === "standard" &&
+          fact.provenanceClass !== "transactional" &&
+          (fact.visibility === "customer_and_advisor" ||
+            fact.visibility === "customer_only"),
+      );
 
       const conceptIds = new Set<string>();
       for (const row of styleProfile?.explicitPreferences ?? []) {
@@ -85,6 +97,7 @@ export default async function AccountPage() {
         portrait,
         portraitPreviewJob,
         fitArchetypes,
+        customerFacts,
       };
     }),
   );
@@ -119,12 +132,17 @@ export default async function AccountPage() {
             portrait,
             portraitPreviewJob,
             fitArchetypes,
+            customerFacts,
           }) => (
             <div key={customer.id} className="flex flex-col gap-4">
               <PreferencesForm
                 retailerId={customer.retailerId}
                 retailerName={retailer?.displayName ?? "Retailer"}
                 preferences={preferences}
+              />
+              <CustomerFactsPanel
+                retailerName={retailer?.displayName ?? "Retailer"}
+                facts={customerFacts}
               />
               <StyleProfilePanel
                 retailerId={customer.retailerId}

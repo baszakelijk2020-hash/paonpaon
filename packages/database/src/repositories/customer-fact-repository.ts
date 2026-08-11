@@ -204,6 +204,29 @@ export class CustomerFactRepository {
     return (data ?? []).map(toDomain);
   }
 
+  /**
+   * Customer-facing correction path. Authorization and eligibility are
+   * enforced inside the database function against auth.uid(), so callers
+   * cannot substitute another customer or retailer in a Server Action.
+   */
+  async correctOwnFact(args: {
+    readonly factId: string;
+    readonly replacementValueLabel: string;
+    readonly replacementValueText?: string;
+    readonly reason?: string;
+  }): Promise<CustomerFact> {
+    const { data, error } = await this.client.rpc("correct_own_customer_fact", {
+      p_fact_id: args.factId,
+      p_replacement_value_label: args.replacementValueLabel.trim(),
+      ...(args.replacementValueText?.trim()
+        ? { p_replacement_value_text: args.replacementValueText.trim() }
+        : {}),
+      ...(args.reason?.trim() ? { p_reason: args.reason.trim() } : {}),
+    });
+    if (error) throw error;
+    return toDomain(data);
+  }
+
   async markCorrected(args: {
     readonly retailerId: RetailerId;
     readonly factId: string;

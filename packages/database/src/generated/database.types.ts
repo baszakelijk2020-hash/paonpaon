@@ -20531,6 +20531,46 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      correct_own_customer_fact: {
+        Args: {
+          p_fact_id: string;
+          p_reason?: string;
+          p_replacement_value_label: string;
+          p_replacement_value_text?: string;
+        };
+        Returns: {
+          author_customer_id: string | null;
+          author_staff_id: string | null;
+          confidence: number;
+          correction_of_fact_id: string | null;
+          created_at: string;
+          customer_id: string;
+          deleted_at: string | null;
+          evidence: Json;
+          expires_at: string | null;
+          fact_type: string;
+          id: string;
+          observed_at: string;
+          provenance_class: string;
+          retailer_id: string;
+          review_by: string | null;
+          sensitivity: string;
+          superseded_by_fact_id: string | null;
+          updated_at: string;
+          valid_from: string | null;
+          valid_until: string | null;
+          value_concept_id: string | null;
+          value_label: string;
+          value_text: string | null;
+          visibility: string;
+        };
+        SetofOptions: {
+          from: "customer_facts";
+          to: "customer_facts";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       record_campaign_delivery_audit: {
         Args: {
           p_campaign_id: string;

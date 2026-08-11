@@ -2,6 +2,7 @@
 
 import {
   CustomerConsentRepository,
+  CustomerFactRepository,
   CustomerPreferencesRepository,
   CustomerRepository,
 } from "@paon/database";
@@ -24,7 +25,61 @@ export interface PreferencesFormState {
   success?: boolean;
 }
 
+export interface CustomerFactCorrectionFormState {
+  fieldErrors: Record<string, string>;
+  formError?: string;
+  success?: boolean;
+}
+
 const retailerIdSchema = z.string().uuid();
+const customerFactCorrectionSchema = z.object({
+  factId: z.string().uuid(),
+  replacementValueLabel: z.string().trim().min(1).max(500),
+  replacementValueText: z.string().trim().max(2000).optional(),
+  reason: z.string().trim().max(1000).optional(),
+});
+
+export async function correctOwnCustomerFact(
+  _prevState: CustomerFactCorrectionFormState,
+  formData: FormData,
+): Promise<CustomerFactCorrectionFormState> {
+  await requireSession();
+  const parsed = customerFactCorrectionSchema.safeParse({
+    factId: formData.get("factId"),
+    replacementValueLabel: formData.get("replacementValueLabel"),
+    replacementValueText: formData.get("replacementValueText") || undefined,
+    reason: formData.get("reason") || undefined,
+  });
+
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      fieldErrors[issue.path.join(".")] ??= issue.message;
+    }
+    return { fieldErrors };
+  }
+
+  try {
+    const supabase = await getSupabaseServerClient();
+    await new CustomerFactRepository(supabase).correctOwnFact({
+      factId: parsed.data.factId,
+      replacementValueLabel: parsed.data.replacementValueLabel,
+      ...(parsed.data.replacementValueText
+        ? { replacementValueText: parsed.data.replacementValueText }
+        : {}),
+      ...(parsed.data.reason ? { reason: parsed.data.reason } : {}),
+    });
+  } catch {
+    // Do not disclose whether a fact exists or belongs to someone else.
+    return {
+      fieldErrors: {},
+      formError: "This fact is not available for correction.",
+    };
+  }
+
+  revalidatePath("/account");
+  return { fieldErrors: {}, success: true };
+}
 
 function consentStatusForToggle(
   purpose: ConsentPurpose,
