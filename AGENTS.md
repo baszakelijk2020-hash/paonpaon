@@ -1662,7 +1662,250 @@ skipping lane-disjointness checks, or fabricating the blocked decision itself.
 
 ---
 
-# 53. Binding summary
+# 53. Visual Wardrobe Precision Authority
+
+`docs/PAON_VISUAL_WARDROBE_PRECISION_AUTHORITY.md` is the product/technical
+authority for the precision Visual Wardrobe Studio direction.
+
+When work touches Virtual Wardrobe Studio, garment visualization, fabric
+mapping, garment configuration, visual fidelity, supplier swatches, fit
+visualization, product-image generation, or related customer/advisor
+visual-selling flows:
+
+1. Read `docs/PAON_VISUAL_WARDROBE_PRECISION_AUTHORITY.md`.
+2. Treat it as a target capability contract, not as a claim about what
+   already exists.
+3. First inspect the current PAON implementation and map the specification
+   onto existing architecture, entities, migrations, repositories, runners,
+   provider abstractions, UI, tests, ADRs and PHASE items.
+4. Reuse and extend existing PAON concepts wherever equivalent capability
+   already exists.
+5. Do not create duplicate wardrobe, product, fabric, style-portrait, fit,
+   garment, visualization-job, metadata, provider, cost-ledger or
+   personalization systems merely because the document uses different
+   conceptual names.
+6. Translate the specification into PAON's actual domain model and naming
+   conventions before implementation.
+7. Produce the implementation gap from repository truth:
+   - already implemented;
+   - partially implemented;
+   - missing;
+   - conflicting with current architecture;
+   - blocked by an existing founder/ADR decision.
+8. Do not rebuild already-working capability.
+9. Do not weaken existing PAON security, RLS, tenant, evidence, provider or
+   product invariants to match the document literally.
+10. Where the document and established PAON architecture differ, preserve
+    the intended product outcome while implementing it through the current
+    canonical PAON architecture.
+11. Use Haiku/subagents for repository mapping and gap discovery; keep
+    frontier judgment for architectural translation, fidelity policy,
+    security, schema and final integration.
+12. Treat physical fabric-scale fidelity, calibrated swatch dimensions,
+    deterministic garment-option locking, fail-closed visual verification
+    and retailer-neutral operation as prime requirements, not optional
+    polish.
+13. Do not declare the capability complete from prompt-only fabric mapping,
+    visually impressive demos, or unverified AI output.
+14. Integrate this work into existing `docs/PHASE.md` execution rather than
+    creating a parallel roadmap or separate work queue.
+15. Build vertically from the current implementation toward the authority
+    document's acceptance criteria, preserving all already-shipped Virtual
+    Wardrobe Studio functionality.
+
+---
+
+# 54. Claude quota and parallel-execution efficiency policy
+
+Claude usage is a constrained compute resource. Optimize for verified
+engineering throughput per unit of model usage.
+
+### One writer per file
+
+Before delegating work, assign explicit file ownership.
+
+- Never allow parent and subagent to edit the same file concurrently.
+- Never allow two subagents to edit the same file concurrently.
+- Parent must not "help" by editing a file currently owned by a running
+  worker.
+- If ownership must transfer, stop/wait for the current writer first,
+  inspect its resulting diff, then continue.
+
+Violation response: immediately stop the newer writer and preserve the
+existing owner's work.
+
+### Delegate bounded mechanical work
+
+Use subagents aggressively for bounded tasks that do not require the
+parent's full context.
+
+Delegate: repository exploration; locating implementations/references; test
+investigation; isolated test repair; lint/type errors; deterministic
+refactors; migration inspection; verification; evidence gathering.
+
+Keep the parent focused on: task decomposition; architectural decisions;
+integration decisions; merge/conflict decisions; acceptance decisions.
+
+Do not spend the parent model repeatedly searching files or performing
+mechanical fixes that a bounded worker can perform.
+
+### Cheap model first
+
+Use the cheapest capable model for each task.
+
+Haiku: search/exploration; repository mapping; locating call sites; reading
+tests; identifying relevant files; diagnostics classification; evidence
+collection; read-only investigation.
+
+Sonnet: implementation; difficult debugging; integration; code review where
+reasoning materially matters.
+
+Do not use Sonnet for repository exploration that Haiku can perform
+reliably.
+
+### No repeated blind test loops
+
+Do not repeatedly edit → run entire test → inspect failure → edit.
+
+On failure:
+
+1. identify the precise failure;
+2. inspect the relevant implementation/test/data/RLS path;
+3. form one concrete root-cause hypothesis;
+4. run the narrowest command capable of confirming/refuting it;
+5. make the fix;
+6. run the narrow test;
+7. run broader verification only after the narrow test passes.
+
+Full repo verification is a completion gate, not a debugging instrument.
+
+### Escalate after two failed fix cycles
+
+If the same acceptance test fails after two attempted fixes: **stop
+modifying it.**
+
+Perform root-cause investigation before another edit. Explicitly inspect:
+test validity; fixture/data contamination; authentication/session identity;
+RLS/permissions; actual production call path; stale generated
+artifacts/schema; concurrent-lane interference.
+
+Do not continue trial-and-error editing.
+
+### Tests must prove behavior
+
+Never weaken an acceptance test to make it pass.
+
+Forbidden: `if (isVisible())` around required assertions; optional
+assertions for acceptance criteria; ambiguous text selectors where stable
+IDs exist; admin clients when acceptance requires a real customer/staff
+session; mocking the behavior being accepted.
+
+Prefer deterministic IDs and exact database evidence for setup/observation
+where UI interaction itself is not the acceptance criterion.
+
+### Separate setup from acceptance
+
+Do not spend browser-test time exercising unrelated pre-existing
+functionality.
+
+For e2e acceptance: establish unrelated prerequisite state
+directly/deterministically; exercise the actual acceptance behavior through
+the real production path; observe the resulting state independently.
+
+Only use UI setup when UI setup is itself part of the requirement.
+
+### Shared-state collision protection
+
+Before regenerating database types, migrations, generated clients,
+snapshots, or other shared artifacts:
+
+- determine whether concurrent lanes can mutate the underlying shared
+  state;
+- do not regenerate from a shared contaminated environment;
+- use lane-isolated state where available.
+
+If schema drift originates from another active lane, stop rather than
+repairing unrelated generated diffs.
+
+### Diagnose before taking over worker work
+
+When a worker is running: do not edit its owned files; inspect worker
+status before assuming it is stuck; wait if active progress exists; take
+over only after the worker has completed, failed, or been explicitly
+stopped.
+
+A stop-hook failure alone is not permission to become a second writer.
+
+### Verification ladder
+
+Run verification in this order:
+
+1. affected unit/domain test;
+2. affected package typecheck/lint;
+3. affected integration/e2e test;
+4. affected application/package suite;
+5. repo-wide gates once before final commit.
+
+Do not repeatedly run repo-wide lint/typecheck during active debugging
+unless the failure itself is repo-wide.
+
+### Parent context conservation
+
+Do not load large files/logs into the parent context when a subagent can
+return a bounded result.
+
+Worker reports should contain: root cause; files affected; exact change
+made/proposed; verification command; verification result; commit SHA when
+applicable.
+
+Avoid returning large raw logs unless necessary for a decision.
+
+### Parallelism requires disjoint ownership
+
+Parallel work is encouraged only when tasks have disjoint write scopes.
+
+Before launching parallel workers, record: task, model, owned files/scope,
+acceptance command.
+
+Do not launch workers whose expected write sets overlap.
+
+### Never-stop does not mean never-wait
+
+The never-stop rule means continue productive work when safe work exists.
+
+It does NOT mean: edit a worker's files while waiting; start speculative
+rewrites; rerun expensive tests without a hypothesis; create overlapping
+writers; chase unrelated diagnostics from another lane.
+
+When blocked by an active worker, perform independent disjoint work or
+wait.
+
+### Quota-aware execution
+
+When Claude quota is constrained, prioritize in this order:
+
+1. correctness/security defects blocking acceptance;
+2. bounded implementation required by PHASE;
+3. narrow verification;
+4. integration/merge;
+5. documentation/evidence;
+6. exploratory improvements.
+
+Do not spend quota polishing unrelated code encountered during a bounded
+PHASE item.
+
+### Completion
+
+A bounded task is complete when: acceptance behavior is genuinely proven;
+narrow tests pass; affected lint/typecheck passes; required broader
+completion gates pass once; evidence is accurate; changes are committed; no
+worker-owned/uncommitted conflicting edits remain.
+
+Then immediately move to the next bounded PHASE item.
+
+---
+
+# 55. Binding summary
 
 **The repository remembers.**
 
