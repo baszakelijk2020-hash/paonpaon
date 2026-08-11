@@ -97,7 +97,8 @@ export async function correctPayrollEntry(
     return { formError: "Choose a valid payroll entry." };
   if (
     !clockInAt ||
-    (clockOutAt && Date.parse(clockOutAt) <= Date.parse(clockInAt))
+    !clockOutAt ||
+    Date.parse(clockOutAt) <= Date.parse(clockInAt)
   )
     return { formError: "Clock-out must be after clock-in." };
   if (!reason || reason.length > 1000)
@@ -109,7 +110,7 @@ export async function correctPayrollEntry(
       periodId,
       sourceTimeEntryId,
       clockInAt: new Date(clockInAt).toISOString(),
-      ...(clockOutAt ? { clockOutAt: new Date(clockOutAt).toISOString() } : {}),
+      clockOutAt: new Date(clockOutAt).toISOString(),
       reason,
     });
   } catch (error) {

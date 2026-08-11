@@ -123,6 +123,7 @@ export function CorrectPayrollEntryForm({
           type="datetime-local"
           name="clockOutAt"
           defaultValue={clockOutAt ? toLocalInput(clockOutAt) : ""}
+          required
         />
       </label>
       <label className="flex flex-col gap-1 text-sm md:col-span-2">
