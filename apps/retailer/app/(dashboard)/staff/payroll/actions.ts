@@ -22,15 +22,15 @@ function input(formData: FormData, key: string): string {
 }
 
 function databaseError(error: unknown, fallback: string): PayrollActionState {
-  const message = error instanceof Error ? error.message : "";
-  if (/different approver/i.test(message)) {
+  const code =
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof error.code === "string"
+      ? error.code
+      : "";
+  if (code === "PPA01") {
     return { formError: "A different manager must approve this period." };
-  }
-  if (/unresolved exceptions/i.test(message)) {
-    return { formError: "Resolve every payroll exception before approval." };
-  }
-  if (/current draft/i.test(message)) {
-    return { formError: "This payroll period is no longer an open draft." };
   }
   return { formError: fallback };
 }

@@ -3,6 +3,7 @@ import {
   PlatformModuleRepository,
   ProductRepository,
   ProductVariantRepository,
+  RetailerBranchRepository,
   RetailerRepository,
   RetailerStaffRepository,
   assertSafeSupabaseWriteTarget,
@@ -77,6 +78,10 @@ async function globalSetup(): Promise<void> {
       },
     });
   }
+
+  await new RetailerBranchRepository(admin).ensureDefaultBranch({
+    retailerId: retailer.id,
+  });
 
   // Both shared e2e houses intentionally exercise the complete platform.
   // New production retailers receive modules through plans/add-ons instead.
