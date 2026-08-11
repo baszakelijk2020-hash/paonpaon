@@ -5,7 +5,7 @@ import { formatDate } from "@paon/utils";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-import { sendMessage } from "../actions";
+import { retryAttachmentScan, sendMessage } from "../actions";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -77,9 +77,34 @@ export default async function ConversationPage({
                       />
                     )}
                   </a>
+                ) : attachment.scanStatus === "pending_scan" ? (
+                  <span key={attachment.id} className="mt-2 block text-xs">
+                    {attachment.fileName} — queued for safety scan
+                  </span>
+                ) : attachment.scanStatus === "failed" ? (
+                  <form
+                    key={attachment.id}
+                    action={retryAttachmentScan}
+                    className="mt-2 text-xs"
+                  >
+                    <input
+                      type="hidden"
+                      name="attachmentId"
+                      value={attachment.id}
+                    />
+                    <input
+                      type="hidden"
+                      name="conversationId"
+                      value={conversation.id}
+                    />
+                    <span>{attachment.fileName} — safety scan failed. </span>
+                    <button type="submit" className="underline">
+                      Retry scan
+                    </button>
+                  </form>
                 ) : (
                   <span key={attachment.id} className="mt-2 block text-xs">
-                    Attachment unavailable
+                    {attachment.fileName} — unavailable
                   </span>
                 ),
             )}

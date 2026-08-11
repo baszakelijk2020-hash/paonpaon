@@ -110,7 +110,7 @@ export type MessageAttachmentPurpose =
   (typeof MESSAGE_ATTACHMENT_PURPOSES)[number];
 export type MessageAttachmentSourceKind = "upload" | "link";
 export type MessageAttachmentScanStatus =
-  "pending_scan" | "basic_validated" | "quarantined" | "failed";
+  "pending_scan" | "cleared" | "quarantined" | "failed";
 
 export const MAX_MESSAGE_ATTACHMENT_BYTES = 10 * 1024 * 1024;
 

@@ -272,7 +272,14 @@ export class MessagingRepository {
               : {}),
           };
         }
-        if (!attachment.storageBucket || !attachment.storagePath) {
+        // Storage is private, but a signed URL would still bypass the
+        // quarantine screen. Only the scanner's explicit cleared transition
+        // can make an uploaded object readable.
+        if (
+          attachment.scanStatus !== "cleared" ||
+          !attachment.storageBucket ||
+          !attachment.storagePath
+        ) {
           return { attachment };
         }
         const { data: signed, error: signedError } = await this.client.storage
@@ -361,6 +368,17 @@ export class MessagingRepository {
       .single();
     if (fetchError) throw fetchError;
     return messageAttachment(row);
+  }
+
+  /** Requeues only a failed upload. The database re-derives the caller from
+   * the conversation, so an attachment id cannot cross a House boundary. */
+  async retryAttachmentScan(
+    attachmentId: MessageAttachment["id"],
+  ): Promise<void> {
+    const { error } = await this.client.rpc("retry_message_attachment_scan", {
+      p_attachment_id: attachmentId,
+    });
+    if (error) throw error;
   }
 
   /** PHASE 17.14: claim a conversation for triage. Re-derives the

@@ -1,5 +1,9 @@
 "use server";
-import { AppointmentRepository, MessagingRepository } from "@paon/database";
+import {
+  AppointmentRepository,
+  CustomerRepository,
+  MessagingRepository,
+} from "@paon/database";
 import {
   classifyBuyingIntent,
   conversationNeedsHuman,
@@ -73,6 +77,23 @@ export async function sendMessage(formData: FormData) {
   );
   await classifyAndRecordIntent(value.conversationId, value.body);
   revalidatePath(`/messages/${value.conversationId}`);
+}
+
+export async function retryAttachmentScan(formData: FormData) {
+  const session = await requireSession();
+  const attachmentId = String(formData.get("attachmentId") ?? "");
+  const conversationId = String(formData.get("conversationId") ?? "");
+  const repo = new MessagingRepository(await getSupabaseServerClient());
+  const conversation = await repo.findConversation(conversationId as never);
+  if (!conversation) throw new Error("Conversation not found.");
+  const customer = await new CustomerRepository(
+    await getSupabaseServerClient(),
+  ).findByUserId(session.userId);
+  if (!customer.some((row) => row.id === conversation.customerId)) {
+    throw new Error("Conversation not found.");
+  }
+  await repo.retryAttachmentScan(attachmentId as never);
+  revalidatePath(`/messages/${conversationId}`);
 }
 
 /**

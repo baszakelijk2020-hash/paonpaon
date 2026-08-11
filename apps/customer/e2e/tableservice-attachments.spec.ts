@@ -100,9 +100,7 @@ test("TableService sends each founder attachment type into the private advisor c
     buffer: PNG,
   });
   await sendWidgetMessage(page, "This is the silhouette I like.");
-  await expect(
-    page.getByText(/Shared securely with your advisor/),
-  ).toBeVisible();
+  await expect(page.getByText(/queued for a safety scan/)).toBeVisible();
 
   await attachFile(page, "Attach Pdf", {
     name: "brief.pdf",
@@ -158,29 +156,78 @@ test("TableService sends each founder attachment type into the private advisor c
         purpose: "photo",
         source_kind: "upload",
         rights_basis: "customer_consultation",
-        scan_status: "basic_validated",
+        scan_status: "pending_scan",
       }),
-      expect.objectContaining({ purpose: "document", source_kind: "upload" }),
+      expect.objectContaining({
+        purpose: "document",
+        source_kind: "upload",
+        scan_status: "pending_scan",
+      }),
       expect.objectContaining({
         purpose: "pinterest_link",
         source_kind: "link",
         source_url: "https://www.pinterest.com/pin/123",
+        scan_status: "cleared",
       }),
       expect.objectContaining({
         purpose: "wedding_fabric",
         source_kind: "upload",
+        scan_status: "pending_scan",
       }),
     ]);
 
   await page.goto(`/messages/${conversation.id}`);
-  await expect(page.getByAltText("look.png").last()).toBeVisible();
   await expect(
-    page.getByText("brief.pdf", { exact: true }).last(),
+    page.getByText(/look.png — queued for safety scan/),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/brief.pdf — queued for safety scan/),
   ).toBeVisible();
   await expect(
     page.getByText("Pinterest reference", { exact: true }).last(),
   ).toBeVisible();
-  await expect(page.getByAltText("dress-fabric.png").last()).toBeVisible();
+  await expect(
+    page.getByText(/dress-fabric.png — queued for safety scan/),
+  ).toBeVisible();
+
+  const { data: uploadRows } = await admin
+    .from("message_attachments")
+    .select("id, file_name")
+    .in(
+      "message_id",
+      (
+        await admin
+          .from("messages")
+          .select("id")
+          .eq("conversation_id", conversation.id)
+      ).data?.map((message) => message.id) ?? [],
+    );
+  const photo = uploadRows?.find((row) => row.file_name === "look.png");
+  if (!photo) throw new Error("queued photo attachment missing");
+  const { data: jobs } = await admin.rpc(
+    "claim_pending_message_attachment_scan_jobs",
+    { p_limit: 10 },
+  );
+  const job = jobs?.find((row) => row.attachment_id === photo.id);
+  if (!job) throw new Error("queued attachment scan job missing");
+  await admin.rpc("complete_message_attachment_scan_job", {
+    p_job_id: job.id,
+    p_status: "failed",
+    p_error_message: "Scanner temporarily unavailable",
+  });
+  await page.reload();
+  await expect(page.getByText(/safety scan failed/)).toBeVisible();
+  await page.getByRole("button", { name: "Retry scan" }).click();
+  await expect
+    .poll(async () => {
+      const { data } = await admin
+        .from("message_attachments")
+        .select("scan_status")
+        .eq("id", photo.id)
+        .single();
+      return data?.scan_status;
+    })
+    .toBe("pending_scan");
 });
 
 test("TableService retains an unsafe draft and writes no attachment", async ({

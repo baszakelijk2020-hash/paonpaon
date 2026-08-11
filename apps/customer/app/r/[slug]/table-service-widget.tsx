@@ -389,7 +389,7 @@ export function TableServiceWidget({
             ...rows,
             text,
             result.attachmentPurpose
-              ? "Shared securely with your advisor. Basic file checks passed; the original remains private."
+              ? "Uploaded securely. It is queued for a safety scan before either of you can open it."
               : "Sent securely to your advisor.",
           ]);
           clearAttachment();

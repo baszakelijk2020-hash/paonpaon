@@ -8686,6 +8686,60 @@ export type Database = {
           },
         ];
       };
+      message_attachment_scan_jobs: {
+        Row: {
+          attachment_id: string;
+          attempt: number;
+          claimed_at: string | null;
+          completed_at: string | null;
+          created_at: string;
+          error_message: string | null;
+          id: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          attachment_id: string;
+          attempt?: number;
+          claimed_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          error_message?: string | null;
+          id?: string;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          attachment_id?: string;
+          attempt?: number;
+          claimed_at?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          error_message?: string | null;
+          id?: string;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "message_attachment_scan_jobs_attachment_id_fkey";
+            columns: ["attachment_id"];
+            isOneToOne: true;
+            referencedRelation: "message_attachments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "message_attachment_scan_jobs_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       message_attachments: {
         Row: {
           created_at: string;
@@ -19814,6 +19868,27 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      claim_pending_message_attachment_scan_jobs: {
+        Args: { p_limit?: number };
+        Returns: {
+          attachment_id: string;
+          attempt: number;
+          claimed_at: string | null;
+          completed_at: string | null;
+          created_at: string;
+          error_message: string | null;
+          id: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "message_attachment_scan_jobs";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
       claim_pending_sms: {
         Args: { p_limit?: number };
         Returns: {
@@ -19872,6 +19947,27 @@ export type Database = {
       complete_campaign_challenge: {
         Args: { p_enrollment_id: string };
         Returns: string;
+      };
+      complete_message_attachment_scan_job: {
+        Args: { p_error_message?: string; p_job_id: string; p_status: string };
+        Returns: {
+          attachment_id: string;
+          attempt: number;
+          claimed_at: string | null;
+          completed_at: string | null;
+          created_at: string;
+          error_message: string | null;
+          id: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "message_attachment_scan_jobs";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       complete_pos_sale_atomic: {
         Args: {
@@ -20844,6 +20940,10 @@ export type Database = {
       retailer_online_location: {
         Args: { p_retailer_id: string };
         Returns: string;
+      };
+      retry_message_attachment_scan: {
+        Args: { p_attachment_id: string };
+        Returns: undefined;
       };
       return_pos_line_atomic: {
         Args: {
