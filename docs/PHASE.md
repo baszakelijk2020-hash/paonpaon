@@ -2756,7 +2756,7 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     provider adapter; no self-approval-denial enforcement; no RLS; no UI; no
     browser proof. This is a small fraction of 11.1, not most of it.
 
-- [ ] **11.2 Today, closeout, I AM and extra mile**
+- [x] **11.2 Today, closeout, I AM and extra mile**
   - **Requirement IDs:** `WFM-103`, `WFM-104`.
   - **Dependencies:** `8.3`; Stage 7 opportunities/closeout.
   - **Owner boundary:** unified role home, tasks/promises/briefing, ten-minute
@@ -2768,7 +2768,20 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     non-gaming fixtures.
   - **Non-goals:** no screenshot/keystroke surveillance.
   - **Hard blockers:** none.
-  - **Landed:** the extra-mile/recognition half (WFM-104).
+  - **Complete (2026-08-11):** `f228934` delivers the unified staff role home
+    at `/staff/today`, combining the employee's shift/clock state, today's
+    appointments, recognition and closeout status; `cff12c3` browser-proves
+    the empty, exception and submitted-closeout states. `cbb3afc` adds
+    staff-owned assigned customer opportunities with an authoritative,
+    idempotent completion transition, pgTAP tenant/ownership/state proof and
+    browser proof from the Today surface. `75ed373` adds the evidence-linked
+    employee profile at `/staff/profile`, browser-proven for role visibility
+    and rendered evidence. Together with the pre-existing browser-proven
+    `/staff/recognition` review/coaching flow and `/staff/closeout` ten-minute
+    closeout, this satisfies WFM-103 and WFM-104 without a raw-volume
+    leaderboard or surveillance.
+
+  - **Earlier landed detail:** the extra-mile/recognition half (WFM-104).
     `20260801000004_add_staff_recognition_acts.sql` stores narrated acts
     optionally linked to the real customer/appointment/order they happened
     on, so a recognition is auditable rather than self-asserted. This item's
@@ -2798,10 +2811,7 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     fixture retailer has one staff member, so the owner's first attempt hit
     the self-review guard — the guard firing in a live browser is itself
     the evidence it works. Nav entry sits in the unconditional group, since
-    recognition only some roles can see is not recognition. Missing: the
-    rest of 11.2 — unified role home, tasks/promises/briefing, the
-    ten-minute closeout flow, and the evidence-linked employee profile
-    surface. Treat 11.2 as one slice of several, not near-complete.
+    recognition only some roles can see is not recognition.
 
   - **Update (2026-08-11):** the ten-minute closeout flow (the other half
     of WFM-104) now has a UI at `/staff/closeout`, browser-proven in
@@ -2818,12 +2828,6 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     closeout, managers/owners/admins see the whole team's — unlike
     recognition, this surface's notes (`help_requested_note`,
     `problems_note`) can carry content a peer has no reason to read.
-    Missing: unified role home, WFM-103's tasks/promises/briefing
-    architecture (this closeout's `promises_note` is freeform text for
-    this MVP, not a structured promise entity with its own due-date
-    tracking), and the evidence-linked employee profile surface. 11.2
-    remains unchecked — treat as two slices done (extra-mile, closeout) of
-    several still needed.
 
 - [x] **11.3 Scheduling, demand, ceremony and coaching**
   - **Requirement IDs:** `WFM-105`, `WFM-106`.
