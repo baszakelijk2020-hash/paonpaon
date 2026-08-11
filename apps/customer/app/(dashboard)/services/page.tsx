@@ -8,11 +8,13 @@ import {
   BOOKING_KINDS_BY_SERVICE,
   SERVICE_BOOKING_KIND_LABELS,
   SERVICE_BOOKING_STATUS_LABELS,
+  SERVICE_CARE_KIND_LABELS,
   SERVICE_ENTITLEMENT_KIND_LABELS,
   SERVICE_KIND_LABELS,
   recommendedAppointmentType,
   type ServiceBooking,
   type ServiceBookingKind,
+  type ServiceCareRecord,
   type ServiceEntitlement,
   type ServiceKind,
   type ServiceMembership,
@@ -49,42 +51,53 @@ export default async function CustomerServicesPage() {
   );
   const services = new ServicePlanRepository(client);
   const retailers = new RetailerRepository(client);
-  const careStatus = await new ServicePartnerRepository(
-    client,
-  ).listMyCustomerCareStatus();
+  const [careStatus, groups] = await Promise.all([
+    new ServicePartnerRepository(client).listMyCustomerCareStatus(),
+    Promise.all(
+      customers.map(async (customer) => {
+        const [retailer, memberships, bookings, history] = await Promise.all([
+          retailers.findById(customer.retailerId),
+          services.listMembershipsForCustomer(customer.id),
+          services.listBookingsForCustomer(customer.id),
+          services.listHistoryForCustomer(customer.id),
+        ]);
+        const plansById = new Map<string, ServicePlan>();
+        for (const membership of memberships) {
+          const plan = await services.findPlanById(membership.planId);
+          if (plan) plansById.set(plan.id, plan);
+        }
+        const [entitlements, care] = await Promise.all([
+          Promise.all(
+            memberships.map(async (membership) => ({
+              membershipId: membership.id,
+              items: await services.listEntitlementsForMembership(
+                membership.id,
+              ),
+            })),
+          ),
+          Promise.all(
+            memberships.map((membership) =>
+              services.listCareForMembership(membership.id),
+            ),
+          ),
+        ]);
+        return {
+          customer,
+          retailer,
+          memberships,
+          plansById,
+          bookings,
+          history,
+          care: care.flat(),
+          entitlementsByMembership: new Map(
+            entitlements.map((entry) => [entry.membershipId, entry.items]),
+          ),
+        };
+      }),
+    ),
+  ]);
 
-  const groups = await Promise.all(
-    customers.map(async (customer) => {
-      const [retailer, memberships, bookings, history] = await Promise.all([
-        retailers.findById(customer.retailerId),
-        services.listMembershipsForCustomer(customer.id),
-        services.listBookingsForCustomer(customer.id),
-        services.listHistoryForCustomer(customer.id),
-      ]);
-      const plansById = new Map<string, ServicePlan>();
-      for (const membership of memberships) {
-        const plan = await services.findPlanById(membership.planId);
-        if (plan) plansById.set(plan.id, plan);
-      }
-      const entitlements = await Promise.all(
-        memberships.map(async (membership) => ({
-          membershipId: membership.id,
-          items: await services.listEntitlementsForMembership(membership.id),
-        })),
-      );
-      return {
-        customer,
-        retailer,
-        memberships,
-        plansById,
-        bookings,
-        history,
-        entitlementsByMembership: new Map(
-          entitlements.map((entry) => [entry.membershipId, entry.items]),
-        ),
-      };
-    }),
-  );
+  const careRecords = groups.flatMap((group) => group.care);
 
   return (
     <div className="flex flex-col gap-6">
@@ -98,7 +111,7 @@ export default async function CustomerServicesPage() {
         </p>
       </div>
 
-      <CareJourney careStatus={careStatus} />
+      <CareJourney careStatus={careStatus} careRecords={careRecords} />
 
       {groups.every((group) => group.memberships.length === 0) ? (
         <Card className="flex flex-col gap-2">
@@ -233,36 +246,41 @@ const CARE_STEPS = [
 
 function CareJourney({
   careStatus,
+  careRecords,
 }: {
   careStatus: Awaited<
     ReturnType<ServicePartnerRepository["listMyCustomerCareStatus"]>
   >;
+  careRecords: readonly ServiceCareRecord[];
 }) {
   if (careStatus.length === 0) {
     return (
-      <section
-        className="paon-reveal overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)]"
-        aria-labelledby="highmaintenance-heading"
-      >
-        <div className="grid min-h-72 items-end bg-[linear-gradient(135deg,#e7e2d8_0%,#f8f7f4_58%,#d3c9bb_100%)] p-6 sm:p-9">
-          <div className="max-w-xl">
-            <p className="font-accent text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-stone-600)]">
-              HighMaintenance
-            </p>
-            <h2
-              id="highmaintenance-heading"
-              className="font-display mt-3 text-3xl text-[var(--color-stone-900)] sm:text-4xl"
-            >
-              Care keeps your wardrobe ready.
-            </h2>
-            <p className="mt-3 max-w-lg text-sm leading-6 text-[var(--color-stone-700)]">
-              When your house arranges care for a booking-linked garment, its
-              handoffs and return will appear here — without exposing the
-              operational notes behind the service.
-            </p>
+      <>
+        <section
+          className="paon-reveal overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)]"
+          aria-labelledby="highmaintenance-heading"
+        >
+          <div className="grid min-h-72 items-end bg-[linear-gradient(135deg,#e7e2d8_0%,#f8f7f4_58%,#d3c9bb_100%)] p-6 sm:p-9">
+            <div className="max-w-xl">
+              <p className="font-accent text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-stone-600)]">
+                HighMaintenance
+              </p>
+              <h2
+                id="highmaintenance-heading"
+                className="font-display mt-3 text-3xl text-[var(--color-stone-900)] sm:text-4xl"
+              >
+                Care keeps your wardrobe ready.
+              </h2>
+              <p className="mt-3 max-w-lg text-sm leading-6 text-[var(--color-stone-700)]">
+                When your house arranges care for a booking-linked garment, its
+                handoffs and return will appear here — without exposing the
+                operational notes behind the service.
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+        <CareOutcomeHistory careRecords={careRecords} />
+      </>
     );
   }
 
@@ -383,6 +401,61 @@ function CareJourney({
           );
         })}
       </div>
+      <CareOutcomeHistory careRecords={careRecords} />
+    </section>
+  );
+}
+
+function CareOutcomeHistory({
+  careRecords,
+}: {
+  careRecords: readonly ServiceCareRecord[];
+}) {
+  if (careRecords.length === 0) return null;
+
+  const recentRecords = [...careRecords]
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .slice(0, 8);
+
+  return (
+    <section
+      className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-5 py-4"
+      aria-labelledby="care-outcomes-heading"
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <p className="font-accent text-xs uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
+            HighMaintenance
+          </p>
+          <h3
+            id="care-outcomes-heading"
+            className="font-display mt-1 text-xl text-[var(--color-stone-900)]"
+          >
+            Care outcomes
+          </h3>
+        </div>
+        <p className="text-sm text-[var(--color-stone-500)]">
+          Your house&apos;s completed care notes
+        </p>
+      </div>
+      <ul className="mt-3 flex flex-col gap-2">
+        {recentRecords.map((record) => (
+          <li
+            key={record.id}
+            className="border-b border-[var(--color-stone-100)] pb-2 text-sm last:border-0 last:pb-0"
+          >
+            <p className="font-medium text-[var(--color-stone-900)]">
+              {SERVICE_CARE_KIND_LABELS[record.careKind]}
+            </p>
+            <p className="mt-0.5 text-[var(--color-stone-700)]">
+              {record.summary}
+            </p>
+            <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+              Recorded {new Date(record.createdAt).toLocaleDateString()}
+            </p>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

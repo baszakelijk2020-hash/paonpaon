@@ -1,4 +1,10 @@
-import { WardrobeRepository, createSupabaseAdminClient } from "@paon/database";
+import {
+  ServicePlanRepository,
+  WardrobeRepository,
+  createSupabaseAdminClient,
+  createSupabaseDirectClient,
+} from "@paon/database";
+import { asId } from "@paon/domain";
 import { expect, test } from "@playwright/test";
 
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
@@ -40,6 +46,11 @@ test("HighMaintenance shows only the customer's booking-linked care state and ne
   let bookingId: string | undefined;
   let partnerId: string | undefined;
   let engagementId: string | undefined;
+  let careRecordId: string | undefined;
+  let otherMembershipId: string | undefined;
+  let otherCareRecordId: string | undefined;
+  let staffUserId: string | undefined;
+  let staffMemberId: string | undefined;
 
   try {
     const { data: plan, error: planError } = await admin
@@ -69,6 +80,59 @@ test("HighMaintenance shows only the customer's booking-linked care state and ne
     if (membershipError || !membership)
       throw membershipError ?? new Error("membership fixture failed");
     membershipId = membership.id;
+
+    const { data: otherCustomer } = await admin
+      .from("customers")
+      .select("id")
+      .eq("retailer_id", retailer.id)
+      .neq("id", customer.id)
+      .is("deleted_at", null)
+      .limit(1)
+      .maybeSingle();
+    if (!otherCustomer) throw new Error("second fixture customer missing");
+    const { data: otherMembership, error: otherMembershipError } = await admin
+      .from("service_memberships")
+      .insert({
+        retailer_id: retailer.id,
+        plan_id: planId,
+        customer_id: otherCustomer.id,
+      })
+      .select("id")
+      .single();
+    if (otherMembershipError || !otherMembership) {
+      throw (
+        otherMembershipError ?? new Error("other membership fixture failed")
+      );
+    }
+    otherMembershipId = otherMembership.id;
+
+    const staffEmail = `ft14-care-staff-${unique}@nebelspiegel.com`;
+    const { data: staffUser, error: staffUserError } =
+      await admin.auth.admin.createUser({
+        email: staffEmail,
+        password: "FT14-care-staff-password",
+        email_confirm: true,
+      });
+    if (staffUserError || !staffUser.user) {
+      throw staffUserError ?? new Error("care staff fixture failed");
+    }
+    staffUserId = staffUser.user.id;
+    const { data: staffMember, error: staffMemberError } = await admin
+      .from("retailer_staff_members")
+      .insert({
+        retailer_id: retailer.id,
+        user_id: staffUserId,
+        full_name: "FT14 Care Staff",
+        email: staffEmail,
+        role: "sales_associate",
+        accepted_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+    if (staffMemberError || !staffMember) {
+      throw staffMemberError ?? new Error("care staff membership failed");
+    }
+    staffMemberId = staffMember.id;
 
     const { data: booking, error: bookingError } = await admin
       .from("service_bookings")
@@ -125,6 +189,42 @@ test("HighMaintenance shows only the customer's booking-linked care state and ne
       throw engagementError ?? new Error("engagement fixture failed");
     engagementId = engagement.id;
 
+    const staffClient = createSupabaseDirectClient(
+      supabaseUrl,
+      process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!,
+    );
+    const { error: staffSignInError } =
+      await staffClient.auth.signInWithPassword({
+        email: staffEmail,
+        password: "FT14-care-staff-password",
+      });
+    if (staffSignInError) throw staffSignInError;
+    careRecordId = await new ServicePlanRepository(staffClient).recordCare({
+      membershipId: asId<"ServiceMembershipId">(membershipId),
+      careKind: "pressing",
+      summary: `Pressing completed ${unique}`,
+      bookingId: asId<"ServiceBookingId">(bookingId),
+      wardrobeItemId: asId<"WardrobeItemId">(wardrobeItem.id),
+    });
+
+    const { data: otherCareRecord, error: otherCareRecordError } = await admin
+      .from("service_care_records")
+      .insert({
+        retailer_id: retailer.id,
+        membership_id: otherMembershipId,
+        customer_id: otherCustomer.id,
+        care_kind: "repair",
+        summary: `Other customer care record ${unique}`,
+      })
+      .select("id")
+      .single();
+    if (otherCareRecordError || !otherCareRecord) {
+      throw (
+        otherCareRecordError ?? new Error("other care record fixture failed")
+      );
+    }
+    otherCareRecordId = otherCareRecord.id;
+
     const { data: link, error: linkError } =
       await admin.auth.admin.generateLink({
         type: "magiclink",
@@ -142,6 +242,15 @@ test("HighMaintenance shows only the customer's booking-linked care state and ne
     ).toBeVisible();
     await expect(page.getByText(`FT14 Care Jacket ${unique}`)).toBeVisible();
     await expect(page.getByText("In care")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Care outcomes" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(`Pressing completed ${unique}`, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(`Other customer care record ${unique}`),
+    ).toHaveCount(0);
     await expect(
       page.getByText("FT14 Internal Partner", { exact: false }),
     ).toHaveCount(0);
@@ -190,6 +299,13 @@ test("HighMaintenance shows only the customer's booking-linked care state and ne
         .from("service_partner_custody_events")
         .delete()
         .eq("engagement_id", engagementId);
+    if (otherCareRecordId)
+      await admin
+        .from("service_care_records")
+        .delete()
+        .eq("id", otherCareRecordId);
+    if (careRecordId)
+      await admin.from("service_care_records").delete().eq("id", careRecordId);
     if (engagementId)
       await admin
         .from("service_partner_engagements")
@@ -201,6 +317,17 @@ test("HighMaintenance shows only the customer's booking-linked care state and ne
       await admin.from("service_bookings").delete().eq("id", bookingId);
     if (membershipId)
       await admin.from("service_memberships").delete().eq("id", membershipId);
+    if (otherMembershipId)
+      await admin
+        .from("service_memberships")
+        .delete()
+        .eq("id", otherMembershipId);
+    if (staffMemberId)
+      await admin
+        .from("retailer_staff_members")
+        .delete()
+        .eq("id", staffMemberId);
+    if (staffUserId) await admin.auth.admin.deleteUser(staffUserId);
     if (planId) await admin.from("service_plans").delete().eq("id", planId);
     await admin.from("wardrobe_items").delete().eq("id", wardrobeItem.id);
   }
