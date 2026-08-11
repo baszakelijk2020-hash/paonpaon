@@ -114,6 +114,15 @@ The two founder-described "Chinese wall" workstreams are explicitly not part
 of this active priority. Do not select, expand or use them to displace the four
 Mission Control capabilities above without a new founder instruction.
 
+**Mandatory Mission Control delivery routing:** use the configured cheapest
+capable worker for all bounded work: gap/call-site discovery, source mapping,
+fixtures, focused tests, browser proof, mechanical UI/repository wiring and
+settled implementation. The frontier is reserved for the Mission Control
+contract, data ownership, consent/privacy/RLS, money/cost boundaries,
+cross-module decisions, integration and independent acceptance. Every Mission
+Control slice must state its worker tier, owned paths, acceptance proof and
+the exact returned House Memory outcome before implementation begins.
+
 Do not select new feature expansion ahead of executable work that makes
 existing committed capabilities production-ready.
 
