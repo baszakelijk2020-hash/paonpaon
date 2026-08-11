@@ -198,6 +198,54 @@ export class ClientelingOpportunityRepository {
     return data.map(toDomain);
   }
 
+  /** Open customer work assigned to one staff member's personal day. */
+  async listOpenAssignedToStaff(
+    retailerId: RetailerId,
+    staffId: StaffId,
+    limit = 20,
+  ): Promise<ClientelingOpportunity[]> {
+    const { data, error } = await this.client
+      .from("clienteling_opportunities")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .eq("assigned_staff_id", staffId)
+      .in("status", ["draft", "accepted", "snoozed"])
+      .is("deleted_at", null)
+      .order("priority", { ascending: true })
+      .order("due_at", { ascending: true })
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data.map(toDomain);
+  }
+
+  /**
+   * Completes an open opportunity only when it belongs to this staff member.
+   * A false result intentionally does not reveal whether the id was closed,
+   * another person's work, or belongs to another retailer.
+   */
+  async completeAssignedOpen(args: {
+    readonly retailerId: RetailerId;
+    readonly staffId: StaffId;
+    readonly opportunityId: string;
+  }): Promise<boolean> {
+    const { data, error } = await this.client
+      .from("clienteling_opportunities")
+      .update({
+        status: "completed",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("retailer_id", args.retailerId)
+      .eq("id", args.opportunityId)
+      .eq("assigned_staff_id", args.staffId)
+      .in("status", ["draft", "accepted", "snoozed"])
+      .is("deleted_at", null)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    return data !== null;
+  }
+
   /**
    * Project interest insights into draft opportunities and persist new drafts
    * when the customer has no open draft of the same why_now text.

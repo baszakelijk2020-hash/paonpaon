@@ -124,3 +124,63 @@ test("a completed closeout shows on the role home instead of the prompt", async 
   // The not-yet-completed prompt must NOT also be showing.
   await expect(page.getByText("Not yet completed")).not.toBeVisible();
 });
+
+test("staff can complete their own assigned customer opportunity from My Day", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+
+  const admin = createSupabaseAdminClient(
+    process.env["NEXT_PUBLIC_SUPABASE_URL"]!,
+    process.env["SUPABASE_SERVICE_ROLE_KEY"]!,
+  );
+  const { data: ownerRow, error: ownerError } = await admin
+    .from("retailer_staff_members")
+    .select("id, retailer_id")
+    .eq("email", TEST_OWNER_EMAIL)
+    .single();
+  if (ownerError) throw ownerError;
+
+  const { data: customer, error: customerError } = await admin
+    .from("customers")
+    .select("id")
+    .eq("retailer_id", ownerRow.retailer_id)
+    .limit(1)
+    .single();
+  if (customerError) throw customerError;
+
+  const marker = `PAON-ASSIGNED-${Date.now()}`;
+  const { data: opportunity, error: opportunityError } = await admin
+    .from("clienteling_opportunities")
+    .insert({
+      retailer_id: ownerRow.retailer_id,
+      customer_id: customer.id,
+      opportunity_type: "interest_follow_up",
+      why_now: marker,
+      suggested_action: "Call to confirm the fitting.",
+      channel: "phone",
+      assigned_staff_id: ownerRow.id,
+      projector_version: "staff-today-e2e",
+    })
+    .select("id")
+    .single();
+  if (opportunityError) throw opportunityError;
+
+  await signInOwner(page);
+  await page.goto("/staff/today");
+  await expect(page.getByText(marker)).toBeVisible();
+  await page.getByRole("button", { name: "Complete" }).click();
+  await expect(page.getByText(marker)).not.toBeVisible();
+
+  await expect
+    .poll(async () => {
+      const { data, error } = await admin
+        .from("clienteling_opportunities")
+        .select("status")
+        .eq("id", opportunity.id)
+        .single();
+      if (error) throw error;
+      return data.status;
+    })
+    .toBe("completed");
+});

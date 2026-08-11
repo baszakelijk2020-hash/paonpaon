@@ -1,5 +1,6 @@
 import {
   AppointmentRepository,
+  ClientelingOpportunityRepository,
   RetailerStaffRepository,
   ShiftCloseoutRepository,
   StaffRecognitionRepository,
@@ -15,6 +16,8 @@ import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
+
+import { AssignedOpportunityList } from "./assigned-opportunity-list";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -63,41 +66,57 @@ export default async function StaffTodayPage() {
   const appointmentRepo = new AppointmentRepository(supabase);
   const closeoutRepo = new ShiftCloseoutRepository(supabase);
   const recognitionRepo = new StaffRecognitionRepository(supabase);
+  const opportunityRepo = new ClientelingOpportunityRepository(supabase);
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const [viewer, shifts, openEntry, appointments, closeout, recentActs] =
-    await Promise.all([
-      staffRepo.findByUserId(session.userId),
-      rosterRepo.findShiftsByRetailer(session.retailerId, {
-        from: today,
-        to: today,
-      }),
-      staffRepo
-        .findByUserId(session.userId)
-        .then((staff) =>
-          staff ? rosterRepo.findOpenTimeEntry(staff.id) : null,
-        ),
-      appointmentRepo.findByRetailer(session.retailerId),
-      staffRepo.findByUserId(session.userId).then((staff) =>
+  const [
+    viewer,
+    shifts,
+    openEntry,
+    appointments,
+    closeout,
+    recentActs,
+    assignedOpportunities,
+  ] = await Promise.all([
+    staffRepo.findByUserId(session.userId),
+    rosterRepo.findShiftsByRetailer(session.retailerId, {
+      from: today,
+      to: today,
+    }),
+    staffRepo
+      .findByUserId(session.userId)
+      .then((staff) => (staff ? rosterRepo.findOpenTimeEntry(staff.id) : null)),
+    appointmentRepo.findByRetailer(session.retailerId),
+    staffRepo.findByUserId(session.userId).then((staff) =>
+      staff
+        ? closeoutRepo.findByStaffAndDate({
+            retailerId: session.retailerId,
+            staffId: staff.id,
+            closeoutDate: today,
+          })
+        : null,
+    ),
+    staffRepo.findByUserId(session.userId).then((staff) =>
+      staff
+        ? recognitionRepo.listForStaff({
+            retailerId: session.retailerId,
+            staffId: staff.id,
+            limit: 5,
+          })
+        : Promise.resolve([]),
+    ),
+    staffRepo
+      .findByUserId(session.userId)
+      .then((staff) =>
         staff
-          ? closeoutRepo.findByStaffAndDate({
-              retailerId: session.retailerId,
-              staffId: staff.id,
-              closeoutDate: today,
-            })
-          : null,
-      ),
-      staffRepo.findByUserId(session.userId).then((staff) =>
-        staff
-          ? recognitionRepo.listForStaff({
-              retailerId: session.retailerId,
-              staffId: staff.id,
-              limit: 5,
-            })
+          ? opportunityRepo.listOpenAssignedToStaff(
+              session.retailerId,
+              staff.id,
+            )
           : Promise.resolve([]),
       ),
-    ]);
+  ]);
 
   if (!viewer) {
     throw new Error("Viewer staff record not found");
@@ -223,6 +242,8 @@ export default async function StaffTodayPage() {
           </ul>
         </Card>
       ) : null}
+
+      <AssignedOpportunityList opportunities={assignedOpportunities} />
 
       {/* Closeout Status */}
       <Card>

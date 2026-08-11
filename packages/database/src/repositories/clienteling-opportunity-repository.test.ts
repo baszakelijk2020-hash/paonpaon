@@ -14,6 +14,7 @@ const otherRetailerId = asId<"RetailerId">(
   "22222222-2222-4222-8222-222222222222",
 );
 const customerId = asId<"CustomerId">("33333333-3333-4333-8333-333333333333");
+const staffId = asId<"StaffId">("44444444-4444-4444-8444-444444444444");
 const now = "2026-07-30T12:00:00.000Z";
 
 function opportunityRow(
@@ -89,6 +90,44 @@ describe("ClientelingOpportunityRepository", () => {
       status: "accepted",
     });
     expect(fromChained).toHaveBeenCalledWith("clienteling_opportunities");
+  });
+
+  it("lists only an assignee's open customer opportunities", async () => {
+    const assigned = opportunityRow({
+      id: "aaaaaaaa-aaaa-4aaa-8aaa-000000000005",
+      retailer_id: retailerId,
+      why_now: "A customer needs a fitting follow-up",
+      assigned_staff_id: staffId,
+    });
+    const from = vi.fn(() =>
+      fakeQueryBuilder({ data: [assigned], error: null }),
+    );
+    const repo = new ClientelingOpportunityRepository({
+      from,
+    } as unknown as PaonSupabaseClient);
+
+    const listed = await repo.listOpenAssignedToStaff(retailerId, staffId);
+
+    expect(listed).toHaveLength(1);
+    expect(listed[0]?.assignedStaffId).toBe(staffId);
+  });
+
+  it("completes only an assigned open opportunity", async () => {
+    const chained = fakeQueryBuilder({
+      data: { id: "aaaaaaaa-aaaa-4aaa-8aaa-000000000006" },
+      error: null,
+    });
+    const repo = new ClientelingOpportunityRepository({
+      from: vi.fn(() => chained),
+    } as unknown as PaonSupabaseClient);
+
+    await expect(
+      repo.completeAssignedOpen({
+        retailerId,
+        staffId,
+        opportunityId: "aaaaaaaa-aaaa-4aaa-8aaa-000000000006",
+      }),
+    ).resolves.toBe(true);
   });
 
   it("maps contact-pressure drafts for the inbox", async () => {
