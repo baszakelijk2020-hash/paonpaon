@@ -29,14 +29,14 @@ export class PayrollPeriodRepository {
     periodId: string;
     sourceTimeEntryId: string;
     clockInAt: string;
-    clockOutAt?: string;
+    clockOutAt: string;
     reason: string;
   }): Promise<string> {
     const { data, error } = await this.client.rpc("correct_payroll_entry", {
       p_period_id: args.periodId,
       p_source_time_entry_id: args.sourceTimeEntryId,
       p_clock_in_at: args.clockInAt,
-      p_clock_out_at: args.clockOutAt ?? null,
+      p_clock_out_at: args.clockOutAt,
       p_reason: args.reason,
     });
     if (error) throw error;

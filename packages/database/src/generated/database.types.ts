@@ -10501,6 +10501,389 @@ export type Database = {
           },
         ];
       };
+      payroll_period_entry_adjustments: {
+        Row: {
+          adjusted_by_staff_id: string;
+          corrected_clock_in_at: string;
+          corrected_clock_out_at: string | null;
+          created_at: string;
+          id: string;
+          prior_clock_in_at: string;
+          prior_clock_out_at: string | null;
+          reason: string;
+          retailer_id: string;
+          source_time_entry_id: string;
+          version_id: string;
+        };
+        Insert: {
+          adjusted_by_staff_id: string;
+          corrected_clock_in_at: string;
+          corrected_clock_out_at?: string | null;
+          created_at?: string;
+          id?: string;
+          prior_clock_in_at: string;
+          prior_clock_out_at?: string | null;
+          reason: string;
+          retailer_id: string;
+          source_time_entry_id: string;
+          version_id: string;
+        };
+        Update: {
+          adjusted_by_staff_id?: string;
+          corrected_clock_in_at?: string;
+          corrected_clock_out_at?: string | null;
+          created_at?: string;
+          id?: string;
+          prior_clock_in_at?: string;
+          prior_clock_out_at?: string | null;
+          reason?: string;
+          retailer_id?: string;
+          source_time_entry_id?: string;
+          version_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_period_entry_adjustments_adjusted_by_staff_id_fkey";
+            columns: ["adjusted_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_entry_adjustments_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_entry_adjustments_source_time_entry_id_fkey";
+            columns: ["source_time_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "staff_time_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_entry_adjustments_version_id_fkey";
+            columns: ["version_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_period_versions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payroll_period_entry_snapshots: {
+        Row: {
+          clock_in_at: string;
+          clock_out_at: string | null;
+          created_at: string;
+          id: string;
+          retailer_id: string;
+          source_time_entry_id: string;
+          staff_id: string;
+          version_id: string;
+        };
+        Insert: {
+          clock_in_at: string;
+          clock_out_at?: string | null;
+          created_at?: string;
+          id?: string;
+          retailer_id: string;
+          source_time_entry_id: string;
+          staff_id: string;
+          version_id: string;
+        };
+        Update: {
+          clock_in_at?: string;
+          clock_out_at?: string | null;
+          created_at?: string;
+          id?: string;
+          retailer_id?: string;
+          source_time_entry_id?: string;
+          staff_id?: string;
+          version_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_period_entry_snapshots_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_entry_snapshots_source_time_entry_id_fkey";
+            columns: ["source_time_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "staff_time_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_entry_snapshots_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_entry_snapshots_version_id_fkey";
+            columns: ["version_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_period_versions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payroll_period_exceptions: {
+        Row: {
+          created_at: string;
+          detail: string;
+          id: string;
+          kind: string;
+          resolved_at: string | null;
+          resolved_by_staff_id: string | null;
+          retailer_id: string;
+          source_time_entry_id: string | null;
+          version_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          detail: string;
+          id?: string;
+          kind: string;
+          resolved_at?: string | null;
+          resolved_by_staff_id?: string | null;
+          retailer_id: string;
+          source_time_entry_id?: string | null;
+          version_id: string;
+        };
+        Update: {
+          created_at?: string;
+          detail?: string;
+          id?: string;
+          kind?: string;
+          resolved_at?: string | null;
+          resolved_by_staff_id?: string | null;
+          retailer_id?: string;
+          source_time_entry_id?: string | null;
+          version_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_period_exceptions_resolved_by_staff_id_fkey";
+            columns: ["resolved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_exceptions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_exceptions_source_time_entry_id_fkey";
+            columns: ["source_time_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "staff_time_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_exceptions_version_id_fkey";
+            columns: ["version_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_period_versions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payroll_period_exports: {
+        Row: {
+          checksum: string;
+          created_at: string;
+          created_by_staff_id: string;
+          id: string;
+          retailer_id: string;
+          row_count: number;
+          rows: Json;
+          version_id: string;
+        };
+        Insert: {
+          checksum: string;
+          created_at?: string;
+          created_by_staff_id: string;
+          id?: string;
+          retailer_id: string;
+          row_count: number;
+          rows: Json;
+          version_id: string;
+        };
+        Update: {
+          checksum?: string;
+          created_at?: string;
+          created_by_staff_id?: string;
+          id?: string;
+          retailer_id?: string;
+          row_count?: number;
+          rows?: Json;
+          version_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_period_exports_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_exports_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_exports_version_id_fkey";
+            columns: ["version_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_period_versions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payroll_period_versions: {
+        Row: {
+          approved_at: string | null;
+          approved_by_staff_id: string | null;
+          created_at: string;
+          id: string;
+          period_id: string;
+          predecessor_version_id: string | null;
+          prepared_by_staff_id: string;
+          retailer_id: string;
+          state: string;
+          timezone: string;
+          version_number: number;
+        };
+        Insert: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          id?: string;
+          period_id: string;
+          predecessor_version_id?: string | null;
+          prepared_by_staff_id: string;
+          retailer_id: string;
+          state?: string;
+          timezone: string;
+          version_number: number;
+        };
+        Update: {
+          approved_at?: string | null;
+          approved_by_staff_id?: string | null;
+          created_at?: string;
+          id?: string;
+          period_id?: string;
+          predecessor_version_id?: string | null;
+          prepared_by_staff_id?: string;
+          retailer_id?: string;
+          state?: string;
+          timezone?: string;
+          version_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_period_versions_approved_by_staff_id_fkey";
+            columns: ["approved_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_versions_period_id_fkey";
+            columns: ["period_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_periods";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_versions_predecessor_version_id_fkey";
+            columns: ["predecessor_version_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_period_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_versions_prepared_by_staff_id_fkey";
+            columns: ["prepared_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_versions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      payroll_periods: {
+        Row: {
+          branch_id: string;
+          created_at: string;
+          current_version_id: string | null;
+          id: string;
+          period_end: string;
+          period_start: string;
+          retailer_id: string;
+        };
+        Insert: {
+          branch_id: string;
+          created_at?: string;
+          current_version_id?: string | null;
+          id?: string;
+          period_end: string;
+          period_start: string;
+          retailer_id: string;
+        };
+        Update: {
+          branch_id?: string;
+          created_at?: string;
+          current_version_id?: string | null;
+          id?: string;
+          period_end?: string;
+          period_start?: string;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_periods_branch_id_fkey";
+            columns: ["branch_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_branches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_periods_current_version_fkey";
+            columns: ["current_version_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_period_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_periods_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       physical_garments: {
         Row: {
           brand: string | null;
@@ -19157,10 +19540,6 @@ export type Database = {
         Args: { p_staff_id: string };
         Returns: undefined;
       };
-      approve_payroll_period: {
-        Args: { p_period_id: string };
-        Returns: string;
-      };
       add_alteration_task: {
         Args: {
           p_alteration_id: string;
@@ -19175,16 +19554,6 @@ export type Database = {
       };
       add_alteration_task_note: {
         Args: { p_note: string; p_task_id: string };
-        Returns: string;
-      };
-      correct_payroll_entry: {
-        Args: {
-          p_clock_in_at: string;
-          p_clock_out_at: string | null;
-          p_period_id: string;
-          p_reason: string;
-          p_source_time_entry_id: string;
-        };
         Returns: string;
       };
       add_concept_scan_selection: {
@@ -19253,6 +19622,10 @@ export type Database = {
       approve_fit_profile_candidate: {
         Args: { p_candidate_id: string; p_note?: string };
         Returns: undefined;
+      };
+      approve_payroll_period: {
+        Args: { p_period_id: string };
+        Returns: string;
       };
       assert_pos_actor: { Args: { p_retailer_id: string }; Returns: undefined };
       assert_retailer_module_dependencies: {
@@ -19503,6 +19876,16 @@ export type Database = {
       };
       convert_pilot_to_live_retailer: {
         Args: { p_prospect_id: string };
+        Returns: string;
+      };
+      correct_payroll_entry: {
+        Args: {
+          p_clock_in_at: string;
+          p_clock_out_at: string;
+          p_period_id: string;
+          p_reason: string;
+          p_source_time_entry_id: string;
+        };
         Returns: string;
       };
       count_inventory_disagreements: { Args: never; Returns: number };
@@ -19846,10 +20229,23 @@ export type Database = {
       };
       next_alteration_work_order_number: { Args: never; Returns: string };
       next_order_number: { Args: never; Returns: string };
+      open_payroll_period: {
+        Args: {
+          p_period_end: string;
+          p_period_start: string;
+          p_retailer_id: string;
+        };
+        Returns: string;
+      };
       open_prospect_demo: {
         Args: { p_access_code: string; p_public_token: string };
         Returns: Json;
       };
+      payroll_current_staff: {
+        Args: { p_retailer_id: string };
+        Returns: string;
+      };
+      payroll_export_checksum: { Args: { p_content: string }; Returns: string };
       persist_morning_routine_selection: {
         Args: {
           p_customer_id: string;
@@ -20048,6 +20444,10 @@ export type Database = {
         };
         Returns: string;
       };
+      record_payroll_export: {
+        Args: { p_version_id: string };
+        Returns: string;
+      };
       record_pos_payment_atomic: {
         Args: {
           p_amount_minor_units: number;
@@ -20177,6 +20577,10 @@ export type Database = {
         Returns: Json;
       };
       redeem_my_reward: { Args: { p_reward_id: string }; Returns: string };
+      refresh_payroll_period_exceptions: {
+        Args: { p_version_id: string };
+        Returns: undefined;
+      };
       reject_fit_profile_candidate: {
         Args: { p_candidate_id: string; p_note?: string };
         Returns: undefined;
@@ -20217,22 +20621,6 @@ export type Database = {
           p_starts_at: string;
           p_type: Database["public"]["Enums"]["appointment_type"];
         };
-        Returns: string;
-      };
-      open_payroll_period: {
-        Args: {
-          p_period_end: string;
-          p_period_start: string;
-          p_retailer_id: string;
-        };
-        Returns: string;
-      };
-      resolve_payroll_exception: {
-        Args: { p_exception_id: string };
-        Returns: undefined;
-      };
-      record_payroll_export: {
-        Args: { p_version_id: string };
         Returns: string;
       };
       request_appointment_as_wearer: {
@@ -20350,6 +20738,10 @@ export type Database = {
       resolve_gift_invitation: {
         Args: { p_invite_token: string };
         Returns: Json;
+      };
+      resolve_payroll_exception: {
+        Args: { p_exception_id: string };
+        Returns: undefined;
       };
       resolve_retailer_modules: {
         Args: { p_retailer_id: string };
