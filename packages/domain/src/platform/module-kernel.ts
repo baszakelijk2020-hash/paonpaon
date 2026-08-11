@@ -243,6 +243,7 @@ export const PLATFORM_MODULES: readonly PlatformModuleDefinition[] = [
       { href: "/imports", label: "Imports", roles: MANAGER_ROLES },
       { href: "/migrations", label: "Migrations", roles: MANAGER_ROLES },
       { href: "/staff", label: "Team", roles: MANAGER_ROLES },
+      { href: "/staff/payroll", label: "Payroll", roles: MANAGER_ROLES },
       {
         href: "/staff/recognition",
         label: "Recognition",

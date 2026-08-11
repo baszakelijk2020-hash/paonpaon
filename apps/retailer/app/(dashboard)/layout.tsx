@@ -393,6 +393,11 @@ export default async function DashboardLayout({
                 description: "People, roles and invitations",
               },
               {
+                href: "/staff/payroll",
+                label: "Payroll",
+                description: "Time approval and accountant export",
+              },
+              {
                 href: "/settings",
                 label: "Settings",
                 description: "Identity, billing and payments",

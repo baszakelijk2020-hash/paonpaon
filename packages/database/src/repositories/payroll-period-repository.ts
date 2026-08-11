@@ -6,6 +6,85 @@ import {
 
 import type { PaonSupabaseClient } from "../client-type";
 
+export interface PayrollPeriodDashboard {
+  readonly periods: readonly PayrollPeriodRecord[];
+  readonly versions: readonly PayrollPeriodVersionRecord[];
+  readonly snapshots: readonly PayrollEntrySnapshotRecord[];
+  readonly exceptions: readonly PayrollExceptionRecord[];
+  readonly exports: readonly PayrollExportRecord[];
+}
+
+export interface PayrollPeriodRecord {
+  readonly id: string;
+  readonly periodStart: string;
+  readonly periodEnd: string;
+  readonly currentVersionId: string | null;
+  readonly createdAt: string;
+}
+
+export interface PayrollPeriodVersionRecord {
+  readonly id: string;
+  readonly periodId: string;
+  readonly versionNumber: number;
+  readonly predecessorVersionId: string | null;
+  readonly state: "draft" | "approved";
+  readonly preparedByStaffId: string;
+  readonly approvedByStaffId: string | null;
+  readonly approvedAt: string | null;
+  readonly createdAt: string;
+}
+
+export interface PayrollEntrySnapshotRecord {
+  readonly id: string;
+  readonly versionId: string;
+  readonly sourceTimeEntryId: string;
+  readonly staffId: string;
+  readonly clockInAt: string;
+  readonly clockOutAt: string | null;
+}
+
+export interface PayrollExceptionRecord {
+  readonly id: string;
+  readonly versionId: string;
+  readonly sourceTimeEntryId: string | null;
+  readonly kind: string;
+  readonly detail: string;
+  readonly resolvedAt: string | null;
+}
+
+export interface PayrollExportRecord {
+  readonly id: string;
+  readonly versionId: string;
+  readonly rowCount: number;
+  readonly checksum: string;
+  readonly createdAt: string;
+}
+
+/**
+ * The payroll migration landed before its table declarations could be
+ * regenerated in database.types.ts. Keep this compatibility shim private to
+ * the repository; the returned application model remains fully typed and the
+ * root type-generation pass can remove the cast without changing consumers.
+ */
+type PayrollReadClient = {
+  from(relation: string): {
+    select(columns: string): {
+      eq(
+        column: string,
+        value: string,
+      ): {
+        order(
+          column: string,
+          options?: { ascending?: boolean },
+        ): Promise<{
+          data: unknown[] | null;
+          error: { message: string } | null;
+        }>;
+      };
+    };
+  };
+};
+
 /** Authoritative payroll lifecycle. The database RPCs, not this client,
  * enforce tenant role, independent approval and compare-and-swap semantics. */
 export class PayrollPeriodRepository {
@@ -23,6 +102,49 @@ export class PayrollPeriodRepository {
     });
     if (error) throw error;
     return data;
+  }
+
+  async findDashboard(retailerId: RetailerId): Promise<PayrollPeriodDashboard> {
+    const client = this.client as unknown as PayrollReadClient;
+    const [periods, versions, snapshots, exceptions, exports] =
+      await Promise.all([
+        client
+          .from("payroll_periods")
+          .select("*")
+          .eq("retailer_id", retailerId)
+          .order("period_start", { ascending: false }),
+        client
+          .from("payroll_period_versions")
+          .select("*")
+          .eq("retailer_id", retailerId)
+          .order("created_at", { ascending: false }),
+        client
+          .from("payroll_period_entry_snapshots")
+          .select("*")
+          .eq("retailer_id", retailerId)
+          .order("created_at", { ascending: false }),
+        client
+          .from("payroll_period_exceptions")
+          .select("*")
+          .eq("retailer_id", retailerId)
+          .order("created_at", { ascending: false }),
+        client
+          .from("payroll_period_exports")
+          .select("*")
+          .eq("retailer_id", retailerId)
+          .order("created_at", { ascending: false }),
+      ]);
+    for (const result of [periods, versions, snapshots, exceptions, exports]) {
+      if (result.error) throw result.error;
+    }
+
+    return {
+      periods: (periods.data ?? []).map(toPeriod),
+      versions: (versions.data ?? []).map(toVersion),
+      snapshots: (snapshots.data ?? []).map(toSnapshot),
+      exceptions: (exceptions.data ?? []).map(toException),
+      exports: (exports.data ?? []).map(toExport),
+    };
   }
 
   async correctEntry(args: {
@@ -80,3 +202,72 @@ export class PayrollPeriodRepository {
     return data;
   }
 }
+
+function row(value: unknown): Record<string, unknown> {
+  return value as Record<string, unknown>;
+}
+function text(value: unknown): string {
+  return String(value ?? "");
+}
+function nullableText(value: unknown): string | null {
+  return value == null ? null : String(value);
+}
+function number(value: unknown): number {
+  return typeof value === "number" ? value : Number(value);
+}
+const toPeriod = (value: unknown): PayrollPeriodRecord => {
+  const r = row(value);
+  return {
+    id: text(r.id),
+    periodStart: text(r.period_start),
+    periodEnd: text(r.period_end),
+    currentVersionId: nullableText(r.current_version_id),
+    createdAt: text(r.created_at),
+  };
+};
+const toVersion = (value: unknown): PayrollPeriodVersionRecord => {
+  const r = row(value);
+  return {
+    id: text(r.id),
+    periodId: text(r.period_id),
+    versionNumber: number(r.version_number),
+    predecessorVersionId: nullableText(r.predecessor_version_id),
+    state: text(r.state) === "approved" ? "approved" : "draft",
+    preparedByStaffId: text(r.prepared_by_staff_id),
+    approvedByStaffId: nullableText(r.approved_by_staff_id),
+    approvedAt: nullableText(r.approved_at),
+    createdAt: text(r.created_at),
+  };
+};
+const toSnapshot = (value: unknown): PayrollEntrySnapshotRecord => {
+  const r = row(value);
+  return {
+    id: text(r.id),
+    versionId: text(r.version_id),
+    sourceTimeEntryId: text(r.source_time_entry_id),
+    staffId: text(r.staff_id),
+    clockInAt: text(r.clock_in_at),
+    clockOutAt: nullableText(r.clock_out_at),
+  };
+};
+const toException = (value: unknown): PayrollExceptionRecord => {
+  const r = row(value);
+  return {
+    id: text(r.id),
+    versionId: text(r.version_id),
+    sourceTimeEntryId: nullableText(r.source_time_entry_id),
+    kind: text(r.kind),
+    detail: text(r.detail),
+    resolvedAt: nullableText(r.resolved_at),
+  };
+};
+const toExport = (value: unknown): PayrollExportRecord => {
+  const r = row(value);
+  return {
+    id: text(r.id),
+    versionId: text(r.version_id),
+    rowCount: number(r.row_count),
+    checksum: text(r.checksum),
+    createdAt: text(r.created_at),
+  };
+};
