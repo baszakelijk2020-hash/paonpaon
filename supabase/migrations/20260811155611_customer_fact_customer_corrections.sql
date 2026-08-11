@@ -20,27 +20,25 @@ declare
   v_reason text := nullif(btrim(coalesce(p_reason, '')), '');
   v_successor public.customer_facts%rowtype;
 begin
-  select c.id into v_customer_id
-  from public.customers c
-  where c.user_id = (select auth.uid());
-
-  if v_customer_id is null then
-    raise exception 'Not authorized';
-  end if;
-
   select * into v_source
   from public.customer_facts
   where id = p_fact_id
-    and customer_id = v_customer_id
     and deleted_at is null
     and visibility in ('customer_and_advisor', 'customer_only')
     and sensitivity = 'standard'
     and provenance_class <> 'transactional'
+    and exists (
+      select 1 from public.customers c
+      where c.id = customer_facts.customer_id
+        and c.user_id = (select auth.uid())
+    )
   for update;
 
   if not found then
     raise exception 'Fact is not available for customer correction';
   end if;
+
+  v_customer_id := v_source.customer_id;
 
   if char_length(v_replacement_label) not between 1 and 500 then
     raise exception 'Replacement value is required and must be at most 500 characters';
