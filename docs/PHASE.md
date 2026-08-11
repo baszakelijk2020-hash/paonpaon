@@ -3161,7 +3161,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
 
 ### Stage 12 — MTM, fit, production, and service network
 
-- [ ] **12.1 MeasurementMonitor decision gate**
+- [x] **12.1 MeasurementMonitor decision gate**
   - **Requirement IDs:** `FIT-101`–`FIT-103`.
   - **Dependencies:** wardrobe/lifecycle and official garment-fit foundations.
   - **Owner boundary:** private guided capture, quality/result candidate,
@@ -3243,6 +3243,37 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
 
     Still open: the guided capture surface itself and the reorder gate's own
     UI. Model-assisted tranche remains `blocked_external`.
+
+  - **Update (2026-08-11):** both closed and browser-proven end to end
+    (`apps/customer/e2e/measurement-capture.spec.ts`, two cases). The
+    guided capture is manual structured entry (8 fields, cm converted to
+    whole mm) — not the blocked_external photo tranche — recorded via
+    `recordCandidate` with `capturedBy: "guided_self_scan"` and synthetic
+    always-passing quality signals, since there is no photo/pose data to
+    assess for typed entry; safety comes from the existing mandatory
+    review-note-on-approval rule, not quality gating. The reorder-gate
+    status card is read-only on both the customer measurements page and
+    the retailer customer detail page — deliberately NOT wired into
+    `OrderRepository.placeOrder`/`checkoutCart` as an enforcement gate,
+    since no product-type detection exists yet to scope a hard block to
+    MTM/fit-dependent garments only; that remains a separate, larger
+    integration decision.
+
+    Building this found the original migration
+    (`20260801000007_add_measurement_monitor_gate.sql`) only ever granted
+    `customer_measurement_candidates` INSERT to staff roles — nothing
+    permitted a customer to record their own guided capture at all, since
+    every prior caller of `recordCandidate` was staff/advisor-mediated.
+    `20260811020000_add_customer_measurement_candidate_self_insert.sql`
+    adds a customer-scoped insert policy mirroring the existing
+    `customer_measurement_candidates_own_select`'s `customer_account_links`
+    join, plus a retailer_id cross-check.
+    `customer_measurement_versions` remains deliberately immutable — no
+    DELETE grant at all, since an approved version's id may already be
+    pinned to a garment cut (Stage 12.2) — so both e2e tests use a
+    dedicated throwaway customer rather than the shared programme-proof-
+    seed customer, after debugging iterations against the shared customer
+    permanently pinned an approved version to it.
 - [x] **12.2 Garment production and serialized pieces**
   - **Requirement IDs:** `INV-103`; Stage 12 target architecture.
   - **Dependencies:** `8.3`, `8.2`.
