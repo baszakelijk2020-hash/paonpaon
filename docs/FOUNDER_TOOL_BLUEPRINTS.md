@@ -1178,8 +1178,14 @@ partner never sees the full client profile. Lost/damaged/delayed/disputed and
 failed-handoff paths remain visible and create recovery work. Prove entitlement
 exhaustion, customer authorization, custody chain, partner RLS, cost variance,
 offline/retry handoff, care outcome and returned garment re-entering the weekly
-wardrobe. **Current:** strong operational primitives; faithful customer,
-advisor and partner journey absent.
+wardrobe. **Current:** first connected HighMaintenance care slice is live:
+safe auth-derived customer booking-linked custody projection, source-paced
+`/services` care journey, existing retailer custody state machine module-gated,
+and focused customer/retailer browser proof. Remaining gaps: full weekly
+calendar-led wardrobe composition, partner portal/custody transition proof
+beyond retailer action, care-record/outcome integration, entitlement/cost
+variance, delayed/disputed/failed-handoff recovery, and full source-motion
+parity.
 
 ## Broader founder-intent crosswalk
 
