@@ -94,6 +94,13 @@ is complete until the full advisor/client journey is production-proven.
 4. **Concept and fabric-batch orders** — build FT-03's safe QR/manual scan to
    identified fabric/configuration batch to reviewed concept order flow; it
    must never silently purchase or cross a House boundary.
+5. **Alteration operating tool** — replace the remaining generic alteration
+   experience with a Mission-Control-connected operational surface: digital
+   job cards, authoritative work orders, linked garment/fit evidence, task
+   assignment and workshop handoff, labour/material/partner cost allocation,
+   quote and price approval, custody/status/quality checkpoints, customer
+   communication, delivery and outcome capture. Every cost or work-order
+   change must remain tenant-safe, auditable and explicitly human-approved.
 
 The two founder-described "Chinese wall" workstreams are explicitly not part
 of this active priority. Do not select, expand or use them to displace the four
