@@ -62,6 +62,23 @@ export class StaffRecognitionRepository {
     return (data ?? []).map(toAct);
   }
 
+  async listForStaff(args: {
+    readonly retailerId: RetailerId;
+    readonly staffId: string;
+    readonly limit?: number;
+  }): Promise<readonly RecognitionAct[]> {
+    const { data, error } = await this.client
+      .from("staff_recognition_acts")
+      .select("*")
+      .eq("retailer_id", args.retailerId)
+      .eq("staff_id", args.staffId)
+      .is("deleted_at", null)
+      .order("occurred_on", { ascending: false })
+      .limit(args.limit ?? 30);
+    if (error) throw error;
+    return (data ?? []).map(toAct);
+  }
+
   async listAwaitingReview(args: {
     readonly retailerId: RetailerId;
     readonly limit?: number;
