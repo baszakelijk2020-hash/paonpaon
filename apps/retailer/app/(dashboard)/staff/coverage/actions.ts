@@ -412,12 +412,21 @@ export async function publishCeremonyVersion(
     }
 
     // Read the optional appliesWhen conditions
-    const appointmentKindValue = String(formData.get(`stepAppointmentKind${i}`) ?? "").trim();
-    const firstVisitValue = String(formData.get(`stepFirstVisit${i}`) ?? "").trim();
-    const openAlterationValue = String(formData.get(`stepOpenAlteration${i}`) ?? "").trim();
+    const appointmentKindValue = String(
+      formData.get(`stepAppointmentKind${i}`) ?? "",
+    ).trim();
+    const firstVisitValue = String(
+      formData.get(`stepFirstVisit${i}`) ?? "",
+    ).trim();
+    const openAlterationValue = String(
+      formData.get(`stepOpenAlteration${i}`) ?? "",
+    ).trim();
 
     // Validate appointmentKind if set
-    if (appointmentKindValue && !APPOINTMENT_TYPES.includes(appointmentKindValue as any)) {
+    if (
+      appointmentKindValue &&
+      !APPOINTMENT_TYPES.includes(appointmentKindValue as any)
+    ) {
       return {
         formError: `Step ${i + 1} has an invalid appointment kind.`,
       };
@@ -455,7 +464,8 @@ export async function publishCeremonyVersion(
   });
   if (!result.ok) {
     return {
-      formError: CEREMONY_ERROR[result.reason] ?? "That could not be published.",
+      formError:
+        CEREMONY_ERROR[result.reason] ?? "That could not be published.",
     };
   }
 

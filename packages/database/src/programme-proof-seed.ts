@@ -21,6 +21,7 @@ export interface ProgrammeProofSeedResult {
   readonly noteId: string;
   readonly appointmentNotes: string;
   readonly noteBody: string;
+  readonly customerEmail: string;
 }
 
 export async function ensureProgrammeProofSeed(params: {
@@ -98,6 +99,7 @@ export async function ensureProgrammeProofSeed(params: {
     noteId: note.id,
     appointmentNotes: appointment.notes ?? "",
     noteBody: note.body,
+    customerEmail: customer.email!,
   };
 }
 

@@ -1,10 +1,7 @@
 "use client";
 
 import { Button } from "@paon/ui/components/Button";
-import {
-  APPOINTMENT_TYPE_LABELS,
-  APPOINTMENT_TYPES,
-} from "@paon/domain";
+import { APPOINTMENT_TYPE_LABELS, APPOINTMENT_TYPES } from "@paon/domain";
 import { useActionState } from "react";
 
 import {
@@ -160,7 +157,11 @@ export function CeremonyForm() {
           </label>
           <label className="flex flex-col gap-1 text-sm">
             Appointment kind (optional)
-            <select className={fieldClass} name={`stepAppointmentKind${slot}`} defaultValue="">
+            <select
+              className={fieldClass}
+              name={`stepAppointmentKind${slot}`}
+              defaultValue=""
+            >
               <option value="">Any</option>
               {APPOINTMENT_TYPES.map((type) => (
                 <option key={type} value={type}>
@@ -171,7 +172,11 @@ export function CeremonyForm() {
           </label>
           <label className="flex flex-col gap-1 text-sm">
             Customer is first visit (optional)
-            <select className={fieldClass} name={`stepFirstVisit${slot}`} defaultValue="">
+            <select
+              className={fieldClass}
+              name={`stepFirstVisit${slot}`}
+              defaultValue=""
+            >
               <option value="">Any</option>
               <option value="true">First visit</option>
               <option value="false">Returning customer</option>
@@ -179,7 +184,11 @@ export function CeremonyForm() {
           </label>
           <label className="flex flex-col gap-1 text-sm">
             Open alteration status (optional)
-            <select className={fieldClass} name={`stepOpenAlteration${slot}`} defaultValue="">
+            <select
+              className={fieldClass}
+              name={`stepOpenAlteration${slot}`}
+              defaultValue=""
+            >
               <option value="">Any</option>
               <option value="true">Has open alteration</option>
               <option value="false">No open alteration</option>

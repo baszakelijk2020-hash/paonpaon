@@ -12,6 +12,7 @@ import {
   CustomerRepository,
   FitProfileCandidateRepository,
   LoyaltyRepository,
+  MeasurementMonitorRepository,
   MetadataRepository,
   OrderRepository,
   OutfitRepository,
@@ -58,6 +59,7 @@ import { ClientelingOpportunityInbox } from "./clienteling-opportunity-inbox";
 import { CustomerRoadmapCard } from "./customer-roadmap-card";
 import { CustomerWardrobeCard } from "./customer-wardrobe-card";
 import { FitProfileCandidateCard } from "./fit-profile-candidate-card";
+import { ReorderGateCard } from "./reorder-gate-card";
 import { SelfPortrait } from "./self-portrait";
 import { SilhouetteAnalysisCard } from "./silhouette-analysis-card";
 import { SuitConfigurationIntentsCard } from "./suit-configuration-intents-card";
@@ -122,6 +124,7 @@ export default async function CustomerDetailPage({
     roadmaps,
     suitConfigurationIntents,
     fitProfileCandidates,
+    reorderGateResult,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -155,6 +158,9 @@ export default async function CustomerDetailPage({
     new WardrobeRoadmapRepository(supabase).findByCustomer(customer.id),
     new SuitConfiguratorRepository(supabase).findRecentByCustomer(customer.id),
     new FitProfileCandidateRepository(supabase).listByCustomer(customer.id),
+    new MeasurementMonitorRepository(supabase).checkReorderAllowed({
+      customerId: customer.id,
+    }),
   ]);
 
   const orderRepo = new OrderRepository(supabase);
@@ -666,6 +672,11 @@ export default async function CustomerDetailPage({
           history={aiHistory}
         />
       ) : null}
+
+      <ReorderGateCard
+        allowed={reorderGateResult.allowed}
+        reason={reorderGateResult.reason}
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card id="clienteling-notes">

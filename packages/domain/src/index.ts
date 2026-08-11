@@ -155,6 +155,8 @@ export * from "./programme/completion-evidence";
 export * from "./programme/programme-proof-seed";
 export * from "./programme/validate-phase-completion";
 
+export * from "./fit/measurement-monitor";
+
 export * from "./concierge/service-plan";
 export * from "./concierge/service-plan.schema";
 export * from "./workforce/payroll-period";
@@ -163,7 +165,6 @@ export * from "./workforce/closeout";
 export * from "./workforce/coverage";
 export * from "./workforce/coaching";
 export * from "./workforce/community";
-export * from "./fit/measurement-monitor";
 export * from "./production/serialized-piece";
 export * from "./concierge/partner-network";
 export * from "./concierge/partner-network.schema";
