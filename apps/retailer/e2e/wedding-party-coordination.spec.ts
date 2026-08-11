@@ -10,7 +10,14 @@ const BROWSER_PROOF_SPEC =
 let baseFlowPassed = false;
 let aftercarePassed = false;
 let groupFittingPassed = false;
+let groupCapacityPassed = false;
 let guestVoucherPassed = false;
+
+function dateOffset(days: number): string {
+  const date = new Date();
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
 
 test.afterAll(async () => {
   await writeBrowserProofRun({
@@ -20,6 +27,7 @@ test.afterAll(async () => {
       baseFlowPassed &&
       aftercarePassed &&
       groupFittingPassed &&
+      groupCapacityPassed &&
       guestVoucherPassed
         ? "passed"
         : "failed",
@@ -130,6 +138,92 @@ test("owner schedules a group fitting for the wedding party", async ({
   await expect(fittingItem).toBeVisible();
   await expect(fittingItem).toContainText("Mar 15, 2027");
   groupFittingPassed = true;
+});
+
+test("owner sees group fitting capacity exceptions and adequate capacity", async ({
+  page,
+}) => {
+  const unique = Date.now();
+
+  await page.goto("/customers/new");
+  await page.getByLabel("Full name").fill("Capacity Exception Groom");
+  await page
+    .getByLabel("Email")
+    .fill(`capacity-exception-groom-${unique}@paon.test`);
+  await page.getByRole("button", { name: "Add client" }).click();
+  await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+$/);
+  const exceptionCustomerId = page.url().split("/").pop();
+
+  await page.goto(`/wedding-parties/new?customerId=${exceptionCustomerId}`);
+  await page.getByLabel("Event date").fill(dateOffset(1));
+  await page.getByRole("button", { name: "Create wedding party" }).click();
+  await expect(page).toHaveURL(/\/wedding-parties\/[0-9a-f-]+$/);
+  await page.getByLabel("Name").fill("Exception Best Man");
+  await page.getByLabel("Email").fill(`exception-best-man-${unique}@paon.test`);
+  await page.getByRole("button", { name: "Add member" }).click();
+  await expect(
+    page.locator("p.font-medium", { hasText: "Exception Best Man" }),
+  ).toBeVisible();
+  await page.getByLabel("Name").fill("Exception Groomsman");
+  await page
+    .getByLabel("Email")
+    .fill(`exception-groomsman-${unique}@paon.test`);
+  await page.getByRole("button", { name: "Add member" }).click();
+  await expect(
+    page.locator("p.font-medium", { hasText: "Exception Groomsman" }),
+  ).toBeVisible();
+  await page.getByLabel("Date and time").fill(`${dateOffset(0)}T10:00`);
+  await page.getByLabel("Capacity").fill("1");
+  await page.getByRole("button", { name: "Schedule group fitting" }).click();
+
+  const exceptionCapacity = page.getByTestId("group-fitting-capacity-summary");
+  await expect(
+    exceptionCapacity.getByText("Fitting capacity exception"),
+  ).toBeVisible();
+  await expect(exceptionCapacity.getByText("Action needed")).toBeVisible();
+  await expect(exceptionCapacity).toContainText("2 members need fitting");
+  await expect(exceptionCapacity).toContainText("Exception Best Man");
+  await expect(exceptionCapacity).toContainText("Exception Groomsman");
+  await expect(exceptionCapacity).not.toContainText(/height|weight|cm|kg/i);
+
+  await page.goto("/customers/new");
+  await page.getByLabel("Full name").fill("Capacity Adequate Groom");
+  await page
+    .getByLabel("Email")
+    .fill(`capacity-adequate-groom-${unique}@paon.test`);
+  await page.getByRole("button", { name: "Add client" }).click();
+  await expect(page).toHaveURL(/\/customers\/[0-9a-f-]+$/);
+  const adequateCustomerId = page.url().split("/").pop();
+
+  await page.goto(`/wedding-parties/new?customerId=${adequateCustomerId}`);
+  await page.getByLabel("Event date").fill(dateOffset(3));
+  await page.getByRole("button", { name: "Create wedding party" }).click();
+  await expect(page).toHaveURL(/\/wedding-parties\/[0-9a-f-]+$/);
+  await page.getByLabel("Name").fill("Adequate Best Man");
+  await page.getByLabel("Email").fill(`adequate-best-man-${unique}@paon.test`);
+  await page.getByRole("button", { name: "Add member" }).click();
+  await expect(
+    page.locator("p.font-medium", { hasText: "Adequate Best Man" }),
+  ).toBeVisible();
+  await page.getByLabel("Name").fill("Adequate Groomsman");
+  await page.getByLabel("Email").fill(`adequate-groomsman-${unique}@paon.test`);
+  await page.getByRole("button", { name: "Add member" }).click();
+  await expect(
+    page.locator("p.font-medium", { hasText: "Adequate Groomsman" }),
+  ).toBeVisible();
+  await page.getByLabel("Date and time").fill(`${dateOffset(0)}T10:00`);
+  await page.getByLabel("Capacity").fill("1");
+  await page.getByRole("button", { name: "Schedule group fitting" }).click();
+
+  const adequateCapacity = page.getByTestId("group-fitting-capacity-summary");
+  await expect(
+    adequateCapacity.getByText("Fitting capacity is adequate"),
+  ).toBeVisible();
+  await expect(
+    adequateCapacity.getByText("Adequate", { exact: true }),
+  ).toBeVisible();
+  await expect(adequateCapacity).toContainText("2 members need 2 sessions");
+  groupCapacityPassed = true;
 });
 
 test("owner issues a guest voucher and marks it redeemed", async ({ page }) => {

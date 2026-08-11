@@ -7,6 +7,7 @@ import {
   WishlistRepository,
 } from "@paon/database";
 import {
+  checkGroupFittingCapacity,
   WEDDING_PARTY_MEMBER_FITTING_STATUSES,
   WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS,
   WEDDING_PARTY_MEMBER_ROLE_LABELS,
@@ -43,6 +44,21 @@ const FITTING_TONE = {
   fitted: "success",
   completed: "success",
 } as const;
+
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function calendarDaysUntil(date: string): number {
+  const today = new Date();
+  const todayAtUtcMidnight = Date.UTC(
+    today.getUTCFullYear(),
+    today.getUTCMonth(),
+    today.getUTCDate(),
+  );
+  return Math.floor(
+    (Date.parse(`${date}T00:00:00Z`) - todayAtUtcMidnight) /
+      MILLISECONDS_PER_DAY,
+  );
+}
 
 export default async function WeddingPartyDetailPage({
   params,
@@ -95,6 +111,23 @@ export default async function WeddingPartyDetailPage({
       return { member, stylePicks, alteration: alterations[0] };
     }),
   );
+
+  const membersNeedingFitting = members.filter(
+    (member) =>
+      member.fittingStatus === "invited" ||
+      member.fittingStatus === "scheduled",
+  );
+  const totalScheduledFittingCapacity = groupFittings.reduce(
+    (total, fitting) => total + fitting.capacity,
+    0,
+  );
+  const fittingCapacityCheck = party.eventDate
+    ? checkGroupFittingCapacity({
+        memberCount: membersNeedingFitting.length,
+        fittingsPerDay: totalScheduledFittingCapacity,
+        availableDaysBeforeEvent: calendarDaysUntil(party.eventDate),
+      })
+    : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -354,6 +387,65 @@ export default async function WeddingPartyDetailPage({
           className="paon-reveal flex flex-col gap-4"
           style={{ animationDelay: "280ms" }}
         >
+          <div
+            data-testid="group-fitting-capacity-summary"
+            className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-3 text-sm"
+          >
+            {fittingCapacityCheck?.ok ? (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="font-medium text-[var(--color-stone-900)]">
+                    Fitting capacity is adequate
+                  </p>
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    {membersNeedingFitting.length}{" "}
+                    {membersNeedingFitting.length === 1 ? "member" : "members"}{" "}
+                    need {fittingCapacityCheck.sessionsRequired}{" "}
+                    {fittingCapacityCheck.sessionsRequired === 1
+                      ? "session"
+                      : "sessions"}{" "}
+                    before the event.
+                  </p>
+                </div>
+                <Badge tone="success">Adequate</Badge>
+              </div>
+            ) : fittingCapacityCheck ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-medium text-[var(--color-stone-900)]">
+                    Fitting capacity exception
+                  </p>
+                  <Badge tone="warning">Action needed</Badge>
+                </div>
+                <p className="text-xs text-[var(--color-stone-500)]">
+                  {fittingCapacityCheck.reason === "no_capacity_configured"
+                    ? "No group fitting capacity is scheduled before the event."
+                    : fittingCapacityCheck.reason === "event_in_the_past"
+                      ? "The event date has passed; confirm the fitting plan with the party."
+                      : "The scheduled fitting capacity cannot fit every member before the event."}
+                </p>
+                {membersNeedingFitting.length > 0 ? (
+                  <p className="text-xs text-[var(--color-stone-500)]">
+                    {membersNeedingFitting.length}{" "}
+                    {membersNeedingFitting.length === 1
+                      ? "member needs"
+                      : "members need"}{" "}
+                    fitting:{" "}
+                    {membersNeedingFitting
+                      .map((member) => member.name)
+                      .join(", ")}
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm text-[var(--color-stone-500)]">
+                  Set the event date to assess group fitting capacity.
+                </p>
+                <Badge tone="warning">Date needed</Badge>
+              </div>
+            )}
+          </div>
           {groupFittings.length > 0 ? (
             <ul className="flex flex-col gap-2">
               {groupFittings.map((fitting) => (
