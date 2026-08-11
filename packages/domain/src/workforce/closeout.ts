@@ -34,7 +34,8 @@ export type CloseoutRejectionReason =
   | "what_worked_required"
   | "what_worked_too_short"
   | "what_worked_too_long"
-  | "text_too_long";
+  | "text_too_long"
+  | "invalid_extra_mile_act";
 
 export type CloseoutSubmissionCheck =
   | { readonly ok: true }

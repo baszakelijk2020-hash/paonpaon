@@ -138,6 +138,20 @@ export class ShiftCloseoutRepository {
     });
     if (!check.ok) return check;
 
+    if (args.extraMileActId) {
+      const { data: act, error: actError } = await this.client
+        .from("staff_recognition_acts")
+        .select("id")
+        .eq("id", args.extraMileActId)
+        .eq("retailer_id", args.retailerId)
+        .eq("staff_id", args.staffId)
+        .maybeSingle();
+      if (actError) throw actError;
+      if (!act) {
+        return { ok: false, reason: "invalid_extra_mile_act" };
+      }
+    }
+
     const { data, error } = await this.client
       .from("staff_shift_closeouts")
       .upsert(

@@ -59,13 +59,26 @@ grant select on table public.staff_shift_closeouts
 grant insert, update on table public.staff_shift_closeouts
   to authenticated, service_role;
 
--- A staff member may read their own closeouts and all closeouts for their
--- retailer (managers need to see the team's closeouts).
+-- A staff member may read their own closeouts; managers/owners/admins may
+-- read every closeout for their retailer (the team view). An ordinary
+-- staff member does not see a colleague's closeout — help_requested_note
+-- and problems_note can carry sensitive content a peer has no reason to
+-- read, unlike staff_recognition_acts which is deliberately retailer-wide
+-- visible by design.
 create policy staff_shift_closeouts_select
   on public.staff_shift_closeouts for select to authenticated
   using (
     retailer_id = public.current_retailer_id()
-    and public.current_retailer_role() is not null
+    and (
+      exists (
+        select 1 from public.retailer_staff_members m
+        where m.id = staff_id
+          and m.retailer_id = public.current_retailer_id()
+          and m.user_id = (select auth.uid())
+          and m.deleted_at is null
+      )
+      or public.current_retailer_role() in ('owner', 'manager', 'admin')
+    )
   );
 
 -- A staff member may insert their own closeout only.

@@ -24,6 +24,7 @@ const REJECTION_MESSAGES: Record<string, string> = {
   what_worked_too_short: "Describe what worked with enough detail.",
   what_worked_too_long: "What worked notes must be 2000 characters or less.",
   text_too_long: "All notes must be 2000 characters or less.",
+  invalid_extra_mile_act: "That recognition act does not belong to you.",
 };
 
 /**
