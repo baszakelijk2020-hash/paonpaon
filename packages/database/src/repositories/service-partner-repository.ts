@@ -27,6 +27,31 @@ type InvoiceRow =
 type InvoiceLineRow =
   Database["public"]["Tables"]["service_partner_invoice_lines"]["Row"];
 
+type CustomerServiceCareStatusRow =
+  Database["public"]["Functions"]["get_my_service_care_status"]["Returns"][number];
+
+export interface CustomerServiceCareStatus {
+  readonly bookingId: string;
+  readonly garmentDisplayName: string;
+  readonly capability: string;
+  readonly dueOn: string;
+  readonly custodyState: PartnerCustodyState;
+  readonly returnedOn: string | null;
+}
+
+function toCustomerServiceCareStatus(
+  row: CustomerServiceCareStatusRow,
+): CustomerServiceCareStatus {
+  return {
+    bookingId: row.booking_id,
+    garmentDisplayName: row.garment_display_name,
+    capability: row.capability,
+    dueOn: row.due_on,
+    custodyState: row.custody_state as PartnerCustodyState,
+    returnedOn: row.returned_on,
+  };
+}
+
 function toPartner(row: PartnerRow): ServicePartnerRecord {
   return {
     id: asId<"ServicePartnerId">(row.id),
@@ -124,6 +149,16 @@ function toInvoiceLine(row: InvoiceLineRow): ServicePartnerInvoiceLine {
 /** Preferred Tailoring partner network — see PHASE 12.3 / SRV-101..103 and packages/domain/src/concierge/partner-network.ts. */
 export class ServicePartnerRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
+
+  /**
+   * FT-14's only customer read surface for partner custody. The database
+   * derives the caller from auth.uid() and projects no partner/internal data.
+   */
+  async listMyCustomerCareStatus(): Promise<CustomerServiceCareStatus[]> {
+    const { data, error } = await this.client.rpc("get_my_service_care_status");
+    if (error) throw error;
+    return data.map(toCustomerServiceCareStatus);
+  }
 
   async findPartnersByRetailer(
     retailerId: RetailerId,

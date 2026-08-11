@@ -10754,6 +10754,64 @@ export type Database = {
           },
         ];
       };
+      payroll_period_schedule_snapshots: {
+        Row: {
+          created_at: string;
+          end_time: string;
+          id: string;
+          retailer_id: string;
+          shift_date: string;
+          source_shift_id: string;
+          staff_id: string;
+          start_time: string;
+          version_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          end_time: string;
+          id?: string;
+          retailer_id: string;
+          shift_date: string;
+          source_shift_id: string;
+          staff_id: string;
+          start_time: string;
+          version_id: string;
+        };
+        Update: {
+          created_at?: string;
+          end_time?: string;
+          id?: string;
+          retailer_id?: string;
+          shift_date?: string;
+          source_shift_id?: string;
+          staff_id?: string;
+          start_time?: string;
+          version_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payroll_period_schedule_snapshots_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payroll_period_schedule_snapshots_retailer_id_staff_id_fkey";
+            columns: ["retailer_id", "staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["retailer_id", "id"];
+          },
+          {
+            foreignKeyName: "payroll_period_schedule_snapshots_retailer_id_version_id_fkey";
+            columns: ["retailer_id", "version_id"];
+            isOneToOne: false;
+            referencedRelation: "payroll_period_versions";
+            referencedColumns: ["retailer_id", "id"];
+          },
+        ];
+      };
       payroll_period_versions: {
         Row: {
           approved_at: string | null;
@@ -20143,6 +20201,17 @@ export type Database = {
           p_role: string;
         };
         Returns: string;
+      };
+      get_my_service_care_status: {
+        Args: never;
+        Returns: {
+          booking_id: string;
+          capability: string;
+          custody_state: string;
+          due_on: string;
+          garment_display_name: string;
+          returned_on: string;
+        }[];
       };
       get_or_create_my_conversation: {
         Args: { p_retailer_id: string };

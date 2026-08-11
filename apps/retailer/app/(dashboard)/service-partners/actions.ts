@@ -18,11 +18,11 @@ import {
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
-import { requireSession } from "@/lib/session";
+import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 async function resolveActingStaff() {
-  const session = await requireSession();
+  const session = await requireModuleSession("garment_service_operations");
   const supabase = await getSupabaseServerClient();
   const staff = await new RetailerStaffRepository(supabase).findByUserId(
     session.userId,
@@ -119,6 +119,7 @@ export async function transitionCustody(
       : {}),
   });
   revalidatePath("/service-partners");
+  revalidatePath("/services");
 }
 
 export async function createInvoice(formData: FormData): Promise<void> {

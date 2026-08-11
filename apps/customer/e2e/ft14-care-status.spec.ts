@@ -1,0 +1,206 @@
+import { WardrobeRepository, createSupabaseAdminClient } from "@paon/database";
+import { expect, test } from "@playwright/test";
+
+import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
+
+test("HighMaintenance shows only the customer's booking-linked care state and never the return note", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+  const unique = Date.now();
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailer) throw new Error("fixture retailer missing");
+  const { data: customer } = await admin
+    .from("customers")
+    .select("id")
+    .eq("retailer_id", retailer.id)
+    .eq("email", TEST_CUSTOMER_EMAIL)
+    .single();
+  if (!customer) throw new Error("fixture customer missing");
+
+  const wardrobeItem = await new WardrobeRepository(admin).createExternalItem({
+    retailerId: retailer.id,
+    customerId: customer.id,
+    categoryCode: "jacket",
+    displayName: `FT14 Care Jacket ${unique}`,
+    condition: "good",
+    careState: "current",
+    fitPerception: "true_to_size",
+  });
+  const returnNote = `Internal return note ${unique}`;
+  let planId: string | undefined;
+  let membershipId: string | undefined;
+  let bookingId: string | undefined;
+  let partnerId: string | undefined;
+  let engagementId: string | undefined;
+
+  try {
+    const { data: plan, error: planError } = await admin
+      .from("service_plans")
+      .insert({
+        retailer_id: retailer.id,
+        kind: "high_maintenance",
+        status: "active",
+        title: `FT14 Care Plan ${unique}`,
+        summary: "Care fixture plan",
+        explanation: "Care fixture plan explanation",
+      })
+      .select("id")
+      .single();
+    if (planError || !plan) throw planError ?? new Error("plan fixture failed");
+    planId = plan.id;
+
+    const { data: membership, error: membershipError } = await admin
+      .from("service_memberships")
+      .insert({
+        retailer_id: retailer.id,
+        plan_id: planId,
+        customer_id: customer.id,
+      })
+      .select("id")
+      .single();
+    if (membershipError || !membership)
+      throw membershipError ?? new Error("membership fixture failed");
+    membershipId = membership.id;
+
+    const { data: booking, error: bookingError } = await admin
+      .from("service_bookings")
+      .insert({
+        retailer_id: retailer.id,
+        membership_id: membershipId,
+        plan_id: planId,
+        customer_id: customer.id,
+        kind: "cleaning",
+        status: "confirmed",
+        requested_for: new Date().toISOString(),
+        request_idempotency_key: `ft14-care-booking-${unique}`,
+      })
+      .select("id")
+      .single();
+    if (bookingError || !booking)
+      throw bookingError ?? new Error("booking fixture failed");
+    bookingId = booking.id;
+
+    const { data: partner, error: partnerError } = await admin
+      .from("service_partners")
+      .insert({
+        retailer_id: retailer.id,
+        display_name: `FT14 Internal Partner ${unique}`,
+        capabilities: ["dry_cleaning"],
+        turnaround_days: 3,
+      })
+      .select("id")
+      .single();
+    if (partnerError || !partner)
+      throw partnerError ?? new Error("partner fixture failed");
+    partnerId = partner.id;
+
+    const dueOn = new Date(Date.now() + 3 * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    const { data: engagement, error: engagementError } = await admin
+      .from("service_partner_engagements")
+      .insert({
+        retailer_id: retailer.id,
+        partner_id: partnerId,
+        customer_id: customer.id,
+        booking_id: bookingId,
+        wardrobe_item_id: wardrobeItem.id,
+        job_reference: `FT14-CARE-${unique}`,
+        capability: "dry_cleaning",
+        instructions: "Internal care instruction — never customer-visible.",
+        due_on: dueOn,
+        custody_state: "with_partner",
+      })
+      .select("id")
+      .single();
+    if (engagementError || !engagement)
+      throw engagementError ?? new Error("engagement fixture failed");
+    engagementId = engagement.id;
+
+    const { data: link, error: linkError } =
+      await admin.auth.admin.generateLink({
+        type: "magiclink",
+        email: TEST_CUSTOMER_EMAIL,
+      });
+    if (linkError || !link.properties)
+      throw linkError ?? new Error("magic link generation failed");
+    await page.goto(
+      `/auth/confirm?token_hash=${link.properties.hashed_token}&type=magiclink`,
+    );
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await page.goto("/services");
+    await expect(
+      page.getByRole("heading", { name: "Care, held in view." }),
+    ).toBeVisible();
+    await expect(page.getByText(`FT14 Care Jacket ${unique}`)).toBeVisible();
+    await expect(page.getByText("In care")).toBeVisible();
+    await expect(
+      page.getByText("FT14 Internal Partner", { exact: false }),
+    ).toHaveCount(0);
+
+    const { error: returnError } = await admin
+      .from("service_partner_engagements")
+      .update({
+        custody_state: "returned_to_retailer",
+        returned_on: new Date().toISOString().slice(0, 10),
+      })
+      .eq("id", engagementId);
+    if (returnError) throw returnError;
+    const { error: eventError } = await admin
+      .from("service_partner_custody_events")
+      .insert({
+        retailer_id: retailer.id,
+        engagement_id: engagementId,
+        from_state: "in_transit_to_retailer",
+        to_state: "returned_to_retailer",
+        condition_note: returnNote,
+      });
+    if (eventError) throw eventError;
+
+    await page.reload();
+    await expect(page.getByText("Back with your house")).toBeVisible();
+    await expect(page.getByText(returnNote)).toHaveCount(0);
+    await expect(
+      page.getByText("Internal care instruction — never customer-visible."),
+    ).toHaveCount(0);
+
+    const { data: directPartnerRows, error: directPartnerError } = await page
+      .context()
+      .request.get(`${supabaseUrl}/rest/v1/service_partner_engagements`, {
+        headers: { apikey: process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]! },
+      })
+      .then(async (response) => ({
+        data: await response.json(),
+        error: response.ok() ? null : await response.text(),
+      }));
+    expect(directPartnerError).toBeNull();
+    expect(directPartnerRows).toEqual([]);
+  } finally {
+    if (engagementId)
+      await admin
+        .from("service_partner_custody_events")
+        .delete()
+        .eq("engagement_id", engagementId);
+    if (engagementId)
+      await admin
+        .from("service_partner_engagements")
+        .delete()
+        .eq("id", engagementId);
+    if (partnerId)
+      await admin.from("service_partners").delete().eq("id", partnerId);
+    if (bookingId)
+      await admin.from("service_bookings").delete().eq("id", bookingId);
+    if (membershipId)
+      await admin.from("service_memberships").delete().eq("id", membershipId);
+    if (planId) await admin.from("service_plans").delete().eq("id", planId);
+    await admin.from("wardrobe_items").delete().eq("id", wardrobeItem.id);
+  }
+});

@@ -96,6 +96,32 @@ test("owner adds a partner, sends a garment out, moves custody, and logs an unre
       engagementRow.locator("span", { hasText: "in transit to partner" }),
     ).toBeVisible();
 
+    await engagementRow.getByLabel("Move to").selectOption("with_partner");
+    await engagementRow.getByRole("button", { name: "Record" }).click();
+    await expect(
+      engagementRow.locator("span", { hasText: "with partner" }),
+    ).toBeVisible();
+
+    await engagementRow
+      .getByLabel("Move to")
+      .selectOption("in_transit_to_retailer");
+    await engagementRow.getByRole("button", { name: "Record" }).click();
+    await expect(
+      engagementRow.locator("span", { hasText: "in transit to retailer" }),
+    ).toBeVisible();
+
+    const returnNote = `Internal condition note ${unique}`;
+    await engagementRow
+      .getByLabel("Move to")
+      .selectOption("returned_to_retailer");
+    await engagementRow
+      .getByLabel("Condition note (required on return)")
+      .fill(returnNote);
+    await engagementRow.getByRole("button", { name: "Record" }).click();
+    await expect(
+      engagementRow.locator("span", { hasText: "returned to retailer" }),
+    ).toBeVisible();
+
     // Invoice: log it, add a line with no matching recorded cost, and
     // reconcile — proving the reconciliation is a real computation, not
     // a rubber stamp: it must honestly report the unmatched line.

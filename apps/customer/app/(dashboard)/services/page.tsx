@@ -1,6 +1,7 @@
 import {
   CustomerRepository,
   RetailerRepository,
+  ServicePartnerRepository,
   ServicePlanRepository,
 } from "@paon/database";
 import {
@@ -48,6 +49,9 @@ export default async function CustomerServicesPage() {
   );
   const services = new ServicePlanRepository(client);
   const retailers = new RetailerRepository(client);
+  const careStatus = await new ServicePartnerRepository(
+    client,
+  ).listMyCustomerCareStatus();
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
@@ -93,6 +97,8 @@ export default async function CustomerServicesPage() {
           collection — without payment on this surface.
         </p>
       </div>
+
+      <CareJourney careStatus={careStatus} />
 
       {groups.every((group) => group.memberships.length === 0) ? (
         <Card className="flex flex-col gap-2">
@@ -178,6 +184,206 @@ export default async function CustomerServicesPage() {
           ),
       )}
     </div>
+  );
+}
+
+const CARE_STATE_COPY = {
+  with_retailer: {
+    label: "Preparing collection",
+    detail: "Your garment is with your house while collection is arranged.",
+    step: 0,
+  },
+  in_transit_to_partner: {
+    label: "On its way for care",
+    detail: "Your garment is moving through a recorded handoff.",
+    step: 1,
+  },
+  with_partner: {
+    label: "In care",
+    detail:
+      "Care is underway. We will update this journey at the next handoff.",
+    step: 2,
+  },
+  in_transit_to_retailer: {
+    label: "Returning to your house",
+    detail:
+      "Care is complete and your garment is on its way back to your house.",
+    step: 3,
+  },
+  returned_to_retailer: {
+    label: "Back with your house",
+    detail: "Your house has received your garment and is preparing its return.",
+    step: 4,
+  },
+  released_to_customer: {
+    label: "Returned to you",
+    detail:
+      "Your garment has completed its care journey and is back in your wardrobe.",
+    step: 5,
+  },
+} as const;
+
+const CARE_STEPS = [
+  "Collection arranged",
+  "Handed into care",
+  "Care in progress",
+  "Returned to your house",
+  "Ready for your wardrobe",
+] as const;
+
+function CareJourney({
+  careStatus,
+}: {
+  careStatus: Awaited<
+    ReturnType<ServicePartnerRepository["listMyCustomerCareStatus"]>
+  >;
+}) {
+  if (careStatus.length === 0) {
+    return (
+      <section
+        className="paon-reveal overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-50)]"
+        aria-labelledby="highmaintenance-heading"
+      >
+        <div className="grid min-h-72 items-end bg-[linear-gradient(135deg,#e7e2d8_0%,#f8f7f4_58%,#d3c9bb_100%)] p-6 sm:p-9">
+          <div className="max-w-xl">
+            <p className="font-accent text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-stone-600)]">
+              HighMaintenance
+            </p>
+            <h2
+              id="highmaintenance-heading"
+              className="font-display mt-3 text-3xl text-[var(--color-stone-900)] sm:text-4xl"
+            >
+              Care keeps your wardrobe ready.
+            </h2>
+            <p className="mt-3 max-w-lg text-sm leading-6 text-[var(--color-stone-700)]">
+              When your house arranges care for a booking-linked garment, its
+              handoffs and return will appear here — without exposing the
+              operational notes behind the service.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section aria-labelledby="highmaintenance-heading" className="space-y-4">
+      <div className="px-1">
+        <p className="font-accent text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
+          HighMaintenance
+        </p>
+        <h2
+          id="highmaintenance-heading"
+          className="font-display mt-2 text-3xl text-[var(--color-stone-900)] sm:text-4xl"
+        >
+          Care, held in view.
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-stone-600)]">
+          A considered garment deserves a considered return. Follow each
+          recorded handoff from collection through care and back to your
+          wardrobe.
+        </p>
+      </div>
+
+      <div className="space-y-5">
+        {careStatus.map((care, index) => {
+          const state = CARE_STATE_COPY[care.custodyState];
+          const completedSteps = state.step === 5 ? 5 : state.step;
+          return (
+            <article
+              key={care.bookingId}
+              className="paon-reveal overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-elevated)]"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="grid min-h-64 gap-6 bg-[linear-gradient(120deg,#252521_0%,#575046_58%,#9b8978_100%)] p-6 text-white sm:grid-cols-[1.1fr_0.9fr] sm:p-9">
+                <div className="flex flex-col justify-end">
+                  <p className="font-accent text-xs uppercase tracking-[0.2em] text-white/70">
+                    {care.capability.replaceAll("_", " ")}
+                  </p>
+                  <h3 className="font-display mt-2 text-3xl sm:text-4xl">
+                    {care.garmentDisplayName}
+                  </h3>
+                  <p className="mt-3 max-w-md text-sm leading-6 text-white/80">
+                    {state.detail}
+                  </p>
+                </div>
+                <div
+                  className="relative min-h-40 overflow-hidden rounded-sm border border-white/20 bg-[radial-gradient(ellipse_at_50%_30%,#d9c8b2_0%,#867666_36%,#26211d_76%)]"
+                  aria-hidden="true"
+                >
+                  <div className="absolute inset-x-[24%] bottom-0 h-[78%] rounded-t-[48%] border border-white/25 bg-black/20 shadow-2xl" />
+                  <div className="absolute left-1/2 top-[12%] h-8 w-8 -translate-x-1/2 rotate-45 border-l border-t border-white/40" />
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-8">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-accent text-xs uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
+                      Current care state
+                    </p>
+                    <p className="font-display mt-1 text-2xl text-[var(--color-stone-900)]">
+                      {state.label}
+                    </p>
+                  </div>
+                  <p className="text-sm text-[var(--color-stone-600)]">
+                    Due{" "}
+                    {new Date(`${care.dueOn}T00:00:00`).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <ol
+                  className="mt-7 grid gap-3 sm:grid-cols-5"
+                  aria-label="Care journey"
+                >
+                  {CARE_STEPS.map((step, stepIndex) => {
+                    const complete = stepIndex < completedSteps;
+                    const current =
+                      stepIndex ===
+                        Math.min(completedSteps, CARE_STEPS.length - 1) &&
+                      care.custodyState !== "released_to_customer";
+                    return (
+                      <li key={step} className="flex gap-2 text-sm sm:flex-col">
+                        <span
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs ${
+                            complete
+                              ? "border-[var(--color-stone-900)] bg-[var(--color-stone-900)] text-white"
+                              : current
+                                ? "border-[var(--color-stone-900)] text-[var(--color-stone-900)]"
+                                : "border-[var(--color-stone-200)] text-[var(--color-stone-400)]"
+                          }`}
+                        >
+                          {complete ? "✓" : stepIndex + 1}
+                        </span>
+                        <span
+                          className={
+                            complete || current
+                              ? "text-[var(--color-stone-900)]"
+                              : "text-[var(--color-stone-500)]"
+                          }
+                        >
+                          {step}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+
+                {care.returnedOn ? (
+                  <p className="mt-6 border-t border-[var(--color-stone-100)] pt-4 text-sm text-[var(--color-stone-600)]">
+                    Returned to your house on{" "}
+                    {new Date(
+                      `${care.returnedOn}T00:00:00`,
+                    ).toLocaleDateString()}
+                    .
+                  </p>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
