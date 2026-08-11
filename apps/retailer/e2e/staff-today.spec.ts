@@ -1,88 +1,126 @@
-import { test, expect } from "@playwright/test";
+import { createSupabaseAdminClient } from "@paon/database";
+import { expect, test, type Page } from "@playwright/test";
 
-test.describe("Staff today page", () => {
-  test("staff member sees their unified role home", async ({ page }) => {
-    // This test verifies the staff today page renders and shows expected sections
-    // It uses the default test database state set up in playwright.config.ts
+import { TEST_OWNER_EMAIL, TEST_OWNER_PASSWORD } from "./fixtures";
 
-    await page.goto("/staff/today");
+async function signInOwner(page: Page): Promise<void> {
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
+  await page.getByLabel("Password").fill(TEST_OWNER_PASSWORD);
+  await page.getByRole("button", { name: "Enter the atelier" }).click();
+  await expect(page).not.toHaveURL(/\/login/);
+}
 
-    // Verify page header
-    const heading = page.locator("h1:has-text('My Day')");
-    await expect(heading).toBeVisible();
+test.describe.configure({ mode: "serial" });
 
-    // Verify main sections exist
-    const shiftSection = page.locator("text=Shift & Clock Status");
-    await expect(shiftSection).toBeVisible();
+test("a staff member sees their own unified role home", async ({ page }) => {
+  test.setTimeout(120_000);
 
-    const closeoutSection = page.locator("text=Shift Closeout");
-    await expect(closeoutSection).toBeVisible();
+  const admin = createSupabaseAdminClient(
+    process.env["NEXT_PUBLIC_SUPABASE_URL"]!,
+    process.env["SUPABASE_SERVICE_ROLE_KEY"]!,
+  );
+  const { data: ownerRow, error: ownerError } = await admin
+    .from("retailer_staff_members")
+    .select("id, retailer_id")
+    .eq("email", TEST_OWNER_EMAIL)
+    .single();
+  if (ownerError) throw ownerError;
 
-    // Either "Not yet completed" or "Closeout submitted" should be visible
-    const closeoutStatus = page.locator(
-      "text=Not yet completed|Closeout submitted",
+  // Clean state: no closeout for today yet, so the page's "not yet
+  // completed" branch is deterministic rather than depending on whatever
+  // an earlier test run in this same suite left behind.
+  const today = new Date().toISOString().slice(0, 10);
+  const { error: deleteCloseoutError } = await admin
+    .from("staff_shift_closeouts")
+    .delete()
+    .eq("retailer_id", ownerRow.retailer_id)
+    .eq("staff_id", ownerRow.id)
+    .eq("closeout_date", today);
+  if (deleteCloseoutError) throw deleteCloseoutError;
+
+  // A service-role write from this process (the test) is, on this local
+  // stack, sometimes briefly invisible to an immediate read from a
+  // different process (the Next.js server) — the same timing quirk
+  // PHASE 12.2's own status text already documented and worked around
+  // with expect.poll. Confirm the delete is actually visible before
+  // navigating, rather than fighting it from inside the page.
+  await expect
+    .poll(
+      async () => {
+        const { count } = await admin
+          .from("staff_shift_closeouts")
+          .select("id", { count: "exact", head: true })
+          .eq("retailer_id", ownerRow.retailer_id)
+          .eq("staff_id", ownerRow.id)
+          .eq("closeout_date", today);
+        return count ?? 0;
+      },
+      { timeout: 15_000 },
+    )
+    .toBe(0);
+
+  await signInOwner(page);
+  await page.goto("/staff/today");
+
+  await expect(
+    page.getByRole("heading", { name: "My Day", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Shift & Clock Status")).toBeVisible();
+  await expect(page.getByText("Shift Closeout")).toBeVisible();
+
+  // Deterministic: we just deleted today's closeout, so this must show
+  // the not-yet-completed state with a link to /staff/closeout.
+  await expect(page.getByText("Not yet completed")).toBeVisible();
+  const closeoutLink = page.getByRole("link", { name: /Close out/ });
+  await expect(closeoutLink).toBeVisible();
+
+  // The link genuinely navigates, not just renders text that looks right.
+  await closeoutLink.click();
+  await expect(page).toHaveURL(/\/staff\/closeout$/);
+});
+
+test("a completed closeout shows on the role home instead of the prompt", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+
+  const admin = createSupabaseAdminClient(
+    process.env["NEXT_PUBLIC_SUPABASE_URL"]!,
+    process.env["SUPABASE_SERVICE_ROLE_KEY"]!,
+  );
+  const { data: ownerRow, error: ownerError } = await admin
+    .from("retailer_staff_members")
+    .select("id, retailer_id")
+    .eq("email", TEST_OWNER_EMAIL)
+    .single();
+  if (ownerError) throw ownerError;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const marker = `PAON-TODAY-${Date.now()}`;
+  const promisesText = `Follow up with two waitlisted clients. ${marker}`;
+  const whatWorkedText = `Fitting room turnover was fast today. ${marker}`;
+
+  const { error: closeoutError } = await admin
+    .from("staff_shift_closeouts")
+    .upsert(
+      {
+        retailer_id: ownerRow.retailer_id,
+        staff_id: ownerRow.id,
+        closeout_date: today,
+        promises_note: promisesText,
+        what_worked_note: whatWorkedText,
+      },
+      { onConflict: "retailer_id,staff_id,closeout_date" },
     );
-    const hasStatus = await closeoutStatus
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-    expect(hasStatus).toBeTruthy();
-  });
+  if (closeoutError) throw closeoutError;
 
-  test("page shows clock status when staff is clocked in", async ({ page }) => {
-    // Verify clock section exists and either shows clocked in or not clocked in
-    await page.goto("/staff/today");
+  await signInOwner(page);
+  await page.goto("/staff/today");
 
-    const clockSection = page.locator("text=Clock Status");
-    await expect(clockSection).toBeVisible();
-
-    // Check for either clocked in indicator or not clocked in message
-    const clockedInOrNot = page.locator(
-      "text=Clocked in at|Not currently clocked in",
-    );
-    const hasClockStatus = await clockedInOrNot
-      .isVisible({ timeout: 5000 })
-      .catch(() => false);
-    expect(hasClockStatus).toBeTruthy();
-  });
-
-  test("page shows appointments section if appointments exist", async ({
-    page,
-  }) => {
-    await page.goto("/staff/today");
-
-    // The appointments section might not be visible if there are no appointments
-    // This test just verifies that if it exists, it's properly formatted
-    const appointmentsSection = page.locator("text=/Appointments Today.*?\\(/");
-
-    try {
-      await appointmentsSection.isVisible({ timeout: 3000 });
-      // If appointments exist, verify the structure
-      const appointmentList = page
-        .locator("text=/Appointments Today.*?\\(/")
-        .isVisible();
-      expect(appointmentList).toBeTruthy();
-    } catch {
-      // It's okay if appointments section doesn't exist
-    }
-  });
-
-  test("closeout link navigates to closeout page when not completed", async ({
-    page,
-  }) => {
-    await page.goto("/staff/today");
-
-    // Try to find and click the close out link if it exists
-    const closeoutLink = page.locator('a:has-text("Close out")');
-
-    try {
-      if (await closeoutLink.isVisible({ timeout: 3000 })) {
-        await closeoutLink.click();
-        // Should navigate to closeout page
-        await page.waitForURL("/staff/closeout", { timeout: 5000 });
-        expect(page.url()).toContain("/staff/closeout");
-      }
-    } catch {
-      // It's okay if closeout link is not visible (e.g., already closed out)
-    }
-  });
+  await expect(page.getByText("Closeout submitted")).toBeVisible();
+  await expect(page.getByText(promisesText)).toBeVisible();
+  await expect(page.getByText(whatWorkedText)).toBeVisible();
+  // The not-yet-completed prompt must NOT also be showing.
+  await expect(page.getByText("Not yet completed")).not.toBeVisible();
 });
