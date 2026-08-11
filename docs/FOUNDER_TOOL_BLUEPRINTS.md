@@ -1185,11 +1185,13 @@ offline/retry handoff, care outcome and returned garment re-entering the weekly
 wardrobe. **Current:** first connected HighMaintenance care slice is live:
 safe auth-derived customer booking-linked custody projection, source-paced
 `/services` care journey, existing retailer custody state machine module-gated,
-and focused customer/retailer browser proof. Remaining gaps: full weekly
-calendar-led wardrobe composition, partner portal/custody transition proof
-beyond retailer action, care-record/outcome integration, entitlement/cost
-variance, delayed/disputed/failed-handoff recovery, and full source-motion
-parity.
+focused customer/retailer browser proof, and accepted customer-visible
+canonical care outcomes at `0776418` (authenticated retailer `recordCare`
+flow -> customer `/services` reload, customer-safe care history, cross-
+customer absence proof). Remaining gaps: full weekly calendar-led wardrobe
+composition, partner portal/custody transition proof beyond retailer action,
+entitlement/cost variance, delayed/disputed/failed-handoff recovery, and full
+source-motion parity.
 
 ## Broader founder-intent crosswalk
 
