@@ -115,19 +115,19 @@ test("a shift closeout is submitted, persists on revisit, and manager sees it", 
   // in the team view (the owner's own and the colleague's).
   await page.reload();
   const teamCloseouts = page.locator("#team-closeouts li");
-  await expect(teamCloseouts).toBeTruthy();
+  await expect(teamCloseouts.first()).toBeVisible();
 
   // The owner's closeout should be visible
   const ownerCloseout = teamCloseouts.filter({
     hasText: promisesText,
   });
-  await expect(ownerCloseout).toBeTruthy();
+  await expect(ownerCloseout).toBeVisible();
 
   // The colleague's closeout should also be visible
   const colleagueCloseout = teamCloseouts.filter({
     hasText: `Help train new associate on point-of-sale system`,
   });
-  await expect(colleagueCloseout).toBeTruthy();
+  await expect(colleagueCloseout).toBeVisible();
 
   // 5. Updating a closeout (upsert on conflict) must work: change one field
   // and resubmit the same day.
