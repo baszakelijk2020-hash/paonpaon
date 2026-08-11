@@ -39,6 +39,15 @@ export interface ShiftForExceptionCheck {
   readonly shiftDate: string;
 }
 
+/** An immutable schedule window captured when a payroll period is opened. */
+export interface ScheduledShiftForExceptionCheck {
+  /** Source roster-shift identity retained by the payroll snapshot. */
+  readonly shiftId: string;
+  readonly staffId: string;
+  readonly scheduledStartAt: string;
+  readonly scheduledEndAt: string;
+}
+
 const STANDARD_SHIFT_HOURS = 8;
 const OVERTIME_HOURS_PER_DAY = 10;
 
@@ -80,6 +89,77 @@ export function detectPayrollExceptions(args: {
         kind: "overtime",
         staffId: entry.staffId,
         detail: `Worked ${hoursWorked.toFixed(1)}h in a single entry (threshold ${OVERTIME_HOURS_PER_DAY}h)`,
+        resolved: false,
+      });
+    }
+  }
+
+  return exceptions;
+}
+
+/**
+ * Compares completed clock entries with the schedule snapshot belonging to a
+ * payroll version. Intervals are half-open: an entry ending exactly when a
+ * shift starts (or starting exactly when it ends) is not an overlap, while a
+ * partial overlap is sufficient to avoid both schedule exceptions.
+ */
+export function detectPayrollScheduleExceptions(args: {
+  readonly entries: readonly TimeEntryForExceptionCheck[];
+  readonly scheduledShifts: readonly ScheduledShiftForExceptionCheck[];
+}): readonly PayrollException[] {
+  const completedEntries = args.entries.filter(
+    (
+      entry,
+    ): entry is TimeEntryForExceptionCheck & { readonly clockOutAt: string } =>
+      entry.clockOutAt !== undefined,
+  );
+  const overlaps = (
+    startA: string,
+    endA: string,
+    startB: string,
+    endB: string,
+  ) =>
+    Date.parse(startA) < Date.parse(endB) &&
+    Date.parse(endA) > Date.parse(startB);
+  const exceptions: PayrollException[] = [];
+
+  for (const shift of args.scheduledShifts) {
+    const hasCompletedOverlap = completedEntries.some(
+      (entry) =>
+        entry.staffId === shift.staffId &&
+        overlaps(
+          entry.clockInAt,
+          entry.clockOutAt,
+          shift.scheduledStartAt,
+          shift.scheduledEndAt,
+        ),
+    );
+    if (!hasCompletedOverlap) {
+      exceptions.push({
+        kind: "missed_shift",
+        staffId: shift.staffId,
+        detail: `Scheduled shift ${shift.shiftId} (${shift.scheduledStartAt} to ${shift.scheduledEndAt}) has no completed time entry overlap`,
+        resolved: false,
+      });
+    }
+  }
+
+  for (const entry of completedEntries) {
+    const hasScheduledOverlap = args.scheduledShifts.some(
+      (shift) =>
+        shift.staffId === entry.staffId &&
+        overlaps(
+          entry.clockInAt,
+          entry.clockOutAt,
+          shift.scheduledStartAt,
+          shift.scheduledEndAt,
+        ),
+    );
+    if (!hasScheduledOverlap) {
+      exceptions.push({
+        kind: "unscheduled_shift",
+        staffId: entry.staffId,
+        detail: `Completed time entry (${entry.clockInAt} to ${entry.clockOutAt}) has no scheduled shift overlap`,
         resolved: false,
       });
     }

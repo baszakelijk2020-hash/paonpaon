@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildChecksummedPayrollExport,
   detectPayrollExceptions,
+  detectPayrollScheduleExceptions,
   summarizePeriodHours,
 } from "./payroll-period";
 
@@ -69,6 +70,69 @@ describe("detectPayrollExceptions", () => {
       now: "2026-08-01T21:00:00.000Z",
     });
     expect(exceptions.every((e) => e.resolved === false)).toBe(true);
+  });
+});
+
+describe("detectPayrollScheduleExceptions", () => {
+  const scheduledShift = {
+    shiftId: "snapshot-shift-1",
+    staffId: "staff-1",
+    scheduledStartAt: "2026-08-01T09:00:00.000Z",
+    scheduledEndAt: "2026-08-01T17:00:00.000Z",
+  };
+
+  it("reports both a missed scheduled shift and an unscheduled completed entry", () => {
+    const exceptions = detectPayrollScheduleExceptions({
+      scheduledShifts: [scheduledShift],
+      entries: [
+        {
+          staffId: "staff-2",
+          clockInAt: "2026-08-01T09:00:00.000Z",
+          clockOutAt: "2026-08-01T17:00:00.000Z",
+        },
+      ],
+    });
+
+    expect(exceptions).toEqual([
+      expect.objectContaining({
+        kind: "missed_shift",
+        staffId: "staff-1",
+        detail: expect.stringContaining("snapshot-shift-1"),
+      }),
+      expect.objectContaining({
+        kind: "unscheduled_shift",
+        staffId: "staff-2",
+      }),
+    ]);
+  });
+
+  it("treats partial overlap as attendance but adjacent half-open windows as exceptions", () => {
+    const partial = detectPayrollScheduleExceptions({
+      scheduledShifts: [scheduledShift],
+      entries: [
+        {
+          staffId: "staff-1",
+          clockInAt: "2026-08-01T16:59:00.000Z",
+          clockOutAt: "2026-08-01T18:00:00.000Z",
+        },
+      ],
+    });
+    expect(partial).toEqual([]);
+
+    const adjacent = detectPayrollScheduleExceptions({
+      scheduledShifts: [scheduledShift],
+      entries: [
+        {
+          staffId: "staff-1",
+          clockInAt: "2026-08-01T17:00:00.000Z",
+          clockOutAt: "2026-08-01T18:00:00.000Z",
+        },
+      ],
+    });
+    expect(adjacent.map((exception) => exception.kind)).toEqual([
+      "missed_shift",
+      "unscheduled_shift",
+    ]);
   });
 });
 
