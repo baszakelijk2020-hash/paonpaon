@@ -218,11 +218,27 @@ export default async function PayrollPage() {
                           Provider-neutral export
                         </h3>
                         {payrollExports.map((payrollExport) => (
-                          <p key={payrollExport.id} className="mt-2 text-sm">
-                            Recorded export · {payrollExport.rowCount}{" "}
-                            earning-code rows · checksum{" "}
-                            <code>{payrollExport.checksum}</code>
-                          </p>
+                          <div key={payrollExport.id} className="mt-2 text-sm">
+                            <p>
+                              Recorded export · {payrollExport.rowCount}{" "}
+                              earning-code rows · checksum{" "}
+                              <code>{payrollExport.checksum}</code>
+                            </p>
+                            <p className="mt-1 flex flex-wrap gap-3">
+                              <a
+                                className="underline"
+                                href={`/staff/payroll/exports/${payrollExport.id}/csv`}
+                              >
+                                Download CSV
+                              </a>
+                              <a
+                                className="underline"
+                                href={`/staff/payroll/exports/${payrollExport.id}/json`}
+                              >
+                                Download JSON
+                              </a>
+                            </p>
+                          </div>
                         ))}
                         <RecordPayrollExportForm versionId={current.id} />
                       </section>

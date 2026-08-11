@@ -1,5 +1,5 @@
 begin;
-select plan(14);
+select plan(17);
 
 select has_table('public', 'payroll_periods', 'payroll periods are persisted');
 select has_table('public', 'payroll_period_versions', 'immutable payroll versions are persisted');
@@ -16,9 +16,9 @@ select ok(position('p_retailer_id is distinct from public.current_retailer_id()'
 
 -- The approval transition encodes both separation of duties and its exception
 -- gate in the single conditional update of the current version.
-select ok(position('v.prepared_by_staff_id <> v_staff' in pg_get_functiondef('public.approve_payroll_period(uuid)'::regprocedure)) > 0,
+select ok(position('v_current_version.prepared_by_staff_id = v_staff' in pg_get_functiondef('public.approve_payroll_period(uuid)'::regprocedure)) > 0,
   'self-approval is refused');
-select ok(position('e.resolved_at is null' in pg_get_functiondef('public.approve_payroll_period(uuid)'::regprocedure)) > 0,
+select ok(position('and resolved_at is null' in pg_get_functiondef('public.approve_payroll_period(uuid)'::regprocedure)) > 0,
   'unresolved exceptions block approval');
 select ok(position('predecessor_version_id' in pg_get_functiondef('public.correct_payroll_entry(uuid, uuid, timestamptz, timestamptz, text)'::regprocedure)) > 0,
   'correction creates successor lineage');
@@ -29,6 +29,12 @@ select ok(position('payroll_period_entry_snapshots' in pg_get_functiondef('publi
   'export rows are derived from approved immutable snapshots');
 select ok(position('p_checksum' in pg_get_functiondef('public.record_payroll_export(uuid)'::regprocedure)) = 0,
   'export RPC rejects checksum mismatch by accepting no caller checksum');
+select is(public.payroll_export_checksum(''), '811c9dc5',
+  'payroll checksum matches FNV-1a offset basis for empty canonical content');
+select is(public.payroll_export_checksum('staff-1|regular|40'), 'ac3ce9b1',
+  'payroll checksum matches a canonical single-row export');
+select is(public.payroll_export_checksum(E'staff-1|overtime|5\nstaff-1|regular|40\nstaff-2|regular|32'), '21ef14e3',
+  'payroll checksum matches sorted newline-delimited canonical export content');
 
 select * from finish();
 rollback;

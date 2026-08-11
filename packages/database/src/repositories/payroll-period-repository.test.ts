@@ -65,4 +65,39 @@ describe("PayrollPeriodRepository", () => {
       p_version_id: "version-1",
     });
   });
+
+  it("reads recorded export rows only through the requested retailer scope", async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: "export-1",
+        version_id: "version-1",
+        rows: [{ staffId: "staff-1", earningCode: "regular", hours: 8 }],
+        row_count: 1,
+        checksum: "1a2b3c4d",
+        created_at: "2026-08-11T00:00:00.000Z",
+      },
+      error: null,
+    });
+    const eqId = vi.fn(() => ({ maybeSingle }));
+    const eqRetailer = vi.fn(() => ({ eq: eqId }));
+    const select = vi.fn(() => ({ eq: eqRetailer }));
+    const from = vi.fn(() => ({ select }));
+    const repo = new PayrollPeriodRepository({
+      from,
+    } as unknown as PaonSupabaseClient);
+
+    await expect(
+      repo.findRecordedExport(retailerId, "export-1"),
+    ).resolves.toEqual({
+      id: "export-1",
+      versionId: "version-1",
+      rows: [{ staffId: "staff-1", earningCode: "regular", hours: 8 }],
+      rowCount: 1,
+      checksum: "1a2b3c4d",
+      createdAt: "2026-08-11T00:00:00.000Z",
+    });
+    expect(from).toHaveBeenCalledWith("payroll_period_exports");
+    expect(eqRetailer).toHaveBeenCalledWith("retailer_id", retailerId);
+    expect(eqId).toHaveBeenCalledWith("id", "export-1");
+  });
 });

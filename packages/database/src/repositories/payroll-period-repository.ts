@@ -60,6 +60,19 @@ export interface PayrollExportRecord {
   readonly createdAt: string;
 }
 
+/** Immutable earning-code row recorded by record_payroll_export. */
+export interface PayrollExportRow {
+  readonly staffId: string;
+  readonly earningCode: string;
+  readonly hours: number;
+}
+
+/** A persisted export may be handed to an accountant without rebuilding it
+ * from mutable time entries. */
+export interface PayrollExportHandoff extends PayrollExportRecord {
+  readonly rows: readonly PayrollExportRow[];
+}
+
 /**
  * The payroll migration landed before its table declarations could be
  * regenerated in database.types.ts. Keep this compatibility shim private to
@@ -201,6 +214,22 @@ export class PayrollPeriodRepository {
     if (error) throw error;
     return data;
   }
+
+  /** Reads one immutable export through the tenant-scoped RLS path. The
+   * retailer predicate is intentional defence in depth for route parameters. */
+  async findRecordedExport(
+    retailerId: RetailerId,
+    exportId: string,
+  ): Promise<PayrollExportHandoff | null> {
+    const { data, error } = await this.client
+      .from("payroll_period_exports")
+      .select("id, version_id, rows, row_count, checksum, created_at")
+      .eq("retailer_id", retailerId)
+      .eq("id", exportId)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toExportHandoff(data) : null;
+  }
 }
 
 function row(value: unknown): Record<string, unknown> {
@@ -271,3 +300,31 @@ const toExport = (value: unknown): PayrollExportRecord => {
     createdAt: text(r.created_at),
   };
 };
+const toExportHandoff = (value: unknown): PayrollExportHandoff => {
+  const r = row(value);
+  return {
+    ...toExport(value),
+    rows: parseExportRows(r.rows),
+  };
+};
+
+function parseExportRows(value: unknown): readonly PayrollExportRow[] {
+  if (!Array.isArray(value)) throw new Error("Invalid recorded payroll export");
+  return value.map((entry) => {
+    const r = row(entry);
+    const hours = number(r.hours);
+    if (
+      !text(r.staffId) ||
+      !text(r.earningCode) ||
+      !Number.isFinite(hours) ||
+      hours < 0
+    ) {
+      throw new Error("Invalid recorded payroll export row");
+    }
+    return {
+      staffId: text(r.staffId),
+      earningCode: text(r.earningCode),
+      hours,
+    };
+  });
+}
