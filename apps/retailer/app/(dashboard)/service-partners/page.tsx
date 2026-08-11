@@ -15,6 +15,7 @@ import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
 import { formatMoney } from "@paon/utils";
+import Link from "next/link";
 
 import {
   addInvoiceLine,
@@ -92,6 +93,12 @@ export default async function ServicePartnersPage() {
           and repair sent outside the house, tracked from custody to invoice.
           Approving an invoice never initiates a payout.
         </p>
+        <Link
+          href="/service-partners/calendar"
+          className="mt-3 inline-flex text-sm font-medium text-[var(--color-stone-700)] underline underline-offset-4"
+        >
+          View weekly service calendar
+        </Link>
       </div>
 
       <Card className="flex flex-col gap-4">
