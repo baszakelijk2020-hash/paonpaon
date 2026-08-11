@@ -80,21 +80,29 @@ is complete until the full advisor/client journey is production-proven.
 
 **Immediate Mission Control build order:**
 
-1. **Customer Communication Centre** — complete FT-09 TableService and join
+1. **Self-Portrait and House Memory** — build the authoritative, living client
+   record before treating downstream recommendations as trustworthy: identity
+   and consent; declared and inferred style facts with correction; wardrobe,
+   fit, orders, alterations, care, conversations, appointments, occasions,
+   promises and relationship history; provenance, recency and uncertainty on
+   every material fact; a customer-correctable surface and an advisor-operable
+   view of the same truth. It must be one coherent memory, not duplicate notes
+   across modules.
+2. **Customer Communication Centre** — complete FT-09 TableService and join
    it to the existing omnichannel hub: one customer conversation across chat,
    email, SMS and WhatsApp; safe attachments; consent/citations; clear human
    ownership; and a real conversation-to-outcome path.
-2. **Voice and memo dump** — expand the existing typed/voiced/photo advisor
+3. **Voice and memo dump** — expand the existing typed/voiced/photo advisor
    capture so an advisor can speak or paste unstructured context once, retain
    the evidence safely, and see the transcript/interpretation before it acts.
-3. **Input to confirmed actions** — turn that captured information into
+4. **Input to confirmed actions** — turn that captured information into
    explainable, human-confirmed Mission Control action bundles: task, contact,
    appointment, proposal, fitting, care or follow-up, with outcomes returned
    to House Memory.
-4. **Concept and fabric-batch orders** — build FT-03's safe QR/manual scan to
+5. **Concept and fabric-batch orders** — build FT-03's safe QR/manual scan to
    identified fabric/configuration batch to reviewed concept order flow; it
    must never silently purchase or cross a House boundary.
-5. **Alteration operating tool** — replace the remaining generic alteration
+6. **Alteration operating tool** — replace the remaining generic alteration
    experience with a Mission-Control-connected operational surface: digital
    job cards, authoritative work orders, linked garment/fit evidence, task
    assignment and workshop handoff, labour/material/partner cost allocation,
