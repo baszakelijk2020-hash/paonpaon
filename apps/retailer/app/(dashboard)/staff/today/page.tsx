@@ -139,7 +139,15 @@ export default async function StaffTodayPage() {
         <h1 className="font-display text-2xl text-[var(--color-stone-900)]">
           My Day
         </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">{today}</p>
+        <div className="mt-1 flex items-center gap-3">
+          <p className="text-sm text-[var(--color-stone-500)]">{today}</p>
+          <Link
+            href="/staff/profile"
+            className="text-xs font-medium text-[var(--color-blue-600)] hover:underline"
+          >
+            My profile →
+          </Link>
+        </div>
       </div>
 
       {/* Shift and Clock Status */}
