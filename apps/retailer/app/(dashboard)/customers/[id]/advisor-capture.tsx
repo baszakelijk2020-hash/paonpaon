@@ -5,7 +5,7 @@ import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import {
   captureNote,
@@ -17,6 +17,23 @@ import {
 
 const captureInitial: CaptureActionState = {};
 const bundleInitial: BundleActionState = {};
+
+type BrowserSpeechRecognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult:
+    | ((event: {
+        results: ArrayLike<ArrayLike<{ transcript: string }>>;
+      }) => void)
+    | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+type SpeechRecognitionConstructor = new () => BrowserSpeechRecognition;
 
 const KIND_LABELS: Record<AdvisorCaptureBundle["kind"], string> = {
   self_portrait_fact: "Self-Portrait",
@@ -146,6 +163,53 @@ export function AdvisorCapture({
   readonly aiConfigured: boolean;
   readonly pendingBundles: readonly AdvisorCaptureBundle[];
 }) {
+  const [listening, setListening] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  function toggleVoiceCapture() {
+    if (listening) {
+      recognitionRef.current?.stop();
+      setListening(false);
+      return;
+    }
+    const speechWindow = window as Window & {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const Recognition =
+      speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+    if (!Recognition) {
+      setSpeechError("Voice capture is not available in this browser.");
+      return;
+    }
+    const recognition = new Recognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0]?.transcript ?? "")
+        .join(" ")
+        .trim();
+      if (!transcript || !textareaRef.current) return;
+      textareaRef.current.value = `${textareaRef.current.value.trim()}${textareaRef.current.value.trim() ? " " : ""}${transcript}`;
+      textareaRef.current.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    recognition.onend = () => setListening(false);
+    recognition.onerror = () => {
+      setListening(false);
+      setSpeechError(
+        "Voice capture stopped. Check microphone permission and try again.",
+      );
+    };
+    recognitionRef.current = recognition;
+    setSpeechError(null);
+    setListening(true);
+    recognition.start();
+  }
+
   const [state, action, pending] = useActionState(
     captureNote.bind(null, customerId),
     captureInitial,
@@ -161,6 +225,7 @@ export function AdvisorCapture({
       ) : (
         <form action={action} className="flex flex-col gap-3">
           <textarea
+            ref={textareaRef}
             name="rawText"
             required
             maxLength={8000}
@@ -180,6 +245,18 @@ export function AdvisorCapture({
               <option value="voice">Voice memo transcript</option>
             </select>
           </label>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={toggleVoiceCapture}
+          >
+            {listening ? "Stop voice memo" : "Add voice memo"}
+          </Button>
+          {speechError ? (
+            <p role="alert" className="text-sm text-[var(--color-danger-500)]">
+              {speechError}
+            </p>
+          ) : null}
           <Button type="submit" disabled={pending} className="self-start">
             {pending ? "Extracting…" : "Extract"}
           </Button>
