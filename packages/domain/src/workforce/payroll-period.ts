@@ -173,11 +173,17 @@ export function buildChecksummedPayrollExport(
       : a.staffId.localeCompare(b.staffId),
   );
 
-  const serialized = JSON.stringify(rows);
+  // Keep this representation deliberately primitive: the database uses the
+  // identical canonical string when it derives exports from immutable
+  // snapshots. JSON object key ordering would make a cross-runtime checksum
+  // a property of serializers instead of payroll data.
+  const serialized = rows
+    .map((row) => `${row.staffId}|${row.earningCode}|${row.hours}`)
+    .join("\n");
   let hash = 0x811c9dc5;
   for (let i = 0; i < serialized.length; i += 1) {
     hash = (hash ^ serialized.charCodeAt(i)) >>> 0;
-    hash = (hash * 0x01000193) >>> 0;
+    hash = Math.imul(hash, 0x01000193) >>> 0;
   }
   const checksum = hash.toString(16).padStart(8, "0");
 

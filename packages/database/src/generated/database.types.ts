@@ -19157,6 +19157,10 @@ export type Database = {
         Args: { p_staff_id: string };
         Returns: undefined;
       };
+      approve_payroll_period: {
+        Args: { p_period_id: string };
+        Returns: string;
+      };
       add_alteration_task: {
         Args: {
           p_alteration_id: string;
@@ -19171,6 +19175,16 @@ export type Database = {
       };
       add_alteration_task_note: {
         Args: { p_note: string; p_task_id: string };
+        Returns: string;
+      };
+      correct_payroll_entry: {
+        Args: {
+          p_clock_in_at: string;
+          p_clock_out_at: string | null;
+          p_period_id: string;
+          p_reason: string;
+          p_source_time_entry_id: string;
+        };
         Returns: string;
       };
       add_concept_scan_selection: {
@@ -20203,6 +20217,22 @@ export type Database = {
           p_starts_at: string;
           p_type: Database["public"]["Enums"]["appointment_type"];
         };
+        Returns: string;
+      };
+      open_payroll_period: {
+        Args: {
+          p_period_end: string;
+          p_period_start: string;
+          p_retailer_id: string;
+        };
+        Returns: string;
+      };
+      resolve_payroll_exception: {
+        Args: { p_exception_id: string };
+        Returns: undefined;
+      };
+      record_payroll_export: {
+        Args: { p_version_id: string };
         Returns: string;
       };
       request_appointment_as_wearer: {
