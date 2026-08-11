@@ -40,6 +40,44 @@ The source audit and rationale are recorded in
 
 PAON is in product-readiness convergence mode.
 
+### Founder priority — Mission Control is PAON's moat (2026-08-11)
+
+**Mission Control is the primary product moat and must be treated as the
+highest-priority product outcome.** It is not a dashboard and it is not a
+collection of checked component slices. It is PAON's integrated retailer
+operating system: the place where the House sees every client, understands
+what matters now, decides what to do, performs the work, and learns from the
+outcome.
+
+Mission Control comprises, as one coherent product:
+
+1. **House Memory:** customer identity and consent; declared and inferred
+   preferences; wardrobe, fit, orders, alterations, service/care, messages,
+   appointments, occasions, promises and relationship history.
+2. **Live signal detection:** events, calendar, stock, service state,
+   lifecycle moments, buying intent, risks, opportunities and staff workload.
+3. **Decision intelligence:** a ranked, explainable "why now / what next"
+   view with evidence, uncertainty, policy, customer benefit and commercial
+   impact visible to the advisor.
+4. **Action execution:** tasks, contact, consultation, appointment, proposal,
+   order, fitting, alteration, care and handoff actions performed from the
+   same client context without re-keying data.
+5. **Operational coordination:** owner, manager and advisor views; queues,
+   assignment, status, follow-through, escalation and cross-branch operation.
+6. **Outcome learning:** results, corrections, customer response, conversion,
+   service outcome and advisor judgement flow back into House Memory with
+   attributable evidence.
+7. **Trust and resilience:** tenant/RLS boundaries, consent, provenance,
+   audit, module-off behaviour, degraded/error states and recovery are visible
+   and fail safely rather than silently inventing a recommendation.
+
+After any active, safe-to-finish isolated slice is integrated, the next
+material work must build Mission Control's missing end-to-end seams before
+starting unrelated feature expansion. Existing dashboards, briefs,
+StyleProfile, TableService, appointment, wardrobe and service components are
+inputs to Mission Control, not evidence that it is complete. Do not claim it
+is complete until the full advisor/client journey is production-proven.
+
 Do not select new feature expansion ahead of executable work that makes
 existing committed capabilities production-ready.
 
