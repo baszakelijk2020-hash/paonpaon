@@ -1101,6 +1101,12 @@ orchestrator.ts` was the only other one still uncovered (the
     shared object pages rather than new top-level navigation.
   - **Tests:** manager/advisor/customer permissions, correction/withdrawal,
     stale/empty/error states, mobile and desktop browser proof.
+  - **Status (2026-08-11):** the customer-visible House Memory correction
+    slice is proven at `e6d05ed`/`5afbad8`: standard visible
+    nontransactional facts can be corrected from the customer surface by
+    appending a declared counterfact and immutable correction, and the source
+    fact is left untouched. This is focused browser proof only; the full House
+    Memory surface remains open.
 
 - [ ] **R0.5 Golden Relationship — visual wardrobe to aftercare**
   - **Dependencies:** R0.4, R0.2 where money/stock applies.

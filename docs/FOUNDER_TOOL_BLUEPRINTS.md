@@ -537,6 +537,11 @@ inferences stay labelled and correctable. No off-site presence claim or black
 box “churn score.” Prove advisor/manager/customer visibility, stale/empty/error
 states, corrections changing recommendations, disabled modules disappearing
 without broken actions and one completed action altering the next Today view.
+Customer House Memory correction is now separately proven for the visible,
+nontransactional standard-fact path: a customer can append a declared
+counterfact plus immutable correction, the source fact is never mutated, and
+the focused browser proof landed at `e6d05ed`/`5afbad8`. This does not imply
+the whole House Memory surface is complete.
 **Current:** more built than previously documented, checked directly
 (2026-08-02) rather than left at a stale summary. No interactive
 "MissionControl"/"Self-Portrait" fragment exists in `pag1.html` — only
