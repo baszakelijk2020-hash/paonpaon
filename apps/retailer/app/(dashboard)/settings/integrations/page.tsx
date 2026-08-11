@@ -8,6 +8,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ConnectionLifecycleControls } from "./connection-lifecycle-controls";
+import { CreateConnectionForm } from "./create-connection-form";
 import { ShopifySyncButton } from "./shopify-sync-button";
 
 import { requireSession } from "@/lib/session";
@@ -70,6 +71,15 @@ export default async function IntegrationsSettingsPage() {
           deep-link handoffs. Read-only ingest never invents write-back.
         </p>
       </div>
+
+      <Card>
+        <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
+          New connection
+        </h2>
+        <div className="mt-3">
+          <CreateConnectionForm />
+        </div>
+      </Card>
 
       <Card>
         <h2 className="text-sm font-medium text-[var(--color-stone-900)]">

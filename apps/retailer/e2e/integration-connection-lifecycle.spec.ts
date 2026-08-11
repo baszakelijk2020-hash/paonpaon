@@ -218,3 +218,83 @@ test("pause blocks a live webhook; resume plus a real signature admits it; a tam
   });
   expect(deadLetters.length).toBeGreaterThanOrEqual(2);
 });
+
+test("create a connection via the form; it appears in the list and accepts manual sync", async ({
+  page,
+}) => {
+  test.setTimeout(60_000);
+
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+  const lifecycle = new IntegrationLifecycleRepository(admin);
+
+  await signInOwner(page);
+  await page.goto("/settings/integrations");
+
+  // Get the retailer ID for later verification
+  const { data: staffRow, error: staffError } = await admin
+    .from("retailer_staff_members")
+    .select("retailer_id")
+    .eq("email", TEST_OWNER_EMAIL)
+    .single();
+  if (staffError) throw staffError;
+  const retailerId: RetailerId = asId<"RetailerId">(staffRow.retailer_id);
+
+  // Fill in and submit the create connection form
+  const displayName = `E2E Shopify ${Date.now()}`;
+  await page.getByLabel("Provider").selectOption("shopify");
+  await page.getByLabel("Display name").fill(displayName);
+  await page.getByRole("button", { name: "Create connection" }).click();
+
+  // Verify success and new connection appears in the list
+  await expect(
+    page.getByText("Connection created successfully", { exact: false }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByText(displayName)).toBeVisible();
+
+  // Get the connection ID from the database
+  const { data: connectionDbRow, error: connError } = await admin
+    .from("integration_connections")
+    .select("id")
+    .eq("retailer_id", retailerId)
+    .eq("display_name", displayName)
+    .single();
+  if (connError) throw connError;
+  const connectionId = connectionDbRow.id;
+
+  // Verify the connection is in 'active' state (default for new connections)
+  const connState = await lifecycle.getOperationalState({
+    retailerId,
+    connectionId,
+  });
+  expect(connState).toBe("active");
+
+  // Trigger manual sync via the existing Shopify sync button
+  const connectionRow = page.locator("li").filter({ hasText: displayName });
+  await connectionRow.getByRole("button", { name: "Run Shopify sync" }).click();
+
+  // Verify a sync run was created
+  await expect
+    .poll(
+      async () => {
+        const runs = await lifecycle.listSyncRuns({
+          retailerId,
+          connectionId,
+          limit: 1,
+        });
+        return runs.length;
+      },
+      { timeout: 30_000 },
+    )
+    .toBeGreaterThan(0);
+
+  const runs = await lifecycle.listSyncRuns({
+    retailerId,
+    connectionId,
+    limit: 1,
+  });
+  expect(runs.length).toBeGreaterThan(0);
+  expect(runs[0]!.triggerKind).toBe("manual");
+});

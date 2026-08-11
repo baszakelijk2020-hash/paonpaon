@@ -3,17 +3,80 @@
 import { requireRetailerRole } from "@paon/auth";
 import {
   IntegrationLifecycleRepository,
+  SourceAuthorityRepository,
   orchestrateShopifyDeltaSync,
 } from "@paon/database";
-import type { ConnectionOperationalState } from "@paon/domain";
+import {
+  INTEGRATION_PROVIDERS,
+  type ConnectionOperationalState,
+  type IntegrationProvider,
+} from "@paon/domain";
 import { revalidatePath } from "next/cache";
 
 import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
+export interface CreateConnectionActionState {
+  formError?: string;
+  success?: boolean;
+}
+
 export interface ConnectionLifecycleActionState {
   formError?: string;
+}
+
+/**
+ * Create a new integration connection (PHASE 9.2). Local/mock connections
+ * require no secrets and are immediately usable for manual sync triggers.
+ * Operator-initiated, admin-gated.
+ *
+ * Uses the admin client deliberately: `integration_connections` grants
+ * INSERT to `service_role` only (no authenticated-role policy exists —
+ * connections were originally meant to be created by service-role jobs,
+ * per this page's own prior placeholder copy). The `requireRetailerRole`
+ * check above is the real authorization boundary for this write, the same
+ * pattern this codebase already uses elsewhere for an authorized action
+ * with no RLS backstop of its own (see `rehearseCampaign`/
+ * `activateCampaignToStaffMissions` in the campaigns settings actions).
+ */
+export async function createConnection(
+  _previous: CreateConnectionActionState,
+  formData: FormData,
+): Promise<CreateConnectionActionState> {
+  const session = await requireModuleSession("platform_core");
+  requireRetailerRole(session.retailerRole, "admin");
+
+  const provider = String(
+    formData.get("provider") ?? "",
+  ) as IntegrationProvider;
+  const displayName = String(formData.get("displayName") ?? "").trim();
+
+  if (!displayName) {
+    return { formError: "Display name is required." };
+  }
+
+  if (!INTEGRATION_PROVIDERS.includes(provider)) {
+    return { formError: "Invalid provider selected." };
+  }
+
+  try {
+    const admin = getSupabaseAdminClient();
+    const repo = new SourceAuthorityRepository(admin);
+    await repo.createConnection({
+      retailerId: session.retailerId,
+      provider,
+      displayName,
+    });
+
+    revalidatePath("/settings/integrations");
+    return { success: true };
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error ? error.message : "Failed to create connection.",
+    };
+  }
 }
 
 /**
