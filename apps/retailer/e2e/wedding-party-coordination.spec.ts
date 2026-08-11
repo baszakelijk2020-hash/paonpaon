@@ -155,7 +155,7 @@ test("owner sees group fitting capacity exceptions and adequate capacity", async
   const exceptionCustomerId = page.url().split("/").pop();
 
   await page.goto(`/wedding-parties/new?customerId=${exceptionCustomerId}`);
-  await page.getByLabel("Event date").fill(dateOffset(1));
+  await page.getByLabel("Event date").fill(dateOffset(3));
   await page.getByRole("button", { name: "Create wedding party" }).click();
   await expect(page).toHaveURL(/\/wedding-parties\/[0-9a-f-]+$/);
   await page.getByLabel("Name").fill("Exception Best Man");
@@ -212,7 +212,7 @@ test("owner sees group fitting capacity exceptions and adequate capacity", async
     page.locator("p.font-medium", { hasText: "Adequate Groomsman" }),
   ).toBeVisible();
   await page.getByLabel("Date and time").fill(`${dateOffset(0)}T10:00`);
-  await page.getByLabel("Capacity").fill("1");
+  await page.getByLabel("Capacity").fill("2");
   await page.getByRole("button", { name: "Schedule group fitting" }).click();
 
   const adequateCapacity = page.getByTestId("group-fitting-capacity-summary");
@@ -222,7 +222,9 @@ test("owner sees group fitting capacity exceptions and adequate capacity", async
   await expect(
     adequateCapacity.getByText("Adequate", { exact: true }),
   ).toBeVisible();
-  await expect(adequateCapacity).toContainText("2 members need 2 sessions");
+  await expect(adequateCapacity).toContainText(
+    "2 members needing fitting have 2 scheduled places",
+  );
   groupCapacityPassed = true;
 });
 

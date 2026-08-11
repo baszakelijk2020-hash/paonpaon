@@ -7,7 +7,6 @@ import {
   WishlistRepository,
 } from "@paon/database";
 import {
-  checkGroupFittingCapacity,
   WEDDING_PARTY_MEMBER_FITTING_STATUSES,
   WEDDING_PARTY_MEMBER_FITTING_STATUS_LABELS,
   WEDDING_PARTY_MEMBER_ROLE_LABELS,
@@ -44,21 +43,6 @@ const FITTING_TONE = {
   fitted: "success",
   completed: "success",
 } as const;
-
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
-
-function calendarDaysUntil(date: string): number {
-  const today = new Date();
-  const todayAtUtcMidnight = Date.UTC(
-    today.getUTCFullYear(),
-    today.getUTCMonth(),
-    today.getUTCDate(),
-  );
-  return Math.floor(
-    (Date.parse(`${date}T00:00:00Z`) - todayAtUtcMidnight) /
-      MILLISECONDS_PER_DAY,
-  );
-}
 
 export default async function WeddingPartyDetailPage({
   params,
@@ -117,16 +101,22 @@ export default async function WeddingPartyDetailPage({
       member.fittingStatus === "invited" ||
       member.fittingStatus === "scheduled",
   );
-  const totalScheduledFittingCapacity = groupFittings.reduce(
-    (total, fitting) => total + fitting.capacity,
-    0,
-  );
-  const fittingCapacityCheck = party.eventDate
-    ? checkGroupFittingCapacity({
-        memberCount: membersNeedingFitting.length,
-        fittingsPerDay: totalScheduledFittingCapacity,
-        availableDaysBeforeEvent: calendarDaysUntil(party.eventDate),
-      })
+  /* `wedding_group_fittings` records dated, finite fitting sessions. It does
+   * not provide a recurring fittings-per-day rate, so it cannot honestly
+   * satisfy checkGroupFittingCapacity's per-day contract. Project the real
+   * canonical sessions instead of inventing a daily capacity model. */
+  const fittingCapacityProjection = party.eventDate
+    ? (() => {
+        const scheduledCapacity = groupFittings
+          .filter(
+            (fitting) => fitting.scheduledAt.slice(0, 10) <= party.eventDate!,
+          )
+          .reduce((total, fitting) => total + fitting.capacity, 0);
+        return {
+          scheduledCapacity,
+          adequate: scheduledCapacity >= membersNeedingFitting.length,
+        };
+      })()
     : null;
 
   return (
@@ -391,7 +381,7 @@ export default async function WeddingPartyDetailPage({
             data-testid="group-fitting-capacity-summary"
             className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-3 text-sm"
           >
-            {fittingCapacityCheck?.ok ? (
+            {fittingCapacityProjection?.adequate ? (
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="font-medium text-[var(--color-stone-900)]">
@@ -400,16 +390,17 @@ export default async function WeddingPartyDetailPage({
                   <p className="text-xs text-[var(--color-stone-500)]">
                     {membersNeedingFitting.length}{" "}
                     {membersNeedingFitting.length === 1 ? "member" : "members"}{" "}
-                    need {fittingCapacityCheck.sessionsRequired}{" "}
-                    {fittingCapacityCheck.sessionsRequired === 1
-                      ? "session"
-                      : "sessions"}{" "}
+                    needing fitting have{" "}
+                    {fittingCapacityProjection.scheduledCapacity} scheduled{" "}
+                    {fittingCapacityProjection.scheduledCapacity === 1
+                      ? "place"
+                      : "places"}{" "}
                     before the event.
                   </p>
                 </div>
                 <Badge tone="success">Adequate</Badge>
               </div>
-            ) : fittingCapacityCheck ? (
+            ) : fittingCapacityProjection ? (
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium text-[var(--color-stone-900)]">
@@ -418,11 +409,9 @@ export default async function WeddingPartyDetailPage({
                   <Badge tone="warning">Action needed</Badge>
                 </div>
                 <p className="text-xs text-[var(--color-stone-500)]">
-                  {fittingCapacityCheck.reason === "no_capacity_configured"
+                  {fittingCapacityProjection.scheduledCapacity === 0
                     ? "No group fitting capacity is scheduled before the event."
-                    : fittingCapacityCheck.reason === "event_in_the_past"
-                      ? "The event date has passed; confirm the fitting plan with the party."
-                      : "The scheduled fitting capacity cannot fit every member before the event."}
+                    : `Only ${fittingCapacityProjection.scheduledCapacity} scheduled ${fittingCapacityProjection.scheduledCapacity === 1 ? "place is" : "places are"} available before the event.`}
                 </p>
                 {membersNeedingFitting.length > 0 ? (
                   <p className="text-xs text-[var(--color-stone-500)]">
