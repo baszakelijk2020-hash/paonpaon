@@ -1141,7 +1141,11 @@ rather than crossing it. Migration `20260802000013` adds the
 customer-facing SELECT policy; retailer issue/mark-redeemed use plain
 insert/update through the already-granted staff RLS, no RPC. FT-13 is now
 fully wired across every table the schema already had — planner
-workflow/experience otherwise partial.
+workflow/experience otherwise partial. Commits `37a4288` and `b49d631`
+record the accepted group-fitting capacity exception as real scheduled
+capacity only, not an invented rate, and prove the public invite→join
+browser flow. Anniversary continuation remains open, along with the
+other planner gaps.
 
 ## FT-14 — Preferred Tailoring and HighMaintenance
 

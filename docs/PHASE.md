@@ -4544,14 +4544,16 @@ date-agreement,group-fitting,guest-voucher,aftercare}.spec.ts`) were
     These six are not yet wired to `writeBrowserProofRun` themselves — a
     real remaining gap, not claimed as evidence-tracked — but their
     passing runs are the basis for this correction. The checkbox stays
-    unchecked: `checkGroupFittingCapacity`'s "group exceptions" summary
-    and `nextAnniversary`'s continuation have no caller anywhere in either
-    app, and no spec exercises the invite/join-link flow
-    (`joinViaInvite`, `/r/[slug]/wedding-parties/join/[token]`) despite
-    the route existing. Missing: retailer-facing group-exceptions view,
-    anniversary continuation UI, invite-flow browser proof, and evidence
-    tracking for the six customer specs. The live occasionwear pilot
-    stays `blocked_external`; the pack contracts do not.
+    unchecked: the accepted group-fitting "exceptions" summary reflects
+    real scheduled capacity only, not an invented rate, and
+    `nextAnniversary`'s continuation still has no caller anywhere in
+    either app. Commits `37a4288` and `b49d631` now prove the public
+    invite→join browser flow (`joinViaInvite`,
+    `/r/[slug]/wedding-parties/join/[token]`) that had been missing from
+    this status. Missing: retailer-facing group-exceptions view,
+    anniversary continuation UI, and evidence tracking for the six
+    customer specs. The live occasionwear pilot stays
+    `blocked_external`; the pack contracts do not.
 
 ### Stage 17 — Frictionless advisor intelligence
 
