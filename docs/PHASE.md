@@ -78,6 +78,27 @@ StyleProfile, TableService, appointment, wardrobe and service components are
 inputs to Mission Control, not evidence that it is complete. Do not claim it
 is complete until the full advisor/client journey is production-proven.
 
+**Immediate Mission Control build order:**
+
+1. **Customer Communication Centre** — complete FT-09 TableService and join
+   it to the existing omnichannel hub: one customer conversation across chat,
+   email, SMS and WhatsApp; safe attachments; consent/citations; clear human
+   ownership; and a real conversation-to-outcome path.
+2. **Voice and memo dump** — expand the existing typed/voiced/photo advisor
+   capture so an advisor can speak or paste unstructured context once, retain
+   the evidence safely, and see the transcript/interpretation before it acts.
+3. **Input to confirmed actions** — turn that captured information into
+   explainable, human-confirmed Mission Control action bundles: task, contact,
+   appointment, proposal, fitting, care or follow-up, with outcomes returned
+   to House Memory.
+4. **Concept and fabric-batch orders** — build FT-03's safe QR/manual scan to
+   identified fabric/configuration batch to reviewed concept order flow; it
+   must never silently purchase or cross a House boundary.
+
+The two founder-described "Chinese wall" workstreams are explicitly not part
+of this active priority. Do not select, expand or use them to displace the four
+Mission Control capabilities above without a new founder instruction.
+
 Do not select new feature expansion ahead of executable work that makes
 existing committed capabilities production-ready.
 
