@@ -4747,6 +4747,47 @@ now.
     `docs/evidence/tranches/17.1.json` records the full ten-dimension
     evidence map; `docs/evidence/runs/17.1.json` records the passing run
     at `5242f66`. Checkbox now checked.
+  - **Status (2026-08-12, Mission Control input-to-actions):** the
+    founder's "input to confirmed actions" build order names
+    task/contact/appointment/proposal/fitting/care/follow-up bundles;
+    this item covered only three (fact, follow-up, task note). Adds
+    "appointment" as a fourth confirmable kind: migration
+    `20260812000020` adds `advisor_capture_bundles.linked_appointment_id`
+    and widens the kind check; `checkCaptureBundleProposal` gates it on a
+    valid `appointment_type` and `startsAt < endsAt` before an advisor
+    ever sees it; `confirmBundle` books it through the same
+    `AppointmentRepository.create` the rest of the retailer app already
+    uses. Proof: `advisor-capture.spec.ts` extended with a fourth
+    proposal (fitting, concrete time) confirmed alongside the existing
+    three, asserting `appointments.type`/`staff_id`/`status` and the
+    bundle's `linked_appointment_id`. Contact/proposal/fitting(-as-
+    distinct-from-appointment)/care bundle kinds remain open.
+  - **Status (2026-08-12, care_booking):** adds "care_booking" as a fifth
+    confirmable kind. Migration `20260812000021` adds
+    `advisor_capture_bundles.linked_service_booking_id` and widens the
+    kind check; `checkCaptureBundleProposal` gates it on a valid
+    `bookingKind` (mirrors `SERVICE_BOOKING_KINDS`) and a parseable
+    `requestedFor` when given; `confirmBundle` books it through the same
+    `ServicePlanRepository.requestBooking` Stage 5.3's HighMaintenance/
+    Preferred Tailoring flow already uses — one service-bookings system,
+    not a second one. A care booking requires an active
+    `service_memberships` row for the customer; confirming without one
+    now fails with a distinct `no_active_membership` reason surfaced to
+    the advisor. Of the founder's named set, "fitting" is deliberately
+    not a separate kind (no PAON object lighter than an appointment of
+    that type exists; the "appointment" kind's `CAPTURE_APPOINTMENT_TYPES`
+    already includes it), and "proposal/conceptorder" is deliberately not
+    built here — FT-03 (QR try-on/fabric-batch concept order) was closed
+    by explicit founder decision on 2026-08-05
+    (`docs/FOUNDER_TOOL_BLUEPRINTS.md`: "FT-03 stops here — this is its
+    final scope, not a paused increment"); reusing its
+    `concept_order_selections` schema for an unrelated flow would resume
+    killed scope without new authorization. Proof: 3 new domain unit
+    tests and `advisor-capture.spec.ts` extended with a fifth bundle
+    confirmed alongside the other four, seeding a fixture HighMaintenance
+    membership and asserting the real `service_bookings` row and
+    `linked_service_booking_id`. Remaining open: "contact" as its own
+    kind distinct from `follow_up` (arguably already covered by it).
 
 - [x] **17.2 Mission Control unified brief**
   - **Requirement IDs:** ADV-102.
