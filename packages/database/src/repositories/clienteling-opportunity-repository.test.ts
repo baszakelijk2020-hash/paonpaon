@@ -167,4 +167,27 @@ describe("ClientelingOpportunityRepository", () => {
       "8 of 10 suit views were brown",
     );
   });
+
+  it("lists completed opportunities with a real outcome for Mission Control", async () => {
+    const withOrder = opportunityRow({
+      id: "aaaaaaaa-aaaa-4aaa-8aaa-000000000005",
+      retailer_id: retailerId,
+      why_now: "converted to an order",
+      status: "completed",
+      outcome_order_id: "bbbbbbbb-bbbb-4bbb-8bbb-000000000001",
+    });
+    const from = vi.fn((table: string) => {
+      expect(table).toBe("clienteling_opportunities");
+      return fakeQueryBuilder({ data: [withOrder], error: null });
+    });
+    const repo = new ClientelingOpportunityRepository({
+      from,
+    } as unknown as PaonSupabaseClient);
+    const outcomes = await repo.listRecentOutcomes(retailerId);
+    expect(outcomes).toHaveLength(1);
+    expect(outcomes[0]?.status).toBe("completed");
+    expect(outcomes[0]?.outcomeOrderId).toBe(
+      "bbbbbbbb-bbbb-4bbb-8bbb-000000000001",
+    );
+  });
 });

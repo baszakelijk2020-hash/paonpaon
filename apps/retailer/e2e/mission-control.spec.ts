@@ -352,3 +352,109 @@ test.describe.serial("mission control", () => {
     }
   });
 });
+
+// Not part of the shared 17.2 proof flags/evidence run above (this covers
+// new "Outcome learning" scope beyond 17.2's own checked acceptance
+// criteria) -- a plain, independent journey proving completed
+// opportunities with a real outcome now surface on Mission Control.
+test("Mission Control surfaces a completed opportunity's real outcome, and excludes one with none", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailer) throw new Error("fixture retailer missing");
+  const retailerId = asId<"RetailerId">(retailer.id);
+
+  const unique = Date.now();
+  const customer = await new CustomerRepository(admin).create({
+    retailerId,
+    fullName: `E2E Outcome Client ${unique}`,
+    email: `mission-control-outcome-${unique}@paon.test`,
+    lifecycleStage: "prospect",
+  });
+
+  const order = await admin
+    .from("orders")
+    .insert({
+      retailer_id: retailerId,
+      customer_id: customer.id,
+      order_number: `E2E-OUT-${unique}`,
+      status: "placed",
+      subtotal_amount_minor_units: 0,
+      total_amount_minor_units: 0,
+      currency: "USD",
+    })
+    .select("id")
+    .single();
+  if (order.error || !order.data) throw order.error;
+
+  const { data: withOutcome, error: withOutcomeError } = await admin
+    .from("clienteling_opportunities")
+    .insert({
+      retailer_id: retailerId,
+      customer_id: customer.id,
+      opportunity_type: "interest_follow_up",
+      why_now: `E2E outcome why-now ${unique}`,
+      suggested_action: `E2E outcome suggested action ${unique}`,
+      channel: "in_person",
+      status: "completed",
+      projector_version: "clienteling-opportunity-v1",
+      outcome_order_id: order.data.id,
+    })
+    .select("id")
+    .single();
+  if (withOutcomeError || !withOutcome) throw withOutcomeError;
+
+  const { data: noOutcome, error: noOutcomeError } = await admin
+    .from("clienteling_opportunities")
+    .insert({
+      retailer_id: retailerId,
+      customer_id: customer.id,
+      opportunity_type: "interest_follow_up",
+      why_now: `E2E no-outcome why-now ${unique}`,
+      suggested_action: `E2E no-outcome suggested action ${unique}`,
+      channel: "in_person",
+      status: "completed",
+      projector_version: "clienteling-opportunity-v1",
+    })
+    .select("id")
+    .single();
+  if (noOutcomeError || !noOutcome) throw noOutcomeError;
+
+  try {
+    // The file-level test.beforeEach above already logs in as the owner.
+    await page.goto("/mission-control");
+    await expect(
+      page.getByRole("heading", { name: "Recent outcomes" }),
+    ).toBeVisible();
+
+    const outcomeCard = page.locator("li", {
+      hasText: `E2E outcome suggested action ${unique}`,
+    });
+    await expect(outcomeCard).toBeVisible();
+    await expect(outcomeCard.getByText("Order placed")).toBeVisible();
+    await expect(
+      outcomeCard.getByRole("link", { name: "Order placed" }),
+    ).toHaveAttribute("href", `/orders/${order.data.id}`);
+
+    // Completed with nothing behind it never appears — this list proves a
+    // real outcome, not merely that the status is "completed".
+    await expect(
+      page.getByText(`E2E no-outcome suggested action ${unique}`),
+    ).toHaveCount(0);
+  } finally {
+    await admin
+      .from("clienteling_opportunities")
+      .delete()
+      .in("id", [withOutcome.id, noOutcome.id]);
+    await admin.from("orders").delete().eq("id", order.data.id);
+    await admin.from("customers").delete().eq("id", customer.id);
+  }
+});
