@@ -73,6 +73,26 @@ function getConversationIdFromActionHref(actionHref?: string): string | null {
   return match?.[1] ?? null;
 }
 
+function outcomeDescription(opportunity: {
+  outcomeOrderId?: string;
+  outcomeAppointmentId?: string;
+  outcomeMessageId?: string;
+}): { label: string; href?: string } {
+  if (opportunity.outcomeOrderId) {
+    return {
+      label: "Order placed",
+      href: `/orders/${opportunity.outcomeOrderId}`,
+    };
+  }
+  if (opportunity.outcomeAppointmentId) {
+    return {
+      label: "Appointment booked",
+      href: `/appointments/${opportunity.outcomeAppointmentId}`,
+    };
+  }
+  return { label: "Message sent" };
+}
+
 export default async function MissionControlPage() {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
@@ -87,6 +107,7 @@ export default async function MissionControlPage() {
     customers,
     conversations,
     draftOpportunities,
+    recentOutcomes,
     pendingProposals,
     notifications,
     lowStockCount,
@@ -98,6 +119,14 @@ export default async function MissionControlPage() {
       ? new ClientelingOpportunityRepository(supabase).listDraftInbox(
           session.retailerId,
           30,
+        )
+      : Promise.resolve([]),
+    // Mission Control's "Outcome learning" component: what actually
+    // happened from a confirmed pick, not just that it closed.
+    retailerRoleAtLeast(session.retailerRole, "sales_associate")
+      ? new ClientelingOpportunityRepository(supabase).listRecentOutcomes(
+          session.retailerId,
+          10,
         )
       : Promise.resolve([]),
     // PHASE 17.2: the same three sources /dashboard's own "Needs your
@@ -387,6 +416,55 @@ export default async function MissionControlPage() {
           )}
         </Card>
       </div>
+
+      <Card className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+            Recent outcomes
+          </h2>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            What actually happened from a confirmed pick — closed with a real,
+            attributable result, not just marked done.
+          </p>
+        </div>
+        {recentOutcomes.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No completed outcomes yet.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {recentOutcomes.map((opportunity) => {
+              const outcome = outcomeDescription(opportunity);
+              return (
+                <li
+                  key={opportunity.id}
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
+                >
+                  <Link
+                    href={`/customers/${opportunity.customerId}`}
+                    className="block hover:underline"
+                  >
+                    <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                      {nameByCustomerId.get(opportunity.customerId) ?? "Client"}{" "}
+                      · {opportunity.type.replaceAll("_", " ")}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--color-stone-600)]">
+                      {opportunity.suggestedAction}
+                    </p>
+                  </Link>
+                  {outcome.href ? (
+                    <Link href={outcome.href}>
+                      <Badge tone="success">{outcome.label}</Badge>
+                    </Link>
+                  ) : (
+                    <Badge tone="success">{outcome.label}</Badge>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card>
     </div>
   );
 }
