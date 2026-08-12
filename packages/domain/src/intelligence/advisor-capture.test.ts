@@ -121,6 +121,63 @@ describe("checkCaptureBundleProposal", () => {
     ).toEqual({ ok: false, reason: "confidence_out_of_range" });
   });
 
+  it("accepts a valid appointment", () => {
+    expect(
+      checkCaptureBundleProposal({
+        rawText,
+        proposal: {
+          kind: "appointment",
+          summary: "Book a fitting Friday at 2pm",
+          sourceExcerpt: "Promised to call him Friday",
+          confidence: 0.75,
+          payload: {
+            appointmentType: "fitting",
+            startsAt: "2026-08-14T14:00:00.000Z",
+            endsAt: "2026-08-14T15:00:00.000Z",
+          },
+        },
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("refuses an appointment with an unknown type", () => {
+    expect(
+      checkCaptureBundleProposal({
+        rawText,
+        proposal: {
+          kind: "appointment",
+          summary: "x",
+          sourceExcerpt: "black shoes",
+          confidence: 0.5,
+          payload: {
+            appointmentType: "not_a_real_type" as never,
+            startsAt: "2026-08-14T14:00:00.000Z",
+            endsAt: "2026-08-14T15:00:00.000Z",
+          },
+        },
+      }),
+    ).toEqual({ ok: false, reason: "appointment_type_required" });
+  });
+
+  it("refuses an appointment whose end is not after its start", () => {
+    expect(
+      checkCaptureBundleProposal({
+        rawText,
+        proposal: {
+          kind: "appointment",
+          summary: "x",
+          sourceExcerpt: "black shoes",
+          confidence: 0.5,
+          payload: {
+            appointmentType: "fitting",
+            startsAt: "2026-08-14T15:00:00.000Z",
+            endsAt: "2026-08-14T14:00:00.000Z",
+          },
+        },
+      }),
+    ).toEqual({ ok: false, reason: "appointment_time_range_invalid" });
+  });
+
   it("refuses an empty summary or excerpt", () => {
     expect(
       checkCaptureBundleProposal({

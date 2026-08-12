@@ -39,6 +39,7 @@ const KIND_LABELS: Record<AdvisorCaptureBundle["kind"], string> = {
   self_portrait_fact: "Self-Portrait",
   follow_up: "Follow-up",
   task_note: "Note",
+  appointment: "Appointment",
 };
 
 function summarizePayload(bundle: AdvisorCaptureBundle): string {
@@ -53,6 +54,14 @@ function summarizePayload(bundle: AdvisorCaptureBundle): string {
       dueAt?: string;
     };
     return `${payload.suggestedAction}${payload.dueAt ? ` — due ${payload.dueAt}` : ""}`;
+  }
+  if (bundle.kind === "appointment") {
+    const payload = bundle.payload as {
+      appointmentType: string;
+      startsAt: string;
+      endsAt: string;
+    };
+    return `${payload.appointmentType.replaceAll("_", " ")} — ${new Date(payload.startsAt).toLocaleString()}`;
   }
   const payload = bundle.payload as { note: string };
   return payload.note;

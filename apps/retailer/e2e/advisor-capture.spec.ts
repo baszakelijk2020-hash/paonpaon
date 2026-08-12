@@ -60,7 +60,13 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
     lifecycleStage: "prospect",
   });
 
-  const rawText = `Mr ${customer.fullName.split(" ").pop()} loves black oxford shoes ${unique}. Promised to call him Friday when the linen jackets arrive ${unique}. Also mentioned he collects vintage watches ${unique}.`;
+  const rawText = `Mr ${customer.fullName.split(" ").pop()} loves black oxford shoes ${unique}. Promised to call him Friday when the linen jackets arrive ${unique}. Also mentioned he collects vintage watches ${unique}. Wants to book a fitting next Tuesday at 2pm ${unique}.`;
+  const appointmentStartsAt = new Date(
+    Date.now() + 7 * 24 * 60 * 60 * 1000,
+  ).toISOString();
+  const appointmentEndsAt = new Date(
+    Date.now() + 7 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000,
+  ).toISOString();
 
   const captureRepo = new AdvisorCaptureRepository(admin);
   const captureSession = await captureRepo.startSession({
@@ -103,12 +109,24 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
           note: "Collects vintage watches — worth a mention next visit.",
         },
       },
+      {
+        kind: "appointment",
+        summary: "Fitting next Tuesday at 2pm",
+        sourceExcerpt: "Wants to book a fitting next Tuesday at 2pm",
+        confidence: 0.8,
+        payload: {
+          appointmentType: "fitting",
+          startsAt: appointmentStartsAt,
+          endsAt: appointmentEndsAt,
+        },
+      },
     ],
   });
-  expect(bundles).toHaveLength(3);
+  expect(bundles).toHaveLength(4);
   const factBundle = bundles.find((b) => b.kind === "self_portrait_fact")!;
   const followUpBundle = bundles.find((b) => b.kind === "follow_up")!;
   const taskNoteBundle = bundles.find((b) => b.kind === "task_note")!;
+  const appointmentBundle = bundles.find((b) => b.kind === "appointment")!;
 
   await page.goto("/login");
   await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
@@ -140,9 +158,13 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
     const taskNoteCard = page.locator(
       `[data-bundle-id="${taskNoteBundle.id}"]`,
     );
+    const appointmentCard = page.locator(
+      `[data-bundle-id="${appointmentBundle.id}"]`,
+    );
     await factCard.getByRole("button", { name: "Confirm" }).click();
     await followUpCard.getByRole("button", { name: "Confirm" }).click();
     await taskNoteCard.getByRole("button", { name: "Dismiss" }).click();
+    await appointmentCard.getByRole("button", { name: "Confirm" }).click();
 
     await expect
       .poll(
@@ -150,7 +172,12 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
           const { data } = await admin
             .from("advisor_capture_bundles")
             .select("id, status")
-            .in("id", [factBundle.id, followUpBundle.id, taskNoteBundle.id]);
+            .in("id", [
+              factBundle.id,
+              followUpBundle.id,
+              taskNoteBundle.id,
+              appointmentBundle.id,
+            ]);
           return (data ?? [])
             .map((row) => row.status)
             .sort()
@@ -158,7 +185,7 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
         },
         { timeout: 30_000 },
       )
-      .toBe("confirmed,confirmed,dismissed");
+      .toBe("confirmed,confirmed,confirmed,dismissed");
 
     const { data: factRows } = await admin
       .from("customer_facts")
@@ -199,6 +226,22 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
       .single();
     expect(dismissedBundle?.linked_note_id).toBeNull();
 
+    const { data: confirmedAppointmentBundle } = await admin
+      .from("advisor_capture_bundles")
+      .select("linked_appointment_id")
+      .eq("id", appointmentBundle.id)
+      .single();
+    expect(confirmedAppointmentBundle?.linked_appointment_id).toBeTruthy();
+
+    const { data: appointmentRows } = await admin
+      .from("appointments")
+      .select("type, starts_at, ends_at, staff_id, status")
+      .eq("id", confirmedAppointmentBundle!.linked_appointment_id!);
+    expect(appointmentRows).toHaveLength(1);
+    expect(appointmentRows?.[0]?.type).toBe("fitting");
+    expect(appointmentRows?.[0]?.staff_id).toBe(staffId);
+    expect(appointmentRows?.[0]?.status).toBe("requested");
+
     // ---- the confirmed follow-up shows in the existing opportunity inbox --
     // one canonical follow-up system, not a second one — and every
     // resolved bundle has genuinely left "needs your review".
@@ -211,6 +254,11 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
 
     proofPassed = true;
   } finally {
+    await admin
+      .from("appointments")
+      .delete()
+      .eq("retailer_id", retailerId)
+      .eq("customer_id", customer.id);
     await admin
       .from("clienteling_opportunities")
       .delete()

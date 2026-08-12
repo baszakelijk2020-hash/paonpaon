@@ -281,6 +281,7 @@ Each bundle has one "kind":
 - "self_portrait_fact": something to remember about the customer's taste or circumstances. payload: {"factType": one of "preference_concept"|"occasion"|"employer"|"industry"|"bonus_month"|"anniversary"|"wedding_date"|"travel_window"|"fit_note"|"fabric_interest"|"colour_interest"|"pattern_interest"|"rejected_concept"|"other", "valueLabel": short string}.
 - "follow_up": a commitment or promise to act later. payload: {"whyNow": short string explaining why this follow-up exists, "suggestedAction": short string of what to do, "dueAt": optional ISO date if a date was mentioned, resolved against the given "as of" date, "channel": optional one of "in_person"|"message"|"email"|"phone"|"appointment"}.
 - "task_note": anything else worth keeping that doesn't fit the above. payload: {"note": short string}.
+- "appointment": the note clearly says to book something with a concrete date/time (not just "follow up sometime"). payload: {"appointmentType": one of "styling_consultation"|"fitting"|"alteration_fitting"|"personal_shopping"|"event", "startsAt": ISO datetime resolved against the given "as of" date, "endsAt": ISO datetime, "notes": optional short string}. If no concrete time is stated, propose "follow_up" instead.
 
 Respond only as JSON: {"bundles": [{"kind": string, "summary": short string, "sourceExcerpt": string, "confidence": number between 0 and 1, "payload": object}]}. Return an empty array if the note has nothing actionable. Never merge two unrelated topics into one bundle.`;
 

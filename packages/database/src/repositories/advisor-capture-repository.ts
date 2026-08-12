@@ -11,6 +11,7 @@
 
 import {
   checkCaptureBundleProposal,
+  type AppointmentPayload,
   type CaptureBundleKind,
   type CaptureBundleProposal,
   type CaptureBundleStatus,
@@ -27,6 +28,7 @@ import {
 import type { PaonSupabaseClient } from "../client-type";
 import type { Database, Json } from "../generated/database.types";
 
+import { AppointmentRepository } from "./appointment-repository";
 import { ClientelingOpportunityRepository } from "./clienteling-opportunity-repository";
 import { ClientelingRepository } from "./clienteling-repository";
 import { CustomerFactRepository } from "./customer-fact-repository";
@@ -60,6 +62,7 @@ export interface AdvisorCaptureBundle {
   readonly linkedFactId: string | null;
   readonly linkedOpportunityId: string | null;
   readonly linkedNoteId: string | null;
+  readonly linkedAppointmentId: string | null;
   readonly createdAt: string;
 }
 
@@ -90,6 +93,7 @@ function bundleToDomain(row: BundleRow): AdvisorCaptureBundle {
     linkedFactId: row.linked_fact_id,
     linkedOpportunityId: row.linked_opportunity_id,
     linkedNoteId: row.linked_note_id,
+    linkedAppointmentId: row.linked_appointment_id,
     createdAt: row.created_at,
   };
 }
@@ -257,6 +261,7 @@ export class AdvisorCaptureRepository {
       readonly linked_fact_id?: string;
       readonly linked_opportunity_id?: string;
       readonly linked_note_id?: string;
+      readonly linked_appointment_id?: string;
     };
     readonly editedPayload?: unknown;
     readonly editedSummary?: string;
@@ -416,21 +421,46 @@ export class AdvisorCaptureRepository {
       return { ok: true, bundle };
     }
 
-    // task_note: kept as a House note against the customer.
-    const note = payload as TaskNotePayload;
-    const created = await new ClientelingRepository(this.client).create({
+    if (kind === "task_note") {
+      const note = payload as TaskNotePayload;
+      const created = await new ClientelingRepository(this.client).create({
+        retailerId: args.retailerId,
+        customerId: args.customerId,
+        authorStaffId: args.staffId,
+        body: note.note,
+        pinned: false,
+      });
+      const bundle = await this.markResolved({
+        retailerId: args.retailerId,
+        bundleId: args.bundleId,
+        staffId: args.staffId,
+        status: "confirmed",
+        link: { linked_note_id: created.id },
+        editedPayload: args.editedPayload,
+        ...(args.editedSummary ? { editedSummary: summary } : {}),
+      });
+      return { ok: true, bundle };
+    }
+
+    // appointment: books directly (same insert AppointmentRepository.create
+    // uses elsewhere in the retailer app), attributed to the confirming
+    // staff member.
+    const appointment = payload as AppointmentPayload;
+    const created = await new AppointmentRepository(this.client).create({
       retailerId: args.retailerId,
       customerId: args.customerId,
-      authorStaffId: args.staffId,
-      body: note.note,
-      pinned: false,
+      staffId: args.staffId,
+      type: appointment.appointmentType as never,
+      startsAt: appointment.startsAt,
+      endsAt: appointment.endsAt,
+      ...(appointment.notes ? { notes: appointment.notes } : {}),
     });
     const bundle = await this.markResolved({
       retailerId: args.retailerId,
       bundleId: args.bundleId,
       staffId: args.staffId,
       status: "confirmed",
-      link: { linked_note_id: created.id },
+      link: { linked_appointment_id: created.id },
       editedPayload: args.editedPayload,
       ...(args.editedSummary ? { editedSummary: summary } : {}),
     });

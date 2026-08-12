@@ -26,8 +26,21 @@ export const CAPTURE_BUNDLE_KINDS = [
   "self_portrait_fact",
   "follow_up",
   "task_note",
+  "appointment",
 ] as const;
 export type CaptureBundleKind = (typeof CAPTURE_BUNDLE_KINDS)[number];
+
+/** Mirrors packages/domain/src/appointments/appointment.ts's AppointmentType
+ * union -- kept local rather than imported to avoid a cross-subdomain
+ * dependency from intelligence/ into appointments/ for one literal check. */
+export const CAPTURE_APPOINTMENT_TYPES = [
+  "styling_consultation",
+  "fitting",
+  "alteration_fitting",
+  "personal_shopping",
+  "event",
+] as const;
+export type CaptureAppointmentType = (typeof CAPTURE_APPOINTMENT_TYPES)[number];
 
 export const CAPTURE_BUNDLE_STATUSES = [
   "proposed",
@@ -52,8 +65,18 @@ export interface TaskNotePayload {
   readonly note: string;
 }
 
+export interface AppointmentPayload {
+  readonly appointmentType: CaptureAppointmentType;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly notes?: string;
+}
+
 export type CaptureBundlePayload =
-  SelfPortraitFactPayload | FollowUpPayload | TaskNotePayload;
+  | SelfPortraitFactPayload
+  | FollowUpPayload
+  | TaskNotePayload
+  | AppointmentPayload;
 
 export interface CaptureBundleProposal {
   readonly kind: CaptureBundleKind;
@@ -78,7 +101,10 @@ export type CaptureBundleCheck =
         | "self_portrait_value_required"
         | "follow_up_why_now_required"
         | "follow_up_suggested_action_required"
-        | "task_note_required";
+        | "task_note_required"
+        | "appointment_type_required"
+        | "appointment_time_range_required"
+        | "appointment_time_range_invalid";
     };
 
 /**
@@ -132,10 +158,23 @@ export function checkCaptureBundleProposal(args: {
     ) {
       return { ok: false, reason: "follow_up_suggested_action_required" };
     }
-  } else {
+  } else if (proposal.kind === "task_note") {
     const payload = proposal.payload as TaskNotePayload;
     if (!payload.note || payload.note.trim().length === 0) {
       return { ok: false, reason: "task_note_required" };
+    }
+  } else {
+    const payload = proposal.payload as AppointmentPayload;
+    if (!CAPTURE_APPOINTMENT_TYPES.includes(payload.appointmentType)) {
+      return { ok: false, reason: "appointment_type_required" };
+    }
+    if (!payload.startsAt || !payload.endsAt) {
+      return { ok: false, reason: "appointment_time_range_required" };
+    }
+    if (
+      new Date(payload.startsAt).getTime() >= new Date(payload.endsAt).getTime()
+    ) {
+      return { ok: false, reason: "appointment_time_range_invalid" };
     }
   }
 

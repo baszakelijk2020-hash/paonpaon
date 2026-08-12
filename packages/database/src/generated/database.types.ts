@@ -369,6 +369,7 @@ export type Database = {
           created_at: string;
           id: string;
           kind: string;
+          linked_appointment_id: string | null;
           linked_fact_id: string | null;
           linked_note_id: string | null;
           linked_opportunity_id: string | null;
@@ -387,6 +388,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           kind: string;
+          linked_appointment_id?: string | null;
           linked_fact_id?: string | null;
           linked_note_id?: string | null;
           linked_opportunity_id?: string | null;
@@ -405,6 +407,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           kind?: string;
+          linked_appointment_id?: string | null;
           linked_fact_id?: string | null;
           linked_note_id?: string | null;
           linked_opportunity_id?: string | null;
@@ -428,6 +431,13 @@ export type Database = {
             columns: ["confirmed_by_staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_linked_appointment_id_fkey";
+            columns: ["linked_appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
             referencedColumns: ["id"];
           },
           {
