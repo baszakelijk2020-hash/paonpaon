@@ -6,6 +6,7 @@ import {
   MessagingRepository,
   NotificationRepository,
   ProductVariantRepository,
+  RetailerStaffRepository,
 } from "@paon/database";
 import {
   APPOINTMENT_TYPE_LABELS,
@@ -90,6 +91,7 @@ export default async function MissionControlPage() {
     pendingProposals,
     notifications,
     lowStockCount,
+    staffMembers,
   ] = await Promise.all([
     new AppointmentRepository(supabase).findByRetailer(session.retailerId),
     new CustomerRepository(supabase).findByRetailer(session.retailerId),
@@ -115,7 +117,16 @@ export default async function MissionControlPage() {
           5,
         )
       : Promise.resolve(0),
+    // Operational coordination: who owns each queued pick, so a manager
+    // scanning the whole retailer's queue (not just their own day) can see
+    // distribution and spot unassigned work, not just its content.
+    retailerRoleAtLeast(session.retailerRole, "sales_associate")
+      ? new RetailerStaffRepository(supabase).findByRetailer(session.retailerId)
+      : Promise.resolve([]),
   ]);
+  const staffNameById = new Map(
+    staffMembers.map((staff) => [staff.id, staff.fullName]),
+  );
   const unreadNotifications = notifications.filter((item) => !item.readAt);
 
   const nameByCustomerId = new Map(
@@ -350,18 +361,29 @@ export default async function MissionControlPage() {
                   key={opportunity.id}
                   className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
                 >
-                  <Link
-                    href={`/customers/${opportunity.customerId}`}
-                    className="block hover:underline"
-                  >
-                    <p className="text-sm font-medium text-[var(--color-stone-900)]">
-                      {nameByCustomerId.get(opportunity.customerId) ?? "Client"}{" "}
-                      · {opportunity.type.replaceAll("_", " ")}
-                    </p>
-                    <p className="mt-1 text-xs text-[var(--color-stone-600)]">
-                      {opportunity.whyNow}
-                    </p>
-                  </Link>
+                  <div className="flex items-start justify-between gap-2">
+                    <Link
+                      href={`/customers/${opportunity.customerId}`}
+                      className="block hover:underline"
+                    >
+                      <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                        {nameByCustomerId.get(opportunity.customerId) ??
+                          "Client"}{" "}
+                        · {opportunity.type.replaceAll("_", " ")}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--color-stone-600)]">
+                        {opportunity.whyNow}
+                      </p>
+                    </Link>
+                    <Badge
+                      tone={opportunity.assignedStaffId ? "neutral" : "warning"}
+                    >
+                      {opportunity.assignedStaffId
+                        ? (staffNameById.get(opportunity.assignedStaffId) ??
+                          "Assigned")
+                        : "Unassigned"}
+                    </Badge>
+                  </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <form action={acceptOpportunity.bind(null, opportunity.id)}>
                       <Button type="submit" size="sm">
