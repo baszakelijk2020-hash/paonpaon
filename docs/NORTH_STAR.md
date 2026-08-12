@@ -77,10 +77,15 @@ and outcome capture. Every other module depends on this foundation.
 
 ### 2. Client and Relationship Intelligence
 
-**Self-Portrait** is PAON's canonical customer-profile name: one customer-
-correctable House Memory shared by advisor preparation and Mission Control,
-not a parallel profile product. This highest-priority relationship module also
-holds appointments, conversations, preferences, milestones, promises,
+**Self-Portrait** (the customer intelligence/profile concept: one customer-
+correctable House Memory of facts, preferences, evidence and history) and
+**Mission Control** (the employee operating cockpit that reads that House
+Memory, prioritizes what matters, coordinates work, acts and captures
+outcomes) are two distinct concepts sharing one data spine — not a merged
+screen and not two parallel profile products. Mission Control is PAON's
+primary product moat and highest-priority product outcome; Self-Portrait is
+the House Memory it operates on. This highest-priority relationship module
+also holds appointments, conversations, preferences, milestones, promises,
 messaging, explainable recommendations, quick capture and outcomes.
 
 ### 3. Wardrobe and Styling Intelligence
@@ -216,6 +221,25 @@ rather than a generic form.
   are proof lanes throughout the build, not an excuse for disconnected breadth
   or an indefinite stop on later modules.
 
-See [VISION.md](./VISION.md) for the product thesis, [PRODUCT.md](./PRODUCT.md)
-for current surfaces and boundaries, and [PHASE.md](./PHASE.md) for the only
-authorized work order.
+## Authority
+
+```text
+Founder decision register (FOUNDER_TOOL_BLUEPRINTS.md)
+  -> canonical founder product interpretation; supersedes conflicting
+     FT detail, PHASE items and source-copy language elsewhere
+NORTH_STAR.md
+  -> product destination and thesis
+CAPABILITY_DISPOSITION.md
+  -> classification of inherited capability (Keep/Harden/Consolidate/
+     Replace/Quarantine/Park/Delete); a classification, not a queue
+PHASE.md
+  -> the only authorized execution queue
+Code, migrations, tests
+  -> factual implementation truth; never authority to reactivate
+     parked or deleted scope on their own
+```
+
+No unchecked historical `PHASE.md` item, and no landed code, overrides a
+newer founder decision. See [VISION.md](./VISION.md) for the product thesis,
+[PRODUCT.md](./PRODUCT.md) for current surfaces and boundaries, and
+[PHASE.md](./PHASE.md) for the only authorized work order.

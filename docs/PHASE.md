@@ -246,6 +246,18 @@ legacy item may be resumed without the module mapping required by R0.3.**
     but cannot be checked complete while this dependency remains open.
 
 - [ ] **R0.2 Atomic money and stock invariants**
+  - **PARKED (founder decision, 2026-08-12): non-selectable.** Production,
+    stock and supplier operations — including POS, tender, returns and stock
+    ledger expansion — are parked per the founder decision register in
+    `FOUNDER_TOOL_BLUEPRINTS.md` and `CAPABILITY_DISPOSITION.md` 13.1–13.3.
+    The verified local implementation below is preserved as factual history
+    and remains eligible for maintenance/security/data-integrity fixes that
+    protect existing correctness (e.g. keeping `count_inventory_disagreements()`
+    at zero). It is not an active feature-expansion/build lane: no agent may
+    select R0.1's external dependency, the founder cash decision, or "further
+    generic stock write-surface consolidation" as build work from this item
+    unless the founder explicitly reactivates production/stock/supplier
+    operations. The unchecked box reflects that dependency, not open work.
   - **Dependencies:** R0.1.
   - **Acceptance:** POS completion, tender, stock ledger, return and reversal
     use transactional database boundaries; caller intent cannot be silently
@@ -6672,6 +6684,9 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     in a real browser.
 
 - [ ] **18.9 Parked — vague corporate analytics and renewal engine**
+  - **Founder scope override (2026-08-12):** non-selectable as a generic
+    analytics/renewal build lane; concrete opportunity-signal work below
+    remains active.
   - **Status:** `parked_pending_concrete_manager_job`. Retain the existing
     cited metrics/history, but do not extend a generic analytics or renewal
     product. The active corporate intelligence work is concrete opportunity

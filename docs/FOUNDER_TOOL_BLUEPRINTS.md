@@ -342,7 +342,12 @@ low-confidence, offline draft, idempotent duplicate-submit refusal).
 
 > **Status: CONSOLIDATED INTO FT-04.** The following historical work must not
 > be extended as an individual-analysis product. Only the editable,
-> non-diagnostic FitTools aid belongs in the alteration workflow.
+> non-diagnostic FitTools aid belongs in the alteration workflow. The
+> "Source and experience" byte-for-byte fidelity description below is
+> retained as historical implementation record, not a binding requirement
+> for any future work inside FT-04: the 2026-08-12 founder decision register
+> governs, and it treats external designs as behavioural/hierarchy/quality
+> references, never a copy mandate, unless expressly authorized.
 
 **Source and experience.** Port the `nbs-silhouette-widget-a91k` Level 1
 scroll/snap carousel from `pag1.html`: video/image cards, centred active-card
@@ -793,7 +798,12 @@ for-date suppression, each asserting the exact RPC calls made.
 
 > **Status: CONSOLIDATED INTO VIRTUAL WARDROBE STUDIO.** Retain only the
 > reusable choice/proposal primitives; do not extend a separate configurator
-> roadmap or promise production write-back.
+> roadmap or promise production write-back. The "Source and experience"
+> byte-for-byte fidelity description below is retained as historical
+> implementation record, not a binding requirement for any future work
+> inside Virtual Wardrobe Studio: the 2026-08-12 founder decision register
+> governs, and it treats external designs as behavioural/hierarchy/quality
+> references, never a copy mandate, unless expressly authorized.
 
 **Source and experience.** Port `pag1.html`'s three synchronized carousels and
 snap/crossfade behaviour. The source choices include Notch/Peak/Shawl lapels;
