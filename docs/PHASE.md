@@ -144,6 +144,33 @@ quality-checkpoint attribution distinct from custody, and alteration-specific
 customer communication threaded into the Communication Centre — remain real,
 unattempted gaps.
 
+**Status (2026-08-12, item 6, second slice):** closes the named
+"alteration-specific customer communication threaded into the
+Communication Centre" gap. `alteration_work_orders.customer_notified_at`/
+`customer_notification_ready_at` have existed since the garment-first
+alterations foundation but nothing ever wrote to them — a customer-visible
+status transition (quote ready, ready for pickup, completed, canceled)
+never actually reached the customer anywhere, despite the existing "Add
+update" form's customer-visible checkbox implying it did. Migration
+`20260812000030_add_alteration_customer_notify.sql` adds a narrow
+`mark_alteration_customer_notified` RPC gated by the same
+`can_access_alteration_work_order` check `transition_alteration_work_order`
+already uses.
+`AlterationUpdateRepository.notifyCustomer` threads the update into the
+customer's existing conversation through the same
+`get_or_create_staff_conversation`/`send_conversation_message` RPCs every
+other staff-to-customer message already goes through — one messaging
+system, not a second one — and stamps `customer_notified_at`; a role that
+cannot message customers (worker, workshop_manager, production_staff)
+fails that RPC and the notify step quietly no-ops rather than blocking the
+status transition, which has already succeeded by the time it runs.
+Proof: two new `AlterationUpdateRepository` unit tests and a new browser
+journey in `alteration-add-task.spec.ts` — an owner marks a work order
+customer-visibly quoted and the real message body plus
+`customer_notified_at` are asserted via direct DB read. Quality-checkpoint
+attribution distinct from custody remains the one real, unattempted gap
+named above.
+
 The two founder-described "Chinese wall" workstreams are explicitly not part
 of this active priority. Do not select, expand or use them to displace the four
 Mission Control capabilities above without a new founder instruction.
