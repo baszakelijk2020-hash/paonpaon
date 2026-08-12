@@ -206,6 +206,21 @@ appears.
 Do not select new feature expansion ahead of executable work that makes
 existing committed capabilities production-ready.
 
+**Status (2026-08-12, Decision intelligence):** component 3 of the seven
+named above ("a ranked, explainable why-now/what-next view with
+evidence, uncertainty, policy, customer benefit and commercial impact
+visible to the advisor") was already fully rendered on the per-customer
+opportunity inbox (`customers/[id]/clienteling-opportunity-inbox.tsx`:
+priority, confidence %, cited evidence) but stripped down to just the
+"why now" headline on Mission Control's own cross-retailer "Priority
+tasks" card — the same `ClientelingOpportunity` data, missing its own
+evidence/confidence on the page whose entire job is ranked
+explainability. No new schema or repository method needed; this mirrors
+the existing inbox's exact render rather than inventing a second
+pattern. Proof: extends the existing priority-task browser journey in
+`mission-control.spec.ts` with seeded confidence/evidence/priority,
+asserting all three render before the task is accepted.
+
 Queue selection must apply the Product-readiness convergence gate in
 `AGENTS.md`.
 
