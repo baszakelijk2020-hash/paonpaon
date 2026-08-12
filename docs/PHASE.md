@@ -4722,6 +4722,21 @@ now.
     `docs/evidence/tranches/17.1.json` records the full ten-dimension
     evidence map; `docs/evidence/runs/17.1.json` records the passing run
     at `5242f66`. Checkbox now checked.
+  - **Status (2026-08-12, Mission Control input-to-actions):** the
+    founder's "input to confirmed actions" build order names
+    task/contact/appointment/proposal/fitting/care/follow-up bundles;
+    this item covered only three (fact, follow-up, task note). Adds
+    "appointment" as a fourth confirmable kind: migration
+    `20260812000020` adds `advisor_capture_bundles.linked_appointment_id`
+    and widens the kind check; `checkCaptureBundleProposal` gates it on a
+    valid `appointment_type` and `startsAt < endsAt` before an advisor
+    ever sees it; `confirmBundle` books it through the same
+    `AppointmentRepository.create` the rest of the retailer app already
+    uses. Proof: `advisor-capture.spec.ts` extended with a fourth
+    proposal (fitting, concrete time) confirmed alongside the existing
+    three, asserting `appointments.type`/`staff_id`/`status` and the
+    bundle's `linked_appointment_id`. Contact/proposal/fitting(-as-
+    distinct-from-appointment)/care bundle kinds remain open.
 
 - [x] **17.2 Mission Control unified brief**
   - **Requirement IDs:** ADV-102.
