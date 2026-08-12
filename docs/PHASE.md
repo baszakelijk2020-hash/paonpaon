@@ -221,6 +221,22 @@ pattern. Proof: extends the existing priority-task browser journey in
 `mission-control.spec.ts` with seeded confidence/evidence/priority,
 asserting all three render before the task is accepted.
 
+**Status (2026-08-12, Operational coordination):** component 5 of the
+seven named above ("owner, manager and advisor views; queues,
+assignment, status, follow-through, escalation and cross-branch
+operation") had `clienteling_opportunities.assigned_staff_id` already
+actively written (on creation) and already read elsewhere
+(`staff/today/page.tsx`'s `listOpenAssignedToStaff`, a staff member's
+own day), but Mission Control's own cross-retailer "Priority tasks"
+queue never showed it — a manager scanning the whole queue could not
+tell distributed work from unclaimed work. Adds a staff-name lookup to
+the existing data fetch and an "Assigned to {name}"/"Unassigned" badge
+per card; no new schema or write path. Escalation and cross-branch
+operation remain real, unattempted gaps — escalation in particular has
+no existing schema at all and would need a genuine design decision, not
+a wiring fix. A reassign action from Mission Control itself is a
+natural next step but is a new write surface, out of this slice.
+
 Queue selection must apply the Product-readiness convergence gate in
 `AGENTS.md`.
 

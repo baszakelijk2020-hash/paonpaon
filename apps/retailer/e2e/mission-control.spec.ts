@@ -102,6 +102,36 @@ test.describe.serial("mission control", () => {
       .single();
     if (opportunityError || !opportunity) throw opportunityError;
 
+    // Operational coordination: an assigned pick must show who owns it, not
+    // just an unassigned one, so a manager can tell distributed queue work
+    // apart from unclaimed work at a glance.
+    const { data: ownerStaff } = await admin
+      .from("retailer_staff_members")
+      .select("id, full_name")
+      .eq("retailer_id", retailerId)
+      .eq("email", TEST_OWNER_EMAIL)
+      .single();
+    if (!ownerStaff) throw new Error("owner staff record missing");
+    const { data: assignedOpportunity, error: assignedOpportunityError } =
+      await admin
+        .from("clienteling_opportunities")
+        .insert({
+          retailer_id: retailerId,
+          customer_id: customer.id,
+          opportunity_type: "interest_follow_up",
+          why_now: `E2E assigned why-now ${unique}`,
+          suggested_action: `E2E assigned suggested action ${unique}`,
+          channel: "in_person",
+          status: "draft",
+          assigned_staff_id: ownerStaff.id,
+          projector_version: "clienteling-opportunity-v1",
+        })
+        .select("id")
+        .single();
+    if (assignedOpportunityError || !assignedOpportunity) {
+      throw assignedOpportunityError;
+    }
+
     try {
       await page.goto("/mission-control");
       await expect(
@@ -130,6 +160,13 @@ test.describe.serial("mission control", () => {
       await expect(
         opportunityCard.getByText(`E2E cited evidence ${unique}`),
       ).toBeVisible();
+      await expect(opportunityCard.getByText("Unassigned")).toBeVisible();
+
+      const assignedCard = page.locator("li", {
+        hasText: `E2E assigned why-now ${unique}`,
+      });
+      await expect(assignedCard.getByText(ownerStaff.full_name)).toBeVisible();
+
       await opportunityCard.getByRole("button", { name: "Accept" }).click();
       await expect(opportunityCard).toHaveCount(0);
 
@@ -145,7 +182,7 @@ test.describe.serial("mission control", () => {
       await admin
         .from("clienteling_opportunities")
         .delete()
-        .eq("id", opportunity.id);
+        .in("id", [opportunity.id, assignedOpportunity.id]);
       await admin.from("appointments").delete().eq("id", appointment.id);
       await admin.from("customers").delete().eq("id", customer.id);
     }
