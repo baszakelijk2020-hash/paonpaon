@@ -157,6 +157,25 @@ cross-module decisions, integration and independent acceptance. Every Mission
 Control slice must state its worker tier, owned paths, acceptance proof and
 the exact returned House Memory outcome before implementation begins.
 
+**Status (2026-08-12, Outcome learning):** component 6 of the seven named
+above ("results, corrections, customer response, conversion, service
+outcome and advisor judgement flow back into House Memory with
+attributable evidence") had real, actively-written infrastructure with
+nothing reading it back: `ClientelingOpportunityRepository.linkOutcome`
+sets `outcome_message_id`/`outcome_appointment_id`/`outcome_order_id`
+when a campaign mission converts, but Mission Control only ever queried
+draft opportunities (`listDraftInbox`) — a completed pick's actual
+result was invisible anywhere in the product. Adds
+`listRecentOutcomes` (completed status, at least one outcome link set,
+most recent first) and a "Recent outcomes" card on `/mission-control`
+showing what happened — order placed, appointment booked, or message
+sent — linked to the real object; a completed opportunity with no
+outcome link is excluded, since it closed without anything to learn
+from. Proof: a new repository unit test and a browser journey seeding
+one completed opportunity with a real order outcome and one with none,
+asserting the first renders with a working link and the second never
+appears.
+
 Do not select new feature expansion ahead of executable work that makes
 existing committed capabilities production-ready.
 
