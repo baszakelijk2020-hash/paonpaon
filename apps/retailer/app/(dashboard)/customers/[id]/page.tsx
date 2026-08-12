@@ -275,10 +275,15 @@ export default async function CustomerDetailPage({
     session.retailerRole,
     "sales_associate",
   );
+  const opportunityRepo = new ClientelingOpportunityRepository(supabase);
+  if (canManage) {
+    await opportunityRepo.syncAnniversaryMomentsForCustomer({
+      retailerId: session.retailerId,
+      customerId: customer.id,
+    });
+  }
   const opportunities = canManage
-    ? await new ClientelingOpportunityRepository(
-        supabase,
-      ).syncInterestDraftsForCustomer({
+    ? await opportunityRepo.syncInterestDraftsForCustomer({
         retailerId: session.retailerId,
         customerId: customer.id,
         viewerRetailerId: session.retailerId,
