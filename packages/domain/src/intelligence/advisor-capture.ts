@@ -27,12 +27,15 @@ export const CAPTURE_BUNDLE_KINDS = [
   "follow_up",
   "task_note",
   "appointment",
+  "care_booking",
 ] as const;
 export type CaptureBundleKind = (typeof CAPTURE_BUNDLE_KINDS)[number];
 
 /** Mirrors packages/domain/src/appointments/appointment.ts's AppointmentType
  * union -- kept local rather than imported to avoid a cross-subdomain
- * dependency from intelligence/ into appointments/ for one literal check. */
+ * dependency from intelligence/ into appointments/ for one literal check.
+ * "Fitting" is deliberately not a separate capture-bundle kind: PAON has
+ * no lighter-weight fitting object than an appointment of this type. */
 export const CAPTURE_APPOINTMENT_TYPES = [
   "styling_consultation",
   "fitting",
@@ -41,6 +44,27 @@ export const CAPTURE_APPOINTMENT_TYPES = [
   "event",
 ] as const;
 export type CaptureAppointmentType = (typeof CAPTURE_APPOINTMENT_TYPES)[number];
+
+/** Mirrors packages/domain/src/concierge/service-plan.ts's
+ * SERVICE_BOOKING_KINDS -- kept local for the same reason as
+ * CAPTURE_APPOINTMENT_TYPES above. Booking requires an active
+ * ServiceMembership (HighMaintenance/Preferred Tailoring); a customer
+ * with none fails at confirm time with a distinct, explained reason
+ * rather than silently creating an unrelated object. */
+export const CAPTURE_CARE_BOOKING_KINDS = [
+  "planning",
+  "wardrobe_review",
+  "pressing",
+  "cleaning",
+  "repair",
+  "collection",
+  "delivery",
+  "size_check",
+  "button_check",
+  "care",
+] as const;
+export type CaptureCareBookingKind =
+  (typeof CAPTURE_CARE_BOOKING_KINDS)[number];
 
 export const CAPTURE_BUNDLE_STATUSES = [
   "proposed",
@@ -72,11 +96,18 @@ export interface AppointmentPayload {
   readonly notes?: string;
 }
 
+export interface CareBookingPayload {
+  readonly bookingKind: CaptureCareBookingKind;
+  readonly requestedFor?: string;
+  readonly notes?: string;
+}
+
 export type CaptureBundlePayload =
   | SelfPortraitFactPayload
   | FollowUpPayload
   | TaskNotePayload
-  | AppointmentPayload;
+  | AppointmentPayload
+  | CareBookingPayload;
 
 export interface CaptureBundleProposal {
   readonly kind: CaptureBundleKind;
@@ -104,7 +135,9 @@ export type CaptureBundleCheck =
         | "task_note_required"
         | "appointment_type_required"
         | "appointment_time_range_required"
-        | "appointment_time_range_invalid";
+        | "appointment_time_range_invalid"
+        | "care_booking_kind_required"
+        | "care_booking_requested_for_invalid";
     };
 
 /**
@@ -163,7 +196,7 @@ export function checkCaptureBundleProposal(args: {
     if (!payload.note || payload.note.trim().length === 0) {
       return { ok: false, reason: "task_note_required" };
     }
-  } else {
+  } else if (proposal.kind === "appointment") {
     const payload = proposal.payload as AppointmentPayload;
     if (!CAPTURE_APPOINTMENT_TYPES.includes(payload.appointmentType)) {
       return { ok: false, reason: "appointment_type_required" };
@@ -175,6 +208,17 @@ export function checkCaptureBundleProposal(args: {
       new Date(payload.startsAt).getTime() >= new Date(payload.endsAt).getTime()
     ) {
       return { ok: false, reason: "appointment_time_range_invalid" };
+    }
+  } else {
+    const payload = proposal.payload as CareBookingPayload;
+    if (!CAPTURE_CARE_BOOKING_KINDS.includes(payload.bookingKind)) {
+      return { ok: false, reason: "care_booking_kind_required" };
+    }
+    if (
+      payload.requestedFor !== undefined &&
+      Number.isNaN(new Date(payload.requestedFor).getTime())
+    ) {
+      return { ok: false, reason: "care_booking_requested_for_invalid" };
     }
   }
 

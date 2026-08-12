@@ -336,6 +336,8 @@ export interface BundleActionState {
 const CONFIRM_REJECTION_MESSAGES: Record<string, string> = {
   not_found: "That suggestion could not be found.",
   already_resolved: "That suggestion was already confirmed or dismissed.",
+  no_active_membership:
+    "This customer has no active HighMaintenance/Preferred Tailoring membership to book care against.",
 };
 
 export async function confirmCaptureBundle(

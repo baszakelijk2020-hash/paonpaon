@@ -40,6 +40,7 @@ const KIND_LABELS: Record<AdvisorCaptureBundle["kind"], string> = {
   follow_up: "Follow-up",
   task_note: "Note",
   appointment: "Appointment",
+  care_booking: "Care booking",
 };
 
 function summarizePayload(bundle: AdvisorCaptureBundle): string {
@@ -62,6 +63,13 @@ function summarizePayload(bundle: AdvisorCaptureBundle): string {
       endsAt: string;
     };
     return `${payload.appointmentType.replaceAll("_", " ")} — ${new Date(payload.startsAt).toLocaleString()}`;
+  }
+  if (bundle.kind === "care_booking") {
+    const payload = bundle.payload as {
+      bookingKind: string;
+      requestedFor?: string;
+    };
+    return `${payload.bookingKind.replaceAll("_", " ")}${payload.requestedFor ? ` — requested for ${new Date(payload.requestedFor).toLocaleString()}` : ""}`;
   }
   const payload = bundle.payload as { note: string };
   return payload.note;

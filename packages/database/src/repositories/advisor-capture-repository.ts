@@ -16,6 +16,7 @@ import {
   type CaptureBundleProposal,
   type CaptureBundleStatus,
   type CaptureSource,
+  type CareBookingPayload,
   type CustomerId,
   type FollowUpPayload,
   type MessageId,
@@ -32,6 +33,7 @@ import { AppointmentRepository } from "./appointment-repository";
 import { ClientelingOpportunityRepository } from "./clienteling-opportunity-repository";
 import { ClientelingRepository } from "./clienteling-repository";
 import { CustomerFactRepository } from "./customer-fact-repository";
+import { ServicePlanRepository } from "./service-plan-repository";
 
 type SessionRow =
   Database["public"]["Tables"]["advisor_capture_sessions"]["Row"];
@@ -63,6 +65,7 @@ export interface AdvisorCaptureBundle {
   readonly linkedOpportunityId: string | null;
   readonly linkedNoteId: string | null;
   readonly linkedAppointmentId: string | null;
+  readonly linkedServiceBookingId: string | null;
   readonly createdAt: string;
 }
 
@@ -94,6 +97,7 @@ function bundleToDomain(row: BundleRow): AdvisorCaptureBundle {
     linkedOpportunityId: row.linked_opportunity_id,
     linkedNoteId: row.linked_note_id,
     linkedAppointmentId: row.linked_appointment_id,
+    linkedServiceBookingId: row.linked_service_booking_id,
     createdAt: row.created_at,
   };
 }
@@ -106,7 +110,8 @@ export type ConfirmBundleResult =
         | "not_found"
         | "already_resolved"
         | "customer_mismatch"
-        | "invalid_proposal";
+        | "invalid_proposal"
+        | "no_active_membership";
     };
 
 export class AdvisorCaptureRepository {
@@ -262,6 +267,7 @@ export class AdvisorCaptureRepository {
       readonly linked_opportunity_id?: string;
       readonly linked_note_id?: string;
       readonly linked_appointment_id?: string;
+      readonly linked_service_booking_id?: string;
     };
     readonly editedPayload?: unknown;
     readonly editedSummary?: string;
@@ -442,25 +448,59 @@ export class AdvisorCaptureRepository {
       return { ok: true, bundle };
     }
 
-    // appointment: books directly (same insert AppointmentRepository.create
-    // uses elsewhere in the retailer app), attributed to the confirming
-    // staff member.
-    const appointment = payload as AppointmentPayload;
-    const created = await new AppointmentRepository(this.client).create({
-      retailerId: args.retailerId,
-      customerId: args.customerId,
-      staffId: args.staffId,
-      type: appointment.appointmentType as never,
-      startsAt: appointment.startsAt,
-      endsAt: appointment.endsAt,
-      ...(appointment.notes ? { notes: appointment.notes } : {}),
+    if (kind === "appointment") {
+      // Books directly (same insert AppointmentRepository.create uses
+      // elsewhere in the retailer app), attributed to the confirming
+      // staff member.
+      const appointment = payload as AppointmentPayload;
+      const created = await new AppointmentRepository(this.client).create({
+        retailerId: args.retailerId,
+        customerId: args.customerId,
+        staffId: args.staffId,
+        type: appointment.appointmentType as never,
+        startsAt: appointment.startsAt,
+        endsAt: appointment.endsAt,
+        ...(appointment.notes ? { notes: appointment.notes } : {}),
+      });
+      const bundle = await this.markResolved({
+        retailerId: args.retailerId,
+        bundleId: args.bundleId,
+        staffId: args.staffId,
+        status: "confirmed",
+        link: { linked_appointment_id: created.id },
+        editedPayload: args.editedPayload,
+        ...(args.editedSummary ? { editedSummary: summary } : {}),
+      });
+      return { ok: true, bundle };
+    }
+
+    // care_booking: requires an active service membership (HighMaintenance/
+    // Preferred Tailoring) -- there is no canonical care object without
+    // one, so this fails with a distinct, explained reason rather than
+    // silently creating something unrelated when none exists.
+    const care = payload as CareBookingPayload;
+    const memberships = await new ServicePlanRepository(
+      this.client,
+    ).listMembershipsForCustomer(args.customerId);
+    const activeMembership = memberships.find((m) => m.status === "active");
+    if (!activeMembership) {
+      return { ok: false, reason: "no_active_membership" };
+    }
+    const bookingId = await new ServicePlanRepository(
+      this.client,
+    ).requestBooking({
+      membershipId: activeMembership.id,
+      kind: care.bookingKind,
+      idempotencyKey: `advisor-capture-bundle:${args.bundleId}`,
+      ...(care.requestedFor ? { requestedFor: care.requestedFor } : {}),
+      ...(care.notes ? { notes: care.notes } : {}),
     });
     const bundle = await this.markResolved({
       retailerId: args.retailerId,
       bundleId: args.bundleId,
       staffId: args.staffId,
       status: "confirmed",
-      link: { linked_appointment_id: created.id },
+      link: { linked_service_booking_id: bookingId },
       editedPayload: args.editedPayload,
       ...(args.editedSummary ? { editedSummary: summary } : {}),
     });

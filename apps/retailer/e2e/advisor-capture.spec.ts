@@ -60,7 +60,39 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
     lifecycleStage: "prospect",
   });
 
-  const rawText = `Mr ${customer.fullName.split(" ").pop()} loves black oxford shoes ${unique}. Promised to call him Friday when the linen jackets arrive ${unique}. Also mentioned he collects vintage watches ${unique}. Wants to book a fitting next Tuesday at 2pm ${unique}.`;
+  // care_booking needs an active service membership -- seed a HighMaintenance
+  // plan and enroll this customer directly (upsert_service_plan/
+  // enroll_service_membership check current_retailer_id() against an
+  // authenticated staff session, which the admin/service_role client used
+  // for fixture setup throughout this file does not have) so confirming
+  // that bundle has something real to book against.
+  const { data: plan } = await admin
+    .from("service_plans")
+    .insert({
+      retailer_id: retailerId,
+      kind: "high_maintenance",
+      status: "active",
+      title: `E2E HighMaintenance ${unique}`,
+      summary: "Fixture plan for advisor-capture care_booking proof.",
+      explanation: "Fixture plan for advisor-capture care_booking proof.",
+    })
+    .select("id")
+    .single();
+  if (!plan) throw new Error("failed to seed service plan");
+  const { data: membership } = await admin
+    .from("service_memberships")
+    .insert({
+      plan_id: plan.id,
+      retailer_id: retailerId,
+      customer_id: customer.id,
+      status: "active",
+    })
+    .select("id")
+    .single();
+  if (!membership) throw new Error("failed to seed service membership");
+  const membershipId = membership.id;
+
+  const rawText = `Mr ${customer.fullName.split(" ").pop()} loves black oxford shoes ${unique}. Promised to call him Friday when the linen jackets arrive ${unique}. Also mentioned he collects vintage watches ${unique}. Wants to book a fitting next Tuesday at 2pm ${unique}. Also asked for the navy suit to be pressed before he collects it ${unique}.`;
   const appointmentStartsAt = new Date(
     Date.now() + 7 * 24 * 60 * 60 * 1000,
   ).toISOString();
@@ -120,13 +152,22 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
           endsAt: appointmentEndsAt,
         },
       },
+      {
+        kind: "care_booking",
+        summary: "Press the navy suit before collection",
+        sourceExcerpt:
+          "asked for the navy suit to be pressed before he collects it",
+        confidence: 0.75,
+        payload: { bookingKind: "pressing" },
+      },
     ],
   });
-  expect(bundles).toHaveLength(4);
+  expect(bundles).toHaveLength(5);
   const factBundle = bundles.find((b) => b.kind === "self_portrait_fact")!;
   const followUpBundle = bundles.find((b) => b.kind === "follow_up")!;
   const taskNoteBundle = bundles.find((b) => b.kind === "task_note")!;
   const appointmentBundle = bundles.find((b) => b.kind === "appointment")!;
+  const careBookingBundle = bundles.find((b) => b.kind === "care_booking")!;
 
   await page.goto("/login");
   await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
@@ -161,10 +202,14 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
     const appointmentCard = page.locator(
       `[data-bundle-id="${appointmentBundle.id}"]`,
     );
+    const careBookingCard = page.locator(
+      `[data-bundle-id="${careBookingBundle.id}"]`,
+    );
     await factCard.getByRole("button", { name: "Confirm" }).click();
     await followUpCard.getByRole("button", { name: "Confirm" }).click();
     await taskNoteCard.getByRole("button", { name: "Dismiss" }).click();
     await appointmentCard.getByRole("button", { name: "Confirm" }).click();
+    await careBookingCard.getByRole("button", { name: "Confirm" }).click();
 
     await expect
       .poll(
@@ -177,6 +222,7 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
               followUpBundle.id,
               taskNoteBundle.id,
               appointmentBundle.id,
+              careBookingBundle.id,
             ]);
           return (data ?? [])
             .map((row) => row.status)
@@ -185,7 +231,7 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
         },
         { timeout: 30_000 },
       )
-      .toBe("confirmed,confirmed,confirmed,dismissed");
+      .toBe("confirmed,confirmed,confirmed,confirmed,dismissed");
 
     const { data: factRows } = await admin
       .from("customer_facts")
@@ -241,6 +287,22 @@ test("advisor capture reviews AI-proposed bundles: confirming writes the Self-Po
     expect(appointmentRows?.[0]?.type).toBe("fitting");
     expect(appointmentRows?.[0]?.staff_id).toBe(staffId);
     expect(appointmentRows?.[0]?.status).toBe("requested");
+
+    const { data: confirmedCareBookingBundle } = await admin
+      .from("advisor_capture_bundles")
+      .select("linked_service_booking_id")
+      .eq("id", careBookingBundle.id)
+      .single();
+    expect(confirmedCareBookingBundle?.linked_service_booking_id).toBeTruthy();
+
+    const { data: bookingRows } = await admin
+      .from("service_bookings")
+      .select("kind, status, membership_id")
+      .eq("id", confirmedCareBookingBundle!.linked_service_booking_id!);
+    expect(bookingRows).toHaveLength(1);
+    expect(bookingRows?.[0]?.kind).toBe("pressing");
+    expect(bookingRows?.[0]?.status).toBe("requested");
+    expect(bookingRows?.[0]?.membership_id).toBe(membershipId);
 
     // ---- the confirmed follow-up shows in the existing opportunity inbox --
     // one canonical follow-up system, not a second one — and every

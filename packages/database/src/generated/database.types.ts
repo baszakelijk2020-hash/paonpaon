@@ -373,6 +373,7 @@ export type Database = {
           linked_fact_id: string | null;
           linked_note_id: string | null;
           linked_opportunity_id: string | null;
+          linked_service_booking_id: string | null;
           proposed_payload: Json;
           retailer_id: string;
           source_excerpt: string;
@@ -392,6 +393,7 @@ export type Database = {
           linked_fact_id?: string | null;
           linked_note_id?: string | null;
           linked_opportunity_id?: string | null;
+          linked_service_booking_id?: string | null;
           proposed_payload: Json;
           retailer_id: string;
           source_excerpt: string;
@@ -411,6 +413,7 @@ export type Database = {
           linked_fact_id?: string | null;
           linked_note_id?: string | null;
           linked_opportunity_id?: string | null;
+          linked_service_booking_id?: string | null;
           proposed_payload?: Json;
           retailer_id?: string;
           source_excerpt?: string;
@@ -438,6 +441,13 @@ export type Database = {
             columns: ["linked_appointment_id"];
             isOneToOne: false;
             referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_linked_service_booking_id_fkey";
+            columns: ["linked_service_booking_id"];
+            isOneToOne: false;
+            referencedRelation: "service_bookings";
             referencedColumns: ["id"];
           },
           {
