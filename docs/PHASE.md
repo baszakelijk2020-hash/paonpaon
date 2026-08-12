@@ -4551,6 +4551,19 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     selection UI, DailyBriefing, MunroMentor, and the consultancy project
     workflow — all still domain-and-schema-only with no UI. Licensed media
     stays `blocked_external` for that content only, unchanged.
+  - **Founder scope addition (2026-08-12), not yet built — Academy module
+    content.** Staff modules are concrete, not a generic LMS: fabric
+    fundamentals (Super 100s/120s/150s — what the number does and does not
+    mean), fused vs half-canvas vs full-canvas construction, fit and
+    silhouette, product/occasion knowledge, and a practice space where an
+    employee shapes and rehearses their own delivery of these concepts
+    (this is what the existing roleplay/coaching loop above already grades
+    against). Approved fragments of the same governed knowledge surface as
+    small expandable cards on the customer storefront — authority and
+    education for the customer, not a duplicate content system. Strategic
+    goal named directly by the founder: raising the floor across an entire
+    workforce (their example: ~200 employees at a single retailer) is a
+    moat competitors copying features cannot easily replicate.
 
 - [ ] **16.2 Media and future-products incubation**
   - **Requirement IDs:** `KNW-105`, `NET-103`.

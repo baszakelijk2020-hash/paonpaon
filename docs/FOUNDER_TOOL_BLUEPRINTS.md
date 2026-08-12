@@ -586,6 +586,18 @@ are proven.
 
 ## FT-05 — Mission Control and Self-Portrait
 
+**These are two distinct concepts that share one data spine, not one feature
+under two names.** Mission Control is the **employee** operating
+environment — the staff cockpit of work, opportunities, appointments,
+communication, alteration follow-ups and intelligence described below.
+Self-Portrait is the **customer** intelligence/profile concept — the
+customer-correctable House Memory of facts, preferences and evidence.
+Mission Control reads and acts on Self-Portrait; it does not replace it, and
+Self-Portrait is not itself a staff dashboard. Where existing text below
+uses the combined heading for brevity, it still means "the staff cockpit,
+built against the customer's Self-Portrait data" — never a single merged
+screen with no distinction between who it is for.
+
 **Source and experience.** `pag1.html`'s Mission Control/Self-Portrait cockpit
 is the choreography authority: a focused client command surface that combines
 identity, RTW/MTM interest, evidence, next action and later “For You” use. It
@@ -596,7 +608,13 @@ source-specific content with live House state.
 **PAON job.** This is the staff expression of House Memory and Advisor Today:
 answer who needs attention, why now, what is known versus inferred, what was
 promised, what the wardrobe/garment state is, and what action can be completed
-now. Outcomes immediately improve the next preparation.
+now. Outcomes immediately improve the next preparation. It also owns the
+physical-store feedback loop (see `CAPABILITY_DISPOSITION.md` 16.4): a
+salesperson selects a collection/product item and records recurring
+customer feedback against it, routed to the right leadership audience —
+this is Mission Control input, not a separate instrumented-store product.
+A proper desktop cockpit is required alongside the existing mobile
+direction; this is not a mobile-only tool.
 
 **Actors, module and tier.** Advisor sees assigned/permitted clients; manager
 sees team/House exceptions; production sees only relevant garment promises;
@@ -993,6 +1011,21 @@ Proposal/cart creation path (requires Commerce module wiring beyond this
 slice's scope). Async malware/quarantine service (state is `basic_validated`),
 attachment progress, consent withdrawal/retention proof, and AI citation proof
 (blocked on external providers per project backlog).
+
+**Unified remote proposal — specified, not built (2026-08-12 founder
+addition).** An advisor turns a remote conversation into one concrete
+decision artifact rather than leaving the customer to re-derive a decision
+from chat scrollback. A proposal carries: selected products/looks; fabrics;
+configuration intentions (from the Virtual Wardrobe Studio, not a parallel
+configurator); an advisor explanation of the choice; price; alternatives;
+an appointment option; save/favorite; accept/decline; buy/pay where a
+payment path is authorized; expiration/versioning (a stale proposal is
+never silently treated as still valid); and the customer's response
+attaches back to the conversation thread, the customer record and, on
+accept, the order/appointment it produced. This reuses `Conversation`/
+`Message` and canonical product/look/order objects — it is not a second
+proposal/quote model — and remains specified only until an implementation
+slice is authorized in `PHASE.md`.
 
 ## FT-10 — Inspiration Box and gift booklet
 

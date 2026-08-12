@@ -185,6 +185,16 @@ number of real relationships quickly.
 There is no brand partnership or endorsement behind PAON. No surface may imply
 one, and no architecture may assume a brand supplies data or access.
 
+PAON's advantage is not feature count; it is making sophisticated retail
+practice usable by staff with near-zero technical expertise. A three-person
+tailoring retailer must never need a system administrator to run it. Every
+capability — migration, catalogue import, corporate onboarding, loyalty
+configuration, alteration workflow — is built as a guided, automated, low-
+friction path with intelligent defaults, not a generic SaaS admin panel that
+assumes a technical operator. Where a domain deserves a specialist interface
+(alterations, wardrobe, corporate intake), build that specialist interface
+rather than a generic form.
+
 ## Product discipline
 
 - Build the full modular destination in coherent chapters, with connected
