@@ -66,6 +66,78 @@ binding for this queue. It replaces any conflicting historical Stage text.
 Source references govern intended UX and behaviour, not copying third-party
 HTML, CSS, text, fonts or assets.
 
+### Repository forensics reconciliation (2026-08-13)
+
+A 16-domain repository-wide forensics pass plus targeted independent
+verification (not a trust-the-summary pass — several forensics claims below
+were checked directly against code and corrected) found:
+
+- **Build health: verified green, no code defect.** `pnpm build` failed
+  transiently with `TS6053: File '@paon/typescript-config/nextjs.json' not
+found` — root-caused to stale local pnpm workspace linking (the same class
+  of issue as the historical Tailwind v4/`@paon/ui` symlink bug), not a
+  repository defect. `pnpm install` alone resolved it; `pnpm build`/`lint`/
+  `typecheck` are all green again. No file changed. Do not re-diagnose this
+  as a code problem if it recurs locally — re-run `pnpm install` first.
+- **Customer production HTTP 500: pre-existing, documented, not new.**
+  `docs/ENVIRONMENTS.md` already records `entity_metadata_assignments`
+  missing from the customer production schema (2026-08-02) with its own
+  named remediation path. Not a new finding; no PHASE.md change needed.
+- **Parked/deleted route exposure: narrower than first reported, real gap
+  identified and fixed below.** The forensics sweep's blanket claim that
+  parked/deleted surfaces have "no module-off enforcement" was checked
+  directly and was mostly wrong: `/pos`, `/inventory` and `/inventory/risk`
+  are correctly gated to the `retail_operations` module via
+  `requireModuleSession` in their `layout.tsx`, and `/concepts` (FT-03) is
+  gated to `wardrobe_styling`. The real, narrower gap: `/production` and
+  `/fabric-pairing` have no `layout.tsx` module guard (only inconsistent
+  inline checks), and `/concepts` (FT-03, **deleted**, not merely off-by-
+  default) is gated to a module's on/off _state_ rather than being
+  unconditionally blocked — if `wardrobe_styling` is active for a retailer,
+  a deleted tool is currently still reachable. See new item **19.1** below.
+- **FT-04 alteration grid/snapshot/work-order confirmed still the correct
+  next crucial slice.** Independently confirmed across multiple forensics
+  domains and this session's own direct investigation: the founder-specified
+  two-column grid, immutable snapshots, lock/unlock and dark-overlay
+  selective work-order flow do not exist yet; only the older generic
+  alteration backend (job cards, work orders, cost allocation) is built. One
+  forensics domain claimed this item "COMPLETE" from a shallow route-existence
+  check — that claim is overridden by the more specific, evidence-cited
+  findings and by `FOUNDER_TOOL_BLUEPRINTS.md` FT-04's own "Current"
+  paragraph, which already says this correctly. No PHASE.md text changed for
+  FT-04 itself; its existing status stands.
+
+No other forensics finding produced a verified, actionable PHASE.md
+discrepancy distinct from what this file already documents in far more
+detail per item; this file's existing per-item status prose remains more
+precise than a compressed cross-repository summary and is not overwritten
+by it.
+
+- [ ] **19.1 Close parked/deleted route-gating gap**
+  - **Requirement IDs:** none (correctness/authority-integrity fix, not a
+    new product capability).
+  - **Dependencies:** none.
+  - **Owner boundary:** `apps/retailer/app/(dashboard)/production/`,
+    `apps/retailer/app/(dashboard)/fabric-pairing/`, and
+    `apps/retailer/app/(dashboard)/concepts/` route guards only.
+  - **Acceptance:** `/production` and `/fabric-pairing` gain a
+    `layout.tsx` calling `requireModuleSession(...)` matching the existing
+    `/pos`, `/inventory` and `/customers` precedent, using the correct
+    owning module for each (production/fabric-pairing belong to garment
+    production/service tooling, parked per 12.2 — gate accordingly, do not
+    reactivate them). `/concepts` (FT-03, deleted) is blocked
+    unconditionally regardless of `wardrobe_styling`'s module state — a
+    deleted tool must not become reachable merely because an unrelated
+    active module happens to be on.
+  - **Tests:** a request to each gated route while its module is
+    off/inactive is refused/redirected; `/concepts` is refused even with
+    `wardrobe_styling` active.
+  - **Non-goals:** no reactivation of parked/deleted functionality; no
+    deletion of underlying tables/domain code (preserved per
+    `CAPABILITY_DISPOSITION.md`'s Park/Delete definitions).
+  - **Hard blockers:** none.
+  - **Status:** not started.
+
 **Mission Control is the primary product moat and must be treated as the
 highest-priority product outcome.** It is not a dashboard and it is not a
 collection of checked component slices. It is PAON's integrated retailer
