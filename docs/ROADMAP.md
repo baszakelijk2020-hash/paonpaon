@@ -7,6 +7,24 @@
 > document remains to preserve earlier rationale, not to authorize, block, or
 > reorder work.
 
+## Current founder scope override — 2026-08-12
+
+This historical document must be read through the binding founder decision
+register in [FOUNDER_TOOL_BLUEPRINTS.md](./FOUNDER_TOOL_BLUEPRINTS.md) and the
+current queue in [PHASE.md](./PHASE.md). Active priorities are Mission
+Control/**Self-Portrait**, the Communication Hub, MorningRoutine with eligible
+one-click buying, Virtual Wardrobe Studio, Preferred Tailoring, Honeymoon
+Phase, the FT-04 alteration workflow, migration/import and coexistence
+connectors, PAON Métier, Academy, loyalty/badges/tiers and location finding.
+
+FT-01 and standalone FT-02 are held (silhouette guidance belongs inside
+alterations); FT-03 is deleted; standalone Seven-Day Wardrobe, production,
+stock and supplier operations, the full Moonstruck pack, vague corporate
+analytics, AI moodboards, commerce/marketplace, lifestyle/ecosystem and media
+incubation are parked. The generic vertical-pack framework is deleted. These
+decisions override any apparently active wording below; historical completion
+claims remain historical implementation evidence, not current commitments.
+
 Phased by dependency order — each phase's data model and UI depend on
 the ones before it. Not date-committed; sequencing, not scheduling.
 

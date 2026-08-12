@@ -42,6 +42,30 @@ PAON is in product-readiness convergence mode.
 
 ### Founder priority — Mission Control is PAON's moat (2026-08-11)
 
+### Founder scope reset — annotated tool decisions (2026-08-12)
+
+`FOUNDER_TOOL_BLUEPRINTS.md`'s **Founder decision register — 2026-08-12** is
+binding for this queue. It replaces any conflicting historical Stage text.
+
+- **Crucial active outcomes:** Mission Control/Self-Portrait, Communication
+  Hub, MorningRoutine with eligible one-click buying, Virtual Wardrobe Studio,
+  Preferred Tailoring and the Honeymoon Phase.
+- **Build/finish:** the FT-04 alteration tool; QR wardrobe cards; personalized
+  vouchers/inspiration cards; payroll; loyalty/badges/tiers; guided customer
+  data migration/import; Shopify/Faden coexistence connectors; PAON Métier;
+  Academy; and Mission-Control-led in-store feedback.
+- **Consolidate:** silhouette into alterations, configurator and advanced
+  complete-the-look into Virtual Wardrobe Studio, monthly grid into Preferred
+  Tailoring, and all customer communication into the Communication Hub.
+- **Park:** FT-01, standalone Seven-Day Wardrobe, production/stock/supplier
+  operations, full Moonstruck vertical pack, vague corporate analytics, AI
+  moodboards, commerce/marketplace, lifestyle/ecosystem and media incubation.
+- **Delete:** FT-03 QR try-on/fabric-batch scan and the generic vertical-pack
+  framework. Do not select, extend or represent deleted items as commitments.
+
+Source references govern intended UX and behaviour, not copying third-party
+HTML, CSS, text, fonts or assets.
+
 **Mission Control is the primary product moat and must be treated as the
 highest-priority product outcome.** It is not a dashboard and it is not a
 collection of checked component slices. It is PAON's integrated retailer
@@ -99,10 +123,7 @@ is complete until the full advisor/client journey is production-proven.
    explainable, human-confirmed Mission Control action bundles: task, contact,
    appointment, proposal, fitting, care or follow-up, with outcomes returned
    to House Memory.
-5. **Concept and fabric-batch orders** — build FT-03's safe QR/manual scan to
-   identified fabric/configuration batch to reviewed concept order flow; it
-   must never silently purchase or cross a House boundary.
-6. **Alteration operating tool** — replace the remaining generic alteration
+5. **Alteration operating tool** — replace the remaining generic alteration
    experience with a Mission-Control-connected operational surface: digital
    job cards, authoritative work orders, linked garment/fit evidence, task
    assignment and workshop handoff, labour/material/partner cost allocation,
@@ -1583,6 +1604,26 @@ unreviewed bulk publish.
   - **Hard blockers:** none.
   - **Landed:** `82f499c` — StyleProfile domain recompute, evidence tables/
     RLS/RPCs, `StyleProfileRepository`, and customer account inspect/remove.
+  - **Founder scope addition (2026-08-12), not yet built — expanded signal
+    intake.** Interest/opportunity signals should combine, where each
+    already exists as a real capture point elsewhere in the platform:
+    Favorites, Swipe Deck decisions, product views and repeated views,
+    category browsing, search, customer-environment login/return,
+    saved looks, Wardrobe Studio feedback, wishlist, abandoned/unfinished
+    actions, appointments, purchase history, wardrobe gaps, garment
+    lifecycle events, upcoming known occasions, MorningRoutine
+    interactions, TableService conversations, advisor-entered
+    intelligence, and recency/frequency/intensity weighting. Every signal
+    must stay evidence-based and explainable (cite its source and
+    confidence) rather than an opaque combined score — this is additive
+    breadth on top of this item's existing declared/inferred separation
+    and recomputation discipline, not a new architecture.
+  - **Founder scope note — For You metadata (2026-08-12):** For You must
+    rank against structured, already-available factual product metadata
+    (composition, weight, color, season, category, etc.); PAON may
+    automatically suggest/assign derived style/theme metadata under
+    existing governance, but must never invent protected factual product
+    data.
 
 - [x] **3.3 Advisor preparation brief**
   - **Requirement IDs:** `ADV-003`, `CUST-003`.
@@ -2079,6 +2120,19 @@ without an explanation path.
   - **Landed:** `36fecc5` — pure eligibility rules, milestone definition/award
     migration/RLS, ledger-backed awards with refund corrections, Customer and
     Retailer/advisor projections.
+  - **Founder scope addition (2026-08-12), not yet built:** retailers must be
+    able to configure their own campaigns, percentages and milestone rewards
+    within safe system constraints — the current 5.2 rules are fixed/derived,
+    not retailer-editable. Loyalty tier language is fixed: **METRE → MILLI →
+    MICRON**. Loyalty value is a retailer-configurable percentage of
+    qualifying sales converted to store credit. Add a dedicated **badge page**
+    — badges reward playful discovery (meaningful engagement milestones,
+    exploring unfamiliar construction/product categories, trying a
+    full-canvas handmade suit, wardrobe-building and service/relationship
+    milestones) and must never incentivize unhealthy or meaningless app usage
+    for its own sake. Research current Kith/MR PORTER tier mechanics only as
+    directional input when implementing; PAON's tier economics stay
+    retailer-configurable, not a copy of either programme.
 
 - [x] **5.3 Preferred Tailoring and HighMaintenance operations**
   - **Requirement IDs:** `SERV-001`, `SERV-002`, `LONG-001`.
@@ -2109,9 +2163,9 @@ without an explanation path.
   - **Owner boundary:** dedicated mobile founder surface and narrow catalogue/
     stock/discovery/shortlist/order/advisor hooks; shared domain/repositories
     remain canonical.
-  - **Acceptance:** fabrics render at true-feeling phone-screen scale with
-    mobile swipe, save, order, and advisor handoff; stock and retailer tenancy
-    are live; desktop fallback and accessibility are intentional.
+  - **Acceptance:** on a phone, the tie is visualized at real-world tie scale
+    against the customer so they can swipe fabrics, save, buy or ask an
+    advisor; retailer tenancy and accessible desktop fallback are intentional.
   - **Tests (local unit — implemented):** empty/out-of-stock deck projection
     (drives empty guidance), ArrowLeft/ArrowRight keyboard map, retailer-scoped
     catalogue projection, wishlist save RPC args for authenticated
@@ -2125,15 +2179,15 @@ without an explanation path.
   - **Non-goals:** no invented founder design, product stock copy, generic
     Tinder styling, separate catalogue, Hermès branding/games, or customer-side
     CV fabric recognition.
-  - **Hard blockers:** no approved founder surface/design is a real blocker for
-    the UI item; underlying reusable foundations must still ship first.
+  - **Hard blockers:** none for the real-size phone visualization; source
+    material is a UX reference, not a source-copy requirement.
   - **Status:** complete for TIE-001 interim acceptance under ADR-065 with
     local unit evidence above — founder authorized `/r/[slug]/tie-mate` using
     existing PAON storefront patterns/tokens. Domain deck/photo/handoff,
     catalogue projection, and Customer interim UI with swipe/save/buy/advisor
     handoffs landed. Hosted browser/RLS/a11y verification remains an open gap
-    (not a Stage 6 unlock). A later ADR-052 verbatim founder-HTML port may
-    replace interim chrome.
+    (not a Stage 6 unlock). The implementation must meet the founder's
+    real-size phone behaviour without copying third-party source material.
   - **Landed (foundation):** `6842fb5` — `@paon/domain` `buildTieMateDeck` /
     `resolveTieMateFabricImage` / `buildTieMateActionPaths` /
     `resolveTieConceptIds` with unit coverage — swatch-preferred fabric
@@ -2601,24 +2655,49 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     uninvestigated for a separate pass rather than expanding this fix's
     scope.
 
-- [ ] **9.2 Shopify and Faden executable adapters**
+- [ ] **9.2 Retailer migration plus Shopify and Faden coexistence adapters**
   - **Status:** `implemented_unverified`; contracts/fixtures exist, but the
     running connector lifecycle does not.
   - **Requirement IDs:** `INT-002`, `INT-003`, `INT-004`.
   - **Dependencies:** `9.1`, `8.4`.
-  - **Owner boundary:** current official export/API/webhook contracts,
+  - **Owner boundary:** a non-technical retailer migration concierge that
+    accepts customer exports/notes, guides AI-assisted mapping and human review
+    into PAON's canonical customer records, plus current official export/API/
+    webhook contracts,
     connection configuration/secrets boundary, scheduled/webhook execution,
     cursor/checkpoint, immutable raw events, mappings, dead letters, pause/
     resume/disconnect, health and reconciliation.
-  - **Acceptance:** an operator can configure a local/mock connection and run
-    initial plus delta ingest; Shopify covers catalogue/customer/order/stock
-    deltas; Faden covers documented read-only API and signed webhooks;
+  - **Acceptance:** a retailer can review and publish a mapped customer-data
+    import without becoming a system administrator; an operator can configure a
+    local/mock connection and run
+    initial plus delta ingest; Shopify covers catalogue/customer/order deltas;
+    Faden covers documented read-only API and signed webhooks; stock remains
+    external/parked unless a founder-approved scope changes that decision;
     signature/replay/cursor/failure/retry/reconcile are observable; unsupported
     writes become source tasks/deep links. Provider keys block only live smoke.
   - **Tests:** signatures/replay, cursors, rate/failure, idempotency,
     reconciliation and stale state.
   - **Non-goals:** no undocumented endpoint or browser-automation connector.
   - **Hard blockers:** provider keys block only live smoke tests.
+  - **Founder scope addition (2026-08-12), governed concept, not built —
+    local migration agent.** A future, separately-scoped desktop/local
+    agent could scan customer-related material on a retailer-controlled
+    device and propose candidate customer records locally, for the retailer
+    whose only "legacy system" is thousands of scattered notes and files
+    rather than a system with an export button. Any such agent must, by
+    design before a line of it is written: minimize data exposure and avoid
+    indiscriminate upload; perform strict customer-data filtering so
+    unrelated personal/sensitive files are never swept in; show the retailer
+    exactly what will be imported, with edit/exclusion before ingestion, not
+    after; preserve provenance per record; advertise truthfully what stays
+    local versus what is uploaded, and never claim "PAON cannot read it"
+    unless the architecture actually guarantees that; and account for false
+    positives, duplicate-identity resolution against existing `customers`
+    rows, rollback, and consent/legal requirements before any candidate
+    record is published into PAON. This is a named future concept requiring
+    its own privacy/security design and founder sign-off — it is not an
+    extension of this item's existing staged-file/Shopify/Faden import path
+    and must not be started as an incidental slice of it.
   - **Landed:** domain Shopify delta fixture mapped into 9.1 staged rows;
     Faden signed-webhook fixture verifier + read-only ingest/deep-link plan
     (no write-back); Admin integration-health lists adapter versions. Missing:
@@ -2742,19 +2821,19 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
     through `checkoutCart` (a separate RPC), which had no linking hook at
     all until this update.
 
-- [ ] **10.2 Seven-Day Wardrobe and Honeymoon Phase**
+- [ ] **10.2 Honeymoon Phase (Seven-Day Wardrobe parked)**
   - **Requirement IDs:** `CMP-105`, `CMP-106`, `WRD-104`.
   - **Dependencies:** `8.1`, `10.1`; wardrobe/MorningRoutine/order foundations.
-  - **Owner boundary:** executable campaign packages and required customer/
-    advisor surfaces.
-  - **Acceptance:** editable owned-first seven-day outfits identify cited
-    gaps; order-to-delivery tracker creates useful preparation/collection/
-    aftercare actions with stock/lead-time truth and pressure limits; the
-    responsive month/season roadmap visualizes real owned/planned/service
-    events rather than decorative timing.
+  - **Owner boundary:** a very-high-priority, order-to-wardrobe onboarding
+    journey: anticipation, preparation, delivery, first wear, care and advisor
+    follow-through. The standalone seven-day planner is parked.
+  - **Acceptance:** order-to-delivery tracker creates useful preparation/
+    collection/aftercare actions with truthful availability and pressure
+    limits; each outcome strengthens House Memory.
   - **Tests:** owned/suggested separation, campaign timing, suppression,
     correction and outcomes.
-  - **Non-goals:** no fabricated scarcity or unapproved one-click payment.
+  - **Non-goals:** no fabricated scarcity. One-click buying is allowed only
+    for an eligible, explicitly authorized item and payment path.
   - **Hard blockers:** payment eligibility blocks only payment action.
   - **Landed:** salvaged and repaired from `wip/stage-10-2-honeymoon` (preserved,
     never merged — this is fresh work on the takeover branch informed by
@@ -3315,7 +3394,12 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     was not part of this item's Acceptance line, which names contributions,
     budget requests, and resource discovery, not sessions).
 
-### Stage 12 — MTM, fit, production, and service network
+### Stage 12 — Fit, alterations and service; production/supplier operations parked
+
+> **Founder scope override (2026-08-12):** continue only the customer-facing
+> fitting, alteration, delivery-status and care work authorized above. Do not
+> select new supplier CRM, factory-production, stock or supplier-operation work
+> from the historical items in this stage.
 
 - [x] **12.1 MeasurementMonitor decision gate**
   - **Requirement IDs:** `FIT-101`–`FIT-103`.
@@ -3604,6 +3688,19 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     exactly what this codebase's porting discipline refuses to do.
     Missing: the weekly wardrobe service calendar and its agenda/travel
     context.
+  - **Founder scope addition (2026-08-12), not yet built — monthly grid.**
+    The founder has since supplied the missing spec directly (an external
+    reference image plus `pag3.html`, no committed source file): the
+    customer-facing entry surface is a current-month calendar; some — not
+    all — day cells show a suit/jacket photo that fades into the cell, with
+    a per-day varied fade-start delay and an approximately four-second
+    fade-in, rather than every image appearing at once; on mobile the
+    surface is page-filling to the right of the persistent PAON sidebar,
+    not a modal or narrow column. This is Preferred Tailoring's entry
+    point into the weekly/agenda orchestration above, not a decorative
+    separate screen — see `FOUNDER_TOOL_BLUEPRINTS.md` FT-14 for the full
+    contract. Still nothing to build against for this specific grid until
+    an implementation slice is authorized.
 
 - [x] **12.4 Supplier/atelier intelligence and support operations**
   - **Requirement IDs:** `MTM-101`.
@@ -3689,7 +3786,11 @@ closed` graph, refusing a supplier-notify with no evidence and asserting
     same already-accepted reality as `service_partner_custody_events` and
     `service_partner_invoice_lines` in 12.3.
 
-### Stage 13 — Inventory, POS, and loss prevention
+### Stage 13 — Inventory, POS, and loss prevention (parked)
+
+> **Founder scope override (2026-08-12):** preserve existing implementation
+> truth and safety boundaries, but do not extend this programme until the
+> founder reactivates it.
 
 - [x] **13.1 Stock ledger, reservations, barcode receiving and counts**
   - **Requirement IDs:** `INV-101`, `INV-102`.
@@ -3957,6 +4058,19 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     readiness and browser/a11y.
   - **Non-goals:** no HR replacement or unrestricted health/accommodation data.
   - **Hard blockers:** live employer data blocks only live pilot.
+  - **Founder scope addition (2026-08-12), not yet built — project setup
+    wizard:** a guided, low-friction intake screen lets a non-technical
+    corporate manager (this is often an unwanted side responsibility for
+    someone with no apparel/technical background) build the programme by
+    entering departments, roles, employees/people, hours/work-pattern where
+    relevant, garments required per role (jackets/trousers/shirts),
+    replacement quantities, and permanent-vs-temporary contract logic
+    (permanent employees may receive more customized garments; temporary
+    employees may receive fixed-size garments with later alteration).
+    Employees are then assigned to roles and receive Employee Portal
+    email access. This wizard is additive to the existing account/
+    programme/role/wearer/entitlement schema in this item — it does not
+    replace it.
   - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
     Domain and schema only; no employee portal, no dashboards, no browser
     proof. Both non-goals are structural. `corporate_wearers` has no
@@ -4120,7 +4234,10 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     shared-fixture risk everywhere else in this suite, but this specific
     flake class is now closed for this spec.
 
-### Stage 15 — Lifestyle network and MunroMerchant
+### Stage 15 — Lifestyle network and MunroMerchant (parked)
+
+> **Founder scope override (2026-08-12):** preserve this historical design but
+> do not select it for implementation.
 
 - [ ] **15.1 Lifestyle partner catalogue and attribution**
   - **Requirement IDs:** `NET-101`–`NET-103`.
@@ -4361,7 +4478,11 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     benchmark projections, accounting export, browser proof. Affected
     exchange modes stay `blocked_external` on data-processing terms.
 
-### Stage 16 — Knowledge productization and vertical packs
+### Stage 16 — Academy active; generic vertical packs deleted
+
+> **Founder scope override (2026-08-12):** Academy remains active as Mission
+> Control and customer knowledge modules. The generic vertical-pack framework
+> is deleted; media incubation is parked.
 
 - [ ] **16.1 Consultancy, guided tiers and staff academy**
   - **Requirement IDs:** `KNW-101`–`KNW-104`.
@@ -4456,8 +4577,11 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     case that means "buy it", because that is a human decision. Missing:
     contributor workflow, feed activation UI, browser proof.
 
-- [ ] **16.3 Vertical-pack framework and evidence-selected pilot**
-  - **Requirement IDs:** Stage 16 target architecture.
+- [ ] **16.3 Deleted — generic vertical-pack framework**
+  - **Status:** `deleted_from_active_scope`. Retain historical code only; do
+    not extend, select a pilot for, or use this framework as a dependency.
+    The remaining historical implementation notes below are not acceptance
+    criteria and must not be restored into the queue.
   - **Dependencies:** stable core; actual prospect evidence.
   - **Owner boundary:** extension convention for terminology/forms/workflows/
     facts/dashboards and one second vertical.
@@ -4481,22 +4605,22 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     comes from actual prospect evidence. The pilot remains
     `blocked_external` on a qualified prospect; the framework does not.
 
-- [ ] **16.4 Instrumented physical-store and selling experience**
+- [ ] **16.4 Mission Control in-store feedback loop**
   - **Requirement IDs:** `EXP-101`.
   - **Dependencies:** `11.3`, `13.1`, `16.1`.
-  - **Owner boundary:** store zone/playbook definitions, privacy-safe
-    observation adapters, smart-display/mirror sessions, guided product
-    comparison and optional local hospitality task/stock packages.
-  - **Acceptance:** one in-store appointment links zone/display/garment/
-    advisor actions to a customer-approved look and outcome; half/full/
-    handmade comparison records learning; device failure has a normal manual
-    fallback.
-  - **Tests:** device/session isolation, consent/anonymous boundary, offline/
-    retry, asset/stock links, role/RLS and tablet browser flow.
-  - **Non-goals:** no fake virtual-fit precision, covert biometric identity or
-    camera-derived employee accusation.
-  - **Hard blockers:** display/RFID/camera hardware blocks live-device proof
-    only.
+  - **Owner boundary:** a salesperson selects a collection piece or customer
+    context in Mission Control, records recurring customer feedback and routes
+    attributable signals to the right leadership audience. This replaces a
+    separate instrumented-store hardware product.
+  - **Acceptance:** a staff member records a specific product/customer signal,
+    selects a responsible leadership audience, and Mission Control presents a
+    traceable follow-up without exposing another customer or creating employee
+    surveillance.
+  - **Tests:** tenant/role isolation, attribution, correction, duplicate
+    handling and a staff-to-leadership browser journey.
+  - **Non-goals:** smart-display/mirror, RFID, biometric identity, covert
+    employee monitoring, stock packages and a separate hardware product.
+  - **Hard blockers:** none for the software feedback loop.
   - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
     Domain and schema only. All three non-goals are refusals.
     `store_observations` has **no `staff_id` column and no biometric
@@ -4555,10 +4679,9 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     UI, observation adapters, actual mirror/display integration. Live-device
     proof stays `blocked_external`, unchanged.
 
-- [ ] **16.5 Moonstruck wedding-party apparel pack**
+- [ ] **16.5 Moonstruck wedding planner (full vertical pack parked)**
   - **Requirement IDs:** `WED-101`.
-  - **Dependencies:** `16.3`, `10.1`, `12.2`; actual occasionwear pilot
-    evidence.
+  - **Dependencies:** `10.1`; existing wedding-party aggregate.
   - **Owner boundary:** extend the existing wedding-party/member/RLS/invite/
     photo/height/weight/fitting-state aggregate with inspiration board, group
     fitting capacity, coordinated design choices, order/fitting/delivery
@@ -4575,8 +4698,8 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     production status, asset rights, responsive multi-role browser journey.
   - **Non-goals:** no full venue, accommodation, invitations, dietary RSVP,
     lost-and-found or unlicensed escrow wedding-planning platform.
-  - **Hard blockers:** no qualified occasionwear pilot defers live vertical
-    proof, not the reusable pack contracts.
+  - **Hard blockers:** the reusable vertical pack is parked. Complete the
+    existing planner only; do not broaden its scope into a generic vertical.
   - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
     Domain and schema only. The owner boundary's instruction — "never
     create a second party model" — is enforced two ways. The domain module
@@ -6535,7 +6658,12 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     and "raisable by ... an employee directly" is now proven end to end
     in a real browser.
 
-- [ ] **18.9 Corporate analytics and renewal engine**
+- [ ] **18.9 Parked — vague corporate analytics and renewal engine**
+  - **Status:** `parked_pending_concrete_manager_job`. Retain the existing
+    cited metrics/history, but do not extend a generic analytics or renewal
+    product. The active corporate intelligence work is concrete opportunity
+    signals: relationship context, tender/project pain points, replacement
+    cycles and market-change alerts with attributable evidence.
   - **Requirement IDs:** BD-109.
   - **Dependencies:** `14.1`, `18.7`, `18.8`; the cited-recommendation
     discipline from `14.2` — no black-box renewal score.
@@ -6636,7 +6764,9 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     not wired to a contract-award or renewal-execution workflow beyond
     the task itself.
 
-- [ ] **18.10 AI-assisted concept, moodboard, and image generation**
+- [ ] **18.10 Parked — AI-assisted concept, moodboard, and image generation**
+  - **Founder scope override (2026-08-12):** preserve the historical record
+    below but do not extend or activate this capability.
   - **Requirement IDs:** BD-110.
   - **Dependencies:** `18.2` (a tender to attach concepts to); `@paon/ai`
     provider-neutral pattern (ADR-033) — a new provider method, not a new
@@ -6732,6 +6862,21 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
   - **Non-goals:** no mass/bulk scraping of a target outside authorised,
     rate-limited, single-target lookups; no data ingestion without a
     checkable citation.
+  - **Founder scope note (2026-08-12):** this item is the automated
+    public-signal path only (e.g. a hotel's ownership/operator change —
+    such as becoming a Mandarin Oriental — suggesting a likely uniform
+    change) and must connect signal → account → explanation → advisor
+    opportunity without auto-contacting anyone or inventing a fact. It is
+    distinct from advisor-entered **corporate field intelligence** — a
+    visiting advisor recording who they spoke to, the prospect's current
+    supplier/uniform situation, stated pain points, design cues,
+    replacement cycles and likely tender/change dates, which creates its
+    own long-range follow-up reminder. Field intelligence reuses this
+    item's `corporate_opportunity_signals`/citation model with a
+    `staff_observed` (or equivalent human-sourced) origin rather than
+    `public_signal`; it does not need external data access and is not
+    `blocked_external` — it is unbuilt UI/capture on top of an already
+    real schema, not a new item.
   - **Hard blockers:** external data source access; `blocked_external`.
   - **Status (2026-08-05, takeover branch):** `verified_local` for the
     enforcement mechanism only — the autonomous discovery/ingestion

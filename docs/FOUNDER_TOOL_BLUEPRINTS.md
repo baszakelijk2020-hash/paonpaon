@@ -174,6 +174,42 @@ At each `FT-*` transition and chapter boundary, compare the exact source,
 order. This is a targeted control check, not permission to reread the entire
 repository on every turn.
 
+## Founder decision register — 2026-08-12
+
+This register is the canonical interpretation of the annotated founder source.
+It supersedes conflicting `FT-*` detail, PHASE items and source-copy language
+elsewhere in this document. A visual source is a reference for interaction,
+information hierarchy and quality bar; it is **not** an instruction to copy
+third-party HTML, CSS, text, fonts or assets unless a later founder instruction
+expressly says so.
+
+| Decision                              | Canonical requirement and status                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FT-01 voice + drag fit                | **Park.** Do not extend as a standalone tool. Retain safe existing fitting evidence only.                                                                                                                                                                                                                                                                                                                                                                                   |
+| FT-02 silhouette                      | **Consolidate into FT-04.** It is an advisor aid for selecting FitTools, not individual body analysis, prediction or a customer-facing product. Founder will later define definitive mappings; interim guidance must be clearly editable and non-diagnostic.                                                                                                                                                                                                                |
+| FT-03 QR try-on / fabric-batch scan   | **Delete.** Remove it from active scope; do not build scan-to-order or fabric-batch flows.                                                                                                                                                                                                                                                                                                                                                                                  |
+| FT-04 alteration tool                 | **Build.** Use a familiar two-column alteration grid with 0.5 increments and zero/non-zero visual distinction. Saving creates immutable, dated, attributed snapshots; reopening is locked until an authorized unlock/revision. A selective work-order flow lets staff choose non-zero changes, add order number/comments/photos, apply fixed-price rules, show a total, dispatch to the alteration-shop queue, and create a Mission Control follow-up to update FitProfile. |
+| FT-05 Mission Control / Self-Portrait | **Crucial.** One actionable House Memory and advisor cockpit, not separate profile and dashboard products.                                                                                                                                                                                                                                                                                                                                                                  |
+| FT-06 MorningRoutine                  | **Crucial.** Build daily OOTD, weather and durable event-window reminders, with save/review/book/buy continuations and a governed one-click buying achievement for eligible items.                                                                                                                                                                                                                                                                                          |
+| FT-07 configurator                    | **Consolidate into Virtual Wardrobe Studio.** Its job is advisor-led confident decisions, looks and proposals—not a parallel production configurator.                                                                                                                                                                                                                                                                                                                       |
+| FT-08 swipe deck                      | **Keep.** Saved-look metadata must update Self-Portrait, For You, StyleProfile and Favorites, preserving provenance and correction.                                                                                                                                                                                                                                                                                                                                         |
+| FT-09 TableService / messenger        | **Crucial.** One Communication Hub for the customer relationship. It converts unknown web visitors to appointments through prominent shortcut-like prompts, immediate AI/voice triage and explicit human handoff/roster ownership; it preserves the canonical thread while advisors continue in their permitted native channels.                                                                                                                                            |
+| FT-10 Inspiration Box                 | **Build as a personalized voucher and inspiration-card tool.** Support digital or physical delivery, giver/recipient, themed or curated selections of up to 20 cards, product metadata, swatch-backed cards and QR product continuations.                                                                                                                                                                                                                                   |
+| FT-11 monthly grid / globe            | **Split.** The monthly wardrobe-service grid belongs to Preferred Tailoring. Location discovery is only a retailer location finder; map/globe rendering is optional presentation, not a product.                                                                                                                                                                                                                                                                            |
+| FT-12 Virtual Wardrobe                | **Crucial.** It is the customer wardrobe plus aspirational advisor rails, Studio-created looks, customer image inputs, item-level complete-the-look/care actions and eligible one-click purchase of aspirational pieces.                                                                                                                                                                                                                                                    |
+| FT-13 Moonstruck                      | **Finish the planner; park the full vertical pack.** Retain groom, party, advisor, payment, date/location, readiness and group chat flows without broadening into a general wedding platform.                                                                                                                                                                                                                                                                               |
+| FT-14 Preferred Tailoring             | **Build.** Own end-to-end wardrobe management, monthly grid, care bookings/drop-off, third-party fulfilment, custody, billing and customer touchpoints.                                                                                                                                                                                                                                                                                                                     |
+
+Additional programme decisions: finish payroll; build loyalty/badges/tiers;
+build a retailer-owned customer-data migration/import concierge and Shopify/
+Faden coexistence connectors; park all production, stock and supplier
+operations; expand PAON Métier around manager-friendly uniform inventory,
+wearer access, tender/project/rollout and concrete opportunity signals, while
+skipping AI moodboards and parking vague analytics; build Academy as Mission
+Control and customer knowledge modules; park commerce/marketplace, lifestyle/
+ecosystem and media incubation; delete the generic vertical-pack framework;
+and consolidate instrumented store feedback into Mission Control.
+
 ### Founder knowledge areas
 
 The decision-rights table above says _who_ decides; this table names _where_
@@ -248,6 +284,9 @@ retailer House + module entitlement
 
 ## FT-01 — Voice + drag fit slider
 
+> **Status: PARKED.** The following is retained as historical implementation
+> context only. It does not authorize further standalone feature work.
+
 **Source and experience.** `pag1.html`'s `vox-widget-root` is the authority:
 voice overlay, microphone pulse, listening/transcript states, highlighted fit
 rows, draggable numeric chips and spotlight progression. The later fitting
@@ -300,6 +339,10 @@ full trust/recovery state machine (permission-denied, no-speech,
 low-confidence, offline draft, idempotent duplicate-submit refusal).
 
 ## FT-02 — Silhouette analysis
+
+> **Status: CONSOLIDATED INTO FT-04.** The following historical work must not
+> be extended as an individual-analysis product. Only the editable,
+> non-diagnostic FitTools aid belongs in the alteration workflow.
 
 **Source and experience.** Port the `nbs-silhouette-widget-a91k` Level 1
 scroll/snap carousel from `pag1.html`: video/image cards, centred active-card
@@ -395,6 +438,10 @@ of scope per this blueprint's own text).
 
 ## FT-03 — QR try-on and fabric-batch concept order
 
+> **Status: DELETED FROM ACTIVE SCOPE.** This section is retained solely to
+> explain existing code/history. Do not build, expose, market or depend on QR
+> try-on, fabric-batch scanning or scan-to-order behaviour.
+
 **Source and experience.** Reproduce `pag1.html`'s QR attached to each Try-On
 and its concept/fabric-batch continuation: visible scan target, successful
 resolution, batch review and explicit continuation. Required states are
@@ -468,6 +515,39 @@ loop: solve the current garment, improve the customer's future fit candidate
 and give production/service teams unambiguous work. “Automation” means
 prepared evidence and work, not autonomous approval.
 
+**Founder acceptance requirements.** The active surface is a familiar,
+advisor-first two-column alteration grid, matching the interaction shape
+experienced staff already know from CRM-style alteration tools: each
+alteration row has a positive/left dropdown (`0, +0.5, +1.0, +1.5 … +5.0`) and
+a negative/right dropdown (`0, -0.5, -1.0, -1.5 … -5.0`), reusing this house's
+existing alteration terminology for row labels. Zero remains visually quiet;
+non-zero choices remain legible.
+
+Saving creates an immutable snapshot recording the values, date, time, the
+signed-in employee/user and the customer/garment/order it belongs to. Saved
+snapshots appear as historical rectangles/cards on the customer/garment
+record; opening one reproduces the identical grid, locked. An authorized
+unlock/revision creates further changes as a new state without mutating the
+snapshot's history — revisions are auditable, never a silent overwrite.
+
+**Create alteration work order.** Activating this flow dims the screen with a
+dark overlay; only the non-zero alteration values keep their normal visual
+prominence against the dimmed background. Staff click each non-zero
+alteration to include it in the shop work order — a selected value gains a
+visibly distinct active state. The resulting work order carries an order
+number, the selected alterations, comments, uploaded photos, each selected
+alteration's individual price and a calculated total (using this repository's
+existing alteration pricing/business logic), then dispatches to the
+alteration-shop environment's pending-alterations queue. Completing that work
+creates an employee Mission Control follow-up task to update the customer's
+FitProfile; opening that task reopens this same locked alteration grid with
+the historical values — never a generic text recap.
+
+The full loop is: fitting → FitTool/silhouette assistance → alterations →
+immutable snapshot → controlled revision → selective alteration-shop work
+selection → priced work order → alteration-shop queue → completion → employee
+Mission Control FitProfile-update task → permanent fitting history.
+
 **Actors, module and tier.** Advisor records and decides; production specialist
 reviews fit consequences; workshop accepts work/custody; customer confirms
 outcome; manager audits costs/rework. Garment & Service Operations is primary,
@@ -485,10 +565,10 @@ new fit candidate but never rewrite the fitted order.
 Reopen/rework appends transitions; partial work creation rolls back. Prove
 role transitions, stale-version conflict, retry/idempotency, custody and cost,
 customer acceptance and future-candidate learning without historical mutation.
-**Current:** strong observations/alteration primitives (now including
-FT-01's voice/drag slider and FT-02's silhouette widget, both connected and
-recording to `fitting_observations`); connected source host and automation
-absent. The post-intake task-creation gap identified on 2026-08-02 is closed:
+**Current:** strong observations/alteration primitives exist; the held FT-01
+voice/drag tool is not active scope, and silhouette is retained only as an
+editable, non-diagnostic FitTools aid inside this workflow. The post-intake
+task-creation gap identified on 2026-08-02 is closed:
 `add_alteration_task` (advisor-only, `is_alterations_advisor()`) lets staff
 turn a later observation into a reviewable task on an existing alteration.
 It does not touch the ledger — every new task inserts with a zero original
@@ -498,11 +578,11 @@ untouched until the task is priced through the existing, unmodified
 approval governance rather than inventing a parallel one; it stays inside
 R0.2's boundary the same way `wedding_guest_vouchers` does — no new
 money-movement path, only a fact (a task exists) recorded ahead of its own
-priced approval. **Killed by founder decision (2026-08-05), not
-planned:** the full first-fitting-to-work automation sequencing
-(scheduled → observed → proposal_ready → …). This closed one
-identified structural gap in it and stops there — FT-04's final scope,
-not a paused increment.
+priced approval. The former full autonomous first-fitting-to-production
+sequence remains out of scope. The founder-authorized alteration workflow
+above is active and must not be represented as complete until its snapshot,
+selective work-order, shop-queue and Mission Control follow-up requirements
+are proven.
 
 ## FT-05 — Mission Control and Self-Portrait
 
@@ -693,6 +773,10 @@ for-date suppression, each asserting the exact RPC calls made.
 
 ## FT-07 — Lapel, pocket and shoulder configurator
 
+> **Status: CONSOLIDATED INTO VIRTUAL WARDROBE STUDIO.** Retain only the
+> reusable choice/proposal primitives; do not extend a separate configurator
+> roadmap or promise production write-back.
+
 **Source and experience.** Port `pag1.html`'s three synchronized carousels and
 snap/crossfade behaviour. The source choices include Notch/Peak/Shawl lapels;
 Flap/Jetted/Patched pockets; Classic/Natural/Roped/Spalla Camicia shoulders.
@@ -821,6 +905,16 @@ scan/link and advisor handoff states belong inside the source interaction.
 unstructured need into grounded guidance, a shared look, appointment,
 proposal/cart or wedding context while keeping a continuous conversation.
 
+**Founder acceptance requirements.** This is the single Communication Hub,
+not another messenger. It must preserve the canonical customer thread while
+advisors continue in permitted native channels such as iMessage, WhatsApp or
+Zalo. For unknown online visitors, it is a prominent, shortcut-like conversion
+surface with starter questions and product wishes—not a hidden chat bubble.
+AI and voice can provide immediate grounded triage, but must expose prompt
+human ownership, roster-based chat duty, ticket distribution and handoff;
+never fake presence or typing. The desired outcome is an appointment or a
+clearly owned next action, with every decision returned to Self-Portrait.
+
 **Actors, module and tier.** Customer starts and controls submitted material;
 advisor receives/responds; invited wedding participant sees only party-scoped
 content; manager audits service outcomes. Relationship primary, Wardrobe for
@@ -913,11 +1007,12 @@ source; build it with PAON's own primitives against the PAON-job/state
 description below, and do not later claim source-port fidelity that ADR-071
 never actually established for this tool.
 
-**Source and experience.** Port `pag1.html`'s Inspiration Box reveal and gift
-booklet composition exactly: a considered opening, curated choices and a
-recipient-facing continuation rather than a generic voucher form. Preserve
-the source pacing/motion and provide reduced-motion and print/share-safe
-variants. Empty, expired, redeemed and unavailable-item states are designed.
+**Source and experience.** Use external material only as a behavioural and
+quality reference; build PAON-owned interactions and assets rather than
+copying third-party HTML, text, fonts or images. The experience is a considered
+opening, curated choices and recipient-facing continuation—not a generic
+voucher form—with reduced-motion, print/share-safe, empty, expired, redeemed
+and unavailable-item states.
 
 **PAON job.** Make gifting feel personal while creating a lawful bridge from
 giver intent to recipient discovery, appointment, service or purchase. The
@@ -931,11 +1026,23 @@ Wardrobe for accepted preferences. Half/Full Canvas or Commerce add-on.
 
 **State and wiring.** Planned objects: gift experience/version, curated items,
 message/media, recipient invitation token, commercial gift instrument or
-proposal reference, delivery attempts and redemption outcomes. Do not invent
-a stored-value liability: until a provider/ledger policy exists, operate as a
-proposal or product/service order. Opaque expiring links reveal minimum data;
-Server Actions compose, approve, send, accept and redeem. Catalogue/price and
-availability are live-authority reads.
+proposal reference, delivery attempts and redemption outcomes. Support digital
+or physical voucher fulfilment with the recipient's delivery method (email or
+postal address) captured explicitly, giver name, recipient name and a
+giver-authored personalized message, up to 20 individually selected or
+theme-filtered suit/jacket cards (e.g. wedding, summer chic, seasonal/style
+themes), and product-driven themes from reviewed metadata. Each card is
+FRONT = PAON-owned suit/jacket product image, BACK = fabric swatch image with
+a bottom dark gradient overlay (opacity ramping roughly 0% to 50% toward the
+bottom edge) and, left-aligned over the gradient, product title, description,
+composition, price and a small QR code continuing to that product on the
+retailer's storefront. Do not invent a stored-value liability: until a
+provider/ledger policy exists, operate as a proposal or product/service order,
+with explicit `pending_payment`, `paid`/`funded`, `sent`, `redeemed`,
+`expired`, `revoked` and `refunded` states — revoke/refund require a named
+manager action and reason, never a silent status flip. Opaque expiring links
+reveal minimum data; Server Actions compose, approve, send, accept and redeem.
+Catalogue/price and availability are live-authority reads.
 
 **Trust, recovery and proof.** Recipient data is invitation-purpose only and
 must not silently create marketing consent. Giver cannot see recipient
@@ -986,12 +1093,16 @@ commercial-instrument scope remains open.
 
 ## FT-11 — Location globe and monthly visual grid
 
-**Source and experience.** Preserve `pag1.html`'s Cesium globe activation,
-retailer pins, filters, open/closed/hours/address panels, call/chat transition,
-image panels and attachment menu; the monthly grid must preserve the founder's
-calendar-to-context visual rhythm. Remove the embedded Cesium credential and
-lazy-load the heavy experience. Provide a fast accessible list/map fallback,
-reduced motion and explicit activation/deactivation.
+> **Status: SPLIT.** The monthly grid is Preferred Tailoring. Location is a
+> retailer finder, with map/globe merely a presentation option. This is not a
+> standalone globe programme.
+
+**Source and experience.** Location discovery remains active as a retailer
+location finder. Use external material only as a behaviour/quality reference:
+show retailer locations, hours, address and contact/booking continuation with
+an accessible list and optional 2D map or globe presentation. The monthly grid
+belongs exclusively to Preferred Tailoring. No third-party credential, source
+copy or decorative globe programme is required.
 
 **PAON job.** Only activate when a real multi-location or partner journey
 needs spatial/time discovery—for example choosing a House, fitting location,
@@ -1000,22 +1111,29 @@ care partner or event. It is not decorative proof that PAON has a “network.”
 **Actors, module and tier.** Customer searches and contacts; retailer/location
 manager maintains public facts; contracted partner maintains entitled facts;
 PAON operator handles network moderation. Enterprise for retailer locations;
-Network for partners, normally Full Canvas or explicit add-on. It remains
-quarantined until a named launch journey exists.
+Network for partners, normally Full Canvas or explicit add-on.
 
 **State and wiring.** Canonical location/branch/partner capability, territory,
 hours/exception, public contact, imagery rights, appointment availability and
-event/calendar records feed a small projection API. Geocoding and Cesium are
-replaceable adapters; client gets no secret or private customer data. Chat and
-booking create normal Relationship/Appointment objects. Cache by public
-projection version with bounded staleness and recall.
+event/calendar records feed a small projection API. A retailer manages its own
+locations (coordinates, location/store type, address, phone, opening
+hours/timezone, imagery, services offered, contact actions and filter
+categories) and its own brand presentation (colors and a 2D-map-or-3D-globe
+choice) — the source's Atelier Munro globe is a design reference for the
+globe presentation option, not a mandated default. A globe suits a retailer
+with many/global locations; a branded 2D map suits a single-location or
+local retailer, and the retailer — not PAON — picks which. Geocoding and
+Cesium (or an equivalent 2D map provider) are replaceable adapters; client
+gets no secret or private customer data. Chat and booking create normal
+Relationship/Appointment objects. Cache by public projection version with
+bounded staleness and recall.
 
 **Trust, recovery and proof.** Location publishing is opt-in and data-minimal;
 no background customer location tracking. Define bundle, memory, interaction
 latency and tile-cost budgets before activation. Prove no client credential,
 list-only/no-WebGL fallback, keyboard/screen-reader use, stale-hours exception,
-unpublished partner isolation and contact/booking outcome. **Current:** missing
-and intentionally quarantined, not cancelled.
+unpublished partner isolation and contact/booking outcome. **Current:** not yet
+built; it is active only as the bounded retailer location-finder journey above.
 
 ## FT-12 — Six-rail wardrobe
 
@@ -1029,8 +1147,11 @@ reduced motion and useful sparse/empty states.
 
 **PAON job.** Make the customer's real wardrobe the visual centre of the
 relationship. Owned, self-added, proposed, planned and service-away garments
-remain visibly distinct but can combine into looks, gaps, MorningRoutine,
-TableService, care and order continuations.
+remain visibly distinct but can combine into Studio-created looks, gaps,
+MorningRoutine, TableService, care and order continuations. Advisors add
+aspirational pieces as a visible roadmap; customers can provide controlled
+head/body image inputs for separately consented visual generation and can act
+on an item through complete-the-look, care or eligible one-click purchase.
 
 **Actors, module and tier.** Customer owns/corrects visibility and additions;
 advisor proposes with provenance; service staff see only linked garments;
@@ -1043,6 +1164,12 @@ service bookings and product metadata. A server projection groups categories
 without copying state. Server Actions add/correct/archive, accept/reject a
 proposal, compose/save a look, record wear and request service. Items maintain
 source (`order`, customer, advisor proposal), confidence/status and history.
+
+**QR wardrobe card.** A retailer may print a per-item QR insert for a physical
+suit or jacket. Scanning opens that specific virtual-wardrobe item and its
+complete-the-look and HighMaintenance continuations, so ownership remains
+useful long after purchase. The QR card is distinct from deleted FT-03:
+it never performs try-on or fabric-batch scanning.
 
 **Trust, recovery and proof.** Private garment photos use signed access;
 advisor proposals never become ownership without acceptance/fulfilment.
@@ -1064,13 +1191,16 @@ headers. `prefers-reduced-motion` disables the transform/transition.
 Existing add/retire actions and provenance labelling are unchanged. Proof:
 one browser journey — default-open state, close/reopen collapse, keyboard
 navigation between rails, and the pre-existing add/retire flow still
-working through the new UI. **Killed by founder decision (2026-08-05),
-not planned:** composed-look transition, concurrent-correction proof,
-order-fed ownership proof, service-away return, cross-House isolation
-proof, and the rail-to-look-to-MorningRoutine/service continuation.
-FT-12 stops here — this is its final scope, not a paused increment.
+working through the new UI. The current rail UI is a foundation, not
+completion. The active FT-12 contract requires the advisor roadmap,
+Studio-created looks, care and purchase continuations, customer image-consent
+flow and QR wardrobe-card journey above; do not claim those unbuilt connected
+paths are finished.
 
 ## FT-13 — Moonstruck groom and best-men planner
+
+> **Status: BUILD THE PLANNER; PARK THE FULL VERTICAL PACK.** Complete the
+> current wedding journey without generalising it into a reusable pack.
 
 **Source and experience.** Preserve `pag2.html`'s designated apparel journey:
 inspiration, invitation, personal profile, orbit/group presence, group-date
@@ -1094,10 +1224,17 @@ Moonstruck add-on.
 **State and wiring.** Extend—not fork—`wedding_parties`, members, invitation
 tokens/photos, date candidates/votes, appointments, member style choices,
 orders/physical garments, fitting status, delivery/pickup and aftercare plans.
-Shared readiness is a projection over per-member milestones. Server Actions
-invite/join, propose/vote/finalize date, update own profile, approve shared
-look and request appointments; order/production events advance readiness.
-Reminder/readiness jobs require the module active and respect suppression.
+Shared readiness is a projection over per-member milestones. A shared party
+conversation (groom, participants and the managing advisor) reuses the
+Communication Hub thread model rather than a separate Moonstruck-only chat
+table. Per-member measurements/fitting appointments and any payment or
+deposit/downpayment a member makes toward their own garment reuse the FT-04
+fitting/alteration and Commerce order primitives — Moonstruck does not invent
+a parallel measurement or money model, only the party-scoped view over it.
+Server Actions invite/join, propose/vote/finalize date, update own profile,
+approve shared look and request appointments; order/production events advance
+readiness. Reminder/readiness jobs require the module active and respect
+suppression.
 
 **Trust, recovery and proof.** Roster membership does not expose another
 member's measurements, contact data or private availability detail. Revoked or
@@ -1181,6 +1318,22 @@ partner capability/SLA/territory and weekly plan/version if absent. Weekly
 composition is a versioned job; customer/advisor Server Actions accept/edit,
 book and authorize spend. Partner mutations use a scoped portal/API and
 idempotent transitions; costs reconcile before charge/entitlement posting.
+Named third-party service categories are dry cleaning, shoe repair and general
+wardrobe maintenance; a customer either books the pickup in PAON or drops the
+item at the retailer counter, and the retailer — not the customer — owns the
+partner relationship, custody handoff and partner billing.
+
+**Monthly grid (founder-supplied external reference image plus `pag3.html`;
+no such reference file is committed to this repository, so treat the
+description below, not a pixel source, as the contract).** The customer-facing
+entry surface is a current-month calendar
+grid. Not every day carries imagery: a subset of days display a suit/jacket
+photo that fades into the day cell, with a per-day randomized/varied fade
+start delay and an approximately four-second fade-in, rather than every image
+appearing simultaneously. On mobile, Preferred Tailoring is page-filling to
+the right of the persistent PAON sidebar rather than a modal or a narrow
+column. This grid is the entry point into the weekly/agenda-led orchestration
+described above, not a decorative separate screen.
 
 **Trust, recovery and proof.** Calendar access is minimum-scope and revocable;
 partner never sees the full client profile. Lost/damaged/delayed/disputed and
@@ -1205,20 +1358,20 @@ phone-page audit also require the following connected capability families.
 They use the tool contracts above but remain governed by the detailed stable
 IDs in the omission ledger and programme traceability.
 
-| Founder intent                                                    | Primary contracts and platform continuation                                                                                                                                              |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Intelligent catalogue, fabric/product knowledge and ingestion     | FT-03/07/09 plus Retail Operations metadata, reviewed imports, provenance and source authority                                                                                           |
-| Complete-look recommendations, For You, wardrobe gaps and roadmap | FT-05/06/08/12 plus deterministic sartorial rules, outfits and explainable ranking                                                                                                       |
-| TableService, StyleProfile and appointment conversion             | FT-05/08/09 plus consented facts, grounded knowledge, messages and appointments                                                                                                          |
-| Fit/self-scan, fitting learning and repeat safety                 | FT-01/02/04 plus private evidence, immutable fit versions and validated reorder eligibility                                                                                              |
-| Garment longevity, rotation and care                              | FT-06/12/14 plus lifecycle/wear evidence, custody and service outcomes                                                                                                                   |
-| Campaigns, private offers and Seven-Day Wardrobe                  | FT-06/10/12 plus versioned assets/audiences, suppression, attribution and honest availability                                                                                            |
-| Milestones, education and memberships                             | FT-10/14 plus ledgered rewards/entitlements and Academy content; no fake scarcity or unapproved liability                                                                                |
-| One-click buying, delivery payment and provider eligibility       | FT-03/06/07/09/10 through canonical proposal/cart/order/payment boundaries; blocked where provider/commercial policy is absent                                                           |
-| Tie-Mate                                                          | A separate faithful guided-matching tool over real wardrobe/catalogue metadata; its current domain/repository/UI foundation remains subject to the same source-fidelity and proof ladder |
-| Retailer-owner marketplace, partners and network                  | FT-11/14 plus separate lifestyle/B2B bounded contexts, opaque attribution and multi-party ledgers; no named-profile sale                                                                 |
-| Advisor Today, Self-Portrait and evidence-cited clienteling       | FT-05 as the shared relationship spine; every downstream tool returns corrections, promises and outcomes                                                                                 |
-| Moonstruck and occasionwear                                       | FT-13 for apparel coordination; unrelated full wedding-planner concepts remain explicitly deferred rather than silently promised                                                         |
+| Founder intent                                                    | Primary contracts and platform continuation                                                                                            |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Intelligent catalogue, fabric/product knowledge and ingestion     | FT-07/09 plus Retail Operations metadata, reviewed imports, provenance and source authority                                            |
+| Complete-look recommendations, For You, wardrobe gaps and roadmap | FT-05/06/08/12 plus deterministic sartorial rules, outfits and explainable ranking                                                     |
+| TableService, StyleProfile and appointment conversion             | FT-05/08/09 plus consented facts, grounded knowledge, messages and appointments                                                        |
+| Fit/self-scan, fitting learning and repeat safety                 | FT-01/02/04 plus private evidence, immutable fit versions and validated reorder eligibility                                            |
+| Garment longevity, rotation and care                              | FT-06/12/14 plus lifecycle/wear evidence, custody and service outcomes                                                                 |
+| Campaigns, private offers and Honeymoon Phase                     | FT-06/10/12 plus versioned assets/audiences, suppression, attribution and honest availability; standalone Seven-Day Wardrobe is parked |
+| Milestones, education and memberships                             | FT-10/14 plus ledgered rewards/entitlements and Academy content; no fake scarcity or unapproved liability                              |
+| One-click buying, delivery payment and provider eligibility       | FT-06/09/10/12 through canonical proposal/cart/order/payment boundaries; blocked where provider/commercial policy is absent            |
+| Tie-Mate                                                          | Real-size, phone-held, swipable tie-fabric visualisation over real catalogue metadata, with save, buy and advisor handoff              |
+| Retailer locations and partner care                               | FT-11/14 plus bounded retailer location finding and Preferred Tailoring partner fulfilment; marketplace/lifestyle/B2B remain parked    |
+| Advisor Today, Self-Portrait and evidence-cited clienteling       | FT-05 as the shared relationship spine; every downstream tool returns corrections, promises and outcomes                               |
+| Moonstruck and occasionwear                                       | FT-13 for apparel coordination; unrelated full wedding-planner concepts remain explicitly deferred rather than silently promised       |
 
 ## Completion rule
 

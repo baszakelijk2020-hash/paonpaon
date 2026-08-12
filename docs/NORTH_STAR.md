@@ -17,7 +17,7 @@ The initial category is independent premium menswear. The durable category is
 PAON is not primarily a storefront, CRM, POS, configurator, loyalty scheme, or
 AI stylist. Those are interfaces and capabilities. The product is continuity:
 the relationship becomes more useful with every interaction and does not
-disappear into an advisor's memory, a supplier system, or nine spreadsheets.
+disappear into an advisor's memory or nine spreadsheets.
 
 ## The customer promise
 
@@ -57,8 +57,8 @@ The three moments that must feel magical are:
 
 This is the golden relationship journey and the first full-system
 demonstrator. It is not PAON's scope boundary. Retail operations, campaigns,
-corporate programmes, partner services, marketplace capabilities and future
-verticals may enter at different points, but they must exchange authoritative
+corporate programmes and partner services may enter at different points, but
+they must exchange authoritative
 state and outcomes through the same spine rather than becoming disconnected
 products.
 
@@ -77,20 +77,20 @@ and outcome capture. Every other module depends on this foundation.
 
 ### 2. Client and Relationship Intelligence
 
-Client memory, advisor preparation and Mission Control, appointments,
-conversations, preferences, milestones, promises, messaging, explainable
-recommendations, quick capture and outcomes.
+**Self-Portrait** is PAON's canonical customer-profile name: one customer-
+correctable House Memory shared by advisor preparation and Mission Control,
+not a parallel profile product. This highest-priority relationship module also
+holds appointments, conversations, preferences, milestones, promises,
+messaging, explainable recommendations, quick capture and outcomes.
 
 ### 3. Wardrobe and Styling Intelligence
 
 The garment graph, visual wardrobe, StyleProfile, fit evidence, knowledge and
 metadata, wardrobe roadmap, composed looks, guided consultation, Morning
-Routine and proposals. The founder-specified tools in pag1, the groom-party
-fitting planner in pag2, the Preferred Tailoring/HighMaintenance experience in
-pag3, and tools explicitly called out in the founder brief preserve their
-source experience under ADR-052/071. Their Atelier Munro business shell is not
-PAON's company plan; their specified interaction, motion and workflow are
-product requirements. See
+Routine and proposals. The annotated founder brief defines active product
+requirements. External designs are references for behaviour, hierarchy and
+quality, never mandates to copy third-party source code, text, fonts or assets.
+See
 [VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md](./VIRTUAL_WARDROBE_STUDIO_BLUEPRINT.md)
 for the founder-level specification of virtual try-on/generated visual
 roadmap capability inside this module's existing wardrobe, `Outfit` and
@@ -100,36 +100,35 @@ feature under `PHASE.md`, not a claim that it is already built.
 ### 4. Commerce and Growth
 
 Storefront and assisted selling, cart and orders, remote selling, private
-offers, campaigns, loyalty and referral, post-order momentum, customer
-journeys, attribution and measurable growth programmes.
+offers, campaigns, active loyalty/badges/tiers and referral. The highest-
+priority post-order programme is Honeymoon Phase: a useful order-to-wardrobe
+journey, not a standalone Seven-Day Wardrobe campaign.
 
 ### 5. Garment and Service Operations
 
-Source-authorized production visibility, fitting, alterations, delivery,
-aftercare, custody, repair, care plans, service memberships, partner
-fulfilment and complete garment lifecycle history.
+External-status projection, fitting, alterations, delivery, aftercare, custody,
+repair, care plans, service memberships, partner fulfilment and garment
+lifecycle history. Production, stock and supplier operations are parked.
 
 ### 6. Retail Operations
 
-Catalogue and product intelligence, inventory and auditable stock movement,
-POS and returns, staff work, scheduling, tasks, campaigns, recognition,
-locations, operational analytics, migration and provider reconciliation. PAON
-supports overlay, co-managed and full-authority modes by domain.
+Catalogue and product intelligence, staff work, scheduling, tasks, campaigns,
+recognition, locations, operational analytics, migration and provider
+reconciliation. Inventory, POS and returns are parked. PAON supports overlay,
+co-managed and full-authority modes by domain.
 
 ### 7. Enterprise and Vertical Solutions
 
-Corporate wardrobes, wedding-party apparel, multi-location operations,
-preferred tailoring, training and consultancy, partner-workshop workflows and
-later category or occasion packs. These are real PAON modules with distinct
-buyers and onboarding journeys, not accidental additions to a generic core.
+Corporate wardrobes, the existing wedding-party planner, multi-location
+operations, Preferred Tailoring, training and consultancy. The reusable
+wedding vertical pack and generic vertical-pack framework are not active scope.
+These are distinct buyer journeys, not accidental additions to a generic core.
 
 ### 8. Network and Ecosystem
 
-B2B procurement, partner and publisher participation, curated lifestyle
-commerce, referral and revenue-share infrastructure, rewards, events and
-other multi-party experiences. The technical capability is part of the
-destination; live money movement, advertising, data use and partner activation
-remain subject to explicit legal, supply and trust gates.
+Loyalty, badges, tiers, referral and relationship-led events remain in scope.
+Marketplace, lifestyle/ecosystem, B2B procurement, advertising and media
+incubation are parked rather than part of the active destination.
 
 ## Modules and plans
 
@@ -193,16 +192,16 @@ one, and no architecture may assume a brand supplies data or access.
 - Use the golden relationship journey as the first system demonstrator and
   regression spine, not as a reason to suppress the rest of the platform.
 - Prefer a composed decision to a catalogue of possibilities.
-- Preserve designated founder tools exactly under ADR-052/071; use the wider
+- Use the annotated founder decisions as the product authority and the wider
   source grammar—cinematic context, deliberate reveal, tactile rails, product
-  composition and quiet confidence—for new PAON surfaces. Do not copy the
-  source brand, literal products, unsupported claims or unrelated commercial
-  framing into PAON.
+  composition and quiet confidence—as a UX reference. Recreate retained
+  behaviour in PAON's own accessible components; do not copy third-party
+  source, brand, literal products, unsupported claims or commercial framing.
 - Integrate commodity systems; own the relationship, garment, evidence, and
   service intelligence that make PAON distinctive. Earn deeper authority in
   operations where it creates material value.
-- The roadmap commits to all eight module families. `PHASE.md` controls
-  dependency order and proof; it does not reduce the destination to a pilot.
+- `PHASE.md` and the founder decision register control active scope,
+  dependency order and proof. Parked and deleted areas are not commitments.
 - Real retailer use, deployment, security, and connected browser journeys
   are proof lanes throughout the build, not an excuse for disconnected breadth
   or an indefinite stop on later modules.

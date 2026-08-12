@@ -117,13 +117,12 @@ does not silently become an approved measurement.
 
 ## Founder-source experience contract
 
-The founder-authored corpus is both design research and, for the tools the
-founder explicitly selected, a product specification. Pag1's specified tools,
-pag2's groom/best-men fitting-planning workflow, pag3's Preferred Tailoring and
-HighMaintenance workflow, and tools explicitly called out in the founder brief
-must retain the source composition, motion and behaviour while narrow hooks
-connect them to real PAON data and actions. "PAON-native" does not authorize a
-generic redesign of those tools.
+The annotated founder brief is the product authority; related source material
+is design research. It defines intended interaction, information hierarchy,
+motion and quality bar where the founder retains a feature. It does not require
+copying third-party HTML, CSS, text, fonts or assets. The canonical retained,
+parked, deleted and consolidated feature decisions are in
+[FOUNDER_TOOL_BLUEPRINTS.md](./FOUNDER_TOOL_BLUEPRINTS.md).
 
 The wider corpus also supplies reusable patterns:
 

@@ -50,10 +50,10 @@ warns against.
 
 - Payment processing infrastructure — PAON integrates a payment
   provider, it does not become one.
-- Manufacturing execution, MTM measurement/fit profiles, garment
+- Manufacturing execution, factory MTM measurement/fit profiles, garment
   specifications, production ordering and construction — GoCreate/supplier
-  systems remain authoritative. PAON owns in-store garment fitting and
-  alteration work, not the factory floor. A future **wardrobe twin**
+  systems remain authoritative. PAON owns in-store garment fitting, its
+  customer-facing FitProfile and alteration work, not the factory floor. A future **wardrobe twin**
   ([vision/03_wardrobe_intelligence.md](./vision/03_wardrobe_intelligence.md))
   is not a factory fit profile and must not revive archived
   `CustomerFitProfile` under a new name without a new ADR (ADR-016 /
