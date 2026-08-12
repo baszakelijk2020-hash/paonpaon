@@ -358,9 +358,22 @@ export default async function MissionControlPage() {
                       {nameByCustomerId.get(opportunity.customerId) ?? "Client"}{" "}
                       · {opportunity.type.replaceAll("_", " ")}
                     </p>
+                    <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                      Priority {opportunity.priority} ·{" "}
+                      {Math.round(opportunity.confidence * 100)}% confidence
+                    </p>
                     <p className="mt-1 text-xs text-[var(--color-stone-600)]">
                       {opportunity.whyNow}
                     </p>
+                    {opportunity.evidence.length > 0 ? (
+                      <p className="mt-2 text-xs text-[var(--color-stone-500)]">
+                        Evidence:{" "}
+                        {opportunity.evidence
+                          .map((item) => item.insightStatement ?? item.note)
+                          .filter(Boolean)
+                          .join("; ")}
+                      </p>
+                    ) : null}
                   </Link>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <form action={acceptOpportunity.bind(null, opportunity.id)}>

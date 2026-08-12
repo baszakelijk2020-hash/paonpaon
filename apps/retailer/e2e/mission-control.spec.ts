@@ -93,6 +93,9 @@ test.describe.serial("mission control", () => {
         suggested_action: `E2E suggested action ${unique}`,
         channel: "in_person",
         status: "draft",
+        priority: 2,
+        confidence: 0.82,
+        evidence: [{ insightStatement: `E2E cited evidence ${unique}` }],
         projector_version: "clienteling-opportunity-v1",
       })
       .select("id")
@@ -118,6 +121,15 @@ test.describe.serial("mission control", () => {
         hasText: `E2E why-now ${unique}`,
       });
       await expect(opportunityCard).toBeVisible();
+      // Decision intelligence: priority, confidence and cited evidence must
+      // be visible, not just the "why now" headline — the founder's own
+      // "ranked, explainable why-now/what-next view with evidence,
+      // uncertainty" requirement for Mission Control.
+      await expect(opportunityCard.getByText("Priority 2")).toBeVisible();
+      await expect(opportunityCard.getByText("82% confidence")).toBeVisible();
+      await expect(
+        opportunityCard.getByText(`E2E cited evidence ${unique}`),
+      ).toBeVisible();
       await opportunityCard.getByRole("button", { name: "Accept" }).click();
       await expect(opportunityCard).toHaveCount(0);
 
