@@ -20538,6 +20538,10 @@ export type Database = {
         Args: { p_hints: string[]; p_slug: string };
         Returns: boolean;
       };
+      mark_alteration_customer_notified: {
+        Args: { p_alteration_id: string };
+        Returns: undefined;
+      };
       mark_conversation_read: {
         Args: { p_conversation_id: string };
         Returns: undefined;
