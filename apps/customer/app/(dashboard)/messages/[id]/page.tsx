@@ -1,4 +1,8 @@
-import { MessagingRepository, RetailerRepository } from "@paon/database";
+import {
+  MessagingRepository,
+  RetailerRepository,
+  WardrobeRepository,
+} from "@paon/database";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
@@ -6,6 +10,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { retryAttachmentScan, sendMessage } from "../actions";
+import { BookAppointmentForm } from "../book-appointment-form";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -36,6 +41,41 @@ export default async function ConversationPage({
     rows.push(attachment);
     attachmentsByMessage.set(attachment.attachment.messageId, rows);
   }
+
+  // FT-09: a cleared photo or Pinterest "shared look" the customer sent in
+  // this thread can be picked as the origin of an appointment booked from
+  // it -- book_appointment_from_consultation already validates the link
+  // server-side; this just offers the picker.
+  const garmentIds = [
+    ...new Set(
+      attachments
+        .map(({ attachment }) => attachment.wardrobeItemId)
+        .filter((wid): wid is NonNullable<typeof wid> => Boolean(wid)),
+    ),
+  ];
+  const garmentLabelById = new Map<string, string>();
+  if (garmentIds.length > 0) {
+    const wardrobeRepo = new WardrobeRepository(client);
+    const garmentRows = await Promise.all(
+      garmentIds.map((gid) => wardrobeRepo.findById(gid)),
+    );
+    for (const row of garmentRows) {
+      if (row) garmentLabelById.set(row.id, row.displayName);
+    }
+  }
+  const linkableAttachments = attachments
+    .filter(
+      ({ attachment, accessUrl }) =>
+        Boolean(accessUrl) &&
+        (attachment.purpose === "pinterest_link" ||
+          attachment.mimeType?.startsWith("image/")),
+    )
+    .map(({ attachment }) => ({
+      id: attachment.id,
+      label: attachment.wardrobeItemId
+        ? (garmentLabelById.get(attachment.wardrobeItemId) ?? "Shared look")
+        : (attachment.fileName ?? "Shared look"),
+    }));
   return (
     <div className="flex min-h-[calc(100dvh-10.5rem)] flex-col gap-5 lg:min-h-0">
       <div>
@@ -114,6 +154,10 @@ export default async function ConversationPage({
           </div>
         ))}
       </Card>
+      <BookAppointmentForm
+        conversationId={conversation.id}
+        linkableAttachments={linkableAttachments}
+      />
       <form
         action={sendMessage}
         className="bg-[var(--color-stone-50)]/95 sticky bottom-20 z-10 -mx-4 flex flex-col gap-2 border-t border-[var(--color-stone-200)] px-4 py-3 backdrop-blur sm:flex-row lg:static lg:bottom-auto lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none"

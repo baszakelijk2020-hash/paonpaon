@@ -1630,6 +1630,7 @@ export type Database = {
           id: string;
           location_id: string | null;
           notes: string | null;
+          origin_message_attachment_id: string | null;
           origin_message_thread_id: string | null;
           retailer_id: string;
           staff_id: string | null;
@@ -1647,6 +1648,7 @@ export type Database = {
           id?: string;
           location_id?: string | null;
           notes?: string | null;
+          origin_message_attachment_id?: string | null;
           origin_message_thread_id?: string | null;
           retailer_id: string;
           staff_id?: string | null;
@@ -1664,6 +1666,7 @@ export type Database = {
           id?: string;
           location_id?: string | null;
           notes?: string | null;
+          origin_message_attachment_id?: string | null;
           origin_message_thread_id?: string | null;
           retailer_id?: string;
           staff_id?: string | null;
@@ -1685,6 +1688,13 @@ export type Database = {
             columns: ["customer_id"];
             isOneToOne: false;
             referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointments_origin_message_attachment_id_fkey";
+            columns: ["origin_message_attachment_id"];
+            isOneToOne: false;
+            referencedRelation: "message_attachments";
             referencedColumns: ["id"];
           },
           {

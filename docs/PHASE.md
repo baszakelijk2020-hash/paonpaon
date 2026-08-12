@@ -1125,6 +1125,31 @@ orchestrator.ts` was the only other one still uncovered (the
     customer e2e suite reran green (the pre-existing rapid-keyboard
     swipe-deck flake reconfirmed once more, passing on retry); full
     retailer suite reran green at 53/53.
+    FT-09's "connected shared-look -> appointment/proposal outcome" gap is
+    now closed: `book_appointment_from_consultation` already validated that
+    an optional `p_message_attachment_id` belonged to the conversation but
+    never persisted it, so the outcome was silently discarded. Migration
+    `20260812000010` adds `appointments.origin_message_attachment_id` and
+    the RPC now inserts the validated attachment id. Separately, the
+    customer `BookAppointmentForm` component had zero imports anywhere in
+    the app — the entire "book an appointment from this conversation" path
+    was unreachable by a real customer, and its appointment-type `<select>`
+    listed values (`consultation`, `measurement`, `alteration`, `general`)
+    that do not exist in the `appointment_type` enum
+    (`styling_consultation`, `fitting`, `alteration_fitting`,
+    `personal_shopping`, `event`) — proof this form had never actually been
+    exercised end-to-end despite `consultation-outcome.spec.ts` asserting
+    against it. Wired the form into `/messages/[id]`, added a "Link a
+    shared look" picker sourced from cleared photo/Pinterest attachments in
+    the thread, and corrected the dropdown to the real enum. Proof: a new
+    `consultation-outcome.spec.ts` journey attaches a Pinterest look, books
+    an appointment linking it, and asserts
+    `appointments.origin_message_attachment_id`; the file's other two
+    journeys reran green (both needed a reuse-not-insert fix for
+    `conversations`' `unique(retailer_id, customer_id)` constraint, since
+    `service_role` has no local DELETE grant to clean up between runs).
+    Remaining FT-09 gaps: an upload progress indicator (cosmetic) and
+    "consent/citation proof" (scope not yet defined).
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
