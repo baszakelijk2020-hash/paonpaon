@@ -11,6 +11,13 @@
  * near-duplicate of it here, which is exactly the "second feature-local
  * truth" AGENTS.md warns against; corrected once found rather than left in
  * place with the shared function undiscovered by the next reader too.
+ *
+ * `evaluateRelationshipDateWindow` itself does not care whether
+ * `relationshipDateIso` came from a customer's own recurring fact or a
+ * fixed calendar date shared by every customer (e.g. Valentine's Day) — it
+ * only ever looks at month/day recurrence — so a second, calendar-fixed
+ * package plugs into the same function with no code change, only a new
+ * `CampaignLibrarySnapshot` constant.
  */
 
 import { nextYearlyOccurrence } from "../appointments/customer-moment";
@@ -141,3 +148,33 @@ export const ANNIVERSARY_MOMENT_LIBRARY_V1: CampaignLibrarySnapshot = {
     trigger: "anniversary_date_window",
   },
 };
+
+/**
+ * The second of 10.4's nine named packages — PHASE.md's own name for it is
+ * "Valentine/reservation-rescue and overcoat". Unlike Anniversary, this
+ * fires from a single fixed calendar date shared by every customer (February
+ * 14), not a per-customer `customer_facts` row, so it needs no new fact type
+ * at all — `evaluateRelationshipDateWindow` already treats
+ * `relationshipDateIso` as month/day-only with the year ignored, so a
+ * constant date plugs into the exact same eligibility function unmodified.
+ * "Reservation-rescue": the lead window exists so a customer who has not yet
+ * planned anything gets reminded while there is still time to book, not
+ * after the date has already passed them by.
+ */
+export const VALENTINE_RESERVATION_RESCUE_LIBRARY_V1: CampaignLibrarySnapshot =
+  {
+    versionLabel: "valentine-reservation-rescue-v1",
+    kind: "private_offer",
+    title: "Valentine Reservation Rescue",
+    summary:
+      "A timely nudge while there is still time to prepare for Valentine's Day, not a last-minute blast after the moment has passed.",
+    prerequisites: ["personalization_consent", "advisor_coverage"],
+    placementHints: ["private_offers", "clienteling"],
+    staffMission:
+      "Reach out while there is still time to help — confirm what the client actually needs before suggesting anything.",
+    outcomeMetrics: ["opened", "replied", "booked", "declined"],
+    audienceTemplate: {
+      consent: "personalization",
+      trigger: "valentine_date_window",
+    },
+  };

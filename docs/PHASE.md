@@ -3409,13 +3409,28 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     pattern — chosen
     first because it needs no new fact type and no sensitive-context
     human-rehearsal gate the other eight packages this item names may need.
-    Missing: the other eight named packages (Valentine, Mother's/Father's
-    Day, coming-of-age, Race Sunday, annual event, client event, dating/
-    single-again, referral), wiring this eligibility function into the
-    10.1 rehearsal/activation pipeline's candidate gathering, retailer
-    mapping UI for a relationship package specifically, and multi-role
-    browser proof. This is domain-layer only — treat 10.4 as far from
-    complete, not merely unverified.
+  - **Update (2026-08-14):** second package,
+    `VALENTINE_RESERVATION_RESCUE_LIBRARY_V1` (`relationship-calendar.ts`),
+    added — PHASE.md's own name for it is "Valentine/reservation-rescue and
+    overcoat". Unlike Anniversary, it fires from a single fixed calendar
+    date (February 14) shared by every customer rather than a per-customer
+    `customer_facts` row, so it needed no new fact type at all:
+    `evaluateRelationshipDateWindow` already treats `relationshipDateIso`
+    as month/day-only with the year ignored, so the same eligibility
+    function plugs in unmodified — confirmed by checking
+    `campaign_library_entries_key_check`'s only migration
+    (`20260801000002_add_seven_day_and_honeymoon_packages.sql`), which
+    never listed `anniversary_moment` either: this stays domain-layer only,
+    same precedent, no migration added. 14 tests added/passing
+    (`relationship-calendar.test.ts`); `pnpm --filter @paon/domain
+test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
+    seven named packages (Mother's/Father's Day, coming-of-age, Race
+    Sunday, annual event, client event, dating/single-again, referral),
+    wiring this eligibility function into the 10.1 rehearsal/activation
+    pipeline's candidate gathering, retailer mapping UI for a relationship
+    package specifically, and multi-role browser proof. This is
+    domain-layer only — treat 10.4 as far from complete, not merely
+    unverified.
 
 ### Stage 11 — Workforce Mission Control and coaching
 
