@@ -8,6 +8,7 @@ import {
   NotificationRepository,
   ProductVariantRepository,
   RetailerStaffRepository,
+  StoreFeedbackRepository,
 } from "@paon/database";
 import {
   APPOINTMENT_TYPE_LABELS,
@@ -24,6 +25,7 @@ import Link from "next/link";
 import {
   acceptOpportunity,
   dismissOpportunity,
+  acknowledgeStoreFeedback,
   snoozeOpportunity,
 } from "./actions";
 
@@ -115,6 +117,7 @@ export default async function MissionControlPage() {
     lowStockCount,
     staffMembers,
     decisionFeedEntries,
+    storeFeedbackSignals,
   ] = await Promise.all([
     new AppointmentRepository(supabase).findByRetailer(session.retailerId),
     new CustomerRepository(supabase).findByRetailer(session.retailerId),
@@ -159,6 +162,9 @@ export default async function MissionControlPage() {
       retailerId: session.retailerId,
       userId: session.userId,
     }),
+    retailerRoleAtLeast(session.retailerRole, "manager")
+      ? new StoreFeedbackRepository(supabase).listOpen(session.retailerId)
+      : Promise.resolve([]),
   ]);
   const staffNameById = new Map(
     staffMembers.map((staff) => [staff.id, staff.fullName]),
@@ -644,6 +650,72 @@ export default async function MissionControlPage() {
           )}
         </Card>
       </div>
+
+      {retailerRoleAtLeast(session.retailerRole, "manager") ? (
+        <Card className="flex flex-col gap-3" data-store-feedback-queue>
+          <div>
+            <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+              In-store feedback
+            </h2>
+            <p className="text-sm text-[var(--color-stone-500)]">
+              Explicit product or consented customer signals awaiting leadership
+              follow-up. Submitter identity is not collected.
+            </p>
+          </div>
+          {storeFeedbackSignals.length === 0 ? (
+            <p className="text-sm text-[var(--color-stone-500)]">
+              Nothing waiting.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {storeFeedbackSignals.map((signal) => (
+                <li
+                  key={signal.id}
+                  data-store-feedback-id={signal.id}
+                  className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
+                >
+                  <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                    {signal.customerId
+                      ? (nameByCustomerId.get(signal.customerId as never) ??
+                        "Consented customer")
+                      : "Garment signal"}{" "}
+                    · {signal.audience.replaceAll("_", " ")}
+                  </p>
+                  {signal.garmentRef ? (
+                    <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                      {signal.garmentRef}
+                    </p>
+                  ) : null}
+                  <p className="mt-2 text-sm text-[var(--color-stone-700)]">
+                    {signal.feedback}
+                  </p>
+                  {signal.correctsSignalId ? (
+                    <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                      Correction of an earlier signal.
+                    </p>
+                  ) : null}
+                  <form
+                    action={acknowledgeStoreFeedback}
+                    className="mt-3 flex flex-wrap gap-2"
+                  >
+                    <input type="hidden" name="signalId" value={signal.id} />
+                    <input
+                      name="followUpNote"
+                      required
+                      minLength={1}
+                      placeholder="Follow-up recorded"
+                      className="min-w-48 rounded-[var(--radius-sm)] border border-[var(--color-stone-300)] px-2 py-1 text-sm"
+                    />
+                    <Button type="submit" size="sm">
+                      Acknowledge
+                    </Button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      ) : null}
 
       <Card className="flex flex-col gap-3">
         <div>

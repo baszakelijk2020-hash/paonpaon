@@ -127,5 +127,6 @@ export * from "./repositories/network-repository";
 export * from "./repositories/academy-repository";
 export * from "./repositories/academy-roleplay-repository";
 export * from "./repositories/store-experience-repository";
+export * from "./repositories/store-feedback-repository";
 export * from "./repositories/advisor-capture-repository";
 export type { Database } from "./generated/database.types";

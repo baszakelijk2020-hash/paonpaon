@@ -69,6 +69,32 @@ export function checkObservationAdapter(args: {
   return { ok: true };
 }
 
+export const STORE_FEEDBACK_AUDIENCES = [
+  "buying",
+  "merchandising",
+  "client_experience",
+] as const;
+export type StoreFeedbackAudience = (typeof STORE_FEEDBACK_AUDIENCES)[number];
+
+/** Manual feedback is explicit, but named context still fails closed without
+ * personalization consent. There is intentionally no employee field here. */
+export function checkStoreFeedbackContext(args: {
+  readonly customerId?: string;
+  readonly garmentRef?: string;
+  readonly personalizationConsent?: "granted" | "denied" | "withdrawn";
+}):
+  | { readonly ok: true }
+  | {
+      readonly ok: false;
+      readonly reason: "context_required" | "customer_consent_required";
+    } {
+  if (!args.customerId && !args.garmentRef?.trim())
+    return { ok: false, reason: "context_required" };
+  if (args.customerId && args.personalizationConsent !== "granted")
+    return { ok: false, reason: "customer_consent_required" };
+  return { ok: true };
+}
+
 export const FIT_COMPARISON_BANDS = [
   "noticeably_short",
   "slightly_short",
