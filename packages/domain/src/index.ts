@@ -159,6 +159,7 @@ export * from "./fit/measurement-monitor";
 
 export * from "./concierge/service-plan";
 export * from "./concierge/service-plan.schema";
+export * from "./mission-control/decision-feed";
 export * from "./workforce/payroll-period";
 export * from "./workforce/recognition";
 export * from "./workforce/closeout";

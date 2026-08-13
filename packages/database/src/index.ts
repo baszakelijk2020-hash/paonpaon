@@ -75,6 +75,7 @@ export * from "./repositories/customer-interest-repository";
 export * from "./repositories/for-you-repository";
 export * from "./repositories/customer-fact-repository";
 export * from "./repositories/clienteling-opportunity-repository";
+export * from "./repositories/decision-feed-repository";
 export * from "./repositories/clienteling-dashboard-repository";
 export * from "./repositories/intelligence-policy-repository";
 export * from "./repositories/source-authority-repository";
