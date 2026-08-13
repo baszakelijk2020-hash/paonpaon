@@ -20919,6 +20919,10 @@ export type Database = {
         Args: { p_candidate_id: string; p_note?: string };
         Returns: undefined;
       };
+      release_message_attachment: {
+        Args: { p_attachment_id: string };
+        Returns: undefined;
+      };
       remove_inferred_style_preference: {
         Args: {
           p_concept_id: string;

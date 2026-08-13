@@ -78,6 +78,36 @@ export async function sendMessage(formData: FormData) {
   revalidatePath("/messages");
 }
 
+/** Staff retry — requeues a failed upload. `retry_message_attachment_scan`
+ * re-derives caller authorization server-side, so this has nothing further
+ * to check beyond the module/role gate every action on this page uses. */
+export async function retryAttachment(formData: FormData) {
+  const session = await requireModuleSession("relationship_intelligence");
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const attachmentId = String(formData.get("attachmentId") ?? "");
+  if (!attachmentId) throw new Error("Missing attachment.");
+  await new MessagingRepository(
+    await getSupabaseServerClient(),
+  ).retryAttachmentScan(attachmentId as never);
+  revalidatePath("/messages");
+}
+
+/** Staff manual release — the human-review path ahead of any scanner
+ * provider decision (PHASE.md execution queue item 5). Never auto-clears;
+ * a specific staff member reviews and explicitly releases each upload.
+ * `release_message_attachment` re-derives caller authorization
+ * server-side. */
+export async function releaseAttachment(formData: FormData) {
+  const session = await requireModuleSession("relationship_intelligence");
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const attachmentId = String(formData.get("attachmentId") ?? "");
+  if (!attachmentId) throw new Error("Missing attachment.");
+  await new MessagingRepository(
+    await getSupabaseServerClient(),
+  ).releaseAttachment(attachmentId as never);
+  revalidatePath("/messages");
+}
+
 export async function claimConversation(formData: FormData) {
   const session = await requireModuleSession("relationship_intelligence");
   requireRetailerRole(session.retailerRole, "sales_associate");
