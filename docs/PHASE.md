@@ -4726,6 +4726,29 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     a fully isolated retailer per run is still the only way to remove
     shared-fixture risk everywhere else in this suite, but this specific
     flake class is now closed for this spec.
+  - **Update (2026-08-14, takeover branch):** `buildRoleDashboard` gained
+    its first caller, closing that specific named gap from the update
+    above. `/analytics` (`page.tsx`, new `role-dashboard.tsx`) now fetches
+    every live `cited_recommendations` row for the retailer (not just
+    `temporal_hotspot`), maps each to the domain `CitedRecommendation`
+    shape, and calls `buildRoleDashboard` with every `RECOMMENDATION_KINDS`
+    entry allowed for manager-and-above roles — a lower role sees nothing
+    rather than a filtered guess, since no lower-role UI concept for this
+    surface exists yet to define what a narrower allow-list should be.
+    Each rendered finding shows its confidence band, sample size, sources
+    and window, matching the item's own honesty rules rather than
+    inventing new presentation rules. Since only `temporal_hotspot` has a
+    projector, `buildRoleDashboard`'s own empty-section filtering means
+    only one section ever renders today — genuinely so, not simulated —
+    and the other six kinds will appear automatically once their
+    projectors exist, with no further UI change needed. The pre-existing
+    `temporal_hotspot` card and its `analytics.spec.ts` selectors are
+    untouched (additive placement only); no new browser proof was added
+    for the new section (Docker/local Supabase unavailable in this
+    session, so this is implemented-but-not-e2e-verified, same honesty
+    level as the rest of this item). The checkbox stays unchecked: the
+    other six projectors and the AI evaluation harness are still entirely
+    unbuilt, and this update does not attempt either.
 
 ### Stage 15 — Lifestyle network and MunroMerchant (parked)
 
