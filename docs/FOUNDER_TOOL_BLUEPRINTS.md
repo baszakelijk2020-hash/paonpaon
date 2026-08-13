@@ -677,8 +677,15 @@ that the fail-closed copy renders correctly ("Personalization not opted
 in", interests/shortlist/knowledge each showing their
 "hidden without personalization consent" text) rather than crashing or
 silently showing nothing — reusing the test's existing fresh-customer
-setup instead of a new test. The `usable`-visibility path (real
-consented interests/shortlist/evidence data) remains unproven. Added a
+setup instead of a new test. **Correction (2026-08-12):** the line
+above previously claimed the `usable`-visibility path (real consented
+interests/shortlist/evidence data) remains unproven — false, caught by
+direct verification: `workspace.spec.ts`'s "advisor sees consented
+customer intelligence: interests, shortlist, evidence" test (commit
+`fc313bf`) already seeds real personalization consent, a wishlist item
+and StyleProfile evidence, then asserts the brief's "Consented
+intelligence" badge and all three sections render real data. Re-ran
+directly against current `HEAD` (348cda5) and it passes. Added a
 third dashboard card type: unread messages, seeded as one notification
 row directly for the owner's own `auth.users` id and asserted through
 the real `#attention a[href='/messages']` card, counting whatever
@@ -1329,8 +1336,22 @@ fully wired across every table the schema already had — planner
 workflow/experience otherwise partial. Commits `37a4288` and `b49d631`
 record the accepted group-fitting capacity exception as real scheduled
 capacity only, not an invented rate, and prove the public invite→join
-browser flow. Anniversary continuation remains open, along with the
-other planner gaps.
+browser flow. Anniversary continuation (2026-08-12) is now closed:
+`nextAnniversary` had unit coverage but zero callers anywhere in either
+app; `ClientelingOpportunityRepository.syncAnniversaryMomentsForCustomer`
+wires it in on customer-page view, mirroring the existing interest-
+follow-up projector's own shape — a completed wedding party's next
+annual recurrence, when within 30 days, becomes a real, visible
+`anniversary_moment` draft opportunity, deduped against an existing
+undecided draft. A real bug was caught wiring this: passing the natural
+full-ISO `now` (rather than a plain date) into `nextAnniversary`/
+`nextYearlyOccurrence` corrupted their string-split date parsing and
+silently pushed every computed anniversary a full year out — caught by
+a unit test using a realistic timestamp, not a hand-picked date-only
+one. Proof: 3 new repository unit tests plus a browser journey seeding
+a completed wedding party with an anniversary 5 days out, asserting the
+real card renders and a reload does not duplicate the draft. Other
+planner gaps remain open.
 
 ## FT-14 — Preferred Tailoring and HighMaintenance
 

@@ -190,4 +190,116 @@ describe("ClientelingOpportunityRepository", () => {
       "bbbbbbbb-bbbb-4bbb-8bbb-000000000001",
     );
   });
+
+  describe("syncAnniversaryMomentsForCustomer", () => {
+    it("inserts an anniversary_moment draft for a completed wedding party whose anniversary is soon", async () => {
+      const inserted: Record<string, unknown>[] = [];
+      const from = vi.fn((table: string) => {
+        if (table === "wedding_parties") {
+          return fakeQueryBuilder({
+            data: [{ event_date: "2025-08-20" }],
+            error: null,
+          });
+        }
+        if (table === "clienteling_opportunities") {
+          return {
+            ...fakeQueryBuilder({ data: [], error: null }),
+            insert: (payload: Record<string, unknown>) => {
+              inserted.push(payload);
+              return fakeQueryBuilder({ data: null, error: null });
+            },
+          };
+        }
+        throw new Error(`unexpected table ${table}`);
+      });
+      const repo = new ClientelingOpportunityRepository({
+        from,
+      } as unknown as PaonSupabaseClient);
+
+      await repo.syncAnniversaryMomentsForCustomer({
+        retailerId,
+        customerId,
+        now: "2026-08-15T00:00:00.000Z",
+      });
+
+      expect(inserted).toHaveLength(1);
+      expect(inserted[0]?.["opportunity_type"]).toBe("anniversary_moment");
+      expect(inserted[0]?.["why_now"]).toBe("1 year married on 2026-08-20.");
+      expect(inserted[0]?.["evidence"]).toEqual([
+        { insightStatement: "Wedding date: 2025-08-20" },
+      ]);
+    });
+
+    it("does not insert when the anniversary is more than 30 days away", async () => {
+      const inserted: Record<string, unknown>[] = [];
+      const from = vi.fn((table: string) => {
+        if (table === "wedding_parties") {
+          return fakeQueryBuilder({
+            data: [{ event_date: "2025-01-01" }],
+            error: null,
+          });
+        }
+        if (table === "clienteling_opportunities") {
+          return {
+            ...fakeQueryBuilder({ data: [], error: null }),
+            insert: (payload: Record<string, unknown>) => {
+              inserted.push(payload);
+              return fakeQueryBuilder({ data: null, error: null });
+            },
+          };
+        }
+        throw new Error(`unexpected table ${table}`);
+      });
+      const repo = new ClientelingOpportunityRepository({
+        from,
+      } as unknown as PaonSupabaseClient);
+
+      await repo.syncAnniversaryMomentsForCustomer({
+        retailerId,
+        customerId,
+        now: "2026-08-15T00:00:00.000Z",
+      });
+
+      expect(inserted).toHaveLength(0);
+    });
+
+    it("does not duplicate an already-drafted anniversary opportunity", async () => {
+      const inserted: Record<string, unknown>[] = [];
+      const existingDraft = opportunityRow({
+        id: "aaaaaaaa-aaaa-4aaa-8aaa-000000000006",
+        retailer_id: retailerId,
+        why_now: "1 year married on 2026-08-20.",
+        opportunity_type: "anniversary_moment",
+      });
+      const from = vi.fn((table: string) => {
+        if (table === "wedding_parties") {
+          return fakeQueryBuilder({
+            data: [{ event_date: "2025-08-20" }],
+            error: null,
+          });
+        }
+        if (table === "clienteling_opportunities") {
+          return {
+            ...fakeQueryBuilder({ data: [existingDraft], error: null }),
+            insert: (payload: Record<string, unknown>) => {
+              inserted.push(payload);
+              return fakeQueryBuilder({ data: null, error: null });
+            },
+          };
+        }
+        throw new Error(`unexpected table ${table}`);
+      });
+      const repo = new ClientelingOpportunityRepository({
+        from,
+      } as unknown as PaonSupabaseClient);
+
+      await repo.syncAnniversaryMomentsForCustomer({
+        retailerId,
+        customerId,
+        now: "2026-08-15T00:00:00.000Z",
+      });
+
+      expect(inserted).toHaveLength(0);
+    });
+  });
 });

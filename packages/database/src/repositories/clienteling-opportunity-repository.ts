@@ -5,6 +5,9 @@
 import {
   asId,
   buildInterestFollowUpOpportunities,
+  CLIENTELING_OPPORTUNITY_PROJECTOR_VERSION,
+  nextAnniversary,
+  nextYearlyOccurrence,
   type ClientelingChannel,
   type ClientelingOpportunity,
   type ClientelingOpportunityEvidence,
@@ -346,6 +349,98 @@ export class ClientelingOpportunityRepository {
     }
 
     return this.listForCustomer(args.retailerId, args.customerId);
+  }
+
+  /**
+   * FT-13's anniversary continuation: `nextAnniversary` (the domain's own
+   * annual date recurrence, `packages/domain/src/wedding/moonstruck-pack.ts`)
+   * has existed since 2026-08-05 with unit coverage but no caller anywhere
+   * in either app -- a customer's wedding anniversary never actually
+   * surfaced as anything. Mirrors `syncInterestDraftsForCustomer`'s own
+   * shape: called on customer-page view, inserts a draft `anniversary_moment`
+   * opportunity for each completed wedding party this customer organized
+   * whose anniversary falls within the next 30 days, deduped against an
+   * existing undecided draft the same way interest follow-ups already are.
+   */
+  async syncAnniversaryMomentsForCustomer(args: {
+    readonly retailerId: RetailerId;
+    readonly customerId: CustomerId;
+    readonly assignedStaffId?: StaffId;
+    readonly now?: string;
+  }): Promise<void> {
+    const now = args.now ?? new Date().toISOString();
+    // nextAnniversary/nextYearlyOccurrence parse their date args by
+    // splitting on "-" and reconstructing a plain YYYY-MM-DD string; a
+    // full ISO timestamp's "T..." time suffix corrupts that split, so
+    // only the date portion is passed through.
+    const asOfDate = now.slice(0, 10);
+
+    const { data: weddingParties, error: weddingPartiesError } =
+      await this.client
+        .from("wedding_parties")
+        .select("event_date")
+        .eq("retailer_id", args.retailerId)
+        .eq("organizer_customer_id", args.customerId)
+        .eq("status", "completed")
+        .not("event_date", "is", null)
+        .is("deleted_at", null);
+    if (weddingPartiesError) throw weddingPartiesError;
+    if (!weddingParties || weddingParties.length === 0) return;
+
+    const existing = await this.listForCustomer(
+      args.retailerId,
+      args.customerId,
+      50,
+    );
+    const existingWhy = new Set(
+      existing.filter((row) => row.status === "draft").map((row) => row.whyNow),
+    );
+
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    for (const party of weddingParties) {
+      if (!party.event_date) continue;
+      const moment = nextAnniversary({
+        eventDate: party.event_date,
+        asOf: asOfDate,
+        nextYearlyOccurrence,
+      });
+      const daysUntil = Math.round(
+        (Date.parse(moment.occursOn) - Date.parse(asOfDate)) / oneDayMs,
+      );
+      // A year-away anniversary would flood every visit with a note about
+      // something not yet actionable; a 30-day window matches this
+      // codebase's own "worth surfacing soon" precedent elsewhere.
+      if (daysUntil < 0 || daysUntil > 30) continue;
+
+      const yearWord = moment.yearsSince === 1 ? "year" : "years";
+      const whyNow = `${moment.yearsSince} ${yearWord} married on ${moment.occursOn}.`;
+      if (existingWhy.has(whyNow)) continue;
+
+      const { error } = await this.client
+        .from("clienteling_opportunities")
+        .insert({
+          retailer_id: args.retailerId,
+          customer_id: args.customerId,
+          opportunity_type:
+            "anniversary_moment" satisfies ClientelingOpportunityType,
+          why_now: whyNow,
+          suggested_action:
+            "Reach out with an anniversary touch — a care check-in or a considered gift suggestion.",
+          channel: "message" satisfies ClientelingChannel,
+          priority: 2,
+          confidence: 1,
+          status: "draft" satisfies ClientelingOpportunityStatus,
+          ...(args.assignedStaffId
+            ? { assigned_staff_id: args.assignedStaffId }
+            : {}),
+          contact_pressure: false,
+          evidence: [
+            { insightStatement: `Wedding date: ${party.event_date}` },
+          ] satisfies ClientelingOpportunityEvidence[] as unknown as Json,
+          projector_version: CLIENTELING_OPPORTUNITY_PROJECTOR_VERSION,
+        });
+      if (error) throw error;
+    }
   }
 
   async setStatus(args: {
