@@ -6710,11 +6710,21 @@ nowhere honest to store it.
     difference from live self-service booking, not merely an unproven
     claim of it, and "starting measurement capture" from this page is
     still not attempted. Turning a request into a slot against real
-    advisor/room capacity remains `18.6`'s own item by design. Cross-
-    company isolation is structural (the RPC validates `p_programme_id`
-    against a real active programme/account/retailer and returns only
-    that scoped data) but has no dedicated "company A cannot see company
-    B's page" browser test.
+    advisor/room capacity remains `18.6`'s own item by design.
+  - **Proof (2026-08-14):** the named cross-company isolation gap is
+    closed. `apps/customer/e2e/corporate-office-visit-isolation.spec.ts`
+    creates two real corporate accounts/programmes under the same
+    fixture retailer and proves, in one browser run: Company A's public
+    page shows only Company A's legal name/programme name (Company B's
+    text asserted absent with a real `toHaveCount(0)`, not merely "not
+    found"); a request submitted on Company A's page is attributed only
+    to Company A's `programme_id` via `CorporateOfficeVisitRepository
+.findByProgramme` (Company B's programme independently confirmed to
+    have zero requests); and the symmetric check holds visiting Company
+    B's page. Confirms the RPC's structural scoping is real, not merely
+    unproven. Still missing: live self-service booking directly from the
+    page (deliberately `18.6`'s own item) and starting measurement
+    capture from this page.
 
 - [x] **18.5 Employee portal (auth and self-service)**
   - **Requirement IDs:** BD-105.
