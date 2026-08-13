@@ -4,7 +4,7 @@ import { Button } from "@paon/ui/components/Button";
 import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 import { Select } from "@paon/ui/components/Select";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { captureFeedback, type StoreFeedbackActionState } from "./actions";
 
@@ -15,12 +15,19 @@ export function FeedbackCapture({
   readonly customers: readonly { id: string; label: string }[];
 }) {
   const [state, action, pending] = useActionState(captureFeedback, initial);
+  const [idempotencyKey, setIdempotencyKey] = useState(() =>
+    crypto.randomUUID(),
+  );
+  useEffect(() => {
+    if (state.notice) setIdempotencyKey(crypto.randomUUID());
+  }, [state]);
   return (
     <form
       action={action}
       className="flex flex-col gap-3"
       id="store-feedback-form"
     >
+      <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
       <FormField
         label="Customer context (optional; consent required)"
         htmlFor="feedback-customer"

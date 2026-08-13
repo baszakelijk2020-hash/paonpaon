@@ -147,7 +147,7 @@ export async function captureFeedback(
       audience: field(formData, "audience") as
         "buying" | "merchandising" | "client_experience",
       feedback: field(formData, "feedback"),
-      idempotencyKey: crypto.randomUUID(),
+      idempotencyKey: field(formData, "idempotencyKey"),
     });
   } catch (error) {
     return {

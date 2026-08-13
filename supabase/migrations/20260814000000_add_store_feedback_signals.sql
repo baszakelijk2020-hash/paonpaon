@@ -137,15 +137,50 @@ create or replace function public.correct_store_feedback_signal(
 returns public.store_feedback_signals
 language plpgsql security definer set search_path = ''
 as $$
-declare v_original public.store_feedback_signals%rowtype; v_replacement public.store_feedback_signals%rowtype;
+declare
+  v_original public.store_feedback_signals%rowtype;
+  v_replacement public.store_feedback_signals%rowtype;
+  v_retailer_id uuid := public.current_retailer_id();
+  v_customer public.customers%rowtype;
+  v_personalization_granted boolean := false;
+  v_garment_ref text := nullif(btrim(coalesce(p_garment_ref, '')), '');
+  v_feedback text := nullif(btrim(coalesce(p_feedback, '')), '');
+  v_key text := nullif(btrim(coalesce(p_idempotency_key, '')), '');
 begin
   if auth.uid() is null or public.current_retailer_role() not in ('owner', 'admin', 'manager') then raise exception 'Not authorized'; end if;
-  select * into v_original from public.store_feedback_signals where id = p_signal_id and retailer_id = public.current_retailer_id() and status = 'open';
+  select * into v_original from public.store_feedback_signals where id = p_signal_id and retailer_id = v_retailer_id and status = 'open' for update;
   if not found then raise exception 'Open feedback signal unavailable'; end if;
-  select * into v_replacement from public.capture_store_feedback_signal(p_customer_id, p_garment_ref, p_audience, p_feedback, p_idempotency_key);
+  if p_audience not in ('buying', 'merchandising', 'client_experience') then
+    raise exception 'Select a leadership audience';
+  end if;
+  if v_key is null or v_feedback is null or char_length(v_feedback) < 3 then
+    raise exception 'Feedback and idempotency key are required';
+  end if;
+  if p_customer_id is null and v_garment_ref is null then
+    raise exception 'A customer context or garment reference is required';
+  end if;
+  if exists (
+    select 1 from public.store_feedback_signals
+    where retailer_id = v_retailer_id and idempotency_key = v_key
+  ) then
+    raise exception 'Idempotency key was already used for another feedback signal';
+  end if;
+  if p_customer_id is not null then
+    select * into v_customer from public.customers
+      where id = p_customer_id and retailer_id = v_retailer_id and deleted_at is null;
+    if not found then raise exception 'Customer unavailable'; end if;
+    select coalesce(cp.personalization_opt_in, false) and cp.personalization_withdrawn_at is null
+      into v_personalization_granted from public.customer_preferences cp where cp.customer_id = p_customer_id;
+    if v_personalization_granted is not true then
+      raise exception 'Customer personalization consent is required';
+    end if;
+  end if;
+  insert into public.store_feedback_signals(
+    retailer_id, customer_id, garment_ref, audience, feedback, idempotency_key, corrects_signal_id
+  ) values (
+    v_retailer_id, p_customer_id, v_garment_ref, p_audience, v_feedback, v_key, v_original.id
+  ) returning * into v_replacement;
   update public.store_feedback_signals set status = 'corrected' where id = v_original.id;
-  update public.store_feedback_signals set corrects_signal_id = v_original.id where id = v_replacement.id;
-  select * into v_replacement from public.store_feedback_signals where id = v_replacement.id;
   return v_replacement;
 end $$;
 
