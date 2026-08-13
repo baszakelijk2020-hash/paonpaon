@@ -470,6 +470,33 @@ quality-checkpoint attribution distinct from custody, and alteration-specific
 customer communication threaded into the Communication Centre — remain real,
 unattempted gaps.
 
+**Status (2026-08-12, item 6, second slice):** closes the named
+"alteration-specific customer communication threaded into the
+Communication Centre" gap. `alteration_work_orders.customer_notified_at`/
+`customer_notification_ready_at` have existed since the garment-first
+alterations foundation but nothing ever wrote to them — a customer-visible
+status transition (quote ready, ready for pickup, completed, canceled)
+never actually reached the customer anywhere, despite the existing "Add
+update" form's customer-visible checkbox implying it did. Migration
+`20260812000030_add_alteration_customer_notify.sql` adds a narrow
+`mark_alteration_customer_notified` RPC gated by the same
+`can_access_alteration_work_order` check `transition_alteration_work_order`
+already uses.
+`AlterationUpdateRepository.notifyCustomer` threads the update into the
+customer's existing conversation through the same
+`get_or_create_staff_conversation`/`send_conversation_message` RPCs every
+other staff-to-customer message already goes through — one messaging
+system, not a second one — and stamps `customer_notified_at`; a role that
+cannot message customers (worker, workshop_manager, production_staff)
+fails that RPC and the notify step quietly no-ops rather than blocking the
+status transition, which has already succeeded by the time it runs.
+Proof: two new `AlterationUpdateRepository` unit tests and a new browser
+journey in `alteration-add-task.spec.ts` — an owner marks a work order
+customer-visibly quoted and the real message body plus
+`customer_notified_at` are asserted via direct DB read. Quality-checkpoint
+attribution distinct from custody remains the one real, unattempted gap
+named above.
+
 The two founder-described "Chinese wall" workstreams are explicitly not part
 of this active priority. Do not select, expand or use them to displace the four
 Mission Control capabilities above without a new founder instruction.
@@ -483,8 +510,58 @@ cross-module decisions, integration and independent acceptance. Every Mission
 Control slice must state its worker tier, owned paths, acceptance proof and
 the exact returned House Memory outcome before implementation begins.
 
+**Status (2026-08-12, Outcome learning):** component 6 of the seven named
+above ("results, corrections, customer response, conversion, service
+outcome and advisor judgement flow back into House Memory with
+attributable evidence") had real, actively-written infrastructure with
+nothing reading it back: `ClientelingOpportunityRepository.linkOutcome`
+sets `outcome_message_id`/`outcome_appointment_id`/`outcome_order_id`
+when a campaign mission converts, but Mission Control only ever queried
+draft opportunities (`listDraftInbox`) — a completed pick's actual
+result was invisible anywhere in the product. Adds
+`listRecentOutcomes` (completed status, at least one outcome link set,
+most recent first) and a "Recent outcomes" card on `/mission-control`
+showing what happened — order placed, appointment booked, or message
+sent — linked to the real object; a completed opportunity with no
+outcome link is excluded, since it closed without anything to learn
+from. Proof: a new repository unit test and a browser journey seeding
+one completed opportunity with a real order outcome and one with none,
+asserting the first renders with a working link and the second never
+appears.
+
 Do not select new feature expansion ahead of executable work that makes
 existing committed capabilities production-ready.
+
+**Status (2026-08-12, Decision intelligence):** component 3 of the seven
+named above ("a ranked, explainable why-now/what-next view with
+evidence, uncertainty, policy, customer benefit and commercial impact
+visible to the advisor") was already fully rendered on the per-customer
+opportunity inbox (`customers/[id]/clienteling-opportunity-inbox.tsx`:
+priority, confidence %, cited evidence) but stripped down to just the
+"why now" headline on Mission Control's own cross-retailer "Priority
+tasks" card — the same `ClientelingOpportunity` data, missing its own
+evidence/confidence on the page whose entire job is ranked
+explainability. No new schema or repository method needed; this mirrors
+the existing inbox's exact render rather than inventing a second
+pattern. Proof: extends the existing priority-task browser journey in
+`mission-control.spec.ts` with seeded confidence/evidence/priority,
+asserting all three render before the task is accepted.
+
+**Status (2026-08-12, Operational coordination):** component 5 of the
+seven named above ("owner, manager and advisor views; queues,
+assignment, status, follow-through, escalation and cross-branch
+operation") had `clienteling_opportunities.assigned_staff_id` already
+actively written (on creation) and already read elsewhere
+(`staff/today/page.tsx`'s `listOpenAssignedToStaff`, a staff member's
+own day), but Mission Control's own cross-retailer "Priority tasks"
+queue never showed it — a manager scanning the whole queue could not
+tell distributed work from unclaimed work. Adds a staff-name lookup to
+the existing data fetch and an "Assigned to {name}"/"Unassigned" badge
+per card; no new schema or write path. Escalation and cross-branch
+operation remain real, unattempted gaps — escalation in particular has
+no existing schema at all and would need a genuine design decision, not
+a wiring fix. A reassign action from Mission Control itself is a
+natural next step but is a new write surface, out of this slice.
 
 Queue selection must apply the Product-readiness convergence gate in
 `AGENTS.md`.
@@ -1463,6 +1540,31 @@ orchestrator.ts` was the only other one still uncovered (the
     customer e2e suite reran green (the pre-existing rapid-keyboard
     swipe-deck flake reconfirmed once more, passing on retry); full
     retailer suite reran green at 53/53.
+    FT-09's "connected shared-look -> appointment/proposal outcome" gap is
+    now closed: `book_appointment_from_consultation` already validated that
+    an optional `p_message_attachment_id` belonged to the conversation but
+    never persisted it, so the outcome was silently discarded. Migration
+    `20260812000010` adds `appointments.origin_message_attachment_id` and
+    the RPC now inserts the validated attachment id. Separately, the
+    customer `BookAppointmentForm` component had zero imports anywhere in
+    the app — the entire "book an appointment from this conversation" path
+    was unreachable by a real customer, and its appointment-type `<select>`
+    listed values (`consultation`, `measurement`, `alteration`, `general`)
+    that do not exist in the `appointment_type` enum
+    (`styling_consultation`, `fitting`, `alteration_fitting`,
+    `personal_shopping`, `event`) — proof this form had never actually been
+    exercised end-to-end despite `consultation-outcome.spec.ts` asserting
+    against it. Wired the form into `/messages/[id]`, added a "Link a
+    shared look" picker sourced from cleared photo/Pinterest attachments in
+    the thread, and corrected the dropdown to the real enum. Proof: a new
+    `consultation-outcome.spec.ts` journey attaches a Pinterest look, books
+    an appointment linking it, and asserts
+    `appointments.origin_message_attachment_id`; the file's other two
+    journeys reran green (both needed a reuse-not-insert fix for
+    `conversations`' `unique(retailer_id, customer_id)` constraint, since
+    `service_role` has no local DELETE grant to clean up between runs).
+    Remaining FT-09 gaps: an upload progress indicator (cosmetic) and
+    "consent/citation proof" (scope not yet defined).
 
 - [ ] **R0.4 Golden Relationship — House Memory and Advisor Today**
   - **Dependencies:** R0.3.
@@ -5226,6 +5328,47 @@ now.
     `docs/evidence/tranches/17.1.json` records the full ten-dimension
     evidence map; `docs/evidence/runs/17.1.json` records the passing run
     at `5242f66`. Checkbox now checked.
+  - **Status (2026-08-12, Mission Control input-to-actions):** the
+    founder's "input to confirmed actions" build order names
+    task/contact/appointment/proposal/fitting/care/follow-up bundles;
+    this item covered only three (fact, follow-up, task note). Adds
+    "appointment" as a fourth confirmable kind: migration
+    `20260812000020` adds `advisor_capture_bundles.linked_appointment_id`
+    and widens the kind check; `checkCaptureBundleProposal` gates it on a
+    valid `appointment_type` and `startsAt < endsAt` before an advisor
+    ever sees it; `confirmBundle` books it through the same
+    `AppointmentRepository.create` the rest of the retailer app already
+    uses. Proof: `advisor-capture.spec.ts` extended with a fourth
+    proposal (fitting, concrete time) confirmed alongside the existing
+    three, asserting `appointments.type`/`staff_id`/`status` and the
+    bundle's `linked_appointment_id`. Contact/proposal/fitting(-as-
+    distinct-from-appointment)/care bundle kinds remain open.
+  - **Status (2026-08-12, care_booking):** adds "care_booking" as a fifth
+    confirmable kind. Migration `20260812000021` adds
+    `advisor_capture_bundles.linked_service_booking_id` and widens the
+    kind check; `checkCaptureBundleProposal` gates it on a valid
+    `bookingKind` (mirrors `SERVICE_BOOKING_KINDS`) and a parseable
+    `requestedFor` when given; `confirmBundle` books it through the same
+    `ServicePlanRepository.requestBooking` Stage 5.3's HighMaintenance/
+    Preferred Tailoring flow already uses — one service-bookings system,
+    not a second one. A care booking requires an active
+    `service_memberships` row for the customer; confirming without one
+    now fails with a distinct `no_active_membership` reason surfaced to
+    the advisor. Of the founder's named set, "fitting" is deliberately
+    not a separate kind (no PAON object lighter than an appointment of
+    that type exists; the "appointment" kind's `CAPTURE_APPOINTMENT_TYPES`
+    already includes it), and "proposal/conceptorder" is deliberately not
+    built here — FT-03 (QR try-on/fabric-batch concept order) was closed
+    by explicit founder decision on 2026-08-05
+    (`docs/FOUNDER_TOOL_BLUEPRINTS.md`: "FT-03 stops here — this is its
+    final scope, not a paused increment"); reusing its
+    `concept_order_selections` schema for an unrelated flow would resume
+    killed scope without new authorization. Proof: 3 new domain unit
+    tests and `advisor-capture.spec.ts` extended with a fifth bundle
+    confirmed alongside the other four, seeding a fixture HighMaintenance
+    membership and asserting the real `service_bookings` row and
+    `linked_service_booking_id`. Remaining open: "contact" as its own
+    kind distinct from `follow_up` (arguably already covered by it).
 
 - [x] **17.2 Mission Control unified brief**
   - **Requirement IDs:** ADV-102.

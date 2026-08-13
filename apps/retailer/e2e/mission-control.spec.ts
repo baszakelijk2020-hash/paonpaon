@@ -93,11 +93,44 @@ test.describe.serial("mission control", () => {
         suggested_action: `E2E suggested action ${unique}`,
         channel: "in_person",
         status: "draft",
+        priority: 2,
+        confidence: 0.82,
+        evidence: [{ insightStatement: `E2E cited evidence ${unique}` }],
         projector_version: "clienteling-opportunity-v1",
       })
       .select("id")
       .single();
     if (opportunityError || !opportunity) throw opportunityError;
+
+    // Operational coordination: an assigned pick must show who owns it, not
+    // just an unassigned one, so a manager can tell distributed queue work
+    // apart from unclaimed work at a glance.
+    const { data: ownerStaff } = await admin
+      .from("retailer_staff_members")
+      .select("id, full_name")
+      .eq("retailer_id", retailerId)
+      .eq("email", TEST_OWNER_EMAIL)
+      .single();
+    if (!ownerStaff) throw new Error("owner staff record missing");
+    const { data: assignedOpportunity, error: assignedOpportunityError } =
+      await admin
+        .from("clienteling_opportunities")
+        .insert({
+          retailer_id: retailerId,
+          customer_id: customer.id,
+          opportunity_type: "interest_follow_up",
+          why_now: `E2E assigned why-now ${unique}`,
+          suggested_action: `E2E assigned suggested action ${unique}`,
+          channel: "in_person",
+          status: "draft",
+          assigned_staff_id: ownerStaff.id,
+          projector_version: "clienteling-opportunity-v1",
+        })
+        .select("id")
+        .single();
+    if (assignedOpportunityError || !assignedOpportunity) {
+      throw assignedOpportunityError;
+    }
 
     try {
       await page.goto("/mission-control");
@@ -118,6 +151,22 @@ test.describe.serial("mission control", () => {
         hasText: `E2E why-now ${unique}`,
       });
       await expect(opportunityCard).toBeVisible();
+      // Decision intelligence: priority, confidence and cited evidence must
+      // be visible, not just the "why now" headline — the founder's own
+      // "ranked, explainable why-now/what-next view with evidence,
+      // uncertainty" requirement for Mission Control.
+      await expect(opportunityCard.getByText("Priority 2")).toBeVisible();
+      await expect(opportunityCard.getByText("82% confidence")).toBeVisible();
+      await expect(
+        opportunityCard.getByText(`E2E cited evidence ${unique}`),
+      ).toBeVisible();
+      await expect(opportunityCard.getByText("Unassigned")).toBeVisible();
+
+      const assignedCard = page.locator("li", {
+        hasText: `E2E assigned why-now ${unique}`,
+      });
+      await expect(assignedCard.getByText(ownerStaff.full_name)).toBeVisible();
+
       await opportunityCard.getByRole("button", { name: "Accept" }).click();
       await expect(opportunityCard).toHaveCount(0);
 
@@ -133,7 +182,7 @@ test.describe.serial("mission control", () => {
       await admin
         .from("clienteling_opportunities")
         .delete()
-        .eq("id", opportunity.id);
+        .in("id", [opportunity.id, assignedOpportunity.id]);
       await admin.from("appointments").delete().eq("id", appointment.id);
       await admin.from("customers").delete().eq("id", customer.id);
     }
@@ -351,4 +400,110 @@ test.describe.serial("mission control", () => {
       await admin.from("customers").delete().eq("id", customer.id);
     }
   });
+});
+
+// Not part of the shared 17.2 proof flags/evidence run above (this covers
+// new "Outcome learning" scope beyond 17.2's own checked acceptance
+// criteria) -- a plain, independent journey proving completed
+// opportunities with a real outcome now surface on Mission Control.
+test("Mission Control surfaces a completed opportunity's real outcome, and excludes one with none", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailer) throw new Error("fixture retailer missing");
+  const retailerId = asId<"RetailerId">(retailer.id);
+
+  const unique = Date.now();
+  const customer = await new CustomerRepository(admin).create({
+    retailerId,
+    fullName: `E2E Outcome Client ${unique}`,
+    email: `mission-control-outcome-${unique}@paon.test`,
+    lifecycleStage: "prospect",
+  });
+
+  const order = await admin
+    .from("orders")
+    .insert({
+      retailer_id: retailerId,
+      customer_id: customer.id,
+      order_number: `E2E-OUT-${unique}`,
+      status: "placed",
+      subtotal_amount_minor_units: 0,
+      total_amount_minor_units: 0,
+      currency: "USD",
+    })
+    .select("id")
+    .single();
+  if (order.error || !order.data) throw order.error;
+
+  const { data: withOutcome, error: withOutcomeError } = await admin
+    .from("clienteling_opportunities")
+    .insert({
+      retailer_id: retailerId,
+      customer_id: customer.id,
+      opportunity_type: "interest_follow_up",
+      why_now: `E2E outcome why-now ${unique}`,
+      suggested_action: `E2E outcome suggested action ${unique}`,
+      channel: "in_person",
+      status: "completed",
+      projector_version: "clienteling-opportunity-v1",
+      outcome_order_id: order.data.id,
+    })
+    .select("id")
+    .single();
+  if (withOutcomeError || !withOutcome) throw withOutcomeError;
+
+  const { data: noOutcome, error: noOutcomeError } = await admin
+    .from("clienteling_opportunities")
+    .insert({
+      retailer_id: retailerId,
+      customer_id: customer.id,
+      opportunity_type: "interest_follow_up",
+      why_now: `E2E no-outcome why-now ${unique}`,
+      suggested_action: `E2E no-outcome suggested action ${unique}`,
+      channel: "in_person",
+      status: "completed",
+      projector_version: "clienteling-opportunity-v1",
+    })
+    .select("id")
+    .single();
+  if (noOutcomeError || !noOutcome) throw noOutcomeError;
+
+  try {
+    // The file-level test.beforeEach above already logs in as the owner.
+    await page.goto("/mission-control");
+    await expect(
+      page.getByRole("heading", { name: "Recent outcomes" }),
+    ).toBeVisible();
+
+    const outcomeCard = page.locator("li", {
+      hasText: `E2E outcome suggested action ${unique}`,
+    });
+    await expect(outcomeCard).toBeVisible();
+    await expect(outcomeCard.getByText("Order placed")).toBeVisible();
+    await expect(
+      outcomeCard.getByRole("link", { name: "Order placed" }),
+    ).toHaveAttribute("href", `/orders/${order.data.id}`);
+
+    // Completed with nothing behind it never appears — this list proves a
+    // real outcome, not merely that the status is "completed".
+    await expect(
+      page.getByText(`E2E no-outcome suggested action ${unique}`),
+    ).toHaveCount(0);
+  } finally {
+    await admin
+      .from("clienteling_opportunities")
+      .delete()
+      .in("id", [withOutcome.id, noOutcome.id]);
+    await admin.from("orders").delete().eq("id", order.data.id);
+    await admin.from("customers").delete().eq("id", customer.id);
+  }
 });

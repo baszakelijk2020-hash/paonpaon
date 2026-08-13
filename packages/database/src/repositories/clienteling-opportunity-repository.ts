@@ -183,6 +183,32 @@ export class ClientelingOpportunityRepository {
     return data.map(toDomain);
   }
 
+  /**
+   * Mission Control's "Outcome learning" surface: completed opportunities
+   * whose action actually produced a real, attributable outcome (a sent
+   * message, a booked appointment or a placed order via `linkOutcome`) --
+   * not merely marked done. A completed opportunity with no outcome link
+   * is excluded; it closed without anything to learn from.
+   */
+  async listRecentOutcomes(
+    retailerId: RetailerId,
+    limit = 10,
+  ): Promise<ClientelingOpportunity[]> {
+    const { data, error } = await this.client
+      .from("clienteling_opportunities")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .eq("status", "completed")
+      .is("deleted_at", null)
+      .or(
+        "outcome_message_id.not.is.null,outcome_appointment_id.not.is.null,outcome_order_id.not.is.null",
+      )
+      .order("updated_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data.map(toDomain);
+  }
+
   async listForRetailer(
     retailerId: RetailerId,
     limit = 200,

@@ -6,6 +6,7 @@ import {
   MessagingRepository,
   NotificationRepository,
   ProductVariantRepository,
+  RetailerStaffRepository,
 } from "@paon/database";
 import {
   APPOINTMENT_TYPE_LABELS,
@@ -73,6 +74,26 @@ function getConversationIdFromActionHref(actionHref?: string): string | null {
   return match?.[1] ?? null;
 }
 
+function outcomeDescription(opportunity: {
+  outcomeOrderId?: string;
+  outcomeAppointmentId?: string;
+  outcomeMessageId?: string;
+}): { label: string; href?: string } {
+  if (opportunity.outcomeOrderId) {
+    return {
+      label: "Order placed",
+      href: `/orders/${opportunity.outcomeOrderId}`,
+    };
+  }
+  if (opportunity.outcomeAppointmentId) {
+    return {
+      label: "Appointment booked",
+      href: `/appointments/${opportunity.outcomeAppointmentId}`,
+    };
+  }
+  return { label: "Message sent" };
+}
+
 export default async function MissionControlPage() {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
@@ -87,9 +108,11 @@ export default async function MissionControlPage() {
     customers,
     conversations,
     draftOpportunities,
+    recentOutcomes,
     pendingProposals,
     notifications,
     lowStockCount,
+    staffMembers,
   ] = await Promise.all([
     new AppointmentRepository(supabase).findByRetailer(session.retailerId),
     new CustomerRepository(supabase).findByRetailer(session.retailerId),
@@ -98,6 +121,14 @@ export default async function MissionControlPage() {
       ? new ClientelingOpportunityRepository(supabase).listDraftInbox(
           session.retailerId,
           30,
+        )
+      : Promise.resolve([]),
+    // Mission Control's "Outcome learning" component: what actually
+    // happened from a confirmed pick, not just that it closed.
+    retailerRoleAtLeast(session.retailerRole, "sales_associate")
+      ? new ClientelingOpportunityRepository(supabase).listRecentOutcomes(
+          session.retailerId,
+          10,
         )
       : Promise.resolve([]),
     // PHASE 17.2: the same three sources /dashboard's own "Needs your
@@ -115,7 +146,16 @@ export default async function MissionControlPage() {
           5,
         )
       : Promise.resolve(0),
+    // Operational coordination: who owns each queued pick, so a manager
+    // scanning the whole retailer's queue (not just their own day) can see
+    // distribution and spot unassigned work, not just its content.
+    retailerRoleAtLeast(session.retailerRole, "sales_associate")
+      ? new RetailerStaffRepository(supabase).findByRetailer(session.retailerId)
+      : Promise.resolve([]),
   ]);
+  const staffNameById = new Map(
+    staffMembers.map((staff) => [staff.id, staff.fullName]),
+  );
   const unreadNotifications = notifications.filter((item) => !item.readAt);
 
   const nameByCustomerId = new Map(
@@ -350,18 +390,42 @@ export default async function MissionControlPage() {
                   key={opportunity.id}
                   className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
                 >
-                  <Link
-                    href={`/customers/${opportunity.customerId}`}
-                    className="block hover:underline"
-                  >
-                    <p className="text-sm font-medium text-[var(--color-stone-900)]">
-                      {nameByCustomerId.get(opportunity.customerId) ?? "Client"}{" "}
-                      · {opportunity.type.replaceAll("_", " ")}
-                    </p>
-                    <p className="mt-1 text-xs text-[var(--color-stone-600)]">
-                      {opportunity.whyNow}
-                    </p>
-                  </Link>
+                  <div className="flex items-start justify-between gap-2">
+                    <Link
+                      href={`/customers/${opportunity.customerId}`}
+                      className="block hover:underline"
+                    >
+                      <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                        {nameByCustomerId.get(opportunity.customerId) ??
+                          "Client"}{" "}
+                        · {opportunity.type.replaceAll("_", " ")}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                        Priority {opportunity.priority} ·{" "}
+                        {Math.round(opportunity.confidence * 100)}% confidence
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--color-stone-600)]">
+                        {opportunity.whyNow}
+                      </p>
+                      {opportunity.evidence.length > 0 ? (
+                        <p className="mt-2 text-xs text-[var(--color-stone-500)]">
+                          Evidence:{" "}
+                          {opportunity.evidence
+                            .map((item) => item.insightStatement ?? item.note)
+                            .filter(Boolean)
+                            .join("; ")}
+                        </p>
+                      ) : null}
+                    </Link>
+                    <Badge
+                      tone={opportunity.assignedStaffId ? "neutral" : "warning"}
+                    >
+                      {opportunity.assignedStaffId
+                        ? (staffNameById.get(opportunity.assignedStaffId) ??
+                          "Assigned")
+                        : "Unassigned"}
+                    </Badge>
+                  </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <form action={acceptOpportunity.bind(null, opportunity.id)}>
                       <Button type="submit" size="sm">
@@ -387,6 +451,55 @@ export default async function MissionControlPage() {
           )}
         </Card>
       </div>
+
+      <Card className="flex flex-col gap-3">
+        <div>
+          <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+            Recent outcomes
+          </h2>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            What actually happened from a confirmed pick — closed with a real,
+            attributable result, not just marked done.
+          </p>
+        </div>
+        {recentOutcomes.length === 0 ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            No completed outcomes yet.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {recentOutcomes.map((opportunity) => {
+              const outcome = outcomeDescription(opportunity);
+              return (
+                <li
+                  key={opportunity.id}
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
+                >
+                  <Link
+                    href={`/customers/${opportunity.customerId}`}
+                    className="block hover:underline"
+                  >
+                    <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                      {nameByCustomerId.get(opportunity.customerId) ?? "Client"}{" "}
+                      · {opportunity.type.replaceAll("_", " ")}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--color-stone-600)]">
+                      {opportunity.suggestedAction}
+                    </p>
+                  </Link>
+                  {outcome.href ? (
+                    <Link href={outcome.href}>
+                      <Badge tone="success">{outcome.label}</Badge>
+                    </Link>
+                  ) : (
+                    <Badge tone="success">{outcome.label}</Badge>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card>
     </div>
   );
 }

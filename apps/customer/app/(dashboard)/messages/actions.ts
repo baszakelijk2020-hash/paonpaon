@@ -115,6 +115,8 @@ export async function bookAppointmentFromConsultation(
   const startsAt = String(formData.get("startsAt") ?? "");
   const endsAt = String(formData.get("endsAt") ?? "");
   const notes = String(formData.get("notes") ?? "") || undefined;
+  const messageAttachmentId =
+    String(formData.get("messageAttachmentId") ?? "") || undefined;
 
   if (!conversationId || !appointmentType || !startsAt || !endsAt) {
     throw new Error("Missing required appointment fields");
@@ -129,6 +131,7 @@ export async function bookAppointmentFromConsultation(
     startsAt,
     endsAt,
     ...(notes ? { notes } : {}),
+    ...(messageAttachmentId ? { messageAttachmentId } : {}),
   });
 
   revalidatePath(`/messages/${conversationId}`);

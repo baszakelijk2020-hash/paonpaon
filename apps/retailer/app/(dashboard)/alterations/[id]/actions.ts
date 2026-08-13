@@ -682,12 +682,20 @@ export async function addAlterationUpdate(
   const supabase = await getSupabaseServerClient();
 
   try {
-    await new AlterationUpdateRepository(supabase).transition({
+    const updateRepo = new AlterationUpdateRepository(supabase);
+    await updateRepo.transition({
       alterationId: asId<"AlterationId">(alterationId),
       toStatus: parsed.data.status,
       ...(parsed.data.note ? { note: parsed.data.note } : {}),
       customerVisible: parsed.data.customerVisible,
     });
+    if (parsed.data.customerVisible) {
+      await updateRepo.notifyCustomer({
+        alterationId: asId<"AlterationId">(alterationId),
+        toStatus: parsed.data.status,
+        ...(parsed.data.note ? { note: parsed.data.note } : {}),
+      });
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
     return { formError: message };

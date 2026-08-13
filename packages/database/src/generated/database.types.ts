@@ -369,9 +369,11 @@ export type Database = {
           created_at: string;
           id: string;
           kind: string;
+          linked_appointment_id: string | null;
           linked_fact_id: string | null;
           linked_note_id: string | null;
           linked_opportunity_id: string | null;
+          linked_service_booking_id: string | null;
           proposed_payload: Json;
           retailer_id: string;
           source_excerpt: string;
@@ -387,9 +389,11 @@ export type Database = {
           created_at?: string;
           id?: string;
           kind: string;
+          linked_appointment_id?: string | null;
           linked_fact_id?: string | null;
           linked_note_id?: string | null;
           linked_opportunity_id?: string | null;
+          linked_service_booking_id?: string | null;
           proposed_payload: Json;
           retailer_id: string;
           source_excerpt: string;
@@ -405,9 +409,11 @@ export type Database = {
           created_at?: string;
           id?: string;
           kind?: string;
+          linked_appointment_id?: string | null;
           linked_fact_id?: string | null;
           linked_note_id?: string | null;
           linked_opportunity_id?: string | null;
+          linked_service_booking_id?: string | null;
           proposed_payload?: Json;
           retailer_id?: string;
           source_excerpt?: string;
@@ -428,6 +434,20 @@ export type Database = {
             columns: ["confirmed_by_staff_id"];
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_linked_appointment_id_fkey";
+            columns: ["linked_appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_linked_service_booking_id_fkey";
+            columns: ["linked_service_booking_id"];
+            isOneToOne: false;
+            referencedRelation: "service_bookings";
             referencedColumns: ["id"];
           },
           {
@@ -1630,6 +1650,7 @@ export type Database = {
           id: string;
           location_id: string | null;
           notes: string | null;
+          origin_message_attachment_id: string | null;
           origin_message_thread_id: string | null;
           retailer_id: string;
           staff_id: string | null;
@@ -1647,6 +1668,7 @@ export type Database = {
           id?: string;
           location_id?: string | null;
           notes?: string | null;
+          origin_message_attachment_id?: string | null;
           origin_message_thread_id?: string | null;
           retailer_id: string;
           staff_id?: string | null;
@@ -1664,6 +1686,7 @@ export type Database = {
           id?: string;
           location_id?: string | null;
           notes?: string | null;
+          origin_message_attachment_id?: string | null;
           origin_message_thread_id?: string | null;
           retailer_id?: string;
           staff_id?: string | null;
@@ -1685,6 +1708,13 @@ export type Database = {
             columns: ["customer_id"];
             isOneToOne: false;
             referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointments_origin_message_attachment_id_fkey";
+            columns: ["origin_message_attachment_id"];
+            isOneToOne: false;
+            referencedRelation: "message_attachments";
             referencedColumns: ["id"];
           },
           {
@@ -20537,6 +20567,10 @@ export type Database = {
       loyalty_milestone_slug_matches: {
         Args: { p_hints: string[]; p_slug: string };
         Returns: boolean;
+      };
+      mark_alteration_customer_notified: {
+        Args: { p_alteration_id: string };
+        Returns: undefined;
       };
       mark_conversation_read: {
         Args: { p_conversation_id: string };
