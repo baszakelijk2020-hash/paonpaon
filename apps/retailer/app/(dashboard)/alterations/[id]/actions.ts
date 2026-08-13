@@ -9,6 +9,7 @@ import {
   AlterationTaskRepository,
   AlterationHandoffRepository,
   AlterationWorkflowRepository,
+  AlterationGridSnapshotRepository,
   FitProfileCandidateRepository,
   PhysicalGarmentRepository,
   RetailerStaffRepository,
@@ -42,6 +43,65 @@ export interface PricingActionState {
 export interface WorkflowActionState {
   formError?: string;
   successMessage?: string;
+}
+
+export async function saveAlterationGridSnapshot(input: {
+  alterationId: string;
+  values: Array<{ operationId: string; value: number }>;
+  comments?: string;
+}): Promise<{ snapshotId?: string; error?: string }> {
+  const session = await requireModuleSession("garment_service_operations");
+  if (!retailerRoleHasAlterationsPermission(session.retailerRole, "intake"))
+    throw new ForbiddenError();
+  try {
+    const snapshotId = await new AlterationGridSnapshotRepository(
+      await getSupabaseServerClient(),
+    ).save({
+      alterationId: asId<"AlterationId">(input.alterationId),
+      values: input.values,
+      ...(input.comments ? { comments: input.comments } : {}),
+    });
+    revalidatePath(`/alterations/${input.alterationId}`);
+    return { snapshotId };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Unable to save grid.",
+    };
+  }
+}
+
+export async function dispatchAlterationGridSnapshot(input: {
+  alterationId: string;
+  snapshotId: string;
+  selectedOperationIds: string[];
+  comments?: string;
+}): Promise<{ error?: string }> {
+  const session = await requireModuleSession("garment_service_operations");
+  if (
+    !retailerRoleHasAlterationsPermission(
+      session.retailerRole,
+      "approve_pricing",
+    )
+  )
+    throw new ForbiddenError();
+  try {
+    await new AlterationGridSnapshotRepository(
+      await getSupabaseServerClient(),
+    ).dispatch({
+      snapshotId: input.snapshotId,
+      selectedOperationIds: input.selectedOperationIds,
+      ...(input.comments ? { comments: input.comments } : {}),
+    });
+    revalidatePath(`/alterations/${input.alterationId}`);
+    return {};
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unable to dispatch selected alterations.",
+    };
+  }
 }
 
 function workflowError(error: unknown, fallback: string): WorkflowActionState {

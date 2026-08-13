@@ -5,6 +5,8 @@ import {
   AlterationTaskRepository,
   AlterationUpdateRepository,
   AlterationWorkflowRepository,
+  AlterationCatalogueRepository,
+  AlterationGridSnapshotRepository,
   CustomerRepository,
   PhysicalGarmentRepository,
   RetailerStaffRepository,
@@ -52,6 +54,7 @@ import {
 import { UpdateForm } from "./update-form";
 import { WorkflowActionForm } from "./workflow-action-form";
 
+import { Ft04AlterationGrid } from "@/components/alterations/ft04-alteration-grid";
 import { FitToolPanel } from "@/components/fit-tools/fit-tool-panel";
 import { requireSession } from "@/lib/session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
@@ -115,6 +118,8 @@ export default async function AlterationDetailPage({
     pricingHistory,
     completionReviews,
     fitObservations,
+    alterationCatalogue,
+    gridSnapshots,
   ] = await Promise.all([
     fullAlteration
       ? new CustomerRepository(supabase).findById(fullAlteration.customerId)
@@ -168,6 +173,16 @@ export default async function AlterationDetailPage({
       ? Promise.resolve([])
       : new PhysicalGarmentRepository(supabase).findObservationsByGarment(
           alteration.physicalGarmentId,
+        ),
+    isWorker
+      ? Promise.resolve(null)
+      : new AlterationCatalogueRepository(supabase).findForRetailer(
+          session.retailerId,
+        ),
+    isWorker
+      ? Promise.resolve([])
+      : new AlterationGridSnapshotRepository(supabase).findByAlteration(
+          alteration.id,
         ),
   ]);
   const staffName = (staffId?: StaffId): string =>
@@ -252,6 +267,14 @@ export default async function AlterationDetailPage({
       permission as Parameters<typeof retailerRoleHasAlterationsPermission>[1],
     ),
   );
+  const canEditGrid = retailerRoleHasAlterationsPermission(
+    session.retailerRole,
+    "intake",
+  );
+  const canDispatchGrid = retailerRoleHasAlterationsPermission(
+    session.retailerRole,
+    "approve_pricing",
+  );
   const custodyEventOptions =
     session.retailerRole === "workshop_manager"
       ? [
@@ -303,6 +326,33 @@ export default async function AlterationDetailPage({
           </p>
         ) : null}
       </div>
+
+      {!isWorker && alterationCatalogue ? (
+        <Ft04AlterationGrid
+          alterationId={alteration.id}
+          operations={alterationCatalogue.operations
+            .filter((operation) => operation.enabled)
+            .map((operation) => ({
+              id: operation.id,
+              name: operation.name,
+              ...(operation.effectivePrice
+                ? {
+                    price: operation.effectivePrice.amountMinorUnits,
+                    currency: operation.effectivePrice.currency,
+                  }
+                : {}),
+            }))}
+          snapshots={gridSnapshots.map((snapshot) => ({
+            id: snapshot.id,
+            version: snapshot.version,
+            values: snapshot.values,
+            ...(snapshot.comments ? { comments: snapshot.comments } : {}),
+            createdAt: snapshot.createdAt,
+          }))}
+          canEdit={canEditGrid}
+          canDispatch={canDispatchGrid}
+        />
+      ) : null}
 
       {canSeePricing ? (
         <div id="pricing">
