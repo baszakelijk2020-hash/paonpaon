@@ -34,6 +34,7 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
   const marker = `payroll-export-${Date.now()}`;
   const advisorEmail = `${marker}@paon.test`;
+  const salesAssociateEmail = `${marker}-sales@paon.test`;
   const foreignSlug = `${marker}-foreign`;
 
   const { data: retailer, error: retailerError } = await admin
@@ -70,6 +71,26 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
     .select("id")
     .single();
   if (advisorError) throw advisorError;
+  const { data: salesAssociateAuth, error: salesAssociateAuthError } =
+    await admin.auth.admin.createUser({
+      email: salesAssociateEmail,
+      password: TEST_OWNER_PASSWORD,
+      email_confirm: true,
+    });
+  if (salesAssociateAuthError || !salesAssociateAuth.user)
+    throw salesAssociateAuthError;
+  const { error: salesAssociateError } = await admin
+    .from("retailer_staff_members")
+    .insert({
+      retailer_id: retailer.id,
+      user_id: salesAssociateAuth.user.id,
+      full_name: "Payroll export sales associate",
+      email: salesAssociateEmail,
+      role: "sales_associate",
+      accepted_at: new Date().toISOString(),
+    })
+    .select("id");
+  if (salesAssociateError) throw salesAssociateError;
 
   // An isolated historical date makes repeated/parallel local runs avoid the
   // period's tenant/date uniqueness constraint and ordinary fixture activity.
@@ -85,7 +106,7 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
   const advisorClockOut = new Date(
     periodDay.valueOf() + 9.5 * 3_600_000,
   ).toISOString();
-  const { data: homeEntries, error: homeEntriesError } = await admin
+  const { error: homeEntriesError } = await admin
     .from("staff_time_entries")
     .insert([
       {
@@ -102,7 +123,7 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
       },
     ])
     .select("id");
-  if (homeEntriesError || !homeEntries) throw homeEntriesError;
+  if (homeEntriesError) throw homeEntriesError;
   const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!;
   const preparerClient = createSupabaseDirectClient(supabaseUrl, anonKey);
   const ownerClient = createSupabaseDirectClient(supabaseUrl, anonKey);
@@ -127,20 +148,20 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
     .eq("period_id", period)
     .single();
   if (draftVersionError) throw draftVersionError;
-  const { data: overtimeException, error: overtimeExceptionError } =
+  const { data: homeExceptions, error: homeExceptionsError } =
     await preparerClient
       .from("payroll_period_exceptions")
       .select("id")
       .eq("version_id", draftVersion.id)
-      .eq("kind", "overtime")
-      .is("resolved_at", null)
-      .single();
-  if (overtimeExceptionError) throw overtimeExceptionError;
-  const { error: resolveError } = await preparerClient.rpc(
-    "resolve_payroll_exception",
-    { p_exception_id: overtimeException.id },
-  );
-  if (resolveError) throw resolveError;
+      .is("resolved_at", null);
+  if (homeExceptionsError) throw homeExceptionsError;
+  for (const exception of homeExceptions) {
+    const { error: resolveError } = await preparerClient.rpc(
+      "resolve_payroll_exception",
+      { p_exception_id: exception.id },
+    );
+    if (resolveError) throw resolveError;
+  }
   const { error: ownerLoginError } = await ownerClient.auth.signInWithPassword({
     email: TEST_OWNER_EMAIL,
     password: TEST_OWNER_PASSWORD,
@@ -182,9 +203,7 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
       countryCode: "US",
     },
   });
-  const foreignBranch = await new RetailerBranchRepository(
-    admin,
-  ).ensureDefaultBranch({
+  await new RetailerBranchRepository(admin).ensureDefaultBranch({
     retailerId: foreignRetailer.id,
   });
   const { data: foreignPreparedAuth, error: foreignPreparedAuthError } =
@@ -259,6 +278,27 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
       p_period_end: periodDate,
     });
   if (foreignPeriodError || !foreignPeriod) throw foreignPeriodError;
+  const { data: foreignDraftVersion, error: foreignDraftVersionError } =
+    await foreignPreparerClient
+      .from("payroll_period_versions")
+      .select("id")
+      .eq("period_id", foreignPeriod)
+      .single();
+  if (foreignDraftVersionError) throw foreignDraftVersionError;
+  const { data: foreignExceptions, error: foreignExceptionsError } =
+    await foreignPreparerClient
+      .from("payroll_period_exceptions")
+      .select("id")
+      .eq("version_id", foreignDraftVersion.id)
+      .is("resolved_at", null);
+  if (foreignExceptionsError) throw foreignExceptionsError;
+  for (const exception of foreignExceptions) {
+    const { error: resolveError } = await foreignPreparerClient.rpc(
+      "resolve_payroll_exception",
+      { p_exception_id: exception.id },
+    );
+    if (resolveError) throw resolveError;
+  }
   const { error: foreignApproverLoginError } =
     await foreignApproverClient.auth.signInWithPassword({
       email: `${marker}-approver@paon.test`,
@@ -277,10 +317,6 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
   if (foreignExportError || !foreignExport) throw foreignExportError;
 
   let advisorContext: Awaited<ReturnType<Browser["newContext"]>> | undefined;
-  let cleanupError: unknown;
-  const captureCleanupError = (error: unknown) => {
-    cleanupError ??= error;
-  };
   try {
     await signIn(page);
     await page.goto("/staff/payroll");
@@ -299,7 +335,7 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
       `attachment; filename="payroll-export-${payrollExport.id}.csv"`,
     );
     expect(await csv.text()).toBe(
-      `staff_id,earning_code,hours\n${owner.id},regular,8\n${advisor.id},overtime,1.5`,
+      `staff_id,earning_code,hours\n${owner.id},regular,8\n${advisor.id},overtime,1.5\n${advisor.id},regular,8`,
     );
 
     const json = await page.context().request.get(jsonPath);
@@ -327,60 +363,10 @@ test("manager downloads the persisted payroll handoff while advisor and foreign 
       baseURL: "http://localhost:3001",
     });
     const advisorPage = await advisorContext.newPage();
-    await signIn(advisorPage, advisorEmail);
+    await signIn(advisorPage, salesAssociateEmail);
     const denied = await advisorContext.request.get(csvPath);
     expect(denied.status()).toBe(403);
   } finally {
-    try {
-      await advisorContext?.close();
-    } catch (error) {
-      captureCleanupError(error);
-    }
-    const { error: deleteForeignPeriodError } = await admin
-      .from("payroll_periods")
-      .delete()
-      .eq("id", foreignPeriod);
-    if (deleteForeignPeriodError) captureCleanupError(deleteForeignPeriodError);
-    const { error: deleteForeignBranchError } = await admin
-      .from("retailer_branches")
-      .delete()
-      .eq("id", foreignBranch.id);
-    if (deleteForeignBranchError) captureCleanupError(deleteForeignBranchError);
-    const { error: deleteRetailerError } = await admin
-      .from("retailers")
-      .delete()
-      .eq("id", foreignRetailer.id);
-    if (deleteRetailerError) captureCleanupError(deleteRetailerError);
-    const { error: deleteForeignPreparedAuthError } =
-      await admin.auth.admin.deleteUser(foreignPreparedAuth.user.id);
-    if (deleteForeignPreparedAuthError)
-      captureCleanupError(deleteForeignPreparedAuthError);
-    const { error: deleteForeignApproverAuthError } =
-      await admin.auth.admin.deleteUser(foreignApproverAuth.user.id);
-    if (deleteForeignApproverAuthError)
-      captureCleanupError(deleteForeignApproverAuthError);
-    const { error: deletePeriodError } = await admin
-      .from("payroll_periods")
-      .delete()
-      .eq("id", period);
-    if (deletePeriodError) captureCleanupError(deletePeriodError);
-    const { error: deleteHomeEntriesError } = await admin
-      .from("staff_time_entries")
-      .delete()
-      .in(
-        "id",
-        homeEntries.map((entry) => entry.id),
-      );
-    if (deleteHomeEntriesError) captureCleanupError(deleteHomeEntriesError);
-    const { error: deleteAdvisorError } = await admin
-      .from("retailer_staff_members")
-      .delete()
-      .eq("id", advisor.id);
-    if (deleteAdvisorError) captureCleanupError(deleteAdvisorError);
-    const { error: deleteAuthError } = await admin.auth.admin.deleteUser(
-      advisorAuth.user.id,
-    );
-    if (deleteAuthError) captureCleanupError(deleteAuthError);
+    await advisorContext?.close();
   }
-  if (cleanupError) throw cleanupError;
 });
