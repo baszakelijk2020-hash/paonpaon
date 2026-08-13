@@ -115,3 +115,49 @@ logged above with broader path ownership, (b) get a founder answer on the
 or (c) re-run this sweep after another lane lands new `packages/domain`/
 `supabase` work that unblocks `10.4`, `13.3`, `9.2`, `17.7`, or `18.7`'s
 remaining apps/retailer pieces.
+
+## 2026-08-14 — Completeness correction to the sweep above
+
+A self-check found the original sweep did not actually enumerate every
+unchecked item in Stages 9–19 despite claiming to. The gap: `9.3`, `10.3`,
+`16.1`, `16.2` were never individually assessed. Checked now, none change
+the "no actionable task remains" conclusion:
+
+- **`15.1`–`15.5`**: covered by Stage 15's own header — "Stage 15 —
+  Lifestyle network and MunroMerchant (**parked**)" with a founder
+  override (2026-08-12): "preserve this historical design but do not
+  select it for implementation." Correctly out of scope, just never
+  named individually in the prior sweep.
+- **`16.2`** (Media and future-products incubation): also founder-parked
+  (its own status line names this explicitly; also listed in the
+  top-of-file parked-items roster). Skip.
+- **`9.3`** (Demand-led connector expansion): `blocked_external` — its
+  own Status line says no prospect has requested any of the named
+  connectors (Lightspeed X, Square, WooCommerce, Endear/Tulip, factory-
+  file imports) with real sample data, so there is nothing to build
+  against yet.
+- **`10.3`** (Unified communication and remote proposals): no hard
+  blocker, dependencies (`8.2`, `10.1`) met, but its missing pieces
+  (lookbook/proposal/quote attachments, confirmed-note extraction needing
+  declared-vs-inferred StyleProfile grounding, opt-out/suppression logic)
+  are not one isolated no-caller primitive the way `11.1`/`14.2` turned
+  out to be — they are entangled with each other, and confirmed-note
+  extraction specifically needs domain-layer grounding work. Not a clean
+  apps/retailer-only slice.
+- **`16.1`** (Consultancy, guided tiers and staff academy): has the same
+  shape as `11.1`/`14.2` at first glance — three domain functions
+  (`checkTierCoherence`, `checkProjectTransition`, `checkPublication` in
+  `packages/domain/src/knowledge/academy-consultancy.ts`) with zero
+  callers, and their backing tables (`guided_tiers`,
+  `consultancy_projects`/`consultancy_deliverables`, `knowledge_articles`
+  — all in `supabase/migrations/20260801000014_add_knowledge_experience_wedding.sql`)
+  are genuinely already migrated. Checked in detail and ruled out anyway:
+  unlike `11.1`/`14.2`, **no repository method exists yet** for any of
+  the three (nothing in `packages/database` reads these tables or calls
+  these functions). Writing that repository method is `packages/database`
+  work, outside this lane's ownership — so this is a real, named
+  candidate for a session with `packages/**` access: the domain logic and
+  schema are done, only the repository-to-UI plumbing is missing, in that
+  order (repository first, then apps/retailer UI once it exists).
+
+No further correction expected; this closes the gap the self-check found.
