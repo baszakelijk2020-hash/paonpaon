@@ -1,6 +1,10 @@
 "use server";
 
-import { CustomerRepository, MessagingRepository } from "@paon/database";
+import {
+  CustomerRepository,
+  MessagingRepository,
+  OrderRepository,
+} from "@paon/database";
 import {
   asId,
   classifyBuyingIntent,
@@ -329,4 +333,82 @@ export async function submitTableServiceInquiry(
   }
 
   return { values: {}, fieldErrors: {}, submitted: true };
+}
+
+/**
+ * FT-09: Accept a product order directly from within a TableService thread.
+ * A customer can click a button to place an order linked to the
+ * conversation, with the thread recorded as the outcome for provenance.
+ * Mirrors the appointment-outcome pattern from bookAppointmentFromConsultation.
+ */
+export async function acceptTableServiceOrderOutcome(
+  formData: FormData,
+): Promise<{ ok: boolean; orderId?: string; error?: string }> {
+  const session = await requireSession();
+  if (!session || session.accountType !== "customer") {
+    return { ok: false, error: "Not authorized" };
+  }
+
+  const conversationId = String(formData.get("conversationId") ?? "");
+  const productVariantId = String(formData.get("productVariantId") ?? "");
+  const quantityRaw = String(formData.get("quantity") ?? "");
+  const quantity = parseInt(quantityRaw, 10);
+
+  if (!conversationId || !productVariantId || !quantityRaw || isNaN(quantity)) {
+    return { ok: false, error: "Missing or invalid order fields" };
+  }
+
+  if (quantity < 1) {
+    return { ok: false, error: "Quantity must be at least 1" };
+  }
+
+  try {
+    const supabase = await getSupabaseServerClient();
+
+    // Verify the conversation belongs to the current customer
+    const messagingRepo = new MessagingRepository(supabase);
+    const conversation = await messagingRepo.findConversation(
+      conversationId as never,
+    );
+    if (!conversation) {
+      return { ok: false, error: "Conversation not found" };
+    }
+
+    const customer = await new CustomerRepository(supabase).findByUserId(
+      session.userId,
+    );
+    const hasAccess = customer.some(
+      (c) =>
+        c.id === conversation.customerId &&
+        c.retailerId === conversation.retailerId,
+    );
+    if (!hasAccess) {
+      return { ok: false, error: "No access to this conversation" };
+    }
+
+    // Place the order
+    const orderId = await new OrderRepository(supabase).placeOrder({
+      retailerId: conversation.retailerId,
+      productVariantId,
+      quantity,
+    });
+
+    // Link the outcome to the conversation using admin client
+    // (conversations table has no authenticated write, same reason
+    // as bookAppointmentFromConsultation)
+    await new MessagingRepository(getSupabaseAdminClient()).linkOutcome({
+      conversationId: conversation.id,
+      retailerId: conversation.retailerId,
+      outcomeOrderId: orderId,
+    });
+
+    revalidatePath(`/messages/${conversationId}`);
+    return { ok: true, orderId };
+  } catch (error) {
+    return {
+      ok: false,
+      error:
+        error instanceof Error ? error.message : "Order could not be placed",
+    };
+  }
 }

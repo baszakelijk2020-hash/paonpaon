@@ -125,6 +125,7 @@ export function TableServiceWidget({
   isSignedIn = false,
   weddingParties = [],
   garments = [],
+  outcomeOrderId,
 }: {
   retailerId: string;
   retailerName: string;
@@ -140,6 +141,8 @@ export function TableServiceWidget({
    * customer optionally tag a photo attachment to one of their own
    * wardrobe items. */
   garments?: { id: string; label: string }[];
+  /** FT-09: if populated, order has already been linked as outcome. */
+  outcomeOrderId?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [intent, setIntent] = useState<ConversationIntent>("freeform");
@@ -506,6 +509,12 @@ export function TableServiceWidget({
 
             {!picsVisible ? (
               <div className="gcw-handoff" aria-label="Advisor handoff">
+                {outcomeOrderId ? (
+                  <div className="text-xs text-green-700">
+                    Order linked to this conversation. Your advisor will follow
+                    up.
+                  </div>
+                ) : null}
                 {signedInMessagesHref ? (
                   <a href={signedInMessagesHref}>Message advisor</a>
                 ) : null}
