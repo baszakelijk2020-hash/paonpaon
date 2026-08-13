@@ -187,6 +187,163 @@ by it.
     what `FOUNDER_TOOL_BLUEPRINTS.md`'s own FT-04 "Current" paragraph
     already says — unproven, not complete.
 
+### Full-Completion Execution Queue (2026-08-13)
+
+Canonical post-audit reconciliation. Built from the repository-wide
+16-domain forensics pass (`wgwi823c0`) and its independent adversarial
+verification pass (`woa179geu`) — both 2026-08-13, 0 errors across 48 agent
+runs — cross-checked against this file's own detailed per-item status text,
+which remains authoritative wherever it is more specific than either audit.
+This section is a status **index and priority order**; it does not replace
+the detailed Stage entries below, it orders and classifies them. A fresh
+session should read this section first, then open the referenced Stage/FT
+item for the full acceptance contract before implementing.
+
+**Canonical status vocabulary for this section** (distinct from the
+per-item `implemented_unverified`/`verified_local` states used below, which
+describe proof maturity, not founder disposition):
+
+```text
+COMPLETE     — works end-to-end to the level its governing scope requires;
+               schema/UI/tests existing is necessary, never sufficient.
+PARTIAL      — real, evidenced progress; a named seam is missing.
+NOT STARTED  — no meaningful implementation, actively authorized (KEEP).
+PARKED       — founder-parked; preserve, do not select for build.
+DELETED      — founder-deleted; preserve no active commitment.
+BLOCKED      — otherwise ready, stopped only by an external credential,
+               environment (e.g. no local Docker this session), or an
+               unresolved founder/legal decision — not by missing code.
+```
+
+#### Reconciliation counts (active/KEEP scope only; PARKED/DELETED excluded)
+
+| Status      | Count | Representative items                                                                                                                                                                                                                                                                                                                                                            |
+| ----------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| COMPLETE    | 6     | Admin app (14 sub-capabilities), Appointments/CRM core, Commerce core (cart/checkout/webhook), House Memory consent/correction/RLS, Auth/authorization cross-cutting, Route-gating (19.1)                                                                                                                                                                                       |
+| PARTIAL     | 15    | Mission Control (5 of 6 build-order items), Self-Portrait, TableService, MorningRoutine, Virtual Wardrobe Studio, Moonstruck, Preferred Tailoring, Honeymoon Phase, Loyalty/badges, Corporate/Métier, Catalogue import/migration, Academy (roleplay only), Inspiration Box, Payroll (core done, provider export missing), Silhouette-in-alterations                             |
+| NOT STARTED | 9     | FT-04 grid/snapshot/work-order, Mission Control decision intelligence, Preferred Tailoring monthly grid, TableService unified remote proposal, Location Finder (FT-11), METRE/MILLI/MICRON tiers, Corporate project-setup wizard, DailyBriefing, MunroMentor                                                                                                                    |
+| PARKED      | 9     | FT-01 standalone, standalone Seven-Day Wardrobe, production/stock/supplier operations (R0.2, 12.2, 13.1–13.3), full Moonstruck vertical pack, vague corporate analytics (18.9), AI moodboards (18.10), commerce/marketplace, lifestyle/ecosystem, media incubation                                                                                                              |
+| DELETED     | 2     | FT-03 QR try-on/fabric-batch, generic vertical-pack framework (16.3)                                                                                                                                                                                                                                                                                                            |
+| BLOCKED     | 5     | Live payment/cash activation (ADR-062, founder/legal), email/SMS/AI-image provider credentials (Resend/Twilio/OpenAI keys), FT-04 Supabase-type regeneration (needs local Docker), customer-production HTTP 500 (needs a founder/eng decision on migration approach, see `ENVIRONMENTS.md`), Shopify/Faden scheduled execution (needs a live provider sandbox to prove against) |
+
+These counts classify roughly 46 active-scope capability entries at the
+granularity the two audits used; the file below documents far more
+sub-capabilities than this table names individually. Where a capability
+name below says "(see Stage X.Y)" or "(see FT-N)", that section is the
+acceptance contract — this table is not a substitute for it.
+
+#### Immediate critical path (ordered — founder priority → dependency → value → risk → efficiency)
+
+1. **Mission Control decision intelligence** (new build-order item 6, above)
+   — NOT STARTED. No dependency on anything unbuilt; every input (customer
+   facts, `clienteling_opportunities`, appointments, wardrobe/service state)
+   already exists. Highest founder priority (Mission Control is the named
+   moat) and the single most-repeated gap across both audit passes.
+2. **FT-04 alteration grid/snapshot/work-order** (Stage 12 / FT-04) —
+   NOT STARTED, one failed integration attempt already reverted this
+   session (real `pnpm --filter @paon/database typecheck` failures because
+   generated Supabase types were never regenerated against the new
+   migration — needs `supabase start`/`db reset`, i.e. local Docker).
+   Self-contained: schema, pricing (`alteration_price_lists`), and role
+   gates (`is_alterations_advisor`/`is_alterations_management`) all already
+   exist. **BLOCKED on Docker availability for the type-regeneration step
+   specifically — the design/migration/RPC/UI work itself is not blocked**
+   and can proceed in a Docker-available session using the locked
+   architecture decision already recorded in this file's commit history
+   (see `git log --oneline | grep -i "alteration.grid"` once landed, or the
+   reverted worktree `worktree-agent-a440028916928a36e` for a first draft
+   requiring correction, not a template to trust as-is).
+3. **MorningRoutine one-click-buy → real order creation** — PARTIAL. Buy
+   currently only links to the product page (`routine-panel.tsx`'s own
+   comment: "order creation remains the Commerce boundary"). Needs to call
+   the existing Commerce order-creation Server Action from this specific
+   entry point, gated the same way `one-tap-checkout` already is. Small,
+   concretely scoped — not a rebuild.
+4. **TableService unified remote proposal** (FT-09, addition recorded
+   2026-08-12) — NOT STARTED. Field spec already locked in
+   `FOUNDER_TOOL_BLUEPRINTS.md` FT-09. Depends on Commerce module wiring
+   already used elsewhere (order/proposal creation), not on anything new.
+5. **TableService attachment quarantine resolution** — uploads currently
+   queue indefinitely with no scanner or retry/release UI. Needs a
+   provider decision (which scanner) before the UI can be finished —
+   record the decision as an ADR if none exists, then build the retry/
+   release surface regardless of which scanner is chosen.
+6. **Moonstruck guest-voucher customer redemption UI** — PARTIAL, staff-
+   only today. Small, self-contained: reuse the existing customer-facing
+   SELECT policy on `wedding_guest_vouchers`; add a redemption Server
+   Action gated to the voucher's own customer/party membership.
+7. **Virtual Wardrobe item-level actions** (alteration/cleaning booking,
+   unattached logged-out items) — NOT STARTED. Depends on FT-04 (item 2)
+   for the alteration-booking half; the cleaning-booking half does not.
+
+#### Subsequent completion work (active/KEEP, not on the immediate critical path)
+
+- **Preferred Tailoring monthly grid** (FT-14) — NOT STARTED. No source to
+  port; build directly from the founder's written spec (current-month
+  calendar, some days fade in a suit/jacket image, ~4s fade with varied
+  start timing, mobile page-filling layout). No dependency on anything else
+  unbuilt.
+- **Location Finder** (FT-11) — NOT STARTED, zero code. Retailer-configurable
+  locations/branding/2D-map-or-globe per the founder spec in
+  `FOUNDER_TOOL_BLUEPRINTS.md` FT-11. Independent of every other item in
+  this queue — good candidate for a disjoint parallel lane.
+- **Loyalty**: METRE→MILLI→MICRON tier naming, retailer-configurable
+  campaigns/percentages/milestones, dedicated badges page — all NOT
+  STARTED on top of an already-COMPLETE ledger/milestone core (Stage 5.2).
+- **Corporate/Métier**: project-setup wizard (14.1 founder addition) NOT
+  STARTED; external-signal ingestion (18.11) real but manual-entry-only,
+  no autonomous discovery pipeline (`blocked_external`, correctly so —
+  no external data source access this environment); corporate project
+  lifecycle (18.7) missing production/qc/distribution/launch auto-triggers
+  from Stage 12 production-order events.
+- **Academy** (16.1): only the roleplay/coaching loop is real. Knowledge
+  libraries, DailyBriefing, MunroMentor, guided-tier definitions and the
+  consultancy-project workflow are SCAFFOLD/NOT STARTED.
+- **Shopify/Faden connectors**: connection lifecycle UI is real; scheduled/
+  webhook execution is manual-trigger only, not actually scheduled.
+- **Catalogue/migration**: retailer migration concierge (customer export/
+  dedup/multi-role approval) is PARTIAL on top of a COMPLETE staged-file
+  import core. Local migration agent remains a governed, unbuilt concept
+  per its own PHASE.md entry — do not start it without a founder privacy/
+  security sign-off first.
+- **Inspiration Box** (FT-10): curate/redeem core is real; card visual
+  design (front/back swatch+gradient+QR), giver payment flow, and expiry/
+  revoke/refund states remain PARTIAL.
+- **Payroll** (11.1): core workflow COMPLETE with real E2E; external
+  payroll-provider export adapter is the one remaining PARTIAL piece.
+- **Mission-Control-led in-store feedback** (16.4): schema-level only per
+  its own Stage entry; needs the salesperson-facing capture UI.
+
+#### PARKED — preserved, not selectable (do not build without founder reactivation)
+
+FT-01 standalone voice+drag fit; standalone Seven-Day Wardrobe; production/
+stock/supplier-operations expansion (R0.2, 12.2, 13.1–13.3 — existing code
+stays, maintenance/security fixes only); full Moonstruck vertical pack
+beyond the existing planner; vague corporate analytics/renewal engine
+(18.9); AI moodboards/concept imagery (18.10); commerce/marketplace;
+lifestyle/ecosystem; media incubation.
+
+#### DELETED — no active commitment, existing code is history only
+
+FT-03 QR try-on/fabric-batch scan (route unconditionally blocked,
+`commit 94a6f80`); the generic vertical-pack framework (16.3).
+
+#### Genuine external/human blockers (not implementation gaps)
+
+- Live payment/cash activation — founder/legal policy decision (ADR-062),
+  not a code gap.
+- Resend/Twilio/OpenAI production credentials — platform-operator
+  provisioning, not a code gap.
+- FT-04's Supabase generated-type regeneration — needs a session with local
+  Docker; the migration/RPC/UI work itself is not blocked, only this one
+  verification step.
+- Customer-production HTTP 500 — needs a founder/engineering decision on
+  migration approach before it can be safely repaired (`ENVIRONMENTS.md`
+  lines 61–70); not silently fixable by pushing all migrations.
+- Shopify/Faden live scheduled-sync proof — needs a real provider sandbox
+  this environment does not have; local/mock connection testing is not
+  blocked.
+
 **Mission Control is the primary product moat and must be treated as the
 highest-priority product outcome.** It is not a dashboard and it is not a
 collection of checked component slices. It is PAON's integrated retailer
@@ -251,8 +408,22 @@ is complete until the full advisor/client journey is production-proven.
    quote and price approval, custody/status/quality checkpoints, customer
    communication, delivery and outcome capture. Every cost or work-order
    change must remain tenant-safe, auditable and explicitly human-approved.
+6. **Decision intelligence** — build the ranked, explainable "why now / what
+   next" view named as comprises-item 3 above, currently the single largest
+   confirmed gap in Mission Control (independently reconfirmed by two audit
+   passes on 2026-08-13, agent workflows `wgwi823c0` and `woa179geu`). This
+   is not another dashboard: it must read `clienteling_opportunities`,
+   customer facts, appointments, wardrobe/service state and behavioral
+   evidence, produce a ranked list with a cited reason, confidence, customer
+   benefit and commercial impact per entry, let an advisor accept/dismiss/
+   snooze with the outcome returned to House Memory, and degrade honestly
+   (empty/stale/error states, never a fabricated recommendation) when an
+   input module is off or a signal is missing. No `advisable_next_actions`
+   table or equivalent ranking store exists yet — this is `NOT STARTED`, not
+   partial; the existing per-module dashboards/briefs/opportunity lists are
+   real inputs to this layer, not a substitute for it.
 
-**Status (2026-08-12, item 6, first slice):** an audit of the existing
+**Status (2026-08-12, item 5, first slice):** an audit of the existing
 `alteration_work_orders`/`alteration_tasks`/`work_order_assignments`/
 `chain_of_custody_events` chain found job cards
 (`apps/retailer/app/alterations/[id]/print/page.tsx`), work orders, task
@@ -4857,6 +5028,33 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     new tables hang off those rows by foreign key. Group readiness returns
     counts, states and display names only — a best man must not be able to
     read the groom's waist because they are in the same party, so nothing
+  - **Correction (2026-08-13):** this item's own status line was stale —
+    materially more is real than "domain and schema only" describes.
+    `FOUNDER_TOOL_BLUEPRINTS.md` FT-13's own "Current" paragraph is the
+    accurate, current record (migrations through `20260802000013`+):
+    inspiration items, design choices, group-date candidates/voting,
+    group fittings and delivery/pickup aftercare plans are all real,
+    RLS-correct and (aftercare, group fittings, invite→join) browser-
+    proven. Two audit passes on 2026-08-13 (agent workflows `wgwi823c0`
+    and `woa179geu`) independently re-checked two specific claims:
+    **guest voucher customer-facing redemption is confirmed missing** —
+    `wedding_guest_vouchers` gives customers a SELECT policy to see their
+    voucher, but issuing and marking-redeemed are staff-only plain
+    insert/update with no customer self-service redemption flow;
+    **the group-fitting-capacity claim from the second audit pass
+    ("static admin-entered number, not calculated from real slots") was
+    investigated directly and found FALSE** — `apps/retailer/app/
+(dashboard)/wedding-parties/[id]/page.tsx` explicitly does NOT call
+    the static-rate `checkGroupFittingCapacity` domain function (its own
+    code comment says why: `wedding_group_fittings` has no recurring
+    daily rate to honestly feed it) and instead sums real
+    `wedding_group_fittings.capacity` for sessions scheduled before the
+    event date — this is genuinely real-scheduled-capacity, matching
+    `FOUNDER_TOOL_BLUEPRINTS.md`'s own claim, not the audit's correction.
+    Remaining real gap, confirmed by `FOUNDER_TOOL_BLUEPRINTS.md` FT-13's
+    own text: anniversary continuation and "the other planner gaps" — the
+    item stays open for the guest-voucher customer UI and anniversary
+    continuation, not for group-fitting capacity.
     per-person beyond a name and a state crosses that boundary, and a test
     asserts no measurement vocabulary appears in the output. Coordinated
     design choices are detected as conflicting at _choice_ time; two
