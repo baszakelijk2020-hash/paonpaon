@@ -5,6 +5,7 @@ import {
   CustomerConsentRepository,
   CustomerRepository,
   MorningRoutineRepository,
+  OrderRepository,
   ProductRepository,
   ProductVariantRepository,
   RetailerRepository,
@@ -358,6 +359,81 @@ export async function runMorningRoutineAction(
       fieldErrors: {},
       formError:
         error instanceof Error ? error.message : "Could not complete action.",
+    };
+  }
+}
+
+export interface BuyMorningRoutineItemState {
+  fieldErrors: Record<string, string>;
+  formError?: string;
+  success?: boolean;
+  orderId?: string;
+  notEligible?: boolean;
+  productHref?: string;
+}
+
+export async function buyMorningRoutineItem(
+  _prevState: BuyMorningRoutineItemState,
+  formData: FormData,
+): Promise<BuyMorningRoutineItemState> {
+  const session = await requireSession();
+  const retailerId = formData.get("retailerId");
+  const productVariantId = formData.get("productVariantId");
+  const productHref = formData.get("productHref");
+
+  if (typeof retailerId !== "string" || retailerId.trim() === "") {
+    return { fieldErrors: { retailerId: "Retailer ID required." } };
+  }
+  if (typeof productVariantId !== "string" || productVariantId.trim() === "") {
+    return {
+      fieldErrors: { productVariantId: "Product variant ID required." },
+    };
+  }
+  if (typeof productHref !== "string") {
+    return { fieldErrors: { productHref: "Product link required." } };
+  }
+
+  try {
+    const supabase = await getSupabaseServerClient();
+    const customers = await new CustomerRepository(supabase).findByUserId(
+      session.userId as never,
+    );
+    const customer = customers.find((c) => c.retailerId === retailerId);
+    if (!customer) {
+      return { fieldErrors: {}, formError: "Customer relationship not found." };
+    }
+
+    // Check one-tap-checkout eligibility: customer must have a saved default address
+    const hasDefaultAddress =
+      customer.shippingAddresses && customer.shippingAddresses.length > 0;
+    if (!hasDefaultAddress) {
+      // Not eligible — signal UI to fall back to product page link
+      return {
+        fieldErrors: {},
+        notEligible: true,
+        productHref,
+      };
+    }
+
+    // Eligible — add to cart
+    const orderRepo = new OrderRepository(supabase);
+    const orderId = await orderRepo.addToCart({
+      retailerId: asId<"RetailerId">(retailerId),
+      productVariantId,
+      quantity: 1,
+    });
+
+    revalidatePath("/morning-routine");
+    return {
+      fieldErrors: {},
+      success: true,
+      orderId,
+    };
+  } catch (error) {
+    return {
+      fieldErrors: {},
+      formError:
+        error instanceof Error ? error.message : "Could not add item to cart.",
     };
   }
 }
