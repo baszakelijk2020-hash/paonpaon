@@ -261,4 +261,18 @@ describe("nextAnniversary", () => {
     expect(moment.occursOn).toBe("2027-03-02");
     expect(moment.yearsSince).toBe(3);
   });
+
+  it("reports zero years since on the wedding day itself, before the first anniversary", () => {
+    // The UI callers (retailer and customer wedding-party pages) branch on
+    // yearsSince > 0 to say "your wedding day" instead of "N years married"
+    // — this locks that this is the real first-year value, not undefined
+    // or negative.
+    const moment = nextAnniversary({
+      eventDate: "2026-08-01",
+      asOf: "2026-08-01",
+      nextYearlyOccurrence,
+    });
+    expect(moment.occursOn).toBe("2026-08-01");
+    expect(moment.yearsSince).toBe(0);
+  });
 });

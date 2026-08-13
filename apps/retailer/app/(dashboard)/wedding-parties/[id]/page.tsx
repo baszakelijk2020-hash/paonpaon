@@ -12,6 +12,8 @@ import {
   WEDDING_PARTY_MEMBER_ROLE_LABELS,
   WEDDING_PARTY_STATUSES,
   WEDDING_PARTY_STATUS_LABELS,
+  nextAnniversary,
+  nextYearlyOccurrence,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
@@ -119,6 +121,17 @@ export default async function WeddingPartyDetailPage({
       })()
     : null;
 
+  /* Injects the existing nextYearlyOccurrence rather than reimplementing
+   * it — a second date-recurrence function is how two parts of a system
+   * start disagreeing about what a leap-year date means. */
+  const anniversary = party.eventDate
+    ? nextAnniversary({
+        eventDate: party.eventDate,
+        asOf: new Date().toISOString().slice(0, 10),
+        nextYearlyOccurrence,
+      })
+    : null;
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -200,6 +213,20 @@ export default async function WeddingPartyDetailPage({
           {...(party.notes ? { notes: party.notes } : {})}
         />
       </Card>
+
+      {anniversary ? (
+        <Card className="paon-reveal" style={{ animationDelay: "90ms" }}>
+          <p className="mb-1 text-sm font-medium text-[var(--color-stone-900)]">
+            Next anniversary
+          </p>
+          <p className="text-sm text-[var(--color-stone-700)]">
+            {formatDate(anniversary.occursOn, "en-US")}
+            {anniversary.yearsSince > 0
+              ? ` · ${anniversary.yearsSince} year${anniversary.yearsSince === 1 ? "" : "s"} since the wedding`
+              : " · their wedding day"}
+          </p>
+        </Card>
+      ) : null}
 
       <div>
         <h2 className="mb-3 text-lg font-medium text-[var(--color-stone-900)]">
