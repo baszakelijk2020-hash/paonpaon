@@ -6619,11 +6619,63 @@ export type Database = {
           },
         ];
       };
+      gift_invitation_state_history: {
+        Row: {
+          actor_staff_id: string | null;
+          created_at: string;
+          from_status:
+            Database["public"]["Enums"]["gift_invitation_status"] | null;
+          gift_invitation_id: string;
+          id: string;
+          reason: string | null;
+          refund_amount_minor_units: number | null;
+          to_status: Database["public"]["Enums"]["gift_invitation_status"];
+        };
+        Insert: {
+          actor_staff_id?: string | null;
+          created_at?: string;
+          from_status?:
+            Database["public"]["Enums"]["gift_invitation_status"] | null;
+          gift_invitation_id: string;
+          id?: string;
+          reason?: string | null;
+          refund_amount_minor_units?: number | null;
+          to_status: Database["public"]["Enums"]["gift_invitation_status"];
+        };
+        Update: {
+          actor_staff_id?: string | null;
+          created_at?: string;
+          from_status?:
+            Database["public"]["Enums"]["gift_invitation_status"] | null;
+          gift_invitation_id?: string;
+          id?: string;
+          reason?: string | null;
+          refund_amount_minor_units?: number | null;
+          to_status?: Database["public"]["Enums"]["gift_invitation_status"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gift_invitation_state_history_actor_staff_id_fkey";
+            columns: ["actor_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gift_invitation_state_history_gift_invitation_id_fkey";
+            columns: ["gift_invitation_id"];
+            isOneToOne: false;
+            referencedRelation: "gift_invitations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       gift_invitations: {
         Row: {
           created_at: string;
           created_by_staff_id: string | null;
           email_sent_at: string | null;
+          expires_at: string | null;
           gift_experience_id: string;
           id: string;
           invite_token: string;
@@ -6634,12 +6686,16 @@ export type Database = {
           redeemed_curated_item_id: string | null;
           redeemed_recipient_email: string | null;
           redeemed_recipient_name: string | null;
+          refund_amount_minor_units: number | null;
+          refund_reason: string | null;
+          revoked_at: string | null;
           status: Database["public"]["Enums"]["gift_invitation_status"];
         };
         Insert: {
           created_at?: string;
           created_by_staff_id?: string | null;
           email_sent_at?: string | null;
+          expires_at?: string | null;
           gift_experience_id: string;
           id?: string;
           invite_token?: string;
@@ -6650,12 +6706,16 @@ export type Database = {
           redeemed_curated_item_id?: string | null;
           redeemed_recipient_email?: string | null;
           redeemed_recipient_name?: string | null;
+          refund_amount_minor_units?: number | null;
+          refund_reason?: string | null;
+          revoked_at?: string | null;
           status?: Database["public"]["Enums"]["gift_invitation_status"];
         };
         Update: {
           created_at?: string;
           created_by_staff_id?: string | null;
           email_sent_at?: string | null;
+          expires_at?: string | null;
           gift_experience_id?: string;
           id?: string;
           invite_token?: string;
@@ -6666,6 +6726,9 @@ export type Database = {
           redeemed_curated_item_id?: string | null;
           redeemed_recipient_email?: string | null;
           redeemed_recipient_name?: string | null;
+          refund_amount_minor_units?: number | null;
+          refund_reason?: string | null;
+          revoked_at?: string | null;
           status?: Database["public"]["Enums"]["gift_invitation_status"];
         };
         Relationships: [
@@ -20460,6 +20523,10 @@ export type Database = {
         Returns: string;
       };
       expire_due_prospect_demo_environments: { Args: never; Returns: number };
+      expire_gift_invitation: {
+        Args: { p_invitation_id: string };
+        Returns: Database["public"]["Enums"]["gift_invitation_status"];
+      };
       generate_concept_scan_code: { Args: never; Returns: string };
       generate_prospect_demo_environment: {
         Args: {
@@ -20574,6 +20641,14 @@ export type Database = {
       };
       mark_conversation_read: {
         Args: { p_conversation_id: string };
+        Returns: undefined;
+      };
+      mark_gift_invitation_refunded: {
+        Args: {
+          p_invitation_id: string;
+          p_reason: string;
+          p_refund_amount_minor_units: number;
+        };
         Returns: undefined;
       };
       mark_morning_routine_review: {
@@ -21131,6 +21206,10 @@ export type Database = {
       retailer_has_entitlement: {
         Args: { p_feature_key: string; p_retailer_id: string };
         Returns: boolean;
+      };
+      revoke_gift_invitation: {
+        Args: { p_invitation_id: string; p_reason: string };
+        Returns: undefined;
       };
       retailer_module_access_state: {
         Args: { p_module_key: string; p_retailer_id: string };
@@ -21738,7 +21817,7 @@ export type Database = {
       garment_source_kind: "external" | "finished_mtm";
       gift_experience_status: "draft" | "active" | "expired" | "revoked";
       gift_invitation_status:
-        "pending" | "opened" | "redeemed" | "expired" | "revoked";
+        "pending" | "opened" | "redeemed" | "expired" | "revoked" | "refunded";
       knowledge_commercial_intent:
         | "educate"
         | "justify_premium"
@@ -22145,6 +22224,7 @@ export const Constants = {
         "redeemed",
         "expired",
         "revoked",
+        "refunded",
       ],
       knowledge_commercial_intent: [
         "educate",
