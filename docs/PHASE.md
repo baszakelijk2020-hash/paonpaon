@@ -268,10 +268,23 @@ acceptance contract — this table is not a substitute for it.
    provider decision (which scanner) before the UI can be finished —
    record the decision as an ADR if none exists, then build the retry/
    release surface regardless of which scanner is chosen.
-6. **Moonstruck guest-voucher customer redemption UI** — PARTIAL, staff-
-   only today. Small, self-contained: reuse the existing customer-facing
-   SELECT policy on `wedding_guest_vouchers`; add a redemption Server
-   Action gated to the voucher's own customer/party membership.
+6. **Moonstruck guest-voucher customer redemption UI** — IMPLEMENTED
+   2026-08-13 (commit `d6950b4`, cherry-picked from bounded worker commit
+   `0a549f7`): `redeem_wedding_guest_voucher` SECURITY DEFINER RPC
+   re-derives party membership from `auth.uid()` via the existing
+   `is_wedding_party_organizer_or_member()`, row-locks, enforces
+   idempotency/expiry server-side; customer server action + Redeem button
+   wired to it; no `customer_id` added, no RLS weakened, staff path
+   untouched. `pnpm typecheck`/`lint`/`build` and the full
+   `@paon/database` (531/532, one pre-existing unrelated
+   `order-repository.test.ts` mock failure) and `@paon/domain`
+   (1157/1157) suites verified clean on the integrated branch. New
+   `supabase/tests/wedding_guest_voucher_redemption_test.sql` (pgTAP) and
+   `apps/customer/e2e/wedding-party-guest-voucher-redemption.spec.ts`
+   (Playwright) are written and independently code-reviewed but **not yet
+   run against a live database** — Docker was unavailable in both the
+   worker's and the integrator's sessions. See the 16.5 correction below;
+   do not treat this as `verified_local` until those two run for real.
 7. **Virtual Wardrobe item-level actions** (alteration/cleaning booking,
    unattached logged-out items) — NOT STARTED. Depends on FT-04 (item 2)
    for the alteration-booking half; the cleaning-booking half does not.
@@ -5105,6 +5118,30 @@ date-agreement,group-fitting,guest-voucher,aftercare}.spec.ts`) were
     this status. Missing: anniversary continuation UI and evidence tracking for the six
     customer specs. The live occasionwear pilot stays
     `blocked_external`; the pack contracts do not.
+  - **Correction (2026-08-13):** the guest-voucher customer-redemption gap
+    the 2026-08-13 correction above flagged is now implemented — see
+    execution-queue item 6. `redeem_wedding_guest_voucher` re-derives
+    `auth.uid()` party membership per-call (never trusts a client-supplied
+    customer/retailer id), row-locks against double redemption, and
+    enforces expiry; `wedding_guest_vouchers` still carries no
+    `customer_id` (`checkGuestVoucher`'s `guest_list_not_a_customer_import`
+    rule is unchanged and its test still passes). Independently reviewed
+    line-by-line against the integrated commit, not just the worker's own
+    report. Static verification (typecheck, lint, the full
+    `@paon/database`/`@paon/domain` suites, `@paon/customer` production
+    build) is clean. The checkbox stays unchecked and this is not
+    `verified_local`: the new pgTAP authorization-matrix test and the new
+    customer Playwright redemption spec have not been run against a real
+    Supabase instance in either the worker's or this session — both had no
+    Docker daemon available, the same class of gap already on record for
+    FT-04 (execution-queue item 2). Whoever next has Docker: run
+    `supabase/tests/wedding_guest_voucher_redemption_test.sql` and
+    `apps/customer/e2e/wedding-party-guest-voucher-redemption.spec.ts`
+    before marking this `verified_local`. Missing, unchanged from the prior
+    correction: anniversary continuation UI and evidence tracking for the
+    six customer specs — group-fitting capacity is not a gap (see the
+    2026-08-13 correction above); do not mark 16.5 complete on the strength
+    of the voucher work alone.
 
 ### Stage 17 — Frictionless advisor intelligence
 
