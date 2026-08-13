@@ -3,6 +3,7 @@
 import {
   CustomerRepository,
   MorningRoutineRepository,
+  OrderRepository,
   WishlistRepository,
 } from "@paon/database";
 import {
@@ -11,6 +12,7 @@ import {
   morningRoutineActionInputSchema,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import type { ZodError } from "zod";
 
 import { buildAndPersistMorningRoutineSelection } from "./generation";
@@ -167,6 +169,7 @@ export async function runMorningRoutineAction(
     return { fieldErrors: {}, formError: "Not authorized for this routine." };
   }
 
+  let finalOrderId: string | undefined;
   try {
     if (parsed.data.action === "save") {
       if (parsed.data.productVariantId) {
@@ -179,12 +182,32 @@ export async function runMorningRoutineAction(
       revalidatePath("/wishlist");
     } else if (parsed.data.action === "review") {
       await routineRepo.markReview(parsed.data.selectionId, "reviewed");
-    } else if (parsed.data.action === "book" || parsed.data.action === "buy") {
-      // Navigation-only actions — authorization already verified.
+    } else if (parsed.data.action === "book") {
+      // Navigation-only action — authorization already verified.
+    } else if (parsed.data.action === "buy") {
+      if (!parsed.data.productVariantId) {
+        return { fieldErrors: {}, formError: "No item to buy." };
+      }
+      const address = owned.customer.shippingAddresses[0];
+      if (!address) {
+        return {
+          fieldErrors: {},
+          formError: "Turn on 1-Tap Checkout first — no saved address.",
+        };
+      }
+      const orderRepo = new OrderRepository(supabase);
+      const orderId = await orderRepo.addToCart({
+        retailerId: asId<"RetailerId">(parsed.data.retailerId),
+        productVariantId: parsed.data.productVariantId,
+        quantity: 1,
+      });
+      finalOrderId = await orderRepo.checkoutCart(orderId, address);
     }
 
     revalidatePath("/morning-routine");
-    return { fieldErrors: {}, success: true };
+    if (finalOrderId) {
+      revalidatePath("/orders");
+    }
   } catch (error) {
     return {
       fieldErrors: {},
@@ -192,4 +215,9 @@ export async function runMorningRoutineAction(
         error instanceof Error ? error.message : "Could not complete action.",
     };
   }
+
+  if (finalOrderId) {
+    redirect(`/orders/${finalOrderId}`);
+  }
+  return { fieldErrors: {}, success: true };
 }

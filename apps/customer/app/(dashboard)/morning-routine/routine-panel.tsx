@@ -21,9 +21,11 @@ import { startConversation } from "@/app/(dashboard)/messages/actions";
  * weather/calendar/live context, complementary wardrobe pieces, missing/
  * purchasable piece and clear delivery timing") rather than a source port.
  * The prior implementation was a plain numbered `<ul>`; every Server
- * Action and data field here is unchanged, only the composition. Order
- * creation remains the Commerce boundary — "Buy" continues to link to the
- * existing product page rather than creating anything here.
+ * Action and data field here is unchanged, only the composition. "Buy"
+ * creates a real order via the same `add_to_cart`/`checkout_cart` RPCs
+ * one-tap-checkout uses, gated on the same saved default address — no
+ * payment step. Falls back to linking the product page when no variant
+ * is resolvable for one-tap creation.
  */
 
 const initial: MorningRoutineActionState = { fieldErrors: {} };
@@ -173,7 +175,26 @@ function RecommendationActions({
           Book
         </Link>
       )}
-      {buy?.available && buy.href ? (
+      {buy?.available && buy.productVariantId ? (
+        <form action={actionAction}>
+          <input type="hidden" name="selectionId" value={selectionId} />
+          <input
+            type="hidden"
+            name="recommendationId"
+            value={recommendation.id}
+          />
+          <input type="hidden" name="action" value="buy" />
+          <input type="hidden" name="retailerId" value={retailerId} />
+          <input
+            type="hidden"
+            name="productVariantId"
+            value={buy.productVariantId}
+          />
+          <Button type="submit" size="sm" disabled={actionPending}>
+            Buy
+          </Button>
+        </form>
+      ) : buy?.available && buy.href ? (
         <Link href={buy.href} className={buttonVariants({ size: "sm" })}>
           Buy
         </Link>
