@@ -754,4 +754,19 @@ export class WeddingPartyRepository {
       .is("redeemed_at", null);
     if (error) throw error;
   }
+
+  /** The recipient's party (organizer or any member) redeeming a guest
+   * voucher through the customer app. Unlike the plain staff update above,
+   * the caller here is never trusted with the party/retailer relationship —
+   * `redeem_wedding_guest_voucher` re-derives party membership from
+   * `auth.uid()`, locks the row, and enforces the idempotency/expiry rules
+   * server-side, so this has nothing further to check. */
+  async redeemGuestVoucherAsCustomer(
+    voucherId: WeddingGuestVoucherId,
+  ): Promise<void> {
+    const { error } = await this.client.rpc("redeem_wedding_guest_voucher", {
+      p_voucher_id: voucherId,
+    });
+    if (error) throw error;
+  }
 }
