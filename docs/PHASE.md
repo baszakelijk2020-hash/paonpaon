@@ -3327,11 +3327,22 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     preparation/collection/aftercare state, not a decorative timeline.
     `campaign_challenge_look_slots` gained nullable `product_id` +
     `wardrobe_item_id`/`source` so an owned-first look can exist at the schema
-    level. Missing: the seven-day owned-first composition has no customer UI
-    yet — `upsert_campaign_challenge_look`'s RPC still only accepts catalogue
-    products, so wiring `composeSevenDayOwnedFirstPlan` to a real challenge
-    look is separate follow-up work, not done here; the month/season roadmap
-    visualization; and multi-role browser proof.
+    level. Read-only customer UI added at
+    `apps/customer/app/orders/[id]/honeymoon-campaign-challenge-look`:
+    Server Component composes `composeSevenDayOwnedFirstPlan` from the
+    customer's real wardrobe (via the existing `buildWardrobeCandidates`/
+    `buildCategorizedCatalogue` Complete-the-Look helpers, category-mapped to
+    `OutfitSlotKind`) against the retailer's real in-stock catalogue, and
+    `SevenDayPlanCard` renders each day/slot's actual owned/catalogue/gap
+    source and citation verbatim — no re-derivation, no silent fallback on a
+    stock gap. Proven by `e2e/honeymoon-challenge.spec.ts`
+    (`--grep honeymoon-challenge`) against a real order and a real wardrobe
+    item on a live local Supabase stack. Missing: `upsert_campaign_challenge_look`'s
+    RPC still only accepts catalogue products (would need a migration to
+    accept `wardrobe_item_id` — flagged, not done, out of scope for this
+    slice), so this composition is not yet persisted back through that RPC
+    into a saved challenge look; the month/season roadmap visualization; and
+    multi-role browser proof.
 
 - [ ] **10.3 Unified communication and remote proposals**
   - **Requirement IDs:** clienteling parity target; `CLI-004`, `CMP-103`.
