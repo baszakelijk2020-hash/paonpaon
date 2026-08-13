@@ -507,3 +507,108 @@ test("Mission Control surfaces a completed opportunity's real outcome, and exclu
     await admin.from("customers").delete().eq("id", customer.id);
   }
 });
+
+// Decision intelligence: proves the unified decision feed ranks entries
+// from multiple signal kinds (clienteling opportunities, appointments,
+// unread messages, price approvals, low stock) in a single feed, ordered
+// by the ranking formula rather than signal-type silos.
+test("Decision feed shows ranked entries from multiple signal kinds", async ({
+  page,
+}) => {
+  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+
+  const { data: retailer } = await admin
+    .from("retailers")
+    .select("id")
+    .eq("slug", TEST_RETAILER_SLUG)
+    .single();
+  if (!retailer) throw new Error("fixture retailer missing");
+  const retailerId = asId<"RetailerId">(retailer.id);
+
+  const unique = Date.now();
+  const customer = await new CustomerRepository(admin).create({
+    retailerId,
+    fullName: `E2E Decision Feed Client ${unique}`,
+    email: `decision-feed-${unique}@paon.test`,
+    lifecycleStage: "prospect",
+  });
+
+  // Seed two signal kinds: a clienteling opportunity and an appointment
+  const { data: opportunity, error: opportunityError } = await admin
+    .from("clienteling_opportunities")
+    .insert({
+      retailer_id: retailerId,
+      customer_id: customer.id,
+      opportunity_type: "interest_follow_up",
+      why_now: `E2E decision feed opportunity ${unique}`,
+      suggested_action: "Reach out with new collection",
+      channel: "in_person",
+      status: "draft",
+      priority: 1,
+      confidence: 0.95,
+      evidence: [{ insightStatement: `E2E decision feed evidence ${unique}` }],
+      projector_version: "clienteling-opportunity-v1",
+    })
+    .select("id")
+    .single();
+  if (opportunityError || !opportunity) throw opportunityError;
+
+  // Appointment scheduled for within 2 hours (high urgency)
+  const startsAt = new Date();
+  startsAt.setMinutes(startsAt.getMinutes() + 30);
+  const endsAt = new Date(startsAt.getTime() + 30 * 60_000);
+
+  const appointment = await new AppointmentRepository(admin).create({
+    retailerId,
+    customerId: customer.id,
+    type: "styling_consultation",
+    startsAt: startsAt.toISOString(),
+    endsAt: endsAt.toISOString(),
+  });
+
+  try {
+    await page.goto("/mission-control");
+    await expect(
+      page.getByRole("heading", { name: "Mission Control" }),
+    ).toBeVisible();
+
+    // Decision intelligence: the unified "What's next" feed should be visible
+    const decisionFeed = page.locator("#mission-control-decision-feed");
+    await expect(decisionFeed).toBeVisible();
+    await expect(
+      decisionFeed.getByRole("heading", { name: "What's next" }),
+    ).toBeVisible();
+
+    // Both signal kinds should appear in the same ranked feed
+    const feedItems = decisionFeed.locator("li");
+    await expect(feedItems).toHaveCount(2);
+
+    // The appointment (imminent within 2 hours) should rank higher than the opportunity
+    // because appointment_soon has baseWeight 85 + urgency bonus 30 = 115
+    // while clienteling_opportunity has baseWeight 60 + confidence bonus (0.95*20=19)
+    // + priority bonus (10-1*5=5) = 84. Appointment should be first.
+    const firstItem = feedItems.first();
+    const secondItem = feedItems.nth(1);
+
+    // First item should be the appointment (starts in ~30 min = "imminent")
+    await expect(firstItem).toContainText("styling consultation");
+    await expect(
+      firstItem.getByText(/appointment.*within|starts in|few minutes/i),
+    ).toBeVisible();
+
+    // Second item should be the opportunity with high confidence
+    await expect(secondItem).toContainText(
+      `E2E decision feed opportunity ${unique}`,
+    );
+    await expect(secondItem).toContainText("95% confidence");
+  } finally {
+    await admin
+      .from("clienteling_opportunities")
+      .delete()
+      .eq("id", opportunity.id);
+    await admin.from("appointments").delete().eq("id", appointment.id);
+    await admin.from("customers").delete().eq("id", customer.id);
+  }
+});

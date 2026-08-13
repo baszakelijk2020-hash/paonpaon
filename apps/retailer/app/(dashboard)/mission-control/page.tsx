@@ -3,6 +3,7 @@ import {
   AppointmentRepository,
   ClientelingOpportunityRepository,
   CustomerRepository,
+  DecisionFeedRepository,
   MessagingRepository,
   NotificationRepository,
   ProductVariantRepository,
@@ -113,6 +114,7 @@ export default async function MissionControlPage() {
     notifications,
     lowStockCount,
     staffMembers,
+    decisionFeedEntries,
   ] = await Promise.all([
     new AppointmentRepository(supabase).findByRetailer(session.retailerId),
     new CustomerRepository(supabase).findByRetailer(session.retailerId),
@@ -152,6 +154,11 @@ export default async function MissionControlPage() {
     retailerRoleAtLeast(session.retailerRole, "sales_associate")
       ? new RetailerStaffRepository(supabase).findByRetailer(session.retailerId)
       : Promise.resolve([]),
+    // Decision intelligence: fetch the ranked, reasoned "why now / what next" feed
+    new DecisionFeedRepository(supabase).composeDecisionFeed({
+      retailerId: session.retailerId,
+      userId: session.userId,
+    }),
   ]);
   const staffNameById = new Map(
     staffMembers.map((staff) => [staff.id, staff.fullName]),
@@ -323,6 +330,192 @@ export default async function MissionControlPage() {
               </Link>
             ) : null}
           </div>
+        </Card>
+      ) : null}
+
+      {decisionFeedEntries.length > 0 ? (
+        <Card
+          id="mission-control-decision-feed"
+          className="flex flex-col gap-3"
+        >
+          <div>
+            <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+              What&rsquo;s next
+            </h2>
+            <p className="text-sm text-[var(--color-stone-500)]">
+              Ranked reasons to act now, across all signal types.
+            </p>
+          </div>
+          <ul className="flex flex-col gap-3">
+            {decisionFeedEntries.map((entry) => {
+              const input = entry.input;
+              const customerName =
+                input.kind === "clienteling_opportunity" ||
+                input.kind === "appointment_soon" ||
+                input.kind === "appointment_today"
+                  ? (nameByCustomerId.get(input.customerId) ?? "Client")
+                  : null;
+
+              // Build the entry display based on kind
+              const entryContent = (() => {
+                if (
+                  input.kind === "clienteling_opportunity" ||
+                  input.kind === "appointment_soon" ||
+                  input.kind === "appointment_today"
+                ) {
+                  // These types need customer links
+                  const isOpportunity =
+                    input.kind === "clienteling_opportunity";
+                  const isAppointment =
+                    input.kind === "appointment_soon" ||
+                    input.kind === "appointment_today";
+
+                  return (
+                    <div className="flex items-start justify-between gap-2">
+                      <Link
+                        href={
+                          isOpportunity
+                            ? `/customers/${input.customerId}`
+                            : `/appointments/${input.sourceId}`
+                        }
+                        className="block flex-1 hover:underline"
+                      >
+                        <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                          {customerName}
+                          {isOpportunity &&
+                            ` · ${input.opportunityType.replaceAll("_", " ")}`}
+                          {isAppointment && ` · ${input.appointmentType}`}
+                        </p>
+                        <p className="mt-1 text-xs text-[var(--color-stone-600)]">
+                          {entry.reasonText}
+                        </p>
+                        {entry.confidence !== undefined && (
+                          <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                            {Math.round(entry.confidence * 100)}% confidence
+                          </p>
+                        )}
+                      </Link>
+                      <span aria-hidden="true">→</span>
+                    </div>
+                  );
+                }
+
+                if (input.kind === "price_approval_pending") {
+                  return (
+                    <Link
+                      href={`/alterations/${input.sourceId}#pricing`}
+                      className="group"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                            {entry.reasonText}
+                          </p>
+                          <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                            {formatMoney(
+                              {
+                                amountMinorUnits:
+                                  input.originalAmountMinorUnits,
+                                currency: "USD",
+                              },
+                              "en-US",
+                            )}{" "}
+                            →{" "}
+                            {formatMoney(
+                              {
+                                amountMinorUnits:
+                                  input.proposedAmountMinorUnits,
+                                currency: "USD",
+                              },
+                              "en-US",
+                            )}
+                          </p>
+                        </div>
+                        <span aria-hidden="true">→</span>
+                      </div>
+                    </Link>
+                  );
+                }
+
+                if (input.kind === "unread_message") {
+                  return (
+                    <Link href="/messages" className="group">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                            {entry.reasonText}
+                          </p>
+                        </div>
+                        <span aria-hidden="true">→</span>
+                      </div>
+                    </Link>
+                  );
+                }
+
+                if (input.kind === "low_stock") {
+                  return (
+                    <Link href="/products" className="group">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-[var(--color-stone-900)]">
+                            {entry.reasonText}
+                          </p>
+                        </div>
+                        <span aria-hidden="true">→</span>
+                      </div>
+                    </Link>
+                  );
+                }
+
+                return null;
+              })();
+
+              // For clienteling opportunities, show action buttons
+              if (input.kind === "clienteling_opportunity") {
+                return (
+                  <li
+                    key={entry.input.sourceId}
+                    className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
+                  >
+                    {entryContent}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <form
+                        action={acceptOpportunity.bind(null, input.sourceId)}
+                      >
+                        <Button type="submit" size="sm">
+                          Accept
+                        </Button>
+                      </form>
+                      <form
+                        action={snoozeOpportunity.bind(null, input.sourceId)}
+                      >
+                        <Button type="submit" size="sm" variant="secondary">
+                          Snooze
+                        </Button>
+                      </form>
+                      <form
+                        action={dismissOpportunity.bind(null, input.sourceId)}
+                      >
+                        <Button type="submit" size="sm" variant="ghost">
+                          Dismiss
+                        </Button>
+                      </form>
+                    </div>
+                  </li>
+                );
+              }
+
+              // For other types, show as a simple link item
+              return (
+                <li
+                  key={entry.input.sourceId}
+                  className="flex items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] p-3"
+                >
+                  {entryContent}
+                </li>
+              );
+            })}
+          </ul>
         </Card>
       ) : null}
 
