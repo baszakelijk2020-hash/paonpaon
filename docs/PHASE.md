@@ -259,6 +259,29 @@ acceptance contract — this table is not a substitute for it.
    the existing Commerce order-creation Server Action from this specific
    entry point, gated the same way `one-tap-checkout` already is. Small,
    concretely scoped — not a rebuild.
+   **Scope check (2026-08-13), governance verified — no change to the item
+   above, recorded to close a genuine question rather than leave it
+   ambiguous for a future session:** Stage 4.4's own acceptance criteria
+   (`docs/PHASE.md` — search "every result explains itself and exposes
+   save/review/book/buy where valid") require a buy action to be exposed
+   and name only "automatic purchase" as a non-goal; Stage 6.1/6.2 gate
+   "one-click, commitment/deposit, **or** billing" — payment/charging
+   capabilities — not bare cart/order creation, and Stage 5.3 already
+   establishes the precedent that a payment-compliance gate "blocks money
+   collection only, not service operations." So this item is real and
+   correctly scoped exactly as written: wire real cart/order creation
+   with **no payment step**, matching `FOUNDER_TOOL_BLUEPRINTS.md`'s own
+   "governed one-click buying achievement" language, which names the full
+   _payment_ capability (not order creation) as the part requiring
+   eligibility/governance. Full one-click **payment** remains correctly
+   blocked behind Stage 6.1/6.2's founder/legal decision and stays out of
+   this item's scope. A targeted scan of the other PARTIAL/NOT STARTED
+   items in this queue for the same class of error (calling something
+   incomplete when its governing scope actually defers it) found none —
+   the three other items already carrying explicit gating language
+   (FT-04/Docker, TableService quarantine/scanner choice, the local
+   migration agent's founder sign-off requirement) were already correctly
+   marked accordingly.
 4. **TableService unified remote proposal** (FT-09, addition recorded
    2026-08-12) — NOT STARTED. Field spec already locked in
    `FOUNDER_TOOL_BLUEPRINTS.md` FT-09. Depends on Commerce module wiring
