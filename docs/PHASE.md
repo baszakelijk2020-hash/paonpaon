@@ -3408,7 +3408,7 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
 
 ### Stage 11 — Workforce Mission Control and coaching
 
-- [ ] **11.1 Time approval and payroll package**
+- [x] **11.1 Time approval and payroll package**
   - **Requirement IDs:** `WFM-101`, `WFM-102`.
   - **Dependencies:** existing roster/time entries; `8.3`.
   - **Owner boundary:** breaks/exceptions/corrections/manager approvals,
@@ -3420,21 +3420,36 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     export mapping and RLS.
   - **Non-goals:** no tax calculation, filing or salary payout.
   - **Hard blockers:** payroll account blocks only provider adapter.
-  - **Landed:** domain layer only (`payroll-period.ts`), operating on the
-    existing real `staff_time_entries`/`staff_shifts` (never customer data).
-    `detectPayrollExceptions` flags a missing clock-out only once a shift has
-    run well past a normal length (not every open shift — that would flag
-    every employee currently on the clock) and flags per-entry overtime
-    matching how `summarizePeriodHours` splits the same entry into regular
-    and overtime hours, so the two can never disagree about what counts as
-    overtime. Every exception starts unresolved — resolution is a manager
-    action this layer does not perform. `buildChecksummedPayrollExport`
-    sorts rows deterministically before hashing specifically so the checksum
-    is stable across repeated exports of unchanged data, which is the entire
-    point of checksumming an export. Missing: no schema at all yet for pay
-    periods, versions, corrections or manager approval state; no export
-    provider adapter; no self-approval-denial enforcement; no RLS; no UI; no
-    browser proof. This is a small fraction of 11.1, not most of it.
+  - **Complete (2026-08-11):** Core manager workflow is real and browser-proven
+    end to end. Domain layer (`payroll-period.ts`, 11 tests) provides
+    `detectPayrollExceptions` (flags missing clock-out only once a shift runs
+    well past normal length, flags per-entry overtime matching
+    `summarizePeriodHours` so detection and payable-hours calculation never
+    disagree) and `buildChecksummedPayrollExport` (sorts rows deterministically
+    so checksums stay stable across repeated exports of unchanged data). Schema
+    layer (`20260811160000` through `20260811230000` migrations, 6 tables,
+    RLS enabled on all) defines `payroll_periods` (open/draft/approved state),
+    `payroll_period_versions` (draft/approved states, version_number, prepared/
+    approved by different staff, predecessor tracking for corrections),
+    `payroll_period_entry_snapshots` (immutable capture of entries at open
+    time), `payroll_period_entry_adjustments` (audit trail for corrections),
+    `payroll_period_exceptions` (missing_clock_out/overtime/unscheduled_shift/
+    missed_shift, resolution tracking), `payroll_period_exports` (checksummed
+    records). Repository layer (`PayrollPeriodRepository`, 5 unit tests) binds
+    identity to auth.uid() and enforces tenant/staff role constraints.
+    Manager UI (`/staff/payroll`, page.tsx with 4 server actions and 4 forms)
+    allows opening a period, resolving exceptions (missing punch, overtime,
+    schedule anomalies), correcting entries (creates a new version with audit
+    trail), and approving periods only by a different manager than who prepared
+    it. Export endpoint (`/staff/payroll/exports/{exportId}/{format}`) delivers
+    CSV/JSON downloads with proper disposition headers and RLS enforcement.
+    E2E browser-proven (2026-08-11): `payroll.spec.ts` verifies manager opens
+    period, resolves captured missing punch, corrects entry to new version, and
+    receives accessible self-approval-denial error; `payroll-export.spec.ts`
+    verifies approved export is downloadable by manager in its own tenant only
+    (foreign retailer and non-manager roles denied by RLS). Only remaining
+    piece is the external payroll-provider export adapter (accepted blocker
+    per Hard blockers line).
 
 - [x] **11.2 Today, closeout, I AM and extra mile**
   - **Requirement IDs:** `WFM-103`, `WFM-104`.
