@@ -570,6 +570,24 @@ pattern. Proof: extends the existing priority-task browser journey in
 `mission-control.spec.ts` with seeded confidence/evidence/priority,
 asserting all three render before the task is accepted.
 
+**Reconciliation (2026-08-13):** this closure and the "Full-Completion
+Execution Queue" build-order item 6 below (added independently, in a
+different session, before either was aware of the other) both address
+"Decision intelligence" and must not be read as contradicting one
+another — they cover different halves of the same requirement. This
+closure genuinely fixes the narrower half: the existing "Priority
+tasks" card was silently dropping evidence/confidence it already had.
+That fix is real, verified and correctly closed — do not redo it. It
+does **not** by itself satisfy Mission Control's own "not a dashboard
+and not a collection of checked component slices" bar, because
+"Priority tasks" still ranks only `clienteling_opportunities` in
+isolation from the retailer's other signal types (today's appointments,
+unread messages, pending price approvals, low stock), which remain
+separate, unranked cards on the same page. Build-order item 6 below
+tracks that remaining, broader half specifically — unifying all five
+signal types into one ranked, evidence-cited feed — and is not
+superseded by this narrower fix.
+
 **Status (2026-08-12, Operational coordination):** component 5 of the
 seven named above ("owner, manager and advisor views; queues,
 assignment, status, follow-through, escalation and cross-branch
