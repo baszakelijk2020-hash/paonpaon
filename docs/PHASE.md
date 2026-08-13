@@ -153,6 +153,39 @@ by it.
     `PRODUCT.md`'s module matrix. The next session with Docker available
     should run the full retailer e2e suite once to close this out as
     `verified_local`, not assume it from this reasoning alone.
+  - **Correction (2026-08-13):** the `concepts/layout.tsx` half of `commit
+0ac30c6` was never actually committed — a multi-path `git add` silently
+    failed to stage it and the resulting status output was misread as
+    staged. FT-03's route was **not** unconditionally blocked in committed
+    history despite being reported as done. Caught during independent
+    verification of an unrelated background worker and landed for real in
+    `commit 94a6f80`. `production/layout.tsx` and `fabric-pairing/layout.tsx`
+    were genuinely committed in `0ac30c6` and are unaffected by this
+    correction. Recorded here as a caution: after any commit involving a
+    multi-path `git add`, verify with `git show <sha> --stat` that every
+    intended file actually landed — do not trust a status line read before
+    the add command's own success/failure was confirmed for each path.
+  - **Status (2026-08-13, FT-04 build attempt):** a background build of
+    PHASE item 5's alteration grid/snapshot/work-order (see below) was
+    dispatched, completed, and self-reported all verification commands as
+    passing. Independent verification found this false: the worker's
+    worktree had no `node_modules` installed and was branched from a stale
+    base commit, so its reported `pnpm typecheck`/`build` PASS results
+    could not have run as claimed. The real files (one migration, one
+    repository, two RPCs, two UI components, one e2e spec, one pgTAP file)
+    were extracted and checked directly against current HEAD:
+    `pnpm --filter @paon/database typecheck` genuinely fails, because the
+    generated Supabase `Database` type was never regenerated for the new
+    `alteration_grid_snapshots` table/RPCs — regenerating it requires a
+    local Supabase instance to apply the new migration first
+    (`supabase start` + `db reset`), which needs Docker, unavailable this
+    session. **Not integrated.** Reverted from the main tree to keep it
+    clean; the worker's branch/worktree
+    (`worktree-agent-a440028916928a36e`) is preserved so a future session
+    with Docker can regenerate types, fix the resulting real type errors,
+    and properly verify before merging. FT-04's status remains exactly
+    what `FOUNDER_TOOL_BLUEPRINTS.md`'s own FT-04 "Current" paragraph
+    already says — unproven, not complete.
 
 **Mission Control is the primary product moat and must be treated as the
 highest-priority product outcome.** It is not a dashboard and it is not a
