@@ -217,14 +217,14 @@ BLOCKED      — otherwise ready, stopped only by an external credential,
 
 #### Reconciliation counts (active/KEEP scope only; PARKED/DELETED excluded)
 
-| Status      | Count | Representative items                                                                                                                                                                                                                                                                                                                                                            |
-| ----------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| COMPLETE    | 6     | Admin app (14 sub-capabilities), Appointments/CRM core, Commerce core (cart/checkout/webhook), House Memory consent/correction/RLS, Auth/authorization cross-cutting, Route-gating (19.1)                                                                                                                                                                                       |
-| PARTIAL     | 15    | Mission Control (5 of 6 build-order items), Self-Portrait, TableService, MorningRoutine, Virtual Wardrobe Studio, Moonstruck, Preferred Tailoring, Honeymoon Phase, Loyalty/badges, Corporate/Métier, Catalogue import/migration, Academy (roleplay only), Inspiration Box, Payroll (core done, provider export missing), Silhouette-in-alterations                             |
-| NOT STARTED | 9     | FT-04 grid/snapshot/work-order, Mission Control decision intelligence, Preferred Tailoring monthly grid, TableService unified remote proposal, Location Finder (FT-11), METRE/MILLI/MICRON tiers, Corporate project-setup wizard, DailyBriefing, MunroMentor                                                                                                                    |
-| PARKED      | 9     | FT-01 standalone, standalone Seven-Day Wardrobe, production/stock/supplier operations (R0.2, 12.2, 13.1–13.3), full Moonstruck vertical pack, vague corporate analytics (18.9), AI moodboards (18.10), commerce/marketplace, lifestyle/ecosystem, media incubation                                                                                                              |
-| DELETED     | 2     | FT-03 QR try-on/fabric-batch, generic vertical-pack framework (16.3)                                                                                                                                                                                                                                                                                                            |
-| BLOCKED     | 5     | Live payment/cash activation (ADR-062, founder/legal), email/SMS/AI-image provider credentials (Resend/Twilio/OpenAI keys), FT-04 Supabase-type regeneration (needs local Docker), customer-production HTTP 500 (needs a founder/eng decision on migration approach, see `ENVIRONMENTS.md`), Shopify/Faden scheduled execution (needs a live provider sandbox to prove against) |
+| Status      | Count | Representative items                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| COMPLETE    | 7     | Admin app (14 sub-capabilities), Appointments/CRM core, Commerce core (cart/checkout/webhook), House Memory consent/correction/RLS, Auth/authorization cross-cutting, Route-gating (19.1), Mission Control decision intelligence (build-order item 6, closed 2026-08-13)                                                                                                                         |
+| PARTIAL     | 15    | Mission Control (5 of 6 remaining build-order items — decision intelligence now closed), Self-Portrait, TableService, MorningRoutine, Virtual Wardrobe Studio, Moonstruck, Preferred Tailoring, Honeymoon Phase, Loyalty/badges, Corporate/Métier, Catalogue import/migration, Academy (roleplay only), Inspiration Box, Payroll (core done, provider export missing), Silhouette-in-alterations |
+| NOT STARTED | 8     | FT-04 grid/snapshot/work-order, Preferred Tailoring monthly grid, TableService unified remote proposal, Location Finder (FT-11), METRE/MILLI/MICRON tiers, Corporate project-setup wizard, DailyBriefing, MunroMentor                                                                                                                                                                            |
+| PARKED      | 9     | FT-01 standalone, standalone Seven-Day Wardrobe, production/stock/supplier operations (R0.2, 12.2, 13.1–13.3), full Moonstruck vertical pack, vague corporate analytics (18.9), AI moodboards (18.10), commerce/marketplace, lifestyle/ecosystem, media incubation                                                                                                                               |
+| DELETED     | 2     | FT-03 QR try-on/fabric-batch, generic vertical-pack framework (16.3)                                                                                                                                                                                                                                                                                                                             |
+| BLOCKED     | 5     | Live payment/cash activation (ADR-062, founder/legal), email/SMS/AI-image provider credentials (Resend/Twilio/OpenAI keys), FT-04 Supabase-type regeneration (needs local Docker), customer-production HTTP 500 (needs a founder/eng decision on migration approach, see `ENVIRONMENTS.md`), Shopify/Faden scheduled execution (needs a live provider sandbox to prove against)                  |
 
 These counts classify roughly 46 active-scope capability entries at the
 granularity the two audits used; the file below documents far more
@@ -234,11 +234,9 @@ acceptance contract — this table is not a substitute for it.
 
 #### Immediate critical path (ordered — founder priority → dependency → value → risk → efficiency)
 
-1. **Mission Control decision intelligence** (new build-order item 6, above)
-   — NOT STARTED. No dependency on anything unbuilt; every input (customer
-   facts, `clienteling_opportunities`, appointments, wardrobe/service state)
-   already exists. Highest founder priority (Mission Control is the named
-   moat) and the single most-repeated gap across both audit passes.
+1. ~~**Mission Control decision intelligence**~~ — **DONE (2026-08-13)**,
+   see build-order item 6 above for the connected, verified proof. Removed
+   from the active critical path.
 2. **FT-04 alteration grid/snapshot/work-order** (Stage 12 / FT-04) —
    NOT STARTED, one failed integration attempt already reverted this
    session (real `pnpm --filter @paon/database typecheck` failures because
@@ -458,6 +456,26 @@ is complete until the full advisor/client journey is production-proven.
    table or equivalent ranking store exists yet — this is `NOT STARTED`, not
    partial; the existing per-module dashboards/briefs/opportunity lists are
    real inputs to this layer, not a substitute for it.
+   **Status (2026-08-13): CONNECTED.** `packages/domain/src/mission-control/decision-feed.ts`
+   (`rankDecisionFeedEntries`, `DECISION_FEED_RULE_VERSION`, a fixed named
+   weight table per entry kind — no black-box score, matching this
+   codebase's `scoreOpportunity` precedent), `packages/database/src/repositories/decision-feed-repository.ts`
+   (composes clienteling_opportunities/appointments/messages/price-approvals/
+   low-stock into the ranked feed, reusing every existing query unchanged),
+   and a "What's next" card on `apps/retailer/app/(dashboard)/mission-control/page.tsx`
+   render the unified ranked list, reusing the existing Accept/Dismiss/
+   Snooze actions for opportunity entries and linking every other kind to
+   its existing destination. No existing card removed. Real, independently
+   re-verified command output (not a worker's claim): `pnpm --filter
+@paon/domain test` (13/13 decision-feed unit tests plus the full suite),
+   `pnpm --filter @paon/database test` (534/535, the one failure a
+   documented pre-existing unrelated mock issue), `pnpm --filter
+@paon/retailer lint/typecheck`, and a full `pnpm build` all pass.
+   Not yet run: the new e2e spec (`mission-control.spec.ts`'s "Decision
+   feed shows ranked entries from multiple signal kinds") — written and
+   typechecked but unexecuted, no local Docker/Supabase this session, same
+   named gap as FT-04. Commits: `45b6d95` (foundation), `884b17e` (parallel
+   Mission Control merge), `80b038b`/`14d6038` (UI wiring + integration).
 
 **Status (2026-08-12, item 5, first slice):** an audit of the existing
 `alteration_work_orders`/`alteration_tasks`/`work_order_assignments`/
