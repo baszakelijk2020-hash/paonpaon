@@ -136,7 +136,23 @@ by it.
     deletion of underlying tables/domain code (preserved per
     `CAPABILITY_DISPOSITION.md`'s Park/Delete definitions).
   - **Hard blockers:** none.
-  - **Status:** not started.
+  - **Status (2026-08-13):** `implemented_unverified`. `commit 0ac30c6` adds
+    `production/layout.tsx` and `fabric-pairing/layout.tsx` calling
+    `requireModuleSession("garment_service_operations", "read")` matching
+    the `/pos`/`/inventory` precedent exactly, and changes
+    `concepts/layout.tsx` to call `notFound()` unconditionally. Retired
+    `apps/retailer/e2e/concept-scan-codes.spec.ts`, which exercised the now
+    permanently-blocked retailer `/concepts` UI directly — FT-03 is
+    deleted, not merely off, so that test asserted invalid behaviour.
+    `pnpm lint`/`typecheck` are clean. Not verified against a running e2e
+    suite (no local Docker/Supabase available this session) — reasoned
+    instead from `production.spec.ts`/`fabric-pairing.spec.ts` sharing the
+    same `TEST_RETAILER_SLUG` fixture already proven active for
+    `retail_operations` (the passing `/pos` tests), and
+    `garment_service_operations` sitting in the same plan-bundle tier per
+    `PRODUCT.md`'s module matrix. The next session with Docker available
+    should run the full retailer e2e suite once to close this out as
+    `verified_local`, not assume it from this reasoning alone.
 
 **Mission Control is the primary product moat and must be treated as the
 highest-priority product outcome.** It is not a dashboard and it is not a
