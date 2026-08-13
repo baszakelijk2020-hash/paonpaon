@@ -12,6 +12,7 @@ export * from "./identity/retailer-staff.schema";
 
 export * from "./retailer/retailer";
 export * from "./retailer/retailer-branch";
+export * from "./retailer/retailer-branch.schema";
 export * from "./retailer/retailer.schema";
 export * from "./retailer/subscription";
 export * from "./retailer/subscription.schema";
