@@ -20907,6 +20907,10 @@ export type Database = {
         Returns: Json;
       };
       redeem_my_reward: { Args: { p_reward_id: string }; Returns: string };
+      redeem_wedding_guest_voucher: {
+        Args: { p_voucher_id: string };
+        Returns: Json;
+      };
       refresh_payroll_period_exceptions: {
         Args: { p_version_id: string };
         Returns: undefined;

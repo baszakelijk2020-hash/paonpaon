@@ -43,6 +43,22 @@ export async function completeAftercarePlan(formData: FormData) {
   revalidatePath(`/wedding-parties/${weddingPartyId}`);
 }
 
+/** The recipient's party (organizer or any member) redeeming a guest
+ * voucher — redeem_wedding_guest_voucher re-derives party membership,
+ * idempotency and expiry server-side, so this has nothing further to
+ * check. A thrown error (wrong party, already redeemed, expired) surfaces
+ * to the browser as a real failure — the button never optimistically
+ * flips to "Redeemed" before the server confirms it. */
+export async function redeemGuestVoucher(formData: FormData) {
+  await requireSession();
+  const voucherId = String(formData.get("voucherId"));
+  const weddingPartyId = String(formData.get("weddingPartyId"));
+  await new WeddingPartyRepository(
+    await getSupabaseServerClient(),
+  ).redeemGuestVoucherAsCustomer(voucherId as never);
+  revalidatePath(`/wedding-parties/${weddingPartyId}`);
+}
+
 export interface AddInspirationItemState {
   formError?: string;
 }

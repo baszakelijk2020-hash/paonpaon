@@ -15,7 +15,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { completeAftercarePlan, markFittingScheduled } from "../actions";
+import {
+  completeAftercarePlan,
+  markFittingScheduled,
+  redeemGuestVoucher,
+} from "../actions";
 
 import { AmHouseHero } from "./am-house-hero";
 import { AmHouseOrbit } from "./am-house-orbit";
@@ -371,9 +375,29 @@ export default async function WeddingPartyDetailPage({
                     {formatDate(voucher.expiresOn, "en-US")}
                   </p>
                 </div>
-                <Badge tone={voucher.redeemedAt ? "success" : "neutral"}>
-                  {voucher.redeemedAt ? "Redeemed" : "Active"}
-                </Badge>
+                {voucher.redeemedAt ? (
+                  <Badge tone="success">Redeemed</Badge>
+                ) : isOrganizer || myMember ? (
+                  <form action={redeemGuestVoucher}>
+                    <input type="hidden" name="voucherId" value={voucher.id} />
+                    <input
+                      type="hidden"
+                      name="weddingPartyId"
+                      value={party.id}
+                    />
+                    <button
+                      type="submit"
+                      className={buttonVariants({
+                        variant: "outline",
+                        size: "sm",
+                      })}
+                    >
+                      Redeem
+                    </button>
+                  </form>
+                ) : (
+                  <Badge tone="neutral">Active</Badge>
+                )}
               </li>
             ))}
           </ul>
