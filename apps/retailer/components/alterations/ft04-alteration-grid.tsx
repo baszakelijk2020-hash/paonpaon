@@ -29,12 +29,14 @@ export function Ft04AlterationGrid({
   operations,
   snapshots,
   canEdit,
+  canRevise,
   canDispatch,
 }: {
   alterationId: string;
   operations: Operation[];
   snapshots: Snapshot[];
   canEdit: boolean;
+  canRevise: boolean;
   canDispatch: boolean;
 }) {
   const [values, setValues] = useState<Record<string, number>>(() =>
@@ -42,12 +44,16 @@ export function Ft04AlterationGrid({
   );
   const [comments, setComments] = useState("");
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [isRevising, setIsRevising] = useState(false);
+  const [isWorkOrderOpen, setIsWorkOrderOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [dispatching, setDispatching] = useState(false);
   const [error, setError] = useState<string>();
   const current = snapshot ?? snapshots[0] ?? null;
-  const shown = snapshot
-    ? Object.fromEntries(snapshot.values.map((v) => [v.operationId, v.value]))
-    : values;
+  const shown =
+    snapshot && !isRevising
+      ? Object.fromEntries(snapshot.values.map((v) => [v.operationId, v.value]))
+      : values;
   async function save() {
     setError(undefined);
     const result = await saveAlterationGridSnapshot({
@@ -64,19 +70,31 @@ export function Ft04AlterationGrid({
   async function dispatch() {
     if (!current) return;
     setDispatching(true);
-    const selected = operations
-      .filter((o) => (shown[o.id] ?? 0) !== 0)
-      .map((o) => o.id);
+    const selectedOperationIds = [...selected];
     const result = await dispatchAlterationGridSnapshot({
       alterationId,
       snapshotId: current.id,
-      selectedOperationIds: selected,
+      selectedOperationIds,
       comments,
     });
     setDispatching(false);
     if (result.error) setError(result.error);
     else window.location.reload();
   }
+  function beginRevision() {
+    if (!current) return;
+    setValues(
+      Object.fromEntries(
+        current.values.map((value) => [value.operationId, value.value]),
+      ),
+    );
+    setComments(current.comments ?? "");
+    setIsRevising(true);
+    setSnapshot(null);
+  }
+  const selectable = operations.filter(
+    (operation) => (shown[operation.id] ?? 0) !== 0,
+  );
   return (
     <section className="rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -88,9 +106,16 @@ export function Ft04AlterationGrid({
           </p>
         </div>
         {current ? (
-          <span className="text-sm font-medium">
-            Locked version {current.version}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">
+              Locked version {current.version}
+            </span>
+            {canRevise ? (
+              <Button type="button" variant="secondary" onClick={beginRevision}>
+                Unlock and revise
+              </Button>
+            ) : null}
+          </div>
         ) : null}
       </div>
       {error ? (
@@ -109,7 +134,7 @@ export function Ft04AlterationGrid({
               <span className="text-sm font-medium">{op.name}</span>
               <select
                 aria-label={`${op.name} positive`}
-                disabled={!canEdit || Boolean(snapshot)}
+                disabled={!canEdit || (Boolean(snapshot) && !isRevising)}
                 value={value > 0 ? value : 0}
                 onChange={(e) =>
                   setValues({ ...values, [op.id]: Number(e.target.value) })
@@ -128,7 +153,7 @@ export function Ft04AlterationGrid({
               </select>
               <select
                 aria-label={`${op.name} negative`}
-                disabled={!canEdit || Boolean(snapshot)}
+                disabled={!canEdit || (Boolean(snapshot) && !isRevising)}
                 value={value < 0 ? value : 0}
                 onChange={(e) =>
                   setValues({ ...values, [op.id]: Number(e.target.value) })
@@ -149,7 +174,7 @@ export function Ft04AlterationGrid({
           );
         })}
       </div>
-      {!snapshot && canEdit ? (
+      {(!snapshot || isRevising) && canEdit ? (
         <>
           <textarea
             value={comments}
@@ -163,19 +188,16 @@ export function Ft04AlterationGrid({
         </>
       ) : null}
       {current && canDispatch ? (
-        <div className="mt-4 rounded bg-black p-4 text-white">
-          <p className="text-sm">
-            Selective work-order flow: only non-zero values will be dispatched
-            at their current fixed price.
-          </p>
-          <Button
-            className="mt-3"
-            onClick={dispatch}
-            disabled={dispatching || operations.every((o) => !shown[o.id])}
-          >
-            {dispatching ? "Dispatching…" : "Dispatch selected alterations"}
-          </Button>
-        </div>
+        <Button
+          className="mt-4"
+          onClick={() => {
+            setSelected(new Set());
+            setIsWorkOrderOpen(true);
+          }}
+          disabled={selectable.length === 0}
+        >
+          Create selective work order
+        </Button>
       ) : null}
       {snapshots.length ? (
         <div className="mt-5 flex flex-wrap gap-2">
@@ -193,6 +215,95 @@ export function Ft04AlterationGrid({
               </span>
             </button>
           ))}
+        </div>
+      ) : null}
+      {isWorkOrderOpen ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Selective alteration work order"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+        >
+          <div className="max-h-full w-full max-w-xl overflow-y-auto rounded-[var(--radius-lg)] bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-medium">Selective work order</h3>
+                <p className="text-sm text-[var(--color-stone-500)]">
+                  Choose the non-zero alterations to send to the workshop queue.
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="Close work order"
+                onClick={() => setIsWorkOrderOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="mt-4 grid gap-2">
+              {selectable.map((operation) => {
+                const value = shown[operation.id] ?? 0;
+                const checked = selected.has(operation.id);
+                return (
+                  <label
+                    key={operation.id}
+                    className={
+                      checked
+                        ? "flex cursor-pointer items-center justify-between rounded border border-[var(--color-stone-900)] bg-[var(--color-stone-100)] p-3"
+                        : "flex cursor-pointer items-center justify-between rounded border p-3"
+                    }
+                  >
+                    <span>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() =>
+                          setSelected((existing) => {
+                            const next = new Set(existing);
+                            if (next.has(operation.id))
+                              next.delete(operation.id);
+                            else next.add(operation.id);
+                            return next;
+                          })
+                        }
+                      />{" "}
+                      <strong className="ml-2">{operation.name}</strong>{" "}
+                      <span className="ml-2">
+                        {value > 0 ? `+${value}` : value}
+                      </span>
+                    </span>
+                    <span>
+                      {operation.price !== undefined
+                        ? `${(operation.price / 100).toFixed(2)} ${operation.currency ?? ""}`
+                        : "Price unavailable"}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            <textarea
+              value={comments}
+              onChange={(event) => setComments(event.target.value)}
+              className="mt-4 w-full rounded border p-2 text-sm"
+              placeholder="Order number, workshop comments, and photo references"
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => setIsWorkOrderOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={dispatch}
+                disabled={dispatching || selected.size === 0}
+              >
+                {dispatching
+                  ? "Dispatching…"
+                  : `Dispatch ${selected.size} alteration${selected.size === 1 ? "" : "s"}`}
+              </Button>
+            </div>
+          </div>
         </div>
       ) : null}
     </section>

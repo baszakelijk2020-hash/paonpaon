@@ -350,6 +350,7 @@ export default async function AlterationDetailPage({
             createdAt: snapshot.createdAt,
           }))}
           canEdit={canEditGrid}
+          canRevise={canDispatchGrid}
           canDispatch={canDispatchGrid}
         />
       ) : null}
