@@ -317,10 +317,19 @@ acceptance contract — this table is not a substitute for it.
   calendar, some days fade in a suit/jacket image, ~4s fade with varied
   start timing, mobile page-filling layout). No dependency on anything else
   unbuilt.
-- **Location Finder** (FT-11) — NOT STARTED, zero code. Retailer-configurable
-  locations/branding/2D-map-or-globe per the founder spec in
-  `FOUNDER_TOOL_BLUEPRINTS.md` FT-11. Independent of every other item in
-  this queue — good candidate for a disjoint parallel lane.
+- **Location Finder** (FT-11) — BUILT (2026-08-14). Retailer settings editor
+  (`/settings/locations`, staff-only) maintains branch location facts (address,
+  coordinates, hours, contact, imagery, services, filter categories) and per-branch
+  publish toggles. Customer-facing finder (`/r/[slug]/locations`) shows only
+  published branches with an always-present accessible list, OSM iframe embeds for
+  map-mode branches, and an inline-SVG world plot for globe-mode branches. A full
+  3D/Cesium globe was deferred pending the founder spec's own required bundle/tile-
+  cost budget decision — not a missing build task, an acknowledged deferred design
+  choice awaiting founder input. **Note for agent/codex-openrouter integration:**
+  that branch has an older read-only stub at `apps/retailer/app/(dashboard)/
+locations/page.tsx` (commit 1368bd0) built before this schema existed and now
+  redundant — retire it or repoint to `/settings/locations` rather than keeping
+  both stubs.
 - **Loyalty**: METRE→MILLI→MICRON tier naming, retailer-configurable
   campaigns/percentages/milestones, dedicated badges page — all NOT
   STARTED on top of an already-COMPLETE ledger/milestone core (Stage 5.2).
@@ -3357,13 +3366,24 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     (via service-role, since `conversations` grants no authenticated write —
     `markRead` already needed its own security-definer RPC for the same
     reason); a "Link" button on the retailer inbox's order-history panel
-    calls it. Missing: lookbook/proposal/quote attachments distinct from a
-    generic file upload, confirmed note extraction (a message/attachment
-    proposing a candidate customer fact that requires explicit staff
-    confirmation before being trusted — Stage 7's declared-vs-inferred
-    StyleProfile distinction is the nearest existing pattern, not yet
-    connected to messaging), opt-out/failure suppression logic, and
-    multi-role browser proof.
+    calls it. Confirmed note extraction (a message/attachment proposing a
+    candidate customer fact that requires explicit staff confirmation before
+    being trusted) is real: `proposeConversationFact`, `confirmConversationFact`,
+    `dismissConversationFact` in actions.ts wire a `MessageFactProposal`
+    component on the messages page, mirroring Stage 7's declared-vs-inferred
+    StyleProfile pattern. Missing: lookbook/proposal/quote attachments
+    distinct from a generic file upload, and multi-role browser proof.
+  - **Update (2026-08-14, agent/claude-nguyen1):** the acceptance clause
+    "opt-out/failure suppresses" is now implemented. New `email_suppressed_at`
+    and `sms_suppressed_at` columns on `customer_preferences` track terminal
+    delivery failure — an outbox row exhausting MAX_ATTEMPTS suppresses that
+    channel permanently, checked by both enqueue triggers regardless of
+    notification category. Marketing-category notifications now require
+    granted (non-withdrawn) marketing consent to enqueue; transactional
+    categories bypass consent gating. All four scenarios verified against a
+    real local Postgres instance before commit. The checkbox remains unchecked:
+    attachments distinct from generic file upload and multi-role browser proof
+    are still outstanding.
 
 - [ ] **10.4 Relationship-calendar campaign packages**
   - **Requirement IDs:** `CMP-107`, `REL-20`.
@@ -4612,6 +4632,20 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     new corporate capability is required to extend this item's tables and
     domain module, not fork them. The still-missing employee portal named
     above is now tracked as 18.5, not a second open item.
+  - **Update (2026-08-14, agent/claude-nguyen1):** the founder-scoped
+    project-setup wizard (noted above as "not yet built") is now real and
+    browser-proven by `apps/retailer/e2e/corporate-setup-wizard.spec.ts`.
+    A guided multi-step flow (`/corporate/setup-wizard/[programmeId]`)
+    lets a corporate manager build a programme end-to-end: account/programme
+    creation, role and entitlement definition, employee creation, readiness
+    review. The wizard reuses existing domain functions (`summarizeProgrammeReadiness`)
+    and schema (permanent-vs-temporary and hours/work-pattern differences
+    encoded as roleKey entitlement rules, departments as `corporate_programmes.site_keys`).
+    This is ADDITIVE UI only — no new migration, no schema change. The
+    checkbox remains unchecked: the wizard is incremental improvement to
+    staff onboarding, not closure of the acceptance criterion. Remaining
+    missing items are unchanged: employee portal, invite flow, fitting/order/
+    issue wiring to real orders, tender demo, and dashboards.
 
 - [ ] **14.2 Advanced cited intelligence**
   - **Requirement IDs:** Stage 14 target plus `WFM-105`, `INV-104`.
