@@ -105,7 +105,7 @@ reap_expired() {
 #      offered if its owned_paths do not overlap a live claim's owned_paths.
 select_next() {
   local tiers="${PAON_AGENT_TIERS:-frontier,implementation,light}"
-  jq -r --arg tiers "$tiers" '
+  jq -r --arg tiers "$tiers" --arg me "$AGENT_ID" '
     def norm: sub("\\*+$";"") | sub("/$";"");
     def overlaps($a; $b):
       any($a[]; . as $x | any($b[]; . as $y
@@ -121,6 +121,11 @@ select_next() {
         [ .tasks[]
           | select(.status=="open")
           | select(.needs_scope != true)   # unscoped work is never auto-assigned
+          # Never re-serve a task this agent already refused. `release` puts a
+          # task back to "open", so without this the stop hook hands the SAME
+          # task straight back and the agent livelocks refusing it forever —
+          # observed live, and only escapable by blocking the task outright.
+          | select(((.refused_by // []) | index($me)) | not)
           | select((.tier // "implementation") as $x | $t | index($x))
           # exclusive tasks wait until the fleet is completely quiet
           | select((.exclusive != true) or (($live|length) == 0))
@@ -142,7 +147,7 @@ select_next() {
 eligibility() {
   local id="$1"
   local tiers="${PAON_AGENT_TIERS:-frontier,implementation,light}"
-  jq -r --arg id "$id" --arg tiers "$tiers" '
+  jq -r --arg id "$id" --arg tiers "$tiers" --arg me "$AGENT_ID" '
     def norm: sub("\\*+$";"") | sub("/$";"");
     def overlaps($a; $b):
       any($a[]; . as $x | any($b[]; . as $y
@@ -234,6 +239,25 @@ cmd_set_status() {
   echo "OK: $id -> $st"
 }
 
+# Release records WHO refused, so select_next never hands the same task back
+# to the same agent. Without this, releasing a task on policy grounds put it
+# straight back to "open" and the stop hook re-served it immediately — a live
+# livelock whose only escape was blocking the task outright.
+cmd_release() {
+  local id="$1" note="${2:-}"
+  acquire
+  assert_owner "$id"
+  jq --arg id "$id" --arg who "$AGENT_ID" --arg note "$note" --arg now "$(now_iso)" '
+    .tasks |= map(if .id==$id then
+      .status="open" | .claimed_by=null | .lease_expires_at=null
+      | .refused_by=(((.refused_by // []) + [$who]) | unique)
+      | (if $note=="" then . else .note=$note end)
+      | .updated_at=$now
+    else . end)' "$QUEUE" | write_queue
+  release_lock; log "RELEASE $id ${note}"
+  echo "OK: $id -> open (refused_by += $AGENT_ID)"
+}
+
 cmd_heartbeat() {
   local id="$1"; acquire
   assert_owner "$id"
@@ -278,7 +302,7 @@ case "${1:-status}" in
   claim)     cmd_claim "$2" ;;
   done)      cmd_set_status "$2" "done" "${3:-}" ;;
   block)     cmd_set_status "$2" "blocked" "${3:-blocked, no reason given}" ;;
-  release)   cmd_set_status "$2" "open" "${3:-}" ;;
+  release)   cmd_release "$2" "${3:-}" ;;
   heartbeat) cmd_heartbeat "$2" ;;
   reap)      acquire; reap_expired; release_lock; echo "OK: expired leases released" ;;
   owns)      cmd_owns "$2" "$3" ;;

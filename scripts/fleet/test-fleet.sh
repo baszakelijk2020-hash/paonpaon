@@ -113,6 +113,27 @@ out="$(run agentF implementation take)"
 [ "$out" = "NO_ELIGIBLE_WORK" ] && ok "unscoped task never auto-assigned" \
   || bad "unscoped task never auto-assigned" "NO_ELIGIBLE_WORK" "$out"
 
+# release must not livelock ---------------------------------------------------
+# Observed live: refusing a task on policy grounds returned it to "open" and
+# the stop hook handed the identical task straight back, forever.
+seed <<'JSON'
+{"version":1,"tasks":[
+ {"id":"unwanted","title":"unwanted","tier":"implementation","priority":1,"status":"open",
+  "claimed_by":null,"lease_expires_at":null,"owned_paths":["apps/u/**"]},
+ {"id":"wanted","title":"wanted","tier":"implementation","priority":2,"status":"open",
+  "claimed_by":null,"lease_expires_at":null,"owned_paths":["apps/w/**"]}
+]}
+JSON
+run agentR implementation take >/dev/null            # gets "unwanted" (priority 1)
+run agentR implementation release unwanted "policy refusal" >/dev/null
+again="$(run agentR implementation take | jq -r '.id' 2>/dev/null)"
+[ "$again" = "wanted" ] && ok "released task not re-served to the agent that refused it" \
+  || bad "no livelock after release" "wanted" "$again"
+# but another agent may still take it — refusal is per-agent, not a global block
+other="$(run agentS implementation claim unwanted | jq -r '.id' 2>/dev/null)"
+[ "$other" = "unwanted" ] && ok "a different agent may still claim a released task" \
+  || bad "different agent may claim released task" "unwanted" "$other"
+
 # empty queue -----------------------------------------------------------------
 seed <<'JSON'
 {"version":1,"tasks":[]}
