@@ -79,6 +79,8 @@ export * from "./engagement/email-outbox";
 export * from "./engagement/sms-outbox";
 export * from "./engagement/newsletter";
 export * from "./engagement/notification";
+export * from "./engagement/conversation-proposal";
+export * from "./engagement/conversation-proposal.schema";
 export * from "./engagement/messaging";
 export * from "./engagement/messaging.schema";
 export * from "./engagement/event";

@@ -3747,6 +3747,91 @@ export type Database = {
           },
         ];
       };
+      conversation_proposals: {
+        Row: {
+          advisor_note: string;
+          alternatives: Json;
+          appointment_offered: boolean;
+          conversation_id: string;
+          created_at: string;
+          created_by_staff_id: string;
+          expires_at: string;
+          id: string;
+          items: Json;
+          price_currency: string | null;
+          price_minor_units: number | null;
+          response: string | null;
+          responded_at: string | null;
+          retailer_id: string;
+          status: string;
+          title: string;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          advisor_note: string;
+          alternatives?: Json;
+          appointment_offered?: boolean;
+          conversation_id: string;
+          created_at?: string;
+          created_by_staff_id: string;
+          expires_at: string;
+          id?: string;
+          items?: Json;
+          price_currency?: string | null;
+          price_minor_units?: number | null;
+          response?: string | null;
+          responded_at?: string | null;
+          retailer_id: string;
+          status?: string;
+          title: string;
+          updated_at?: string;
+          version: number;
+        };
+        Update: {
+          advisor_note?: string;
+          alternatives?: Json;
+          appointment_offered?: boolean;
+          conversation_id?: string;
+          created_at?: string;
+          created_by_staff_id?: string;
+          expires_at?: string;
+          id?: string;
+          items?: Json;
+          price_currency?: string | null;
+          price_minor_units?: number | null;
+          response?: string | null;
+          responded_at?: string | null;
+          retailer_id?: string;
+          status?: string;
+          title?: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "conversation_proposals_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversation_proposals_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversation_proposals_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       conversations: {
         Row: {
           buying_intent_level: string | null;
@@ -20308,6 +20393,20 @@ export type Database = {
         };
         Returns: string;
       };
+      create_conversation_proposal: {
+        Args: {
+          p_advisor_note: string;
+          p_alternatives?: Json;
+          p_appointment_offered?: boolean;
+          p_conversation_id: string;
+          p_expires_at?: string;
+          p_items: Json;
+          p_price_currency?: string;
+          p_price_minor_units?: number;
+          p_title: string;
+        };
+        Returns: string;
+      };
       create_my_referral: {
         Args: { p_referred_email: string; p_retailer_id: string };
         Returns: string;
@@ -21183,6 +21282,10 @@ export type Database = {
       resolve_wardrobe_item_public: {
         Args: { p_token: string };
         Returns: Json;
+      };
+      respond_to_conversation_proposal: {
+        Args: { p_proposal_id: string; p_response: string };
+        Returns: undefined;
       };
       restore_retailer_brand_theme: {
         Args: { p_retailer_id: string; p_version_number: number };

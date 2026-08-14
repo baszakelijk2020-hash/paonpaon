@@ -71,6 +71,123 @@ describe("MessagingRepository.linkOutcome", () => {
   });
 });
 
+describe("MessagingRepository conversation proposals", () => {
+  it("createProposal calls the RPC with the exact args the schema expects", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: "ffffffff-ffff-4fff-8fff-ffffffffffff",
+      error: null,
+    });
+    const repo = new MessagingRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+
+    const id = await repo.createProposal({
+      conversationId,
+      title: "Look for Saturday",
+      advisorNote: "Navy two-piece per your last visit.",
+      items: [{ label: "Navy two-piece suit" }],
+      alternatives: [],
+      appointmentOffered: true,
+      expiresAt: "2026-08-20T00:00:00.000Z",
+    });
+
+    expect(rpc).toHaveBeenCalledWith("create_conversation_proposal", {
+      p_conversation_id: conversationId,
+      p_title: "Look for Saturday",
+      p_advisor_note: "Navy two-piece per your last visit.",
+      p_items: [{ label: "Navy two-piece suit" }],
+      p_alternatives: [],
+      p_appointment_offered: true,
+      p_expires_at: "2026-08-20T00:00:00.000Z",
+    });
+    expect(id).toBe("ffffffff-ffff-4fff-8fff-ffffffffffff");
+  });
+
+  it("respondToProposal calls the RPC with the proposal id and response", async () => {
+    const rpc = vi.fn().mockResolvedValue({ error: null });
+    const repo = new MessagingRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+    const proposalId = asId<"ConversationProposalId">(
+      "aaaaaaaa-1111-4aaa-8aaa-aaaaaaaaaaaa",
+    );
+
+    await repo.respondToProposal(proposalId, "accepted");
+
+    expect(rpc).toHaveBeenCalledWith("respond_to_conversation_proposal", {
+      p_proposal_id: proposalId,
+      p_response: "accepted",
+    });
+  });
+
+  it("respondToProposal surfaces the RPC's stale-proposal rejection", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      error: { message: "This proposal has expired" },
+    });
+    const repo = new MessagingRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+    const proposalId = asId<"ConversationProposalId">(
+      "aaaaaaaa-1111-4aaa-8aaa-aaaaaaaaaaaa",
+    );
+
+    await expect(
+      repo.respondToProposal(proposalId, "accepted"),
+    ).rejects.toMatchObject({ message: "This proposal has expired" });
+  });
+
+  it("findProposalsByConversation orders newest version first", async () => {
+    const rows = [
+      {
+        id: "p1",
+        retailer_id: retailerId,
+        conversation_id: conversationId,
+        created_by_staff_id: "staff-1",
+        version: 2,
+        status: "active",
+        title: "Revised look",
+        advisor_note: "Swapped to charcoal.",
+        items: [{ label: "Charcoal suit" }],
+        alternatives: [],
+        price_minor_units: null,
+        price_currency: null,
+        appointment_offered: false,
+        expires_at: "2026-08-22T00:00:00.000Z",
+        responded_at: null,
+        response: null,
+        created_at: "2026-08-15T00:00:00.000Z",
+        updated_at: "2026-08-15T00:00:00.000Z",
+      },
+    ];
+    const query = (data: unknown) => {
+      const chain: Record<string, unknown> = {};
+      const proxy = new Proxy(chain, {
+        get(target, prop) {
+          if (prop === "then") {
+            return (resolve: (value: unknown) => unknown) =>
+              Promise.resolve({ data, error: null }).then(resolve);
+          }
+          if (!(prop in target)) target[prop as string] = vi.fn(() => proxy);
+          return target[prop as string];
+        },
+      });
+      return proxy;
+    };
+    const repo = new MessagingRepository({
+      from: vi.fn(() => query(rows)),
+    } as unknown as PaonSupabaseClient);
+
+    const proposals = await repo.findProposalsByConversation(conversationId);
+
+    expect(proposals).toHaveLength(1);
+    expect(proposals[0]).toMatchObject({
+      version: 2,
+      status: "active",
+      title: "Revised look",
+    });
+  });
+});
+
 describe("MessagingRepository attachment quarantine", () => {
   it("does not mint a signed URL until an upload is explicitly cleared", async () => {
     const query = (data: unknown) => {
