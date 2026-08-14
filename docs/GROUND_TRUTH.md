@@ -9,14 +9,14 @@ was actually run, not from a status claim in `PHASE.md`.
 All five live agent lanes are fully contained in `integration/ground-zero`.
 Verified with `git rev-list --count integration/ground-zero..<branch>`:
 
-| Lane | Head | Commits not in ground-zero |
-|---|---|---|
-| `agent/claude-nguyen1` | `c1480f6` | **0** |
-| `agent/claude-nguyen2` | `3c1f7f5` | **0** |
-| `agent/claude-nguyen3` | `c598825` | **0** |
-| `agent/codex-openrouter` | `7a60398` | **0** |
-| `agent/openrouter-codex` | `bb115ce` | **0** |
-| `agent/lane-h-customer-ai-conversation` | — | **0** |
+| Lane                                    | Head      | Commits not in ground-zero |
+| --------------------------------------- | --------- | -------------------------- |
+| `agent/claude-nguyen1`                  | `c1480f6` | **0**                      |
+| `agent/claude-nguyen2`                  | `3c1f7f5` | **0**                      |
+| `agent/claude-nguyen3`                  | `c598825` | **0**                      |
+| `agent/codex-openrouter`                | `7a60398` | **0**                      |
+| `agent/openrouter-codex`                | `bb115ce` | **0**                      |
+| `agent/lane-h-customer-ai-conversation` | —         | **0**                      |
 
 Uncommitted source across all five worktrees: **none** (only untracked
 scratch: `TASK_VERIFICATION.txt`, `.codex-*` runner state).
@@ -24,17 +24,17 @@ scratch: `TASK_VERIFICATION.txt`, `.codex-*` runner state).
 **Nothing from the overnight run was lost.** Consolidation had been stalled
 by a single unresolved merge (`agent/claude-nguyen2` → ground-zero) with four
 conflicts, now resolved by unioning both lanes' work — two agents had
-independently built *different* PHASE 10.4 packages (`annual_event` and
+independently built _different_ PHASE 10.4 packages (`annual_event` and
 `valentine_reservation_rescue`); both are kept.
 
 ## 2. Build health on the consolidated branch
 
-| Gate | Result |
-|---|---|
-| `pnpm lint` | **PASS** — 12/12 packages |
-| `pnpm typecheck` | **PASS** — 12/12 packages |
-| `pnpm test` | **FAIL** — evidence validator (below); 1192 domain tests pass |
-| `pnpm build` | see run log |
+| Gate             | Result                                                        |
+| ---------------- | ------------------------------------------------------------- |
+| `pnpm lint`      | **PASS** — 12/12 packages                                     |
+| `pnpm typecheck` | **PASS** — 12/12 packages                                     |
+| `pnpm test`      | **FAIL** — evidence validator (below); 1192 domain tests pass |
+| `pnpm build`     | see run log                                                   |
 
 ## 3. The real finding: completion is over-claimed
 
@@ -74,12 +74,12 @@ checkbox** — do not fabricate or re-date evidence (ADR-068).
 
 ## 5. Why the fleet kept idling (root cause, now fixed)
 
-| # | Root cause | Fix |
-|---|---|---|
-| 1 | Agents launched with **no prompt, not in tmux**; every watchdog scans `tmux list-panes`, so 4 of 5 were unreachable | `scripts/fleet/launch-fleet.sh` starts all 5 in named tmux sessions with an opening task |
-| 2 | `scripts/claude-stop-check.sh` was a quality gate that `exit 0`'d — **idling was by design** | `scripts/fleet/stop-continue.sh` emits `{"decision":"block"}` with the next queued task |
-| 3 | The only never-stop runner (`paon-run.sh`) was **not running and single-writer** | Replaced by a multi-agent atomic queue |
-| 4 | `AGENTS.md:316` mandated `.agent/claims.yaml`; **it was never created**, so 5 agents picked work by parsing a 500 KB `PHASE.md` | `scripts/fleet/paon-fleet` — atomic claims with leases |
+| #   | Root cause                                                                                                                      | Fix                                                                                      |
+| --- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 1   | Agents launched with **no prompt, not in tmux**; every watchdog scans `tmux list-panes`, so 4 of 5 were unreachable             | `scripts/fleet/launch-fleet.sh` starts all 5 in named tmux sessions with an opening task |
+| 2   | `scripts/claude-stop-check.sh` was a quality gate that `exit 0`'d — **idling was by design**                                    | `scripts/fleet/stop-continue.sh` emits `{"decision":"block"}` with the next queued task  |
+| 3   | The only never-stop runner (`paon-run.sh`) was **not running and single-writer**                                                | Replaced by a multi-agent atomic queue                                                   |
+| 4   | `AGENTS.md:316` mandated `.agent/claims.yaml`; **it was never created**, so 5 agents picked work by parsing a 500 KB `PHASE.md` | `scripts/fleet/paon-fleet` — atomic claims with leases                                   |
 
 Also dead and now superseded: `paon-agent-watchdog.sh` / `codex-watchdog.sh`
 targeted tmux sessions `paon-claude` / `paon-codex` that never existed;
@@ -101,6 +101,7 @@ scripts/fleet/launch-fleet.sh   start/stop/status/nudge all 5 in tmux
 ```
 
 Proven behaviour:
+
 - **5 agents racing simultaneously → 5 distinct tasks, zero collisions.**
 - **Lease expiry → orphaned task auto-recovered by another agent** (kill an
   agent mid-task and the work is picked up with no human involvement).
