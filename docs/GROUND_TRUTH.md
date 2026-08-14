@@ -8,9 +8,9 @@ Baseline audited: `1f55894` (`integration/ground-zero` == `main`).
 
 **Sections 1–7 are the ground-zero audit and describe `504c1b4`. They are kept
 verbatim as the historical record and are not rewritten as `main` moves on.
-Section 8 records what happened to `main` after ground zero was promoted; read
-it before treating section 1's gate table or section 4's branch table as
-current.**
+Section 8 onward records what happened to `main` after ground zero was
+promoted, one section per tranche; read the last of them before treating
+section 1's gate table or section 4's branch table as current.**
 
 ## 1. Verified gate results
 
@@ -272,3 +272,125 @@ checkout`. No new failure class appeared. `format:check` is now green including
   their audited heads and were not inspected further.
 - **The 16 stale browser-proof SHAs** still require a live-environment re-run,
   not an edit.
+
+## 9. Post-ground-zero tranche 2 — 2026-08-14
+
+Baseline `95c8505`. Scope: the four remaining small branches section 4 listed as
+"unmerged pending review". **Nothing was integrated.** All four carry zero
+behaviour that `main` lacks, and each was refused for reasons that are now
+recorded so no later tranche re-derives them.
+
+### 9a. Classification
+
+| Branch                                       | Unique vs `main` | Classification                         |
+| -------------------------------------------- | ---------------- | -------------------------------------- |
+| `agent/lane-a-ft01-fitprofile`               | 4 commits        | parked + superseded + conflict-blocked |
+| `agent/lane-b-phase-12-3-booking-handoff`    | 3 commits        | duplicate                              |
+| `agent/lane-c-18-9-contract-value`           | 3 commits        | parked + superseded + conflict-blocked |
+| `agent/phase-19-1-fabric-pairing-module-key` | 2 commits        | duplicate                              |
+
+### 9b. `lane-b` and `phase-19-1` — duplicate
+
+`git cherry` marks their substantive commits `-`, and blob comparison confirms
+it. `522024d` has the same patch-id as `5a261dc`, already on `main` as
+`caeef05`; `5745aef` has the same patch-id as `29ab0e6`, already on `main` as
+`f86ef1b`. Every path either branch touches is byte-identical to `main` except
+`fabric-pairing/page.tsx`, where the only difference is the prettier line-wrap
+`main` added in `6872ff8` — `main` is strictly ahead.
+
+Both branches also carry `7935201 docs: unmark unproven phase completions`. It
+unchecks 15 items (10.1, 11.1–11.4, 12.1, 12.2, 12.4, 13.1, 13.2, 18.1, 18.2,
+18.6, 18.8, 18.12); all 15 are **already** unchecked on `main`, because
+`504c1b4` unmarked 31. `main` is strictly more conservative, so the commit is
+superseded, not merely redundant.
+
+### 9c. `lane-a` — FT-01 is parked, and `main` already carries a corrected version
+
+FT-01's disposition is unambiguous: `docs/PHASE.md:70` `- **Park:** FT-01, …`,
+the PARKED row at `:250`, the parked list at `:389`, and
+`docs/FOUNDER_TOOL_BLUEPRINTS.md:188` "**Park.** Do not extend as a standalone
+tool."
+
+Separately, the work already landed on `main` as `d0b8ea1`, with the migration
+renamed forward from the branch's `20260806000000` (a prefix `main` had already
+given to `_add_consultation_origin_to_appointments.sql`) to
+`20260810120000_add_fit_profile_candidates.sql`. `main`'s version is not a
+copy — it is a **correction**, and cherry-picking the branch would undo three
+real fixes:
+
+1. The branch's `approve_fit_profile_candidate` inserts into
+   `customer_fit_profile_entries`. Migration `20260719000101` renamed that table
+   to `legacy_customer_fit_profile_entries` and revoked all access, on the
+   founder clarification (superseding ADR-015) that PAON "does not own generic
+   customer measurements". `main`'s version deliberately writes no
+   customer-level measurement row and says so in a comment.
+2. The branch derives the candidate's `customer_id` from
+   `v_first_observation.physical_garment_id::uuid` — a garment id used as a
+   customer id. `main` derives it from the observation's own `fitting_sessions`
+   row.
+3. The branch's guard reads `perform public.fitting_observations`, which is not
+   a valid statement; `main` reads `perform 1 from public.fitting_observations`.
+
+`git merge-tree --write-tree main 5571335` reports **7 conflicted files** (two
+add/add). The branch also commits `apps/retailer/e2e/fit-tools.spec.ts.bak`, a
+stray backup (`.bak` is not gitignored on `main`), and writes
+`docs/evidence/runs/FT-01.json` citing `9945837`, which is not an ancestor of
+`main`.
+
+### 9d. `lane-c` — 18.9 is founder-parked, and `main` already carries a corrected version
+
+`docs/PHASE.md:7518` heads the item `- [ ] **18.9 Parked — vague corporate
+analytics and renewal engine**`, with a **Founder scope override (2026-08-12)**
+making it "non-selectable as a generic analytics/renewal build lane" and a
+status of `parked_pending_concrete_manager_job` that says to "**Retain the
+existing cited metrics/history, but do not extend a generic analytics or
+renewal product.**"
+
+The work also already landed on `main` as `5a0c968`. The branch's
+`20260805240000_add_contract_value_and_repair_kind.sql` is **byte-identical SQL**
+to `main`'s `20260810110000_add_contract_value_and_repair_kind.sql`; the branch
+prefix was renamed forward because its hour field is `24`, which is not a valid
+hour and violates the `YYYYMMDDHHMMSS` convention. `main`'s application code is
+the corrected one: a typed `CorporateRepository.setContractValue` and
+`findProgrammeById` where the branch uses a raw client with
+`as any` / `Record<string, unknown>` casts.
+`packages/domain/src/corporate/renewal-analytics.ts` and its test are already
+byte-identical between branch and `main`.
+
+`git merge-tree --write-tree main e7f8b3c` reports **5 conflicted files**. The
+branch's `docs/evidence/runs/18.9.json` cites `b17873e`, not an ancestor of
+`main`; `main`'s cites `5a0c968`. Under rule 6 the branch would in any case have
+gone to separate frontier/security review rather than a cherry-pick: it carries
+a migration, a constraint change, and a money field.
+
+### 9e. Gate results at the end of this tranche
+
+`main` is unchanged in code from `95c8505`; the gates were still re-run once
+each with `TURBO_FORCE=1`.
+
+| Gate                              | Result                           |
+| --------------------------------- | -------------------------------- |
+| `pnpm lint`                       | **PASS** (12/12, 0 cached)       |
+| `pnpm typecheck`                  | **PASS** (12/12, 0 cached)       |
+| `pnpm build`                      | **PASS** (3/3, 0 cached)         |
+| `pnpm format:check`               | **PASS**                         |
+| `pnpm --filter @paon/domain test` | **PASS** (111 files, 1192 tests) |
+| `pnpm validate:completion`        | **FAIL**                         |
+
+`validate:completion` fails on exactly the same 16 evidence files as section 8d
+(4.6, 4.7, 4.9, 4.10, 8.4, 9.1, 17.1–17.6, 17.8, 17.9, 17.14, 18.5) and every
+message is `run gitSha … is not current for this checkout`. No additional
+failure class appeared.
+
+### 9f. What this leaves
+
+Section 4's "small branches with unique work" list is now fully reviewed: the
+four branches named here plus `claude-nguyen1`/`2`/`3` and `codex-openrouter`
+from section 8. None of them has unmerged material work left. What remains
+unmerged is the seven blocked-conflict lanes of section 4, still untouched, plus
+the `20260806110000` migration prefix collision recorded there.
+
+`agent/lane-a-ft01-fitprofile` and `agent/lane-c-18-9-contract-value` are safe
+to delete once the founder confirms; both are superseded by corrected
+implementations already on `main`. Deletion was **not** performed. No branch,
+worktree or evidence file was modified by this tranche.
