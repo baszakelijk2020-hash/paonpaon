@@ -3235,7 +3235,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 10 — Clienteling, campaign, and remote-selling parity
 
-- [x] **10.1 Versioned campaign library**
+- [ ] **10.1 Versioned campaign library**
   - **Status:** `verified_local`; pinned library/copy foundation and the
     accepted deployment-to-outcome loop are both real and browser-proven.
   - **Requirement IDs:** `CMP-101`–`CMP-104`.
@@ -3478,7 +3478,7 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
 
 ### Stage 11 — Workforce Mission Control and coaching
 
-- [x] **11.1 Time approval and payroll package**
+- [ ] **11.1 Time approval and payroll package**
   - **Requirement IDs:** `WFM-101`, `WFM-102`.
   - **Dependencies:** existing roster/time entries; `8.3`.
   - **Owner boundary:** breaks/exceptions/corrections/manager approvals,
@@ -3521,7 +3521,7 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     piece is the external payroll-provider export adapter (accepted blocker
     per Hard blockers line).
 
-- [x] **11.2 Today, closeout, I AM and extra mile**
+- [ ] **11.2 Today, closeout, I AM and extra mile**
   - **Requirement IDs:** `WFM-103`, `WFM-104`.
   - **Dependencies:** `8.3`; Stage 7 opportunities/closeout.
   - **Owner boundary:** unified role home, tasks/promises/briefing, ten-minute
@@ -3594,7 +3594,7 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     recognition, this surface's notes (`help_requested_note`,
     `problems_note`) can carry content a peer has no reason to read.
 
-- [x] **11.3 Scheduling, demand, ceremony and coaching**
+- [ ] **11.3 Scheduling, demand, ceremony and coaching**
   - **Requirement IDs:** `WFM-105`, `WFM-106`.
   - **Dependencies:** `11.1`, `11.2`.
   - **Owner boundary:** availability/swaps/coverage, explainable staffing,
@@ -3808,7 +3808,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     versions with contextual prompts, observations/rubrics/plans) has a
     browser-proven UI. Checkbox now checked.
 
-- [x] **11.4 Internal community, contribution and support**
+- [ ] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.
   - **Dependencies:** `11.2`, `16.1`.
   - **Owner boundary:** branch/HQ announcements and discussions, onboarding,
@@ -3964,7 +3964,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
 > select new supplier CRM, factory-production, stock or supplier-operation work
 > from the historical items in this stage.
 
-- [x] **12.1 MeasurementMonitor decision gate**
+- [ ] **12.1 MeasurementMonitor decision gate**
   - **Requirement IDs:** `FIT-101`–`FIT-103`.
   - **Dependencies:** wardrobe/lifecycle and official garment-fit foundations.
   - **Owner boundary:** private guided capture, quality/result candidate,
@@ -4077,7 +4077,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     dedicated throwaway customer rather than the shared programme-proof-
     seed customer, after debugging iterations against the shared customer
     permanently pinned an approved version to it.
-- [x] **12.2 Garment production and serialized pieces**
+- [ ] **12.2 Garment production and serialized pieces**
   - **Requirement IDs:** `INV-103`; Stage 12 target architecture.
   - **Dependencies:** `8.3`, `8.2`.
   - **Owner boundary:** immutable measurement/spec versions, pieces, stages,
@@ -4265,7 +4265,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     contract. Still nothing to build against for this specific grid until
     an implementation slice is authorized.
 
-- [x] **12.4 Supplier/atelier intelligence and support operations**
+- [ ] **12.4 Supplier/atelier intelligence and support operations**
   - **Requirement IDs:** `MTM-101`.
   - **Dependencies:** `12.2`, `8.2`.
   - **Owner boundary:** supplier/PDM/PLM authority mappings, catalogue/material/
@@ -4355,7 +4355,7 @@ closed` graph, refusing a supplier-notify with no evidence and asserting
 > truth and safety boundaries, but do not extend this programme until the
 > founder reactivates it.
 
-- [x] **13.1 Stock ledger, reservations, barcode receiving and counts**
+- [ ] **13.1 Stock ledger, reservations, barcode receiving and counts**
   - **Requirement IDs:** `INV-101`, `INV-102`.
   - **Dependencies:** `8.2`.
   - **Owner boundary:** append-only ledger, location balances/reservations,
@@ -4423,7 +4423,7 @@ closed` graph, refusing a supplier-notify with no evidence and asserting
     about holding it for a client. Cosmetic, not a correctness gap — worth
     a follow-up, not a blocker for this item's Acceptance.
 
-- [x] **13.2 Loss prevention and RFID pilot**
+- [ ] **13.2 Loss prevention and RFID pilot**
   - **Requirement IDs:** `INV-104`, `INV-105`.
   - **Dependencies:** `13.1`.
   - **Owner boundary:** risk rules/approvals plus EPC serialized observations
@@ -6587,7 +6587,7 @@ external signal ingestion last — building a scraper or an image generator
 before the object it populates exists would mean producing data with
 nowhere honest to store it.
 
-- [x] **18.1 Corporate business-development opportunities (InsiderTailoring pipeline model)**
+- [ ] **18.1 Corporate business-development opportunities (InsiderTailoring pipeline model)**
   - **Requirement IDs:** BD-101.
   - **Dependencies:** `14.1` (`corporate_accounts`, `CorporateRepository`).
   - **Owner boundary:** the opportunity/signal/scoring/stage-pipeline
@@ -6635,7 +6635,7 @@ nowhere honest to store it.
     `corporate_accounts` row with the opportunity's company name and the
     submitted account reference — not merely relabelled the opportunity.
 
-- [x] **18.2 Tender and Pitch Builder**
+- [ ] **18.2 Tender and Pitch Builder**
   - **Requirement IDs:** BD-102.
   - **Dependencies:** `18.1` (an opportunity to build a tender for),
     `14.1` (the account/programme it may become).
@@ -7135,7 +7135,7 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     completion of what this item actually committed to — not a claim
     that every conceivable enhancement is finished.
 
-- [x] **18.6 Measurement and fitting rollout planning**
+- [ ] **18.6 Measurement and fitting rollout planning**
   - **Requirement IDs:** BD-106.
   - **Dependencies:** existing appointment domain/repository — bulk
     rollout schedules through it, not around it; `14.1` wearers/programmes.
@@ -7349,7 +7349,7 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     `packages/domain/src/production/production.ts`), a separate,
     larger integration this slice does not attempt.
 
-- [x] **18.8 Corporate service desk**
+- [ ] **18.8 Corporate service desk**
   - **Requirement IDs:** BD-108.
   - **Dependencies:** `14.1`'s `corporate_exceptions` (extend its
     kind/action vocabulary and generalise its scope; do not fork a
@@ -7712,7 +7712,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     feed. This item cannot be claimed complete until external data source
     access is available and a real ingestion path is built against it.
 
-- [x] **18.12 Relationship cross-referencing and opportunity scoring from existing customers**
+- [ ] **18.12 Relationship cross-referencing and opportunity scoring from existing customers**
   - **Requirement IDs:** BD-112.
   - **Dependencies:** `18.1`, `18.11`, existing `customers`/`customer_facts`.
   - **Owner boundary:** matching a discovered or manually entered company
