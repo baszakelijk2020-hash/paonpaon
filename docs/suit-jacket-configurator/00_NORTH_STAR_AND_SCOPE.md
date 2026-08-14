@@ -24,6 +24,7 @@ a made-to-measure order, price, lead time, fit guarantee, or physical accuracy.
 | 07      | Material & Drape Lab plan and the unattended generation pipeline    |
 | 08      | Decisions, open risks and the roadmap                               |
 | 09      | **Modular asset graph — normative asset contract**                  |
+| 10      | **Ground-zero reconciliation and the Lab Phase 1 plan**             |
 
 ## Evidence tiers
 
@@ -64,11 +65,16 @@ hiring task for the founder.
 - The lab may read no tenant data. A later Studio integration must make
   `retailer_id`, consent, entitlements and immutable snapshots authoritative.
 
-Implementation is paused pending PAON ground-zero reconciliation. The
-unattended pipeline must not require the founder to hire specialists or operate
-3D software; when available evidence cannot support a physical claim, the
-product remains explicitly illustrative instead of shifting calibration work to
-the founder.
+Ground-zero reconciliation is recorded in chapter 10 and the gate is released.
+Phase 1 is authorized and specified there; the code itself lands in the next
+coding sprint, not in this documentation tranche. No application, dependency,
+asset, migration or `docs/PHASE.md` change is made here.
+
+The unattended pipeline must not require the founder to hire specialists or
+operate 3D software; when available evidence cannot support a physical claim,
+the product remains explicitly illustrative instead of shifting calibration
+work to the founder. Authorization moves the build forward. It does not move
+any physical claim forward.
 
 ## Reconciliation
 
@@ -76,13 +82,17 @@ FT-07 remains consolidated into Virtual Wardrobe Studio by
 `docs/FOUNDER_TOOL_BLUEPRINTS.md` and `docs/CAPABILITY_DISPOSITION.md`. This
 founder-authorized research does not revive a parallel configurator or change
 the current legacy intent-save route. It specifies a reusable renderer/asset
-contract only; implementation requires a later explicit Phase 3 authorization.
+contract; building it is authorized for **Lab Phase 1 only** (D-14), and Lab
+Phases 2 and 3 each need separate authorization.
 
-Note on naming: "Phase 3" is the founder-level authorization gate used
-throughout this dossier. `docs/PHASE.md` does not contain a section literally
-numbered "Phase 3"; it uses a Stage 0–16 inheritance map with chapters numbered
-4.x, and places Virtual Wardrobe Studio at items 4.6–4.10. This dossier does not
-modify `docs/PHASE.md`; chapter 08 records the naming mismatch as an open item.
+Note on naming, reconciled in chapter 10: earlier tranches used "Phase 3" for
+the founder authorization gate, which collided with `docs/PHASE.md`. That gate
+is now released and is not a phase. The sequence is Lab Phase 1 (prove the
+comparison reads), Lab Phase 2 (breadth and Studio composition), Lab Phase 3
+(commercial contracts). `docs/PHASE.md` uses a separate Stage 0–16 inheritance
+map with chapters numbered 4.x and places Virtual Wardrobe Studio at items
+4.6–4.10; this dossier does not modify it, and aligning the two numbering
+schemes needs its own authorization.
 
 ## Full reference-study boundary
 

@@ -4,8 +4,8 @@ Evidence tiers are defined in `00_NORTH_STAR_AND_SCOPE.md`.
 
 ## The benchmark does not settle the medium
 
-`OBSERVED-DOM`. None of the five reference captures taken on 2026-08-15 — two
-Suitsupply, three Armani — contained a `<canvas>` element or any reference to
+`OBSERVED-DOM`. None of the six reference captures taken on 2026-08-15 — two
+Suitsupply, four Armani — contained a `<canvas>` element or any reference to
 WebGL, `gltf`, `glb`, `model-viewer`, Babylon, PlayCanvas or Unity.
 
 `PAYLOAD`. Suitsupply's configuration model is an ordered graph of **image
@@ -14,8 +14,10 @@ sprite-sheet rotation (chapter 01). Whether composition runs client-side,
 server-side or both is `INFERRED`.
 
 `SECONDARY`. Armani runs on Tailoor, whose marketing claims real-time
-photorealistic 3D. No capture in this pass reached the configurator itself, so
-that claim is unverified and no rendering strategy is attributed to Armani.
+photorealistic 3D. The direct configurator URL was reached, but the Tailoor
+application rendered `The site is momentarily unavailable.` and mounted no
+configurator view — so the absence of 3D signals in that capture means nothing,
+and no rendering strategy is attributed to Armani.
 
 The benchmark therefore splits: one reference is verifiably layer-composited,
 the other's vendor advertises 3D that this dossier could not observe. Parity
@@ -26,18 +28,42 @@ silhouette break rather than in colour and pattern. Layered rasters can swap a
 lapel; they cannot show a soft cloth collapsing differently from a crisp one
 across the same shoulder.
 
-If that difference does not read to observers — see the falsification criteria
-in chapters 07 and 09 — then the correct answer is a precomputed 2D layer set
-and no renderer at all, and this chapter should be deleted rather than
-defended. Chapter 09's asset graph survives that outcome intact: it is a
-composition contract, and it degrades from meshes to image layers without being
-redesigned.
+## Founder decision: 3D is primary, 2D is the fallback
+
+Recorded 2026-08-15 as decision D-12. The founder has resolved R-13 in favour
+of building the 3D path and testing drape legibility empirically rather than
+deferring the question. The medium is therefore settled by authorization, not
+by evidence, and this chapter states that distinction plainly.
+
+The delivery ladder is now three tiers, and the middle one is new:
+
+| Tier | Medium                                           | Serves                                                           |
+| ---- | ------------------------------------------------ | ---------------------------------------------------------------- |
+| 1    | WebGL 3D assembly graph (primary)                | Capable devices with a live context                              |
+| 2    | **2D layer graph** — pre-composited image layers | No WebGL, context lost, low memory, slow network, reduced motion |
+| 3    | Semantic DOM/SVG and text                        | No JavaScript, assistive technology, total asset failure         |
+
+Tier 2 replaces the single static poster the dossier previously specified. It
+is strictly better and it is nearly free, because the 2D layers are rendered
+offline **from the same assemblies and the same bakes as tier 1**, addressed by
+the same `bake_key`. One generation pipeline, two delivery media. The layer
+graph follows chapter 09's contract exactly, which is the shape chapter 01
+observed in production at Suitsupply.
+
+Tier 2 is also the falsification instrument. Because both tiers present the
+same comparison from the same source assets, the observer study in chapter 10
+can show tier 1 to one group and tier 2 to another. If drape legibility does
+not differ, the 3D renderer has not earned its cost and tier 2 becomes primary
+— an outcome this architecture can absorb without redesign, since chapter 09's
+graph is a composition contract that is indifferent to whether a node resolves
+to a mesh or an image.
 
 ## Decision
 
-Use Three.js r185 as the pinned first-experiment WebGL renderer with static GLB
-state meshes and a semantic HTML/poster fallback. No runtime cloth solve in the
-browser. WebGPU is an enhancement research path, not a dependency.
+Use Three.js r185 as the pinned WebGL renderer with static GLB state meshes,
+backed by the tier-2 2D layer graph and a tier-3 semantic fallback. No runtime
+cloth solve in the browser. WebGPU is an enhancement research path, not a
+dependency.
 
 `OBSERVED-DOC`. r185 is the current release, created 2026-07-01T14:03:00Z and
 published 2026-07-01T23:22:26Z (GitHub release API, verified 2026-08-15); the
@@ -48,14 +74,15 @@ tangents, plus `Matrix3` deprecations of `.scale()`, `.rotate()`, `.translate()`
 and a deprecated `DRACOLoader.setDecoderConfig`. A migration guide r184 → r185
 exists.
 
-`OBSERVED-CODE`. Three.js is **not adopted in PAON today**. No workspace
-`package.json` declares `three`; `three@0.185.1` exists only inside the pnpm
-content-addressed store as a transitive artifact and is not resolvable from the
-workspace root; and the repository contains no `.glb` or `.gltf` file. Adopting
-the renderer is a Phase 3 act, not a description of the present.
+`OBSERVED-CODE`, as of commit `71697c2`. Three.js is **not adopted in PAON
+today**. No workspace `package.json` declares `three`; `three@0.185.1` exists
+only inside the pnpm content-addressed store as a transitive artifact and is not
+resolvable from the workspace root; and the repository contains no `.glb` or
+`.gltf` file. Declaring the dependency is workstream W1 of chapter 10.
 
-Upgrades change output and therefore require regenerated goldens. Repin the
-exact version when Phase 3 is authorized rather than inheriting r185 by default.
+Upgrades change output and therefore require regenerated goldens. Confirm r185
+is still current at the moment the dependency is declared, and pin the exact
+version in the manifest rather than inheriting a range.
 
 ## Scene contract
 
@@ -70,7 +97,7 @@ golden identity: a change to any of them invalidates the image set.
 
 Lifecycle: load the lowest adequate LOD; abort and cancel in-flight loads on
 route change; call `dispose()` on GPU resources; handle `webglcontextlost`; and
-fall through to poster mode on failure.
+fall through to tier 2 on failure.
 
 ## Runtime composition
 
@@ -78,7 +105,7 @@ The renderer loads an **assembly set resolved from the graph in chapter 09**,
 not a monolithic per-combination GLB. Concretely:
 
 1. Resolve the selection against the compatibility rules. A hard conflict never
-   reaches the renderer; it fails closed to the poster.
+   reaches the renderer; it fails closed to tier 2.
 2. Fetch only the assemblies whose bake key changed. Substituting a lapel
    re-fetches the lapel assembly, not the garment.
 3. Instance rigid shared assemblies — buttons above all — at anchor transforms
@@ -117,9 +144,16 @@ this design must survive.
 
 ## Progressive enhancement
 
-Probe WebGL first, honor `prefers-reduced-motion`, and show a labelled static
-poster with identical controls and identical text for these conditions: WebGL
-unavailable, context lost, asset load failed, slow network, and reduced motion.
+Probe WebGL first, honor `prefers-reduced-motion`, and drop to **tier 2, the 2D
+layer graph**, with identical controls, identical labels and identical
+explanatory text, for these conditions: WebGL unavailable, context lost, asset
+load failed, slow network, reduced motion, and a hard compatibility conflict.
+
+The drop must be non-destructive. Tier 2 renders the same resolved selection
+from the same `bake_key`, so a context loss mid-comparison changes the fidelity
+of the image and nothing else — not the selection, not the controls, not the
+reading. Tier 3 is entered only when JavaScript or the asset set is entirely
+unavailable.
 
 `OBSERVED-DOM`, from chapter 01: Suitsupply's served document contains no
 `<noscript>` element at all, so without JavaScript it presents nothing; Armani

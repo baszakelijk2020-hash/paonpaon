@@ -91,10 +91,13 @@ resolves to pre-rendered sprite sheets. Therefore:
   server-side, or both is `INFERRED`.
 - PAON's 3D assembly graph below is a **translation of an observed 2D pattern
   into a medium where the pattern has not been observed**. The structural
-  argument carries over; the rendering evidence does not. Chapter 05's R-07
-  risk stands: if the drape difference does not read, the correct answer is
-  Suitsupply's answer — precomputed images — and this chapter degrades to a 2D
-  layer graph rather than being defended.
+  argument carries over; the rendering evidence does not.
+
+Under decision D-12 the 3D path is primary and the 2D layer graph is tier 2 of
+the delivery ladder (chapter 05) rather than a rival. Both tiers are emitted
+from this one graph and keyed by the same `bake_key`, so the medium question
+stays empirically open — chapter 10's observer study can compare them directly
+— without either answer requiring a redesign.
 
 Armani's configurator surface remains `GATED`. `OBSERVED-DOM`: it is a Tailoor
 deployment (`storage.tailoor.com` preconnect hints, `storage-prod.tailoor.com`
@@ -307,6 +310,9 @@ AssetGraphManifest v1
       lod, validatorReport, generatorVersion, solverIdentity, solverVersion,
       seed, confidence, provenance } ]
   rules:     [ … ]
+  layers2d: [
+    { bakeKey, sequenceNo, assemblyId, materialDependent,
+      src, srcset, uri, sha256 } ]        # tier 2, same bakeKey as the mesh
   fallbacks: { perFamily: posterUri, perAssembly: posterUri }
   rights:    { assetId -> rightsRecord }        # per chapter 03
 ```
@@ -320,6 +326,11 @@ Non-negotiable manifest invariants:
   must be labelled `illustrative` all the way to the interface.
 - A `fallbacks` entry exists at both family and assembly granularity, following
   the observed precedent that fallback is a first-class graph node.
+- Every mesh bake has a corresponding `layers2d` entry under the **same**
+  `bakeKey`. Tier 2 is generated in the same pass as tier 1, from the same
+  assembly, and CI rejects a manifest where the two sets disagree. This is what
+  keeps the fallback honest: it cannot drift from the primary, because it is
+  not authored separately.
 - The manifest is hash-signed as a whole; a partial or unsigned manifest fails
   closed.
 

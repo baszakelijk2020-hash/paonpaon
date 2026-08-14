@@ -53,6 +53,12 @@ Two honest limits:
   buried in a tooltip.
 - Desktop, mobile, reduced-motion, no-JavaScript, no-WebGL and failed-load
   states all present the full comparison in text.
+- **Tier parity.** For every one of the 27 tuples, the tier-2 2D layer graph
+  presents the same selection, the same controls, the same labels and the same
+  explanatory text as tier 1, and is generated from the same `bake_key`. Tier
+  parity is asserted by a test, not by inspection: CI renders both tiers for
+  each tuple and fails if the resolved selection, control set or accessible
+  names differ. A context loss mid-comparison must change fidelity only.
 - No external network request is made for any garment, texture, HDRI or swatch
   asset.
 - The manifest hash matches the rendered variant; an unavailable asset fails

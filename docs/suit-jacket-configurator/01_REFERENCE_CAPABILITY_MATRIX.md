@@ -190,14 +190,43 @@ of surfaces, textures, volumes, and proportions", virtual avatar try-on and
 digital twins. Tailoor publishes no API documentation, no GitHub organization,
 no customer roster and no technical description of its engine or asset formats.
 
-**The limit, stated precisely.** Two further captures of deeper Armani paths
-(`/it/` at 673,482 bytes and `/us/en/customize/jackets` at 568,776 bytes) again
-contain **zero** `<canvas>`, WebGL, `gltf`, `glb`, `model-viewer`, Babylon,
-PlayCanvas or Unity signals. Both remain category and marketing surfaces; the
-configurator application itself was never reached. Therefore Tailoor's 3D claim
-is a **vendor marketing claim that this dossier has not verified in any
-capture**, and no rendering strategy — 3D, mesh-swapping, or 2D compositing —
-may be attributed to Armani. It is `GATED`.
+Two further captures of deeper Armani paths (`/it/` at 673,482 bytes and
+`/us/en/customize/jackets` at 568,776 bytes) again contain **zero** `<canvas>`,
+WebGL, `gltf`, `glb`, `model-viewer`, Babylon, PlayCanvas or Unity signals.
+Both remain category and marketing surfaces.
+
+## Armani — the configurator itself returns an error state
+
+`OBSERVED-DOM`, 2026-08-15, from the direct configurator URL
+`https://mtmconfigurator.armani.com/en-us/customize/Formal%20jacket?step=1`
+(743,711 bytes, HTTP 200, no Cloudflare interstitial).
+
+The Tailoor application **boots** — its notification regions are present
+(`Notifications-top`, `-top-left`, `-top-right`, `-bottom-left`, `-bottom`,
+`-bottom-right`), and it loads the white-label brand mark from
+`storage-prod.tailoor.com/customers/logo/armani.png`. The multi-tenant path
+segment `customers/logo/{brand}.png` corroborates the white-label positioning.
+
+It then renders a failure state. The document's only substantive heading is
+`The site is momentarily unavailable.`, paired with a `Try again` button.
+Everything else in the DOM is the OneTrust consent layer. Element counts: 14
+`<button>`, 8 `<input>`, 3 `<img>`, 17 `role=`, 2 `tabindex`.
+
+**This capture is uninformative about rendering medium, and must not be read as
+evidence of one.** The absence of `<canvas>`, WebGL or `gltf` signals here says
+nothing, because the application errored before it could mount any configurator
+view. Tailoor's 3D claim therefore remains `SECONDARY` and unverified, and no
+rendering strategy — 3D, mesh-swapping or 2D compositing — is attributed to
+Armani. R-07 and R-13 are untouched by this capture.
+
+What it _does_ establish, and what PAON should take from it: the reference
+product's failure mode is a **full-page dead end**. It does not degrade to a
+reduced-fidelity view, a cached previous selection, or a readable description
+of the garment. It offers a retry and nothing else. PAON's three-tier ladder in
+chapter 05 is a deliberate improvement on exactly this behaviour.
+
+Whether the error is transient, geographic, bot-related or a genuine outage is
+`GATED`; the capture cannot distinguish them.
 
 ## Capability matrix
 

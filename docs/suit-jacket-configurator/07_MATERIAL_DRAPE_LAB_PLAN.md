@@ -1,9 +1,10 @@
 # Material & Drape Lab plan
 
-Evidence tiers are defined in `00_NORTH_STAR_AND_SCOPE.md`. Implementation is
-paused until PAON ground-zero reconciliation authorizes Phase 3. This document
-specifies an unattended pipeline; it does not claim that the production-grade
-garment or calibrated fabric profiles exist.
+Evidence tiers are defined in `00_NORTH_STAR_AND_SCOPE.md`. Ground-zero
+reconciliation is complete and Lab Phase 1 is authorized; chapter 10 holds the
+workstreams, sequencing and exit criteria. This document specifies the
+unattended pipeline those workstreams implement. It does not claim that the
+production-grade garment or calibrated fabric profiles exist — neither does.
 
 ## Representation decision
 
@@ -16,8 +17,9 @@ The first experiment exercises exactly one path through that graph: one family
 (`sb-2`), one fixed assembly set (notch lapel, standard collar, flap pockets,
 side vents, two-piece sleeve, half canvas, full lining), three illustrative
 fabric profiles and three precomputed movement states, producing nine
-deterministic GLB bakes of the deforming assembly set. A semantic DOM/SVG
-jacket remains the non-WebGL, no-JavaScript fallback.
+deterministic GLB bakes of the deforming assembly set — plus, from the same
+pass and the same `bake_key`, the tier-2 2D layer set. A semantic DOM/SVG
+jacket remains tier 3, for no JavaScript and total asset failure (chapter 05).
 
 Nine bakes is the experiment. The graph is the contract those nine must not
 violate — in particular, they must be generated as per-assembly bakes addressed
@@ -48,12 +50,20 @@ interactive challenge instead of content. The Blender facts below are therefore
 `SECONDARY` — assembled from search-result summaries and third-party
 documentation, not retrieved from the primary manual in this pass.
 
-`SECONDARY`, and specifically flagged: **Blender 5.2 LTS is reported as released
-2026-07-14 with support to July 2028, and as the current LTS.** This dossier
-could not confirm that against blender.org, the LTS page, the release notes or
-the official source repository. The entire pipeline below names a version this
-pass did not verify. Chapter 08 carries this as an open risk, and the first act
-of Phase 3 is to confirm the version before pinning it.
+**Version pin, resolved: Blender 4.5 LTS** (decision D-13). Chapter 10 sets out
+the evidence in full. In short: two independent official release mirrors show
+4.2 and 4.5 both still receiving patches on 2026-07-21 — two years and one year
+after release — while 5.0 and 5.1 were abandoned within weeks and 5.2.0
+(2026-07-14) has no maintenance tail. That is the LTS signature, and it matches
+Blender's convention of designating the final release of a series as LTS. The
+dossier's earlier "Blender 5.2 LTS" was wrong: 5.2 is the latest stable
+release, not an LTS.
+
+The LTS _designation_ remains `INFERRED` from cadence rather than read from
+blender.org, and the end-of-support date is `BLOCKED`. Per founder instruction,
+glTF export behaviour below is treated as standard Blender glTF 2.0 exporter
+capability rather than a version-specific claim; the binding export constraints
+in chapter 03 come from the Khronos specification, which was retrieved directly.
 
 `SECONDARY`. The cloth solver controls the pipeline would drive: Quality Steps,
 Speed Multiplier, Vertex Mass, Air Viscosity, Stiffness (Tension, Compression,
