@@ -471,6 +471,19 @@ export class MessagingRepository {
     if (error) throw error;
   }
 
+  /** Manual staff review-and-release for an upload stuck ahead of any
+   * scanner provider decision — `release_message_attachment` re-derives
+   * the caller's own retailer-staff role server-side, so this has nothing
+   * further to check. */
+  async releaseAttachment(
+    attachmentId: MessageAttachment["id"],
+  ): Promise<void> {
+    const { error } = await this.client.rpc("release_message_attachment", {
+      p_attachment_id: attachmentId,
+    });
+    if (error) throw error;
+  }
+
   /** PHASE 17.14: claim a conversation for triage. Re-derives the
    * caller's own staff row server-side via `claim_conversation`
    * (security definer) — never trusts a client-supplied staff id.

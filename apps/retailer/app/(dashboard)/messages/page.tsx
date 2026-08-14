@@ -26,6 +26,7 @@ import { LifecycleBadge } from "../customers/lifecycle-badge";
 
 import { linkConversationOutcome, sendMessage } from "./actions";
 import { AttachFileInput } from "./attach-file-input";
+import { AttachmentReviewControls } from "./attachment-review-controls";
 import {
   ConversationList,
   type ConversationListItem,
@@ -378,6 +379,13 @@ export default async function MessagesPage({
                                   attachment.wardrobeItemId,
                                 ) ?? "Garment"}
                               </p>
+                            ) : null}
+                            {attachment.sourceKind === "upload" &&
+                            attachment.scanStatus !== "cleared" ? (
+                              <AttachmentReviewControls
+                                attachmentId={attachment.id}
+                                scanStatus={attachment.scanStatus}
+                              />
                             ) : null}
                           </div>
                         ))}

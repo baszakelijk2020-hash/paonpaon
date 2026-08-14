@@ -256,4 +256,32 @@ describe("MessagingRepository attachment quarantine", () => {
       p_attachment_id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
     });
   });
+
+  it("releases through the narrow manual-review RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ error: null });
+    const repo = new MessagingRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+
+    await repo.releaseAttachment(
+      "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee" as never,
+    );
+
+    expect(rpc).toHaveBeenCalledWith("release_message_attachment", {
+      p_attachment_id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+    });
+  });
+
+  it("throws the underlying error rather than swallowing a rejection", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      error: new Error("Already cleared"),
+    });
+    const repo = new MessagingRepository({
+      rpc,
+    } as unknown as PaonSupabaseClient);
+
+    await expect(
+      repo.releaseAttachment("eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee" as never),
+    ).rejects.toThrow("Already cleared");
+  });
 });
