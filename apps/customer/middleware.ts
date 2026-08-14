@@ -13,6 +13,10 @@ const PUBLIC_PATHS = [
   "/pilot",
   "/discover",
   "/founder",
+  // Deterministic, zero-data research harness. It deliberately has no
+  // customer, retailer, Studio or persistence access, so it is safe to
+  // review without establishing a portal session.
+  "/material-drape-lab",
   "/demo",
   "/sitemap.xml",
   "/robots.txt",
@@ -72,6 +76,13 @@ function redirectWithCookies(url: URL, from: NextResponse): NextResponse {
 
 export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith(SERVER_TO_SERVER_PATH_PREFIX)) {
+    return NextResponse.next({ request });
+  }
+
+  // The lab is an isolated, static research page. Short-circuit before the
+  // Supabase client is constructed so the zero-data preview can be reviewed
+  // without a live auth service or a valid anonymous token.
+  if (request.nextUrl.pathname.startsWith("/material-drape-lab")) {
     return NextResponse.next({ request });
   }
 

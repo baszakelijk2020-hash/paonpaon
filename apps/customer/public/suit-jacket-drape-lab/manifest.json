@@ -1,0 +1,13 @@
+{
+  "manifestVersion": "1.0.0",
+  "rendererVersion": "dom-svg-harness-1",
+  "asset": {
+    "id": "paon-neutral-test-jacket-illustration",
+    "kind": "original-procedural-neutral-test-garment",
+    "rights": "PAON-authored code illustration; no third-party garment, texture, HDRI or swatch asset",
+    "physicalAccuracy": "not-calibrated; comparison language only"
+  },
+  "profiles": ["airy-twill", "resilient-wool", "structured-mohair"],
+  "states": ["rest", "reach", "seated"],
+  "lights": ["north", "gallery", "evening"]
+}
