@@ -26,7 +26,13 @@ export default async function WardrobeItemRevealPage({
   const reveal = await new WardrobeRepository(supabase)
     .resolvePublicItem(token)
     .catch(() => null);
-  if (!reveal) notFound();
+  // The token alone identifies the item, so the `[slug]` segment is
+  // attacker-controlled and must be checked, not trusted: without this a
+  // valid token renders under ANY retailer's storefront layout, and the
+  // "Shop this piece" link below would resolve this retailer's product slug
+  // against a foreign retailer's catalogue. `resolve_wardrobe_item_public`
+  // already returns the owning `retailerSlug`; that is the authority here.
+  if (!reveal || reveal.retailerSlug !== slug) notFound();
 
   return (
     <main className="mx-auto max-w-lg px-6 py-12">
@@ -80,7 +86,7 @@ export default async function WardrobeItemRevealPage({
 
         {reveal.productSlug ? (
           <Link
-            href={`/r/${slug}/products/${reveal.productSlug}`}
+            href={`/r/${reveal.retailerSlug}/products/${reveal.productSlug}`}
             className="rounded-[var(--radius-md)] border border-[var(--color-stone-300)] px-4 py-2 text-center text-sm hover:bg-[var(--color-stone-50)]"
           >
             Shop this piece
