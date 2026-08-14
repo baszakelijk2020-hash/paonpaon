@@ -1,126 +1,182 @@
 # PAON Ground Truth — 2026-08-14
 
-Where the build actually stands, measured on the consolidated
-`integration/ground-zero` branch. Every number here came from a command that
-was actually run, not from a status claim in `PHASE.md`.
+Measured reality for the `integration/ground-zero` branch. Every number here
+came from a command that was actually run against this worktree on 2026-08-14.
+Nothing in this file is inferred from a status claim in `PHASE.md`.
 
-## 1. Consolidation: complete
+Baseline audited: `1f55894` (`integration/ground-zero` == `main`).
 
-All five live agent lanes are fully contained in `integration/ground-zero`.
-Verified with `git rev-list --count integration/ground-zero..<branch>`:
+## 1. Verified gate results
 
-| Lane | Head | Commits not in ground-zero |
-|---|---|---|
-| `agent/claude-nguyen1` | `c1480f6` | **0** |
-| `agent/claude-nguyen2` | `3c1f7f5` | **0** |
-| `agent/claude-nguyen3` | `c598825` | **0** |
-| `agent/codex-openrouter` | `7a60398` | **0** |
-| `agent/openrouter-codex` | `bb115ce` | **0** |
-| `agent/lane-h-customer-ai-conversation` | — | **0** |
+Run once, in order, on `/private/tmp/paon-integration`:
 
-Uncommitted source across all five worktrees: **none** (only untracked
-scratch: `TASK_VERIFICATION.txt`, `.codex-*` runner state).
+| Gate                                             | Result      |
+| ------------------------------------------------ | ----------- |
+| `pnpm lint`                                      | **PASS**    |
+| `pnpm typecheck`                                 | **PASS**    |
+| `pnpm build`                                     | **PASS**    |
+| `pnpm format:check`                              | **PASS** \* |
+| `pnpm --filter @paon/domain test`                | **PASS**    |
+| `pnpm --filter @paon/domain validate:completion` | **FAIL**    |
 
-**Nothing from the overnight run was lost.** Consolidation had been stalled
-by a single unresolved merge (`agent/claude-nguyen2` → ground-zero) with four
-conflicts, now resolved by unioning both lanes' work — two agents had
-independently built *different* PHASE 10.4 packages (`annual_event` and
-`valentine_reservation_rescue`); both are kept.
+\* `format:check` failed at `1f55894` on two files. Both are fixed in this
+ground-zero pass: `packages/database/src/repositories/cited-recommendation-repository.ts`
+by cherry-pick `f64ac28` (whitespace only), and this file by rewriting it.
 
-## 2. Build health on the consolidated branch
+`validate:completion` is the only gate that compares claims against proof, and
+it is the only one still red. Section 2 is why. It is recorded as failing
+rather than made green, because the only ways to turn it green today are to
+re-run browser proofs in a live environment (out of scope for this audit) or to
+weaken/re-date evidence (forbidden by ADR-068).
 
-| Gate | Result |
-|---|---|
-| `pnpm lint` | **PASS** — 12/12 packages |
-| `pnpm typecheck` | **PASS** — 12/12 packages |
-| `pnpm test` | **FAIL** — evidence validator (below); 1192 domain tests pass |
-| `pnpm build` | see run log |
+## 2. Completion truth: 31 claims unmarked
 
-## 3. The real finding: completion is over-claimed
+`validate:completion` rejects 31 items that `PHASE.md` marked `[x]`. All 31
+were unmarked to `[ ]` in this pass. **No code was reverted.** Unmarking
+records that a claim is unproven at this HEAD, not that the capability is
+absent. Treat all 31 as `implemented_unverified`.
 
-`pnpm --filter @paon/domain validate:completion` is the only gate that
-compares claims against proof, and it fails. This is the honest answer to
-"where am I standing":
+`PHASE.md` checkbox counts moved from 69 checked / 41 unchecked to **38 checked
+/ 72 unchecked**.
 
-**15 items marked `[x]` have no evidence file at all:**
-`10.1, 11.1, 11.2, 11.3, 11.4, 12.1, 12.2, 12.4, 13.1, 13.2, 18.1, 18.2,
-18.6, 18.8, 18.12`
+### 2a. No evidence tranche exists at all (15)
 
-**12 items claim completion but carry only `verified_local`,** which the
-validator does not accept as a verified completion claim:
-`8.4, 9.1, 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.8, 17.9, 17.14, 18.5`
+`docs/evidence/tranches/<id>.json` is absent, so the ADR-068 gate has nothing
+to evaluate:
 
-**4 items carry stale evidence SHAs** — the proof was run against a commit
-that is no longer current: `4.9, 4.10, 8.4, 9.1`
+`10.1, 11.1, 11.2, 11.3, 11.4, 12.1, 12.2, 12.4, 13.1, 13.2, 18.1, 18.2, 18.6,
+18.8, 18.12`
 
-Interpretation: the platform is **broader than it is proven**. For a paid
-pilot the risk is not missing features, it is features believed working that
-were never demonstrated end-to-end. Closing this gap outranks new capability.
+Eleven of these do have a run artifact under `docs/evidence/runs/`, so the
+missing piece is the tranche record, not necessarily the proof run.
 
-Rule when closing these: if a capability is not actually proven, **unmark the
-checkbox** — do not fabricate or re-date evidence (ADR-068).
+### 2b. Tranche exists but its browser-proof SHA is stale (16)
 
-## 4. Repository hygiene
+Each SHA below exists as a commit but is **not an ancestor of this branch**, so
+the proof was run against history that is not in ground zero:
 
-- 56 worktrees, 146 branches.
-- **7 stale lane branches hold real unmerged feature work** (5–8 days old,
-  30–54 conflicts each): `lane-d-virtual-wardrobe-studio` (VWS 4.9/4.10),
-  `lane-g-employee-portal-linking`, `lane-f-wardrobe-service-request`,
-  `lane-e-core-roadmap`, `lane-h-customer-security-boundary`,
-  `feature/voice-intelligence`, `feature/conversation-intelligence`.
-  Deliberately **not** merged in this pass — ~250 conflicts at once would
-  jeopardise the now-clean tree. Queued as `consolidate-stale-lanes`, to be
-  merged one lane at a time, each verified green before the next.
+| Items                   | Stale browser-proof SHA |
+| ----------------------- | ----------------------- |
+| 4.6, 4.7/4.8, 4.9, 4.10 | `d5e66de`               |
+| 8.4, 9.1                | `0a7ae8c`               |
+| 17.1, 17.2              | `fc783be`               |
+| 17.3                    | `71a90a1`               |
+| 17.4, 17.5, 17.6        | `cc47e0d`               |
+| 17.8                    | `99cb0ec`               |
+| 17.9                    | `29b2177`               |
+| 17.14                   | `964d9db`               |
+| 18.5                    | `ef9f43c`               |
 
-## 5. Why the fleet kept idling (root cause, now fixed)
+There are exactly **16 tranche files in the repository, and all 16 are in this
+table** — no completion-evidence tranche currently passes the gate.
 
-| # | Root cause | Fix |
-|---|---|---|
-| 1 | Agents launched with **no prompt, not in tmux**; every watchdog scans `tmux list-panes`, so 4 of 5 were unreachable | `scripts/fleet/launch-fleet.sh` starts all 5 in named tmux sessions with an opening task |
-| 2 | `scripts/claude-stop-check.sh` was a quality gate that `exit 0`'d — **idling was by design** | `scripts/fleet/stop-continue.sh` emits `{"decision":"block"}` with the next queued task |
-| 3 | The only never-stop runner (`paon-run.sh`) was **not running and single-writer** | Replaced by a multi-agent atomic queue |
-| 4 | `AGENTS.md:316` mandated `.agent/claims.yaml`; **it was never created**, so 5 agents picked work by parsing a 500 KB `PHASE.md` | `scripts/fleet/paon-fleet` — atomic claims with leases |
+### 2c. Separately stale run artifact
 
-Also dead and now superseded: `paon-agent-watchdog.sh` / `codex-watchdog.sh`
-targeted tmux sessions `paon-claude` / `paon-codex` that never existed;
-`agent-autocontinue` log was 0 bytes since Aug 12; the launchd supervisor was
-`.disabled`.
+`docs/evidence/runs/11.3.json` cites `6b74009`, which exists but is not an
+ancestor of `main`.
 
-## 6. The orchestrator
+**Interpretation unchanged from the previous audit:** the platform is broader
+than it is proven. The risk for a paying retailer is not missing features, it
+is features believed working that were never demonstrated end-to-end at a
+commit that is actually shipped.
 
-State lives in `$GIT_COMMON_DIR/paon-fleet/` — shared by every worktree,
-never committed, so it cannot produce a merge conflict.
+## 3. What was integrated into ground zero
 
-```
-scripts/fleet/paon-fleet        atomic claim/lease CLI (plain bash+jq:
-                                works for Claude, Codex AND DeepSeek)
-scripts/fleet/seed-queue.sh     PHASE.md -> machine-readable queue
-scripts/fleet/stop-continue.sh  Stop hook: gate, then hand over next task
-scripts/fleet/session-start.sh  SessionStart hook: never wake up idle
-scripts/fleet/launch-fleet.sh   start/stop/status/nudge all 5 in tmux
-```
+One commit, cherry-picked with `-x`:
 
-Proven behaviour:
-- **5 agents racing simultaneously → 5 distinct tasks, zero collisions.**
-- **Lease expiry → orphaned task auto-recovered by another agent** (kill an
-  agent mid-task and the work is picked up with no human involvement).
-- Red tree ⇒ the Stop hook refuses to hand out new work until the agent
-  fixes its own lint/typecheck and commits.
-- At ≤5% remaining usage the agent commits, releases its lease and stops
-  cleanly, so the next agent inherits a coherent repo.
+- `f64ac28` — `chore(format)` prettier line-wrap in
+  `cited-recommendation-repository.ts`. Whitespace only, 2 lines, no behaviour
+  change. Origin `587c12d` on `agent/claude-nguyen1`.
 
-Model routing is enforced by which tiers an agent may claim:
-`claude-nguyen1/2` = frontier+implementation, `claude-nguyen3` =
-implementation+light, `codex` = implementation+light, `deepseek` = light.
+Nothing else was merged. See section 4 for why.
 
-## 7. Next
+## 4. Branch truth
 
-Queue is seeded with **41 tasks**, ordered for sellability rather than PHASE
-number. Top of queue:
+57 registered worktrees, 93 local branches, 150 refs including remotes.
 
-1. `consolidate-stale-lanes` — the 7 unmerged lanes
-2. `prune-dead-worktrees`
-3. `phase-md-reconciliation`
-4. `evidence-missing-15`
-5. `evidence-verified-local-12`
-6. `evidence-stale-sha`
+**21 branches are fully patch-contained in `main`** (`git cherry` reports zero
+unique patches). They are ahead only by merge topology and carry no unmerged
+work: the `worker/ft13-*`, `worker/ft14-*`, `worker/mission-conversation-facts`,
+`worker/house-memory-corrections`, `worker/11-1-payroll-manager-ui`,
+`worker/ft09-attachment-quarantine`, `agent/lane-h-{payroll-backend,
+phase-11-2-closeout, staff-evidence-profile, wfm103-assigned-missions}`, and
+the `agent/lane-delegate-4-*` / `agent/lane-delegate-17-*` families. Safe to
+prune; pruning was **not** performed in this pass.
+
+**Seven large lane branches hold real unmerged feature work and every one
+conflicts heavily against `main`.** Conflicted-file counts measured directly
+with `git merge-tree --write-tree`:
+
+| Branch                                    | Unique commits | Conflicted files |
+| ----------------------------------------- | -------------- | ---------------- |
+| `agent/lane-d-virtual-wardrobe-studio`    | 37             | 172              |
+| `feature/voice-intelligence`              | 30             | 119              |
+| `agent/lane-f-wardrobe-service-request`   | 34             | 111              |
+| `agent/lane-e-core-roadmap`               | 32             | 108              |
+| `agent/lane-h-customer-security-boundary` | 30             | 100              |
+| `_integration-check`                      | 28             | 97               |
+| `agent/lane-g-employee-portal-linking`    | 34             | (worktree dirty) |
+
+All seven are **blocked-conflict** and were left untouched. `lane-h-customer-security-boundary`
+additionally rewrites `clienteling_notes` RLS (introduces a `note_visibility`
+tier and sensitive-access audit logging) — a security-critical change that must
+not ride along in a ground-zero commit. `lane-g` also has 13 uncommitted files
+in its live worktree. `feature/conversation-intelligence` shares
+`_integration-check`'s head and adds no unique feature work.
+
+**Migration prefix collision.** `20260806110000` is claimed by two different
+migrations on different lanes:
+
+- `20260806110000_add_style_portrait_consent.sql` (`lane-d`)
+- `20260806110000_add_service_weekly_plans.sql` (`lane-e`, `lane-f`, `lane-g`)
+
+Whichever lane merges second must be renamed forward per the migration
+collision rule. Neither has been applied to ground zero.
+
+**Small branches with unique work**, all left unmerged pending review:
+`agent/claude-nguyen3` (7), `agent/codex-openrouter` (4),
+`agent/lane-a-ft01-fitprofile` (4), `agent/claude-nguyen1` (3, minus the
+cherry-picked format commit), `agent/lane-b-phase-12-3-booking-handoff` (3),
+`agent/lane-c-18-9-contract-value` (3),
+`agent/phase-19-1-fabric-pairing-module-key` (2), plus several single-commit
+`worktree-agent-*` and `worker/*` branches.
+
+**Two competing PHASE reconciliations already exist unmerged** —
+`7935201 docs: unmark unproven phase completions` (on `codex-openrouter`,
+`lane-b`, `phase-19-1`) and `ab56bfc docs(phase): reconcile PHASE.md status
+against recorded evidence` (on `claude-nguyen1`). Neither was merged here.
+Whoever integrates them must reconcile against section 2 by hand and must not
+blanket-select `ours` or `theirs`.
+
+## 5. Worktrees needing attention
+
+- `/Users/nguyen/Projects/PAON` (the primary checkout) is on
+  `agent/lane-h-customer-ai-conversation` with **3 unresolved merge
+  conflicts**, 5 modified tracked files and 8 untracked files. Treated as
+  read-only for this audit; nothing was reset, cleaned, aborted or switched.
+- `/private/tmp/paon-claude-nguyen1` carried 5 uncommitted fleet-script changes
+  predating this audit; committed unmodified as `8e2bcd9` on
+  `agent/claude-nguyen1` to preserve them. Content overlaps the fleet safety
+  fixes already on `main` and still needs reconciliation.
+- `.claude/worktrees/agent-a5cd5e7ddd5a19fbe` holds 295 untracked files.
+
+## 6. Fleet state
+
+The shared queue in `$GIT_COMMON_DIR/paon-fleet/queue.json` is **frozen** and
+was left frozen:
+
+> Founder control-plane freeze: no product feature work until the founder
+> resumes.
+
+41 tasks: **19 open, 16 blocked, 6 done, 0 actively claimed.** The 13 tasks
+carrying a `claimed_by` value are all in `done` or `blocked` state — residual
+attribution, not live leases. No agent was started, nudged, messaged or
+assigned during this audit.
+
+## 7. What ground zero does not claim
+
+- It does not claim `validate:completion` passes. It does not.
+- It does not claim the 31 unmarked items are unimplemented — only unproven.
+- It does not claim the seven large lanes are safe to merge. They are not, yet.
+- It does not claim anything about live Supabase or Vercel state. No live or
+  deploy action was taken.

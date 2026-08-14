@@ -4,6 +4,16 @@
 
 **Queue rule:** an item that lists another PHASE item as a dependency must not be checked or marked `verified_*` while that dependency remains unchecked or `implemented_unverified` (parallel implementation is allowed).
 
+**Ground-zero reconciliation, 2026-08-14.** 31 items were unmarked from `[x]`
+to `[ ]` because `pnpm --filter @paon/domain validate:completion` rejects their
+completion claim at this HEAD. None of them were reverted in code — unmarking
+records that the claim is unproven, not that the work is absent. Treat all 31 as
+`implemented_unverified` until re-proved. 15 have no evidence tranche at all; 16
+have a tranche whose browser-proof SHA is not an ancestor of this branch. The
+per-item ledger, the exact failing SHAs, and the measured gate results are in
+[GROUND_TRUTH.md](./GROUND_TRUTH.md). Do not re-check any of them by editing
+this file — re-prove them, then let the validator pass.
+
 It supersedes the 2026-07-27
 pilot-only freeze and every queue in ROADMAP, COMPETITIVE_GAPS,
 EXPERIENCE_REBUILD, vision documents, audits, and old handoffs.
@@ -2274,7 +2284,7 @@ replacement of human advice for uncertain high-value decisions.
     retailer pause + eligible-product allowlist, cron enqueue from the exact
     selection via existing notification/email outbox path.
 
-- [x] **4.6 Virtual Wardrobe Studio — shared foundation**
+- [ ] **4.6 Virtual Wardrobe Studio — shared foundation**
   - **Requirement IDs:** `VWS-001`, `VWS-002`, `VWS-003`.
   - **Dependencies:** `4.2`; ADR-033, ADR-061, ADR-063, ADR-074.
   - **Owner boundary:** wardrobe/AI-integration domain, forward migration/RLS,
@@ -2361,7 +2371,7 @@ generateWardrobeVisualization` exists behind the same provider-neutral
     end-to-end. `docs/evidence/tranches/4.6.json` / `docs/evidence/runs/4.6.json`
     record this.
 
-- [x] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
+- [ ] **4.7/4.8 Virtual Wardrobe Studio — Style Portrait onboarding and
       customer single-look Studio**
   - **Requirement IDs:** `VWS-001`, `VWS-002`.
   - **Dependencies:** `4.6`; ADR-074.
@@ -2453,7 +2463,7 @@ pnpm build && pnpm format:check` sweep for this tranche, and no
     first `/`, so the combined `4.7/4.8` item is keyed `4.7`, covering both
     halves; no separate `4.8` sub-entry exists in this queue).
 
-- [x] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
+- [ ] **4.9 Virtual Wardrobe Studio — advisor visual roadmap and customer
       per-look review**
   - **Requirement IDs:** `VWS-001`.
   - **Dependencies:** `4.2`, `4.6`, `4.7/4.8`; ADR-074.
@@ -2495,7 +2505,7 @@ pnpm build && pnpm format:check` sweep for this tranche, and no
     database tests and 208/208 pgTAP pass on a fresh `supabase db reset`.
     `docs/evidence/tranches/4.9.json` records the completion-evidence claim.
 
-- [x] **4.10 Virtual Wardrobe Studio — multi-look queue and
+- [ ] **4.10 Virtual Wardrobe Studio — multi-look queue and
       personalization loop**
   - **Requirement IDs:** `VWS-001`.
   - **Dependencies:** `4.6`, `4.7/4.8`, `4.9`.
@@ -3040,7 +3050,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 8.4 — Delivery integrity and connected-product proof
 
-- [x] **8.4 Machine-enforced completion and multi-role journey gate**
+- [ ] **8.4 Machine-enforced completion and multi-role journey gate**
   - **Status:** `verified_local`.
   - **Requirement IDs:** `AUD-001`–`AUD-005`.
   - **Dependencies:** `8.3`; ADR-068; the common-sense and traceability audits.
@@ -3097,7 +3107,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 9 — Migration Cockpit and connectors
 
-- [x] **9.1 Generic staged-file migration**
+- [ ] **9.1 Generic staged-file migration**
   - **Status:** `verified_local`.
   - **Requirement IDs:** `INT-002`, `INT-003`.
   - **Dependencies:** `8.2`, `8.4`; extend existing import foundations.
@@ -3235,7 +3245,7 @@ is [PAON_EXPANDED_PROGRAMME_EXECUTION.md](./vision/PAON_EXPANDED_PROGRAMME_EXECU
 
 ### Stage 10 — Clienteling, campaign, and remote-selling parity
 
-- [x] **10.1 Versioned campaign library**
+- [ ] **10.1 Versioned campaign library**
   - **Status:** `verified_local`; pinned library/copy foundation and the
     accepted deployment-to-outcome loop are both real and browser-proven.
   - **Requirement IDs:** `CMP-101`–`CMP-104`.
@@ -3478,7 +3488,7 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
 
 ### Stage 11 — Workforce Mission Control and coaching
 
-- [x] **11.1 Time approval and payroll package**
+- [ ] **11.1 Time approval and payroll package**
   - **Requirement IDs:** `WFM-101`, `WFM-102`.
   - **Dependencies:** existing roster/time entries; `8.3`.
   - **Owner boundary:** breaks/exceptions/corrections/manager approvals,
@@ -3521,7 +3531,7 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     piece is the external payroll-provider export adapter (accepted blocker
     per Hard blockers line).
 
-- [x] **11.2 Today, closeout, I AM and extra mile**
+- [ ] **11.2 Today, closeout, I AM and extra mile**
   - **Requirement IDs:** `WFM-103`, `WFM-104`.
   - **Dependencies:** `8.3`; Stage 7 opportunities/closeout.
   - **Owner boundary:** unified role home, tasks/promises/briefing, ten-minute
@@ -3594,7 +3604,7 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     recognition, this surface's notes (`help_requested_note`,
     `problems_note`) can carry content a peer has no reason to read.
 
-- [x] **11.3 Scheduling, demand, ceremony and coaching**
+- [ ] **11.3 Scheduling, demand, ceremony and coaching**
   - **Requirement IDs:** `WFM-105`, `WFM-106`.
   - **Dependencies:** `11.1`, `11.2`.
   - **Owner boundary:** availability/swaps/coverage, explainable staffing,
@@ -3808,7 +3818,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     versions with contextual prompts, observations/rubrics/plans) has a
     browser-proven UI. Checkbox now checked.
 
-- [x] **11.4 Internal community, contribution and support**
+- [ ] **11.4 Internal community, contribution and support**
   - **Requirement IDs:** `WFM-107`.
   - **Dependencies:** `11.2`, `16.1`.
   - **Owner boundary:** branch/HQ announcements and discussions, onboarding,
@@ -3964,7 +3974,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
 > select new supplier CRM, factory-production, stock or supplier-operation work
 > from the historical items in this stage.
 
-- [x] **12.1 MeasurementMonitor decision gate**
+- [ ] **12.1 MeasurementMonitor decision gate**
   - **Requirement IDs:** `FIT-101`–`FIT-103`.
   - **Dependencies:** wardrobe/lifecycle and official garment-fit foundations.
   - **Owner boundary:** private guided capture, quality/result candidate,
@@ -4077,7 +4087,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     dedicated throwaway customer rather than the shared programme-proof-
     seed customer, after debugging iterations against the shared customer
     permanently pinned an approved version to it.
-- [x] **12.2 Garment production and serialized pieces**
+- [ ] **12.2 Garment production and serialized pieces**
   - **Requirement IDs:** `INV-103`; Stage 12 target architecture.
   - **Dependencies:** `8.3`, `8.2`.
   - **Owner boundary:** immutable measurement/spec versions, pieces, stages,
@@ -4265,7 +4275,7 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     contract. Still nothing to build against for this specific grid until
     an implementation slice is authorized.
 
-- [x] **12.4 Supplier/atelier intelligence and support operations**
+- [ ] **12.4 Supplier/atelier intelligence and support operations**
   - **Requirement IDs:** `MTM-101`.
   - **Dependencies:** `12.2`, `8.2`.
   - **Owner boundary:** supplier/PDM/PLM authority mappings, catalogue/material/
@@ -4355,7 +4365,7 @@ closed` graph, refusing a supplier-notify with no evidence and asserting
 > truth and safety boundaries, but do not extend this programme until the
 > founder reactivates it.
 
-- [x] **13.1 Stock ledger, reservations, barcode receiving and counts**
+- [ ] **13.1 Stock ledger, reservations, barcode receiving and counts**
   - **Requirement IDs:** `INV-101`, `INV-102`.
   - **Dependencies:** `8.2`.
   - **Owner boundary:** append-only ledger, location balances/reservations,
@@ -4423,7 +4433,7 @@ closed` graph, refusing a supplier-notify with no evidence and asserting
     about holding it for a client. Cosmetic, not a correctness gap — worth
     a follow-up, not a blocker for this item's Acceptance.
 
-- [x] **13.2 Loss prevention and RFID pilot**
+- [ ] **13.2 Loss prevention and RFID pilot**
   - **Requirement IDs:** `INV-104`, `INV-105`.
   - **Dependencies:** `13.1`.
   - **Owner boundary:** risk rules/approvals plus EPC serialized observations
@@ -5503,7 +5513,7 @@ stage's own item text; nothing here jumps ahead of Stage 15/16's own queue,
 it runs alongside it per explicit founder instruction to build this backlog
 now.
 
-- [x] **17.1 Advisor capture — AI-proposed, human-confirmed action bundles**
+- [ ] **17.1 Advisor capture — AI-proposed, human-confirmed action bundles**
   - **Requirement IDs:** ADV-101.
   - **Dependencies:** `7.3` (customer_facts), `7.4` (clienteling_opportunities).
   - **Owner boundary:** typed/voiced/photographed advisor note → AI-proposed
@@ -5619,7 +5629,7 @@ now.
     `linked_service_booking_id`. Remaining open: "contact" as its own
     kind distinct from `follow_up` (arguably already covered by it).
 
-- [x] **17.2 Mission Control unified brief**
+- [ ] **17.2 Mission Control unified brief**
   - **Requirement IDs:** ADV-102.
   - **Dependencies:** `17.1`.
   - **Owner boundary:** extend the existing Mission Control aggregation
@@ -5672,7 +5682,7 @@ now.
     fixes it. `docs/evidence/runs/17.2.json` now records a genuinely
     passing run at `cc47e0d`.
 
-- [x] **17.3 Pre/during/post-appointment advisor dashboard**
+- [ ] **17.3 Pre/during/post-appointment advisor dashboard**
   - **Requirement IDs:** ADV-103.
   - **Dependencies:** `17.1`, `9.x` Self-Portrait, wishlist, wardrobe.
   - **Owner boundary:** a per-appointment view: purchase history, Self-
@@ -5724,7 +5734,7 @@ now.
     map; `docs/evidence/runs/17.3.json` records a fresh passing run at
     `cc47e0d`.
 
-- [x] **17.4 Fabric-pairing upsell engine**
+- [ ] **17.4 Fabric-pairing upsell engine**
   - **Requirement IDs:** ADV-104.
   - **Dependencies:** `2.x` metadata graph, product catalogue.
   - **Owner boundary:** given a selected fabric, surface top-matching
@@ -5779,7 +5789,7 @@ now.
     map; `docs/evidence/runs/17.4.json` records a fresh passing run at
     `cc47e0d`.
 
-- [x] **17.5 Promise-matching on inbound stock news**
+- [ ] **17.5 Promise-matching on inbound stock news**
   - **Requirement IDs:** ADV-105.
   - **Dependencies:** `17.1`, `7.4` clienteling_opportunities.
   - **Owner boundary:** a staff-entered stock update ("new linen jackets
@@ -5823,7 +5833,7 @@ now.
     map; `docs/evidence/runs/17.5.json` records a fresh passing run at
     `cc47e0d`.
 
-- [x] **17.6 Customer segmentation and rankings**
+- [ ] **17.6 Customer segmentation and rankings**
   - **Requirement IDs:** ADV-106.
   - **Owner boundary:** best-customer rankings, seasonal/one-time/suit/
     casual buyer segments and similar retailer-facing cohorts, computed
@@ -5863,7 +5873,7 @@ now.
     pricing rather than replacing it.
   - **Status:** not started.
 
-- [x] **17.8 Sales academy AI roleplay personas**
+- [ ] **17.8 Sales academy AI roleplay personas**
   - **Requirement IDs:** ADV-108.
   - **Dependencies:** `16.1` (roleplay grading — shipped).
   - **Owner boundary:** AI-driven training personas (first-time buyer,
@@ -5963,7 +5973,7 @@ now.
     4.7/4.8, 4.9, 4.10 and 17.14 already established for their own
     checkboxes.
 
-- [x] **17.9 Omnichannel communication hub**
+- [ ] **17.9 Omnichannel communication hub**
   - **Requirement IDs:** ADV-109.
   - **Owner boundary:** a provider-neutral core that unifies the existing
     TableService chat with SMS/WhatsApp/email, surfaced both in Mission
@@ -6412,7 +6422,7 @@ pnpm build && pnpm format:check` are clean and `pnpm turbo run test`
     **unattached (logged-out-created) item** schema change remain real,
     unattempted gaps.
 
-- [x] **17.14 Prospect AI conversation, buying-intent queue, and human handoff**
+- [ ] **17.14 Prospect AI conversation, buying-intent queue, and human handoff**
   - **Requirement IDs:** ADV-114.
   - **Dependencies:** `17.9` (channel core, unrelated tables); FT-09
     TableService (`conversations`/`messages`/`message_attachments`,
@@ -6587,7 +6597,7 @@ external signal ingestion last — building a scraper or an image generator
 before the object it populates exists would mean producing data with
 nowhere honest to store it.
 
-- [x] **18.1 Corporate business-development opportunities (InsiderTailoring pipeline model)**
+- [ ] **18.1 Corporate business-development opportunities (InsiderTailoring pipeline model)**
   - **Requirement IDs:** BD-101.
   - **Dependencies:** `14.1` (`corporate_accounts`, `CorporateRepository`).
   - **Owner boundary:** the opportunity/signal/scoring/stage-pipeline
@@ -6635,7 +6645,7 @@ nowhere honest to store it.
     `corporate_accounts` row with the opportunity's company name and the
     submitted account reference — not merely relabelled the opportunity.
 
-- [x] **18.2 Tender and Pitch Builder**
+- [ ] **18.2 Tender and Pitch Builder**
   - **Requirement IDs:** BD-102.
   - **Dependencies:** `18.1` (an opportunity to build a tender for),
     `14.1` (the account/programme it may become).
@@ -6852,7 +6862,7 @@ nowhere honest to store it.
     page (deliberately `18.6`'s own item) and starting measurement
     capture from this page.
 
-- [x] **18.5 Employee portal (auth and self-service)**
+- [ ] **18.5 Employee portal (auth and self-service)**
   - **Requirement IDs:** BD-105.
   - **Dependencies:** `14.1` (`corporate_wearers`); this is the
     new-auth-path decision `14.1`'s 2026-08-03 Update named as its own
@@ -7135,7 +7145,7 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     completion of what this item actually committed to — not a claim
     that every conceivable enhancement is finished.
 
-- [x] **18.6 Measurement and fitting rollout planning**
+- [ ] **18.6 Measurement and fitting rollout planning**
   - **Requirement IDs:** BD-106.
   - **Dependencies:** existing appointment domain/repository — bulk
     rollout schedules through it, not around it; `14.1` wearers/programmes.
@@ -7349,7 +7359,7 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     `packages/domain/src/production/production.ts`), a separate,
     larger integration this slice does not attempt.
 
-- [x] **18.8 Corporate service desk**
+- [ ] **18.8 Corporate service desk**
   - **Requirement IDs:** BD-108.
   - **Dependencies:** `14.1`'s `corporate_exceptions` (extend its
     kind/action vocabulary and generalise its scope; do not fork a
@@ -7712,7 +7722,7 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
     feed. This item cannot be claimed complete until external data source
     access is available and a real ingestion path is built against it.
 
-- [x] **18.12 Relationship cross-referencing and opportunity scoring from existing customers**
+- [ ] **18.12 Relationship cross-referencing and opportunity scoring from existing customers**
   - **Requirement IDs:** BD-112.
   - **Dependencies:** `18.1`, `18.11`, existing `customers`/`customer_facts`.
   - **Owner boundary:** matching a discovered or manually entered company
