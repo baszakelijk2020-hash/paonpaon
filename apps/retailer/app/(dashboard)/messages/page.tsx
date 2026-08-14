@@ -33,6 +33,8 @@ import {
 import { ConversationTriage } from "./conversation-triage";
 import { MessageFactProposal } from "./message-fact-proposal";
 import { MessageTextarea } from "./message-textarea";
+import { ProposalComposer } from "./proposal-composer";
+import { ProposalDisplay } from "./proposal-display";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -113,6 +115,9 @@ export default async function MessagesPage({
     string,
     Awaited<ReturnType<AdvisorCaptureRepository["listBundlesForSession"]>>
   >();
+  let proposals: Awaited<
+    ReturnType<MessagingRepository["findProposalsByConversation"]>
+  > = [];
 
   if (activeConversation) {
     await messagingRepo.markRead(activeConversation.id);
@@ -124,6 +129,7 @@ export default async function MessagesPage({
       clientelingNotes,
       proposedDraft,
       captureSessions,
+      fetchedProposals,
     ] = await Promise.all([
       messagingRepo.findMessages(activeConversation.id),
       messagingRepo.findAttachmentsByConversation(activeConversation.id),
@@ -140,12 +146,14 @@ export default async function MessagesPage({
         customerId: activeConversation.customerId,
         limit: 100,
       }),
+      messagingRepo.findProposalsByConversation(activeConversation.id),
     ]);
     thread = messages;
     activeCustomer = customer;
     orders = orderHistory;
     notes = clientelingNotes;
     activeDraft = proposedDraft;
+    proposals = fetchedProposals;
 
     const messageSessions = captureSessions.filter(
       (captureSession) =>
@@ -394,25 +402,41 @@ export default async function MessagesPage({
                   No messages yet.
                 </p>
               ) : null}
+
+              {proposals.length > 0 ? (
+                <div className="space-y-3">
+                  {proposals.map((proposal) => (
+                    <ProposalDisplay key={proposal.id} proposal={proposal} />
+                  ))}
+                </div>
+              ) : null}
             </div>
 
-            <form
-              action={sendMessage}
-              className="sticky bottom-20 z-10 flex flex-col gap-2 border-t border-[var(--color-stone-200)] bg-white/95 p-4 backdrop-blur lg:static lg:bottom-auto lg:bg-white lg:backdrop-blur-none"
-            >
-              <input
-                type="hidden"
-                name="conversationId"
-                value={activeConversation.id}
-              />
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <MessageTextarea />
-                <Button type="submit" className="sm:self-end">
-                  Send
-                </Button>
-              </div>
-              <AttachFileInput />
-            </form>
+            {activeConversation ? (
+              <>
+                {!proposals.some((p) => p.status === "active") ? (
+                  <ProposalComposer conversationId={activeConversation.id} />
+                ) : null}
+
+                <form
+                  action={sendMessage}
+                  className="sticky bottom-20 z-10 flex flex-col gap-2 border-t border-[var(--color-stone-200)] bg-white/95 p-4 backdrop-blur lg:static lg:bottom-auto lg:bg-white lg:backdrop-blur-none"
+                >
+                  <input
+                    type="hidden"
+                    name="conversationId"
+                    value={activeConversation.id}
+                  />
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <MessageTextarea />
+                    <Button type="submit" className="sm:self-end">
+                      Send
+                    </Button>
+                  </div>
+                  <AttachFileInput />
+                </form>
+              </>
+            ) : null}
           </>
         ) : (
           <p className="flex h-full items-center justify-center text-sm text-[var(--color-stone-500)]">

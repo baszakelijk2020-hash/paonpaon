@@ -3,14 +3,20 @@ import {
   RetailerRepository,
   WardrobeRepository,
 } from "@paon/database";
+import { isConversationProposalRespondable } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-import { retryAttachmentScan, sendMessage } from "../actions";
+import {
+  respondToProposal,
+  retryAttachmentScan,
+  sendMessage,
+} from "../actions";
 import { BookAppointmentForm } from "../book-appointment-form";
+import { ProposalDisplay } from "../proposal-display";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -26,10 +32,11 @@ export default async function ConversationPage({
   const conversation = await repo.findConversation(id as never);
   if (!conversation) notFound();
   await repo.markRead(conversation.id);
-  const [messages, retailer, attachments] = await Promise.all([
+  const [messages, retailer, attachments, proposals] = await Promise.all([
     repo.findMessages(conversation.id),
     new RetailerRepository(client).findById(conversation.retailerId),
     repo.findAttachmentsByConversation(conversation.id),
+    repo.findProposalsByConversation(conversation.id),
   ]);
   const attachmentsByMessage = new Map<
     string,
@@ -154,6 +161,77 @@ export default async function ConversationPage({
           </div>
         ))}
       </Card>
+      {proposals.length > 0 ? (
+        <div className="space-y-3">
+          {proposals.map((proposal) => {
+            const isRespondable = isConversationProposalRespondable(
+              proposal,
+              new Date().toISOString(),
+            );
+            return (
+              <div key={proposal.id}>
+                <ProposalDisplay proposal={proposal} />
+                {proposal.status === "active" ? (
+                  <div className="mt-2 flex gap-2">
+                    {isRespondable ? (
+                      <>
+                        <form action={respondToProposal} className="flex-1">
+                          <input
+                            type="hidden"
+                            name="proposalId"
+                            value={proposal.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="response"
+                            value="accepted"
+                          />
+                          <input
+                            type="hidden"
+                            name="conversationId"
+                            value={conversation.id}
+                          />
+                          <Button type="submit" className="w-full">
+                            Accept
+                          </Button>
+                        </form>
+                        <form action={respondToProposal} className="flex-1">
+                          <input
+                            type="hidden"
+                            name="proposalId"
+                            value={proposal.id}
+                          />
+                          <input
+                            type="hidden"
+                            name="response"
+                            value="declined"
+                          />
+                          <input
+                            type="hidden"
+                            name="conversationId"
+                            value={conversation.id}
+                          />
+                          <Button
+                            type="submit"
+                            variant="outline"
+                            className="w-full"
+                          >
+                            Decline
+                          </Button>
+                        </form>
+                      </>
+                    ) : (
+                      <p className="text-sm text-[var(--color-stone-500)]">
+                        This offer has expired
+                      </p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
       <BookAppointmentForm
         conversationId={conversation.id}
         linkableAttachments={linkableAttachments}

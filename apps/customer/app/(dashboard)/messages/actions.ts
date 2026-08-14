@@ -7,6 +7,7 @@ import {
 import {
   classifyBuyingIntent,
   conversationNeedsHuman,
+  respondToConversationProposalSchema,
   sendMessageSchema,
   startCustomerConversationSchema,
 } from "@paon/domain";
@@ -136,4 +137,35 @@ export async function bookAppointmentFromConsultation(
 
   revalidatePath(`/messages/${conversationId}`);
   return appointmentId;
+}
+
+/**
+ * FT-09: Customer accepts or declines a proposal. The RPC enforces freshness
+ * (proposal must be active and not expired).
+ */
+export async function respondToProposal(formData: FormData): Promise<void> {
+  const session = await requireSession();
+  if (!session || session.accountType !== "customer") {
+    throw new Error("Not authorized");
+  }
+
+  const proposalId = String(formData.get("proposalId") ?? "");
+  const response = String(formData.get("response") ?? "");
+  const conversationId = String(formData.get("conversationId") ?? "");
+
+  if (!proposalId || !response || !conversationId) {
+    throw new Error("Missing required fields");
+  }
+
+  respondToConversationProposalSchema.parse({
+    proposalId,
+    response,
+  });
+
+  const repo = new MessagingRepository(await getSupabaseServerClient());
+  await repo.respondToProposal(
+    proposalId as never,
+    response as "accepted" | "declined",
+  );
+  revalidatePath(`/messages/${conversationId}`);
 }

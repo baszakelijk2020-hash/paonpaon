@@ -1,0 +1,11 @@
+-- The previous migration granted only SELECT to service_role alongside
+-- authenticated, on the theory that all writes should go through the two
+-- RPCs. That's correct for `authenticated` (the real trust boundary this
+-- table needs: no client can bypass freshness/version enforcement) but is
+-- an unnecessary deviation from how every other table in this schema
+-- treats service_role, which already has unrestricted access everywhere
+-- else via the service-role key — restricting it here bought no real
+-- security benefit and only broke legitimate backend/ops/test fixture
+-- writes. Bring conversation_proposals in line with the rest of the schema:
+-- service_role gets direct insert/update; authenticated still does not.
+grant insert, update on table public.conversation_proposals to service_role;
