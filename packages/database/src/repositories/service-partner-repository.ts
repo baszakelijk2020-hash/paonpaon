@@ -77,6 +77,9 @@ function toEngagement(row: EngagementRow): ServicePartnerEngagement {
     partnerId: asId<"ServicePartnerId">(row.partner_id),
     customerId: asId<"CustomerId">(row.customer_id),
     wardrobeItemId: asId<"WardrobeItemId">(row.wardrobe_item_id ?? ""),
+    ...(row.booking_id
+      ? { bookingId: asId<"ServiceBookingId">(row.booking_id) }
+      : {}),
     jobReference: row.job_reference,
     capability: row.capability as PartnerCapability,
     instructions: row.instructions,
@@ -243,6 +246,7 @@ export class ServicePartnerRepository {
         partner_id: input.partnerId,
         customer_id: input.customerId,
         wardrobe_item_id: input.wardrobeItemId,
+        booking_id: input.bookingId ?? null,
         job_reference: input.jobReference,
         capability: input.capability,
         instructions: input.instructions,
