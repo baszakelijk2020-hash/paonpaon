@@ -89,17 +89,48 @@ reap_expired() {
 }
 
 # Highest-priority claimable task for this agent's allowed tiers.
-# Ordering: explicit priority asc, then declaration order.
+#
+# TWO SAFETY RULES, both learned by dogfooding this queue and watching it fail:
+#
+#   1. EXCLUSIVE tasks (whole-repo merges, migrations, dependency bumps) cannot
+#      run beside any other writer. A task marked {"exclusive":true} is only
+#      handed out when nothing else is claimed, and while one is in flight no
+#      other task is handed out at all. Without this, the 7-lane consolidation
+#      would have rewritten packages/**, apps/** and docs/** underneath three
+#      agents that were actively editing them.
+#
+#   2. PATH-DISJOINTNESS. Seeding gave every PHASE task the generic
+#      ["packages/**","apps/**"], which meant every agent "owned" everything —
+#      isolation that existed on paper and nowhere else. A task is now only
+#      offered if its owned_paths do not overlap a live claim's owned_paths.
 select_next() {
   local tiers="${PAON_AGENT_TIERS:-frontier,implementation,light}"
   jq -r --arg tiers "$tiers" '
+    def norm: sub("\\*+$";"") | sub("/$";"");
+    def overlaps($a; $b):
+      any($a[]; . as $x | any($b[]; . as $y
+        | ($x|norm) as $nx | ($y|norm) as $ny
+        | ($nx|startswith($ny)) or ($ny|startswith($nx))));
+
     ($tiers | split(",")) as $t
-    | [ .tasks[]
-        | select(.status=="open")
-        | select((.tier // "implementation") as $x | $t | index($x))
-      ]
-    | sort_by(.priority // 100)
-    | (.[0].id // empty)
+    | [ .tasks[] | select(.status=="claimed") ] as $live
+    | ($live | map(.owned_paths // []) | add // []) as $taken
+    | if ($live | map(select(.exclusive == true)) | length) > 0 then
+        empty                                   # an exclusive task is running
+      else
+        [ .tasks[]
+          | select(.status=="open")
+          | select((.tier // "implementation") as $x | $t | index($x))
+          # exclusive tasks wait until the fleet is completely quiet
+          | select((.exclusive != true) or (($live|length) == 0))
+          # never hand out work overlapping the paths of a live claim
+          | select((.exclusive == true)
+                   or (($taken|length) == 0)
+                   or (overlaps((.owned_paths // ["__none__"]); $taken) | not))
+        ]
+        | sort_by(.priority // 100)
+        | (.[0].id // empty)
+      end
   ' "$QUEUE"
 }
 
