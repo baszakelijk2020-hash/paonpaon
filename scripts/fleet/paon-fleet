@@ -103,8 +103,17 @@ reap_expired() {
 #      ["packages/**","apps/**"], which meant every agent "owned" everything —
 #      isolation that existed on paper and nowhere else. A task is now only
 #      offered if its owned_paths do not overlap a live claim's owned_paths.
+#   3. FREEZE. A founder can pause all assignment without killing agents or
+#      unwinding the queue. Every safety rule above governs WHICH task an agent
+#      may take; none of them can express "take nothing at all right now".
+#      Without this the queue kept handing out product work during an explicit
+#      control-plane freeze, and the only way to comply was for each agent to
+#      refuse each task individually — which is a human doing the enforcing.
+frozen_reason() { jq -r '.frozen // empty' "$QUEUE" 2>/dev/null; }
+
 select_next() {
   local tiers="${PAON_AGENT_TIERS:-frontier,implementation,light}"
+  [ -n "$(frozen_reason)" ] && return 0   # frozen: assign nothing
   jq -r --arg tiers "$tiers" --arg me "$AGENT_ID" '
     def norm: sub("\\*+$";"") | sub("/$";"");
     def overlaps($a; $b):
@@ -157,7 +166,8 @@ eligibility() {
     | (.tasks[] | select(.id==$id)) as $task
     | [ .tasks[] | select(.status=="claimed") | select(.id != $id) ] as $live
     | ($live | map(.owned_paths // []) | add // []) as $taken
-    | if $task == null then "NO_SUCH_TASK"
+    | if (.frozen // "") != "" then "FLEET_FROZEN"
+      elif $task == null then "NO_SUCH_TASK"
       elif $task.status != "open" then "NOT_OPEN:\($task.status)"
       elif ($t | index($task.tier // "implementation") | not) then "WRONG_TIER:\($task.tier)"
       elif $task.needs_scope == true then "NEEDS_SCOPE"
@@ -270,6 +280,8 @@ cmd_heartbeat() {
 cmd_status() {
   acquire; reap_expired; release_lock
   echo "=== PAON FLEET  ($(now_iso)) ==="
+  local fz; fz="$(frozen_reason)"
+  [ -n "$fz" ] && echo "*** FROZEN: $fz  (no assignment; 'paon-fleet unfreeze' to resume) ***"
   jq -r '
     (.tasks | group_by(.status) | map({(.[0].status): length}) | add) as $c
     | "open:      \($c.open // 0)\nclaimed:   \($c.claimed // 0)\nblocked:   \($c.blocked // 0)\ndone:      \($c.done // 0)\ntotal:     \(.tasks|length)"
@@ -305,6 +317,14 @@ case "${1:-status}" in
   release)   cmd_release "$2" "${3:-}" ;;
   heartbeat) cmd_heartbeat "$2" ;;
   reap)      acquire; reap_expired; release_lock; echo "OK: expired leases released" ;;
+  freeze)    acquire
+             jq --arg r "${2:-frozen by operator}" '.frozen=$r' "$QUEUE" | write_queue
+             release_lock; log "FREEZE ${2:-}"
+             echo "OK: fleet FROZEN — no task will be assigned. Reason: ${2:-frozen by operator}"
+             echo "    In-flight leases are untouched; agents finish what they hold."
+             echo "    Resume with: paon-fleet unfreeze" ;;
+  unfreeze)  acquire; jq 'del(.frozen)' "$QUEUE" | write_queue
+             release_lock; log "UNFREEZE"; echo "OK: fleet resumed — assignment re-enabled" ;;
   owns)      cmd_owns "$2" "$3" ;;
   status|*)  cmd_status ;;
 esac

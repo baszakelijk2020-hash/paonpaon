@@ -134,6 +134,27 @@ other="$(run agentS implementation claim unwanted | jq -r '.id' 2>/dev/null)"
 [ "$other" = "unwanted" ] && ok "a different agent may still claim a released task" \
   || bad "different agent may claim released task" "unwanted" "$other"
 
+# freeze ----------------------------------------------------------------------
+# Without this, an explicit founder freeze could only be honoured by every
+# agent refusing every task by hand.
+seed <<'JSON'
+{"version":1,"tasks":[
+ {"id":"work","title":"work","tier":"implementation","priority":1,"status":"open",
+  "claimed_by":null,"lease_expires_at":null,"owned_paths":["apps/z/**"]}
+]}
+JSON
+run agentZ implementation freeze "control-plane repair" >/dev/null
+out="$(run agentZ implementation take)"
+[ "$out" = "NO_ELIGIBLE_WORK" ] && ok "frozen fleet assigns nothing via take" \
+  || bad "frozen fleet assigns nothing" "NO_ELIGIBLE_WORK" "$out"
+out="$(run agentZ implementation claim work)"
+case "$out" in *FLEET_FROZEN*) ok "frozen fleet refuses direct claim too" ;;
+  *) bad "frozen fleet refuses direct claim" "FLEET_FROZEN" "$out" ;; esac
+run agentZ implementation unfreeze >/dev/null
+got="$(run agentZ implementation take | jq -r '.id' 2>/dev/null)"
+[ "$got" = "work" ] && ok "unfreeze restores assignment" \
+  || bad "unfreeze restores assignment" "work" "$got"
+
 # empty queue -----------------------------------------------------------------
 seed <<'JSON'
 {"version":1,"tasks":[]}
