@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 
 import { createEvent } from "./actions";
 
+import { RETAILER_LOYALTY_TIER_LABELS } from "@/lib/loyalty-tier-labels";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -51,7 +52,9 @@ export default async function EventsPage() {
           >
             <option value="public">Public</option>
             <option value="invite_only">Invite only</option>
-            <option value="vip_tier">Gold & platinum members</option>
+            <option value="vip_tier">
+              {RETAILER_LOYALTY_TIER_LABELS.gold} tier members
+            </option>
           </select>
           <textarea
             name="description"
