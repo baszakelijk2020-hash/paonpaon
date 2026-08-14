@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  CitedRecommendationRepository,
   CustomerFactRepository,
   RetailerStaffRepository,
 } from "@paon/database";
@@ -45,7 +46,7 @@ export async function correctCustomerFact(formData: FormData): Promise<void> {
 
   // Pure recompute contract — projections are on-read today; this records
   // the intent that interest/For You/opportunity drafts must refresh.
-  correctionRequiresRecompute({
+  const recomputePlan = correctionRequiresRecompute({
     correctedFactTypes: [factType],
     affectedProjectorVersions: [
       CUSTOMER_INTEREST_PROJECTOR_VERSION,
@@ -53,5 +54,18 @@ export async function correctCustomerFact(formData: FormData): Promise<void> {
     ],
   });
 
+  if (
+    recomputePlan.recomputeInterest ||
+    recomputePlan.recomputeForYou ||
+    recomputePlan.expireOpportunities
+  ) {
+    await new CitedRecommendationRepository(supabase).withdrawStale({
+      retailerId: session.retailerId,
+      correctedFactIds: [factId],
+      reason: `Customer fact corrected: ${reason.trim()}`,
+    });
+  }
+
   revalidatePath(`/customers/${customerId}`);
+  revalidatePath("/analytics");
 }
