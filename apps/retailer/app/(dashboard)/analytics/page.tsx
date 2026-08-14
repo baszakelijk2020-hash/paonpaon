@@ -7,13 +7,26 @@ import {
   RetailerRepository,
   type RetailerAnalytics,
 } from "@paon/database";
-import { retailerRoleAtLeast, type CurrencyCode } from "@paon/domain";
+import {
+  buildRoleDashboard,
+  RECOMMENDATION_KINDS,
+  retailerRoleAtLeast,
+  type CurrencyCode,
+  type CitedRecommendation,
+  type ConfidenceBand,
+  type EvidenceSource,
+  type RecommendationKind,
+} from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import { formatMoney } from "@paon/utils";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { CompleteLookCard } from "./complete-look-insights";
+import { FitRiskCard } from "./fit-risk-insights";
 import { TemporalHotspotCard } from "./insights";
+import { RoleDashboardCard } from "./role-dashboard";
+import { StaffingRiskCard } from "./staffing-risk-insights";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -21,6 +34,49 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 function formatDelta(delta: number): string {
   if (delta === 0) return "flat vs prior 30 days";
   return `${delta > 0 ? "+" : ""}${delta} vs prior 30 days`;
+}
+
+/**
+ * Maps a database row to a domain CitedRecommendation object.
+ */
+function mapRowToDomain(row: {
+  readonly id: string;
+  readonly kind: string;
+  readonly statement: string;
+  readonly sources: unknown;
+  readonly window_from: string;
+  readonly window_to: string;
+  readonly sample_size: number;
+  readonly confidence: string;
+  readonly derived_from_fact_ids: readonly string[];
+}): CitedRecommendation {
+  return {
+    kind: row.kind as RecommendationKind,
+    statement: row.statement,
+    sources: (row.sources as unknown as readonly EvidenceSource[]) ?? [],
+    window: {
+      from: row.window_from,
+      to: row.window_to,
+    },
+    sampleSize: row.sample_size,
+    confidence: row.confidence as ConfidenceBand,
+    derivedFromFactIds: row.derived_from_fact_ids,
+  };
+}
+
+/**
+ * Determines which recommendation kinds a role can see.
+ * For now, all roles that can access analytics see all recommendation kinds.
+ * Individual kinds will simply not appear if no recommendations of that kind exist.
+ */
+function getAllowedKinds(role: string): readonly RecommendationKind[] {
+  // Manager and above can see all recommendation kinds
+  // Role comes from session and is validated to be a RetailerRole type
+  const retailerRole = role as Parameters<typeof retailerRoleAtLeast>[0];
+  if (retailerRoleAtLeast(retailerRole, "manager")) {
+    return RECOMMENDATION_KINDS;
+  }
+  return [];
 }
 
 function Metric({
@@ -70,24 +126,55 @@ export default async function AnalyticsPage() {
   const defaultBranch = await new RetailerBranchRepository(
     supabase,
   ).findDefault(session.retailerId);
-  const [summary, summary60, clienteling, customers, citedInsights] =
-    await Promise.all([
-      analyticsRepo.summary(session.retailerId, since30.toISOString()),
-      analyticsRepo.summary(session.retailerId, since60.toISOString()),
-      new ClientelingDashboardRepository(supabase).projectForRetailer({
-        retailerId: session.retailerId,
-        ...(defaultBranch ? { timezone: defaultBranch.timezone } : {}),
-      }),
-      new CustomerRepository(supabase).findByRetailer(session.retailerId),
-      new CitedRecommendationRepository(supabase).listLive({
-        retailerId: session.retailerId,
-        kind: "temporal_hotspot",
-      }),
-    ]);
+  const [
+    summary,
+    summary60,
+    clienteling,
+    customers,
+    citedInsights,
+    citedLookGapInsights,
+    citedFitRiskInsights,
+    citedStaffingRiskInsights,
+    allRecommendations,
+  ] = await Promise.all([
+    analyticsRepo.summary(session.retailerId, since30.toISOString()),
+    analyticsRepo.summary(session.retailerId, since60.toISOString()),
+    new ClientelingDashboardRepository(supabase).projectForRetailer({
+      retailerId: session.retailerId,
+      ...(defaultBranch ? { timezone: defaultBranch.timezone } : {}),
+    }),
+    new CustomerRepository(supabase).findByRetailer(session.retailerId),
+    new CitedRecommendationRepository(supabase).listLive({
+      retailerId: session.retailerId,
+      kind: "temporal_hotspot",
+    }),
+    new CitedRecommendationRepository(supabase).listLive({
+      retailerId: session.retailerId,
+      kind: "complete_look",
+    }),
+    new CitedRecommendationRepository(supabase).listLive({
+      retailerId: session.retailerId,
+      kind: "fit_risk",
+    }),
+    new CitedRecommendationRepository(supabase).listLive({
+      retailerId: session.retailerId,
+      kind: "staffing_risk",
+    }),
+    new CitedRecommendationRepository(supabase).listLive({
+      retailerId: session.retailerId,
+    }),
+  ]);
 
   const customerNameById = Object.fromEntries(
     customers.map((customer) => [customer.id, customer.fullName]),
   );
+
+  const recommendationDomainObjects = allRecommendations.map(mapRowToDomain);
+  const allowedKinds = getAllowedKinds(session.retailerRole);
+  const dashboardSections = buildRoleDashboard({
+    recommendations: recommendationDomainObjects,
+    allowedKinds,
+  });
 
   const priorPeriod: Omit<RetailerAnalytics, "customers" | "newCustomers"> = {
     orders: summary60.orders - summary.orders,
@@ -323,6 +410,60 @@ export default async function AnalyticsPage() {
               windowTo: row.window_to,
             }))}
           />
+        </Card>
+        <Card>
+          <CompleteLookCard
+            insights={citedLookGapInsights.map((row) => ({
+              id: row.id,
+              statement: row.statement,
+              confidence: row.confidence,
+              sampleSize: row.sample_size,
+              windowFrom: row.window_from,
+              windowTo: row.window_to,
+            }))}
+          />
+        </Card>
+        <Card>
+          <FitRiskCard
+            insights={citedFitRiskInsights.map((row) => ({
+              id: row.id,
+              statement: row.statement,
+              confidence: row.confidence,
+              sampleSize: row.sample_size,
+              windowFrom: row.window_from,
+              windowTo: row.window_to,
+            }))}
+          />
+        </Card>
+        <Card>
+          <StaffingRiskCard
+            insights={citedStaffingRiskInsights.map((row) => ({
+              id: row.id,
+              statement: row.statement,
+              confidence: row.confidence,
+              sampleSize: row.sample_size,
+              windowFrom: row.window_from,
+              windowTo: row.window_to,
+            }))}
+          />
+        </Card>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <div>
+          <p className="font-accent text-[11px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+            Cited intelligence
+          </p>
+          <h2 className="font-display text-2xl text-[var(--color-stone-900)]">
+            Role dashboard
+          </h2>
+          <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+            All active recommendations across different finding types, organized
+            for your role. Each finding cites its sources and confidence level.
+          </p>
+        </div>
+        <Card>
+          <RoleDashboardCard sections={dashboardSections} />
         </Card>
       </section>
     </div>

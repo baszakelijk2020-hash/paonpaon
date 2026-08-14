@@ -6,6 +6,9 @@ import {
   buildRoleDashboard,
   checkRecommendationHonesty,
   findBusiestSlot,
+  findMostCommonLookGap,
+  findMostFlaggedFitArea,
+  findMostUnderstaffedDay,
   planRecompute,
 } from "./cited-recommendation";
 
@@ -256,5 +259,112 @@ describe("findBusiestSlot", () => {
       "2026-08-17T10:00:00.000Z",
     ]);
     expect(result?.count).toBe(3);
+  });
+});
+
+describe("findMostCommonLookGap", () => {
+  it("returns null for no customers", () => {
+    expect(findMostCommonLookGap([])).toBeNull();
+  });
+
+  it("finds the category the most customers are missing", () => {
+    const result = findMostCommonLookGap([
+      ["shirt", "shoes"],
+      ["shirt"],
+      ["shirt", "trousers"],
+      ["shoes"],
+    ]);
+    expect(result).toEqual({ categoryCode: "shirt", customerCount: 3 });
+  });
+
+  it("counts a customer at most once per category regardless of repeats", () => {
+    const result = findMostCommonLookGap([
+      ["shirt", "shirt", "shirt"],
+      ["shoes"],
+    ]);
+    expect(result).toEqual({ categoryCode: "shirt", customerCount: 1 });
+  });
+
+  it("breaks a tie by first-seen category, matching findBusiestSlot's own tie behaviour", () => {
+    const result = findMostCommonLookGap([["shirt"], ["shoes"]]);
+    expect(result?.customerCount).toBe(1);
+    expect(["shirt", "shoes"]).toContain(result?.categoryCode);
+  });
+});
+
+describe("findMostFlaggedFitArea", () => {
+  it("returns null for no observations", () => {
+    expect(findMostFlaggedFitArea([])).toBeNull();
+  });
+
+  it("finds the most-flagged area among work_now observations", () => {
+    const result = findMostFlaggedFitArea([
+      { area: "Waist", workNow: true },
+      { area: "Waist", workNow: true },
+      { area: "Sleeve", workNow: true },
+    ]);
+    expect(result).toEqual({ area: "waist", flagCount: 2 });
+  });
+
+  it("ignores future_order_note observations entirely", () => {
+    const result = findMostFlaggedFitArea([
+      { area: "Waist", workNow: false },
+      { area: "Waist", workNow: false },
+      { area: "Sleeve", workNow: true },
+    ]);
+    expect(result).toEqual({ area: "sleeve", flagCount: 1 });
+  });
+
+  it("normalizes case and surrounding whitespace, not different phrasings", () => {
+    const result = findMostFlaggedFitArea([
+      { area: "Waist", workNow: true },
+      { area: " waist ", workNow: true },
+      { area: "WAIST", workNow: true },
+    ]);
+    expect(result).toEqual({ area: "waist", flagCount: 3 });
+  });
+
+  it("ignores an empty or whitespace-only area rather than counting it", () => {
+    const result = findMostFlaggedFitArea([
+      { area: "   ", workNow: true },
+      { area: "Hem", workNow: true },
+    ]);
+    expect(result).toEqual({ area: "hem", flagCount: 1 });
+  });
+});
+
+describe("findMostUnderstaffedDay", () => {
+  it("returns null for no days", () => {
+    expect(findMostUnderstaffedDay([])).toBeNull();
+  });
+
+  it("finds the day with the highest demand-per-staff-hour ratio", () => {
+    const result = findMostUnderstaffedDay([
+      { dayOfWeek: 1, appointmentCount: 4, staffHours: 8 },
+      { dayOfWeek: 6, appointmentCount: 10, staffHours: 8 },
+    ]);
+    expect(result).toEqual({
+      dayOfWeek: 6,
+      appointmentCount: 10,
+      staffHours: 8,
+      demandPerStaffHour: 1.25,
+    });
+  });
+
+  it("treats zero scheduled staff-hours with real demand as the worst case, not a divide-by-zero skip", () => {
+    const result = findMostUnderstaffedDay([
+      { dayOfWeek: 1, appointmentCount: 20, staffHours: 8 },
+      { dayOfWeek: 2, appointmentCount: 1, staffHours: 0 },
+    ]);
+    expect(result?.dayOfWeek).toBe(2);
+    expect(result?.demandPerStaffHour).toBe(Infinity);
+  });
+
+  it("excludes a day with zero appointments entirely, regardless of staffing", () => {
+    const result = findMostUnderstaffedDay([
+      { dayOfWeek: 1, appointmentCount: 0, staffHours: 0 },
+      { dayOfWeek: 2, appointmentCount: 2, staffHours: 10 },
+    ]);
+    expect(result?.dayOfWeek).toBe(2);
   });
 });

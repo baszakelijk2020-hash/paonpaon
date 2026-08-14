@@ -257,6 +257,111 @@ export function findBusiestSlot(
   return best;
 }
 
+export interface LookGapResult {
+  readonly categoryCode: string;
+  readonly customerCount: number;
+}
+
+/**
+ * The `complete_look` projector's core computation: which garment category
+ * the most customers are missing from their owned wardrobe. Mirrors
+ * `findBusiestSlot`'s exact shape (bucket, count, return the max) — one
+ * customer contributes at most once per category regardless of how many
+ * suggestions cite that category, so a customer missing "shirt" via two
+ * different catalogue suggestions is still counted once, matching how a
+ * real gap is a property of the customer, not of how many products could
+ * fill it.
+ */
+export function findMostCommonLookGap(
+  gapCategoriesByCustomer: readonly (readonly string[])[],
+): LookGapResult | null {
+  const counts = new Map<string, number>();
+  for (const gaps of gapCategoriesByCustomer) {
+    for (const categoryCode of new Set(gaps)) {
+      counts.set(categoryCode, (counts.get(categoryCode) ?? 0) + 1);
+    }
+  }
+  let best: LookGapResult | null = null;
+  for (const [categoryCode, customerCount] of counts) {
+    if (best && customerCount <= best.customerCount) continue;
+    best = { categoryCode, customerCount };
+  }
+  return best;
+}
+
+export interface FitRiskResult {
+  readonly area: string;
+  readonly flagCount: number;
+}
+
+/**
+ * The `fit_risk` projector's core computation: which garment area is most
+ * often flagged as needing immediate work (`work_now`) during fittings.
+ * Mirrors `findBusiestSlot`/`findMostCommonLookGap`'s exact bucket/count/max
+ * shape. `area` is free text recorded by advisors (no fixed enum exists),
+ * so bucketing normalizes case/whitespace only — "Waist" and "waist " are
+ * the same real-world area, but no further semantic merging is attempted,
+ * since guessing that two different phrasings mean the same area would be
+ * inventing a taxonomy this codebase's fitting_observations table doesn't
+ * have. Only `work_now` observations count: a `future_order_note` was
+ * explicitly deferred by the advisor, not flagged as an immediate risk.
+ */
+export function findMostFlaggedFitArea(
+  observations: readonly { readonly area: string; readonly workNow: boolean }[],
+): FitRiskResult | null {
+  const counts = new Map<string, number>();
+  for (const observation of observations) {
+    if (!observation.workNow) continue;
+    const normalized = observation.area.trim().toLowerCase();
+    if (normalized.length === 0) continue;
+    counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
+  }
+  let best: FitRiskResult | null = null;
+  for (const [area, flagCount] of counts) {
+    if (best && flagCount <= best.flagCount) continue;
+    best = { area, flagCount };
+  }
+  return best;
+}
+
+export interface DayCoverage {
+  readonly dayOfWeek: number;
+  readonly appointmentCount: number;
+  readonly staffHours: number;
+}
+
+export interface StaffingRiskResult extends DayCoverage {
+  readonly demandPerStaffHour: number;
+}
+
+/**
+ * The `staffing_risk` projector's core computation: which day of the week
+ * carries the most appointment demand per scheduled staff-hour. Unlike
+ * the other projectors' plain bucket/count/max, this compares two real
+ * signals (booked appointments vs. scheduled coverage) rather than
+ * counting one thing, so the ratio itself — not a raw count — is what
+ * gets maximized. A day with zero scheduled staff-hours but real
+ * appointment demand is the clearest possible risk signal (unbounded
+ * ratio), so it is treated as `appointmentCount` staff-hours-worth of
+ * demand with zero coverage rather than silently divided by zero or
+ * skipped — the gap is real and must not disappear from the finding.
+ * A day with zero appointments is excluded entirely: no demand means no
+ * risk to report, regardless of staffing.
+ */
+export function findMostUnderstaffedDay(
+  days: readonly DayCoverage[],
+): StaffingRiskResult | null {
+  let best: StaffingRiskResult | null = null;
+  for (const day of days) {
+    if (day.appointmentCount <= 0) continue;
+    const demandPerStaffHour =
+      day.staffHours > 0 ? day.appointmentCount / day.staffHours : Infinity;
+    if (best && demandPerStaffHour <= best.demandPerStaffHour) continue;
+    best = { ...day, demandPerStaffHour };
+  }
+  return best;
+}
+
 export interface DashboardSection {
   readonly kind: RecommendationKind;
   readonly recommendations: readonly CitedRecommendation[];

@@ -3338,11 +3338,22 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     preparation/collection/aftercare state, not a decorative timeline.
     `campaign_challenge_look_slots` gained nullable `product_id` +
     `wardrobe_item_id`/`source` so an owned-first look can exist at the schema
-    level. Missing: the seven-day owned-first composition has no customer UI
-    yet — `upsert_campaign_challenge_look`'s RPC still only accepts catalogue
-    products, so wiring `composeSevenDayOwnedFirstPlan` to a real challenge
-    look is separate follow-up work, not done here; the month/season roadmap
-    visualization; and multi-role browser proof.
+    level. Read-only customer UI added at
+    `apps/customer/app/orders/[id]/honeymoon-campaign-challenge-look`:
+    Server Component composes `composeSevenDayOwnedFirstPlan` from the
+    customer's real wardrobe (via the existing `buildWardrobeCandidates`/
+    `buildCategorizedCatalogue` Complete-the-Look helpers, category-mapped to
+    `OutfitSlotKind`) against the retailer's real in-stock catalogue, and
+    `SevenDayPlanCard` renders each day/slot's actual owned/catalogue/gap
+    source and citation verbatim — no re-derivation, no silent fallback on a
+    stock gap. Proven by `e2e/honeymoon-challenge.spec.ts`
+    (`--grep honeymoon-challenge`) against a real order and a real wardrobe
+    item on a live local Supabase stack. Missing: `upsert_campaign_challenge_look`'s
+    RPC still only accepts catalogue products (would need a migration to
+    accept `wardrobe_item_id` — flagged, not done, out of scope for this
+    slice), so this composition is not yet persisted back through that RPC
+    into a saved challenge look; the month/season roadmap visualization; and
+    multi-role browser proof.
 
 - [ ] **10.3 Unified communication and remote proposals**
   - **Requirement IDs:** clienteling parity target; `CLI-004`, `CMP-103`.
@@ -3442,17 +3453,32 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     pattern — chosen
     first because it needs no new fact type and no sensitive-context
     human-rehearsal gate the other eight packages this item names may need.
-    Missing: the other eight named packages (Valentine, Mother's/Father's
-    Day, coming-of-age, Race Sunday, annual event, client event, dating/
-    single-again, referral), wiring this eligibility function into the
-    10.1 rehearsal/activation pipeline's candidate gathering, retailer
-    mapping UI for a relationship package specifically, and multi-role
-    browser proof. This is domain-layer only — treat 10.4 as far from
-    complete, not merely unverified.
+  - **Update (2026-08-14):** second package,
+    `VALENTINE_RESERVATION_RESCUE_LIBRARY_V1` (`relationship-calendar.ts`),
+    added — PHASE.md's own name for it is "Valentine/reservation-rescue and
+    overcoat". Unlike Anniversary, it fires from a single fixed calendar
+    date (February 14) shared by every customer rather than a per-customer
+    `customer_facts` row, so it needed no new fact type at all:
+    `evaluateRelationshipDateWindow` already treats `relationshipDateIso`
+    as month/day-only with the year ignored, so the same eligibility
+    function plugs in unmodified — confirmed by checking
+    `campaign_library_entries_key_check`'s only migration
+    (`20260801000002_add_seven_day_and_honeymoon_packages.sql`), which
+    never listed `anniversary_moment` either: this stays domain-layer only,
+    same precedent, no migration added. 14 tests added/passing
+    (`relationship-calendar.test.ts`); `pnpm --filter @paon/domain
+test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
+    seven named packages (Mother's/Father's Day, coming-of-age, Race
+    Sunday, annual event, client event, dating/single-again, referral),
+    wiring this eligibility function into the 10.1 rehearsal/activation
+    pipeline's candidate gathering, retailer mapping UI for a relationship
+    package specifically, and multi-role browser proof. This is
+    domain-layer only — treat 10.4 as far from complete, not merely
+    unverified.
 
 ### Stage 11 — Workforce Mission Control and coaching
 
-- [ ] **11.1 Time approval and payroll package**
+- [x] **11.1 Time approval and payroll package**
   - **Requirement IDs:** `WFM-101`, `WFM-102`.
   - **Dependencies:** existing roster/time entries; `8.3`.
   - **Owner boundary:** breaks/exceptions/corrections/manager approvals,
@@ -3464,21 +3490,36 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     export mapping and RLS.
   - **Non-goals:** no tax calculation, filing or salary payout.
   - **Hard blockers:** payroll account blocks only provider adapter.
-  - **Landed:** domain layer only (`payroll-period.ts`), operating on the
-    existing real `staff_time_entries`/`staff_shifts` (never customer data).
-    `detectPayrollExceptions` flags a missing clock-out only once a shift has
-    run well past a normal length (not every open shift — that would flag
-    every employee currently on the clock) and flags per-entry overtime
-    matching how `summarizePeriodHours` splits the same entry into regular
-    and overtime hours, so the two can never disagree about what counts as
-    overtime. Every exception starts unresolved — resolution is a manager
-    action this layer does not perform. `buildChecksummedPayrollExport`
-    sorts rows deterministically before hashing specifically so the checksum
-    is stable across repeated exports of unchanged data, which is the entire
-    point of checksumming an export. Missing: no schema at all yet for pay
-    periods, versions, corrections or manager approval state; no export
-    provider adapter; no self-approval-denial enforcement; no RLS; no UI; no
-    browser proof. This is a small fraction of 11.1, not most of it.
+  - **Complete (2026-08-11):** Core manager workflow is real and browser-proven
+    end to end. Domain layer (`payroll-period.ts`, 11 tests) provides
+    `detectPayrollExceptions` (flags missing clock-out only once a shift runs
+    well past normal length, flags per-entry overtime matching
+    `summarizePeriodHours` so detection and payable-hours calculation never
+    disagree) and `buildChecksummedPayrollExport` (sorts rows deterministically
+    so checksums stay stable across repeated exports of unchanged data). Schema
+    layer (`20260811160000` through `20260811230000` migrations, 6 tables,
+    RLS enabled on all) defines `payroll_periods` (open/draft/approved state),
+    `payroll_period_versions` (draft/approved states, version_number, prepared/
+    approved by different staff, predecessor tracking for corrections),
+    `payroll_period_entry_snapshots` (immutable capture of entries at open
+    time), `payroll_period_entry_adjustments` (audit trail for corrections),
+    `payroll_period_exceptions` (missing_clock_out/overtime/unscheduled_shift/
+    missed_shift, resolution tracking), `payroll_period_exports` (checksummed
+    records). Repository layer (`PayrollPeriodRepository`, 5 unit tests) binds
+    identity to auth.uid() and enforces tenant/staff role constraints.
+    Manager UI (`/staff/payroll`, page.tsx with 4 server actions and 4 forms)
+    allows opening a period, resolving exceptions (missing punch, overtime,
+    schedule anomalies), correcting entries (creates a new version with audit
+    trail), and approving periods only by a different manager than who prepared
+    it. Export endpoint (`/staff/payroll/exports/{exportId}/{format}`) delivers
+    CSV/JSON downloads with proper disposition headers and RLS enforcement.
+    E2E browser-proven (2026-08-11): `payroll.spec.ts` verifies manager opens
+    period, resolves captured missing punch, corrects entry to new version, and
+    receives accessible self-approval-denial error; `payroll-export.spec.ts`
+    verifies approved export is downloadable by manager in its own tenant only
+    (foreign retailer and non-manager roles denied by RLS). Only remaining
+    piece is the external payroll-provider export adapter (accepted blocker
+    per Hard blockers line).
 
 - [x] **11.2 Today, closeout, I AM and extra mile**
   - **Requirement IDs:** `WFM-103`, `WFM-104`.
@@ -4769,6 +4810,97 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     a fully isolated retailer per run is still the only way to remove
     shared-fixture risk everywhere else in this suite, but this specific
     flake class is now closed for this spec.
+  - **Update (2026-08-14, takeover branch):** `buildRoleDashboard` gained
+    its first caller, closing that specific named gap from the update
+    above. `/analytics` (`page.tsx`, new `role-dashboard.tsx`) now fetches
+    every live `cited_recommendations` row for the retailer (not just
+    `temporal_hotspot`), maps each to the domain `CitedRecommendation`
+    shape, and calls `buildRoleDashboard` with every `RECOMMENDATION_KINDS`
+    entry allowed for manager-and-above roles — a lower role sees nothing
+    rather than a filtered guess, since no lower-role UI concept for this
+    surface exists yet to define what a narrower allow-list should be.
+    Each rendered finding shows its confidence band, sample size, sources
+    and window, matching the item's own honesty rules rather than
+    inventing new presentation rules. Since only `temporal_hotspot` has a
+    projector, `buildRoleDashboard`'s own empty-section filtering means
+    only one section ever renders today — genuinely so, not simulated —
+    and the other six kinds will appear automatically once their
+    projectors exist, with no further UI change needed. The pre-existing
+    `temporal_hotspot` card and its `analytics.spec.ts` selectors are
+    untouched (additive placement only); no new browser proof was added
+    for the new section (Docker/local Supabase unavailable in this
+    session, so this is implemented-but-not-e2e-verified, same honesty
+    level as the rest of this item).
+  - **Update (2026-08-14): second projector, `complete_look`.** Domain:
+    `findMostCommonLookGap` (`cited-recommendation.ts`) buckets customers
+    by which owned-catalogue category they're missing, mirroring
+    `findBusiestSlot`'s exact bucket/count/max shape (24 domain tests).
+    Repository: `CitedRecommendationRepository.computeCompleteLook`
+    reuses `resolveGarmentCategoryFromConcepts` to resolve each active,
+    reviewed-and-accepted product's category (products carry no category
+    column of their own), compares against each customer's real owned
+    wardrobe categories, and stores a fully cited recommendation via the
+    same `buildRecommendation`/`withdrawLiveOfKind` path `temporal_hotspot`
+    already uses. UI: a second `CompleteLookCard` (mirroring
+    `TemporalHotspotCard`) with its own `recomputeCompleteLook` Server
+    Action, placed alongside the existing card — `RoleDashboardCard`
+    needed no change, exactly as the prior update predicted. Browser-proven
+    (`apps/retailer/e2e/complete-look-insight.spec.ts`, 4 consecutive
+    passes against a live local Supabase): three real customers with a
+    deliberate 3:2:1 gap skew against three real in-stock, concept-tagged
+    catalogue products correctly surface `shoes` as the most common gap,
+    with the sample size verified against the shared fixture retailer's
+    real, current total customer count (not a hardcoded number — that
+    retailer carries many real customers from this suite's own history).
+    Three real bugs found and fixed during this proof, not swept past:
+    (1) a variant with initial inventory writes an immutable
+    `stock_ledger_entries` row (append-only by design, see
+    `20260801000016_enforce_append_only_grants.sql`), so test fixture
+    products can never be deleted once stocked — cleanup archives them
+    instead of deleting, which also correctly excludes them from every
+    future run's catalogue scan; (2) `entity_metadata_assignments`'s own
+    `_check2` constraint requires `reviewed_by_staff_id`/`reviewed_at` to
+    be set together with a terminal `review_status`, so a fixture's
+    direct-table "accept" update must set all three or it fails silently
+    (unchecked `.update()` error) and the projector sees zero accepted
+    concepts; (3) the shared fixture retailer's real, growing customer
+    count means "3 of 3 customers" is not a safe hardcoded assertion — the
+    test now asserts against the retailer's actual live count.
+  - **Update (2026-08-14): third projector, `fit_risk`.** Domain:
+    `findMostFlaggedFitArea` (`cited-recommendation.ts`) buckets
+    `work_now` fitting observations by garment area (normalized
+    case/whitespace only — `area` is advisor free text with no fixed
+    taxonomy, so no further semantic merging is attempted), same
+    bucket/count/max shape as the other two projectors (5 domain tests).
+    Repository: `CitedRecommendationRepository.computeFitRisk` reads a
+    90-day window of real `fitting_observations` via a new
+    `PhysicalGarmentRepository.findObservationsByRetailer` (the existing
+    method was per-garment only; this mirrors
+    `AppointmentRepository.findByRetailer`'s retailer-scoped shape rather
+    than making the projector loop per garment), excludes
+    `future_order_note` (an advisor's explicit deferral is not a risk
+    signal), and cites the exact flagged-observation ids. UI: a third
+    `FitRiskCard` alongside the existing two, same settled pattern.
+    Browser-proven (`apps/retailer/e2e/fit-risk-insight.spec.ts`, 3
+    consecutive passes): a real garment intake with a deliberate 3:2:1
+    work_now observation skew (waist:sleeve:hem) correctly surfaces the
+    waist as most-flagged, `sample_size` exactly 3. Learned from
+    `complete_look`'s own shared-fixture dilution problem this update
+    avoids it differently: `area` is free text, so each run uses a
+    uniquely-timestamped synthetic area name (`waist-<unique>`) that can
+    never collide with any other real or historical observation on this
+    shared retailer, making the assertion exact without needing to query
+    a live total the way `complete_look` had to. Also learned from that
+    same session: this test does not attempt to delete the garment
+    intake it creates in cleanup, since neither `alteration_work_orders`'
+    cascade shape nor `fitting_observations`' own append-only posture
+    (suspected, not confirmed, unlike the proven `stock_ledger_entries`
+    case) was verified — an unchecked delete already caused one real
+    silent-failure bug this session, so this test deliberately leaves
+    harmless, uniquely-tagged debris rather than risk repeating it. The
+    checkbox stays unchecked: four projectors (interest_progression,
+    production_risk, stock_risk, staffing_risk) and the AI evaluation
+    harness remain entirely unbuilt.
 
 ### Stage 15 — Lifestyle network and MunroMerchant (parked)
 
@@ -6704,11 +6836,21 @@ nowhere honest to store it.
     difference from live self-service booking, not merely an unproven
     claim of it, and "starting measurement capture" from this page is
     still not attempted. Turning a request into a slot against real
-    advisor/room capacity remains `18.6`'s own item by design. Cross-
-    company isolation is structural (the RPC validates `p_programme_id`
-    against a real active programme/account/retailer and returns only
-    that scoped data) but has no dedicated "company A cannot see company
-    B's page" browser test.
+    advisor/room capacity remains `18.6`'s own item by design.
+  - **Proof (2026-08-14):** the named cross-company isolation gap is
+    closed. `apps/customer/e2e/corporate-office-visit-isolation.spec.ts`
+    creates two real corporate accounts/programmes under the same
+    fixture retailer and proves, in one browser run: Company A's public
+    page shows only Company A's legal name/programme name (Company B's
+    text asserted absent with a real `toHaveCount(0)`, not merely "not
+    found"); a request submitted on Company A's page is attributed only
+    to Company A's `programme_id` via `CorporateOfficeVisitRepository
+.findByProgramme` (Company B's programme independently confirmed to
+    have zero requests); and the symmetric check holds visiting Company
+    B's page. Confirms the RPC's structural scoping is real, not merely
+    unproven. Still missing: live self-service booking directly from the
+    page (deliberately `18.6`'s own item) and starting measurement
+    capture from this page.
 
 - [x] **18.5 Employee portal (auth and self-service)**
   - **Requirement IDs:** BD-105.

@@ -11,10 +11,11 @@ export const CAMPAIGN_LIBRARY_KEYS = [
   // PHASE 10.2 (CMP-105/CMP-106/WRD-104) — see seven-day-honeymoon.ts.
   "seven_day_wardrobe",
   "honeymoon_phase",
-  // PHASE 10.4 (CMP-107/REL-20) — see relationship-calendar.ts. Two of nine
-  // named packages so far; the rest are not yet built.
+  // PHASE 10.4 (CMP-107/REL-20) — see relationship-calendar.ts. Three of
+  // nine named packages; six remain unbuilt.
   "anniversary_moment",
   "annual_event",
+  "valentine_reservation_rescue",
 ] as const;
 
 export type CampaignLibraryKey = (typeof CAMPAIGN_LIBRARY_KEYS)[number];

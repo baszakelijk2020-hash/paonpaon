@@ -9,7 +9,11 @@ import {
   buildRecommendation,
   computeCorporateProgrammeMetrics,
   findBusiestSlot,
+  findMostCommonLookGap,
+  findMostFlaggedFitArea,
+  findMostUnderstaffedDay,
   planRecompute,
+  resolveGarmentCategoryFromConcepts,
   shouldCreateRenewalTask,
   type CitedRecommendation,
   type RecommendationBuild,
@@ -22,12 +26,33 @@ import type { Database, Json } from "../generated/database.types";
 
 import { AppointmentRepository } from "./appointment-repository";
 import { CorporateRepository } from "./corporate-repository";
+import { CustomerRepository } from "./customer-repository";
+import { MetadataRepository } from "./metadata-repository";
+import { PhysicalGarmentRepository } from "./physical-garment-repository";
+import { ProductRepository } from "./product-repository";
+import { ProductVariantRepository } from "./product-variant-repository";
+import { StaffRosterRepository } from "./staff-roster-repository";
+import { WardrobeRepository } from "./wardrobe-repository";
 
 type RecommendationRow =
   Database["public"]["Tables"]["cited_recommendations"]["Row"];
 
 const TEMPORAL_HOTSPOT_PROJECTOR_VERSION = "temporal-hotspot-v1";
 const HOTSPOT_WINDOW_DAYS = 90;
+const COMPLETE_LOOK_PROJECTOR_VERSION = "complete-look-v1";
+const MAX_CATALOGUE_PRODUCTS_SCANNED = 30;
+const FIT_RISK_PROJECTOR_VERSION = "fit-risk-v1";
+const FIT_RISK_WINDOW_DAYS = 90;
+const STAFFING_RISK_PROJECTOR_VERSION = "staffing-risk-v1";
+const STAFFING_RISK_WINDOW_DAYS = 90;
+
+/** Postgres `time` column, "HH:MM:SS" — staff_shifts never crosses
+ * midnight (its own check constraint enforces end_time > start_time),
+ * so plain hour/minute arithmetic is exact. */
+function timeStringToHours(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return (hours ?? 0) + (minutes ?? 0) / 60;
+}
 
 const DAY_NAMES = [
   "Sunday",
@@ -195,6 +220,353 @@ export class CitedRecommendationRepository {
     await this.withdrawLiveOfKind(
       args.retailerId,
       "temporal_hotspot",
+      "Superseded by a newer computation.",
+    );
+    return this.store(args.retailerId, result);
+  }
+
+  /**
+   * The `complete_look` projector. For each customer of a retailer,
+   * determines which garment categories they own zero active items in
+   * but the retailer's catalogue carries. Collects all gaps across
+   * customers and finds the most common missing category, then stores
+   * a fully cited recommendation. Withdraws any prior live `complete_look`
+   * recommendation first, so repeated recomputes supersede rather than
+   * pile up duplicate findings.
+   */
+  async computeCompleteLook(args: {
+    readonly retailerId: RetailerId;
+    readonly asOf?: string;
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<RecommendationBuild, { readonly ok: true }>
+    | { readonly ok: false; readonly reason: "no_customers_or_gaps" }
+  > {
+    const asOf = args.asOf ?? new Date().toISOString();
+
+    // Fetch all customers for the retailer
+    const customers = await new CustomerRepository(this.client).findByRetailer(
+      args.retailerId,
+    );
+
+    // Build the catalogue categories once for the retailer
+    const metadataRepo = new MetadataRepository(this.client);
+    const garmentConcepts = await metadataRepo.findVisibleConcepts(
+      args.retailerId,
+      "garment_type",
+    );
+    const categoryByConceptId = resolveGarmentCategoryFromConcepts({
+      concepts: garmentConcepts.map((concept) => ({
+        id: concept.id,
+        kind: concept.kind,
+        slug: concept.slug,
+        label: concept.canonicalName,
+      })),
+    });
+
+    const products = (
+      await new ProductRepository(this.client).findByRetailer(args.retailerId)
+    )
+      .filter((product) => product.status === "active")
+      .slice(0, MAX_CATALOGUE_PRODUCTS_SCANNED);
+    const variantRepo = new ProductVariantRepository(this.client);
+
+    // Collect available categories in the catalogue
+    const availableCatalogueCategories = new Set<string>();
+    for (const product of products) {
+      const acceptedConceptIds =
+        await metadataRepo.findAcceptedConceptIdsForProduct(
+          args.retailerId,
+          product.id,
+        );
+      const categoryCode = acceptedConceptIds
+        .map((conceptId) => categoryByConceptId.get(conceptId))
+        .find((category): category is NonNullable<typeof category> =>
+          Boolean(category),
+        );
+      if (!categoryCode) continue;
+
+      const variants = await variantRepo.findByProduct(product.id);
+      const inStock = variants.some((variant) => variant.inventoryQuantity > 0);
+      if (inStock) {
+        availableCatalogueCategories.add(categoryCode);
+      }
+    }
+
+    // Check if we have any customers or catalogue candidates
+    if (customers.length === 0 || availableCatalogueCategories.size === 0) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "complete_look",
+        "Recomputed with no customers or catalogue gaps to analyze.",
+      );
+      return { ok: false, reason: "no_customers_or_gaps" };
+    }
+
+    // For each customer, find their gaps
+    const wardrobeRepo = new WardrobeRepository(this.client);
+    const allGaps: string[][] = [];
+
+    for (const customer of customers) {
+      const items = await wardrobeRepo.findByCustomer(customer.id);
+
+      // Collect categories the customer owns (active items only)
+      const ownedCategories = new Set<string>();
+      for (const item of items) {
+        if (item.deletedAt) continue;
+        if (item.retiredAt) continue;
+        ownedCategories.add(item.categoryCode);
+      }
+
+      // Find gaps: categories in catalogue but not owned by customer
+      const customerGaps: string[] = [];
+      for (const category of availableCatalogueCategories) {
+        if (!ownedCategories.has(category)) {
+          customerGaps.push(category);
+        }
+      }
+
+      if (customerGaps.length > 0) {
+        allGaps.push(customerGaps);
+      }
+    }
+
+    // Find the most common gap
+    const best = findMostCommonLookGap(allGaps);
+    if (!best) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "complete_look",
+        "Recomputed with no gaps found in customer wardrobes.",
+      );
+      return { ok: false, reason: "no_customers_or_gaps" };
+    }
+
+    const statement = `${best.customerCount} of ${customers.length} customers have no owned or in-stock ${best.categoryCode} — your most common wardrobe gap.`;
+
+    const result = buildRecommendation({
+      kind: "complete_look",
+      statement,
+      sources: [
+        {
+          sourceRef: "wardrobe_items+products",
+          projectorVersion: COMPLETE_LOOK_PROJECTOR_VERSION,
+          observedRows: customers.length,
+        },
+      ],
+      window: { from: new Date(0).toISOString(), to: asOf },
+      sampleSize: best.customerCount,
+      derivedFromFactIds: [],
+    });
+
+    await this.withdrawLiveOfKind(
+      args.retailerId,
+      "complete_look",
+      "Superseded by a newer computation.",
+    );
+    return this.store(args.retailerId, result);
+  }
+
+  /**
+   * The `fit_risk` projector. Reads real fitting observations (excluding
+   * `future_order_note` — an advisor explicitly deferring work is not a
+   * risk signal), finds the garment area most often flagged `work_now`,
+   * and stores a fully cited recommendation naming exactly how many
+   * flagged observations fed it. Withdraws any prior live `fit_risk`
+   * recommendation first, same supersede-not-pile-up pattern as every
+   * other projector here.
+   */
+  async computeFitRisk(args: {
+    readonly retailerId: RetailerId;
+    readonly asOf?: string;
+    readonly windowDays?: number;
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<RecommendationBuild, { readonly ok: true }>
+    | { readonly ok: false; readonly reason: "no_fitting_observations" }
+  > {
+    const asOf = args.asOf ?? new Date().toISOString();
+    const windowDays = args.windowDays ?? FIT_RISK_WINDOW_DAYS;
+    const to = new Date(asOf);
+    const from = new Date(to.getTime() - windowDays * 86_400_000);
+
+    const observations = await new PhysicalGarmentRepository(
+      this.client,
+    ).findObservationsByRetailer(args.retailerId, {
+      sinceIso: from.toISOString(),
+    });
+    if (observations.length === 0) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "fit_risk",
+        "Recomputed with no fitting observations in the window.",
+      );
+      return { ok: false, reason: "no_fitting_observations" };
+    }
+
+    const best = findMostFlaggedFitArea(
+      observations.map((observation) => ({
+        area: observation.area,
+        workNow: observation.classification === "work_now",
+      })),
+    );
+    if (!best) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "fit_risk",
+        "Recomputed with no work_now observations in the window.",
+      );
+      return { ok: false, reason: "no_fitting_observations" };
+    }
+
+    const flaggedIds = observations
+      .filter(
+        (observation) =>
+          observation.classification === "work_now" &&
+          observation.area.trim().toLowerCase() === best.area,
+      )
+      .map((observation) => observation.id);
+
+    const statement = `${best.flagCount} of the last ${windowDays} days' ${observations.length} fitting observations flagged the ${best.area} for immediate work — your most common fit issue.`;
+
+    const result = buildRecommendation({
+      kind: "fit_risk",
+      statement,
+      sources: [
+        {
+          sourceRef: "fitting_observations",
+          projectorVersion: FIT_RISK_PROJECTOR_VERSION,
+          observedRows: observations.length,
+        },
+      ],
+      window: { from: from.toISOString(), to: to.toISOString() },
+      sampleSize: best.flagCount,
+      derivedFromFactIds: flaggedIds,
+    });
+
+    await this.withdrawLiveOfKind(
+      args.retailerId,
+      "fit_risk",
+      "Superseded by a newer computation.",
+    );
+    return this.store(args.retailerId, result);
+  }
+
+  /**
+   * The `staffing_risk` projector. Compares real booked-appointment demand
+   * against real scheduled staff-hours, bucketed by day of week over a
+   * 90-day window, and finds the day with the highest demand-per-staff-hour
+   * ratio — the day most likely to be genuinely understaffed, not merely
+   * the busiest day in isolation (that claim already belongs to
+   * `temporal_hotspot`). Stores a fully cited recommendation naming both
+   * real numbers. Withdraws any prior live `staffing_risk` recommendation
+   * first, same supersede-not-pile-up pattern as every other projector.
+   */
+  async computeStaffingRisk(args: {
+    readonly retailerId: RetailerId;
+    readonly asOf?: string;
+    readonly windowDays?: number;
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<RecommendationBuild, { readonly ok: true }>
+    | { readonly ok: false; readonly reason: "no_appointments_in_window" }
+  > {
+    const asOf = args.asOf ?? new Date().toISOString();
+    const windowDays = args.windowDays ?? STAFFING_RISK_WINDOW_DAYS;
+    const to = new Date(asOf);
+    const from = new Date(to.getTime() - windowDays * 86_400_000);
+
+    const appointments = (
+      await new AppointmentRepository(this.client).findByRetailer(
+        args.retailerId,
+      )
+    ).filter((appointment) => {
+      if (
+        appointment.status === "canceled" ||
+        appointment.status === "no_show"
+      ) {
+        return false;
+      }
+      const startsAt = Date.parse(appointment.startsAt);
+      return startsAt >= from.getTime() && startsAt <= to.getTime();
+    });
+    if (appointments.length === 0) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "staffing_risk",
+        "Recomputed with no appointments in the window.",
+      );
+      return { ok: false, reason: "no_appointments_in_window" };
+    }
+
+    const shifts = await new StaffRosterRepository(
+      this.client,
+    ).findShiftsByRetailer(args.retailerId, {
+      from: from.toISOString().slice(0, 10),
+      to: to.toISOString().slice(0, 10),
+    });
+
+    const appointmentCountByDay = new Map<number, number>();
+    for (const appointment of appointments) {
+      const dayOfWeek = new Date(appointment.startsAt).getUTCDay();
+      appointmentCountByDay.set(
+        dayOfWeek,
+        (appointmentCountByDay.get(dayOfWeek) ?? 0) + 1,
+      );
+    }
+
+    const staffHoursByDay = new Map<number, number>();
+    for (const shift of shifts) {
+      const dayOfWeek = new Date(`${shift.shiftDate}T00:00:00Z`).getUTCDay();
+      const hours = timeStringToHours(shift.endTime) - timeStringToHours(shift.startTime);
+      staffHoursByDay.set(
+        dayOfWeek,
+        (staffHoursByDay.get(dayOfWeek) ?? 0) + hours,
+      );
+    }
+
+    const days = [...appointmentCountByDay.entries()].map(
+      ([dayOfWeek, appointmentCount]) => ({
+        dayOfWeek,
+        appointmentCount,
+        staffHours: staffHoursByDay.get(dayOfWeek) ?? 0,
+      }),
+    );
+
+    const best = findMostUnderstaffedDay(days);
+    if (!best) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "staffing_risk",
+        "Recomputed with no understaffed day found in the window.",
+      );
+      return { ok: false, reason: "no_appointments_in_window" };
+    }
+
+    const coverageClause =
+      best.staffHours > 0
+        ? `only ${best.staffHours.toFixed(1)} scheduled staff-hour${best.staffHours === 1 ? "" : "s"}`
+        : "no scheduled staff-hours at all";
+    const statement = `${DAY_NAMES[best.dayOfWeek]}s carry ${best.appointmentCount} of the last ${windowDays} days' appointments against ${coverageClause} — your most understaffed day.`;
+
+    const result = buildRecommendation({
+      kind: "staffing_risk",
+      statement,
+      sources: [
+        {
+          sourceRef: "appointments+staff_shifts",
+          projectorVersion: STAFFING_RISK_PROJECTOR_VERSION,
+          observedRows: appointments.length,
+        },
+      ],
+      window: { from: from.toISOString(), to: to.toISOString() },
+      sampleSize: best.appointmentCount,
+      derivedFromFactIds: [],
+    });
+
+    await this.withdrawLiveOfKind(
+      args.retailerId,
+      "staffing_risk",
       "Superseded by a newer computation.",
     );
     return this.store(args.retailerId, result);
