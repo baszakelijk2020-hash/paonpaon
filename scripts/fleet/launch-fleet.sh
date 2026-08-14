@@ -16,13 +16,28 @@ REPO_ROOT="${PAON_REPO_ROOT:-/Users/nguyen/Projects/PAON}"
 FLEET="$REPO_ROOT/scripts/fleet/paon-fleet"
 
 # agent_id | worktree | tmux session | tiers it may claim | launch command
+#
+# The DeepSeek lane MUST carry CODEX_HOME + OPENROUTER_API_KEY. The first
+# version of this launcher dropped both (the original VS Code tasks.json had
+# them), so the lane labelled "openrouter-deepseek" silently ran plain Codex
+# on gpt-5.6-terra — burning the expensive quota the lane existed to avoid.
+# Verified from the live pane before this fix: "gpt-5.6-terra medium".
+CODEX_OR_HOME="$HOME/.config/paon-agent-launcher/codex-openrouter"
+OR_ENV="CODEX_HOME='$CODEX_OR_HOME' OPENROUTER_API_KEY=\"\$(security find-generic-password -s paon-openrouter -w 2>/dev/null)\""
+
 AGENTS=(
   "claude-nguyen1|/private/tmp/paon-claude-nguyen1|paon-claude-nguyen1|frontier,implementation|claude --permission-mode bypassPermissions"
   "claude-nguyen2|/private/tmp/paon-claude-nguyen2|paon-claude-nguyen2|frontier,implementation|claude --permission-mode bypassPermissions"
   "claude-nguyen3|/private/tmp/paon-claude-nguyen3|paon-claude-nguyen3|implementation,light|claude --permission-mode bypassPermissions"
   "codex-openrouter|/private/tmp/paon-codex-openrouter|paon-codex|implementation,light|codex --dangerously-bypass-approvals-and-sandbox"
-  "openrouter-deepseek|/private/tmp/paon-openrouter-codex|paon-deepseek|light|codex --dangerously-bypass-approvals-and-sandbox"
+  "openrouter-deepseek|/private/tmp/paon-openrouter-codex|paon-deepseek|light|$OR_ENV codex --dangerously-bypass-approvals-and-sandbox"
 )
+
+# Claude Code hooks (delegation gate, prettier, stop-continue) are Claude-only.
+# Codex/OpenRouter sessions were inheriting them and failing every tool call
+# with "PreToolUse hook (failed) exit 127". Non-Claude lanes get this marker so
+# the hook scripts no-op instead of erroring.
+NON_CLAUDE_ENV="PAON_NON_CLAUDE_AGENT=1"
 
 OPENING_PROMPT='You are a PAON fleet agent. Read AGENTS.md first.
 
@@ -57,8 +72,10 @@ start_one() {
   if tmux has-session -t "$sess" 2>/dev/null; then
     echo "  RUNNING $id (tmux: $sess) — leaving alone"; return
   fi
+  local extra=""
+  case "$cmd" in *codex*) extra="$NON_CLAUDE_ENV " ;; esac
   tmux new-session -d -s "$sess" -c "$wt" \
-    "PAON_AGENT_ID='$id' PAON_AGENT_TIERS='$tiers' PAON_REPO_ROOT='$REPO_ROOT' $cmd"
+    "${extra}PAON_AGENT_ID='$id' PAON_AGENT_TIERS='$tiers' PAON_REPO_ROOT='$REPO_ROOT' $cmd"
   sleep 6   # both CLIs need time to finish booting before they accept input
   # A multi-line string arrives as a bracketed PASTE, which these TUIs buffer
   # as a "[Pasted text]" block rather than submitting. The trailing C-m only

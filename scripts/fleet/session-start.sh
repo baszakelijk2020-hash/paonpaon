@@ -9,6 +9,9 @@
 # Emits additionalContext, which Claude Code injects into the session.
 set -uo pipefail
 
+# Claude-only hook; see stop-continue.sh. No-op in Codex/OpenRouter lanes.
+[ -n "${PAON_NON_CLAUDE_AGENT:-}" ] && exit 0
+
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 FLEET="$REPO_ROOT/scripts/fleet/paon-fleet"
 AGENT_ID="${PAON_AGENT_ID:-$(basename "$REPO_ROOT")}"

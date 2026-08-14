@@ -120,6 +120,7 @@ select_next() {
       else
         [ .tasks[]
           | select(.status=="open")
+          | select(.needs_scope != true)   # unscoped work is never auto-assigned
           | select((.tier // "implementation") as $x | $t | index($x))
           # exclusive tasks wait until the fleet is completely quiet
           | select((.exclusive != true) or (($live|length) == 0))
@@ -134,15 +135,59 @@ select_next() {
   ' "$QUEUE"
 }
 
+# Is $1 eligible for THIS agent right now? Prints "OK" or a refusal reason.
+# Both `take` and `claim` go through this. Previously only `take` enforced the
+# rules and `claim` enforced nothing, so a direct claim silently bypassed tier,
+# path-overlap and exclusive-task safety entirely.
+eligibility() {
+  local id="$1"
+  local tiers="${PAON_AGENT_TIERS:-frontier,implementation,light}"
+  jq -r --arg id "$id" --arg tiers "$tiers" '
+    def norm: sub("\\*+$";"") | sub("/$";"");
+    def overlaps($a; $b):
+      any($a[]; . as $x | any($b[]; . as $y
+        | ($x|norm) as $nx | ($y|norm) as $ny
+        | ($nx|startswith($ny)) or ($ny|startswith($nx))));
+    ($tiers | split(",")) as $t
+    | (.tasks[] | select(.id==$id)) as $task
+    | [ .tasks[] | select(.status=="claimed") | select(.id != $id) ] as $live
+    | ($live | map(.owned_paths // []) | add // []) as $taken
+    | if $task == null then "NO_SUCH_TASK"
+      elif $task.status != "open" then "NOT_OPEN:\($task.status)"
+      elif ($t | index($task.tier // "implementation") | not) then "WRONG_TIER:\($task.tier)"
+      elif $task.needs_scope == true then "NEEDS_SCOPE"
+      elif ($live | map(select(.exclusive == true)) | length) > 0 then "EXCLUSIVE_RUNNING"
+      elif ($task.exclusive == true) and (($live|length) > 0) then "FLEET_NOT_QUIET"
+      elif ($task.exclusive != true) and (($taken|length) > 0)
+           and (overlaps(($task.owned_paths // ["__none__"]); $taken)) then "PATH_CONFLICT"
+      else "OK" end
+  ' "$QUEUE"
+}
+
+# Refuse any mutation by an agent that does not hold the active lease.
+# Only heartbeat used to check this, so any agent could mark another agent's
+# task done, blocked or released.
+assert_owner() {
+  local id="$1"
+  local owner; owner="$(jq -r --arg id "$id" '.tasks[]|select(.id==$id)|.claimed_by // ""' "$QUEUE")"
+  local st;    st="$(jq -r --arg id "$id" '.tasks[]|select(.id==$id)|.status // ""' "$QUEUE")"
+  if [ -z "$st" ]; then release_lock; echo "REJECTED: no such task '$id'" >&2; exit 1; fi
+  if [ "$owner" != "$AGENT_ID" ]; then
+    release_lock
+    echo "REJECTED: '$id' is held by '${owner:-nobody}', not '$AGENT_ID'" >&2
+    exit 1
+  fi
+}
+
 cmd_next() { acquire; reap_expired; local id; id="$(select_next)"; release_lock
-  [ -n "$id" ] || { echo "QUEUE_EMPTY"; exit 0; }
+  [ -n "$id" ] || { echo "NO_ELIGIBLE_WORK"; exit 0; }
   jq -r --arg id "$id" '.tasks[]|select(.id==$id)' "$QUEUE"; }
 
 cmd_claim() {
   local id="$1"; acquire; reap_expired
-  local st; st="$(jq -r --arg id "$id" '.tasks[]|select(.id==$id)|.status' "$QUEUE")"
-  if [ "$st" != "open" ]; then
-    release_lock; echo "CLAIM_FAILED: $id is '$st'" >&2; exit 1
+  local why; why="$(eligibility "$id")"
+  if [ "$why" != "OK" ]; then
+    release_lock; echo "CLAIM_REFUSED: $id ($why)" >&2; exit 1
   fi
   jq --arg id "$id" --arg who "$AGENT_ID" --arg exp "$(lease_iso)" --arg now "$(now_iso)" '
     .tasks |= map(if .id==$id then
@@ -155,7 +200,11 @@ cmd_claim() {
 cmd_take() { # atomic next+claim — the command agents should actually use
   acquire; reap_expired
   local id; id="$(select_next)"
-  if [ -z "$id" ]; then release_lock; echo "QUEUE_EMPTY"; exit 0; fi
+  # NO_ELIGIBLE_WORK is distinct from "the queue is empty": there may be
+  # plenty of open tasks that this agent must not touch (wrong tier, path
+  # conflict, exclusive task running). Callers must stop cleanly on it, not
+  # go looking for something else to do.
+  if [ -z "$id" ]; then release_lock; echo "NO_ELIGIBLE_WORK"; exit 0; fi
   jq --arg id "$id" --arg who "$AGENT_ID" --arg exp "$(lease_iso)" --arg now "$(now_iso)" '
     .tasks |= map(if .id==$id then
       .status="claimed" | .claimed_by=$who | .lease_expires_at=$exp | .claimed_at=$now
@@ -167,6 +216,13 @@ cmd_take() { # atomic next+claim — the command agents should actually use
 cmd_set_status() {
   local id="$1" st="$2" note="${3:-}"
   acquire
+  # A task already terminal must not be re-marked — double-`done` used to be
+  # accepted silently, inflating completion counts.
+  local cur; cur="$(jq -r --arg id "$id" '.tasks[]|select(.id==$id)|.status // ""' "$QUEUE")"
+  if [ "$cur" = "done" ] && [ "$st" = "done" ]; then
+    release_lock; echo "REJECTED: '$id' is already done" >&2; exit 1
+  fi
+  assert_owner "$id"
   jq --arg id "$id" --arg st "$st" --arg note "$note" --arg now "$(now_iso)" --arg who "$AGENT_ID" '
     .tasks |= map(if .id==$id then
       .status=$st | .lease_expires_at=null
@@ -180,6 +236,7 @@ cmd_set_status() {
 
 cmd_heartbeat() {
   local id="$1"; acquire
+  assert_owner "$id"
   jq --arg id "$id" --arg who "$AGENT_ID" --arg exp "$(lease_iso)" '
     .tasks |= map(if .id==$id and .claimed_by==$who then .lease_expires_at=$exp else . end)
   ' "$QUEUE" | write_queue

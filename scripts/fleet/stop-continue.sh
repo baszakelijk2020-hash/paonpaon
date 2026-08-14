@@ -21,6 +21,10 @@
 # going with that instruction.
 set -uo pipefail
 
+# Claude-only. Codex/OpenRouter lanes were inheriting this hook and failing
+# with exit 127 / invalid stop-hook JSON on every turn. Exit silently there.
+[ -n "${PAON_NON_CLAUDE_AGENT:-}" ] && exit 0
+
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 cd "$REPO_ROOT" || exit 0
 FLEET="$REPO_ROOT/scripts/fleet/paon-fleet"
@@ -65,7 +69,16 @@ fi
 # --- 4. hand over the next task ----------------------------------------------
 [ -x "$FLEET" ] || exit 0
 task="$("$FLEET" take 2>/dev/null)" || exit 0
-[ -n "$task" ] && [ "$task" != "QUEUE_EMPTY" ] || exit 0
+
+# NO_ELIGIBLE_WORK means "nothing this agent may safely take" — which is NOT
+# the same as "nothing to do". Exiting 0 here is deliberate: the agent stops
+# cleanly rather than casting around for something to work on. Previously an
+# empty result left the agent with no instruction at all, and Codex responded
+# by resuming stale, unrelated work it found lying in the tree.
+case "$task" in
+  ""|NO_ELIGIBLE_WORK|QUEUE_EMPTY)
+    exit 0 ;;
+esac
 
 id="$(printf '%s' "$task"    | jq -r '.id')"
 title="$(printf '%s' "$task" | jq -r '.title')"
