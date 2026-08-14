@@ -394,3 +394,387 @@ the `20260806110000` migration prefix collision recorded there.
 to delete once the founder confirms; both are superseded by corrected
 implementations already on `main`. Deletion was **not** performed. No branch,
 worktree or evidence file was modified by this tranche.
+
+## 10. Post-ground-zero tranche 3 — legacy-branch classification, 2026-08-15
+
+Baseline `698f3e207377824b23cde49350b52c6c68740374`, local `main` equal to
+`origin/main`, worktree clean, Fleet frozen with zero active claims. Scope: the
+seven blocked-conflict lanes of section 4, the migration collision it records,
+and the primary checkout. **Nothing was integrated. No code, migration, test,
+branch or worktree was modified.** Execution planning lives in
+`ORCHESTRATION_2.md`.
+
+### 10a. Verification posture
+
+Classification was fanned out to eight bounded read-only subagents, then every
+load-bearing conclusion was re-verified directly. That mattered: **three
+subagent claims were wrong on first report** and survived only until
+re-checked. They are named in 10c, 10h and 10j rather than quietly dropped, so
+no later tranche re-derives them. Treat subagent output in this repository as a
+lead, never as a finding.
+
+### 10b. The seven branches are five segments over one shared base
+
+The central structural fact, and the reason section 4's table overstates the
+problem:
+
+```
+main (698f3e2) ── merge-base 6ca3611
+                      │
+                      └── 28 commits ── _integration-check (934b540)
+                                        ≡ feature/conversation-intelligence
+                                             ├── +10 → lane-d-virtual-wardrobe-studio
+                                             ├── +2  → feature/voice-intelligence
+                                             ├── +2  → lane-h-customer-security-boundary
+                                             └── +4  → lane-e-core-roadmap
+                                                        └── +2 → lane-f ≡ lane-g
+```
+
+Verified by `git merge-base --is-ancestor` for every pair. Two identities are
+exact, not approximate:
+
+- `_integration-check` and `feature/conversation-intelligence` are the **same
+  commit** `934b540`.
+- `agent/lane-f-wardrobe-service-request` and
+  `agent/lane-g-employee-portal-linking` are the **same commit** `1b6381d`.
+
+All seven share merge-base `6ca3611`. There are **48 distinct commits**, not
+the 225 that section 4's per-branch counts imply, and the conflict counts in
+that table are dominated by the shared 28-commit base rather than by each
+lane's own work. Section 4's unique-commit numbers are individually correct and
+were reproduced exactly; the table simply invites the wrong conclusion, because
+it presents one shared problem as seven.
+
+### 10c. Correction to section 2b — the evidence SHAs are not stale by ancestry
+
+Section 2b states that each of the 16 evidence files cites a SHA that is "not
+an ancestor of this branch". **That is incorrect, and was incorrect when
+written.** All nine distinct SHAs are ancestors of `main` _and_ were already
+ancestors of ground zero `504c1b4` itself:
+
+| SHA                                                   | ancestor of `main` | ancestor of `504c1b4` |
+| ----------------------------------------------------- | ------------------ | --------------------- |
+| `d5e66de`, `0a7ae8c`, `fc783be`, `71a90a1`, `cc47e0d` | yes                | yes                   |
+| `99cb0ec`, `29b2177`, `964d9db`, `ef9f43c`            | yes                | yes                   |
+
+The real mechanism is different and matters more. `validate:completion` does
+not test ancestry at all. It calls `isCurrentGitSha`
+(`packages/domain/src/programme/completion-evidence.ts:309-315`) and requires
+the run's `gitSha` to equal the **current** checkout SHA, emitting
+`run gitSha … is not current for this checkout`.
+
+Consequence: **every commit to `main` invalidates all 16 evidence files
+again.** This is structural, not a property of these particular proofs. It
+independently confirms the standing instruction to regenerate browser proof
+only after integration stabilizes — doing it earlier is wasted by
+construction. Sections 1–7 are kept verbatim per this file's own convention;
+this subsection is the correction of record.
+
+### 10d. Shared base `_integration-check` / `feature/conversation-intelligence`
+
+28 commits, 98 files, +11486/−299. It is **not** merely combined topology: it
+carries unique capability that `main` lacks.
+
+**Already integrated** — `20260805240000` contract-value and `20260806000000`
+fit-profile-candidates landed on `main` renamed forward as `20260810110000`
+and `20260810120000` (section 9c/9d). The two follow-up fixes
+`20260806000002` (derive `customer_id` from the real parent, not
+`physical_garment_id`) and `20260806000003` (stop writing to the table
+`20260719000101` renamed away) are both already folded into `main`'s
+`20260810120000`.
+
+**Active unique salvage candidates — three cross-tenant integrity fixes that
+`main` does not have.** Each migration documents a _reproduced_ hole, not a
+theoretical one:
+
+| Migration        | Hole                                                                                                                                                                                 | State on `main`                                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| `20260806000004` | Staff of any retailer could attach a row — including a monetary `wedding_guest_vouchers` row — to another retailer's wedding party, and that retailer's organizer could then read it | **absent**; `wedding_parties_id_retailer_id_key` not present    |
+| `20260806000005` | Same class across the whole corporate/BD chain: tender approvals, entitlement issues, advisor-capture insights attachable to another retailer's parent                               | **absent**; `corporate_accounts_id_retailer_id_key` not present |
+| `20260806000006` | A crafted POST to `createClientelingNote` could attach a note to another retailer's real customer                                                                                    | **partial, in the misleading direction**                        |
+
+The `20260806000006` case needs care. `main` _does_ have
+`customers_id_retailer_id_key` — but it arrives at
+`20260814000000_add_store_feedback_signals.sql:6`, added incidentally for an
+unrelated feature. The composite foreign key on `clienteling_notes` is
+**absent**: `20260720000003_create_clienteling_notes.sql:4` still declares the
+plain `customer_id uuid not null references public.customers(id)`. `main` has
+the harmless half of the fix and not the half that closes the hole. A grep for
+the constraint name alone would wrongly report this as fixed.
+
+Each fix is small, self-contained, and re-creatable as a forward patch with a
+new prefix; each ships with pgTAP coverage that `main` also lacks.
+
+**Active unique salvage candidates — founder authority absent from `main`:**
+`docs/RELATIONSHIP_INTELLIGENCE_BLUEPRINT.md` (907 lines, Rank 2 authority) and
+`docs/documentation-audit/FOUNDER_ANSWERS.md`, which records two explicit
+founder rulings (Q4: repository authority exists exactly once, tool docs must
+delegate; Q5: correct the out-of-repo `paon.html` citation). Both files are
+verified absent from `main`.
+
+**Parked** — the 17-file `docs/documentation-audit/` bundle, the
+`docs/archive/` snapshots, and the evidence-run SHA rewrites (governance and
+reversibility artifacts; the SHA rewrites must not be merged, per 10c).
+
+`feature/conversation-intelligence` is the same commit and adds nothing:
+**duplicate**.
+
+### 10e. `agent/lane-d-virtual-wardrobe-studio` (+10)
+
+**Already integrated.** All seven VWS migrations are **byte-identical** to
+`main` at identical filenames and timestamps — verified by object-hash
+comparison, not by name:
+
+`20260806100000` foundation, `20260806110000` style-portrait consent,
+`20260806120000` output storage, `20260806130000` visual presets,
+`20260806140000` outfit-slot insert policy, `20260807100000` feedback signal,
+`20260807110000` generation style evidence.
+
+Style Portrait consent is therefore already on `main` in full: explicit,
+revocable, `granted`/`denied`/`withdrawn`, gated on
+`disclosures_acknowledged`. Renders are private — bucket `wardrobe-studio`,
+`public = false`, tenant-scoped path structure and RLS. Tenancy is enforced in
+depth by RLS plus triggers.
+
+The application code is **superseded**: `main` is strictly ahead, having added
+six further VWS migrations (`20260809130000`–`20260809180000`) that gate
+enqueue on module state _and_ explicitly re-check consent, plus
+`assertRetailerModuleActive` guards in the Server Actions. Merging the branch
+would remove those guards. FT-09 and suit-jacket research show no unique
+residue here.
+
+### 10f. `feature/voice-intelligence` (+2)
+
+Genuinely **active voice/clienteling behaviour**, not generic AI expansion: the
+system prompt reads an advisor note "typed or spoken, then transcribed", and
+the branch carries an `unresolved` bundle kind whose purpose is to surface
+ambiguous speech for a human instead of guessing.
+
+**Superseded.** `main` took a different and broader design at
+`20260812000020`/`20260812000021`: bundle kinds `appointment` and
+`care_booking` rather than the branch's `appointment_proposal` and
+`unresolved`, and `main` deliberately removed the `appointmentContext` the
+branch adds. This is a product-direction difference, not a missing fix.
+
+AI-governance posture, both sides: grounding is **strong** — a bundle is
+refused unless its `sourceExcerpt` is a literal substring of the source text.
+Human review is **strong** — every bundle requires explicit advisor
+confirmation. Tenant isolation is **strong** — all policies scope on
+`current_retailer_id()`. Consent is _staff-initiated_, with no customer
+consent record on either side. **Retention has no expiry policy on either
+side** — captured conversation content persists indefinitely. That gap is
+`main`'s too, and is the one item here worth carrying forward.
+
+### 10g. `agent/lane-h-customer-security-boundary` (+2) — security-critical
+
+**Needs security review.** The boundary does not exist on `main` under any
+name: `note_visibility`, `record_customer_access_event`,
+`canStaffAccessCustomerRelationshipData` and `findByRetailerForStaffView` all
+return zero hits across `packages/`, `apps/` and `supabase/`.
+
+What it does: replaces the blanket retailer-wide SELECT on `clienteling_notes`
+with a four-tier `note_visibility` model (`author_only`, `assigned_advisor`,
+`management`, `retailer_shared`) keyed on authorship, management override and
+`customers.assigned_staff_id`; and adds a metadata-only sensitive-access RPC
+writing to `audit_log_entries`.
+
+Things it gets right, verified directly: the backfill direction is **safe** —
+the column defaults new rows to the narrow `assigned_advisor`, while existing
+rows are explicitly backfilled to `retailer_shared`, preserving prior exposure
+rather than widening it. The `SECURITY DEFINER` function pins `search_path`,
+derives tenant identity from the session, and is granted only to
+`authenticated`. The pgTAP suite contains **real adversarial negative cases**,
+including a genuine cross-tenant attempt asserting zero rows.
+
+Two findings must close before this can merge, both verified:
+
+1. **Incomplete authorization wiring.** `customers/[id]/page.tsx` computes
+   `canViewRelationshipIntelligence` but uses it 4 times against 11 uses of
+   the weaker role-only `canManage`. Loyalty account, interest projection,
+   customer facts and AI history remain visible to an unassigned associate,
+   and `customer_facts` RLS is retailer-wide with no assignment check. Only
+   `AdvisorBriefRepository` is disclosed as deferred; these are not.
+2. **Audit immutability unproven at the grant layer.** `audit_log_entries` is
+   **not** in the table list of
+   `20260801000016_enforce_append_only_grants.sql` (0 matches), so
+   `service_role` — which bypasses RLS entirely — may retain
+   `UPDATE`/`DELETE`/`TRUNCATE` on the ledger this feature depends on. No
+   exploiting call site exists in current code; the guarantee is simply
+   unestablished and needs a live-grant check.
+
+A third, non-security regression: `appointments/[id]/page.tsx` and its print
+route call `notes.find(n => n.pinned)` and are untouched by the branch, so a
+pinned note would silently vanish for non-assigned staff with no indication.
+
+### 10h. `agent/lane-e-core-roadmap` (+4)
+
+Real code, not documentation churn — roughly 86% working code and tests.
+
+**FT-14 weekly plan — blocked by founder decision.** `service_weekly_plans`
+appears nowhere in `main`'s code. But `main` already carries a _different_
+FT-14: `agent/preferred-tailoring-monthly-grid` (`5cefa49`) is **fully
+integrated**, with zero unique commits versus `main`. A subagent reported this
+branch as simultaneously an ancestor of `main` and "not yet integrated"; the
+first is true and the second is false. So this is not an integration question
+but a product question: **weekly proposed plan versus monthly grid** — the
+founder must choose before either is extended.
+
+**18.7 corporate auto-advance — superseded.** `main` has `b41e00c`, with
+`advanceStageForAccount` and `advanceToFittingIfDue` both present. The
+branch's `20d1615` is a parallel implementation of the same feature, three
+days older.
+
+The hooks commit `5e02b3b` touches `.claude/settings.json` and is **out of
+scope by standing instruction** — recorded, not acted on.
+
+### 10i. `agent/lane-f` ≡ `agent/lane-g` (+2) and lane-g's dirty worktree
+
+**Committed state: duplicate.** The two branch names are one commit. Against
+`main`, `packages/domain/src/wardrobe/wardrobe.ts`,
+`apps/customer/app/(dashboard)/wardrobe/actions.ts` and
+`apps/customer/e2e/wardrobe.spec.ts` are **byte-identical**; `main` landed the
+same capability independently as `170aed8`. Only `wardrobe-panel.tsx` differs,
+and there the branch is a **regression** — it deletes
+`completeTheLookSuggestions` code that `main` keeps.
+
+The Employee Portal blueprint (`1b6381d`) is **superseded**: `main` already
+implemented what it plans (`ef9f43c`, plus migrations `20260809200000`,
+`20260809210000`, `20260809220000`, `20260810100000`).
+
+**Dirty worktree, 13 entries, classified read-only and left untouched** (7
+modified, 6 untracked). Ten are duplicates of work `main` already has. Four
+are not on `main`:
+
+| Entry                                                                        | Disposition                                                         |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `packages/domain/src/corporate/wearer-customer-link.ts`                      | active unique salvage candidate                                     |
+| `packages/domain/src/corporate/wearer-customer-link.test.ts`                 | active unique salvage candidate                                     |
+| `supabase/tests/wearer_customer_link_test.sql`                               | active unique salvage candidate — asserts the email-only-match trap |
+| `supabase/migrations/20260807110000_add_wearer_customer_account_linking.sql` | split — see below                                                   |
+
+The migration defines two RPCs and they classify differently — it must not be
+salvaged or discarded as a unit:
+
+- `link_my_wearer_account()` — **superseded**. `main` has its own version at
+  `20260809200000_add_employee_portal_customer_data_access.sql:217`, same
+  signature, `security definer`, `search_path` pinned, granted only to
+  `authenticated`.
+- `create_and_link_wearer_customer_account()` — **active unique salvage
+  candidate**. Absent from `main` entirely (zero matches across `supabase/`,
+  `packages/` and `apps/`). This is the explicit opt-in linking path, as
+  distinct from `main`'s silent-match path, and it pairs with the
+  `wearer_customer_link_test.sql` pgTAP case above.
+
+No secret, credential or `.env` file is present among them. Nothing was staged,
+committed, stashed or cleaned.
+
+### 10j. Primary checkout `/Users/nguyen/Projects/PAON` — read-only
+
+Confirmed exactly as briefed and **entirely unmodified**. Branch
+`agent/lane-h-customer-ai-conversation`, HEAD `a665a26`, unfinished merge with
+`.git/MERGE_HEAD` = `87c1fa0` ("feat(morning-routine): wire real cart/order
+creation for Buy action", 2026-08-13), which is an ancestor of neither `main`
+nor `a665a26`.
+
+Conflict stages: `actions.ts` and `routine-panel.tsx` are `UU` with stages
+1/2/3; `morning-routine.spec.ts` is `AA` with stages 2/3 only.
+
+**The merge's headline capability is already on `main`.** A subagent reported
+that `main` "treats buy as a navigation-only stub" and that the merge source
+was therefore uniquely valuable. That is wrong.
+`main:apps/customer/app/(dashboard)/morning-routine/actions.ts` implements the
+full buy path — the `productVariantId` guard, the saved-address precondition
+with the same "Turn on 1-Tap Checkout first" message, `orderRepo.addToCart`
+(line 199) and `orderRepo.checkoutCart` (line 204). The capability is
+**already integrated**. What `main` appears to lack is the _e2e assertion_ for
+it; that, not the feature, is the only salvage candidate here.
+
+Modified tracked: `.claude/settings.json` and `AGENTS.md`, both **off-limits**
+and both _older_ than `main` (`AGENTS.md` is 800 lines against `main`'s 2030 —
+a regression, not new work). Untracked: two founder documents absent from
+`main` — `docs/PAON_VISUAL_WARDROBE_PRECISION_AUTHORITY.md` and
+`docs/fuckingchanges.md` — plus local agent tooling (`.agents/`, `.vscode/`,
+three watchdog scripts) and `image.png`. `.env.local` exists but is matched by
+`.gitignore:77`, is untracked and never appears in `git status`: no exposure
+risk.
+
+A recovery procedure exists in `ORCHESTRATION_2.md` terms — capture stages via
+`git show :2:<path>` / `:3:<path>` to a location outside the repository,
+copy the two founder documents out, then decide. **It was not executed, and
+must not be until the founder rules.**
+
+### 10k. Migration collisions
+
+**The recorded collision is already resolved in `main`'s favour.** Section 4
+frames `20260806110000` as two unmerged lanes racing. It is not:
+`main` **already holds** `20260806110000_add_style_portrait_consent.sql`, and
+it is applied — `style_portrait_consents` is present in
+`packages/database/src/generated/database.types.ts`. `lane-e`'s
+`20260806110000_add_service_weekly_plans.sql` never reached `main` and is
+absent from the generated types. It is the file that must be renamed forward;
+it can never reclaim that prefix.
+
+**A second, live collision exists on `main` and is more urgent.** Four
+migrations share the prefix `20260814000000`:
+
+```
+20260814000000_add_ft04_alteration_grid_snapshots.sql
+20260814000000_add_gift_invitation_expiry_revoke_refund.sql
+20260814000000_add_retailer_branch_location_details.sql
+20260814000000_add_store_feedback_signals.sql
+```
+
+`supabase db reset --local` fails on duplicate version. **No local database can
+be built on `main` today**, so no pgTAP, no browser proof and no evidence
+regeneration is possible. This is the root cause behind the blocked
+`evidence-stale-sha` task and the three unregenerable tranches 17.2, 17.9 and
+17.14. It is `ORCHESTRATION_2.md` tranche 3, the first execution tranche.
+
+Security review requirement: the three salvaged FK migrations of 10d each add
+a unique constraint plus a composite foreign key. They must land with negative
+pgTAP proof, and `20260814000000_add_store_feedback_signals.sql` must keep a
+prefix earlier than them, since it is what creates
+`customers_id_retailer_id_key`.
+
+### 10l. Disposition summary
+
+| Branch                                    | Head      | Unique           | Disposition                                                                                                          |
+| ----------------------------------------- | --------- | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `_integration-check`                      | `934b540` | 28 (shared base) | **active unique salvage candidate** — 3 tenant FK fixes + 2 founder documents; remainder already integrated / parked |
+| `feature/conversation-intelligence`       | `934b540` | 0                | **duplicate** — same commit as `_integration-check`                                                                  |
+| `agent/lane-d-virtual-wardrobe-studio`    | `ec6b540` | +10              | **already integrated** (all 7 migrations byte-identical) / **superseded** (app code; `main` strictly ahead)          |
+| `feature/voice-intelligence`              | `a02dd10` | +2               | **superseded** — `main` chose a different design                                                                     |
+| `agent/lane-h-customer-security-boundary` | `9da15ef` | +2               | **needs security review** — absent from `main`; 2 findings must close                                                |
+| `agent/lane-e-core-roadmap`               | `d3af01d` | +4               | FT-14 **blocked by founder decision**; 18.7 **superseded**                                                           |
+| `agent/lane-f-wardrobe-service-request`   | `1b6381d` | +2               | **duplicate** (code byte-identical to `main`) / blueprint **superseded**                                             |
+| `agent/lane-g-employee-portal-linking`    | `1b6381d` | 0                | **duplicate** — same commit as `lane-f`                                                                              |
+| lane-g dirty worktree                     | —         | 13 entries       | 10 **duplicate**, 3 **salvage candidates**; its migration splits — one RPC **superseded**, one **salvage candidate** |
+| primary checkout                          | `a665a26` | unfinished merge | buy path **already integrated**; 2 founder docs **salvage**, config **off-limits**                                   |
+
+### 10m. Genuine remaining blockers
+
+1. **`20260814000000` four-way prefix collision on `main`** — blocks every
+   local database, hence every proof. First execution tranche.
+2. **Three unmerged cross-tenant integrity fixes** for reproduced holes, one
+   of them touching monetary vouchers.
+3. **ADR-074 boundary** — two open findings plus an unverified grant-layer
+   guarantee on `audit_log_entries`.
+4. **FT-14 founder decision** — weekly plan versus the already-integrated
+   monthly grid.
+5. **16 evidence files** — invalidated by every commit (10c); regenerate once,
+   last.
+6. **`docs/evidence/runs/18.5.json` has no producer** — every 18.5 spec
+   declares a suffixed `PHASE_ITEM_ID`, so the bare id can never regenerate.
+7. **Queue seeder auto-queues founder-parked scope** — Stage 13, Stage 15,
+   16.2, 16.3, 16.5, 18.9, 18.10.
+8. **No retention/expiry policy** on captured conversation content on `main`.
+
+### 10n. What this tranche did not do
+
+No merge, cherry-pick, rebase or conflict resolution. No branch or worktree
+deleted. No migration run. No application, package, migration, test or
+configuration file modified. `docs/PHASE.md` untouched. `AGENTS.md`, Claude
+settings and hooks untouched. `/Users/nguyen/Projects/PAON` untouched. No
+Fleet task seeded, claimed or unfrozen — Fleet remains **frozen**. No live
+Supabase or Vercel action. Only `docs/GROUND_TRUTH.md` and
+`docs/ORCHESTRATION_2.md` were written.
