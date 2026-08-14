@@ -15,7 +15,7 @@ function splitKeys(raw: FormDataEntryValue | null): string[] {
 }
 
 export async function upsertButtonRule(formData: FormData): Promise<void> {
-  const session = await requireModuleSession("retail_operations");
+  const session = await requireModuleSession("garment_service_operations");
   requireRetailerRole(session.retailerRole, "manager");
   const fabricKey = String(formData.get("fabricKey") ?? "").trim();
   const note = String(formData.get("buttonNote") ?? "");
@@ -34,7 +34,7 @@ export async function upsertButtonRule(formData: FormData): Promise<void> {
 }
 
 export async function upsertLiningRule(formData: FormData): Promise<void> {
-  const session = await requireModuleSession("retail_operations");
+  const session = await requireModuleSession("garment_service_operations");
   requireRetailerRole(session.retailerRole, "manager");
   const fabricKey = String(formData.get("fabricKey") ?? "").trim();
   const note = String(formData.get("liningNote") ?? "");

@@ -24,7 +24,7 @@ export default async function FabricPairingPage({
   searchParams: Promise<{ fabric?: string }>;
 }) {
   const { fabric: fabricConceptId } = await searchParams;
-  const session = await requireModuleSession("retail_operations", "read");
+  const session = await requireModuleSession("garment_service_operations", "read");
   const supabase = await getSupabaseServerClient();
   const canManageRules = retailerRoleAtLeast(session.retailerRole, "manager");
 
