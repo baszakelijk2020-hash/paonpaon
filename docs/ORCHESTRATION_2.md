@@ -45,6 +45,7 @@ Strictly sequential. A tranche starts only when the previous one is merged to
 | ------ | ----------------------------------------------------------- | ---------- | ------------------------------------ | --------------------------- |
 | **3**  | Repair the live `20260814000000` prefix collision on `main` | —          | FRONTIER                             | **Blocks everything below** |
 | **4**  | Cross-tenant composite-FK integrity (3 fixes + pgTAP)       | 3          | FRONTIER + security gate             | Blocks 9                    |
+| **4b** | Residual tenant-FK class (121 exposed child tables)         | 4          | FRONTIER + security gate             | no                          |
 | **5**  | Founder-authority document salvage                          | 3          | LIGHT                                | no                          |
 | **6**  | ADR-074 customer relationship access boundary               | 3, 4       | FRONTIER + dedicated security review | no                          |
 | **7**  | FT-14 disposition (weekly plan vs monthly grid)             | —          | FOUNDER DECISION                     | no                          |
@@ -57,6 +58,14 @@ Tranche 3 is first because **`supabase db reset` is currently broken on
 repaired, no local database can be built, so no pgTAP runs, no browser proof
 runs, and no evidence file can be regenerated. Every other tranche depends on
 it.
+
+**Tranches 3 and 4 are complete** (`db88e3d`, `512969d`); see
+`GROUND_TRUTH.md` section 11. Tranche 4b was added afterwards, from tranche
+4's own measurement: closing the three documented holes revealed 425
+unprotected tenant-scoped parent/child pairs, 121 of whose child tables carry
+the same exploitable `INSERT`-policy shape. It is FRONTIER-owned and cannot
+be delegated — every edge needs its own `ON DELETE` analysis and its own
+negative proof, which is exactly why tranche 4 refused to widen into it.
 
 ## 3. The single frontier writer
 

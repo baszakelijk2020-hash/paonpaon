@@ -778,3 +778,131 @@ settings and hooks untouched. `/Users/nguyen/Projects/PAON` untouched. No
 Fleet task seeded, claimed or unfrozen — Fleet remains **frozen**. No live
 Supabase or Vercel action. Only `docs/GROUND_TRUTH.md` and
 `docs/ORCHESTRATION_2.md` were written.
+
+## 11. Orchestration 2.0 tranches 3 and 4 — 2026-08-15
+
+### 11a. Tranche 3 — migration-prefix collision repair (`db88e3d`)
+
+Four migrations shared the prefix `20260814000000`, so `supabase db reset`
+failed on duplicate version and **no local database could be built at all**.
+That single fact was upstream of most of the repository's blocked work: no
+pgTAP, no browser proof, no evidence regeneration.
+
+Three were renamed forward, contents untouched (all `R100` pure renames, 0
+insertions, 0 deletions):
+
+| From             | To               | Migration                                  |
+| ---------------- | ---------------- | ------------------------------------------ |
+| `20260814000000` | `20260814000001` | `add_ft04_alteration_grid_snapshots`       |
+| `20260814000000` | `20260814000002` | `add_gift_invitation_expiry_revoke_refund` |
+| `20260814000000` | `20260814000003` | `add_retailer_branch_location_details`     |
+
+`add_store_feedback_signals` kept `20260814000000` because it creates
+`customers_id_retailer_id_key`, which tranche 4 depends on.
+
+This **inverts authorship order** — `store_feedback_signals` was authored
+last (04:28) yet holds the earliest prefix. That is safe here, and the
+reason is recorded so nobody re-derives it: the four migrations touch
+disjoint tables with no cross-references, so no relative ordering among
+them can break DDL. Had they been interdependent, the rename plan would
+have been wrong.
+
+Result: `supabase db reset --local` succeeds, 248 migrations applied, 0
+un-applied, no duplicate prefix anywhere in the tree.
+
+### 11b. Tranche 4 — cross-tenant composite-FK integrity (`512969d`)
+
+The three reproduced holes of section 10d, re-created as forward patches
+rather than merged from the legacy branches:
+
+| Migration        | Closes                                                               |
+| ---------------- | -------------------------------------------------------------------- |
+| `20260815000000` | 5 wedding-party child tables, incl. `wedding_guest_vouchers` (money) |
+| `20260815000010` | 14 edges of the corporate/BD chain                                   |
+| `20260815000020` | `clienteling_notes -> customers`                                     |
+
+Two decisions the 2026-08-06 originals did not face:
+
+1. `20260815000020` must **not** re-add `customers_id_retailer_id_key`.
+   `main` already acquired it incidentally from
+   `20260814000000_add_store_feedback_signals`, which needed it for its own
+   key. `main` had the harmless half of the fix and not the half that closes
+   the hole. A test asserts exactly one such constraint exists.
+2. Every composite key states an `ON DELETE` action mirroring the existing
+   single-column key (17 `CASCADE`, 1 `RESTRICT`), so deletion behaviour is
+   unchanged and does not depend on two keys with different actions
+   resolving in a particular order. The exception is
+   `corporate_opportunities.linked_account_id`: a composite `SET NULL` is
+   impossible because it would also null the `NOT NULL` `retailer_id`, so it
+   stays `NO ACTION`. That interaction is proved behaviourally, not argued.
+
+**Proof.** 21 pgTAP assertions across three files. Every negative case runs
+as a real authenticated tenant principal — a House B staff member with live
+JWT claims, writing a row RLS fully permits — and expects `23503`. A `42501`
+would mean RLS stopped the write first and the key went untested; one draft
+failed exactly that way (hit a `23514` check constraint) and was corrected
+rather than accepted. Positive controls prove no over-blocking, and the
+`UPDATE` re-parenting path is covered, not only `INSERT`.
+
+Full pgTAP: **407/409**. The two failures pre-exist on clean `main` and were
+baselined by removing the six new files, resetting and reproducing both
+identically — `stock_tenant_boundaries` #11 and
+`wedding_guest_voucher_redemption` #3. The first is itself a security
+finding on `main` (two `SECURITY DEFINER` functions executable by `PUBLIC`)
+and belongs to no tranche yet.
+
+### 11c. The class is not closed — measured residue
+
+Tranche 4 closed the three **documented** holes. It did not close the
+structural class, and this is now the largest known integrity gap in the
+schema. Measured against the live local database with tranche 4 applied,
+counting every single-column foreign key where the child and the parent
+both carry `retailer_id`:
+
+| Metric                                                                                 | Count   |
+| -------------------------------------------------------------------------------------- | ------- |
+| Tenant-scoped parent/child pairs                                                       | **479** |
+| Protected by a composite `(fk_col, retailer_id)` key                                   | **54**  |
+| **Unprotected**                                                                        | **425** |
+| Distinct unprotected child tables                                                      | **203** |
+| Of those, child tables whose staff `INSERT` policy checks only `current_retailer_id()` | **121** |
+
+The 121 figure is the one that matters: those carry the same exploitable
+shape as the three holes just fixed. Two independent audits — the frontier's
+and a non-authoring reviewer's — produced the 425 figure separately and
+agreed.
+
+Named residue inside the very module tranche 4 touched, all currently
+exploitable by the same method:
+
+`corporate_projects.account_id`, `corporate_project_events.project_id`,
+`corporate_announcements.programme_id`,
+`corporate_office_visit_requests.programme_id`,
+`corporate_renewal_tasks.programme_id`,
+`corporate_rollout_slots.rollout_day_id`,
+`corporate_rollout_slots.wearer_id`,
+`corporate_exception_events.exception_id`,
+`corporate_concept_assets.tender_version_id`,
+`corporate_issue_records.order_id`.
+
+Beyond it, `orders` and `retailer_staff_members` are widely-referenced
+tenant-scoped parents with no composite protection anywhere — the latter via
+`*_staff_id` in roughly eighty tables, meaning a row in one house can
+attribute an action to another house's staff member.
+
+**Do not cite tranche 4 as evidence that the schema is tenant-safe.** Both
+migration headers say so themselves.
+
+### 11d. Adjacent, deliberately not widened into tranche 4
+
+- `createClientelingNote`
+  (`apps/retailer/app/(dashboard)/customers/[id]/actions.ts`) still performs
+  no same-tenant check on the client-supplied `customerId`, unlike its
+  siblings in the same file. The database now blocks the write, but it
+  surfaces as a raw `23503` out of a Server Action rather than a domain
+  error.
+- `wedding_date_candidates` has no client `INSERT` policy; writes appear to
+  go through a `SECURITY DEFINER` path that bypasses RLS by design and needs
+  its own review before a foreign key is bolted on.
+- Every evidence file was invalidated again by these two commits moving
+  `HEAD`, exactly as 10c predicts. Regenerate once, last.
