@@ -257,6 +257,38 @@ export function findBusiestSlot(
   return best;
 }
 
+export interface LookGapResult {
+  readonly categoryCode: string;
+  readonly customerCount: number;
+}
+
+/**
+ * The `complete_look` projector's core computation: which garment category
+ * the most customers are missing from their owned wardrobe. Mirrors
+ * `findBusiestSlot`'s exact shape (bucket, count, return the max) — one
+ * customer contributes at most once per category regardless of how many
+ * suggestions cite that category, so a customer missing "shirt" via two
+ * different catalogue suggestions is still counted once, matching how a
+ * real gap is a property of the customer, not of how many products could
+ * fill it.
+ */
+export function findMostCommonLookGap(
+  gapCategoriesByCustomer: readonly (readonly string[])[],
+): LookGapResult | null {
+  const counts = new Map<string, number>();
+  for (const gaps of gapCategoriesByCustomer) {
+    for (const categoryCode of new Set(gaps)) {
+      counts.set(categoryCode, (counts.get(categoryCode) ?? 0) + 1);
+    }
+  }
+  let best: LookGapResult | null = null;
+  for (const [categoryCode, customerCount] of counts) {
+    if (best && customerCount <= best.customerCount) continue;
+    best = { categoryCode, customerCount };
+  }
+  return best;
+}
+
 export interface DashboardSection {
   readonly kind: RecommendationKind;
   readonly recommendations: readonly CitedRecommendation[];

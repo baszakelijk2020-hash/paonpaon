@@ -4772,9 +4772,45 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     untouched (additive placement only); no new browser proof was added
     for the new section (Docker/local Supabase unavailable in this
     session, so this is implemented-but-not-e2e-verified, same honesty
-    level as the rest of this item). The checkbox stays unchecked: the
-    other six projectors and the AI evaluation harness are still entirely
-    unbuilt, and this update does not attempt either.
+    level as the rest of this item).
+  - **Update (2026-08-14): second projector, `complete_look`.** Domain:
+    `findMostCommonLookGap` (`cited-recommendation.ts`) buckets customers
+    by which owned-catalogue category they're missing, mirroring
+    `findBusiestSlot`'s exact bucket/count/max shape (24 domain tests).
+    Repository: `CitedRecommendationRepository.computeCompleteLook`
+    reuses `resolveGarmentCategoryFromConcepts` to resolve each active,
+    reviewed-and-accepted product's category (products carry no category
+    column of their own), compares against each customer's real owned
+    wardrobe categories, and stores a fully cited recommendation via the
+    same `buildRecommendation`/`withdrawLiveOfKind` path `temporal_hotspot`
+    already uses. UI: a second `CompleteLookCard` (mirroring
+    `TemporalHotspotCard`) with its own `recomputeCompleteLook` Server
+    Action, placed alongside the existing card — `RoleDashboardCard`
+    needed no change, exactly as the prior update predicted. Browser-proven
+    (`apps/retailer/e2e/complete-look-insight.spec.ts`, 4 consecutive
+    passes against a live local Supabase): three real customers with a
+    deliberate 3:2:1 gap skew against three real in-stock, concept-tagged
+    catalogue products correctly surface `shoes` as the most common gap,
+    with the sample size verified against the shared fixture retailer's
+    real, current total customer count (not a hardcoded number — that
+    retailer carries many real customers from this suite's own history).
+    Three real bugs found and fixed during this proof, not swept past:
+    (1) a variant with initial inventory writes an immutable
+    `stock_ledger_entries` row (append-only by design, see
+    `20260801000016_enforce_append_only_grants.sql`), so test fixture
+    products can never be deleted once stocked — cleanup archives them
+    instead of deleting, which also correctly excludes them from every
+    future run's catalogue scan; (2) `entity_metadata_assignments`'s own
+    `_check2` constraint requires `reviewed_by_staff_id`/`reviewed_at` to
+    be set together with a terminal `review_status`, so a fixture's
+    direct-table "accept" update must set all three or it fails silently
+    (unchecked `.update()` error) and the projector sees zero accepted
+    concepts; (3) the shared fixture retailer's real, growing customer
+    count means "3 of 3 customers" is not a safe hardcoded assertion — the
+    test now asserts against the retailer's actual live count. The
+    checkbox stays unchecked: five projectors (interest_progression,
+    fit_risk, production_risk, stock_risk, staffing_risk) and the AI
+    evaluation harness remain entirely unbuilt.
 
 ### Stage 15 — Lifestyle network and MunroMerchant (parked)
 

@@ -6,6 +6,7 @@ import {
   buildRoleDashboard,
   checkRecommendationHonesty,
   findBusiestSlot,
+  findMostCommonLookGap,
   planRecompute,
 } from "./cited-recommendation";
 
@@ -256,5 +257,35 @@ describe("findBusiestSlot", () => {
       "2026-08-17T10:00:00.000Z",
     ]);
     expect(result?.count).toBe(3);
+  });
+});
+
+describe("findMostCommonLookGap", () => {
+  it("returns null for no customers", () => {
+    expect(findMostCommonLookGap([])).toBeNull();
+  });
+
+  it("finds the category the most customers are missing", () => {
+    const result = findMostCommonLookGap([
+      ["shirt", "shoes"],
+      ["shirt"],
+      ["shirt", "trousers"],
+      ["shoes"],
+    ]);
+    expect(result).toEqual({ categoryCode: "shirt", customerCount: 3 });
+  });
+
+  it("counts a customer at most once per category regardless of repeats", () => {
+    const result = findMostCommonLookGap([
+      ["shirt", "shirt", "shirt"],
+      ["shoes"],
+    ]);
+    expect(result).toEqual({ categoryCode: "shirt", customerCount: 1 });
+  });
+
+  it("breaks a tie by first-seen category, matching findBusiestSlot's own tie behaviour", () => {
+    const result = findMostCommonLookGap([["shirt"], ["shoes"]]);
+    expect(result?.customerCount).toBe(1);
+    expect(["shirt", "shoes"]).toContain(result?.categoryCode);
   });
 });

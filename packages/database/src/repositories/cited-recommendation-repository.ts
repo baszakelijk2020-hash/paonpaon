@@ -9,7 +9,9 @@ import {
   buildRecommendation,
   computeCorporateProgrammeMetrics,
   findBusiestSlot,
+  findMostCommonLookGap,
   planRecompute,
+  resolveGarmentCategoryFromConcepts,
   shouldCreateRenewalTask,
   type CitedRecommendation,
   type RecommendationBuild,
@@ -22,12 +24,19 @@ import type { Database, Json } from "../generated/database.types";
 
 import { AppointmentRepository } from "./appointment-repository";
 import { CorporateRepository } from "./corporate-repository";
+import { CustomerRepository } from "./customer-repository";
+import { MetadataRepository } from "./metadata-repository";
+import { ProductRepository } from "./product-repository";
+import { ProductVariantRepository } from "./product-variant-repository";
+import { WardrobeRepository } from "./wardrobe-repository";
 
 type RecommendationRow =
   Database["public"]["Tables"]["cited_recommendations"]["Row"];
 
 const TEMPORAL_HOTSPOT_PROJECTOR_VERSION = "temporal-hotspot-v1";
 const HOTSPOT_WINDOW_DAYS = 90;
+const COMPLETE_LOOK_PROJECTOR_VERSION = "complete-look-v1";
+const MAX_CATALOGUE_PRODUCTS_SCANNED = 30;
 
 const DAY_NAMES = [
   "Sunday",
@@ -195,6 +204,148 @@ export class CitedRecommendationRepository {
     await this.withdrawLiveOfKind(
       args.retailerId,
       "temporal_hotspot",
+      "Superseded by a newer computation.",
+    );
+    return this.store(args.retailerId, result);
+  }
+
+  /**
+   * The `complete_look` projector. For each customer of a retailer,
+   * determines which garment categories they own zero active items in
+   * but the retailer's catalogue carries. Collects all gaps across
+   * customers and finds the most common missing category, then stores
+   * a fully cited recommendation. Withdraws any prior live `complete_look`
+   * recommendation first, so repeated recomputes supersede rather than
+   * pile up duplicate findings.
+   */
+  async computeCompleteLook(args: {
+    readonly retailerId: RetailerId;
+    readonly asOf?: string;
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<RecommendationBuild, { readonly ok: true }>
+    | { readonly ok: false; readonly reason: "no_customers_or_gaps" }
+  > {
+    const asOf = args.asOf ?? new Date().toISOString();
+
+    // Fetch all customers for the retailer
+    const customers = await new CustomerRepository(this.client).findByRetailer(
+      args.retailerId,
+    );
+
+    // Build the catalogue categories once for the retailer
+    const metadataRepo = new MetadataRepository(this.client);
+    const garmentConcepts = await metadataRepo.findVisibleConcepts(
+      args.retailerId,
+      "garment_type",
+    );
+    const categoryByConceptId = resolveGarmentCategoryFromConcepts({
+      concepts: garmentConcepts.map((concept) => ({
+        id: concept.id,
+        kind: concept.kind,
+        slug: concept.slug,
+        label: concept.canonicalName,
+      })),
+    });
+
+    const products = (
+      await new ProductRepository(this.client).findByRetailer(args.retailerId)
+    )
+      .filter((product) => product.status === "active")
+      .slice(0, MAX_CATALOGUE_PRODUCTS_SCANNED);
+    const variantRepo = new ProductVariantRepository(this.client);
+
+    // Collect available categories in the catalogue
+    const availableCatalogueCategories = new Set<string>();
+    for (const product of products) {
+      const acceptedConceptIds =
+        await metadataRepo.findAcceptedConceptIdsForProduct(
+          args.retailerId,
+          product.id,
+        );
+      const categoryCode = acceptedConceptIds
+        .map((conceptId) => categoryByConceptId.get(conceptId))
+        .find((category): category is NonNullable<typeof category> =>
+          Boolean(category),
+        );
+      if (!categoryCode) continue;
+
+      const variants = await variantRepo.findByProduct(product.id);
+      const inStock = variants.some((variant) => variant.inventoryQuantity > 0);
+      if (inStock) {
+        availableCatalogueCategories.add(categoryCode);
+      }
+    }
+
+    // Check if we have any customers or catalogue candidates
+    if (customers.length === 0 || availableCatalogueCategories.size === 0) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "complete_look",
+        "Recomputed with no customers or catalogue gaps to analyze.",
+      );
+      return { ok: false, reason: "no_customers_or_gaps" };
+    }
+
+    // For each customer, find their gaps
+    const wardrobeRepo = new WardrobeRepository(this.client);
+    const allGaps: string[][] = [];
+
+    for (const customer of customers) {
+      const items = await wardrobeRepo.findByCustomer(customer.id);
+
+      // Collect categories the customer owns (active items only)
+      const ownedCategories = new Set<string>();
+      for (const item of items) {
+        if (item.deletedAt) continue;
+        if (item.retiredAt) continue;
+        ownedCategories.add(item.categoryCode);
+      }
+
+      // Find gaps: categories in catalogue but not owned by customer
+      const customerGaps: string[] = [];
+      for (const category of availableCatalogueCategories) {
+        if (!ownedCategories.has(category)) {
+          customerGaps.push(category);
+        }
+      }
+
+      if (customerGaps.length > 0) {
+        allGaps.push(customerGaps);
+      }
+    }
+
+    // Find the most common gap
+    const best = findMostCommonLookGap(allGaps);
+    if (!best) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "complete_look",
+        "Recomputed with no gaps found in customer wardrobes.",
+      );
+      return { ok: false, reason: "no_customers_or_gaps" };
+    }
+
+    const statement = `${best.customerCount} of ${customers.length} customers have no owned or in-stock ${best.categoryCode} — your most common wardrobe gap.`;
+
+    const result = buildRecommendation({
+      kind: "complete_look",
+      statement,
+      sources: [
+        {
+          sourceRef: "wardrobe_items+products",
+          projectorVersion: COMPLETE_LOOK_PROJECTOR_VERSION,
+          observedRows: customers.length,
+        },
+      ],
+      window: { from: new Date(0).toISOString(), to: asOf },
+      sampleSize: best.customerCount,
+      derivedFromFactIds: [],
+    });
+
+    await this.withdrawLiveOfKind(
+      args.retailerId,
+      "complete_look",
       "Superseded by a newer computation.",
     );
     return this.store(args.retailerId, result);
