@@ -113,6 +113,77 @@ detail per item; this file's existing per-item status prose remains more
 precise than a compressed cross-repository summary and is not overwritten
 by it.
 
+### Status reconciliation against evidence (2026-08-14)
+
+Every claim in this section came from a command that was run on the
+consolidated tree, not from status prose. Method: `pnpm --filter @paon/domain
+validate:completion`, plus a direct read of all 16 `docs/evidence/tranches/`
+records and all 61 `docs/evidence/runs/` artifacts, plus a per-item code audit.
+
+**The gate reduces to two root causes, not three.** `pnpm
+validate:completion` fails on 27 checked items. Earlier summaries recorded
+this as three problems (missing evidence / `verified_local` not accepted /
+stale SHAs). There are only two, because **`verified_local` is an accepted
+verified status** — `VERIFIED_STATUSES` in
+`packages/domain/src/programme/completion-evidence.ts` contains both
+`verified_local` and `verified_live`. Every "status verified_local is not a
+verified completion claim" line is `mayMarkPhaseItemComplete` reporting a
+_downstream_ failure, and in all 12 cases that failure is the stale
+`browserProofRun.gitSha`. The two real causes are:
+
+1. **15 checked items have no `docs/evidence/tranches/` record at all** —
+   `10.1, 11.1, 11.2, 11.3, 11.4, 12.1, 12.2, 12.4, 13.1, 13.2, 18.1, 18.2,
+18.6, 18.8, 18.12`.
+2. **All 16 tranche records carry a stale run `gitSha`** — `4.6, 4.7, 4.9,
+4.10, 8.4, 9.1, 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.8, 17.9, 17.14,
+18.5`. (The stale-SHA count previously recorded as 4 was the subset that
+   the gate also reports; the file-level validator rejects all 16. `4.6`–
+   `4.10` are Stage-4 items, grandfathered out of the gate by
+   `requiresCompletionEvidence`, so they fail file validation only.)
+
+**Checkboxes corrected in this pass — two, both unmarked:**
+
+| Item   | Was   | Now   | Why                                                                                                              |
+| ------ | ----- | ----- | ---------------------------------------------------------------------------------------------------------------- |
+| `11.1` | `[x]` | `[ ]` | Claims "E2E browser-proven"; has **no run artifact and no tranche record**. The only one of the 15 with neither. |
+| `18.6` | `[x]` | `[ ]` | `docs/evidence/runs/18.6.json` records `"status": "failed"`. Checked against a recorded failing proof.           |
+
+**The other 13 of the 15 are implementation-complete; the gap is
+record-keeping, not code.** A per-item code audit found domain modules with
+unit tests, migrations, repositories and e2e specs for `10.1, 11.2, 11.3,
+11.4, 12.1, 12.2, 12.4, 13.1, 13.2, 18.1, 18.2, 18.8, 18.12`, and each has a
+`passed` run artifact in `docs/evidence/runs/`. They are left checked. What
+they need is a tranche record written from the run that already passed —
+queued as `evidence-missing-15`, not as build work.
+
+**Unchecked items that are further along than the box implies.** These are
+deliberately **left unchecked**: checking any item at `8.4` or later without a
+tranche record would _add_ a new gate failure, and `docs/evidence/` is outside
+this task's ownership. Listed so the evidence lane can close them:
+
+- `19.1` — **done in code.** All three route guards exist
+  (`apps/retailer/app/(dashboard)/{production,fabric-pairing,concepts}/layout.tsx`).
+  Needs only an evidence record.
+- `13.3` — own prose already says `verified_local`, and
+  `docs/evidence/runs/13.3.json` is `passed`. Needs a tranche record.
+- Passed run artifact but still unchecked: `9.2, 13.3, 14.2, 15.1, 15.2,
+16.1, 16.4, 16.5, 17.10, 17.12, 17.13, 18.4, 18.9, 18.10, 18.11, 18.13`.
+  Most are genuinely partial (see each item's own prose); `18.9`/`18.10` are
+  founder-parked and `16.3` is deleted — those must stay unchecked regardless.
+
+**Reconciling PHASE.md alone cannot make the gate green.** The 16 stale SHAs
+are a property of the evidence records, not of this file. Unmarking every
+failing checkbox would still leave file-level validation failing on all 16
+tranche records. That work is `evidence-stale-sha`.
+
+**Defect found while auditing, outside this task's ownership.**
+`EVIDENCE_ONLY_PATH_RE` in
+`packages/domain/scripts/validate-completion-evidence.ts` lists the doc paths
+that may change without invalidating a proof SHA. It covers `docs/PHASE.md`
+and `docs/evidence/`, but **not `docs/GROUND_TRUTH.md`** — so every edit to
+the audit artifact itself silently ages out every evidence SHA behind it.
+Add `docs/GROUND_TRUTH\.md$` to that pattern.
+
 - [ ] **19.1 Close parked/deleted route-gating gap**
   - **Requirement IDs:** none (correctness/authority-integrity fix, not a
     new product capability).
@@ -3478,7 +3549,7 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
 
 ### Stage 11 — Workforce Mission Control and coaching
 
-- [x] **11.1 Time approval and payroll package**
+- [ ] **11.1 Time approval and payroll package**
   - **Requirement IDs:** `WFM-101`, `WFM-102`.
   - **Dependencies:** existing roster/time entries; `8.3`.
   - **Owner boundary:** breaks/exceptions/corrections/manager approvals,
@@ -3520,6 +3591,16 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     (foreign retailer and non-manager roles denied by RLS). Only remaining
     piece is the external payroll-provider export adapter (accepted blocker
     per Hard blockers line).
+  - **Reconciliation (2026-08-14) — checkbox unmarked:** the implementation
+    above is real (`payroll-period.ts` + 11 tests, 6 tables, both e2e specs
+    exist on disk), but the "E2E browser-proven (2026-08-11)" claim has **no
+    recorded proof**: there is no `docs/evidence/runs/11.1.json` and no
+    `docs/evidence/tranches/11.1.json`. Of the 15 checked items with no
+    tranche record, 11.1 is the only one with no run artifact either — every
+    other one has a recorded `passed` run. Per ADR-068 the box is unmarked
+    rather than back-dated. To re-check: run `payroll.spec.ts` and
+    `payroll-export.spec.ts`, write the run artifact and the tranche record.
+    Nothing needs to be built.
 
 - [x] **11.2 Today, closeout, I AM and extra mile**
   - **Requirement IDs:** `WFM-103`, `WFM-104`.
@@ -4901,6 +4982,19 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     checkbox stays unchecked: four projectors (interest_progression,
     production_risk, stock_risk, staffing_risk) and the AI evaluation
     harness remain entirely unbuilt.
+  - **Reconciliation (2026-08-14) — status prose was stale, checkbox still
+    correct:** the paragraph above was written before two more projectors
+    landed on this same day. `fit_risk` shipped in `8eff445` and
+    `staffing_risk` in `3c1f7f5`, both with browser specs
+    (`apps/retailer/e2e/fit-risk-insight.spec.ts`,
+    `apps/retailer/e2e/staffing-risk-insight.spec.ts`) and both wired in
+    `packages/database/src/repositories/cited-recommendation-repository.ts`
+    (`computeFitRisk`, `computeStaffingRisk`). Corrected count: **four of
+    seven projectors are built and browser-proven** (temporal_hotspot,
+    complete_look, fit_risk, staffing_risk). Genuinely unbuilt:
+    `interest_progression`, `production_risk`, `stock_risk`, and the AI
+    evaluation harness. The checkbox stays unchecked — that is still the
+    right state, only the count was wrong.
 
 ### Stage 15 — Lifestyle network and MunroMerchant (parked)
 
@@ -7135,7 +7229,7 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     completion of what this item actually committed to — not a claim
     that every conceivable enhancement is finished.
 
-- [x] **18.6 Measurement and fitting rollout planning**
+- [ ] **18.6 Measurement and fitting rollout planning**
   - **Requirement IDs:** BD-106.
   - **Dependencies:** existing appointment domain/repository — bulk
     rollout schedules through it, not around it; `14.1` wearers/programmes.
@@ -7224,6 +7318,18 @@ setWearerCustomerId` (mirrors `setWearerLoginEmail` exactly) lets a
     `corporate-renewal-analytics.spec.ts`) is unaffected. This item's own
     **Tests** line (capacity limits, no-show re-slotting, department/
     location grouping) is now fully covered.
+  - **Reconciliation (2026-08-14) — checkbox unmarked:** this item was
+    checked while its own recorded browser proof says it failed.
+    `docs/evidence/runs/18.6.json` is `{"spec":
+"apps/retailer/e2e/corporate-rollout.spec.ts", "status": "failed",
+"gitSha": "abc792c"}`. The prose above claims "both tests in that file
+    pass together"; the only machine-readable record of that run disagrees,
+    and the record is what ADR-068 gates on. This is the single largest
+    over-claim found in the 2026-08-14 reconciliation — every other gate
+    failure is a missing or stale record, this one is a recorded failure.
+    To re-check: re-run `corporate-rollout.spec.ts`, and only if it genuinely
+    passes, overwrite the run artifact and add the tranche record. Do not
+    edit the `failed` artifact without re-running.
 
 - [ ] **18.7 Corporate project and rollout management**
   - **Requirement IDs:** BD-107.
