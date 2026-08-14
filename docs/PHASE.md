@@ -196,6 +196,21 @@ by it.
     and properly verify before merging. FT-04's status remains exactly
     what `FOUNDER_TOOL_BLUEPRINTS.md`'s own FT-04 "Current" paragraph
     already says — unproven, not complete.
+  - **Update (2026-08-14, post-ground-zero tranche):** this item's own
+    "only inconsistent inline checks" complaint was still half-true after
+    `0ac30c6`/`94a6f80`. `fabric-pairing/layout.tsx` gated on
+    `garment_service_operations`, but `fabric-pairing/page.tsx` and both
+    Server Actions in `fabric-pairing/actions.ts` still called
+    `requireModuleSession("retail_operations")`. A Server Action is a
+    directly-invokable POST endpoint, so the layout guard never covered
+    it: a retailer entitled to `retail_operations` but not
+    `garment_service_operations` could reach `upsertButtonRule` and
+    `upsertLiningRule` straight through. Corrected by cherry-pick
+    `f86ef1b` (origin `29ab0e6` on `agent/codex-openrouter`); `6872ff8`
+    is the prettier line-wrap that change required, nothing else.
+    Checkbox unchanged: `lint`/`typecheck`/`build`/`format:check` are
+    green, but the module-off e2e request this item asks for still has
+    no local Docker/Supabase to run against.
 
 ### Full-Completion Execution Queue (2026-08-13)
 
@@ -4274,6 +4289,23 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     separate screen — see `FOUNDER_TOOL_BLUEPRINTS.md` FT-14 for the full
     contract. Still nothing to build against for this specific grid until
     an implementation slice is authorized.
+  - **Update (2026-08-14, post-ground-zero tranche):** the acceptance's
+    booking-to-partner-fulfilment link is now wired. The
+    `booking_id` column on `service_partner_engagements` had existed
+    unused since migration `20260801000009`; cherry-pick `caeef05`
+    (origin `5a261dc` on `agent/codex-openrouter`) carries it through
+    `createServicePartnerEngagementInputSchema`, the
+    `ServicePartnerEngagement` type, `ServicePartnerRepository`'s
+    `createEngagement`/`toEngagement`, and an optional "Service booking"
+    select on `/service-partners`. No migration was needed. Ownership is
+    checked rather than trusted: the Server Action resolves the chosen
+    booking out of
+    `ServicePlanRepository.listBookingsByRetailer(session.retailerId)`
+    and refuses it unless it belongs to this retailer, names the same
+    customer as the engagement, and is not canceled. Checkbox unchanged:
+    no test covers the linkage, and the calendar UI, custody and
+    alteration/dry-cleaning end-to-end flows this item requires are
+    untouched.
 
 - [ ] **12.4 Supplier/atelier intelligence and support operations**
   - **Requirement IDs:** `MTM-101`.
@@ -4911,6 +4943,23 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     checkbox stays unchecked: four projectors (interest_progression,
     production_risk, stock_risk, staffing_risk) and the AI evaluation
     harness remain entirely unbuilt.
+  - **Update (2026-08-14, post-ground-zero tranche):** the "`planRecompute`
+    can find and withdraw what a corrected customer fact invalidated"
+    contract finally has a caller on the correction path. Cherry-pick
+    `6e50bfd` (origin `90622c7` on `agent/codex-openrouter`; `e2ec91a` on
+    `agent/claude-nguyen3` is a cherry-pick of that same patch and was
+    deliberately not merged a second time) makes `correctCustomerFact`
+    keep the `correctionRequiresRecompute` result instead of discarding
+    it and, when any recompute flag is set, call
+    `CitedRecommendationRepository.withdrawStale` for the corrected fact
+    id, then revalidate `/analytics`. Withdrawal stays retailer-scoped —
+    `listLive` and the update both filter `retailer_id`, on top of the
+    RLS policy from `20260801000012` — and still withdraws with a reason
+    rather than editing a recommendation in place. No migration was
+    needed: `withdrawn_at`/`withdrawn_reason` already exist. Checkbox
+    unchanged: the four missing projectors and the AI evaluation harness
+    are untouched, and there is no browser proof that a real correction
+    pulls a live card down.
 
 ### Stage 15 — Lifestyle network and MunroMerchant (parked)
 
@@ -6421,6 +6470,21 @@ pnpm build && pnpm format:check` are clean and `pnpm turbo run test`
     **periodic fit-check photo → Self-Portrait update** and the
     **unattached (logged-out-created) item** schema change remain real,
     unattempted gaps.
+  - **Security correction (2026-08-14, post-ground-zero tranche):** the
+    anonymous card resolved the item from `[token]` alone and never
+    checked the result against the `[slug]` segment, which is
+    attacker-controlled. Consequences, both real: a valid token rendered
+    that garment inside **any** other retailer's storefront layout, and
+    "Shop this piece" linked to `/r/<wrong-slug>/products/<productSlug>`,
+    resolving this retailer's product slug against a foreign retailer's
+    catalogue — a broken link, or the wrong retailer's product wherever
+    slugs collide. `resolve_wardrobe_item_public` has returned the owning
+    `retailerSlug` since `20260805170000` and the page ignored it; it now
+    `notFound()`s on mismatch and builds the product link from the
+    resolved slug rather than the URL (`ab80d14`, origin `7ee275f` on
+    `agent/claude-nguyen1`). No schema, RPC or capability change — the
+    authoritative value was already on the wire. Checkbox unchanged: this
+    closes a tenant-scoping hole, not any of the gaps listed above.
 
 - [ ] **17.14 Prospect AI conversation, buying-intent queue, and human handoff**
   - **Requirement IDs:** ADV-114.

@@ -6,6 +6,12 @@ Nothing in this file is inferred from a status claim in `PHASE.md`.
 
 Baseline audited: `1f55894` (`integration/ground-zero` == `main`).
 
+**Sections 1–7 are the ground-zero audit and describe `504c1b4`. They are kept
+verbatim as the historical record and are not rewritten as `main` moves on.
+Section 8 records what happened to `main` after ground zero was promoted; read
+it before treating section 1's gate table or section 4's branch table as
+current.**
+
 ## 1. Verified gate results
 
 Run once, in order, on `/private/tmp/paon-integration`:
@@ -180,3 +186,89 @@ assigned during this audit.
 - It does not claim the seven large lanes are safe to merge. They are not, yet.
 - It does not claim anything about live Supabase or Vercel state. No live or
   deploy action was taken.
+
+## 8. Post-ground-zero tranche 1 — 2026-08-14
+
+### 8a. Promotion
+
+`main` was fast-forwarded to `integration/ground-zero`. Ancestry was strictly
+linear and verified before the move: `origin/main` `5b77fd0` → local `main`
+`1f55894` → `integration/ground-zero` `504c1b4`, with `origin/main` zero commits
+ahead. `git merge --ff-only` in a fresh `main` worktree at
+`/private/tmp/paon-main-tranche`, then a non-force push. `origin/main` is now
+`504c1b4` and beyond. The primary checkout `/Users/nguyen/Projects/PAON` was
+treated as read-only throughout and is untouched: still on
+`agent/lane-h-customer-ai-conversation` at `a665a26` with its unfinished merge
+(3 conflicted files) and 13 dirty/untracked entries.
+
+### 8b. Integrated — four source commits, five commits on `main`
+
+All cherry-picked with `-x`, one at a time, each reviewed and acceptance-run
+before the next was started.
+
+| On `main` | Origin    | From                     | What                                                           |
+| --------- | --------- | ------------------------ | -------------------------------------------------------------- |
+| `ab80d14` | `7ee275f` | `agent/claude-nguyen1`   | QR wardrobe card scoped to its owning retailer (17.13)         |
+| `f86ef1b` | `29ab0e6` | `agent/codex-openrouter` | fabric-pairing gated on `garment_service_operations` (19.1)    |
+| `6872ff8` | —         | this tranche             | prettier line-wrap required by `f86ef1b`                       |
+| `6e50bfd` | `90622c7` | `agent/codex-openrouter` | withdraw stale cited recommendations on fact correction (14.2) |
+| `caeef05` | `5a261dc` | `agent/codex-openrouter` | link partner engagements to bookings (12.3)                    |
+
+Nine files changed in total, +85/−12. No migration was added: every column the
+integrated code touches (`booking_id`, `withdrawn_at`, `withdrawn_reason`,
+`wardrobe_items.public_token`) already existed on `main`. No RLS, auth, payment,
+stock or money path was altered. Two of the five are tenant-scoping
+corrections — `ab80d14` closes a cross-retailer render/link hole on an anonymous
+public route, `f86ef1b` closes a module-entitlement bypass on two directly
+invokable Server Actions that the layout guard never covered.
+
+### 8c. Reviewed and deliberately not merged
+
+| Commit                                     | Branch             | Disposition                                                                                                                                                     |
+| ------------------------------------------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ab56bfc`                                  | `claude-nguyen1`   | superseded — competing PHASE/GROUND_TRUTH reconciliation off the same parent `504c1b4` reconciled                                                               |
+| `587c12d`                                  | `claude-nguyen1`   | duplicate — identical patch-id to `f64ac28`, already on `main`                                                                                                  |
+| `8e2bcd9`                                  | `claude-nguyen1`   | superseded — 4 of its 5 fleet files are byte-identical to `main`; `launch-fleet.sh` on `main` is strictly ahead. Picking it would revert `1f55894`              |
+| `6092ba0`                                  | `claude-nguyen2`   | superseded — reformats the pre-reconciliation `GROUND_TRUTH.md`; `main`'s copy already passes prettier                                                          |
+| `0c6b658`, `a6bd2ce`                       | `claude-nguyen2`   | merge-only, no unique patch                                                                                                                                     |
+| `14b0273`                                  | `claude-nguyen3`   | superseded — every behaviour is in `main`; picking it would restore the broad `["packages/**","apps/**"]` path fallback that `main` replaced with `needs_scope` |
+| `d4c62e2`, `20808e7`, `8748178`, `0624bfe` | `claude-nguyen3`   | parked — evidence-only SHA refreshes. Merging them would move proof SHAs without re-running proofs                                                              |
+| `e2ec91a`                                  | `claude-nguyen3`   | duplicate — a cherry-pick of `90622c7`; `90622c7` taken as canonical                                                                                            |
+| `9e1bb60`                                  | `claude-nguyen3`   | parked — empty commit, handoff diagnostics in the message only. See 8e                                                                                          |
+| `7935201`                                  | `codex-openrouter` | superseded — the second competing PHASE reconciliation                                                                                                          |
+
+### 8d. Gate results at the end of this tranche
+
+Run once each with `TURBO_FORCE=1` (the turbo cache is shared across worktrees,
+so an unforced run replays logs from other checkouts):
+
+| Gate                                             | Result                           |
+| ------------------------------------------------ | -------------------------------- |
+| `pnpm lint`                                      | **PASS**                         |
+| `pnpm typecheck`                                 | **PASS**                         |
+| `pnpm build`                                     | **PASS**                         |
+| `pnpm format:check`                              | **PASS**                         |
+| `pnpm --filter @paon/domain test`                | **PASS** (111 files, 1192 tests) |
+| `pnpm --filter @paon/domain validate:completion` | **FAIL**                         |
+
+`validate:completion` fails on exactly the 16 tranches of section 2b and on
+nothing else — every message is `run gitSha … is not current for this
+checkout`. No new failure class appeared. `format:check` is now green including
+`docs/`, closing the section 1 asterisk.
+
+### 8e. Carried forward, unfixed
+
+- **18.9 corporate-renewal regression.** `agent/claude-nguyen3`'s `9e1bb60` is
+  an empty commit whose message records a reproduced, deterministic failure in
+  `apps/retailer/e2e/corporate-renewal-analytics.spec.ts:114` — contract value
+  submits, the URL advances, the field reloads empty. Its author ruled out
+  schema, generated types, and application-code drift, and its leading
+  unconfirmed hypothesis is that `setContractValue`'s UPDATE matches zero rows
+  because the session's `current_retailer_id()` does not match the programme's
+  `retailer_id`, with the Server Action returning successfully anyway. Not
+  merged (nothing to merge) and not investigated here. 18.9 is founder-parked;
+  whoever unparks it should start from that commit message.
+- **The seven blocked-conflict lanes of section 4** were confirmed unchanged at
+  their audited heads and were not inspected further.
+- **The 16 stale browser-proof SHAs** still require a live-environment re-run,
+  not an edit.
