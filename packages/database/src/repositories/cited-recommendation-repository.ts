@@ -518,7 +518,8 @@ export class CitedRecommendationRepository {
     const staffHoursByDay = new Map<number, number>();
     for (const shift of shifts) {
       const dayOfWeek = new Date(`${shift.shiftDate}T00:00:00Z`).getUTCDay();
-      const hours = timeStringToHours(shift.endTime) - timeStringToHours(shift.startTime);
+      const hours =
+        timeStringToHours(shift.endTime) - timeStringToHours(shift.startTime);
       staffHoursByDay.set(
         dayOfWeek,
         (staffHoursByDay.get(dayOfWeek) ?? 0) + hours,
