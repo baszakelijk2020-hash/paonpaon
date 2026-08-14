@@ -11,6 +11,11 @@ const navigation: AppShellNavGroup[] = [
     label: "Operate",
     items: [
       {
+        href: "/daily-briefing",
+        label: "Daily briefing",
+        description: "Platform health and attention items",
+      },
+      {
         href: "/retailers",
         label: "Retailer network",
         description: "Onboarding, health and access",
