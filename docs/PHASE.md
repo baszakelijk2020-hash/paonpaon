@@ -281,10 +281,11 @@ acceptance contract — this table is not a substitute for it.
    migration agent's founder sign-off requirement) were already correctly
    marked accordingly.
 4. **TableService unified remote proposal** (FT-09, addition recorded
-   2026-08-12) — SCHEMA/DOMAIN DONE, UI PENDING. Field spec already locked
+   2026-08-12) — SCHEMA/DOMAIN/UI DONE, E2E PROOF PENDING (needs clean-environment re-run). Field spec already locked
    in `FOUNDER_TOOL_BLUEPRINTS.md` FT-09. `conversation_proposals` table,
    create/respond RPCs, and `MessagingRepository` methods landed 2026-08-14;
-   retailer composer UI, customer accept/decline UI, and browser proof remain.
+   retailer composer UI and customer accept/decline UI landed 2026-08-14;
+   browser proof requires clean-environment re-run.
 5. **TableService attachment quarantine resolution** — uploads currently
    queue indefinitely with no scanner or retry/release UI. Needs a
    provider decision (which scanner) before the UI can be finished —
@@ -3396,6 +3397,17 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     full @paon/domain suite 1173/1173, @paon/database messaging suite 8/8.
     Retailer proposal-composer UI, customer accept/decline UI, and multi-role
     browser proof are not done — checkbox remains unchecked.
+  - **Update (2026-08-14, agent/claude-nguyen1):** UI half of FT-09's unified
+    remote proposal landed in commit `bc089a9`: retailer proposal-composer
+    (repeatable item/alternative rows, optional price, appointment-offered
+    checkbox, expiry via DateTimePicker), customer accept/decline surface with
+    freshness check and server-side RPC re-verification. Lint and typecheck
+    clean on both apps. The full end-to-end browser run did not reach green in
+    this session: the shared local Supabase instance (multiple parallel agent
+    lanes) dropped connections and lost seeded data mid-session. Backend RLS/
+    logic independently re-verified correct via direct Postgres queries.
+    Checkbox remains unchecked; recommend re-running proposal-composer.spec.ts
+    in a clean, unshared environment as a follow-up.
 
 - [ ] **10.4 Relationship-calendar campaign packages**
   - **Requirement IDs:** `CMP-107`, `REL-20`.
