@@ -76,13 +76,27 @@ if [ -f "$PHASE" ]; then
       *verified_local*)         p=$((pri+20)) ;;
     esac
     case "$ctx" in *blocked_external*|*founder*decision*) p=$((p+400)) ;; esac
-    printf '%s\t%s\t%s\t%s\n' "$num" "$title" "$tier" "$p"
+
+    # Infer REAL owned paths from the item's own text. Handing every task the
+    # generic ["packages/**","apps/**"] made every agent "own" everything,
+    # so path isolation existed on paper only — and once the queue started
+    # enforcing disjointness, it serialised the whole fleet onto one task.
+    # Items almost always name their own app, so derive from that and fall
+    # back to the broad claim only when nothing is nameable.
+    paths=""
+    case "$ctx" in *apps/retailer*) paths="$paths\"apps/retailer/**\"," ;; esac
+    case "$ctx" in *apps/customer*) paths="$paths\"apps/customer/**\"," ;; esac
+    case "$ctx" in *apps/admin*)    paths="$paths\"apps/admin/**\","    ;; esac
+    case "$ctx" in *packages/domain*)   paths="$paths\"packages/domain/**\","   ;; esac
+    case "$ctx" in *packages/database*) paths="$paths\"packages/database/**\"," ;; esac
+    [ -n "$paths" ] && paths="[${paths%,}]" || paths='["packages/**","apps/**"]'
+    printf '%s\t%s\t%s\t%s\t%s\n' "$num" "$title" "$tier" "$p" "$paths"
   done > "$FLEET_DIR/.phase_items.tsv" || true
 
-  while IFS=$'\t' read -r num title tier p; do
+  while IFS=$'\t' read -r num title tier p paths; do
     [ -n "${num:-}" ] || continue
     add_task "phase-$num" "PHASE $num — $title" "$tier" "$p" \
-      '["packages/**","apps/**"]' "pnpm lint && pnpm typecheck" ""
+      "${paths:-[\"packages/**\",\"apps/**\"]}" "pnpm lint && pnpm typecheck" ""
   done < "$FLEET_DIR/.phase_items.tsv"
   rm -f "$FLEET_DIR/.phase_items.tsv"
 fi
