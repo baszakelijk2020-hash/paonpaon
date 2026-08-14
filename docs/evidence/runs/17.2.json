@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.2",
-  "gitSha": "fc783be9c95d22947c158d8e2f27ddb3eed85608",
+  "gitSha": "14b0273ab6b463f9e3ae7692091e9997c9953e8d",
   "spec": "apps/retailer/e2e/mission-control.spec.ts",
-  "status": "passed",
-  "timestamp": "2026-08-12T04:42:30.935Z"
+  "status": "failed",
+  "timestamp": "2026-08-14T07:10:12.003Z"
 }
