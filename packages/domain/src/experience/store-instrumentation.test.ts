@@ -57,6 +57,22 @@ describe("checkObservationAdapter", () => {
   });
 });
 
+describe("checkStoreFeedbackContext", () => {
+  it("requires consent for named feedback without adding employee attribution", async () => {
+    const { checkStoreFeedbackContext } =
+      await import("./store-instrumentation");
+    expect(
+      checkStoreFeedbackContext({
+        customerId: "customer-1",
+        personalizationConsent: "denied",
+      }),
+    ).toEqual({ ok: false, reason: "customer_consent_required" });
+    expect(checkStoreFeedbackContext({ garmentRef: "navy blazer" })).toEqual({
+      ok: true,
+    });
+  });
+});
+
 describe("assessVirtualFit", () => {
   it("returns a band and a disclaimer, never a measurement", () => {
     // A mirror that says "42mm too long" implies an accuracy no display

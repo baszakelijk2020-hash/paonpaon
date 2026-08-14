@@ -444,13 +444,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "advisor_capture_bundles_linked_service_booking_id_fkey";
-            columns: ["linked_service_booking_id"];
-            isOneToOne: false;
-            referencedRelation: "service_bookings";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "advisor_capture_bundles_linked_fact_id_fkey";
             columns: ["linked_fact_id"];
             isOneToOne: false;
@@ -469,6 +462,13 @@ export type Database = {
             columns: ["linked_opportunity_id"];
             isOneToOne: false;
             referencedRelation: "clienteling_opportunities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_linked_service_booking_id_fkey";
+            columns: ["linked_service_booking_id"];
+            isOneToOne: false;
+            referencedRelation: "service_bookings";
             referencedColumns: ["id"];
           },
           {
@@ -17035,6 +17035,76 @@ export type Database = {
           },
         ];
       };
+      store_feedback_signals: {
+        Row: {
+          acknowledged_at: string | null;
+          audience: string;
+          corrects_signal_id: string | null;
+          created_at: string;
+          customer_id: string | null;
+          feedback: string;
+          follow_up_note: string | null;
+          garment_ref: string | null;
+          id: string;
+          idempotency_key: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          acknowledged_at?: string | null;
+          audience: string;
+          corrects_signal_id?: string | null;
+          created_at?: string;
+          customer_id?: string | null;
+          feedback: string;
+          follow_up_note?: string | null;
+          garment_ref?: string | null;
+          id?: string;
+          idempotency_key: string;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          acknowledged_at?: string | null;
+          audience?: string;
+          corrects_signal_id?: string | null;
+          created_at?: string;
+          customer_id?: string | null;
+          feedback?: string;
+          follow_up_note?: string | null;
+          garment_ref?: string | null;
+          id?: string;
+          idempotency_key?: string;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "store_feedback_signals_corrects_signal_id_fkey";
+            columns: ["corrects_signal_id"];
+            isOneToOne: false;
+            referencedRelation: "store_feedback_signals";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "store_feedback_signals_customer_tenant_fkey";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "store_feedback_signals_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       store_observations: {
         Row: {
           adapter_kind: string;
@@ -20004,6 +20074,30 @@ export type Database = {
         Args: { p_staff_id: string };
         Returns: undefined;
       };
+      acknowledge_store_feedback_signal: {
+        Args: { p_follow_up_note: string; p_signal_id: string };
+        Returns: {
+          acknowledged_at: string | null;
+          audience: string;
+          corrects_signal_id: string | null;
+          created_at: string;
+          customer_id: string | null;
+          feedback: string;
+          follow_up_note: string | null;
+          garment_ref: string | null;
+          id: string;
+          idempotency_key: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "store_feedback_signals";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       add_alteration_task: {
         Args: {
           p_alteration_id: string;
@@ -20189,6 +20283,36 @@ export type Database = {
           p_source?: string;
         };
         Returns: string;
+      };
+      capture_store_feedback_signal: {
+        Args: {
+          p_audience?: string;
+          p_customer_id?: string;
+          p_feedback?: string;
+          p_garment_ref?: string;
+          p_idempotency_key?: string;
+        };
+        Returns: {
+          acknowledged_at: string | null;
+          audience: string;
+          corrects_signal_id: string | null;
+          created_at: string;
+          customer_id: string | null;
+          feedback: string;
+          follow_up_note: string | null;
+          garment_ref: string | null;
+          id: string;
+          idempotency_key: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "store_feedback_signals";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       checkout_cart: {
         Args: { p_order_id: string; p_shipping_address: Json };
@@ -20433,6 +20557,37 @@ export type Database = {
           p_source_time_entry_id: string;
         };
         Returns: string;
+      };
+      correct_store_feedback_signal: {
+        Args: {
+          p_audience?: string;
+          p_customer_id?: string;
+          p_feedback?: string;
+          p_garment_ref?: string;
+          p_idempotency_key?: string;
+          p_signal_id: string;
+        };
+        Returns: {
+          acknowledged_at: string | null;
+          audience: string;
+          corrects_signal_id: string | null;
+          created_at: string;
+          customer_id: string | null;
+          feedback: string;
+          follow_up_note: string | null;
+          garment_ref: string | null;
+          id: string;
+          idempotency_key: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "store_feedback_signals";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       count_inventory_disagreements: { Args: never; Returns: number };
       create_alteration_intake: {

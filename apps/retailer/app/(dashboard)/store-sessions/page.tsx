@@ -3,6 +3,7 @@ import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 
+import { FeedbackCapture } from "./feedback-capture";
 import {
   CloseSessionForm,
   OpenSessionForm,
@@ -66,6 +67,20 @@ export default async function StoreSessionsPage() {
         </h2>
         <div className="mt-3">
           <OpenSessionForm customers={customerOptions} />
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
+          Route in-store feedback
+        </h2>
+        <p className="mt-1 text-sm text-[var(--color-stone-500)]">
+          Send an explicit product or consented customer signal to the
+          leadership audience responsible for follow-up. This does not track the
+          employee who submitted it.
+        </p>
+        <div className="mt-3">
+          <FeedbackCapture customers={customerOptions} />
         </div>
       </Card>
 
