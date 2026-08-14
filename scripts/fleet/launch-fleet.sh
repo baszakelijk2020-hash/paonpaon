@@ -59,8 +59,17 @@ start_one() {
   fi
   tmux new-session -d -s "$sess" -c "$wt" \
     "PAON_AGENT_ID='$id' PAON_AGENT_TIERS='$tiers' PAON_REPO_ROOT='$REPO_ROOT' $cmd"
-  sleep 3
-  tmux send-keys -t "$sess" "$OPENING_PROMPT" C-m
+  sleep 6   # both CLIs need time to finish booting before they accept input
+  # A multi-line string arrives as a bracketed PASTE, which these TUIs buffer
+  # as a "[Pasted text]" block rather than submitting. The trailing C-m only
+  # closes the paste; a SECOND, separate Enter is what actually submits it.
+  # Found the hard way: the first fleet launch left every agent sitting on an
+  # unsubmitted prompt, looking launched but doing nothing.
+  tmux send-keys -t "$sess" "$OPENING_PROMPT"
+  sleep 2
+  tmux send-keys -t "$sess" C-m
+  sleep 1
+  tmux send-keys -t "$sess" C-m
   echo "  STARTED $id -> tmux:$sess  tiers=[$tiers]"
 }
 
@@ -85,7 +94,9 @@ case "${1:-start}" in
     for a in "${AGENTS[@]}"; do
       IFS='|' read -r id wt sess tiers cmd <<< "$a"
       tmux has-session -t "$sess" 2>/dev/null || continue
-      tmux send-keys -t "$sess" "$OPENING_PROMPT" C-m
+      tmux send-keys -t "$sess" "$OPENING_PROMPT"
+      sleep 2; tmux send-keys -t "$sess" C-m
+      sleep 1; tmux send-keys -t "$sess" C-m
       echo "  nudged $id"
     done
     ;;
