@@ -21,6 +21,8 @@ const preferencesRow: CustomerPreferencesRow = {
   personalization_withdrawn_at: null,
   marketing_withdrawn_at: null,
   location_withdrawn_at: null,
+  email_suppressed_at: null,
+  sms_suppressed_at: null,
   created_at: "2026-01-01T00:00:00.000Z",
   updated_at: "2026-01-01T00:00:00.000Z",
 };

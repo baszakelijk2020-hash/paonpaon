@@ -5638,6 +5638,7 @@ export type Database = {
           communication_channels: string[];
           created_at: string;
           customer_id: string;
+          email_suppressed_at: string | null;
           location_opt_in: boolean;
           location_withdrawn_at: string | null;
           marketing_opt_in: boolean;
@@ -5646,6 +5647,7 @@ export type Database = {
           personalization_withdrawn_at: string | null;
           preferred_currency: string;
           preferred_locale: string;
+          sms_suppressed_at: string | null;
           style_notes: string | null;
           updated_at: string;
         };
@@ -5653,6 +5655,7 @@ export type Database = {
           communication_channels?: string[];
           created_at?: string;
           customer_id: string;
+          email_suppressed_at?: string | null;
           location_opt_in?: boolean;
           location_withdrawn_at?: string | null;
           marketing_opt_in?: boolean;
@@ -5661,6 +5664,7 @@ export type Database = {
           personalization_withdrawn_at?: string | null;
           preferred_currency?: string;
           preferred_locale?: string;
+          sms_suppressed_at?: string | null;
           style_notes?: string | null;
           updated_at?: string;
         };
@@ -5668,6 +5672,7 @@ export type Database = {
           communication_channels?: string[];
           created_at?: string;
           customer_id?: string;
+          email_suppressed_at?: string | null;
           location_opt_in?: boolean;
           location_withdrawn_at?: string | null;
           marketing_opt_in?: boolean;
@@ -5676,6 +5681,7 @@ export type Database = {
           personalization_withdrawn_at?: string | null;
           preferred_currency?: string;
           preferred_locale?: string;
+          sms_suppressed_at?: string | null;
           style_notes?: string | null;
           updated_at?: string;
         };
