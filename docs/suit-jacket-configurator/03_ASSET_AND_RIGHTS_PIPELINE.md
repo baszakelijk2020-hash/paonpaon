@@ -10,7 +10,7 @@
 
 ## Rights and provenance record
 
-Every manifest entry needs asset id, SHA-256, creator/licensor, agreement or licence URI/id, allowed channels, attribution requirement, acquisition date, expiry/revocation review, source project version and approver. No scraped competitor asset is admissible. An HDRI, model or swatch without this record is rejected.
+Every manifest entry needs asset id, SHA-256, creator/licensor, generation recipe or licence URI/id, allowed channels, attribution requirement, acquisition date, expiry/revocation review, source project version and automated acceptance record. No scraped competitor asset is admissible. An HDRI, model or swatch without this record is rejected. Prefer PAON-generated assets; a third-party input must have an explicit commercial-use licence compatible with redistribution in the shipped form.
 
 ## Geometry delivery rules
 
@@ -18,8 +18,11 @@ Use GLB as the browser package. Keep one material role per garment part; preserv
 
 ## Sources
 
-| Source                       | Organization       |              Date | URL                                                                                      | Relevance / limitation                                    |
-| ---------------------------- | ------------------ | ----------------: | ---------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| glTF 2.0 specification       | Khronos Group      |      current spec | https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html                                | PBR and extension semantics; no garment simulation model. |
-| Blender glTF exporter manual | Blender Foundation |    current manual | https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html          | Export controls; validate output in target browser.       |
-| KHR_texture_basisu           | Khronos Group      | current extension | https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_texture_basisu | Compression contract; requires loader/device support.     |
+| Source                               | Organization       |                Date | URL                                                                                      | Relevance / limitation                                     |
+| ------------------------------------ | ------------------ | ------------------: | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| glTF 2.0.1 specification             | Khronos Group      |          2021-10-11 | https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html                                | PBR and extension semantics; no garment simulation model.  |
+| Blender 5.2 LTS glTF exporter manual | Blender Foundation |          2026-07-14 | https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html          | Export controls; validate output in target browser.        |
+| KHR_texture_basisu                   | Khronos Group      | accessed 2026-08-14 | https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_texture_basisu | Compression contract; requires loader/device support.      |
+| glTF Validator                       | Khronos Group      | accessed 2026-08-14 | https://github.com/KhronosGroup/glTF-Validator                                           | Machine validation; cannot assess tailoring fidelity.      |
+| Poly Haven licence                   | Poly Haven         | accessed 2026-08-14 | https://polyhaven.com/license                                                            | CC0 HDRI/material option; provenance still must be pinned. |
+| ambientCG licence                    | ambientCG          | accessed 2026-08-14 | https://docs.ambientcg.com/license/                                                      | CC0 material option; does not prove textile calibration.   |

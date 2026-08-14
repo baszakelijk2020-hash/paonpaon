@@ -17,7 +17,7 @@ The lab uses only one fixed single-breasted, notch-lapel, flap-pocket, side-vent
 
 `SuitJacketSnapshot v1` contains `schemaVersion`, `jacketPatternVersion`, selected option ids, `fabricProfileVersion`, `drapeAssetManifestVersion`, `rendererVersion`, source look/proposal references and captured timestamps. A `DrapeAssetManifest v1` maps a stable option/fabric/state/light tuple to asset hashes, MIME types, byte budgets, rights record, fallback poster and quality status. Retired assets stay resolvable for a saved snapshot or display an explicit recovery state.
 
-`FabricProfile` is a versioned, provenance-labelled material hypothesis. `Product`/`Variant` supplies commercially approved fabric identity and swatch; only a human-approved mapping may link it to a physical profile. `Outfit` may reference a snapshot; Virtual Studio may render it only after consent/entitlement checks. No link is added in this experiment.
+`FabricProfile` is a versioned, provenance-labelled material hypothesis. `Product`/`Variant` supplies commercially approved fabric identity and swatch; only an evidence-backed, versioned mapping that passes calibration thresholds may link it to a physical profile. `Outfit` may reference a snapshot; Virtual Studio may render it only after consent/entitlement checks. No link is added in this experiment.
 
 ## Boundaries
 

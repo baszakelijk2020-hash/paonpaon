@@ -2,7 +2,7 @@
 
 ## Goldens
 
-Capture deterministic desktop (1440×900) and mobile (390×844) images for all 27 tuples: 3 cloth profiles × 3 static states × 3 lights. Goldens use seeded camera/light/renderer version and named asset manifest. A perceptual image diff (masking only loading indicator/time-independent antialiasing) must flag >0.5% changed pixels or a maximum channel delta >24 for human review. These are review gates, not guarantees of visual correctness.
+Capture deterministic desktop (1440×900) and mobile (390×844) images for all 27 tuples: 3 cloth profiles × 3 static states × 3 lights. Goldens use seeded camera/light/renderer version and named asset manifest. A perceptual image diff (masking only loading indicator/time-independent antialiasing) blocks a build at >0.5% changed pixels or a maximum channel delta >24 and routes the result through an automated multimodal tailoring checklist. These are review gates, not guarantees of visual correctness.
 
 ## Acceptance
 
@@ -15,4 +15,10 @@ Capture deterministic desktop (1440×900) and mobile (390×844) images for all 2
 
 ## Device matrix
 
-Chromium desktop and mobile emulation are required for the lab. Before a product claim: current Safari/iOS, Chrome Android and Firefox desktop on physical GPU classes, including low-memory mobile. Visual comparison requires colour-managed reference displays and human apparel-art direction review.
+Chromium desktop and mobile emulation are required for the lab. Before a product claim: current Safari/iOS, Chrome Android and Firefox desktop on representative physical GPU classes, including low-memory mobile. Visual comparison uses pinned colour-management settings, silhouette/landmark metrics, deterministic goldens and an automated multimodal tailoring rubric. A product claim remains blocked—not delegated to the founder—when the available device or calibration evidence is insufficient.
+
+## Source
+
+| Source             | Organization |                Date | URL                                        | Relevance / limitation                                                                                           |
+| ------------------ | ------------ | ------------------: | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Visual comparisons | Playwright   | accessed 2026-08-14 | https://playwright.dev/docs/test-snapshots | Deterministic screenshot regression workflow; pixel stability does not establish tailoring or physical accuracy. |

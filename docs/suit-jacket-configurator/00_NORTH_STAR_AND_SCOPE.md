@@ -10,12 +10,14 @@ The single job is to make construction and cloth character legible—not to impl
 
 - One neutral, original test jacket silhouette; no customer photo, body scan, measurement, cart, quote, save, share, advisor send or database write.
 - Three illustrative fabric profiles, three precomputed drape states each and three local lighting scenes.
-- Deterministic browser assets and a static fallback. No AI generation, network fabric images, paid inference or production persistence.
+- Deterministic browser assets and a static fallback. Repository automation and locally available AI tooling may author original assets, but the shipped experience performs no runtime generation and uses no paid inference, network fabric images or production persistence.
 - The lab may read no tenant data. A later Studio integration must make `retailer_id`, consent, entitlements and immutable snapshots authoritative.
+
+Implementation is paused pending PAON ground-zero reconciliation. The unattended pipeline must not require the founder to hire specialists or operate 3D software; when available evidence cannot support a physical claim, the product remains explicitly illustrative instead of shifting calibration work to the founder.
 
 ## Reconciliation
 
-FT-07 remains consolidated into Virtual Wardrobe Studio by `docs/FOUNDER_TOOL_BLUEPRINTS.md` and `docs/CAPABILITY_DISPOSITION.md`. This founder-authorized experiment does not revive a parallel configurator or change the current legacy intent-save route. It proves a reusable renderer/asset contract only.
+FT-07 remains consolidated into Virtual Wardrobe Studio by `docs/FOUNDER_TOOL_BLUEPRINTS.md` and `docs/CAPABILITY_DISPOSITION.md`. This founder-authorized research does not revive a parallel configurator or change the current legacy intent-save route. It specifies a reusable renderer/asset contract only; implementation requires a later explicit Phase 3 authorization.
 
 ## Anti-copy boundary
 
