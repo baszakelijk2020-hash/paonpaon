@@ -324,6 +324,44 @@ export function findMostFlaggedFitArea(
   return best;
 }
 
+export interface DayCoverage {
+  readonly dayOfWeek: number;
+  readonly appointmentCount: number;
+  readonly staffHours: number;
+}
+
+export interface StaffingRiskResult extends DayCoverage {
+  readonly demandPerStaffHour: number;
+}
+
+/**
+ * The `staffing_risk` projector's core computation: which day of the week
+ * carries the most appointment demand per scheduled staff-hour. Unlike
+ * the other projectors' plain bucket/count/max, this compares two real
+ * signals (booked appointments vs. scheduled coverage) rather than
+ * counting one thing, so the ratio itself — not a raw count — is what
+ * gets maximized. A day with zero scheduled staff-hours but real
+ * appointment demand is the clearest possible risk signal (unbounded
+ * ratio), so it is treated as `appointmentCount` staff-hours-worth of
+ * demand with zero coverage rather than silently divided by zero or
+ * skipped — the gap is real and must not disappear from the finding.
+ * A day with zero appointments is excluded entirely: no demand means no
+ * risk to report, regardless of staffing.
+ */
+export function findMostUnderstaffedDay(
+  days: readonly DayCoverage[],
+): StaffingRiskResult | null {
+  let best: StaffingRiskResult | null = null;
+  for (const day of days) {
+    if (day.appointmentCount <= 0) continue;
+    const demandPerStaffHour =
+      day.staffHours > 0 ? day.appointmentCount / day.staffHours : Infinity;
+    if (best && demandPerStaffHour <= best.demandPerStaffHour) continue;
+    best = { ...day, demandPerStaffHour };
+  }
+  return best;
+}
+
 export interface DashboardSection {
   readonly kind: RecommendationKind;
   readonly recommendations: readonly CitedRecommendation[];

@@ -100,3 +100,28 @@ export async function recomputeFitRisk(
     return { notice: "Recomputed from the latest fitting observations." };
   return { formError: REASONS[result.reason] ?? "Could not recompute that." };
 }
+
+/**
+ * Recomputes the `staffing_risk` recommendation from live appointments and
+ * scheduled staff shifts. A manager triggers this on demand rather than it
+ * running silently, so an empty or sparse result is a visible, explained
+ * state rather than a stale card nobody refreshed.
+ */
+export async function recomputeStaffingRisk(
+  _previous: AnalyticsActionState,
+  _formData: FormData,
+): Promise<AnalyticsActionState> {
+  const session = await requireSession();
+  if (!retailerRoleAtLeast(session.retailerRole, "manager")) {
+    return { formError: "Only a manager or above can recompute this." };
+  }
+  const supabase = await getSupabaseServerClient();
+  const result = await new CitedRecommendationRepository(
+    supabase,
+  ).computeStaffingRisk({ retailerId: session.retailerId });
+
+  revalidatePath("/analytics");
+  if (result.ok)
+    return { notice: "Recomputed from appointments and the staff roster." };
+  return { formError: REASONS[result.reason] ?? "Could not recompute that." };
+}

@@ -26,6 +26,7 @@ import { CompleteLookCard } from "./complete-look-insights";
 import { FitRiskCard } from "./fit-risk-insights";
 import { TemporalHotspotCard } from "./insights";
 import { RoleDashboardCard } from "./role-dashboard";
+import { StaffingRiskCard } from "./staffing-risk-insights";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -133,6 +134,7 @@ export default async function AnalyticsPage() {
     citedInsights,
     citedLookGapInsights,
     citedFitRiskInsights,
+    citedStaffingRiskInsights,
     allRecommendations,
   ] = await Promise.all([
     analyticsRepo.summary(session.retailerId, since30.toISOString()),
@@ -153,6 +155,10 @@ export default async function AnalyticsPage() {
     new CitedRecommendationRepository(supabase).listLive({
       retailerId: session.retailerId,
       kind: "fit_risk",
+    }),
+    new CitedRecommendationRepository(supabase).listLive({
+      retailerId: session.retailerId,
+      kind: "staffing_risk",
     }),
     new CitedRecommendationRepository(supabase).listLive({
       retailerId: session.retailerId,
@@ -420,6 +426,18 @@ export default async function AnalyticsPage() {
         <Card>
           <FitRiskCard
             insights={citedFitRiskInsights.map((row) => ({
+              id: row.id,
+              statement: row.statement,
+              confidence: row.confidence,
+              sampleSize: row.sample_size,
+              windowFrom: row.window_from,
+              windowTo: row.window_to,
+            }))}
+          />
+        </Card>
+        <Card>
+          <StaffingRiskCard
+            insights={citedStaffingRiskInsights.map((row) => ({
               id: row.id,
               statement: row.statement,
               confidence: row.confidence,

@@ -11,6 +11,7 @@ import {
   findBusiestSlot,
   findMostCommonLookGap,
   findMostFlaggedFitArea,
+  findMostUnderstaffedDay,
   planRecompute,
   resolveGarmentCategoryFromConcepts,
   shouldCreateRenewalTask,
@@ -30,6 +31,7 @@ import { MetadataRepository } from "./metadata-repository";
 import { PhysicalGarmentRepository } from "./physical-garment-repository";
 import { ProductRepository } from "./product-repository";
 import { ProductVariantRepository } from "./product-variant-repository";
+import { StaffRosterRepository } from "./staff-roster-repository";
 import { WardrobeRepository } from "./wardrobe-repository";
 
 type RecommendationRow =
@@ -41,6 +43,16 @@ const COMPLETE_LOOK_PROJECTOR_VERSION = "complete-look-v1";
 const MAX_CATALOGUE_PRODUCTS_SCANNED = 30;
 const FIT_RISK_PROJECTOR_VERSION = "fit-risk-v1";
 const FIT_RISK_WINDOW_DAYS = 90;
+const STAFFING_RISK_PROJECTOR_VERSION = "staffing-risk-v1";
+const STAFFING_RISK_WINDOW_DAYS = 90;
+
+/** Postgres `time` column, "HH:MM:SS" — staff_shifts never crosses
+ * midnight (its own check constraint enforces end_time > start_time),
+ * so plain hour/minute arithmetic is exact. */
+function timeStringToHours(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
+  return (hours ?? 0) + (minutes ?? 0) / 60;
+}
 
 const DAY_NAMES = [
   "Sunday",
@@ -435,6 +447,126 @@ export class CitedRecommendationRepository {
     await this.withdrawLiveOfKind(
       args.retailerId,
       "fit_risk",
+      "Superseded by a newer computation.",
+    );
+    return this.store(args.retailerId, result);
+  }
+
+  /**
+   * The `staffing_risk` projector. Compares real booked-appointment demand
+   * against real scheduled staff-hours, bucketed by day of week over a
+   * 90-day window, and finds the day with the highest demand-per-staff-hour
+   * ratio — the day most likely to be genuinely understaffed, not merely
+   * the busiest day in isolation (that claim already belongs to
+   * `temporal_hotspot`). Stores a fully cited recommendation naming both
+   * real numbers. Withdraws any prior live `staffing_risk` recommendation
+   * first, same supersede-not-pile-up pattern as every other projector.
+   */
+  async computeStaffingRisk(args: {
+    readonly retailerId: RetailerId;
+    readonly asOf?: string;
+    readonly windowDays?: number;
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<RecommendationBuild, { readonly ok: true }>
+    | { readonly ok: false; readonly reason: "no_appointments_in_window" }
+  > {
+    const asOf = args.asOf ?? new Date().toISOString();
+    const windowDays = args.windowDays ?? STAFFING_RISK_WINDOW_DAYS;
+    const to = new Date(asOf);
+    const from = new Date(to.getTime() - windowDays * 86_400_000);
+
+    const appointments = (
+      await new AppointmentRepository(this.client).findByRetailer(
+        args.retailerId,
+      )
+    ).filter((appointment) => {
+      if (
+        appointment.status === "canceled" ||
+        appointment.status === "no_show"
+      ) {
+        return false;
+      }
+      const startsAt = Date.parse(appointment.startsAt);
+      return startsAt >= from.getTime() && startsAt <= to.getTime();
+    });
+    if (appointments.length === 0) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "staffing_risk",
+        "Recomputed with no appointments in the window.",
+      );
+      return { ok: false, reason: "no_appointments_in_window" };
+    }
+
+    const shifts = await new StaffRosterRepository(
+      this.client,
+    ).findShiftsByRetailer(args.retailerId, {
+      from: from.toISOString().slice(0, 10),
+      to: to.toISOString().slice(0, 10),
+    });
+
+    const appointmentCountByDay = new Map<number, number>();
+    for (const appointment of appointments) {
+      const dayOfWeek = new Date(appointment.startsAt).getUTCDay();
+      appointmentCountByDay.set(
+        dayOfWeek,
+        (appointmentCountByDay.get(dayOfWeek) ?? 0) + 1,
+      );
+    }
+
+    const staffHoursByDay = new Map<number, number>();
+    for (const shift of shifts) {
+      const dayOfWeek = new Date(`${shift.shiftDate}T00:00:00Z`).getUTCDay();
+      const hours = timeStringToHours(shift.endTime) - timeStringToHours(shift.startTime);
+      staffHoursByDay.set(
+        dayOfWeek,
+        (staffHoursByDay.get(dayOfWeek) ?? 0) + hours,
+      );
+    }
+
+    const days = [...appointmentCountByDay.entries()].map(
+      ([dayOfWeek, appointmentCount]) => ({
+        dayOfWeek,
+        appointmentCount,
+        staffHours: staffHoursByDay.get(dayOfWeek) ?? 0,
+      }),
+    );
+
+    const best = findMostUnderstaffedDay(days);
+    if (!best) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "staffing_risk",
+        "Recomputed with no understaffed day found in the window.",
+      );
+      return { ok: false, reason: "no_appointments_in_window" };
+    }
+
+    const coverageClause =
+      best.staffHours > 0
+        ? `only ${best.staffHours.toFixed(1)} scheduled staff-hour${best.staffHours === 1 ? "" : "s"}`
+        : "no scheduled staff-hours at all";
+    const statement = `${DAY_NAMES[best.dayOfWeek]}s carry ${best.appointmentCount} of the last ${windowDays} days' appointments against ${coverageClause} — your most understaffed day.`;
+
+    const result = buildRecommendation({
+      kind: "staffing_risk",
+      statement,
+      sources: [
+        {
+          sourceRef: "appointments+staff_shifts",
+          projectorVersion: STAFFING_RISK_PROJECTOR_VERSION,
+          observedRows: appointments.length,
+        },
+      ],
+      window: { from: from.toISOString(), to: to.toISOString() },
+      sampleSize: best.appointmentCount,
+      derivedFromFactIds: [],
+    });
+
+    await this.withdrawLiveOfKind(
+      args.retailerId,
+      "staffing_risk",
       "Superseded by a newer computation.",
     );
     return this.store(args.retailerId, result);

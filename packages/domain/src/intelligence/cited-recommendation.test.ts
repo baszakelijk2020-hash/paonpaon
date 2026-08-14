@@ -8,6 +8,7 @@ import {
   findBusiestSlot,
   findMostCommonLookGap,
   findMostFlaggedFitArea,
+  findMostUnderstaffedDay,
   planRecompute,
 } from "./cited-recommendation";
 
@@ -329,5 +330,41 @@ describe("findMostFlaggedFitArea", () => {
       { area: "Hem", workNow: true },
     ]);
     expect(result).toEqual({ area: "hem", flagCount: 1 });
+  });
+});
+
+describe("findMostUnderstaffedDay", () => {
+  it("returns null for no days", () => {
+    expect(findMostUnderstaffedDay([])).toBeNull();
+  });
+
+  it("finds the day with the highest demand-per-staff-hour ratio", () => {
+    const result = findMostUnderstaffedDay([
+      { dayOfWeek: 1, appointmentCount: 4, staffHours: 8 },
+      { dayOfWeek: 6, appointmentCount: 10, staffHours: 8 },
+    ]);
+    expect(result).toEqual({
+      dayOfWeek: 6,
+      appointmentCount: 10,
+      staffHours: 8,
+      demandPerStaffHour: 1.25,
+    });
+  });
+
+  it("treats zero scheduled staff-hours with real demand as the worst case, not a divide-by-zero skip", () => {
+    const result = findMostUnderstaffedDay([
+      { dayOfWeek: 1, appointmentCount: 20, staffHours: 8 },
+      { dayOfWeek: 2, appointmentCount: 1, staffHours: 0 },
+    ]);
+    expect(result?.dayOfWeek).toBe(2);
+    expect(result?.demandPerStaffHour).toBe(Infinity);
+  });
+
+  it("excludes a day with zero appointments entirely, regardless of staffing", () => {
+    const result = findMostUnderstaffedDay([
+      { dayOfWeek: 1, appointmentCount: 0, staffHours: 0 },
+      { dayOfWeek: 2, appointmentCount: 2, staffHours: 10 },
+    ]);
+    expect(result?.dayOfWeek).toBe(2);
   });
 });

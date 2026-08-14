@@ -1,7 +1,7 @@
 {
   "phaseItemId": "14.2",
-  "gitSha": "ecafb3d2638bbf942d79d777efdf5afe26b53892",
-  "spec": "apps/retailer/e2e/fit-risk-insight.spec.ts",
+  "gitSha": "8eff4451729f931585339b961ec34c80726858d8",
+  "spec": "apps/retailer/e2e/staffing-risk-insight.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-14T04:31:29.210Z"
+  "timestamp": "2026-08-14T06:01:40.517Z"
 }
