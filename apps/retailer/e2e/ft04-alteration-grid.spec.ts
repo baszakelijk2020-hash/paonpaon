@@ -56,6 +56,8 @@ test("FT-04 saves a locked grid revision and opens selective dispatch", async ({
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('input[type="checkbox"]')).toHaveCount(1);
   await dialog.locator('input[type="checkbox"]').check();
+  await expect(dialog.getByText("Fixed-price total")).toBeVisible();
+  await expect(dialog.locator("output")).toContainText(/\d+\.\d{2}/);
   await expect(
     dialog.getByRole("button", { name: "Dispatch 1 alteration" }),
   ).toBeEnabled();

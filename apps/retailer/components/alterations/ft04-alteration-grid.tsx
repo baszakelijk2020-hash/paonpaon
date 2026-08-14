@@ -95,6 +95,19 @@ export function Ft04AlterationGrid({
   const selectable = operations.filter(
     (operation) => (shown[operation.id] ?? 0) !== 0,
   );
+  const selectedOperations = selectable.filter((operation) =>
+    selected.has(operation.id),
+  );
+  const selectedHasUnavailablePrice = selectedOperations.some(
+    (operation) => operation.price === undefined,
+  );
+  const selectedTotal = selectedOperations.reduce(
+    (total, operation) => total + (operation.price ?? 0),
+    0,
+  );
+  const selectedCurrency = selectedOperations.find(
+    (operation) => operation.currency,
+  )?.currency;
   return (
     <section className="rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -287,6 +300,22 @@ export function Ft04AlterationGrid({
               className="mt-4 w-full rounded border p-2 text-sm"
               placeholder="Order number, workshop comments, and photo references"
             />
+            <div className="mt-4 rounded-[var(--radius-md)] bg-[var(--color-stone-100)] p-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-medium">Fixed-price total</span>
+                <output className="text-lg font-semibold" aria-live="polite">
+                  {selectedHasUnavailablePrice
+                    ? "Unavailable"
+                    : `${(selectedTotal / 100).toFixed(2)} ${selectedCurrency ?? ""}`}
+                </output>
+              </div>
+              {selectedHasUnavailablePrice ? (
+                <p className="mt-2 text-sm text-red-700">
+                  A selected alteration has no current fixed price and cannot be
+                  dispatched.
+                </p>
+              ) : null}
+            </div>
             <div className="mt-4 flex justify-end gap-2">
               <Button
                 variant="secondary"
@@ -296,7 +325,11 @@ export function Ft04AlterationGrid({
               </Button>
               <Button
                 onClick={dispatch}
-                disabled={dispatching || selected.size === 0}
+                disabled={
+                  dispatching ||
+                  selected.size === 0 ||
+                  selectedHasUnavailablePrice
+                }
               >
                 {dispatching
                   ? "Dispatching…"
