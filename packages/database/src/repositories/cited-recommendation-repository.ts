@@ -10,6 +10,7 @@ import {
   computeCorporateProgrammeMetrics,
   findBusiestSlot,
   findMostCommonLookGap,
+  findMostFlaggedFitArea,
   planRecompute,
   resolveGarmentCategoryFromConcepts,
   shouldCreateRenewalTask,
@@ -26,6 +27,7 @@ import { AppointmentRepository } from "./appointment-repository";
 import { CorporateRepository } from "./corporate-repository";
 import { CustomerRepository } from "./customer-repository";
 import { MetadataRepository } from "./metadata-repository";
+import { PhysicalGarmentRepository } from "./physical-garment-repository";
 import { ProductRepository } from "./product-repository";
 import { ProductVariantRepository } from "./product-variant-repository";
 import { WardrobeRepository } from "./wardrobe-repository";
@@ -37,6 +39,8 @@ const TEMPORAL_HOTSPOT_PROJECTOR_VERSION = "temporal-hotspot-v1";
 const HOTSPOT_WINDOW_DAYS = 90;
 const COMPLETE_LOOK_PROJECTOR_VERSION = "complete-look-v1";
 const MAX_CATALOGUE_PRODUCTS_SCANNED = 30;
+const FIT_RISK_PROJECTOR_VERSION = "fit-risk-v1";
+const FIT_RISK_WINDOW_DAYS = 90;
 
 const DAY_NAMES = [
   "Sunday",
@@ -346,6 +350,91 @@ export class CitedRecommendationRepository {
     await this.withdrawLiveOfKind(
       args.retailerId,
       "complete_look",
+      "Superseded by a newer computation.",
+    );
+    return this.store(args.retailerId, result);
+  }
+
+  /**
+   * The `fit_risk` projector. Reads real fitting observations (excluding
+   * `future_order_note` — an advisor explicitly deferring work is not a
+   * risk signal), finds the garment area most often flagged `work_now`,
+   * and stores a fully cited recommendation naming exactly how many
+   * flagged observations fed it. Withdraws any prior live `fit_risk`
+   * recommendation first, same supersede-not-pile-up pattern as every
+   * other projector here.
+   */
+  async computeFitRisk(args: {
+    readonly retailerId: RetailerId;
+    readonly asOf?: string;
+    readonly windowDays?: number;
+  }): Promise<
+    | { readonly ok: true; readonly id: string }
+    | Exclude<RecommendationBuild, { readonly ok: true }>
+    | { readonly ok: false; readonly reason: "no_fitting_observations" }
+  > {
+    const asOf = args.asOf ?? new Date().toISOString();
+    const windowDays = args.windowDays ?? FIT_RISK_WINDOW_DAYS;
+    const to = new Date(asOf);
+    const from = new Date(to.getTime() - windowDays * 86_400_000);
+
+    const observations = await new PhysicalGarmentRepository(
+      this.client,
+    ).findObservationsByRetailer(args.retailerId, {
+      sinceIso: from.toISOString(),
+    });
+    if (observations.length === 0) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "fit_risk",
+        "Recomputed with no fitting observations in the window.",
+      );
+      return { ok: false, reason: "no_fitting_observations" };
+    }
+
+    const best = findMostFlaggedFitArea(
+      observations.map((observation) => ({
+        area: observation.area,
+        workNow: observation.classification === "work_now",
+      })),
+    );
+    if (!best) {
+      await this.withdrawLiveOfKind(
+        args.retailerId,
+        "fit_risk",
+        "Recomputed with no work_now observations in the window.",
+      );
+      return { ok: false, reason: "no_fitting_observations" };
+    }
+
+    const flaggedIds = observations
+      .filter(
+        (observation) =>
+          observation.classification === "work_now" &&
+          observation.area.trim().toLowerCase() === best.area,
+      )
+      .map((observation) => observation.id);
+
+    const statement = `${best.flagCount} of the last ${windowDays} days' ${observations.length} fitting observations flagged the ${best.area} for immediate work — your most common fit issue.`;
+
+    const result = buildRecommendation({
+      kind: "fit_risk",
+      statement,
+      sources: [
+        {
+          sourceRef: "fitting_observations",
+          projectorVersion: FIT_RISK_PROJECTOR_VERSION,
+          observedRows: observations.length,
+        },
+      ],
+      window: { from: from.toISOString(), to: to.toISOString() },
+      sampleSize: best.flagCount,
+      derivedFromFactIds: flaggedIds,
+    });
+
+    await this.withdrawLiveOfKind(
+      args.retailerId,
+      "fit_risk",
       "Superseded by a newer computation.",
     );
     return this.store(args.retailerId, result);

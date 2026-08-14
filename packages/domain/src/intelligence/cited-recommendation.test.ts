@@ -7,6 +7,7 @@ import {
   checkRecommendationHonesty,
   findBusiestSlot,
   findMostCommonLookGap,
+  findMostFlaggedFitArea,
   planRecompute,
 } from "./cited-recommendation";
 
@@ -287,5 +288,46 @@ describe("findMostCommonLookGap", () => {
     const result = findMostCommonLookGap([["shirt"], ["shoes"]]);
     expect(result?.customerCount).toBe(1);
     expect(["shirt", "shoes"]).toContain(result?.categoryCode);
+  });
+});
+
+describe("findMostFlaggedFitArea", () => {
+  it("returns null for no observations", () => {
+    expect(findMostFlaggedFitArea([])).toBeNull();
+  });
+
+  it("finds the most-flagged area among work_now observations", () => {
+    const result = findMostFlaggedFitArea([
+      { area: "Waist", workNow: true },
+      { area: "Waist", workNow: true },
+      { area: "Sleeve", workNow: true },
+    ]);
+    expect(result).toEqual({ area: "waist", flagCount: 2 });
+  });
+
+  it("ignores future_order_note observations entirely", () => {
+    const result = findMostFlaggedFitArea([
+      { area: "Waist", workNow: false },
+      { area: "Waist", workNow: false },
+      { area: "Sleeve", workNow: true },
+    ]);
+    expect(result).toEqual({ area: "sleeve", flagCount: 1 });
+  });
+
+  it("normalizes case and surrounding whitespace, not different phrasings", () => {
+    const result = findMostFlaggedFitArea([
+      { area: "Waist", workNow: true },
+      { area: " waist ", workNow: true },
+      { area: "WAIST", workNow: true },
+    ]);
+    expect(result).toEqual({ area: "waist", flagCount: 3 });
+  });
+
+  it("ignores an empty or whitespace-only area rather than counting it", () => {
+    const result = findMostFlaggedFitArea([
+      { area: "   ", workNow: true },
+      { area: "Hem", workNow: true },
+    ]);
+    expect(result).toEqual({ area: "hem", flagCount: 1 });
   });
 });

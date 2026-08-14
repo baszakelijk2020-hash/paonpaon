@@ -1,7 +1,7 @@
 {
   "phaseItemId": "14.2",
-  "gitSha": "c3f4a61a79ed99ab95fb056344e938b4cc1e2332",
-  "spec": "apps/retailer/e2e/complete-look-insight.spec.ts",
+  "gitSha": "ecafb3d2638bbf942d79d777efdf5afe26b53892",
+  "spec": "apps/retailer/e2e/fit-risk-insight.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-14T02:34:26.589Z"
+  "timestamp": "2026-08-14T04:31:29.210Z"
 }

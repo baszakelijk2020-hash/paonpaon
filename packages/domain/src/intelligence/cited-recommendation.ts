@@ -289,6 +289,41 @@ export function findMostCommonLookGap(
   return best;
 }
 
+export interface FitRiskResult {
+  readonly area: string;
+  readonly flagCount: number;
+}
+
+/**
+ * The `fit_risk` projector's core computation: which garment area is most
+ * often flagged as needing immediate work (`work_now`) during fittings.
+ * Mirrors `findBusiestSlot`/`findMostCommonLookGap`'s exact bucket/count/max
+ * shape. `area` is free text recorded by advisors (no fixed enum exists),
+ * so bucketing normalizes case/whitespace only — "Waist" and "waist " are
+ * the same real-world area, but no further semantic merging is attempted,
+ * since guessing that two different phrasings mean the same area would be
+ * inventing a taxonomy this codebase's fitting_observations table doesn't
+ * have. Only `work_now` observations count: a `future_order_note` was
+ * explicitly deferred by the advisor, not flagged as an immediate risk.
+ */
+export function findMostFlaggedFitArea(
+  observations: readonly { readonly area: string; readonly workNow: boolean }[],
+): FitRiskResult | null {
+  const counts = new Map<string, number>();
+  for (const observation of observations) {
+    if (!observation.workNow) continue;
+    const normalized = observation.area.trim().toLowerCase();
+    if (normalized.length === 0) continue;
+    counts.set(normalized, (counts.get(normalized) ?? 0) + 1);
+  }
+  let best: FitRiskResult | null = null;
+  for (const [area, flagCount] of counts) {
+    if (best && flagCount <= best.flagCount) continue;
+    best = { area, flagCount };
+  }
+  return best;
+}
+
 export interface DashboardSection {
   readonly kind: RecommendationKind;
   readonly recommendations: readonly CitedRecommendation[];

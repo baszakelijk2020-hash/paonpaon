@@ -23,6 +23,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { CompleteLookCard } from "./complete-look-insights";
+import { FitRiskCard } from "./fit-risk-insights";
 import { TemporalHotspotCard } from "./insights";
 import { RoleDashboardCard } from "./role-dashboard";
 
@@ -131,6 +132,7 @@ export default async function AnalyticsPage() {
     customers,
     citedInsights,
     citedLookGapInsights,
+    citedFitRiskInsights,
     allRecommendations,
   ] = await Promise.all([
     analyticsRepo.summary(session.retailerId, since30.toISOString()),
@@ -147,6 +149,10 @@ export default async function AnalyticsPage() {
     new CitedRecommendationRepository(supabase).listLive({
       retailerId: session.retailerId,
       kind: "complete_look",
+    }),
+    new CitedRecommendationRepository(supabase).listLive({
+      retailerId: session.retailerId,
+      kind: "fit_risk",
     }),
     new CitedRecommendationRepository(supabase).listLive({
       retailerId: session.retailerId,
@@ -402,6 +408,18 @@ export default async function AnalyticsPage() {
         <Card>
           <CompleteLookCard
             insights={citedLookGapInsights.map((row) => ({
+              id: row.id,
+              statement: row.statement,
+              confidence: row.confidence,
+              sampleSize: row.sample_size,
+              windowFrom: row.window_from,
+              windowTo: row.window_to,
+            }))}
+          />
+        </Card>
+        <Card>
+          <FitRiskCard
+            insights={citedFitRiskInsights.map((row) => ({
               id: row.id,
               statement: row.statement,
               confidence: row.confidence,

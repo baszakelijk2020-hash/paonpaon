@@ -4807,10 +4807,42 @@ sale` — nothing deleted to make it tidy; the finished sale has no edit
     (unchecked `.update()` error) and the projector sees zero accepted
     concepts; (3) the shared fixture retailer's real, growing customer
     count means "3 of 3 customers" is not a safe hardcoded assertion — the
-    test now asserts against the retailer's actual live count. The
-    checkbox stays unchecked: five projectors (interest_progression,
-    fit_risk, production_risk, stock_risk, staffing_risk) and the AI
-    evaluation harness remain entirely unbuilt.
+    test now asserts against the retailer's actual live count.
+  - **Update (2026-08-14): third projector, `fit_risk`.** Domain:
+    `findMostFlaggedFitArea` (`cited-recommendation.ts`) buckets
+    `work_now` fitting observations by garment area (normalized
+    case/whitespace only — `area` is advisor free text with no fixed
+    taxonomy, so no further semantic merging is attempted), same
+    bucket/count/max shape as the other two projectors (5 domain tests).
+    Repository: `CitedRecommendationRepository.computeFitRisk` reads a
+    90-day window of real `fitting_observations` via a new
+    `PhysicalGarmentRepository.findObservationsByRetailer` (the existing
+    method was per-garment only; this mirrors
+    `AppointmentRepository.findByRetailer`'s retailer-scoped shape rather
+    than making the projector loop per garment), excludes
+    `future_order_note` (an advisor's explicit deferral is not a risk
+    signal), and cites the exact flagged-observation ids. UI: a third
+    `FitRiskCard` alongside the existing two, same settled pattern.
+    Browser-proven (`apps/retailer/e2e/fit-risk-insight.spec.ts`, 3
+    consecutive passes): a real garment intake with a deliberate 3:2:1
+    work_now observation skew (waist:sleeve:hem) correctly surfaces the
+    waist as most-flagged, `sample_size` exactly 3. Learned from
+    `complete_look`'s own shared-fixture dilution problem this update
+    avoids it differently: `area` is free text, so each run uses a
+    uniquely-timestamped synthetic area name (`waist-<unique>`) that can
+    never collide with any other real or historical observation on this
+    shared retailer, making the assertion exact without needing to query
+    a live total the way `complete_look` had to. Also learned from that
+    same session: this test does not attempt to delete the garment
+    intake it creates in cleanup, since neither `alteration_work_orders`'
+    cascade shape nor `fitting_observations`' own append-only posture
+    (suspected, not confirmed, unlike the proven `stock_ledger_entries`
+    case) was verified — an unchecked delete already caused one real
+    silent-failure bug this session, so this test deliberately leaves
+    harmless, uniquely-tagged debris rather than risk repeating it. The
+    checkbox stays unchecked: four projectors (interest_progression,
+    production_risk, stock_risk, staffing_risk) and the AI evaluation
+    harness remain entirely unbuilt.
 
 ### Stage 15 — Lifestyle network and MunroMerchant (parked)
 
