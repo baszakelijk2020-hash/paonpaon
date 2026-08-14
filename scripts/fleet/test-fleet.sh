@@ -148,6 +148,16 @@ cat > "$SANDBOX/docs/PHASE.md" <<'MD'
 ### Stage 16 — Active again
 - [ ] **16.9 Another real item**
   - touches apps/customer/**
+- [ ] **16.3 Deleted — generic vertical-pack framework**
+  - touches apps/retailer/**
+- [ ] **16.5 Moonstruck wedding planner (full vertical pack parked)**
+  - touches apps/retailer/**
+- [ ] **18.9 Parked — vague corporate analytics**
+  - touches apps/retailer/**
+- [ ] **10.2 Honeymoon Phase (Seven-Day Wardrobe parked)**
+  - touches apps/customer/**
+- [ ] **19.1 Close parked/deleted route-gating gap**
+  - touches apps/retailer/**
 MD
 cp "$SEED_SRC" scripts/fleet/seed-queue.sh && chmod +x scripts/fleet/seed-queue.sh
 rm -f "$Q"
@@ -158,6 +168,31 @@ active="$(jq -r '[.tasks[]|select(.id=="phase-14.9" or .id=="phase-16.9")]|lengt
   || bad "founder-parked items never queued" "0" "${parked:-<none>}"
 [ "${active:-0}" = "2" ] && ok "active stage items still queued around a parked stage" \
   || bad "active items still queued" "2" "${active:-<none>}"
+
+# 'Parked —' / 'Deleted —' title prefixes are unambiguous: never queued.
+for id in phase-16.3 phase-18.9; do
+  n="$(jq -r --arg i "$id" '[.tasks[]|select(.id==$i)]|length' "$Q")"
+  [ "$n" = "0" ] && ok "title-declared parked/deleted item excluded ($id)" \
+    || bad "title-declared parked excluded ($id)" "0" "$n"
+done
+
+# Ambiguous trailing "(... parked)" must be flagged unclaimable, not guessed.
+for id in phase-16.5 phase-10.2; do
+  ns="$(jq -r --arg i "$id" '.tasks[]|select(.id==$i)|.needs_scope // false' "$Q")"
+  [ "$ns" = "true" ] && ok "ambiguous '(... parked)' flagged needs_scope ($id)" \
+    || bad "ambiguous parked flagged ($id)" "true" "$ns"
+done
+out="$(run agentP implementation take)"
+case "$out" in
+  *'"id": "phase-16.5"'*|*'"id": "phase-10.2"'*)
+    bad "ambiguous parked never auto-assigned" "not phase-16.5/10.2" "$out" ;;
+  *) ok "ambiguous parked item never auto-assigned" ;;
+esac
+
+# 19.1 merely MENTIONS parked routes — it is active cleanup and must survive.
+n="$(jq -r '[.tasks[]|select(.id=="phase-19.1")|select(.needs_scope != true)]|length' "$Q")"
+[ "$n" = "1" ] && ok "item that only mentions 'parked' stays claimable (19.1)" \
+  || bad "19.1 stays claimable" "1" "$n"
 
 echo
 echo "=== $PASS passed, $FAIL failed ==="

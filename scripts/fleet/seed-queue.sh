@@ -115,6 +115,26 @@ if [ -f "$PHASE" ]; then
       *blocked_external*|*founder*decision*|*"founder authorization"*) continue ;;
     esac
 
+    # Titles that DECLARE the item parked/deleted, e.g.
+    #   "18.9 Parked — vague corporate analytics"
+    #   "16.3 Deleted — generic vertical-pack framework"
+    case "$title" in
+      Parked\ —*|Deleted\ —*|Parked\ -*|Deleted\ -*) continue ;;
+    esac
+
+    # A trailing "(... parked)" is genuinely ambiguous and must NOT be guessed:
+    #   16.5 "Moonstruck wedding planner (full vertical pack parked)" -> the
+    #        whole item is parked, and it carries no founder-override body
+    #        marker, so the checks above miss it entirely.
+    #   10.2 "Honeymoon Phase (Seven-Day Wardrobe parked)" -> the item is
+    #        ACTIVE; only a named sub-feature is parked.
+    # Both look identical to a matcher. Flag for a human instead of excluding
+    # active work or queueing parked work — same principle as unscoped paths.
+    ambiguous_parked="false"
+    case "$title" in
+      *parked\)|*Parked\)|*deleted\)|*Deleted\)) ambiguous_parked="true" ;;
+    esac
+
     # Infer REAL owned paths from the item's own text. Handing every task the
     # generic ["packages/**","apps/**"] made every agent "own" everything,
     # so path isolation existed on paper only — and once the queue started
@@ -136,16 +156,27 @@ if [ -f "$PHASE" ]; then
     else
       paths='[]'; scope="true"
     fi
-    printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$num" "$title" "$tier" "$p" "$paths" "$scope"
+    # An ambiguously-parked title is unclaimable until a human resolves it.
+    [ "$ambiguous_parked" = "true" ] && scope="true"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$num" "$title" "$tier" "$p" "$paths" "$scope" "$ambiguous_parked"
   done > "$FLEET_DIR/.phase_items.tsv" || true
 
-  while IFS=$'\t' read -r num title tier p paths scope; do
+  while IFS=$'\t' read -r num title tier p paths scope ambig; do
     [ -n "${num:-}" ] || continue
+    if [ "${ambig:-false}" = "true" ]; then
+      why="NEEDS_SCOPE: title declares parked scope ambiguously — confirm whether the WHOLE item is parked (like 16.5) or only a named sub-feature (like 10.2) before this may be claimed."
+    elif [ "${scope:-false}" = "true" ]; then
+      why="NEEDS_SCOPE: owned_paths could not be inferred from PHASE.md; scope this before it can be claimed."
+    else
+      why=""
+    fi
     add_task "phase-$num" "PHASE $num — $title" "$tier" "$p" \
-      "${paths:-[]}" "pnpm lint && pnpm typecheck" \
-      "$([ "${scope:-false}" = "true" ] && echo "NEEDS_SCOPE: owned_paths could not be inferred from PHASE.md; scope this before it can be claimed." || echo "")"
+      "${paths:-[]}" "pnpm lint && pnpm typecheck" "$why"
     if [ "${scope:-false}" = "true" ]; then
-      jq --arg id "phase-$num" '(.tasks[]|select(.id==$id)) |= (.needs_scope=true)' "$TMP" > "$TMP.s" && mv "$TMP.s" "$TMP"
+      # $TMP is a bare JSON array (add_task does `. += [...]`), NOT the
+      # {tasks:[...]} envelope — addressing .tasks[] here silently matched
+      # nothing, so needs_scope was never actually set.
+      jq --arg id "phase-$num" '(.[]|select(.id==$id)) |= (.needs_scope=true)' "$TMP" > "$TMP.s" && mv "$TMP.s" "$TMP"
     fi
   done < "$FLEET_DIR/.phase_items.tsv"
   rm -f "$FLEET_DIR/.phase_items.tsv" "$parked_ranges"
