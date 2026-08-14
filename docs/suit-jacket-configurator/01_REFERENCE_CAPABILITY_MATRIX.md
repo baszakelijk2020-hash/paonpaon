@@ -1,6 +1,6 @@
 # Reference capability matrix
 
-Research date: 2026-08-14. This is a capability observation, not a design source.
+Research date: 2026-08-14. This is a clean-room behavioral benchmark. Observable capability and interaction mechanics may become explicit PAON requirements; implementation inputs remain original or rights-cleared.
 
 | Capability                      | Suitsupply public configurator                                                                        | Armani MTM URL                                | PAON interpretation                                                  |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------- |
@@ -20,8 +20,8 @@ Directly observed through a public browser session: Suitsupply's custom-made con
 
 ## Sources
 
-| Source                   | Organization | Date accessed | URL                                            | Relevance / limitation                                       |
-| ------------------------ | ------------ | ------------: | ---------------------------------------------- | ------------------------------------------------------------ |
-| Custom Made configurator | Suitsupply   |    2026-08-14 | https://custommade.suitsupply.com/configurator | Primary live observation; dynamic commercial UI, not copied. |
-| Made-to-measure overview | Suitsupply   |    2026-08-14 | https://suitsupply.com/en-us/men/custom-made   | Primary public context; availability and claims can change.  |
-| MTM configurator         | Armani       |    2026-08-14 | https://mtmconfigurator.armani.com             | Primary target but inaccessible in this pass; no inference.  |
+| Source                   | Organization | Date accessed | URL                                            | Relevance / limitation                                                                 |
+| ------------------------ | ------------ | ------------: | ---------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Custom Made configurator | Suitsupply   |    2026-08-14 | https://custommade.suitsupply.com/configurator | Primary live observation and functional-parity benchmark; dynamic behavior can change. |
+| Made-to-measure overview | Suitsupply   |    2026-08-14 | https://suitsupply.com/en-us/men/custom-made   | Primary public context; availability and claims can change.                            |
+| MTM configurator         | Armani       |    2026-08-14 | https://mtmconfigurator.armani.com             | Primary target but inaccessible in this pass; no inference.                            |
