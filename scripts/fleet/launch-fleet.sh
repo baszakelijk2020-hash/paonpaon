@@ -22,8 +22,32 @@ FLEET="$REPO_ROOT/scripts/fleet/paon-fleet"
 # them), so the lane labelled "openrouter-deepseek" silently ran plain Codex
 # on gpt-5.6-terra — burning the expensive quota the lane existed to avoid.
 # Verified from the live pane before this fix: "gpt-5.6-terra medium".
+# Exact query from the original tasks.json: account=$USER, service=OPENROUTER_API_KEY.
+# (An earlier version of this file guessed `-s paon-openrouter`, which matches
+# nothing.) codex-openrouter/config.toml declares env_key = "OPENROUTER_API_KEY",
+# so Codex reads the key from that env var.
 CODEX_OR_HOME="$HOME/.config/paon-agent-launcher/codex-openrouter"
-OR_ENV="CODEX_HOME='$CODEX_OR_HOME' OPENROUTER_API_KEY=\"\$(security find-generic-password -s paon-openrouter -w 2>/dev/null)\""
+OR_ENV="CODEX_HOME='$CODEX_OR_HOME' OPENROUTER_API_KEY=\"\$(security find-generic-password -a \"\$USER\" -s OPENROUTER_API_KEY -w 2>/dev/null)\""
+
+# FAIL LOUD, never silently downgrade. If the key is missing the env var is
+# empty and Codex quietly falls back to the signed-in ChatGPT account — so a
+# lane you believe is cheap DeepSeek actually bills as gpt-5.6-terra. That is
+# exactly what was happening: the keychain item does not exist on this machine.
+preflight_openrouter() {
+  if security find-generic-password -a "$USER" -s OPENROUTER_API_KEY -w >/dev/null 2>&1; then
+    return 0
+  fi
+  cat >&2 <<'WARN'
+  ✗ OPENROUTER_API_KEY missing from the login keychain.
+    Expected: account=$USER  service=OPENROUTER_API_KEY
+    Without it, `codex` silently falls back to your ChatGPT account, so the
+    "openrouter-deepseek" lane bills as gpt-5.6-terra instead of DeepSeek.
+    Add it with:
+      security add-generic-password -a "$USER" -s OPENROUTER_API_KEY -w '<key>'
+    Skipping this lane rather than starting it on the wrong (expensive) model.
+WARN
+  return 1
+}
 
 AGENTS=(
   "claude-nguyen1|/private/tmp/paon-claude-nguyen1|paon-claude-nguyen1|frontier,implementation|claude --permission-mode bypassPermissions"
@@ -71,6 +95,11 @@ start_one() {
   if [ ! -d "$wt" ]; then echo "  SKIP $id (missing worktree $wt)"; return; fi
   if tmux has-session -t "$sess" 2>/dev/null; then
     echo "  RUNNING $id (tmux: $sess) — leaving alone"; return
+  fi
+  # Refuse to start the OpenRouter lane on the wrong model.
+  if [ "$id" = "openrouter-deepseek" ] && ! preflight_openrouter; then
+    echo "  SKIPPED $id (no OpenRouter key — would have run as expensive Codex)"
+    return
   fi
   local extra=""
   case "$cmd" in *codex*) extra="$NON_CLAUDE_ENV " ;; esac
