@@ -141,3 +141,35 @@ export const ANNIVERSARY_MOMENT_LIBRARY_V1: CampaignLibrarySnapshot = {
     trigger: "anniversary_date_window",
   },
 };
+
+/**
+ * The third of 10.4's nine named packages — PHASE.md's "annual event" entry.
+ * Same shape as Anniversary: reuses an existing `customer_facts` type
+ * (`'occasion'`, already in the check constraint since PHASE 7.3) rather
+ * than a fixed calendar date, so it plugs into the same
+ * `evaluateRelationshipDateWindow` unmodified and needs no new fact type or
+ * migration. Deliberately generic — "occasion" already covers a customer's
+ * own recurring annual date that isn't specifically an anniversary or
+ * wedding (a personal ritual, a founding date, whatever the customer or
+ * advisor recorded) rather than inventing a narrower fact type for it.
+ */
+export const ANNUAL_EVENT_LIBRARY_V1: CampaignLibrarySnapshot = {
+  versionLabel: "annual-event-v1",
+  kind: "private_offer",
+  title: "Annual Event",
+  summary:
+    "A private note timed to a customer's own recurring occasion, not a generic seasonal blast.",
+  prerequisites: [
+    "personalization_consent",
+    "occasion_fact",
+    "advisor_coverage",
+  ],
+  placementHints: ["private_offers", "clienteling"],
+  staffMission:
+    "Reach out once the window opens — confirm this occasion still matters to the client before suggesting anything.",
+  outcomeMetrics: ["opened", "replied", "booked", "declined"],
+  audienceTemplate: {
+    consent: "personalization",
+    trigger: "occasion_date_window",
+  },
+};

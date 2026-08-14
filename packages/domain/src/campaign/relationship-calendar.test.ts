@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   ANNIVERSARY_MOMENT_LIBRARY_V1,
+  ANNUAL_EVENT_LIBRARY_V1,
   evaluateRelationshipDateWindow,
 } from "./relationship-calendar";
 
@@ -115,5 +116,35 @@ describe("ANNIVERSARY_MOMENT_LIBRARY_V1", () => {
     expect(ANNIVERSARY_MOMENT_LIBRARY_V1.prerequisites).toContain(
       "personalization_consent",
     );
+  });
+});
+
+describe("ANNUAL_EVENT_LIBRARY_V1", () => {
+  it("declares a real prerequisite naming the fact type it depends on", () => {
+    expect(ANNUAL_EVENT_LIBRARY_V1.prerequisites).toContain("occasion_fact");
+    expect(ANNUAL_EVENT_LIBRARY_V1.prerequisites).toContain(
+      "personalization_consent",
+    );
+  });
+
+  it("is a distinct library version from the anniversary package", () => {
+    expect(ANNUAL_EVENT_LIBRARY_V1.versionLabel).not.toBe(
+      ANNIVERSARY_MOMENT_LIBRARY_V1.versionLabel,
+    );
+  });
+
+  it("shares the same generic date-window eligibility as any other occasion", () => {
+    // ANNUAL_EVENT reuses evaluateRelationshipDateWindow unmodified — an
+    // occasion recorded as, say, a founding date recurs exactly like an
+    // anniversary or wedding date would.
+    const result = evaluateRelationshipDateWindow({
+      relationshipDateIso: "2019-09-03",
+      todayIso: "2026-08-25T00:00:00.000Z",
+      leadDays: 14,
+    });
+    expect(result.inWindow).toBe(true);
+    if (result.inWindow) {
+      expect(result.daysUntil).toBe(9);
+    }
   });
 });
