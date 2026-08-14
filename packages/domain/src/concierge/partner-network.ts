@@ -21,6 +21,7 @@
 import type {
   CustomerId,
   RetailerId,
+  ServiceBookingId,
   ServiceCostRecordId,
   ServicePartnerCustodyEventId,
   ServicePartnerEngagementId,
@@ -160,6 +161,7 @@ export interface ServicePartnerEngagement extends Timestamps {
   readonly partnerId: ServicePartnerId;
   readonly customerId: CustomerId;
   readonly wardrobeItemId: WardrobeItemId;
+  readonly bookingId?: ServiceBookingId;
   readonly jobReference: string;
   readonly capability: PartnerCapability;
   readonly instructions: string;

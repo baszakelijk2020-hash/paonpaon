@@ -53,15 +53,32 @@ export async function createEngagement(formData: FormData): Promise<void> {
   const [wardrobeItemId, customerId] = String(
     formData.get("wardrobeItemAndCustomer") ?? "",
   ).split(":");
+  const bookingId =
+    (formData.get("bookingId") as string | null)?.trim() || undefined;
   const values = createServicePartnerEngagementInputSchema.parse({
     partnerId: formData.get("partnerId"),
     customerId,
     wardrobeItemId,
+    bookingId,
     jobReference: formData.get("jobReference"),
     capability: formData.get("capability"),
     instructions: formData.get("instructions"),
     dueOn: formData.get("dueOn"),
   });
+  if (values.bookingId) {
+    const booking = (
+      await new ServicePlanRepository(supabase).listBookingsByRetailer(
+        session.retailerId,
+      )
+    ).find((candidate) => candidate.id === values.bookingId);
+    if (
+      !booking ||
+      booking.customerId !== values.customerId ||
+      booking.status === "canceled"
+    ) {
+      throw new Error("Select an active service booking for this client.");
+    }
+  }
   await new ServicePartnerRepository(supabase).createEngagement(
     session.retailerId,
     values,

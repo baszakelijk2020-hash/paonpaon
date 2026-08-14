@@ -1,11 +1,14 @@
 import {
   CustomerRepository,
   ServicePartnerRepository,
+  ServicePlanRepository,
   WardrobeRepository,
 } from "@paon/database";
 import {
   PARTNER_CAPABILITIES,
   PARTNER_CUSTODY_STATES,
+  SERVICE_BOOKING_KIND_LABELS,
+  SERVICE_BOOKING_STATUS_LABELS,
   type CurrencyCode,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
@@ -44,14 +47,17 @@ export default async function ServicePartnersPage() {
   const supabase = await getSupabaseServerClient();
   const repo = new ServicePartnerRepository(supabase);
   const customerRepo = new CustomerRepository(supabase);
+  const servicePlanRepo = new ServicePlanRepository(supabase);
   const wardrobeRepo = new WardrobeRepository(supabase);
 
-  const [partners, engagements, invoices, customers] = await Promise.all([
-    repo.findPartnersByRetailer(session.retailerId),
-    repo.findEngagementsByRetailer(session.retailerId),
-    repo.findInvoicesByRetailer(session.retailerId),
-    customerRepo.findByRetailer(session.retailerId),
-  ]);
+  const [partners, engagements, invoices, customers, bookings] =
+    await Promise.all([
+      repo.findPartnersByRetailer(session.retailerId),
+      repo.findEngagementsByRetailer(session.retailerId),
+      repo.findInvoicesByRetailer(session.retailerId),
+      customerRepo.findByRetailer(session.retailerId),
+      servicePlanRepo.listBookingsByRetailer(session.retailerId),
+    ]);
 
   const partnersById = new Map(
     partners.map((partner) => [partner.id, partner]),
@@ -72,6 +78,10 @@ export default async function ServicePartnersPage() {
       }),
     )
   ).flat();
+
+  const bookingOptions = bookings.filter(
+    (booking) => booking.status !== "canceled",
+  );
 
   const invoiceLinesByInvoice = new Map(
     await Promise.all(
@@ -303,6 +313,22 @@ export default async function ServicePartnersPage() {
                     value={`${option.id}:${option.customerId}`}
                   >
                     {option.label}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+            <FormField
+              label="Service booking (optional)"
+              htmlFor="bookingId"
+              hint="Choose an active booking for the same client"
+            >
+              <Select id="bookingId" name="bookingId" defaultValue="">
+                <option value="">No linked booking</option>
+                {bookingOptions.map((booking) => (
+                  <option key={booking.id} value={booking.id}>
+                    {customersById.get(booking.customerId) ?? "Client"} —{" "}
+                    {SERVICE_BOOKING_KIND_LABELS[booking.kind]} ·{" "}
+                    {SERVICE_BOOKING_STATUS_LABELS[booking.status]}
                   </option>
                 ))}
               </Select>

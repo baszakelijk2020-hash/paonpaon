@@ -19,6 +19,7 @@ export const createServicePartnerEngagementInputSchema = z.object({
   partnerId: z.string().uuid(),
   customerId: z.string().uuid(),
   wardrobeItemId: z.string().uuid(),
+  bookingId: z.string().uuid().optional(),
   jobReference: z.string().trim().min(1).max(64),
   capability: partnerCapabilitySchema,
   instructions: z.string().trim().min(1).max(4000),
