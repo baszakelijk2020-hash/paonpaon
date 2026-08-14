@@ -1,0 +1,198 @@
+#!/usr/bin/env bash
+# paon-fleet — atomic work-queue CLI shared by every PAON agent.
+#
+# WHY THIS EXISTS
+#   Five agents (3x Claude Code, 1x Codex, 1x OpenRouter/DeepSeek) previously
+#   chose work by independently reading a 500 KB docs/PHASE.md. That produced
+#   collisions, duplicated effort and idle agents. AGENTS.md mandated an
+#   ownership ledger (.agent/claims.yaml) that was never built. This is it.
+#
+# WHY THE STATE LIVES IN $GIT_COMMON_DIR
+#   All agent worktrees (/private/tmp/paon-*, .claude/worktrees/*) are git
+#   worktrees of ONE repository, so they all share the same common .git dir.
+#   Putting fleet state there gives every agent a single coordination point
+#   that can never produce a merge conflict, because it is never committed.
+#
+# ATOMICITY
+#   macOS has no flock(1). `mkdir` is atomic on POSIX filesystems, so the
+#   lock is a directory. Every mutation takes the lock, re-reads state, writes
+#   a temp file and mv's it into place (mv is atomic within a filesystem).
+#
+# USAGE (identical for every agent, any model)
+#   paon-fleet next              # print the highest-priority claimable task
+#   paon-fleet claim <id>        # atomically claim it (fails if taken)
+#   paon-fleet take              # next + claim in one atomic step (preferred)
+#   paon-fleet heartbeat <id>    # extend the lease while still working
+#   paon-fleet done <id>         # mark complete
+#   paon-fleet block <id> "why"  # mark blocked, frees the lane
+#   paon-fleet release <id>      # give it back, unclaimed
+#   paon-fleet status            # fleet dashboard
+#   paon-fleet reap              # release expired leases (crash recovery)
+#   paon-fleet owns <id> <path>  # exit 0 if path is inside task's owned_paths
+set -euo pipefail
+
+AGENT_ID="${PAON_AGENT_ID:-$(basename "$(pwd)")}"
+COMMON_DIR="$(git rev-parse --git-common-dir 2>/dev/null)" || {
+  echo "paon-fleet: not inside a git repository" >&2; exit 1; }
+case "$COMMON_DIR" in /*) ;; *) COMMON_DIR="$(cd "$COMMON_DIR" && pwd)" ;; esac
+
+FLEET_DIR="$COMMON_DIR/paon-fleet"
+QUEUE="$FLEET_DIR/queue.json"
+LOCK="$FLEET_DIR/.lock"
+LOG="$FLEET_DIR/fleet.log"
+LEASE_MINUTES="${PAON_LEASE_MINUTES:-45}"
+
+mkdir -p "$FLEET_DIR"
+[ -f "$QUEUE" ] || echo '{"version":1,"tasks":[]}' > "$QUEUE"
+[ -f "$LOG" ] || : > "$LOG"
+
+now_iso()   { date -u +%Y-%m-%dT%H:%M:%SZ; }
+lease_iso() { date -u -v "+${LEASE_MINUTES}M" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
+              || date -u -d "+${LEASE_MINUTES} minutes" +%Y-%m-%dT%H:%M:%SZ; }
+
+log() { printf '%s\t%s\t%s\n' "$(now_iso)" "$AGENT_ID" "$*" >> "$LOG"; }
+
+# --- locking -----------------------------------------------------------------
+acquire() {
+  local tries=0
+  until mkdir "$LOCK" 2>/dev/null; do
+    tries=$((tries+1))
+    # Steal a lock older than 60s: its owner crashed.
+    if [ -d "$LOCK" ]; then
+      local age
+      age=$(( $(date +%s) - $(stat -f %m "$LOCK" 2>/dev/null || stat -c %Y "$LOCK" 2>/dev/null || echo 0) ))
+      [ "$age" -gt 60 ] && rm -rf "$LOCK" && continue
+    fi
+    [ "$tries" -gt 100 ] && { echo "paon-fleet: lock timeout" >&2; exit 1; }
+    sleep 0.1
+  done
+  trap 'rm -rf "$LOCK"' EXIT INT TERM
+}
+release_lock() { rm -rf "$LOCK"; trap - EXIT INT TERM; }
+
+write_queue() { # stdin = new json
+  local tmp="$FLEET_DIR/.queue.$$.tmp"
+  cat > "$tmp"
+  jq -e . "$tmp" >/dev/null || { echo "paon-fleet: refusing to write invalid JSON" >&2; rm -f "$tmp"; exit 1; }
+  mv "$tmp" "$QUEUE"
+}
+
+# Release leases that expired — this is what makes a crashed agent recoverable.
+reap_expired() {
+  jq --arg now "$(now_iso)" '
+    .tasks |= map(
+      if .status=="claimed" and .lease_expires_at != null and .lease_expires_at < $now
+      then .status="open" | .claimed_by=null | .lease_expires_at=null
+           | .reaped=((.reaped//0)+1)
+      else . end)
+  ' "$QUEUE" | write_queue
+}
+
+# Highest-priority claimable task for this agent's allowed tiers.
+# Ordering: explicit priority asc, then declaration order.
+select_next() {
+  local tiers="${PAON_AGENT_TIERS:-frontier,implementation,light}"
+  jq -r --arg tiers "$tiers" '
+    ($tiers | split(",")) as $t
+    | [ .tasks[]
+        | select(.status=="open")
+        | select((.tier // "implementation") as $x | $t | index($x))
+      ]
+    | sort_by(.priority // 100)
+    | (.[0].id // empty)
+  ' "$QUEUE"
+}
+
+cmd_next() { acquire; reap_expired; local id; id="$(select_next)"; release_lock
+  [ -n "$id" ] || { echo "QUEUE_EMPTY"; exit 0; }
+  jq -r --arg id "$id" '.tasks[]|select(.id==$id)' "$QUEUE"; }
+
+cmd_claim() {
+  local id="$1"; acquire; reap_expired
+  local st; st="$(jq -r --arg id "$id" '.tasks[]|select(.id==$id)|.status' "$QUEUE")"
+  if [ "$st" != "open" ]; then
+    release_lock; echo "CLAIM_FAILED: $id is '$st'" >&2; exit 1
+  fi
+  jq --arg id "$id" --arg who "$AGENT_ID" --arg exp "$(lease_iso)" --arg now "$(now_iso)" '
+    .tasks |= map(if .id==$id then
+      .status="claimed" | .claimed_by=$who | .lease_expires_at=$exp | .claimed_at=$now
+    else . end)' "$QUEUE" | write_queue
+  release_lock; log "CLAIM $id"
+  jq -r --arg id "$id" '.tasks[]|select(.id==$id)' "$QUEUE"
+}
+
+cmd_take() { # atomic next+claim — the command agents should actually use
+  acquire; reap_expired
+  local id; id="$(select_next)"
+  if [ -z "$id" ]; then release_lock; echo "QUEUE_EMPTY"; exit 0; fi
+  jq --arg id "$id" --arg who "$AGENT_ID" --arg exp "$(lease_iso)" --arg now "$(now_iso)" '
+    .tasks |= map(if .id==$id then
+      .status="claimed" | .claimed_by=$who | .lease_expires_at=$exp | .claimed_at=$now
+    else . end)' "$QUEUE" | write_queue
+  release_lock; log "TAKE $id"
+  jq -r --arg id "$id" '.tasks[]|select(.id==$id)' "$QUEUE"
+}
+
+cmd_set_status() {
+  local id="$1" st="$2" note="${3:-}"
+  acquire
+  jq --arg id "$id" --arg st "$st" --arg note "$note" --arg now "$(now_iso)" --arg who "$AGENT_ID" '
+    .tasks |= map(if .id==$id then
+      .status=$st | .lease_expires_at=null
+      | (if $st=="open" then .claimed_by=null else .claimed_by=$who end)
+      | (if $note=="" then . else .note=$note end)
+      | .updated_at=$now
+    else . end)' "$QUEUE" | write_queue
+  release_lock; log "$st $id ${note}"
+  echo "OK: $id -> $st"
+}
+
+cmd_heartbeat() {
+  local id="$1"; acquire
+  jq --arg id "$id" --arg who "$AGENT_ID" --arg exp "$(lease_iso)" '
+    .tasks |= map(if .id==$id and .claimed_by==$who then .lease_expires_at=$exp else . end)
+  ' "$QUEUE" | write_queue
+  release_lock; echo "OK: lease extended to $(lease_iso)"
+}
+
+cmd_status() {
+  acquire; reap_expired; release_lock
+  echo "=== PAON FLEET  ($(now_iso)) ==="
+  jq -r '
+    (.tasks | group_by(.status) | map({(.[0].status): length}) | add) as $c
+    | "open:      \($c.open // 0)\nclaimed:   \($c.claimed // 0)\nblocked:   \($c.blocked // 0)\ndone:      \($c.done // 0)\ntotal:     \(.tasks|length)"
+  ' "$QUEUE"
+  echo
+  echo "--- IN FLIGHT ---"
+  jq -r '.tasks[]|select(.status=="claimed")
+    |"  [\(.claimed_by)] \(.id)  lease->\(.lease_expires_at)  \(.title)"' "$QUEUE"
+  echo
+  echo "--- NEXT UP ---"
+  jq -r '[.tasks[]|select(.status=="open")]|sort_by(.priority//100)|.[0:8][]
+    |"  (\(.priority//100)) [\(.tier//"implementation")] \(.id)  \(.title)"' "$QUEUE"
+  echo
+  echo "--- BLOCKED ---"
+  jq -r '.tasks[]|select(.status=="blocked")|"  \(.id): \(.note // "no reason recorded")"' "$QUEUE"
+}
+
+cmd_owns() { # owns <task-id> <path>  -> exit 0 if inside owned_paths
+  local id="$1" path="$2"
+  jq -e -r --arg id "$id" --arg p "$path" '
+    (.tasks[]|select(.id==$id)|.owned_paths // []) as $globs
+    | if ($globs|length)==0 then true
+      else any($globs[]; . as $g | ($p | startswith($g|sub("\\*+$";"")))) end
+    | if . then "OWNED" else error("NOT_OWNED") end' "$QUEUE" 2>/dev/null
+}
+
+case "${1:-status}" in
+  next)      cmd_next ;;
+  take)      cmd_take ;;
+  claim)     cmd_claim "$2" ;;
+  done)      cmd_set_status "$2" "done" "${3:-}" ;;
+  block)     cmd_set_status "$2" "blocked" "${3:-blocked, no reason given}" ;;
+  release)   cmd_set_status "$2" "open" "${3:-}" ;;
+  heartbeat) cmd_heartbeat "$2" ;;
+  reap)      acquire; reap_expired; release_lock; echo "OK: expired leases released" ;;
+  owns)      cmd_owns "$2" "$3" ;;
+  status|*)  cmd_status ;;
+esac
