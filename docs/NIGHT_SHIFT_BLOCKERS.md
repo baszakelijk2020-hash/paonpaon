@@ -76,6 +76,18 @@ marked done when it isn't. Skipping this item this session; a future
 session with `packages/database` in scope should add the schema/RPC
 first, then wire the `apps/customer/**` half described above.
 
+**Blocker resolved (2026-08-14, agent/claude-nguyen1):** Commit `9b7b350`
+("feat(messaging): add FT-09 unified remote proposal schema/domain/
+repository") landed the schema/RPC half out of scope above:
+`conversation_proposals` table (versioned per conversation with a partial
+unique index enforcing at most one `status='active'` row), `create_
+conversation_proposal`/`respond_to_conversation_proposal` security-definer
+RPCs (expiry and supersession rejection all verified against a real Postgres
+instance), domain types, Zod schemas, and `MessagingRepository` methods
+(`createProposal`, `respondToProposal`, `findProposalsByConversation`), with
+14 new tests passing. Remaining work is UI only: retailer proposal-composer
+surface, customer accept/decline surface, and multi-role browser proof.
+
 ## 2026-08-14 — Queue exhausted for an apps/customer/**-only session
 
 After closing item 3, two independent full sweeps of `docs/PHASE.md`

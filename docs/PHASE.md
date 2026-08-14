@@ -281,9 +281,10 @@ acceptance contract — this table is not a substitute for it.
    migration agent's founder sign-off requirement) were already correctly
    marked accordingly.
 4. **TableService unified remote proposal** (FT-09, addition recorded
-   2026-08-12) — NOT STARTED. Field spec already locked in
-   `FOUNDER_TOOL_BLUEPRINTS.md` FT-09. Depends on Commerce module wiring
-   already used elsewhere (order/proposal creation), not on anything new.
+   2026-08-12) — SCHEMA/DOMAIN DONE, UI PENDING. Field spec already locked
+   in `FOUNDER_TOOL_BLUEPRINTS.md` FT-09. `conversation_proposals` table,
+   create/respond RPCs, and `MessagingRepository` methods landed 2026-08-14;
+   retailer composer UI, customer accept/decline UI, and browser proof remain.
 5. **TableService attachment quarantine resolution** — uploads currently
    queue indefinitely with no scanner or retry/release UI. Needs a
    provider decision (which scanner) before the UI can be finished —
@@ -3384,6 +3385,17 @@ false`. `HoneymoonProgrammeRepository.ensureForOrder` is order-linked,
     real local Postgres instance before commit. The checkbox remains unchecked:
     attachments distinct from generic file upload and multi-role browser proof
     are still outstanding.
+  - **Update (2026-08-14, agent/claude-nguyen1):** the "lookbook/proposal/
+    quote attachments distinct from a generic file upload" gap — specifically
+    FT-09's "unified remote proposal" object itself — now has its schema/domain/
+    repository foundation. Commit `9b7b350` landed: `conversation_proposals`
+    table with versioning and status enforcement, `create_conversation_proposal`
+    and `respond_to_conversation_proposal` security-definer RPCs (expiry and
+    supersession rejection verified against a real Postgres instance), domain
+    types, Zod schemas, and `MessagingRepository` methods. 14 new tests passing;
+    full @paon/domain suite 1173/1173, @paon/database messaging suite 8/8.
+    Retailer proposal-composer UI, customer accept/decline UI, and multi-role
+    browser proof are not done — checkbox remains unchecked.
 
 - [ ] **10.4 Relationship-calendar campaign packages**
   - **Requirement IDs:** `CMP-107`, `REL-20`.
