@@ -294,7 +294,6 @@ before the Studio can be accepted.
 (Previously cited as derived from an out-of-repository `paon.html` — see
 the source-of-truth correction at the top of this document.)
 
-
 ### Typography
 
 - `OptimaKlein` is the primary editorial/display voice and the navigation
