@@ -9,7 +9,10 @@ import { expect, test, type Page } from "@playwright/test";
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
 import { writeBrowserProofRun } from "./write-browser-proof-run";
 
-const PHASE_ITEM_ID = "4.7-4.8-customer-style-portrait-onboarding";
+// docs/evidence/tranches/4.6.json AND 4.7.json both name this spec as their
+// producer, so it must emit both bare ids — a single suffixed id left both
+// artifacts with no producer at all and permanently unregenerable.
+const PHASE_ITEM_IDS = ["4.6", "4.7"] as const;
 const BROWSER_PROOF_SPEC = "apps/customer/e2e/virtual-studio.spec.ts";
 
 // A genuine minimal 1x1 PNG — same fixture bytes already proven against
@@ -58,11 +61,13 @@ async function signIn(
 let proofPassed = false;
 
 test.afterAll(async () => {
-  await writeBrowserProofRun({
-    phaseItemId: PHASE_ITEM_ID,
-    spec: BROWSER_PROOF_SPEC,
-    status: proofPassed ? "passed" : "failed",
-  });
+  for (const phaseItemId of PHASE_ITEM_IDS) {
+    await writeBrowserProofRun({
+      phaseItemId,
+      spec: BROWSER_PROOF_SPEC,
+      status: proofPassed ? "passed" : "failed",
+    });
+  }
 });
 
 /**

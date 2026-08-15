@@ -14,7 +14,10 @@ import {
 } from "./fixtures";
 import { writeBrowserProofRun } from "./write-browser-proof-run";
 
-const PHASE_ITEM_ID = "4.10-customer-batch-and-feedback-evidence";
+// Bare id: docs/evidence/tranches/4.10.json names this spec as 4.10's
+// producer, so it must emit the bare id the validator reads. A suffixed id
+// left 4.10.json with no producer and permanently unregenerable.
+const PHASE_ITEM_ID = "4.10";
 const BROWSER_PROOF_SPEC =
   "apps/customer/e2e/virtual-studio-batch-and-feedback-evidence.spec.ts";
 

@@ -17,7 +17,10 @@ import {
 } from "./fixtures";
 import { writeBrowserProofRun } from "./write-browser-proof-run";
 
-const PHASE_ITEM_ID = "4.9-advisor-visual-roadmap";
+// Bare id: docs/evidence/tranches/4.9.json names this spec as 4.9's producer,
+// so it must emit the bare id the validator reads. A suffixed id here left
+// 4.9.json with no producer at all and permanently unregenerable.
+const PHASE_ITEM_ID = "4.9";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/visual-roadmap.spec.ts";
 
 // A genuine minimal 1x1 PNG, same fixture bytes already proven against this
