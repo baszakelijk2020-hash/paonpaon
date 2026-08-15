@@ -390,7 +390,8 @@ export default async function MissionControlPage() {
                           {customerName}
                           {isOpportunity &&
                             ` · ${input.opportunityType.replaceAll("_", " ")}`}
-                          {isAppointment && ` · ${input.appointmentType}`}
+                          {isAppointment &&
+                            ` · ${input.appointmentType.replaceAll("_", " ")}`}
                         </p>
                         <p className="mt-1 text-xs text-[var(--color-stone-600)]">
                           {entry.reasonText}

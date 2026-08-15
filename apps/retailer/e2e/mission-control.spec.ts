@@ -147,9 +147,16 @@ test.describe.serial("mission control", () => {
           .getByText(`E2E Mission Control Client ${unique}`),
       ).toBeVisible();
 
-      const opportunityCard = page.locator("li", {
-        hasText: `E2E why-now ${unique}`,
-      });
+      // Scoped away from the decision feed on purpose. The same opportunity
+      // legitimately renders twice on this page — once in the "What's next"
+      // decision feed and once in the opportunities list — so matching on the
+      // why-now text alone is a strict-mode violation. The assertions below
+      // (priority, confidence, cited evidence, assignment) belong to the
+      // opportunities-list rendering, so exclude the feed explicitly.
+      const opportunityCard = page
+        .locator("li", { hasText: `E2E why-now ${unique}` })
+        .filter({ hasNotText: "Ranked reasons to act now" })
+        .filter({ hasText: "Priority" });
       await expect(opportunityCard).toBeVisible();
       // Decision intelligence: priority, confidence and cited evidence must
       // be visible, not just the "why now" headline — the founder's own
@@ -578,31 +585,51 @@ test("Decision feed shows ranked entries from multiple signal kinds", async ({
     const decisionFeed = page.locator("#mission-control-decision-feed");
     await expect(decisionFeed).toBeVisible();
     await expect(
-      decisionFeed.getByRole("heading", { name: "What's next" }),
+      // Apostrophe-agnostic on purpose: the page renders `What&rsquo;s next`
+      // (U+2019, correct typography for prose), while a straight U+0027 in the
+      // matcher silently never matches. That mismatch is what made this proof
+      // fail, not a missing feature.
+      decisionFeed.getByRole("heading", { name: /What.s next/ }),
     ).toBeVisible();
 
-    // Both signal kinds should appear in the same ranked feed
+    // Both signal kinds should appear in the same ranked feed.
+    //
+    // Deliberately NOT asserting a global feed count. The feed is retailer-wide
+    // and this test shares its fixture retailer with the rest of the suite, so
+    // any other signal present makes an exact count fail for a reason that has
+    // nothing to do with what is being proven. The claim under test is the
+    // RANKING, so assert on this test's own two entries and their relative
+    // order instead.
     const feedItems = decisionFeed.locator("li");
-    await expect(feedItems).toHaveCount(2);
+    await expect(feedItems.first()).toBeVisible();
 
-    // The appointment (imminent within 2 hours) should rank higher than the opportunity
-    // because appointment_soon has baseWeight 85 + urgency bonus 30 = 115
-    // while clienteling_opportunity has baseWeight 60 + confidence bonus (0.95*20=19)
-    // + priority bonus (10-1*5=5) = 84. Appointment should be first.
-    const firstItem = feedItems.first();
-    const secondItem = feedItems.nth(1);
+    const appointmentItem = feedItems
+      .filter({ hasText: "styling consultation" })
+      .first();
+    const opportunityItem = feedItems
+      .filter({ hasText: `E2E decision feed opportunity ${unique}` })
+      .first();
 
-    // First item should be the appointment (starts in ~30 min = "imminent")
-    await expect(firstItem).toContainText("styling consultation");
+    await expect(appointmentItem).toBeVisible();
     await expect(
-      firstItem.getByText(/appointment.*within|starts in|few minutes/i),
+      appointmentItem.getByText(/appointment.*within|starts in|few minutes/i),
     ).toBeVisible();
+    await expect(opportunityItem).toContainText("95% confidence");
 
-    // Second item should be the opportunity with high confidence
-    await expect(secondItem).toContainText(
-      `E2E decision feed opportunity ${unique}`,
+    // The appointment (imminent within 2 hours) must rank ABOVE the
+    // opportunity: appointment_soon scores baseWeight 85 + urgency 30 = 115,
+    // while clienteling_opportunity scores 60 + confidence (0.95*20=19)
+    // + priority (10-1*5=5) = 84.
+    const orderedText = await feedItems.allTextContents();
+    const appointmentIndex = orderedText.findIndex((text) =>
+      text.includes("styling consultation"),
     );
-    await expect(secondItem).toContainText("95% confidence");
+    const opportunityIndex = orderedText.findIndex((text) =>
+      text.includes(`E2E decision feed opportunity ${unique}`),
+    );
+    expect(appointmentIndex).toBeGreaterThanOrEqual(0);
+    expect(opportunityIndex).toBeGreaterThanOrEqual(0);
+    expect(appointmentIndex).toBeLessThan(opportunityIndex);
   } finally {
     await admin
       .from("clienteling_opportunities")
