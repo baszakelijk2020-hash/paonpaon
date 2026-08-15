@@ -114,7 +114,8 @@ frozen_reason() { jq -r '.frozen // empty' "$QUEUE" 2>/dev/null; }
 select_next() {
   local tiers="${PAON_AGENT_TIERS:-frontier,implementation,light}"
   [ -n "$(frozen_reason)" ] && return 0   # frozen: assign nothing
-  jq -r --arg tiers "$tiers" --arg me "$AGENT_ID" '
+  jq -r --arg tiers "$tiers" --arg me "$AGENT_ID" \
+        --arg prohibited "$FLEET_PROHIBITED_PREFIXES" '
     def norm: sub("\\*+$";"") | sub("/$";"");
     def overlaps($a; $b):
       any($a[]; . as $x | any($b[]; . as $y
@@ -135,6 +136,14 @@ select_next() {
           # task straight back and the agent livelocks refusing it forever —
           # observed live, and only escapable by blocking the task outright.
           | select(((.refused_by // []) | index($me)) | not)
+          # Founder-prohibited scope, by id prefix. seed-queue.sh excludes
+          # parked STAGE HEADINGS in PHASE.md, but tasks can enter the queue
+          # from other sources carrying no prohibition at all — a re-seed
+          # introduced eight `drape-*` configurator tasks and the queue handed
+          # one straight to an agent.
+          | .id as $tid
+          | select(($prohibited | split(",") | map(select(. != ""))
+                    | map($tid | startswith(.)) | any) | not)
           | select((.tier // "implementation") as $x | $t | index($x))
           # exclusive tasks wait until the fleet is completely quiet
           | select((.exclusive != true) or (($live|length) == 0))
@@ -225,6 +234,23 @@ is_excluded_agent() {
     *",$AGENT_ID,"*) return 0 ;;
     *) return 1 ;;
   esac
+}
+
+# Task ids the fleet must never serve, whatever the queue says. seed-queue.sh
+# excludes founder-parked STAGE HEADINGS in PHASE.md, but tasks can enter the
+# queue from other sources with no prohibition list at all. Observed live: a
+# re-seed introduced eight DRAPE tasks owning docs/suit-jacket-configurator/**
+# — a programme the founder explicitly placed outside this fleet — and the
+# queue handed drape-p1.0 straight to an agent. Blocking them one by one only
+# holds until the next re-seed; this holds permanently.
+FLEET_PROHIBITED_PREFIXES="${PAON_FLEET_PROHIBITED_PREFIXES:-drape-}"
+
+is_prohibited_task() { # $1 = task id
+  local p
+  for p in ${FLEET_PROHIBITED_PREFIXES//,/ }; do
+    case "$1" in "$p"*) return 0 ;; esac
+  done
+  return 1
 }
 
 cmd_take() { # atomic next+claim — the command agents should actually use
