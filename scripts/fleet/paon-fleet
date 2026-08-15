@@ -214,6 +214,24 @@ cmd_claim() {
 
 cmd_take() { # atomic next+claim — the command agents should actually use
   acquire; reap_expired
+  # ONE LEASE PER AGENT. Without this, every Stop-hook fire handed the caller
+  # another task: the hook calls `take` each time an agent would otherwise go
+  # idle, and `take` never asked whether that agent was already holding
+  # something. Observed live — a single agent accumulated phase-11.3 and
+  # phase-18.5 simultaneously, which both starves other lanes of claimable
+  # work and guarantees every task but the last is abandoned half-done.
+  # Returning the held task (rather than erroring) is deliberate: the hook
+  # feeds this output straight back to the model as its instruction, so the
+  # agent resumes what it already owns instead of stalling.
+  local held
+  held="$(jq -r --arg who "$AGENT_ID" \
+    'first(.tasks[]|select(.status=="claimed" and .claimed_by==$who)|.id) // ""' "$QUEUE")"
+  if [ -n "$held" ]; then
+    release_lock; log "TAKE-HELD $held"
+    echo "ALREADY_HOLDING $held — finish or block it before taking another." >&2
+    jq -r --arg id "$held" '.tasks[]|select(.id==$id)' "$QUEUE"
+    exit 0
+  fi
   local id; id="$(select_next)"
   # NO_ELIGIBLE_WORK is distinct from "the queue is empty": there may be
   # plenty of open tasks that this agent must not touch (wrong tier, path
