@@ -308,9 +308,43 @@ cmd_owns() { # owns <task-id> <path>  -> exit 0 if inside owned_paths
     | if . then "OWNED" else error("NOT_OWNED") end' "$QUEUE" 2>/dev/null
 }
 
+# Add a task the seeder cannot produce. seed-queue.sh derives tasks from
+# docs/PHASE.md, so any programme that does not live there — the suit-jacket
+# configurator, control-plane repairs, anything founder-directed mid-flight —
+# could never enter the queue, and therefore could never be driven by the Stop
+# hook. That is the whole reason such work kept stalling: it was never a queue
+# item, so the loop always served something else.
+#
+# Idempotent: re-adding an existing id updates its fields and leaves status,
+# claim and lease alone, so this is safe to re-run from a seeding script.
+cmd_add() {
+  local id="$1" title="$2" priority="${3:-100}" owned="${4:-}" accept="${5:-pnpm lint && pnpm typecheck}" note="${6:-}"
+  [ -n "$id" ] && [ -n "$title" ] || { echo "usage: paon-fleet add <id> <title> [priority] [owned_paths_csv] [acceptance_cmd] [note]" >&2; exit 2; }
+  acquire
+  local owned_json
+  owned_json="$(printf '%s' "$owned" | jq -R 'if .=="" then [] else split(",")|map(gsub("^\\s+|\\s+$";"")) end')"
+  jq --arg id "$id" --arg t "$title" --argjson p "$priority" \
+     --argjson owned "$owned_json" --arg a "$accept" --arg n "$note" --arg now "$(now_iso)" '
+    if any(.tasks[]; .id==$id)
+    then .tasks |= map(if .id==$id
+           then .title=$t | .priority=$p | .owned_paths=$owned
+                | .acceptance_cmd=$a | .updated_at=$now
+                | (if $n=="" then . else .note=$n end)
+           else . end)
+    else .tasks += [{
+      id:$id, title:$t, tier:"implementation", priority:$p, status:"open",
+      claimed_by:null, lease_expires_at:null, owned_paths:$owned,
+      acceptance_cmd:$a, note:$n, claimed_at:null, updated_at:$now }]
+    end' "$QUEUE" | write_queue
+  release_lock
+  log "ADD $id p=$priority"
+  echo "OK: $id queued (priority $priority)"
+}
+
 case "${1:-status}" in
   next)      cmd_next ;;
   take)      cmd_take ;;
+  add)       cmd_add "${2:-}" "${3:-}" "${4:-100}" "${5:-}" "${6:-pnpm lint && pnpm typecheck}" "${7:-}" ;;
   claim)     cmd_claim "$2" ;;
   done)      cmd_set_status "$2" "done" "${3:-}" ;;
   block)     cmd_set_status "$2" "blocked" "${3:-blocked, no reason given}" ;;
