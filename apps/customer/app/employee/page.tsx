@@ -11,6 +11,7 @@ import {
   APPOINTMENT_TYPE_LABELS,
   computeEntitlementBalance,
   ORDER_STATUS_LABELS,
+  wearerCustomerLinkState,
   type MeasurementValue,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
@@ -93,6 +94,14 @@ export default async function EmployeePortalPage() {
     ]);
 
   const linkedCustomerId = wearer.customerId;
+  // Names the state the page already branches on. `wearerCustomerLinkState`
+  // existed in @paon/domain, exported and unit-tested, with zero call sites —
+  // the page hand-rolled the same distinction inline. PHASE 18.5's own
+  // remaining-gap list calls wearer-initiated linking out explicitly; naming
+  // the state here is the half that belongs to this app.
+  const linkState = wearerCustomerLinkState({
+    ...(linkedCustomerId ? { customerId: linkedCustomerId } : {}),
+  });
   const [appointments, orders, alterations, measurementVersion, wardrobeItems] =
     linkedCustomerId
       ? await Promise.all([
@@ -216,7 +225,7 @@ export default async function EmployeePortalPage() {
         )}
       </Card>
 
-      {linkedCustomerId ? (
+      {linkState === "linked" ? (
         <>
           <Card className="flex flex-col gap-3">
             <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
@@ -381,7 +390,36 @@ export default async function EmployeePortalPage() {
             )}
           </Card>
         </>
-      ) : null}
+      ) : (
+        // Previously `null`: an unlinked wearer saw their entitlement and
+        // announcements, then simply nothing where five sections would be,
+        // with no indication anything was missing or why. Silence reads as a
+        // broken portal. This states the actual situation instead.
+        //
+        // Deliberately NOT a self-service "link me" button. PHASE 18.5's own
+        // remaining-gap list names wearer-initiated account creation as
+        // unbuilt, and it needs a `security definer` RPC that does not exist
+        // on main — building one here would be a new feature, and would sit
+        // outside this task's owned paths. Linking today is staff-driven by
+        // email, or automatic when the wearer already signs in with an
+        // address that owns a customer record at the same retailer.
+        <Card className="flex flex-col gap-3">
+          <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
+            Your personal records aren&rsquo;t connected yet
+          </h2>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            Your workwear entitlement and programme updates above are live.
+            Appointments, orders, alterations, measurements and wardrobe stay
+            hidden until your employer connects this login to your customer
+            record — we never create one for you.
+          </p>
+          <p className="text-sm text-[var(--color-stone-500)]">
+            Ask your programme manager to connect it, or sign in with the email
+            address you already use as a customer of this retailer and it
+            connects automatically.
+          </p>
+        </Card>
+      )}
 
       <Card className="flex flex-col gap-3">
         <h2 className="text-lg font-medium text-[var(--color-stone-900)]">
