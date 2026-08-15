@@ -20,6 +20,8 @@ Evidence tiers are defined in `00_NORTH_STAR_AND_SCOPE.md`.
 | D-12 | **3D is primary; the 2D layer graph is tier 2, not a rival.** Founder decision 2026-08-15. Both tiers are emitted from one graph under the same `bake_key`. Settled by authorization, not by evidence.         | Accepted | Chapter 10 W6 observer study           |
 | D-13 | **Pin Blender 5.2 LTS** — read from blender.org: "Released July 14, 2026, supported until July 2028". An intermediate 4.5 pin, inferred from patch cadence, was wrong and is reversed; chapter 10 records why. | Accepted | Closed — primary source retrieved      |
 | D-14 | The authorization gate is released for **Lab Phase 1 only**; Phases 2 and 3 need separate authorization.                                                                                                       | Accepted | Chapter 10 exit criteria               |
+| D-15 | **Suitsupply's still-image quality is the minimum bar.** Tailoor is an architectural reference only; its real-time fabric rendering is rejected as a visual target. Founder decision 2026-08-15.               | Accepted | Chapter 06 measured bar                |
+| D-16 | **3D is the production medium, baked imagery is the delivery medium.** Offline render at full quality; real-time WebGL is optional and must clear the D-15 bar before it ships.                                | Accepted | Chapter 10 W3/W5                       |
 
 ## Open risks
 

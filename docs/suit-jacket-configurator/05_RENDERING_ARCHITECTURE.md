@@ -34,20 +34,44 @@ observed, which suggests their fabric switching is a material rebind rather than
 a drape change. If so, nobody in this benchmark is yet showing what PAON wants
 to show.
 
-## Founder decision: 3D is primary, 2D is the fallback
+## Founder decisions: 3D builds it, images ship it
 
-Recorded 2026-08-15 as decision D-12. The founder has resolved R-13 in favour
-of building the 3D path and testing drape legibility empirically rather than
-deferring the question. The medium is therefore settled by authorization, not
-by evidence, and this chapter states that distinction plainly.
+D-12 settled that PAON builds the 3D path rather than deferring the question.
+D-15 and D-16 then settled _what ships_, after the reference renders were
+measured and viewed:
 
-The delivery ladder is now three tiers, and the middle one is new:
+- **Suitsupply's still-image quality is the minimum bar** (D-15). Tailoor's
+  real-time fabric rendering is rejected as a visual target — it is an
+  architectural reference only.
+- **3D is the production medium; baked imagery is the delivery medium** (D-16).
+  Build and simulate the garment in 3D, render offline at full quality, ship
+  images. Real-time WebGL is optional and must clear the D-15 bar first.
 
-| Tier | Medium                                           | Serves                                                           |
-| ---- | ------------------------------------------------ | ---------------------------------------------------------------- |
-| 1    | WebGL 3D assembly graph (primary)                | Capable devices with a live context                              |
-| 2    | **2D layer graph** — pre-composited image layers | No WebGL, context lost, low memory, slow network, reduced motion |
-| 3    | Semantic DOM/SVG and text                        | No JavaScript, assistive technology, total asset failure         |
+The reasoning is in the measurements. Suitsupply renders offline with an
+unlimited per-image budget and ships 1200 × 1500 AVIF layers of a few kilobytes
+each; the result carries real shadows, a visible lapel roll and modelled
+buttons. Tailoor renders live on the viewer's GPU and is capped by what a phone
+can do — low polygon counts, cheap lighting, fabric as a texture on a smooth
+surface. Offline rendering is not the cheap option here. It is the quality
+option.
+
+This matters more for PAON than for either of them, because drape is a quality
+attribute. A smooth low-poly garment cannot show cloth character at all, so a
+real-time-first architecture would destroy the one thing the lab exists to show.
+
+The delivery ladder is three tiers. Tier 1 is now baked imagery, not a live
+renderer:
+
+| Tier | Medium                                                                    | Serves                                                   |
+| ---- | ------------------------------------------------------------------------- | -------------------------------------------------------- |
+| 1    | **Offline-rendered layer graph** — baked at full quality, shipped as AVIF | Everyone. This is the product.                           |
+| 2    | Live WebGL assembly graph — optional, gated on clearing the D-15 bar      | Capable devices, only if it can hold quality             |
+| 3    | Semantic DOM/SVG and text                                                 | No JavaScript, assistive technology, total asset failure |
+
+Tier 1 and tier 2 are emitted from the same chapter-09 asset graph under the
+same `bake_key`, so tier 2 can be added or dropped without redesigning
+anything. Tier 2 ships only if it looks as good as tier 1 — which, on the
+evidence from Tailoor, it may never do on a phone.
 
 Tier 2 replaces the single static poster the dossier previously specified. It
 is strictly better and it is nearly free, because the 2D layers are rendered
@@ -57,19 +81,20 @@ graph follows chapter 09's contract exactly, which is the shape chapter 01
 observed in production at Suitsupply.
 
 Tier 2 is also the falsification instrument. Because both tiers present the
-same comparison from the same source assets, the observer study in chapter 10
-can show tier 1 to one group and tier 2 to another. If drape legibility does
-not differ, the 3D renderer has not earned its cost and tier 2 becomes primary
-— an outcome this architecture can absorb without redesign, since chapter 09's
-graph is a composition contract that is indifferent to whether a node resolves
-to a mesh or an image.
+Because both tiers come from the same source assets, the live renderer can be
+evaluated against the baked images directly, and dropped without redesign if it
+cannot match them.
 
 ## Decision
 
-Use Three.js r185 as the pinned WebGL renderer with static GLB state meshes,
-backed by the tier-2 2D layer graph and a tier-3 semantic fallback. No runtime
-cloth solve in the browser. WebGPU is an enhancement research path, not a
-dependency.
+**Ship offline-rendered imagery.** Build and simulate the garment in 3D, render
+each assembly offline at full quality, and deliver AVIF layers composited in
+the browser, to the chapter-06 bar. No runtime cloth solve, and no dependency
+on a live renderer for the product to work.
+
+Three.js r185 remains the pinned renderer **for the optional tier-2 path only**.
+It is not required for Phase 1 and its dependency decision can be deferred.
+WebGPU is a research path, not a dependency.
 
 `OBSERVED-DOC`. r185 is the current release, created 2026-07-01T14:03:00Z and
 published 2026-07-01T23:22:26Z (GitHub release API, verified 2026-08-15); the

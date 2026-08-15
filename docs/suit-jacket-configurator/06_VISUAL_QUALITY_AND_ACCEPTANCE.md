@@ -2,6 +2,72 @@
 
 Evidence tiers are defined in `00_NORTH_STAR_AND_SCOPE.md`.
 
+## The target, and it is Suitsupply
+
+Decision D-15. **Suitsupply's still-image quality is the minimum bar PAON must
+reach.** Tailoor/Armani is a useful architectural reference — modular glTF,
+component slots, shared button meshes, lighting as data — and explicitly **not
+a visual reference**. Its real-time fabric rendering is rejected as a quality
+target.
+
+Below the bar, nothing else in this dossier matters. A drape comparison that
+looks worse than a competitor's static render will not be believed, whatever it
+is showing.
+
+### Measured bar
+
+`OBSERVED-DOM`, 2026-08-15, from
+`suitsupply.com/en-us/custom-made?client=onLine&product=Suit&section=jacket&level=subgroup`.
+
+| Property           | Measured value                                                       |
+| ------------------ | -------------------------------------------------------------------- |
+| Preview resolution | **1200 × 1500** standard; **1600 × 2000** at zoom; 4:5 portrait      |
+| Swatch thumbnails  | 450 × 450                                                            |
+| Delivered format   | **AVIF** dominant (130 of 305 responses), JPEG/PNG via `f_auto`      |
+| Quality/fit params | `q_auto:good`, `c_fit`                                               |
+| Per-layer weight   | base model 11.8 KB; lapel 6–8 KB; lining 6.1 KB; stitching **648 B** |
+| Whole page         | 3.27 MB over 305 requests; median asset 2 KB                         |
+| Rotation           | 3 discrete frames (`_R00`, `_R01`, `_R02`)                           |
+
+The composite garment is assembled from layers of a few kilobytes each. This is
+two orders of magnitude lighter than the 6 MB GLB budget in chapter 05, and it
+is the strongest argument for baked imagery as the delivery medium.
+
+### What the render actually looks like
+
+A **ghost mannequin** — no body, no head — on a flat neutral-grey ground. Soft,
+even studio lighting. Observed detail at native resolution: the lapel roll
+curves and catches light with shading beneath its edge; horn buttons are
+modelled with visible four-hole detail and brown mottling; welt chest pocket
+and flap hip pockets read clearly; white lining shows in the front opening; the
+hem flares slightly. It reads as an offline render or a photograph, not a
+real-time frame.
+
+PAON must match: resolution, format efficiency, soft-shadow quality, edge
+fidelity on lapel and pocket details, and the flat neutral presentation.
+
+### Functional bar observed alongside it
+
+Over the preview: `Total $923` and `2-3 weeks delivery`. Navigation tabs
+`Fabric` / `Jacket` / `Trousers` / `Waistcoat` plus `Finish`. A style preset
+row (`Your Style: Milano`) with an edit affordance. Option rows rendered as
+thumbnail + label + current value + chevron: `Closure — 2 Button`,
+`Button — Dark & Light Brown`, `Lining — Full Lined`, `Lapel — Notch`,
+`Monogram — None`. An `Advanced options` control separates the common set from
+the long tail.
+
+One pattern PAON should copy outright: **each option thumbnail is a cropped
+render of that feature on the actual garment**, not a generic icon. The lapel
+row shows a lapel close-up; the lining row shows the jacket falling open. For
+PAON this is nearly free — the same bakes, cropped to different regions.
+
+### What the bar does not include
+
+That jacket is a single static pose. No body, no posture, no movement, no drape
+variation. It renders **construction** superbly and says nothing about how the
+cloth behaves. That absence is the entire PAON opportunity, and it is only
+worth pursuing from a starting point that already matches the bar above.
+
 ## Goldens
 
 Capture deterministic desktop (1440×900) and mobile (390×844) images for all 27
@@ -53,12 +119,15 @@ Two honest limits:
   buried in a tooltip.
 - Desktop, mobile, reduced-motion, no-JavaScript, no-WebGL and failed-load
   states all present the full comparison in text.
-- **Tier parity.** For every one of the 27 tuples, the tier-2 2D layer graph
-  presents the same selection, the same controls, the same labels and the same
-  explanatory text as tier 1, and is generated from the same `bake_key`. Tier
-  parity is asserted by a test, not by inspection: CI renders both tiers for
-  each tuple and fails if the resolved selection, control set or accessible
-  names differ. A context loss mid-comparison must change fidelity only.
+- **The D-15 bar is met.** Every shipped tuple renders at 1200 × 1500 (1600 ×
+  2000 zoom), delivered as AVIF with JPEG/PNG negotiation, and is judged
+  side-by-side against a reference render on soft-shadow quality, lapel-roll
+  fidelity, button and pocket edge detail, fabric surface and presentation.
+  This is a human review gate, and it blocks release.
+- **Tier parity**, if and only if the optional live tier-2 renderer ships: it
+  presents the same selection, controls, labels and explanatory text as tier 1
+  from the same `bake_key`, asserted by test rather than inspection. Tier 2 does
+  not ship unless it also meets the D-15 bar.
 - No external network request is made for any garment, texture, HDRI or swatch
   asset.
 - The manifest hash matches the rendered variant; an unavailable asset fails

@@ -13,7 +13,9 @@ The vocabulary from here is:
 
 - **The authorization gate** — released 2026-08-15 by founder decision. It is
   not a phase; it is a yes.
-- **Lab Phase 1** — this chapter. Prove that cloth character reads.
+- **Lab Phase 1** — this chapter. Reach Suitsupply's render quality, then prove
+  that cloth character reads. Quality first; the second question is worthless
+  without it.
 - **Lab Phase 2** — breadth: more assemblies, more families, Studio-side
   read-only composition behind consent and entitlement gates.
 - **Lab Phase 3** — commercial contracts: snapshots, compatibility, price and
@@ -29,7 +31,7 @@ Each claim the dossier held open against the gate, and its status now.
 | Gate item                          | Prior state                            | Reconciled state                                                                                                                                                                                  |
 | ---------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Founder authorization to implement | Withheld                               | **Granted** 2026-08-15 for Lab Phase 1 only                                                                                                                                                       |
-| Rendering medium (R-13)            | Unsettled; 3D unjustified by benchmark | **Settled by decision D-12**: 3D primary, 2D layer graph as tier 2. Settled by authorization, not evidence                                                                                        |
+| Rendering medium (R-13)            | Unsettled; 3D unjustified by benchmark | **Settled**: D-12 builds the 3D path; D-16 ships offline-rendered imagery and demotes live WebGL to optional; D-15 sets Suitsupply's still-image quality as the bar                               |
 | Blender version (R-06)             | "5.2 LTS", asserted but unverified     | **Confirmed 5.2 LTS** from blender.org itself, supported until July 2028; the manual is now `OBSERVED-DOC`. See below for the intermediate 4.5 pin and why it was wrong.                          |
 | Three.js adoption (R-08)           | Not declared anywhere in the workspace | Scheduled as W1; still absent as of `71697c2`                                                                                                                                                     |
 | Asset contract                     | Absent                                 | Chapter 09, normative                                                                                                                                                                             |
@@ -113,14 +115,22 @@ Nothing in R-06 remains outstanding.
 
 ## The single question Phase 1 answers
 
-> Shown the same jacket construction under three cloth characters, can an
-> observer correctly describe how the cloths differ — and does 3D do that
-> better than pre-composited 2D?
+> Can PAON render a jacket that stands next to Suitsupply's without looking
+> worse?
 
-Everything below exists to answer that and nothing else. If the answer is no,
-Phase 1 has succeeded: it has cheaply falsified the lab before breadth was
-built. If 3D and 2D score the same, tier 2 becomes primary and the renderer is
-retired (R-07, R-13, R-16).
+That is the gate (D-15). Drape legibility is the _second_ question and it is
+not worth asking until the first is answered, because a comparison that looks
+cheap will not be believed whatever it shows.
+
+Concretely, Phase 1 succeeds when a PAON render placed beside a Suitsupply
+render at 1200 × 1500 is not identifiably the weaker image on: soft-shadow
+quality, lapel-roll fidelity, button and pocket edge detail, fabric surface,
+and overall presentation. Chapter 06 holds the measured bar.
+
+Only once that holds does the drape question follow: shown the same
+construction under three cloth characters, can an observer describe how they
+differ? If not, the lab has been cheaply falsified before breadth was built
+(R-16).
 
 ## Scope
 
