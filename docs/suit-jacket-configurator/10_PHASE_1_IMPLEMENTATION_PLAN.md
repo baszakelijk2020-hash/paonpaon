@@ -154,19 +154,36 @@ surface and neither affects whether drape reads.
 Route classification per `AGENTS.md`: **C** is frontier judgment, **B** is
 settled implementation, **A** is investigation or mechanical work.
 
-### W1 — Dependency, pin and harness · Route C then B
+### W0 — The single-image spike · Route C
 
-Declare `three` at the exact current release in the workspace package that owns
-the lab, with `@types/three` matching. Confirm r185 is still current at that
-moment rather than inheriting this dossier's pin. Add `GLTFLoader` only — no
-KTX2Loader, no DRACOLoader in Phase 1. Re-check the Blender LTS designation
-against blender.org if it has become reachable, and record the pin plus the
-retrieval method in the manifest.
+**Do this before anything else, and do not skip it.** One jacket, one cloth,
+one construction, rendered in Cycles at 1600 × 2000 and placed beside a
+Suitsupply render of a comparable jacket. Nothing modular, no asset graph, no
+route, no manifest. Just: can we make an image that holds up?
 
-_Acceptance._ `three` resolves from the workspace root; the lab route builds
-and lazily loads the renderer chunk; the initial route JavaScript stays under
-the chapter-05 budget of 180 KB gzip before that chunk; the version pin and its
-provenance appear in the manifest.
+This is days of work, not weeks, and it de-risks everything after it. If the
+image is not close, no amount of pipeline engineering rescues it, and we would
+rather learn that from one render than from a finished system.
+
+_Acceptance._ Side-by-side judged against the chapter-06 bar on soft-shadow
+quality, lapel-roll fidelity, button and pocket edge detail, fabric surface and
+presentation. A clear "not yet" halts W1–W6 and returns to lighting, shading
+and geometry work until it passes.
+
+### W1 — Render harness and pins · Route C then B
+
+Pin Blender 5.2 LTS, the Cycles configuration, the OpenImageDenoise version and
+the view transform, and record all of them plus their retrieval method in the
+manifest. Stand up headless rendering under
+`--background --factory-startup --python` with `--cycles-device`.
+
+`three` is **not** required for Phase 1 (D-16). Defer the dependency decision
+to the optional live tier; if adopted later, confirm the current release at
+that moment rather than inheriting this dossier's r185 pin.
+
+_Acceptance._ A headless render of the W0 scene reproduces byte-identically
+from a recorded seed and configuration on two runs. Every pinned version
+appears in the manifest with its provenance.
 
 ### W2 — Family and assembly generator · Route C then B
 
@@ -180,23 +197,28 @@ produce byte-identical geometry. Every assembly declares the seams it consumes
 and produces. A generator that cannot satisfy a declared ring arity fails
 rather than adapting the family.
 
-### W3 — Simulation and bake · Route C then B
+### W3 — Simulation, bake and render · Route C then B
 
-Headless Blender 5.2 LTS under `--background --factory-startup --python`.
-Simulate the assembled garment across three movement states for three drape
-classes, with recorded collision, seam, timestep and convergence settings, then
-bake selected frames per deforming assembly, keyed by
-`(family, assembly variant, canvas, drape class, state)`. Canvas and shoulder
-enter as stiffness and pin-weight fields, never as geometry. Rigid shared
-assemblies are not baked; only their per-state anchor transform tables are.
+Headless Blender 5.2 LTS. Simulate the assembled garment across three movement
+states for three drape classes, with recorded collision, seam, timestep and
+convergence settings, then bake selected frames per deforming assembly keyed by
+`(family, assembly variant, canvas, drape class, state)`. Canvas enters as a
+stiffness and pin-weight field. **Sleeve attachment and sleevehead are
+geometry, not fields** — chapter 09 `G+P`. Rigid shared assemblies are not
+baked; only their per-state anchor transform tables are.
 
-Emit tier 2 in the same pass: render each baked assembly to a 2D layer under
-the same `bake_key`, so the fallback cannot drift from the primary.
+Then render, per the chapter-07 render stage: Cycles path tracing, four views
+per bake key (`hero_front`, `three_q_rake`, `profile`, `three_q_back`), each
+assembly rendered with its neighbours as **shadow catchers** so every layer
+carries its own cast shadow on premultiplied alpha. Render at 1600 × 2000 and
+derive 1200 × 1500; deliver AVIF with JPEG fallback.
 
-_Acceptance._ Nine tier-1 mesh bakes and their matching tier-2 layer sets, all
-addressed by `bake_key`; deterministic regeneration; solver identity, solver
-version and seed recorded per bake; every parameter carries units, provenance
-and confidence, and every profile is labelled `illustrative`.
+_Acceptance._ The full layer set per bake key across all four views;
+deterministic regeneration; solver, denoiser and view-transform identity and
+versions recorded per bake; the shadow-swap test passes (compositing variant A
+then B leaves no pixel changed outside B's own footprint and shadow region);
+every parameter carries units, provenance and confidence; every profile is
+labelled `illustrative`.
 
 ### W4 — Manifest and validation · Route B
 
@@ -210,30 +232,39 @@ rights record present on every entry; manifest hash signed as a whole.
 _Acceptance._ Each gate fails a deliberately corrupted fixture and passes the
 real asset set. A partial or unsigned manifest fails closed.
 
-### W5 — The three delivery tiers · Route C then B
+### W5 — The delivery surface · Route C then B
 
-Tier 1: WebGL scene per chapter 05 — pinned colour management, one calibrated
-camera family, per-assembly fetch, explicit `dispose()`, `webglcontextlost`
-handling, idle sleep, no animation loop for a static state. Tier 2: the 2D
-layer graph, same controls, same labels, same resolved selection. Tier 3:
-semantic DOM/SVG that states the comparison in text.
+Tier 1: the offline-rendered layer graph composited in the browser — ordered
+layers from the manifest, per-assembly swap, view switching across the four
+camera positions, zoom to the 1600 × 2000 asset. Option rows carry **cropped
+renders of the actual feature** rather than icons, per chapter 06. Tier 3:
+semantic DOM/SVG stating the comparison in text. The live WebGL tier is out of
+Phase 1 scope (D-16).
 
-_Acceptance._ Every chapter-06 criterion, including tier parity asserted by
-test rather than inspection; keyboard radios with visible focus; a forced
-context loss changes fidelity only, never the selection or the controls; no
-external request for any garment, texture, HDRI or swatch asset.
+_Acceptance._ Every chapter-06 criterion; keyboard radios with visible focus;
+no external request for any garment, texture, HDRI or swatch asset; a failed
+asset falls closed rather than rendering a partial garment.
 
-### W6 — Observer study and evidence · Route C
+### W6 — Acceptance panel and evidence · Route C
 
-The study is the deliverable, not a formality. Recruit observers who have not
-seen the dossier. Show three cloth characters under a fixed construction. Ask
-them to describe the difference in their own words before offering any
-vocabulary. Score whether the intended distinction is recovered. Run tier 1 and
-tier 2 as independent arms.
+Two questions, in order, and the first gates the second.
 
-_Acceptance._ A pre-registered pass threshold, fixed **before** data is
-collected; the tier-1 versus tier-2 comparison reported whichever way it falls;
-and an explicit written finding on R-07, R-13 and R-16.
+**Quality.** PAON renders placed beside reference renders, unlabelled, judged
+on the chapter-06 bar. Include at least one judge who knows tailoring; the
+construction tells in chapter 06 are exactly what a layperson will miss.
+
+**Construction legibility.** Show the same jacket in the same cloth with
+different shoulder construction — spalla camicia against con rollino — in the
+`three_q_rake` view. Ask observers to describe the difference in their own
+words before offering vocabulary. This is the founder's requirement 4 and it is
+the hardest thing in the programme.
+
+**Drape legibility**, only once both pass: three cloth characters under a fixed
+construction, same protocol.
+
+_Acceptance._ Pre-registered pass thresholds fixed **before** data is
+collected; results reported whichever way they fall; an explicit written
+finding on R-16 and on whether the shoulder distinction reads.
 
 ## Proposed layout
 
@@ -244,9 +275,11 @@ not established facts.
 apps/customer/app/lab/material-drape/     # public route, no tenant data
 packages/domain/src/drape/                # graph, manifest and selection types
 tools/drape-lab/generator/                # W2 family and assembly generators
-tools/drape-lab/bake/                     # W3 headless Blender driver
+tools/drape-lab/bake/                     # W3 headless Blender sim driver
+tools/drape-lab/render/                   # W3 Cycles render driver, cameras,
+                                          #    light rigs, shadow-catcher setup
 tools/drape-lab/validate/                 # W4 CI gates
-apps/customer/public/drape-lab/           # signed manifest and static assets
+apps/customer/public/drape-lab/           # signed manifest and delivery images
 ```
 
 The route sits outside `r/[slug]` deliberately: the lab reads no tenant data,
@@ -254,42 +287,56 @@ so it must not inherit a retailer scope it does not need.
 
 ## Sequencing
 
-W1 → W2 → W3 → W4 in order; W5 begins once W3 has produced one bake pair; W6
-runs last and gates everything after it.
+**W0 first, alone.** Nothing else starts until one image clears the quality
+bar. This is the cheapest possible test of the most expensive assumption.
 
-Do W2 and W3 at the smallest possible scale first: **one family and exactly two
-interchangeable assemblies**, and prove in CI that seam arity, arc-length
-correspondence and grain continuity hold and the join is invisible. That is
-R-14, and it decides whether the modular decision in D-08 survives. Do not
-author breadth before it passes.
+Then W1 → W2 → W3 → W4; W5 begins once W3 has produced one complete layer set;
+W6 runs last and gates everything after it.
+
+Inside W2 and W3, work at the smallest possible scale first: **one family and
+exactly two interchangeable assemblies** — and make those two the _shoulder_
+variants, since they are simultaneously R-14's seam test and the founder's
+acceptance case. Prove in CI that seam arity, arc-length correspondence and
+grain continuity hold, that the join is invisible, and that the shadow-swap
+test passes. Do not author breadth before that.
 
 ## Exit criteria
 
 Phase 1 is complete when all hold:
 
-1. Deterministic regeneration is demonstrated from a recorded seed.
-2. The R-14 seam and grain prototype passes with an invisible join.
-3. All three tiers render all 27 tuples and tier parity passes.
-4. The chapter-05 performance budgets hold on a low-memory mobile device — a
-   physical one, not emulation.
-5. The manifest is signed, complete and rights-clean.
-6. The observer study has reported against its pre-registered threshold.
-7. Every profile still reads `illustrative` in the interface.
+1. **W0 passed**: a PAON render stands beside a reference render without being
+   identifiably weaker.
+2. Deterministic regeneration is demonstrated from a recorded seed, including
+   the render stage.
+3. The R-14 prototype passes: invisible seam join **and** no shadow leakage on
+   assembly swap.
+4. Every bake key renders all four views, and the layer set composites cleanly.
+5. **Spalla camicia and con rollino are distinguishable** in the
+   `three_q_rake` view by observers who were not told which is which.
+6. Delivery holds the measured bar: 1200 × 1500 (1600 × 2000 zoom), AVIF with
+   fallback, per-layer weights within an order of magnitude of the reference.
+7. The manifest is signed, complete and rights-clean.
+8. Every profile still reads `illustrative` in the interface.
 
-Failing 2, 4 or 6 stops expansion. Failing 6 specifically retires either the
-renderer or the lab, per chapters 05, 07 and 09 — and that is a successful
-outcome for a phase whose purpose is to find out.
+Failing 1 halts the programme at the cheapest possible point. Failing 3 retires
+the modular decision. Failing 5 means the construction claim cannot be made and
+the product reduces to a fabric-and-colour configurator — which is honest, and
+is the reference's product, not ours.
 
 ## Risk burn-down
 
-| Risk | Addressed by       | Closed when                                                   |
-| ---- | ------------------ | ------------------------------------------------------------- |
-| R-06 | D-13, W1           | blender.org reachable and the LTS designation read directly   |
-| R-07 | W6                 | The observer study reports tier 1 versus tier 2               |
-| R-08 | W1                 | `three` is declared and pinned in a workspace package         |
-| R-13 | D-12, W5, W6       | Both tiers ship from one graph and the study reports          |
-| R-14 | W2, W4, sequencing | The two-assembly prototype passes seam and grain gates        |
-| R-15 | W2                 | Material-dependent assemblies counted in the generated family |
-| R-16 | W6                 | The study shows the drape classes are distinguishable         |
-| R-02 | Not addressed      | **Remains blocked.** Phase 1 acquires no calibration evidence |
-| R-09 | Not addressed      | **Remains gated.** Phase 1 drives no competitor interaction   |
+| Risk | Addressed by   | Closed when                                                                  |
+| ---- | -------------- | ---------------------------------------------------------------------------- |
+| R-06 | D-13           | Closed — blender.org read directly                                           |
+| R-07 | —              | Closed — both media observed in production                                   |
+| R-08 | Deferred       | Not a Phase 1 dependency under D-16; revisit with the optional live tier     |
+| R-13 | W6             | The panel reports on drape legibility; the medium question is already closed |
+| R-14 | W0, W2, W3, W4 | The shoulder prototype passes seam, grain **and** shadow-swap gates          |
+| R-15 | W2             | Material-dependent assemblies counted in the generated family                |
+| R-16 | W6             | The panel shows the drape classes are distinguishable                        |
+| R-17 | W0             | **New.** A PAON render may simply not reach the reference bar. W0 is the     |
+|      |                | cheapest possible test and it halts the programme if it fails.               |
+| R-18 | W3, W4         | **New.** Shadow leakage on assembly swap could make the layer graph look     |
+|      |                | pasted together. Closed by the shadow-swap CI test.                          |
+| R-02 | Not addressed  | **Remains blocked.** Phase 1 acquires no calibration evidence                |
+| R-09 | Not addressed  | **Remains narrowed.** No option-change interaction was driven                |

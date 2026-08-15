@@ -13,18 +13,20 @@ compatible base families with independently versioned, independently baked
 assemblies attached along declared seams — never a complete model per
 combination.
 
-The first experiment exercises exactly one path through that graph: one family
+The first experiment exercises a narrow path through that graph: one family
 (`sb-2`), one fixed assembly set (notch lapel, standard collar, flap pockets,
-side vents, two-piece sleeve, half canvas, full lining), three illustrative
-fabric profiles and three precomputed movement states, producing nine
-deterministic GLB bakes of the deforming assembly set — plus, from the same
-pass and the same `bake_key`, the tier-2 2D layer set. A semantic DOM/SVG
-jacket remains tier 3, for no JavaScript and total asset failure (chapter 05).
+side vents, two-piece sleeve, half canvas, full lining), **plus the shoulder
+variants required by the chapter-06 acceptance test**, across three illustrative
+fabric profiles and three precomputed movement states.
 
-Nine bakes is the experiment. The graph is the contract those nine must not
-violate — in particular, they must be generated as per-assembly bakes addressed
-by `bake_key`, so that adding a second lapel later costs one assembly rather
-than a regeneration of everything.
+Each bake key is then rendered offline (D-16) into the tier-1 delivery layer
+set, across the four required camera views. A semantic DOM/SVG jacket remains
+tier 3, for no JavaScript and total asset failure (chapter 05). The optional
+live WebGL tier is out of Phase 1 scope.
+
+The graph is the contract this experiment must not violate — in particular,
+bakes must be per-assembly and addressed by `bake_key`, so that adding a second
+lapel later costs one assembly rather than a regeneration of everything.
 
 The geometry must be an original technical test garment — not a production
 tailoring pattern and not a body-fit claim. It may implement publicly
@@ -165,21 +167,102 @@ Two consequences for the pipeline:
    assemblies are not baked; only their per-state anchor transform tables are
    emitted. The `canvas` and `shoulder` selections enter as stiffness and
    pin-weight fields, not as geometry.
-4. Automated asset tooling validates seam-ring arity and arc-length
+4. **Offline render — the stage that produces the product.** Cycles path
+   tracing, per D-16 and the chapter-06 floors. Specified below.
+5. Automated asset tooling validates seam-ring arity and arc-length
    correspondence between every attachable pair, grain-vector continuity across
    seams, UV chart lease disjointness, material slot conformance and anchor
-   surface bindings; generates GLB LODs, PBR maps and posters; verifies loader
-   compatibility; and signs manifest hashes.
-5. CI validates the `AssetGraphManifest` schema, asset hashes, glTF structure
-   via the Khronos Validator, compatibility-rule resolvability (every reachable
-   selection resolves or fails closed with a published reason), deterministic
-   regeneration from a fixed seed, and browser visual goldens. A failed
-   threshold rejects the asset set rather than downgrading it.
+   surface bindings; generates the delivery images and, where the optional live
+   tier is built, GLB LODs and PBR maps; verifies loader compatibility; and
+   signs manifest hashes.
+6. CI validates the `AssetGraphManifest` schema, asset hashes, glTF structure
+   via the Khronos Validator where GLBs exist, compatibility-rule resolvability
+   (every reachable selection resolves or fails closed with a published
+   reason), deterministic regeneration from a fixed seed, and visual goldens.
+   A failed threshold rejects the asset set rather than downgrading it.
 
 Determinism is the property that makes this unattended: the same generator
 version, seed, solver version and parameter set must reproduce byte-identical
 geometry. If it does not, nothing downstream — goldens, hashes, provenance — is
 meaningful, and the pipeline is not fit to run without a human.
+
+## The render stage
+
+This is where the product is actually made, so it is specified rather than
+assumed. Chapter 06 sets the floors; this states how they are met.
+
+**Engine.** Cycles, path traced, GPU where available via `--cycles-device`.
+Eevee is permitted only for pipeline smoke tests and its output may never be
+published. Sample count is set by a noise threshold with adaptive sampling
+rather than a fixed number, and the threshold is recorded per bake.
+
+**Denoising.** OpenImageDenoise on the final pass, with albedo and normal
+guiding passes. Denoiser identity and version are recorded in the manifest
+because denoising is not deterministic across versions and will move goldens.
+
+**Colour management.** One pinned view transform (AgX or Filmic — chosen once,
+recorded, never varied per bake) and one pinned exposure. This is part of the
+golden identity exactly as `outputColorSpace` is for the live tier.
+
+**Camera set.** Four required views per bake key, from chapter 06:
+
+| View id        | Purpose                                 | Lighting                       |
+| -------------- | --------------------------------------- | ------------------------------ |
+| `hero_front`   | Reference-parity product shot           | Soft even studio               |
+| `three_q_rake` | **Acceptance view** — sleevehead, lapel | Raking key ~45°, high one side |
+| `profile`      | Shoulder line and roll in silhouette    | Raking key                     |
+| `three_q_back` | Grinze distribution                     | Raking key                     |
+
+Camera intrinsics, position and target are data, versioned with the light rigs
+— the lighting-as-configuration pattern observed at Tailoor (chapter 01) is
+correct and PAON adopts it.
+
+**Resolution.** Render at the zoom tier — 1600 × 2000 — and derive the 1200 ×
+1500 delivery image from it, so the zoom asset is never an upscale. Deliver
+AVIF with JPEG fallback, matching the measured bar.
+
+### Per-assembly layers without losing global illumination
+
+The hard problem in a layer graph, and it must not be hand-waved. If each
+assembly is rendered alone on transparent, it loses the shadow it casts onto
+its neighbours and the light it bounces onto them; composite those layers and
+the garment looks pasted together. If instead the whole garment is rendered and
+sliced by object mask, the base layer bakes in the shadow of _one specific_
+lapel — so swapping the lapel leaves the wrong shadow behind, and the graph's
+whole economy collapses.
+
+The resolution is standard compositing practice and Blender supports it
+directly: render each assembly **with its neighbours present as shadow
+catchers**. The neighbours contribute occlusion and bounce but are not
+themselves written to the layer; the output is the assembly plus the shadow it
+casts, on transparent. Swapping the assembly then swaps its shadow with it.
+
+Requirements that follow:
+
+- Every layer is premultiplied alpha with a shadow-catcher contribution.
+- Layer order in the manifest is the composite order, and it is data
+  (chapter 09).
+- The base body layer is rendered with **no** variant-specific assembly casting
+  onto it; each variable assembly carries its own shadow.
+- CI checks a swap: composite variant A, composite variant B, and assert that
+  no pixel outside B's own footprint plus shadow region differs. A leaked
+  shadow is a build failure, not a cosmetic note.
+
+This is the single most likely place for the modular approach to fail visually,
+and it is why R-14's two-assembly prototype must include a shadow-swap test,
+not only a seam-geometry test.
+
+### Cost, and why it is acceptable
+
+Path tracing four views per bake key is expensive, and it is affordable for
+exactly one reason: it happens once, offline, unattended. The customer pays
+nothing at view time — they receive a few kilobytes of AVIF. This is the trade
+the reference already makes, and it is why their static image beats a
+real-time competitor's.
+
+Render cost is a CI budget item, not a user-facing one. It must be recorded per
+bake so that a pattern change's true regeneration cost is known before it is
+triggered.
 
 ## Falsification criteria
 
