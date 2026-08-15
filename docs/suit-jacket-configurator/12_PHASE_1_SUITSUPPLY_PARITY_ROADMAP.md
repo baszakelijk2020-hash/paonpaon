@@ -118,6 +118,51 @@ This is the cheap failure the milestone existed to produce. It cost one
 afternoon and it tells us exactly where the difficulty lives: not in Cycles,
 not in shading, not in lighting — in geometry.
 
+#### P1.1/P1.2 first run, 2026-08-15: **FAILED**, and it indicts a shortcut
+
+The pipeline completed — 5 panels cut, 1440 vertices, **518 sewing springs
+created**, 60 frames settled in 126 s, rendered without error. Mechanically it
+works end to end.
+
+The output is not a garment. The cloth tore itself into ragged spikes and
+shredded sheets hanging off a column: no shoulder, no armhole, no closure, no
+silhouette. Visually it is further from a jacket than P1.0's slab was.
+
+**Cause, and it is my own shortcut.** `sew.py` paired boundary vertices by
+nearest neighbour instead of by named seam, with a comment openly admitting it
+was "cruder than chapter 09's seam contract and deliberately so". That was
+wrong. Nearest-neighbour pairing across every boundary loop simultaneously
+joins vertices that share no seam at all — front hem to sleeve cuff, armscye to
+side seam — so the solver is asked to satisfy hundreds of mutually
+contradictory constraints and tears the cloth apart satisfying none of them.
+
+Chapter 09 specifies `seam.shoulder`, `seam.side`, `seam.armscye`,
+`seam.neckline`, `seam.gorge`, each with a declared `ring_arity` and
+arc-length parameterisation, precisely so that a sewing spring joins the two
+edges that a tailor would actually stitch. **That contract is not
+bureaucracy — it is the thing that makes the simulation solvable.** Skipping it
+did not save time; it produced 518 springs pulling in arbitrary directions.
+
+Three further contributors, in descending order of confidence:
+
+1. **Seam pairing is unordered.** Even correctly-identified seam edges must be
+   matched along the seam, not by proximity — arc-length correspondence is
+   chapter 09's requirement and it exists for exactly this.
+2. **Panels start 0.16 m apart with `sewing_force_max` 12.** A large gap plus a
+   strong spring is a slingshot on frame 1. Either close the gap or ramp the
+   force.
+3. **Topology.** Panels are built as one n-gon then subdivided, which fans
+   badly at the centre. Cloth needs even quads; a grid fill or a proper
+   remesh is required.
+
+**What this does not indict.** The render harness, again: Cycles, lighting,
+materials and the ghost-mannequin setup all behaved. Both failures so far have
+been geometry and simulation, never rendering.
+
+Next attempt must implement chapter 09's seam contract properly — named seams,
+declared arity, ordered arc-length pairing — before touching solver tuning.
+Tuning a solver fed contradictory constraints is wasted effort.
+
 ### P1.1 — The jacket exists as geometry
 
 Original panelled jacket geometry with seam definitions: forepart, side body,
