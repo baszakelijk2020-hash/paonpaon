@@ -187,6 +187,7 @@ export * from "./corporate/renewal-analytics";
 export * from "./corporate/rollout-planning";
 export * from "./corporate/service-desk";
 export * from "./corporate/tender";
+export * from "./corporate/wearer-customer-link";
 export * from "./merchandising/micro-capsule";
 export * from "./merchandising/micro-capsule.schema";
 export * from "./intelligence/cited-recommendation";
