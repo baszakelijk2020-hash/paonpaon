@@ -50,7 +50,7 @@ current-state document.
 | 3    | Preserved founder input        | [PAON_FOUNDER_INTELLIGENCE_BRIEF.md](./PAON_FOUNDER_INTELLIGENCE_BRIEF.md), committed founder HTML                                                                                                                     | Complete non-lossy source intent and designated experience authority; never sequencing or silent reinterpretation                                  |
 | 4    | Active engineering programme   | [PAON_INTELLIGENCE_PLATFORM.md](./PAON_INTELLIGENCE_PLATFORM.md), [CAPABILITY_DISPOSITION.md](./CAPABILITY_DISPOSITION.md)                                                                                             | Traceability, target architecture, inherited-capability disposition, acceptance and resume state                                                   |
 | 5    | Decisions                      | [DECISIONS.md](./DECISIONS.md)                                                                                                                                                                                         | Why load-bearing choices were made                                                                                                                 |
-| 6    | Agent process                  | [../AGENTS.md](../AGENTS.md), [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md)                                                                                                                                           | How work advances                                                                                                                                  |
+| 6    | Agent process                  | [../AGENTS.md](../AGENTS.md), [WORKING_AGREEMENT.md](./WORKING_AGREEMENT.md), [CURSOR.md](./CURSOR.md)                                                                                                                 | How work advances; `CURSOR.md` is a thin, subordinate, tool-specific wrapper that delegates here — see Constitution rule 9                         |
 | 7    | Standing engineering rules     | [PRINCIPLES.md](./PRINCIPLES.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [DATABASE.md](./DATABASE.md), [API.md](./API.md)                                                                                               | Cross-program invariants                                                                                                                           |
 | 8    | Current domain description     | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) and `@paon/domain`                                                                                                                                                                | Current bounded contexts and relationships                                                                                                         |
 | 9    | Product direction              | [VISION.md](./VISION.md), [PRODUCT.md](./PRODUCT.md), [NON_GOALS.md](./NON_GOALS.md)                                                                                                                                   | Supporting durable direction, surfaces and exclusions                                                                                              |
@@ -105,6 +105,13 @@ preserving ambiguity.
    `archive/`.
 8. Do not duplicate the continuous-build contract or product plan into new
    files.
+9. Repository authority exists exactly once. A tool-specific document (e.g.
+   `CURSOR.md`) may restate execution/startup mechanics for its own tool,
+   but must never restate or fork the substantive rules `AGENTS.md` already
+   states — it delegates to `AGENTS.md` and this file instead. A
+   tool-specific document that grows into an independently maintained
+   operating specification is a documentation-authority defect; fix it the
+   same session it's noticed.
 
 ## On-demand references
 
