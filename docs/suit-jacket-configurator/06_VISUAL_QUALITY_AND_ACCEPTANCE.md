@@ -14,6 +14,50 @@ Below the bar, nothing else in this dossier matters. A drape comparison that
 looks worse than a competitor's static render will not be believed, whatever it
 is showing.
 
+### The floor, set from below
+
+Founder judgment, 2026-08-15. These configurators were reviewed and **rejected
+as unacceptable quality**. They define the floor: shipping anything that looks
+like one of these is a failure, regardless of what else it does.
+
+| Configurator     | URL                                                           | Founder verdict                                |
+| ---------------- | ------------------------------------------------------------- | ---------------------------------------------- |
+| 3D Suit Designer | `https://www.3dsuitdesigner.com/customize`                    | "utter shit"                                   |
+| Enzo Custom      | `https://enzocustom.com/customize/suit-2p`                    | "looks like a cartoon and the shading is shit" |
+| Sartoro          | `https://sartoro.co/products/astor-suit-in-sand-linen`        | "terrible"                                     |
+| Bold Italia      | `https://bolditaliasuit.com/products/design-3-piece-suit-men` | "shit"                                         |
+| Suitablee        | `https://suitablee.com/en/suit`                               | "shit"                                         |
+| Lanieri          | `https://lanieri.com/en/pages/configurator`                   | Reviewed; believed to be Tailoor-based         |
+
+`INFERRED`, and it is the important part: the rejected set is dominated by
+**real-time browser 3D**, and the specific complaint — "looks like a cartoon
+and the shading is shit" — is the exact failure mode of rasterized real-time
+rendering with cheap lighting on low-polygon geometry. It is the same verdict
+already reached on Tailoor/Armani.
+
+This is independent confirmation of D-15 and D-16. The industry's real-time 3D
+configurators cluster at a quality level the founder rejects; the one
+configurator judged acceptable renders **offline and ships images**. The
+architecture follows the quality, not the fashion.
+
+Two things this changes:
+
+1. **Real-time 3D is now guilty until proven innocent.** The optional live tier
+   must clear the D-15 bar before it ships, and the prior on it clearing is now
+   low. It is not a Phase 1 concern.
+2. **Cartoonishness is a named, testable defect.** Flat shading, plastic sheen,
+   absent contact shadow, over-smooth silhouette and low-frequency geometry are
+   the tells. The acceptance panel (ch. 10 W6) tests against both ends: at least
+   as good as the accepted reference, and unmistakably better than the rejected
+   set.
+
+`BLOCKED` pending measurement: each rejected configurator's rendering medium,
+delivered resolution and engine have **not** been measured. The verdicts above
+are founder quality judgments, which are authoritative for acceptance, and are
+not technical observations. Measuring them is queued in
+`11_EXECUTION_STATE.md`; until then no technical claim is attributed to any of
+them beyond the inference stated above.
+
 ### Measured bar
 
 `OBSERVED-DOM`, 2026-08-15, from

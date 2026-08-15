@@ -24,7 +24,9 @@ a made-to-measure order, price, lead time, fit guarantee, or physical accuracy.
 | 07      | Material & Drape Lab plan and the unattended generation pipeline    |
 | 08      | Decisions, open risks and the roadmap                               |
 | 09      | **Modular asset graph — normative asset contract**                  |
-| 10      | **Ground-zero reconciliation and the Lab Phase 1 plan**             |
+| 10      | Ground-zero reconciliation and the Lab Phase 1 plan                 |
+| 11      | **Execution state — the resume point for any session**              |
+| 12      | **Phase 1 roadmap — Suitsupply parity, 1:1**                        |
 
 ## Evidence tiers
 
