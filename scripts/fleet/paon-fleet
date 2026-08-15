@@ -212,7 +212,27 @@ cmd_claim() {
   jq -r --arg id "$id" '.tasks[]|select(.id==$id)' "$QUEUE"
 }
 
+# Agents the fleet must never hand work to, whatever their tier. These are
+# sessions the founder is using for something else; the Stop hook cannot know
+# that, so the queue has to. Observed live: after the fleet was unfrozen,
+# paon-claude-nguyen1 — the founder's own side-project session — began taking
+# and completing PAON tasks (phase-17.12, phase-17.10) purely because its Stop
+# hook asked for work. Nobody messaged it. Silence here means conscription.
+FLEET_EXCLUDED_AGENTS="${PAON_FLEET_EXCLUDED_AGENTS:-paon-claude-nguyen1}"
+
+is_excluded_agent() {
+  case ",$FLEET_EXCLUDED_AGENTS," in
+    *",$AGENT_ID,"*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 cmd_take() { # atomic next+claim — the command agents should actually use
+  if is_excluded_agent; then
+    echo "NO_ELIGIBLE_WORK"
+    echo "This session is excluded from the PAON fleet queue (FLEET_EXCLUDED_AGENTS)." >&2
+    exit 0
+  fi
   acquire; reap_expired
   # ONE LEASE PER AGENT. Without this, every Stop-hook fire handed the caller
   # another task: the hook calls `take` each time an agent would otherwise go
