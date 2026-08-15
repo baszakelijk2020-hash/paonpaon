@@ -75,7 +75,20 @@ The binding requirements are in `06_VISUAL_QUALITY_AND_ACCEPTANCE.md` under
 
 ## In flight
 
-Nothing. The research sweep was launched and **died**; see below.
+Two research agents, launched 2026-08-15 after the quota reset, deliberately
+narrow per the capacity rule below:
+
+| Slice                | Question it must answer                                                                                                                                                          |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `jacket-pattern`     | The real panel set, the seam network, and sleevehead ease — with sourced numbers and the copyright status of every drafting source we might derive geometry from                 |
+| `garment-parametric` | Whether any existing tool generates a **tailored jacket** pattern, what body form we may legally use commercially, and whether any AI 3D tool produces simulation-ready topology |
+
+Both are read-only and text-source only. Neither may open a browser window.
+
+When they land: write chapter 13 with the chosen toolchain and the answers,
+then start P1.0. If they returned nothing, re-run them one at a time.
+
+The earlier 10-domain sweep was launched and **died**; see below.
 
 ## Capacity: the binding constraint
 
@@ -83,6 +96,14 @@ Nothing. The research sweep was launched and **died**; see below.
 seconds, burned ~203k subagent tokens, and returned zero results.** Every agent
 failed with "session limit". This is an account quota, not a bug, and no
 engineering works around it.
+
+**A second, separate cap exists and it is easy to miss: WebSearch is limited
+per session** (`CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`, observed exhausting
+at 200). A research agent burned the remaining budget on searches and returned
+nothing usable. The workaround is to **hand agents explicit URLs to WebFetch
+rather than letting them search** — searching is the expensive verb here, and
+for known projects the URL is usually already known. Reserve WebSearch for
+genuinely unknown territory.
 
 Operating rules that follow, and they are not optional:
 
