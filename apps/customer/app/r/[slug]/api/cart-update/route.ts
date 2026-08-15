@@ -2,6 +2,7 @@ import { OrderRepository, RetailerRepository } from "@paon/database";
 import { updateCartLineInputSchema } from "@paon/domain";
 import { NextResponse } from "next/server";
 
+import { assertCartLineBelongsToRetailer } from "@/lib/cart-ownership";
 import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -54,6 +55,12 @@ export async function POST(
   }
 
   try {
+    await assertCartLineBelongsToRetailer(
+      supabase,
+      retailer.id,
+      session.userId,
+      parsed.data.lineId,
+    );
     await new OrderRepository(supabase).updateCartLine(
       parsed.data.lineId,
       parsed.data.quantity,

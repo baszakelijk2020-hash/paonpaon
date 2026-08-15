@@ -6,9 +6,11 @@ import {
   checkoutCartInputSchema,
   updateCartLineInputSchema,
 } from "@paon/domain";
+import type { RetailerId } from "@paon/domain";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { assertCartLineBelongsToRetailer } from "@/lib/cart-ownership";
 import { assertRetailerModuleActive } from "@/lib/module-session";
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -16,7 +18,7 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 async function requireCommerceModule(
   supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>,
   slug: string,
-): Promise<void> {
+): Promise<RetailerId> {
   const retailer = await new RetailerRepository(supabase).findBySlug(slug);
   if (!retailer) throw new Error("Retailer not found");
   await assertRetailerModuleActive(
@@ -26,6 +28,7 @@ async function requireCommerceModule(
     "mutate",
     "This shop isn't accepting orders right now. Please check back soon.",
   );
+  return retailer.id;
 }
 
 export interface CartFormState {
@@ -48,7 +51,13 @@ export async function updateCartLine(
     return { formError: "Choose a quantity between 0 and 20." };
   try {
     const supabase = await getSupabaseServerClient();
-    await requireCommerceModule(supabase, slug);
+    const retailerId = await requireCommerceModule(supabase, slug);
+    await assertCartLineBelongsToRetailer(
+      supabase,
+      retailerId,
+      session.userId,
+      parsed.data.lineId,
+    );
     await new OrderRepository(supabase).updateCartLine(
       parsed.data.lineId,
       parsed.data.quantity,
