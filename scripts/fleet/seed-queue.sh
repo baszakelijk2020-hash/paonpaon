@@ -92,6 +92,20 @@ if [ -f "$PHASE" ]; then
     in_parked "$lineno" && continue
     num=$(printf '%s' "$raw" | sed -E 's/^- \[ \] \*\*([0-9]+\.[0-9]+).*/\1/')
     title=$(printf '%s' "$raw" | sed -E 's/^- \[ \] \*\*[0-9]+\.[0-9]+ (.*)\*\*.*/\1/' | tr -d '"')
+    # A heading that WRAPS puts its closing `**` on the next line, so the
+    # substitution above matches nothing and `title` silently keeps the whole
+    # raw line — markup and all. Observed live: 4.9 and 4.10 were queued as
+    # "PHASE 4.10 — - [ ] **4.10 Virtual Wardrobe Studio — multi-look queue and".
+    # Detect that (title still carries the checkbox prefix), then rebuild it by
+    # joining the continuation line up to its closing `**`.
+    case "$title" in
+      "- [ ]"*)
+        cont=$(sed -n "$((lineno + 1))p" "$PHASE" | sed -E 's/^[[:space:]]+//; s/\*\*.*//')
+        title=$(printf '%s' "$raw" | sed -E 's/^- \[ \] \*\*[0-9]+\.[0-9]+ //')
+        title="$title $cont"
+        title=$(printf '%s' "$title" | sed -E 's/[[:space:]]+$//' | tr -d '"')
+        ;;
+    esac
     # Context must stop at the next item or stage heading. A fixed 60-line
     # window bled across boundaries: item 14.9's context reached into Stage
     # 15's "do not select it for implementation" override and wrongly
