@@ -80,6 +80,44 @@ reference render. No graph, no layers, no route, no manifest.
 _Gate._ A panel cannot identify the PAON render as the weaker image on
 V7–V10. Failing this halts the programme at its cheapest point (R-17).
 
+#### P1.0 result, 2026-08-15: **NOT PASSED**, and the reason is precise
+
+Built and run: `tools/drape-lab/` — headless Blender 5.2 LTS, Cycles on Metal
+GPU, AgX pinned, 1600 × 2000, adaptive sampling to a 0.005 noise threshold,
+three-light studio rig with a raking variant, procedural wool shader with a
+sheen layer and a micro weave, horn-button material, and a grey sweep backdrop.
+Roughly two minutes per frame. **The rendering harness works.**
+
+**The geometry does not.** The spike lofted a jacket _surface_ from profile
+curves rather than cutting panels and sewing them, on the reasoning that P1.0
+isolates the rendering question. The render is clean — real contact shadow,
+visible weave at native resolution, buttons that read — and it is still
+unmistakably not a jacket: no shoulder, no armhole, lapels standing off as two
+separate tongues, sleeves reading as detached blobs.
+
+Two of the first attempt's faults were my own bugs rather than quality limits,
+and were fixed before judging: the backdrop had `is_shadow_catcher` set, which
+renders a surface invisible except where shadow falls, so the whole frame came
+back black; and the camera was aimed at the collar rather than the garment's
+centre, cropping the body. Shadow catchers belong to the per-assembly layer
+pass in chapter 07, never to a hero plate.
+
+**The finding that matters, and it corrects this chapter.** P1.0 was specified
+as "one jacket… no graph, no layers" on the assumption that rendering could be
+proven before geometry. That assumption is wrong. A jacket does not read
+without a shoulder line, an armscye and a rolled lapel, and none of those
+survive being lofted — they are products of panels joined along seams. So P1.0
+cannot pass independently of P1.1 and P1.2; the milestone boundary was drawn in
+the wrong place.
+
+Revised: **P1.0's gate moves to the end of P1.2** and is judged on a garment
+that has been panelled and draped. What P1.0 delivered instead is the harness
+those milestones needed anyway, now proven end to end.
+
+This is the cheap failure the milestone existed to produce. It cost one
+afternoon and it tells us exactly where the difficulty lives: not in Cycles,
+not in shading, not in lighting — in geometry.
+
 ### P1.1 — The jacket exists as geometry
 
 Original panelled jacket geometry with seam definitions: forepart, side body,
