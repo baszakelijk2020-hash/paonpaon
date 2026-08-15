@@ -1,5 +1,5 @@
 begin;
-select plan(9);
+select plan(10);
 
 -- Retailer A hosts the wedding party under test; retailer B exists purely
 -- to prove a cross-retailer customer cannot redeem retailer A's voucher.
@@ -98,13 +98,38 @@ select throws_ok(
 );
 
 -- 3. No session at all is refused before any membership check runs.
+--
+-- This case asserted P0001 'Authentication required' — the function's own
+-- internal guard — and had been failing on main. The guard exists and is
+-- correct, but `anon` never reaches it: 20260813000000 grants EXECUTE on this
+-- function to `authenticated` only, so an anonymous caller is refused at the
+-- GRANT layer with 42501 before a single line of the body runs.
+--
+-- The expectation was corrected rather than the grant, because 42501 is the
+-- strictly stronger outcome. Granting `anon` EXECUTE so the in-function raise
+-- could fire would have turned a red test green by weakening the boundary.
+-- Both layers are now asserted: the grant below, and the guard immediately
+-- after it.
 set local role anon;
+reset request.jwt.claims;
+select throws_ok(
+  $$select public.redeem_wedding_guest_voucher('d9000000-0000-0000-0000-00000000e003')$$,
+  '42501',
+  null,
+  'an anonymous caller is refused EXECUTE outright and never reaches the function body'
+);
+
+-- 3b. The in-function guard still matters: a caller who holds the
+-- `authenticated` role but carries no JWT identity has auth.uid() = null and
+-- must be refused by the body itself.
+set local role none;
+set local role authenticated;
 reset request.jwt.claims;
 select throws_ok(
   $$select public.redeem_wedding_guest_voucher('d9000000-0000-0000-0000-00000000e003')$$,
   'P0001',
   'Authentication required',
-  'an anonymous caller cannot redeem a guest voucher'
+  'an authenticated role with no identity is refused by the function guard'
 );
 
 -- 4. An expired voucher is refused even for the party's own organizer.
