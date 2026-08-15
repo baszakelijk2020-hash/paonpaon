@@ -3,6 +3,25 @@ import { asId } from "@paon/domain";
 import { expect, test } from "@playwright/test";
 
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
+import { writeBrowserProofRun } from "./write-browser-proof-run";
+
+// This spec proved 10.2 end to end but produced NO evidence: it declared no
+// PHASE_ITEM_ID and never called writeBrowserProofRun, so docs/evidence/runs/
+// 10.2.json did not exist and 10.2 could never be shown as proven, however
+// green the run was. Every other phase spec follows this pattern; this one was
+// simply missed.
+const PHASE_ITEM_ID = "10.2";
+const BROWSER_PROOF_SPEC = "apps/customer/e2e/honeymoon-challenge.spec.ts";
+
+let proofPassed = false;
+
+test.afterAll(async () => {
+  await writeBrowserProofRun({
+    phaseItemId: PHASE_ITEM_ID,
+    spec: BROWSER_PROOF_SPEC,
+    status: proofPassed ? "passed" : "failed",
+  });
+});
 
 /**
  * Seven-Day Wardrobe honeymoon challenge look (PHASE 10.2 / CMP-105 / WRD-104).
@@ -151,6 +170,10 @@ test("honeymoon-challenge: a customer order renders an accurate owned-first seve
     const gapBadge = page.getByText("Gap");
     // Gap should appear at least once since we only provided jacket
     await expect(gapBadge.first()).toBeVisible();
+
+    // Set only after every assertion above has held, so a partial run records
+    // status="failed" rather than claiming a pass it did not earn.
+    proofPassed = true;
   } finally {
     // Cleanup: delete the order and wardrobe item we created
     await admin.from("orders").delete().eq("id", orderId);

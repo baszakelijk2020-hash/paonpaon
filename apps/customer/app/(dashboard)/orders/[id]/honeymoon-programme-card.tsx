@@ -1,5 +1,6 @@
 import type { HoneymoonProgrammeRecord } from "@paon/database";
 import { Card } from "@paon/ui/components/Card";
+import Link from "next/link";
 
 const KIND_LABELS: Record<string, string> = {
   preparation: "Preparation",
@@ -51,6 +52,20 @@ export function HoneymoonProgrammeCard({
           </li>
         ))}
       </ul>
+      {/*
+       * The owned-first seven-day look plan at
+       * /orders/[id]/honeymoon-campaign-challenge-look already shipped and is
+       * covered by honeymoon-challenge.spec.ts — but nothing in the product
+       * linked to it. The spec reaches it with page.goto(), which proves the
+       * page renders and proves nothing about whether a customer can find it,
+       * so it was live and unreachable. This is that entry point.
+       */}
+      <Link
+        href={`/orders/${programme.orderId}/honeymoon-campaign-challenge-look`}
+        className="mt-4 inline-block text-sm text-[var(--color-stone-900)] underline underline-offset-4"
+      >
+        See your seven-day look plan
+      </Link>
     </Card>
   );
 }
