@@ -210,3 +210,168 @@ export const VALENTINE_RESERVATION_RESCUE_LIBRARY_V1: CampaignLibrarySnapshot =
       trigger: "valentine_date_window",
     },
   };
+
+/**
+ * Mother's and Father's Day — fourth of 10.4's nine named relationship
+ * packages. Uses fixed calendar dates (second Sunday of May / third Sunday
+ * of June) shared by every customer — no per-customer `customer_facts` row
+ * needed. Reuses the same `evaluateRelationshipDateWindow` eligibility
+ * function, with the caller providing the appropriate calendar date.
+ */
+export const MOTHERS_AND_FATHERS_DAY_LIBRARY_V1: CampaignLibrarySnapshot = {
+  versionLabel: "mothers-fathers-day-v1",
+  kind: "private_offer",
+  title: "Mother's and Father's Day",
+  summary:
+    "A timely reminder while there is still time to prepare for Mother's Day and Father's Day, not a last-minute afterthought.",
+  prerequisites: ["personalization_consent", "advisor_coverage"],
+  placementHints: ["private_offers", "clienteling"],
+  staffMission:
+    "Reach out while there is still time to help the client prepare — confirm what they actually need before suggesting anything.",
+  outcomeMetrics: ["opened", "replied", "booked", "declined"],
+  audienceTemplate: {
+    consent: "personalization",
+    trigger: "parental_day_date_window",
+  },
+};
+
+/**
+ * Coming-of-age — fifth of 10.4's nine named relationship packages. Fires
+ * from a customer's own recorded birth date (or milestone age fact) once
+ * they enter the relevant age bracket. Each customer's date is unique,
+ * sourced from `customer_facts` (a `birth_date` or `milestone_age` fact
+ * type), so this plugs into `evaluateRelationshipDateWindow` with the
+ * customer's own birthday as the recurring date.
+ */
+export const COMING_OF_AGE_LIBRARY_V1: CampaignLibrarySnapshot = {
+  versionLabel: "coming-of-age-v1",
+  kind: "private_offer",
+  title: "Coming of Age",
+  summary:
+    "A milestone recognition timed to a customer's own birthday milestone — making the moment memorable, not a generic-age blast.",
+  prerequisites: [
+    "personalization_consent",
+    "birth_date_fact",
+    "advisor_coverage",
+  ],
+  placementHints: ["private_offers", "clienteling"],
+  staffMission:
+    "Reach out once the window opens — this is about marking the milestone, not a hard sell.",
+  outcomeMetrics: ["opened", "replied", "booked", "declined"],
+  audienceTemplate: {
+    consent: "personalization",
+    trigger: "birth_date_window",
+  },
+};
+
+/**
+ * Race Sunday — sixth of 10.4's nine named relationship packages. Fires
+ * from a fixed calendar date (each major race day) shared by every customer
+ * — no per-customer fact needed. Race dates are a known annual calendar,
+ * not a customer-specific event, so the caller provides the relevant date
+ * and `evaluateRelationshipDateWindow` handles the lead/trail window.
+ */
+export const RACE_SUNDAY_LIBRARY_V1: CampaignLibrarySnapshot = {
+  versionLabel: "race-sunday-v1",
+  kind: "private_offer",
+  title: "Race Sunday",
+  summary:
+    "A timely nudge before the big race day — help the client prepare their look while there is still time to book, not after the event.",
+  prerequisites: ["personalization_consent", "advisor_coverage"],
+  placementHints: ["private_offers", "clienteling"],
+  staffMission:
+    "Reach out ahead of race day — confirm what the client needs so they are event-ready.",
+  outcomeMetrics: ["opened", "replied", "booked", "declined"],
+  audienceTemplate: {
+    consent: "personalization",
+    trigger: "race_sunday_date_window",
+  },
+};
+
+/**
+ * Client event — seventh of 10.4's nine named relationship packages. Fires
+ * from a retailer-hosted client event date (trunk show, preview evening,
+ * private shopping event) — a fixed date per event, shared by invited
+ * customers. No per-customer fact needed; the caller provides the event
+ * date and `evaluateRelationshipDateWindow` handles the lead window so
+ * invitations go out while there is still time to RSVP and prepare.
+ */
+export const CLIENT_EVENT_LIBRARY_V1: CampaignLibrarySnapshot = {
+  versionLabel: "client-event-v1",
+  kind: "private_offer",
+  title: "Client Event",
+  summary:
+    "A personal invitation timed to an upcoming client event — ensuring the customer hears about it while there is still time to RSVP and prepare.",
+  prerequisites: [
+    "personalization_consent",
+    "event_invitation_scheme",
+    "advisor_coverage",
+  ],
+  placementHints: ["private_offers", "clienteling"],
+  staffMission:
+    "Reach out once the window opens — confirm the client's interest and prepare any fitting or consultation ahead of the event.",
+  outcomeMetrics: ["opened", "replied", "booked", "attended", "declined"],
+  audienceTemplate: {
+    consent: "personalization",
+    trigger: "client_event_date_window",
+  },
+};
+
+/**
+ * Dating / single-again — eighth of 10.4's nine named packages and the
+ * first sensitive-context package. Requires confirmed context (the customer
+ * has explicitly shared that they are dating or newly single) and a human
+ * rehearsal gate before any outreach — the package is never auto-activated
+ * without a staff member reviewing and approving the message. Fires from a
+ * per-customer `customer_facts` fact (e.g. a recorded `single_again_date`
+ * or `dating_since` fact type).
+ */
+export const DATING_SINGLE_AGAIN_LIBRARY_V1: CampaignLibrarySnapshot = {
+  versionLabel: "dating-single-again-v1",
+  kind: "private_offer",
+  title: "Dating / Single Again",
+  summary:
+    "A sensitive-context touchpoint for customers who have shared they are dating or newly single — requires confirmed context and human-approved outreach only, never automated.",
+  prerequisites: [
+    "personalization_consent",
+    "dating_single_again_fact",
+    "advisor_coverage",
+    "human_rehearsal_required",
+  ],
+  placementHints: ["private_offers", "clienteling"],
+  staffMission:
+    "Review the customer's context before reaching out — this is a sensitive moment that requires care, not a script.",
+  outcomeMetrics: ["opened", "replied", "booked", "declined"],
+  audienceTemplate: {
+    consent: "personalization",
+    trigger: "dating_single_again_date_window",
+  },
+};
+
+/**
+ * Referral — ninth of 10.4's nine named relationship packages. Fires based
+ * on a referral event (a referred customer has booked, been measured, or
+ * placed an order) — the referrer gets a recognition touchpoint. The date
+ * is event-driven (the referral outcome date), not a recurring calendar
+ * date, so `evaluateRelationshipDateWindow` handles the post-event window.
+ */
+export const REFERRAL_LIBRARY_V1: CampaignLibrarySnapshot = {
+  versionLabel: "referral-v1",
+  kind: "private_offer",
+  title: "Referral",
+  summary:
+    "A recognition touchpoint after a referred customer takes their first meaningful step — booking, measurement, or order — making the referrer feel appreciated, not forgotten.",
+  prerequisites: [
+    "personalization_consent",
+    "referral_outcome",
+    "advisor_coverage",
+  ],
+  placementHints: ["private_offers", "clienteling"],
+  staffMission:
+    "Reach out once the referral window opens — a genuine thank-you matters more than a scripted discount push.",
+  outcomeMetrics: ["opened", "replied", "booked", "declined"],
+  audienceTemplate: {
+    consent: "personalization",
+    trigger: "referral_date_window",
+  },
+};

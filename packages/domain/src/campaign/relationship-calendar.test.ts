@@ -3,6 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   ANNIVERSARY_MOMENT_LIBRARY_V1,
   ANNUAL_EVENT_LIBRARY_V1,
+  CLIENT_EVENT_LIBRARY_V1,
+  COMING_OF_AGE_LIBRARY_V1,
+  DATING_SINGLE_AGAIN_LIBRARY_V1,
+  MOTHERS_AND_FATHERS_DAY_LIBRARY_V1,
+  RACE_SUNDAY_LIBRARY_V1,
+  REFERRAL_LIBRARY_V1,
   VALENTINE_RESERVATION_RESCUE_LIBRARY_V1,
   evaluateRelationshipDateWindow,
 } from "./relationship-calendar";
@@ -200,5 +206,101 @@ describe("VALENTINE_RESERVATION_RESCUE_LIBRARY_V1", () => {
     expect(VALENTINE_RESERVATION_RESCUE_LIBRARY_V1.versionLabel).not.toBe(
       ANNIVERSARY_MOMENT_LIBRARY_V1.versionLabel,
     );
+  });
+
+  describe("MOTHERS_AND_FATHERS_DAY_LIBRARY_V1", () => {
+    it("needs no per-customer fact, only consent and advisor coverage", () => {
+      expect(MOTHERS_AND_FATHERS_DAY_LIBRARY_V1.prerequisites).toEqual([
+        "personalization_consent",
+        "advisor_coverage",
+      ]);
+    });
+
+    it("is a distinct library version from the anniversary package", () => {
+      expect(MOTHERS_AND_FATHERS_DAY_LIBRARY_V1.versionLabel).not.toBe(
+        ANNIVERSARY_MOMENT_LIBRARY_V1.versionLabel,
+      );
+    });
+
+    it("has a versionLabel referencing mothers-fathers-day", () => {
+      expect(MOTHERS_AND_FATHERS_DAY_LIBRARY_V1.versionLabel).toBe(
+        "mothers-fathers-day-v1",
+      );
+    });
+  });
+
+  describe("COMING_OF_AGE_LIBRARY_V1", () => {
+    it("declares a real prerequisite naming the fact type it depends on", () => {
+      expect(COMING_OF_AGE_LIBRARY_V1.prerequisites).toContain(
+        "birth_date_fact",
+      );
+      expect(COMING_OF_AGE_LIBRARY_V1.prerequisites).toContain(
+        "personalization_consent",
+      );
+    });
+
+    it("is a distinct library version from the anniversary package", () => {
+      expect(COMING_OF_AGE_LIBRARY_V1.versionLabel).not.toBe(
+        ANNIVERSARY_MOMENT_LIBRARY_V1.versionLabel,
+      );
+    });
+  });
+
+  describe("RACE_SUNDAY_LIBRARY_V1", () => {
+    it("needs no per-customer fact, only consent and advisor coverage", () => {
+      expect(RACE_SUNDAY_LIBRARY_V1.prerequisites).toEqual([
+        "personalization_consent",
+        "advisor_coverage",
+      ]);
+    });
+
+    it("is a distinct library version", () => {
+      expect(RACE_SUNDAY_LIBRARY_V1.versionLabel).toBe("race-sunday-v1");
+    });
+  });
+
+  describe("CLIENT_EVENT_LIBRARY_V1", () => {
+    it("declares expected prerequisites", () => {
+      expect(CLIENT_EVENT_LIBRARY_V1.prerequisites).toContain(
+        "personalization_consent",
+      );
+      expect(CLIENT_EVENT_LIBRARY_V1.prerequisites).toContain(
+        "event_invitation_scheme",
+      );
+    });
+
+    it("is a distinct library version", () => {
+      expect(CLIENT_EVENT_LIBRARY_V1.versionLabel).toBe("client-event-v1");
+    });
+  });
+
+  describe("DATING_SINGLE_AGAIN_LIBRARY_V1", () => {
+    it("requires human rehearsal as a sensitive-context package", () => {
+      expect(DATING_SINGLE_AGAIN_LIBRARY_V1.prerequisites).toContain(
+        "human_rehearsal_required",
+      );
+      expect(DATING_SINGLE_AGAIN_LIBRARY_V1.prerequisites).toContain(
+        "personalization_consent",
+      );
+    });
+
+    it("is a distinct library version", () => {
+      expect(DATING_SINGLE_AGAIN_LIBRARY_V1.versionLabel).toBe(
+        "dating-single-again-v1",
+      );
+    });
+  });
+
+  describe("REFERRAL_LIBRARY_V1", () => {
+    it("declares a prerequisite naming referral outcome", () => {
+      expect(REFERRAL_LIBRARY_V1.prerequisites).toContain("referral_outcome");
+      expect(REFERRAL_LIBRARY_V1.prerequisites).toContain(
+        "personalization_consent",
+      );
+    });
+
+    it("is a distinct library version", () => {
+      expect(REFERRAL_LIBRARY_V1.versionLabel).toBe("referral-v1");
+    });
   });
 });
