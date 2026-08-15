@@ -27,6 +27,8 @@ a made-to-measure order, price, lead time, fit guarantee, or physical accuracy.
 | 10      | Ground-zero reconciliation and the Lab Phase 1 plan                 |
 | 11      | **Execution state — the resume point for any session**              |
 | 12      | **Phase 1 roadmap — Suitsupply parity, 1:1**                        |
+| 13      | Toolchain and licensing — what we may and may not build from        |
+| 14      | Jacket pattern and the geometry source                              |
 
 ## Evidence tiers
 
