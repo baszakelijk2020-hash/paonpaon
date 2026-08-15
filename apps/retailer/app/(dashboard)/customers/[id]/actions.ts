@@ -166,9 +166,22 @@ export async function createClientelingNote(formData: FormData) {
   );
   if (!staff || staff.retailerId !== session.retailerId)
     throw new Error("Active staff membership required");
+  // `customerId` arrives as raw form data. The picker the UI renders only ever
+  // lists the caller's own customers, but a crafted POST straight to this
+  // Server Action is not the UI — and this action verified the STAFF's tenancy
+  // while never checking the CUSTOMER's, unlike generateNextBestAction and
+  // setPreferredCarrier above. The composite foreign key added in
+  // 20260815000020 does stop the write at the database, but as an uncaught
+  // 23503; this is the application half, matching its siblings exactly.
+  const customer = await new CustomerRepository(client).findById(
+    asId<"CustomerId">(value.customerId),
+  );
+  if (!customer || customer.retailerId !== session.retailerId) {
+    throw new Error("Customer not found.");
+  }
   await new ClientelingRepository(client).create({
     retailerId: session.retailerId,
-    customerId: value.customerId as never,
+    customerId: customer.id,
     authorStaffId: staff.id,
     body: value.body,
     pinned: value.pinned,
