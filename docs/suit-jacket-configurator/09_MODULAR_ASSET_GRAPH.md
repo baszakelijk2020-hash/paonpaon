@@ -10,27 +10,28 @@ versioned, independently authored assemblies that attach to a small number of
 compatible base families along declared seams.
 
 Illustrative arithmetic, with the assumptions stated. Take lapel 3 × collar 2 ×
-canvas 3 × shoulder 2 × sleeve 2 × vents 3 × pockets 3 × lining 3 = 1,944
-construction combinations. Baked monolithically across 3 drape classes and 3
-movement states that is **17,496 GLB files**, every one of which must be
-regenerated when the base pattern changes by a millimetre.
+canvas 3 × sleeve attachment 2 × sleevehead 3 × sleeve 2 × vents 3 × pockets 3 ×
+lining 3 = 5,832 construction combinations. Baked monolithically across 3 drape
+classes and 3 movement states that is **52,488 files**, every one of which must
+be regenerated when the base pattern changes by a millimetre.
 
-Under the graph, deforming assemblies are baked **independently and summed
-rather than multiplied**: lapel 3 + collar 2 + sleeve 2 + vents 3 + pockets 3 +
-lining 3 = 16 assembly variants. The two parameter-mechanism selections still
-multiply, because they change the simulation input and therefore the bake:
-canvas 3 × shoulder 2 = 6. Across 3 drape classes and 3 movement states that is
-16 × 6 × 9 = **864 bakes**, a **20.25× reduction**, plus rigid shared parts
-that are never baked at all.
+Under the graph, geometry assemblies are baked **independently and summed
+rather than multiplied**: lapel 3 + collar 2 + sleeve attachment 2 + sleevehead
+3 + sleeve 2 + vents 3 + pockets 3 + lining 3 = 21 assembly variants. Canvas
+remains a pure parameter axis and still multiplies, because it changes the
+simulation input and therefore the bake: × 3. Across 3 drape classes and 3
+movement states that is 21 × 3 × 9 = **567 bakes**, a **93× reduction**, plus
+rigid shared parts that are never baked at all.
 
-That figure is deliberately conservative: it assumes every parameter
-combination re-bakes every assembly, when in practice canvas structure barely
-reaches the sleeve or the vents. The honest claim is the lower bound. The ratio
-is the point, and it widens with every option added, because the numerator
-multiplies and the denominator adds.
+That figure is deliberately conservative: it assumes every canvas structure
+re-bakes every assembly, when in practice canvas barely reaches the sleeve or
+the vents. The honest claim is the lower bound. The ratio is the point, and it
+widens with every option added, because the numerator multiplies and the
+denominator adds.
 
-The first experiment still ships exactly one construction. The graph is the
-contract that experiment must not violate, not a licence to build 864 assets.
+The first experiment still ships one construction plus the shoulder variants
+required by the chapter-06 acceptance test. The graph is the contract that
+experiment must not violate, not a licence to build 567 assets.
 
 ## Precedent, and its exact evidentiary limit
 
@@ -178,37 +179,65 @@ The central correction: **not every option is a mesh swap.** Three mechanisms
 exist and must never be conflated, because they have different cost, different
 bake behaviour and different failure modes.
 
-| Mechanism                      | What changes                                     | Baked per drape state?    | Examples                                      |
-| ------------------------------ | ------------------------------------------------ | ------------------------- | --------------------------------------------- |
-| **G — geometry substitution**  | A different mesh occupies the same seam boundary | Yes, if it deforms        | lapel, collar, vents, pockets, sleeve, lining |
-| **P — parameter modification** | The simulation input field, not the mesh         | Yes — it changes the bake | canvas structure, shoulder roping             |
-| **M — material assignment**    | A material slot binding only                     | No — runtime              | shell fabric, lining colour, button material  |
+| Mechanism                      | What changes                                                          | Baked per drape state?    | Examples                                      |
+| ------------------------------ | --------------------------------------------------------------------- | ------------------------- | --------------------------------------------- |
+| **G — geometry substitution**  | A different mesh occupies the same seam boundary                      | Yes, if it deforms        | lapel, collar, vents, pockets, sleeve, lining |
+| **P — parameter modification** | The simulation input field, not the mesh                              | Yes — it changes the bake | canvas structure                              |
+| **G+P — both**                 | Different sleevehead geometry _and_ a different gather/ease behaviour | Yes                       | shoulder construction (see below)             |
+| **M — material assignment**    | A material slot binding only                                          | No — runtime              | shell fabric, lining colour, button material  |
 
-Canvas is the clearest case and the one most often modelled wrongly. Half
+Canvas is the clearest `P` case and the one most often modelled wrongly. Half
 versus full canvas is not a visible mesh: it is a stiffness and pin-weight
 field over the front and chest that produces a different rest shape and a
-different fold character from identical topology. It belongs to `P`. Treating
-it as `G` would multiply the mesh count for no geometric reason; treating it as
-`M` would make it invisible.
+different fold character from identical topology. Treating it as `G` would
+multiply the mesh count for no geometric reason; treating it as `M` would make
+it invisible.
 
-| Assembly id  | Mech. | Attach seam / anchor                      | Variants (illustrative)  | Material-dependent |
-| ------------ | ----- | ----------------------------------------- | ------------------------ | ------------------ |
-| `front`      | G     | family root                               | per family               | yes                |
-| `lapel`      | G     | `seam.lapel_roll`, `seam.gorge`           | notch, peak, shawl       | yes                |
-| `collar`     | G     | `seam.neckline`, `seam.gorge`             | standard, one-piece      | yes                |
-| `canvas`     | P     | field over `front`, `chest`               | unstructured, half, full | n/a                |
-| `shoulder`   | P     | field over `seam.shoulder`                | natural, roped           | n/a                |
-| `sleeve`     | G     | `seam.armscye`                            | one-piece, two-piece     | yes                |
-| `back_vents` | G     | `seam.back_yoke`, `seam.side`             | none, side, centre       | yes                |
-| `pockets`    | G     | `anchor.pocket_l/r`, `anchor.chest`       | patch, flap, jetted      | yes                |
-| `buttons`    | G     | `anchor.stance_n`, `anchor.cuff_n`        | horn, corozo, covered    | no — shared        |
-| `lining`     | G     | `seam.lining_edge`, `seam.armscye_lining` | unlined, half, full      | no — shared        |
-| `materials`  | M     | material slots                            | per fabric profile       | is the material    |
+**Shoulder construction is not a `P` case, and an earlier revision of this
+chapter had it wrong twice over.**
+
+First error: it was classified `P`. A gathered shirt sleevehead and a roped one
+differ in _geometry_ — how much ease is worked into the armscye, and whether
+that fullness is left to pucker or compressed into a roll — and in _behaviour_,
+because gathered ease moves differently from supported ease. Both mechanisms
+apply, so it is `G+P`.
+
+Second error, and the more embarrassing one: it modelled `natural / roped /
+spalla camicia` as one option list. Those are **two independent axes**
+(chapter 06). _Spalla camicia_ is how the sleeve attaches; _con rollino_ is
+what is done with the resulting fullness. A jacket can be spalla camicia with
+or without a rollino. Collapsing them into one enumeration would produce
+combinations that do not exist and forbid combinations that do — and a
+tailoring audience would see it immediately.
+
+Hence two assemblies, `sleeve_attachment` and `sleevehead`, with a
+compatibility rule where a combination is genuinely invalid rather than a fused
+enumeration that hides the structure.
+
+This matters because shoulder construction is the acceptance test for the whole
+programme (chapter 06). It cannot be faked with a stiffness field on identical
+topology, and no amount of resolution or texture work compensates for getting
+it wrong.
+
+| Assembly id         | Mech.   | Attach seam / anchor                      | Variants (illustrative)         | Material-dependent |
+| ------------------- | ------- | ----------------------------------------- | ------------------------------- | ------------------ |
+| `front`             | G       | family root                               | per family                      | yes                |
+| `lapel`             | G       | `seam.lapel_roll`, `seam.gorge`           | notch, peak, shawl              | yes                |
+| `collar`            | G       | `seam.neckline`, `seam.gorge`             | standard, one-piece             | yes                |
+| `canvas`            | P       | field over `front`, `chest`               | unstructured, half, full        | n/a                |
+| `sleeve_attachment` | **G+P** | `seam.armscye`                            | standard set-in, spalla camicia | yes                |
+| `sleevehead`        | **G+P** | `seam.armscye` (outer)                    | soft/none, con rollino, padded  | yes                |
+| `sleeve`            | G       | `seam.armscye`                            | one-piece, two-piece            | yes                |
+| `back_vents`        | G       | `seam.back_yoke`, `seam.side`             | none, side, centre              | yes                |
+| `pockets`           | G       | `anchor.pocket_l/r`, `anchor.chest`       | patch, flap, jetted             | yes                |
+| `buttons`           | G       | `anchor.stance_n`, `anchor.cuff_n`        | horn, corozo, covered           | no — shared        |
+| `lining`            | G       | `seam.lining_edge`, `seam.armscye_lining` | unlined, half, full             | no — shared        |
+| `materials`         | M       | material slots                            | per fabric profile              | is the material    |
 
 The material-dependent column follows Suitsupply's observed split directly:
 assemblies whose surface shows the cloth are authored per material; buttons and
 lining are shared. A shared assembly is authored once and reused across every
-fabric, which is where most of the ~20× saving actually comes from.
+fabric, which is where most of the ~93× saving actually comes from.
 
 ## Attachment seams
 
