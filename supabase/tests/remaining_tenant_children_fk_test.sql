@@ -53,13 +53,17 @@ insert into public.retailer_staff_members (
   'House B Manager', 'branch.houseb@example.test', 'manager', now()
 );
 
+-- Scoped to slice 2's own parents. Slice 3 adds more `_ret_fkey` constraints
+-- under retailer_staff_members, so an unscoped count would drift.
 select is(
   (
     select count(*)::int
-    from pg_constraint
-    where contype = 'f'
-      and conname like '%\_ret\_fkey'
-      and array_length(conkey, 1) = 2
+    from pg_constraint k
+    join pg_class pa on pa.oid = k.confrelid
+    where k.contype = 'f'
+      and k.conname like '%\_ret\_fkey'
+      and array_length(k.conkey, 1) = 2
+      and pa.relname <> 'retailer_staff_members'
   ),
   133,
   'slice 2 added 133 composite tenant foreign keys'
