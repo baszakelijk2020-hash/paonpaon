@@ -96,12 +96,20 @@ parameters against published benchmark data, supplier measurements **that state
 a test method**, or PAON-controlled captures. It holds out poses, logs loss and
 visual deltas, and publishes a confidence label with every fit.
 
-Solver parameters are not measurements. `SECONDARY` — see chapter 07 for the
-retrieval caveat — Blender's cloth panel exposes Quality Steps, Speed
-Multiplier, Vertex Mass, Air Viscosity, Stiffness (Tension, Compression, Shear,
-Bending), Damping (Tension, Compression, Shear, Bending), Internal Springs and
-Pressure. Those are controls on a solver, in solver units, with a solver's
-discretization baked in. A fitted value is meaningful only as a pair of
+Solver parameters are not measurements. `OBSERVED-DOC` — Blender 5.2 LTS's
+cloth Physical Properties panel exposes `Vertex Mass`, `Air Viscosity`, a
+`Bending Model` selector (`Linear` or `Angular`), `Stiffness` (Tension,
+Compression, Structural, Shear, Bending) and `Damping` over the same terms,
+plus `Internal Springs` and `Pressure`. Chapter 07 quotes them in full. Those
+are controls on a solver, in solver units, with a solver's discretization baked
+in.
+
+The manual's own wording proves the point. `Bending` stiffness is documented as
+a "Wrinkle coefficient. Higher creates more large folds." That is an art
+direction control described by its visual effect — not a bending rigidity in
+N·m, and not convertible to one. Likewise the self-collision `Friction`
+coefficient is illustrated by analogy ("silk has a lower coefficient of friction
+than cotton") rather than by a measurement procedure. A fitted value is meaningful only as a pair of
 (parameter, solver version), and it does not transfer to a different solver,
 timestep or mesh resolution without refitting. Any manifest that stores a
 fitted parameter must store the solver identity and version beside it.
@@ -136,4 +144,4 @@ accuracy is not.
 | D1388 Standard Test Method for Stiffness of Fabrics                      | ASTM International                                            | accessed 2026-08-15 | https://www.astm.org/standards/d1388                                                      | Cantilever bending length and flexural rigidity at 41.5°; standard text is paywalled and was not retrieved in full.           |
 | Kawabata Evaluation System (KES-FB1–FB4)                                 | Kawabata; summarized by third parties                         | accessed 2026-08-15 | https://www.sciencedirect.com/topics/engineering/kawabata-evaluation-system               | Names the low-stress tensile/shear/bending/compression/surface set; `SECONDARY` — primary instrument specs not retrieved.     |
 | Fabric objective measurements for commercial 3D virtual garment          | Li, Xu, Li et al.                                             |                2021 | https://salford-repository.worktribe.com/OutputFile/1485671                               | Supports the importance of extension/shear/bending inputs; conversion varies by software.                                     |
-| Physical Properties (cloth)                                              | Blender Foundation                                            |          see ch. 07 | https://docs.blender.org/manual/en/latest/physics/cloth/settings/physical_properties.html | Names the solver controls; **the page returned HTTP 403 to every retrieval method on 2026-08-15** — see chapter 07.           |
+| Physical Properties (cloth)                                              | Blender Foundation                                            | accessed 2026-08-15 | https://docs.blender.org/manual/en/latest/physics/cloth/settings/physical_properties.html | Names the solver controls, retrieved directly from the 5.2 LTS manual; they are solver settings, not measurements.            |

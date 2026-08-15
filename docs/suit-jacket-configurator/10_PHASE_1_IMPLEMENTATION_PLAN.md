@@ -30,7 +30,7 @@ Each claim the dossier held open against the gate, and its status now.
 | ---------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Founder authorization to implement | Withheld                               | **Granted** 2026-08-15 for Lab Phase 1 only                                                                                                                                                       |
 | Rendering medium (R-13)            | Unsettled; 3D unjustified by benchmark | **Settled by decision D-12**: 3D primary, 2D layer graph as tier 2. Settled by authorization, not evidence                                                                                        |
-| Blender version (R-06)             | "5.2 LTS", unverified and wrong        | **Repinned to 4.5 LTS** on mirror evidence; see below                                                                                                                                             |
+| Blender version (R-06)             | "5.2 LTS", asserted but unverified     | **Confirmed 5.2 LTS** from blender.org itself, supported until July 2028; the manual is now `OBSERVED-DOC`. See below for the intermediate 4.5 pin and why it was wrong.                          |
 | Three.js adoption (R-08)           | Not declared anywhere in the workspace | Scheduled as W1; still absent as of `71697c2`                                                                                                                                                     |
 | Asset contract                     | Absent                                 | Chapter 09, normative                                                                                                                                                                             |
 | Physical-accuracy claims (R-02)    | Blocked                                | **Still blocked.** Authorization moves the build, not the claim                                                                                                                                   |
@@ -42,67 +42,74 @@ physical-accuracy block and the competitor-observation gap are **unchanged**.
 Phase 1 builds a comparison surface; it does not acquire a single new fact
 about how any real cloth behaves.
 
-## R-06 resolved: Blender 4.5 LTS
+## R-06 closed: Blender 5.2 LTS, read from the primary source
 
-`OBSERVED-DOC`, 2026-08-15. `blender.org`, `docs.blender.org`,
-`download.blender.org` and `projects.blender.org` all return HTTP 403 or a
-Cloudflare interstitial to plain `curl`, to WebFetch, and to headless Chromium
-with a persistent profile — the challenge is solved but the origin never
-responds. Two independent official release mirrors are reachable and were used
-instead:
+`OBSERVED-DOC`, 2026-08-15, retrieved from `https://www.blender.org/download/lts/`.
+Under the heading **LTS Releases Currently Maintained**:
 
-- `https://ftp.nluug.nl/pub/graphics/blender/release/`
-- `https://mirror.clarkson.edu/blender/release/`
+> Long-Term Support — **Blender 5.2 LTS** — Released July 14, 2026, supported
+> until July 2028
+>
+> Long-Term Support — **Blender 4.5 LTS** — Last updated to 4.5.12 on July 21,
+> 2026
 
-Both list series `Blender3.4` through `Blender5.2`. Dated patch cadence, with
-the two mirrors agreeing on every date checked:
+Listed as previous LTS releases: 4.2 (released July 14 2024, last updated
+4.2.23 July 2026), 3.6, 3.3, 2.93 and 2.83. The page also states the programme
+rule: LTS "will provide critical fixes throughout a 2-year time span" and "will
+not have any new features, API changes or improvements."
 
-| Series | First release | Latest patch | Latest patch date | Maintenance span        |
-| ------ | ------------- | ------------ | ----------------- | ----------------------- |
-| 4.2    | 2024-07-16    | `4.2.23`     | 2026-07-21        | **2 years, still live** |
-| 4.5    | 2025-07-15    | `4.5.12`     | 2026-07-21        | **1 year, still live**  |
-| 5.0    | 2025-11-18    | `5.0.1`      | 2025-12-16        | 4 weeks, then abandoned |
-| 5.1    | 2026-03-17    | `5.1.2`      | 2026-05-19        | 9 weeks, then abandoned |
-| 5.2    | 2026-07-14    | `5.2.0`      | 2026-07-14        | none yet                |
+**Decision D-13, corrected: pin Blender 5.2 LTS.** Two LTS series are currently
+maintained; 5.2 is the newer and is supported until July 2028, which satisfies
+the founder's instruction to target the latest verifiable LTS.
 
-`INFERRED`, and labelled as such, but the signal is strong: 4.2 and 4.5 both
-received a patch **on the same day, 2026-07-21**, two years and one year after
-their respective releases, while 5.0 and 5.1 stopped within weeks of being
-superseded. Two long-lived series maintained in parallel alongside a
-fast-moving 5.x line is the signature of an LTS programme, and it matches
-Blender's published convention of designating the final release of a series as
-LTS (2.83, 2.93, 3.3, 3.6, 4.2, 4.5).
+### How the earlier pin was wrong, and why it matters
 
-**The latest verifiable LTS is 4.5**, released 2025-07-15 and still maintained
-as of 2026-07-21. 5.2 is the latest stable release and is **not** LTS. The
-dossier's previous "Blender 5.2 LTS" was a `SECONDARY` claim and it was wrong.
+An intermediate version of this chapter pinned 4.5 LTS on the strength of patch
+cadence read off two release mirrors, after blender.org refused every automated
+retrieval method. The reasoning was: 4.2 and 4.5 had long maintenance tails,
+5.0 and 5.1 died within weeks, 5.2.0 had no tail, therefore 5.2 was a regular
+release.
 
-One conflicting source, recorded rather than hidden: Homebrew's `blender@lts`
-cask is pinned to `5.2.0`. Its own comment disclaims the pin — it states that
-the upstream LTS page cannot be fetched due to Cloudflare protections and that
-LTS status cannot be determined from a version number. A pin its maintainers
-say they cannot verify does not outweigh two years of dated maintenance
-evidence, so this dossier follows the cadence.
+The flaw is plain in hindsight. **5.2.0 shipped on 2026-07-14, one month before
+the observation.** A month-old release cannot have a maintenance tail. Absence
+of a tail was read as evidence of non-LTS status when it was only evidence of
+recency. The mirror data was accurate; the inference drawn from it was not.
 
-Searching both mirrors for the literal string "LTS" returns nothing: the
-release trees carry dated artifacts and two GPL licence files, no designation
-metadata. The inference above is therefore the best available evidence, not a
-substitute for the unreachable official page.
+Two process lessons, recorded because they will recur:
 
-**Decision D-13: pin Blender 4.5 LTS.** It satisfies the founder's instruction
-to target the latest LTS that can be verified, and it is the conservative
-choice regardless — an LTS series is what an unattended pipeline should sit on.
+1. A negative signal from a time-series needs an age check before it can carry
+   weight. "No patches yet" and "no patches ever" are different claims.
+2. The retrieval failure was a **tooling** failure, not a genuine unavailability.
+   Cloudflare was fingerprinting the automation browser build; the page opened
+   immediately through an ordinary Chrome installation driven over the DevTools
+   protocol. `BLOCKED` should be provisional on exhausting realistic access
+   methods, and "the automation binary is refused" is not the same as "the
+   source cannot be read".
 
-Residual honesty: the LTS _designation_ is inferred from cadence, not read off
-blender.org. The exact end-of-support date is `BLOCKED`. W1 re-checks this the
-moment blender.org is reachable, and the pin is recorded in the manifest so a
-correction is a one-line change rather than an archaeology exercise.
+Homebrew's `blender@lts` cask, pinned to `5.2.0` with a comment disclaiming its
+own accuracy, turns out to have been right. It was discounted in favour of an
+inference. The primary source outranks both.
 
-Per the founder's instruction, glTF export behaviour is taken as **standard
-Blender glTF 2.0 exporter capability** rather than a version-specific claim.
-Chapter 03's constraints come from the Khronos specification, which was
-retrieved directly and does not depend on Blender at all. That is the load-
-bearing half, and it is verified.
+### Manual pages, now retrieved directly
+
+The same method opened the manual, which self-identifies as the **Blender 5.2
+LTS Manual** — independent corroboration of the LTS designation. The Blender
+facts in chapters 04 and 07 are consequently promoted from `SECONDARY` to
+`OBSERVED-DOC`, and two errors in the earlier second-hand list are corrected:
+`Quality Steps` and `Speed Multiplier` are **not** on the Physical Properties
+page, and a `Bending Model` selector (`Linear` / `Angular`) that the secondary
+sources omitted **is**.
+
+The glTF exporter page was also retrieved, after resolving its moved URL
+through the manual's own search: it now lives at
+`docs.blender.org/manual/en/latest/addons/scene_gltf2.html`, no longer under
+`import_export/`. Two further second-hand claims fall as a result — `glTF
+Embedded (.gltf)` was **not** removed in 4.0+ and is documented in 5.2, and the
+exporter's image options are PNG, JPEG or WebP with **no** `KHR_texture_basisu`
+path, so KTX2 is a post-export step in W4 rather than an export flag. Chapters
+03 and 07 carry the detail.
+
+Nothing in R-06 remains outstanding.
 
 ## The single question Phase 1 answers
 
@@ -165,7 +172,7 @@ rather than adapting the family.
 
 ### W3 — Simulation and bake · Route C then B
 
-Headless Blender 4.5 LTS under `--background --factory-startup --python`.
+Headless Blender 5.2 LTS under `--background --factory-startup --python`.
 Simulate the assembled garment across three movement states for three drape
 classes, with recorded collision, seam, timestep and convergence settings, then
 bake selected frames per deforming assembly, keyed by

@@ -43,7 +43,9 @@ that bind this pipeline:
   BasisLZ (`supercompressionScheme = 1`) or UASTC (0 or 2, optional Zstandard),
   and constrains dimensions: "pixelWidth and pixelHeight MUST be multiples of
   4." Requires loader and device transcode support, hence the mandatory
-  PNG/JPEG fallback above.
+  PNG/JPEG fallback above. `OBSERVED-DOC`: Blender's exporter does **not** emit
+  it — its image options are PNG, JPEG, WebP or none — so KTX2 is a separate
+  post-export step in the asset tooling, never an export flag.
 - **KHR_draco_mesh_compression** — "Complete, Ratified by the Khronos Group".
   It "allows glTF to support streaming compressed geometry data instead of the
   raw data." Note that Three.js r185 deprecates `DRACOLoader.setDecoderConfig`;
@@ -112,13 +114,13 @@ a precondition for acceptance in chapter 06 and never a substitute for it.
 
 ## Sources
 
-| Source                                | Organization       |                Date | URL                                                                                              | Relevance / limitation                                                               |
-| ------------------------------------- | ------------------ | ------------------: | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| glTF 2.0 specification, version 2.0.1 | Khronos Group      |                2021 | https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html                                        | Transport, PBR and extension semantics; defines no simulation model.                 |
-| KHR_materials_sheen                   | Khronos Group      | accessed 2026-08-15 | https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_sheen        | Ratified cloth/fabric appearance layer; appearance only, no mechanical meaning.      |
-| KHR_texture_basisu                    | Khronos Group      | accessed 2026-08-15 | https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_texture_basisu         | Ratified compression contract; requires loader/device support and 4-pixel multiples. |
-| KHR_draco_mesh_compression            | Khronos Group      | accessed 2026-08-15 | https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_draco_mesh_compression | Ratified geometry compression; decoder configuration must be pinned.                 |
-| glTF Validator                        | Khronos Group      |  release 2024-10-22 | https://github.com/KhronosGroup/glTF-Validator                                                   | Apache-2.0 machine validation; cannot assess tailoring fidelity.                     |
-| Blender glTF 2.0 exporter manual      | Blender Foundation |          see ch. 07 | https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html                  | Export controls; **HTTP 403 to every retrieval method on 2026-08-15** — see ch. 07.  |
-| Poly Haven licence                    | Poly Haven         | accessed 2026-08-15 | https://polyhaven.com/license                                                                    | CC0 HDRI/material option; provenance must still be pinned.                           |
-| ambientCG licence                     | ambientCG          | accessed 2026-08-15 | https://docs.ambientcg.com/license/                                                              | CC0 1.0 material option; does not prove textile calibration.                         |
+| Source                                | Organization       |                Date | URL                                                                                              | Relevance / limitation                                                                        |
+| ------------------------------------- | ------------------ | ------------------: | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| glTF 2.0 specification, version 2.0.1 | Khronos Group      |                2021 | https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html                                        | Transport, PBR and extension semantics; defines no simulation model.                          |
+| KHR_materials_sheen                   | Khronos Group      | accessed 2026-08-15 | https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_materials_sheen        | Ratified cloth/fabric appearance layer; appearance only, no mechanical meaning.               |
+| KHR_texture_basisu                    | Khronos Group      | accessed 2026-08-15 | https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_texture_basisu         | Ratified compression contract; requires loader/device support and 4-pixel multiples.          |
+| KHR_draco_mesh_compression            | Khronos Group      | accessed 2026-08-15 | https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_draco_mesh_compression | Ratified geometry compression; decoder configuration must be pinned.                          |
+| glTF Validator                        | Khronos Group      |  release 2024-10-22 | https://github.com/KhronosGroup/glTF-Validator                                                   | Apache-2.0 machine validation; cannot assess tailoring fidelity.                              |
+| Blender glTF 2.0 exporter manual      | Blender Foundation | accessed 2026-08-15 | https://docs.blender.org/manual/en/latest/addons/scene_gltf2.html                                | Export controls, retrieved directly; emits PNG/JPEG/WebP only, so KTX2 needs a separate step. |
+| Poly Haven licence                    | Poly Haven         | accessed 2026-08-15 | https://polyhaven.com/license                                                                    | CC0 HDRI/material option; provenance must still be pinned.                                    |
+| ambientCG licence                     | ambientCG          | accessed 2026-08-15 | https://docs.ambientcg.com/license/                                                              | CC0 1.0 material option; does not prove textile calibration.                                  |

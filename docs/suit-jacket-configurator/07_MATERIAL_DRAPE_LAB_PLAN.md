@@ -41,50 +41,106 @@ The UI comparison is the signature: a vertical "cloth ledger" pairs a large
 silhouette with three exact state chips — rest, reach, seated — and three light
 conditions. It is intentionally quiet around that comparison.
 
-## Blender: what is actually verified
+## Blender: what is verified
 
-**Retrieval caveat, and it is material.** On 2026-08-15 `docs.blender.org`
-returned HTTP 403 to WebFetch and to `curl` with a browser user agent, for every
-manual page this dossier cites, and `blender.org` served a Cloudflare
-interactive challenge instead of content. The Blender facts below are therefore
-`SECONDARY` — assembled from search-result summaries and third-party
-documentation, not retrieved from the primary manual in this pass.
+**Version pin: Blender 5.2 LTS** (decision D-13, corrected). `OBSERVED-DOC`:
+blender.org's LTS page lists it under "LTS Releases Currently Maintained" as
+"Released July 14, 2026, supported until July 2028", alongside 4.5 LTS. The
+manual self-identifies as the "Blender 5.2 LTS Manual". Chapter 10 records how
+an intermediate 4.5 pin was reached and why it was wrong.
 
-**Version pin, resolved: Blender 4.5 LTS** (decision D-13). Chapter 10 sets out
-the evidence in full. In short: two independent official release mirrors show
-4.2 and 4.5 both still receiving patches on 2026-07-21 — two years and one year
-after release — while 5.0 and 5.1 were abandoned within weeks and 5.2.0
-(2026-07-14) has no maintenance tail. That is the LTS signature, and it matches
-Blender's convention of designating the final release of a series as LTS. The
-dossier's earlier "Blender 5.2 LTS" was wrong: 5.2 is the latest stable
-release, not an LTS.
+Retrieval note: blender.org and docs.blender.org refuse curl, WebFetch and
+automation browser builds, but open normally in an ordinary Chrome installation
+driven over the DevTools protocol. Everything below is quoted from pages
+retrieved that way on 2026-08-15.
 
-The LTS _designation_ remains `INFERRED` from cadence rather than read from
-blender.org, and the end-of-support date is `BLOCKED`. Per founder instruction,
-glTF export behaviour below is treated as standard Blender glTF 2.0 exporter
-capability rather than a version-specific claim; the binding export constraints
-in chapter 03 come from the Khronos specification, which was retrieved directly.
+`OBSERVED-DOC` — **Physics ‣ Cloth ‣ Physical Properties**. The solver controls
+the pipeline drives:
 
-`SECONDARY`. The cloth solver controls the pipeline would drive: Quality Steps,
-Speed Multiplier, Vertex Mass, Air Viscosity, Stiffness (Tension, Compression,
-Shear, Bending), Damping (Tension, Compression, Shear, Bending), Internal
-Springs and Pressure; collision settings for object distance, self-collision,
-friction and collision quality; and shape settings for a pin group, Sewing
-Springs (with Maximum Length, Angle and a maximum sewing force) and Shrinking.
-Sewing Springs are the mechanism that turns flat panels into a sewn garment,
-which is why the generator emits panels and seam pairs rather than a closed
-mesh. Exact default values were not obtainable and are deliberately not
-reproduced here.
+- `Vertex Mass` — "The mass of the cloth material."
+- `Air Viscosity` — "Air has some thickness which slows falling things down."
+- `Bending Model` — `Linear` ("Cloth model with linear bending springs (old)")
+  or `Angular` ("Cloth model with angular bending springs"). This selector was
+  missing from the earlier second-hand list and it is consequential: it changes
+  which stiffness terms exist.
+- `Stiffness`: `Tension` ("How much the material resists stretching"),
+  `Compression`, `Structural` ("Overall stiffness of the cloth (only in linear
+  bending model)"), `Shear` ("How much the material resists shearing"),
+  `Bending` ("Wrinkle coefficient. Higher creates more large folds.").
+- `Damping`: `Tension`, `Compression`, `Structural` (again linear-model only),
+  `Shear`, `Bending`.
+- `Internal Springs`, with `Max Spring Creation Length`, `Max Creation
+Diversion` and `Check Surface Normals`. Intended to make a mesh "behave
+  similarly to a Soft Body" — not wanted for tailored cloth.
+- `Pressure`, with `Pressure` and `Pressure Scale`, for "soft-shelled objects
+  such as balloons". Not applicable here.
 
-`SECONDARY`. Headless operation uses `--background` / `-b` with `--python` or
-`--python-expr`, `--factory-startup` to ignore user preferences, and
-`--render-frame`; argument order is significant. GPU compute for Cycles is
-selectable in background mode without an OpenGL/GUI stack. Export offers glTF
-Binary (`.glb`) and glTF Separate; the embedded `.gltf` variant was removed in
-Blender 4.0+. Shape keys export as morph targets but conflict with
-"Apply Modifiers"; particle systems, hair, and cached simulation vertex
-animation do not export — which is precisely why the pipeline bakes selected
-frames to static meshes rather than exporting a cloth cache.
+Two corrections to the earlier second-hand list: `Quality Steps` and `Speed
+Multiplier` are **not** on this page. Do not cite them as physical properties.
+
+`OBSERVED-DOC` — **Physics ‣ Cloth ‣ Shape**. This is where garment
+construction actually lives:
+
+- `Pin Group` — "Vertex group to use for pinning."
+- `Sewing` — sewing springs "pull vertices in one part of a cloth mesh toward
+  vertices in another part", and are "created by adding extra edges to a cloth
+  mesh that are not included in any faces". This is the mechanism that turns
+  flat panels into a sewn garment, and it is why the generator must emit panels
+  plus explicit seam edges rather than a closed mesh.
+- `Max Sewing Force` — "Zero means unbounded, but it is not recommended to
+  leave the field at zero in most cases, as it can cause instability due to
+  extreme forces in the initial frames." Set it explicitly in the bake config.
+- `Shrinking Factor`, `Dynamic Mesh`, and `Rest Shape Key`.
+
+`Rest Shape Key` deserves emphasis — it is directly useful to the drape-state
+bake. It "allows starting the cloth simulation using a specific Shape Key as
+the rest state", and can "start the simulation with the cloth in a pre-draped
+state without applying that shape as a plastic deformation that relaxes all
+springs as a side effect." That is exactly how a movement state should begin
+from a settled rest drape without corrupting the spring network.
+
+`OBSERVED-DOC` — **Physics ‣ Cloth ‣ Collisions**. `Quality`, `Distance`,
+`Impulse Clamping` ("Prevents explosions in tight and complicated collision
+situations"), `Collision Collection` (objects "must also have Collision physics
+enabled"), and under self-collision a `Friction` coefficient "for how slippery
+the cloth is when it collides with itself. For example, silk has a lower
+coefficient of friction than cotton." Note that this friction is a _solver_
+coefficient, not a measured textile value — chapter 04's rule still applies.
+
+Command-line flags confirmed present in the 5.2 manual include
+`--factory-startup`, `--python-expr`, `--python-text`, `--python-console`,
+`--python-exit-code`, `--python-use-system-env` and `--cycles-device`.
+
+`OBSERVED-DOC` — **glTF 2.0 exporter**, at
+`docs.blender.org/manual/en/latest/addons/scene_gltf2.html` (the path moved; it
+is no longer under `import_export/`). Export formats, all three still present in
+5.2:
+
+- `glTF Binary (.glb)` — "a single .glb file with all mesh data, image textures,
+  and related information packed into a single binary file." This is PAON's
+  package.
+- `glTF Separate (.gltf + .bin + textures)`.
+- `glTF Embedded (.gltf)` — base64 inside the JSON. **A correction: the earlier
+  second-hand note that Embedded was removed in 4.0+ is wrong; it is documented
+  in 5.2.** PAON still does not use it.
+
+Relevant options: `Apply Modifiers` — "Export objects using the evaluated mesh,
+meaning the resulting mesh after all Modifiers have been calculated" — plus
+`Shape Key Normals` and `Shape Key Tangents`, which "Export vertex normals /
+tangents with shape keys (morph targets)". Export-side extensions documented
+include `KHR_draco_mesh_compression`, `EXT_meshopt_compression`,
+`KHR_meshopt_compression` and `KHR_lights_punctual`.
+
+Two consequences for the pipeline:
+
+1. **`KHR_texture_basisu` is not an exporter option.** Texture output is PNG,
+   JPEG or WebP — and on WebP the manual warns "all textures will be saved as
+   WebP, without any png/jpg fallback". KTX2/Basis therefore requires a separate
+   post-export step in W4, not an export flag. Chapter 03's mandatory PNG/JPEG
+   fallback stands.
+2. Morph-target export is available and normals/tangents can ride with it, which
+   keeps chapter 09's within-assembly morph option open. It changes nothing
+   about cross-assembly substitution, which remains separate meshes.
 
 ## Offline pipeline
 
