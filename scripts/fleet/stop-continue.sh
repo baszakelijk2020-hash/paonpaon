@@ -48,7 +48,13 @@ fi
 # --- 2. uncommitted work must be committed before moving on -------------------
 dirty="$(git status --porcelain | grep -v '^?? scratchpad/' | grep -v 'claude-stop-check' | head -20)"
 if [ -n "$dirty" ]; then
-  emit_block "STOP BLOCKED — you have uncommitted work. Commit it now with a conventional message (prefix 'WIP:' if unfinished), then stop. Never leave the tree dirty for the next agent. Uncommitted:
+  emit_block "DO NOT STOP. You have uncommitted work. Commit it now with a conventional message (prefix 'WIP:' if unfinished) — never leave the tree dirty for the next agent — and then IMMEDIATELY continue: re-run your acceptance, or ask the queue for your next task with 'scripts/fleet/paon-fleet take'. Committing is not a stopping point.
+
+This gate previously ended with 'then stop', which is an explicit instruction
+to go idle, and it fires BEFORE the task hand-over below. Because every browser
+proof rewrites docs/evidence/runs/*.json, the tree is dirty most of the time —
+so that wording made 'commit and stop' the normal outcome instead of 'commit
+and keep working'. Uncommitted:
 $dirty"
 fi
 
@@ -70,15 +76,55 @@ fi
 [ -x "$FLEET" ] || exit 0
 task="$("$FLEET" take 2>/dev/null)" || exit 0
 
-# NO_ELIGIBLE_WORK means "nothing this agent may safely take" — which is NOT
-# the same as "nothing to do". Exiting 0 here is deliberate: the agent stops
-# cleanly rather than casting around for something to work on. Previously an
-# empty result left the agent with no instruction at all, and Codex responded
-# by resuming stale, unrelated work it found lying in the tree.
+# NO_ELIGIBLE_WORK means "nothing this agent may safely CLAIM" — which is not
+# the same as "nothing to do", and this branch used to exit 0 and let the agent
+# go idle. That was the single largest source of observed idleness: the queue
+# routinely has no claimable task for a given agent (every open task's paths
+# collide with a live lease, or they are all the wrong tier) while there is
+# real standing work available to anyone.
+#
+# So instead of stopping, hand over STANDING DUTIES — bounded, always-safe,
+# never-colliding verification work that needs no lease.
+#
+# Throttled deliberately. Standing duties are idempotent, so an agent with a
+# genuinely quiet queue would otherwise re-run them forever and burn quota for
+# nothing. After STANDING_MAX consecutive hand-overs with no new claimable
+# task appearing, the agent is allowed to stop — a real stop condition, not a
+# disguised idle. The counter resets the moment a real task is claimed.
+STANDING_STATE="${TMPDIR:-/tmp}/paon-standing-duty.$(basename "$REPO_ROOT")"
+STANDING_MAX=3
+
 case "$task" in
   ""|NO_ELIGIBLE_WORK|QUEUE_EMPTY)
+    n=$(( $(cat "$STANDING_STATE" 2>/dev/null || echo 0) + 1 ))
+    printf '%s' "$n" > "$STANDING_STATE"
+    if [ "$n" -gt "$STANDING_MAX" ]; then
+      rm -f "$STANDING_STATE"
+      exit 0   # genuine stop: queue quiet and standing duties already swept
+    fi
+    emit_block "DO NOT STOP. The queue has no task you may claim right now
+(every open task collides with a live lease or is the wrong tier), but that is
+not the same as nothing to do. Standing duties, pass $n of $STANDING_MAX —
+none of these need a lease and none can collide with another agent:
+
+1. PROOF FRESHNESS. For each docs/evidence/runs/*.json, compare its gitSha to
+   HEAD. Re-run any spec whose proof is stale or whose status is not 'passed',
+   then commit the regenerated artifacts in an EVIDENCE-ONLY commit.
+2. UNINTEGRATED WORK. For each worker branch, check whether it holds commits
+   whose content is not on main. Verify, then integrate anything real.
+3. FULL SUITE. Run 'supabase test db' and the domain tests. Anything red is
+   your next task, whether or not the queue knows about it.
+4. STATE. Rewrite docs/ORCHESTRATION_STATE.md so a cold successor can take
+   over from Git alone, and push.
+
+Do the first of these that is not already clean. Commit and push what you
+verify. Do not invent product work, do not touch another agent's owned_paths,
+and do not claim a queue task — you already asked and there is none."
     exit 0 ;;
 esac
+
+# A real task was claimed — the queue is moving, so reset the standing counter.
+rm -f "$STANDING_STATE" 2>/dev/null || true
 
 id="$(printf '%s' "$task"    | jq -r '.id')"
 title="$(printf '%s' "$task" | jq -r '.title')"
