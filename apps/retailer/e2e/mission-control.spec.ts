@@ -397,14 +397,29 @@ test.describe.serial("mission control", () => {
           .delete()
           .eq("id", updateNotification.id);
       }
-      await admin.from("product_variants").delete().eq("id", variant.id);
-      await admin.from("products").delete().eq("id", product.id);
-      await admin.from("price_change_proposals").delete().eq("id", proposal.id);
-      await admin
-        .from("alteration_work_orders")
-        .delete()
-        .eq("id", alterationId);
-      await admin.from("customers").delete().eq("id", customer.id);
+      // Guarded like the notification cleanups above. These four were
+      // unguarded, and a failure BEFORE any of them existed made the finally
+      // block throw on the first undefined id — abandoning every cleanup after
+      // it. That is how two "Mission Control low-stock fixture" products came
+      // to exist at once, which then broke visual-roadmap.spec.ts with a
+      // strict-mode violation when it selected that product by name. A test's
+      // own cleanup must never depend on the test having got far enough.
+      if (variant?.id)
+        await admin.from("product_variants").delete().eq("id", variant.id);
+      if (product?.id)
+        await admin.from("products").delete().eq("id", product.id);
+      if (proposal?.id)
+        await admin
+          .from("price_change_proposals")
+          .delete()
+          .eq("id", proposal.id);
+      if (alterationId)
+        await admin
+          .from("alteration_work_orders")
+          .delete()
+          .eq("id", alterationId);
+      if (customer?.id)
+        await admin.from("customers").delete().eq("id", customer.id);
     }
   });
 });
