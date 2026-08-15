@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 import { TEST_RETAILER_SLUG } from "./fixtures";
 import { writeBrowserProofRun } from "./write-browser-proof-run";
 
-const PHASE_ITEM_ID = "18.5-employee-portal-linked-customer-data";
+const PHASE_ITEM_ID = "18.5";
 const BROWSER_PROOF_SPEC =
   "apps/customer/e2e/employee-portal-linked-customer.spec.ts";
 
