@@ -893,6 +893,46 @@ attribute an action to another house's staff member.
 **Do not cite tranche 4 as evidence that the schema is tenant-safe.** Both
 migration headers say so themselves.
 
+### 11c-bis. Tranche 4b — the class is now closed
+
+Section 11c recorded 425 unprotected pairs, of which 238 were genuinely
+exploitable (child `INSERT` policy checking only `current_retailer_id()`).
+Tranche 4b closed all of them in three slices:
+
+| Slice | Commit    | Scope                                | Edges |
+| ----- | --------- | ------------------------------------ | ----- |
+| 4b.1  | `4277616` | `customers` children                 | 26    |
+| 4b.2  | `f2f0c48` | all remaining tenant-owned parents   | 133   |
+| 4b.3  | `e20ae67` | `retailer_staff_members` attribution | 66    |
+
+**Measured result: remaining exploitable cross-tenant edges = 0.**
+
+**The correction that shaped this work.** A first cut of slice 2 bound every
+parent that merely had a `retailer_id` column. It broke four test suites, and
+the reason matters more than the fix: **"both tables have `retailer_id`,
+therefore they must match" is false.** `metadata_concepts` and
+`knowledge_objects` are platform-global vocabulary with a **nullable**
+`retailer_id` where NULL means platform-owned, and their own RLS policies
+special-case `retailer_id IS NULL`. A retailer's `entity_metadata_assignment`
+pointing at a global concept, or a `retailer_knowledge_override` overriding a
+global object, is correct behaviour — and a composite key can never match a
+NULL parent `retailer_id`, so binding those parents destroys the feature
+instead of securing it.
+
+The discriminator now in force, and asserted by test so it cannot be lost: a
+parent is eligible for tenant binding only if its `retailer_id` is **NOT
+NULL**. Nullable means shared, and shared is excluded.
+
+All DDL was generated from the live catalogue rather than transcribed, so
+several hundred statements could not drift from the real schema, and every
+composite key mirrors the `ON DELETE` action of the single-column key it
+parallels — `SET NULL` necessarily becoming `NO ACTION`, since a composite
+`SET NULL` would null the `NOT NULL` `retailer_id`.
+
+Full pgTAP after 4b: **426/428**, the two failures being the ones that
+pre-exist on `main` (`stock_tenant_boundaries` #11, which is itself an open
+security finding, and `wedding_guest_voucher_redemption` #3).
+
 ### 11d. Adjacent, deliberately not widened into tranche 4
 
 - `createClientelingNote`
