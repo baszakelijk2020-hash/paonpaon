@@ -12,6 +12,14 @@ import { writeBrowserProofRun } from "./write-browser-proof-run";
 const PHASE_ITEM_ID = "17.9";
 const BROWSER_PROOF_SPEC = "apps/retailer/e2e/channel-contact.spec.ts";
 
+// Serial on purpose. Both tests below set a module-level flag, and the single
+// afterAll writes the proof artifact only when BOTH are true. Under parallel
+// execution Playwright may run them in separate worker processes, each with
+// its own module instance — so each worker sees exactly one flag set and
+// writes status="failed" even though both tests passed. That is precisely how
+// 17.9 came to record a failure while the run reported 3 passed.
+test.describe.configure({ mode: "serial" });
+
 let customerCardProofPassed = false;
 let sharedThreadProofPassed = false;
 

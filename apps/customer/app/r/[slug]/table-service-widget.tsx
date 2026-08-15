@@ -774,7 +774,13 @@ export function TableServiceWidget({
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        aria-label="Contact us"
+        // No aria-label: it previously read "Contact us" while the button
+        // visibly reads "Ask us anything". aria-label overrides child text in
+        // the accessible name, so assistive tech announced a different label
+        // than sighted users saw, and voice control could not activate the
+        // button by its visible name (WCAG 2.5.3 Label in Name). Letting the
+        // name fall back to the visible text fixes that, and is also more
+        // informative because the text already reflects open/closed state.
         className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-5 py-3 text-sm font-medium text-white shadow-lg"
       >
         {open ? "Close" : "Ask us anything"}
