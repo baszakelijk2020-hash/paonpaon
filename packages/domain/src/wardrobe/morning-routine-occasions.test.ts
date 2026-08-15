@@ -85,4 +85,76 @@ describe("selectUpcomingOccasions", () => {
     });
     expect(result).toEqual([]);
   });
+
+  // The module's contract is that a fact whose value isn't a clean ISO date is
+  // "silently skipped, never guessed at". A shape-only regex satisfies that for
+  // free text but not for values that look like dates and aren't: month 13 and
+  // day 45 pass /^\d{4}-\d{2}-\d{2}$/, reach the recurrence math, and blow up
+  // at `.toISOString()` on an Invalid Date — crashing the whole "Coming up"
+  // card rather than dropping one bad fact.
+  it("skips shape-valid but calendar-invalid dates instead of throwing", () => {
+    expect(() =>
+      selectUpcomingOccasions({
+        facts: [
+          {
+            factId: "fact-impossible-month",
+            factType: "anniversary",
+            valueLabel: "2026-13-45",
+          },
+        ],
+        todayIso: "2026-06-10T00:00:00.000Z",
+        leadDays: 30,
+      }),
+    ).not.toThrow();
+  });
+
+  it("drops one impossible date without losing the valid facts beside it", () => {
+    const result = selectUpcomingOccasions({
+      facts: [
+        {
+          factId: "fact-impossible",
+          factType: "anniversary",
+          valueLabel: "2026-02-30",
+        },
+        {
+          factId: "fact-real",
+          factType: "wedding_date",
+          valueLabel: "2026-06-15",
+        },
+      ],
+      todayIso: "2026-06-10T00:00:00.000Z",
+      leadDays: 30,
+    });
+    expect(result.map((occasion) => occasion.factId)).toEqual(["fact-real"]);
+  });
+
+  it("returns nothing for a malformed todayIso rather than NaN-sorted rows", () => {
+    const result = selectUpcomingOccasions({
+      facts: [
+        {
+          factId: "fact-real",
+          factType: "wedding_date",
+          valueLabel: "2026-06-15",
+        },
+      ],
+      todayIso: "not-a-date",
+      leadDays: 30,
+    });
+    expect(result).toEqual([]);
+  });
+
+  it("returns nothing for a non-finite leadDays rather than an unbounded window", () => {
+    const result = selectUpcomingOccasions({
+      facts: [
+        {
+          factId: "fact-real",
+          factType: "wedding_date",
+          valueLabel: "2026-06-15",
+        },
+      ],
+      todayIso: "2026-06-10T00:00:00.000Z",
+      leadDays: Number.NaN,
+    });
+    expect(result).toEqual([]);
+  });
 });

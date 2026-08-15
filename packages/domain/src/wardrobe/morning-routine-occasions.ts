@@ -58,6 +58,24 @@ function isUpcomingOccasionFactType(
 }
 
 /**
+ * The shape regex alone does not deliver this module's "never guessed at"
+ * promise. `2026-13-45` matches it, parses to an Invalid Date, and throws at
+ * `.toISOString()` inside the recurrence math — taking the whole "Coming up"
+ * card down over one bad fact. `2026-02-30` is worse: it silently rolls to
+ * March 2, which is exactly the guessing the contract forbids.
+ *
+ * Round-tripping the parsed date back to `YYYY-MM-DD` rejects both: an
+ * unparseable value fails the NaN check, and a rolled-over value no longer
+ * equals what was written.
+ */
+function isRealIsoDate(value: string): boolean {
+  if (!ISO_DATE_PATTERN.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime())) return false;
+  return parsed.toISOString().slice(0, 10) === value;
+}
+
+/**
  * Surfaces every dated fact due within `leadDays`, nearest first — far
  * enough ahead to act on (book an appointment, order in time for
  * alterations), never same-day only.
@@ -67,10 +85,17 @@ export function selectUpcomingOccasions(args: {
   readonly todayIso: string;
   readonly leadDays: number;
 }): readonly UpcomingOccasion[] {
+  // `todayIso` and `leadDays` are the caller's, not a customer's, but an
+  // unparseable "today" throws in the same place a bad fact does, and a
+  // non-finite lead window silently compares every date against NaN. Both
+  // yield an empty card rather than a crash or a nonsense list.
+  if (Number.isNaN(new Date(args.todayIso).getTime())) return [];
+  if (!Number.isFinite(args.leadDays)) return [];
+
   const occasions: UpcomingOccasion[] = [];
   for (const fact of args.facts) {
     if (!isUpcomingOccasionFactType(fact.factType)) continue;
-    if (!ISO_DATE_PATTERN.test(fact.valueLabel)) continue;
+    if (!isRealIsoDate(fact.valueLabel)) continue;
     const window = evaluateRelationshipDateWindow({
       relationshipDateIso: fact.valueLabel,
       todayIso: args.todayIso,
