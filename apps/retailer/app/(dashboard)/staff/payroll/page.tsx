@@ -2,7 +2,9 @@ import { requireRetailerRole } from "@paon/auth";
 import {
   PayrollPeriodRepository,
   RetailerStaffRepository,
+  type PayrollPeriodVersionRecord,
 } from "@paon/database";
+import { summarizePeriodHours } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { redirect } from "next/navigation";
@@ -59,6 +61,37 @@ export default async function PayrollPage() {
   start.setUTCDate(today.getUTCDate() - 13);
   const date = (value: Date) => value.toISOString().slice(0, 10);
 
+  const hoursByVersion = new Map<
+    string,
+    ReadonlyArray<{
+      readonly staffId: string;
+      readonly regularHours: number;
+      readonly overtimeHours: number;
+    }>
+  >();
+  for (const version of dashboard.versions) {
+    const entries = (snapshotsByVersion.get(version.id) ?? []).map(
+      (snapshot) =>
+        snapshot.clockOutAt
+          ? {
+              staffId: snapshot.staffId,
+              clockInAt: snapshot.clockInAt,
+              clockOutAt: snapshot.clockOutAt,
+            }
+          : {
+              staffId: snapshot.staffId,
+              clockInAt: snapshot.clockInAt,
+            },
+    );
+    hoursByVersion.set(version.id, summarizePeriodHours(entries));
+  }
+  const versionsByPeriod = new Map<string, PayrollPeriodVersionRecord[]>();
+  for (const version of dashboard.versions) {
+    const current = versionsByPeriod.get(version.periodId) ?? [];
+    current.push(version);
+    versionsByPeriod.set(version.periodId, current);
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -105,6 +138,13 @@ export default async function PayrollPage() {
             const openExceptions = exceptions.filter(
               (exception) => !exception.resolvedAt,
             );
+            const hours = current ? (hoursByVersion.get(current.id) ?? []) : [];
+            const chronological = [...(versionsByPeriod.get(period.id) ?? [])]
+              .sort((a, b) => a.versionNumber - b.versionNumber)
+              .map((version) => ({
+                version,
+                snapshots: snapshotsByVersion.get(version.id) ?? [],
+              }));
             return (
               <Card key={period.id} data-period-id={period.id}>
                 <div className="flex flex-wrap items-center gap-2">
@@ -131,6 +171,50 @@ export default async function PayrollPage() {
                         : ""}
                     </p>
                     <section className="mt-4">
+                      <h3 className="text-sm font-medium">
+                        Earning-code hours
+                      </h3>
+                      {hours.length === 0 ? (
+                        <p className="mt-2 text-sm text-[var(--color-stone-500)]">
+                          No staff hours available for the current version.
+                        </p>
+                      ) : (
+                        <table
+                          id={`hours-${period.id}`}
+                          className="mt-2 w-full max-w-xl border-collapse text-sm"
+                        >
+                          <thead>
+                            <tr className="text-left text-[var(--color-stone-500)]">
+                              <th className="border-b border-[var(--color-stone-200)] py-1 pr-3 font-medium">
+                                Staff
+                              </th>
+                              <th className="border-b border-[var(--color-stone-200)] py-1 pr-3 font-medium">
+                                Regular
+                              </th>
+                              <th className="border-b border-[var(--color-stone-200)] py-1 font-medium">
+                                Overtime
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {hours.map((row) => (
+                              <tr key={row.staffId}>
+                                <td className="border-b border-[var(--color-stone-100)] py-1 pr-3">
+                                  {staffName.get(row.staffId) ?? "Staff member"}
+                                </td>
+                                <td className="border-b border-[var(--color-stone-100)] py-1 pr-3">
+                                  {row.regularHours}
+                                </td>
+                                <td className="border-b border-[var(--color-stone-100)] py-1">
+                                  {row.overtimeHours}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </section>
+                    <section className="mt-4">
                       <h3 className="text-sm font-medium">Exceptions</h3>
                       {exceptions.length === 0 ? (
                         <p className="mt-2 text-sm text-[var(--color-stone-500)]">
@@ -154,6 +238,7 @@ export default async function PayrollPage() {
                                   <Badge tone="warning">open</Badge>
                                   <ResolvePayrollExceptionForm
                                     exceptionId={exception.id}
+                                    kind={exception.kind}
                                   />
                                 </>
                               )}
@@ -162,6 +247,34 @@ export default async function PayrollPage() {
                         </ul>
                       )}
                     </section>
+                    {chronological.length > 1 ? (
+                      <section className="mt-4">
+                        <h3 className="text-sm font-medium">Version history</h3>
+                        <ul className="mt-2 flex flex-col gap-2 text-sm">
+                          {chronological.map(
+                            ({ version, snapshots: versionSnapshots }) => (
+                              <li
+                                key={version.id}
+                                className="rounded border border-[var(--color-stone-100)] p-3"
+                              >
+                                <span className="font-medium">
+                                  Version {version.versionNumber} ·{" "}
+                                  {version.state}
+                                </span>
+                                <span className="text-[var(--color-stone-500)]">
+                                  {" "}
+                                  · {versionSnapshots.length} captured entry
+                                  {versionSnapshots.length === 1 ? "" : "s"}
+                                  {version.predecessorVersionId
+                                    ? " · correction of the previous version"
+                                    : " · original"}
+                                </span>
+                              </li>
+                            ),
+                          )}
+                        </ul>
+                      </section>
+                    ) : null}
                     {current.state === "draft" ? (
                       <section className="mt-4">
                         <h3 className="text-sm font-medium">

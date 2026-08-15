@@ -72,8 +72,10 @@ export function OpenPayrollPeriodForm({
 
 export function ResolvePayrollExceptionForm({
   exceptionId,
+  kind,
 }: {
   readonly exceptionId: string;
+  readonly kind: string;
 }) {
   const [state, action, pending] = useActionState(
     resolvePayrollException,
@@ -85,6 +87,9 @@ export function ResolvePayrollExceptionForm({
       <Button type="submit" size="sm" variant="outline" disabled={pending}>
         {pending ? "Resolving…" : "Resolve exception"}
       </Button>
+      <span className="text-xs text-[var(--color-stone-500)]">
+        {kind.replaceAll("_", " ")}
+      </span>
       <Result state={state} />
     </form>
   );
