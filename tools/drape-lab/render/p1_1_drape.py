@@ -55,13 +55,13 @@ def main():
         panels.forepart(-1),
         panels.forepart(1),
         panels.back_panel(),
-        panels.sleeve(-1),
-        panels.sleeve(1),
     ]
-    print(f"[p1.1] cut {len(cut)} panels, {sum(len(o.data.vertices) for o in cut)} verts")
+    # Sleeves wait for the named armscye contract. Joining unpaired sleeve
+    # boundaries would recreate the arbitrary constraints this stage removes.
+    print(f"[p1.1] cut {len(cut)} panels, {sum(len(obj.data.vertices) for obj, _ in cut)} verts")
 
-    garment = sew.join_panels(cut)
-    seams = sew.add_sewing_springs(garment)
+    garment, declared_seams = sew.join_panels(cut)
+    seams = sew.add_sewing_springs(garment, declared_seams, panels.BODY_SEAMS)
     print(f"[p1.1] sewing springs: {seams}")
     if seams == 0:
         print("[p1.1] FAIL: no sewing springs created — panels cannot close")

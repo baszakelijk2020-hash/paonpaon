@@ -48,18 +48,20 @@ The binding requirements are in `06_VISUAL_QUALITY_AND_ACCEPTANCE.md` under
 
 ## Where things stand
 
-**Phase: documentation and research complete enough to build; W0 not started.**
+**Phase: P1.1/P1.2 seam-contract repair complete; garment-stability tuning is
+the active blocker.**
 
-| Item                      | State                                        |
-| ------------------------- | -------------------------------------------- |
-| Dossier chapters 00–10    | Written, self-consistent, reviewed           |
-| Reference bar             | Measured from the live competitor (ch. 06)   |
-| Asset contract            | Normative (ch. 09)                           |
-| Render stage              | Specified (ch. 07)                           |
-| Build plan W0–W6          | Specified (ch. 10)                           |
-| Blender pin               | 5.2 LTS, confirmed from blender.org          |
-| **Any executable code**   | **None. Nothing has been built yet.**        |
-| **W0 single-image spike** | **Not started. This is the next real work.** |
+| Item                      | State                                           |
+| ------------------------- | ----------------------------------------------- |
+| Dossier chapters 00–10    | Written, self-consistent, reviewed              |
+| Reference bar             | Measured from the live competitor (ch. 06)      |
+| Asset contract            | Normative (ch. 09)                              |
+| Render stage              | Specified (ch. 07)                              |
+| Build plan W0–W6          | Specified (ch. 10)                              |
+| Blender pin               | 5.2 LTS, confirmed from blender.org             |
+| **Executable code**       | P1.0 render harness and P1.1/P1.2 prototype     |
+| **P1.1/P1.2 seam repair** | Ordered named seams verified; 46 springs        |
+| **P1.2 visual gate**      | Not passed: body slips off the form by frame 30 |
 
 ### Commits so far, newest first
 
@@ -139,17 +141,16 @@ through P1.7, each with one acceptance gate. That chapter supersedes chapter
 10's W0–W6 framing where the two differ: the live 3D tier is dropped from Phase
 1 entirely by founder direction, and Phase 1 is Suitsupply parity 1:1.
 
-| #   | Work                                                            | Blocked by | Notes                                                      |
-| --- | --------------------------------------------------------------- | ---------- | ---------------------------------------------------------- |
-| 1   | Research slices: jacket-pattern, then garment-parametric        | quota      | 2 agents at a time. Nothing can be built without geometry. |
-| 2   | **P1.0** — one Cycles render beside a reference shot            | 1          | Gates the programme (R-17). Days, not weeks.               |
-| 3   | P1.1 — panelled jacket geometry, deterministic from seed        | 2          |                                                            |
-| 4   | P1.2 — cloth simulation, sewing springs, settles to rest pose   | 3          |                                                            |
-| 5   | P1.3 — per-assembly layers with shadow catchers                 | 4          | Shadow-swap test decides if the modular approach lives     |
-| 6   | P1.4 — full option set as graph assemblies + compatibility data | 5          |                                                            |
-| 7   | P1.5 — AVIF layered delivery, srcset, zoom, rotation frames     | 6          |                                                            |
-| 8   | P1.6 — the configurator surface                                 | 7          | Thumbnails are crops of real renders, not icons            |
-| 9   | P1.7 — parity panel, then shoulder legibility                   | 8          | Pre-register thresholds before collecting anything         |
+| #   | Work                                                            | Blocked by | Notes                                                                                         |
+| --- | --------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------- |
+| 1   | **P1.2** — hold the sewn body on the dress form                 | P1.1 seams | Tune initial panel placement and collision; no solver tuning until the initial pose is valid. |
+| 2   | P1.1 — panelled jacket geometry, deterministic from seed        | 1          | Add sleeves only with the explicit armscye contract.                                          |
+| 3   | **P1.0** — one Cycles render beside a reference shot            | 2          | Gates the programme (R-17). Days, not weeks.                                                  |
+| 5   | P1.3 — per-assembly layers with shadow catchers                 | 4          | Shadow-swap test decides if the modular approach lives                                        |
+| 6   | P1.4 — full option set as graph assemblies + compatibility data | 5          |                                                                                               |
+| 7   | P1.5 — AVIF layered delivery, srcset, zoom, rotation frames     | 6          |                                                                                               |
+| 8   | P1.6 — the configurator surface                                 | 7          | Thumbnails are crops of real renders, not icons                                               |
+| 9   | P1.7 — parity panel, then shoulder legibility                   | 8          | Pre-register thresholds before collecting anything                                            |
 
 Parallel and unblocked at any time — take one of these when the queue head is
 blocked, rather than idling:

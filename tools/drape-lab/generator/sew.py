@@ -13,9 +13,7 @@ the maximum sewing force at zero "can cause instability due to extreme forces
 in the initial frames", so it is set explicitly.
 """
 
-import bmesh
 import bpy
-from mathutils import Vector
 
 # PARAM. High enough to close a seam within the settle frames, low enough that
 # panels do not slingshot through each other on frame 1.
@@ -23,92 +21,72 @@ SEWING_FORCE_MAX = 12.0
 SETTLE_FRAMES = 90
 
 
-def join_panels(objs, name="jacket_sewn"):
-    """Sewing springs only work within a single mesh, so every panel is joined
-    first. They keep their own vertices; nothing is merged."""
-    bpy.ops.object.select_all(action="DESELECT")
-    for obj in objs:
-        obj.select_set(True)
-    bpy.context.view_layer.objects.active = objs[0]
-    bpy.ops.object.join()
-    joined = bpy.context.object
-    joined.name = name
-    return joined
+def join_panels(panel_specs, name="jacket_sewn"):
+    """Make one mesh while preserving each declared seam's vertex order.
+
+    `bpy.ops.object.join()` does not expose a stable source-to-result vertex
+    map.  Build the combined mesh directly instead: the explicit offsets make
+    the seam contract deterministic and keep ordered correspondence intact.
+    """
+    vertices, faces, seams = [], [], {}
+    for obj, declared_seams in panel_specs:
+        offset = len(vertices)
+        vertices.extend(tuple(obj.matrix_world @ vertex.co) for vertex in obj.data.vertices)
+        faces.extend(
+            tuple(offset + index for index in polygon.vertices)
+            for polygon in obj.data.polygons
+        )
+        seams[obj.name] = {
+            seam_name: [offset + index for index in indices]
+            for seam_name, indices in declared_seams.items()
+        }
+        bpy.data.objects.remove(obj, do_unlink=True)
+
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    joined = bpy.data.objects.new(name, mesh)
+    bpy.context.scene.collection.objects.link(joined)
+    return joined, seams
 
 
-def _boundary_loops(bm):
-    """Every boundary edge, grouped into connected loops."""
-    bm.edges.ensure_lookup_table()
-    boundary = {e for e in bm.edges if e.is_boundary}
-    loops, seen = [], set()
-    for edge in boundary:
-        if edge in seen:
-            continue
-        loop, stack = [], [edge]
-        while stack:
-            cur = stack.pop()
-            if cur in seen:
-                continue
-            seen.add(cur)
-            loop.append(cur)
-            for vert in cur.verts:
-                for other in vert.link_edges:
-                    if other in boundary and other not in seen:
-                        stack.append(other)
-        loops.append(loop)
-    return loops
+def _validate_seam_pair(seams, panel_a, seam_a, panel_b, seam_b):
+    try:
+        edge_a = seams[panel_a][seam_a]
+        edge_b = seams[panel_b][seam_b]
+    except KeyError as error:
+        raise ValueError(f"undeclared seam endpoint: {error}") from error
+    if len(edge_a) != len(edge_b):
+        raise ValueError(
+            f"seam arity mismatch: {panel_a}.{seam_a} has {len(edge_a)} "
+            f"vertices, {panel_b}.{seam_b} has {len(edge_b)}"
+        )
+    if len(edge_a) < 2:
+        raise ValueError(f"seam must contain at least two vertices: {panel_a}.{seam_a}")
+    return edge_a, edge_b
 
 
-def add_sewing_springs(obj, *, max_distance=0.34):
-    """Join facing boundary vertices with loose edges.
+def add_sewing_springs(obj, seams, seam_contract):
+    """Add loose edges only for declared, ordered seam counterparts.
 
-    Pairs nearest-neighbour across panels rather than trying to identify named
-    seams. That is cruder than chapter 09's seam contract and deliberately so:
-    P1.2 asks only whether panels close into a garment at all. Named seam ids
-    with fixed ring arity come once that is answered — building the contract
-    before knowing the solver can close anything would be the P1.0 mistake in a
-    new place.
+    The panel generator makes each boundary a fixed-arity sequence ordered by
+    normalized arc length.  Pairing the matching positions is therefore an
+    arc-length correspondence, never a spatial nearest-neighbour guess.
     """
     mesh = obj.data
-    bm = bmesh.new()
-    bm.from_mesh(mesh)
-    bm.verts.ensure_lookup_table()
-
-    loops = _boundary_loops(bm)
-    boundary_verts = []
-    for loop in loops:
-        verts = set()
-        for edge in loop:
-            verts.update(edge.verts)
-        boundary_verts.append(list(verts))
-
     created = 0
-    used = set()
-    for i, group_a in enumerate(boundary_verts):
-        for j, group_b in enumerate(boundary_verts):
-            if j <= i:
+    existing_edges = {tuple(sorted(edge.vertices)) for edge in mesh.edges}
+    for panel_a, seam_a, panel_b, seam_b in seam_contract:
+        edge_a, edge_b = _validate_seam_pair(seams, panel_a, seam_a, panel_b, seam_b)
+        for vertex_a, vertex_b in zip(edge_a, edge_b):
+            pair = tuple(sorted((vertex_a, vertex_b)))
+            if pair in existing_edges:
                 continue
-            for va in group_a:
-                if va.index in used:
-                    continue
-                best, best_d = None, max_distance
-                for vb in group_b:
-                    if vb.index in used:
-                        continue
-                    d = (va.co - vb.co).length
-                    if d < best_d:
-                        best, best_d = vb, d
-                if best is not None:
-                    try:
-                        bm.edges.new((va, best))
-                        used.add(va.index)
-                        used.add(best.index)
-                        created += 1
-                    except ValueError:
-                        pass  # edge already exists
-
-    bm.to_mesh(mesh)
-    bm.free()
+            mesh.edges.add(1)
+            mesh.edges[-1].vertices = pair
+            existing_edges.add(pair)
+            created += 1
+    mesh.update()
     return created
 
 
