@@ -28,225 +28,227 @@ test.afterAll(async () => {
   });
 });
 
-test.beforeEach(async ({ page }) => {
-  await page.goto("/login");
-  await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
-  await page.getByLabel("Password").fill(TEST_OWNER_PASSWORD);
-  await page.getByRole("button", { name: "Enter the atelier" }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
-});
-
-/**
- * Proves fitting rollout planning (PHASE 18.6 / BD-106) end to end: a
- * day at capacity refuses a further assignment (DB-level, the actual
- * enforcement), and a no-show is never silently dropped — it reslots
- * onto a different, earlier-dated day with spare capacity, and the
- * original miss stays on record rather than being edited away.
- */
-test("a full fitting day refuses another assignment, and a no-show reslots onto a different day instead of disappearing", async ({
-  page,
-}) => {
-  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
-  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
-  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
-  const repo = new CorporateRepository(admin);
-  const rolloutRepo = new CorporateRolloutRepository(admin);
-
-  const { data: retailer } = await admin
-    .from("retailers")
-    .select("id")
-    .eq("slug", TEST_RETAILER_SLUG)
-    .single();
-  if (!retailer) throw new Error("fixture retailer missing");
-  const retailerId = asId<"RetailerId">(retailer.id);
-
-  const unique = Date.now();
-  const account = await repo.createAccount(retailerId, {
-    legalName: `E2E Rollout Co ${unique}`,
-    accountReference: `E2E-ROLL-${unique}`,
-  });
-  const programme = await repo.createProgramme(retailerId, {
-    accountId: account.id,
-    name: `E2E Rollout Programme ${unique}`,
-    siteKeys: [],
-  });
-  const wearer1 = await repo.createWearer(retailerId, {
-    programmeId: programme.id,
-    employeeReference: `E2E-R1-${unique}`,
-    displayName: `E2E Rollout Wearer One ${unique}`,
-    roleKey: "associate",
-    joinedOn: "2025-01-01",
-  });
-  const wearer2 = await repo.createWearer(retailerId, {
-    programmeId: programme.id,
-    employeeReference: `E2E-R2-${unique}`,
-    displayName: `E2E Rollout Wearer Two ${unique}`,
-    roleKey: "associate",
-    joinedOn: "2025-01-01",
+test.describe.serial("corporate rollout", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(TEST_OWNER_EMAIL);
+    await page.getByLabel("Password").fill(TEST_OWNER_PASSWORD);
+    await page.getByRole("button", { name: "Enter the atelier" }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
   });
 
-  // day1 is earlier and starts empty — the reslot target. day2 is later
-  // and starts full with wearer1.
-  const dayEarly = await rolloutRepo.createDay({
-    retailerId,
-    programmeId: programme.id,
-    fittingDate: "2026-03-01",
-    capacity: 1,
-  });
-  const dayLate = await rolloutRepo.createDay({
-    retailerId,
-    programmeId: programme.id,
-    fittingDate: "2026-03-05",
-    capacity: 1,
-  });
-  await rolloutRepo.assignWearer({
-    retailerId,
-    programmeId: programme.id,
-    rolloutDayId: dayLate.id,
-    wearerId: wearer1.id,
-    capacity: dayLate.capacity,
-  });
+  /**
+   * Proves fitting rollout planning (PHASE 18.6 / BD-106) end to end: a
+   * day at capacity refuses a further assignment (DB-level, the actual
+   * enforcement), and a no-show is never silently dropped — it reslots
+   * onto a different, earlier-dated day with spare capacity, and the
+   * original miss stays on record rather than being edited away.
+   */
+  test("a full fitting day refuses another assignment, and a no-show reslots onto a different day instead of disappearing", async ({
+    page,
+  }) => {
+    const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+    const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+    const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+    const repo = new CorporateRepository(admin);
+    const rolloutRepo = new CorporateRolloutRepository(admin);
 
-  try {
-    // DB-level capacity refusal: dayLate is already full.
-    const refused = await rolloutRepo.assignWearer({
+    const { data: retailer } = await admin
+      .from("retailers")
+      .select("id")
+      .eq("slug", TEST_RETAILER_SLUG)
+      .single();
+    if (!retailer) throw new Error("fixture retailer missing");
+    const retailerId = asId<"RetailerId">(retailer.id);
+
+    const unique = Date.now();
+    const account = await repo.createAccount(retailerId, {
+      legalName: `E2E Rollout Co ${unique}`,
+      accountReference: `E2E-ROLL-${unique}`,
+    });
+    const programme = await repo.createProgramme(retailerId, {
+      accountId: account.id,
+      name: `E2E Rollout Programme ${unique}`,
+      siteKeys: [],
+    });
+    const wearer1 = await repo.createWearer(retailerId, {
+      programmeId: programme.id,
+      employeeReference: `E2E-R1-${unique}`,
+      displayName: `E2E Rollout Wearer One ${unique}`,
+      roleKey: "associate",
+      joinedOn: "2025-01-01",
+    });
+    const wearer2 = await repo.createWearer(retailerId, {
+      programmeId: programme.id,
+      employeeReference: `E2E-R2-${unique}`,
+      displayName: `E2E Rollout Wearer Two ${unique}`,
+      roleKey: "associate",
+      joinedOn: "2025-01-01",
+    });
+
+    // day1 is earlier and starts empty — the reslot target. day2 is later
+    // and starts full with wearer1.
+    const dayEarly = await rolloutRepo.createDay({
+      retailerId,
+      programmeId: programme.id,
+      fittingDate: "2026-03-01",
+      capacity: 1,
+    });
+    const dayLate = await rolloutRepo.createDay({
+      retailerId,
+      programmeId: programme.id,
+      fittingDate: "2026-03-05",
+      capacity: 1,
+    });
+    await rolloutRepo.assignWearer({
       retailerId,
       programmeId: programme.id,
       rolloutDayId: dayLate.id,
-      wearerId: wearer2.id,
+      wearerId: wearer1.id,
       capacity: dayLate.capacity,
     });
-    expect(refused).toEqual({ ok: false, reason: "day_at_capacity" });
 
-    await page.goto(`/corporate/${programme.id}`);
-    const lateDayCard = page.locator('[data-rollout-day="2026-03-05"]');
-    const earlyDayCard = page.locator('[data-rollout-day="2026-03-01"]');
-    await expect(lateDayCard.getByText(wearer1.displayName)).toBeVisible();
+    try {
+      // DB-level capacity refusal: dayLate is already full.
+      const refused = await rolloutRepo.assignWearer({
+        retailerId,
+        programmeId: programme.id,
+        rolloutDayId: dayLate.id,
+        wearerId: wearer2.id,
+        capacity: dayLate.capacity,
+      });
+      expect(refused).toEqual({ ok: false, reason: "day_at_capacity" });
 
-    await lateDayCard.getByRole("button", { name: "No-show" }).click();
-    await expect(earlyDayCard.getByText(wearer1.displayName)).toBeVisible();
+      await page.goto(`/corporate/${programme.id}`);
+      const lateDayCard = page.locator('[data-rollout-day="2026-03-05"]');
+      const earlyDayCard = page.locator('[data-rollout-day="2026-03-01"]');
+      await expect(lateDayCard.getByText(wearer1.displayName)).toBeVisible();
 
-    const { data: slots } = await admin
-      .from("corporate_rollout_slots")
-      .select("status, rollout_day_id")
-      .eq("wearer_id", wearer1.id)
-      .order("created_at", { ascending: true });
-    expect(slots).toHaveLength(2);
-    expect(slots?.[0]).toMatchObject({
-      status: "no_show",
-      rollout_day_id: dayLate.id,
+      await lateDayCard.getByRole("button", { name: "No-show" }).click();
+      await expect(earlyDayCard.getByText(wearer1.displayName)).toBeVisible();
+
+      const { data: slots } = await admin
+        .from("corporate_rollout_slots")
+        .select("status, rollout_day_id")
+        .eq("wearer_id", wearer1.id)
+        .order("created_at", { ascending: true });
+      expect(slots).toHaveLength(2);
+      expect(slots?.[0]).toMatchObject({
+        status: "no_show",
+        rollout_day_id: dayLate.id,
+      });
+      expect(slots?.[1]).toMatchObject({
+        status: "planned",
+        rollout_day_id: dayEarly.id,
+      });
+
+      capacityReslotProofPassed = true;
+    } finally {
+      await admin.from("corporate_accounts").delete().eq("id", account.id);
+    }
+  });
+
+  /**
+   * Proves department/location grouping (PHASE 18.6's own named gap,
+   * closed): a site-scoped fitting day only ever offers a wearer from the
+   * matching site through the real UI — a different-site wearer with
+   * spare capacity elsewhere never appears in that day's dropdown — and a
+   * direct repository assignment attempt for the mismatched wearer is
+   * refused at the same write path the UI uses, not merely hidden by the
+   * page's own choice of options. A company-wide day (no site set)
+   * continues to accept any wearer, unaffected.
+   */
+  test("a site-scoped fitting day only offers wearers from that site", async ({
+    page,
+  }) => {
+    const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
+    const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+    const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+    const repo = new CorporateRepository(admin);
+    const rolloutRepo = new CorporateRolloutRepository(admin);
+
+    const { data: retailer } = await admin
+      .from("retailers")
+      .select("id")
+      .eq("slug", TEST_RETAILER_SLUG)
+      .single();
+    if (!retailer) throw new Error("fixture retailer missing");
+    const retailerId = asId<"RetailerId">(retailer.id);
+
+    const unique = Date.now();
+    const account = await repo.createAccount(retailerId, {
+      legalName: `E2E Site Rollout Co ${unique}`,
+      accountReference: `E2E-SITE-${unique}`,
     });
-    expect(slots?.[1]).toMatchObject({
-      status: "planned",
-      rollout_day_id: dayEarly.id,
+    const programme = await repo.createProgramme(retailerId, {
+      accountId: account.id,
+      name: `E2E Site Rollout Programme ${unique}`,
+      siteKeys: [],
+    });
+    const londonWearer = await repo.createWearer(retailerId, {
+      programmeId: programme.id,
+      employeeReference: `E2E-LDN-${unique}`,
+      displayName: `E2E London Wearer ${unique}`,
+      roleKey: "associate",
+      joinedOn: "2025-01-01",
+      siteKey: "london",
+    });
+    const manchesterWearer = await repo.createWearer(retailerId, {
+      programmeId: programme.id,
+      employeeReference: `E2E-MCR-${unique}`,
+      displayName: `E2E Manchester Wearer ${unique}`,
+      roleKey: "associate",
+      joinedOn: "2025-01-01",
+      siteKey: "manchester",
     });
 
-    capacityReslotProofPassed = true;
-  } finally {
-    await admin.from("corporate_accounts").delete().eq("id", account.id);
-  }
-});
-
-/**
- * Proves department/location grouping (PHASE 18.6's own named gap,
- * closed): a site-scoped fitting day only ever offers a wearer from the
- * matching site through the real UI — a different-site wearer with
- * spare capacity elsewhere never appears in that day's dropdown — and a
- * direct repository assignment attempt for the mismatched wearer is
- * refused at the same write path the UI uses, not merely hidden by the
- * page's own choice of options. A company-wide day (no site set)
- * continues to accept any wearer, unaffected.
- */
-test("a site-scoped fitting day only offers wearers from that site", async ({
-  page,
-}) => {
-  const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"]!;
-  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
-  const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
-  const repo = new CorporateRepository(admin);
-  const rolloutRepo = new CorporateRolloutRepository(admin);
-
-  const { data: retailer } = await admin
-    .from("retailers")
-    .select("id")
-    .eq("slug", TEST_RETAILER_SLUG)
-    .single();
-  if (!retailer) throw new Error("fixture retailer missing");
-  const retailerId = asId<"RetailerId">(retailer.id);
-
-  const unique = Date.now();
-  const account = await repo.createAccount(retailerId, {
-    legalName: `E2E Site Rollout Co ${unique}`,
-    accountReference: `E2E-SITE-${unique}`,
-  });
-  const programme = await repo.createProgramme(retailerId, {
-    accountId: account.id,
-    name: `E2E Site Rollout Programme ${unique}`,
-    siteKeys: [],
-  });
-  const londonWearer = await repo.createWearer(retailerId, {
-    programmeId: programme.id,
-    employeeReference: `E2E-LDN-${unique}`,
-    displayName: `E2E London Wearer ${unique}`,
-    roleKey: "associate",
-    joinedOn: "2025-01-01",
-    siteKey: "london",
-  });
-  const manchesterWearer = await repo.createWearer(retailerId, {
-    programmeId: programme.id,
-    employeeReference: `E2E-MCR-${unique}`,
-    displayName: `E2E Manchester Wearer ${unique}`,
-    roleKey: "associate",
-    joinedOn: "2025-01-01",
-    siteKey: "manchester",
-  });
-
-  const londonDay = await rolloutRepo.createDay({
-    retailerId,
-    programmeId: programme.id,
-    fittingDate: "2026-04-01",
-    capacity: 5,
-    siteKey: "london",
-  });
-
-  try {
-    // Direct repository proof: the same write path the UI uses refuses
-    // a cross-site assignment.
-    const refused = await rolloutRepo.assignWearer({
+    const londonDay = await rolloutRepo.createDay({
       retailerId,
       programmeId: programme.id,
-      rolloutDayId: londonDay.id,
-      wearerId: manchesterWearer.id,
-      capacity: londonDay.capacity,
-      daySiteKey: "london",
-      wearerSiteKey: "manchester",
+      fittingDate: "2026-04-01",
+      capacity: 5,
+      siteKey: "london",
     });
-    expect(refused).toEqual({ ok: false, reason: "site_mismatch" });
 
-    await page.goto(`/corporate/${programme.id}`);
-    const londonDayCard = page.locator('[data-rollout-day="2026-04-01"]');
-    await expect(
-      londonDayCard.getByText("london", { exact: true }),
-    ).toBeVisible();
+    try {
+      // Direct repository proof: the same write path the UI uses refuses
+      // a cross-site assignment.
+      const refused = await rolloutRepo.assignWearer({
+        retailerId,
+        programmeId: programme.id,
+        rolloutDayId: londonDay.id,
+        wearerId: manchesterWearer.id,
+        capacity: londonDay.capacity,
+        daySiteKey: "london",
+        wearerSiteKey: "manchester",
+      });
+      expect(refused).toEqual({ ok: false, reason: "site_mismatch" });
 
-    const assignSelect = londonDayCard.locator(`select[name="wearerId"]`);
-    await expect(
-      assignSelect.locator("option", { hasText: londonWearer.displayName }),
-    ).toHaveCount(1);
-    await expect(
-      assignSelect.locator("option", {
-        hasText: manchesterWearer.displayName,
-      }),
-    ).toHaveCount(0);
+      await page.goto(`/corporate/${programme.id}`);
+      const londonDayCard = page.locator('[data-rollout-day="2026-04-01"]');
+      await expect(
+        londonDayCard.getByText("london", { exact: true }),
+      ).toBeVisible();
 
-    await assignSelect.selectOption({ label: londonWearer.displayName });
-    await londonDayCard.getByRole("button", { name: "Assign" }).click();
-    await expect(
-      londonDayCard.getByText(londonWearer.displayName),
-    ).toBeVisible();
+      const assignSelect = londonDayCard.locator(`select[name="wearerId"]`);
+      await expect(
+        assignSelect.locator("option", { hasText: londonWearer.displayName }),
+      ).toHaveCount(1);
+      await expect(
+        assignSelect.locator("option", {
+          hasText: manchesterWearer.displayName,
+        }),
+      ).toHaveCount(0);
 
-    siteScopingProofPassed = true;
-  } finally {
-    await admin.from("corporate_accounts").delete().eq("id", account.id);
-  }
+      await assignSelect.selectOption({ label: londonWearer.displayName });
+      await londonDayCard.getByRole("button", { name: "Assign" }).click();
+      await expect(
+        londonDayCard.getByText(londonWearer.displayName),
+      ).toBeVisible();
+
+      siteScopingProofPassed = true;
+    } finally {
+      await admin.from("corporate_accounts").delete().eq("id", account.id);
+    }
+  });
 });
