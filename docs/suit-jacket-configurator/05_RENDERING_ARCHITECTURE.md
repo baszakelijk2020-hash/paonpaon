@@ -4,29 +4,35 @@ Evidence tiers are defined in `00_NORTH_STAR_AND_SCOPE.md`.
 
 ## The benchmark does not settle the medium
 
-`OBSERVED-DOM`. None of the six reference captures taken on 2026-08-15 — two
-Suitsupply, four Armani — contained a `<canvas>` element or any reference to
-WebGL, `gltf`, `glb`, `model-viewer`, Babylon, PlayCanvas or Unity.
+`OBSERVED-DOM`. Suitsupply, driven live on 2026-08-15, composes its preview
+from separate per-assembly `<img>` layers with discrete `_R00`/`_R01`/`_R02`
+rotation frames. Zero `<canvas>`, no WebGL context, `window.THREE` undefined,
+and no `.glb`, `.gltf`, `.ktx2`, `.basis` or `.drc` in the network log. Their
+medium is **2D layered composition, client-side**. This is settled, not
+inferred (chapter 01).
 
-`PAYLOAD`. Suitsupply's configuration model is an ordered graph of **image
-layers** with discrete `rotationPosition` and `zoomPosition` variants and
-sprite-sheet rotation (chapter 01). Whether composition runs client-side,
-server-side or both is `INFERRED`.
+`OBSERVED-DOM`. Armani, running on Tailoor, mounts a canvas with a live WebGL
+context and fetches ten `.gltf` files plus `.bin` buffers from a modular
+`3DAssets/` tree — a family-root model, independently fetched component slots,
+separate button meshes, materials and fabric maps decoupled from geometry, and
+a lighting rig delivered as JSON (chapter 01).
 
-`SECONDARY`. Armani runs on Tailoor, whose marketing claims real-time
-photorealistic 3D. The direct configurator URL was reached, but the Tailoor
-application rendered `The site is momentarily unavailable.` and mounted no
-configurator view — so the absence of 3D signals in that capture means nothing,
-and no rendering strategy is attributed to Armani.
+The benchmark therefore splits cleanly, and both halves are observed: one
+reference composes 2D layers, the other renders modular glTF in WebGL. 3D is a
+proven medium for made-to-measure configuration, not a PAON gamble — which
+removes the "can it be done" question entirely.
 
-The benchmark therefore splits: one reference is verifiably layer-composited,
-the other's vendor advertises 3D that this dossier could not observe. Parity
-justifies nothing here. A 3D renderer has to be justified by the one thing 2D
-layer composition genuinely cannot do: show the same construction under
-different cloth behaviour, where the difference lives in fold formation and
-silhouette break rather than in colour and pattern. Layered rasters can swap a
-lapel; they cannot show a soft cloth collapsing differently from a crisp one
-across the same shoulder.
+What parity still does not settle is the only question PAON actually cares
+about. A 3D renderer here has to be justified by the one thing 2D layer
+composition genuinely cannot do: show the same construction under different
+**cloth behaviour**, where the difference lives in fold formation and silhouette
+break rather than in colour and pattern. Layered rasters can swap a lapel; they
+cannot show a soft cloth collapsing differently from a crisp one across the same
+shoulder. Note that Tailoor's own fabric assets are appearance maps —
+`SPECULAR.jpg` and a `wave.jpg` per fabric — with no per-fabric geometry fetch
+observed, which suggests their fabric switching is a material rebind rather than
+a drape change. If so, nobody in this benchmark is yet showing what PAON wants
+to show.
 
 ## Founder decision: 3D is primary, 2D is the fallback
 

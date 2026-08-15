@@ -50,6 +50,26 @@ layerDefinitions.configurationTypes["3"] = {
   ]}
 ```
 
+`OBSERVED-DOM` confirms it in the running product. Driven live, the preview is
+a stack of separate `<img>` layers — `Jacket/model`, `Jacket/shoulder`,
+`Jacket/lapel`, `Jacket/chest-pocket`, `Jacket/pocket`, `Jacket/stitching`,
+`shared/lining`, `shared/buttons` — with rotation as discrete `_R00`/`_R01`/
+`_R02` frames and no canvas, no WebGL and no 3D asset anywhere. The payload
+described a layer graph; the product ships one.
+
+Two refinements the live capture forces on this chapter:
+
+- **Stitching is its own node.** The reference addresses it as a dependent
+  layer keyed by the assemblies it crosses (`MBN2_LN1_NLWS2_HAMF2mm2`,
+  `…_BHFUNC1`), not as a property of the lapel or the front. PAON's assembly
+  table below folds stitching into its parent assembly; that is the cheaper
+  choice, and it is a choice, not an oversight. Revisit it if topstitch
+  variants ever need to vary independently of the panel they sit on.
+- **A dependent layer's key concatenates the assemblies it depends on.** That
+  is the 2D analogue of a seam contract: the asset key encodes exactly which
+  neighbours it was authored against. PAON's `bake_key` and `requiresFamily`
+  serve the same purpose in 3D.
+
 Five properties are directly readable from that, and every one of them
 transfers to PAON:
 
@@ -77,37 +97,65 @@ Also `PAYLOAD`: a server-side composite service exists
 `configurationImagesBasePath` of `…/image/upload/configurationimages`), and a
 `previewModeToggle` with the accessible label `Toggle model view`.
 
-**The evidentiary limit, stated precisely as required.** What is verified is
-that Suitsupply's payload describes an ordered graph of _image layers_. No
-`<canvas>`, WebGL, `three`, `glb`, `gltf`, `obj`, `fbx` or mesh signal appears
-anywhere in either capture; the only 3D-adjacent token is `rotation`, and it
-resolves to pre-rendered sprite sheets. Therefore:
+**The evidentiary limit, updated after live observation.**
 
-- That any reference configurator **swaps meshes** is `INFERRED` and
-  **unverified**. Nothing observed supports it, and for Suitsupply the evidence
-  points the other way.
-- That Suitsupply composites **2D layers** is `PAYLOAD`-supported by the layer
-  templates and Cloudinary transforms; whether composition happens client-side,
-  server-side, or both is `INFERRED`.
-- PAON's 3D assembly graph below is a **translation of an observed 2D pattern
-  into a medium where the pattern has not been observed**. The structural
-  argument carries over; the rendering evidence does not.
+- That Suitsupply composites **2D layers client-side** is `OBSERVED-DOM`:
+  separate `<img>` elements per assembly, zero canvas, zero WebGL, zero 3D
+  assets in the network log. For Suitsupply, mesh-swapping is positively
+  refuted.
+- That a reference configurator **ships modular glTF geometry into a live WebGL
+  context** is now also `OBSERVED-DOM` — see the Tailoor section below. The
+  medium question is settled in both directions: one reference does 2D layers,
+  the other does 3D meshes.
 
+## The 3D precedent: Tailoor
+
+`OBSERVED-DOM`, 2026-08-15. The Armani configurator, running on Tailoor,
+mounted a canvas with a live WebGL context and fetched ten `.gltf` files plus
+two `.bin` buffers. Its asset layout:
+
+```text
+3DAssets/1100/3DModels/10000/10000.gltf        base model — family root
+3DAssets/1100/3DModels/10000/2500/0EGA10.gltf  component slot (+ .bin)
+3DAssets/1100/3DModels/10000/2600/001.gltf     component slot
+3DAssets/1100/3DModels/10000/2800/000.gltf     component slot (+ .bin)
+3DAssets/1100/buttons/B08/B08-30.gltf          shared rigid part, size 30
+3DAssets/1100/buttons/B08/B08-15.gltf          shared rigid part, size 15
+3DAssets/1100/materials/asola.png              buttonhole texture
+3DAssets/1100/materials/fodere/FS6/…           lining texture
+images/fabrics/51/<fabricId>/maps/SPECULAR.jpg appearance map per fabric
+config/configurator/lights-json                lighting rig as data
+```
+
+This is `INFERRED` from path structure rather than read from their code, but
+the structure is legible and it corroborates the whole of this chapter:
+
+- a **family root** with independently fetched **component slots**, not one
+  model per combination;
+- **buttons as separate shared meshes**, shipped independently of the garment,
+  in two sizes of one design;
+- **materials separate from geometry**, with fabric delivered purely as
+  appearance maps and no geometry fetch alongside a fabric change;
+- **lighting as configuration**, versioned separately from the model.
+
+Which is to say: geometry substitution, material binding, and shared rigid
+instancing — the three mechanisms this chapter separates — are what a shipping
+made-to-measure configurator actually does. The design below is no longer a
+translation of a 2D pattern into an unproven medium. It has a working
+precedent, and PAON's contribution over it is the seam, grain and provenance
+discipline that a path-based asset tree does not enforce.
 Under decision D-12 the 3D path is primary and the 2D layer graph is tier 2 of
 the delivery ladder (chapter 05) rather than a rival. Both tiers are emitted
-from this one graph and keyed by the same `bake_key`, so the medium question
-stays empirically open — chapter 10's observer study can compare them directly
-— without either answer requiring a redesign.
+from this one graph and keyed by the same `bake_key`. Each medium now has a
+production precedent — Suitsupply for tier 2, Tailoor for tier 1 — so the
+architecture is not a bet on an unproven approach in either direction. What
+remains open is not whether 3D can be done, but whether it reads better for
+_drape_ than layers do, which is chapter 10's observer study.
 
-Armani's configurator surface remains `GATED`. `OBSERVED-DOM`: it is a Tailoor
-deployment (`storage.tailoor.com` preconnect hints, `storage-prod.tailoor.com`
-assets). `SECONDARY`: Tailoor's own marketing claims real-time, photorealistic
-3D. But three separate captures of Armani surfaces produced zero `<canvas>`,
-WebGL, `gltf`, `glb`, `model-viewer`, Babylon, PlayCanvas or Unity signals, and
-the configurator application was never reached. A vendor's claim that a 3D
-pipeline exists is not evidence that meshes are swapped, that assemblies are
-modular, or that anything in this chapter has a working precedent in 3D.
-Nothing here is attributed to Armani or Tailoor.
+Armani runs on Tailoor (`storage-prod.tailoor.com` assets, hostname-keyed
+tenant resolution). Its marketing claim of real-time 3D was `SECONDARY` and
+unverified through several captures; a later capture mounted the configurator
+and confirmed it directly. The section below records what that showed.
 
 ## Base families
 

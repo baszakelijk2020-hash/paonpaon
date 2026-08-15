@@ -8,19 +8,35 @@ original or rights-cleared. Evidence tiers are defined in
 
 ## Method for the 2026-08-15 pass
 
-Both targets were retrieved with a real Chromium build (Playwright
-`chromium-1228`) in `--headless=new --dump-dom` mode with a 20 s virtual-time
-budget, once with a desktop user agent and, for Suitsupply, again with an
-iOS Safari user agent. The rendered DOM of each capture was retained and parsed
-directly by the author of this document rather than summarized by an assistant.
+Two techniques were used, and the difference between them is itself a finding.
 
-| Capture             | URL                                                          | HTTP |   Bytes | SHA-256 (prefix)   |
-| ------------------- | ------------------------------------------------------------ | ---: | ------: | ------------------ |
-| Suitsupply, desktop | `https://custommade.suitsupply.com/configurator`             |  200 | 503,465 | `d328507ff7d2a1dc` |
-| Suitsupply, mobile  | `https://custommade.suitsupply.com/configurator`             |  200 | 503,096 | `709baa7e6b8d5e0d` |
-| Armani, desktop     | `https://mtmconfigurator.armani.com`                         |  200 | 577,961 | `dd37fbb325a1acaf` |
-| Armani, `/it/`      | `https://mtmconfigurator.armani.com/it/`                     |  200 | 673,482 | retained locally   |
-| Armani, customize   | `https://mtmconfigurator.armani.com/us/en/customize/jackets` |  200 | 568,776 | retained locally   |
+**Pass A — static DOM dump.** Playwright's `chromium-1228` build in
+`--headless=new --dump-dom` mode with a 20 s virtual-time budget, desktop and
+iOS user agents. This produced unhydrated shells and misleading negatives.
+
+**Pass B — driven live browser.** An ordinary Google Chrome installation
+(151.0.7922.138) launched with `--remote-debugging-port` on a throwaway profile
+and driven over the DevTools protocol, with a full page lifecycle, consent
+handling, settle time, in-page probes and a network response log.
+
+Pass B changed the conclusions materially. Sites that appeared to be empty
+shells or Cloudflare walls under Pass A loaded normally under Pass B — the
+automation browser build was being fingerprinted, not the requests. **Any
+`BLOCKED` or "nothing rendered" finding in this dossier that rests on Pass A
+alone should be treated as provisional until re-tested under Pass B.**
+
+The rendered DOM and network logs were parsed directly by the author of this
+document rather than summarized by an assistant.
+
+| Capture                   | URL                                                          | HTTP |   Bytes | SHA-256 (prefix)          |
+| ------------------------- | ------------------------------------------------------------ | ---: | ------: | ------------------------- |
+| Suitsupply, desktop       | `https://custommade.suitsupply.com/configurator`             |  200 | 503,465 | `d328507ff7d2a1dc`        |
+| Suitsupply, mobile        | `https://custommade.suitsupply.com/configurator`             |  200 | 503,096 | `709baa7e6b8d5e0d`        |
+| Armani, desktop           | `https://mtmconfigurator.armani.com`                         |  200 | 577,961 | `dd37fbb325a1acaf`        |
+| Armani, `/it/`            | `https://mtmconfigurator.armani.com/it/`                     |  200 | 673,482 | retained locally          |
+| Armani, customize         | `https://mtmconfigurator.armani.com/us/en/customize/jackets` |  200 | 568,776 | retained locally          |
+| Suitsupply, live (Pass B) | `https://custommade.suitsupply.com/configurator`             |  200 |       — | screenshots + network log |
+| Armani, live (Pass B)     | `…/en-us/customize/Formal%20jacket?step=1`                   |  200 |       — | screenshots + network log |
 
 Captures are session-local evidence held outside the repository. No competitor
 asset, image, font or code was downloaded into PAON, and no capture is
@@ -29,13 +45,19 @@ committed.
 ## Correction to the prior pass
 
 The 2026-08-14 entry recorded Armani as loading "with no interactive elements"
-and therefore inaccessible. That is **superseded**. On 2026-08-15 the Armani
-host returned a fully hydrated 578 KB document with 29 `<button>` elements, 75
-`aria-label` attributes and a category-first entry surface. The prior pass also
-attributed a visible fabric list, visible price and visible delivery messaging
-to Suitsupply's rendered page; this pass finds those strings only in the served
-JavaScript payload, with **nothing** rendered. Both corrections move claims to
-stricter tiers, not looser ones.
+and therefore inaccessible. That is **superseded**: the Armani host returns a
+fully hydrated document, and under Pass B its configurator mounts a WebGL scene.
+
+The prior pass also attributed a visible fabric list, price and delivery
+messaging to Suitsupply's rendered page. Pass A appeared to refute that — the
+static dump renders nothing. Pass B **vindicates the original entry**: driven
+live, the page shows 48 controls and resolves `Total €723` and
+`2-3 weeks delivery`.
+
+The lesson is recorded rather than smoothed over. An intermediate version of
+this chapter downgraded a correct observation to `PAYLOAD` on the strength of a
+tooling artefact. Corrections should move claims to whichever tier the best
+available evidence supports — not reflexively to the stricter one.
 
 ## Suitsupply — what is literally in the served document
 
@@ -131,13 +153,73 @@ chapter 09: ordered composition; option-id-keyed asset addressing;
 material-dependent (`{fabricId}`) versus shared (`shared/`) assemblies;
 per-layer discrete view variants; and fallback as a first-class graph node.
 
-**Rendering-medium limit, stated precisely.** No `<canvas>`, WebGL, `three`,
-`gltf`, `glb`, `obj` or `fbx` signal appears anywhere in either Suitsupply
-capture; the only 3D-adjacent token is `rotation`, and it resolves to
-pre-rendered sprite sheets. That Suitsupply composes **image layers** is
-`PAYLOAD`-supported. Whether composition runs client-side, server-side or both
-is `INFERRED`. That it — or any reference — swaps **meshes** is `INFERRED` and
-**unverified**; for Suitsupply the evidence points away from it.
+## Suitsupply — driven live, and the medium is settled
+
+`OBSERVED-DOM`, 2026-08-15. The static dumps above were a tooling artefact: the
+page hydrates fully when driven in an ordinary Chrome installation over the
+DevTools protocol, with a real page lifecycle and time to settle. Driven that
+way it reports:
+
+| Probe                        | Value                                                    |
+| ---------------------------- | -------------------------------------------------------- |
+| `<canvas>` elements          | **0**                                                    |
+| WebGL context                | **none** — no canvas to hold one                         |
+| `window.THREE`               | **undefined**                                            |
+| `<button>` elements          | 48                                                       |
+| `<img>` elements             | 431                                                      |
+| 3D assets in the network log | **none** — no `.glb`, `.gltf`, `.ktx2`, `.basis`, `.drc` |
+
+Live control labels: `Start designing`, `info`, `Zoom`, `Reset` (three
+Zoom/Reset pairs), `Finish`, `Resume`, `Start fresh`.
+
+**Price and lead time now resolve, and are observed rather than templated:**
+the info panel reads `Total €723` and `2-3 weeks delivery`, alongside a
+checkmark and an "All options are…" completeness message. Chapter 01's earlier
+`PAYLOAD` entry for `{min}-{max} weeks delivery` is superseded by the rendered
+value.
+
+**The preview is a stack of separate `<img>` layers, one per assembly.**
+Observed live, each its own element and its own request:
+
+```text
+…/v4/suitconfig/S599.101-855/Jacket/ai-generated/ai-model
+…/suitconfig/S599.101-855/Jacket/model/MBN2
+…/suitconfig/S599.101-855/Jacket/shoulder/MBN2_SS3
+…/suitconfig/S599.101-855/Jacket/lapel/MBN2_LN1_NLWS2
+…/suitconfig/S599.101-855/Jacket/chest-pocket/MBN2_CPBS1
+…/suitconfig/S599.101-855/Jacket/pocket/MBN2_SPF5.5_TPN2
+…/suitconfig/S599.101-855/Jacket/stitching/MBN2_LN1_NLWS2_HAMF2mm2
+…/suitconfig/S599.101-855/Jacket/stitching/MBN2_LN1_NLWS2_BHFUNC1
+…/suitconfig/shared/lining/MBN2_LFL1_1098
+…/suitconfig/shared/buttons/MBN2_G8
+…/suitconfig/S599.101-855/Trousers/construction/PLNO1_R00 … _R01 … _R02
+```
+
+Four facts follow, all now `OBSERVED-DOM` rather than inferred:
+
+1. **The medium is 2D layered composition, composed client-side.** Separate
+   `<img>` elements per layer, no canvas, no WebGL, no 3D asset of any kind.
+2. **The material-dependent versus shared split is real.** Layers under
+   `{fabricId}` (`S599.101-855`) versus `shared/lining` and `shared/buttons`,
+   exactly as chapter 09 predicted from the payload.
+3. **Rotation is discrete pre-rendered frames**, suffixed `_R00`, `_R01`,
+   `_R02` — three of them, matching the payload's `rotationPosition` values
+   `{0,1,2}`. There is no camera.
+4. **Assembly granularity is finer than this dossier proposed.** `stitching` is
+   its own layer, and is addressed by the assemblies it depends on
+   (`MBN2_LN1_NLWS2_HAMF2mm2` for a hem finish, `…_BHFUNC1` for buttonholes).
+   Chapter 09 treats stitching as part of an assembly; the reference treats it
+   as a dependent layer of its own.
+
+One further observation worth flagging for PAON's own roadmap: the top layer is
+`Jacket/ai-generated/ai-model`, served under a `v4` path with a crop transform.
+The reference product is compositing **AI-generated model imagery** beneath its
+configured garment layers.
+
+**What is settled and what is not.** Suitsupply composes 2D image layers
+client-side: settled, observed, no longer an inference. That any reference swaps
+**meshes** remains `INFERRED` and **unverified** — and for Suitsupply it is now
+positively refuted.
 
 ## Armani — what is literally in the served document
 
@@ -212,12 +294,83 @@ It then renders a failure state. The document's only substantive heading is
 Everything else in the DOM is the OneTrust consent layer. Element counts: 14
 `<button>`, 8 `<input>`, 3 `<img>`, 17 `role=`, 2 `tabindex`.
 
-**This capture is uninformative about rendering medium, and must not be read as
-evidence of one.** The absence of `<canvas>`, WebGL or `gltf` signals here says
-nothing, because the application errored before it could mount any configurator
-view. Tailoor's 3D claim therefore remains `SECONDARY` and unverified, and no
-rendering strategy — 3D, mesh-swapping or 2D compositing — is attributed to
-Armani. R-07 and R-13 are untouched by this capture.
+**That capture was uninformative about rendering medium**, because the
+application errored before mounting any configurator view. It is retained as a
+record of the failure mode, not as evidence about the medium. A later attempt
+succeeded.
+
+## Armani/Tailoor — the configurator mounted, and it is WebGL and glTF
+
+`OBSERVED-DOM`, 2026-08-15, same URL, driven in an ordinary Chrome installation
+over the DevTools protocol with a full page lifecycle. This time the
+configurator mounted.
+
+| Probe               | Value                                                          |
+| ------------------- | -------------------------------------------------------------- |
+| `<canvas>` elements | **1**                                                          |
+| WebGL context       | **true** — a live context on that canvas                       |
+| `window.THREE`      | undefined — so not three.js on the global, engine unidentified |
+| `<button>` elements | 31                                                             |
+| `<img>` elements    | 22                                                             |
+
+Visible headings include `Monochromatic Prince Of Wales` and
+`THE MADE-TO-MEASURE SERVICE`; controls include `NEXT STEP` and `Filter by`;
+and a `gestures_qmark.svg` icon is loaded, implying a gesture help affordance
+consistent with an orbitable scene.
+
+**The network log settles the medium.** Ten `.gltf` files and two `.bin`
+buffers were fetched, alongside 22 `.jpg`, 5 `.png`, 3 `.json` and 10 `.js`.
+Observed asset paths, all under `storage-prod.tailoor.com`:
+
+```text
+configurator/3DAssets/1100/3DModels/10000/10000.gltf
+configurator/3DAssets/1100/3DModels/10000/2500/0EGA10.gltf  (+ .bin)
+configurator/3DAssets/1100/3DModels/10000/2600/001.gltf
+configurator/3DAssets/1100/3DModels/10000/2800/000.gltf      (+ .bin)
+configurator/3DAssets/1100/buttons/B08/B08-30.gltf
+configurator/3DAssets/1100/buttons/B08/B08-15.gltf
+configurator/3DAssets/1100/materials/asola.png
+configurator/3DAssets/1100/materials/fodere/FS6/FODERA_COLOR.png
+images/fabrics/51/<fabricId>/wave.jpg
+images/fabrics/51/<fabricId>/maps/SPECULAR.jpg
+config/configurator/config-json
+config/configurator/lights-json
+```
+
+Supporting infrastructure observed: a micro-frontend shell
+(`mfe/armani/home/remoteEntry.js`, i.e. Module Federation) and a multi-tenant
+resolution endpoint keyed on hostname
+(`apim-fe-prod.tailoor.com/api/v1/customers/url/mtmconfigurator.armani.com`).
+
+**Tailoor's real-time 3D claim is therefore no longer marketing — it is
+observed.** A live WebGL context, glTF geometry with external binary buffers,
+and a lighting rig delivered as configuration.
+
+## What the Tailoor asset layout confirms
+
+`INFERRED` from the path structure, but the structure is unusually legible:
+
+1. **A base model plus numbered component slots.** `3DModels/10000/10000.gltf`
+   is the root; `2500/`, `2600/` and `2800/` are separate directories beneath
+   it, each holding its own `.gltf`. That is a family root with independently
+   fetched assemblies — not one model per combination.
+2. **Buttons are separate meshes**, under `buttons/B08/` as `B08-30.gltf` and
+   `B08-15.gltf` — plausibly two sizes of one button design. Rigid shared
+   components shipped independently of the garment, exactly as chapter 09
+   specifies.
+3. **Materials are separate from geometry.** `materials/asola.png`
+   (Italian for buttonhole) and `materials/fodere/FS6/FODERA_COLOR.png`
+   (lining) are texture assets, not meshes.
+4. **Fabric is a material binding, not geometry.** Each fabric id carries
+   `wave.jpg` and a `maps/SPECULAR.jpg` — appearance maps, fetched per fabric,
+   with no corresponding geometry fetch.
+5. **Lighting is data.** A dedicated `lights-json` endpoint delivers the scene
+   rig, separately from the model.
+
+Points 1–5 are, in a shipping product, chapter 09's three-mechanism model:
+geometry substitution for assemblies, material binding for fabric and lining,
+and shared rigid instances for buttons. PAON's asset graph now has a working
+precedent in the medium it targets.
 
 What it _does_ establish, and what PAON should take from it: the reference
 product's failure mode is a **full-page dead end**. It does not degrade to a
@@ -230,26 +383,26 @@ Whether the error is transient, geographic, bot-related or a genuine outage is
 
 ## Capability matrix
 
-| Capability                    | Suitsupply                                                                                    | Armani                                                                               | PAON interpretation                                                       |
-| ----------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| Entry and base model          | `PAYLOAD` `Start designing` string; nothing rendered                                          | `OBSERVED-DOM` category-first entry with per-category `Customize`                    | Lab starts with one jacket only; no category chooser                      |
-| Fabric discovery/filter/sort  | `GATED`. Prior pass reported a rendered fabric list; this pass cannot confirm it              | `GATED`                                                                              | Small explained cloth-character set, not catalogue browsing               |
-| Construction / canvas         | `PAYLOAD` option groups exist                                                                 | `GATED`                                                                              | Original option taxonomy and compatibility contract                       |
-| Lapels                        | `PAYLOAD` group `Lapel` with coded options                                                    | `GATED`                                                                              | One fixed notch lapel in the lab                                          |
-| Pockets                       | `PAYLOAD` patch/flap options with descriptions                                                | `GATED`                                                                              | One fixed flap pocket in the lab                                          |
-| Buttons                       | `PAYLOAD` referenced in option codes                                                          | `GATED`                                                                              | Out of scope for the lab                                                  |
-| Vents                         | `GATED`. Not distinguishable from substring noise in either capture                           | `GATED`                                                                              | One fixed side vent in the lab                                            |
-| Lining                        | `PAYLOAD` token present; behaviour unobserved                                                 | `GATED`                                                                              | Out of scope for the lab                                                  |
-| Personalization               | `PAYLOAD` `monogramPanel` with `none` / `cancel`                                              | `GATED`                                                                              | Out of scope for the lab                                                  |
-| Sizing and fit                | `GATED`                                                                                       | `GATED`                                                                              | Explicitly absent: no fit or measurement claim                            |
-| Price and lead time           | `PAYLOAD` `Total` and `{min}-{max} weeks delivery` templates; **no resolved values observed** | `OBSERVED-DOM` only a shipping-threshold promotion                                   | Explicitly absent: no price or lead-time claim                            |
-| Incompatible combinations     | `PAYLOAD` a `missingOptionsToast` and `Please update your options.`                           | `GATED`                                                                              | Compatibility must publish a reason, not just disable a control           |
-| Save / share / advisor / cart | `GATED`                                                                                       | `OBSERVED-DOM` `Your selection`, `Cart`, `Appointments`, `My Account` exist          | Out of scope for the lab; advisor continuation is a later Studio contract |
-| Camera, zoom, gestures        | `GATED`                                                                                       | `GATED`                                                                              | Fixed comparison camera; optional orbit only after performance proof      |
-| Mobile behavior               | `OBSERVED-DOM` mobile UA returns a structurally identical unhydrated document                 | `GATED`                                                                              | Mobile is a first-class target, not an emulation afterthought             |
-| Keyboard and accessibility    | `OBSERVED-DOM` zero `role`, `aria-label`, `tabindex` or `button` in the served document       | `OBSERVED-DOM` rich ARIA in chrome; configurator controls unobserved                 | Keyboard radios, semantic headings, no-WebGL poster required              |
-| Loading / failure / no-JS     | `OBSERVED-DOM` no `<noscript>` at all: without JavaScript the page has no content             | `OBSERVED-DOM` `You need to enable JavaScript to run this app.`                      | A no-JavaScript and no-WebGL reader must still get the full comparison    |
-| Login / session / geo gating  | `GATED`                                                                                       | `OBSERVED-DOM` account, cart and a country/region selector exist; gating unexercised | The lab is public, reads no tenant data and has no session                |
+| Capability                    | Suitsupply                                                                                            | Armani                                                                                           | PAON interpretation                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Entry and base model          | `OBSERVED-DOM` a live `Start designing` control leading to `?section=fabric&level=group`              | `OBSERVED-DOM` category-first entry, then a stepped flow with `NEXT STEP` over a WebGL scene     | Lab starts with one jacket only; no category chooser                      |
+| Fabric discovery/filter/sort  | `GATED`. Prior pass reported a rendered fabric list; this pass cannot confirm it                      | `GATED`                                                                                          | Small explained cloth-character set, not catalogue browsing               |
+| Construction / canvas         | `PAYLOAD` option groups exist                                                                         | `GATED`                                                                                          | Original option taxonomy and compatibility contract                       |
+| Lapels                        | `PAYLOAD` group `Lapel` with coded options                                                            | `GATED`                                                                                          | One fixed notch lapel in the lab                                          |
+| Pockets                       | `PAYLOAD` patch/flap options with descriptions                                                        | `GATED`                                                                                          | One fixed flap pocket in the lab                                          |
+| Buttons                       | `PAYLOAD` referenced in option codes                                                                  | `GATED`                                                                                          | Out of scope for the lab                                                  |
+| Vents                         | `GATED`. Not distinguishable from substring noise in either capture                                   | `GATED`                                                                                          | One fixed side vent in the lab                                            |
+| Lining                        | `PAYLOAD` token present; behaviour unobserved                                                         | `GATED`                                                                                          | Out of scope for the lab                                                  |
+| Personalization               | `PAYLOAD` `monogramPanel` with `none` / `cancel`                                                      | `GATED`                                                                                          | Out of scope for the lab                                                  |
+| Sizing and fit                | `GATED`                                                                                               | `GATED`                                                                                          | Explicitly absent: no fit or measurement claim                            |
+| Price and lead time           | `OBSERVED-DOM` resolved live: `Total €723` and `2-3 weeks delivery`, with a completeness checkmark    | `OBSERVED-DOM` only a shipping-threshold promotion                                               | Explicitly absent: no price or lead-time claim                            |
+| Incompatible combinations     | `PAYLOAD` a `missingOptionsToast` and `Please update your options.`                                   | `GATED`                                                                                          | Compatibility must publish a reason, not just disable a control           |
+| Save / share / advisor / cart | `GATED`                                                                                               | `OBSERVED-DOM` `Your selection`, `Cart`, `Appointments`, `My Account` exist                      | Out of scope for the lab; advisor continuation is a later Studio contract |
+| Camera, zoom, gestures        | `OBSERVED-DOM` three `Zoom`/`Reset` pairs; rotation is discrete `_R00/_R01/_R02` frames, not a camera | `OBSERVED-DOM` a `gestures_qmark.svg` help icon over a live WebGL canvas; gestures not exercised | Fixed comparison camera; optional orbit only after performance proof      |
+| Mobile behavior               | `OBSERVED-DOM` mobile UA returns a structurally identical unhydrated document                         | `GATED`                                                                                          | Mobile is a first-class target, not an emulation afterthought             |
+| Keyboard and accessibility    | `OBSERVED-DOM` zero `role`, `aria-label`, `tabindex` or `button` in the served document               | `OBSERVED-DOM` rich ARIA in chrome; configurator controls unobserved                             | Keyboard radios, semantic headings, no-WebGL poster required              |
+| Loading / failure / no-JS     | `OBSERVED-DOM` no `<noscript>` at all: without JavaScript the page has no content                     | `OBSERVED-DOM` `You need to enable JavaScript to run this app.`                                  | A no-JavaScript and no-WebGL reader must still get the full comparison    |
+| Login / session / geo gating  | `GATED`                                                                                               | `OBSERVED-DOM` account, cart and a country/region selector exist; gating unexercised             | The lab is public, reads no tenant data and has no session                |
 
 ## What PAON takes and what it refuses
 
