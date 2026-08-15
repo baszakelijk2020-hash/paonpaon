@@ -141,9 +141,15 @@ select_next() {
           # from other sources carrying no prohibition at all — a re-seed
           # introduced eight `drape-*` configurator tasks and the queue handed
           # one straight to an agent.
+          # NOTE the `. as $p` binding. Writing `map($tid | startswith(.))`
+          # looks right and is catastrophically wrong: after `$tid |` the `.`
+          # rebinds to $tid itself, so it evaluates startswith(itself) — true
+          # for EVERY task. That silently filtered the entire queue to nothing
+          # and starved every lane, while still passing a test that only
+          # checked a prohibited task was refused.
           | .id as $tid
           | select(($prohibited | split(",") | map(select(. != ""))
-                    | map($tid | startswith(.)) | any) | not)
+                    | map(. as $p | $tid | startswith($p)) | any) | not)
           | select((.tier // "implementation") as $x | $t | index($x))
           # exclusive tasks wait until the fleet is completely quiet
           | select((.exclusive != true) or (($live|length) == 0))
