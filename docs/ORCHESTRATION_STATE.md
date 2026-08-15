@@ -6,7 +6,7 @@ over the frontier role by reading this file plus `ORCHESTRATION_2.md` and
 It is rewritten every orchestration cycle. Trust it over any recollection;
 verify anything load-bearing against Git and the live database before acting.
 
-Last updated: 2026-08-15, cycle 2.
+Last updated: 2026-08-15, cycle 3.
 
 ## 1. Take over in four commands
 
@@ -24,10 +24,10 @@ If they differ, stop and reconcile before anything else.
 
 | Fact                 | Value                                                      |
 | -------------------- | ---------------------------------------------------------- |
-| `main`               | `4fc309e` (verify — this file lags by design)              |
+| `main`               | `64c4308` (verify — this file lags by design)              |
 | Integration worktree | `/private/tmp/paon-main-tranche`, branch `main`            |
 | Fleet                | **FROZEN**, 0 claimed. Do not unfreeze.                    |
-| pgTAP                | 435/435 PASS as of `17a9a1d`                               |
+| pgTAP                | 444/444 PASS as of `69fb055`                               |
 | Primary checkout     | `/Users/nguyen/Projects/PAON` — **READ-ONLY, never touch** |
 
 ## 3. Roadmap position
@@ -42,10 +42,10 @@ invent work; never select founder-parked scope.
 | 4 cross-tenant FK           | done `512969d`                                         |
 | 4b residual tenant-FK class | done — `4277616`, `f2f0c48`, `e20ae67`; 0 edges remain |
 | 5 founder-authority docs    | done — `13f1373`, `10961db`, `40add23`                 |
-| 6 ADR-074 boundary          | **IN PROGRESS — frontier only**                        |
+| 6 ADR-074 boundary          | done `69fb055` + app guard `64c4308`                   |
 | 7 FT-14 weekly vs monthly   | **BLOCKED: founder decision**                          |
-| 8 lane-g salvage            | in flight, worker                                      |
-| 9 browser-proof refresh     | blocked on 6                                           |
+| 8 lane-g salvage            | done `7662383`                                         |
+| 9 browser-proof refresh     | **NEXT** — producer map in flight (t9a)                |
 | 10 branch retirement        | **BLOCKED: founder decision**                          |
 
 Off-roadmap work also completed: `c53b157` (last red pgTAP test),
@@ -57,10 +57,10 @@ Off-roadmap work also completed: `c53b157` (last red pgTAP test),
 Workers commit to their own branch in their own worktree. They never touch
 `main`. The frontier is the only integrator.
 
-| Session      | Worktree                  | Branch                             | Task                  |
-| ------------ | ------------------------- | ---------------------------------- | --------------------- |
-| `paon-w-t8`  | `/private/tmp/paon-w-t8`  | `worker/t8-lane-g-salvage`         | tranche 8             |
-| `paon-w-t6a` | `/private/tmp/paon-w-t6a` | `worker/t6a-append-only-inventory` | append-only inventory |
+| Session      | Worktree                  | Branch                                | Task                                           |
+| ------------ | ------------------------- | ------------------------------------- | ---------------------------------------------- |
+| `paon-w-t9a` | `/private/tmp/paon-w-t9a` | `worker/t9a-evidence-spec-inventory`  | tranche 9 producer map                         |
+| `paon-w-t6b` | `/private/tmp/paon-w-t6b` | `worker/t6b-clienteling-tenant-guard` | **superseded** — done by frontier as `64c4308` |
 
 Each worktree holds a `WORKER_BRIEF.md` stating that worker's exact contract.
 Read it before judging their output.
@@ -126,6 +126,19 @@ unforced run replays another checkout's logs.
 - A parent is eligible for composite tenant binding only if its `retailer_id`
   is **NOT NULL**. Nullable means platform-shared vocabulary; binding those
   breaks the feature. This rule was learned by breaking four suites.
+
+## 7b. Capacity constraints (checked 2026-08-15 09:10)
+
+- **Claude workers are limit-blocked.** The `paon-w-t6b` pane reports
+  "You've hit your session limit · resets 12:10pm (Asia/Saigon)". Prompts land
+  but get no response. Do not keep re-sending; either wait for the reset or
+  take the task as frontier, which is what happened to t6b.
+- **DeepSeek/OpenRouter is available** and is the working lane meanwhile.
+  Always confirm the pane reads `deepseek/deepseek-v4-flash-0731` — an absent
+  `OPENROUTER_API_KEY` makes Codex silently fall back to the paid ChatGPT
+  account, which is itself out of quota.
+- If the frontier session hits its own limit, a successor takes over from this
+  file alone. That is the entire reason it exists.
 
 ## 8. Open decisions only the founder can make
 
