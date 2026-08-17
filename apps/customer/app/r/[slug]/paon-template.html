@@ -5710,8 +5710,8 @@ function renderGrid() {
         const sv = sanveneroProductData[String(p.id)] || {};
         const detailBrand = sv.brand || p.sanveneroBrand || '';
         const detailTitle = detailBrand || sv.title || p.sanveneroTitle || p.name;
-        const detailDesc = (sv && sv.description) ? sv.description : (p.sanveneroDescription || 'Fabric description refined from product material and weave information.');
-        const detailMaterial = sv.material || p.sanveneroMaterial || '100% Wool';
+        const detailDesc = (sv && sv.description) ? sv.description : (p.sanveneroDescription || p.description || 'Fabric description refined from product material and weave information.');
+        const detailMaterial = sv.material || p.sanveneroMaterial || p.material || '100% Wool';
         const detailLining = sv.recommendedLining || p.sanveneroRecommendedLining || '';
         const detailColor = sv.color || p.sanveneroColor || '';
         const liningImage = sv.liningImage || p.sanveneroLiningImage || '';
