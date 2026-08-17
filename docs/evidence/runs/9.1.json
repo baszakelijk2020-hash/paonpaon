@@ -1,7 +1,7 @@
 {
   "phaseItemId": "9.1",
-  "gitSha": "35440d9dd8bd2c3685c2169745357a41c2e0afcb",
+  "gitSha": "207bbdd7a77850f0fa3014992931d5be1a8450ad",
   "spec": "apps/retailer/e2e/migration-write-through.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-15T06:47:26.013Z"
+  "timestamp": "2026-08-17T13:28:09.233Z"
 }
