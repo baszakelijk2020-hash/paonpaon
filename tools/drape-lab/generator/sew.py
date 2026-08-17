@@ -16,9 +16,8 @@ in the initial frames", so it is set explicitly.
 import bpy
 
 # PARAM. High enough to close a seam within the settle frames, low enough that
-# panels do not slingshot through each other on frame 1. Set to 20.0 to balance
-# seam closure with minimal mass and high collision damping.
-SEWING_FORCE_MAX = 20.0
+# panels do not slingshot through each other on frame 1.
+SEWING_FORCE_MAX = 12.0
 SETTLE_FRAMES = 90
 
 
@@ -99,7 +98,7 @@ def setup_cloth(obj, collider, *, quality=8):
     cl = mod.collision_settings
 
     st.quality = quality
-    st.mass = 0.01  # kg/m^2 — minimal mass to prevent gravitational slip
+    st.mass = 0.32  # kg/m^2 — worsted suiting is heavier than shirting
     st.air_damping = 1.0
 
     st.tension_stiffness = 18.0
@@ -112,10 +111,14 @@ def setup_cloth(obj, collider, *, quality=8):
     st.shear_damping = 6.0
     st.bending_damping = 0.6
 
-    # Collider friction — prevents cloth from sliding off the form under gravity.
-    # Blender 5.2: st.collider_friction defaults to 0.0 (no friction), causing
-    # the garment to slide off immediately. Raise to 3.0 for strong grip.
-    st.collider_friction = 3.0
+    # Collider friction. Blender 5.2 defaults both of these to 0, which gives
+    # the form no grip at all; a real garment does not slide freely over a
+    # mannequin. Moderate, not maxed -- 2026-08-17 diagnosis found the real
+    # instability cause was START_GAP being smaller than the form's own
+    # cross-section depth (panels started inside the collider); friction only
+    # needed to stop residual slide once that interpenetration is fixed, not
+    # to fight gravity on its own.
+    st.collider_friction = 1.0
 
     # Sewing. Named per chapter 13's correction: no ClothSewing type exists.
     for attr, value in (
@@ -126,16 +129,15 @@ def setup_cloth(obj, collider, *, quality=8):
             setattr(st, attr, value)
 
     cl.use_collision = True
-    cl.distance_min = 0.010  # Maximum collision distance
-    cl.collision_quality = 8  # Maximum quality (Blender default is 2-4)
+    cl.distance_min = 0.010
+    cl.collision_quality = 8
     cl.use_self_collision = True
     if hasattr(cl, "self_distance_min"):
         cl.self_distance_min = 0.008
-    # Explicitly set collision friction and damping to prevent sliding
     if hasattr(cl, "friction"):
-        cl.friction = 100.0  # Maximum friction to prevent all sliding
+        cl.friction = 20.0
     if hasattr(cl, "damping"):
-        cl.damping = 5.0  # Extremely strong collision damping
+        cl.damping = 2.0
 
     coll = collider.modifiers.new("collision", "COLLISION")
     if hasattr(coll, "settings"):

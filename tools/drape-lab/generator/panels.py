@@ -50,7 +50,13 @@ ARITY_SHOULDER = 7  # neck -> armhole (shoulder seams)
 
 # PARAM — chapter 14 records no public figure. Ours, and labelled as ours.
 FRONT_OVERLAP = 0.050
-START_GAP = 0.055  # panels start this far off the form; small, to avoid slingshot
+# Must clear dress_form()'s deepest cross-section (chest, d=0.130) or panels
+# start already inside the collider -- verified empirically 2026-08-17: at the
+# old 0.055 value the whole centre-front/side edge started inside the form,
+# and the solver resolved that interpenetration by exploding rather than
+# settling (16.5m freefall by frame 90). 0.20 clears every section's depth
+# (max 0.130) with margin.
+START_GAP = 0.20
 
 
 def _waist_factor(v: float) -> float:
@@ -137,6 +143,17 @@ def _grid(name: str, fn, nu: int, nv: int):
     return obj, boundaries
 
 
+def _flip_faces(obj):
+    """Reverse face winding without touching vertex indices or order, so
+    named seam boundaries (which are vertex-index lists) stay valid."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.reverse_faces(bm, faces=bm.faces[:])
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
+
+
 def forepart(side: int):
     """Front panel. side=-1 wearer's right, +1 wearer's left.
 
@@ -156,6 +173,16 @@ def forepart(side: int):
 
     obj, b = _grid(f"forepart_{'L' if side > 0 else 'R'}", fn,
                    nu=ARITY_SHOULDER - 1, nv=ARITY_VERTICAL - 1)
+    if side < 0:
+        # side=-1's x mapping mirrors relative to side=+1 (x decreases with u
+        # instead of increasing), which inverts this panel's face winding
+        # relative to its mirror twin even though _grid()'s own index order
+        # never changes. Verified empirically 2026-08-17: the joined garment
+        # had exactly one panel's worth of faces (96 of 448) wound opposite
+        # the rest, and cloth collision needs consistent normals to resolve
+        # penetration -- this was the real cause of the free-fall, not mass
+        # or friction.
+        _flip_faces(obj)
     return obj, {
         "cf": b["u0"],        # centre front, hem -> shoulder
         "side": b["u1"],      # side seam, hem -> shoulder

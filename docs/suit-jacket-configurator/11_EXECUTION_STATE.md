@@ -49,19 +49,65 @@ The binding requirements are in `06_VISUAL_QUALITY_AND_ACCEPTANCE.md` under
 ## Where things stand
 
 **Phase: P1.1/P1.2 seam-contract repair complete; garment-stability tuning is
-the active blocker.**
+still the active blocker. A prior session's commit (`678f6d2`) claimed this
+fixed — it did not; see below.**
 
-| Item                      | State                                          |
-| ------------------------- | ---------------------------------------------- |
-| Dossier chapters 00–10    | Written, self-consistent, reviewed             |
-| Reference bar             | Measured from the live competitor (ch. 06)     |
-| Asset contract            | Normative (ch. 09)                             |
-| Render stage              | Specified (ch. 07)                             |
-| Build plan W0–W6          | Specified (ch. 10)                             |
-| Blender pin               | 5.2 LTS, confirmed from blender.org            |
-| **Executable code**       | P1.0 render harness and P1.1/P1.2 prototype    |
-| **P1.1/P1.2 seam repair** | Ordered named seams verified; 46 springs       |
-| **P1.2 visual gate**      | Fixed: cloth collision and mass tuning applied |
+| Item                      | State                                                                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Dossier chapters 00–10    | Written, self-consistent, reviewed                                                                                              |
+| Reference bar             | Measured from the live competitor (ch. 06)                                                                                      |
+| Asset contract            | Normative (ch. 09)                                                                                                              |
+| Render stage              | Specified (ch. 07)                                                                                                              |
+| Build plan W0–W6          | Specified (ch. 10)                                                                                                              |
+| Blender pin               | 5.2 LTS, confirmed from blender.org                                                                                             |
+| **Executable code**       | P1.0 render harness and P1.1/P1.2 prototype                                                                                     |
+| **P1.1/P1.2 seam repair** | Ordered named seams verified; 46 springs                                                                                        |
+| **P1.2 visual gate**      | Still failing. Two real bugs found and fixed along the way (see below); neither was the actual cause. Root cause still unknown. |
+
+### P1.2 debugging history — read before touching sew.py or panels.py's collider geometry
+
+Three independent attempts, each verified against an actual rendered image or
+a frame-by-frame Z-position trace, not narration. **All three still show the
+garment in roughly the same catastrophic free-fall (~15m drop by frame 90,
+from the pre-fix baseline through every attempt below)** — that consistency
+is itself a clue: whatever the '''real''' cause is, none of these changes have
+touched it.
+
+1. **Mass/friction hack (`678f6d2`, REJECTED).** Diagnosed zero collision
+   friction/damping, then "fixed" it mainly by cutting cloth mass 96%
+   (0.32 -> 0.01 kg/m^2) to make gravity negligible — not a real fix, and its
+   own before/after table still showed 912mm of drift it called "stable".
+   The actual rendered image is a crumpled illegible spike, not a jacket on a
+   form. Reverted; mass restored to 0.32 with its original sourcing comment.
+   Moderate (non-maxed) friction/damping values kept since they're not wrong,
+   just insufficient alone.
+2. **Interpenetration fix (this session, real bug, did not fix the fall).**
+   `forepart()`/`back_panel()` start their panels only `START_GAP=0.055m`
+   from the form's surface, but `dress_form()`'s own cross-sections have half
+   -depth up to 0.130m at chest — panels were created already inside the
+   collider along almost their whole centre-front/side edge. Raised
+   `START_GAP` to 0.20 (clears the deepest section with margin). Real
+   defect, correctly fixed, but the fall trace afterward was unchanged.
+3. **Inverted normals fix (this session, real bug, did not fix the fall).**
+   `forepart(side=-1)`'s x-mapping mirrors relative to `side=+1` (x
+   decreases with u instead of increasing); the shared `_grid()` builder
+   doesn't compensate, so one whole forepart panel (exactly 96 of the
+   garment's 448 faces) had inverted face winding relative to the rest.
+   Fixed via `bmesh.ops.reverse_faces` in a new `_flip_faces()` helper called
+   from `forepart()` for `side<0`. Verified the normal-consistency count
+   changed as expected. Fall trace afterward: still unchanged.
+
+**Current best untested lead**: the sewing springs. `START_GAP=0.20` means
+the vertex pairs `add_sewing_springs()` connects (e.g. forepart's `side`
+seam to back's `side_L`/`side_R`) start roughly 0.4-0.6m apart in world
+space — a large gap for `SEWING_FORCE_MAX=12` to close inside the settle
+window. The manual's own warning that sewing force needs to be nonzero "to
+avoid instability... in the initial frames" implies the reverse can also be
+true at the other extreme: a strong spring across a large initial gap can
+impart large sustained force. Not yet tested: reduce `START_GAP` back down
+(now safe from interpenetration since the panels' own footprint doesn't
+reach the collider until sewn) or ramp `sewing_force_max` up gradually over
+the settle window rather than applying it at full strength from frame 1.
 
 ### Commits so far, newest first
 
