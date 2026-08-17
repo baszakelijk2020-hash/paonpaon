@@ -65,6 +65,45 @@ def _waist_factor(v: float) -> float:
     return (WAIST_HALF / HEM_HALF) + (CHEST_HALF / HEM_HALF - WAIST_HALF / HEM_HALF) * t
 
 
+def _arc(cx, cz, rx, rz, a0, a1, steps):
+    """Points along an elliptical arc in the (x, z) plane: `steps` even
+    divisions from angle a0 to a1 inclusive (steps + 1 points)."""
+    pts = []
+    for i in range(steps + 1):
+        t = i / steps
+        a = a0 + (a1 - a0) * t
+        pts.append((cx + rx * math.cos(a), cz + rz * math.sin(a)))
+    return pts
+
+
+def _grid_from_outline(name, outline_pts, y):
+    """Build a flat panel from an explicit outline rather than a
+    parametric (u, v) function — for a shape like the sleeve cap, whose
+    top edge (an arc) and bottom edge (two corner points) don't share a
+    point count. `outline_pts` is the top edge plus the two bottom
+    corners appended last; the bottom edge is the straight line between
+    those two corners, sampled at the same u resolution as the top edge
+    so both rows stay the same length, keeping this the same even-quads
+    topology every other panel in this file uses (see _grid's own
+    docstring for why that matters to the cloth solver).
+    """
+    top = outline_pts[:-2]
+    bl, br = outline_pts[-2], outline_pts[-1]
+    nu = len(top) - 1
+
+    def fn(u, v):
+        iu = min(int(round(u * nu)), nu)
+        tx, tz = top[iu]
+        bx = bl[0] + (br[0] - bl[0]) * u
+        bz = bl[1] + (br[1] - bl[1]) * u
+        x = tx + (bx - tx) * v
+        z = tz + (bz - tz) * v
+        return Vector((x, y, z))
+
+    obj, _boundaries = _grid(name, fn, nu=nu, nv=1)
+    return obj
+
+
 def _grid(name: str, fn, nu: int, nv: int):
     """Build a quad grid from a position function fn(u, v) -> Vector.
 
@@ -148,6 +187,34 @@ def back_panel():
         "shoulder_R": right_shoulder,
         "shoulder_L": left_shoulder,
     }
+
+
+def sleeve_cap(side: int):
+    """Sleeve cap panel. side=-1 wearer's right, +1 wearer's left.
+
+    Built as a flat panel like the body panels, not a pre-formed tube --
+    the cloth solver drapes it into shape once sewn, same as forepart and
+    back. Its top edge is the sleevehead arc (chapter 14: 8-10% longer
+    than its armscye, via SLEEVEHEAD_EASE); its bottom edge tapers to a
+    single pair of cuff corners rather than a full hem width.
+
+    Not yet in BODY_SEAMS: joining it needs the armscye's own named,
+    ordered boundary on forepart/back, which this panel doesn't have yet
+    (_grid_from_outline returns unstitched geometry, not seam boundaries).
+    """
+    cap_w = (CHEST_HALF - WAIST_HALF) * 2.0 + 0.16  # armscye-scaled cap width, ours
+    top_z = Z_SHOULDER - SHOULDER_SETBACK
+    length = 0.58  # elbow-length cap panel; cuff finishing is a later pass
+    x_off = side * (HEM_HALF * 0.96 + 0.02)
+
+    pts = _arc(cx=0.0, cz=top_z - 0.12, rx=cap_w * 0.5 * SLEEVEHEAD_EASE,
+               rz=0.13, a0=math.pi, a1=0.0, steps=12)
+    pts.append((cap_w * 0.34, top_z - length))
+    pts.append((-cap_w * 0.34, top_z - length))
+
+    obj = _grid_from_outline(f"sleeve_{'L' if side > 0 else 'R'}",
+                              [(x + x_off, z) for (x, z) in pts], y=0.0)
+    return obj
 
 
 def dress_form():
