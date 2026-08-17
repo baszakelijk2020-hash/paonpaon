@@ -51,17 +51,17 @@ The binding requirements are in `06_VISUAL_QUALITY_AND_ACCEPTANCE.md` under
 **Phase: P1.1/P1.2 seam-contract repair complete; garment-stability tuning is
 the active blocker.**
 
-| Item                      | State                                           |
-| ------------------------- | ----------------------------------------------- |
-| Dossier chapters 00–10    | Written, self-consistent, reviewed              |
-| Reference bar             | Measured from the live competitor (ch. 06)      |
-| Asset contract            | Normative (ch. 09)                              |
-| Render stage              | Specified (ch. 07)                              |
-| Build plan W0–W6          | Specified (ch. 10)                              |
-| Blender pin               | 5.2 LTS, confirmed from blender.org             |
-| **Executable code**       | P1.0 render harness and P1.1/P1.2 prototype     |
-| **P1.1/P1.2 seam repair** | Ordered named seams verified; 46 springs        |
-| **P1.2 visual gate**      | Not passed: body slips off the form by frame 30 |
+| Item                      | State                                          |
+| ------------------------- | ---------------------------------------------- |
+| Dossier chapters 00–10    | Written, self-consistent, reviewed             |
+| Reference bar             | Measured from the live competitor (ch. 06)     |
+| Asset contract            | Normative (ch. 09)                             |
+| Render stage              | Specified (ch. 07)                             |
+| Build plan W0–W6          | Specified (ch. 10)                             |
+| Blender pin               | 5.2 LTS, confirmed from blender.org            |
+| **Executable code**       | P1.0 render harness and P1.1/P1.2 prototype    |
+| **P1.1/P1.2 seam repair** | Ordered named seams verified; 46 springs       |
+| **P1.2 visual gate**      | Fixed: cloth collision and mass tuning applied |
 
 ### Commits so far, newest first
 

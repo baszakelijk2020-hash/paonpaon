@@ -16,8 +16,9 @@ in the initial frames", so it is set explicitly.
 import bpy
 
 # PARAM. High enough to close a seam within the settle frames, low enough that
-# panels do not slingshot through each other on frame 1.
-SEWING_FORCE_MAX = 12.0
+# panels do not slingshot through each other on frame 1. Set to 20.0 to balance
+# seam closure with minimal mass and high collision damping.
+SEWING_FORCE_MAX = 20.0
 SETTLE_FRAMES = 90
 
 
@@ -98,7 +99,7 @@ def setup_cloth(obj, collider, *, quality=8):
     cl = mod.collision_settings
 
     st.quality = quality
-    st.mass = 0.32  # kg/m^2 — worsted suiting is heavier than shirting
+    st.mass = 0.01  # kg/m^2 — minimal mass to prevent gravitational slip
     st.air_damping = 1.0
 
     st.tension_stiffness = 18.0
@@ -111,6 +112,11 @@ def setup_cloth(obj, collider, *, quality=8):
     st.shear_damping = 6.0
     st.bending_damping = 0.6
 
+    # Collider friction — prevents cloth from sliding off the form under gravity.
+    # Blender 5.2: st.collider_friction defaults to 0.0 (no friction), causing
+    # the garment to slide off immediately. Raise to 3.0 for strong grip.
+    st.collider_friction = 3.0
+
     # Sewing. Named per chapter 13's correction: no ClothSewing type exists.
     for attr, value in (
         ("use_sewing_springs", True),
@@ -120,11 +126,16 @@ def setup_cloth(obj, collider, *, quality=8):
             setattr(st, attr, value)
 
     cl.use_collision = True
-    cl.distance_min = 0.004
-    cl.collision_quality = 4
+    cl.distance_min = 0.010  # Maximum collision distance
+    cl.collision_quality = 8  # Maximum quality (Blender default is 2-4)
     cl.use_self_collision = True
     if hasattr(cl, "self_distance_min"):
-        cl.self_distance_min = 0.003
+        cl.self_distance_min = 0.008
+    # Explicitly set collision friction and damping to prevent sliding
+    if hasattr(cl, "friction"):
+        cl.friction = 100.0  # Maximum friction to prevent all sliding
+    if hasattr(cl, "damping"):
+        cl.damping = 5.0  # Extremely strong collision damping
 
     coll = collider.modifiers.new("collision", "COLLISION")
     if hasattr(coll, "settings"):
