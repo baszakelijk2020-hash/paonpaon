@@ -6574,6 +6574,15 @@ function renderGrid() {
         return true;
     }
 
+    // Every fabric id ends in its 4-digit catalogue number
+    // (…-6090, …-9209); the higher the number, the newer the item. Falls
+    // back to 0 for the handful of non-numbered legacy ids (broek1,
+    // trui1, schoen1…), which sort after every numbered fabric.
+    function catalogNumber(id) {
+        var m = /(\d+)$/.exec(String(id || ''));
+        return m ? parseInt(m[1], 10) : 0;
+    }
+
     function sortCatalogProducts(list) {
         var sort = (state.catalogFilters && state.catalogFilters.sort) || 'newest';
         var copy = list.slice();
@@ -6582,7 +6591,12 @@ function renderGrid() {
         } else if (sort === 'price-desc') {
             copy.sort(function(a, b) { return (b.priceMinor || 0) - (a.priceMinor || 0); });
         } else {
-            copy.sort(function(a, b) { return String(b.id).localeCompare(String(a.id)); });
+            // 'newest' — was `String(b.id).localeCompare(String(a.id))`,
+            // a full-string alphabetical sort that had nothing to do with
+            // recency (e.g. "loro-piana-6054" sorted ahead of
+            // "teal-cotton-corduroy-6107" alphabetically, burying newly
+            // added items under old ones regardless of server order).
+            copy.sort(function(a, b) { return catalogNumber(b.id) - catalogNumber(a.id); });
         }
         return copy;
     }
