@@ -90,7 +90,7 @@ def add_sewing_springs(obj, seams, seam_contract):
     return created
 
 
-def pin_vertex_group(obj, seams, panel_seam_pairs, name="pin_shoulder"):
+def pin_vertex_group(obj, seams, panel_seam_pairs, name="pin_shoulder", *, snap_y=None):
     """Build a weight-1.0 vertex group over the given named seams, for
     `setup_cloth(pin_group=...)`.
 
@@ -104,6 +104,16 @@ def pin_vertex_group(obj, seams, panel_seam_pairs, name="pin_shoulder"):
     supported at the shoulders. Pinning the shoulder/neckline seam is the
     same fix: the top can't free-fall, so gravity drapes the rest of the
     cloth down and around the form from a fixed anchor instead.
+
+    A pin holds a vertex at wherever it starts. Item 5 (below) found that
+    pinning it at the flat-cut's raw position — 0.16-0.26m off the form,
+    where `START_GAP` put it so the panel would clear the collider before
+    sewing — produces two frozen edges a real seam can never close, because a
+    pin overrides the sewing spring for that vertex entirely. `snap_y`, if
+    given, overwrites the pinned vertices' y coordinate (only y — x and z
+    still carry the panel's real shoulder-slope/chest-circumference shape)
+    to put the pin where the seam actually sits once worn, not where the
+    pattern piece sat on the cutting table.
     """
     group = obj.vertex_groups.new(name=name)
     indices = sorted({
@@ -112,6 +122,12 @@ def pin_vertex_group(obj, seams, panel_seam_pairs, name="pin_shoulder"):
         for index in seams[panel_name][seam_name]
     })
     group.add(indices, 1.0, "REPLACE")
+    if snap_y is not None:
+        mesh = obj.data
+        for i in indices:
+            co = mesh.vertices[i].co
+            mesh.vertices[i].co = (co.x, snap_y, co.z)
+        mesh.update()
     return group
 
 

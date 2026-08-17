@@ -67,7 +67,11 @@ def main():
         print("[p1.1] FAIL: no sewing springs created — panels cannot close")
         return
 
-    sew.setup_cloth(garment, form)
+    pin = sew.pin_vertex_group(garment, declared_seams, [
+        ("forepart_L", "shoulder"), ("forepart_R", "shoulder"),
+        ("back", "shoulder_L"), ("back", "shoulder_R"),
+    ], snap_y=0.0)
+    sew.setup_cloth(garment, form, pin_group=pin.name)
     started = time.time()
     sew.bake(sc, garment, frames=args.frames)
     print(f"[p1.1] settled {args.frames} frames in {time.time() - started:.1f}s")

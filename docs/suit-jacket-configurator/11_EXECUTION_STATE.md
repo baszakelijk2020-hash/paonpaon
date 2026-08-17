@@ -48,23 +48,25 @@ The binding requirements are in `06_VISUAL_QUALITY_AND_ACCEPTANCE.md` under
 
 ## Where things stand
 
-**Phase: P1.1/P1.2 seam-contract repair complete; garment-stability tuning is
-still the active blocker. A prior session's commit (`678f6d2`) claimed this
-fixed — it did not. This session's ramped-sewing-force attempt slowed the
-fall materially but also did not fix it; see below for the root cause this
-session demonstrated and the untried pinning approach it points to.**
+**Phase: P1.1/P1.2 seam-contract repair complete; P1.2's stability gate now
+passes (no-sleeve body holds on the form across all 90 settle frames,
+verified by trace and render from the production script). Visual quality is
+not yet a pass — a small shoulder seam-closure artifact remains, and the
+drape won't read as a jacket until P1.1's sleeve/armscye contract exists.
+See the debugging history below for the full chain, including one subagent
+report that was independently caught fabricating a visual result.**
 
-| Item                      | State                                                                                                                           |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Dossier chapters 00–10    | Written, self-consistent, reviewed                                                                                              |
-| Reference bar             | Measured from the live competitor (ch. 06)                                                                                      |
-| Asset contract            | Normative (ch. 09)                                                                                                              |
-| Render stage              | Specified (ch. 07)                                                                                                              |
-| Build plan W0–W6          | Specified (ch. 10)                                                                                                              |
-| Blender pin               | 5.2 LTS, confirmed from blender.org                                                                                             |
-| **Executable code**       | P1.0 render harness and P1.1/P1.2 prototype                                                                                     |
-| **P1.1/P1.2 seam repair** | Ordered named seams verified; 46 springs                                                                                        |
-| **P1.2 visual gate**      | Still failing. Two real bugs found and fixed along the way (see below); neither was the actual cause. Root cause still unknown. |
+| Item                      | State                                                                                                             |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Dossier chapters 00–10    | Written, self-consistent, reviewed                                                                                |
+| Reference bar             | Measured from the live competitor (ch. 06)                                                                        |
+| Asset contract            | Normative (ch. 09)                                                                                                |
+| Render stage              | Specified (ch. 07)                                                                                                |
+| Build plan W0–W6          | Specified (ch. 10)                                                                                                |
+| Blender pin               | 5.2 LTS, confirmed from blender.org                                                                               |
+| **Executable code**       | P1.0 render harness and P1.1/P1.2 prototype                                                                       |
+| **P1.1/P1.2 seam repair** | Ordered named seams verified; 46 springs                                                                          |
+| **P1.2 stability gate**   | Passing. Shoulder-seam pinned at its worn (not cut) position; holds across 90 frames. Small shoulder gap remains. |
 
 ### P1.2 debugging history — read before touching sew.py or panels.py's collider geometry
 
@@ -151,16 +153,71 @@ more slowly. This confirms the root-cause diagnosis above rather than
 fixing it: **something has to physically support the garment against
 gravity before or during the fall, not just eventually pull it sideways.**
 
-**Next candidate, not yet tried**: pin the shoulder/neckline boundary
-vertices (`forepart().shoulder`, `back_panel().shoulder_L/R` — already a
-named seam in `BODY_SEAMS`) via `ClothSettings.vertex_group_mass` +
-`pin_stiffness`, so the top of the garment can't free-fall at all and
-gravity instead drapes the rest of the cloth down and around the form from
-a fixed anchor — the same reason a real jacket does not need friction alone
-to stay on a mannequin. This is an architecture change (a new vertex group,
-threaded from `panels.py`'s seam dict through to `sew.setup_cloth()`), not
-another force/friction/gravity tuning pass — three of those have now been
-tried and none held the garment up.
+5. **Shoulder pin, naive (this session, real progress, real new defect).**
+   Added `sew.pin_vertex_group()` + `setup_cloth(pin_group=..., pin_stiffness=...)`
+   and pinned the full shoulder-seam vertex group (both `forepart().shoulder`
+   and `back_panel().shoulder_L/R`, 7 vertices per side, weight 1.0). **This
+   genuinely stops the free-fall** — z stayed stable across all 90 frames,
+   confirmed by trace and render, first real stability in this whole
+   debugging history. Committed as `3e2f48d` (WIP) once verified, since it's
+   a real fix even though the shape wasn't right yet: the render showed sharp
+   pointed "wings" at both shoulders and a twisted, crumpled drape below —
+   worse-looking than free-fall, just stable.
+
+   Fanned out 4 parallel Haiku agents to tune it (sparse endpoint-only
+   pinning, `pin_stiffness=0.3`, a slower 80-frame sewing-force ramp, softer
+   collision `friction=5.0`/`damping=0.5`). All 4 came back with green
+   Z-tables. **One of them (`friction=5.0`/`damping=0.5`) reported a clean,
+   composed, non-winged render — independently re-run to verify per AGENTS.md
+   ch.20 ("worker narration is never evidence"), and the re-render showed the
+   exact same winged/crumpled shape as the naive baseline.** The agent's
+   visual description was simply wrong. All 4 variants' actual renders (the
+   3 that were spot-checked, and the re-run of the 4th) show the same
+   winged/crumpled shape regardless of pin stiffness, collision softness, or
+   ramp speed — none of those parameters were the cause.
+
+6. **Diagnosed and fixed: pin _position_, not pin _strength_ (this session,
+   the actual fix).** A Blender pin holds a vertex at wherever its mesh
+   coordinate already is. Item 5 pinned the shoulder seam at its _flat-cut_
+   position — `forepart_L`/`forepart_R`'s shoulder edges sit at
+   `y ≈ -0.16` to `-0.26`, `back_panel`'s at `y ≈ +0.16` to `+0.25` (see
+   `START_GAP` in item 2) — roughly 0.3-0.5m apart. Since a pin overrides the
+   sewing spring for that vertex entirely, front and back were frozen apart
+   forever: the seam could never close, and the neighbouring free vertices
+   contorted trying to reconcile "two fixed points 0.3m apart" with "this
+   edge wants to be short" — that contortion _is_ the winged crumpling, and
+   it is independent of stiffness/friction/ramp speed, exactly as the item-5
+   fan-out found.
+
+   Fixed by adding `snap_y` to `pin_vertex_group()`: after building the
+   group, overwrite the pinned vertices' `y` coordinate only (x and z keep
+   the panel's real shoulder-slope/chest-circumference shape) to `0.0` —
+   the form's shoulder ridge — before the sim starts, so the pin now holds
+   the seam where it actually sits once worn, not where the pattern piece
+   sat on the cutting table. Wired into `p1_1_drape.py`'s call site.
+
+   **Verified against the actual production entry point**
+   (`p1_1_drape.py`, not just a diagnostic script) **and an actual rendered
+   PNG**: no free-fall (z holds at the pin, 1.300, hem settles ~0.21-0.26m),
+   side-seam `y` closes from the initial ~±0.26 to inside the form's depth
+   (±0.10) by frame 10 and stays there, and the render shows a closed,
+   flat-topped silhouette with no wings and no free-fall — a real, large
+   improvement over every prior attempt. **Not yet clean**: there is a small
+   residual gap/hole near one shoulder in the render (a minor remaining
+   seam-closure artifact, not investigated further this session), and the
+   overall silhouette reads as a draped, twisted length of cloth rather than
+   a jacket — expected, since sleeves are not sewn in yet (`BODY_SEAMS` has
+   no armscye contract, per `sleeve_cap()`'s own docstring) and P1.2's gate
+   is holding the sewn body on the form, not final visual fidelity (that's
+   P1.7's gate, after P1.1's sleeves and P1.0's render pass).
+
+**P1.2 stability gate: now passing** on the 3-panel (no-sleeve) body — holds
+across all 90 settle frames, verified by trace and by an actual rendered
+image from the production script. **Not yet a visual-fidelity pass** — the
+small shoulder gap and the twisted/non-jacket-like drape remain, and neither
+has been root-caused. The next dependency-ready item is P1.1's sleeve/armscye
+contract (queue item 2), after which the shape becomes judgeable as an actual
+jacket for the first time.
 
 ### Commits so far, newest first
 
@@ -240,16 +297,16 @@ through P1.7, each with one acceptance gate. That chapter supersedes chapter
 10's W0–W6 framing where the two differ: the live 3D tier is dropped from Phase
 1 entirely by founder direction, and Phase 1 is Suitsupply parity 1:1.
 
-| #   | Work                                                            | Blocked by | Notes                                                                                         |
-| --- | --------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------- |
-| 1   | **P1.2** — hold the sewn body on the dress form                 | P1.1 seams | Tune initial panel placement and collision; no solver tuning until the initial pose is valid. |
-| 2   | P1.1 — panelled jacket geometry, deterministic from seed        | 1          | Add sleeves only with the explicit armscye contract.                                          |
-| 3   | **P1.0** — one Cycles render beside a reference shot            | 2          | Gates the programme (R-17). Days, not weeks.                                                  |
-| 5   | P1.3 — per-assembly layers with shadow catchers                 | 4          | Shadow-swap test decides if the modular approach lives                                        |
-| 6   | P1.4 — full option set as graph assemblies + compatibility data | 5          |                                                                                               |
-| 7   | P1.5 — AVIF layered delivery, srcset, zoom, rotation frames     | 6          |                                                                                               |
-| 8   | P1.6 — the configurator surface                                 | 7          | Thumbnails are crops of real renders, not icons                                               |
-| 9   | P1.7 — parity panel, then shoulder legibility                   | 8          | Pre-register thresholds before collecting anything                                            |
+| #   | Work                                                            | Blocked by | Notes                                                                                                                                                                                                                  |
+| --- | --------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ~~P1.2~~ — hold the sewn body on the dress form                 | —          | **Done, this session.** No-sleeve body holds across 90 frames; shoulder pinned at its worn position, not its cut position. Small shoulder seam-closure gap left unresolved — pick up if it blocks P1.1's armscye join. |
+| 2   | **P1.1** — panelled jacket geometry, deterministic from seed    | 1          | Now unblocked. Add sleeves via the explicit armscye contract (panels.py's `sleeve_cap()` + `_arc`/`_grid_from_outline` helpers already exist from `2c0430c`, not yet wired into `BODY_SEAMS`).                         |
+| 3   | **P1.0** — one Cycles render beside a reference shot            | 2          | Gates the programme (R-17). Days, not weeks.                                                                                                                                                                           |
+| 5   | P1.3 — per-assembly layers with shadow catchers                 | 4          | Shadow-swap test decides if the modular approach lives                                                                                                                                                                 |
+| 6   | P1.4 — full option set as graph assemblies + compatibility data | 5          |                                                                                                                                                                                                                        |
+| 7   | P1.5 — AVIF layered delivery, srcset, zoom, rotation frames     | 6          |                                                                                                                                                                                                                        |
+| 8   | P1.6 — the configurator surface                                 | 7          | Thumbnails are crops of real renders, not icons                                                                                                                                                                        |
+| 9   | P1.7 — parity panel, then shoulder legibility                   | 8          | Pre-register thresholds before collecting anything                                                                                                                                                                     |
 
 Parallel and unblocked at any time — take one of these when the queue head is
 blocked, rather than idling:
