@@ -90,12 +90,41 @@ def add_sewing_springs(obj, seams, seam_contract):
     return created
 
 
-def setup_cloth(obj, collider, *, quality=8):
+def pin_vertex_group(obj, seams, panel_seam_pairs, name="pin_shoulder"):
+    """Build a weight-1.0 vertex group over the given named seams, for
+    `setup_cloth(pin_group=...)`.
+
+    11_EXECUTION_STATE.md's P1.2 debugging history (item 4) demonstrates why
+    this exists: flat cut panels never geometrically overlap the collider
+    while airborne (both panels hold |y| >= START_GAP everywhere, which has
+    to clear the form's deepest cross-section), so nothing opposes gravity
+    in z until the sewing springs have already lost the race and the whole
+    assembly has fallen through the form's z-range. A real jacket does not
+    stay up on a mannequin by outrunning gravity with friction alone — it is
+    supported at the shoulders. Pinning the shoulder/neckline seam is the
+    same fix: the top can't free-fall, so gravity drapes the rest of the
+    cloth down and around the form from a fixed anchor instead.
+    """
+    group = obj.vertex_groups.new(name=name)
+    indices = sorted({
+        index
+        for panel_name, seam_name in panel_seam_pairs
+        for index in seams[panel_name][seam_name]
+    })
+    group.add(indices, 1.0, "REPLACE")
+    return group
+
+
+def setup_cloth(obj, collider, *, quality=8, pin_group=None, pin_stiffness=1.0):
     """Chapter 07's solver configuration, using the property names verified
     against the 5.2 manual rather than assumed."""
     mod = obj.modifiers.new("cloth", "CLOTH")
     st = mod.settings
     cl = mod.collision_settings
+
+    if pin_group is not None:
+        st.vertex_group_mass = pin_group
+        st.pin_stiffness = pin_stiffness
 
     st.quality = quality
     st.mass = 0.32  # kg/m^2 — worsted suiting is heavier than shirting
