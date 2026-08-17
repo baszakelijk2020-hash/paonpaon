@@ -50,7 +50,9 @@ The binding requirements are in `06_VISUAL_QUALITY_AND_ACCEPTANCE.md` under
 
 **Phase: P1.1/P1.2 seam-contract repair complete; garment-stability tuning is
 still the active blocker. A prior session's commit (`678f6d2`) claimed this
-fixed — it did not; see below.**
+fixed — it did not. This session's ramped-sewing-force attempt slowed the
+fall materially but also did not fix it; see below for the root cause this
+session demonstrated and the untried pinning approach it points to.**
 
 | Item                      | State                                                                                                                           |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -88,7 +90,7 @@ touched it.
    collider along almost their whole centre-front/side edge. Raised
    `START_GAP` to 0.20 (clears the deepest section with margin). Real
    defect, correctly fixed, but the fall trace afterward was unchanged.
-3. **Inverted normals fix (this session, real bug, did not fix the fall).**
+3. **Inverted normals fix (prior session, real bug, did not fix the fall).**
    `forepart(side=-1)`'s x-mapping mirrors relative to `side=+1` (x
    decreases with u instead of increasing); the shared `_grid()` builder
    doesn't compensate, so one whole forepart panel (exactly 96 of the
@@ -96,18 +98,69 @@ touched it.
    Fixed via `bmesh.ops.reverse_faces` in a new `_flip_faces()` helper called
    from `forepart()` for `side<0`. Verified the normal-consistency count
    changed as expected. Fall trace afterward: still unchanged.
+4. **Sewing-force ramp (this session, real defect found and fixed along the
+   way, slowed but did not stop the fall).** Picked up the prior session's
+   recorded lead. First attempt wrote `st.sewing_force_max` directly inside
+   the per-frame `frame_set()` loop, ramping the raw Python value — this
+   **froze the whole simulation solid after frame 2** (bit-identical vertex
+   positions through frame 90, confirmed by a frame-by-frame Z trace):
+   writing a cloth setting from Python appears to invalidate the point cache
+   on every write, so the solver never gets a continuous history to
+   integrate. Fixed by keyframing `sewing_force_max` as a real F-Curve
+   before the loop instead (`bake()`'s new `sewing_ramp_frames`/
+   `sewing_ramp_start`), so the depsgraph reads it the same way `frame_set`
+   already reads everything else. Hit a second, unrelated defect getting
+   there: Blender 5.2's layered-action system has no `Action.fcurves` —
+   fcurves live under `layers[].strips[].channelbags[].fcurves`, and the
+   supported way to reach one is `Action.fcurve_ensure_for_datablock()`, not
+   documented in chapter 13 because nobody had animated a property from
+   Python here before. Both are real, verified fixes and are kept.
+   Also reduced `panels.py`'s `START_GAP` 0.20 -> 0.16 (still >0.03 above the
+   form's deepest cross-section, 0.130) to shrink the side-seam closing
+   distance the ramp has to cover.
+   **Result, verified against both a frame-by-frame Z trace and an actual
+   rendered PNG (not narration):** the fall is real but slower — z_min at
+   frame 90 improved from -15.9m (full force, frame 1) to -12.8m (ramped,
+   `START_GAP=0.16`) — and the render is still an empty frame; the garment
+   is still off-camera by frame 90. Not fixed.
 
-**Current best untested lead**: the sewing springs. `START_GAP=0.20` means
-the vertex pairs `add_sewing_springs()` connects (e.g. forepart's `side`
-seam to back's `side_L`/`side_R`) start roughly 0.4-0.6m apart in world
-space — a large gap for `SEWING_FORCE_MAX=12` to close inside the settle
-window. The manual's own warning that sewing force needs to be nonzero "to
-avoid instability... in the initial frames" implies the reverse can also be
-true at the other extreme: a strong spring across a large initial gap can
-impart large sustained force. Not yet tested: reduce `START_GAP` back down
-(now safe from interpenetration since the panels' own footprint doesn't
-reach the collider until sewn) or ramp `sewing_force_max` up gradually over
-the settle window rather than applying it at full strength from frame 1.
+**Root cause, now demonstrated rather than guessed**: the panels never
+geometrically overlap the collider at all while falling. Both `forepart()`
+and `back_panel()` hold `|y| >= START_GAP` everywhere on the sheet, and
+`START_GAP` must stay above the form's deepest half-depth (0.130) to avoid
+the original interpenetration bug — so the closest any panel vertex starts
+to the form's surface is ~0.03-0.13m of clear air, and gravity acts on
+`y` not at all (it's a purely vertical translation while air borne). The
+sewing springs are the _only_ force pulling `y` toward the collider, and
+they lose the race: diagnostic-only runs (not committed — see below) show
+`y` converging nicely to inside the form's depth (±0.10-0.15m) by frame
+20-30, but by then the garment has already fallen straight through the
+form's z-range (0.29-1.36) and out the bottom, because nothing has been
+opposing gravity in `z` this whole time. Collision genuinely cannot engage
+before that happens.
+
+Diagnostic-only (**not committed, do not read this as a recommendation to
+reduce gravity** — it is the exact same category of hack as the rejected
+mass-reduction fix in `678f6d2`, which made gravity numerically negligible
+instead of fixing the actual problem): temporarily setting
+`mod.settings.effector_weights.gravity` to 0.25, then 0.12, both slowed the
+fall dramatically and let the side seams close inside the form's depth, but
+neither reached equilibrium in 90 frames — once the springs relax after the
+seam closes, nothing else opposes gravity, so it still slides through, just
+more slowly. This confirms the root-cause diagnosis above rather than
+fixing it: **something has to physically support the garment against
+gravity before or during the fall, not just eventually pull it sideways.**
+
+**Next candidate, not yet tried**: pin the shoulder/neckline boundary
+vertices (`forepart().shoulder`, `back_panel().shoulder_L/R` — already a
+named seam in `BODY_SEAMS`) via `ClothSettings.vertex_group_mass` +
+`pin_stiffness`, so the top of the garment can't free-fall at all and
+gravity instead drapes the rest of the cloth down and around the form from
+a fixed anchor — the same reason a real jacket does not need friction alone
+to stay on a mannequin. This is an architecture change (a new vertex group,
+threaded from `panels.py`'s seam dict through to `sew.setup_cloth()`), not
+another force/friction/gravity tuning pass — three of those have now been
+tried and none held the garment up.
 
 ### Commits so far, newest first
 

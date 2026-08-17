@@ -146,14 +146,69 @@ def setup_cloth(obj, collider, *, quality=8):
     return mod
 
 
-def bake(scene, obj, frames=SETTLE_FRAMES):
+def bake(scene, obj, frames=SETTLE_FRAMES, *,
+         sewing_ramp_frames=30, sewing_ramp_start=0.5, on_frame=None):
     """Step the solver frame by frame. `frame_set` drives the depsgraph, which
     is what actually advances a cloth sim in background mode — calling a bake
-    operator headlessly is far more fragile."""
+    operator headlessly is far more fragile.
+
+    Sewing force ramps linearly from `sewing_ramp_start` up to whatever
+    `setup_cloth()` configured as `sewing_force_max`, over the first
+    `sewing_ramp_frames` frames, instead of applying full force from frame 1.
+    The manual's own warning — that leaving sewing force at zero "can cause
+    instability due to extreme forces in the initial frames" — implies the
+    same failure at the other extreme: applying it at full strength across a
+    real initial gap (side seams start ~0.4m apart, see panels.py's
+    START_GAP) imparts one large sudden impulse. Verified empirically
+    2026-08-17: at full force from frame 1, the garment left the collider
+    entirely within ~20 frames and free-fell the rest of the settle window
+    (z -15.9m by frame 90) — a launch, not a drape.
+
+    The ramp is a real F-Curve on `sewing_force_max`, inserted once before the
+    loop, NOT a per-frame Python property write inside it. Verified
+    empirically 2026-08-17 that the obvious version — set the property, then
+    `frame_set(frame)`, every iteration — freezes the whole sim solid after
+    frame 2 (identical vertex positions through frame 90): writing a cloth
+    setting from Python appears to invalidate/reset the point cache on every
+    write, so the solver never gets a continuous history to integrate over.
+    An animated property is read by the depsgraph during its own evaluation,
+    the same mechanism `frame_set` already relies on, so the cache stays
+    continuous.
+
+    `on_frame(frame)`, if given, is called after each `frame_set` — verification
+    callers use it to sample state without duplicating this loop.
+    """
     scene.frame_start = 1
     scene.frame_end = frames
+    settings = obj.modifiers["cloth"].settings
+    target_force = settings.sewing_force_max
+
+    if sewing_ramp_frames > 0:
+        hold_frame = max(sewing_ramp_frames, 2)
+        settings.sewing_force_max = sewing_ramp_start
+        settings.keyframe_insert(data_path="sewing_force_max", frame=1)
+        settings.sewing_force_max = target_force
+        settings.keyframe_insert(data_path="sewing_force_max", frame=hold_frame)
+        settings.keyframe_insert(data_path="sewing_force_max", frame=frames)
+        # Blender 5.2's layered-action API: there is no `Action.fcurves`
+        # (verified empirically 2026-08-17 — that raises AttributeError).
+        # F-Curves live under a layer/strip/channelbag; `fcurve_ensure_for_datablock`
+        # is the documented way to fetch one without walking that structure by hand.
+        action = obj.animation_data.action
+        fcurve = action.fcurve_ensure_for_datablock(
+            obj, 'modifiers["cloth"].settings.sewing_force_max')
+        for kp in fcurve.keyframe_points:
+            kp.interpolation = "LINEAR"
+        fcurve.extrapolation = "CONSTANT"
+
     for frame in range(1, frames + 1):
         scene.frame_set(frame)
+        if on_frame is not None:
+            on_frame(frame)
+
+    if sewing_ramp_frames > 0:
+        settings.sewing_force_max = target_force
+        obj.animation_data_clear()
     return frames
 
 

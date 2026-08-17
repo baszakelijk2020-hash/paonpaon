@@ -54,9 +54,13 @@ FRONT_OVERLAP = 0.050
 # start already inside the collider -- verified empirically 2026-08-17: at the
 # old 0.055 value the whole centre-front/side edge started inside the form,
 # and the solver resolved that interpenetration by exploding rather than
-# settling (16.5m freefall by frame 90). 0.20 clears every section's depth
-# (max 0.130) with margin.
-START_GAP = 0.20
+# settling (16.5m freefall by frame 90). 0.20 cleared it but, combined with the
+# forepart 0.10m outward bulge (see forepart()'s `y`), left side seams to close
+# a ~0.5m gap at full sewing force -- the actual cause of the continued
+# freefall (see sew.bake()'s ramp). 0.16 keeps ~0.03m margin over the deepest
+# section (enough given the solver's own distance_min=0.010) while cutting
+# that closing distance to ~0.42m.
+START_GAP = 0.16
 
 
 def _waist_factor(v: float) -> float:
