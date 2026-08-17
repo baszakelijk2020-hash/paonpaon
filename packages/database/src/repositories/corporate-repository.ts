@@ -37,6 +37,37 @@ type ExceptionRow = Database["public"]["Tables"]["corporate_exceptions"]["Row"];
 type AnnouncementRow =
   Database["public"]["Tables"]["corporate_announcements"]["Row"];
 
+/** PHASE 14.1 manager identity — see migration 20260817000000. */
+export interface CorporateManager {
+  readonly id: string;
+  readonly retailerId: RetailerId;
+  readonly accountId: CorporateAccountId;
+  readonly contactName: string;
+  readonly loginEmail?: string;
+  readonly userId?: string;
+  readonly active: boolean;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly deletedAt: string | null;
+}
+
+type ManagerRow = Database["public"]["Tables"]["corporate_managers"]["Row"];
+
+function toManager(row: ManagerRow): CorporateManager {
+  return {
+    id: row.id,
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    accountId: asId<"CorporateAccountId">(row.account_id),
+    contactName: row.contact_name,
+    ...(row.login_email ? { loginEmail: row.login_email } : {}),
+    ...(row.user_id ? { userId: row.user_id } : {}),
+    active: row.active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
+  };
+}
+
 function toAnnouncement(row: AnnouncementRow): CorporateAnnouncement {
   return {
     id: asId<"CorporateAnnouncementId">(row.id),
@@ -44,7 +75,12 @@ function toAnnouncement(row: AnnouncementRow): CorporateAnnouncement {
     programmeId: asId<"CorporateProgrammeId">(row.programme_id),
     title: row.title,
     body: row.body,
-    authoredByStaffId: row.authored_by_staff_id,
+    ...(row.authored_by_staff_id
+      ? { authoredByStaffId: row.authored_by_staff_id }
+      : {}),
+    ...(row.authored_by_manager_id
+      ? { authoredByManagerId: row.authored_by_manager_id }
+      : {}),
     ...(row.published_at ? { publishedAt: row.published_at } : {}),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -359,6 +395,86 @@ export class CorporateRepository {
     if (error) throw error;
   }
 
+  async findManagerById(managerId: string): Promise<CorporateManager | null> {
+    const { data, error } = await this.client
+      .from("corporate_managers")
+      .select("*")
+      .eq("id", managerId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toManager(data) : null;
+  }
+
+  /** The Manager Portal's own lookup — `user_id` is set by
+   * `linkMyCorporateManagerAccount`, never chosen by the caller.
+   * Mirrors `findWearerByUserId` exactly. */
+  async findManagerByUserId(userId: string): Promise<CorporateManager | null> {
+    const { data, error } = await this.client
+      .from("corporate_managers")
+      .select("*")
+      .eq("user_id", userId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? toManager(data) : null;
+  }
+
+  /** Links the caller's `corporate_managers` row by matching their verified
+   * email. Idempotent; mirrors `linkMyWearerAccount` exactly. */
+  async linkMyCorporateManagerAccount(): Promise<void> {
+    const { error } = await this.client.rpc(
+      "link_my_corporate_manager_account",
+    );
+    if (error) throw error;
+  }
+
+  async findProgrammesByAccount(
+    accountId: string,
+  ): Promise<CorporateProgramme[]> {
+    const { data, error } = await this.client
+      .from("corporate_programmes")
+      .select("*")
+      .eq("account_id", accountId)
+      .is("deleted_at", null)
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return data.map(toProgramme);
+  }
+
+  async createManager(
+    retailerId: RetailerId,
+    input: {
+      readonly accountId: string;
+      readonly contactName: string;
+      readonly loginEmail: string;
+    },
+  ): Promise<CorporateManager> {
+    const { data, error } = await this.client
+      .from("corporate_managers")
+      .insert({
+        retailer_id: retailerId,
+        account_id: input.accountId,
+        contact_name: input.contactName,
+        login_email: input.loginEmail,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toManager(data);
+  }
+
+  async setManagerLoginEmail(
+    managerId: string,
+    loginEmail: string | null,
+  ): Promise<void> {
+    const { error } = await this.client
+      .from("corporate_managers")
+      .update({ login_email: loginEmail })
+      .eq("id", managerId);
+    if (error) throw error;
+  }
+
   async createWearer(
     retailerId: RetailerId,
     input: CreateCorporateWearerInput,
@@ -667,6 +783,54 @@ export class CorporateRepository {
         body: input.body,
         authored_by_staff_id: input.authoredByStaffId,
       })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toAnnouncement(data);
+  }
+
+  /** A corporate manager writes a draft announcement for their own account's
+   * programme (PHASE 14.1 / BD-104). RLS enforces the account/manager boundary. */
+  async createAnnouncementAsManager(
+    retailerId: RetailerId,
+    input: {
+      readonly programmeId: string;
+      readonly title: string;
+      readonly body: string;
+      readonly authoredByManagerId: string;
+    },
+  ): Promise<CorporateAnnouncement> {
+    const { data, error } = await this.client
+      .from("corporate_announcements")
+      .insert({
+        retailer_id: retailerId,
+        programme_id: input.programmeId,
+        title: input.title,
+        body: input.body,
+        authored_by_manager_id: input.authoredByManagerId,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toAnnouncement(data);
+  }
+
+  /** Update an announcement authored by a manager (PHASE 14.1). RLS
+   * enforces that only the original author can edit. */
+  async updateAnnouncementAsManager(
+    announcementId: string,
+    input: {
+      readonly title?: string;
+      readonly body?: string;
+    },
+  ): Promise<CorporateAnnouncement> {
+    const { data, error } = await this.client
+      .from("corporate_announcements")
+      .update({
+        ...(input.title !== undefined && { title: input.title }),
+        ...(input.body !== undefined && { body: input.body }),
+      })
+      .eq("id", announcementId)
       .select("*")
       .single();
     if (error) throw error;

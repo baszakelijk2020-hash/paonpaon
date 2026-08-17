@@ -1,16 +1,23 @@
 /**
  * Which application a User authenticates into. `corporate_wearer` is an
- * individual employee under a corporate wardrobe programme (PHASE 18.5) —
- * it lives inside the customer app under `/employee`, not a fourth app,
- * but is its own account type because a wearer must never fall through
- * to ordinary customer access by accident. Priority when a person could
- * resolve as more than one (see `resolveAppSession`) is
- * platform > retailer_staff > corporate_wearer > customer — the same
- * "highest-privilege wins, and only one wins" tradeoff already accepted
- * between retailer_staff and customer, extended one level deeper.
+ * individual employee under a corporate wardrobe programme (PHASE 18.5);
+ * `corporate_manager` is the client company's own contact who runs the
+ * whole programme (PHASE 14.1) — both live inside the customer app under
+ * `/employee` and `/manager` respectively, not a fourth/fifth app, but
+ * each is its own account type because neither may ever fall through to
+ * ordinary customer access, or to each other's scope, by accident.
+ * Priority when a person could resolve as more than one (see
+ * `resolveAppSession`) is
+ * platform > retailer_staff > corporate_manager > corporate_wearer > customer
+ * — the same "highest-privilege wins, and only one wins" tradeoff already
+ * accepted between retailer_staff and customer, extended two levels deeper.
  */
 export type AccountType =
-  "platform" | "retailer_staff" | "corporate_wearer" | "customer";
+  | "platform"
+  | "retailer_staff"
+  | "corporate_manager"
+  | "corporate_wearer"
+  | "customer";
 
 /** Roles within PAON Admin — platform staff, not tied to any retailer. */
 export type PlatformRole =

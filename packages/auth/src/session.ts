@@ -23,6 +23,8 @@ export interface AppSession {
   readonly customerId?: CustomerId;
   /** Set only when `accountType` is `corporate_wearer` (PHASE 18.5). */
   readonly wearerId?: string;
+  /** Set only when `accountType` is `corporate_manager` (PHASE 14.1). */
+  readonly managerId?: string;
 }
 
 /** Minimal shape of the Supabase auth user this package needs — avoids a hard dependency on @supabase/supabase-js's full type surface. */
@@ -52,16 +54,21 @@ function asWearerId(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
+function asManagerId(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
 /**
  * Maps a Supabase auth user onto an `AppSession`. accountType is
  * derived from which claim is present — platform_role wins over
- * retailer claims, which win over the wearer claim, which wins over the
- * customer default — because a person's User row belongs to exactly one
- * accountType by construction (see @paon/domain `User`). A person who
- * is somehow both a corporate wearer and an ordinary customer resolves
- * as `corporate_wearer` only, the same accepted tradeoff already made
- * between retailer_staff and customer, extended one level deeper — see
- * `AccountType`'s own doc comment.
+ * retailer claims, which win over the manager claim, which wins over the
+ * wearer claim, which wins over the customer default — because a
+ * person's User row belongs to exactly one accountType by construction
+ * (see @paon/domain `User`). A person who is somehow both a corporate
+ * identity and an ordinary customer resolves as the corporate identity
+ * only, the same accepted tradeoff already made between retailer_staff
+ * and customer, extended two levels deeper — see `AccountType`'s own doc
+ * comment.
  */
 export function resolveAppSession(user: AuthUserLike): AppSession {
   const platformRole = asPlatformRole(user.app_metadata["platform_role"]);
@@ -69,14 +76,17 @@ export function resolveAppSession(user: AuthUserLike): AppSession {
   const retailerId = asRetailerId(user.app_metadata["retailer_id"]);
   const customerId = asCustomerId(user.app_metadata["customer_id"]);
   const wearerId = asWearerId(user.app_metadata["wearer_id"]);
+  const managerId = asManagerId(user.app_metadata["manager_id"]);
 
   const accountType: AccountType = platformRole
     ? "platform"
     : retailerId && retailerRole
       ? "retailer_staff"
-      : wearerId
-        ? "corporate_wearer"
-        : "customer";
+      : managerId
+        ? "corporate_manager"
+        : wearerId
+          ? "corporate_wearer"
+          : "customer";
 
   return {
     userId: user.id as UserId,
@@ -87,5 +97,6 @@ export function resolveAppSession(user: AuthUserLike): AppSession {
     ...(retailerRole ? { retailerRole } : {}),
     ...(customerId ? { customerId } : {}),
     ...(wearerId ? { wearerId } : {}),
+    ...(managerId ? { managerId } : {}),
   };
 }

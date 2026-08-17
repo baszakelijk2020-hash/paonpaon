@@ -131,3 +131,23 @@ export function requireWearerSession(
     throw new ForbiddenError("Requires an Employee Portal session");
   }
 }
+
+/** Throws unless the session belongs to a corporate account's own manager
+ * login (PHASE 14.1) — never retailer staff, a wearer, or an ordinary
+ * customer session, even one signed in to the same customer app. A
+ * manager's scope is one `corporate_accounts` row; which account is
+ * resolved per-request from `CorporateRepository`/RLS, never trusted from
+ * this claim alone (same posture as `requireCustomerSession`). */
+export function requireCorporateManagerSession(
+  session: AppSession | null,
+): asserts session is AppSession & {
+  accountType: "corporate_manager";
+  managerId: NonNullable<AppSession["managerId"]>;
+} {
+  if (!session) {
+    throw new UnauthorizedError();
+  }
+  if (session.accountType !== "corporate_manager" || !session.managerId) {
+    throw new ForbiddenError("Requires an Employee Portal manager session");
+  }
+}

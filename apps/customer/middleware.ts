@@ -48,6 +48,13 @@ const STOREFRONT_PATH_PREFIX = "/r/";
 // must be redirected there, never signed out of their real session.
 const EMPLOYEE_PATH_PREFIX = "/employee";
 
+// The Manager Portal (PHASE 14.1) — a corporate account administrator,
+// never an ordinary customer. Same carve-out pattern as the employee
+// portal: a manager must never be treated as "not a customer account" on
+// their own pages, and a signed-in customer wandering onto `/manager`
+// must be redirected there, never signed out.
+const MANAGER_PATH_PREFIX = "/manager";
+
 // Server-to-server routes with their own auth (Stripe signature
 // verification) — never gate them behind a browser session. A real
 // Stripe webhook call never sends this app's session cookie, so
@@ -102,12 +109,13 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // /auth/confirm and /employee/auth/confirm establish the session
-  // themselves (verifyOtp) — never gate either behind an existing
-  // session check.
+  // /auth/confirm, /employee/auth/confirm, and /manager/auth/confirm
+  // establish the session themselves (verifyOtp) — never gate any behind
+  // an existing session check.
   if (
     pathname.startsWith("/auth/confirm") ||
-    pathname.startsWith(`${EMPLOYEE_PATH_PREFIX}/auth/confirm`)
+    pathname.startsWith(`${EMPLOYEE_PATH_PREFIX}/auth/confirm`) ||
+    pathname.startsWith(`${MANAGER_PATH_PREFIX}/auth/confirm`)
   ) {
     return response;
   }
@@ -142,8 +150,13 @@ export async function middleware(request: NextRequest) {
   const isEmployeeLoginPath = pathname.startsWith(
     `${EMPLOYEE_PATH_PREFIX}/login`,
   );
+  const isManagerPath = pathname.startsWith(MANAGER_PATH_PREFIX);
+  const isManagerLoginPath = pathname.startsWith(
+    `${MANAGER_PATH_PREFIX}/login`,
+  );
   const isPublicPath =
     isEmployeeLoginPath ||
+    isManagerLoginPath ||
     PUBLIC_PATHS.some((path) => pathname.startsWith(path));
   const { data } = await supabase.auth.getUser();
 
@@ -152,7 +165,11 @@ export async function middleware(request: NextRequest) {
       return response;
     }
     const loginUrl = new URL(
-      isEmployeePath ? `${EMPLOYEE_PATH_PREFIX}/login` : "/login",
+      isEmployeePath
+        ? `${EMPLOYEE_PATH_PREFIX}/login`
+        : isManagerPath
+          ? `${MANAGER_PATH_PREFIX}/login`
+          : "/login",
       request.url,
     );
     loginUrl.searchParams.set("redirectTo", pathname);
@@ -183,12 +200,35 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  if (isManagerPath) {
+    // A manager is welcome here; anyone else (customer, wearer, retailer
+    // staff, platform) is blocked from this one area WITHOUT touching their
+    // session — visiting `/manager` by mistake must never sign a shopper or
+    // wearer out of their own account.
+    if (session.accountType !== "corporate_manager") {
+      if (isManagerLoginPath) {
+        return response;
+      }
+      const loginUrl = new URL(`${MANAGER_PATH_PREFIX}/login`, request.url);
+      loginUrl.searchParams.set("error", "not_a_manager_account");
+      return redirectWithCookies(loginUrl, response);
+    }
+    if (isManagerLoginPath) {
+      return redirectWithCookies(
+        new URL(MANAGER_PATH_PREFIX, request.url),
+        response,
+      );
+    }
+    return response;
+  }
+
   if (session.accountType !== "customer") {
     await supabase.auth.signOut();
     // Marketing and /demo/[token] are public — clear the wrong session and
     // continue, instead of trapping the visitor on the customer login page.
-    // A corporate_wearer session lands here exactly like retailer_staff or
-    // platform always has: this app's ordinary paths are not theirs either.
+    // A corporate_wearer or corporate_manager session lands here exactly
+    // like retailer_staff or platform always has: this app's ordinary paths
+    // are not theirs either.
     if (isPublicPath) {
       return response;
     }

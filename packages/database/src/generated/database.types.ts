@@ -949,6 +949,85 @@ export type Database = {
           },
         ];
       };
+      alteration_grid_snapshots: {
+        Row: {
+          alteration_id: string;
+          comments: string | null;
+          created_at: string;
+          created_by_staff_id: string | null;
+          customer_id: string;
+          id: string;
+          retailer_id: string;
+          values: Json;
+          version: number;
+        };
+        Insert: {
+          alteration_id: string;
+          comments?: string | null;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          customer_id: string;
+          id?: string;
+          retailer_id: string;
+          values: Json;
+          version: number;
+        };
+        Update: {
+          alteration_id?: string;
+          comments?: string | null;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          customer_id?: string;
+          id?: string;
+          retailer_id?: string;
+          values?: Json;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "alteration_grid_snapshots_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_snapshots_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_snapshots_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "worker_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_snapshots_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_snapshots_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_snapshots_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       alteration_operations: {
         Row: {
           active: boolean;
@@ -1374,6 +1453,7 @@ export type Database = {
           material_cost_amount_minor_units: number | null;
           operation_id: string | null;
           origin_fitting_observation_id: string | null;
+          origin_grid_snapshot_id: string | null;
           original_quote_amount_minor_units: number;
           original_quote_currency: string;
           partner_cost_amount_minor_units: number | null;
@@ -1397,6 +1477,7 @@ export type Database = {
           material_cost_amount_minor_units?: number | null;
           operation_id?: string | null;
           origin_fitting_observation_id?: string | null;
+          origin_grid_snapshot_id?: string | null;
           original_quote_amount_minor_units?: number;
           original_quote_currency: string;
           partner_cost_amount_minor_units?: number | null;
@@ -1420,6 +1501,7 @@ export type Database = {
           material_cost_amount_minor_units?: number | null;
           operation_id?: string | null;
           origin_fitting_observation_id?: string | null;
+          origin_grid_snapshot_id?: string | null;
           original_quote_amount_minor_units?: number;
           original_quote_currency?: string;
           partner_cost_amount_minor_units?: number | null;
@@ -1469,6 +1551,13 @@ export type Database = {
             columns: ["origin_fitting_observation_id"];
             isOneToOne: false;
             referencedRelation: "fitting_observations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_tasks_origin_grid_snapshot_id_fkey";
+            columns: ["origin_grid_snapshot_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_grid_snapshots";
             referencedColumns: ["id"];
           },
           {
@@ -3760,8 +3849,8 @@ export type Database = {
           items: Json;
           price_currency: string | null;
           price_minor_units: number | null;
-          response: string | null;
           responded_at: string | null;
+          response: string | null;
           retailer_id: string;
           status: string;
           title: string;
@@ -3780,8 +3869,8 @@ export type Database = {
           items?: Json;
           price_currency?: string | null;
           price_minor_units?: number | null;
-          response?: string | null;
           responded_at?: string | null;
+          response?: string | null;
           retailer_id: string;
           status?: string;
           title: string;
@@ -3800,8 +3889,8 @@ export type Database = {
           items?: Json;
           price_currency?: string | null;
           price_minor_units?: number | null;
-          response?: string | null;
           responded_at?: string | null;
+          response?: string | null;
           retailer_id?: string;
           status?: string;
           title?: string;
@@ -3968,7 +4057,8 @@ export type Database = {
       };
       corporate_announcements: {
         Row: {
-          authored_by_staff_id: string;
+          authored_by_manager_id: string | null;
+          authored_by_staff_id: string | null;
           body: string;
           created_at: string;
           deleted_at: string | null;
@@ -3980,7 +4070,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
-          authored_by_staff_id: string;
+          authored_by_manager_id?: string | null;
+          authored_by_staff_id?: string | null;
           body: string;
           created_at?: string;
           deleted_at?: string | null;
@@ -3992,7 +4083,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
-          authored_by_staff_id?: string;
+          authored_by_manager_id?: string | null;
+          authored_by_staff_id?: string | null;
           body?: string;
           created_at?: string;
           deleted_at?: string | null;
@@ -4004,6 +4096,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "corporate_announcements_authored_by_manager_id_fkey";
+            columns: ["authored_by_manager_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_managers";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "corporate_announcements_authored_by_staff_id_fkey";
             columns: ["authored_by_staff_id"];
@@ -4336,6 +4435,60 @@ export type Database = {
             columns: ["wearer_id"];
             isOneToOne: false;
             referencedRelation: "corporate_wearers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_managers: {
+        Row: {
+          account_id: string;
+          active: boolean;
+          contact_name: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          login_email: string | null;
+          retailer_id: string;
+          updated_at: string;
+          user_id: string | null;
+        };
+        Insert: {
+          account_id: string;
+          active?: boolean;
+          contact_name: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          login_email?: string | null;
+          retailer_id: string;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          account_id?: string;
+          active?: boolean;
+          contact_name?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          login_email?: string | null;
+          retailer_id?: string;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_managers_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_managers_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];
@@ -20629,6 +20782,7 @@ export type Database = {
         Args: { p_referred_email: string; p_retailer_id: string };
         Returns: string;
       };
+      current_corporate_manager_id: { Args: never; Returns: string };
       current_platform_role: { Args: never; Returns: string };
       current_retailer_id: { Args: never; Returns: string };
       current_retailer_role: { Args: never; Returns: string };
@@ -20650,6 +20804,14 @@ export type Database = {
       dismiss_conversation_ai_draft: {
         Args: { p_draft_id: string };
         Returns: boolean;
+      };
+      dispatch_alteration_grid_snapshot: {
+        Args: {
+          p_comments?: string;
+          p_selected_operation_ids: string[];
+          p_snapshot_id: string;
+        };
+        Returns: string;
       };
       end_academy_roleplay_session: {
         Args: { p_session_id: string; p_status: string };
@@ -20939,6 +21101,7 @@ export type Database = {
         };
         Returns: Json;
       };
+      link_my_corporate_manager_account: { Args: never; Returns: undefined };
       link_my_customer_accounts: { Args: never; Returns: undefined };
       link_my_wearer_account: { Args: never; Returns: undefined };
       link_service_booking_appointment: {
@@ -21529,10 +21692,6 @@ export type Database = {
         Args: { p_feature_key: string; p_retailer_id: string };
         Returns: boolean;
       };
-      revoke_gift_invitation: {
-        Args: { p_invitation_id: string; p_reason: string };
-        Returns: undefined;
-      };
       retailer_module_access_state: {
         Args: { p_module_key: string; p_retailer_id: string };
         Returns: string;
@@ -21583,12 +21742,20 @@ export type Database = {
         };
         Returns: string;
       };
+      revoke_gift_invitation: {
+        Args: { p_invitation_id: string; p_reason: string };
+        Returns: undefined;
+      };
       rsvp_to_event: {
         Args: {
           p_event_id: string;
           p_status: Database["public"]["Enums"]["event_rsvp_status"];
         };
         Returns: undefined;
+      };
+      save_alteration_grid_snapshot: {
+        Args: { p_alteration_id: string; p_comments?: string; p_values: Json };
+        Returns: string;
       };
       save_prospect_demo_configuration: {
         Args: {
