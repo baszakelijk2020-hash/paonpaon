@@ -5789,6 +5789,16 @@ function renderGrid() {
             }
             requestAnimationFrame(tickEntry);
         }
+        // Every window.openDetail = wrapper added over time (there are 7 in
+        // this file) hooked the *window* property, but the real click
+        // handler (card.addEventListener above) calls the bare local
+        // `openDetail` identifier from this same closure, never
+        // `window.openDetail` — so none of those wrappers, including the
+        // one that called reorderSections(), ever actually ran. Calling it
+        // directly here, from the function real clicks invoke, is the fix.
+        if (typeof window.paonPlaceAppointmentSection === 'function') {
+            requestAnimationFrame(window.paonPlaceAppointmentSection);
+        }
     }
     function goBack() {
         const main = document.getElementById('main');
@@ -13676,6 +13686,14 @@ requestAnimationFrame(fixFeedImages);
         background: linear-gradient(to bottom, var(--cream) 0%, var(--warm-mid) 100%);
     }
 
+    /* No desktop-specific width override needed: reorderSections() (JS,
+       further down) moves this element to be a direct child of
+       #detail-main on desktop, so the base `width: 100%` above already
+       resolves against detail-main's own (already-correct) box — not
+       the viewport. An earlier attempt here re-subtracted var(--right-w)
+       a second time (detail-main's own width already accounts for it),
+       which nearly halved the widget instead of fixing it. */
+
     /* --- Desktop: "You May Also Like" 2-column grid, inserted directly
        into the center image column (detail-main), right below the
        fabric swatch — this is the desktop-only counterpart; mobile has
@@ -15616,7 +15634,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     font-size: 14px !important;
     color: var(--text) !important;
     background: #fff !important;
-    border: 1px solid var(--mid) !important;
+    border: none !important;
     border-radius: 8px !important;
     outline: none !important;
     outline-width: 0 !important;
@@ -15789,8 +15807,17 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
             return;
         }
 
-        if (appt.parentNode !== detailMain) {
-            appt.dataset.movedIntoDetailMain = '1';
+        /* Appointment above "You may also like" — insertBefore the
+         * carousel (already the earlier static child of detail-main),
+         * not appendChild, which always lands after it regardless of
+         * where this function runs. insertBefore is a no-op cost-wise
+         * when appt is already in the right spot, so no extra guard
+         * is needed here. */
+        appt.dataset.movedIntoDetailMain = '1';
+        var alsoLike = document.getElementById('paon-desktop-also-like');
+        if (alsoLike && alsoLike.parentNode === detailMain) {
+            detailMain.insertBefore(appt, alsoLike);
+        } else {
             detailMain.appendChild(appt);
         }
     }

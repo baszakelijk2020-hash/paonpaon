@@ -189,6 +189,12 @@ const CATEGORY_KEYWORDS: Record<
   // "broek" still matches trouser slugs (`…-broek1`); display names follow
   // the product photography (e.g. "Khaki Cotton Trousers").
   Pants: ["pant", "trouser", "chino", "broek"],
+  // "cashmere" used to live here too, but that's a fiber, not a garment —
+  // a cashmere-blend SUITING fabric (e.g. "Silk, Wool & Cashmere
+  // Glencheck") was winning this check before the id-range fallback ever
+  // ran, mis-sorting real suit/jacket fabrics into Knits by coincidence
+  // of material, not garment type. Same class of bug the "mélange" removal
+  // above already fixed once.
   Knits: [
     "knit",
     "sweater",
@@ -200,7 +206,6 @@ const CATEGORY_KEYWORDS: Record<
     "crew",
     "polo",
     "merino",
-    "cashmere",
     "quarter-zip",
     "cable",
   ],
