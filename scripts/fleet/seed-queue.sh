@@ -11,6 +11,13 @@
 # unstarted work (a feature believed done but unverified is the bigger risk).
 set -euo pipefail
 
+DRY_RUN="false"
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN="true" ;;
+  esac
+done
+
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 COMMON_DIR="$(git rev-parse --git-common-dir)"
 case "$COMMON_DIR" in /*) ;; *) COMMON_DIR="$(cd "$COMMON_DIR" && pwd)" ;; esac
@@ -197,8 +204,39 @@ if [ -f "$PHASE" ]; then
 fi
 
 # ---------------------------------------------------------------------------
+# Defense in depth: never let a candidate task carrying a founder-prohibited
+# id prefix reach the queue, whatever generated it. paon-fleet's own
+# FLEET_PROHIBITED_PREFIXES (default "drape-") is the permanent claim-time
+# gate; this drops the same prefixes here too, at the source, in case a
+# future generator (this file doesn't currently emit any, but nothing here
+# enforced that) ever does.
+PROHIBITED_PREFIXES="${PAON_FLEET_PROHIBITED_PREFIXES:-drape-}"
+jq --arg prefixes "$PROHIBITED_PREFIXES" '
+  map(select(
+    (.id as $tid
+     | ($prefixes | split(",") | map(select(. != "")))
+     | map(. as $p | $tid | startswith($p)) | any) | not
+  ))
+' "$TMP" > "$TMP.filtered" && mv "$TMP.filtered" "$TMP"
+
+# ---------------------------------------------------------------------------
 # Merge into existing queue, preserving in-flight claims and completed work.
 # ---------------------------------------------------------------------------
+if [ "$DRY_RUN" = "true" ]; then
+  new_count="$(jq 'length' "$TMP")"
+  if [ -f "$QUEUE" ]; then
+    added_count="$(jq --slurpfile new "$TMP" '
+      (.tasks // []) as $old | ($old | map(.id)) as $ids
+      | [$new[0][] | select(.id as $i | $ids | index($i) | not)] | length
+    ' "$QUEUE")"
+  else
+    added_count="$new_count"
+  fi
+  echo "DRY RUN: would add $added_count new task(s) out of $new_count generated; $QUEUE not modified."
+  rm -f "$TMP"
+  exit 0
+fi
+
 if [ -f "$QUEUE" ] && [ "$(jq '.tasks|length' "$QUEUE" 2>/dev/null || echo 0)" -gt 0 ]; then
   jq --slurpfile new "$TMP" '
     .tasks as $old

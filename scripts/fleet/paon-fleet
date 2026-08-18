@@ -170,6 +170,12 @@ select_next() {
 # path-overlap and exclusive-task safety entirely.
 eligibility() {
   local id="$1"
+  # select_next() (take's auto-pick path) already filters FLEET_PROHIBITED_PREFIXES
+  # inline in its own jq query, but this function -- the only gate a direct
+  # `claim <id>` goes through -- never checked it, so `is_prohibited_task` sat
+  # defined and unused. A lane that named a prohibited id directly (from reading
+  # PHASE.md, not from `take`'s selection) could still claim it.
+  is_prohibited_task "$id" && { echo "PROHIBITED_SCOPE"; return; }
   local tiers="${PAON_AGENT_TIERS:-frontier,implementation,light}"
   jq -r --arg id "$id" --arg tiers "$tiers" --arg me "$AGENT_ID" '
     def norm: sub("\\*+$";"") | sub("/$";"");
