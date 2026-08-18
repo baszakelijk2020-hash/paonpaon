@@ -406,14 +406,32 @@ frozen apart, back near the very start of the P1.2 work) — a pin cannot be
 pulled anywhere, so a seam between two independently-pinned, non-coincident
 points can never close.
 
-**Refined principle**: pinning both sides of a seam requires pinning them
-to the _identical_ target position, not independently to their own
-panel's natural coordinates plus a shared `snap_y`. Reverted the pin from
-the diagnostic (never reached `p1_1_drape.py` — only tested in isolation);
-kept the harmless `"tip"` boundary in `sleeve_cap()`'s return dict since
-it's real, correct infrastructure for a future attempt that computes the
-sleeve tip's target from forepart's actual armhole-corner formula instead
-of the arc's own centre.
+**Refined principle, first pass**: pinning both sides of a seam requires
+pinning them to the _identical_ target position, not independently to
+their own panel's natural coordinates plus a shared `snap_y`.
+
+**Tested that refinement directly — still wrong, second negative result.**
+Moved the sleeve tip vertex to forepart's exact armhole-corner formula
+(`side*HEM_HALF*_waist_factor(1.0)*0.96, Z_SHOULDER`) before pinning, so
+both anchors targeted the literal same coordinates. `z_max` still
+overshot — `1.6` at frame 30, settling only to `1.44` by frame 90, not the
+`1.30` baseline. Coordinate mismatch was a real bug worth fixing but was
+not the actual reason pinning the tip hurts. Best current explanation:
+`collar_stub()` is a short, simple strip hanging off one pinned edge with
+nowhere else to go; the sleeve is a much larger, more complex shape whose
+un-pinned interior points need room to settle around the arm collider, and
+rigidly fixing its top corner in addition to forepart's already-pinned
+corner leaves the crumpled interior stretched taut between two anchors
+instead of freely draping. **Two failed attempts at the same idea — per
+AGENTS.md's "escalate after two failed fix cycles," not chasing a third
+variant.** The sleeve needs a different fix (something that helps its
+un-pinned interior settle, not another anchor point), not investigated
+further this session.
+
+Reverted both pin attempts (neither ever reached `p1_1_drape.py` — only
+tested in isolation). Kept the harmless `"tip"` boundary in `sleeve_cap()`'s
+return dict as correct, reusable infrastructure regardless of how the
+sleeve's actual fix ends up using it.
 
 ### Recovered: hourly cloud routine's stranded chapter 05 rewrite (this session)
 
