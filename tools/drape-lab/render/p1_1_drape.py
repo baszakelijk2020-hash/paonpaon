@@ -92,7 +92,22 @@ def main():
         ("collar_L", "neck"), ("collar_R", "neck"),
         ("collar_back", "neck"),
     ], snap_y=0.0)
-    sew.setup_cloth(garment, form, pin_group=pin.name)
+    mod = sew.setup_cloth(garment, form, pin_group=pin.name)
+
+    # Chapter 09 models canvas as a cloth stiffness field, not geometry.
+    # Verified 2026-08-18 by direct A/B (identical setup, canvas on vs off):
+    # the drape measurably differs, so the mechanism is real and correctly
+    # wired -- not yet demonstrated as a visual improvement (the canvas-on
+    # result is a differently-shaped crumple, not a clearly better one).
+    # Deepening/tuning this is deferred, same as the rest of the drape.
+    canvas_indices = sorted(set(
+        declared_seams["forepart_L"]["canvas"] + declared_seams["forepart_R"]["canvas"]
+    ))
+    canvas_group = garment.vertex_groups.new(name="canvas")
+    canvas_group.add(canvas_indices, 1.0, "REPLACE")
+    mod.settings.vertex_group_bending = "canvas"
+    mod.settings.bending_stiffness_max = 30.0
+
     started = time.time()
     sew.bake(sc, garment, frames=args.frames)
     print(f"[p1.1] settled {args.frames} frames in {time.time() - started:.1f}s")

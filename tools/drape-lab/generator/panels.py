@@ -63,6 +63,12 @@ UNDERARM_INDEX = ARITY_VERTICAL - ARMSCYE_ARITY
 # opening away from FRONT_OVERLAP's straight edge. Ours, labelled as ours.
 NECK_V_START = 0.85
 NECK_INDEX = round(NECK_V_START * (ARITY_VERTICAL - 1))
+# Chapter 09 models canvas as a cloth stiffness field, not geometry; chapter
+# 14 explicitly blocks a sourced canvas boundary ("no public source gives
+# the boundary as a coordinate... initialised at the pocket line and
+# tuned"). Ours, labelled as ours -- roughly shoulder-to-chest, a stand-in
+# for "half canvas" until a real pocket-line coordinate exists.
+CANVAS_V_START = 0.5
 # Back's half of seam.neckline. back_panel()'s shoulder row (v=1) already
 # reserves 3 unclaimed centre points between shoulder_R and shoulder_L
 # (indices ARITY_SHOULDER..nu-ARITY_SHOULDER when nu=16, ARITY_SHOULDER=7 ->
@@ -239,6 +245,14 @@ def forepart(side: int):
         # or friction.
         _flip_faces(obj)
     cf, side_edge = b["u0"], b["u1"]
+    nu_local, nv_local = ARITY_SHOULDER - 1, ARITY_VERTICAL - 1
+    canvas_iv0 = round(CANVAS_V_START * nv_local)
+    # Not a seam -- an area, for setup_cloth()'s vertex_group_bending. _grid()
+    # adds verts in strict iv-major, iu-minor order (see its own loop), so
+    # index = iv*(nu+1)+iu is exact, not approximate.
+    canvas = [iv * (nu_local + 1) + iu
+              for iv in range(canvas_iv0, nv_local + 1)
+              for iu in range(nu_local + 1)]
     return obj, {
         # centre front, hem -> neck start only; neckline takes over above that.
         "cf": cf[: NECK_INDEX + 1],
@@ -248,6 +262,7 @@ def forepart(side: int):
         "armscye": side_edge[UNDERARM_INDEX:],  # underarm -> shoulder, shares the underarm point with "side"
         "hem": b["v0"],
         "shoulder": b["v1"],  # neck -> armhole, ordered cf -> side
+        "canvas": canvas,  # area, not a seam -- upper chest, for canvas stiffness
     }
 
 

@@ -433,6 +433,30 @@ tested in isolation). Kept the harmless `"tip"` boundary in `sleeve_cap()`'s
 return dict as correct, reusable infrastructure regardless of how the
 sleeve's actual fix ends up using it.
 
+### Canvas stiffness field, mechanism verified, not a visual win (this session)
+
+Chapter 09 models canvas as a cloth stiffness field, not new geometry --
+untried until now. Added `CANVAS_V_START = 0.5` (ours, unsourced, a
+shoulder-to-chest stand-in for "half canvas" until a real pocket-line
+coordinate exists -- chapter 14 explicitly blocks a sourced boundary here,
+same gap as `NECK_V_START`/`ARMSCYE_ARITY`) and a `"canvas"` entry on
+`forepart()`'s return dict: not a seam, an _area_ -- all vertex indices at
+or above that height, computed directly from `_grid()`'s known
+iv-major/iu-minor insertion order rather than needing new plumbing. Wired
+into `p1_1_drape.py`: a `"canvas"` vertex group, `vertex_group_bending`
+pointed at it, `bending_stiffness_max = 30.0` (vs. the base
+`bending_stiffness = 1.2`) so the covered area resists folding harder.
+
+**Verified by direct A/B**, not assumed: ran the identical setup twice,
+canvas mechanism on vs. off, nothing else changed. The drape measurably
+differs between the two (compared both renders directly) -- confirming the
+mechanism is real and correctly wired, not a no-op. **Honest limit**: the
+canvas-on result is not a clear visual improvement, just a differently-
+shaped crumple -- still doesn't read as a jacket. Recorded as what it is
+(working infrastructure, unproven quality gain) rather than overclaimed.
+Tuning `bending_stiffness_max` and the region's extent is deferred, same as
+every other drape-quality question this session left open.
+
 ### Recovered: hourly cloud routine's stranded chapter 05 rewrite (this session)
 
 Checked on the `suit-jacket-configurator-hourly-continue` cloud routine
