@@ -234,14 +234,33 @@ acceptance contract — this table is not a substitute for it.
 
 #### Immediate critical path (ordered — founder priority → dependency → value → risk → efficiency)
 
+**Update (2026-08-18, agent/lane-h-customer-ai-conversation):** this section
+was written 2026-08-13 and had gone stale — items 2, 4, and 5 below were
+independently built and merged to `origin/main` since (commits `169d81a`,
+`da01729`, plus the FT-04 migration/RPC/UI tranche), discovered while
+integrating a 76-commit `origin` pull into this branch. Re-verified directly
+against repository truth (not worker narration) before marking done:
+`@paon/database typecheck` passes with `alteration_grid_snapshots` present
+in generated types (the exact Docker/type-regen blocker below is resolved),
+full `pnpm typecheck`/`pnpm lint` clean across all 12 packages. Item 3
+(MorningRoutine buy) closed this same session — see its own entry. Items 4
+and 5 still have the same live-DB e2e verification gap FT-09 already
+flagged (shared local Supabase, cannot run in this sandboxed session — see
+"Real hard blockers"). Did **not** re-audit the rest of the Reconciliation
+counts table above; treat only the items named here as corrected.
+
 1. ~~**Mission Control decision intelligence**~~ — **DONE (2026-08-13)**,
    see build-order item 6 above for the connected, verified proof. Removed
    from the active critical path.
-2. **FT-04 alteration grid/snapshot/work-order** (Stage 12 / FT-04) —
-   NOT STARTED, one failed integration attempt already reverted this
-   session (real `pnpm --filter @paon/database typecheck` failures because
-   generated Supabase types were never regenerated against the new
-   migration — needs `supabase start`/`db reset`, i.e. local Docker).
+2. ~~**FT-04 alteration grid/snapshot/work-order**~~ — **BUILT**, found
+   already merged 2026-08-18 (`apps/retailer/components/alterations/
+ft04-alteration-grid.tsx`, `alteration-grid-snapshot-repository.ts`,
+   migration `20260814000000_add_ft04_alteration_grid_snapshots.sql`,
+   `apps/retailer/e2e/ft04-alteration-grid.spec.ts`). The Docker/type-regen
+   blocker this item was stuck on is resolved — generated types include
+   `alteration_grid_snapshots` and `@paon/database typecheck` is clean.
+   E2e spec exists but has not been run against a live database this
+   session. Removed from the active critical path pending that run.
    Self-contained: schema, pricing (`alteration_price_lists`), and role
    gates (`is_alterations_advisor`/`is_alterations_management`) all already
    exist. **BLOCKED on Docker availability for the type-regeneration step
@@ -286,11 +305,17 @@ acceptance contract — this table is not a substitute for it.
    create/respond RPCs, and `MessagingRepository` methods landed 2026-08-14;
    retailer composer UI and customer accept/decline UI landed 2026-08-14;
    browser proof requires clean-environment re-run.
-5. **TableService attachment quarantine resolution** — uploads currently
-   queue indefinitely with no scanner or retry/release UI. Needs a
-   provider decision (which scanner) before the UI can be finished —
-   record the decision as an ADR if none exists, then build the retry/
-   release surface regardless of which scanner is chosen.
+5. ~~**TableService attachment quarantine resolution**~~ — **BUILT**
+   (commit `da01729`, found already merged 2026-08-18). Adds
+   `release_message_attachment`, a SECURITY DEFINER RPC mirroring the
+   existing `retry_message_attachment_scan`'s staff-role re-derivation, so
+   a staff member can deliberately release an attachment under manual
+   review; wired plus the existing retry RPC into the retailer messages
+   page — non-cleared uploads show a status badge and Retry/Release
+   buttons instead of a bare "Attachment unavailable". Scanner-provider
+   choice remains genuinely undecided (per this item's original text) —
+   that was never the blocker this commit closed. Removed from the active
+   critical path.
 6. **Moonstruck guest-voucher customer redemption UI** — IMPLEMENTED
    2026-08-13 (commit `d6950b4`, cherry-picked from bounded worker commit
    `0a549f7`): `redeem_wedding_guest_voucher` SECURITY DEFINER RPC
@@ -314,11 +339,11 @@ acceptance contract — this table is not a substitute for it.
 
 #### Subsequent completion work (active/KEEP, not on the immediate critical path)
 
-- **Preferred Tailoring monthly grid** (FT-14) — NOT STARTED. No source to
-  port; build directly from the founder's written spec (current-month
-  calendar, some days fade in a suit/jacket image, ~4s fade with varied
-  start timing, mobile page-filling layout). No dependency on anything else
-  unbuilt.
+- **Preferred Tailoring monthly grid** (FT-14) — BUILT, found already
+  merged 2026-08-18 (`apps/customer/app/(dashboard)/services/
+preferred-tailoring-month-grid.tsx`, `apps/customer/e2e/
+preferred-tailoring-grid.spec.ts`). E2e spec exists but has not been run
+  against a live database this session.
 - **Location Finder** (FT-11) — BUILT (2026-08-14). Retailer settings editor
   (`/settings/locations`, staff-only) maintains branch location facts (address,
   coordinates, hours, contact, imagery, services, filter categories) and per-branch
@@ -327,23 +352,35 @@ acceptance contract — this table is not a substitute for it.
   map-mode branches, and an inline-SVG world plot for globe-mode branches. A full
   3D/Cesium globe was deferred pending the founder spec's own required bundle/tile-
   cost budget decision — not a missing build task, an acknowledged deferred design
-  choice awaiting founder input. **Note for agent/codex-openrouter integration:**
-  that branch has an older read-only stub at `apps/retailer/app/(dashboard)/
-locations/page.tsx` (commit 1368bd0) built before this schema existed and now
-  redundant — retire it or repoint to `/settings/locations` rather than keeping
-  both stubs.
+  choice awaiting founder input. **Update (2026-08-18,
+  agent/lane-h-customer-ai-conversation):** retired the older read-only stub
+  this note flagged (`apps/retailer/app/(dashboard)/locations/page.tsx`,
+  commit `1368bd0`, and its now-orphaned `BranchLocationList` component) —
+  it had zero nav references anywhere in the app. Its e2e coverage
+  (`location-finder.spec.ts`) was the only test FT-11 had and was testing
+  the stub, not the real `/settings/locations` editor, so it was rewritten
+  to exercise the actual edit-and-persist flow instead (fill "Store Type",
+  save, reload, assert the value persisted server-side). `@paon/retailer`
+  typecheck and lint on the new spec are clean; not yet run against a live
+  database this session.
 - **Loyalty**: METRE→MILLI→MICRON tier naming, retailer-configurable
   campaigns/percentages/milestones, dedicated badges page — all NOT
   STARTED on top of an already-COMPLETE ledger/milestone core (Stage 5.2).
-- **Corporate/Métier**: project-setup wizard (14.1 founder addition) NOT
-  STARTED; external-signal ingestion (18.11) real but manual-entry-only,
-  no autonomous discovery pipeline (`blocked_external`, correctly so —
-  no external data source access this environment); corporate project
-  lifecycle (18.7) missing production/qc/distribution/launch auto-triggers
-  from Stage 12 production-order events.
+- **Corporate/Métier**: project-setup wizard (14.1 founder addition) —
+  BUILT, found already merged 2026-08-18 (`apps/retailer/app/(dashboard)/
+corporate/setup-wizard/`, `apps/retailer/e2e/corporate-setup-wizard.spec.ts`,
+  not yet run against a live database this session); external-signal
+  ingestion (18.11) real but manual-entry-only, no autonomous discovery
+  pipeline (`blocked_external`, correctly so — no external data source
+  access this environment); corporate project lifecycle (18.7) missing
+  production/qc/distribution/launch auto-triggers from Stage 12
+  production-order events.
 - **Academy** (16.1): only the roleplay/coaching loop is real. Knowledge
-  libraries, DailyBriefing, MunroMentor, guided-tier definitions and the
-  consultancy-project workflow are SCAFFOLD/NOT STARTED.
+  libraries, MunroMentor, guided-tier definitions and the consultancy-project
+  workflow are SCAFFOLD/NOT STARTED. **DailyBriefing** (admin) — BUILT,
+  found already merged 2026-08-18 (`apps/admin/app/(dashboard)/
+daily-briefing/page.tsx`); no e2e coverage found for it, not verified
+  against a live database this session.
 - **Shopify/Faden connectors**: connection lifecycle UI is real; scheduled/
   webhook execution is manual-trigger only, not actually scheduled.
 - **Catalogue/migration**: retailer migration concierge (customer export/
@@ -356,8 +393,12 @@ locations/page.tsx` (commit 1368bd0) built before this schema existed and now
   revoke/refund states remain PARTIAL.
 - **Payroll** (11.1): core workflow COMPLETE with real E2E; external
   payroll-provider export adapter is the one remaining PARTIAL piece.
-- **Mission-Control-led in-store feedback** (16.4): schema-level only per
-  its own Stage entry; needs the salesperson-facing capture UI.
+- **Mission-Control-led in-store feedback** (16.4) — BUILT, found already
+  merged 2026-08-18 (`apps/retailer/app/(dashboard)/store-sessions/
+feedback-capture.tsx`, wired to a real `captureFeedback` Server Action
+  with idempotency-key handling and `store-feedback-repository.ts`;
+  `apps/retailer/e2e/store-feedback.spec.ts` exists, not yet run against a
+  live database this session).
 
 #### PARKED — preserved, not selectable (do not build without founder reactivation)
 
