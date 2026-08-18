@@ -1,1 +1,27 @@
 @import "@paon/ui/styles.css";
+
+/*
+ * FT-14 Preferred Tailoring monthly grid: a subset of day cells show a
+ * garment image that fades in with a per-day varied start delay and an
+ * ~4s fade, rather than every image appearing at once. `--pt-fade-delay`
+ * is set inline per cell (see preferred-tailoring/page.tsx).
+ */
+@keyframes preferred-tailoring-photo-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.preferred-tailoring-photo-fade {
+  animation: preferred-tailoring-photo-fade 4s ease-in both;
+  animation-delay: var(--pt-fade-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preferred-tailoring-photo-fade {
+    animation: none;
+  }
+}

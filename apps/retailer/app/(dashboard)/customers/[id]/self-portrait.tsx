@@ -6,13 +6,15 @@ import type {
   LoyaltyAccount,
   LoyaltyMilestoneAward,
 } from "@paon/domain";
-import { LOYALTY_TIER_LABELS, milestonePresentation } from "@paon/domain";
+import { milestonePresentation } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
 
 import { correctCustomerFact } from "./fact-correction-actions";
+
+import { RETAILER_LOYALTY_TIER_LABELS } from "@/lib/loyalty-tier-labels";
 
 const TIER_TONE = {
   member: "neutral",
@@ -110,7 +112,7 @@ export function SelfPortrait({
         {loyaltyAccount ? (
           <div className="text-right">
             <Badge tone={TIER_TONE[loyaltyAccount.tier]}>
-              {LOYALTY_TIER_LABELS[loyaltyAccount.tier]}
+              {RETAILER_LOYALTY_TIER_LABELS[loyaltyAccount.tier]}
             </Badge>
             <p className="mt-1 text-sm text-[var(--color-stone-700)]">
               {loyaltyAccount.pointsBalance.toLocaleString("en-US")} pts

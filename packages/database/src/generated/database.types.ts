@@ -444,13 +444,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "advisor_capture_bundles_linked_service_booking_id_fkey";
-            columns: ["linked_service_booking_id"];
-            isOneToOne: false;
-            referencedRelation: "service_bookings";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "advisor_capture_bundles_linked_fact_id_fkey";
             columns: ["linked_fact_id"];
             isOneToOne: false;
@@ -469,6 +462,13 @@ export type Database = {
             columns: ["linked_opportunity_id"];
             isOneToOne: false;
             referencedRelation: "clienteling_opportunities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advisor_capture_bundles_linked_service_booking_id_fkey";
+            columns: ["linked_service_booking_id"];
+            isOneToOne: false;
+            referencedRelation: "service_bookings";
             referencedColumns: ["id"];
           },
           {
@@ -949,6 +949,85 @@ export type Database = {
           },
         ];
       };
+      alteration_grid_snapshots: {
+        Row: {
+          alteration_id: string;
+          comments: string | null;
+          created_at: string;
+          created_by_staff_id: string | null;
+          customer_id: string;
+          id: string;
+          retailer_id: string;
+          values: Json;
+          version: number;
+        };
+        Insert: {
+          alteration_id: string;
+          comments?: string | null;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          customer_id: string;
+          id?: string;
+          retailer_id: string;
+          values: Json;
+          version: number;
+        };
+        Update: {
+          alteration_id?: string;
+          comments?: string | null;
+          created_at?: string;
+          created_by_staff_id?: string | null;
+          customer_id?: string;
+          id?: string;
+          retailer_id?: string;
+          values?: Json;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "alteration_grid_snapshots_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_snapshots_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_snapshots_alteration_id_fkey";
+            columns: ["alteration_id"];
+            isOneToOne: false;
+            referencedRelation: "worker_alteration_work_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_snapshots_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_snapshots_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_grid_snapshots_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       alteration_operations: {
         Row: {
           active: boolean;
@@ -1374,6 +1453,7 @@ export type Database = {
           material_cost_amount_minor_units: number | null;
           operation_id: string | null;
           origin_fitting_observation_id: string | null;
+          origin_grid_snapshot_id: string | null;
           original_quote_amount_minor_units: number;
           original_quote_currency: string;
           partner_cost_amount_minor_units: number | null;
@@ -1397,6 +1477,7 @@ export type Database = {
           material_cost_amount_minor_units?: number | null;
           operation_id?: string | null;
           origin_fitting_observation_id?: string | null;
+          origin_grid_snapshot_id?: string | null;
           original_quote_amount_minor_units?: number;
           original_quote_currency: string;
           partner_cost_amount_minor_units?: number | null;
@@ -1420,6 +1501,7 @@ export type Database = {
           material_cost_amount_minor_units?: number | null;
           operation_id?: string | null;
           origin_fitting_observation_id?: string | null;
+          origin_grid_snapshot_id?: string | null;
           original_quote_amount_minor_units?: number;
           original_quote_currency?: string;
           partner_cost_amount_minor_units?: number | null;
@@ -1469,6 +1551,13 @@ export type Database = {
             columns: ["origin_fitting_observation_id"];
             isOneToOne: false;
             referencedRelation: "fitting_observations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "alteration_tasks_origin_grid_snapshot_id_fkey";
+            columns: ["origin_grid_snapshot_id"];
+            isOneToOne: false;
+            referencedRelation: "alteration_grid_snapshots";
             referencedColumns: ["id"];
           },
           {
@@ -3747,6 +3836,91 @@ export type Database = {
           },
         ];
       };
+      conversation_proposals: {
+        Row: {
+          advisor_note: string;
+          alternatives: Json;
+          appointment_offered: boolean;
+          conversation_id: string;
+          created_at: string;
+          created_by_staff_id: string;
+          expires_at: string;
+          id: string;
+          items: Json;
+          price_currency: string | null;
+          price_minor_units: number | null;
+          responded_at: string | null;
+          response: string | null;
+          retailer_id: string;
+          status: string;
+          title: string;
+          updated_at: string;
+          version: number;
+        };
+        Insert: {
+          advisor_note: string;
+          alternatives?: Json;
+          appointment_offered?: boolean;
+          conversation_id: string;
+          created_at?: string;
+          created_by_staff_id: string;
+          expires_at: string;
+          id?: string;
+          items?: Json;
+          price_currency?: string | null;
+          price_minor_units?: number | null;
+          responded_at?: string | null;
+          response?: string | null;
+          retailer_id: string;
+          status?: string;
+          title: string;
+          updated_at?: string;
+          version: number;
+        };
+        Update: {
+          advisor_note?: string;
+          alternatives?: Json;
+          appointment_offered?: boolean;
+          conversation_id?: string;
+          created_at?: string;
+          created_by_staff_id?: string;
+          expires_at?: string;
+          id?: string;
+          items?: Json;
+          price_currency?: string | null;
+          price_minor_units?: number | null;
+          responded_at?: string | null;
+          response?: string | null;
+          retailer_id?: string;
+          status?: string;
+          title?: string;
+          updated_at?: string;
+          version?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "conversation_proposals_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversation_proposals_created_by_staff_id_fkey";
+            columns: ["created_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "conversation_proposals_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       conversations: {
         Row: {
           buying_intent_level: string | null;
@@ -3883,7 +4057,8 @@ export type Database = {
       };
       corporate_announcements: {
         Row: {
-          authored_by_staff_id: string;
+          authored_by_manager_id: string | null;
+          authored_by_staff_id: string | null;
           body: string;
           created_at: string;
           deleted_at: string | null;
@@ -3895,7 +4070,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
-          authored_by_staff_id: string;
+          authored_by_manager_id?: string | null;
+          authored_by_staff_id?: string | null;
           body: string;
           created_at?: string;
           deleted_at?: string | null;
@@ -3907,7 +4083,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
-          authored_by_staff_id?: string;
+          authored_by_manager_id?: string | null;
+          authored_by_staff_id?: string | null;
           body?: string;
           created_at?: string;
           deleted_at?: string | null;
@@ -3919,6 +4096,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "corporate_announcements_authored_by_manager_id_fkey";
+            columns: ["authored_by_manager_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_managers";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "corporate_announcements_authored_by_staff_id_fkey";
             columns: ["authored_by_staff_id"];
@@ -4251,6 +4435,60 @@ export type Database = {
             columns: ["wearer_id"];
             isOneToOne: false;
             referencedRelation: "corporate_wearers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      corporate_managers: {
+        Row: {
+          account_id: string;
+          active: boolean;
+          contact_name: string;
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          login_email: string | null;
+          retailer_id: string;
+          updated_at: string;
+          user_id: string | null;
+        };
+        Insert: {
+          account_id: string;
+          active?: boolean;
+          contact_name: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          login_email?: string | null;
+          retailer_id: string;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          account_id?: string;
+          active?: boolean;
+          contact_name?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          login_email?: string | null;
+          retailer_id?: string;
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_managers_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_managers_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
             referencedColumns: ["id"];
           },
         ];
@@ -5638,6 +5876,7 @@ export type Database = {
           communication_channels: string[];
           created_at: string;
           customer_id: string;
+          email_suppressed_at: string | null;
           location_opt_in: boolean;
           location_withdrawn_at: string | null;
           marketing_opt_in: boolean;
@@ -5646,6 +5885,7 @@ export type Database = {
           personalization_withdrawn_at: string | null;
           preferred_currency: string;
           preferred_locale: string;
+          sms_suppressed_at: string | null;
           style_notes: string | null;
           updated_at: string;
         };
@@ -5653,6 +5893,7 @@ export type Database = {
           communication_channels?: string[];
           created_at?: string;
           customer_id: string;
+          email_suppressed_at?: string | null;
           location_opt_in?: boolean;
           location_withdrawn_at?: string | null;
           marketing_opt_in?: boolean;
@@ -5661,6 +5902,7 @@ export type Database = {
           personalization_withdrawn_at?: string | null;
           preferred_currency?: string;
           preferred_locale?: string;
+          sms_suppressed_at?: string | null;
           style_notes?: string | null;
           updated_at?: string;
         };
@@ -5668,6 +5910,7 @@ export type Database = {
           communication_channels?: string[];
           created_at?: string;
           customer_id?: string;
+          email_suppressed_at?: string | null;
           location_opt_in?: boolean;
           location_withdrawn_at?: string | null;
           marketing_opt_in?: boolean;
@@ -5676,6 +5919,7 @@ export type Database = {
           personalization_withdrawn_at?: string | null;
           preferred_currency?: string;
           preferred_locale?: string;
+          sms_suppressed_at?: string | null;
           style_notes?: string | null;
           updated_at?: string;
         };
@@ -6619,11 +6863,63 @@ export type Database = {
           },
         ];
       };
+      gift_invitation_state_history: {
+        Row: {
+          actor_staff_id: string | null;
+          created_at: string;
+          from_status:
+            Database["public"]["Enums"]["gift_invitation_status"] | null;
+          gift_invitation_id: string;
+          id: string;
+          reason: string | null;
+          refund_amount_minor_units: number | null;
+          to_status: Database["public"]["Enums"]["gift_invitation_status"];
+        };
+        Insert: {
+          actor_staff_id?: string | null;
+          created_at?: string;
+          from_status?:
+            Database["public"]["Enums"]["gift_invitation_status"] | null;
+          gift_invitation_id: string;
+          id?: string;
+          reason?: string | null;
+          refund_amount_minor_units?: number | null;
+          to_status: Database["public"]["Enums"]["gift_invitation_status"];
+        };
+        Update: {
+          actor_staff_id?: string | null;
+          created_at?: string;
+          from_status?:
+            Database["public"]["Enums"]["gift_invitation_status"] | null;
+          gift_invitation_id?: string;
+          id?: string;
+          reason?: string | null;
+          refund_amount_minor_units?: number | null;
+          to_status?: Database["public"]["Enums"]["gift_invitation_status"];
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gift_invitation_state_history_actor_staff_id_fkey";
+            columns: ["actor_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gift_invitation_state_history_gift_invitation_id_fkey";
+            columns: ["gift_invitation_id"];
+            isOneToOne: false;
+            referencedRelation: "gift_invitations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       gift_invitations: {
         Row: {
           created_at: string;
           created_by_staff_id: string | null;
           email_sent_at: string | null;
+          expires_at: string | null;
           gift_experience_id: string;
           id: string;
           invite_token: string;
@@ -6634,12 +6930,16 @@ export type Database = {
           redeemed_curated_item_id: string | null;
           redeemed_recipient_email: string | null;
           redeemed_recipient_name: string | null;
+          refund_amount_minor_units: number | null;
+          refund_reason: string | null;
+          revoked_at: string | null;
           status: Database["public"]["Enums"]["gift_invitation_status"];
         };
         Insert: {
           created_at?: string;
           created_by_staff_id?: string | null;
           email_sent_at?: string | null;
+          expires_at?: string | null;
           gift_experience_id: string;
           id?: string;
           invite_token?: string;
@@ -6650,12 +6950,16 @@ export type Database = {
           redeemed_curated_item_id?: string | null;
           redeemed_recipient_email?: string | null;
           redeemed_recipient_name?: string | null;
+          refund_amount_minor_units?: number | null;
+          refund_reason?: string | null;
+          revoked_at?: string | null;
           status?: Database["public"]["Enums"]["gift_invitation_status"];
         };
         Update: {
           created_at?: string;
           created_by_staff_id?: string | null;
           email_sent_at?: string | null;
+          expires_at?: string | null;
           gift_experience_id?: string;
           id?: string;
           invite_token?: string;
@@ -6666,6 +6970,9 @@ export type Database = {
           redeemed_curated_item_id?: string | null;
           redeemed_recipient_email?: string | null;
           redeemed_recipient_name?: string | null;
+          refund_amount_minor_units?: number | null;
+          refund_reason?: string | null;
+          revoked_at?: string | null;
           status?: Database["public"]["Enums"]["gift_invitation_status"];
         };
         Relationships: [
@@ -12866,32 +13173,86 @@ export type Database = {
       };
       retailer_branches: {
         Row: {
+          address_line1: string | null;
+          address_line2: string | null;
+          city: string | null;
+          contact_actions: Json;
+          contact_email: string | null;
+          country: string | null;
           created_at: string;
           deleted_at: string | null;
+          filter_categories: string[];
           id: string;
+          imagery: Json;
           is_default: boolean;
+          latitude: number | null;
+          longitude: number | null;
           name: string;
+          opening_hours: Json;
+          phone: string | null;
+          postal_code: string | null;
+          presentation_mode: string;
+          published: boolean;
+          region: string | null;
           retailer_id: string;
+          services: string[];
+          store_type: string | null;
           timezone: string;
           updated_at: string;
         };
         Insert: {
+          address_line1?: string | null;
+          address_line2?: string | null;
+          city?: string | null;
+          contact_actions?: Json;
+          contact_email?: string | null;
+          country?: string | null;
           created_at?: string;
           deleted_at?: string | null;
+          filter_categories?: string[];
           id?: string;
+          imagery?: Json;
           is_default?: boolean;
+          latitude?: number | null;
+          longitude?: number | null;
           name: string;
+          opening_hours?: Json;
+          phone?: string | null;
+          postal_code?: string | null;
+          presentation_mode?: string;
+          published?: boolean;
+          region?: string | null;
           retailer_id: string;
+          services?: string[];
+          store_type?: string | null;
           timezone: string;
           updated_at?: string;
         };
         Update: {
+          address_line1?: string | null;
+          address_line2?: string | null;
+          city?: string | null;
+          contact_actions?: Json;
+          contact_email?: string | null;
+          country?: string | null;
           created_at?: string;
           deleted_at?: string | null;
+          filter_categories?: string[];
           id?: string;
+          imagery?: Json;
           is_default?: boolean;
+          latitude?: number | null;
+          longitude?: number | null;
           name?: string;
+          opening_hours?: Json;
+          phone?: string | null;
+          postal_code?: string | null;
+          presentation_mode?: string;
+          published?: boolean;
+          region?: string | null;
           retailer_id?: string;
+          services?: string[];
+          store_type?: string | null;
           timezone?: string;
           updated_at?: string;
         };
@@ -16827,6 +17188,76 @@ export type Database = {
           },
         ];
       };
+      store_feedback_signals: {
+        Row: {
+          acknowledged_at: string | null;
+          audience: string;
+          corrects_signal_id: string | null;
+          created_at: string;
+          customer_id: string | null;
+          feedback: string;
+          follow_up_note: string | null;
+          garment_ref: string | null;
+          id: string;
+          idempotency_key: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          acknowledged_at?: string | null;
+          audience: string;
+          corrects_signal_id?: string | null;
+          created_at?: string;
+          customer_id?: string | null;
+          feedback: string;
+          follow_up_note?: string | null;
+          garment_ref?: string | null;
+          id?: string;
+          idempotency_key: string;
+          retailer_id: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          acknowledged_at?: string | null;
+          audience?: string;
+          corrects_signal_id?: string | null;
+          created_at?: string;
+          customer_id?: string | null;
+          feedback?: string;
+          follow_up_note?: string | null;
+          garment_ref?: string | null;
+          id?: string;
+          idempotency_key?: string;
+          retailer_id?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "store_feedback_signals_corrects_signal_id_fkey";
+            columns: ["corrects_signal_id"];
+            isOneToOne: false;
+            referencedRelation: "store_feedback_signals";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "store_feedback_signals_customer_tenant_fkey";
+            columns: ["customer_id", "retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "store_feedback_signals_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       store_observations: {
         Row: {
           adapter_kind: string;
@@ -19796,6 +20227,30 @@ export type Database = {
         Args: { p_staff_id: string };
         Returns: undefined;
       };
+      acknowledge_store_feedback_signal: {
+        Args: { p_follow_up_note: string; p_signal_id: string };
+        Returns: {
+          acknowledged_at: string | null;
+          audience: string;
+          corrects_signal_id: string | null;
+          created_at: string;
+          customer_id: string | null;
+          feedback: string;
+          follow_up_note: string | null;
+          garment_ref: string | null;
+          id: string;
+          idempotency_key: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "store_feedback_signals";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       add_alteration_task: {
         Args: {
           p_alteration_id: string;
@@ -19981,6 +20436,36 @@ export type Database = {
           p_source?: string;
         };
         Returns: string;
+      };
+      capture_store_feedback_signal: {
+        Args: {
+          p_audience?: string;
+          p_customer_id?: string;
+          p_feedback?: string;
+          p_garment_ref?: string;
+          p_idempotency_key?: string;
+        };
+        Returns: {
+          acknowledged_at: string | null;
+          audience: string;
+          corrects_signal_id: string | null;
+          created_at: string;
+          customer_id: string | null;
+          feedback: string;
+          follow_up_note: string | null;
+          garment_ref: string | null;
+          id: string;
+          idempotency_key: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "store_feedback_signals";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       checkout_cart: {
         Args: { p_order_id: string; p_shipping_address: Json };
@@ -20226,6 +20711,37 @@ export type Database = {
         };
         Returns: string;
       };
+      correct_store_feedback_signal: {
+        Args: {
+          p_audience?: string;
+          p_customer_id?: string;
+          p_feedback?: string;
+          p_garment_ref?: string;
+          p_idempotency_key?: string;
+          p_signal_id: string;
+        };
+        Returns: {
+          acknowledged_at: string | null;
+          audience: string;
+          corrects_signal_id: string | null;
+          created_at: string;
+          customer_id: string | null;
+          feedback: string;
+          follow_up_note: string | null;
+          garment_ref: string | null;
+          id: string;
+          idempotency_key: string;
+          retailer_id: string;
+          status: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "store_feedback_signals";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       count_inventory_disagreements: { Args: never; Returns: number };
       create_alteration_intake: {
         Args: {
@@ -20248,10 +20764,25 @@ export type Database = {
         };
         Returns: string;
       };
+      create_conversation_proposal: {
+        Args: {
+          p_advisor_note: string;
+          p_alternatives?: Json;
+          p_appointment_offered?: boolean;
+          p_conversation_id: string;
+          p_expires_at?: string;
+          p_items: Json;
+          p_price_currency?: string;
+          p_price_minor_units?: number;
+          p_title: string;
+        };
+        Returns: string;
+      };
       create_my_referral: {
         Args: { p_referred_email: string; p_retailer_id: string };
         Returns: string;
       };
+      current_corporate_manager_id: { Args: never; Returns: string };
       current_platform_role: { Args: never; Returns: string };
       current_retailer_id: { Args: never; Returns: string };
       current_retailer_role: { Args: never; Returns: string };
@@ -20273,6 +20804,14 @@ export type Database = {
       dismiss_conversation_ai_draft: {
         Args: { p_draft_id: string };
         Returns: boolean;
+      };
+      dispatch_alteration_grid_snapshot: {
+        Args: {
+          p_comments?: string;
+          p_selected_operation_ids: string[];
+          p_snapshot_id: string;
+        };
+        Returns: string;
       };
       end_academy_roleplay_session: {
         Args: { p_session_id: string; p_status: string };
@@ -20460,6 +20999,10 @@ export type Database = {
         Returns: string;
       };
       expire_due_prospect_demo_environments: { Args: never; Returns: number };
+      expire_gift_invitation: {
+        Args: { p_invitation_id: string };
+        Returns: Database["public"]["Enums"]["gift_invitation_status"];
+      };
       generate_concept_scan_code: { Args: never; Returns: string };
       generate_prospect_demo_environment: {
         Args: {
@@ -20558,6 +21101,7 @@ export type Database = {
         };
         Returns: Json;
       };
+      link_my_corporate_manager_account: { Args: never; Returns: undefined };
       link_my_customer_accounts: { Args: never; Returns: undefined };
       link_my_wearer_account: { Args: never; Returns: undefined };
       link_service_booking_appointment: {
@@ -20574,6 +21118,14 @@ export type Database = {
       };
       mark_conversation_read: {
         Args: { p_conversation_id: string };
+        Returns: undefined;
+      };
+      mark_gift_invitation_refunded: {
+        Args: {
+          p_invitation_id: string;
+          p_reason: string;
+          p_refund_amount_minor_units: number;
+        };
         Returns: undefined;
       };
       mark_morning_routine_review: {
@@ -20953,6 +21505,10 @@ export type Database = {
         Args: { p_candidate_id: string; p_note?: string };
         Returns: undefined;
       };
+      release_message_attachment: {
+        Args: { p_attachment_id: string };
+        Returns: undefined;
+      };
       remove_inferred_style_preference: {
         Args: {
           p_concept_id: string;
@@ -21124,6 +21680,10 @@ export type Database = {
         Args: { p_token: string };
         Returns: Json;
       };
+      respond_to_conversation_proposal: {
+        Args: { p_proposal_id: string; p_response: string };
+        Returns: undefined;
+      };
       restore_retailer_brand_theme: {
         Args: { p_retailer_id: string; p_version_number: number };
         Returns: number;
@@ -21182,12 +21742,20 @@ export type Database = {
         };
         Returns: string;
       };
+      revoke_gift_invitation: {
+        Args: { p_invitation_id: string; p_reason: string };
+        Returns: undefined;
+      };
       rsvp_to_event: {
         Args: {
           p_event_id: string;
           p_status: Database["public"]["Enums"]["event_rsvp_status"];
         };
         Returns: undefined;
+      };
+      save_alteration_grid_snapshot: {
+        Args: { p_alteration_id: string; p_comments?: string; p_values: Json };
+        Returns: string;
       };
       save_prospect_demo_configuration: {
         Args: {
@@ -21738,7 +22306,7 @@ export type Database = {
       garment_source_kind: "external" | "finished_mtm";
       gift_experience_status: "draft" | "active" | "expired" | "revoked";
       gift_invitation_status:
-        "pending" | "opened" | "redeemed" | "expired" | "revoked";
+        "pending" | "opened" | "redeemed" | "expired" | "revoked" | "refunded";
       knowledge_commercial_intent:
         | "educate"
         | "justify_premium"
@@ -22145,6 +22713,7 @@ export const Constants = {
         "redeemed",
         "expired",
         "revoked",
+        "refunded",
       ],
       knowledge_commercial_intent: [
         "educate",

@@ -8,6 +8,8 @@ import {
   type GiftExperienceStatus,
   type GiftInvitation,
   type GiftInvitationId,
+  type GiftInvitationStateHistory,
+  type GiftInvitationStatus,
   type GiftReveal,
   type RetailerId,
   type StaffId,
@@ -19,6 +21,8 @@ import type { Database } from "../generated/database.types";
 type ExperienceRow = Database["public"]["Tables"]["gift_experiences"]["Row"];
 type CuratedItemRow = Database["public"]["Tables"]["gift_curated_items"]["Row"];
 type InvitationRow = Database["public"]["Tables"]["gift_invitations"]["Row"];
+type StateHistoryRow =
+  Database["public"]["Tables"]["gift_invitation_state_history"]["Row"];
 
 const toExperience = (row: ExperienceRow): GiftExperience => ({
   id: asId<"GiftExperienceId">(row.id),
@@ -59,6 +63,27 @@ const toInvitation = (row: InvitationRow): GiftInvitation => ({
       }
     : {}),
   ...(row.email_sent_at ? { emailSentAt: row.email_sent_at } : {}),
+  ...(row.expires_at ? { expiresAt: row.expires_at } : {}),
+  ...(row.revoked_at ? { revokedAt: row.revoked_at } : {}),
+  ...(row.refund_amount_minor_units != null
+    ? { refundAmountMinorUnits: row.refund_amount_minor_units }
+    : {}),
+  ...(row.refund_reason ? { refundReason: row.refund_reason } : {}),
+  createdAt: row.created_at,
+});
+
+const toStateHistory = (row: StateHistoryRow): GiftInvitationStateHistory => ({
+  id: row.id,
+  giftInvitationId: asId<"GiftInvitationId">(row.gift_invitation_id),
+  ...(row.from_status ? { fromStatus: row.from_status } : {}),
+  toStatus: row.to_status,
+  ...(row.reason ? { reason: row.reason } : {}),
+  ...(row.refund_amount_minor_units != null
+    ? { refundAmountMinorUnits: row.refund_amount_minor_units }
+    : {}),
+  ...(row.actor_staff_id
+    ? { actorStaffId: asId<"StaffId">(row.actor_staff_id) }
+    : {}),
   createdAt: row.created_at,
 });
 
@@ -288,5 +313,68 @@ export class GiftRepository {
     );
     if (error) throw error;
     return data as string;
+  }
+
+  /** Idempotent lazy expiry (`expire_gift_invitation`, SECURITY DEFINER).
+   * No-ops on any invitation that isn't currently pending/opened past its
+   * own or its experience's `expiresAt`; returns the invitation's
+   * (possibly unchanged) status. */
+  async recordExpiry(
+    invitationId: GiftInvitationId,
+  ): Promise<GiftInvitationStatus> {
+    const { data, error } = await this.client.rpc("expire_gift_invitation", {
+      p_invitation_id: invitationId,
+    });
+    if (error) throw error;
+    return data as GiftInvitationStatus;
+  }
+
+  /** Retailer-manager-only single-invitation revoke
+   * (`revoke_gift_invitation`, SECURITY DEFINER — re-derives manager
+   * authorization server-side). Only a still-live (pending/opened)
+   * invitation can be revoked; see `canRevoke`. */
+  async recordRevocation(
+    invitationId: GiftInvitationId,
+    reason?: string,
+  ): Promise<void> {
+    const { error } = await this.client.rpc("revoke_gift_invitation", {
+      p_invitation_id: invitationId,
+      p_reason: reason ?? "",
+    });
+    if (error) throw error;
+  }
+
+  /** Retailer-manager-only refund record (`mark_gift_invitation_refunded`,
+   * SECURITY DEFINER — re-derives manager authorization server-side).
+   * This records that a refund was decided and executed elsewhere; it
+   * does not call a payment processor. Only a redeemed invitation that
+   * has not already been refunded can be marked refunded — the database
+   * guard (not this method) is what prevents a double refund. */
+  async recordRefund(params: {
+    invitationId: GiftInvitationId;
+    refundAmountMinorUnits: number;
+    reason?: string;
+  }): Promise<void> {
+    const { error } = await this.client.rpc("mark_gift_invitation_refunded", {
+      p_invitation_id: params.invitationId,
+      p_refund_amount_minor_units: params.refundAmountMinorUnits,
+      p_reason: params.reason ?? "",
+    });
+    if (error) throw error;
+  }
+
+  /** Full append-only transition history for one invitation, newest
+   * first — retailer staff of the owning retailer only (RLS), never the
+   * anonymous recipient. */
+  async findStateHistory(
+    invitationId: GiftInvitationId,
+  ): Promise<GiftInvitationStateHistory[]> {
+    const { data, error } = await this.client
+      .from("gift_invitation_state_history")
+      .select("*")
+      .eq("gift_invitation_id", invitationId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(toStateHistory);
   }
 }

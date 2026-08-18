@@ -28,6 +28,7 @@ import { FormField } from "@paon/ui/components/FormField";
 import Link from "next/link";
 
 import { requestConciergeBooking } from "./actions";
+import { PreferredTailoringMonthGrid } from "./preferred-tailoring-month-grid";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -111,7 +112,14 @@ export default async function CustomerServicesPage() {
         </p>
       </div>
 
-      <CareJourney careStatus={careStatus} careRecords={careRecords} />
+      <PreferredTailoringMonthGrid
+        bookings={groups.flatMap((group) => group.bookings)}
+        now={new Date()}
+      />
+
+      <div id="care-journey">
+        <CareJourney careStatus={careStatus} careRecords={careRecords} />
+      </div>
 
       {groups.every((group) => group.memberships.length === 0) ? (
         <Card className="flex flex-col gap-2">

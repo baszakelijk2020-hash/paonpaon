@@ -12,6 +12,7 @@ import {
   morningRoutineActionInputSchema,
 } from "@paon/domain";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import type { ZodError } from "zod";
 
 import { buildAndPersistMorningRoutineSelection } from "./generation";
@@ -168,6 +169,7 @@ export async function runMorningRoutineAction(
     return { fieldErrors: {}, formError: "Not authorized for this routine." };
   }
 
+  let finalOrderId: string | undefined;
   try {
     if (parsed.data.action === "save") {
       if (parsed.data.productVariantId) {
@@ -180,12 +182,32 @@ export async function runMorningRoutineAction(
       revalidatePath("/wishlist");
     } else if (parsed.data.action === "review") {
       await routineRepo.markReview(parsed.data.selectionId, "reviewed");
-    } else if (parsed.data.action === "book" || parsed.data.action === "buy") {
-      // Navigation-only actions — authorization already verified.
+    } else if (parsed.data.action === "book") {
+      // Navigation-only action — authorization already verified.
+    } else if (parsed.data.action === "buy") {
+      if (!parsed.data.productVariantId) {
+        return { fieldErrors: {}, formError: "No item to buy." };
+      }
+      const address = owned.customer.shippingAddresses[0];
+      if (!address) {
+        return {
+          fieldErrors: {},
+          formError: "Turn on 1-Tap Checkout first — no saved address.",
+        };
+      }
+      const orderRepo = new OrderRepository(supabase);
+      const orderId = await orderRepo.addToCart({
+        retailerId: asId<"RetailerId">(parsed.data.retailerId),
+        productVariantId: parsed.data.productVariantId,
+        quantity: 1,
+      });
+      finalOrderId = await orderRepo.checkoutCart(orderId, address);
     }
 
     revalidatePath("/morning-routine");
-    return { fieldErrors: {}, success: true };
+    if (finalOrderId) {
+      revalidatePath("/orders");
+    }
   } catch (error) {
     return {
       fieldErrors: {},
@@ -193,79 +215,9 @@ export async function runMorningRoutineAction(
         error instanceof Error ? error.message : "Could not complete action.",
     };
   }
-}
 
-export interface BuyMorningRoutineItemState {
-  fieldErrors: Record<string, string>;
-  formError?: string;
-  success?: boolean;
-  orderId?: string;
-  notEligible?: boolean;
-  productHref?: string;
-}
-
-export async function buyMorningRoutineItem(
-  _prevState: BuyMorningRoutineItemState,
-  formData: FormData,
-): Promise<BuyMorningRoutineItemState> {
-  const session = await requireSession();
-  const retailerId = formData.get("retailerId");
-  const productVariantId = formData.get("productVariantId");
-  const productHref = formData.get("productHref");
-
-  if (typeof retailerId !== "string" || retailerId.trim() === "") {
-    return { fieldErrors: { retailerId: "Retailer ID required." } };
+  if (finalOrderId) {
+    redirect(`/orders/${finalOrderId}`);
   }
-  if (typeof productVariantId !== "string" || productVariantId.trim() === "") {
-    return {
-      fieldErrors: { productVariantId: "Product variant ID required." },
-    };
-  }
-  if (typeof productHref !== "string") {
-    return { fieldErrors: { productHref: "Product link required." } };
-  }
-
-  try {
-    const supabase = await getSupabaseServerClient();
-    const customers = await new CustomerRepository(supabase).findByUserId(
-      session.userId as never,
-    );
-    const customer = customers.find((c) => c.retailerId === retailerId);
-    if (!customer) {
-      return { fieldErrors: {}, formError: "Customer relationship not found." };
-    }
-
-    // Check one-tap-checkout eligibility: customer must have a saved default address
-    const hasDefaultAddress =
-      customer.shippingAddresses && customer.shippingAddresses.length > 0;
-    if (!hasDefaultAddress) {
-      // Not eligible — signal UI to fall back to product page link
-      return {
-        fieldErrors: {},
-        notEligible: true,
-        productHref,
-      };
-    }
-
-    // Eligible — add to cart
-    const orderRepo = new OrderRepository(supabase);
-    const orderId = await orderRepo.addToCart({
-      retailerId: asId<"RetailerId">(retailerId),
-      productVariantId,
-      quantity: 1,
-    });
-
-    revalidatePath("/morning-routine");
-    return {
-      fieldErrors: {},
-      success: true,
-      orderId,
-    };
-  } catch (error) {
-    return {
-      fieldErrors: {},
-      formError:
-        error instanceof Error ? error.message : "Could not add item to cart.",
-    };
-  }
+  return { fieldErrors: {}, success: true };
 }

@@ -6,10 +6,8 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import {
-  buyMorningRoutineItem,
   generateMorningRoutineSelection,
   runMorningRoutineAction,
-  type BuyMorningRoutineItemState,
   type MorningRoutineActionState,
 } from "./actions";
 
@@ -23,13 +21,14 @@ import { startConversation } from "@/app/(dashboard)/messages/actions";
  * weather/calendar/live context, complementary wardrobe pieces, missing/
  * purchasable piece and clear delivery timing") rather than a source port.
  * The prior implementation was a plain numbered `<ul>`; every Server
- * Action and data field here is unchanged, only the composition. Order
- * creation remains the Commerce boundary — "Buy" continues to link to the
- * existing product page rather than creating anything here.
+ * Action and data field here is unchanged, only the composition. "Buy"
+ * creates a real order via the same `add_to_cart`/`checkout_cart` RPCs
+ * one-tap-checkout uses, gated on the same saved default address — no
+ * payment step. Falls back to linking the product page when no variant
+ * is resolvable for one-tap creation.
  */
 
 const initial: MorningRoutineActionState = { fieldErrors: {} };
-const buyInitial: BuyMorningRoutineItemState = { fieldErrors: {} };
 
 type Recommendation = {
   id: string;
@@ -81,9 +80,6 @@ function RecommendationActions({
   retailerSlug,
   actionAction,
   actionPending,
-  buyAction,
-  buyPending,
-  buyState,
 }: {
   recommendation: Recommendation;
   selectionId: string;
@@ -91,9 +87,6 @@ function RecommendationActions({
   retailerSlug: string;
   actionAction: (payload: FormData) => void;
   actionPending: boolean;
-  buyAction: (payload: FormData) => void;
-  buyPending: boolean;
-  buyState: BuyMorningRoutineItemState;
 }) {
   const save = recommendation.actions.find((action) => action.kind === "save");
   const review = recommendation.actions.find(
@@ -182,29 +175,25 @@ function RecommendationActions({
           Book
         </Link>
       )}
-      {buy?.available && buy.href && buy.productVariantId ? (
-        buyState.success ? (
-          <span className="text-sm font-medium text-[var(--color-success-500)]">
-            Added to cart
-          </span>
-        ) : buyState.notEligible ? (
-          <Link href={buy.href} className={buttonVariants({ size: "sm" })}>
+      {buy?.available && buy.productVariantId ? (
+        <form action={actionAction}>
+          <input type="hidden" name="selectionId" value={selectionId} />
+          <input
+            type="hidden"
+            name="recommendationId"
+            value={recommendation.id}
+          />
+          <input type="hidden" name="action" value="buy" />
+          <input type="hidden" name="retailerId" value={retailerId} />
+          <input
+            type="hidden"
+            name="productVariantId"
+            value={buy.productVariantId}
+          />
+          <Button type="submit" size="sm" disabled={actionPending}>
             Buy
-          </Link>
-        ) : (
-          <form action={buyAction}>
-            <input type="hidden" name="retailerId" value={retailerId} />
-            <input
-              type="hidden"
-              name="productVariantId"
-              value={buy.productVariantId}
-            />
-            <input type="hidden" name="productHref" value={buy.href} />
-            <Button type="submit" size="sm" disabled={buyPending}>
-              {buyPending ? "Adding…" : "Buy"}
-            </Button>
-          </form>
-        )
+          </Button>
+        </form>
       ) : buy?.available && buy.href ? (
         <Link href={buy.href} className={buttonVariants({ size: "sm" })}>
           Buy
@@ -229,10 +218,6 @@ export function MorningRoutinePanel({
   const [actionState, actionAction, actionPending] = useActionState(
     runMorningRoutineAction,
     initial,
-  );
-  const [buyState, buyAction, buyPending] = useActionState(
-    buyMorningRoutineItem,
-    buyInitial,
   );
 
   const [featured, ...rest] = view?.recommendations ?? [];
@@ -293,15 +278,6 @@ export function MorningRoutinePanel({
           {actionState.formError}
         </p>
       ) : null}
-      {buyState.formError ? (
-        <p
-          role="alert"
-          className="px-5 py-3 text-sm text-[var(--color-danger-500)]"
-        >
-          {buyState.formError}
-        </p>
-      ) : null}
-
       {!view ? (
         <div
           className="px-5 py-10 text-center text-sm text-[var(--color-stone-500)]"
@@ -399,9 +375,6 @@ export function MorningRoutinePanel({
                     retailerSlug={retailerSlug}
                     actionAction={actionAction}
                     actionPending={actionPending}
-                    buyAction={buyAction}
-                    buyPending={buyPending}
-                    buyState={buyState}
                   />
                 </div>
               </div>
@@ -457,9 +430,6 @@ export function MorningRoutinePanel({
                             retailerSlug={retailerSlug}
                             actionAction={actionAction}
                             actionPending={actionPending}
-                            buyAction={buyAction}
-                            buyPending={buyPending}
-                            buyState={buyState}
                           />
                         </div>
                       </li>

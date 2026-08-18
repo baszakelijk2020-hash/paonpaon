@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   ANNIVERSARY_MOMENT_LIBRARY_V1,
+  ANNUAL_EVENT_LIBRARY_V1,
+  VALENTINE_RESERVATION_RESCUE_LIBRARY_V1,
   evaluateRelationshipDateWindow,
 } from "./relationship-calendar";
 
@@ -114,6 +116,89 @@ describe("ANNIVERSARY_MOMENT_LIBRARY_V1", () => {
     );
     expect(ANNIVERSARY_MOMENT_LIBRARY_V1.prerequisites).toContain(
       "personalization_consent",
+    );
+  });
+});
+
+describe("ANNUAL_EVENT_LIBRARY_V1", () => {
+  it("declares a real prerequisite naming the fact type it depends on", () => {
+    expect(ANNUAL_EVENT_LIBRARY_V1.prerequisites).toContain("occasion_fact");
+    expect(ANNUAL_EVENT_LIBRARY_V1.prerequisites).toContain(
+      "personalization_consent",
+    );
+  });
+
+  it("is a distinct library version from the anniversary package", () => {
+    expect(ANNUAL_EVENT_LIBRARY_V1.versionLabel).not.toBe(
+      ANNIVERSARY_MOMENT_LIBRARY_V1.versionLabel,
+    );
+  });
+
+  it("shares the same generic date-window eligibility as any other occasion", () => {
+    // ANNUAL_EVENT reuses evaluateRelationshipDateWindow unmodified — an
+    // occasion recorded as, say, a founding date recurs exactly like an
+    // anniversary or wedding date would.
+    const result = evaluateRelationshipDateWindow({
+      relationshipDateIso: "2019-09-03",
+      todayIso: "2026-08-25T00:00:00.000Z",
+      leadDays: 14,
+    });
+    expect(result.inWindow).toBe(true);
+    if (result.inWindow) {
+      expect(result.daysUntil).toBe(9);
+    }
+  });
+});
+
+describe("evaluateRelationshipDateWindow with a fixed calendar date", () => {
+  // Valentine's Day (February 14) is the same for every customer — no
+  // customer_facts row at all, unlike the anniversary case above. The year
+  // in `relationshipDateIso` is arbitrary and ignored, same as any other
+  // recurring date.
+  const VALENTINES_DAY = "2000-02-14";
+
+  it("opens the window while there is still time to prepare", () => {
+    const result = evaluateRelationshipDateWindow({
+      relationshipDateIso: VALENTINES_DAY,
+      todayIso: "2026-02-01T00:00:00.000Z",
+      leadDays: 14,
+    });
+    expect(result.inWindow).toBe(true);
+    if (result.inWindow) {
+      expect(result.daysUntil).toBe(13);
+    }
+  });
+
+  it("stays closed long before the date", () => {
+    const result = evaluateRelationshipDateWindow({
+      relationshipDateIso: VALENTINES_DAY,
+      todayIso: "2026-01-01T00:00:00.000Z",
+      leadDays: 14,
+    });
+    expect(result).toEqual({ inWindow: false, reason: "outside_window" });
+  });
+
+  it("rolls into next year once this year's date has passed", () => {
+    const result = evaluateRelationshipDateWindow({
+      relationshipDateIso: VALENTINES_DAY,
+      todayIso: "2026-03-01T00:00:00.000Z",
+      leadDays: 14,
+    });
+    expect(result).toEqual({ inWindow: false, reason: "outside_window" });
+  });
+});
+
+describe("VALENTINE_RESERVATION_RESCUE_LIBRARY_V1", () => {
+  it("needs no per-customer fact, only consent and advisor coverage", () => {
+    expect(VALENTINE_RESERVATION_RESCUE_LIBRARY_V1.prerequisites).toEqual([
+      "personalization_consent",
+      "advisor_coverage",
+    ]);
+  });
+
+  it("is a distinct library version from the anniversary package", () => {
+    expect(VALENTINE_RESERVATION_RESCUE_LIBRARY_V1.versionLabel).not.toBe(
+      ANNIVERSARY_MOMENT_LIBRARY_V1.versionLabel,
     );
   });
 });

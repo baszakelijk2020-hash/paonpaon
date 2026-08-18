@@ -4,7 +4,12 @@ import {
   type Conversation,
   type ConversationId,
   type ConversationIntent,
+  type ConversationProposal,
+  type ConversationProposalId,
+  type ConversationProposalItem,
+  type ConversationProposalStatus,
   type ConversationStatus,
+  type CreateConversationProposalInput,
   type CustomerId,
   type Message,
   type MessageAttachment,
@@ -22,6 +27,37 @@ type ConversationRow = Database["public"]["Tables"]["conversations"]["Row"];
 type MessageRow = Database["public"]["Tables"]["messages"]["Row"];
 type MessageAttachmentRow =
   Database["public"]["Tables"]["message_attachments"]["Row"];
+type ConversationProposalRow =
+  Database["public"]["Tables"]["conversation_proposals"]["Row"];
+const conversationProposal = (
+  row: ConversationProposalRow,
+): ConversationProposal => ({
+  id: asId<"ConversationProposalId">(row.id),
+  retailerId: asId<"RetailerId">(row.retailer_id),
+  conversationId: asId<"ConversationId">(row.conversation_id),
+  createdByStaffId: asId<"StaffId">(row.created_by_staff_id),
+  version: row.version,
+  status: row.status as ConversationProposalStatus,
+  title: row.title,
+  advisorNote: row.advisor_note,
+  items: row.items as unknown as readonly ConversationProposalItem[],
+  alternatives:
+    row.alternatives as unknown as readonly ConversationProposalItem[],
+  ...(row.price_minor_units !== null
+    ? { priceMinorUnits: row.price_minor_units }
+    : {}),
+  ...(row.price_currency ? { priceCurrency: row.price_currency } : {}),
+  appointmentOffered: row.appointment_offered,
+  expiresAt: row.expires_at,
+  ...(row.responded_at ? { respondedAt: row.responded_at } : {}),
+  ...(row.response
+    ? {
+        response: row.response as NonNullable<ConversationProposal["response"]>,
+      }
+    : {}),
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
 const conversation = (row: ConversationRow): Conversation => ({
   id: asId<"ConversationId">(row.id),
   retailerId: asId<"RetailerId">(row.retailer_id),
@@ -240,6 +276,60 @@ export class MessagingRepository {
     return asId<"ConversationId">(data);
   }
 
+  /**
+   * FT-09 unified remote proposal (PHASE 10.3). Freshness (version,
+   * expiry, one-active-per-conversation) is enforced inside
+   * `create_conversation_proposal`/`respond_to_conversation_proposal` —
+   * this repository never writes to `conversation_proposals` directly.
+   */
+  async createProposal(
+    input: CreateConversationProposalInput,
+  ): Promise<ConversationProposalId> {
+    const { data, error } = await this.client.rpc(
+      "create_conversation_proposal",
+      {
+        p_conversation_id: input.conversationId,
+        p_title: input.title,
+        p_advisor_note: input.advisorNote,
+        p_items: input.items,
+        p_alternatives: input.alternatives,
+        ...(input.priceMinorUnits !== undefined
+          ? { p_price_minor_units: input.priceMinorUnits }
+          : {}),
+        ...(input.priceCurrency !== undefined
+          ? { p_price_currency: input.priceCurrency }
+          : {}),
+        p_appointment_offered: input.appointmentOffered,
+        p_expires_at: input.expiresAt,
+      },
+    );
+    if (error) throw error;
+    return asId<"ConversationProposalId">(data);
+  }
+
+  async respondToProposal(
+    proposalId: ConversationProposalId,
+    response: "accepted" | "declined",
+  ): Promise<void> {
+    const { error } = await this.client.rpc(
+      "respond_to_conversation_proposal",
+      { p_proposal_id: proposalId, p_response: response },
+    );
+    if (error) throw error;
+  }
+
+  async findProposalsByConversation(
+    conversationId: ConversationId,
+  ): Promise<ConversationProposal[]> {
+    const { data, error } = await this.client
+      .from("conversation_proposals")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .order("version", { ascending: false });
+    if (error) throw error;
+    return data.map(conversationProposal);
+  }
+
   /** Signed URLs, same 15-minute-expiry shape as
    * AlterationAttachmentRepository.findByAlteration — never a public URL,
    * this bucket is private. */
@@ -376,6 +466,19 @@ export class MessagingRepository {
     attachmentId: MessageAttachment["id"],
   ): Promise<void> {
     const { error } = await this.client.rpc("retry_message_attachment_scan", {
+      p_attachment_id: attachmentId,
+    });
+    if (error) throw error;
+  }
+
+  /** Manual staff review-and-release for an upload stuck ahead of any
+   * scanner provider decision — `release_message_attachment` re-derives
+   * the caller's own retailer-staff role server-side, so this has nothing
+   * further to check. */
+  async releaseAttachment(
+    attachmentId: MessageAttachment["id"],
+  ): Promise<void> {
+    const { error } = await this.client.rpc("release_message_attachment", {
       p_attachment_id: attachmentId,
     });
     if (error) throw error;

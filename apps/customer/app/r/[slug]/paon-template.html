@@ -5710,8 +5710,8 @@ function renderGrid() {
         const sv = sanveneroProductData[String(p.id)] || {};
         const detailBrand = sv.brand || p.sanveneroBrand || '';
         const detailTitle = detailBrand || sv.title || p.sanveneroTitle || p.name;
-        const detailDesc = (sv && sv.description) ? sv.description : (p.sanveneroDescription || 'Fabric description refined from product material and weave information.');
-        const detailMaterial = sv.material || p.sanveneroMaterial || '100% Wool';
+        const detailDesc = (sv && sv.description) ? sv.description : (p.sanveneroDescription || p.description || 'Fabric description refined from product material and weave information.');
+        const detailMaterial = sv.material || p.sanveneroMaterial || p.material || '100% Wool';
         const detailLining = sv.recommendedLining || p.sanveneroRecommendedLining || '';
         const detailColor = sv.color || p.sanveneroColor || '';
         const liningImage = sv.liningImage || p.sanveneroLiningImage || '';
@@ -5788,6 +5788,16 @@ function renderGrid() {
                 }
             }
             requestAnimationFrame(tickEntry);
+        }
+        // Every window.openDetail = wrapper added over time (there are 7 in
+        // this file) hooked the *window* property, but the real click
+        // handler (card.addEventListener above) calls the bare local
+        // `openDetail` identifier from this same closure, never
+        // `window.openDetail` — so none of those wrappers, including the
+        // one that called reorderSections(), ever actually ran. Calling it
+        // directly here, from the function real clicks invoke, is the fix.
+        if (typeof window.paonPlaceAppointmentSection === 'function') {
+            requestAnimationFrame(window.paonPlaceAppointmentSection);
         }
     }
     function goBack() {
@@ -6564,6 +6574,15 @@ function renderGrid() {
         return true;
     }
 
+    // Every fabric id ends in its 4-digit catalogue number
+    // (…-6090, …-9209); the higher the number, the newer the item. Falls
+    // back to 0 for the handful of non-numbered legacy ids (broek1,
+    // trui1, schoen1…), which sort after every numbered fabric.
+    function catalogNumber(id) {
+        var m = /(\d+)$/.exec(String(id || ''));
+        return m ? parseInt(m[1], 10) : 0;
+    }
+
     function sortCatalogProducts(list) {
         var sort = (state.catalogFilters && state.catalogFilters.sort) || 'newest';
         var copy = list.slice();
@@ -6572,7 +6591,12 @@ function renderGrid() {
         } else if (sort === 'price-desc') {
             copy.sort(function(a, b) { return (b.priceMinor || 0) - (a.priceMinor || 0); });
         } else {
-            copy.sort(function(a, b) { return String(b.id).localeCompare(String(a.id)); });
+            // 'newest' — was `String(b.id).localeCompare(String(a.id))`,
+            // a full-string alphabetical sort that had nothing to do with
+            // recency (e.g. "loro-piana-6054" sorted ahead of
+            // "teal-cotton-corduroy-6107" alphabetically, burying newly
+            // added items under old ones regardless of server order).
+            copy.sort(function(a, b) { return catalogNumber(b.id) - catalogNumber(a.id); });
         }
         return copy;
     }
@@ -13676,6 +13700,14 @@ requestAnimationFrame(fixFeedImages);
         background: linear-gradient(to bottom, var(--cream) 0%, var(--warm-mid) 100%);
     }
 
+    /* No desktop-specific width override needed: reorderSections() (JS,
+       further down) moves this element to be a direct child of
+       #detail-main on desktop, so the base `width: 100%` above already
+       resolves against detail-main's own (already-correct) box — not
+       the viewport. An earlier attempt here re-subtracted var(--right-w)
+       a second time (detail-main's own width already accounts for it),
+       which nearly halved the widget instead of fixing it. */
+
     /* --- Desktop: "You May Also Like" 2-column grid, inserted directly
        into the center image column (detail-main), right below the
        fabric swatch — this is the desktop-only counterpart; mobile has
@@ -15616,7 +15648,7 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     font-size: 14px !important;
     color: var(--text) !important;
     background: #fff !important;
-    border: 1px solid var(--mid) !important;
+    border: none !important;
     border-radius: 8px !important;
     outline: none !important;
     outline-width: 0 !important;
@@ -15789,8 +15821,17 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
             return;
         }
 
-        if (appt.parentNode !== detailMain) {
-            appt.dataset.movedIntoDetailMain = '1';
+        /* Appointment above "You may also like" — insertBefore the
+         * carousel (already the earlier static child of detail-main),
+         * not appendChild, which always lands after it regardless of
+         * where this function runs. insertBefore is a no-op cost-wise
+         * when appt is already in the right spot, so no extra guard
+         * is needed here. */
+        appt.dataset.movedIntoDetailMain = '1';
+        var alsoLike = document.getElementById('paon-desktop-also-like');
+        if (alsoLike && alsoLike.parentNode === detailMain) {
+            detailMain.insertBefore(appt, alsoLike);
+        } else {
             detailMain.appendChild(appt);
         }
     }

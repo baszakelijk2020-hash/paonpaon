@@ -17,6 +17,7 @@ import {
   saveProgram,
 } from "./actions";
 
+import { RETAILER_LOYALTY_TIER_LABELS } from "@/lib/loyalty-tier-labels";
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -252,9 +253,13 @@ export default async function LoyaltyPage() {
             className="h-10 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-sm"
           >
             <option value="">All tiers</option>
-            <option value="silver">Silver</option>
-            <option value="gold">Gold</option>
-            <option value="platinum">Platinum</option>
+            <option value="silver">
+              {RETAILER_LOYALTY_TIER_LABELS.silver}
+            </option>
+            <option value="gold">{RETAILER_LOYALTY_TIER_LABELS.gold}</option>
+            <option value="platinum">
+              {RETAILER_LOYALTY_TIER_LABELS.platinum}
+            </option>
           </select>
           <Button type="submit">Create reward</Button>
         </form>
@@ -274,7 +279,9 @@ export default async function LoyaltyPage() {
                   </p>
                   <p className="text-sm text-[var(--color-stone-500)]">
                     {REWARD_TYPE_LABELS[item.type]}
-                    {item.minimumTier ? ` · ${item.minimumTier}+` : ""}
+                    {item.minimumTier
+                      ? ` · ${RETAILER_LOYALTY_TIER_LABELS[item.minimumTier]}+`
+                      : ""}
                     {!item.active ? " · inactive" : ""}
                   </p>
                 </div>

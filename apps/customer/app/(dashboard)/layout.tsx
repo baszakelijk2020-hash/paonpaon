@@ -64,6 +64,11 @@ const navigation: AppShellNavGroup[] = [
         description: "Status, points and rewards",
       },
       {
+        href: "/preferred-tailoring",
+        label: "Preferred Tailoring",
+        description: "This month, at a glance",
+      },
+      {
         href: "/services",
         label: "Services",
         description: "Preferred Tailoring and HighMaintenance",

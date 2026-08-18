@@ -5,9 +5,14 @@
 import {
   asId,
   isSupportedTimeZone,
+  type BranchContactAction,
+  type BranchImage,
+  type BranchOpeningHoursEntry,
+  type BranchPresentationMode,
   type RetailerBranch,
   type RetailerBranchId,
   type RetailerId,
+  type UpdateRetailerBranchLocationInput,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
@@ -22,6 +27,26 @@ function toDomain(row: Row): RetailerBranch {
     name: row.name,
     timezone: row.timezone,
     isDefault: row.is_default,
+    storeType: row.store_type,
+    addressLine1: row.address_line1,
+    addressLine2: row.address_line2,
+    city: row.city,
+    region: row.region,
+    postalCode: row.postal_code,
+    country: row.country,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    phone: row.phone,
+    contactEmail: row.contact_email,
+    openingHours: (row.opening_hours ??
+      []) as unknown as readonly BranchOpeningHoursEntry[],
+    services: row.services ?? [],
+    contactActions: (row.contact_actions ??
+      []) as unknown as readonly BranchContactAction[],
+    filterCategories: row.filter_categories ?? [],
+    imagery: (row.imagery ?? []) as unknown as readonly BranchImage[],
+    presentationMode: row.presentation_mode as BranchPresentationMode,
+    published: row.published,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
@@ -111,5 +136,61 @@ export class RetailerBranchRepository {
       .maybeSingle();
     if (error) throw error;
     return data ? toDomain(data) : null;
+  }
+
+  /** FT-11: retailer staff editing a branch's public location facts. */
+  async updateLocationDetails(
+    retailerId: RetailerId,
+    input: UpdateRetailerBranchLocationInput,
+  ): Promise<RetailerBranch> {
+    const { data, error } = await this.client
+      .from("retailer_branches")
+      .update({
+        store_type: input.storeType ?? null,
+        address_line1: input.addressLine1 ?? null,
+        address_line2: input.addressLine2 ?? null,
+        city: input.city ?? null,
+        region: input.region ?? null,
+        postal_code: input.postalCode ?? null,
+        country: input.country ?? null,
+        latitude: input.latitude ?? null,
+        longitude: input.longitude ?? null,
+        phone: input.phone ?? null,
+        contact_email: input.contactEmail ?? null,
+        opening_hours: input.openingHours,
+        services: input.services,
+        contact_actions: input.contactActions,
+        filter_categories: input.filterCategories,
+        imagery: input.imagery,
+        presentation_mode: input.presentationMode,
+        published: input.published,
+      })
+      .eq("retailer_id", retailerId)
+      .eq("id", input.branchId)
+      .select("*")
+      .single();
+    if (error) throw error;
+    return toDomain(data);
+  }
+
+  /**
+   * FT-11 public projection: published, non-deleted branches only — the
+   * query itself is the trust boundary the customer-facing finder relies
+   * on (see the `anyone can read published branches from active
+   * retailers` RLS policy this mirrors).
+   */
+  async findPublishedByRetailer(
+    retailerId: RetailerId,
+  ): Promise<RetailerBranch[]> {
+    const { data, error } = await this.client
+      .from("retailer_branches")
+      .select("*")
+      .eq("retailer_id", retailerId)
+      .eq("published", true)
+      .is("deleted_at", null)
+      .order("is_default", { ascending: false })
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return data.map(toDomain);
   }
 }

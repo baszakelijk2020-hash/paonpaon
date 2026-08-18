@@ -14,6 +14,7 @@ import {
 } from "@paon/database";
 import {
   asId,
+  createConversationProposalSchema,
   CUSTOMER_FACT_TYPES,
   sendMessageSchema,
   startStaffConversationSchema,
@@ -75,6 +76,36 @@ export async function sendMessage(formData: FormData) {
     });
   }
 
+  revalidatePath("/messages");
+}
+
+/** Staff retry — requeues a failed upload. `retry_message_attachment_scan`
+ * re-derives caller authorization server-side, so this has nothing further
+ * to check beyond the module/role gate every action on this page uses. */
+export async function retryAttachment(formData: FormData) {
+  const session = await requireModuleSession("relationship_intelligence");
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const attachmentId = String(formData.get("attachmentId") ?? "");
+  if (!attachmentId) throw new Error("Missing attachment.");
+  await new MessagingRepository(
+    await getSupabaseServerClient(),
+  ).retryAttachmentScan(attachmentId as never);
+  revalidatePath("/messages");
+}
+
+/** Staff manual release — the human-review path ahead of any scanner
+ * provider decision (PHASE.md execution queue item 5). Never auto-clears;
+ * a specific staff member reviews and explicitly releases each upload.
+ * `release_message_attachment` re-derives caller authorization
+ * server-side. */
+export async function releaseAttachment(formData: FormData) {
+  const session = await requireModuleSession("relationship_intelligence");
+  requireRetailerRole(session.retailerRole, "sales_associate");
+  const attachmentId = String(formData.get("attachmentId") ?? "");
+  if (!attachmentId) throw new Error("Missing attachment.");
+  await new MessagingRepository(
+    await getSupabaseServerClient(),
+  ).releaseAttachment(attachmentId as never);
   revalidatePath("/messages");
 }
 
@@ -557,4 +588,79 @@ export async function bookAppointmentFromConsultation(
 
   revalidatePath("/messages");
   return appointmentId;
+}
+
+export interface CreateProposalActionState {
+  readonly formError?: string;
+}
+
+/**
+ * FT-09: Create a new conversation proposal. The RPC enforces that only one
+ * active proposal exists per conversation at a time (the new one supersedes
+ * any prior active one). DateTimePicker outputs local time without offset
+ * (YYYY-MM-DDTHH:MM), so we must convert it to full ISO 8601 with offset
+ * before passing to the schema.
+ */
+export async function createProposal(
+  conversationId: string,
+  _previous: CreateProposalActionState,
+  formData: FormData,
+): Promise<CreateProposalActionState> {
+  try {
+    const session = await requireModuleSession("relationship_intelligence");
+    requireRetailerRole(session.retailerRole, "sales_associate");
+
+    const title = String(formData.get("title") ?? "").trim();
+    const advisorNote = String(formData.get("advisorNote") ?? "").trim();
+    const itemsJson = String(formData.get("items") ?? "[]");
+    const alternativesJson = String(formData.get("alternatives") ?? "[]");
+    const priceAmountStr = String(formData.get("priceAmount") ?? "").trim();
+    const priceCurrency = String(formData.get("priceCurrency") ?? "").trim();
+    const appointmentOffered = formData.get("appointmentOffered") === "true";
+    const expiresAtLocal = String(formData.get("expiresAt") ?? "").trim();
+
+    if (!title || !advisorNote || !expiresAtLocal) {
+      return { formError: "Title, advisor note, and expiry are required." };
+    }
+
+    const items = JSON.parse(itemsJson);
+    const alternatives = JSON.parse(alternativesJson);
+
+    // Convert local datetime to ISO 8601 with offset
+    let expiresAt = expiresAtLocal;
+    if (
+      expiresAtLocal &&
+      !expiresAtLocal.includes("+") &&
+      !expiresAtLocal.endsWith("Z")
+    ) {
+      expiresAt = new Date(expiresAtLocal).toISOString();
+    }
+
+    const payload = {
+      conversationId: conversationId as never,
+      title,
+      advisorNote,
+      items,
+      alternatives,
+      ...(priceAmountStr
+        ? { priceMinorUnits: Math.round(parseFloat(priceAmountStr) * 100) }
+        : {}),
+      ...(priceCurrency ? { priceCurrency } : {}),
+      appointmentOffered,
+      expiresAt,
+    };
+
+    createConversationProposalSchema.parse(payload);
+
+    const repo = new MessagingRepository(await getSupabaseServerClient());
+    await repo.createProposal(payload);
+
+    revalidatePath("/messages");
+    return {};
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error ? error.message : "Could not create proposal.",
+    };
+  }
 }

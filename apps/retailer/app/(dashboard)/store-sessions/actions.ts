@@ -2,6 +2,7 @@
 
 import {
   RetailerStaffRepository,
+  StoreFeedbackRepository,
   StoreExperienceRepository,
 } from "@paon/database";
 import { revalidatePath } from "next/cache";
@@ -10,6 +11,10 @@ import { requireModuleSession } from "@/lib/module-session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 export interface StoreSessionActionState {
+  formError?: string;
+  notice?: string;
+}
+export interface StoreFeedbackActionState {
   formError?: string;
   notice?: string;
 }
@@ -122,4 +127,39 @@ export async function closeSession(
   }
   revalidatePath("/store-sessions");
   return { notice: "Session closed." };
+}
+
+export async function captureFeedback(
+  _previous: StoreFeedbackActionState,
+  formData: FormData,
+): Promise<StoreFeedbackActionState> {
+  const session = await requireModuleSession(
+    "garment_service_operations",
+    "mutate",
+  );
+  const supabase = await getSupabaseServerClient();
+  const customerId = field(formData, "customerId");
+  try {
+    const garmentRef = field(formData, "garmentRef");
+    await new StoreFeedbackRepository(supabase).capture({
+      ...(customerId ? { customerId } : {}),
+      ...(garmentRef ? { garmentRef } : {}),
+      audience: field(formData, "audience") as
+        "buying" | "merchandising" | "client_experience",
+      feedback: field(formData, "feedback"),
+      idempotencyKey: field(formData, "idempotencyKey"),
+    });
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error && error.message.includes("consent")
+          ? "Customer personalization consent is required for named feedback."
+          : "Feedback could not be routed. Add a customer context or garment reference.",
+    };
+  }
+  revalidatePath("/store-sessions");
+  revalidatePath("/mission-control");
+  return {
+    notice: `Feedback routed for ${session.retailerId ? "leadership review" : "review"}.`,
+  };
 }

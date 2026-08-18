@@ -5,6 +5,7 @@ import {
   type GarmentCategoryCode,
   type PhysicalGarment,
   type PhysicalGarmentId,
+  type RetailerId,
   type WorkClassification,
 } from "@paon/domain";
 
@@ -95,6 +96,28 @@ export class PhysicalGarmentRepository {
       .select("*")
       .eq("physical_garment_id", garmentId)
       .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data.map(observationToDomain);
+  }
+
+  /** All of a retailer's fitting observations, optionally windowed —
+   * the `fit_risk` projector's own reads, mirroring
+   * `AppointmentRepository.findByRetailer`'s retailer-scoped shape rather
+   * than making callers loop `findObservationsByGarment` per garment. */
+  async findObservationsByRetailer(
+    retailerId: RetailerId,
+    options?: { readonly sinceIso?: string },
+  ): Promise<FittingObservation[]> {
+    let query = this.client
+      .from("fitting_observations")
+      .select("*")
+      .eq("retailer_id", retailerId);
+    if (options?.sinceIso) {
+      query = query.gte("created_at", options.sinceIso);
+    }
+    const { data, error } = await query.order("created_at", {
+      ascending: false,
+    });
     if (error) throw error;
     return data.map(observationToDomain);
   }

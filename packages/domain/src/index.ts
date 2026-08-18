@@ -12,6 +12,7 @@ export * from "./identity/retailer-staff.schema";
 
 export * from "./retailer/retailer";
 export * from "./retailer/retailer-branch";
+export * from "./retailer/retailer-branch.schema";
 export * from "./retailer/retailer.schema";
 export * from "./retailer/subscription";
 export * from "./retailer/subscription.schema";
@@ -78,6 +79,8 @@ export * from "./engagement/email-outbox";
 export * from "./engagement/sms-outbox";
 export * from "./engagement/newsletter";
 export * from "./engagement/notification";
+export * from "./engagement/conversation-proposal";
+export * from "./engagement/conversation-proposal.schema";
 export * from "./engagement/messaging";
 export * from "./engagement/messaging.schema";
 export * from "./engagement/event";

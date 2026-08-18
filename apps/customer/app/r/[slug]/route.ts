@@ -189,6 +189,12 @@ const CATEGORY_KEYWORDS: Record<
   // "broek" still matches trouser slugs (`…-broek1`); display names follow
   // the product photography (e.g. "Khaki Cotton Trousers").
   Pants: ["pant", "trouser", "chino", "broek"],
+  // "cashmere" used to live here too, but that's a fiber, not a garment —
+  // a cashmere-blend SUITING fabric (e.g. "Silk, Wool & Cashmere
+  // Glencheck") was winning this check before the id-range fallback ever
+  // ran, mis-sorting real suit/jacket fabrics into Knits by coincidence
+  // of material, not garment type. Same class of bug the "mélange" removal
+  // above already fixed once.
   Knits: [
     "knit",
     "sweater",
@@ -200,7 +206,6 @@ const CATEGORY_KEYWORDS: Record<
     "crew",
     "polo",
     "merino",
-    "cashmere",
     "quarter-zip",
     "cable",
   ],
@@ -554,11 +559,16 @@ ${
 <p style="margin:0;font-family:var(--font-retailer-display),Georgia,serif;font-size:13px;line-height:1.3;letter-spacing:.01em;color:var(--paon-ink);">${escapeHtml(storyLine)}</p>
 </div>`
     : "";
-  const categoryNames = UNAMBIGUOUS_CATEGORY_ORDER.filter((category) =>
+  // CANONICAL_CATEGORIES here, not UNAMBIGUOUS_CATEGORY_ORDER: that list
+  // deliberately excludes "Suits" (it exists only to control keyword-check
+  // priority in canonicalCategoryFor, checked before the Suits fallback),
+  // so reusing it for the sidebar nav meant Suits could never appear there
+  // no matter how many suit products existed.
+  const categoryNames = CANONICAL_CATEGORIES.filter((category) =>
     entries.some((entry) => entry.category === category),
   );
   const resolvedCategories =
-    categoryNames.length > 0 ? categoryNames : [...UNAMBIGUOUS_CATEGORY_ORDER];
+    categoryNames.length > 0 ? categoryNames : [...CANONICAL_CATEGORIES];
   const landOnGrid = slug !== "maison-dubois";
   const ogTitle = storyLine
     ? `${safeName} — ${escapeHtml(storyLine)}`

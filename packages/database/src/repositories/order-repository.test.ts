@@ -132,7 +132,10 @@ describe("OrderRepository", () => {
 
   it("adds items and checks out through protected cart RPCs", async () => {
     const rpc = vi.fn().mockResolvedValue({ data: orderRow.id, error: null });
-    const repo = new OrderRepository({ rpc } as unknown as PaonSupabaseClient);
+    const repo = new OrderRepository({
+      rpc,
+      from: () => fakeQueryBuilder({ data: null, error: null }),
+    } as unknown as PaonSupabaseClient);
     await expect(
       repo.addToCart({
         retailerId: orderRow.retailer_id as never,

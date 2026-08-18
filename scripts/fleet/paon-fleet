@@ -1,0 +1,330 @@
+#!/usr/bin/env bash
+# paon-fleet — atomic work-queue CLI shared by every PAON agent.
+#
+# WHY THIS EXISTS
+#   Five agents (3x Claude Code, 1x Codex, 1x OpenRouter/DeepSeek) previously
+#   chose work by independently reading a 500 KB docs/PHASE.md. That produced
+#   collisions, duplicated effort and idle agents. AGENTS.md mandated an
+#   ownership ledger (.agent/claims.yaml) that was never built. This is it.
+#
+# WHY THE STATE LIVES IN $GIT_COMMON_DIR
+#   All agent worktrees (/private/tmp/paon-*, .claude/worktrees/*) are git
+#   worktrees of ONE repository, so they all share the same common .git dir.
+#   Putting fleet state there gives every agent a single coordination point
+#   that can never produce a merge conflict, because it is never committed.
+#
+# ATOMICITY
+#   macOS has no flock(1). `mkdir` is atomic on POSIX filesystems, so the
+#   lock is a directory. Every mutation takes the lock, re-reads state, writes
+#   a temp file and mv's it into place (mv is atomic within a filesystem).
+#
+# USAGE (identical for every agent, any model)
+#   paon-fleet next              # print the highest-priority claimable task
+#   paon-fleet claim <id>        # atomically claim it (fails if taken)
+#   paon-fleet take              # next + claim in one atomic step (preferred)
+#   paon-fleet heartbeat <id>    # extend the lease while still working
+#   paon-fleet done <id>         # mark complete
+#   paon-fleet block <id> "why"  # mark blocked, frees the lane
+#   paon-fleet release <id>      # give it back, unclaimed
+#   paon-fleet status            # fleet dashboard
+#   paon-fleet reap              # release expired leases (crash recovery)
+#   paon-fleet owns <id> <path>  # exit 0 if path is inside task's owned_paths
+set -euo pipefail
+
+AGENT_ID="${PAON_AGENT_ID:-$(basename "$(pwd)")}"
+COMMON_DIR="$(git rev-parse --git-common-dir 2>/dev/null)" || {
+  echo "paon-fleet: not inside a git repository" >&2; exit 1; }
+case "$COMMON_DIR" in /*) ;; *) COMMON_DIR="$(cd "$COMMON_DIR" && pwd)" ;; esac
+
+FLEET_DIR="$COMMON_DIR/paon-fleet"
+QUEUE="$FLEET_DIR/queue.json"
+LOCK="$FLEET_DIR/.lock"
+LOG="$FLEET_DIR/fleet.log"
+LEASE_MINUTES="${PAON_LEASE_MINUTES:-45}"
+
+mkdir -p "$FLEET_DIR"
+[ -f "$QUEUE" ] || echo '{"version":1,"tasks":[]}' > "$QUEUE"
+[ -f "$LOG" ] || : > "$LOG"
+
+now_iso()   { date -u +%Y-%m-%dT%H:%M:%SZ; }
+lease_iso() { date -u -v "+${LEASE_MINUTES}M" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
+              || date -u -d "+${LEASE_MINUTES} minutes" +%Y-%m-%dT%H:%M:%SZ; }
+
+log() { printf '%s\t%s\t%s\n' "$(now_iso)" "$AGENT_ID" "$*" >> "$LOG"; }
+
+# --- locking -----------------------------------------------------------------
+acquire() {
+  local tries=0
+  until mkdir "$LOCK" 2>/dev/null; do
+    tries=$((tries+1))
+    # Steal a lock older than 60s: its owner crashed.
+    if [ -d "$LOCK" ]; then
+      local age
+      age=$(( $(date +%s) - $(stat -f %m "$LOCK" 2>/dev/null || stat -c %Y "$LOCK" 2>/dev/null || echo 0) ))
+      [ "$age" -gt 60 ] && rm -rf "$LOCK" && continue
+    fi
+    [ "$tries" -gt 100 ] && { echo "paon-fleet: lock timeout" >&2; exit 1; }
+    sleep 0.1
+  done
+  trap 'rm -rf "$LOCK"' EXIT INT TERM
+}
+release_lock() { rm -rf "$LOCK"; trap - EXIT INT TERM; }
+
+write_queue() { # stdin = new json
+  local tmp="$FLEET_DIR/.queue.$$.tmp"
+  cat > "$tmp"
+  jq -e . "$tmp" >/dev/null || { echo "paon-fleet: refusing to write invalid JSON" >&2; rm -f "$tmp"; exit 1; }
+  mv "$tmp" "$QUEUE"
+}
+
+# Release leases that expired — this is what makes a crashed agent recoverable.
+reap_expired() {
+  jq --arg now "$(now_iso)" '
+    .tasks |= map(
+      if .status=="claimed" and .lease_expires_at != null and .lease_expires_at < $now
+      then .status="open" | .claimed_by=null | .lease_expires_at=null
+           | .reaped=((.reaped//0)+1)
+      else . end)
+  ' "$QUEUE" | write_queue
+}
+
+# Highest-priority claimable task for this agent's allowed tiers.
+#
+# TWO SAFETY RULES, both learned by dogfooding this queue and watching it fail:
+#
+#   1. EXCLUSIVE tasks (whole-repo merges, migrations, dependency bumps) cannot
+#      run beside any other writer. A task marked {"exclusive":true} is only
+#      handed out when nothing else is claimed, and while one is in flight no
+#      other task is handed out at all. Without this, the 7-lane consolidation
+#      would have rewritten packages/**, apps/** and docs/** underneath three
+#      agents that were actively editing them.
+#
+#   2. PATH-DISJOINTNESS. Seeding gave every PHASE task the generic
+#      ["packages/**","apps/**"], which meant every agent "owned" everything —
+#      isolation that existed on paper and nowhere else. A task is now only
+#      offered if its owned_paths do not overlap a live claim's owned_paths.
+#   3. FREEZE. A founder can pause all assignment without killing agents or
+#      unwinding the queue. Every safety rule above governs WHICH task an agent
+#      may take; none of them can express "take nothing at all right now".
+#      Without this the queue kept handing out product work during an explicit
+#      control-plane freeze, and the only way to comply was for each agent to
+#      refuse each task individually — which is a human doing the enforcing.
+frozen_reason() { jq -r '.frozen // empty' "$QUEUE" 2>/dev/null; }
+
+select_next() {
+  local tiers="${PAON_AGENT_TIERS:-frontier,implementation,light}"
+  [ -n "$(frozen_reason)" ] && return 0   # frozen: assign nothing
+  jq -r --arg tiers "$tiers" --arg me "$AGENT_ID" '
+    def norm: sub("\\*+$";"") | sub("/$";"");
+    def overlaps($a; $b):
+      any($a[]; . as $x | any($b[]; . as $y
+        | ($x|norm) as $nx | ($y|norm) as $ny
+        | ($nx|startswith($ny)) or ($ny|startswith($nx))));
+
+    ($tiers | split(",")) as $t
+    | [ .tasks[] | select(.status=="claimed") ] as $live
+    | ($live | map(.owned_paths // []) | add // []) as $taken
+    | if ($live | map(select(.exclusive == true)) | length) > 0 then
+        empty                                   # an exclusive task is running
+      else
+        [ .tasks[]
+          | select(.status=="open")
+          | select(.needs_scope != true)   # unscoped work is never auto-assigned
+          # Never re-serve a task this agent already refused. `release` puts a
+          # task back to "open", so without this the stop hook hands the SAME
+          # task straight back and the agent livelocks refusing it forever —
+          # observed live, and only escapable by blocking the task outright.
+          | select(((.refused_by // []) | index($me)) | not)
+          | select((.tier // "implementation") as $x | $t | index($x))
+          # exclusive tasks wait until the fleet is completely quiet
+          | select((.exclusive != true) or (($live|length) == 0))
+          # never hand out work overlapping the paths of a live claim
+          | select((.exclusive == true)
+                   or (($taken|length) == 0)
+                   or (overlaps((.owned_paths // ["__none__"]); $taken) | not))
+        ]
+        | sort_by(.priority // 100)
+        | (.[0].id // empty)
+      end
+  ' "$QUEUE"
+}
+
+# Is $1 eligible for THIS agent right now? Prints "OK" or a refusal reason.
+# Both `take` and `claim` go through this. Previously only `take` enforced the
+# rules and `claim` enforced nothing, so a direct claim silently bypassed tier,
+# path-overlap and exclusive-task safety entirely.
+eligibility() {
+  local id="$1"
+  local tiers="${PAON_AGENT_TIERS:-frontier,implementation,light}"
+  jq -r --arg id "$id" --arg tiers "$tiers" --arg me "$AGENT_ID" '
+    def norm: sub("\\*+$";"") | sub("/$";"");
+    def overlaps($a; $b):
+      any($a[]; . as $x | any($b[]; . as $y
+        | ($x|norm) as $nx | ($y|norm) as $ny
+        | ($nx|startswith($ny)) or ($ny|startswith($nx))));
+    ($tiers | split(",")) as $t
+    | (.tasks[] | select(.id==$id)) as $task
+    | [ .tasks[] | select(.status=="claimed") | select(.id != $id) ] as $live
+    | ($live | map(.owned_paths // []) | add // []) as $taken
+    | if (.frozen // "") != "" then "FLEET_FROZEN"
+      elif $task == null then "NO_SUCH_TASK"
+      elif $task.status != "open" then "NOT_OPEN:\($task.status)"
+      elif ($t | index($task.tier // "implementation") | not) then "WRONG_TIER:\($task.tier)"
+      elif $task.needs_scope == true then "NEEDS_SCOPE"
+      elif ($live | map(select(.exclusive == true)) | length) > 0 then "EXCLUSIVE_RUNNING"
+      elif ($task.exclusive == true) and (($live|length) > 0) then "FLEET_NOT_QUIET"
+      elif ($task.exclusive != true) and (($taken|length) > 0)
+           and (overlaps(($task.owned_paths // ["__none__"]); $taken)) then "PATH_CONFLICT"
+      else "OK" end
+  ' "$QUEUE"
+}
+
+# Refuse any mutation by an agent that does not hold the active lease.
+# Only heartbeat used to check this, so any agent could mark another agent's
+# task done, blocked or released.
+assert_owner() {
+  local id="$1"
+  local owner; owner="$(jq -r --arg id "$id" '.tasks[]|select(.id==$id)|.claimed_by // ""' "$QUEUE")"
+  local st;    st="$(jq -r --arg id "$id" '.tasks[]|select(.id==$id)|.status // ""' "$QUEUE")"
+  if [ -z "$st" ]; then release_lock; echo "REJECTED: no such task '$id'" >&2; exit 1; fi
+  if [ "$owner" != "$AGENT_ID" ]; then
+    release_lock
+    echo "REJECTED: '$id' is held by '${owner:-nobody}', not '$AGENT_ID'" >&2
+    exit 1
+  fi
+}
+
+cmd_next() { acquire; reap_expired; local id; id="$(select_next)"; release_lock
+  [ -n "$id" ] || { echo "NO_ELIGIBLE_WORK"; exit 0; }
+  jq -r --arg id "$id" '.tasks[]|select(.id==$id)' "$QUEUE"; }
+
+cmd_claim() {
+  local id="$1"; acquire; reap_expired
+  local why; why="$(eligibility "$id")"
+  if [ "$why" != "OK" ]; then
+    release_lock; echo "CLAIM_REFUSED: $id ($why)" >&2; exit 1
+  fi
+  jq --arg id "$id" --arg who "$AGENT_ID" --arg exp "$(lease_iso)" --arg now "$(now_iso)" '
+    .tasks |= map(if .id==$id then
+      .status="claimed" | .claimed_by=$who | .lease_expires_at=$exp | .claimed_at=$now
+    else . end)' "$QUEUE" | write_queue
+  release_lock; log "CLAIM $id"
+  jq -r --arg id "$id" '.tasks[]|select(.id==$id)' "$QUEUE"
+}
+
+cmd_take() { # atomic next+claim — the command agents should actually use
+  acquire; reap_expired
+  local id; id="$(select_next)"
+  # NO_ELIGIBLE_WORK is distinct from "the queue is empty": there may be
+  # plenty of open tasks that this agent must not touch (wrong tier, path
+  # conflict, exclusive task running). Callers must stop cleanly on it, not
+  # go looking for something else to do.
+  if [ -z "$id" ]; then release_lock; echo "NO_ELIGIBLE_WORK"; exit 0; fi
+  jq --arg id "$id" --arg who "$AGENT_ID" --arg exp "$(lease_iso)" --arg now "$(now_iso)" '
+    .tasks |= map(if .id==$id then
+      .status="claimed" | .claimed_by=$who | .lease_expires_at=$exp | .claimed_at=$now
+    else . end)' "$QUEUE" | write_queue
+  release_lock; log "TAKE $id"
+  jq -r --arg id "$id" '.tasks[]|select(.id==$id)' "$QUEUE"
+}
+
+cmd_set_status() {
+  local id="$1" st="$2" note="${3:-}"
+  acquire
+  # A task already terminal must not be re-marked — double-`done` used to be
+  # accepted silently, inflating completion counts.
+  local cur; cur="$(jq -r --arg id "$id" '.tasks[]|select(.id==$id)|.status // ""' "$QUEUE")"
+  if [ "$cur" = "done" ] && [ "$st" = "done" ]; then
+    release_lock; echo "REJECTED: '$id' is already done" >&2; exit 1
+  fi
+  assert_owner "$id"
+  jq --arg id "$id" --arg st "$st" --arg note "$note" --arg now "$(now_iso)" --arg who "$AGENT_ID" '
+    .tasks |= map(if .id==$id then
+      .status=$st | .lease_expires_at=null
+      | (if $st=="open" then .claimed_by=null else .claimed_by=$who end)
+      | (if $note=="" then . else .note=$note end)
+      | .updated_at=$now
+    else . end)' "$QUEUE" | write_queue
+  release_lock; log "$st $id ${note}"
+  echo "OK: $id -> $st"
+}
+
+# Release records WHO refused, so select_next never hands the same task back
+# to the same agent. Without this, releasing a task on policy grounds put it
+# straight back to "open" and the stop hook re-served it immediately — a live
+# livelock whose only escape was blocking the task outright.
+cmd_release() {
+  local id="$1" note="${2:-}"
+  acquire
+  assert_owner "$id"
+  jq --arg id "$id" --arg who "$AGENT_ID" --arg note "$note" --arg now "$(now_iso)" '
+    .tasks |= map(if .id==$id then
+      .status="open" | .claimed_by=null | .lease_expires_at=null
+      | .refused_by=(((.refused_by // []) + [$who]) | unique)
+      | (if $note=="" then . else .note=$note end)
+      | .updated_at=$now
+    else . end)' "$QUEUE" | write_queue
+  release_lock; log "RELEASE $id ${note}"
+  echo "OK: $id -> open (refused_by += $AGENT_ID)"
+}
+
+cmd_heartbeat() {
+  local id="$1"; acquire
+  assert_owner "$id"
+  jq --arg id "$id" --arg who "$AGENT_ID" --arg exp "$(lease_iso)" '
+    .tasks |= map(if .id==$id and .claimed_by==$who then .lease_expires_at=$exp else . end)
+  ' "$QUEUE" | write_queue
+  release_lock; echo "OK: lease extended to $(lease_iso)"
+}
+
+cmd_status() {
+  acquire; reap_expired; release_lock
+  echo "=== PAON FLEET  ($(now_iso)) ==="
+  local fz; fz="$(frozen_reason)"
+  [ -n "$fz" ] && echo "*** FROZEN: $fz  (no assignment; 'paon-fleet unfreeze' to resume) ***"
+  jq -r '
+    (.tasks | group_by(.status) | map({(.[0].status): length}) | add) as $c
+    | "open:      \($c.open // 0)\nclaimed:   \($c.claimed // 0)\nblocked:   \($c.blocked // 0)\ndone:      \($c.done // 0)\ntotal:     \(.tasks|length)"
+  ' "$QUEUE"
+  echo
+  echo "--- IN FLIGHT ---"
+  jq -r '.tasks[]|select(.status=="claimed")
+    |"  [\(.claimed_by)] \(.id)  lease->\(.lease_expires_at)  \(.title)"' "$QUEUE"
+  echo
+  echo "--- NEXT UP ---"
+  jq -r '[.tasks[]|select(.status=="open")]|sort_by(.priority//100)|.[0:8][]
+    |"  (\(.priority//100)) [\(.tier//"implementation")] \(.id)  \(.title)"' "$QUEUE"
+  echo
+  echo "--- BLOCKED ---"
+  jq -r '.tasks[]|select(.status=="blocked")|"  \(.id): \(.note // "no reason recorded")"' "$QUEUE"
+}
+
+cmd_owns() { # owns <task-id> <path>  -> exit 0 if inside owned_paths
+  local id="$1" path="$2"
+  jq -e -r --arg id "$id" --arg p "$path" '
+    (.tasks[]|select(.id==$id)|.owned_paths // []) as $globs
+    | if ($globs|length)==0 then true
+      else any($globs[]; . as $g | ($p | startswith($g|sub("\\*+$";"")))) end
+    | if . then "OWNED" else error("NOT_OWNED") end' "$QUEUE" 2>/dev/null
+}
+
+case "${1:-status}" in
+  next)      cmd_next ;;
+  take)      cmd_take ;;
+  claim)     cmd_claim "$2" ;;
+  done)      cmd_set_status "$2" "done" "${3:-}" ;;
+  block)     cmd_set_status "$2" "blocked" "${3:-blocked, no reason given}" ;;
+  release)   cmd_release "$2" "${3:-}" ;;
+  heartbeat) cmd_heartbeat "$2" ;;
+  reap)      acquire; reap_expired; release_lock; echo "OK: expired leases released" ;;
+  freeze)    acquire
+             jq --arg r "${2:-frozen by operator}" '.frozen=$r' "$QUEUE" | write_queue
+             release_lock; log "FREEZE ${2:-}"
+             echo "OK: fleet FROZEN — no task will be assigned. Reason: ${2:-frozen by operator}"
+             echo "    In-flight leases are untouched; agents finish what they hold."
+             echo "    Resume with: paon-fleet unfreeze" ;;
+  unfreeze)  acquire; jq 'del(.frozen)' "$QUEUE" | write_queue
+             release_lock; log "UNFREEZE"; echo "OK: fleet resumed — assignment re-enabled" ;;
+  owns)      cmd_owns "$2" "$3" ;;
+  status|*)  cmd_status ;;
+esac
