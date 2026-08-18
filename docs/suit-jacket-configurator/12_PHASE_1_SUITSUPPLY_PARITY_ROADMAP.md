@@ -163,6 +163,38 @@ Next attempt must implement chapter 09's seam contract properly — named seams,
 declared arity, ordered arc-length pairing — before touching solver tuning.
 Tuning a solver fed contradictory constraints is wasted effort.
 
+#### P1.0/P1.1/P1.2 result, 2026-08-18: **NOT PASSED**, harness and geometry both real now, drape quality is the remaining gap
+
+The seam contract above was implemented properly this session (named,
+ordered, declared arity — `11_EXECUTION_STATE.md` has the full chain) and
+the panels genuinely hold on the dress form now: P1.2's stability gate
+passes, verified by a 90-frame Z-trace and an actual render, not narration.
+The armscye/sleeve contract chapter 09/14 call for is wired and runs
+end-to-end (5 panels, 587 verts, 66 sewing springs, no crash, no arity
+errors) with an arm collider so the sleeve has something to drape over.
+
+Full-quality renders (both `hero_front` and `three_q_rake`, real sample
+counts, not diagnostic previews) confirm the harness and materials are
+still solid — the raking view shows real woven-wool texture on every visible
+fold — but the garment itself still does not read as a jacket: the shoulder
+seam closes but pinches into two rigid points instead of a smooth line, and
+the panels below twist and cross over each other rather than hanging as a
+front/back/sleeve silhouette. This is a straight continuation of the same
+class of defect the 2026-08-15 loft attempt hit (no shoulder line, no
+armhole, sleeves reading as detached blobs) — the geometry pipeline is
+structurally correct (real seams, real ease, real collision) but not yet
+tuned to actually settle into worn shapes rather than crumpled ones.
+
+Per this session's founder direction (`11_EXECUTION_STATE.md`'s Standing
+order, item 6: build the whole pipeline broad-first, then deepen), this was
+not chased further — P1.0's actual panel-judgment gate ("cannot be
+identified as the weaker image") requires a human/founder comparison against
+a reference shot and is not something a session can self-certify regardless
+of render quality. What this session adds: the full pipeline, geometry
+through render, now exists and runs, so that judgment and further tuning
+have a real end-to-end artifact to work from instead of a known-broken loft
+or an un-sewn prototype.
+
 ### P1.1 — The jacket exists as geometry
 
 Original panelled jacket geometry with seam definitions: forepart, side body,
