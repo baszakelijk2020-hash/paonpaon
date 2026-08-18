@@ -333,9 +333,17 @@ ft04-alteration-grid.tsx`, `alteration-grid-snapshot-repository.ts`,
    run against a live database** — Docker was unavailable in both the
    worker's and the integrator's sessions. See the 16.5 correction below;
    do not treat this as `verified_local` until those two run for real.
-7. **Virtual Wardrobe item-level actions** (alteration/cleaning booking,
-   unattached logged-out items) — NOT STARTED. Depends on FT-04 (item 2)
-   for the alteration-booking half; the cleaning-booking half does not.
+7. ~~**Virtual Wardrobe item-level actions — alteration/cleaning
+   booking**~~ — **BUILT** (2026-08-10, `7ba5e45`-adjacent, see Stage
+   17.13's own "Status (2026-08-10, alteration/cleaning booking)" entry) —
+   this critical-path summary just never picked it up. Verified still
+   present 2026-08-18: `requestWardrobeItemService` Server Action,
+   `wardrobeServiceRequestMessage` domain helper, and the "Book an
+   alteration"/"Book a cleaning" buttons + their `wardrobe.spec.ts` e2e
+   coverage are all intact in the current tree. Only the **unattached
+   (logged-out-created) item** schema change remains a real, unattempted
+   gap (also unblocked by anything — no FT-04 dependency, contrary to
+   what this entry previously said).
 
 #### Subsequent completion work (active/KEEP, not on the immediate critical path)
 
@@ -364,8 +372,23 @@ preferred-tailoring-grid.spec.ts`). E2e spec exists but has not been run
   typecheck and lint on the new spec are clean; not yet run against a live
   database this session.
 - **Loyalty**: METRE→MILLI→MICRON tier naming, retailer-configurable
-  campaigns/percentages/milestones, dedicated badges page — all NOT
-  STARTED on top of an already-COMPLETE ledger/milestone core (Stage 5.2).
+  campaigns/percentages/milestones, dedicated badges page — still NOT
+  STARTED as a whole feature on top of an already-COMPLETE ledger/milestone
+  core (Stage 5.2). **Note (2026-08-18,
+  agent/lane-h-customer-ai-conversation):** found one orphaned-looking
+  fragment already in the tree, `apps/retailer/lib/loyalty-tier-labels.ts`
+  (used by `self-portrait.tsx`, `loyalty/page.tsx`, `events/page.tsx`) —
+  a display-label map. It surfaces a real, unresolved naming gap rather
+  than being wrong on its own: `LoyaltyTier` (`packages/domain/src/loyalty/
+loyalty.ts`) has four values (`member`/`silver`/`gold`/`platinum`), but
+  5.2's founder-fixed tier language above names only three (METRE/MILLI/
+  MICRON), so this file maps both `gold` and `platinum` to `MICRON`,
+  making them visually indistinguishable. Did not guess a fourth name —
+  this is exactly the kind of "not retailer-editable" founder-language
+  decision Stage 5.2 says is fixed, so it needs the founder to supply the
+  fourth tier name (or confirm gold/platinum are meant to share one label)
+  before this label map — or anything else in the Loyalty item — is built
+  further.
 - **Corporate/Métier**: project-setup wizard (14.1 founder addition) —
   BUILT, found already merged 2026-08-18 (`apps/retailer/app/(dashboard)/
 corporate/setup-wizard/`, `apps/retailer/e2e/corporate-setup-wizard.spec.ts`,
