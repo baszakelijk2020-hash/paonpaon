@@ -20,6 +20,7 @@ import {
   ProductRepository,
   RetailerRepository,
   SilhouetteAnalysisRepository,
+  StyleProfileRepository,
   SuitConfiguratorRepository,
   WardrobeLifecycleRepository,
   WardrobeRepository,
@@ -125,6 +126,7 @@ export default async function CustomerDetailPage({
     suitConfigurationIntents,
     fitProfileCandidates,
     reorderGateResult,
+    styleProfile,
   ] = await Promise.all([
     new PhysicalGarmentRepository(supabase).findByCustomer(customer.id),
     new ClientelingRepository(supabase).findByCustomer(customer.id),
@@ -161,6 +163,18 @@ export default async function CustomerDetailPage({
     new MeasurementMonitorRepository(supabase).checkReorderAllowed({
       customerId: customer.id,
     }),
+    // The customer's OWN style truth (customer_style_profiles /
+    // customer_style_preference_evidence). The advisor Self-Portrait
+    // previously showed only customer_facts, so the declared and inferred
+    // preferences a customer sets through the style quiz, swipe and Virtual
+    // Studio were invisible to the advisor — two parallel memories of the
+    // same person, which PHASE.md's Mission Control build order item 1
+    // explicitly forbids ("one coherent memory, not duplicate notes across
+    // modules"). Same store, no second source of truth.
+    new StyleProfileRepository(supabase).findByCustomer(
+      session.retailerId,
+      customer.id,
+    ),
   ]);
 
   const orderRepo = new OrderRepository(supabase);
@@ -645,6 +659,15 @@ export default async function CustomerDetailPage({
           pinnedNote={pinnedNote}
           interestProjection={interestProjection}
           customerFacts={customerFacts}
+          styleProfile={styleProfile}
+          conceptLabels={
+            new Map(
+              rectangleConcepts.map((concept) => [
+                concept.id as string,
+                concept.canonicalName,
+              ]),
+            )
+          }
         />
       ) : null}
 

@@ -3,6 +3,7 @@ import type {
   ClientelingNote,
   CustomerFact,
   CustomerInterestProjection,
+  CustomerStyleProfile,
   LoyaltyAccount,
   LoyaltyMilestoneAward,
 } from "@paon/domain";
@@ -81,6 +82,8 @@ export function SelfPortrait({
   pinnedNote,
   interestProjection,
   customerFacts,
+  styleProfile,
+  conceptLabels,
 }: {
   customerId: string;
   loyaltyAccount: LoyaltyAccount | null;
@@ -89,6 +92,8 @@ export function SelfPortrait({
   pinnedNote: ClientelingNote | null;
   interestProjection: CustomerInterestProjection;
   customerFacts: readonly CustomerFact[];
+  styleProfile: CustomerStyleProfile | null;
+  conceptLabels: ReadonlyMap<string, string>;
 }) {
   const activeMilestones = milestoneAwards.filter(
     (award) => award.status === "awarded",
@@ -179,6 +184,62 @@ export function SelfPortrait({
           </a>
         </div>
       ) : null}
+
+      <div className="mb-4">
+        <p className="mb-1 text-xs font-medium uppercase text-[var(--color-stone-500)]">
+          Style profile — the customer&rsquo;s own
+        </p>
+        {styleProfile === null ||
+        (styleProfile.explicitPreferences.length === 0 &&
+          styleProfile.inferredPreferences.length === 0) ? (
+          <p className="text-sm text-[var(--color-stone-500)]">
+            This customer has not built a style profile yet. It fills in from
+            their style quiz, swipes and Virtual Studio choices.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-1.5">
+            {styleProfile.explicitPreferences.slice(0, 6).map((preference) => (
+              <li
+                key={`declared-${preference.conceptId}`}
+                className="flex items-start justify-between gap-3 text-sm"
+              >
+                <span className="text-[var(--color-stone-800)]">
+                  {conceptLabels.get(preference.conceptId as string) ??
+                    "Unnamed concept"}
+                  <span className="ml-2 text-xs text-[var(--color-stone-500)]">
+                    Declared by the customer ·{" "}
+                    {preference.polarity === "positive" ? "likes" : "avoids"} ·{" "}
+                    {formatDate(preference.updatedAt, "en-US")}
+                  </span>
+                </span>
+              </li>
+            ))}
+            {styleProfile.inferredPreferences.slice(0, 6).map((preference) => (
+              <li
+                key={`inferred-${preference.conceptId}`}
+                className="flex items-start justify-between gap-3 text-sm"
+              >
+                <span className="text-[var(--color-stone-800)]">
+                  {conceptLabels.get(preference.conceptId as string) ??
+                    "Unnamed concept"}
+                  <span className="ml-2 text-xs text-[var(--color-stone-500)]">
+                    Inferred ·{" "}
+                    {preference.polarity === "positive" ? "likes" : "avoids"} ·{" "}
+                    {Math.round(preference.confidence * 100)}% confidence ·{" "}
+                    {formatDate(preference.lastEvidenceAt, "en-US")}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {styleProfile !== null ? (
+          <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+            Corrections belong to the customer: they change this from their own
+            account, and the change lands in the same record you are reading.
+          </p>
+        ) : null}
+      </div>
 
       <div className="mb-4">
         <p className="mb-1 text-xs font-medium uppercase text-[var(--color-stone-500)]">
