@@ -21,6 +21,15 @@
 # going with that instruction.
 set -uo pipefail
 
+# Non-interactive/non-login shells (exactly how Claude Code and most hook
+# runners invoke this script) do not source ~/.bashrc or ~/.bash_profile, so
+# node/pnpm/corepack are absent from PATH even when a normal terminal has
+# them. Load nvm explicitly rather than failing every lint/typecheck gate
+# below with a misleading "pnpm: command not found".
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" >/dev/null 2>&1
+export PATH="$HOME/.local/bin:/opt/homebrew/opt/libpq/bin:$PATH"
+
 # Claude-only. Codex/OpenRouter lanes were inheriting this hook and failing
 # with exit 127 / invalid stop-hook JSON on every turn. Exit silently there.
 [ -n "${PAON_NON_CLAUDE_AGENT:-}" ] && exit 0
