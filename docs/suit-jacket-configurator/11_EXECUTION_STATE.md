@@ -268,9 +268,48 @@ later pass rather than chased now. `docs/suit-jacket-configurator/13_*.md`
 was not amended with a materials/render source citation for the arm/sleeve
 geometry since none of it is sourced (all labelled "ours" above).
 
-The next dependency-ready item is P1.0 — one Cycles render beside a
-reference shot, the roadmap's own gate on the whole programme — rather than
-continuing to tune P1.1's sleeve drape.
+P1.0's full-quality render result is recorded in
+`12_PHASE_1_SUITSUPPLY_PARITY_ROADMAP.md` directly (2026-08-18 entry) rather
+than duplicated here — harness/materials solid, geometry still doesn't read
+as a jacket, not chased further per the broad-first standing order.
+
+### P1.1 continued — side_body() (this session, broad-first)
+
+Chapter 14's panel set also names "side body x2 -- waist shaping; bridges
+forepart to back," previously skipped (forepart and back joined directly at
+`side`). Added `side_body()`: a minimal 2-column strip (no interior detail,
+no Vincent-derived shaping — chapter 14 itself calls the exact shape
+unsourced) routed into the existing `side` seam pair instead of the direct
+join. **Verified structurally safe**: re-ran the Z-stability check with
+side_body added — still holds, `z` stays in `0.34-1.36` across all 90
+frames, no regression to P1.2's gate (7 panels, 627 verts, 86 springs).
+**Visually rougher, as expected**: the render now shows an additional flat,
+undraped flap near the shoulder from the new unconnected/undertuned panel —
+worse-looking than without it, not better. Consistent with this session's
+broad-first direction: breadth was the goal, not this panel's drape quality.
+Left as-is rather than tuned.
+
+Still entirely unbuilt from chapter 14's panel set: under-collar, top-collar,
+lapel facing (plus its roll line, which chapter 14 flags as a crease/fold
+requiring bend-stiffness along a curve, not a sewing spring — a genuinely
+different technique nothing in this codebase has attempted yet), pocket
+welts/flaps, canvas/chest-piece stiffness field, lining. Collar/lapel is the
+highest-value remaining gap (chapter 06's acceptance bar: "shoulder
+construction legible, spalla camicia vs con rollino" — actually a
+sleeve/shoulder-junction distinction, which is exactly the area still
+crumpling) but also the highest-complexity and highest-risk-to-existing-
+stability of what remains, since it requires reshaping forepart's/back's
+existing neckline rather than only adding a new panel. Not attempted this
+session.
+
+Per the standing order (do not stop to ask, never idle), the next session
+continues the broad-first pass rather than waiting for review: pockets and
+lining are lower-risk additive breadth (same pattern as side_body — new
+panels into or alongside the existing contract, no reshaping of proven
+geometry); collar/lapel is higher-value but requires reshaping forepart's
+and back's existing neckline plus a new roll-line/crease technique, so it
+should wait until the lower-risk breadth is done, to keep isolating risk to
+one new thing at a time the way side_body's verification just did.
 
 ### Commits so far, newest first
 

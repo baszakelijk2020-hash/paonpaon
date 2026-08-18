@@ -59,6 +59,8 @@ def main():
         panels.forepart(-1),
         panels.forepart(1),
         panels.back_panel(),
+        panels.side_body(-1),
+        panels.side_body(1),
         panels.sleeve_cap(-1),
         panels.sleeve_cap(1),
     ]

@@ -239,6 +239,41 @@ def back_panel():
     }
 
 
+def side_body(side: int):
+    """Side body panel. side=-1 wearer's right, +1 wearer's left.
+
+    Chapter 14's panel set: "Side body x2 -- waist shaping; bridges forepart
+    to back." Chapter 14 also flags its exact shape/placement as unsourced
+    ("varies by system, take Vincent's, since we derive from it") -- this is
+    a minimal 2-column strip (front edge, back edge; no interior detail),
+    broad structural coverage rather than a tuned Vincent-derived shape,
+    per this session's build-broad-first-then-deepen direction.
+
+    u: 0 at the front edge (joins forepart's `side`) -> 1 at the back edge
+    (joins back's `side_R`/`side_L`). v: hem -> underarm, matching the same
+    `UNDERARM_INDEX`-point range forepart's/back's own lower side seam uses,
+    since this panel now sits between them instead of them joining directly.
+    """
+    def fn(u, v):
+        v_scaled = v * (UNDERARM_INDEX / (ARITY_VERTICAL - 1))
+        wf = _waist_factor(v_scaled)
+        x = side * HEM_HALF * wf * 0.96
+        z = Z_HEM + (Z_SHOULDER - Z_HEM) * v_scaled
+        # Endpoints match forepart().side's and back_panel().side_R/L's own y
+        # formulas at u=1 and u=0 respectively, so the seam this replaces
+        # starts about as far apart as the direct join it replaces did.
+        y_front = -(START_GAP + 0.10)
+        y_back = START_GAP
+        y = y_front + (y_back - y_front) * u
+        return Vector((x, y, z))
+
+    obj, b = _grid(f"side_body_{'L' if side > 0 else 'R'}", fn, nu=1, nv=UNDERARM_INDEX)
+    return obj, {
+        "front": b["u0"],  # hem -> underarm, joins forepart().side
+        "back": b["u1"],   # hem -> underarm, joins back_panel().side_R/L
+    }
+
+
 def sleeve_cap(side: int):
     """Sleeve cap panel. side=-1 wearer's right, +1 wearer's left.
 
@@ -368,18 +403,25 @@ def arm_form(side: int):
 # Chapter 09's seam contract, declared rather than discovered. Each entry names
 # two seams that a tailor actually stitches, and both sides must already agree
 # on arity — which the grid construction guarantees.
+#
+# The side seam routes through side_body() rather than joining forepart to
+# back directly, per chapter 14's panel set ("side body x2 -- ... bridges
+# forepart to back").
 BODY_SEAMS = [
-    ("forepart_R", "side", "back", "side_R"),
-    ("forepart_L", "side", "back", "side_L"),
+    ("forepart_R", "side", "side_body_R", "front"),
+    ("side_body_R", "back", "back", "side_R"),
+    ("forepart_L", "side", "side_body_L", "front"),
+    ("side_body_L", "back", "back", "side_L"),
     ("forepart_R", "shoulder", "back", "shoulder_R"),
     ("forepart_L", "shoulder", "back", "shoulder_L"),
 ]
 
 # The armscye seam (chapter 14: "seam.armscye -- upper + under sleeve ->
-# forepart, back, side body"). This prototype has no side body yet, so each
-# sleeve's cap sews directly to forepart's and back's armscye boundaries --
-# two seam pairs per arm, one for the front quarter and one for the back
-# quarter, meeting at the shoulder point the way a real armscye does.
+# forepart, back, side body"). Side body's own armscye contribution is not
+# modelled in this prototype (broad-first: it declares only the `side` seam
+# above) -- each sleeve's cap sews directly to forepart's and back's armscye
+# boundaries, two seam pairs per arm, one for the front quarter and one for
+# the back quarter, meeting at the shoulder point the way a real armscye does.
 SLEEVE_SEAMS = [
     ("forepart_R", "armscye", "sleeve_R", "front"),
     ("back", "armscye_R", "sleeve_R", "back"),
