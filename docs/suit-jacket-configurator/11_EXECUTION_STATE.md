@@ -289,27 +289,44 @@ worse-looking than without it, not better. Consistent with this session's
 broad-first direction: breadth was the goal, not this panel's drape quality.
 Left as-is rather than tuned.
 
-Still entirely unbuilt from chapter 14's panel set: under-collar, top-collar,
-lapel facing (plus its roll line, which chapter 14 flags as a crease/fold
-requiring bend-stiffness along a curve, not a sewing spring — a genuinely
-different technique nothing in this codebase has attempted yet), pocket
-welts/flaps, canvas/chest-piece stiffness field, lining. Collar/lapel is the
-highest-value remaining gap (chapter 06's acceptance bar: "shoulder
-construction legible, spalla camicia vs con rollino" — actually a
-sleeve/shoulder-junction distinction, which is exactly the area still
-crumpling) but also the highest-complexity and highest-risk-to-existing-
-stability of what remains, since it requires reshaping forepart's/back's
-existing neckline rather than only adding a new panel. Not attempted this
-session.
+### P1.1 continued — collar_stub() (this session, broad-first)
 
-Per the standing order (do not stop to ask, never idle), the next session
-continues the broad-first pass rather than waiting for review: pockets and
-lining are lower-risk additive breadth (same pattern as side_body — new
-panels into or alongside the existing contract, no reshaping of proven
-geometry); collar/lapel is higher-value but requires reshaping forepart's
-and back's existing neckline plus a new roll-line/crease technique, so it
-should wait until the lower-risk breadth is done, to keep isolating risk to
-one new thing at a time the way side_body's verification just did.
+Added a first neckline: `forepart()`'s centre-front edge now opens into a
+V-notch above `NECK_V_START` (a new `_front_neck_x()` curve, PAON's own
+unsourced depth like `ARMSCYE_ARITY`) instead of running straight to the
+shoulder point, splitting `cf` into `cf` (lower, unchanged) and `neckline`
+(upper, the new curved section). `collar_stub()` sews a small flat strip to
+one forepart's `neckline` edge per side.
+
+**Deliberately incomplete**, recorded rather than hidden: this is only the
+front-neck half of chapter 14's `seam.neckline` (under-collar -> **back**
+neckline too) — `back_panel()`'s neckline was NOT touched, so there is no
+back neck opening yet and the collar only wraps the front. A real collar
+wrapping continuously front-to-back is follow-up work.
+
+**Verified structurally safe**: re-ran the Z-stability check with the collar
+added (9 panels, 639 verts, 92 springs) — still no free-fall, `z` bounded
+across all 90 frames. **New effect worth flagging**: `z_max` grew to `1.49`
+(vs. the pinned shoulder at `1.30`) — the collar, unpinned, stretches upward
+past the shoulder line instead of settling, visible in the render as a
+spike above the shoulders. Not a stability regression (nothing fell, nothing
+exploded, nothing exceeded the collider's plausible working volume) — a
+visual defect of the same deferred kind as side_body's flap and the
+sleeve's crumple. Left as-is.
+
+Still entirely unbuilt from chapter 14's panel set: top-collar, lapel facing
+(plus its roll line, which chapter 14 flags as a crease/fold requiring
+bend-stiffness along a curve, not a sewing spring — a genuinely different
+technique nothing in this codebase has attempted yet), back's half of the
+neckline, pocket welts/flaps, canvas/chest-piece stiffness field, lining.
+
+Per the standing order (do not stop to ask, never idle): pockets and lining
+remain the lowest-risk additive breadth left (new panels, no reshaping of
+proven geometry). Back's neckline is the natural next step to make the
+collar actually wrap the neck rather than only the front. Lapel/roll-line
+is highest-value and highest-complexity both — worth attempting once the
+above is done, not before, to keep risk isolated to one new thing at a time,
+same discipline side_body's and this collar's own verification just used.
 
 ### Commits so far, newest first
 

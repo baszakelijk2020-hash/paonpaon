@@ -63,11 +63,13 @@ def main():
         panels.side_body(1),
         panels.sleeve_cap(-1),
         panels.sleeve_cap(1),
+        panels.collar_stub(-1),
+        panels.collar_stub(1),
     ]
     print(f"[p1.1] cut {len(cut)} panels, {sum(len(obj.data.vertices) for obj, _ in cut)} verts")
 
     garment, declared_seams = sew.join_panels(cut)
-    seam_contract = panels.BODY_SEAMS + panels.SLEEVE_SEAMS
+    seam_contract = panels.BODY_SEAMS + panels.SLEEVE_SEAMS + panels.COLLAR_SEAMS
     seams = sew.add_sewing_springs(garment, declared_seams, seam_contract)
     print(f"[p1.1] sewing springs: {seams}")
     if seams == 0:

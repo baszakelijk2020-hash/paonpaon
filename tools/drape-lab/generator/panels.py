@@ -57,6 +57,12 @@ ARITY_SHOULDER = 7  # neck -> armhole (shoulder seams)
 # shoulder), sharing the underarm point.
 ARMSCYE_ARITY = 8
 UNDERARM_INDEX = ARITY_VERTICAL - ARMSCYE_ARITY
+# Same class of gap as ARMSCYE_ARITY above: chapter 14 sources the neckline
+# seam's existence (seam.neckline: under-collar -> back neckline) but not
+# where along the existing centre-front column the neck curve should start
+# opening away from FRONT_OVERLAP's straight edge. Ours, labelled as ours.
+NECK_V_START = 0.85
+NECK_INDEX = round(NECK_V_START * (ARITY_VERTICAL - 1))
 
 # PARAM — chapter 14 records no public figure. Ours, and labelled as ours.
 FRONT_OVERLAP = 0.050
@@ -171,6 +177,19 @@ def _flip_faces(obj):
     obj.data.update()
 
 
+def _front_neck_x(side, v):
+    """Centre-front x at height `v`: flat at `FRONT_OVERLAP` below
+    `NECK_V_START`, opening outward to `NECK_HALF` at the shoulder -- the
+    V-notch that makes a neckline instead of a shoulder seam running flush
+    to centre front. A straight two-segment curve, not a tailored one;
+    broad-first coverage, not a tuned shape."""
+    base = side * FRONT_OVERLAP * 0.5
+    if v <= NECK_V_START:
+        return base
+    t = (v - NECK_V_START) / (1.0 - NECK_V_START)
+    return base + (side * NECK_HALF - base) * t
+
+
 def forepart(side: int):
     """Front panel. side=-1 wearer's right, +1 wearer's left.
 
@@ -179,7 +198,7 @@ def forepart(side: int):
     """
     def fn(u, v):
         wf = _waist_factor(v)
-        x_cf = side * FRONT_OVERLAP * 0.5
+        x_cf = _front_neck_x(side, v)
         x_side = side * HEM_HALF * wf * 0.96
         x = x_cf + (x_side - x_cf) * u
         z = Z_HEM + (Z_SHOULDER - Z_HEM) * v
@@ -200,12 +219,14 @@ def forepart(side: int):
         # penetration -- this was the real cause of the free-fall, not mass
         # or friction.
         _flip_faces(obj)
-    side = b["u1"]
+    cf, side_edge = b["u0"], b["u1"]
     return obj, {
-        "cf": b["u0"],        # centre front, hem -> shoulder
+        # centre front, hem -> neck start only; neckline takes over above that.
+        "cf": cf[: NECK_INDEX + 1],
+        "neckline": cf[NECK_INDEX:],  # neck start -> shoulder/neck corner
         # side seam, hem -> underarm only; armscye takes over above that.
-        "side": side[: UNDERARM_INDEX + 1],
-        "armscye": side[UNDERARM_INDEX:],  # underarm -> shoulder, shares the underarm point with "side"
+        "side": side_edge[: UNDERARM_INDEX + 1],
+        "armscye": side_edge[UNDERARM_INDEX:],  # underarm -> shoulder, shares the underarm point with "side"
         "hem": b["v0"],
         "shoulder": b["v1"],  # neck -> armhole, ordered cf -> side
     }
@@ -272,6 +293,35 @@ def side_body(side: int):
         "front": b["u0"],  # hem -> underarm, joins forepart().side
         "back": b["u1"],   # hem -> underarm, joins back_panel().side_R/L
     }
+
+
+def collar_stub(side: int):
+    """Minimal under-collar stand-in, side=-1 wearer's right, +1 left.
+
+    Chapter 14: "seam.neckline -- under-collar -> back neckline." A real
+    collar wraps continuously from one front neck edge, around the back
+    neckline, to the other. This session adds only the piece reachable
+    without also reshaping back_panel()'s neckline (undone -- back's v=1
+    row is still the flat shoulder seam, no neck dip), to keep the change
+    isolated to forepart the way side_body() was isolated to the side seam:
+    a small flat strip sewn only to one forepart's `neckline` edge, free
+    (unsewn) on its outer edge. Broad structural coverage, not a tuned
+    collar shape or a real front-to-back wrap.
+    """
+    width = 0.045  # collar stand width, ours, unsourced
+    nv = ARITY_VERTICAL - 1 - NECK_INDEX  # matches forepart().neckline's arity
+
+    def fn(u, v):
+        index = NECK_INDEX + v * nv
+        vv = index / (ARITY_VERTICAL - 1)  # forepart()'s own v-sampling, exactly
+        base_x = _front_neck_x(side, vv)
+        z = Z_HEM + (Z_SHOULDER - Z_HEM) * vv
+        x = base_x + side * width * u
+        y = -START_GAP - 0.02  # just outside where the neckline starts
+        return Vector((x, y, z))
+
+    obj, b = _grid(f"collar_{'L' if side > 0 else 'R'}", fn, nu=1, nv=nv)
+    return obj, {"neck": b["u0"]}  # matches forepart().neckline's point count and v-order
 
 
 def sleeve_cap(side: int):
@@ -427,4 +477,11 @@ SLEEVE_SEAMS = [
     ("back", "armscye_R", "sleeve_R", "back"),
     ("forepart_L", "armscye", "sleeve_L", "front"),
     ("back", "armscye_L", "sleeve_L", "back"),
+]
+
+# seam.neckline (chapter 14): under-collar -> back neckline. Only the
+# front-neck half is modelled this session -- see collar_stub()'s docstring.
+COLLAR_SEAMS = [
+    ("forepart_R", "neckline", "collar_R", "neck"),
+    ("forepart_L", "neckline", "collar_L", "neck"),
 ]
