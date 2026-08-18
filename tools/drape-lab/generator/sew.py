@@ -131,6 +131,19 @@ def pin_vertex_group(obj, seams, panel_seam_pairs, name="pin_shoulder", *, snap_
     return group
 
 
+def make_collider(obj, *, thickness_outer=0.005):
+    """Add a COLLISION modifier so cloth anywhere in the scene treats `obj`
+    as a collider. Blender's cloth solver collides against every object
+    that carries one automatically -- it is not wired into ClothSettings
+    itself, which is why `setup_cloth()` only takes a single `collider` to
+    set up initially but any number of objects (the dress form, each arm)
+    can carry this modifier independently."""
+    mod = obj.modifiers.new("collision", "COLLISION")
+    if hasattr(mod, "settings"):
+        mod.settings.thickness_outer = thickness_outer
+    return mod
+
+
 def setup_cloth(obj, collider, *, quality=8, pin_group=None, pin_stiffness=1.0):
     """Chapter 07's solver configuration, using the property names verified
     against the 5.2 manual rather than assumed."""
@@ -184,9 +197,7 @@ def setup_cloth(obj, collider, *, quality=8, pin_group=None, pin_stiffness=1.0):
     if hasattr(cl, "damping"):
         cl.damping = 2.0
 
-    coll = collider.modifiers.new("collision", "COLLISION")
-    if hasattr(coll, "settings"):
-        coll.settings.thickness_outer = 0.005
+    make_collider(collider)
 
     return mod
 

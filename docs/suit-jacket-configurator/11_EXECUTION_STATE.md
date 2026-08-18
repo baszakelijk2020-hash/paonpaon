@@ -31,6 +31,17 @@ Consequences that bind every session:
    installation over the DevTools protocol on a throwaway profile, headless,
    and kill it afterwards. See `01_REFERENCE_CAPABILITY_MATRIX.md` "Pass B".
 5. **No paid inference, no paid generation providers.**
+6. **Build the whole pipeline broad-first, then deepen.** Founder direction,
+   2026-08-18: get every stage minimally end-to-end before polishing any one
+   stage's quality. P1.2's stability debugging (this file's history below)
+   is the cautionary example — a single narrow problem (does the garment stay
+   on the form) consumed most of a session across five real attempts before
+   it was actually fixed. P1.1's sleeve _drape quality_ must not repeat that:
+   the armscye seam contract existing and running without crashing is enough
+   to call P1.1 "built" and move to P1.0 (one Cycles render beside a
+   reference shot — the roadmap's own gate on the whole programme). Sleeve
+   crumpling/visual quality is real, known, unfixed debt — record it, don't
+   chase it, come back once every stage has a rough pass.
 
 ## The goal, restated so it cannot drift
 
@@ -215,9 +226,51 @@ gravity before or during the fall, not just eventually pull it sideways.**
 across all 90 settle frames, verified by trace and by an actual rendered
 image from the production script. **Not yet a visual-fidelity pass** — the
 small shoulder gap and the twisted/non-jacket-like drape remain, and neither
-has been root-caused. The next dependency-ready item is P1.1's sleeve/armscye
-contract (queue item 2), after which the shape becomes judgeable as an actual
-jacket for the first time.
+has been root-caused.
+
+### P1.1 — armscye/sleeve contract (this session)
+
+Per the broad-first steering above, this was built to "runs without crashing
+and is structurally real," not tuned for visual quality — that tuning is
+deliberately deferred.
+
+- `panels.py`: `ARMSCYE_ARITY = 8` (labelled ours — chapter 14 sources the
+  armscye seam's existence and its 8-10% ease ratio but explicitly blocks a
+  sourced depth/quadrant boundary, same gap as the canvas-boundary parameter
+  it already flags as PAON's own). Splits each panel's existing
+  `ARITY_VERTICAL`-point side column into a lower `side` seam (hem ->
+  underarm) and an upper `armscye` seam (underarm -> shoulder), sharing the
+  underarm point. Applied to both `forepart()` and `back_panel()`.
+- `sleeve_cap()` now returns named `front`/`back` boundaries on its
+  sleevehead arc (arc resized to `2*ARMSCYE_ARITY-1` points, split at the
+  centre/top point into two `ARMSCYE_ARITY`-point halves), ordered to match
+  the body armscye seams' direction. `_grid_from_outline()` now returns
+  `(obj, boundaries)` like `_grid()` so this could be built at all.
+- `SLEEVE_SEAMS`: 4 seam pairs (front/back x left/right) joining each
+  sleeve's cap directly to forepart's and back's armscye boundaries — this
+  prototype has no side body panel yet, so the sleeve attaches straight to
+  the two panels that exist, per chapter 14's `seam.armscye` row.
+- `arm_form()`: added after the first sleeve render showed the sleeve
+  collapsing into a crumpled mass at the shoulder — `dress_form()` has no
+  arm, so gravity had no arm-shaped volume to drape the sleeve over. A
+  simple tapered-cylinder collider, generated and never rendered like
+  `dress_form()` itself, sized to `sleeve_cap()`'s own footprint.
+- `sew.make_collider()` factored out of `setup_cloth()` so both the form and
+  each arm can carry a COLLISION modifier without duplicating that block.
+
+**Verified**: the full 5-panel pipeline (2 forepart + back + 2 sleeves, 587
+verts, 66 sewing springs) runs end-to-end through the production script with
+no crash, no arity errors, no exploded/degenerate geometry. **Not verified,
+and known bad**: the actual render still shows the sleeves as a crumpled
+mass rather than a recognisable sleeve shape, with or without the arm
+collider — this is real, unresolved visual debt, deliberately left for a
+later pass rather than chased now. `docs/suit-jacket-configurator/13_*.md`
+was not amended with a materials/render source citation for the arm/sleeve
+geometry since none of it is sourced (all labelled "ours" above).
+
+The next dependency-ready item is P1.0 — one Cycles render beside a
+reference shot, the roadmap's own gate on the whole programme — rather than
+continuing to tune P1.1's sleeve drape.
 
 ### Commits so far, newest first
 
@@ -297,16 +350,16 @@ through P1.7, each with one acceptance gate. That chapter supersedes chapter
 10's W0–W6 framing where the two differ: the live 3D tier is dropped from Phase
 1 entirely by founder direction, and Phase 1 is Suitsupply parity 1:1.
 
-| #   | Work                                                            | Blocked by | Notes                                                                                                                                                                                                                  |
-| --- | --------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | ~~P1.2~~ — hold the sewn body on the dress form                 | —          | **Done, this session.** No-sleeve body holds across 90 frames; shoulder pinned at its worn position, not its cut position. Small shoulder seam-closure gap left unresolved — pick up if it blocks P1.1's armscye join. |
-| 2   | **P1.1** — panelled jacket geometry, deterministic from seed    | 1          | Now unblocked. Add sleeves via the explicit armscye contract (panels.py's `sleeve_cap()` + `_arc`/`_grid_from_outline` helpers already exist from `2c0430c`, not yet wired into `BODY_SEAMS`).                         |
-| 3   | **P1.0** — one Cycles render beside a reference shot            | 2          | Gates the programme (R-17). Days, not weeks.                                                                                                                                                                           |
-| 5   | P1.3 — per-assembly layers with shadow catchers                 | 4          | Shadow-swap test decides if the modular approach lives                                                                                                                                                                 |
-| 6   | P1.4 — full option set as graph assemblies + compatibility data | 5          |                                                                                                                                                                                                                        |
-| 7   | P1.5 — AVIF layered delivery, srcset, zoom, rotation frames     | 6          |                                                                                                                                                                                                                        |
-| 8   | P1.6 — the configurator surface                                 | 7          | Thumbnails are crops of real renders, not icons                                                                                                                                                                        |
-| 9   | P1.7 — parity panel, then shoulder legibility                   | 8          | Pre-register thresholds before collecting anything                                                                                                                                                                     |
+| #   | Work                                                            | Blocked by | Notes                                                                                                                                                                                                                      |
+| --- | --------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ~~P1.2~~ — hold the sewn body on the dress form                 | —          | **Done, this session.** No-sleeve body holds across 90 frames; shoulder pinned at its worn position, not its cut position. Small shoulder seam-closure gap left unresolved — pick up if it blocks P1.1's armscye join.     |
+| 2   | ~~P1.1~~ — panelled jacket geometry, deterministic from seed    | —          | **Built (broad-first), this session.** Armscye contract wired, sleeves + arm colliders in place, runs end-to-end with no crash. Sleeve drape _quality_ is real known debt, deliberately deferred — see P1.1 section above. |
+| 3   | **P1.0** — one Cycles render beside a reference shot            | 2          | Now unblocked. Gates the programme (R-17). Days, not weeks.                                                                                                                                                                |
+| 5   | P1.3 — per-assembly layers with shadow catchers                 | 4          | Shadow-swap test decides if the modular approach lives                                                                                                                                                                     |
+| 6   | P1.4 — full option set as graph assemblies + compatibility data | 5          |                                                                                                                                                                                                                            |
+| 7   | P1.5 — AVIF layered delivery, srcset, zoom, rotation frames     | 6          |                                                                                                                                                                                                                            |
+| 8   | P1.6 — the configurator surface                                 | 7          | Thumbnails are crops of real renders, not icons                                                                                                                                                                            |
+| 9   | P1.7 — parity panel, then shoulder legibility                   | 8          | Pre-register thresholds before collecting anything                                                                                                                                                                         |
 
 Parallel and unblocked at any time — take one of these when the queue head is
 blocked, rather than idling:

@@ -51,17 +51,22 @@ def main():
     sc = bpy.context.scene
 
     form = panels.dress_form()
+    arms = [panels.arm_form(-1), panels.arm_form(1)]
+    for arm in arms:
+        sew.make_collider(arm)
+        arm.hide_render = True
     cut = [
         panels.forepart(-1),
         panels.forepart(1),
         panels.back_panel(),
+        panels.sleeve_cap(-1),
+        panels.sleeve_cap(1),
     ]
-    # Sleeves wait for the named armscye contract. Joining unpaired sleeve
-    # boundaries would recreate the arbitrary constraints this stage removes.
     print(f"[p1.1] cut {len(cut)} panels, {sum(len(obj.data.vertices) for obj, _ in cut)} verts")
 
     garment, declared_seams = sew.join_panels(cut)
-    seams = sew.add_sewing_springs(garment, declared_seams, panels.BODY_SEAMS)
+    seam_contract = panels.BODY_SEAMS + panels.SLEEVE_SEAMS
+    seams = sew.add_sewing_springs(garment, declared_seams, seam_contract)
     print(f"[p1.1] sewing springs: {seams}")
     if seams == 0:
         print("[p1.1] FAIL: no sewing springs created — panels cannot close")

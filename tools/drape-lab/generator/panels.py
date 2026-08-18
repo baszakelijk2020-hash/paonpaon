@@ -47,6 +47,16 @@ SLEEVEHEAD_EASE = 1.09
 # than by a runtime check that can only ever fail late.
 ARITY_VERTICAL = 17  # hem -> shoulder seams (side seams)
 ARITY_SHOULDER = 7  # neck -> armhole (shoulder seams)
+# Chapter 14 sources the armscye seam's existence and its ease ratio, but
+# explicitly BLOCKS a sourced armscye depth/quadrant boundary ("no public
+# source gives percentages per armhole quadrant... treat distribution as a
+# calibration parameter of our own"). This is that same kind of gap: how far
+# up the existing side-seam column the armscye starts. Ours, labelled as
+# ours. Splits ARITY_VERTICAL's 17-point side column into a lower 10-point
+# side seam (hem -> underarm) and an upper 8-point armscye (underarm ->
+# shoulder), sharing the underarm point.
+ARMSCYE_ARITY = 8
+UNDERARM_INDEX = ARITY_VERTICAL - ARMSCYE_ARITY
 
 # PARAM — chapter 14 records no public figure. Ours, and labelled as ours.
 FRONT_OVERLAP = 0.050
@@ -96,6 +106,10 @@ def _grid_from_outline(name, outline_pts, y):
     so both rows stay the same length, keeping this the same even-quads
     topology every other panel in this file uses (see _grid's own
     docstring for why that matters to the cloth solver).
+
+    Returns `(obj, boundaries)` like `_grid` -- `boundaries["v0"]` is the
+    top-edge (outline) row, in `outline_pts` order, for callers that need to
+    slice it into named seams (e.g. `sleeve_cap()`'s front/back armscye).
     """
     top = outline_pts[:-2]
     bl, br = outline_pts[-2], outline_pts[-1]
@@ -110,8 +124,7 @@ def _grid_from_outline(name, outline_pts, y):
         z = tz + (bz - tz) * v
         return Vector((x, y, z))
 
-    obj, _boundaries = _grid(name, fn, nu=nu, nv=1)
-    return obj
+    return _grid(name, fn, nu=nu, nv=1)
 
 
 def _grid(name: str, fn, nu: int, nv: int):
@@ -187,9 +200,12 @@ def forepart(side: int):
         # penetration -- this was the real cause of the free-fall, not mass
         # or friction.
         _flip_faces(obj)
+    side = b["u1"]
     return obj, {
         "cf": b["u0"],        # centre front, hem -> shoulder
-        "side": b["u1"],      # side seam, hem -> shoulder
+        # side seam, hem -> underarm only; armscye takes over above that.
+        "side": side[: UNDERARM_INDEX + 1],
+        "armscye": side[UNDERARM_INDEX:],  # underarm -> shoulder, shares the underarm point with "side"
         "hem": b["v0"],
         "shoulder": b["v1"],  # neck -> armhole, ordered cf -> side
     }
@@ -211,9 +227,12 @@ def back_panel():
     # inward to the neck so both match their forepart counterpart's direction.
     right_shoulder = list(reversed(v1[: ARITY_SHOULDER]))
     left_shoulder = v1[nu - ARITY_SHOULDER + 1 :]
+    side_R, side_L = b["u0"], b["u1"]
     return obj, {
-        "side_R": b["u0"],
-        "side_L": b["u1"],
+        "side_R": side_R[: UNDERARM_INDEX + 1],
+        "side_L": side_L[: UNDERARM_INDEX + 1],
+        "armscye_R": side_R[UNDERARM_INDEX:],  # underarm -> shoulder
+        "armscye_L": side_L[UNDERARM_INDEX:],
         "hem": b["v0"],
         "shoulder_R": right_shoulder,
         "shoulder_L": left_shoulder,
@@ -229,23 +248,39 @@ def sleeve_cap(side: int):
     than its armscye, via SLEEVEHEAD_EASE); its bottom edge tapers to a
     single pair of cuff corners rather than a full hem width.
 
-    Not yet in BODY_SEAMS: joining it needs the armscye's own named,
-    ordered boundary on forepart/back, which this panel doesn't have yet
-    (_grid_from_outline returns unstitched geometry, not seam boundaries).
+    Returns named `front`/`back` boundaries on the sleevehead arc, each
+    `ARMSCYE_ARITY` points sharing the arc's centre (top) point, so they
+    join 1:1 to `forepart().armscye` and `back_panel().armscye_L/R` --
+    equal point count on both sides of each seam, but the sleeve's total
+    arc length is `SLEEVEHEAD_EASE` (chapter 14: 8-10%) longer than the
+    armscye it closes onto. That length mismatch, not any special spring
+    math, is where the ease comes from: pulling matched vertex pairs
+    together forces the sleeve's extra length to gather between them.
     """
     cap_w = (CHEST_HALF - WAIST_HALF) * 2.0 + 0.16  # armscye-scaled cap width, ours
     top_z = Z_SHOULDER - SHOULDER_SETBACK
     length = 0.58  # elbow-length cap panel; cuff finishing is a later pass
     x_off = side * (HEM_HALF * 0.96 + 0.02)
 
+    # 2*(ARMSCYE_ARITY-1) steps -> 2*ARMSCYE_ARITY-1 points, split evenly
+    # into a front half and a back half that share the centre (top) point --
+    # matching forepart's and back's ARMSCYE_ARITY-point armscye boundaries.
+    arc_steps = 2 * (ARMSCYE_ARITY - 1)
+    center = ARMSCYE_ARITY - 1
     pts = _arc(cx=0.0, cz=top_z - 0.12, rx=cap_w * 0.5 * SLEEVEHEAD_EASE,
-               rz=0.13, a0=math.pi, a1=0.0, steps=12)
+               rz=0.13, a0=math.pi, a1=0.0, steps=arc_steps)
     pts.append((cap_w * 0.34, top_z - length))
     pts.append((-cap_w * 0.34, top_z - length))
 
-    obj = _grid_from_outline(f"sleeve_{'L' if side > 0 else 'R'}",
-                              [(x + x_off, z) for (x, z) in pts], y=0.0)
-    return obj
+    obj, b = _grid_from_outline(f"sleeve_{'L' if side > 0 else 'R'}",
+                                 [(x + x_off, z) for (x, z) in pts], y=0.0)
+    sleevehead = b["v0"]
+    return obj, {
+        # Both ordered underarm-equivalent -> shoulder (ascending height),
+        # matching forepart().armscye / back_panel().armscye_L/R's direction.
+        "front": sleevehead[: center + 1],
+        "back": list(reversed(sleevehead[center:])),
+    }
 
 
 def dress_form():
@@ -285,6 +320,51 @@ def dress_form():
     return obj
 
 
+def arm_form(side: int):
+    """A simple tapered arm collider, generated like `dress_form()` and
+    never rendered for the same reason (ch.12 V1: no head or hands shown).
+
+    Without this, the sleeve has nothing to drape over: gravity and the
+    armscye seam pull it toward the shoulder with no arm-shaped volume
+    underneath to fill, so it collapses into a crumpled mass at the
+    attachment line instead of hanging as a sleeve -- verified empirically
+    2026-08-18 (first sleeve render, no arm collider present). Bicep/wrist
+    taper and placement are sized to fill `sleeve_cap()`'s own footprint
+    (same `x_off`, same `length`), not sourced from any body-measurement
+    reference -- ours, labelled as ours, same as the rest of this file's
+    unsourced parameters.
+    """
+    x_off = side * (HEM_HALF * 0.96 + 0.02)  # sleeve_cap()'s own x_off
+    top_z = Z_SHOULDER - SHOULDER_SETBACK
+    length = 0.58  # sleeve_cap()'s own cap length
+
+    mesh = bpy.data.meshes.new(f"arm_{'L' if side > 0 else 'R'}")
+    obj = bpy.data.objects.new(mesh.name, mesh)
+    bpy.context.scene.collection.objects.link(obj)
+
+    bm = bmesh.new()
+    sections = [
+        (top_z - 0.05, 0.075),
+        (top_z - length * 0.5, 0.060),
+        (top_z - length, 0.045),
+    ]
+    prev = None
+    for (z, r) in sections:
+        ring = []
+        for i in range(16):
+            a = (i / 16) * 2 * math.pi
+            ring.append(bm.verts.new(Vector((x_off + r * math.sin(a), r * math.cos(a), z))))
+        if prev:
+            for i in range(16):
+                j = (i + 1) % 16
+                bm.faces.new((prev[i], prev[j], ring[j], ring[i]))
+        prev = ring
+    bm.to_mesh(mesh)
+    bm.free()
+    obj.modifiers.new("subsurf", "SUBSURF").levels = 1
+    return obj
+
+
 # Chapter 09's seam contract, declared rather than discovered. Each entry names
 # two seams that a tailor actually stitches, and both sides must already agree
 # on arity — which the grid construction guarantees.
@@ -293,4 +373,16 @@ BODY_SEAMS = [
     ("forepart_L", "side", "back", "side_L"),
     ("forepart_R", "shoulder", "back", "shoulder_R"),
     ("forepart_L", "shoulder", "back", "shoulder_L"),
+]
+
+# The armscye seam (chapter 14: "seam.armscye -- upper + under sleeve ->
+# forepart, back, side body"). This prototype has no side body yet, so each
+# sleeve's cap sews directly to forepart's and back's armscye boundaries --
+# two seam pairs per arm, one for the front quarter and one for the back
+# quarter, meeting at the shoulder point the way a real armscye does.
+SLEEVE_SEAMS = [
+    ("forepart_R", "armscye", "sleeve_R", "front"),
+    ("back", "armscye_R", "sleeve_R", "back"),
+    ("forepart_L", "armscye", "sleeve_L", "front"),
+    ("back", "armscye_L", "sleeve_L", "back"),
 ]
