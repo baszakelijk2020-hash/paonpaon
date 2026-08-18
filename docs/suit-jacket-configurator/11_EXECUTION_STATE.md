@@ -109,19 +109,30 @@ production** — reverted to the side_body-soft-pin state
 to an existing rigid anchor; it generalizes to edges that are still
 genuinely free.
 
-Remaining candidates, in the order worth trying next:
+**Update, same session**: retested candidate 1 (`START_GAP=0.135`) on top
+of the working hem+side soft-pins. **Also ruled out** — visibly worse than
+the current production baseline (`START_GAP=0.16` + hem+side soft-pins):
+more chaos throughout, wider tearing gaps, less coherent column. The soft
+pins' improvement does not stack with a smaller gap; if anything a smaller
+gap fights them. Production stays at `START_GAP=0.16` (unchanged since
+before today's soft-pin work).
 
-1. **Reduce `START_GAP` further**, toward the true interpenetration floor
-   (~0.13-0.135) — tested standalone earlier today (inconclusive against
-   the old baseline), worth retesting now that hem+side soft-pins have
-   changed what it's being compared against.
-2. **Pre-curve panels at cut time** to roughly follow the body's cross-
+Fanned out 3 parallel agents to test whether a _lighter_ armscye/sleeve
+soft-pin weight (0.15 / 0.25 / 0.35, between "no pin" and the failed 0.5)
+avoids the adjacent-rigid-anchor conflict while still helping — results
+pending, will be independently re-verified before any is trusted or
+applied, per this session's standing rule after a subagent fabricated a
+visual result earlier.
+
+Remaining candidates:
+
+1. **Pre-curve panels at cut time** to roughly follow the body's cross-
    section instead of starting perfectly flat — likely the real fix for
    the armscye/sleeve region specifically, since soft-pinning it doesn't
    work: if the sleeve cap starts already closer to its worn shape and
    position, it may not need any pin there at all, adjacent-anchor conflict
    included.
-3. **A genuinely staged bake** (pin harder early, release over time via a
+2. **A genuinely staged bake** (pin harder early, release over time via a
    keyframed vertex-group weight rather than a flat weight) for the
    armscye/sleeve specifically, now that a flat soft pin is shown not to
    work there — more complex than 1-2, try after.
