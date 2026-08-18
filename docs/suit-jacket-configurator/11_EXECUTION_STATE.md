@@ -375,7 +375,51 @@ Per the standing order (do not stop to ask, never idle): pockets and lining
 remain the lowest-risk additive breadth left (new panels, no reshaping of
 proven geometry, no pinning question since they hang freely by nature).
 Lapel/roll-line is highest-value and highest-complexity both — worth
-attempting once the above is done, not before.
+attempting once the above is done, not before. This session judged pockets'
+architecture mismatch (they attach to a point on forepart's _interior_
+surface, not an existing boundary edge -- every panel added so far reused
+the boundary-seam pattern, which doesn't apply here) as reason enough to
+pause geometry breadth and check on other in-flight work instead, rather
+than force a new mechanism without designing it properly first.
+
+### Recovered: hourly cloud routine's stranded chapter 05 rewrite (this session)
+
+Checked on the `suit-jacket-configurator-hourly-continue` cloud routine
+created earlier this session (per AGENTS.md ch.20 — worker output is never
+assumed correct; verify it). It picked up exactly the "chapter 05's budgets
+rewrite" item recorded in the Parallel-and-unblocked queue below, did the
+work correctly (an independent review subagent it spawned confirmed every
+numeric claim against chapter 06/12, zero findings), and committed it
+locally (`3319d232` in that sandbox) — but could not push: GitHub returned
+403 ("Resource not accessible by integration") on `git push`, the GitHub
+API, and `mcp__github__push_files` alike, a genuine permission gap on that
+environment's GitHub App installation, not a transient failure. It correctly
+recognised this as an external-credential stop condition (AGENTS.md ch.37),
+sent a push notification, and backed off to a 30-minute retry rather than
+looping on the same denial — but a commit sitting only in an ephemeral cloud
+sandbox is not landed work (ch.2: the repository is the memory), and that
+sandbox can be torn down at any time.
+
+Independently re-verified the specific citations myself (grepped chapter 06
+and chapter 12 directly rather than trusting the routine's transcript) and
+re-applied the same rewrite from this session, which has working push
+access: chapter 05's `## Budgets` section now splits into Tier 1 (image
+delivery, the actual Phase 1 product under D-16 — resolution, format,
+per-layer weight and whole-state budgets from chapter 06's measured bar;
+request discipline, responsive delivery, regeneration and manifest
+integrity from chapter 12's T5/T7/T8) and Tier 2 (the original budget list,
+kept verbatim but now explicitly scoped to the optional live-WebGL path
+rather than presented as if it were the only budget in the chapter).
+
+**Disabled the routine** (`trig_015xAQrB8iz8irBeupwrRwY2`, was
+`suit-jacket-configurator-hourly-continue`) rather than leaving it running:
+every future hourly fire would do real work, attempt the same push, and
+hit the same permanent 403 again, burning real compute for nothing every
+single hour until someone notices. The permission gap itself is an
+infrastructure fix outside this session's reach — an admin needs to grant
+`contents:write` to that environment's GitHub App installation on
+`baszakelijk2020-hash/paonpaon` — flagged here rather than silently left for
+the routine to keep rediscovering hourly. Re-enable once that's fixed.
 
 ### Commits so far, newest first
 

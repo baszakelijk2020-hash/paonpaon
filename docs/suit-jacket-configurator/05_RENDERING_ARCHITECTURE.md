@@ -153,6 +153,39 @@ next-commonest — change one construction detail — moves one assembly.
 
 ## Budgets
 
+Under D-16, tier 1 — the baked AVIF layer graph — is the product every user
+receives, so its budgets are the ones that govern Phase 1. Tier 2, the
+optional live-WebGL path, ships only if it clears the D-15 quality bar first
+(chapter 06), so its own budgets remain below but are scoped explicitly to
+that optional path and must never be conflated with tier 1's.
+
+### Tier 1 — image delivery (the product)
+
+- **Resolution.** 1200 × 1500 standard delivery, 1600 × 2000 at zoom, 4:5
+  portrait (chapter 06's measured bar, V3 in chapter 12).
+- **Format.** AVIF primary, with JPEG/PNG negotiated via content-type, same
+  as the reference (chapter 06, V4).
+- **Per-layer weight.** A few KB per assembly layer — base model 11.8 KB,
+  lapel 6-8 KB, lining 6.1 KB, stitching 648 B, median around 2 KB (chapter
+  06's measured bar, V5).
+- **Whole configured state.** Well under 1 MB total across every currently
+  visible layer; the reference page this is measured against totalled
+  3.27 MB / 305 requests (chapter 12, T6).
+- **Request discipline.** An option change re-fetches only the assemblies
+  whose `bake_key` changed (chapter 09) — never the whole garment.
+- **Responsive delivery.** `srcset`/`sizes` per layer (chapter 12, T5).
+- **Regeneration and integrity.** Deterministic from a recorded seed and
+  config (chapter 12, T7); a signed manifest, with an unavailable asset
+  failing closed rather than silently degrading (chapter 12, T8).
+
+Interaction latency for tier 1 (a layer swap on option change) is not yet
+measured — it depends on the delivery pipeline (P1.5/P1.6), which comes
+after P1.0-P1.2's geometry work this chapter's budgets otherwise govern.
+Left unmeasured rather than guessed; well inside tier 2's 1.5 s ceiling
+below is the expectation, not a claim.
+
+### Tier 2 — live WebGL (optional, gated on the D-15 bar)
+
 - Initial route JavaScript for the lab: <= 180 KB gzip before the optional
   renderer chunk.
 - Selected state model: <= 6 MB compressed on desktop; <= 3 MB mobile, one LOD.
@@ -161,6 +194,11 @@ next-commonest — change one construction detail — moves one assembly.
 - Interaction: control feedback <= 100 ms; asset state change target <= 1.5 s
   on fast 4G, with an explicit loading state beyond that.
 - The idle renderer sleeps when hidden. A static state runs no animation loop.
+
+These are unchanged from this chapter's original draft. They were correct
+budgets all along — the defect was that they were the _only_ budgets in this
+section, for a path (tier 2) that is optional and ships second, while tier
+1, the actual Phase 1 product, had none.
 
 `OBSERVED-DOC`. MDN's WebGL best practices supply the discipline these numbers
 implement: budget VRAM per screen pixel rather than absolutely — "cap resources
