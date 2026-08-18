@@ -93,19 +93,38 @@ remaining mess is now clearly concentrated at the shoulder-to-chest
 transition (the armscye/sleeve join), which hasn't had the soft-pin
 treatment yet.
 
+**Update, same session, immediately after**: tried candidate 1 (extend
+the same soft-pin to the armscye/sleeve boundary) — **this one is a step
+back, not forward**. The top got visibly worse (the previously-clean
+pinned-shoulder line dissolved into new chaos), not better. Root cause,
+in hindsight obvious: `hem` and `side_body`'s edges are _far_ from the
+existing rigid shoulder/collar pins, so pulling them toward `y=0` doesn't
+compete with anything. The armscye shares a literal corner vertex with the
+shoulder seam, which is _already_ rigidly pinned — softly pinning the
+whole armscye boundary next to that fights the existing anchor instead of
+complementing it, the same category of problem as the original two-
+independently-pinned-points failure, just softer. **Not applied to
+production** — reverted to the side_body-soft-pin state
+(`8967683`). The soft-pin technique does not generalize to edges adjacent
+to an existing rigid anchor; it generalizes to edges that are still
+genuinely free.
+
 Remaining candidates, in the order worth trying next:
 
-1. **Extend the same soft-pin technique to the armscye/sleeve boundary** —
-   the natural next application, same pattern as hem and side_body, and
-   now the most visibly broken remaining region.
-2. **Reduce `START_GAP` further**, toward the true interpenetration floor
+1. **Reduce `START_GAP` further**, toward the true interpenetration floor
    (~0.13-0.135) — tested standalone earlier today (inconclusive against
    the old baseline), worth retesting now that hem+side soft-pins have
    changed what it's being compared against.
-3. **Pre-curve panels at cut time** to roughly follow the body's cross-
-   section instead of starting perfectly flat — the biggest architectural
-   change of the three, likely needed for the fold _detail_ (not just the
-   envelope) even after 1-2 above.
+2. **Pre-curve panels at cut time** to roughly follow the body's cross-
+   section instead of starting perfectly flat — likely the real fix for
+   the armscye/sleeve region specifically, since soft-pinning it doesn't
+   work: if the sleeve cap starts already closer to its worn shape and
+   position, it may not need any pin there at all, adjacent-anchor conflict
+   included.
+3. **A genuinely staged bake** (pin harder early, release over time via a
+   keyframed vertex-group weight rather than a flat weight) for the
+   armscye/sleeve specifically, now that a flat soft pin is shown not to
+   work there — more complex than 1-2, try after.
 
 Gate for this stage: not the full P1.0 panel judgment yet — a cheap proxy
 first, "does a human glance say this is unambiguously closer to a jacket
