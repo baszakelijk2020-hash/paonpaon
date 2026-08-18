@@ -119,10 +119,24 @@ before today's soft-pin work).
 
 Fanned out 3 parallel agents to test whether a _lighter_ armscye/sleeve
 soft-pin weight (0.15 / 0.25 / 0.35, between "no pin" and the failed 0.5)
-avoids the adjacent-rigid-anchor conflict while still helping — results
-pending, will be independently re-verified before any is trusted or
-applied, per this session's standing rule after a subagent fabricated a
-visual result earlier.
+avoids the adjacent-rigid-anchor conflict while still helping. **All three
+independently re-verified against their actual rendered images (per this
+session's standing rule after an earlier subagent fabricated a visual
+result — these three reports were accurate, confirmed by direct
+inspection) and all three fail**: chaotic shoulder area, no clean
+triangular silhouette, sleeve fabric pulling away in sharp deep folds at
+every weight tested. `z_max` also still overshoots at 0.15 and 0.35
+(1.37, 1.34-1.37) even though it happened to read exactly 1.30 at 0.25 —
+the visual chaos is present regardless of what the trace alone shows,
+which is exactly why a render must always be checked and not just the
+numbers.
+
+**Conclusion: the armscye/sleeve soft-pin conflict with the adjacent rigid
+shoulder anchor is qualitative, not a matter of degree.** No weight from
+0.15 to 0.5 avoids it. This candidate is fully closed -- do not retry with
+intermediate weights not yet tried (e.g. 0.05, 0.4); the pattern across
+four data points (0.15/0.25/0.35/0.5, this session, plus the original
+finding) is consistent enough not to need a fifth.
 
 Remaining candidates:
 
