@@ -406,6 +406,7 @@ def sleeve_cap(side: int):
         # matching forepart().armscye / back_panel().armscye_L/R's direction.
         "front": sleevehead[: center + 1],
         "back": list(reversed(sleevehead[center:])),
+        "tip": [sleevehead[center]],  # the shared shoulder point of both halves
     }
 
 

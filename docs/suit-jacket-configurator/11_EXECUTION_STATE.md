@@ -382,6 +382,39 @@ the boundary-seam pattern, which doesn't apply here) as reason enough to
 pause geometry breadth and check on other in-flight work instead, rather
 than force a new mechanism without designing it properly first.
 
+### Tried and reverted: pinning the sleeve tip (this session, negative result, principle refined)
+
+Tested whether the pin-at-attachment principle (item above) also fixes the
+sleeve/torso crumple: `sleeve_cap()`'s two seam halves (`front`/`back`)
+already share one mesh vertex at the arc's centre — the sleeve's own
+shoulder point — so added a `"tip"` boundary exposing it and pinned
+`sleeve_L`/`sleeve_R`'s `tip` (`snap_y=0.0`) in a diagnostic, alongside the
+existing pins.
+
+**Result: worse, not better.** `z_max` grew to `1.6+` (vs. `1.30` without
+it) and the render shows two new sharp spikes at the sides that were not
+there before. Root cause, and it sharpens the principle rather than
+contradicting it: `collar_stub()`'s neck points pinned cleanly because they
+are computed with `_front_neck_x()` — the _exact same formula_ forepart's
+own `neckline` uses — so only `y` ever needed reconciling by `snap_y`. The
+sleeve tip's position comes from the arc's own centre (`cx=0+x_off,
+cz=top_z-0.12+rz`), a _different_ formula than forepart's actual armhole
+corner (`side*HEM_HALF*_waist_factor(1.0)*0.96, Z_SHOULDER`). Pinning both
+ends of the same seam to two different target coordinates recreates
+exactly the first pinning mistake this session made (two shoulder edges
+frozen apart, back near the very start of the P1.2 work) — a pin cannot be
+pulled anywhere, so a seam between two independently-pinned, non-coincident
+points can never close.
+
+**Refined principle**: pinning both sides of a seam requires pinning them
+to the _identical_ target position, not independently to their own
+panel's natural coordinates plus a shared `snap_y`. Reverted the pin from
+the diagnostic (never reached `p1_1_drape.py` — only tested in isolation);
+kept the harmless `"tip"` boundary in `sleeve_cap()`'s return dict since
+it's real, correct infrastructure for a future attempt that computes the
+sleeve tip's target from forepart's actual armhole-corner formula instead
+of the arc's own centre.
+
 ### Recovered: hourly cloud routine's stranded chapter 05 rewrite (this session)
 
 Checked on the `suit-jacket-configurator-hourly-continue` cloud routine
