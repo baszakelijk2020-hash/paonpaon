@@ -79,21 +79,46 @@ def main():
         print("[p1.1] FAIL: no sewing springs created — panels cannot close")
         return
 
-    # Pinning applies only to points that anatomically stay fixed near a
-    # known reference (shoulder on top of the shoulder, collar at the
-    # neckline) -- never to points that should drape freely (side seam,
-    # hem, sleeve length), which need genuine support (collision, e.g.
-    # arm_form()) rather than a rigid pin. Verified 2026-08-18: pinning the
-    # collar's own neck edge (not just relying on its sewing spring to pull
-    # it in from the flat-cut position) stops it stretching upward past the
-    # shoulder line -- z_max was 1.49 vs the pin's 1.30 unpinned, exactly
-    # 1.30 pinned. Confirmed against the actual render, not just the trace.
+    # Full-weight (1.0) pinning for points that anatomically stay fixed near
+    # a known reference (shoulder on top of the shoulder, collar at the
+    # neckline). Verified 2026-08-18: pinning the collar's own neck edge
+    # (not just relying on its sewing spring to pull it in from the
+    # flat-cut position) stops it stretching upward past the shoulder line
+    # -- z_max was 1.49 vs the pin's 1.30 unpinned, exactly 1.30 pinned.
     pin = sew.pin_vertex_group(garment, declared_seams, [
         ("forepart_L", "shoulder"), ("forepart_R", "shoulder"),
         ("back", "shoulder_L"), ("back", "shoulder_R"),
         ("collar_L", "neck"), ("collar_R", "neck"),
         ("collar_back", "neck"),
     ], snap_y=0.0)
+
+    # Partial-weight (0.5) "soft leash" for the hem. Chapter 12's completion
+    # plan (11_EXECUTION_STATE.md) identified the root cause of the general
+    # torso crumple: flat panels anchored only at the top have to swing
+    # through a large, single-anchor arc to wrap the form, and that swing
+    # lands in a stable-but-wrong self-overlapped shape rather than a smooth
+    # wrap. Verified 2026-08-18 by direct comparison of three variants: no
+    # hem anchor at all (unbounded, swings into a chaotic narrow column);
+    # a full weight-1.0 hem pin (bounded top and bottom, but an unnaturally
+    # straight/rigid hem edge); and this weight-0.5 version, which keeps the
+    # bounded envelope while leaving a natural wavy hem line instead of a
+    # frozen one. The torso's interior still crumples -- this fixes the
+    # envelope, not the fold detail -- but it is the first real improvement
+    # after several ruled-out attempts (sleeve-tip pinning x2, canvas
+    # stiffness, more settle time). Same target position (snap to y=0) as
+    # the rigid pins above, for the same reason: it's the seam's worn
+    # position, not its flat-cut one.
+    hem_indices = sorted(set(
+        declared_seams["forepart_L"]["hem"]
+        + declared_seams["forepart_R"]["hem"]
+        + declared_seams["back"]["hem"]
+    ))
+    mesh = garment.data
+    for i in hem_indices:
+        co = mesh.vertices[i].co
+        mesh.vertices[i].co = (co.x, 0.0, co.z)
+    mesh.update()
+    pin.add(hem_indices, 0.5, "REPLACE")
     mod = sew.setup_cloth(garment, form, pin_group=pin.name)
 
     # Chapter 09 models canvas as a cloth stiffness field, not geometry.

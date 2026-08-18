@@ -65,20 +65,36 @@ region) looks structurally correct.
 
 ### Stage 1 — fix the drape (blocks everything else; do this first)
 
-Candidates, in the order worth trying, none attempted yet:
+**Update, same day, later session**: candidate 2 below (staged/soft
+anchoring) was tried and produced the first real improvement of the whole
+session. Tested three variants directly against each other (same seed,
+same everything else): no hem anchor at all (the baseline all session --
+unbounded, swings into a chaotic narrow column); a full weight-1.0 hem pin
+(bounded top and bottom, but an unnaturally straight/rigid hem edge, like
+the fabric had been ironed flat); and a weight-0.5 partial pin (bounded
+_and_ a natural wavy hem line). The weight-0.5 version is now in production
+(`p1_1_drape.py`). **This fixes the envelope, not the fold detail** — the
+torso interior still crumples internally — so Stage 1 is not closed, but
+the "large single-anchor swing lands in a stable-but-wrong shape" diagnosis
+above is now directly confirmed, not just theorized: bounding the swing
+with a second anchor measurably changes the outcome in the predicted
+direction.
 
-1. **Reduce `START_GAP` further**, all the way down toward the true
-   interpenetration floor (~0.13-0.135), possibly combined with a smaller
-   sewing-spring pull distance — today's partial test suggests this
-   direction has real effect, just not enough magnitude yet.
-2. **Stage the bake**: pin additional points (e.g. the hem, or the side
-   seam) for the first N frames, then release them, so the panel makes
-   contact with the form's surface progressively instead of swinging in
-   from one anchored edge. Not yet attempted this session at all — a
-   genuinely different mechanism from anything tried today.
+Remaining candidates, in the order worth trying next:
+
+1. **Extend the same soft-pin technique to the side seam**, not just the
+   hem — the side seam is the other edge still swinging freely, and the
+   same weight-0.5 "leash, not a rigid anchor" pattern that worked for the
+   hem is the natural next application, not a new mechanism to invent.
+2. **Reduce `START_GAP` further**, toward the true interpenetration floor
+   (~0.13-0.135) — tested standalone earlier today (inconclusive, changed
+   the crumple's character without clearly improving it), worth retesting
+   now that the hem's soft pin has changed the baseline it was tested
+   against.
 3. **Pre-curve panels at cut time** to roughly follow the body's cross-
    section instead of starting perfectly flat — the biggest architectural
-   change of the three, most likely to actually fix it, also the most work.
+   change of the three, most likely to actually fix the remaining interior
+   crumple, also the most work.
 
 Gate for this stage: not the full P1.0 panel judgment yet — a cheap proxy
 first, "does a human glance say this is unambiguously closer to a jacket
