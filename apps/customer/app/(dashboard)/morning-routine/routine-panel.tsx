@@ -6,8 +6,10 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import {
+  buyMorningRoutineItem,
   generateMorningRoutineSelection,
   runMorningRoutineAction,
+  type BuyMorningRoutineItemState,
   type MorningRoutineActionState,
 } from "./actions";
 
@@ -27,6 +29,7 @@ import { startConversation } from "@/app/(dashboard)/messages/actions";
  */
 
 const initial: MorningRoutineActionState = { fieldErrors: {} };
+const buyInitial: BuyMorningRoutineItemState = { fieldErrors: {} };
 
 type Recommendation = {
   id: string;
@@ -78,6 +81,9 @@ function RecommendationActions({
   retailerSlug,
   actionAction,
   actionPending,
+  buyAction,
+  buyPending,
+  buyState,
 }: {
   recommendation: Recommendation;
   selectionId: string;
@@ -85,6 +91,9 @@ function RecommendationActions({
   retailerSlug: string;
   actionAction: (payload: FormData) => void;
   actionPending: boolean;
+  buyAction: (payload: FormData) => void;
+  buyPending: boolean;
+  buyState: BuyMorningRoutineItemState;
 }) {
   const save = recommendation.actions.find((action) => action.kind === "save");
   const review = recommendation.actions.find(
@@ -173,7 +182,30 @@ function RecommendationActions({
           Book
         </Link>
       )}
-      {buy?.available && buy.href ? (
+      {buy?.available && buy.href && buy.productVariantId ? (
+        buyState.success ? (
+          <span className="text-sm font-medium text-[var(--color-success-500)]">
+            Added to cart
+          </span>
+        ) : buyState.notEligible ? (
+          <Link href={buy.href} className={buttonVariants({ size: "sm" })}>
+            Buy
+          </Link>
+        ) : (
+          <form action={buyAction}>
+            <input type="hidden" name="retailerId" value={retailerId} />
+            <input
+              type="hidden"
+              name="productVariantId"
+              value={buy.productVariantId}
+            />
+            <input type="hidden" name="productHref" value={buy.href} />
+            <Button type="submit" size="sm" disabled={buyPending}>
+              {buyPending ? "Adding…" : "Buy"}
+            </Button>
+          </form>
+        )
+      ) : buy?.available && buy.href ? (
         <Link href={buy.href} className={buttonVariants({ size: "sm" })}>
           Buy
         </Link>
@@ -197,6 +229,10 @@ export function MorningRoutinePanel({
   const [actionState, actionAction, actionPending] = useActionState(
     runMorningRoutineAction,
     initial,
+  );
+  const [buyState, buyAction, buyPending] = useActionState(
+    buyMorningRoutineItem,
+    buyInitial,
   );
 
   const [featured, ...rest] = view?.recommendations ?? [];
@@ -255,6 +291,14 @@ export function MorningRoutinePanel({
           className="px-5 py-3 text-sm text-[var(--color-danger-500)]"
         >
           {actionState.formError}
+        </p>
+      ) : null}
+      {buyState.formError ? (
+        <p
+          role="alert"
+          className="px-5 py-3 text-sm text-[var(--color-danger-500)]"
+        >
+          {buyState.formError}
         </p>
       ) : null}
 
@@ -355,6 +399,9 @@ export function MorningRoutinePanel({
                     retailerSlug={retailerSlug}
                     actionAction={actionAction}
                     actionPending={actionPending}
+                    buyAction={buyAction}
+                    buyPending={buyPending}
+                    buyState={buyState}
                   />
                 </div>
               </div>
@@ -410,6 +457,9 @@ export function MorningRoutinePanel({
                             retailerSlug={retailerSlug}
                             actionAction={actionAction}
                             actionPending={actionPending}
+                            buyAction={buyAction}
+                            buyPending={buyPending}
+                            buyState={buyState}
                           />
                         </div>
                       </li>
