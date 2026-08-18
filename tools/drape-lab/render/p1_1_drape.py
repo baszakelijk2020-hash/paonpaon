@@ -65,6 +65,7 @@ def main():
         panels.sleeve_cap(1),
         panels.collar_stub(-1),
         panels.collar_stub(1),
+        panels.collar_back_stub(),
     ]
     print(f"[p1.1] cut {len(cut)} panels, {sum(len(obj.data.vertices) for obj, _ in cut)} verts")
 
@@ -89,6 +90,7 @@ def main():
         ("forepart_L", "shoulder"), ("forepart_R", "shoulder"),
         ("back", "shoulder_L"), ("back", "shoulder_R"),
         ("collar_L", "neck"), ("collar_R", "neck"),
+        ("collar_back", "neck"),
     ], snap_y=0.0)
     sew.setup_cloth(garment, form, pin_group=pin.name)
     started = time.time()

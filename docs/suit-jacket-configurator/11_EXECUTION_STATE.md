@@ -341,20 +341,41 @@ pinning them would be the wrong fix (a frozen, unnatural pose, not a
 drape). They remain open, correctly still in the "needs real support or
 better initial placement" category, not the "needs a pin" category.
 
+### P1.1 continued — back_panel() neckline + collar_back_stub() (this session)
+
+Closed the gap flagged above. `back_panel()`'s shoulder row (`v=1`) already
+reserved 3 unclaimed centre points between `shoulder_R` and `shoulder_L`
+(indices `ARITY_SHOULDER..nu-ARITY_SHOULDER`) — added `_back_neck_dz()` to
+dip those 3 points down (`BACK_NECK_DEPTH = 0.045`, ours/unsourced, same
+class of gap as `NECK_V_START`), exposed as a new `neckline` boundary on
+`back_panel()`, and added `collar_back_stub()` sewn to it — a separate
+piece from `collar_stub()`'s two front pieces, not yet merged into one
+continuous wrap-around collar, but both attachment points now exist.
+
+Applied the pin-at-attachment principle **from the start** this time,
+per the plan above: `collar_back`'s `neck` boundary went into the pin group
+(`snap_y=0.0`) in the same commit that added the panel, not as a follow-up
+fix. **Verified, not assumed**: re-ran both the Z-stability check and an
+actual render with the addition. `z_max` stayed exactly `1.30` across all
+90 frames (no overshoot — the principle held pre-emptively this time,
+confirming it generalizes rather than being a one-off collar fix) and the
+render shows no new spike or defect from this addition (10 panels, 645
+verts, 95 springs, still holds on the form).
+
 Still entirely unbuilt from chapter 14's panel set: top-collar, lapel facing
 (plus its roll line, which chapter 14 flags as a crease/fold requiring
 bend-stiffness along a curve, not a sewing spring — a genuinely different
-technique nothing in this codebase has attempted yet), back's half of the
-neckline, pocket welts/flaps, canvas/chest-piece stiffness field, lining.
+technique nothing in this codebase has attempted yet), pocket welts/flaps,
+canvas/chest-piece stiffness field, lining. The two collar pieces (front x2,
+back x1) are also still separate objects rather than one continuous collar
+— joining them is itself a small follow-up (would need a shared boundary or
+another seam between collar_L/collar_R and collar_back).
 
 Per the standing order (do not stop to ask, never idle): pockets and lining
 remain the lowest-risk additive breadth left (new panels, no reshaping of
-proven geometry). Back's neckline is the natural next step to make the
-collar actually wrap the neck rather than only the front — and, per the
-principle just verified, should be pinned at its own attachment edge from
-the start rather than left to overshoot and need a second pass. Lapel/roll-
-line is highest-value and highest-complexity both — worth attempting once
-the above is done, not before.
+proven geometry, no pinning question since they hang freely by nature).
+Lapel/roll-line is highest-value and highest-complexity both — worth
+attempting once the above is done, not before.
 
 ### Commits so far, newest first
 

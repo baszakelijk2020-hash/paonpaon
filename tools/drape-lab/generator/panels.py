@@ -63,6 +63,25 @@ UNDERARM_INDEX = ARITY_VERTICAL - ARMSCYE_ARITY
 # opening away from FRONT_OVERLAP's straight edge. Ours, labelled as ours.
 NECK_V_START = 0.85
 NECK_INDEX = round(NECK_V_START * (ARITY_VERTICAL - 1))
+# Back's half of seam.neckline. back_panel()'s shoulder row (v=1) already
+# reserves 3 unclaimed centre points between shoulder_R and shoulder_L
+# (indices ARITY_SHOULDER..nu-ARITY_SHOULDER when nu=16, ARITY_SHOULDER=7 ->
+# 7,8,9) -- this dips those points down to make an actual back-neck curve
+# instead of a flat shoulder line straight across. Depth is ours, unsourced,
+# same class of gap as NECK_V_START/ARMSCYE_ARITY.
+BACK_NECK_DEPTH = 0.045
+BACK_NECK_U0 = ARITY_SHOULDER / 16
+BACK_NECK_U1 = (16 - ARITY_SHOULDER) / 16
+
+
+def _back_neck_dz(u, v):
+    """z offset (downward) for back_panel()'s neck dip -- zero everywhere
+    except the shoulder row's reserved centre points."""
+    if v < 0.999 or u <= BACK_NECK_U0 or u >= BACK_NECK_U1:
+        return 0.0
+    mid = (BACK_NECK_U0 + BACK_NECK_U1) / 2
+    half = (BACK_NECK_U1 - BACK_NECK_U0) / 2
+    return BACK_NECK_DEPTH * (1.0 - abs(u - mid) / half)
 
 # PARAM — chapter 14 records no public figure. Ours, and labelled as ours.
 FRONT_OVERLAP = 0.050
@@ -237,7 +256,7 @@ def back_panel():
     def fn(u, v):
         wf = _waist_factor(v)
         x = (-HEM_HALF * wf * 0.96) + (2 * HEM_HALF * wf * 0.96) * u
-        z = Z_HEM + (Z_SHOULDER - Z_HEM) * v
+        z = Z_HEM + (Z_SHOULDER - Z_HEM) * v - _back_neck_dz(u, v)
         y = START_GAP + 0.10 * math.sin(u * math.pi)
         return Vector((x, y, z))
 
@@ -245,9 +264,11 @@ def back_panel():
     nu = 16
     v1 = b["v1"]
     # Split the top edge into two shoulder seams, each ordered from the armhole
-    # inward to the neck so both match their forepart counterpart's direction.
+    # inward to the neck so both match their forepart counterpart's direction,
+    # and a neckline_back seam from the centre points the dip above pulled down.
     right_shoulder = list(reversed(v1[: ARITY_SHOULDER]))
     left_shoulder = v1[nu - ARITY_SHOULDER + 1 :]
+    neckline_back = v1[ARITY_SHOULDER : nu - ARITY_SHOULDER + 1]
     side_R, side_L = b["u0"], b["u1"]
     return obj, {
         "side_R": side_R[: UNDERARM_INDEX + 1],
@@ -257,6 +278,7 @@ def back_panel():
         "hem": b["v0"],
         "shoulder_R": right_shoulder,
         "shoulder_L": left_shoulder,
+        "neckline": neckline_back,  # the 3 centre points, dipped by _back_neck_dz
     }
 
 
@@ -300,13 +322,10 @@ def collar_stub(side: int):
 
     Chapter 14: "seam.neckline -- under-collar -> back neckline." A real
     collar wraps continuously from one front neck edge, around the back
-    neckline, to the other. This session adds only the piece reachable
-    without also reshaping back_panel()'s neckline (undone -- back's v=1
-    row is still the flat shoulder seam, no neck dip), to keep the change
-    isolated to forepart the way side_body() was isolated to the side seam:
-    a small flat strip sewn only to one forepart's `neckline` edge, free
-    (unsewn) on its outer edge. Broad structural coverage, not a tuned
-    collar shape or a real front-to-back wrap.
+    neckline, to the other; this is only the front half -- a small flat
+    strip sewn to one forepart's `neckline` edge, free (unsewn) on its
+    outer edge. See `collar_back_stub()` for the back half: a separate
+    piece, not yet joined into one continuous collar object.
     """
     width = 0.045  # collar stand width, ours, unsourced
     nv = ARITY_VERTICAL - 1 - NECK_INDEX  # matches forepart().neckline's arity
@@ -322,6 +341,28 @@ def collar_stub(side: int):
 
     obj, b = _grid(f"collar_{'L' if side > 0 else 'R'}", fn, nu=1, nv=nv)
     return obj, {"neck": b["u0"]}  # matches forepart().neckline's point count and v-order
+
+
+def collar_back_stub():
+    """Minimal under-collar back-neck stand-in -- see `collar_stub()`'s
+    docstring. Sewn to `back_panel()`'s `neckline` boundary (the 3 centre
+    points its own neck dip pulled down). A separate piece from
+    `collar_stub()`'s two front pieces, not merged into one continuous
+    collar object -- broad-first coverage of both attachment points, not
+    yet one real wrap-around collar.
+    """
+    width = 0.045
+
+    def fn(u, v):
+        u_back = BACK_NECK_U0 + v * (BACK_NECK_U1 - BACK_NECK_U0)
+        wf = _waist_factor(1.0)
+        x = (-HEM_HALF * wf * 0.96) + (2 * HEM_HALF * wf * 0.96) * u_back
+        z = Z_HEM + (Z_SHOULDER - Z_HEM) - _back_neck_dz(u_back, 1.0)
+        y = START_GAP + 0.10 * math.sin(u_back * math.pi) + width * u + 0.02
+        return Vector((x, y, z))
+
+    obj, b = _grid("collar_back", fn, nu=1, nv=2)
+    return obj, {"neck": b["u0"]}  # matches back_panel().neckline's point count and u-order
 
 
 def sleeve_cap(side: int):
@@ -484,4 +525,5 @@ SLEEVE_SEAMS = [
 COLLAR_SEAMS = [
     ("forepart_R", "neckline", "collar_R", "neck"),
     ("forepart_L", "neckline", "collar_L", "neck"),
+    ("back", "neckline", "collar_back", "neck"),
 ]
