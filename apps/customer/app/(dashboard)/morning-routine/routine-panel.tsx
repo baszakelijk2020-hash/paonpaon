@@ -278,7 +278,6 @@ export function MorningRoutinePanel({
           {actionState.formError}
         </p>
       ) : null}
-
       {!view ? (
         <div
           className="px-5 py-10 text-center text-sm text-[var(--color-stone-500)]"
