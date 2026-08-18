@@ -306,13 +306,40 @@ wrapping continuously front-to-back is follow-up work.
 
 **Verified structurally safe**: re-ran the Z-stability check with the collar
 added (9 panels, 639 verts, 92 springs) — still no free-fall, `z` bounded
-across all 90 frames. **New effect worth flagging**: `z_max` grew to `1.49`
-(vs. the pinned shoulder at `1.30`) — the collar, unpinned, stretches upward
-past the shoulder line instead of settling, visible in the render as a
-spike above the shoulders. Not a stability regression (nothing fell, nothing
-exploded, nothing exceeded the collider's plausible working volume) — a
-visual defect of the same deferred kind as side_body's flap and the
-sleeve's crumple. Left as-is.
+across all 90 frames. **New effect, found and fixed**: `z_max` grew to
+`1.49` (vs. the pinned shoulder at `1.30`) — the collar, unpinned, stretched
+upward past the shoulder line instead of settling, visible in the render as
+a spike above the shoulders.
+
+### P1.1 continued — pin the collar's neck edge (this session, deepening, real fix)
+
+Given the same overshoot pattern had now shown up twice (this collar spike;
+`arm_form()` was needed earlier because the unsupported sleeve collapsed the
+other direction, into a crumpled mass), switched from more breadth to a
+bounded test of the general principle: **a panel edge that anatomically
+stays fixed near a known reference point should be pinned there directly,
+not left to a sewing spring alone to pull it in from the flat-cut position**
+— springs pull toward each other, not to a specific target, and can overshoot
+before they settle. Points that should hang/drape freely (side seam, hem,
+sleeve length) are the opposite case and need genuine support (collision,
+e.g. `arm_form()`) instead, never a rigid pin — pinning those would just
+freeze them in an unnatural position.
+
+Tested by adding `collar_L`/`collar_R`'s `neck` boundary to the existing pin
+group (`snap_y=0.0`, same as the shoulder pin). **Result, verified against
+the actual render, not the trace alone**: `z_max` dropped to exactly `1.30`
+(the pin height) across all 90 frames, and the render shows the spike is
+genuinely gone — the silhouette stays within the shoulder-width envelope
+instead of bulging above it. Applied to `p1_1_drape.py`'s production pin
+call (kept the collar's own comment explaining which category a future
+panel's attachment points fall into, so this doesn't need rediscovering a
+third time for top-collar/lapel).
+
+This does **not** generalize to side_body's flap or the sleeve/torso
+crumple below the collar — those are free-hanging points by nature, and
+pinning them would be the wrong fix (a frozen, unnatural pose, not a
+drape). They remain open, correctly still in the "needs real support or
+better initial placement" category, not the "needs a pin" category.
 
 Still entirely unbuilt from chapter 14's panel set: top-collar, lapel facing
 (plus its roll line, which chapter 14 flags as a crease/fold requiring
@@ -323,10 +350,11 @@ neckline, pocket welts/flaps, canvas/chest-piece stiffness field, lining.
 Per the standing order (do not stop to ask, never idle): pockets and lining
 remain the lowest-risk additive breadth left (new panels, no reshaping of
 proven geometry). Back's neckline is the natural next step to make the
-collar actually wrap the neck rather than only the front. Lapel/roll-line
-is highest-value and highest-complexity both — worth attempting once the
-above is done, not before, to keep risk isolated to one new thing at a time,
-same discipline side_body's and this collar's own verification just used.
+collar actually wrap the neck rather than only the front — and, per the
+principle just verified, should be pinned at its own attachment edge from
+the start rather than left to overshoot and need a second pass. Lapel/roll-
+line is highest-value and highest-complexity both — worth attempting once
+the above is done, not before.
 
 ### Commits so far, newest first
 

@@ -76,9 +76,19 @@ def main():
         print("[p1.1] FAIL: no sewing springs created — panels cannot close")
         return
 
+    # Pinning applies only to points that anatomically stay fixed near a
+    # known reference (shoulder on top of the shoulder, collar at the
+    # neckline) -- never to points that should drape freely (side seam,
+    # hem, sleeve length), which need genuine support (collision, e.g.
+    # arm_form()) rather than a rigid pin. Verified 2026-08-18: pinning the
+    # collar's own neck edge (not just relying on its sewing spring to pull
+    # it in from the flat-cut position) stops it stretching upward past the
+    # shoulder line -- z_max was 1.49 vs the pin's 1.30 unpinned, exactly
+    # 1.30 pinned. Confirmed against the actual render, not just the trace.
     pin = sew.pin_vertex_group(garment, declared_seams, [
         ("forepart_L", "shoulder"), ("forepart_R", "shoulder"),
         ("back", "shoulder_L"), ("back", "shoulder_R"),
+        ("collar_L", "neck"), ("collar_R", "neck"),
     ], snap_y=0.0)
     sew.setup_cloth(garment, form, pin_group=pin.name)
     started = time.time()
