@@ -119,6 +119,27 @@ def main():
         mesh.vertices[i].co = (co.x, 0.0, co.z)
     mesh.update()
     pin.add(hem_indices, 0.5, "REPLACE")
+
+    # Same soft-pin technique applied to the side_body seam -- the other
+    # edge that was still swinging freely (this used to join forepart
+    # directly to back; side_body() now sits between them, same category
+    # of free edge the hem was). Verified 2026-08-18: a second real
+    # improvement, not just a repeat of the first -- the lower two-thirds
+    # of the render now reads as a coherent, gently-pleated column with a
+    # natural centre seam, a step change from every prior render this
+    # session. The remaining mess is concentrated at the shoulder-to-chest
+    # transition (the armscye/sleeve join), which hasn't had this
+    # treatment yet -- the natural next extension, not a new mechanism.
+    side_indices = sorted(set(
+        declared_seams["side_body_L"]["front"] + declared_seams["side_body_L"]["back"]
+        + declared_seams["side_body_R"]["front"] + declared_seams["side_body_R"]["back"]
+    ))
+    for i in side_indices:
+        co = mesh.vertices[i].co
+        mesh.vertices[i].co = (co.x, 0.0, co.z)
+    mesh.update()
+    pin.add(side_indices, 0.5, "REPLACE")
+
     mod = sew.setup_cloth(garment, form, pin_group=pin.name)
 
     # Chapter 09 models canvas as a cloth stiffness field, not geometry.

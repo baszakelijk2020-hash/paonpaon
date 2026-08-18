@@ -80,21 +80,32 @@ above is now directly confirmed, not just theorized: bounding the swing
 with a second anchor measurably changes the outcome in the predicted
 direction.
 
+**Update, same session, immediately after**: candidate 1 (extend the
+soft-pin to `side_body`'s edges) also landed and is in production. Verified
+against the actual production `p1_1_drape.py`, not just the diagnostic that
+found it — the fold pattern differs in fine detail between the two runs
+(expected chaotic sensitivity in a nonlinear self-collision sim over 90
+frames, not a functional bug), but both agree on the structural result: the
+lower two-thirds of the garment now reads as a coherent, gently-pleated
+column with a natural centre seam — a step change from every render before
+today's hem/side soft-pins, and the second real improvement in a row. The
+remaining mess is now clearly concentrated at the shoulder-to-chest
+transition (the armscye/sleeve join), which hasn't had the soft-pin
+treatment yet.
+
 Remaining candidates, in the order worth trying next:
 
-1. **Extend the same soft-pin technique to the side seam**, not just the
-   hem — the side seam is the other edge still swinging freely, and the
-   same weight-0.5 "leash, not a rigid anchor" pattern that worked for the
-   hem is the natural next application, not a new mechanism to invent.
+1. **Extend the same soft-pin technique to the armscye/sleeve boundary** —
+   the natural next application, same pattern as hem and side_body, and
+   now the most visibly broken remaining region.
 2. **Reduce `START_GAP` further**, toward the true interpenetration floor
-   (~0.13-0.135) — tested standalone earlier today (inconclusive, changed
-   the crumple's character without clearly improving it), worth retesting
-   now that the hem's soft pin has changed the baseline it was tested
-   against.
+   (~0.13-0.135) — tested standalone earlier today (inconclusive against
+   the old baseline), worth retesting now that hem+side soft-pins have
+   changed what it's being compared against.
 3. **Pre-curve panels at cut time** to roughly follow the body's cross-
    section instead of starting perfectly flat — the biggest architectural
-   change of the three, most likely to actually fix the remaining interior
-   crumple, also the most work.
+   change of the three, likely needed for the fold _detail_ (not just the
+   envelope) even after 1-2 above.
 
 Gate for this stage: not the full P1.0 panel judgment yet — a cheap proxy
 first, "does a human glance say this is unambiguously closer to a jacket
