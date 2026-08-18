@@ -433,6 +433,23 @@ tested in isolation). Kept the harmless `"tip"` boundary in `sleeve_cap()`'s
 return dict as correct, reusable infrastructure regardless of how the
 sleeve's actual fix ends up using it.
 
+### Pocket welt, spring-sewn not pinned (this session)
+
+Chapter 14: "Pocket welts, flaps -- Applied to the forepart." No sourced
+location existed. Added `POCKET_IV`/`POCKET_IU` (ours, unsourced -- a
+plausible upper-chest spot below the neckline curve) and `pocket_welt()`:
+a small flat strip whose body-adjacent edge reuses `forepart()`'s exact
+position formula (same technique as `collar_stub()`), sewn via a normal
+spring (`POCKET_SEAMS`) -- deliberately **not** pinned, unlike the collar.
+Reasoning: forepart's chest area isn't independently anchored anywhere
+else, so there's no competing fixed target to conflict with (the failure
+mode both sleeve-tip attempts hit). A welt only, not a full pocket with a
+bag and opening; only one per side, not the real breast/waist distinction.
+
+Verified: 12 panels, 653 verts, 99 springs, runs clean. `z_max` grew
+slightly (1.30 -> 1.40) but no free-fall and no new dramatic defect in the
+render -- an acceptable, low-risk addition.
+
 ### Canvas stiffness field, mechanism verified, not a visual win (this session)
 
 Chapter 09 models canvas as a cloth stiffness field, not new geometry --

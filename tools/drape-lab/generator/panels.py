@@ -69,6 +69,14 @@ NECK_INDEX = round(NECK_V_START * (ARITY_VERTICAL - 1))
 # tuned"). Ours, labelled as ours -- roughly shoulder-to-chest, a stand-in
 # for "half canvas" until a real pocket-line coordinate exists.
 CANVAS_V_START = 0.5
+# Chapter 14: "Pocket welts, flaps -- Applied to the forepart." No sourced
+# location exists (unlike the seam contract, pocket placement isn't part of
+# chapter 09's graph at all yet) -- ours, unsourced, a plausible breast-
+# pocket-ish spot: upper chest (below the neckline curve, which starts at
+# NECK_V_START), roughly mid-panel width. Given as a grid (iu, iv) pair
+# directly, the same indexing forepart()'s own "canvas" area already uses.
+POCKET_IV = 13  # v = 13/16 = 0.8125
+POCKET_IU = (3, 4)
 # Back's half of seam.neckline. back_panel()'s shoulder row (v=1) already
 # reserves 3 unclaimed centre points between shoulder_R and shoulder_L
 # (indices ARITY_SHOULDER..nu-ARITY_SHOULDER when nu=16, ARITY_SHOULDER=7 ->
@@ -253,6 +261,7 @@ def forepart(side: int):
     canvas = [iv * (nu_local + 1) + iu
               for iv in range(canvas_iv0, nv_local + 1)
               for iu in range(nu_local + 1)]
+    pocket = [POCKET_IV * (nu_local + 1) + iu for iu in POCKET_IU]
     return obj, {
         # centre front, hem -> neck start only; neckline takes over above that.
         "cf": cf[: NECK_INDEX + 1],
@@ -263,6 +272,7 @@ def forepart(side: int):
         "hem": b["v0"],
         "shoulder": b["v1"],  # neck -> armhole, ordered cf -> side
         "canvas": canvas,  # area, not a seam -- upper chest, for canvas stiffness
+        "pocket": pocket,  # 2-point anchor for pocket_welt()'s pin
     }
 
 
@@ -330,6 +340,43 @@ def side_body(side: int):
         "front": b["u0"],  # hem -> underarm, joins forepart().side
         "back": b["u1"],   # hem -> underarm, joins back_panel().side_R/L
     }
+
+
+def pocket_welt(side: int):
+    """Minimal welt-pocket stand-in, side=-1 wearer's right, +1 left.
+
+    Chapter 14: "Pocket welts, flaps -- Applied to the forepart." No sourced
+    location or shape exists for this (POCKET_IV/POCKET_IU above are ours).
+    A small flat strip whose top edge is pinned flat against forepart's own
+    surface at the chosen anchor points -- same technique as collar_stub()'s
+    neck edge: reproduce forepart()'s exact position formula rather than an
+    independently-computed one, so the pin target and the seam it's sewn to
+    coincide exactly (the lesson from the sleeve-tip pin failures in
+    11_EXECUTION_STATE.md). Hangs free below -- a welt, not a full pocket
+    with a bag and opening.
+    """
+    width_span = 0.03  # how far it stands off the body, ours, unsourced
+
+    nu_local, nv_local = ARITY_SHOULDER - 1, ARITY_VERTICAL - 1
+    u0, u1 = POCKET_IU[0] / nu_local, POCKET_IU[1] / nu_local
+    v0 = POCKET_IV / nv_local
+
+    def body_pos(u):
+        wf = _waist_factor(v0)
+        x_cf = _front_neck_x(side, v0)
+        x_side = side * HEM_HALF * wf * 0.96
+        x = x_cf + (x_side - x_cf) * u
+        z = Z_HEM + (Z_SHOULDER - Z_HEM) * v0
+        y = -START_GAP - 0.10 * math.sin(u * math.pi * 0.5)
+        return x, y, z
+
+    def fn(u, v):
+        uu = u0 + (u1 - u0) * u
+        x, y, z = body_pos(uu)
+        return Vector((x, y - width_span * v, z))  # v=0 at the body, v=1 standing off
+
+    obj, b = _grid(f"pocket_{'L' if side > 0 else 'R'}", fn, nu=1, nv=1)
+    return obj, {"anchor": b["v0"]}  # body-adjacent edge, pinned to forepart().pocket
 
 
 def collar_stub(side: int):
@@ -542,4 +589,11 @@ COLLAR_SEAMS = [
     ("forepart_R", "neckline", "collar_R", "neck"),
     ("forepart_L", "neckline", "collar_L", "neck"),
     ("back", "neckline", "collar_back", "neck"),
+]
+
+# Pocket welts (chapter 14: "Applied to the forepart"). Each welt's anchor
+# edge is pinned, not just sewn -- see pocket_welt()'s docstring.
+POCKET_SEAMS = [
+    ("forepart_R", "pocket", "pocket_R", "anchor"),
+    ("forepart_L", "pocket", "pocket_L", "anchor"),
 ]
