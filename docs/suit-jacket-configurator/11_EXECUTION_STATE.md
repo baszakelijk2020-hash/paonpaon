@@ -10,6 +10,111 @@ execution state is worse than none, because the next session will trust it.
 
 ---
 
+## Plan to completion (founder-requested, 2026-08-18)
+
+Written after a full session of building breadth and testing the drape
+directly. This is the actual plan, informed by evidence gathered today, not
+a restatement of hopes.
+
+### Where this actually stands
+
+The structural pipeline is real and finished: chapter 09's named seam
+contract, real cloth physics, real materials (procedural wool with visible
+weave under raking light), a full-quality Cycles render harness. 9 of
+chapter 14's 12 panels exist (forepart, back, side body, sleeve
+[simplified], arm collider, front+back collar [3 unjoined pieces], pocket
+welt) and the pipeline runs end-to-end with zero crashes.
+
+**The render does not read as a jacket.** Every render this session shows
+the same signature: correct shoulder width at the top (because that's
+pinned), collapsing into a twisted, self-overlapping column below.
+
+### Three things tested and ruled out today, not guessed
+
+1. **"It just needs to settle longer."** Reran at 300 settle frames instead
+   of 90 (baseline). Essentially the same topology, not a smoother wrap.
+   **Ruled out** — this is a stable-but-wrong equilibrium, not an
+   interrupted transient.
+2. **Sleeve-tip pinning** (2 attempts, matched and unmatched target
+   coordinates). Both made `z_max` worse, not better. **Ruled out** as a
+   fix for the sleeve/torso crumple specifically (the pin-at-attachment
+   principle still holds for shoulder/collar, where it was validated twice).
+3. **Canvas stiffness field.** Wired and verified by A/B to have a real
+   effect — but not a visibly better one, just a differently-shaped
+   crumple. **Not the fix**, though the mechanism is real infrastructure
+   worth keeping.
+
+One thing tested today that **did** change the character of the drape,
+though not enough alone: reducing `START_GAP` (how far the flat-cut panels
+start from the body) from 0.16 to 0.14, now that the shoulder/collar are
+pinned. Less violent origami spiking, more fan-pleat folding on one side —
+but revealed a new left/right asymmetry, and still nowhere near jacket-like.
+Diagnostic only, not committed.
+
+### Best current understanding of the actual root cause
+
+The flat-cut panels start ~0.16-0.26m from the body in `y`, with only the
+top (shoulder/collar) pinned to its worn position. Gravity and the sewing
+springs have to pull the _entire rest of each panel_ through a large-
+amplitude swing to wrap the 3D form, anchored at only one edge. That swing
+is landing in a **stable local energy minimum where the cloth has partly
+wrapped and self-overlapped rather than the globally-correct smooth wrap**
+— which is why more settle time doesn't fix it (it's already settled, just
+into the wrong shape) and why only the top (the one genuinely well-anchored
+region) looks structurally correct.
+
+### Stage 1 — fix the drape (blocks everything else; do this first)
+
+Candidates, in the order worth trying, none attempted yet:
+
+1. **Reduce `START_GAP` further**, all the way down toward the true
+   interpenetration floor (~0.13-0.135), possibly combined with a smaller
+   sewing-spring pull distance — today's partial test suggests this
+   direction has real effect, just not enough magnitude yet.
+2. **Stage the bake**: pin additional points (e.g. the hem, or the side
+   seam) for the first N frames, then release them, so the panel makes
+   contact with the form's surface progressively instead of swinging in
+   from one anchored edge. Not yet attempted this session at all — a
+   genuinely different mechanism from anything tried today.
+3. **Pre-curve panels at cut time** to roughly follow the body's cross-
+   section instead of starting perfectly flat — the biggest architectural
+   change of the three, most likely to actually fix it, also the most work.
+
+Gate for this stage: not the full P1.0 panel judgment yet — a cheap proxy
+first, "does a human glance say this is unambiguously closer to a jacket
+than today's baseline," before spending more render time chasing precision.
+
+### Stage 2 — finish P1.1's remaining breadth (after Stage 1, not before)
+
+Polishing breadth on top of a broken drape wastes the polish. In priority
+order once Stage 1 passes its proxy gate:
+
+- Join the collar's 3 separate pieces into one continuous wrap
+- Real pocket (bag + opening, not just a welt)
+- Top-collar layer (currently only a single under-collar stand-in)
+- Lapel + roll line (highest value, highest complexity — the roll line is a
+  crease, not a seam, needing bend-stiffness-along-a-curve, a technique
+  nothing in this codebase has attempted)
+- Lining (lowest visual priority — hidden layer)
+
+### Stage 3 — P1.0's actual gate
+
+Founder/panel judgment against a Suitsupply reference shot
+(`06_VISUAL_QUALITY_AND_ACCEPTANCE.md`'s "cannot be identified as the
+weaker image"). Not self-certifiable by any session, regardless of how
+good the render looks — recorded here so nobody skips straight to
+declaring victory once Stage 1-2 look decent.
+
+### Stage 4 — P1.3-P1.7 (per the existing roadmap, correctly unstarted)
+
+Per-assembly layers with shadow catchers, the full option graph, AVIF
+delivery, the configurator surface, the parity panel. Deliberately blocked
+on Stages 1-3 by the roadmap's own dependency chain — building these
+against ungated geometry would mean redoing them later against different
+geometry. Not a place to start early for a feeling of progress.
+
+---
+
 ## Standing order
 
 Founder direction, 2026-08-15, in force until explicitly revoked:
