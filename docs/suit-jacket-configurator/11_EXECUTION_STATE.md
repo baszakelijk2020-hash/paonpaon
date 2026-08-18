@@ -493,8 +493,17 @@ hit the same permanent 403 again, burning real compute for nothing every
 single hour until someone notices. The permission gap itself is an
 infrastructure fix outside this session's reach — an admin needs to grant
 `contents:write` to that environment's GitHub App installation on
-`baszakelijk2020-hash/paonpaon` — flagged here rather than silently left for
-the routine to keep rediscovering hourly. Re-enable once that's fixed.
+`baszakelijk2020-hash/paonpaon`.
+
+**2026-08-18, later the same day**: a fleet-wide sweep (peer session
+`paon-claude-nguyen2-75`) reported the founder has confirmed shutting down
+the shared fleet auto-continue hooks (`session-start.sh`/`stop-continue.sh`)
+entirely, to redesign orchestration from scratch, and folded this routine's
+disabled/blocked state into that same sweep. **Do not simply re-enable this
+routine once the GitHub permission is fixed** — check whether it still fits
+whatever the redesigned orchestration looks like first; the old
+"hourly-continue" pattern may not be how a future session is meant to pick
+up autonomous work at all.
 
 ### Commits so far, newest first
 
