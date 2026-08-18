@@ -234,6 +234,7 @@ export function ProposalComposer({
             </label>
             <Input
               id="priceAmount"
+              name="priceAmount"
               type="number"
               step="0.01"
               min="0"
@@ -252,6 +253,7 @@ export function ProposalComposer({
             </label>
             <Input
               id="priceCurrency"
+              name="priceCurrency"
               maxLength={3}
               value={priceCurrency}
               onChange={(e) => setPriceCurrency(e.target.value.toUpperCase())}
