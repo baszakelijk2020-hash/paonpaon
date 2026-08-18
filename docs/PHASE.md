@@ -5730,6 +5730,21 @@ now.
     terminal, the written evidence said failed). `test.describe.serial`
     fixes it. `docs/evidence/runs/17.2.json` now records a genuinely
     passing run at `cc47e0d`.
+  - **Status (2026-08-18, evidence regenerate at `4dbae70`):** found a
+    deterministic time-of-day defect in the first test of
+    `apps/retailer/e2e/mission-control.spec.ts` ("today's appointment slots
+    into its hour..."). The test creates its appointment at the next hour
+    boundary (`setHours(getHours()+1)`), but `/mission-control` only renders
+    hours `DAY_START_HOUR=8`..`DAY_END_HOUR=20`
+    (`apps/retailer/app/(dashboard)/mission-control/page.tsx:35-36`), so
+    between local 19:00 and 07:59 the appointment's hour falls outside the
+    grid and `toBeVisible()` fails with "element(s) not found". Reproduced
+    4x at 03:20-03:55 local on a clean server/config (the test passes only
+    when the next-hour lands in 8..19, i.e. daytime runs). `docs/evidence/runs/17.2.json`
+    now honestly records `status: failed` at this commit. FIX NEXT: either
+    clamp `startsAt` into business hours in the test or render the
+    appointment's hour regardless of the 8..19 grid; then regenerate the
+    run and flip the artifact back to `passed`.
 
 - [ ] **17.3 Pre/during/post-appointment advisor dashboard**
   - **Requirement IDs:** ADV-103.
