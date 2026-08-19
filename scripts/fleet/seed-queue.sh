@@ -11,12 +11,42 @@
 # unstarted work (a feature believed done but unverified is the bigger risk).
 set -euo pipefail
 
+# --dry-run computes the full task set and prints it to stdout, leaving the
+# shared queue and every other file in $FLEET_DIR untouched. The scope guards
+# below (parked stages, founder overrides, parked/deleted titles) are the only
+# thing standing between a re-seed and an agent being handed founder-prohibited
+# work — and until this flag existed there was no way to exercise them without
+# mutating the live shared queue. See test-seed-queue.sh.
+DRY_RUN=false
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=true ;;
+    *) echo "seed-queue.sh: unknown argument: $arg" >&2; exit 2 ;;
+  esac
+done
+
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 COMMON_DIR="$(git rev-parse --git-common-dir)"
 case "$COMMON_DIR" in /*) ;; *) COMMON_DIR="$(cd "$COMMON_DIR" && pwd)" ;; esac
-FLEET_DIR="$COMMON_DIR/paon-fleet"
+# Overridable so the test harness can point at a fixture PHASE.md and a throwaway
+# fleet dir. Unset in normal operation, which keeps the real paths authoritative.
+FLEET_DIR="${PAON_FLEET_DIR:-$COMMON_DIR/paon-fleet}"
 QUEUE="$FLEET_DIR/queue.json"
-PHASE="$REPO_ROOT/docs/PHASE.md"
+PHASE="${PAON_FLEET_PHASE:-$REPO_ROOT/docs/PHASE.md}"
+
+# Seeding the REAL queue from a substitute PHASE.md would merge fabricated tasks
+# into shared state that other agents claim from. The override exists for the
+# test harness, so it may only ever feed a dry run or a throwaway fleet dir.
+if [ -n "${PAON_FLEET_PHASE:-}" ]; then
+  echo "seed-queue.sh: PAON_FLEET_PHASE override active -> $PHASE" >&2
+  if [ "$DRY_RUN" != true ] && [ -z "${PAON_FLEET_DIR:-}" ]; then
+    echo "seed-queue.sh: refusing to seed the live queue from an overridden PHASE.md." >&2
+    echo "               Pass --dry-run, or set PAON_FLEET_DIR to a throwaway directory." >&2
+    exit 2
+  fi
+fi
+[ -n "${PAON_FLEET_DIR:-}" ] && echo "seed-queue.sh: PAON_FLEET_DIR override active -> $FLEET_DIR" >&2
+
 mkdir -p "$FLEET_DIR"
 
 TMP="$(mktemp)"
@@ -69,6 +99,11 @@ if [ -f "$PHASE" ]; then
   # implementation", and the first version of this seeder queued all five
   # Stage 15 items anyway; an agent then actually worked 15.2.
   parked_ranges="$(mktemp)"
+  # Per-process scratch. This used to be a fixed path inside $FLEET_DIR, which
+  # meant two concurrent seeds (or a --dry-run preview alongside a real reseed)
+  # raced on one file: a truncating rewrite could interleave with the other
+  # process's read loop and feed corrupted rows into the live queue merge.
+  phase_items="$(mktemp)"
   grep -nE '^### Stage [0-9]+ .*\((parked|deleted)\)' "$PHASE" | while IFS= read -r h; do
     hl="${h%%:*}"
     # next stage heading after this one bounds the parked region
@@ -159,7 +194,7 @@ if [ -f "$PHASE" ]; then
     # An ambiguously-parked title is unclaimable until a human resolves it.
     [ "$ambiguous_parked" = "true" ] && scope="true"
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$num" "$title" "$tier" "$p" "$paths" "$scope" "$ambiguous_parked"
-  done > "$FLEET_DIR/.phase_items.tsv" || true
+  done > "$phase_items" || true
 
   while IFS=$'\t' read -r num title tier p paths scope ambig; do
     [ -n "${num:-}" ] || continue
@@ -178,8 +213,18 @@ if [ -f "$PHASE" ]; then
       # nothing, so needs_scope was never actually set.
       jq --arg id "phase-$num" '(.[]|select(.id==$id)) |= (.needs_scope=true)' "$TMP" > "$TMP.s" && mv "$TMP.s" "$TMP"
     fi
-  done < "$FLEET_DIR/.phase_items.tsv"
-  rm -f "$FLEET_DIR/.phase_items.tsv" "$parked_ranges"
+  done < "$phase_items"
+  rm -f "$phase_items" "$parked_ranges"
+fi
+
+# ---------------------------------------------------------------------------
+# Dry run stops here: everything above is pure computation, so this prints the
+# exact task set a real seed would contribute without touching the shared queue.
+# ---------------------------------------------------------------------------
+if [ "$DRY_RUN" = true ]; then
+  jq -S '.' "$TMP"
+  rm -f "$TMP"
+  exit 0
 fi
 
 # ---------------------------------------------------------------------------
