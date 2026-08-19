@@ -278,10 +278,30 @@ section's local sequencing note. In priority order:
   `EXIT: 0`, no crash, no visible corruption -- a small, localized
   thickening at the collar consistent with an actual second layer, not a
   change to the rest of the garment's silhouette.
+- ~~Lining (lowest visual priority — hidden layer)~~ **Partly done,
+  2026-08-19, taken out of list order.** Added `lining_back_stub()`, a
+  small patch sewn to `back_panel().neckline` (the same 3-point boundary
+  `collar_back_stub()` anchors to), hanging free below, offset toward the
+  body from back's own surface -- deliberately not a full body lining
+  (mirroring forepart/back/side_body as a complete second layer would
+  meaningfully double the mesh's vertex count and risk destabilizing the
+  hem/side soft-pin baseline for a layer the render can't even see, a bad
+  broad-first trade -- see the function's own docstring). Taken before
+  Lapel + roll line despite the list order above because lining reused
+  entirely established techniques (shared-anchor sewing, minimal stand-in
+  panels) while the roll line needs a genuinely new bend-stiffness
+  technique this codebase has never attempted -- lower risk, faster to
+  verify, consistent with broad-first. First look at the production
+  render (18 panels, 685 verts, 123 springs, `EXIT: 0`) looked more
+  chaotic than the prior baseline, which by now is a familiar false-alarm
+  shape in this session (same as the collar-join scare) rather than
+  evidence on its own. A controlled A/B (lining-on vs lining-off, same
+  code otherwise) showed lining-on is neutral to slightly cleaner in the
+  lower torso, not a regression -- direct image comparison. Kept.
 - Lapel + roll line (highest value, highest complexity — the roll line is a
   crease, not a seam, needing bend-stiffness-along-a-curve, a technique
-  nothing in this codebase has attempted)
-- Lining (lowest visual priority — hidden layer)
+  nothing in this codebase has attempted). Still open; the one remaining
+  unstarted Stage 2 item.
 
 ### Stage 3 — P1.0's actual gate
 
