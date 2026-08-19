@@ -6253,6 +6253,125 @@ export type Database = {
           },
         ];
       };
+      customer_intake_proposals: {
+        Row: {
+          confidence: number;
+          confirmed_at: string | null;
+          confirmed_by_staff_id: string | null;
+          created_at: string;
+          fact_type: string;
+          id: string;
+          intake_session_id: string;
+          linked_fact_id: string | null;
+          retailer_id: string;
+          source_excerpt: string;
+          status: string;
+          updated_at: string;
+          value_label: string;
+          value_text: string | null;
+        };
+        Insert: {
+          confidence: number;
+          confirmed_at?: string | null;
+          confirmed_by_staff_id?: string | null;
+          created_at?: string;
+          fact_type: string;
+          id?: string;
+          intake_session_id: string;
+          linked_fact_id?: string | null;
+          retailer_id: string;
+          source_excerpt: string;
+          status?: string;
+          updated_at?: string;
+          value_label: string;
+          value_text?: string | null;
+        };
+        Update: {
+          confidence?: number;
+          confirmed_at?: string | null;
+          confirmed_by_staff_id?: string | null;
+          created_at?: string;
+          fact_type?: string;
+          id?: string;
+          intake_session_id?: string;
+          linked_fact_id?: string | null;
+          retailer_id?: string;
+          source_excerpt?: string;
+          status?: string;
+          updated_at?: string;
+          value_label?: string;
+          value_text?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_intake_proposals_confirmed_by_staff_id_fkey";
+            columns: ["confirmed_by_staff_id"];
+            isOneToOne: false;
+            referencedRelation: "retailer_staff_members";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_intake_proposals_intake_session_id_fkey";
+            columns: ["intake_session_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_intake_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_intake_proposals_linked_fact_id_fkey";
+            columns: ["linked_fact_id"];
+            isOneToOne: false;
+            referencedRelation: "customer_facts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_intake_proposals_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      customer_intake_sessions: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          id: string;
+          raw_text: string;
+          retailer_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          id?: string;
+          raw_text: string;
+          retailer_id: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          id?: string;
+          raw_text?: string;
+          retailer_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_intake_sessions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_intake_sessions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customer_measurement_candidates: {
         Row: {
           compared_to_version_id: string | null;

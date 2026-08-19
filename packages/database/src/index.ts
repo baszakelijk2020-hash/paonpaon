@@ -132,4 +132,5 @@ export * from "./repositories/academy-roleplay-repository";
 export * from "./repositories/store-experience-repository";
 export * from "./repositories/store-feedback-repository";
 export * from "./repositories/advisor-capture-repository";
+export * from "./repositories/customer-intake-repository";
 export type { Database } from "./generated/database.types";

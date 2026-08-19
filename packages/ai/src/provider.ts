@@ -122,6 +122,16 @@ export interface AdvisorCaptureContext {
   readonly asOfDate: string;
 }
 
+/** Customer self-provided intake (PHASE 17.11) — same shape as
+ * AdvisorCaptureContext deliberately, since the extraction task is
+ * identical (raw free text -> typed, evidence-cited proposals); the only
+ * real difference is who authored the text and what it writes into. */
+export interface CustomerIntakeContext {
+  readonly rawText: string;
+  readonly retailerName: string;
+  readonly asOfDate: string;
+}
+
 /** One tender's garment concepts, turned into a moodboard/concept image
  * request (PHASE 18.10 / BD-110). Never fed pricing or client-identifying
  * detail — only the same descriptive content already externally visible
@@ -228,6 +238,16 @@ export interface AIProvider {
   extractAdvisorCaptureBundles(
     context: AdvisorCaptureContext,
   ): Promise<unknown>;
+  /**
+   * Returns parsed JSON (an array of proposed customer_intake_proposals
+   * drafts) from the model. `checkCustomerIntakeProposal` (`@paon/domain`)
+   * validates every proposal outside this package before it is ever
+   * stored, same split as `extractAdvisorCaptureBundles`. Optional
+   * provider capability, same reasoning as `generateCommunicationDraft` —
+   * callers must fail closed when absent rather than assume every
+   * provider implements this.
+   */
+  extractCustomerIntakeFacts?(context: CustomerIntakeContext): Promise<unknown>;
   /**
    * Generates corporate tender moodboard/concept images (18.10). The
    * result is never shown externally on its own authority — persistence
