@@ -282,14 +282,6 @@ def forepart(side: int):
         "shoulder": b["v1"],  # neck -> armhole, ordered cf -> side
         "canvas": canvas,  # area, not a seam -- upper chest, for canvas stiffness
         "pocket": pocket,  # 2-point anchor for pocket_welt()'s pin
-        # Top 3 points of "cf" (v = NECK_INDEX-2..NECK_INDEX), a free stretch
-        # of the centre-front edge just below the neck-start corner, not
-        # already claimed by collar_stub() (which sews to "neckline" instead)
-        # -- lapel_stub()'s anchor, chosen specifically to avoid stacking a
-        # second attachment onto neckline's already-loaded vertices, the
-        # same adjacent-anchor conflict the armscye/shoulder soft-pin
-        # failure identified in 11_EXECUTION_STATE.md.
-        "lapel_anchor": cf[max(0, NECK_INDEX - 2): NECK_INDEX + 1],
     }
 
 
@@ -440,62 +432,6 @@ def pocket_bag(side: int):
 
     obj, b = _grid(f"pocket_bag_{'L' if side > 0 else 'R'}", fn, nu=1, nv=1)
     return obj, {"anchor": b["v0"]}  # same forepart().pocket anchor as pocket_welt()
-
-
-def lapel_stub(side: int):
-    """Minimal lapel stand-in with an approximated roll line, side=-1
-    wearer's right, +1 left.
-
-    The Stage 2 roadmap names this the highest-value remaining item and
-    also the highest-complexity one: a real roll line is a crease, not a
-    seam, and simulating one properly needs bend-stiffness-along-a-curve --
-    a technique nothing in this codebase has attempted, and genuinely
-    risky to invent and trust in one unreviewed pass. This is deliberately
-    NOT that: a geometric approximation instead, same category as
-    `sleeve_cap()`'s pre-curve fix -- a pre-folded shape provided at cut
-    time rather than a crease the solver is asked to discover on its own.
-    Honest partial coverage: a visual suggestion of a lapel standing open
-    with a fold, not a physically simulated rolled one.
-
-    Sewn to `forepart().lapel_anchor` (3 points just below the neck-start
-    corner on the centre-front edge) rather than the `neckline` edge
-    `collar_stub()` already uses, specifically to avoid stacking a second
-    attachment onto already-loaded vertices -- see that anchor's own
-    comment in `forepart()`. `u` walks the 3 shared anchor points (their
-    real v-heights, matched exactly via the same `_front_neck_x`/
-    `_waist_factor` formulas `forepart()` itself uses, the established
-    "reproduce the formula, don't guess a new one" lesson). `v` is new:
-    0 at the body (the seam) to 1 at the lapel's outer tip, folding
-    outward and forward past `HINGE_V` to suggest the roll.
-    """
-    HINGE_V = 0.45  # fraction of the lapel's own v-extent where the fold begins, ours, unsourced
-    STAND_WIDTH = 0.03   # how far it stands off before the fold, ours, unsourced
-    FOLD_DEPTH = 0.09    # how far the folded-back portion extends past the hinge, ours, unsourced
-    FOLD_OUTWARD_X = 0.05  # how far the fold angles away from centre front, ours, unsourced
-
-    iv0 = max(0, NECK_INDEX - 2)
-
-    def fn(u, v):
-        iv = iv0 + u * 2  # continuous walk across the 3 real anchor points' heights
-        vv = iv / (ARITY_VERTICAL - 1)
-        x_cf = _front_neck_x(side, vv)
-        z = Z_HEM + (Z_SHOULDER - Z_HEM) * vv
-        y_body = -START_GAP  # forepart()'s own y at u=0 (sin(0) = 0)
-
-        if v <= HINGE_V:
-            t = v / HINGE_V
-            x = x_cf
-            y = y_body - STAND_WIDTH * t
-        else:
-            t = (v - HINGE_V) / (1.0 - HINGE_V)
-            y_hinge = y_body - STAND_WIDTH
-            x = x_cf + side * FOLD_OUTWARD_X * t
-            y = y_hinge - FOLD_DEPTH * t
-
-        return Vector((x, y, z))
-
-    obj, b = _grid(f"lapel_{'L' if side > 0 else 'R'}", fn, nu=2, nv=2)
-    return obj, {"anchor": b["v0"]}  # matches forepart().lapel_anchor's point count and v-order
 
 
 def collar_stub(side: int):
@@ -865,11 +801,4 @@ POCKET_SEAMS = [
 # back-neck patch, not a full body lining.
 LINING_SEAMS = [
     ("back", "neckline", "lining_back", "neck"),
-]
-
-# Lapel -- see lapel_stub()'s docstring for why this is a geometric
-# approximation of the roll line, not a simulated one.
-LAPEL_SEAMS = [
-    ("forepart_R", "lapel_anchor", "lapel_R", "anchor"),
-    ("forepart_L", "lapel_anchor", "lapel_L", "anchor"),
 ]

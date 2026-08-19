@@ -300,8 +300,44 @@ section's local sequencing note. In priority order:
   lower torso, not a regression -- direct image comparison. Kept.
 - Lapel + roll line (highest value, highest complexity — the roll line is a
   crease, not a seam, needing bend-stiffness-along-a-curve, a technique
-  nothing in this codebase has attempted). Still open; the one remaining
-  unstarted Stage 2 item.
+  nothing in this codebase has attempted). **Attempted 2026-08-19, reverted.**
+  A true simulated roll line was judged too large a scope to invent and
+  trust unreviewed in one pass, so the attempt was a geometric
+  approximation instead (same category as `sleeve_cap()`'s pre-curve fix):
+  `lapel_stub(side)`, a small panel sewn to a new `forepart().lapel_anchor`
+  (3 points on the centre-front edge, just below the neck-start corner --
+  chosen specifically to avoid stacking onto the already-loaded `neckline`
+  edge `collar_stub()` uses, the same adjacent-anchor conflict the
+  armscye/shoulder soft-pin failure identified earlier), pre-folded at cut
+  time (flat near the body, then folding outward past a hinge point).
+  Production run was clean (20 panels, 703 verts, 129 springs, `EXIT: 0`),
+  but the render looked visibly narrower than the prior baseline. A
+  controlled A/B (lapel-on vs lapel-off, same code otherwise) showed the
+  bounding-box x-width was in fact identical between the two (no real
+  narrowing -- that first read was itself another false alarm), but the
+  matched renders still showed a real, if modest, difference the trace
+  alone didn't capture: lapel-on visibly degraded fold coherence in the
+  lower torso compared to lapel-off, unlike the collar-join and lining
+  cases where a matched A/B fully cleared the concern. Root cause,
+  consistent with the armscye finding: `forepart().cf` was previously a
+  fully free edge, and loading part of it competes with the hem/side
+  soft-pins' already-stabilized region even though the pull itself is
+  modest. **Reverted cleanly** (`git checkout` back to the pre-lapel
+  commit for both changed files) rather than iterate further -- a single
+  attempt at the hardest remaining item, closed per AGENTS.md's
+  escalate-after-failed-cycles spirit given how large this technique's
+  true scope already is (a real fix needs the bend-stiffness-along-a-curve
+  technique this was explicitly trying to avoid inventing unreviewed).
+  Still open for a future session with room to iterate properly.
+
+**Stage 2 status, 2026-08-19**: collar join, real pocket (partial), top-
+collar layer, and lining (partial) are done and verified in production.
+Lapel + roll line was attempted and reverted -- still open, and now the
+only unstarted Stage 2 item. Everything kept is a genuine, controlled-A/B-
+verified improvement or neutral change; nothing here is guessed or
+unverified. The shoulder/armscye/sleeve region (Stage 1) remains the
+single most visibly unfinished part of the garment regardless of this
+stage's breadth work.
 
 ### Stage 3 — P1.0's actual gate
 
