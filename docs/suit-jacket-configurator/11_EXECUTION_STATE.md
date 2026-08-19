@@ -276,6 +276,24 @@ No further Stage 1 candidate is currently identified beyond this;
 continuing to search for one without a specific new idea would still
 violate the broad-first standing order.
 
+**Tried and closed, same day: cloth solver quality (substep count).**
+A purely numerical lever, untried until now (every prior Stage 1 change
+was a pin, geometry, or stiffness change, never solver accuracy):
+`setup_cloth()`'s `quality` parameter, doubled from the production
+default of 8 to 16, on top of the already-landed sleeve-cap-stiffness
+baseline. A/B tested via a Blender headless render, not narration.
+**Not adopted.** Quality=16 cost ~1.9x the settle time (56.8s vs 29.5s
+for the same 90 frames) and produced _more_ visible wrinkle chaos in the
+lower torso, not less, plus the hem settled to a lower rest position
+(`z_min` 0.246-0.265 across frames 60-90, versus the established-good
+0.292-0.298 at quality=8) -- consistent with finer time-stepping
+surfacing more of the true underlying dynamics rather than smoothing
+them away, not a numerical-accuracy win. Closed after one tested value;
+no reason to expect an intermediate quality (e.g. 12) would behave
+differently in kind, and the cost/benefit at 16 was clearly negative on
+both axes (worse render, slower), not a borderline case worth
+bisecting.
+
 Gate for this stage: not the full P1.0 panel judgment yet — a cheap proxy
 first, "does a human glance say this is unambiguously closer to a jacket
 than today's baseline," before spending more render time chasing precision.
