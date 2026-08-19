@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.8-roleplay-conversation",
-  "gitSha": "99cb0ec33270987b28e3daa94095ed6a840f5f24",
+  "gitSha": "42e27d722497654593f2ec13ed09971f9aaec577",
   "spec": "apps/retailer/e2e/academy-roleplay-conversation.spec.ts",
-  "status": "passed",
-  "timestamp": "2026-08-09T13:47:39.357Z"
+  "status": "failed",
+  "timestamp": "2026-08-19T13:56:51.907Z"
 }

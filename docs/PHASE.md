@@ -8034,3 +8034,49 @@ item.
      the repository, the AI provider, and the UI — not a merge-conflict
      resolution. Needs its own scoped task, not a blind `git merge`. Do not
      attempt to auto-resolve this by taking either side wholesale. -->
+
+<!-- REAL BUG FOUND, NOT FIXED (2026-08-19): "Sign out" is broken in all three
+     apps (retailer, admin, customer) — clicking it never navigates to /login.
+     Confirmed via dev-server access logs: the click registers in the DOM but
+     zero POST requests reach the server (every OTHER server action on the
+     same pages fires normally). All 3 e2e specs that exercise sign-out fail
+     identically: apps/retailer/e2e/completion-harness.spec.ts (8.4),
+     academy-roleplay.spec.ts (16.1), academy-roleplay-conversation.spec.ts
+     (17.8-roleplay-conversation). Pre-existing, NOT a regression from this
+     session's merges (589e938/c4e0223/5b26ae1/42e27d7) — traced to commit
+     d3bbc0db (2026-07-24), when layout.tsx was refactored to route the
+     "Sign out" <form action={signOut}> through AppShell's signOutControl
+     ReactNode prop (packages/ui/src/components/AppShell.tsx) instead of
+     rendering it directly.
+
+     TWO FIX ATTEMPTS TRIED AND REVERTED — do not repeat either without new
+     evidence:
+     1. Left the <form action={signOut}> as-is, assumed a form-through-a-
+        client-component-prop serialization issue. Did not test this
+        specific theory in isolation before moving to attempt 2.
+     2. Replaced the form with a new packages/ui/src/components/SignOutButton
+        client component calling signOut directly via onClick+useTransition,
+        removed redirect("/login") from each app's signOut server action
+        (kept the actual supabase.auth.signOut() call), navigated client-side
+        via router.push instead. Verified across 2 fresh dev-server restarts
+        (one with .next AND .turbo caches fully deleted) — STILL zero POST
+        reaches the server, identical symptom. This rules out "form
+        submission through a prop doesn't work" as the sole cause, since an
+        onClick handler calling the action directly failed the exact same
+        way. Reverted both server actions and the new component rather than
+        ship an unproven change to a live auth flow across 3 apps.
+
+     Real open question for whoever picks this up: why does NEITHER a form
+     submission NOR a direct onClick handler invocation of the SAME
+     already-working signOut server action (it success-tests fine — sign-IN
+     flows and every other server action on these pages work) produce a POST
+     when triggered from this specific button, rendered through this
+     specific AppShell/signOutControl path? Suspect something about the
+     click event itself not reaching a live handler (a stale/duplicate DOM
+     node, an intercepting overlay in the sidebar layout, or a JS error
+     silently breaking React's event delegation on this button specifically)
+     rather than anything server-action-specific — worth checking the
+     browser console for errors and confirming with a non-forced
+     (non-`{force:true}`) Playwright click, since the specs use `force: true`
+     specifically to bypass Playwright's normal receives-events/visibility
+     check, which could be masking the real problem. -->

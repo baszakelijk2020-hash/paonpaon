@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.3",
-  "gitSha": "98bcd65710ac4e371e9b225af2a5ff5480f1dbf5",
+  "gitSha": "42e27d722497654593f2ec13ed09971f9aaec577",
   "spec": "apps/retailer/e2e/appointment-brief.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-19T09:06:44.467Z"
+  "timestamp": "2026-08-19T13:20:09.508Z"
 }
