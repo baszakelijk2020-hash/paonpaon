@@ -8007,3 +8007,30 @@ item.
      test's fixture path. Do not close 18.9 as resolved on this note alone — if it
      regresses again, the original hypothesis (session/tenant retailerId mismatch causing
      a silent 0-row update) is still the most likely cause and still unverified either way. -->
+
+<!-- consolidate-stale-lanes STATUS (2026-08-19): 6 of 7 lane branches resolved.
+     Merged and pushed to main, each independently verified (lint/typecheck/
+     unit/pgTAP/e2e, lane-h additionally security-reviewed): agent/lane-d-
+     virtual-wardrobe-studio (589e938), agent/lane-f-wardrobe-service-request
+     (c4e0223), agent/lane-h-customer-security-boundary (5b26ae1). Confirmed
+     already fully contained in main (0 unique commits, merge-base --is-
+     ancestor verified, nothing to do): agent/lane-g-employee-portal-linking,
+     agent/lane-e-core-roadmap, feature/conversation-intelligence.
+
+     PARKED, not merged: feature/voice-intelligence (2 commits, PHASE 17.1
+     "extend advisor capture to appointment-linked conversation intelligence").
+     This is NOT a mechanical conflict like the other 6 — it's an
+     architectural fork of the same advisor-capture domain module main has
+     since evolved further: it renames the "appointment" bundle kind to
+     "appointment_proposal", drops the "care_booking" kind main already
+     shipped (service-booking capture, live and tested), and adds a new
+     "unresolved" bundle kind and commitmentKind field main doesn't have.
+     Its one genuinely new, non-conflicting capability — linking a capture
+     SESSION to an existing appointment (session.appointmentId), distinct
+     from a bundle proposing to CREATE one — does not exist on main and is
+     real, wanted scope. But porting it without regressing main's
+     care_booking/service-booking capture kinds requires deliberate domain
+     redesign across packages/domain/src/intelligence/advisor-capture.ts,
+     the repository, the AI provider, and the UI — not a merge-conflict
+     resolution. Needs its own scoped task, not a blind `git merge`. Do not
+     attempt to auto-resolve this by taking either side wholesale. -->
