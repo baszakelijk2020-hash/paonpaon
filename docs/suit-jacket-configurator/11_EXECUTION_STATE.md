@@ -241,7 +241,23 @@ section's local sequencing note. In priority order:
   lower torso, not a regression — direct image comparison, not narration.
   Kept; canvas-on production behaviour with the join was not separately
   re-verified beyond the one production render already described above.
-- Real pocket (bag + opening, not just a welt)
+- ~~Real pocket (bag + opening, not just a welt)~~ **Partly done,
+  2026-08-19.** Added `pocket_bag(side)` -- a small panel sewn to the
+  exact same `forepart().pocket` 2-point anchor `pocket_welt()` uses (that
+  shared line functions as the pocket's opening), drooping the opposite
+  direction from the welt: inward (+y, toward the body) and down (-z),
+  since a real bag hangs inside the garment rather than standing off it
+  like the welt's visible trim. Not a full opening (forepart's surface is
+  still continuous, unpunctured -- cutting an actual slit into its grid
+  topology is high-risk to the seam-index math the rest of the codebase
+  depends on, out of scope for a broad-first pass) and not yet a closed
+  two-layer pouch with real volume (one flat panel, not two sewn
+  together) -- "partly done" is accurate, not "done." Verified via the
+  actual production render: panel count 12 → 14, verts 653 → 661 (+8, 4
+  per side matching the new 2×2 grids), springs 103 → 107 (+4, 2 new
+  2-point seams), `EXIT: 0`, no visible artifact or corruption (expected
+  -- the bag is meant to be hidden inside, invisible from the hero_front
+  view, and is).
 - Top-collar layer (currently only a single under-collar stand-in)
 - Lapel + roll line (highest value, highest complexity — the roll line is a
   crease, not a seam, needing bend-stiffness-along-a-curve, a technique

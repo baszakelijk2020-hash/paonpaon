@@ -361,8 +361,10 @@ def pocket_welt(side: int):
     neck edge: reproduce forepart()'s exact position formula rather than an
     independently-computed one, so the pin target and the seam it's sewn to
     coincide exactly (the lesson from the sleeve-tip pin failures in
-    11_EXECUTION_STATE.md). Hangs free below -- a welt, not a full pocket
-    with a bag and opening.
+    11_EXECUTION_STATE.md). Hangs free below, standing off toward the
+    viewer (-y) as the raised visible trim. See `pocket_bag()` for the
+    hidden pouch that now shares this exact anchor line as the pocket's
+    opening.
     """
     width_span = 0.03  # how far it stands off the body, ours, unsourced
 
@@ -386,6 +388,50 @@ def pocket_welt(side: int):
 
     obj, b = _grid(f"pocket_{'L' if side > 0 else 'R'}", fn, nu=1, nv=1)
     return obj, {"anchor": b["v0"]}  # body-adjacent edge, pinned to forepart().pocket
+
+
+def pocket_bag(side: int):
+    """Real pocket bag, side=-1 wearer's right, +1 left.
+
+    Chapter 14: "Pocket welts, flaps -- Applied to the forepart," and the
+    roadmap's own Stage 2 item names "bag + opening" as what `pocket_welt()`
+    is still missing. Sewn to the exact same `forepart().pocket` 2-point
+    anchor line `pocket_welt()` uses -- that shared line is the pocket's
+    opening, both pieces meeting it at the true seam instead of each
+    guessing an independent one, the same lesson as `pocket_welt()`'s own
+    docstring. Unlike the welt (which stands off toward the viewer, -y, as
+    the raised visible trim), the bag droops the other way -- inward (+y,
+    toward the body) and down (-z) -- because a real pocket bag hangs
+    inside the garment, invisible from outside, not on top of it. Depth and
+    inset are ours, unsourced, same class of gap as `width_span` above.
+    Still a single flat panel, not a closed two-layer pouch with real
+    volume (that needs a second mirrored layer sewn along its own side/
+    bottom edges) -- broad-first coverage of the feature, not the deepened
+    version.
+    """
+    depth = 0.12  # bag depth (z-drop), ours, unsourced
+    inset = 0.05  # how far behind the forepart surface (+y, into the jacket), ours, unsourced
+
+    nu_local, nv_local = ARITY_SHOULDER - 1, ARITY_VERTICAL - 1
+    u0, u1 = POCKET_IU[0] / nu_local, POCKET_IU[1] / nu_local
+    v0 = POCKET_IV / nv_local
+
+    def body_pos(u):
+        wf = _waist_factor(v0)
+        x_cf = _front_neck_x(side, v0)
+        x_side = side * HEM_HALF * wf * 0.96
+        x = x_cf + (x_side - x_cf) * u
+        z = Z_HEM + (Z_SHOULDER - Z_HEM) * v0
+        y = -START_GAP - 0.10 * math.sin(u * math.pi * 0.5)
+        return x, y, z
+
+    def fn(u, v):
+        uu = u0 + (u1 - u0) * u
+        x, y, z = body_pos(uu)
+        return Vector((x, y + inset * v, z - depth * v))  # v=0 at the opening, v=1 the bag's bottom
+
+    obj, b = _grid(f"pocket_bag_{'L' if side > 0 else 'R'}", fn, nu=1, nv=1)
+    return obj, {"anchor": b["v0"]}  # same forepart().pocket anchor as pocket_welt()
 
 
 def collar_stub(side: int):
@@ -640,4 +686,6 @@ COLLAR_SEAMS = [
 POCKET_SEAMS = [
     ("forepart_R", "pocket", "pocket_R", "anchor"),
     ("forepart_L", "pocket", "pocket_L", "anchor"),
+    ("forepart_R", "pocket", "pocket_bag_R", "anchor"),
+    ("forepart_L", "pocket", "pocket_bag_L", "anchor"),
 ]
