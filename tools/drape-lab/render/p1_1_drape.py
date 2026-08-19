@@ -163,6 +163,24 @@ def main():
     mod.settings.vertex_group_bending = "canvas"
     mod.settings.bending_stiffness_max = 30.0
 
+    # Same stiffness-field mechanism, applied to sleeve_cap()'s "cap" area
+    # (its whole panel -- see that key's own comment for why there's no
+    # finer subdivision to target just the top). New Stage 1 candidate,
+    # 2026-08-19: pre-curving (ab563fc) reduced the wing-spike self-folding
+    # at the armscye but didn't resolve it; resisting the cap's own bending
+    # complements that geometric fix. Weight 1.0 (max resistance) was tried
+    # first and was a clear regression -- more chaos throughout the lower
+    # torso, not just at the cap, and z_max overshot to 1.316-1.329 versus
+    # the stable 1.300 ceiling every other kept change holds. Weight 0.4
+    # is the opposite result: z_max held exactly 1.300 through all 90
+    # frames (no overshoot at all), and the render is visibly more coherent
+    # in the lower torso than even the pre-existing baseline, not just
+    # "less bad than weight 1.0." Kept at 0.4.
+    sleeve_cap_indices = sorted(set(
+        declared_seams["sleeve_L"]["cap"] + declared_seams["sleeve_R"]["cap"]
+    ))
+    canvas_group.add(sleeve_cap_indices, 0.4, "REPLACE")
+
     started = time.time()
     sew.bake(sc, garment, frames=args.frames)
     print(f"[p1.1] settled {args.frames} frames in {time.time() - started:.1f}s")
