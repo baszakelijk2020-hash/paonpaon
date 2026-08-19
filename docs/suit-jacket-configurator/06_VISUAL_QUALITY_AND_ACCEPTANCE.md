@@ -108,11 +108,50 @@ acceptance regardless of medium; this section only adds the technical
 detail behind them, and only for the sites this pass could actually
 reach.
 
-**Not yet done**: delivered resolution (would need reading actual image
-dimensions server-side, not just transferred bytes) and a definitive
-engine identification for Suitablee's WebGL (would need inspecting the
-minified bundle, not just its filename). Both are cheap follow-ups if
-ever needed, not blocking anything currently in flight.
+### Follow-up, 2026-08-19 later the same day: resolution + engine ID
+
+Both cheap follow-ups flagged above were attempted, with mixed and
+honestly-reported results:
+
+- **Suitablee, delivered resolution.** The 3 WebGL canvases (confirmed
+  earlier) were found again on this pass, backing-store 600×750px each --
+  but `clientWidth`/`clientHeight` (their on-page CSS size) read 0 for all
+  three in this run, which doesn't match the earlier screenshot showing a
+  clearly visible, non-zero-size rendered garment. Most likely these are
+  hidden/off-screen or not-yet-laid-out canvas elements rather than the
+  actual visible viewer canvas, or the page's layout state differed
+  between runs (a known risk with a passive settle-window measurement
+  against a dynamic site). **Not confidently resolved** -- the 600×750
+  figure should not be treated as the true delivered viewer resolution
+  without a follow-up pass that also captures each canvas's on-page
+  bounding rect at the moment of the confirmed-good screenshot. Separately,
+  the largest static raster images actually served on the page (fabric/
+  option preview thumbnails, not the 3D viewer) topped out at 1600×2000.
+- **Enzo Custom, delivered resolution.** This pass's image query returned
+  zero images above the 200px size threshold -- inconsistent with the
+  earlier pass, which found a fully rendered garment after the same settle
+  window. Almost certainly a run-to-run timing variance (images not yet
+  mounted at the moment queried), not a real absence of images. **No
+  resolution data obtained**; would need a longer or event-driven wait
+  (e.g. polling until `naturalWidth > 0`) rather than a fixed settle time.
+- **Suitablee, engine identification -- corrected.** The original pass
+  found the substring "three" inside a minified `requirejs-config.min.js`
+  file and reported it as a possible three.js signal. A direct follow-up
+  query against the page's **live RequireJS module registry**
+  (`require.s.contexts._.config.paths`, `.defined`, `.registry`) found
+  **no entries matching "three"**, and `window.THREE` is undefined.
+  **The original hit was a false positive** — most likely a substring
+  coincidence in minified/obfuscated code, not a real three.js
+  dependency. Corrected here rather than left standing; Suitablee's
+  actual WebGL engine remains unidentified.
+
+The honest state after this follow-up: neither delivered resolution nor
+engine identification is confidently established for the confirmed-3D
+site (Suitablee). Both remain open if ever needed for a real technical
+comparison — a fixed passive settle window is the wrong tool for either
+question; a follow-up would need to wait for an explicit ready-signal
+(e.g. poll for non-zero canvas `getBoundingClientRect()`, or hook the
+WebGL context's own resize/draw calls) rather than a timed sleep.
 
 ### Measured bar
 
