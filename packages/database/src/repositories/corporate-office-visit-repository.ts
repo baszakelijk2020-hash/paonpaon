@@ -1,5 +1,6 @@
 import {
   asId,
+  checkCreateVisitSlot,
   checkResolveOfficeVisitRequest,
   checkScheduleOfficeVisitAppointment,
   type CorporateOfficeVisitPage,
@@ -7,6 +8,10 @@ import {
   type CorporateOfficeVisitRequestId,
   type CorporateOfficeVisitRequestStatus,
   type CorporateProgrammeId,
+  type CorporateVisitSlot,
+  type CorporateVisitSlotId,
+  type CreateVisitSlotCheck,
+  type RetailerId,
 } from "@paon/domain";
 
 import type { PaonSupabaseClient } from "../client-type";
@@ -17,6 +22,30 @@ import { CustomerRepository } from "./customer-repository";
 
 type RequestRow =
   Database["public"]["Tables"]["corporate_office_visit_requests"]["Row"];
+type VisitSlotRow =
+  Database["public"]["Tables"]["corporate_visit_slots"]["Row"];
+
+export interface OpenCorporateVisitSlot {
+  readonly id: CorporateVisitSlotId;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly remainingCapacity: number;
+}
+
+function toVisitSlot(row: VisitSlotRow): CorporateVisitSlot {
+  return {
+    id: asId<"CorporateVisitSlotId">(row.id),
+    retailerId: asId<"RetailerId">(row.retailer_id),
+    programmeId: asId<"CorporateProgrammeId">(row.programme_id),
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    capacity: row.capacity,
+    bookedCount: row.booked_count,
+    ...(row.canceled_at ? { canceledAt: row.canceled_at } : {}),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
 
 function toRequest(row: RequestRow): CorporateOfficeVisitRequest {
   return {
@@ -49,6 +78,10 @@ export type ScheduleOfficeVisitAppointmentResult =
   | { readonly ok: false; readonly reason: "request_not_found" }
   | { readonly ok: false; readonly reason: "contact_email_required" }
   | { readonly ok: false; readonly reason: "invalid_time_window" };
+
+export type ClaimCorporateVisitSlotResult =
+  | { readonly ok: true; readonly requestId: CorporateOfficeVisitRequestId }
+  | { readonly ok: false; readonly reason: string };
 
 /**
  * The office-visit landing page (PHASE 18.4 / BD-104). The public reveal
@@ -220,5 +253,108 @@ export class CorporateOfficeVisitRepository {
       .single();
     if (error) throw error;
     return { ok: true, request: toRequest(data) };
+  }
+
+  /** The exact set of real, currently-claimable slots for the public
+   * landing page — anonymous-callable, matching resolvePage/submit above. */
+  async listOpenSlots(
+    programmeId: CorporateProgrammeId,
+  ): Promise<readonly OpenCorporateVisitSlot[]> {
+    const { data, error } = await this.client.rpc(
+      "list_open_corporate_visit_slots",
+      { p_programme_id: programmeId },
+    );
+    if (error) throw error;
+    return data.map((row) => ({
+      id: asId<"CorporateVisitSlotId">(row.id),
+      startsAt: row.starts_at,
+      endsAt: row.ends_at,
+      remainingCapacity: row.remaining_capacity,
+    }));
+  }
+
+  /** The self-service claim itself. The RPC (not this method) is the
+   * actual double-booking prevention — it locks the slot row before
+   * checking capacity. A rejection (full/canceled/past/not found) comes
+   * back as a Postgres error, surfaced here as a typed failure rather
+   * than thrown, since a visitor picking an already-claimed slot is an
+   * expected outcome to show inline, not an exceptional one. */
+  async claimSlot(args: {
+    readonly slotId: CorporateVisitSlotId;
+    readonly requesterName: string;
+    readonly employeeReference?: string;
+    readonly contactEmail?: string;
+    readonly note?: string;
+  }): Promise<ClaimCorporateVisitSlotResult> {
+    const { data, error } = await this.client.rpc(
+      "claim_corporate_visit_slot",
+      {
+        p_slot_id: args.slotId,
+        p_requester_name: args.requesterName,
+        p_employee_reference: args.employeeReference ?? "",
+        p_contact_email: args.contactEmail ?? "",
+        p_note: args.note ?? "",
+      },
+    );
+    if (error) return { ok: false, reason: error.message };
+    return {
+      ok: true,
+      requestId: asId<"CorporateOfficeVisitRequestId">(data),
+    };
+  }
+
+  /** Staff-side: every slot (open, full, past or canceled) for a
+   * programme, for the retailer's own management UI — unlike
+   * listOpenSlots, this is not the public/anonymous surface. */
+  async listSlotsForProgramme(
+    programmeId: CorporateProgrammeId,
+  ): Promise<readonly CorporateVisitSlot[]> {
+    const { data, error } = await this.client
+      .from("corporate_visit_slots")
+      .select("*")
+      .eq("programme_id", programmeId)
+      .order("starts_at", { ascending: true });
+    if (error) throw error;
+    return data.map(toVisitSlot);
+  }
+
+  async createSlot(args: {
+    readonly retailerId: RetailerId;
+    readonly programmeId: CorporateProgrammeId;
+    readonly startsAt: string;
+    readonly endsAt: string;
+    readonly capacity: number;
+  }): Promise<
+    | { readonly ok: true; readonly slot: CorporateVisitSlot }
+    | (CreateVisitSlotCheck & { readonly ok: false })
+  > {
+    const check = checkCreateVisitSlot(args);
+    if (!check.ok) return check;
+
+    const { data, error } = await this.client
+      .from("corporate_visit_slots")
+      .insert({
+        retailer_id: args.retailerId,
+        programme_id: args.programmeId,
+        starts_at: args.startsAt,
+        ends_at: args.endsAt,
+        capacity: args.capacity,
+      })
+      .select("*")
+      .single();
+    if (error) throw error;
+    return { ok: true, slot: toVisitSlot(data) };
+  }
+
+  /** Canceling never deletes — a claimed slot's requests must stay
+   * resolvable, and the row's own existence is what
+   * list_open_corporate_visit_slots and the claim RPC both check
+   * against. */
+  async cancelSlot(slotId: CorporateVisitSlotId): Promise<void> {
+    const { error } = await this.client
+      .from("corporate_visit_slots")
+      .update({ canceled_at: new Date().toISOString() })
+      .eq("id", slotId);
+    if (error) throw error;
   }
 }

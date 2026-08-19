@@ -5624,6 +5624,60 @@ export type Database = {
           },
         ];
       };
+      corporate_visit_slots: {
+        Row: {
+          booked_count: number;
+          canceled_at: string | null;
+          capacity: number;
+          created_at: string;
+          ends_at: string;
+          id: string;
+          programme_id: string;
+          retailer_id: string;
+          starts_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          booked_count?: number;
+          canceled_at?: string | null;
+          capacity: number;
+          created_at?: string;
+          ends_at: string;
+          id?: string;
+          programme_id: string;
+          retailer_id: string;
+          starts_at: string;
+          updated_at?: string;
+        };
+        Update: {
+          booked_count?: number;
+          canceled_at?: string | null;
+          capacity?: number;
+          created_at?: string;
+          ends_at?: string;
+          id?: string;
+          programme_id?: string;
+          retailer_id?: string;
+          starts_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "corporate_visit_slots_programme_id_fkey";
+            columns: ["programme_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_programmes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "corporate_visit_slots_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       corporate_wearers: {
         Row: {
           active: boolean;
@@ -22401,6 +22455,16 @@ export type Database = {
         Args: { p_conversation_id: string };
         Returns: boolean;
       };
+      claim_corporate_visit_slot: {
+        Args: {
+          p_contact_email: string;
+          p_employee_reference: string;
+          p_note: string;
+          p_requester_name: string;
+          p_slot_id: string;
+        };
+        Returns: string;
+      };
       claim_pending_emails: {
         Args: { p_limit?: number };
         Returns: {
@@ -23039,6 +23103,15 @@ export type Database = {
       link_service_booking_appointment: {
         Args: { p_appointment_id: string; p_booking_id: string };
         Returns: string;
+      };
+      list_open_corporate_visit_slots: {
+        Args: { p_programme_id: string };
+        Returns: {
+          ends_at: string;
+          id: string;
+          remaining_capacity: number;
+          starts_at: string;
+        }[];
       };
       loyalty_milestone_slug_matches: {
         Args: { p_hints: string[]; p_slug: string };

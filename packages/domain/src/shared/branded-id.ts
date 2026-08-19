@@ -285,6 +285,7 @@ export type VirtualTryOnUsageLedgerId = Brand<
 >;
 export type MtmPriceComponentId = Brand<string, "MtmPriceComponentId">;
 export type MtmPriceQuoteId = Brand<string, "MtmPriceQuoteId">;
+export type CorporateVisitSlotId = Brand<string, "CorporateVisitSlotId">;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;
