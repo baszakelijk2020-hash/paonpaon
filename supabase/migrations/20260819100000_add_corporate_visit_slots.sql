@@ -44,7 +44,14 @@ create trigger set_corporate_visit_slots_updated_at
 alter table public.corporate_visit_slots enable row level security;
 revoke all on table public.corporate_visit_slots from public, anon;
 grant select, insert, update on table public.corporate_visit_slots to authenticated;
-grant select, update on table public.corporate_visit_slots to service_role;
+-- service_role needs insert too: claim_corporate_visit_slot's own UPDATE
+-- of booked_count runs as the function's SECURITY DEFINER owner, but
+-- direct service-role writes (fixture seeding, admin tooling) need the
+-- same full CRUD RLS-bypass service_role already has on every other
+-- table in this codebase (found the hard way: a test seeding a slot as
+-- service_role failed with "permission denied for table
+-- corporate_visit_slots" until this grant was added).
+grant select, insert, update on table public.corporate_visit_slots to service_role;
 
 -- Retailer staff manage their own retailer's slot pool. Same management-
 -- tier gate as mtm_price_components (20260819090000) and the alteration

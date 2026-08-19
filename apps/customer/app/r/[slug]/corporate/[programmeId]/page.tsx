@@ -4,6 +4,7 @@ import { Card } from "@paon/ui/components/Card";
 import { notFound } from "next/navigation";
 
 import { OfficeVisitRequestForm } from "./request-form";
+import { VisitSlotPicker } from "./slot-picker";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -11,9 +12,12 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
  * The corporate office-visit landing page (PHASE 18.4 / BD-104) —
  * company-branded, publicly reachable, and deliberately narrow: it
  * shows only the account/programme name (never other clients, never
- * margins, never a wearer's own data) and collects a visit request into
- * the staff-reviewed intake queue. Turning a request into a scheduled
- * fitting slot against real capacity is 18.6's own item.
+ * margins, never a wearer's own data). Self-service slot booking (direct
+ * founder instruction, 2026-08-19) is now the primary path when the
+ * retailer has defined open slots for this programme; the original
+ * leave-a-request form remains the fallback when there are none, so a
+ * programme with no defined slot pool still collects a real lead rather
+ * than showing an empty page.
  */
 export default async function CorporateOfficeVisitPage({
   params,
@@ -22,11 +26,16 @@ export default async function CorporateOfficeVisitPage({
 }) {
   const { programmeId } = await params;
   const supabase = await getSupabaseServerClient();
+  const repo = new CorporateOfficeVisitRepository(supabase);
 
-  const reveal = await new CorporateOfficeVisitRepository(supabase)
+  const reveal = await repo
     .resolvePage(asId<"CorporateProgrammeId">(programmeId))
     .catch(() => null);
   if (!reveal) notFound();
+
+  const openSlots = await repo.listOpenSlots(
+    asId<"CorporateProgrammeId">(programmeId),
+  );
 
   return (
     <main className="mx-auto max-w-lg px-6 py-12">
@@ -41,7 +50,11 @@ export default async function CorporateOfficeVisitPage({
       </p>
 
       <Card className="mt-6">
-        <OfficeVisitRequestForm programmeId={programmeId} />
+        {openSlots.length > 0 ? (
+          <VisitSlotPicker slots={openSlots} />
+        ) : (
+          <OfficeVisitRequestForm programmeId={programmeId} />
+        )}
       </Card>
     </main>
   );
