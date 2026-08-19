@@ -51,12 +51,68 @@ Two things this changes:
    as good as the accepted reference, and unmistakably better than the rejected
    set.
 
-`BLOCKED` pending measurement: each rejected configurator's rendering medium,
-delivered resolution and engine have **not** been measured. The verdicts above
-are founder quality judgments, which are authoritative for acceptance, and are
-not technical observations. Measuring them is queued in
-`11_EXECUTION_STATE.md`; until then no technical claim is attributed to any of
-them beyond the inference stated above.
+### Measured, 2026-08-19 -- Pass-B, headless Chrome over CDP
+
+Measured via `tools/pass-b/measure.py` (new this session; rerun with
+`python3 tools/pass-b/measure.py`, see the script's own docstring for
+setup). It drives headless Chrome
+(`--headless=new --remote-allow-origins=* --user-data-dir=<throwaway>`),
+connecting over the DevTools Protocol, navigating to each URL, waiting for
+the page to settle (~8s), running a best-effort generic cookie-consent
+dismissal, waiting again (~20s), then querying `document.querySelectorAll
+('canvas')` and each canvas's `getContext('webgl'/'webgl2')` result, plus
+Chrome's own Network domain events for per-asset transferred bytes. Chrome
+was killed after each site; no visible browser window was ever opened, per
+the standing order. Full JSON: `/tmp/pass-b-results.json`; a screenshot per
+site: `/tmp/pass-b-<name>.png` (session-local paths, not committed —
+screenshots are evidence for this write-up, not a durable artifact).
+
+**This measurement has real limits, stated plainly so the numbers aren't
+over-read:**
+
+- The ~28s total settle window may not catch content that mounts even
+  later, or only after actual user interaction beyond a single generic
+  consent-dismiss click (selecting a fabric, clicking through a step,
+  etc). A "no canvas detected" result means _not detected under this
+  passive measurement_, not proof the site never uses WebGL anywhere in
+  its flow.
+- For at least one site (Sartoro) the URL in the table above lands on a
+  photographed-model **product page**, not the configurator UI itself — a
+  "Customize" button leads elsewhere, not followed this pass. That
+  result describes the product page, not necessarily what the founder
+  judged.
+- Bot detection, certificate issues, and geo-blocking are real
+  confounders under headless automation and are called out per-site
+  below rather than silently absorbed into a "static" or "3D" verdict.
+
+| Configurator     | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 3D Suit Designer | **Unmeasurable.** `NET::ERR_CERT_DATE_INVALID` — the site's own TLS certificate is invalid/expired as observed. Not a Chrome or measurement-harness fault.                                                                                                                                                                                                                                                                                                                                                               |
+| Enzo Custom      | **Static/composited imagery, not real-time 3D**, as actually rendered on load. `canvasCount: 0`, `webglContextCount: 0` on the garment view (confirmed after a "Loading 3D … 11%" progress indicator finished and the garment fully rendered) — the visible jacket is a flat-shaded raster image with no fabric-weave texture, not a live WebGL scene, despite the page's own title calling itself a "3D Suit Configurator." Total transferred ≈12.9 MB after settle, dominated by Image (≈7.7 MB) and Script (≈2.0 MB). |
+| Sartoro          | **Not measured** — the given URL is a photographed-model product page (real photography, `Customize` button unfollowed), not the configurator surface itself. `canvasCount: 0` on this page is expected and uninformative about the actual configurator.                                                                                                                                                                                                                                                                 |
+| Bold Italia      | **Inconclusive.** Page stuck on a "Please wait a few seconds while we load the 3D configurator" spinner through the full ~28s settle window; `canvasCount: 0`, `scriptCount: 45`. Genuinely slow load, or incompatible with/blocked under headless automation — not distinguishable from this measurement alone.                                                                                                                                                                                                         |
+| Suitablee        | **Confirmed real-time WebGL 3D.** `canvasCount: 3`, `webglContextCount: 3` — three live WebGL contexts, matching the visibly rendered garment (a jacket with a plausible shaded highlight/shadow gradient along the sleeve). No specific engine detected by script-name heuristic (likely a minified/bundled build). Total transferred ≈3.4 MB, dominated by Script (≈1.5 MB) and Stylesheet (≈0.4 MB).                                                                                                                  |
+| Lanieri          | **Unmeasurable.** "Access Denied — Sorry this site may not be available in your region." Geo-blocked from this measurement's network origin, not a technical property of the configurator itself.                                                                                                                                                                                                                                                                                                                        |
+
+**What this actually establishes**: the rejected set is not uniformly
+real-time 3D as the earlier `INFERRED` note assumed — it's a mix. At
+least one rejected configurator (Enzo) achieves its "cartoon" verdict
+with **static/composited images**, not WebGL, which means D-15/D-16's
+framing ("real-time 3D is the failure mode") is not the whole story:
+flat shading and low-frequency geometry are the actual named defects
+(as chapter already states), and they can come from either medium. At
+least one (Suitablee) is confirmed real-time 3D and still earned a
+"shit" verdict — real-time rendering isn't disqualifying by itself, poor
+execution of it is. The founder's verdicts remain authoritative for
+acceptance regardless of medium; this section only adds the technical
+detail behind them, and only for the sites this pass could actually
+reach.
+
+**Not yet done**: delivered resolution (would need reading actual image
+dimensions server-side, not just transferred bytes) and a definitive
+engine identification for Suitablee's WebGL (would need inspecting the
+minified bundle, not just its filename). Both are cheap follow-ups if
+ever needed, not blocking anything currently in flight.
 
 ### Measured bar
 

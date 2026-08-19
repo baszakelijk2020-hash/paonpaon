@@ -985,12 +985,18 @@ through P1.7, each with one acceptance gate. That chapter supersedes chapter
 Parallel and unblocked at any time — take one of these when the queue head is
 blocked, rather than idling:
 
-- **Measure the rejected configurators** (ch. 06 "The floor, set from below").
-  Six URLs, founder-rejected on quality, with no technical measurement yet.
-  For each: rendering medium (canvas/WebGL vs images), delivered resolution,
-  engine if detectable, and per-asset weight. Use the Pass-B method — ordinary
-  Chrome over CDP, headless, killed afterwards. Cheap and it converts six
-  judgments into six measurements.
+- ~~Measure the rejected configurators~~ **Done, 2026-08-19.** Built
+  `tools/pass-b/measure.py` (no prior script existed) and ran it against
+  all 6 URLs. Result was a genuine mix, not a clean sweep: 2 of 6
+  unmeasurable (SSL cert error on 3D Suit Designer, geo-block on
+  Lanieri), 1 inconclusive (Bold Italia stuck loading), 1 not-the-actual-
+  configurator (Sartoro's URL is a product page), 1 confirmed
+  static/composited imagery despite calling itself "3D" (Enzo Custom),
+  and 1 confirmed real-time WebGL 3D (Suitablee, 3 live contexts).
+  Full write-up with per-site detail and the measurement's own stated
+  limits: `06_VISUAL_QUALITY_AND_ACCEPTANCE.md`'s "Measured, 2026-08-19"
+  section. Delivered resolution and Suitablee's specific WebGL engine
+  are flagged there as cheap, non-blocking follow-ups if ever needed.
 - Chapter 05's budgets are still written as live-WebGL client budgets. Under
   D-16 they should be image-delivery budgets. Small, self-contained.
 - The competitor interaction gap (R-09): no option-change interaction was ever
