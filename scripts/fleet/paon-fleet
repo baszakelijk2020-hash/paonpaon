@@ -268,6 +268,33 @@ cmd_release() {
   echo "OK: $id -> open (refused_by += $AGENT_ID)"
 }
 
+# Operator override: release a task regardless of who holds it, for the one
+# case assert_owner is right to block by default but a human still needs to
+# unstick — a lease with lease_expires_at=null (so reap_expired can never
+# touch it) held by an agent that is provably no longer running. Requires an
+# explicit reason (no silent overrides) and logs distinctly from a normal
+# self-release so the audit trail shows this was a deliberate operator
+# action, not the owning agent's own decision.
+cmd_admin_release() {
+  local id="$1" reason="${2:-}"
+  if [ -z "$reason" ]; then
+    echo "REJECTED: admin-release requires a reason (why the holder is stale/dead)" >&2
+    exit 1
+  fi
+  acquire
+  local cur; cur="$(jq -r --arg id "$id" '.tasks[]|select(.id==$id)|.status // ""' "$QUEUE")"
+  if [ -z "$cur" ]; then release_lock; echo "REJECTED: no such task '$id'" >&2; exit 1; fi
+  local prev_owner; prev_owner="$(jq -r --arg id "$id" '.tasks[]|select(.id==$id)|.claimed_by // "none"' "$QUEUE")"
+  jq --arg id "$id" --arg reason "$reason" --arg who "$AGENT_ID" --arg prev "$prev_owner" --arg now "$(now_iso)" '
+    .tasks |= map(if .id==$id then
+      .status="open" | .claimed_by=null | .lease_expires_at=null
+      | .note=("ADMIN_RELEASE by " + $who + " (was held by " + $prev + "): " + $reason)
+      | .updated_at=$now
+    else . end)' "$QUEUE" | write_queue
+  release_lock; log "ADMIN_RELEASE $id (was:$prev_owner) $reason"
+  echo "OK: $id -> open (admin override; was held by $prev_owner)"
+}
+
 cmd_heartbeat() {
   local id="$1"; acquire
   assert_owner "$id"
@@ -315,6 +342,7 @@ case "${1:-status}" in
   done)      cmd_set_status "$2" "done" "${3:-}" ;;
   block)     cmd_set_status "$2" "blocked" "${3:-blocked, no reason given}" ;;
   release)   cmd_release "$2" "${3:-}" ;;
+  admin-release) cmd_admin_release "$2" "${3:-}" ;;
   heartbeat) cmd_heartbeat "$2" ;;
   reap)      acquire; reap_expired; release_lock; echo "OK: expired leases released" ;;
   freeze)    acquire
