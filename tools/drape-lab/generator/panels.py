@@ -146,6 +146,14 @@ def _grid_from_outline(name, outline_pts, y):
     topology every other panel in this file uses (see _grid's own
     docstring for why that matters to the cloth solver).
 
+    `y` is either a constant (the old flat-panel behaviour) or a callable
+    `y(u)` for a panel pre-curved across its width -- see `sleeve_cap()`'s
+    use of this for why: the armscye/sleeve soft-pin was fully ruled out
+    (11_EXECUTION_STATE.md) because it fights the adjacent rigid shoulder
+    pin regardless of weight, so the fix has to be starting the sleeve
+    closer to its worn (wrapped-around-the-arm) shape instead of asking
+    any pin to pull it there.
+
     Returns `(obj, boundaries)` like `_grid` -- `boundaries["v0"]` is the
     top-edge (outline) row, in `outline_pts` order, for callers that need to
     slice it into named seams (e.g. `sleeve_cap()`'s front/back armscye).
@@ -153,6 +161,7 @@ def _grid_from_outline(name, outline_pts, y):
     top = outline_pts[:-2]
     bl, br = outline_pts[-2], outline_pts[-1]
     nu = len(top) - 1
+    y_fn = y if callable(y) else (lambda u: y)
 
     def fn(u, v):
         iu = min(int(round(u * nu)), nu)
@@ -161,7 +170,7 @@ def _grid_from_outline(name, outline_pts, y):
         bz = bl[1] + (br[1] - bl[1]) * u
         x = tx + (bx - tx) * v
         z = tz + (bz - tz) * v
-        return Vector((x, y, z))
+        return Vector((x, y_fn(u), z))
 
     return _grid(name, fn, nu=nu, nv=1)
 
@@ -460,8 +469,24 @@ def sleeve_cap(side: int):
     pts.append((cap_w * 0.34, top_z - length))
     pts.append((-cap_w * 0.34, top_z - length))
 
+    # Pre-curved cross-section (a shallow half-tube, not flat), so the
+    # sleeve starts closer to wrapping the arm instead of relying on a pin
+    # or a spring to bend it there from flat. Chosen because the armscye/
+    # sleeve soft-pin approach was fully ruled out at every weight tested,
+    # 0.15-0.5 (11_EXECUTION_STATE.md) -- it fights the adjacent rigid
+    # shoulder pin regardless of strength, so the fix has to be geometric,
+    # not another force. "front" (u=0) curves to negative y, matching
+    # forepart's negative-y convention; "back" (u=1) curves to positive y,
+    # matching back_panel()'s -- the same sign convention those panels
+    # already use, not a new one. Depth is ours, unsourced, sized against
+    # arm_form()'s own bicep radius (0.075) with margin.
+    CURVE_DEPTH = 0.06
+
+    def sleeve_y(u):
+        return -CURVE_DEPTH * math.cos(u * math.pi)
+
     obj, b = _grid_from_outline(f"sleeve_{'L' if side > 0 else 'R'}",
-                                 [(x + x_off, z) for (x, z) in pts], y=0.0)
+                                 [(x + x_off, z) for (x, z) in pts], y=sleeve_y)
     sleevehead = b["v0"]
     return obj, {
         # Both ordered underarm-equivalent -> shoulder (ascending height),

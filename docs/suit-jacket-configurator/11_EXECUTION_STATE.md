@@ -151,6 +151,32 @@ Remaining candidates:
    armscye/sleeve specifically, now that a flat soft pin is shown not to
    work there — more complex than 1-2, try after.
 
+**Update, same session, next day**: tried candidate 1 (pre-curve
+`sleeve_cap()`'s cross-section at cut time instead of relying on the
+solver to bend it from flat). `_grid_from_outline()` now accepts `y` as
+either a scalar or a callable `y(u)`; `sleeve_cap()` passes
+`sleeve_y(u) = -CURVE_DEPTH * cos(u * pi)`, `CURVE_DEPTH = 0.06`, curving
+"front" (u=0) toward the forepart's negative-y convention and "back" (u=1)
+toward the back panel's positive-y convention, with zero curve at the
+pinned-shoulder centre (u=0.5). Depth sized against `arm_form()`'s bicep
+radius (0.075) with margin. Verified two ways: a controlled A/B (identical
+setup, only the flat-vs-curved sleeve differs) showed a real, repeatable
+reduction in the sharp outward wing-spikes at the sleeve cap — not run-to-
+run noise; and the actual production entry point
+(`p1_1_drape.py --view hero_front --samples 64`, `EXIT: 0`, 653 verts, 99
+sewing springs, settled 90 frames in 25.8s) rendered clean with the change
+already in place. **Honest result: this is a real but modest improvement,
+not a fix.** The rendered image still shows a wide, sharp-spiked "wing"
+across the shoulder line — a human glance would not call this closer to
+a jacket at the top yet, even though the lower two-thirds (from the
+hem/side soft-pins) still reads as a coherent pleated column. Applied to
+production because it is a genuine, verified, non-regressive improvement
+over the flat baseline, consistent with this session's rule of committing
+every real increment — but candidate 2 (a genuinely staged/keyframed bake
+for the armscye/sleeve region specifically) is still open, and the
+shoulder/armscye/sleeve transition remains the single most visibly broken
+part of the garment.
+
 Gate for this stage: not the full P1.0 panel judgment yet — a cheap proxy
 first, "does a human glance say this is unambiguously closer to a jacket
 than today's baseline," before spending more render time chasing precision.
