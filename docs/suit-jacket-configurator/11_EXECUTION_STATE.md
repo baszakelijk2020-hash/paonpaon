@@ -215,10 +215,32 @@ than today's baseline," before spending more render time chasing precision.
 
 ### Stage 2 — finish P1.1's remaining breadth (after Stage 1, not before)
 
-Polishing breadth on top of a broken drape wastes the polish. In priority
-order once Stage 1 passes its proxy gate:
+Polishing breadth on top of a broken drape wastes the polish. Started
+2026-08-19 per the founder's own broad-first standing order (item 6):
+Stage 1's proxy gate ("unambiguously closer to a jacket") was not yet
+passed at the shoulder/armscye, but that item's own text says sleeve
+crumple is "known, unfixed debt — record it, don't chase it, come back
+once every stage has a rough pass," which takes priority over this
+section's local sequencing note. In priority order:
 
-- Join the collar's 3 separate pieces into one continuous wrap
+- ~~Join the collar's 3 separate pieces into one continuous wrap~~ **Done,
+  2026-08-19.** `collar_stub()` now exposes an `end` boundary (its
+  shoulder-end, 2 points: inner+outer) and `collar_back_stub()` exposes
+  `end_R`/`end_L` (its x-negative/x-positive ends, same 2-point order) —
+  all fixed-arity per chapter 09's contract, so they pair directly with no
+  resampling. `COLLAR_SEAMS` gained the two new end-to-end seams.
+  Production run: springs rose 99 → 103 (exactly the 2 new 2-point seams),
+  `EXIT: 0`, collar visibly closes at both shoulders instead of leaving a
+  gap. First look at the production render caused a false alarm — it
+  looked more chaotic than the last committed (pre-curve) production
+  baseline, but that comparison was invalid: the production pipeline
+  applies the chapter 09 canvas stiffness field and the two renders were
+  never compared under identical settings. A proper controlled A/B
+  (collar-joined vs collar-unjoined, canvas off in both so only the seam
+  contract differs) showed the join is neutral to slightly cleaner in the
+  lower torso, not a regression — direct image comparison, not narration.
+  Kept; canvas-on production behaviour with the join was not separately
+  re-verified beyond the one production render already described above.
 - Real pocket (bag + opening, not just a welt)
 - Top-collar layer (currently only a single under-collar stand-in)
 - Lapel + roll line (highest value, highest complexity — the roll line is a
