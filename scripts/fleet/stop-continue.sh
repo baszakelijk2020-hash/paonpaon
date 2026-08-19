@@ -65,7 +65,7 @@ fi
 # --- 4. hand over the next task ----------------------------------------------
 [ -x "$FLEET" ] || exit 0
 task="$("$FLEET" take 2>/dev/null)" || exit 0
-[ -n "$task" ] && [ "$task" != "QUEUE_EMPTY" ] || exit 0
+[ -n "$task" ] && [ "$task" != "NO_ELIGIBLE_WORK" ] && [ "$task" != "QUEUE_EMPTY" ] || exit 0
 
 id="$(printf '%s' "$task"    | jq -r '.id')"
 title="$(printf '%s' "$task" | jq -r '.title')"
