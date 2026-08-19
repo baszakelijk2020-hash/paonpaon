@@ -650,12 +650,27 @@ def sleeve_cap(side: int):
     obj, b = _grid_from_outline(f"sleeve_{'L' if side > 0 else 'R'}",
                                  [(x + x_off, z) for (x, z) in pts], y=sleeve_y)
     sleevehead = b["v0"]
+    # Not a seam -- the whole panel, for setup_cloth()'s vertex_group_bending,
+    # same mechanism forepart()'s "canvas" area already uses (chapter 09
+    # models canvas as a stiffness field, not geometry). `_grid_from_outline`
+    # always builds a 2-row (nv=1) grid -- v0 the sleevehead arc, v1 the cuff
+    # corners -- so "the whole panel" and "the area near the armscye" are the
+    # same set at this panel's current resolution; there is no finer v
+    # subdivision to target just the top. Untried until now: a genuinely new
+    # Stage 1 candidate (the pre-curve and staged-pin candidates identified
+    # earlier were both exhausted), testing whether resisting the sleeve
+    # cap's own internal bending -- as opposed to pinning or pre-curving it
+    # -- reduces the wing-spike self-folding pre-curve alone didn't fully
+    # resolve.
+    arc_steps_local = arc_steps
+    cap = [iv * (arc_steps_local + 1) + iu for iv in range(2) for iu in range(arc_steps_local + 1)]
     return obj, {
         # Both ordered underarm-equivalent -> shoulder (ascending height),
         # matching forepart().armscye / back_panel().armscye_L/R's direction.
         "front": sleevehead[: center + 1],
         "back": list(reversed(sleevehead[center:])),
         "tip": [sleevehead[center]],  # the shared shoulder point of both halves
+        "cap": cap,  # area, not a seam -- whole panel, for cloth bending stiffness
     }
 
 
