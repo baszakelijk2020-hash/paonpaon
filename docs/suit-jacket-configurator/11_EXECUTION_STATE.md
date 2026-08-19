@@ -1062,13 +1062,22 @@ blocked, rather than idling:
   **Done, already** (see "Recovered: hourly cloud routine's stranded
   chapter 05 rewrite" above) — this bullet was stale, left over from
   before that fix landed. Removed here rather than left duplicated.
-- The competitor interaction gap (R-09): no option-change interaction was ever
-  driven in either configurator, so incompatibility enforcement, save/share and
-  gesture behaviour remain unobserved. Larger scope than the Pass-B passive
-  measurement above (needs a real per-site interaction flow, not a generic
-  consent-dismiss click) -- a genuinely valuable next item, but not a quick
-  one; the next session should scope it explicitly before starting rather
-  than open-endedly poking at competitor sites.
+- ~~The competitor interaction gap (R-09)~~ **Bounded first slice done,
+  2026-08-19.** Not the whole gap -- one real interaction, scoped exactly
+  as this bullet asked for a future session to do: a fabric-swatch click
+  driven on Suitsupply's live configurator (the D-15 quality bar itself,
+  picked over Armani for that reason), via a new
+  `tools/pass-b/suitsupply_interaction.py`, same headless-Chrome-over-CDP
+  method as the passive Pass-B measurement. Real result, not narration:
+  price updated live (`€723`→`€623`, matching the clicked swatch) and the
+  garment texture visibly changed, served via ~40 new small per-component
+  image fetches rather than a monolithic re-render or client-side 3D
+  recompute -- confirms R-07's passive "2D layers client-side" finding via
+  an actual interaction, not just static observation. Full write-up:
+  `08_DECISIONS_AND_OPEN_RISKS.md`'s R-09 row. Still open, narrower:
+  incompatibility enforcement, save/share, camera/gesture, login/session
+  remain untested -- one fabric swap on one product doesn't exercise any
+  of those, and Armani wasn't attempted this pass.
 
 ## Hard constraints that must never be violated
 
