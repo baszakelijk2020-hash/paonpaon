@@ -258,7 +258,26 @@ section's local sequencing note. In priority order:
   2-point seams), `EXIT: 0`, no visible artifact or corruption (expected
   -- the bag is meant to be hidden inside, invisible from the hero_front
   view, and is).
-- Top-collar layer (currently only a single under-collar stand-in)
+- ~~Top-collar layer~~ **Done, 2026-08-19.** Added `collar_top_stub(side)`
+  and `collar_top_back_stub()` -- a second layer, mirroring the under-
+  collar trio's shape and closure pattern (its own `end`/`end_R`/`end_L`
+  seams close it into a continuous wrap the same way), but sewn to the
+  under-collar's previously-unexposed `outer` edge instead of the
+  neckline -- a real collar's top and under layers are stitched together
+  along that outer/roll edge and turned, not left as one piece. Reused
+  `pocket_bag()`'s pattern of attaching to an existing edge rather than
+  guessing an independent position. `nv` is computed identically to
+  `collar_stub()`'s so the shared edges are fixed-arity matches per
+  chapter 09's contract, no resampling. Honestly still a flat second
+  layer, not a simulated turn/roll (no bend-stiffness-along-a-curve --
+  that's the separate, harder Lapel + roll line item below). Verified via
+  the actual production render: 14 → 17 panels, 661 → 679 verts (+18, the
+  three new panels), 107 → 120 springs (+13, five new seams: two roll-
+  edge attachments sized to `collar_stub()`'s own `nv`, one to
+  `collar_back_stub()`'s `nv=2` outer edge, and two 2-point end seams),
+  `EXIT: 0`, no crash, no visible corruption -- a small, localized
+  thickening at the collar consistent with an actual second layer, not a
+  change to the rest of the garment's silhouette.
 - Lapel + roll line (highest value, highest complexity — the roll line is a
   crease, not a seam, needing bend-stiffness-along-a-curve, a technique
   nothing in this codebase has attempted)

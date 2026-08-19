@@ -440,12 +440,14 @@ def collar_stub(side: int):
     Chapter 14: "seam.neckline -- under-collar -> back neckline." A real
     collar wraps continuously from one front neck edge, around the back
     neckline, to the other. This is the front half -- a small flat strip
-    sewn to one forepart's `neckline` edge on its inner (`u0`) edge, free
-    (unsewn) on its outer (`u1`) edge, and sewn end-to-end at its shoulder
-    end (`v1`, the far end from centre front, both the inner and outer
-    corner) to `collar_back_stub()`'s matching end -- see that function's
-    docstring for the other two pieces and how the three now close into
-    one continuous wrap.
+    sewn to one forepart's `neckline` edge on its inner (`u0`) edge, sewn
+    to `collar_top_stub()`'s inner edge on its outer (`u1`) edge (a real
+    collar's top and under layers are stitched together along that outer/
+    roll edge and turned, not left loose -- see that function's docstring),
+    and sewn end-to-end at its shoulder end (`v1`, the far end from centre
+    front, both the inner and outer corner) to `collar_back_stub()`'s
+    matching end -- see that function's docstring for the other two pieces
+    and how the three now close into one continuous wrap.
     """
     width = 0.045  # collar stand width, ours, unsourced
     nv = ARITY_VERTICAL - 1 - NECK_INDEX  # matches forepart().neckline's arity
@@ -462,6 +464,7 @@ def collar_stub(side: int):
     obj, b = _grid(f"collar_{'L' if side > 0 else 'R'}", fn, nu=1, nv=nv)
     return obj, {
         "neck": b["u0"],   # matches forepart().neckline's point count and v-order
+        "outer": b["u1"],  # roll edge -> collar_top_stub()'s inner edge
         "end": b["v1"],    # shoulder end (2 pts: inner u=0, outer u=1) -> collar_back
     }
 
@@ -477,7 +480,9 @@ def collar_back_stub():
     right) and its `v1` end at `BACK_NECK_U1` (x-positive, wearer's left) --
     both, like `collar_stub().end`, are 2-point edges in the same
     [inner (u=0), outer (u=1)] order, so `v0`/`v1` pair directly against
-    `collar_R`/`collar_L`'s `end` with no resampling needed.
+    `collar_R`/`collar_L`'s `end` with no resampling needed. Its own outer
+    (`u1`) edge sews to `collar_top_back_stub()`'s inner edge, same as
+    `collar_stub()`'s `outer`.
     """
     width = 0.045
 
@@ -492,8 +497,69 @@ def collar_back_stub():
     obj, b = _grid("collar_back", fn, nu=1, nv=2)
     return obj, {
         "neck": b["u0"],   # matches back_panel().neckline's point count and u-order
+        "outer": b["u1"],  # roll edge -> collar_top_back_stub()'s inner edge
         "end_R": b["v0"],  # x-negative end (wearer's right) -> collar_R.end
         "end_L": b["v1"],  # x-positive end (wearer's left) -> collar_L.end
+    }
+
+
+def collar_top_stub(side: int):
+    """Top-collar layer, side=-1 wearer's right, +1 left -- see
+    `collar_stub()`'s docstring: a real collar is two layers (under-collar
+    against the neck, top-collar visible on top) stitched together along
+    their outer/roll edge and turned, not one piece. This is the top
+    layer's front half, sewn to `collar_stub()`'s `outer` edge on its own
+    inner (`u0`) edge -- built with the identical `nv` as `collar_stub()`
+    (both derive it from `ARITY_VERTICAL`/`NECK_INDEX`), so the two edges
+    are fixed-arity matches per chapter 09's contract, no resampling
+    needed, same pattern as `pocket_bag()` reusing `pocket_welt()`'s
+    anchor. Its own outer (`u1`) edge is free. Standing width and offset
+    are ours, unsourced, same class of gap as `collar_stub()`'s `width`;
+    closes end-to-end with `collar_top_back_stub()` the same way the
+    under-collar closes with `collar_back_stub()`.
+    """
+    width = 0.05  # slightly wider than the under-collar so it visibly caps over it, ours, unsourced
+    nv = ARITY_VERTICAL - 1 - NECK_INDEX  # matches collar_stub()'s own arity
+
+    def fn(u, v):
+        index = NECK_INDEX + v * nv
+        vv = index / (ARITY_VERTICAL - 1)
+        base_x = _front_neck_x(side, vv)
+        z = Z_HEM + (Z_SHOULDER - Z_HEM) * vv
+        inner_x = base_x + side * 0.045 * 1.0  # collar_stub()'s own outer edge (u=1, width=0.045)
+        x = inner_x + side * width * u
+        y = -START_GAP - 0.02 - 0.01  # a hair further off the body than the under-collar
+        return Vector((x, y, z))
+
+    obj, b = _grid(f"collar_top_{'L' if side > 0 else 'R'}", fn, nu=1, nv=nv)
+    return obj, {
+        "inner": b["u0"],  # matches collar_stub().outer's point count and v-order
+        "end": b["v1"],
+    }
+
+
+def collar_top_back_stub():
+    """Top-collar back-neck layer -- see `collar_top_stub()`'s and
+    `collar_stub()`'s docstrings. Sewn to `collar_back_stub()`'s `outer`
+    edge on its own inner (`u0`) edge; closes end-to-end with
+    `collar_top_stub()`'s `end`, same pattern as the under-collar trio.
+    """
+    width = 0.05
+
+    def fn(u, v):
+        u_back = BACK_NECK_U0 + v * (BACK_NECK_U1 - BACK_NECK_U0)
+        wf = _waist_factor(1.0)
+        x = (-HEM_HALF * wf * 0.96) + (2 * HEM_HALF * wf * 0.96) * u_back
+        z = Z_HEM + (Z_SHOULDER - Z_HEM) - _back_neck_dz(u_back, 1.0)
+        inner_y = START_GAP + 0.10 * math.sin(u_back * math.pi) + 0.045 * 1.0 + 0.02
+        y = inner_y + width * u + 0.01
+        return Vector((x, y, z))
+
+    obj, b = _grid("collar_top_back", fn, nu=1, nv=2)
+    return obj, {
+        "inner": b["u0"],
+        "end_R": b["v0"],
+        "end_L": b["v1"],
     }
 
 
@@ -679,6 +745,12 @@ COLLAR_SEAMS = [
     ("back", "neckline", "collar_back", "neck"),
     ("collar_R", "end", "collar_back", "end_R"),
     ("collar_L", "end", "collar_back", "end_L"),
+    # Top-collar layer, stitched to the under-collar's outer/roll edge.
+    ("collar_R", "outer", "collar_top_R", "inner"),
+    ("collar_L", "outer", "collar_top_L", "inner"),
+    ("collar_back", "outer", "collar_top_back", "inner"),
+    ("collar_top_R", "end", "collar_top_back", "end_R"),
+    ("collar_top_L", "end", "collar_top_back", "end_L"),
 ]
 
 # Pocket welts (chapter 14: "Applied to the forepart"). Each welt's anchor

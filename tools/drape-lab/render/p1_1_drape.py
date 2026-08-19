@@ -70,6 +70,9 @@ def main():
         panels.pocket_welt(1),
         panels.pocket_bag(-1),
         panels.pocket_bag(1),
+        panels.collar_top_stub(-1),
+        panels.collar_top_stub(1),
+        panels.collar_top_back_stub(),
     ]
     print(f"[p1.1] cut {len(cut)} panels, {sum(len(obj.data.vertices) for obj, _ in cut)} verts")
 
