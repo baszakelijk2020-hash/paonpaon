@@ -12,6 +12,7 @@ import {
   SERVICE_KINDS,
   SERVICE_MEMBERSHIP_STATUSES,
   SERVICE_PLAN_STATUSES,
+  SERVICE_WEEKLY_PLAN_OCCASION_TAGS,
 } from "./service-plan";
 
 const uuidSchema = z.string().uuid();
@@ -154,4 +155,39 @@ export const recordServiceCostInputSchema = z.object({
 
 export type RecordServiceCostInput = z.infer<
   typeof recordServiceCostInputSchema
+>;
+
+export const serviceWeeklyPlanOccasionTagSchema = z.enum(
+  SERVICE_WEEKLY_PLAN_OCCASION_TAGS,
+);
+
+export const serviceWeeklyPlanDayInputSchema = z.object({
+  dayOfWeek: z.coerce.number().int().min(0).max(6),
+  occasionTag: serviceWeeklyPlanOccasionTagSchema,
+  outfitNotes: z.string().trim().min(1).max(500),
+});
+
+export type ServiceWeeklyPlanDayInput = z.infer<
+  typeof serviceWeeklyPlanDayInputSchema
+>;
+
+export const proposeServiceWeeklyPlanInputSchema = z.object({
+  membershipId: uuidSchema,
+  weekStartDate: z.string().date(),
+  advisorNotes: z.string().trim().min(1).max(1000).optional(),
+  days: z.array(serviceWeeklyPlanDayInputSchema).min(1).max(7),
+});
+
+export type ProposeServiceWeeklyPlanInput = z.infer<
+  typeof proposeServiceWeeklyPlanInputSchema
+>;
+
+export const decideServiceWeeklyPlanInputSchema = z.object({
+  planId: uuidSchema,
+  decision: z.enum(["accepted", "declined"]),
+  declineReason: z.string().trim().min(1).max(1000).optional(),
+});
+
+export type DecideServiceWeeklyPlanInput = z.infer<
+  typeof decideServiceWeeklyPlanInputSchema
 >;

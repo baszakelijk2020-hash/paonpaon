@@ -370,6 +370,9 @@ export function WardrobeHousePanel({
   >;
 }) {
   const initialState: WardrobeActionState = { fieldErrors: {} };
+  const initialServiceRequestState: WardrobeServiceRequestState = {
+    fieldErrors: {},
+  };
   const [addState, addAction, addPending] = useActionState(
     addExternalWardrobeItem,
     initialState,
@@ -378,9 +381,6 @@ export function WardrobeHousePanel({
     retireWardrobeItem,
     initialState,
   );
-  const initialServiceRequestState: WardrobeServiceRequestState = {
-    fieldErrors: {},
-  };
   const [serviceRequestState, serviceRequestAction, serviceRequestPending] =
     useActionState(requestWardrobeItemService, initialServiceRequestState);
 

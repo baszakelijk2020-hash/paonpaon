@@ -7942,3 +7942,15 @@ item.
      Underlying FitProfileCandidateRepository.propose() already accepts a real
      observationIds array, so the batch UI's intent is a genuine unfinished feature, not
      just a typo — needs its own scoped fix, not a quick rename. -->
+
+<!-- 18.9 UPDATE (2026-08-19, during lane 2/7 consolidation — NOT a root-cause fix,
+     recording an honest observation only): apps/retailer/e2e/corporate-renewal-analytics.spec.ts
+     (the exact test from the 9e1bb60 handoff, including its "Contract value (minor units)"
+     assertion) now passes 3/3 consecutive runs on main at 589e938+. The hypothesized root
+     cause from that handoff — CorporateRepository.setContractValue's UPDATE
+     (.eq("id", programmeId).eq("retailer_id", retailerId), no affected-row-count check,
+     no .select()) — is UNCHANGED in current code, so this is not a confirmed fix of that
+     mechanism; the observable symptom simply does not reproduce right now under this
+     test's fixture path. Do not close 18.9 as resolved on this note alone — if it
+     regresses again, the original hypothesis (session/tenant retailerId mismatch causing
+     a silent 0-row update) is still the most likely cause and still unverified either way. -->

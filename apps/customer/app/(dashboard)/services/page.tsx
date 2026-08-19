@@ -11,6 +11,10 @@ import {
   SERVICE_CARE_KIND_LABELS,
   SERVICE_ENTITLEMENT_KIND_LABELS,
   SERVICE_KIND_LABELS,
+  SERVICE_WEEKLY_PLAN_DAY_LABELS,
+  SERVICE_WEEKLY_PLAN_OCCASION_TAG_LABELS,
+  SERVICE_WEEKLY_PLAN_STATUS_LABELS,
+  canDecideServiceWeeklyPlan,
   recommendedAppointmentType,
   type ServiceBooking,
   type ServiceBookingKind,
@@ -19,6 +23,8 @@ import {
   type ServiceKind,
   type ServiceMembership,
   type ServicePlan,
+  type ServiceWeeklyPlan,
+  type ServiceWeeklyPlanDay,
 } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
@@ -27,7 +33,7 @@ import { DateTimePicker } from "@paon/ui/components/DateTimePicker";
 import { FormField } from "@paon/ui/components/FormField";
 import Link from "next/link";
 
-import { requestConciergeBooking } from "./actions";
+import { decideWeeklyPlan, requestConciergeBooking } from "./actions";
 import { PreferredTailoringMonthGrid } from "./preferred-tailoring-month-grid";
 
 import { requireSession } from "@/lib/session";
@@ -67,7 +73,7 @@ export default async function CustomerServicesPage() {
           const plan = await services.findPlanById(membership.planId);
           if (plan) plansById.set(plan.id, plan);
         }
-        const [entitlements, care] = await Promise.all([
+        const [entitlements, care, weeklyPlans] = await Promise.all([
           Promise.all(
             memberships.map(async (membership) => ({
               membershipId: membership.id,
@@ -81,7 +87,21 @@ export default async function CustomerServicesPage() {
               services.listCareForMembership(membership.id),
             ),
           ),
+          Promise.all(
+            memberships.map(async (membership) => ({
+              membershipId: membership.id,
+              items: await services.listWeeklyPlansForMembership(membership.id),
+            })),
+          ),
         ]);
+        const weeklyPlanDays = await Promise.all(
+          weeklyPlans
+            .flatMap((entry) => entry.items)
+            .map(async (plan) => ({
+              planId: plan.id,
+              items: await services.listWeeklyPlanDays(plan.id),
+            })),
+        );
         return {
           customer,
           retailer,
@@ -92,6 +112,12 @@ export default async function CustomerServicesPage() {
           care: care.flat(),
           entitlementsByMembership: new Map(
             entitlements.map((entry) => [entry.membershipId, entry.items]),
+          ),
+          weeklyPlansByMembership: new Map(
+            weeklyPlans.map((entry) => [entry.membershipId, entry.items]),
+          ),
+          weeklyPlanDaysByPlan: new Map(
+            weeklyPlanDays.map((entry) => [entry.planId, entry.items]),
           ),
         };
       }),
@@ -147,6 +173,8 @@ export default async function CustomerServicesPage() {
             bookings,
             history,
             entitlementsByMembership,
+            weeklyPlansByMembership,
+            weeklyPlanDaysByPlan,
           },
           index,
         ) =>
@@ -176,6 +204,10 @@ export default async function CustomerServicesPage() {
                     bookings={bookings.filter(
                       (booking) => booking.membershipId === membership.id,
                     )}
+                    weeklyPlans={
+                      weeklyPlansByMembership.get(membership.id) ?? []
+                    }
+                    weeklyPlanDaysByPlan={weeklyPlanDaysByPlan}
                   />
                 );
               })}
@@ -473,11 +505,15 @@ function MembershipPanel({
   plan,
   entitlements,
   bookings,
+  weeklyPlans,
+  weeklyPlanDaysByPlan,
 }: {
   membership: ServiceMembership;
   plan: ServicePlan;
   entitlements: readonly ServiceEntitlement[];
   bookings: readonly ServiceBooking[];
+  weeklyPlans: readonly ServiceWeeklyPlan[];
+  weeklyPlanDaysByPlan: ReadonlyMap<string, readonly ServiceWeeklyPlanDay[]>;
 }) {
   const bookingKinds = BOOKING_KINDS_BY_SERVICE[plan.kind as ServiceKind];
   return (
@@ -526,6 +562,100 @@ function MembershipPanel({
           ) : null}
         </ul>
       </div>
+
+      {plan.kind === "preferred_tailoring" && weeklyPlans.length > 0 ? (
+        <div>
+          <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
+            Weekly wardrobe plan
+          </h3>
+          <ul className="mt-2 flex flex-col gap-3">
+            {weeklyPlans.map((weeklyPlan) => (
+              <li
+                key={weeklyPlan.id}
+                className="rounded border border-[var(--color-stone-100)] px-3 py-3 text-sm"
+                aria-label={`Weekly plan for ${weeklyPlan.weekStartDate}`}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-medium">
+                    Week of {weeklyPlan.weekStartDate}
+                  </span>
+                  <Badge
+                    tone={
+                      weeklyPlan.status === "customer_accepted"
+                        ? "success"
+                        : weeklyPlan.status === "customer_declined"
+                          ? "danger"
+                          : "warning"
+                    }
+                  >
+                    {SERVICE_WEEKLY_PLAN_STATUS_LABELS[weeklyPlan.status]}
+                  </Badge>
+                </div>
+                {weeklyPlan.advisorNotes ? (
+                  <p className="mt-1 text-[var(--color-stone-600)]">
+                    {weeklyPlan.advisorNotes}
+                  </p>
+                ) : null}
+                <ul className="mt-2 space-y-1 text-[var(--color-stone-700)]">
+                  {(weeklyPlanDaysByPlan.get(weeklyPlan.id) ?? []).map(
+                    (day) => (
+                      <li key={day.id}>
+                        <span className="font-medium">
+                          {SERVICE_WEEKLY_PLAN_DAY_LABELS[day.dayOfWeek]}
+                        </span>{" "}
+                        ·{" "}
+                        {
+                          SERVICE_WEEKLY_PLAN_OCCASION_TAG_LABELS[
+                            day.occasionTag
+                          ]
+                        }{" "}
+                        — {day.outfitNotes}
+                      </li>
+                    ),
+                  )}
+                </ul>
+                {canDecideServiceWeeklyPlan(weeklyPlan.status) ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <form action={decideWeeklyPlan}>
+                      <input
+                        type="hidden"
+                        name="planId"
+                        value={weeklyPlan.id}
+                      />
+                      <input type="hidden" name="decision" value="accepted" />
+                      <Button type="submit">Accept this week</Button>
+                    </form>
+                    <form
+                      action={decideWeeklyPlan}
+                      className="flex items-center gap-2"
+                    >
+                      <input
+                        type="hidden"
+                        name="planId"
+                        value={weeklyPlan.id}
+                      />
+                      <input type="hidden" name="decision" value="declined" />
+                      <input
+                        name="declineReason"
+                        placeholder="Optional reason"
+                        maxLength={1000}
+                        className="rounded border border-[var(--color-stone-200)] px-2 py-1 text-sm"
+                      />
+                      <Button type="submit" variant="secondary">
+                        Decline
+                      </Button>
+                    </form>
+                  </div>
+                ) : weeklyPlan.declineReason ? (
+                  <p className="mt-2 text-[var(--color-stone-600)]">
+                    You declined: {weeklyPlan.declineReason}
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {membership.status === "active" ? (
         <form
