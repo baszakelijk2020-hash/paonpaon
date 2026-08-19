@@ -1705,6 +1705,59 @@ orchestrator.ts` was the only other one still uncovered (the
     pilot proof only. It does not stop safe implementation of later modular
     chapters once their dependencies and local proof contracts are met.
 
+- [x] **R0.7 Customer relationship-intelligence access boundary (need-to-know security hardening)**
+  - **Dependencies:** none (independent hardening of already-landed
+    `customers`/`clienteling_notes`/audit tables; disjoint from R0.4–R0.6's
+    Golden Relationship module work and every other active lane).
+  - **Acceptance:** ADR-074. Retailer membership alone no longer implies
+    read access to another staff member's assigned customer's sensitive
+    relationship intelligence. `clienteling_notes` visibility is
+    DB-enforced (RLS) by author/assignment/management, defaulting narrow
+    for new notes. Customer contact detail (phone/email) is masked in the
+    staff-facing list/search surface for unassigned non-manager staff, with
+    an explicit, audited reveal path. A sensitive-access ledger
+    (`record_customer_access_event`, reusing `audit_log_entries`) records
+    protected-note reads and contact reveals with actor/reason/outcome
+    metadata only, never the sensitive payload. Six-slice program recorded
+    in ADR-074; this item covers **Slice 1 (customer access boundary)**
+    only. Slices 2–6 (request-access/temporary grants, ledger review
+    surface, export controls, anomaly detection, AI-boundary verification)
+    are named follow-on backlog, not silently dropped.
+  - **Tests:** pgTAP for notes visibility (author/assigned/management/
+    retailer-shared tiers, cross-tenant refusal), domain unit tests for
+    contact masking, and an adversarial Playwright/browser proof covering
+    assigned-advisor-reads-own-customer, unassigned-advisor-cannot-read-
+    protected-notes, unassigned-advisor-cannot-reveal-contact, and
+    cross-retailer denial.
+  - **Status (2026-08-09):** Slice 1 complete and locally verified. Real
+    schema: migration `20260807000000` adds `clienteling_notes.visibility`
+    (author_only/assigned_advisor/management/retailer_shared, defaulting
+    narrow), replaces the blanket-read policy with a tiered RLS policy, and
+    adds the `record_customer_access_event` SECURITY DEFINER ledger RPC
+    (metadata-only writes into the existing `audit_log_entries`). Real
+    domain: `packages/domain/src/customer/customer-access.ts`
+    (`canStaffAccessCustomerRelationshipData`, `maskPhone`/`maskEmail`,
+    unit-tested). Real repository/app wiring:
+    `CustomerRepository.findByRetailerForStaffView` masks contact detail on
+    the staff list/search surface; the customer detail page gates
+    relationship-intelligence sections, the header contact display and the
+    cart soft-close contact channel behind `hasRelationshipAccess`, records
+    a `customer_protected_open` ledger entry when a non-assigned staff
+    member opens a customer, and offers an explicit visibility selector on
+    note creation (defaulting to `assigned_advisor`). Proof: 12-assertion
+    pgTAP (`supabase/tests/customer_relationship_access_boundary_test.sql`)
+    covers all four visibility tiers, the management override, cross-tenant
+    refusal and the ledger RPC's auth/validation; a real adversarial
+    Playwright journey
+    (`apps/retailer/e2e/customer-access-boundary.spec.ts`) proves the
+    assigned advisor sees everything, an unassigned same-House associate
+    sees neither the protected note nor the raw contact value (masked form
+    only) on both the list and detail pages, and a different House cannot
+    reach the customer at all — see
+    `docs/evidence/runs/R0.7.json`. Lint/typecheck/build green across the
+    monorepo. Slices 2–6 remain named follow-on backlog per ADR-074, not
+    started.
+
 ### Risk and activation rules
 
 - **Module delivery:** an assigned chapter, declared dependencies, a named

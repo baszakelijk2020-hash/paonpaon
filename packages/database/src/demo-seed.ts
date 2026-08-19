@@ -1750,6 +1750,7 @@ async function seedRetailerSpecs(params: {
           retailerId,
           customerId,
           authorStaffId: salesStaffId,
+          visibility: "retailer_shared",
           ...note,
         });
       }

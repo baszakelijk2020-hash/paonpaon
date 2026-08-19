@@ -132,6 +132,10 @@ export async function requestReturn(
         authorStaffId: staff.id,
         body: `Return requested for order ${order.orderNumber}: ${reason}`,
         pinned: false,
+        // An operational order-status note, not personal relationship
+        // intelligence — retailer_shared matches the pre-existing
+        // behavior this system-authored category always had (ADR-075).
+        visibility: "retailer_shared",
       });
     }
   } catch (error) {

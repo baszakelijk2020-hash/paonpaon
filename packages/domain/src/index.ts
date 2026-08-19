@@ -24,6 +24,7 @@ export * from "./retailer/commercial-prospect.schema";
 
 export * from "./customer/customer";
 export * from "./customer/customer.schema";
+export * from "./customer/customer-access";
 export * from "./customer/wishlist";
 export * from "./customer/wishlist.schema";
 

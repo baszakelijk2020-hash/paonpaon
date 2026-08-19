@@ -5,6 +5,7 @@ import {
   AlterationRepository,
   AnalyticsRepository,
   AppointmentRepository,
+  AuditRepository,
   ClientelingOpportunityRepository,
   ClientelingRepository,
   CustomerFactRepository,
@@ -19,6 +20,7 @@ import {
   PhysicalGarmentRepository,
   ProductRepository,
   RetailerRepository,
+  RetailerStaffRepository,
   SilhouetteAnalysisRepository,
   StyleProfileRepository,
   SuitConfiguratorRepository,
@@ -30,8 +32,13 @@ import {
 } from "@paon/database";
 import {
   asId,
+  canStaffAccessCustomerRelationshipData,
+  maskEmail,
+  maskPhone,
   APPOINTMENT_STATUS_LABELS,
   APPOINTMENT_TYPE_LABELS,
+  NOTE_VISIBILITY_LABELS,
+  NOTE_VISIBILITY_OPTIONS,
   ORDER_STATUS_LABELS,
   retailerRoleAtLeast,
   type Outfit,
@@ -296,7 +303,57 @@ export default async function CustomerDetailPage({
       customerId: customer.id,
     });
   }
-  const opportunities = canManage
+
+  // ADR-075 Slice 1 — reuses `customer.assignedStaffId` as the access
+  // boundary. `canManage` alone (a role-capability check) already existed
+  // but never considered *whose* customer this is; an unassigned
+  // sales_associate/manager landed here with full relationship
+  // intelligence — notes, facts, AI insights, raw contact — for a
+  // customer they have no active relationship with. Minimal operational
+  // identity (name, lifecycle, orders, appointments, garments) stays
+  // visible; the relationship-intelligence sections below now also
+  // require `hasRelationshipAccess`.
+  const viewingStaff = await new RetailerStaffRepository(supabase).findByUserId(
+    session.userId,
+  );
+  const hasRelationshipAccess = canStaffAccessCustomerRelationshipData(
+    session.retailerRole,
+    customer,
+    viewingStaff?.id,
+  );
+  const canViewRelationshipIntelligence = canManage && hasRelationshipAccess;
+
+  // ADR-075: "the customer detail page gates full contact display on
+  // assignment/role server-side" — not just the list/search surface. Every
+  // contact display on this page reads from these, never `customer.email`/
+  // `customer.phone` directly, so an unassigned non-management viewer never
+  // receives the raw value in the rendered response.
+  const displayEmail = hasRelationshipAccess
+    ? customer.email
+    : (customer.email && maskEmail(customer.email)) || customer.email;
+  const displayPhone = hasRelationshipAccess
+    ? customer.phone
+    : (customer.phone && maskPhone(customer.phone)) || customer.phone;
+
+  // A real person other than the assigned advisor opened this customer's
+  // record — the "protected customer opened" ledger entry ADR-075 asks
+  // for. Deliberately not fired for the assigned advisor's own ordinary
+  // visits (the common case) or when no staff row resolves. Best-effort:
+  // a ledger write must never block an otherwise-authorized page load.
+  if (viewingStaff && customer.assignedStaffId !== viewingStaff.id) {
+    await new AuditRepository(supabase)
+      .recordCustomerAccessEvent({
+        action: "customer_protected_open",
+        entityType: "customer",
+        entityId: customer.id,
+        outcome: canViewRelationshipIntelligence
+          ? "management_override"
+          : "minimal_identity_only",
+      })
+      .catch(() => {});
+  }
+
+  const opportunities = canViewRelationshipIntelligence
     ? await opportunityRepo.syncInterestDraftsForCustomer({
         retailerId: session.retailerId,
         customerId: customer.id,
@@ -306,7 +363,7 @@ export default async function CustomerDetailPage({
     : [];
 
   const captureRepo = new AdvisorCaptureRepository(supabase);
-  const captureSessions = canManage
+  const captureSessions = canViewRelationshipIntelligence
     ? await captureRepo.listSessionsForCustomer({
         retailerId: session.retailerId,
         customerId: customer.id,
@@ -372,15 +429,17 @@ export default async function CustomerDetailPage({
                 {customer.fullName}
               </h1>
               <p className="mt-4 text-sm text-white/65">
-                {customer.email ?? "No email on file"}
-                {customer.phone ? ` · ${customer.phone}` : ""}
+                {displayEmail ?? "No email on file"}
+                {displayPhone ? ` · ${displayPhone}` : ""}
               </p>
-              <ChannelContactButtons
-                {...(customer.phone ? { phone: customer.phone } : {})}
-                {...(customer.email ? { email: customer.email } : {})}
-                tone="dark"
-                className="mt-3"
-              />
+              {hasRelationshipAccess ? (
+                <ChannelContactButtons
+                  {...(customer.phone ? { phone: customer.phone } : {})}
+                  {...(customer.email ? { email: customer.email } : {})}
+                  tone="dark"
+                  className="mt-3"
+                />
+              ) : null}
               {pinnedNote ? (
                 <p className="mt-4 max-w-2xl border-l border-white/40 pl-4 text-sm leading-6 text-white/80">
                   “{pinnedNote.body}”
@@ -726,6 +785,20 @@ export default async function CustomerDetailPage({
                 <input type="checkbox" name="pinned" />
                 Pin for the team
               </label>
+              <label className="flex flex-col gap-1 text-xs text-[var(--color-stone-500)]">
+                Who can read this note
+                <select
+                  name="visibility"
+                  defaultValue="assigned_advisor"
+                  className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-2 py-1 text-sm text-[var(--color-stone-900)]"
+                >
+                  {NOTE_VISIBILITY_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {NOTE_VISIBILITY_LABELS[option]}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <button type="submit" className={buttonVariants({ size: "sm" })}>
                 Add private note
               </button>
@@ -829,8 +902,12 @@ export default async function CustomerDetailPage({
           cart={draftCart}
           lineCount={draftCartLines.length}
           customerAppUrl={`${customerAppBase}/r/${retailer.slug}/cart`}
-          {...(customer.phone ? { phone: customer.phone } : {})}
-          {...(customer.email ? { email: customer.email } : {})}
+          {...(hasRelationshipAccess && customer.phone
+            ? { phone: customer.phone }
+            : {})}
+          {...(hasRelationshipAccess && customer.email
+            ? { email: customer.email }
+            : {})}
         />
       ) : null}
 

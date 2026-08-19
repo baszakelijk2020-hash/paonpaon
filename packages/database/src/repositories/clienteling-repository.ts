@@ -2,6 +2,7 @@ import {
   asId,
   type ClientelingNote,
   type CustomerId,
+  type NoteVisibility,
   type RetailerId,
   type StaffId,
 } from "@paon/domain";
@@ -16,12 +17,20 @@ const toDomain = (row: Row): ClientelingNote => ({
   authorStaffId: asId<"StaffId">(row.author_staff_id),
   body: row.body,
   pinned: row.pinned,
+  visibility: row.visibility,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
   deletedAt: row.deleted_at,
 });
 export class ClientelingRepository {
   constructor(private readonly client: PaonSupabaseClient) {}
+
+  /**
+   * RLS (ADR-074) returns only the rows this caller's visibility tier
+   * permits — an unassigned, non-management staff member simply gets a
+   * shorter list back, not an error. Callers must not assume this is a
+   * complete note history for the customer.
+   */
   async findByCustomer(customerId: CustomerId): Promise<ClientelingNote[]> {
     const { data, error } = await this.client
       .from("clienteling_notes")
@@ -39,6 +48,7 @@ export class ClientelingRepository {
     authorStaffId: StaffId;
     body: string;
     pinned: boolean;
+    visibility: NoteVisibility;
   }): Promise<ClientelingNote> {
     const { data, error } = await this.client
       .from("clienteling_notes")
@@ -48,6 +58,7 @@ export class ClientelingRepository {
         author_staff_id: values.authorStaffId,
         body: values.body,
         pinned: values.pinned,
+        visibility: values.visibility,
       })
       .select("*")
       .single();

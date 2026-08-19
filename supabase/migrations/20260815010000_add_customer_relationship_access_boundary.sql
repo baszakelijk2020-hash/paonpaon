@@ -1,4 +1,4 @@
--- ADR-074 Slice 1 — customer relationship-intelligence access boundary.
+-- ADR-075 Slice 1 — customer relationship-intelligence access boundary.
 -- Orchestration 2.0 tranche 6. Re-authored as a forward patch against current
 -- `main` from the unmerged `agent/lane-h-customer-security-boundary` design;
 -- the branch itself is not merged (GROUND_TRUTH 10g).
@@ -90,7 +90,7 @@ create policy "clienteling notes visibility tiers"
   );
 
 comment on column public.clienteling_notes.visibility is
-  'Need-to-know tier (ADR-074). author_only: author + management only. assigned_advisor (default for new notes): author + the customer''s assigned advisor + management. management: owner/admin/manager only. retailer_shared: pre-existing retailer-wide behaviour, an explicit author choice for non-sensitive notes.';
+  'Need-to-know tier (ADR-075). author_only: author + management only. assigned_advisor (default for new notes): author + the customer''s assigned advisor + management. management: owner/admin/manager only. retailer_shared: pre-existing retailer-wide behaviour, an explicit author choice for non-sensitive notes.';
 
 create or replace function public.record_customer_access_event(
   p_action text,
@@ -143,4 +143,4 @@ grant execute on function
   to authenticated;
 
 comment on function public.record_customer_access_event is
-  'Sensitive-access ledger write (ADR-074 Slice 1). Self-derives retailer and actor from the session, never from client input; records only action/reason/outcome metadata into audit_log_entries.after_state, never the sensitive payload.';
+  'Sensitive-access ledger write (ADR-075 Slice 1). Self-derives retailer and actor from the session, never from client input; records only action/reason/outcome metadata into audit_log_entries.after_state, never the sensitive payload.';
