@@ -563,6 +563,41 @@ def collar_top_back_stub():
     }
 
 
+def lining_back_stub():
+    """Minimal back-neck lining stand-in. Chapter 14's Stage 2 breadth list
+    names lining as its own item, lowest visual priority since it's a
+    hidden layer -- this is a small patch behind the back neckline, not a
+    full body lining (that would mean mirroring forepart/back/side_body's
+    entire shape as a second full-size layer, sewn at neckline+armscye+
+    hem, which meaningfully doubles the mesh's vertex count and risks
+    destabilizing the hard-won hem/side soft-pin baseline for a layer
+    nothing in the render can actually see -- not a good broad-first
+    trade). Sewn to `back_panel()`'s `neckline` boundary (the same 3
+    centre points `collar_back_stub()` anchors to) on its own top (`v0`)
+    edge, offset toward the body (a smaller y magnitude than back's own
+    surface at the same point -- a lining sits between the body and the
+    outer fabric, the same "inward" direction `pocket_bag()`'s `inset`
+    uses). Hangs free below -- a strip, not a full panel, matching
+    `collar_back_stub()`'s and `pocket_welt()`'s own minimal-stand-in
+    pattern.
+    """
+    depth = 0.15  # how far down from the neckline it extends, ours, unsourced
+    inset = 0.03  # how far toward the body (smaller y) from back's own surface, ours, unsourced
+
+    def fn(u, v):
+        u_back = BACK_NECK_U0 + u * (BACK_NECK_U1 - BACK_NECK_U0)
+        wf = _waist_factor(1.0)
+        x = (-HEM_HALF * wf * 0.96) + (2 * HEM_HALF * wf * 0.96) * u_back
+        z_top = Z_HEM + (Z_SHOULDER - Z_HEM) - _back_neck_dz(u_back, 1.0)
+        z = z_top - depth * v
+        y_back = START_GAP + 0.10 * math.sin(u_back * math.pi)
+        y = y_back - inset
+        return Vector((x, y, z))
+
+    obj, b = _grid("lining_back", fn, nu=2, nv=1)
+    return obj, {"neck": b["v0"]}  # matches back_panel().neckline's point count and u-order
+
+
 def sleeve_cap(side: int):
     """Sleeve cap panel. side=-1 wearer's right, +1 wearer's left.
 
@@ -760,4 +795,10 @@ POCKET_SEAMS = [
     ("forepart_L", "pocket", "pocket_L", "anchor"),
     ("forepart_R", "pocket", "pocket_bag_R", "anchor"),
     ("forepart_L", "pocket", "pocket_bag_L", "anchor"),
+]
+
+# Lining -- see lining_back_stub()'s docstring for why this is a partial
+# back-neck patch, not a full body lining.
+LINING_SEAMS = [
+    ("back", "neckline", "lining_back", "neck"),
 ]
