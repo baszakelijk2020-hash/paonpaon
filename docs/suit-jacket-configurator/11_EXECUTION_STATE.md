@@ -177,6 +177,38 @@ for the armscye/sleeve region specifically) is still open, and the
 shoulder/armscye/sleeve transition remains the single most visibly broken
 part of the garment.
 
+**Update, same session, immediately after**: tried candidate 2 (staged
+armscye/sleeve pin, released over time) as a diagnostic (never touched
+production) on top of the pre-curved sleeve. Confirmed first that per-
+vertex vertex-group weight writes inside the frame loop do NOT hit the
+ClothSettings per-frame cache-freeze bug documented above for
+`sewing_force_max` — the z-trace moved continuously through the release
+window, not frozen. That question is now closed either way; the technique
+itself is safe to use. But the actual results were a clear regression in
+both variants tried: pinning the armscye/sleeve boundary at weight 0.9 and
+releasing it linearly to 0 over frames 20-40 introduced new chaos into the
+previously-clean lower two-thirds (visible mid-torso crumple that wasn't
+there before), not just an unsolved top. Releasing much later instead
+(held at 0.9 through frame 70, released 70-90, leaving minimal settle time
+afterward) still regressed the same way — the release itself, whenever it
+happens, imparts a snap that propagates down through the sewing springs
+into the region the hem/side soft-pins had already stabilized. **Two
+variants tried, two regressions — closed per AGENTS.md's escalate-after-
+two-failed-cycles rule.** Root cause, consistent with the earlier soft-pin
+finding: any technique that first holds the armscye rigid and then lets go
+recreates a version of the single-anchor-swing problem, just delayed
+instead of avoided. Production is unaffected (this was diagnostic-only);
+stays on the pre-curved-sleeve state (`ab563fc`).
+
+**Stage 1 status**: both remaining candidates from this section are now
+resolved (pre-curve: applied, real but modest; staged release: closed as a
+regression). No further Stage 1 candidate is currently identified for the
+armscye/sleeve region specifically — it remains the least-finished part of
+the garment, but continuing to spend render budget on it without a new
+idea would violate the "build broad-first then deepen" standing order.
+Moving to Stage 2 breadth next; Stage 1 deepening can resume if a new
+candidate surfaces.
+
 Gate for this stage: not the full P1.0 panel judgment yet — a cheap proxy
 first, "does a human glance say this is unambiguously closer to a jacket
 than today's baseline," before spending more render time chasing precision.
