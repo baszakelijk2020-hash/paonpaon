@@ -64,6 +64,8 @@ export * from "./commerce/payment.schema";
 
 export * from "./production/production";
 export * from "./production/production.schema";
+export * from "./production/mtm-pricing";
+export * from "./production/mtm-pricing.schema";
 
 export * from "./appointments/appointment";
 export * from "./appointments/appointment-closeout";

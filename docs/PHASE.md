@@ -6381,6 +6381,13 @@ pnpm build && pnpm format:check` are clean and `pnpm turbo run test`
     hardware/SDK, a genuinely separate integration).
 
 - [ ] **17.13 QR wardrobe card**
+  - **Founder: PARKED AND HELD (2026-08-19).** Do not select for
+    implementation until the founder revisits. Prior blockers (the
+    "current customer measurements" concept migration `20260810120000`
+    was deliberately removed; unattached/logged-out wardrobe item
+    creation has no specified pre-customer provisioning moment) remain
+    the background reason this stalled, but the active instruction now is
+    simply: hold.
   - **Requirement IDs:** ADV-113.
   - **Dependencies:** digital wardrobe (existing).
   - **Owner boundary:** full specification in
