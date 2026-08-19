@@ -393,10 +393,13 @@ def collar_stub(side: int):
 
     Chapter 14: "seam.neckline -- under-collar -> back neckline." A real
     collar wraps continuously from one front neck edge, around the back
-    neckline, to the other; this is only the front half -- a small flat
-    strip sewn to one forepart's `neckline` edge, free (unsewn) on its
-    outer edge. See `collar_back_stub()` for the back half: a separate
-    piece, not yet joined into one continuous collar object.
+    neckline, to the other. This is the front half -- a small flat strip
+    sewn to one forepart's `neckline` edge on its inner (`u0`) edge, free
+    (unsewn) on its outer (`u1`) edge, and sewn end-to-end at its shoulder
+    end (`v1`, the far end from centre front, both the inner and outer
+    corner) to `collar_back_stub()`'s matching end -- see that function's
+    docstring for the other two pieces and how the three now close into
+    one continuous wrap.
     """
     width = 0.045  # collar stand width, ours, unsourced
     nv = ARITY_VERTICAL - 1 - NECK_INDEX  # matches forepart().neckline's arity
@@ -411,16 +414,24 @@ def collar_stub(side: int):
         return Vector((x, y, z))
 
     obj, b = _grid(f"collar_{'L' if side > 0 else 'R'}", fn, nu=1, nv=nv)
-    return obj, {"neck": b["u0"]}  # matches forepart().neckline's point count and v-order
+    return obj, {
+        "neck": b["u0"],   # matches forepart().neckline's point count and v-order
+        "end": b["v1"],    # shoulder end (2 pts: inner u=0, outer u=1) -> collar_back
+    }
 
 
 def collar_back_stub():
     """Minimal under-collar back-neck stand-in -- see `collar_stub()`'s
     docstring. Sewn to `back_panel()`'s `neckline` boundary (the 3 centre
-    points its own neck dip pulled down). A separate piece from
-    `collar_stub()`'s two front pieces, not merged into one continuous
-    collar object -- broad-first coverage of both attachment points, not
-    yet one real wrap-around collar.
+    points its own neck dip pulled down) on its inner (`u0`) edge.
+
+    Chapter 09's arc-length-parameterized, fixed-arity seam contract makes
+    the three collar pieces close into one continuous wrap cheaply: this
+    panel's `v0` end sits at `BACK_NECK_U0` (the x-negative side, wearer's
+    right) and its `v1` end at `BACK_NECK_U1` (x-positive, wearer's left) --
+    both, like `collar_stub().end`, are 2-point edges in the same
+    [inner (u=0), outer (u=1)] order, so `v0`/`v1` pair directly against
+    `collar_R`/`collar_L`'s `end` with no resampling needed.
     """
     width = 0.045
 
@@ -433,7 +444,11 @@ def collar_back_stub():
         return Vector((x, y, z))
 
     obj, b = _grid("collar_back", fn, nu=1, nv=2)
-    return obj, {"neck": b["u0"]}  # matches back_panel().neckline's point count and u-order
+    return obj, {
+        "neck": b["u0"],   # matches back_panel().neckline's point count and u-order
+        "end_R": b["v0"],  # x-negative end (wearer's right) -> collar_R.end
+        "end_L": b["v1"],  # x-positive end (wearer's left) -> collar_L.end
+    }
 
 
 def sleeve_cap(side: int):
@@ -608,12 +623,16 @@ SLEEVE_SEAMS = [
     ("back", "armscye_L", "sleeve_L", "back"),
 ]
 
-# seam.neckline (chapter 14): under-collar -> back neckline. Only the
-# front-neck half is modelled this session -- see collar_stub()'s docstring.
+# seam.neckline (chapter 14): under-collar -> back neckline, plus the two
+# shoulder-end seams that close collar_R/collar_L/collar_back into one
+# continuous wrap -- see collar_stub()'s and collar_back_stub()'s
+# docstrings.
 COLLAR_SEAMS = [
     ("forepart_R", "neckline", "collar_R", "neck"),
     ("forepart_L", "neckline", "collar_L", "neck"),
     ("back", "neckline", "collar_back", "neck"),
+    ("collar_R", "end", "collar_back", "end_R"),
+    ("collar_L", "end", "collar_back", "end_L"),
 ]
 
 # Pocket welts (chapter 14: "Applied to the forepart"). Each welt's anchor
