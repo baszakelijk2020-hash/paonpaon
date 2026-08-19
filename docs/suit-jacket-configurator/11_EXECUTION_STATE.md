@@ -224,14 +224,57 @@ recreates a version of the single-anchor-swing problem, just delayed
 instead of avoided. Production is unaffected (this was diagnostic-only);
 stays on the pre-curved-sleeve state (`ab563fc`).
 
-**Stage 1 status**: both remaining candidates from this section are now
-resolved (pre-curve: applied, real but modest; staged release: closed as a
-regression). No further Stage 1 candidate is currently identified for the
-armscye/sleeve region specifically — it remains the least-finished part of
-the garment, but continuing to spend render budget on it without a new
-idea would violate the "build broad-first then deepen" standing order.
-Moving to Stage 2 breadth next; Stage 1 deepening can resume if a new
-candidate surfaces.
+**Stage 1 status (superseded by the update below)**: both remaining
+candidates from this section are now resolved (pre-curve: applied, real
+but modest; staged release: closed as a regression). No further Stage 1
+candidate is currently identified for the armscye/sleeve region
+specifically — it remains the least-finished part of the garment, but
+continuing to spend render budget on it without a new idea would violate
+the "build broad-first then deepen" standing order. Moving to Stage 2
+breadth next; Stage 1 deepening can resume if a new candidate surfaces.
+
+**Update, 2026-08-19, later the same day: a new candidate surfaced and
+landed.** Sleeve-cap bending stiffness -- the same `vertex_group_bending`
+stiffness-field mechanism forepart's canvas already used (chapter 09
+models canvas as a field, not geometry), applied to `sleeve_cap()`'s
+whole panel via a new "cap" area key (its only `nv=1` row pair means
+there's no finer subdivision to target just the top near the armscye;
+"whole panel" and "top area" are the same set at this panel's current
+resolution). Complements, doesn't replace, the pre-curve fix: pre-curving
+gives the sleeve a starting shape closer to worn; stiffening resists it
+bending further away from that shape once the solver runs.
+
+Tested two weights, both verified against actual Blender renders, not
+just z-traces:
+
+- **Weight 1.0 (max resistance): a clear regression.** Visibly more
+  chaos throughout the lower torso in the render, not just at the cap
+  where it was meant to help, and `z_max` overshot to 1.316-1.329 across
+  frames 30-90 versus the stable 1.300 ceiling every other kept change
+  holds. Root cause: over-stiffening the cap makes it hold its own shape
+  better locally but transmits a sharper impulse into the already-
+  stabilized hem/side-soft-pinned region during settle -- the same
+  category of adjacent-region conflict the rigid armscye pin hit, just
+  via stiffness instead of position.
+- **Weight 0.4: a real, verified improvement.** `z_max` held exactly
+  1.300 through all 90 frames with zero overshoot, and the render is
+  visibly more coherent in the lower torso than even the pre-existing
+  baseline -- not just "less bad than weight 1.0," an actual improvement
+  over what was already kept. Verified twice: first via the controlled
+  diagnostic (isolated A/B against the no-sleeve-stiffening baseline),
+  then via the actual production `p1_1_drape.py` entry point (`EXIT: 0`,
+  18 panels, 685 verts, 123 springs, settled in 28.8s, clean render with
+  no crash artifacts or visible corruption).
+
+**Applied to production at weight 0.4.** This is a genuinely new Stage 1
+candidate landing, not a re-application of an existing one -- Stage 1 is
+not fully closed after all; a fresh idea can still surface and land, and
+did. The shoulder/armscye/sleeve region remains the least-finished part
+of the garment (this is one real improvement layered onto that region,
+not a full fix), but it is measurably better than before this candidate.
+No further Stage 1 candidate is currently identified beyond this;
+continuing to search for one without a specific new idea would still
+violate the broad-first standing order.
 
 Gate for this stage: not the full P1.0 panel judgment yet — a cheap proxy
 first, "does a human glance say this is unambiguously closer to a jacket
