@@ -18,11 +18,3 @@ Start here: **[project-health.md](./project-health.md)**
 | [project-health.md](./project-health.md)           | Executive scores + next actions               |
 
 Latest full audit: **2026-07-29** @ `e75de84`.
-
-A newer, broader audit exists at
-[`docs/documentation-audit/`](../documentation-audit/) (dated **2026-08-06**,
-migration executed the same day) — check there first for anything touching
-documentation architecture, ontology, cross-module system interaction, or
-this directory's own findings; several of them (e.g. `runtime-audit.md`'s
-"production HTTP 200" snapshot) are known superseded by later events. See
-`docs/documentation-audit/DOCUMENT_CONFLICTS.md` #4.

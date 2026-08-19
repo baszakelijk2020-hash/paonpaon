@@ -460,6 +460,34 @@ spec.ts` proved exactly one of five "Needs your attention" card types
 - **Branch caution:** preserve `wip/stage-10-2-honeymoon` @
   `ec58c8e00ec1d719c0cfbc2dbbc0d18730648cb5`; do not absorb unfinished 10.2
   into the active branch by default.
+- **2026-08-06 session paused mid-pick, next slice decided (not yet built):**
+  found stale uncommitted prettier-only reformatting on `apps/retailer/app/
+(dashboard)/staff/coverage/{actions.ts,coverage-forms.tsx,page.tsx}` and
+  `apps/retailer/components/fit-tools/vox-source.ts` (verified byte-identical
+  logic — `vox-source.ts`'s escaped string content decodes identical before/
+  after; the coverage files are JSX line-wrap only); committed and pushed as
+  `18d8c1a`. A parallel-worker `fit-tools.spec.ts` failure seen mid-check was
+  confirmed pre-existing seed-race flakiness (reproduces identically on
+  un-reformatted HEAD; clean 4/4 with `--workers=1`), not a regression.
+  Surveyed R0.1–R0.3 plus the next ~15 queue items for the next buildable,
+  non-founder-gated slice disjoint from the three active lane worktrees
+  (`agent/lane-a-ft01-fitprofile`, `agent/lane-b-ft09-consultation-outcome`,
+  `agent/lane-c-18-9-contract-value`). R0.1/R0.2's remaining gaps are
+  founder-only (deployment attestation, original-data restore approval, cash
+  policy). R0.3's open local piece is FT-14, whose blueprint gap is "faithful
+  customer, advisor and partner journey absent" over otherwise-proven
+  `/services` primitives (`services.spec.ts`). Checked `pag3.html` directly:
+  unlike FT-01/FT-02/FT-07's designated widgets, the Preferred Tailoring
+  section (~line 4250–5430) is Muse-exported narrative/marketing copy with no
+  discrete interactive fragment id — curate the job/interaction grammar per
+  AGENTS.md's non-designated-source rule rather than treat it as a pixel port.
+  Decided next slice, scoped small on purpose (the full remaining gap —
+  weekly plan versioning, custody handoffs, partner portal, cost
+  reconciliation, full proof ladder — is FT-01-sized, not one slice): a
+  customer-facing weekly wardrobe plan view, read-only authorize/accept over
+  real `service_plan`/`service_plan_memberships` data, no custody handoffs or
+  partner portal yet. Not started — no code written for this beyond the
+  investigation above.
 
 Everything below this paragraph is the historical implementation and
 traceability ledger. **Skip it during an ordinary implementation turn.** Use

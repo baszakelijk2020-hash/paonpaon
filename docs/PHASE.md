@@ -7930,3 +7930,15 @@ focused tests and the full repository checks pass, tenancy/accessibility/
 founder-surface verification is complete where relevant, authoritative state
 is updated, and the commit is pushed. Then immediately take the next buildable
 item.
+
+<!-- KNOWN BUG (found 2026-08-19 during agent/lane-d-virtual-wardrobe-studio consolidation,
+     out of scope for that merge, not fixed): apps/retailer/app/(dashboard)/alterations/[id]/page.tsx
+     line 808's batch-propose checkbox submits name="observationIds" (plural), but both
+     formData.get() calls in actions.ts (lines 424, 474) only ever read "fittingObservationId"
+     (singular) — the checked checkbox's value never reaches the server action, so the
+     "check one or more observations... then propose them" batch flow always fails with
+     "Observation is required." The per-row propose button (same file, ~line 864) uses the
+     correct field name and works — that's the only functioning propose path today.
+     Underlying FitProfileCandidateRepository.propose() already accepts a real
+     observationIds array, so the batch UI's intent is a genuine unfinished feature, not
+     just a typo — needs its own scoped fix, not a quick rename. -->

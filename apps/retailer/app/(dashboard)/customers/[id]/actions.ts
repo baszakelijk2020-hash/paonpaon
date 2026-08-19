@@ -418,27 +418,53 @@ export async function dismissCaptureBundle(
   return {};
 }
 
-/** FT-02's advisor review decision — the human step, never mutating any
+/**
+ * FT-02's advisor review decision — the human step, never mutating any
  * approved-fit/measurement record. `decide_silhouette_analysis_candidate`
  * itself enforces `is_alterations_advisor()` server-side; this action
- * doesn't duplicate that check, just surfaces its rejection honestly. */
+ * doesn't duplicate that check, just surfaces its rejection honestly.
+ *
+ * Returns a state object rather than the void-returning plain-form-action
+ * shape this used before, so the client component (silhouette-analysis-
+ * decision.tsx) has a real pending state and can surface a failure
+ * inline. Does not attempt to auto-refresh the page: `redirect()` back to
+ * this same path and an explicit client-side `router.refresh()` were
+ * both tried and confirmed unreliable against a real browser — the
+ * mutation always completed with no error, but the status text did not
+ * reliably update without a hard reload. `silhouette-analysis-
+ * review.spec.ts` and `advisor-capture.spec.ts` both still `page.reload()`
+ * after this decision for that reason.
+ */
 export async function decideSilhouetteAnalysisCandidate(
   customerId: string,
+  _state: DecisionActionState,
   formData: FormData,
-): Promise<void> {
+): Promise<DecisionActionState> {
   await requireModuleSession("wardrobe_styling");
   const sessionId = String(formData.get("sessionId") ?? "");
   const decision = String(formData.get("decision") ?? "");
   if (!sessionId || (decision !== "approved" && decision !== "rejected")) {
-    return;
+    return { formError: "Invalid decision." };
   }
 
   const client = await getSupabaseServerClient();
-  await new SilhouetteAnalysisRepository(client).decideCandidate(
-    asId<"SilhouetteAnalysisSessionId">(sessionId),
-    decision,
-  );
+  try {
+    await new SilhouetteAnalysisRepository(client).decideCandidate(
+      asId<"SilhouetteAnalysisSessionId">(sessionId),
+      decision,
+    );
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error ? error.message : "Unable to decide candidate.",
+    };
+  }
   revalidatePath(`/customers/${customerId}`);
+  return {};
+}
+
+export interface DecisionActionState {
+  formError?: string;
 }
 
 export interface DecideFitProfileCandidateState {
@@ -455,7 +481,18 @@ export interface DecideFitProfileCandidateState {
  * that check, just surfaces its rejection honestly. Returns which
  * candidate/decision settled so the client can update that one card's
  * status locally from the action's own return value, rather than
- * depending on a full page data refresh to reflect it. */
+ * depending on a full page data refresh to reflect it.
+ *
+ * Also does not attempt to auto-refresh the page after success itself: a
+ * bare `redirect()` back to this same `/customers/[id]` path, and
+ * separately an explicit client-side `router.refresh()`, were both tried
+ * and both confirmed unreliable against a real browser (network trace
+ * showed the mutating request complete with no error every time, but the
+ * status text not updating without a hard reload) — a genuine Next.js
+ * 15.1 quirk on this route. The `decided` field above is the actual fix:
+ * callers update that one card's status locally from it instead of
+ * relying on a page refresh. See `fit-tools.spec.ts`'s `page.reload()`
+ * for the one place a hard reload is still used instead. */
 export async function decideFitProfileCandidate(
   customerId: string,
   _prevState: DecideFitProfileCandidateState,

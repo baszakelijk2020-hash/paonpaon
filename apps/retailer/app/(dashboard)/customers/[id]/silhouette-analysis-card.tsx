@@ -1,10 +1,9 @@
 import type { SilhouetteAnalysisCaptureWithUrl } from "@paon/database";
 import type { SilhouetteAnalysisSession } from "@paon/domain";
-import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 
-import { decideSilhouetteAnalysisCandidate } from "./actions";
+import { SilhouetteAnalysisDecision } from "./silhouette-analysis-decision";
 
 const STATUS_LABELS: Record<SilhouetteAnalysisSession["status"], string> = {
   consented: "Awaiting photo",
@@ -33,7 +32,6 @@ export function SilhouetteAnalysisCard({
   >;
 }) {
   if (sessions.length === 0) return null;
-  const decideAction = decideSilhouetteAnalysisCandidate.bind(null, customerId);
 
   return (
     <Card className="flex flex-col gap-4">
@@ -75,31 +73,10 @@ export function SilhouetteAnalysisCard({
                 </div>
               ) : null}
               {session.status === "candidate" ? (
-                <div className="mt-3 flex gap-2">
-                  <form action={decideAction}>
-                    <input type="hidden" name="sessionId" value={session.id} />
-                    <input type="hidden" name="decision" value="approved" />
-                    <button
-                      type="submit"
-                      className={buttonVariants({ size: "sm" })}
-                    >
-                      Approve
-                    </button>
-                  </form>
-                  <form action={decideAction}>
-                    <input type="hidden" name="sessionId" value={session.id} />
-                    <input type="hidden" name="decision" value="rejected" />
-                    <button
-                      type="submit"
-                      className={buttonVariants({
-                        size: "sm",
-                        variant: "outline",
-                      })}
-                    >
-                      Not this one
-                    </button>
-                  </form>
-                </div>
+                <SilhouetteAnalysisDecision
+                  customerId={customerId}
+                  sessionId={session.id}
+                />
               ) : null}
             </li>
           );

@@ -6,6 +6,7 @@ import { useActionState, type ReactNode } from "react";
 import type { WorkflowActionState } from "./actions";
 
 export function WorkflowActionForm({
+  id,
   action,
   children,
   className,
@@ -13,6 +14,7 @@ export function WorkflowActionForm({
   pendingLabel,
   buttonClassName,
 }: {
+  id?: string;
   action: (
     state: WorkflowActionState,
     formData: FormData,
@@ -26,7 +28,7 @@ export function WorkflowActionForm({
   const [state, formAction, pending] = useActionState(action, {});
 
   return (
-    <form action={formAction} className={className}>
+    <form id={id} action={formAction} className={className}>
       {children}
       <Button type="submit" disabled={pending} className={buttonClassName}>
         {pending ? pendingLabel : submitLabel}
