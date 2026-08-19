@@ -997,11 +997,17 @@ blocked, rather than idling:
   limits: `06_VISUAL_QUALITY_AND_ACCEPTANCE.md`'s "Measured, 2026-08-19"
   section. Delivered resolution and Suitablee's specific WebGL engine
   are flagged there as cheap, non-blocking follow-ups if ever needed.
-- Chapter 05's budgets are still written as live-WebGL client budgets. Under
-  D-16 they should be image-delivery budgets. Small, self-contained.
+- ~~Chapter 05's budgets are still written as live-WebGL client budgets~~
+  **Done, already** (see "Recovered: hourly cloud routine's stranded
+  chapter 05 rewrite" above) — this bullet was stale, left over from
+  before that fix landed. Removed here rather than left duplicated.
 - The competitor interaction gap (R-09): no option-change interaction was ever
   driven in either configurator, so incompatibility enforcement, save/share and
-  gesture behaviour remain unobserved.
+  gesture behaviour remain unobserved. Larger scope than the Pass-B passive
+  measurement above (needs a real per-site interaction flow, not a generic
+  consent-dismiss click) -- a genuinely valuable next item, but not a quick
+  one; the next session should scope it explicitly before starting rather
+  than open-endedly poking at competitor sites.
 
 ## Hard constraints that must never be violated
 
