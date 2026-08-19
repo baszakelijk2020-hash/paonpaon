@@ -1079,6 +1079,24 @@ blocked, rather than idling:
   remain untested -- one fabric swap on one product doesn't exercise any
   of those, and Armani wasn't attempted this pass.
 
+  **Follow-up, same day: incompatibility-enforcement scan attempted,
+  inconclusive.** Tried to find a naturally-disabled/incompatible option
+  by scanning the Jacket/Trousers/Waistcoat tabs generically (no element
+  disabled) rather than guess a specific blocked combination. Took 3
+  attempts to even reliably reach the Jacket tab (two click-targeting
+  misses -- a wrong-overlay match, then a stale-tooltip coordinate hit --
+  both honestly kept in the script's own docstring, not silently
+  dropped). Once reached: the Jacket tab is a named-style picker (Havana/
+  Milano/Roma), not a fabric grid, and no disabled element was found
+  anywhere scanned. **Explicitly not treated as "no incompatibility
+  enforcement exists"** -- generic scanning without triggering a real
+  conflict is the wrong tool for that question; a future attempt needs
+  to pick one specific plausible-conflict pair and select it directly.
+  Closed after this pass per the two-failed-cycles rule (2 targeting
+  misses before success, 0 for 1 on the actual question asked). New
+  script: `tools/pass-b/suitsupply_incompatibility_scan.py`. Full
+  write-up: `08_DECISIONS_AND_OPEN_RISKS.md`'s new R-09b row.
+
 ## Hard constraints that must never be violated
 
 These have caused real errors already. Read them before writing anything.
