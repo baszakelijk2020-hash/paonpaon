@@ -2801,8 +2801,21 @@ invented founder-designed surface.
   - **Hard blockers:** missing founder business choice, legal/accounting
     approval, provider account/capability, or jurisdiction decision blocks only
     the affected money capability.
-  - **Status:** blocked — not independently buildable while those decisions are
-    missing; agents must not invent the decision matrix.
+  - **Status (2026-08-19): decisions recorded, ADR-076.** Approved: deposits,
+    one-click repeat payment, instalments, stored value/gift balance, plus
+    cash (in-person recording only). Merchant-of-record: retailer, for all of
+    the above, no exception. Refunds/disputes/SCA: Stripe Connect Express
+    defaults, no custom policy. Jurisdictions: existing Stripe Connect
+    Express coverage only, no expansion. Consent/retention: standard
+    accounting retention, not customer-deletable. Explicitly NOT approved by
+    this decision: customer-facing subscriptions/memberships (stays out of
+    scope), the retailer-owner marketplace (6.3, unchanged), eligibility, and
+    direct debit (no decision given — remain `blocked_external` until named).
+    6.2 may now proceed for the approved capabilities within these
+    boundaries; anything assuming PAON-level custody, a non-default refund/
+    SCA policy, a new jurisdiction, deletable payment records, or
+    eligibility/direct-debit capability is not authorized and is its own
+    hard blocker.
 
 - [ ] **6.2 Approved commerce primitives**
   - **Requirement IDs:** `PAY-001`, `PAY-002`, `SERV-002`.

@@ -3448,3 +3448,76 @@ behavior this ADR intends to change. `AdvisorBriefRepository`'s own
 assignment gate is deferred to Slice 6 (AI boundary) rather than folded into
 this slice, since it is a distinct call path (AI context composition, not
 direct CRUD) with its own adversarial test shape.
+
+## ADR-076: 6.1 payment/compliance design gate — founder authorization
+
+**Status: accepted (2026-08-19).**
+
+**Context.** ADR-062 requires PHASE 6.1 to record explicit approve/reject/
+defer decisions for merchant-of-record, custody, VAT/accounting, refunds/
+disputes, SCA, consent/retention, jurisdictions, eligibility, deposit/
+commitment semantics, subscriptions, instalments, direct debit, and stored
+value before any commerce code (6.2/6.3) may be built. This ADR records the
+founder's direct decisions closing that gate.
+
+**Decision.**
+
+1. **Approved capabilities (build these):** deposit/commitment payments,
+   one-click repeat payment (reuse of an already-authorized Stripe payment
+   method — never raw credential storage, per ADR-062 §3), instalments (via
+   an approved regulated provider, PAON never underwrites credit itself,
+   per ADR-062 §3), and stored value/gift balance (modeled as tender/
+   liability per ADR-050, not a discount).
+2. **Cash approved as a payment method**, in-person/in-store only: staff
+   record a cash payment against an order/deposit at time of sale. No
+   processor, no card data, no online cash flow, no till/drawer
+   reconciliation — recording only, same as any other payment method
+   appearing in order history.
+3. **Merchant of record: the retailer, for every capability above,
+   including cash** — no exception. This extends ADR-030's existing
+   retailer-merchant-of-record decision to deposits/instalments/stored
+   value/cash rather than carving out a PAON-custody exception for any of
+   them. PAON remains a technology provider only; it never holds funds or
+   tax liability for these capabilities.
+4. **Refunds/disputes/SCA: Stripe Connect Express defaults**, no custom
+   PAON-level policy. Refunds/disputes flow through the retailer's normal
+   Stripe-initiated process (ADR-030); SCA/3D Secure is handled by Stripe
+   automatically for the card-based capabilities (deposits, one-click,
+   instalments). Cash has no SCA/dispute surface by nature.
+5. **Jurisdictions/currencies: whatever Stripe Connect Express already
+   supports for onboarded retailers today** — no new jurisdiction
+   expansion authorized by this ADR. Cash is jurisdiction-agnostic by
+   construction.
+6. **Customer-facing subscriptions/memberships remain out of scope.**
+   Stripe Billing (ADR-031) stays retailer-software-billing only.
+   Preferred Tailoring/HighMaintenance remain non-payment service plans
+   per ADR-062 §4 — billing may fund them in a later, separately-approved
+   decision, but implementing that funding is not authorized by this ADR.
+7. **Consent/retention: standard accounting retention, not customer-
+   deletable.** Payment/order/deposit/instalment/stored-value records are
+   real financial records and follow standard business-record retention
+   (jurisdiction-dependent, commonly multi-year), exempt from customer
+   deletion requests — the same treatment this codebase's other
+   append-only ledger data (e.g. `stock_ledger_entries`,
+   `audit_log_entries`) already receives, not a new retention model.
+8. **6.3 (retailer-owner marketplace) remains explicitly out of scope.**
+   Nothing in this ADR authorizes marketplace work; ADR-064's own
+   "separate business-commerce context, cannot inherit customer-retail
+   assumptions by convenience" stands unchanged.
+9. **Eligibility and direct debit are NOT addressed by this ADR** — no
+   founder decision was given on these two checklist items. They remain
+   `blocked_external` under 6.1's own status until a future decision names
+   them explicitly; do not build eligibility-gated or direct-debit
+   capabilities under authority of this ADR.
+
+**Consequences.** PHASE 6.2 ("approved commerce primitives") may now
+proceed for the four named capabilities plus cash recording, strictly
+within the boundaries above — retailer merchant-of-record throughout,
+Stripe defaults for refunds/SCA, existing jurisdictions only, standard
+retention, no subscriptions, no marketplace, no eligibility/direct-debit.
+Any implementation that assumes PAON-level custody, a non-Stripe-default
+refund/dispute policy, a new jurisdiction, customer-deletable payment
+records, or eligibility/direct-debit capability is not authorized by this
+ADR and must be treated as a hard blocker requiring its own founder
+decision, per ADR-062's own rule that unresolved items block only the
+affected capability.
