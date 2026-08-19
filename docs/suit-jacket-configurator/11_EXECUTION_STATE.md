@@ -18,16 +18,40 @@ a restatement of hopes.
 
 ### Where this actually stands
 
-The structural pipeline is real and finished: chapter 09's named seam
-contract, real cloth physics, real materials (procedural wool with visible
-weave under raking light), a full-quality Cycles render harness. 9 of
-chapter 14's 12 panels exist (forepart, back, side body, sleeve
-[simplified], arm collider, front+back collar [3 unjoined pieces], pocket
-welt) and the pipeline runs end-to-end with zero crashes.
+**Update, 2026-08-19, after a second full session of Stage 2 breadth
+work:** the structural pipeline is real and finished: chapter 09's named
+seam contract, real cloth physics, real materials (procedural wool with
+visible weave under raking light), a full-quality Cycles render harness.
+Panel count has grown from the original 9 to 18 in production
+(forepart×2, back, side body×2, sleeve×2 [simplified, pre-curved],
+collar under-layer×3 [now joined into one continuous wrap, not 3
+unjoined pieces], collar top-layer×3 [new], pocket welt×2, pocket bag×2
+[new, partial], back-neck lining patch [new, partial]). Every one of
+these additions was verified against an actual controlled A/B render,
+not narration -- three were kept as genuine improvements or neutral
+changes (collar join, pocket bag, top-collar, lining all landed; one
+attempt, the lapel + roll line, was tried, found to be a real if modest
+regression in a matched A/B, and cleanly reverted). See the "Stage 2"
+section below for the full verification trail on each.
 
-**The render does not read as a jacket.** Every render this session shows
-the same signature: correct shoulder width at the top (because that's
-pinned), collapsing into a twisted, self-overlapping column below.
+**The render still does not read as a jacket.** Every render this session
+and last shows the same signature: correct shoulder width at the top
+(because that's pinned), collapsing into a twisted, self-overlapping
+column below, worst at the shoulder/armscye/sleeve transition. Stage 2's
+breadth additions changed panel count and small local detail but did not
+change this core finding -- they were never expected to (see the Standing
+order's item 6: breadth first, deepen later). Stage 1 (the drape itself)
+is the actual blocker for a real jacket read, and both of its identified
+remaining candidates (pre-curve sleeve: done, real but modest; staged
+armscye pin release: tried, reverted) are now closed for this session.
+No new Stage 1 idea is currently identified. Continuing to add Stage 2
+breadth without a Stage 1 breakthrough has diminishing returns -- the
+next session should either bring a genuinely new drape-quality idea for
+the shoulder/armscye/sleeve region, or accept the current state as
+"broad-first coverage achieved, deepening required" and route toward
+Stage 3 once the founder is available to judge it (Stage 3 explicitly
+cannot be self-certified by any session, regardless of how good a render
+looks).
 
 ### Three things tested and ruled out today, not guessed
 
@@ -947,16 +971,16 @@ through P1.7, each with one acceptance gate. That chapter supersedes chapter
 10's W0–W6 framing where the two differ: the live 3D tier is dropped from Phase
 1 entirely by founder direction, and Phase 1 is Suitsupply parity 1:1.
 
-| #   | Work                                                            | Blocked by | Notes                                                                                                                                                                                                                      |
-| --- | --------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | ~~P1.2~~ — hold the sewn body on the dress form                 | —          | **Done, this session.** No-sleeve body holds across 90 frames; shoulder pinned at its worn position, not its cut position. Small shoulder seam-closure gap left unresolved — pick up if it blocks P1.1's armscye join.     |
-| 2   | ~~P1.1~~ — panelled jacket geometry, deterministic from seed    | —          | **Built (broad-first), this session.** Armscye contract wired, sleeves + arm colliders in place, runs end-to-end with no crash. Sleeve drape _quality_ is real known debt, deliberately deferred — see P1.1 section above. |
-| 3   | **P1.0** — one Cycles render beside a reference shot            | 2          | Now unblocked. Gates the programme (R-17). Days, not weeks.                                                                                                                                                                |
-| 5   | P1.3 — per-assembly layers with shadow catchers                 | 4          | Shadow-swap test decides if the modular approach lives                                                                                                                                                                     |
-| 6   | P1.4 — full option set as graph assemblies + compatibility data | 5          |                                                                                                                                                                                                                            |
-| 7   | P1.5 — AVIF layered delivery, srcset, zoom, rotation frames     | 6          |                                                                                                                                                                                                                            |
-| 8   | P1.6 — the configurator surface                                 | 7          | Thumbnails are crops of real renders, not icons                                                                                                                                                                            |
-| 9   | P1.7 — parity panel, then shoulder legibility                   | 8          | Pre-register thresholds before collecting anything                                                                                                                                                                         |
+| #   | Work                                                            | Blocked by | Notes                                                                                                                                                                                                                                                                                                                                                                                     |
+| --- | --------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ~~P1.2~~ — hold the sewn body on the dress form                 | —          | **Done, this session.** No-sleeve body holds across 90 frames; shoulder pinned at its worn position, not its cut position. Small shoulder seam-closure gap left unresolved — pick up if it blocks P1.1's armscye join.                                                                                                                                                                    |
+| 2   | ~~P1.1~~ — panelled jacket geometry, deterministic from seed    | —          | **Built (broad-first), this session.** Armscye contract wired, sleeves + arm colliders in place, runs end-to-end with no crash. Sleeve drape _quality_ is real known debt, deliberately deferred — see P1.1 section above.                                                                                                                                                                |
+| 3   | **P1.0** — one Cycles render beside a reference shot            | 2          | Mechanically unblocked (harness works end to end), but not self-certifiable -- see "Plan to completion" Stage 3 above. 2026-08-19 honest assessment: the render still does not read as a jacket at the shoulder/armscye, so a founder judgment pass right now would fail; do not schedule this until a new Stage 1 drape idea lands or the founder wants to see current state regardless. |
+| 5   | P1.3 — per-assembly layers with shadow catchers                 | 4          | Shadow-swap test decides if the modular approach lives                                                                                                                                                                                                                                                                                                                                    |
+| 6   | P1.4 — full option set as graph assemblies + compatibility data | 5          |                                                                                                                                                                                                                                                                                                                                                                                           |
+| 7   | P1.5 — AVIF layered delivery, srcset, zoom, rotation frames     | 6          |                                                                                                                                                                                                                                                                                                                                                                                           |
+| 8   | P1.6 — the configurator surface                                 | 7          | Thumbnails are crops of real renders, not icons                                                                                                                                                                                                                                                                                                                                           |
+| 9   | P1.7 — parity panel, then shoulder legibility                   | 8          | Pre-register thresholds before collecting anything                                                                                                                                                                                                                                                                                                                                        |
 
 Parallel and unblocked at any time — take one of these when the queue head is
 blocked, rather than idling:
