@@ -8,6 +8,7 @@ import { RetailerTheme } from "@paon/ui/components/RetailerTheme";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { ProactiveNudgeWidget } from "./proactive-nudge-widget";
 import { TableServiceWidget } from "./table-service-widget";
 
 import { getSession } from "@/lib/session";
@@ -62,6 +63,7 @@ export default async function StorefrontLayout({
   return (
     <RetailerTheme theme={retailer.brandTheme}>
       {children}
+      <ProactiveNudgeWidget retailerId={retailer.id} />
       <TableServiceWidget
         retailerId={retailer.id}
         retailerName={retailer.displayName}

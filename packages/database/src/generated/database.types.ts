@@ -5871,6 +5871,61 @@ export type Database = {
           },
         ];
       };
+      customer_popup_impressions: {
+        Row: {
+          created_at: string;
+          customer_id: string;
+          dismissed_at: string | null;
+          id: string;
+          knowledge_object_id: string | null;
+          popup_kind: string;
+          retailer_id: string;
+          shown_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          customer_id: string;
+          dismissed_at?: string | null;
+          id?: string;
+          knowledge_object_id?: string | null;
+          popup_kind: string;
+          retailer_id: string;
+          shown_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          customer_id?: string;
+          dismissed_at?: string | null;
+          id?: string;
+          knowledge_object_id?: string | null;
+          popup_kind?: string;
+          retailer_id?: string;
+          shown_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "customer_popup_impressions_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_popup_impressions_knowledge_object_id_fkey";
+            columns: ["knowledge_object_id"];
+            isOneToOne: false;
+            referencedRelation: "knowledge_objects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "customer_popup_impressions_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       customer_preferences: {
         Row: {
           communication_channels: string[];
@@ -21362,6 +21417,15 @@ export type Database = {
       };
       record_payroll_export: {
         Args: { p_version_id: string };
+        Returns: string;
+      };
+      record_popup_impression: {
+        Args: {
+          p_customer_id: string;
+          p_knowledge_object_id?: string;
+          p_popup_kind: string;
+          p_retailer_id: string;
+        };
         Returns: string;
       };
       record_pos_payment_atomic: {
