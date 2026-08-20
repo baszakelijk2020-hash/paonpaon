@@ -270,12 +270,7 @@ ft04-alteration-grid.tsx`, `alteration-grid-snapshot-repository.ts`,
    (see `git log --oneline | grep -i "alteration.grid"` once landed, or the
    reverted worktree `worktree-agent-a440028916928a36e` for a first draft
    requiring correction, not a template to trust as-is).
-3. **MorningRoutine one-click-buy → real order creation** — PARTIAL. Buy
-   currently only links to the product page (`routine-panel.tsx`'s own
-   comment: "order creation remains the Commerce boundary"). Needs to call
-   the existing Commerce order-creation Server Action from this specific
-   entry point, gated the same way `one-tap-checkout` already is. Small,
-   concretely scoped — not a rebuild.
+3. **MorningRoutine one-click-buy → real order creation** — `implemented_unverified`. Buy now calls the existing Commerce order-creation Server Action (`OrderRepository.addToCart` + `.checkoutCart`) from this specific entry point, gated against the customer's saved default shipping address (same as `one-tap-checkout`), with no payment step. Falls back to product-page linking when no variant is resolvable for one-tap creation.
    **Scope check (2026-08-13), governance verified — no change to the item
    above, recorded to close a genuine question rather than leave it
    ambiguous for a future session:** Stage 4.4's own acceptance criteria
@@ -299,6 +294,8 @@ ft04-alteration-grid.tsx`, `alteration-grid-snapshot-repository.ts`,
    (FT-04/Docker, TableService quarantine/scanner choice, the local
    migration agent's founder sign-off requirement) were already correctly
    marked accordingly.
+   **Status (2026-08-14):** `implemented_unverified`. `runMorningRoutineAction`'s `"buy"` branch in `apps/customer/app/(dashboard)/morning-routine/actions.ts` calls `OrderRepository.addToCart` + `.checkoutCart` against the customer's saved default shipping address, redirects to `/orders/{id}` on success. `routine-panel.tsx` renders a form when `buy.productVariantId` is present, falling back to product-page link otherwise. New `apps/customer/e2e/morning-routine-buy.spec.ts` (patterned on `e2e/one-tap-checkout.spec.ts`) seeds a saved address, generates today's routine, clicks "Buy", asserts redirect to `/orders/{id}`, and verifies the order is `pending_payment`. `pnpm --filter customer typecheck`/`lint`/`build` clean. Not verified: e2e spec not yet run against a live database (no local Docker/Supabase available this session). A future Docker-available session should run `morning-routine-buy.spec.ts` plus `morning-routine.spec.ts` and `one-tap-checkout.spec.ts` for regression before marking `verified_local`.
+
 4. **TableService unified remote proposal** (FT-09, addition recorded
    2026-08-12) — SCHEMA/DOMAIN/UI DONE, E2E PROOF PENDING (needs clean-environment re-run). Field spec already locked
    in `FOUNDER_TOOL_BLUEPRINTS.md` FT-09. `conversation_proposals` table,
