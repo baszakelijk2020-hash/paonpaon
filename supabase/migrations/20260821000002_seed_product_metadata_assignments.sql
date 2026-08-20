@@ -19,7 +19,10 @@ SELECT
   'ai'::public.metadata_source,
   v.confidence::numeric,
   'pending'::public.metadata_review_status,
-  jsonb_build_object('method', 'deepseek_product_name_tagging', 'model', 'deepseek/deepseek-chat')
+  jsonb_build_object(
+    'summary', 'AI-tagged from product name via DeepSeek (deepseek/deepseek-chat)',
+    'sourceReference', 'deepseek_product_name_tagging'
+  )
 FROM (VALUES
   ('6295ba18-8042-4b9a-8d73-cf32963c60e0', 'fibre', 'wool', 0.9),
   ('6295ba18-8042-4b9a-8d73-cf32963c60e0', 'fibre', 'silk', 0.9),
