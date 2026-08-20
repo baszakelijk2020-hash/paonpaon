@@ -164,6 +164,7 @@ export default async function OrderDetailPage({
             payAtDelivery={honeymoonProgramme.payAtDelivery}
             canOfferPayAtDelivery={!honeymoonProgramme.payAtDelivery}
             demoPaymentsEnabled={env.demoPaymentsEnabled}
+            stripeConfigured={Boolean(env.stripeSecretKey)}
           />
         )
       ) : paymentRecord?.status === "captured" ? (

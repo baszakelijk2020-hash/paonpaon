@@ -21,6 +21,7 @@ export function PayPanel({
   payAtDelivery,
   canOfferPayAtDelivery,
   demoPaymentsEnabled,
+  stripeConfigured,
 }: {
   orderId: string;
   orderNumber: string;
@@ -28,6 +29,7 @@ export function PayPanel({
   payAtDelivery: boolean;
   canOfferPayAtDelivery: boolean;
   demoPaymentsEnabled: boolean;
+  stripeConfigured: boolean;
 }) {
   const [state, action, pending] = useActionState(
     createCheckoutSession,
@@ -45,9 +47,12 @@ export function PayPanel({
 
   const payInStorePrefill = `I'd like to arrange paying in store for order ${orderNumber}.`;
 
-  // Detect if the error is the "not configured" error
-  const isNotConfiguredError =
-    state.formError?.includes("Payments are not configured") ?? false;
+  // Known server-side up front (env.stripeSecretKey presence) rather than
+  // inferred from state.formError -- that only exists AFTER a real-Stripe
+  // submit attempt, so a first-time visitor would see "Retry payment" (an
+  // unconfigured Stripe path that silently fails) before ever seeing the
+  // demo option, defeating the point of a frictionless demo checkout.
+  const isNotConfiguredError = !stripeConfigured;
   const canOfferDemoPayment = isNotConfiguredError && demoPaymentsEnabled;
 
   if (payAtDelivery) {

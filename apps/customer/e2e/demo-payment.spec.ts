@@ -97,11 +97,11 @@ test("a customer can complete a demo payment when Stripe is not configured", asy
     await page.getByRole("button", { name: "Enter demo payment" }).click();
 
     // Verify demo mode warning appears
+    await expect(page.getByText("You are in a demo experience")).toBeVisible();
     await expect(
-      page.getByText("DEMO MODE — No real payment is processed"),
-    ).toBeVisible();
-    await expect(
-      page.getByText("This is a simulated payment for testing purposes only."),
+      page.getByText(
+        "This is purely for demo purposes — no real transactions are made",
+      ),
     ).toBeVisible();
 
     // Fill card form
@@ -114,9 +114,6 @@ test("a customer can complete a demo payment when Stripe is not configured", asy
 
     // Verify redirect to success state
     await expect(page).toHaveURL(/\/orders\/[0-9a-f-]+\?payment=success$/);
-    await expect(
-      page.getByText("Confirming your payment — this can take a few seconds."),
-    ).toBeVisible();
 
     // Verify payment record was created
     const { data: payment } = await admin
@@ -127,14 +124,20 @@ test("a customer can complete a demo payment when Stripe is not configured", asy
     expect(payment?.status).toBe("captured");
     expect(payment?.provider_payment_intent_id).toMatch(/^demo_\d+$/);
 
-    // Verify order status remains pending_payment (status doesn't change, just payment is recorded)
-    // This is consistent with how Stripe webhooks work - the payment status is separate
+    // A trigger on payments.status='captured' advances the order out of
+    // pending_payment (ORDER_STATUS_LABELS: pending_payment -> "Awaiting
+    // payment", placed -> "Confirmed") -- by the time this assertion runs
+    // the order has already transitioned, same as it would for a real
+    // Stripe webhook capture, so the "Confirming your payment" transient
+    // client-side copy is not reliably observable here.
     const orderAfter = await admin
       .from("orders")
       .select("status")
       .eq("id", orderId)
       .single();
-    expect(orderAfter.data?.status).toBe("pending_payment");
+    expect(orderAfter.data?.status).toBe("placed");
+    await expect(page.getByText("Confirmed")).toBeVisible();
+    await expect(page.getByText(/^Paid \$4,500\.00/)).toBeVisible();
   } finally {
     await admin.from("orders").delete().eq("id", orderId);
   }
