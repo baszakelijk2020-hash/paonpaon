@@ -38,15 +38,15 @@
 
 ## Tier 2 / logs (search, don’t bulk-read)
 
-| Doc                                               | Purpose                  | Caution                            |
-| ------------------------------------------------- | ------------------------ | ---------------------------------- |
-| [DECISIONS.md](../DECISIONS.md)                   | ADRs 001–056             | Append-only; check code reflection |
-| [PROJECT_STATE.md](../PROJECT_STATE.md)           | Feature status narrative | **Self-disclaimed**; verify        |
-| [ROADMAP.md](../ROADMAP.md)                       | Sequencing               | Subordinate to PHASE               |
-| [COMPETITIVE_GAPS.md](../COMPETITIVE_GAPS.md)     | Sales blockers           | Not a work queue                   |
-| [EXPERIENCE_REBUILD.md](../EXPERIENCE_REBUILD.md) | Experience acceptance    | Largely paused by freeze           |
-| [NON_GOALS.md](../NON_GOALS.md)                   | Explicit deferrals       | Active                             |
-| [NIGHT_LOG.md](../NIGHT_LOG.md)                   | Overnight run log        | Historical                         |
+| Doc                                                       | Purpose                  | Caution                            |
+| --------------------------------------------------------- | ------------------------ | ---------------------------------- |
+| [DECISIONS.md](../DECISIONS.md)                           | ADRs 001–056             | Append-only; check code reflection |
+| [PROJECT_STATE.md](../PROJECT_STATE.md)                   | Feature status narrative | **Self-disclaimed**; verify        |
+| [ROADMAP.md](../ROADMAP.md)                               | Sequencing               | Subordinate to PHASE               |
+| [COMPETITIVE_GAPS.md](../COMPETITIVE_GAPS.md)             | Sales blockers           | Not a work queue                   |
+| [EXPERIENCE_REBUILD.md](../archive/EXPERIENCE_REBUILD.md) | Experience acceptance    | Archived; superseded by PHASE.md   |
+| [NON_GOALS.md](../NON_GOALS.md)                           | Explicit deferrals       | Active                             |
+| [NIGHT_LOG.md](../NIGHT_LOG.md)                           | Overnight run log        | Historical                         |
 
 ## Archive (`docs/archive/`)
 
