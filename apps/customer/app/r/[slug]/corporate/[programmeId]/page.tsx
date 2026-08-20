@@ -3,7 +3,7 @@ import { asId } from "@paon/domain";
 import { Card } from "@paon/ui/components/Card";
 import { notFound } from "next/navigation";
 
-import { OfficeVisitRequestForm } from "./request-form";
+import { VisitFormWrapper } from "./visit-form-wrapper";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -11,9 +11,10 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
  * The corporate office-visit landing page (PHASE 18.4 / BD-104) —
  * company-branded, publicly reachable, and deliberately narrow: it
  * shows only the account/programme name (never other clients, never
- * margins, never a wearer's own data) and collects a visit request into
- * the staff-reviewed intake queue. Turning a request into a scheduled
- * fitting slot against real capacity is 18.6's own item.
+ * margins, never a wearer's own data). Live, availability-aware self-service
+ * booking is now available (closes the named gap); the original leave-a-request
+ * form remains accessible as a fallback if no availability is defined or the
+ * visitor prefers to request rather than book immediately.
  */
 export default async function CorporateOfficeVisitPage({
   params,
@@ -41,7 +42,7 @@ export default async function CorporateOfficeVisitPage({
       </p>
 
       <Card className="mt-6">
-        <OfficeVisitRequestForm programmeId={programmeId} />
+        <VisitFormWrapper programmeId={programmeId} />
       </Card>
     </main>
   );
