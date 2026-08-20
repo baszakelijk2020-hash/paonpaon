@@ -6,6 +6,12 @@ import {
   TEST_OWNER_PASSWORD,
   TEST_RETAILER_SLUG,
 } from "./fixtures";
+import { writeBrowserProofRun } from "./write-browser-proof-run";
+
+const PHASE_ITEM_ID = "11.1";
+const BROWSER_PROOF_SPEC = "apps/retailer/e2e/payroll.spec.ts";
+
+let payrollPassed = false;
 
 async function signInOwner(page: Page): Promise<void> {
   await page.goto("/login");
@@ -14,6 +20,14 @@ async function signInOwner(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Enter the atelier" }).click();
   await expect(page).not.toHaveURL(/\/login/);
 }
+
+test.afterAll(async () => {
+  await writeBrowserProofRun({
+    phaseItemId: PHASE_ITEM_ID,
+    spec: BROWSER_PROOF_SPEC,
+    status: payrollPassed ? "passed" : "failed",
+  });
+});
 
 /** PHASE 11.1: real manager UI opens a period, resolves the captured missing
  * punch, versions a correction, and receives an accessible self-approval
@@ -64,8 +78,11 @@ test("manager resolves payroll time exception and a correction creates a success
     if (closeStaleEntryError) throw closeStaleEntryError;
   }
   const marker = `PAON-PAYROLL-${Date.now()}`;
+  // Use a future date to avoid conflicts with historical test data from previous
+  // test runs. The exclusion constraint blocks overlapping ranges, and an open
+  // entry from any past date would overlap with future entries indefinitely.
   const periodDay = new Date(
-    Date.now() - (31 + Math.floor(Math.random() * 300)) * 86_400_000,
+    Date.now() + (365 + Math.floor(Math.random() * 300)) * 86_400_000,
   );
   periodDay.setUTCHours(9, 0, 0, 0);
   const clockInAt = periodDay.toISOString();
@@ -126,4 +143,5 @@ test("manager resolves payroll time exception and a correction creates a success
   }
 
   if (cleanupError) throw cleanupError;
+  payrollPassed = true;
 });

@@ -3518,6 +3518,10 @@ test`/`typecheck`/`lint` clean (1169 tests). Missing: the remaining
     piece is the external payroll-provider export adapter (accepted blocker
     per Hard blockers line).
 
+  - **Verified local (2026-08-20):** Evidence file `docs/evidence/runs/11.1.json`
+    documents real browser proof of the 11.1 acceptance criteria passing on
+    current HEAD.
+
 - [x] **11.2 Today, closeout, I AM and extra mile**
   - **Requirement IDs:** `WFM-103`, `WFM-104`.
   - **Dependencies:** `8.3`; Stage 7 opportunities/closeout.
@@ -3805,154 +3809,161 @@ plan_date)` with a **nullable** `branch_id`. Postgres treats NULLs as
     versions with contextual prompts, observations/rubrics/plans) has a
     browser-proven UI. Checkbox now checked.
 
+  - **Verified local (2026-08-20):** Evidence file `docs/evidence/runs/11.3.json`
+    regenerated from real browser proof of 11.3 acceptance criteria on current
+    HEAD. Replaces stale evidence from 6b74009 (not an ancestor of current
+    HEAD).
+
 - [x] **11.4 Internal community, contribution and support**
+
   - **Requirement IDs:** `WFM-107`.
   - **Dependencies:** `11.2`, `16.1`.
   - **Owner boundary:** branch/HQ announcements and discussions, onboarding,
     moderated employee training contributions, cross-location learning-session
     links, service-budget requests and confidential external support-resource
     handoff.
-  - **Acceptance:** an employee can find a relevant announcement/resource,
-    submit a reviewable learning contribution and request an approved service
-    recovery budget; managers moderate/acknowledge without exposing private
-    support use or creating activity leaderboards.
-  - **Tests:** audience/branch/RLS, moderation/versioning, budget approval and
-    confidential-resource visibility.
-  - **Non-goals:** no replacement social network, clinical service, keystroke
-    or screenshot monitoring.
-  - **Hard blockers:** external support contracts block only direct booking.
-  - **Status (2026-08-01, takeover branch):** `implemented_unverified`.
-    Schema, RLS and domain logic are real; no UI and no browser proof, so
-    not claimable at any `verified_*` status.
-    `20260801000006_add_internal_community.sql` adds announcements with
-    branch/role audiences, one-per-person read receipts, versioned and
-    moderated learning contributions, cross-location learning sessions,
-    service-recovery budget requests and a support-resource catalogue.
 
-    The most important property of this item is a table that does **not**
-    exist. There is no `support_resource_views`, no access event and no
-    counter on the catalogue row. The requirement is a _confidential_
-    handoff and the non-goal forbids exposing private support use; a log
-    readable by managers defeats that outright, and one readable by nobody
-    is still a re-identification risk in a five-person store and would
-    still have to be disclosed. So usage is simply not observable. A test
-    scans **every** migration in the repository — not just this one — and
-    fails if such a table is ever added, so a later "engagement analytics"
-    request has to argue with the note in
-    `SUPPORT_RESOURCE_PRIVACY_NOTE` first. `checkSupportResource` also
-    refuses a resource that claims direct booking, because the provider
-    contract is a real blocker and a bookable-looking dead end is worse
-    than an honest phone number.
+- **Acceptance:** an employee can find a relevant announcement/resource,
+  submit a reviewable learning contribution and request an approved service
+  recovery budget; managers moderate/acknowledge without exposing private
+  support use or creating activity leaderboards.
+- **Tests:** audience/branch/RLS, moderation/versioning, budget approval and
+  confidential-resource visibility.
+- **Non-goals:** no replacement social network, clinical service, keystroke
+  or screenshot monitoring.
+- **Hard blockers:** external support contracts block only direct booking.
+- **Status (2026-08-01, takeover branch):** `implemented_unverified`.
+  Schema, RLS and domain logic are real; no UI and no browser proof, so
+  not claimable at any `verified_*` status.
+  `20260801000006_add_internal_community.sql` adds announcements with
+  branch/role audiences, one-per-person read receipts, versioned and
+  moderated learning contributions, cross-location learning sessions,
+  service-recovery budget requests and a support-resource catalogue.
 
-    The "no activity leaderboard" non-goal is structural in the same way as
-    11.2's: `summarizeCommunityReach` is scoped to **one** announcement and
-    returns the list of people who have _not_ seen it — an operational gap
-    a manager closes — with no per-person rate across messages, and there
-    is no function that spans announcements. A read receipt is unique per
-    person per announcement, so a repeated page load cannot inflate a
-    number that is meant to be a fact about people rather than page views.
+  The most important property of this item is a table that does **not**
+  exist. There is no `support_resource_views`, no access event and no
+  counter on the catalogue row. The requirement is a _confidential_
+  handoff and the non-goal forbids exposing private support use; a log
+  readable by managers defeats that outright, and one readable by nobody
+  is still a re-identification risk in a five-person store and would
+  still have to be disclosed. So usage is simply not observable. A test
+  scans **every** migration in the repository — not just this one — and
+  fails if such a table is ever added, so a later "engagement analytics"
+  request has to argue with the note in
+  `SUPPORT_RESOURCE_PRIVACY_NOTE` first. `checkSupportResource` also
+  refuses a resource that claims direct booking, because the provider
+  contract is a real blocker and a bookable-looking dead end is worse
+  than an honest phone number.
 
-    A budget request moves no money and names no provider: ADR-062 has not
-    decided a payout design, so this records an internal authorisation to
-    spend up to an amount, which is a genuinely separate artefact from the
-    payment that may later settle it. A test asserts the table mentions no
-    provider, payout or payment reference. Requests must attach to a
-    customer or an order (unattached, it is petty cash, which has different
-    controls), are capped per request, and cannot be self-approved — in
-    both a CHECK constraint and the domain layer.
+  The "no activity leaderboard" non-goal is structural in the same way as
+  11.2's: `summarizeCommunityReach` is scoped to **one** announcement and
+  returns the list of people who have _not_ seen it — an operational gap
+  a manager closes — with no per-person rate across messages, and there
+  is no function that spans announcements. A read receipt is unique per
+  person per announcement, so a repeated page load cannot inflate a
+  number that is meant to be a fact about people rather than page views.
 
-    Two visibility decisions differ from the rest of the tranche on
-    purpose: budget requests are requester-and-manager only (they name a
-    customer and an amount), and unapproved contributions are hidden from
-    the floor while remaining visible to their author and to moderators — a
-    rejected draft is not published reading material. Rejection requires a
-    reason in the schema, because an anonymous veto teaches the contributor
-    nothing. Missing: all UI, browser proof, onboarding checklists, and
-    discussion threads on announcements.
+  A budget request moves no money and names no provider: ADR-062 has not
+  decided a payout design, so this records an internal authorisation to
+  spend up to an amount, which is a genuinely separate artefact from the
+  payment that may later settle it. A test asserts the table mentions no
+  provider, payout or payment reference. Requests must attach to a
+  customer or an order (unattached, it is petty cash, which has different
+  controls), are capped per request, and cannot be self-approved — in
+  both a CHECK constraint and the domain layer.
 
-  - **Status (2026-08-01, takeover branch, revised):** `verified_local`.
-    Browser proof `apps/retailer/e2e/staff-announcements.spec.ts`. What it
-    proves is that "I have read this" is a RECORD rather than a checkbox:
-    the acknowledgement is written once, a DELETE and an UPDATE against it
-    both change nothing (append-only enforced as a grant, not a
-    convention, including for `service_role`), and a second insert for the
-    same reader is refused outright so a reach figure cannot claim two
-    people read a safety notice when one did. The reach line then reads
-    "1 of N have read this" with the outstanding readers named.
+  Two visibility decisions differ from the rest of the tranche on
+  purpose: budget requests are requester-and-manager only (they name a
+  customer and an amount), and unapproved contributions are hidden from
+  the floor while remaining visible to their author and to moderators — a
+  rejected draft is not published reading material. Rejection requires a
+  reason in the schema, because an anonymous veto teaches the contributor
+  nothing. Missing: all UI, browser proof, onboarding checklists, and
+  discussion threads on announcements.
 
-    Operating it also fixed two defects of the same kind found in 12.1:
-    `#announcement-reach` was a literal id on a block that renders once per
-    announcement (duplicate ids down the page), and the feed's empty state
-    told a manager standing in front of the publish form to "check back
-    later" — they are the person who makes the first one exist.
+- **Status (2026-08-01, takeover branch, revised):** `verified_local`.
+  Browser proof `apps/retailer/e2e/staff-announcements.spec.ts`. What it
+  proves is that "I have read this" is a RECORD rather than a checkbox:
+  the acknowledgement is written once, a DELETE and an UPDATE against it
+  both change nothing (append-only enforced as a grant, not a
+  convention, including for `service_role`), and a second insert for the
+  same reader is refused outright so a reach figure cannot claim two
+  people read a safety notice when one did. The reach line then reads
+  "1 of N have read this" with the outstanding readers named.
 
-    One test-authoring lesson worth keeping: the first run appeared to show
-    the acknowledgement flag being dropped, because the spec never selected
-    an audience. The action correctly refused, `.single()` returned null,
-    and dereferencing it with `!` made a refused publish look exactly like
-    a silently dropped column. Both are now checked explicitly.
+  Operating it also fixed two defects of the same kind found in 12.1:
+  `#announcement-reach` was a literal id on a block that renders once per
+  announcement (duplicate ids down the page), and the feed's empty state
+  told a manager standing in front of the publish form to "check back
+  later" — they are the person who makes the first one exist.
 
-  - **Status (2026-08-03, takeover branch):** `verified_local`. The three
-    remaining capabilities now have UI, a repository surface and browser
-    proof: `apps/retailer/e2e/internal-community.spec.ts`. New pages —
-    `/staff/learning` (submit + moderate learning contributions),
-    `/staff/service-recovery` (request + approve a budget), `/staff/support`
-    (read-only resource catalogue) — plus repository additions
-    (`listSubmittedContributions`, `listContributionsByAuthor`,
-    `listBudgetRequests`) since none of the three had one beyond the
-    original create/decide methods.
+  One test-authoring lesson worth keeping: the first run appeared to show
+  the acknowledgement flag being dropped, because the spec never selected
+  an audience. The action correctly refused, `.single()` returned null,
+  and dereferencing it with `!` made a refused publish look exactly like
+  a silently dropped column. Both are now checked explicitly.
 
-    Before writing any of it, `/staff/announcements` — already
-    `verified_local` from the prior status above — turned out to be
-    reachable from nowhere in the app: no entry in the retailer layout's
-    static navigation array and no entry in `module-kernel.ts`'s
-    `retail_operations` navigation either, so `entitledNavigation`'s
-    href-intersection filter dropped it unconditionally regardless of role.
-    Its own browser proof had passed every run because it navigates there
-    directly with `page.goto`, which cannot see a missing link. Fixed by
-    adding it, `/staff/learning`, `/staff/service-recovery` and
-    `/staff/support` to both the layout's unconditional "Today" group and
-    `retail_operations`'s navigation array (open to `ALL_RETAILER_ROLES`,
-    matching Recognition and Coverage next to it) — the RLS policies below
-    already do the real scoping, so an open nav entry costs nothing.
-    `module-kernel.test.ts`'s hardcoded expected-navigation array is updated
-    for the same reason 14's addition was missed there before: it is a
-    literal list, not a rule, and has to be told about every new href by
-    hand.
+- **Status (2026-08-03, takeover branch):** `verified_local`. The three
+  remaining capabilities now have UI, a repository surface and browser
+  proof: `apps/retailer/e2e/internal-community.spec.ts`. New pages —
+  `/staff/learning` (submit + moderate learning contributions),
+  `/staff/service-recovery` (request + approve a budget), `/staff/support`
+  (read-only resource catalogue) — plus repository additions
+  (`listSubmittedContributions`, `listContributionsByAuthor`,
+  `listBudgetRequests`) since none of the three had one beyond the
+  original create/decide methods.
 
-    A budget request's per-request cap is not a stored, per-retailer
-    setting — no such configuration exists anywhere yet, and ADR-062 still
-    has not decided a payout design at all. The action layer hardcodes a
-    conservative €250 ceiling (`PER_REQUEST_CAP_MINOR_UNITS`) rather than
-    inventing configuration UI for a number nobody has actually decided;
-    a configurable per-retailer cap is left as explicit future scope.
+  Before writing any of it, `/staff/announcements` — already
+  `verified_local` from the prior status above — turned out to be
+  reachable from nowhere in the app: no entry in the retailer layout's
+  static navigation array and no entry in `module-kernel.ts`'s
+  `retail_operations` navigation either, so `entitledNavigation`'s
+  href-intersection filter dropped it unconditionally regardless of role.
+  Its own browser proof had passed every run because it navigates there
+  directly with `page.goto`, which cannot see a missing link. Fixed by
+  adding it, `/staff/learning`, `/staff/service-recovery` and
+  `/staff/support` to both the layout's unconditional "Today" group and
+  `retail_operations`'s navigation array (open to `ALL_RETAILER_ROLES`,
+  matching Recognition and Coverage next to it) — the RLS policies below
+  already do the real scoping, so an open nav entry costs nothing.
+  `module-kernel.test.ts`'s hardcoded expected-navigation array is updated
+  for the same reason 14's addition was missed there before: it is a
+  literal list, not a rule, and has to be told about every new href by
+  hand.
 
-    Operating the two moderated forms surfaced a real defect predating this
-    slice: `PublishAnnouncementForm`'s title field passed
-    `error={state.formError}` to `FormField` _and_ the form separately
-    rendered the same `state.formError` in its own bottom alert paragraph —
-    every server-rejected submission showed its error message twice. Caught
-    because the new forms copied the same pattern and the browser-proof
-    spec's `getByText(...)` hit a strict-mode violation on two identical
-    `role="alert"` paragraphs. Fixed in all three forms (learning, service
-    recovery, and the pre-existing announcements form) by dropping the
-    field-level `error` prop and keeping only the form's own alert paragraph.
+  A budget request's per-request cap is not a stored, per-retailer
+  setting — no such configuration exists anywhere yet, and ADR-062 still
+  has not decided a payout design at all. The action layer hardcodes a
+  conservative €250 ceiling (`PER_REQUEST_CAP_MINOR_UNITS`) rather than
+  inventing configuration UI for a number nobody has actually decided;
+  a configurable per-retailer cap is left as explicit future scope.
 
-    Support resources are seeded, not staff-authored: the schema grants
-    `insert, update` on `staff_support_resources` to `service_role` only
-    (asserted by `internal-community-security.test.ts`), so
-    `demo-seed.ts` now seeds two resources per retailer directly with the
-    admin client — the one legitimate place these rows can originate. There
-    is deliberately no create/edit UI on `/staff/support` for the same
-    reason `checkSupportResource` refuses `directBookingAvailable`: a
-    curated catalogue a staff member could edit is a different, lesser
-    guarantee than the one this item promises.
+  Operating the two moderated forms surfaced a real defect predating this
+  slice: `PublishAnnouncementForm`'s title field passed
+  `error={state.formError}` to `FormField` _and_ the form separately
+  rendered the same `state.formError` in its own bottom alert paragraph —
+  every server-rejected submission showed its error message twice. Caught
+  because the new forms copied the same pattern and the browser-proof
+  spec's `getByText(...)` hit a strict-mode violation on two identical
+  `role="alert"` paragraphs. Fixed in all three forms (learning, service
+  recovery, and the pre-existing announcements form) by dropping the
+  field-level `error` prop and keeping only the form's own alert paragraph.
 
-    Missing, and out of scope for this pass: onboarding checklists,
-    discussion threads on announcements, and cross-location learning
-    sessions (`staff_learning_sessions` has schema and RLS but no UI — it
-    was not part of this item's Acceptance line, which names contributions,
-    budget requests, and resource discovery, not sessions).
+  Support resources are seeded, not staff-authored: the schema grants
+  `insert, update` on `staff_support_resources` to `service_role` only
+  (asserted by `internal-community-security.test.ts`), so
+  `demo-seed.ts` now seeds two resources per retailer directly with the
+  admin client — the one legitimate place these rows can originate. There
+  is deliberately no create/edit UI on `/staff/support` for the same
+  reason `checkSupportResource` refuses `directBookingAvailable`: a
+  curated catalogue a staff member could edit is a different, lesser
+  guarantee than the one this item promises.
+
+  Missing, and out of scope for this pass: onboarding checklists,
+  discussion threads on announcements, and cross-location learning
+  sessions (`staff_learning_sessions` has schema and RLS but no UI — it
+  was not part of this item's Acceptance line, which names contributions,
+  budget requests, and resource discovery, not sessions).
 
 ### Stage 12 — Fit, alterations and service; production/supplier operations parked
 
