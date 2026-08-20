@@ -12,15 +12,21 @@
 --    expects. PII-free: no staff names, only the fields the algorithm needs.
 --
 -- 2. submit_corporate_office_visit_booking(p_programme_id, p_requester_name, ...)
---    The complete booking path: validates name/email format and length (same style
---    as submit_corporate_office_visit_request/submit_table_service_inquiry), enforces
---    rate limiting (5 submissions per 10 minutes per email), verifies programme/
---    retailer exist and retailer is active, RE-CHECKS at write time that no existing
---    non-canceled appointment overlaps the requested time window (prevents race-condition
---    double-booking), find-or-creates a customer row by email (mirrors request_appointment),
---    inserts a real appointments row (type 'styling_consultation', status 'requested'),
---    and also inserts a corporate_office_visit_requests row (status 'scheduled') with
---    the new appointment_id/customer_id FKs already added in migration 20260805180000.
+--    The complete booking path: validates name/email format/length and employee
+--    reference length (same style as submit_corporate_office_visit_request/
+--    submit_table_service_inquiry), verifies programme/retailer exist and retailer
+--    is active, checks the requested window actually falls inside a real
+--    availability_windows row (a public RPC must not trust client-computed slots
+--    alone), acquires a pg_advisory_xact_lock keyed on (retailer, email) to
+--    serialize concurrent submissions for the same visitor before rate-limiting
+--    (5 submissions per 10 minutes per email) and RE-CHECKING at write time that
+--    no existing non-canceled appointment overlaps the requested window (prevents
+--    race-condition double-booking and duplicate customer rows under concurrency —
+--    see security review findings CRITICAL-1/HIGH-3), find-or-creates a customer
+--    row by email (mirrors request_appointment), inserts a real appointments row
+--    (type 'styling_consultation', status 'requested'), and also inserts a
+--    corporate_office_visit_requests row (status 'scheduled') with the new
+--    appointment_id/customer_id FKs already added in migration 20260805180000.
 --    Returns the new appointment id. The result shape is identical to what the staff
 --    scheduling path (18.6) produces, just done immediately by the visitor.
 
@@ -133,6 +139,13 @@ begin
     raise exception 'Name must be 1 to 200 characters';
   end if;
 
+  -- Validate employee reference length up front (corporate_office_visit_requests
+  -- itself checks char_length(btrim(employee_reference)) <= 64) so a too-long
+  -- value fails with a clean message instead of a raw constraint-violation error.
+  if v_employee_reference is not null and char_length(v_employee_reference) > 64 then
+    raise exception 'Employee reference must be 64 characters or less';
+  end if;
+
   -- Validate email format.
   if v_contact_email is null then
     raise exception 'Contact email is required for booking';
@@ -144,6 +157,9 @@ begin
   -- Validate time window.
   if p_starts_at >= p_ends_at then
     raise exception 'Start time must be before end time';
+  end if;
+  if p_ends_at - p_starts_at > interval '4 hours' then
+    raise exception 'A single booking cannot exceed 4 hours';
   end if;
 
   -- Validate programme and retailer.
@@ -160,6 +176,32 @@ begin
   if not found or v_retailer.status <> 'active' then
     raise exception 'This programme page is not available';
   end if;
+
+  -- Requested window must actually fall inside a real availability window —
+  -- the client only ever offers slots computed from these, but the RPC is a
+  -- public, directly-callable entry point and must not trust client-side
+  -- slot selection alone (a caller could otherwise book any hour of any day,
+  -- e.g. 3am, regardless of what's actually staffed).
+  if not exists (
+    select 1
+    from public.availability_windows w
+    where w.retailer_id = v_programme.retailer_id
+      and w.day_of_week = extract(dow from p_starts_at at time zone 'utc')::smallint
+      and w.start_time <= to_char(p_starts_at at time zone 'utc', 'HH24:MI')
+      and w.end_time >= to_char(p_ends_at at time zone 'utc', 'HH24:MI')
+  ) then
+    raise exception 'Requested time is outside this location''s available hours';
+  end if;
+
+  -- Serialize concurrent submissions for the same (retailer, email): without
+  -- this, two requests racing under READ COMMITTED can both read the same
+  -- "no existing customer" / "count < 5" snapshot and both proceed, producing
+  -- duplicate customer rows and defeating the 5-per-10-minute rate limit.
+  -- hashtextextended keeps this to a single bigint key, scoped tightly enough
+  -- that unrelated bookings (different retailer or email) never contend.
+  perform pg_advisory_xact_lock(
+    hashtextextended(v_programme.retailer_id::text || ':' || v_contact_email, 0)
+  );
 
   -- Rate limiting: 5 submissions per 10 minutes per email (same as submit_table_service_inquiry).
   select count(*) into v_recent_count
@@ -186,6 +228,8 @@ begin
   end if;
 
   -- Find or create customer by email (mirrors request_appointment pattern).
+  -- Safe from the earlier race now that concurrent callers for this exact
+  -- (retailer, email) pair are serialized by the advisory lock above.
   select id into v_customer_id
     from public.customers
     where retailer_id = v_programme.retailer_id

@@ -13,12 +13,31 @@ test.describe("Corporate office visit self-service booking", () => {
   let retailerId: ReturnType<typeof asId<"RetailerId">>;
   let accountId: string;
   let programmeId: string;
-  // Each test books slots at a fixed hour offset from "now" (24h, 48h, ...).
+  let availabilityWindowId: string | undefined;
+  // Every booking in this file lands on WINDOW_DOW at an hour inside
+  // [WINDOW_START_HOUR, WINDOW_END_HOUR) so it falls inside the single
+  // availability window created in beforeAll below (the RPC now validates
+  // requested times against real availability windows, not just against
+  // other appointments — see submit_corporate_office_visit_booking).
+  const WINDOW_DOW = 2; // Tuesday
+  const WINDOW_START_HOUR = 9;
+  const WINDOW_END_HOUR = 20;
   // Re-running this spec against a persistent (non-reset) local DB would
   // otherwise collide with a previous run's still-present appointment rows
   // for the same retailer — spread runs across a wide, run-specific day
   // bucket so repeated runs never contend for the same time window.
   let runOffsetMs: number;
+
+  /** The next WINDOW_DOW at hourUtc:00 UTC, at or after "now" + runOffsetMs. */
+  function bookingSlot(hourUtc: number): Date {
+    let d = new Date(Date.now() + runOffsetMs);
+    d.setUTCHours(hourUtc, 0, 0, 0);
+    while (d.getUTCDay() !== WINDOW_DOW || d.getTime() < Date.now()) {
+      d = new Date(d.getTime() + 24 * 60 * 60 * 1000);
+      d.setUTCHours(hourUtc, 0, 0, 0);
+    }
+    return d;
+  }
 
   test.beforeAll(async () => {
     const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
@@ -54,11 +73,39 @@ test.describe("Corporate office visit self-service booking", () => {
     });
     accountId = account.id;
     programmeId = programme.id;
+
+    // The availability RPC now enforces real business hours — give the
+    // fixture retailer one real window to book into.
+    const { data: staff } = await supabase
+      .from("retailer_staff_members")
+      .select("id")
+      .eq("retailer_id", retailerId)
+      .limit(1)
+      .single();
+    if (!staff) throw new Error("fixture retailer has no staff member");
+    const { data: window } = await supabase
+      .from("availability_windows")
+      .insert({
+        retailer_id: retailerId,
+        staff_id: staff.id,
+        day_of_week: WINDOW_DOW,
+        start_time: `${String(WINDOW_START_HOUR).padStart(2, "0")}:00`,
+        end_time: `${String(WINDOW_END_HOUR).padStart(2, "0")}:00`,
+      })
+      .select("id")
+      .single();
+    availabilityWindowId = window?.id;
   });
 
   test.afterAll(async () => {
     if (accountId) {
       await supabase.from("corporate_accounts").delete().eq("id", accountId);
+    }
+    if (availabilityWindowId) {
+      await supabase
+        .from("availability_windows")
+        .delete()
+        .eq("id", availabilityWindowId);
     }
   });
 
@@ -82,12 +129,9 @@ test.describe("Corporate office visit self-service booking", () => {
   test("anonymous visitor can book an appointment via self-service", async () => {
     const testEmail = `visitor-${Date.now()}@paon.test`;
     const testName = "Test Visitor";
-    const startsAt = new Date(
-      Date.now() + runOffsetMs + 24 * 60 * 60 * 1000,
-    ).toISOString();
-    const endsAt = new Date(
-      Date.now() + runOffsetMs + 24 * 60 * 60 * 1000 + 60 * 60 * 1000,
-    ).toISOString();
+    const slot = bookingSlot(10);
+    const startsAt = slot.toISOString();
+    const endsAt = new Date(slot.getTime() + 60 * 60 * 1000).toISOString();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: appointmentId, error } = await (supabase.rpc as any)(
@@ -149,12 +193,9 @@ test.describe("Corporate office visit self-service booking", () => {
   });
 
   test("double-booking the same slot is rejected", async () => {
-    const startsAt = new Date(
-      Date.now() + runOffsetMs + 48 * 60 * 60 * 1000,
-    ).toISOString();
-    const endsAt = new Date(
-      Date.now() + runOffsetMs + 48 * 60 * 60 * 1000 + 60 * 60 * 1000,
-    ).toISOString();
+    const slot = bookingSlot(11);
+    const startsAt = slot.toISOString();
+    const endsAt = new Date(slot.getTime() + 60 * 60 * 1000).toISOString();
 
     // First booking succeeds.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -196,12 +237,9 @@ test.describe("Corporate office visit self-service booking", () => {
     // Get or create a second retailer/programme for testing (simplified for now —
     // just reuse the same programme but verify scoping works).
     const testEmail = `scope-test-${Date.now()}@paon.test`;
-    const startsAt = new Date(
-      Date.now() + runOffsetMs + 72 * 60 * 60 * 1000,
-    ).toISOString();
-    const endsAt = new Date(
-      Date.now() + runOffsetMs + 72 * 60 * 60 * 1000 + 60 * 60 * 1000,
-    ).toISOString();
+    const slot = bookingSlot(12);
+    const startsAt = slot.toISOString();
+    const endsAt = new Date(slot.getTime() + 60 * 60 * 1000).toISOString();
 
     // Book on the test programme.
     const { data: appointmentId, error: bookError } =
@@ -243,15 +281,15 @@ test.describe("Corporate office visit self-service booking", () => {
 
   test("rate limiting prevents more than 5 bookings in 10 minutes per email", async () => {
     const testEmail = `ratelimit-${Date.now()}@paon.test`;
-    const baseTime = Date.now() + runOffsetMs + 96 * 60 * 60 * 1000;
+    // 6 back-to-back 1-hour slots starting at 13:00 UTC end at 19:00 UTC,
+    // still inside the 09:00-20:00 window.
+    const baseTime = bookingSlot(13).getTime();
 
     // Attempt 6 bookings in quick succession (same email).
     for (let i = 0; i < 6; i++) {
-      const startsAt = new Date(
-        baseTime + i * 2 * 60 * 60 * 1000,
-      ).toISOString();
+      const startsAt = new Date(baseTime + i * 60 * 60 * 1000).toISOString();
       const endsAt = new Date(
-        baseTime + i * 2 * 60 * 60 * 1000 + 60 * 60 * 1000,
+        baseTime + i * 60 * 60 * 1000 + 60 * 60 * 1000,
       ).toISOString();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -277,5 +315,31 @@ test.describe("Corporate office visit self-service booking", () => {
         expect(error?.message).toContain("wait a moment");
       }
     }
+  });
+
+  test("booking outside the retailer's availability window is rejected", async () => {
+    // 03:00 UTC on the same WINDOW_DOW the fixture window covers, but well
+    // outside its 09:00-20:00 span — the RPC must reject this even though
+    // it doesn't overlap any existing appointment.
+    const slot = bookingSlot(3);
+    const startsAt = slot.toISOString();
+    const endsAt = new Date(slot.getTime() + 60 * 60 * 1000).toISOString();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)(
+      "submit_corporate_office_visit_booking",
+      {
+        p_programme_id: programmeId,
+        p_requester_name: "Out Of Hours Visitor",
+        p_employee_reference: "",
+        p_contact_email: `out-of-hours-${Date.now()}@paon.test`,
+        p_starts_at: startsAt,
+        p_ends_at: endsAt,
+      },
+    );
+
+    expect(error).toBeDefined();
+    expect(error?.message).toContain("available hours");
+    expect(data).toBeNull();
   });
 });
