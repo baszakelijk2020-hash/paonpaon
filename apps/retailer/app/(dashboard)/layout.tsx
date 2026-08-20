@@ -112,6 +112,11 @@ export default async function DashboardLayout({
           description: "Share what you know; moderated before it's shared",
         },
         {
+          href: "/staff/knowledge",
+          label: "Knowledge library",
+          description: "Sartorial trivia, mills, fabrics — read and learn",
+        },
+        {
           href: "/staff/service-recovery",
           label: "Service recovery",
           description: "Request and approve an authorised spend",
