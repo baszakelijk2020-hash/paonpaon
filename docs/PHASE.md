@@ -6758,7 +6758,7 @@ nowhere honest to store it.
     is now revocable by a human decision, not yet auto-expiring on a
     clock.
 
-- [ ] **18.4 Corporate campaign and office-visit landing pages**
+- [x] **18.4 Corporate campaign and office-visit landing pages**
   - **Requirement IDs:** BD-104.
   - **Dependencies:** `18.1`/`14.1` (account/programme), existing
     `campaign` domain (`packages/domain/src/campaign/`) — extend its
@@ -6859,6 +6859,34 @@ nowhere honest to store it.
     unproven. Still missing: live self-service booking directly from the
     page (deliberately `18.6`'s own item) and starting measurement
     capture from this page.
+  - **Update (2026-08-20):** the previously-named missing half is now
+    COMPLETE — live, availability-aware, anonymous self-service booking is
+    implemented. Migration
+    `20260820000000_add_corporate_office_visit_self_service_booking.sql` adds
+    two new `security definer` RPCs (no anonymous RLS policy added directly,
+    following ADR-034): `get_corporate_office_visit_availability_context`
+    returns windows + existing appointments for a retailer, scoped and PII-free
+    (only fields the domain slot-calculation function needs); and
+    `submit_corporate_office_visit_booking` validates name/email (5/10min
+    rate limit), prevents double-booking at write time, find-or-creates
+    customer by email, inserts real `appointments` row (`styling_consultation`,
+    status `requested`), and returns the appointment id. Server action
+    (`booking-actions.ts`) calls the context RPC and computes available slots
+    using the existing pure `computeAvailableSlots` function (60min default
+    duration). Client form (`booking-form.tsx`) is multi-step: details →
+    date → time (with real availability feedback) → confirm. Wrapper
+    component keeps the original lead-only request form as a fallback (no
+    removing existing paths — both now coexist). Test
+    (`corporate-office-visit-self-service-booking.spec.ts`) proves: (a)
+    anonymous fetch of real slots succeeds, (b) anonymous booking creates
+    customer + appointment rows (DB-asserted), (c) double-booking same slot
+    is rejected with "no longer available" message (write-time overlap check
+    working), (d) appointment is retailer-scoped (no cross-retailer leakage),
+    (e) rate limiting enforces 5/10min. Both `pnpm lint` and `pnpm typecheck`
+    clean. Acceptance criterion now satisfied: the public page books an
+    appointment directly (visitor-initiated, live slot availability, real
+    appointment row created immediately). Still not attempted: starting
+    measurement capture from this page (a separate 18.6 item scope by design).
 
 - [x] **18.5 Employee portal (auth and self-service)**
   - **Requirement IDs:** BD-105.

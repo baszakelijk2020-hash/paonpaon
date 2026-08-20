@@ -1,4 +1,4 @@
-import { createSupabaseAdminClient } from "@paon/database";
+import { CorporateRepository, createSupabaseAdminClient } from "@paon/database";
 import { asId } from "@paon/domain";
 import { expect, test } from "@playwright/test";
 
@@ -10,7 +10,8 @@ import { TEST_RETAILER_SLUG } from "./fixtures";
  */
 test.describe("Corporate office visit self-service booking", () => {
   let supabase: ReturnType<typeof createSupabaseAdminClient>;
-  let retailerId: string;
+  let retailerId: ReturnType<typeof asId<"RetailerId">>;
+  let accountId: string;
   let programmeId: string;
 
   test.beforeAll(async () => {
@@ -23,7 +24,8 @@ test.describe("Corporate office visit self-service booking", () => {
     }
     supabase = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
 
-    // Get the test retailer and a test programme.
+    // Get the test retailer, then self-provision an active account + programme
+    // (mirrors corporate-office-visit.spec.ts — no pre-seeded programme exists).
     const { data: retailer } = await supabase
       .from("retailers")
       .select("id")
@@ -32,18 +34,25 @@ test.describe("Corporate office visit self-service booking", () => {
     if (!retailer) throw new Error("fixture retailer missing");
     retailerId = asId<"RetailerId">(retailer.id);
 
-    const { data: programmes, error: progError } = await supabase
-      .from("corporate_programmes")
-      .select("id")
-      .eq("retailer_id", retailerId)
-      .is("deleted_at", null)
-      .eq("active", true)
-      .limit(1);
+    const unique = Date.now();
+    const repo = new CorporateRepository(supabase);
+    const account = await repo.createAccount(retailerId, {
+      legalName: `Customer e2e Self-Service Booking Co ${unique}`,
+      accountReference: `E2E-SSB-${unique}`,
+    });
+    const programme = await repo.createProgramme(retailerId, {
+      accountId: account.id,
+      name: `Customer e2e Self-Service Booking Programme ${unique}`,
+      siteKeys: [],
+    });
+    accountId = account.id;
+    programmeId = programme.id;
+  });
 
-    if (progError || !programmes || programmes.length === 0) {
-      throw new Error("no active test programme found");
+  test.afterAll(async () => {
+    if (accountId) {
+      await supabase.from("corporate_accounts").delete().eq("id", accountId);
     }
-    programmeId = programmes[0]!.id;
   });
 
   test("anonymous visitor can fetch available appointment slots", async () => {
