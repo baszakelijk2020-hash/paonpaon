@@ -3,6 +3,7 @@
 import {
   HoneymoonProgrammeRepository,
   OrderRepository,
+  PaymentRepository,
   RetailerStripeAccountRepository,
 } from "@paon/database";
 import { asId, createCheckoutSessionInputSchema } from "@paon/domain";
@@ -118,4 +119,71 @@ export async function choosePayAtDelivery(orderId: string): Promise<void> {
   }
   await honeymoonRepo.setPayAtDelivery(order.retailerId, programme.id, true);
   revalidatePath(`/orders/${orderId}`);
+}
+
+/**
+ * Demo/mock payment path — only available when Stripe is NOT configured.
+ * Records a payment with a synthetic reference (never confused with real
+ * Stripe charges) and revalidates the page to show the order as paid.
+ * Gated at runtime so this is only reachable when STRIPE_SECRET_KEY is
+ * absent — see `createCheckoutSession` for the production path.
+ */
+export async function simulateDemoPayment(
+  _previous: PayActionState,
+  formData: FormData,
+): Promise<PayActionState> {
+  await requireSession();
+
+  // Gate: only available when Stripe is NOT configured
+  const stripe = getStripeClient();
+  if (stripe) {
+    throw new Error("Demo payment is not available when Stripe is configured.");
+  }
+
+  const parsed = createCheckoutSessionInputSchema.safeParse({
+    orderId: formData.get("orderId"),
+  });
+  if (!parsed.success) {
+    return { formError: "Invalid order." };
+  }
+
+  const supabase = await getSupabaseServerClient();
+  const orderId = asId<"OrderId">(parsed.data.orderId);
+  const order = await new OrderRepository(supabase).findById(orderId);
+  if (!order) {
+    return { formError: "Order not found." };
+  }
+  if (order.status !== "pending_payment") {
+    return { formError: "This order is not awaiting payment." };
+  }
+
+  // Create a synthetic payment record with a clearly demo reference
+  const timestamp = Date.now();
+  const demoReference = `demo_${timestamp}`;
+
+  const admin = getSupabaseAdminClient();
+  const paymentRepo = new PaymentRepository(admin);
+
+  try {
+    await paymentRepo.recordStripeEvent({
+      eventId: demoReference,
+      eventType: "demo.payment_simulated",
+      orderId: order.id,
+      providerPaymentIntentId: demoReference,
+      amountMinorUnits: order.total.amountMinorUnits,
+      currency: order.total.currency,
+      status: "captured",
+      platformFeeAmountMinorUnits: 0,
+    });
+  } catch (error) {
+    return {
+      formError: `Failed to process demo payment: ${error instanceof Error ? error.message : "Unknown error"}`,
+    };
+  }
+
+  // Revalidate so the page re-fetches and shows the updated payment status
+  revalidatePath(`/orders/${orderId}`);
+
+  // Redirect with success parameter to show confirmation message
+  redirect(`/orders/${orderId}?payment=success`);
 }
