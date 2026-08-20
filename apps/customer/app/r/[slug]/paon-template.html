@@ -1119,6 +1119,57 @@ __PAON_BRAND_HEAD__
         display: none !important;
     }
 
+    /* Discover cards with expandable body */
+    #paon-knowledge-discover .paon-knowledge-cards {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    #paon-knowledge-discover .paon-knowledge-card {
+        grid-template-columns: 72px 1fr;
+        gap: 12px;
+        align-items: start;
+        cursor: pointer;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, .12);
+        border-radius: 8px;
+        background: #222220;
+        transition: background 200ms ease, border-color 200ms ease;
+    }
+    #paon-knowledge-discover .paon-knowledge-card:hover {
+        background: #2a2a28;
+        border-color: rgba(255, 255, 255, .2);
+    }
+    #paon-knowledge-discover .paon-knowledge-card-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .paon-discover-card-body {
+        display: block !important;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateY(-6px);
+        transition: max-height 500ms cubic-bezier(.22,.61,.36,1), opacity 500ms cubic-bezier(.22,.61,.36,1), transform 500ms cubic-bezier(.22,.61,.36,1) !important;
+        will-change: max-height, opacity, transform;
+        margin-top: 0;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        font-size: 12px;
+        line-height: 1.5;
+        color: #9a9a96;
+    }
+    .paon-discover-card-body:not(.closed) {
+        max-height: 200px;
+        opacity: 1;
+        transform: translateY(0);
+        padding-top: 6px !important;
+        padding-bottom: 0 !important;
+    }
+    .paon-discover-card-body.closed {
+        display: none !important;
+    }
+
     .dr-customize {
         display: block;
         text-align: right;
@@ -3939,6 +3990,14 @@ __PAON_HERO_HTML__
 <div id="paon-knowledge-sizing" class="paon-knowledge-mount" hidden></div>
 </div>
 <div class="dr-sep"></div>
+<div class="dr-section" onclick="toggleSection('discover')">
+<span class="dr-section-label">Discover</span>
+<span class="dr-section-icon" id="icon-discover">+</span>
+</div>
+<div class="dr-section-body closed" id="body-discover">
+<div id="paon-knowledge-discover" class="paon-knowledge-mount" hidden></div>
+</div>
+<div class="dr-sep"></div>
 </div>
 <div class="detail-right-footer">
 <div class="drf-brand" id="drf-brand">Loro Piana</div>
@@ -5620,6 +5679,42 @@ function renderGrid() {
             '</div></li>';
     }
 
+    function paonDiscoverCardHtml(card, index) {
+        var title = paonEscapeHtml(card.title || '');
+        var summary = paonEscapeHtml(card.summary || '');
+        var body = card.body ? paonEscapeHtml(card.body) : '';
+        var cardId = 'discover-' + index;
+        var image = card.imageUrl
+            ? '<img class="paon-knowledge-card-image" src="' + paonEscapeHtml(card.imageUrl) + '" alt="" width="72" height="72" loading="lazy" decoding="async">'
+            : '<span class="paon-knowledge-card-image-fallback" aria-hidden="true"></span>';
+        return '<li class="paon-knowledge-card" role="listitem" onclick="toggleSection(\'' + cardId + '\')" style="grid-template-columns: 72px 1fr;">' +
+            image +
+            '<div class="paon-knowledge-card-copy">' +
+            '<h4 class="paon-knowledge-card-title">' + title + '</h4>' +
+            '<p class="paon-knowledge-card-summary">' + summary + '</p>' +
+            (body ? '<div class="paon-discover-card-body closed" id="body-' + cardId + '">' + body + '</div>' : '') +
+            '</div></li>';
+    }
+
+    function paonRenderDiscoverKnowledge(mountId, cards, label) {
+        var mount = document.getElementById(mountId);
+        if (!mount) return false;
+        if (!cards || !cards.length) {
+            mount.innerHTML = '';
+            mount.hidden = true;
+            mount.removeAttribute('aria-label');
+            return false;
+        }
+        mount.innerHTML =
+            '<ul class="paon-knowledge-cards" role="list" aria-label="' +
+            paonEscapeHtml(label) +
+            '">' +
+            cards.map(function(card, index) { return paonDiscoverCardHtml(card, index); }).join('') +
+            '</ul>';
+        mount.hidden = false;
+        return true;
+    }
+
     function paonRenderKnowledgeMount(mountId, cards, label) {
         var mount = document.getElementById(mountId);
         if (!mount) return false;
@@ -5643,7 +5738,7 @@ function renderGrid() {
         var byProduct = (typeof PAON_KNOWLEDGE_BY_PRODUCT !== 'undefined' && PAON_KNOWLEDGE_BY_PRODUCT)
             ? PAON_KNOWLEDGE_BY_PRODUCT
             : {};
-        var panels = byProduct[String(productId)] || { archetype: [], fabric: [], sizing: [] };
+        var panels = byProduct[String(productId)] || { archetype: [], fabric: [], sizing: [], discover: [] };
         var hasArchetype = paonRenderKnowledgeMount(
             'paon-knowledge-archetype',
             panels.archetype,
@@ -5651,6 +5746,7 @@ function renderGrid() {
         );
         paonRenderKnowledgeMount('paon-knowledge-fabric', panels.fabric, 'Fabric education');
         paonRenderKnowledgeMount('paon-knowledge-sizing', panels.sizing, 'Fit and care education');
+        paonRenderDiscoverKnowledge('paon-knowledge-discover', panels.discover, 'Discover');
 
         var cardsFallback = document.getElementById('archetype-cards-fallback');
         var labelsFallback = document.getElementById('archetype-labels-fallback');
