@@ -20,12 +20,14 @@ export function PayPanel({
   paymentCanceled,
   payAtDelivery,
   canOfferPayAtDelivery,
+  demoPaymentsEnabled,
 }: {
   orderId: string;
   orderNumber: string;
   paymentCanceled: boolean;
   payAtDelivery: boolean;
   canOfferPayAtDelivery: boolean;
+  demoPaymentsEnabled: boolean;
 }) {
   const [state, action, pending] = useActionState(
     createCheckoutSession,
@@ -46,6 +48,7 @@ export function PayPanel({
   // Detect if the error is the "not configured" error
   const isNotConfiguredError =
     state.formError?.includes("Payments are not configured") ?? false;
+  const canOfferDemoPayment = isNotConfiguredError && demoPaymentsEnabled;
 
   if (payAtDelivery) {
     return (
@@ -56,16 +59,17 @@ export function PayPanel({
     );
   }
 
-  // Demo payment form (only shown when Stripe is not configured)
-  if (isNotConfiguredError && showDemoForm) {
+  // Demo payment form (only shown when Stripe isn't configured and demo mode is explicitly enabled)
+  if (canOfferDemoPayment && showDemoForm) {
     return (
       <div className="flex flex-col gap-4">
         <div className="rounded-lg border border-[var(--color-warning-300)] bg-[var(--color-warning-50)] p-4">
           <p className="text-sm font-medium text-[var(--color-warning-900)]">
-            DEMO MODE — No real payment is processed
+            You are in a demo experience
           </p>
           <p className="mt-1 text-sm text-[var(--color-warning-800)]">
-            This is a simulated payment for testing purposes only.
+            This is purely for demo purposes — no real transactions are made
+            now. Please do not fill in your real payment details.
           </p>
         </div>
 
@@ -82,7 +86,7 @@ export function PayPanel({
               type="text"
               placeholder="4242 4242 4242 4242"
               value={cardNumber}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setCardNumber(e.target.value.replace(/\D/g, "").slice(0, 16))
               }
               disabled={demoPending}
@@ -103,7 +107,7 @@ export function PayPanel({
                 type="text"
                 placeholder="12/25"
                 value={cardExpiry}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   let value = e.target.value.replace(/\D/g, "").slice(0, 4);
                   if (value.length >= 2) {
                     value = value.slice(0, 2) + "/" + value.slice(2);
@@ -127,7 +131,7 @@ export function PayPanel({
                 type="text"
                 placeholder="123"
                 value={cardCvc}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setCardCvc(e.target.value.replace(/\D/g, "").slice(0, 4))
                 }
                 disabled={demoPending}
@@ -177,10 +181,11 @@ export function PayPanel({
         </p>
       ) : null}
 
-      {isNotConfiguredError && !showDemoForm ? (
+      {canOfferDemoPayment && !showDemoForm ? (
         <div className="space-y-2">
           <p className="text-sm text-[var(--color-stone-600)]">
-            Payment processing is available in demo mode for testing purposes.
+            You are in a demo experience — payment processing is simulated here.
+            No real transactions are made.
           </p>
           <button
             onClick={() => setShowDemoForm(true)}
@@ -189,6 +194,11 @@ export function PayPanel({
             Enter demo payment
           </button>
         </div>
+      ) : isNotConfiguredError && !demoPaymentsEnabled ? (
+        <p className="text-sm text-[var(--color-stone-600)]">
+          Online payment isn&rsquo;t configured for this retailer yet. Message
+          your advisor or arrange pay-in-store instead.
+        </p>
       ) : !isNotConfiguredError ? (
         <div className="flex flex-wrap gap-2">
           <form action={action}>

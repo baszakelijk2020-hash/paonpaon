@@ -122,11 +122,14 @@ export async function choosePayAtDelivery(orderId: string): Promise<void> {
 }
 
 /**
- * Demo/mock payment path — only available when Stripe is NOT configured.
- * Records a payment with a synthetic reference (never confused with real
- * Stripe charges) and revalidates the page to show the order as paid.
- * Gated at runtime so this is only reachable when STRIPE_SECRET_KEY is
- * absent — see `createCheckoutSession` for the production path.
+ * Demo/mock payment path — only available when BOTH Stripe is unconfigured
+ * AND `DEMO_PAYMENTS_ENABLED=true` is explicitly set. Stripe-absent alone is
+ * not sufficient: a live retailer who simply hasn't finished Stripe
+ * onboarding yet is a normal, expected state (see `createCheckoutSession`'s
+ * "hasn't finished setting up payments yet" branch) — without the explicit
+ * flag, any of that retailer's real customers could call this action
+ * directly and mark a real order "paid" for free. Records a payment with a
+ * synthetic reference (never confused with real Stripe charges).
  */
 export async function simulateDemoPayment(
   _previous: PayActionState,
@@ -134,10 +137,10 @@ export async function simulateDemoPayment(
 ): Promise<PayActionState> {
   await requireSession();
 
-  // Gate: only available when Stripe is NOT configured
+  // Gate: only available when Stripe is NOT configured AND demo mode is explicitly opted in.
   const stripe = getStripeClient();
-  if (stripe) {
-    throw new Error("Demo payment is not available when Stripe is configured.");
+  if (stripe || !env.demoPaymentsEnabled) {
+    throw new Error("Demo payment is not available on this deployment.");
   }
 
   const parsed = createCheckoutSessionInputSchema.safeParse({
