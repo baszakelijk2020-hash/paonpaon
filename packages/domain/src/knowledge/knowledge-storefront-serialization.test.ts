@@ -52,6 +52,7 @@ describe("storefront knowledge route serialization", () => {
         ],
         fabric: [],
         sizing: [],
+        discover: [],
       },
     });
     const parsed = JSON.parse(json) as Record<
