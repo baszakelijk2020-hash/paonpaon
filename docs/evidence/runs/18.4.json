@@ -1,7 +1,7 @@
 {
   "phaseItemId": "18.4",
-  "gitSha": "2d3e33c93ab35b883d3102b5709c0dc971c47464",
-  "spec": "apps/retailer/e2e/corporate-office-visit.spec.ts",
+  "gitSha": "48ec896abd9c1e9416b8bdf4f80200d4c29b767d",
+  "spec": "apps/customer/e2e/corporate-office-visit-self-service-booking.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-05T07:13:56.142Z"
+  "timestamp": "2026-08-20T02:30:00.000Z"
 }
