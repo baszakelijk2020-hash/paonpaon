@@ -13,6 +13,12 @@ test.describe("Corporate office visit self-service booking", () => {
   let retailerId: ReturnType<typeof asId<"RetailerId">>;
   let accountId: string;
   let programmeId: string;
+  // Each test books slots at a fixed hour offset from "now" (24h, 48h, ...).
+  // Re-running this spec against a persistent (non-reset) local DB would
+  // otherwise collide with a previous run's still-present appointment rows
+  // for the same retailer — spread runs across a wide, run-specific day
+  // bucket so repeated runs never contend for the same time window.
+  let runOffsetMs: number;
 
   test.beforeAll(async () => {
     const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
@@ -23,6 +29,7 @@ test.describe("Corporate office visit self-service booking", () => {
       );
     }
     supabase = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
+    runOffsetMs = (1000 + (Date.now() % 5000)) * 24 * 60 * 60 * 1000;
 
     // Get the test retailer, then self-provision an active account + programme
     // (mirrors corporate-office-visit.spec.ts — no pre-seeded programme exists).
@@ -75,9 +82,11 @@ test.describe("Corporate office visit self-service booking", () => {
   test("anonymous visitor can book an appointment via self-service", async () => {
     const testEmail = `visitor-${Date.now()}@paon.test`;
     const testName = "Test Visitor";
-    const startsAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const startsAt = new Date(
+      Date.now() + runOffsetMs + 24 * 60 * 60 * 1000,
+    ).toISOString();
     const endsAt = new Date(
-      Date.now() + 24 * 60 * 60 * 1000 + 60 * 60 * 1000,
+      Date.now() + runOffsetMs + 24 * 60 * 60 * 1000 + 60 * 60 * 1000,
     ).toISOString();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -140,9 +149,11 @@ test.describe("Corporate office visit self-service booking", () => {
   });
 
   test("double-booking the same slot is rejected", async () => {
-    const startsAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+    const startsAt = new Date(
+      Date.now() + runOffsetMs + 48 * 60 * 60 * 1000,
+    ).toISOString();
     const endsAt = new Date(
-      Date.now() + 48 * 60 * 60 * 1000 + 60 * 60 * 1000,
+      Date.now() + runOffsetMs + 48 * 60 * 60 * 1000 + 60 * 60 * 1000,
     ).toISOString();
 
     // First booking succeeds.
@@ -185,9 +196,11 @@ test.describe("Corporate office visit self-service booking", () => {
     // Get or create a second retailer/programme for testing (simplified for now —
     // just reuse the same programme but verify scoping works).
     const testEmail = `scope-test-${Date.now()}@paon.test`;
-    const startsAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
+    const startsAt = new Date(
+      Date.now() + runOffsetMs + 72 * 60 * 60 * 1000,
+    ).toISOString();
     const endsAt = new Date(
-      Date.now() + 72 * 60 * 60 * 1000 + 60 * 60 * 1000,
+      Date.now() + runOffsetMs + 72 * 60 * 60 * 1000 + 60 * 60 * 1000,
     ).toISOString();
 
     // Book on the test programme.
@@ -230,7 +243,7 @@ test.describe("Corporate office visit self-service booking", () => {
 
   test("rate limiting prevents more than 5 bookings in 10 minutes per email", async () => {
     const testEmail = `ratelimit-${Date.now()}@paon.test`;
-    const baseTime = Date.now() + 96 * 60 * 60 * 1000;
+    const baseTime = Date.now() + runOffsetMs + 96 * 60 * 60 * 1000;
 
     // Attempt 6 bookings in quick succession (same email).
     for (let i = 0; i < 6; i++) {
