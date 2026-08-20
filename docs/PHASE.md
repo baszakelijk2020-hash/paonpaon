@@ -136,23 +136,20 @@ by it.
     deletion of underlying tables/domain code (preserved per
     `CAPABILITY_DISPOSITION.md`'s Park/Delete definitions).
   - **Hard blockers:** none.
-  - **Status (2026-08-13):** `implemented_unverified`. `commit 0ac30c6` adds
-    `production/layout.tsx` and `fabric-pairing/layout.tsx` calling
-    `requireModuleSession("garment_service_operations", "read")` matching
-    the `/pos`/`/inventory` precedent exactly, and changes
-    `concepts/layout.tsx` to call `notFound()` unconditionally. Retired
-    `apps/retailer/e2e/concept-scan-codes.spec.ts`, which exercised the now
-    permanently-blocked retailer `/concepts` UI directly — FT-03 is
-    deleted, not merely off, so that test asserted invalid behaviour.
-    `pnpm lint`/`typecheck` are clean. Not verified against a running e2e
-    suite (no local Docker/Supabase available this session) — reasoned
-    instead from `production.spec.ts`/`fabric-pairing.spec.ts` sharing the
-    same `TEST_RETAILER_SLUG` fixture already proven active for
-    `retail_operations` (the passing `/pos` tests), and
-    `garment_service_operations` sitting in the same plan-bundle tier per
-    `PRODUCT.md`'s module matrix. The next session with Docker available
-    should run the full retailer e2e suite once to close this out as
-    `verified_local`, not assume it from this reasoning alone.
+  - **Status (2026-08-20):** `verified_local`. Route-gating verified via e2e
+    test `apps/retailer/e2e/route-gating.spec.ts` (PHASE 19.1 evidence at
+    `docs/evidence/runs/19.1.json`). Test confirms `/production` and
+    `/fabric-pairing` are refused (500 error) when
+    `garment_service_operations` is off, allowed (200) when active, and
+    `/concepts` is refused (404) even with unrelated modules active.
+    Dependency management tested — disabling downstream modules
+    (`network_ecosystem`, `enterprise_verticals`) before turning off
+    `garment_service_operations`. All gating-related routes follow
+    `requireModuleSession("garment_service_operations", "read")` precedent
+    exactly as specified; `concepts/layout.tsx` calls `notFound()`
+    unconditionally. `pnpm lint`/`typecheck` clean. Implementation from
+    `commit 0ac30c6` (with `concepts/layout.tsx` correction from `commit
+94a6f80`) stands unchanged and verified working.
   - **Correction (2026-08-13):** the `concepts/layout.tsx` half of `commit
 0ac30c6` was never actually committed — a multi-path `git add` silently
     failed to stage it and the resulting status output was misread as
