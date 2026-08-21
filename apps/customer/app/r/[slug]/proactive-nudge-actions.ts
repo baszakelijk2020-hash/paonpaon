@@ -18,6 +18,8 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const RECENT_EVENT_LIMIT = 20;
 const MIN_PRODUCT_VIEWS = 3;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_PRODUCTS_CONSIDERED = 8;
 const FREQUENCY_CAP_HOURS = 24;
 
@@ -85,6 +87,7 @@ export async function getProactiveNudge(retailerId: string): Promise<{
       const productId = props.productId;
       if (
         typeof productId === "string" &&
+        UUID_PATTERN.test(productId) &&
         !seenProductIds.has(productId) &&
         recentProductIds.length < MAX_PRODUCTS_CONSIDERED
       ) {
