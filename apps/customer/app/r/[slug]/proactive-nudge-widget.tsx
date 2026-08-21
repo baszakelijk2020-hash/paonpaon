@@ -3,26 +3,38 @@
 import type { KnowledgeTopic } from "@paon/domain";
 import { useEffect, useRef, useState } from "react";
 
-import { getProactiveNudge } from "./proactive-nudge-actions";
+type NudgeData = {
+  knowledgeObjectId: string;
+  title: string;
+  teaser: string;
+  topic: KnowledgeTopic;
+} | null;
 
-export function ProactiveNudgeWidget({ retailerId }: { retailerId: string }) {
-  const [nudge, setNudge] = useState<{
-    knowledgeObjectId: string;
-    title: string;
-    teaser: string;
-    topic: KnowledgeTopic;
-  } | null>(null);
+/**
+ * The nudge is computed server-side in the layout, at the same request
+ * that already resolves the customer's session reliably (see
+ * getProactiveNudge's call site in layout.tsx) — this widget only owns
+ * the 20-second dwell delay before revealing already-known data. An
+ * earlier version fetched the nudge from a client-triggered Server
+ * Action fired by this component's own setTimeout; that call
+ * intermittently failed to resolve the customer's session despite the
+ * identical mechanism working reliably for immediate on-mount calls
+ * elsewhere on the page, for reasons not fully root-caused. Fetching
+ * once, synchronously, in the same request that renders the page
+ * removes that whole class of failure.
+ */
+export function ProactiveNudgeWidget({
+  initialNudge,
+}: {
+  initialNudge: NudgeData;
+}) {
   const [isVisible, setIsVisible] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Wait 20 seconds before showing nudge
-    timeoutRef.current = setTimeout(async () => {
-      const result = await getProactiveNudge(retailerId);
-      if (result) {
-        setNudge(result);
-        setIsVisible(true);
-      }
+    if (!initialNudge) return;
+    timeoutRef.current = setTimeout(() => {
+      setIsVisible(true);
     }, 20000);
 
     return () => {
@@ -30,9 +42,9 @@ export function ProactiveNudgeWidget({ retailerId }: { retailerId: string }) {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [retailerId]);
+  }, [initialNudge]);
 
-  if (!nudge) {
+  if (!initialNudge) {
     return null;
   }
 
@@ -50,7 +62,7 @@ export function ProactiveNudgeWidget({ retailerId }: { retailerId: string }) {
       occasion: "occasions",
       value: "value",
       tradeoff: "tradeoffs",
-    }[nudge.topic] || "topics";
+    }[initialNudge.topic] || "topics";
 
   return (
     <div
@@ -64,8 +76,12 @@ export function ProactiveNudgeWidget({ retailerId }: { retailerId: string }) {
             Since you&apos;ve been exploring {topicLabel}, your advisor thought
             you&apos;d like this:
           </div>
-          <h3 className="text-sm font-medium text-stone-900">{nudge.title}</h3>
-          <p className="line-clamp-2 text-xs text-stone-700">{nudge.teaser}</p>
+          <h3 className="text-sm font-medium text-stone-900">
+            {initialNudge.title}
+          </h3>
+          <p className="line-clamp-2 text-xs text-stone-700">
+            {initialNudge.teaser}
+          </p>
           <div className="flex justify-end pt-2">
             <button
               type="button"
