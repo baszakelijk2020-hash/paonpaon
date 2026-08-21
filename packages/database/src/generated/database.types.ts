@@ -21163,6 +21163,10 @@ export type Database = {
       };
       is_alterations_advisor: { Args: never; Returns: boolean };
       is_alterations_management: { Args: never; Returns: boolean };
+      is_corporate_manager_with_programme_access: {
+        Args: { p_programme_id: string };
+        Returns: boolean;
+      };
       is_my_event_invitation: {
         Args: { p_event_id: string };
         Returns: boolean;
