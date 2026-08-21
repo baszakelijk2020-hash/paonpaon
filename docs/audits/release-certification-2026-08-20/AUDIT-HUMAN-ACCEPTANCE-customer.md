@@ -13,13 +13,24 @@ required parts of this walkthrough were not performed, and the report's own text
 5, 6, 8, 9 below) shows this — the executive summary and findings table just don't reflect
 it:
 
-- **No create/update-and-persist test was done.** The audit prompt required attempting a
-  realistic create/update action (e.g. a service request or profile edit), verifying it
-  survives a refresh. Section 5 explicitly says "No form submission tested due to lack of
-  visible edit inputs" — this is a real gap, not a PASS, and should read UNKNOWN/NOT TESTED.
-- **No negative/adversarial input testing was done** (empty required fields, malformed
-  input, duplicate/double-click submit, refresh mid-submit) — none of this appears anywhere
-  in the walkthrough. UNKNOWN, not implicitly PASS.
+- ~~No create/update-and-persist test was done.~~ **CLOSED (2026-08-21, peer session,
+  independently spot-verified by the coordinating agent):** `/account` → Settings → "Style
+  notes" field edited with marker `PERSIST-EVIDENCE-1787288502940`, saved, followed by a full
+  server reload (not client nav). Value confirmed intact via UI screenshot AND Playwright
+  `inputValue()` assertion. Server verified fresh (PID confirmed via `lsof`, started after this
+  worktree's `b4237d0` commit, cwd `/private/tmp/paon-claude-nguyen2/apps/customer`) — not a
+  stale-process artifact like the earlier retail-worker/workshop false positives. Coordinating
+  agent independently opened the after-reload screenshot and confirmed the marker is genuinely
+  present in the rendered Settings page. **PASS.**
+- **Negative/adversarial input testing — partially closed.** Double-click/duplicate-submit is
+  now **CLOSED, PASS** (same session, same evidence standard): marker
+  `DOUBLE-EVIDENCE-1787288539928` saved via two concurrent "Save preferences" clicks
+  (`Promise.all`), reload confirmed exactly one clean value with no corruption/duplication, and
+  independently cross-checked directly against the database
+  (`select style_notes from customer_preferences where customer_id = ...`), which returned the
+  same marker. Three independent layers (UI, Playwright assertion, raw DB query) agree.
+  **Empty required fields, malformed input, and refresh-mid-submit remain UNKNOWN** — not
+  covered by this follow-up.
 - **Logout was never actually completed.** Section 8: "Click interaction blocked by
   development overlay" — the report dismisses this as a harmless dev-environment artifact
   without verifying that, and consequently the logout→re-login persistence check (required by
@@ -33,9 +44,10 @@ it:
 
 **Disposition:** the verified findings — anonymous routes load, demo login works, the 5
 authenticated routes render with content, back/forward navigation is sound, keyboard tab
-order is functional — are real and stand as PASS. But "zero critical findings" is not
-supportable when roughly half the required test surface (persistence, adversarial input,
-logout, mobile-authenticated-routes) was never exercised. This persona should be marked
+order is functional, and (as of the follow-up above) persist-across-reload and
+duplicate-submit both PASS with strong evidence — are real. But "zero critical findings" is
+still not supportable: logout and mobile-authenticated-route coverage remain UNKNOWN, and
+empty/malformed-input and refresh-mid-submit testing was never done. This persona should be marked
 **PARTIAL / NEEDS RE-VERIFICATION** for those specific gaps, not a clean release-ready PASS.
 
 ---
