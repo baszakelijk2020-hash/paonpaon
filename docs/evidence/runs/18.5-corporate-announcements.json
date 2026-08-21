@@ -1,7 +1,7 @@
 {
   "phaseItemId": "18.5-corporate-announcements",
-  "gitSha": "abc792c302846624ef9469fa76be599bc91061f6",
+  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
   "spec": "apps/retailer/e2e/corporate-announcements.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-09T23:15:32.296Z"
+  "timestamp": "2026-08-20T12:30:07.303Z"
 }

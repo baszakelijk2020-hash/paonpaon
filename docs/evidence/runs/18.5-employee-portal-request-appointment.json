@@ -1,7 +1,7 @@
 {
   "phaseItemId": "18.5-employee-portal-request-appointment",
-  "gitSha": "170aed85ea8195d1fb05da11569d5c66b78987a2",
+  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
   "spec": "apps/customer/e2e/employee-portal-request-appointment.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-09T23:01:56.968Z"
+  "timestamp": "2026-08-20T12:40:26.295Z"
 }

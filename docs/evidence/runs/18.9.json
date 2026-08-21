@@ -1,7 +1,7 @@
 {
   "phaseItemId": "18.9",
-  "gitSha": "5a0c9684f34c2c535b5024fc78157b118e74ca92",
+  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
   "spec": "apps/retailer/e2e/corporate-renewal-analytics.spec.ts",
-  "status": "passed",
-  "timestamp": "2026-08-09T23:17:15.934Z"
+  "status": "failed",
+  "timestamp": "2026-08-20T12:31:00.922Z"
 }

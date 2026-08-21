@@ -2,6 +2,8 @@
 
 Point-in-time takeover health checks. **Not a work queue** — PHASE.md still gates what may be built.
 
+> **Archived:** The 2026-07-29 evidence run has been archived to [`docs/archive/evidence-2026-07-29/`](../archive/evidence-2026-07-29/).
+
 Start here: **[project-health.md](./project-health.md)**
 
 | Report                                             | Focus                                         |

@@ -1,10 +1,30 @@
 # PAON Experience Rebuild
 
-This is the governing product-experience document for PAON. The original
-`/Users/nguyen/Downloads/paon.html` is the visual source of truth. Existing
-domain concepts, repositories, migrations, RLS policies, authorization and
-business workflows remain authoritative; this rebuild changes how people
-understand and operate them.
+## DEPRECATION NOTICE
+
+This document was superseded by [docs/PHASE.md](../PHASE.md) (effective 2026-07-30) and the FT-* blueprint system ([docs/FOUNDER_TOOL_BLUEPRINTS.md](../FOUNDER_TOOL_BLUEPRINTS.md), [docs/DESIGN_PORTS.md](../DESIGN_PORTS.md)). It is preserved here for historical reference only and is not authoritative for current work.
+
+---
+
+This is the governing product-experience document for PAON.
+
+**Source-of-truth correction (2026-08-06):** this document previously cited
+`/Users/nguyen/Downloads/paon.html` — a path on one machine, outside the
+repository — as its visual source of truth. Per founder decision (see
+`docs/documentation-audit/FOUNDER_ANSWERS.md` Q5), that local file is
+treated as a working copy, not a second documentation authority, unless it
+is later shown to hold unique content, in which case it will be imported
+deliberately under version control. The reproducible, committed visual
+source for the material this document describes is
+[`apps/customer/app/r/[slug]/paon-template.html`](../apps/customer/app/r/[slug]/paon-template.html)
+(the committed storefront Route Handler — see `DESIGN_PORTS.md`) together
+with [`downloaded_pages/pag1.html`](../downloaded_pages/pag1.html) (the
+committed font-face and visual-system source referenced throughout this
+document). Existing domain concepts, repositories, migrations, RLS
+policies, authorization and business workflows remain authoritative; this
+rebuild changes how people understand and operate them.
+
+> > > > > > > baf51fe (docs: archive superseded EXPERIENCE_REBUILD.md):docs/archive/EXPERIENCE_REBUILD.md
 
 ## Acceptance status
 
