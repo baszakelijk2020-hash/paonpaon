@@ -1,0 +1,52 @@
+=== LIVE-REACHABILITY RETEST SUMMARY (2026-08-20) ===
+
+OBJECTIVE:
+Re-run live-reachability checks for PARKED/BLOCKED routes against now-healthy apps.
+Original audit was static-analysis only due to apps being down. This retest phase attempts direct HTTP access.
+
+SCOPE:
+- PARKED routes (7 total):
+  * Retailer: /pos, /inventory, /inventory/risk, /production, /fabric-pairing
+  * DELETED: /concepts
+  * Customer: N/A (no PARKED routes on customer app)
+
+- BLOCKED routes: N/A for live testing (BLOCKED items do not have direct URL routes)
+
+STACK STATUS:
+✓ Admin (3010): Healthy
+✗ Retailer (3001): BLOCKED - HTTP 500 on all routes
+✓ Customer (3002): Healthy
+✓ Supabase: API healthy
+✓ Postgres: Database healthy
+
+TESTING RESULTS:
+All PARKED/BLOCKED routes located on retailer app (3001) - NOT TESTABLE due to app unavailability.
+
+Test attempts:
+- GET http://localhost:3001/login → HTTP 500 Internal Server Error
+- GET http://localhost:3001/dashboard/pos → HTTP 500 Internal Server Error
+- GET http://localhost:3001/dashboard/inventory → HTTP 500 Internal Server Error
+- GET http://localhost:3001/dashboard/inventory/risk → HTTP 500 Internal Server Error
+- GET http://localhost:3001/dashboard/production → HTTP 500 Internal Server Error
+- GET http://localhost:3001/dashboard/fabric-pairing → HTTP 500 Internal Server Error
+- GET http://localhost:3001/dashboard/concepts → HTTP 500 Internal Server Error
+
+STATIC ANALYSIS VERIFICATION:
+All PARKED routes verified to have correct module guards in code:
+✓ /pos, /inventory, /inventory/risk → requireModuleSession("retail_operations", "read")
+✓ /production, /fabric-pairing → requireModuleSession("garment_service_operations", "read")
+✓ /concepts → notFound() unconditional block (DELETED)
+
+AUDIT FILE CHANGES:
+- Updated /private/tmp/paon-claude-nguyen2/docs/audits/release-certification-2026-08-20/AUDIT-SCOPE-RECONCILIATION.md:
+  * Added "Baseline App Status — Live-Reachability Re-Check" section documenting retailer app unavailability
+  * Updated "Route & Module Guard Verification" to note live runtime verification NOT TESTABLE
+  * Updated "Findings Table Summary" to add NOT TESTABLE classification for 7 routes
+  * Updated "Conclusion" section with recommendation to retry after app recovery
+
+VERDICT:
+- Static analysis guards: VERIFIED (no changes from original audit)
+- Live-reachability testing: NOT TESTABLE
+- Recommendation: Diagnose retailer app HTTP 500 errors and re-run live-reachability phase before final release sign-off
+
+SEVERITY: P2 (Blocking live-reachability verification, but static guards verified in place)

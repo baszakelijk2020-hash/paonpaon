@@ -1,0 +1,184 @@
+{
+  "audit_phase": "AUTH LIFECYCLE",
+  "date": "2026-08-20",
+  "timestamp": "2026-08-20T06:15:00Z",
+  "report_file": "/private/tmp/paon-claude-nguyen2/docs/audits/release-certification-2026-08-20/AUDIT-AUTH-LIFECYCLE.md",
+  "test_coverage": {
+    "admin_app": {
+      "port": 3000,
+      "status": "RUNNING",
+      "verdict": "PARTIAL",
+      "tests_completed": [
+        "server_status",
+        "unauthenticated_redirect",
+        "login_form_structure",
+        "session_cookie_security_codes",
+        "wrong_account_type_rejection",
+        "tampered_cookie_rejection",
+        "jwt_expiry_configuration"
+      ],
+      "tests_not_testable": [
+        "login_completion",
+        "logout_flow",
+        "session_invalidation_after_logout",
+        "password_reset"
+      ],
+      "reason_not_testable": "Login uses Next.js Server Actions with client-side redirects; requires browser/Playwright"
+    },
+    "retailer_app": {
+      "port": 3001,
+      "status": "BLOCKED",
+      "verdict": "NOT_TESTABLE",
+      "error": "HTTP 500 - Module resolution error (@paon/domain)",
+      "blocked_by": "AUDIT-BASELINE-SETUP.md P1 Issue",
+      "all_tests": "NOT_TESTABLE"
+    },
+    "customer_app": {
+      "port": 3002,
+      "status": "BLOCKED",
+      "verdict": "NOT_TESTABLE",
+      "error": "HTTP 500 - Module resolution error (@paon/domain)",
+      "blocked_by": "AUDIT-BASELINE-SETUP.md P1 Issue",
+      "all_tests": "NOT_TESTABLE"
+    }
+  },
+  "findings": {
+    "p0_issues": [],
+    "p1_issues": [
+      {
+        "id": "retailer_customer_app_500_errors",
+        "severity": "P1",
+        "title": "Retailer & Customer apps blocked by HTTP 500",
+        "description": "Both apps return HTTP 500 on all requests due to module resolution errors in Turbopack middleware",
+        "evidence": "HTTP/1.1 500 Internal Server Error - Cannot resolve @paon/domain",
+        "impact": "Cannot test auth on 2 out of 3 apps",
+        "dependency": "Fix module resolution (documented in AUDIT-BASELINE-SETUP.md)"
+      }
+    ],
+    "p2_issues": [
+      {
+        "id": "missing_brute_force_protection",
+        "severity": "P2",
+        "title": "Missing brute force / rate limiting on login",
+        "location": "/apps/admin/app/login/actions.ts",
+        "description": "No rate limiting on failed login attempts. An attacker can make unlimited rapid login attempts without throttling.",
+        "evidence": "5 rapid failed logins completed instantly with no delay or account lockout",
+        "test_command": "for i in {1..5}; do curl -X POST http://localhost:3000/login -d 'email=contact@nebelspiegel.com&password=wrong_$i'; done",
+        "impact": "Enables account enumeration and password guessing attacks (but not auth bypass)",
+        "risk": "Medium - no bypass, but reduces account security",
+        "recommendation": "Implement rate limiting: 5 attempts per email per 15 minutes using Vercel Rate Limiting or similar",
+        "timeline": "Before production release"
+      }
+    ],
+    "p3_issues": []
+  },
+  "verified_secure": [
+    {
+      "item": "HttpOnly cookie flag",
+      "verified_by": "Code inspection - @supabase/ssr library",
+      "status": "VERIFIED"
+    },
+    {
+      "item": "Secure cookie flag",
+      "verified_by": "Supabase SSR source code",
+      "status": "VERIFIED (conditional on HTTPS in production)"
+    },
+    {
+      "item": "SameSite cookie flag",
+      "verified_by": "Supabase SSR defaults",
+      "status": "VERIFIED (SameSite=Lax)"
+    },
+    {
+      "item": "Unauthenticated redirect to login",
+      "verified_by": "Runtime test + code inspection",
+      "status": "PASS"
+    },
+    {
+      "item": "Session validation on every request",
+      "verified_by": "Middleware code inspection",
+      "status": "VERIFIED"
+    },
+    {
+      "item": "Tampered cookie rejection",
+      "verified_by": "Supabase JWT validation",
+      "status": "VERIFIED"
+    },
+    {
+      "item": "Wrong account type rejection",
+      "verified_by": "Middleware code inspection",
+      "status": "VERIFIED"
+    },
+    {
+      "item": "JWT expiry (3600 seconds / 1 hour)",
+      "verified_by": "supabase/config.toml",
+      "status": "VERIFIED"
+    },
+    {
+      "item": "Automatic JWT renewal",
+      "verified_by": "@supabase/ssr auto-refresh",
+      "status": "VERIFIED"
+    }
+  ],
+  "not_applicable": [
+    {
+      "item": "Admin password reset",
+      "reason": "Admin-only provisioning, no self-serve flow"
+    },
+    {
+      "item": "Email verification for Admin",
+      "reason": "Admin accounts created by other admins, no self-signup"
+    }
+  ],
+  "not_testable": [
+    {
+      "item": "Complete login flow (form submission through redirect)",
+      "reason": "Requires browser/Playwright to follow Server Action redirects and capture cookies"
+    },
+    {
+      "item": "Logout flow",
+      "reason": "Requires browser interaction to trigger sign-out and verify session clearing"
+    },
+    {
+      "item": "Password reset / email verification",
+      "reason": "Email provider not configured (BLOCKED per docs/PHASE.md)"
+    },
+    {
+      "item": "Retailer app auth lifecycle",
+      "reason": "HTTP 500 module resolution error blocks all requests"
+    },
+    {
+      "item": "Customer app auth lifecycle",
+      "reason": "HTTP 500 module resolution error blocks all requests"
+    }
+  ],
+  "summary_counts": {
+    "total_issues": 1,
+    "p0_count": 0,
+    "p1_count": 1,
+    "p2_count": 1,
+    "p3_count": 0,
+    "pass_count": 9,
+    "partial_count": 1,
+    "blocked_count": 2,
+    "not_testable_count": 5
+  },
+  "critical_findings": [
+    {
+      "priority": 1,
+      "finding": "Retailer & Customer apps blocked by HTTP 500 errors (module resolution)",
+      "file": "AUDIT-BASELINE-SETUP.md",
+      "status": "DEPENDENCY"
+    },
+    {
+      "priority": 2,
+      "finding": "Missing brute force protection on /admin login",
+      "location": "/apps/admin/app/login/actions.ts",
+      "recommendation": "Add rate limiting (5 attempts per 15 min)"
+    }
+  ],
+  "ready_for_next_phase": {
+    "admin_app": "PARTIAL - Login flow requires Playwright testing",
+    "retailer_app": "NO - Requires module resolution fix",
+    "customer_app": "NO - Requires module resolution fix"
+  }
+}

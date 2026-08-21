@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.12",
-  "gitSha": "115dcb206222e79d2d2b0b4cb3682283887ea4f0",
+  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
   "spec": "apps/retailer/e2e/cart-soft-close.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-17T07:33:40.567Z"
+  "timestamp": "2026-08-20T12:29:57.056Z"
 }
