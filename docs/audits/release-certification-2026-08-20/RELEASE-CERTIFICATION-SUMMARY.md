@@ -372,21 +372,25 @@ face value. This document's own synthesis above already applies those correction
 
 ### Part 2 Verdict
 
-| Gate                                                        | Status     | Basis                                                                                                                                                                                                                     |
-| ----------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Zero open P0                                                | ✅ PASS    | The one P0 found this pass (retailer-creation regression) is fixed and browser-verified                                                                                                                                   |
-| Zero open P1                                                | ✅ PASS    | No new P1s confirmed; several candidate P1/P2s from sub-agents were investigated and retracted as tooling artifacts                                                                                                       |
-| Core journeys usable by real humans, not just passing tests | ⚠️ PARTIAL | Retail owner, retail manager, platform admin: yes, demonstrated. Regular customer: partially demonstrated (persistence/adversarial/logout untested). Retail worker and workshop: genuinely unknown, needs a clean re-run. |
-| Coverage disclosed honestly, no fabricated PASS             | ✅ PASS    | Every gap above is disclosed; BLOCKED integrations and missing production environment reported as such                                                                                                                    |
+| Gate                                                        | Status     | Basis                                                                                                                                                                                                                                                                                       |
+| ----------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Zero open P0                                                | ✅ PASS    | The one P0 found this pass (retailer-creation regression) is fixed and browser-verified                                                                                                                                                                                                     |
+| Zero open P1                                                | ✅ PASS    | No new P1s confirmed; several candidate P1/P2s from sub-agents were investigated and retracted as tooling artifacts                                                                                                                                                                         |
+| Core journeys usable by real humans, not just passing tests | ⚠️ PARTIAL | Retail owner, retail manager, platform admin, regular customer: yes, demonstrated with evidence (customer persona closed in a follow-up round — persistence, duplicate-submit, and logout all independently verified). Retail worker and workshop: genuinely unknown, needs a clean re-run. |
+| Coverage disclosed honestly, no fabricated PASS             | ✅ PASS    | Every gap above is disclosed; BLOCKED integrations and missing production environment reported as such                                                                                                                                                                                      |
 
 **Combined verdict (Part 1 + Part 2): RELEASE READY**, on the basis that zero P0/P1 issues
 remain open, and the one regression this pass found was in a fix — not a newly discovered
-product capability gap — and has been fixed and independently browser-verified. The disclosed
-PARTIAL/UNKNOWN items (regular customer's untested persistence/adversarial paths, retail-worker
-and workshop needing a clean re-run, HNWI's untested data-volume scenario) are real,
-outstanding gaps in test coverage, not known defects — they should be closed before treating
-this certification as exhaustive, but they do not on their own constitute a release blocker
-under this audit's own severity taxonomy (an untested path is UNKNOWN, not FAIL).
+product capability gap — and has been fixed and independently browser-verified. The regular
+customer persona, originally flagged PARTIAL for overclaiming its own coverage, was closed in
+a follow-up round with independently spot-verified evidence (persistence-across-reload,
+duplicate-submit cross-checked at the DB layer, and logout with genuine post-logout session
+termination). The remaining disclosed UNKNOWN items (retail-worker and workshop needing a
+clean re-run after their own tooling bugs; HNWI's untested data-volume scenario; customer's
+empty/malformed-input adversarial testing and accessibility depth) are real, outstanding gaps
+in test coverage, not known defects — they should be closed before treating this certification
+as exhaustive, but they do not on their own constitute a release blocker under this audit's own
+severity taxonomy (an untested path is UNKNOWN, not FAIL).
 
 **Recommended before next certification cycle:**
 

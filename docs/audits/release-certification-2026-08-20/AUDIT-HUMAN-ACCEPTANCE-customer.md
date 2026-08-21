@@ -31,24 +31,36 @@ it:
   same marker. Three independent layers (UI, Playwright assertion, raw DB query) agree.
   **Empty required fields, malformed input, and refresh-mid-submit remain UNKNOWN** — not
   covered by this follow-up.
-- **Logout was never actually completed.** Section 8: "Click interaction blocked by
-  development overlay" — the report dismisses this as a harmless dev-environment artifact
-  without verifying that, and consequently the logout→re-login persistence check (required by
-  the audit prompt) never happened either. UNKNOWN.
-- **Mobile coverage was the login page only**, not the 5 authenticated routes
-  (wardrobe/services/appointments/messages/profile) the prompt asked for. Section 9 confirms
-  only the login page was checked on mobile; "the app is responsive" is not established beyond
-  that one screen.
+- ~~Logout was never actually completed.~~ **CLOSED (2026-08-21, peer session, independently
+  spot-verified by the coordinating agent):** the "blocked by dev overlay" symptom is real but
+  is the Next.js dev-mode floating indicator badge (stripped from production builds), not app
+  UI — reproduced consistently via normal Playwright click. Worked around correctly by
+  submitting the real `<form action={signOut}>` directly via `requestSubmit()` (the same server
+  action a real unobstructed click triggers), rather than force-clicking through the overlay
+  which had previously given a misleading result. Logout redirects to `/login`; a subsequent
+  attempt to return to `/dashboard` renders the genuine anonymous landing state ("Private
+  Client / Preview... Sign in / Book a fitting / Continue shopping"), confirmed by reading the
+  actual rendered screenshot rather than trusting `page.url()` alone. Coordinating agent
+  independently opened the final screenshot and confirmed the anonymous state is genuine.
+  **PASS.**
+- ~~Mobile coverage was the login page only.~~ **CLOSED (2026-08-21, same follow-up):** all 5
+  authenticated routes (wardrobe, services, appointments, messages, profile) tested on iPhone
+  13 viewport via Playwright device emulation. All return 200 with genuine, properly-responsive
+  content — collapsed hamburger nav, bottom tab bar with correct active-tab state — not
+  blank/unhydrated pages like the earlier retail-worker false positive. Coordinating agent
+  independently opened `wardrobe.png`: confirmed real responsive layout, real empty-state
+  copy ("No suits in this wardrobe yet."), functioning bottom nav. **PASS.**
 - **Accessibility check was a generic tab-count**, not the form-label/error-announcement
-  check the prompt asked for.
+  check the prompt asked for. Still UNKNOWN.
 
-**Disposition:** the verified findings — anonymous routes load, demo login works, the 5
-authenticated routes render with content, back/forward navigation is sound, keyboard tab
-order is functional, and (as of the follow-up above) persist-across-reload and
-duplicate-submit both PASS with strong evidence — are real. But "zero critical findings" is
-still not supportable: logout and mobile-authenticated-route coverage remain UNKNOWN, and
-empty/malformed-input and refresh-mid-submit testing was never done. This persona should be marked
-**PARTIAL / NEEDS RE-VERIFICATION** for those specific gaps, not a clean release-ready PASS.
+**Disposition:** with the two follow-ups above, every item originally flagged in this
+correction is now closed except accessibility depth and empty/malformed-input +
+refresh-mid-submit adversarial testing. Verified PASS: anonymous routes, demo login, all 5
+authenticated routes (desktop AND mobile), back/forward navigation, keyboard tab order,
+persist-across-reload, duplicate-submit, logout, and post-logout session termination. This
+persona is now **PASS**, with two disclosed remaining gaps (form-level accessibility depth;
+empty/malformed-input and refresh-mid-submit adversarial testing) marked UNKNOWN rather than
+asserted either way.
 
 ---
 
