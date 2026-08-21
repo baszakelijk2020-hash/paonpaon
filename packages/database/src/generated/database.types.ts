@@ -6267,6 +6267,45 @@ export type Database = {
           },
         ];
       };
+      error_events: {
+        Row: {
+          app: string;
+          context: Json;
+          created_at: string;
+          environment: string;
+          id: string;
+          level: string;
+          message: string;
+          request_id: string | null;
+          route: string | null;
+          stack: string | null;
+        };
+        Insert: {
+          app: string;
+          context?: Json;
+          created_at?: string;
+          environment: string;
+          id?: string;
+          level?: string;
+          message: string;
+          request_id?: string | null;
+          route?: string | null;
+          stack?: string | null;
+        };
+        Update: {
+          app?: string;
+          context?: Json;
+          created_at?: string;
+          environment?: string;
+          id?: string;
+          level?: string;
+          message?: string;
+          request_id?: string | null;
+          route?: string | null;
+          stack?: string | null;
+        };
+        Relationships: [];
+      };
       event_rsvps: {
         Row: {
           created_at: string;

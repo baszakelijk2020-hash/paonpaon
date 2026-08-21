@@ -11,6 +11,13 @@ const signInInputSchema = z.object({
   redirectTo: z.string().startsWith("/").optional(),
 });
 
+/** Seeded demo persona addresses (see packages/database/src/demo-seed.ts). */
+const DEMO_EMAIL_PATTERN = /^contact(\+[^@]+)?@nebelspiegel\.com$/i;
+
+const isRealProduction =
+  process.env["VERCEL_ENV"] === "production" ||
+  (!process.env["VERCEL_ENV"] && process.env.NODE_ENV === "production");
+
 export async function signIn(formData: FormData): Promise<void> {
   const parsed = signInInputSchema.safeParse({
     email: formData.get("email"),
@@ -20,6 +27,10 @@ export async function signIn(formData: FormData): Promise<void> {
 
   if (!parsed.success) {
     redirect("/login?error=invalid_input");
+  }
+
+  if (isRealProduction && DEMO_EMAIL_PATTERN.test(parsed.data.email)) {
+    redirect("/login?error=invalid_credentials");
   }
 
   const supabase = await getSupabaseServerClient();

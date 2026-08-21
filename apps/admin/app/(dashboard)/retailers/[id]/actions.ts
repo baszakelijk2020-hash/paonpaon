@@ -235,38 +235,84 @@ export async function cancelSubscription(
   return { saved: true };
 }
 
-export async function setRetailerStatus(formData: FormData): Promise<void> {
+export interface RetailerStatusActionState {
+  formError?: string;
+  saved?: boolean;
+}
+
+export async function setRetailerStatus(
+  _previous: RetailerStatusActionState,
+  formData: FormData,
+): Promise<RetailerStatusActionState> {
   requirePlatformOperator(await getSession());
   const retailerId = String(formData.get("retailerId") ?? "");
   const status = String(formData.get("status") ?? "");
   if (!retailerId || (status !== "active" && status !== "suspended")) {
-    return;
+    return { formError: "Invalid retailer ID or status." };
   }
-  await new RetailerRepository(await getSupabaseServerClient()).setStatus(
-    asId<"RetailerId">(retailerId),
-    status,
-  );
+
+  try {
+    await new RetailerRepository(await getSupabaseServerClient()).setStatus(
+      asId<"RetailerId">(retailerId),
+      status,
+    );
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not update retailer status.",
+    };
+  }
+
   revalidatePath(`/retailers/${retailerId}`);
   revalidatePath("/retailers");
+  return { saved: true };
 }
 
-export async function resendStaffInvite(formData: FormData): Promise<void> {
+export interface StaffInviteActionState {
+  formError?: string;
+  saved?: boolean;
+}
+
+export async function resendStaffInvite(
+  _previous: StaffInviteActionState,
+  formData: FormData,
+): Promise<StaffInviteActionState> {
   requirePlatformOperator(await getSession());
   const retailerId = String(formData.get("retailerId") ?? "");
   const staffId = String(formData.get("staffId") ?? "");
-  if (!retailerId || !staffId) return;
+  if (!retailerId || !staffId) {
+    return { formError: "Retailer and staff IDs are required." };
+  }
 
-  const supabase = await getSupabaseServerClient();
-  const staff = await new RetailerStaffRepository(supabase).findByRetailer(
-    asId<"RetailerId">(retailerId),
-  );
-  const member = staff.find((row) => row.id === staffId);
-  if (!member || member.acceptedAt) return;
+  try {
+    const supabase = await getSupabaseServerClient();
+    const staff = await new RetailerStaffRepository(supabase).findByRetailer(
+      asId<"RetailerId">(retailerId),
+    );
+    const member = staff.find((row) => row.id === staffId);
+    if (!member) {
+      return { formError: "Staff member not found." };
+    }
+    if (member.acceptedAt) {
+      return {
+        formError: "This staff member has already accepted their invite.",
+      };
+    }
 
-  const admin = getSupabaseAdminClient();
-  await admin.auth.admin.inviteUserByEmail(member.email, {
-    data: { full_name: member.fullName },
-    redirectTo: `${env.retailerAppUrl}/auth/confirm`,
-  });
+    const admin = getSupabaseAdminClient();
+    await admin.auth.admin.inviteUserByEmail(member.email, {
+      data: { full_name: member.fullName },
+      redirectTo: `${env.retailerAppUrl}/auth/confirm`,
+    });
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error ? error.message : "Could not resend invite.",
+    };
+  }
+
   revalidatePath(`/retailers/${retailerId}`);
+  return { saved: true };
 }

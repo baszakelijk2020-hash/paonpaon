@@ -1,10 +1,9 @@
 import { createSupabaseAdminClient } from "@paon/database";
 import { DEMO_PASSWORD, DEMO_PERSONA_LOGINS } from "@paon/database/demo-seed";
 import { Badge } from "@paon/ui/components/Badge";
-import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 
-import { setDemoLoginsActive } from "./actions";
+import { DemoLoginsForm } from "./demo-logins-form";
 import { DemoPersonaDirectory } from "./demo-persona-directory";
 import { SeedDemoDataForm } from "./seed-demo-data-form";
 
@@ -84,32 +83,7 @@ export default async function DemoModePage() {
               Only a platform owner can populate or toggle demo data.
             </p>
           )}
-          {isOwner && demoUsers.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              <form action={setDemoLoginsActive.bind(null, true)}>
-                <button
-                  type="submit"
-                  className={buttonVariants({
-                    variant: "outline",
-                    size: "sm",
-                  })}
-                >
-                  Activate logins
-                </button>
-              </form>
-              <form action={setDemoLoginsActive.bind(null, false)}>
-                <button
-                  type="submit"
-                  className={buttonVariants({
-                    variant: "ghost",
-                    size: "sm",
-                  })}
-                >
-                  Deactivate
-                </button>
-              </form>
-            </div>
-          ) : null}
+          {isOwner && demoUsers.length > 0 ? <DemoLoginsForm /> : null}
         </div>
       </Card>
 

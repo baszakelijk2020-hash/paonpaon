@@ -8,6 +8,16 @@ import { signIn } from "./actions";
 import { MasterDemoLogin } from "./master-demo-login";
 import { QuickDemoLogin } from "./quick-demo-login";
 
+/**
+ * Vercel sets VERCEL_ENV per deployment target (production/preview/
+ * development); NODE_ENV alone can't tell Preview apart from Production
+ * since Vercel Preview builds also report NODE_ENV=production. Falling
+ * back to NODE_ENV only applies off-Vercel (local dev, no VERCEL_ENV).
+ */
+const isRealProduction =
+  process.env["VERCEL_ENV"] === "production" ||
+  (!process.env["VERCEL_ENV"] && process.env.NODE_ENV === "production");
+
 const DEMO_PASSWORD = "Demo-PAON-2026!";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -49,10 +59,7 @@ export default async function LoginPage({
         </p>
       }
     >
-      {process.env.NODE_ENV !== "production" ||
-      process.env["NEXT_PUBLIC_DEMO_LOGIN"] === "1" ? (
-        <MasterDemoLogin redirectTo={redirectTo} />
-      ) : null}
+      {!isRealProduction ? <MasterDemoLogin redirectTo={redirectTo} /> : null}
       <form action={signIn} className="flex flex-col gap-5">
         {redirectTo ? (
           <input type="hidden" name="redirectTo" value={redirectTo} />
@@ -86,8 +93,7 @@ export default async function LoginPage({
           Enter the atelier
         </Button>
       </form>
-      {process.env.NODE_ENV !== "production" ||
-      process.env["NEXT_PUBLIC_DEMO_LOGIN"] === "1" ? (
+      {!isRealProduction ? (
         <Suspense fallback={null}>
           <QuickDemoLogin redirectTo={redirectTo} />
         </Suspense>
