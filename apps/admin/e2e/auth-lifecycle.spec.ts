@@ -187,8 +187,10 @@ test.describe("Auth Lifecycle", () => {
     console.warn(`Rate limiting active: ${hasRateLimitWarning}`);
   });
 
-  test.skip("wrong account type is rejected after login", // up as pending in test output instead of silently passing. // exists today. Skipped rather than a no-op assertion so this shows // Requires a non-platform user; only a platform_owner test fixture
-  async () => {});
+  // Requires a non-platform user; only a platform_owner test fixture exists
+  // today. Skipped rather than a no-op assertion so this shows up as
+  // pending in test output instead of silently passing.
+  test.skip("wrong account type is rejected after login", async () => {});
 
   test("middleware prevents unguarded access to protected routes", async ({
     page,
