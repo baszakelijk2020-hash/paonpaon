@@ -1,0 +1,47 @@
+[
+  {
+    "step": 1,
+    "type": "success",
+    "text": "Platform admin login successful (contact@nebelspiegel.com, role: platform_owner)"
+  },
+  {
+    "step": 2,
+    "type": "success",
+    "text": "Dashboard: \"The network, clearly in view\" - Shows 6 active retailers, 35 known clients, 35 orders, 4 open garments"
+  },
+  {
+    "step": 3,
+    "type": "success",
+    "text": "Retailer network page shows 6 operating houses and onboarding option"
+  },
+  {
+    "step": 4,
+    "type": "success",
+    "text": "Opened retailer onboarding form at /retailers/new"
+  },
+  {
+    "step": 4,
+    "type": "info",
+    "text": "All required form fields filled: retailer info, billing address with postal code, owner contact"
+  },
+  {
+    "step": 4,
+    "type": "P0",
+    "text": "RETAILER CREATION FAILURE - P0 CRITICAL: Runtime Error (code 42501) on form submission. Database authorization/permission error in RetailerForm component. Form fills all fields correctly but submission triggers 42501 permission error. UI-level test confirms API-level fix may be incomplete - error not manifested in API tests but appears in browser flow."
+  },
+  {
+    "step": 5,
+    "type": "success",
+    "text": "Daily briefing feature accessible - Platform morning brief shows health overview"
+  },
+  {
+    "step": 6,
+    "type": "info",
+    "text": "Mobile: Dashboard accessible, retailer network has navigation timeout"
+  },
+  {
+    "step": 7,
+    "type": "info",
+    "text": "Platform admin can access: network dashboard, retailer list, create retailers, daily briefing. No inappropriate cross-retailer data leakage observed."
+  }
+]

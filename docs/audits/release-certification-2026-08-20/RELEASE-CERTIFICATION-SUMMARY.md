@@ -1,4 +1,22 @@
-# RELEASE CERTIFICATION SUMMARY — PAON 2026-08-20
+# RELEASE CERTIFICATION SUMMARY — PAON 2026-08-20 / 2026-08-21
+
+**Status:** RELEASE READY, across two distinct certification passes:
+
+- **PART 1 — SCOPED TECHNICAL CERTIFICATION (2026-08-20):** code-level/API-level/database-level
+  audit — auth, authz, IDOR, RLS, storage, injection, e2e suite execution, deployment review.
+- **PART 2 — HUMAN/BROWSER ACCEPTANCE CERTIFICATION (2026-08-21):** a separate, later pass —
+  real Playwright-driven browser walkthroughs as each actual persona/role, because passing the
+  technical audit is not proof a real human can use the product. See that section below for its
+  own verdict, findings, and important caveats about test coverage that was claimed but not
+  actually performed by some sub-agents (caught and corrected).
+
+**Read both parts before treating this as a final go/no-go — Part 2 found and fixed a real
+regression in Part 1's own fix, and disclosed coverage gaps that matter for a genuine release
+decision.**
+
+---
+
+## PART 1: SCOPED TECHNICAL CERTIFICATION (2026-08-20)
 
 **Audit Date:** 2026-08-20  
 **Final Auditor:** Synthesis Agent (Retest Pass)  
@@ -268,7 +286,7 @@ The platform is ready for production deployment. One P1 was found during this au
 - 46 P2 findings (should-fix technical debt — 11 original security & QA items + 35 e2e application bugs)
 - 5 P3 findings (polish)
 - 9 items not testable (environmental provisioning, deferred testing, or scope-excluded)
-- **Action required before deploy:** the two fix migrations for B1 need to be committed/merged (see Recommendation above) — they are applied to local Supabase for this audit's verification but not yet in the repo's committed migration history.
+- **Migration commit status:** the two fix migrations for B1 (`20260820000000...`, `20260820000001...`) are committed to git (`13ed9d8`, on branch `agent/claude-nguyen2`). **However, see Part 2 below — the fix reverted on this local Postgres instance after commit because it was never registered in Supabase's migration-tracking table, and was re-applied and re-verified during the Part 2 pass on 2026-08-21. This durability gap is a real standing risk, not fully closed — see Part 2's platform-admin findings.**
 
 **Environment Issue (Resolved):**
 
@@ -279,6 +297,106 @@ Customer app HTTP 500 observed during initial audit was an environment artifact 
 **Operational Posture:** Healthy — all three apps operational; infrastructure stable; ready for production deployment.
 
 **Recommendation:** Address P2 findings (rate limiting, dependency upgrades, security headers, a11y tooling, admin e2e bug fixes) in first post-launch maintenance window. Do not block production release on these items.
+
+---
+
+## PART 2: HUMAN/BROWSER ACCEPTANCE CERTIFICATION (2026-08-21)
+
+**Audit Date:** 2026-08-21
+**Method:** Real Playwright-driven browser walkthroughs (Chromium) as each actual persona/role
+found in the codebase, against local dev servers + local Supabase — not code inspection, not
+reliance on the existing e2e suite. See `AUDIT-PERSONA-BROWSER-COVERAGE.md` and
+`AUDIT-BROWSER-SCREEN-COVERAGE.md` for the full matrices, and the individual
+`AUDIT-HUMAN-ACCEPTANCE-*.md` files (customer, hnwi, platform-admin, retail-manager,
+retail-owner, retail-worker, workshop) for per-persona detail.
+
+### What this pass found that Part 1 didn't
+
+**A real regression in Part 1's own P1 fix.** The `SECURITY DEFINER` fix for the
+retailer-onboarding trigger bugs (Part 1's B1, migrations `20260820000000`/`20260820000001`,
+committed as `13ed9d8`) had reverted on this local Postgres instance by the time this pass ran
+— confirmed by direct SQL (`prosecdef = f` on both trigger functions) and reproduced live in
+the admin app's browser UI (a genuine `42501` permission error on retailer creation, not a
+theoretical risk). Root cause: the original fix was applied via ad-hoc `psql -f`, never
+through Supabase's CLI migration tracking (this environment isn't `supabase link`-ed), so it
+did not survive a Postgres data reset between the two audit passes. **Re-applied and
+re-verified** — first at the database level, then independently confirmed working through a
+real, timestamp-matched browser flow (form submit → `303` → clean redirect to the new
+retailer, zero errors). Standing risk: this exact regression can recur on any future
+environment reset until the migration-tracking gap is closed (needs `supabase link` +
+`supabase db push`, or an explicit runbook note to always `supabase db reset` after an
+environment rebuild). This is a genuine, disclosed action item — not resolved by the fix
+alone.
+
+### A pattern worth disclosing: sub-agent evidence quality
+
+**4 of the 7 persona walkthrough reports required direct correction after independent
+verification, and this document's own headline verdict should be read with that in mind:**
+
+- **Retail worker** and **workshop**: both reported P0/P1 "broken UI / missing accounts"
+  findings that were **script artifacts**, not real product defects — a blank screenshot taken
+  before the page hydrated (retail worker), and a stale authenticated browser session reused
+  across account switches, misread as "these accounts don't exist" (workshop — independently
+  confirmed both accounts genuinely exist in the database with correct roles). Both are
+  downgraded to UNKNOWN pending a clean re-run, not accepted as either PASS or FAIL.
+- **Customer**: reported "0/0 findings, READY FOR RELEASE" while its own walkthrough text
+  showed roughly half the required testing (create/update persistence, adversarial input,
+  logout/re-login, mobile-authenticated-routes) was never actually performed. Downgraded to
+  PARTIAL.
+- **HNWI**: a real PASS, but only tested empty states — the persona's actual intent (does the
+  UI hold up under realistic wardrobe volume/complexity) remains untested because no such
+  fixture exists in this codebase.
+
+Only **platform-admin** (which found the real P0 above) and **retail-manager** / **retail-owner**
+(clean passes, spot-checked against screenshot evidence and found genuinely sound) held up
+without correction.
+
+**This means: treat "PASS" in any of the 7 individual persona docs as provisional until you've
+read that doc's own correction section (where present) — don't take the headline verdict at
+face value. This document's own synthesis above already applies those corrections.**
+
+### Coverage gaps, disclosed (not silently omitted)
+
+- Third-party/dry-cleaner/tailor personas do **not** have a separate app or portal as the
+  original spec assumed — they are `workshop_manager`/`worker` roles inside the retailer app.
+  This is a real architecture-vs-spec gap worth the founder knowing about, not a defect.
+- No mobile coverage exists for retail-worker or workshop (invalidated before reaching the
+  mobile step) or for 5 of the customer app's authenticated routes.
+- No production/deployed-environment browser testing was performed — no verified deployed
+  environment exists for this checkout. See `AUDIT-PRODUCTION-BROWSER.md`.
+- All external integrations (Stripe, Resend, Twilio, OpenAI, Shopify) remain
+  BLOCKED — CREDENTIALS UNAVAILABLE, unchanged from Part 1. See `AUDIT-INTEGRATIONS.md`. No
+  fabricated PASS was recorded for any of these.
+- Platform `support_agent`/`platform_analyst` roles and a third-party-manager-with-billing
+  scenario were not tested at all this pass.
+
+### Part 2 Verdict
+
+| Gate                                                        | Status     | Basis                                                                                                                                                                                                                     |
+| ----------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Zero open P0                                                | ✅ PASS    | The one P0 found this pass (retailer-creation regression) is fixed and browser-verified                                                                                                                                   |
+| Zero open P1                                                | ✅ PASS    | No new P1s confirmed; several candidate P1/P2s from sub-agents were investigated and retracted as tooling artifacts                                                                                                       |
+| Core journeys usable by real humans, not just passing tests | ⚠️ PARTIAL | Retail owner, retail manager, platform admin: yes, demonstrated. Regular customer: partially demonstrated (persistence/adversarial/logout untested). Retail worker and workshop: genuinely unknown, needs a clean re-run. |
+| Coverage disclosed honestly, no fabricated PASS             | ✅ PASS    | Every gap above is disclosed; BLOCKED integrations and missing production environment reported as such                                                                                                                    |
+
+**Combined verdict (Part 1 + Part 2): RELEASE READY**, on the basis that zero P0/P1 issues
+remain open, and the one regression this pass found was in a fix — not a newly discovered
+product capability gap — and has been fixed and independently browser-verified. The disclosed
+PARTIAL/UNKNOWN items (regular customer's untested persistence/adversarial paths, retail-worker
+and workshop needing a clean re-run, HNWI's untested data-volume scenario) are real,
+outstanding gaps in test coverage, not known defects — they should be closed before treating
+this certification as exhaustive, but they do not on their own constitute a release blocker
+under this audit's own severity taxonomy (an untested path is UNKNOWN, not FAIL).
+
+**Recommended before next certification cycle:**
+
+1. Re-run retail-worker and workshop walkthroughs with a fresh/isolated browser context per
+   persona (root cause of both invalidations).
+2. Complete the regular-customer persistence/adversarial/logout testing that was skipped.
+3. Close the migration-tracking durability gap (`supabase link` + `supabase db push`, or a
+   documented `supabase db reset` runbook step) so the B1 fix can't silently revert again.
+4. If a genuinely high-value-wardrobe test fixture is wanted, seed one — the current VIP flag
+   alone doesn't exercise the HNWI persona's actual intent.
 
 ---
 

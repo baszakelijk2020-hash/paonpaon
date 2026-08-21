@@ -1,0 +1,46 @@
+# PAON Human-Acceptance Audit — Persona/Browser Coverage Matrix
+
+**Date:** 2026-08-21
+**Method:** Playwright-driven browser walkthroughs (Chromium), local Supabase (:54321), 3 apps
+(admin :3010, retailer :3001, customer :3002). Every row below reflects the CORRECTED verdict
+after independent verification, not the raw agent output — see the individual
+`AUDIT-HUMAN-ACCEPTANCE-*.md` files for full detail and correction sections.
+
+| Persona                                                                                                      | Browser Walkthrough | Mobile          | Critical Journey                                                                                                                     | Visual            | Accessibility                                | Result                                                   | Evidence                                                                                        |
+| ------------------------------------------------------------------------------------------------------------ | ------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------- | -------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| Anonymous visitor                                                                                            | Y                   | N/A             | Public routes load                                                                                                                   | OK                | Not tested                                   | PASS                                                     | `AUDIT-HUMAN-ACCEPTANCE-customer.md`                                                            |
+| Regular customer                                                                                             | Y (partial)         | Y (login only)  | Login/nav verified; create/update, adversarial input, logout/re-login persistence NOT tested                                         | OK                | Generic tab-count only, not form-label check | **PARTIAL — needs re-verification**                      | `AUDIT-HUMAN-ACCEPTANCE-customer.md` (see CORRECTION)                                           |
+| HNWI/VIP customer (approximated via VIP-flagged fixture, no purpose-built large-wardrobe fixture exists)     | Y                   | Y               | Empty-state only — persona had 0 garments/services/messages; high-data-density scenario UNTESTED                                     | OK (empty states) | Not formally tested                          | PASS (empty-state), UNTESTED (data-volume)               | `AUDIT-HUMAN-ACCEPTANCE-hnwi.md`                                                                |
+| Platform admin / operator                                                                                    | Y                   | Y               | Retailer creation: FAILED then FIXED then browser-reverified                                                                         | OK                | Not tested                                   | **PASS (P0 resolved)**                                   | `AUDIT-HUMAN-ACCEPTANCE-platform-admin.md`                                                      |
+| Retail worker (sales associate, trained)                                                                     | N (invalidated)     | N (invalidated) | Login PASS; dashboard/search/nav findings are a script artifact (blank pre-hydration screenshot), not real product state             | Not verified      | Not tested                                   | **UNKNOWN — needs re-run**                               | `AUDIT-HUMAN-ACCEPTANCE-retail-worker.md` (see CORRECTION)                                      |
+| Retail worker (lazy/adversarial pass)                                                                        | Y                   | N/A             | Back/forward, refresh-mid-workflow, concurrent-tab edit — all PASS                                                                   | N/A               | N/A                                          | PASS                                                     | `AUDIT-HUMAN-ACCEPTANCE-retail-worker.md` Part B (unaffected by the correction)                 |
+| Retail manager                                                                                               | Y                   | Y               | Staff/customer visibility, permission-boundary test (correctly denied owner/admin routes)                                            | OK                | Not tested                                   | PASS, 0 P0/P1                                            | `AUDIT-HUMAN-ACCEPTANCE-retail-manager.md`                                                      |
+| Retail owner (buyer-acceptance)                                                                              | Y                   | Y               | Full onboarding→operations→settings walkthrough; 1 minor P2 (staff-invite button discoverability)                                    | OK                | Not tested                                   | PASS, 0 P0/P1                                            | `AUDIT-HUMAN-ACCEPTANCE-retail-owner.md`                                                        |
+| Third-party service provider (workshop_manager / worker — no separate app exists, they use the retailer app) | N (invalidated)     | N/A             | Login findings are a script artifact (stale session reused across account switches); accounts independently confirmed to exist in DB | Not verified      | Not tested                                   | **UNKNOWN — needs re-run with isolated browser context** | `AUDIT-HUMAN-ACCEPTANCE-workshop.md` (see CORRECTION); static role/RLS wiring confirmed correct |
+| Third-party service manager                                                                                  | —                   | —               | Same role model as above (workshop_manager IS the manager role) — not a separate persona in this codebase                            | —                 | —                                            | Covered by workshop row                                  | `AUDIT-HUMAN-ACCEPTANCE-workshop.md`                                                            |
+| Platform support/analyst roles (`support_agent`, `platform_analyst`)                                         | N                   | N               | Not tested this pass                                                                                                                 | —                 | —                                            | UNKNOWN                                                  | Not covered — out of scope this pass                                                            |
+| Dry cleaner / alteration shop as a genuinely separate org type                                               | N/A                 | N/A             | Confirmed not to exist as designed — see workshop doc's architecture note                                                            | —                 | —                                            | N/A (spec assumption invalid)                            | `AUDIT-HUMAN-ACCEPTANCE-workshop.md`                                                            |
+
+## Summary
+
+- **7 of ~13 spec-named personas mapped to real, distinct accounts/roles in this codebase** and
+  walked through in a browser this pass. The spec's persona list is aspirational in places —
+  "third-party service manager" and "dry cleaner" are not separate roles/apps in the actual
+  implementation; they collapse into the `workshop_manager`/`worker` roles inside the retailer
+  app. This is documented, not silently assumed.
+- **2 of 7 completed walkthroughs (retail-worker desktop/mobile content findings, workshop login)
+  were invalidated by agent-tooling bugs** (blank pre-hydration screenshots; stale browser
+  session reused across account switches) and need a clean re-run before their specific claims
+  can be trusted either way.
+- **1 walkthrough (regular customer) is partial** — core navigation is verified, but persistence,
+  adversarial input, and logout/re-login were never actually tested despite the original report
+  claiming a clean pass.
+- **1 walkthrough (HNWI) only exercised empty states** — no fixture with realistic wardrobe
+  volume exists in this codebase, so the actual intent of the HNWI persona (does the UI hold up
+  under real data density) remains genuinely untested.
+- **1 real P0 was found and fixed** during this pass (platform-admin retailer creation) — see
+  `RELEASE-BLOCKERS.md` for the full trail; it is the same underlying bug as the earlier B1
+  finding, which had reverted due to a local-environment durability gap, now re-applied and
+  browser-verified.
+- Platform support/analyst roles and a dedicated third-party-manager-with-billing-visibility
+  scenario were not tested at all this pass — reported as UNKNOWN, not silently omitted.
