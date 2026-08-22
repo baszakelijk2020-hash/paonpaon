@@ -15,6 +15,19 @@ env:
   TURBO_TELEMETRY_DISABLED: 1
 
 jobs:
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_ENABLE_SUMMARY: false
+
   verify:
     name: Lint, typecheck, test, build
     runs-on: ubuntu-latest
@@ -89,6 +102,29 @@ jobs:
           VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
           REPO_ID: "1311595139"
         run: bash scripts/vercel-create-production-deploy.sh "${{ matrix.app }}" "${{ matrix.project_id }}"
+
+  # Post-deploy production release gate (ADR pending, 2026-08-22
+  # incident). Verifies the three LIVE production domains actually
+  # serve their own app — not another app's stale/leaked build — every
+  # time main deploys. This is the permanent safety net; do not remove
+  # without replacing it with an equivalent check.
+  production-gate:
+    name: Production release gate
+    needs: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Run production gate
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+        run: pnpm test:production
 
   # Manual-trigger only, deliberately (2026-07-27).
   #

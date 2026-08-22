@@ -17,7 +17,7 @@
     "validate:completion": "tsx scripts/validate-completion-evidence.ts"
   },
   "dependencies": {
-    "xlsx": "^0.18.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^3.24.1"
   },
   "devDependencies": {
