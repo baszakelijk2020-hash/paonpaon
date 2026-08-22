@@ -26,7 +26,11 @@
     "paon:run:test": "bash scripts/paon-runner.test.sh",
     "paon:start": "bash scripts/paon-session.sh start",
     "paon:status": "bash scripts/paon-session.sh status",
-    "paon:stop": "bash scripts/paon-session.sh stop"
+    "paon:stop": "bash scripts/paon-session.sh stop",
+    "test:production": "node scripts/production-gate/run.mjs",
+    "predeploy:customer": "node scripts/production-gate/preflight.mjs customer",
+    "predeploy:retailer": "node scripts/production-gate/preflight.mjs retailer",
+    "predeploy:admin": "node scripts/production-gate/preflight.mjs admin"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
@@ -42,5 +46,13 @@
     "*.{ts,tsx,js,jsx,json,md,mdx,css}": [
       "prettier --write"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": ">=8.5.23",
+      "js-yaml": ">=4.3.1",
+      "nanoid": ">=3.3.18",
+      "sharp": ">=0.35.0"
+    }
   }
 }
