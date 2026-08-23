@@ -82,3 +82,13 @@ next-env.d.ts
 # `env_key` instead of an env-var name (seen in practice, not a
 # hypothetical) — never let it be committable.
 .codex/
+
+# Playwright MCP session cache (screenshots/console logs from ad-hoc
+# manual browsing) and MCP-installed skill snapshots — machine-local
+# tooling state, never source.
+.playwright-mcp/
+.agents/
+
+# Ad-hoc root-level verification screenshots dropped by manual browser
+# checks — not tracked evidence (that lives under docs/evidence/).
+/*.png

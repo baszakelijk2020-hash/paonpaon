@@ -1,0 +1,16 @@
+docs
+scratchpad
+.agents
+.playwright-mcp
+run_tests.sh
+downloaded_pages
+image.png
+apps/admin
+apps/retailer
+supabase/migrations
+supabase/rehearsals
+supabase/tests
+node_modules
+.git
+.next
+.turbo
