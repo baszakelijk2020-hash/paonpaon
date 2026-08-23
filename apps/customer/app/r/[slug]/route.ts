@@ -364,12 +364,13 @@ export async function GET(
   const activeProducts = allProducts.filter((p) => p.status === "active");
   const collectionNameById = new Map(collections.map((c) => [c.id, c.name]));
 
-  const productsWithVariants = await Promise.all(
-    activeProducts.map(async (product) => {
-      const variants = await variantRepo.findByProduct(product.id);
-      return { product, variants };
-    }),
+  const variantsByProduct = await variantRepo.findByProducts(
+    activeProducts.map((product) => product.id),
   );
+  const productsWithVariants = activeProducts.map((product) => ({
+    product,
+    variants: variantsByProduct.get(product.id) ?? [],
+  }));
 
   const knowledgeByProduct = await loadStorefrontKnowledgeByProduct(
     supabase,

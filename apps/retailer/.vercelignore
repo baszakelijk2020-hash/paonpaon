@@ -7,7 +7,7 @@ run_tests.sh
 downloaded_pages
 *.png
 apps/admin
-apps/retailer
+apps/customer
 supabase/migrations
 supabase/rehearsals
 supabase/tests
@@ -18,3 +18,7 @@ node_modules
 .vscode
 .env
 .env.local
+.env.production
+.env.production.local
+.env.development.local
+!.env.example

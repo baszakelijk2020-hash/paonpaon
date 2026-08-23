@@ -114,6 +114,41 @@ export class ProductVariantRepository {
     return data.map(toDomain);
   }
 
+  /**
+   * Batch form of `findByProduct` — one round trip for many products
+   * instead of one per product, for pages that render a full catalogue
+   * (e.g. the storefront) where an N+1 query pattern otherwise dominates
+   * response time.
+   */
+  async findByProducts(
+    productIds: readonly ProductId[],
+  ): Promise<Map<ProductId, ProductVariant[]>> {
+    const byProduct = new Map<ProductId, ProductVariant[]>();
+    if (productIds.length === 0) return byProduct;
+
+    const { data, error } = await this.client
+      .from("product_variants")
+      .select("*")
+      .in("product_id", productIds)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    for (const row of data) {
+      const variant = toDomain(row);
+      const list = byProduct.get(variant.productId);
+      if (list) {
+        list.push(variant);
+      } else {
+        byProduct.set(variant.productId, [variant]);
+      }
+    }
+    return byProduct;
+  }
+
   async findById(id: ProductVariantId): Promise<ProductVariant | null> {
     const { data, error } = await this.client
       .from("product_variants")

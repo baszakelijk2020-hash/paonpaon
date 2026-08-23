@@ -2,12 +2,18 @@
 
 import { requirePlatformOperator } from "@paon/auth";
 import {
+  PlatformModuleRepository,
   RetailerRepository,
   RetailerStaffRepository,
   SlugAlreadyExistsError,
   StaffEmailAlreadyInvitedError,
 } from "@paon/database";
-import { asId, createRetailerInputSchema, type UserId } from "@paon/domain";
+import {
+  asId,
+  createRetailerInputSchema,
+  PLATFORM_MODULE_KEYS,
+  type UserId,
+} from "@paon/domain";
 import { stripUndefined } from "@paon/utils";
 import { redirect } from "next/navigation";
 
@@ -113,6 +119,26 @@ export async function createRetailer(
     }
     throw error;
   }
+
+  // Without this, the retailer has zero active modules and every core
+  // screen (Clients, Appointments, Orders, ...) throws immediately on
+  // first login — the module gate in requireModuleSession has no
+  // fallback. New retailers get the full module set active by default,
+  // matching every existing retailer's configuration; an owner can turn
+  // specific modules off later from Settings.
+  const moduleRepo = new PlatformModuleRepository(admin);
+  await Promise.all(
+    PLATFORM_MODULE_KEYS.map((moduleKey) =>
+      moduleRepo.configure({
+        retailerId: asId<"RetailerId">(retailerId),
+        moduleKey,
+        state: "active",
+        authorityMode: moduleKey === "platform_core" ? "paon" : "co_managed",
+        source: "override",
+        reason: "Default onboarding module set",
+      }),
+    ),
+  );
 
   redirect(`/retailers/${retailerId}`);
 }

@@ -28,12 +28,18 @@ function redirectWithCookies(url: URL, from: NextResponse): NextResponse {
   return to;
 }
 
+const PWA_METADATA_PATHS = ["/manifest.webmanifest", "/icon", "/apple-icon"];
+
 export async function middleware(request: NextRequest) {
   if (
     SERVER_TO_SERVER_PATH_PREFIXES.some((prefix) =>
       request.nextUrl.pathname.startsWith(prefix),
     )
   ) {
+    return NextResponse.next({ request });
+  }
+
+  if (PWA_METADATA_PATHS.includes(request.nextUrl.pathname)) {
     return NextResponse.next({ request });
   }
 
@@ -91,5 +97,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   // fonts/ excluded: the same-origin font proxy is a public static
   // asset a logged-out browser must be able to fetch for @font-face.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|fonts/).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|fonts/|manifest.webmanifest|icon).*)",
+  ],
 };

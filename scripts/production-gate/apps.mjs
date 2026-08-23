@@ -22,8 +22,8 @@ export const APPS = {
     // bug fails loudly without false-positiving on normal copy.
     mustNotContain: ["Staff access", "Platform staff"],
     // A route the live storefront must actually serve (public by design).
-    publicSmokePath: "/r/atelier-demo",
-    publicSmokeMustContain: ["Atelier Demo"],
+    publicSmokePath: "/r/hall-madden",
+    publicSmokeMustContain: ["Hall Madden"],
   },
   retailer: {
     projectId: "prj_z2yJPrlzEyOBhkStN4cf9fCi1bEg",
@@ -36,7 +36,7 @@ export const APPS = {
     mustNotContain: ["Private client", "Platform staff"],
     // Demo-login backdoor regression guard (2026-08-22 incident): this
     // text must NEVER render on a real production build.
-    mustNotContainProd: ["Demo login", "DEV ONLY", "QUICK PERSONA LOGIN"],
+    mustNotContainProd: ["Demo login", "Dev only", "quick persona login"],
     // A route that requires a session — unauthenticated GET must bounce
     // to /login, never render dashboard content.
     protectedPath: "/dashboard",

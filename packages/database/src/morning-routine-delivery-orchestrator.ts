@@ -64,10 +64,18 @@ export async function orchestrateMorningRoutineDeliveries(
         subscription.customerId,
         forDate,
       );
-      const latest = await selectionRepo.findLatestForCustomerDay(
+      const latestUnscoped = await selectionRepo.findLatestForCustomerDay(
         subscription.customerId,
         forDate,
       );
+      // This orchestrator runs with a service-role client, which bypasses RLS,
+      // and findLatestForCustomerDay() has no app-level retailer filter —
+      // verify ownership here so a selection cannot cross a retailer boundary.
+      const latest =
+        latestUnscoped &&
+        latestUnscoped.selection.retailerId === subscription.retailerId
+          ? latestUnscoped
+          : null;
 
       const eligibleIds = await deliveryRepo.listActiveEligibleProductIds(
         subscription.retailerId,

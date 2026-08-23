@@ -6,7 +6,7 @@ scratchpad
 run_tests.sh
 downloaded_pages
 *.png
-apps/admin
+apps/customer
 apps/retailer
 supabase/migrations
 supabase/rehearsals
@@ -18,3 +18,7 @@ node_modules
 .vscode
 .env
 .env.local
+.env.production
+.env.production.local
+.env.development.local
+!.env.example
