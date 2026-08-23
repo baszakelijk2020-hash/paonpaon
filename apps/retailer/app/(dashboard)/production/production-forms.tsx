@@ -1,6 +1,5 @@
 "use client";
 
-import type { PieceKind } from "@paon/domain";
 import { PIECE_KINDS } from "@paon/domain";
 import { Button } from "@paon/ui/components/Button";
 import { FormField } from "@paon/ui/components/FormField";
