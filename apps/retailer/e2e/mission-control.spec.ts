@@ -71,8 +71,7 @@ test.describe.serial("mission control", () => {
     });
 
     const startsAt = new Date();
-    startsAt.setMinutes(0, 0, 0);
-    startsAt.setHours(startsAt.getHours() + 1);
+    startsAt.setHours(14, 0, 0, 0);
     const endsAt = new Date(startsAt.getTime() + 30 * 60_000);
 
     const appointment = await new AppointmentRepository(admin).create({

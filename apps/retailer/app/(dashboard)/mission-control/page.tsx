@@ -33,7 +33,7 @@ import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 const DAY_START_HOUR = 8;
-const DAY_END_HOUR = 20;
+const DAY_END_HOUR = 22;
 const MESSAGE_ACTION_HREF_PATTERN = /^\/messages\?c=([0-9a-f-]+)$/;
 
 const STATUS_TONE: Record<
