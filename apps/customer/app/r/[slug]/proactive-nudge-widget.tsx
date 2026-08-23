@@ -30,6 +30,35 @@ export function ProactiveNudgeWidget({
 }) {
   const [isVisible, setIsVisible] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isHidden, setIsHidden] = useState(false);
+
+  // Hide floating widgets when actionable panels open to prevent covering
+  // their interactive controls (filter panel, product detail, etc.).
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const classes = document.body.className;
+      const shouldHide =
+        classes.includes("filter-active") ||
+        classes.includes("product-detail-open") ||
+        classes.includes("filter-closing");
+      setIsHidden(shouldHide);
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    // Check initial state
+    const classes = document.body.className;
+    const shouldHide =
+      classes.includes("filter-active") ||
+      classes.includes("product-detail-open") ||
+      classes.includes("filter-closing");
+    setIsHidden(shouldHide);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!initialNudge) return;
@@ -66,9 +95,11 @@ export function ProactiveNudgeWidget({
 
   return (
     <div
-      className={`fixed bottom-28 right-5 z-40 flex flex-col items-end gap-2 transition-transform duration-500 ease-out ${
-        isVisible ? "translate-y-0" : "translate-y-full"
-      }`}
+      className={`fixed bottom-28 right-5 z-40 flex flex-col items-end gap-2 transition-all duration-500 ease-out ${
+        isVisible && !isHidden
+          ? "translate-y-0 opacity-100"
+          : "translate-y-full opacity-0"
+      } ${isHidden ? "pointer-events-none" : "pointer-events-auto"}`}
     >
       <div className="w-[min(23.5rem,calc(100vw-2.5rem))] overflow-hidden rounded-[10px] bg-white p-4 shadow-[var(--shadow-elevated)]">
         <div className="space-y-2">
