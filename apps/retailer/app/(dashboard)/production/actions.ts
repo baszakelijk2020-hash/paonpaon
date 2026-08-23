@@ -32,20 +32,24 @@ async function resolveActingStaff() {
   return { session, supabase, staff };
 }
 
-export async function createSpec(formData: FormData): Promise<void> {
+export async function createSpec(
+  _previous: ProductionActionState,
+  formData: FormData,
+): Promise<ProductionActionState> {
   const { session, supabase } = await resolveActingStaff();
   const orderId = String(formData.get("orderId") ?? "").trim();
 
   const order = await new OrderRepository(supabase).findById(orderId as never);
-  if (!order) throw new Error("Order not found.");
+  if (!order) return { formError: "Order not found." };
 
   const version = await new MeasurementMonitorRepository(
     supabase,
   ).latestApprovedVersion({ customerId: order.customerId });
   if (!version) {
-    throw new Error(
-      "This client has no approved measurements yet — approve a measurement version first.",
-    );
+    return {
+      formError:
+        "This client has no approved measurements yet — approve a measurement version first.",
+    };
   }
 
   await new ProductionPieceRepository(supabase).createSpec({
@@ -55,9 +59,13 @@ export async function createSpec(formData: FormData): Promise<void> {
     measurementVersionId: version.id,
   });
   revalidatePath("/production");
+  return { notice: "Spec created." };
 }
 
-export async function addPiece(formData: FormData): Promise<void> {
+export async function addPiece(
+  _previous: ProductionActionState,
+  formData: FormData,
+): Promise<ProductionActionState> {
   const { session, supabase } = await resolveActingStaff();
   const specId = String(formData.get("specId") ?? "").trim();
   const pieceKind = String(formData.get("pieceKind") ?? "") as PieceKind;
@@ -70,16 +78,16 @@ export async function addPiece(formData: FormData): Promise<void> {
     retailerId: session.retailerId,
   });
   const spec = specs.find((s) => s.id === specId);
-  if (!spec) throw new Error("Spec not found.");
+  if (!spec) return { formError: "Spec not found." };
 
   const order = await new OrderRepository(supabase).findById(
     spec.order_id as never,
   );
-  if (!order) throw new Error("Order not found.");
+  if (!order) return { formError: "Order not found." };
   const retailer = await new RetailerRepository(supabase).findById(
     session.retailerId,
   );
-  if (!retailer) throw new Error("Retailer not found.");
+  if (!retailer) return { formError: "Retailer not found." };
 
   await repo.addPiece({
     retailerId: session.retailerId,
@@ -92,6 +100,7 @@ export async function addPiece(formData: FormData): Promise<void> {
     ...(promisedOn ? { promisedOn } : {}),
   });
   revalidatePath("/production");
+  return { notice: "Piece added." };
 }
 
 const STAGE_REJECTION_MESSAGES: Record<string, string> = {
@@ -158,7 +167,7 @@ export async function amendSpec(
   const repo = new ProductionPieceRepository(supabase);
   const pieces = await repo.findPiecesBySpec(specId);
   const piece = pieces.find((p) => p.id === pieceId);
-  if (!piece) throw new Error("Piece not found.");
+  if (!piece) return { formError: "Piece not found." };
 
   const result = await repo.amendSpec({
     retailerId: session.retailerId,
@@ -180,7 +189,10 @@ export async function amendSpec(
   return { notice: "Amendment recorded." };
 }
 
-export async function issueWorkTicket(formData: FormData): Promise<void> {
+export async function issueWorkTicket(
+  _previous: ProductionActionState,
+  formData: FormData,
+): Promise<ProductionActionState> {
   const { session, supabase } = await resolveActingStaff();
   const pieceId = String(formData.get("pieceId") ?? "").trim();
   const instructions = String(formData.get("instructions") ?? "").trim();
@@ -196,6 +208,7 @@ export async function issueWorkTicket(formData: FormData): Promise<void> {
     ...(outworkerReference ? { outworkerReference } : {}),
   });
   revalidatePath("/production");
+  return { notice: "Ticket issued." };
 }
 
 /**
@@ -205,8 +218,9 @@ export async function issueWorkTicket(formData: FormData): Promise<void> {
  * second, parallel one. Moves no money.
  */
 export async function raiseDelayServiceRecovery(
+  _previous: ProductionActionState,
   formData: FormData,
-): Promise<void> {
+): Promise<ProductionActionState> {
   const { session, staff, supabase } = await resolveActingStaff();
   const pieceId = String(formData.get("pieceId") ?? "").trim();
   const daysLate = Number(formData.get("daysLate") ?? 0);
@@ -216,12 +230,12 @@ export async function raiseDelayServiceRecovery(
     retailerId: session.retailerId,
   });
   const piece = pieces.find((p) => p.id === pieceId);
-  if (!piece) throw new Error("Piece not found.");
+  if (!piece) return { formError: "Piece not found." };
 
   const order = await new OrderRepository(supabase).findById(
     piece.order_id as never,
   );
-  if (!order) throw new Error("Order not found.");
+  if (!order) return { formError: "Order not found." };
 
   const result = await new InternalCommunityRepository(
     supabase,
@@ -235,8 +249,9 @@ export async function raiseDelayServiceRecovery(
     customerId: order.customerId,
   });
   if (!result.ok) {
-    throw new Error("That could not be recorded.");
+    return { formError: "That could not be recorded." };
   }
 
   revalidatePath("/production");
+  return { notice: "Service recovery request submitted." };
 }

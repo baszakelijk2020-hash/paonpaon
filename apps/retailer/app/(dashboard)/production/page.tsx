@@ -3,21 +3,19 @@ import {
   ProductionPieceRepository,
   RetailerStaffRepository,
 } from "@paon/database";
-import { PIECE_KINDS } from "@paon/domain";
 import { Badge } from "@paon/ui/components/Badge";
 import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
-import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
-import { Select } from "@paon/ui/components/Select";
 
 import {
-  addPiece,
-  createSpec,
-  issueWorkTicket,
-  raiseDelayServiceRecovery,
-} from "./actions";
-import { AmendSpecForm, TransitionStageForm } from "./production-forms";
+  AddPieceForm,
+  AmendSpecForm,
+  CreateSpecForm,
+  IssueWorkTicketForm,
+  RaiseServiceRecoveryForm,
+  TransitionStageForm,
+} from "./production-forms";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -137,63 +135,26 @@ export default async function ProductionPage({
         <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
           Start a production spec
         </h2>
-        <form action={createSpec} className="mt-3 flex flex-col gap-4">
-          <FormField label="Order" htmlFor="orderId">
-            <Select id="orderId" name="orderId" required>
-              {orders.map((order) => (
-                <option key={order.id} value={order.id}>
-                  {order.orderNumber}
-                </option>
-              ))}
-            </Select>
-          </FormField>
-          <div>
-            <Button type="submit">Create spec</Button>
-          </div>
-        </form>
+        <CreateSpecForm
+          orders={orders.map((o) => ({
+            id: o.id as string,
+            orderNumber: o.orderNumber,
+          }))}
+        />
       </Card>
 
       <Card>
         <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
           Add a piece
         </h2>
-        <form action={addPiece} className="mt-3 flex flex-col gap-4">
-          <FormField label="Spec" htmlFor="specId">
-            <Select id="specId" name="specId" required>
-              {specs.map((spec) => (
-                <option key={spec.id} value={spec.id}>
-                  {orderNumberById.get(spec.order_id) ?? spec.order_id} (v
-                  {spec.version})
-                </option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField label="Piece" htmlFor="pieceKind">
-            <Select id="pieceKind" name="pieceKind" required>
-              {PIECE_KINDS.map((kind) => (
-                <option key={kind} value={kind}>
-                  {kind}
-                </option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField label="Sequence" htmlFor="pieceSequence">
-            <Input
-              id="pieceSequence"
-              name="pieceSequence"
-              type="number"
-              min={1}
-              defaultValue={1}
-              required
-            />
-          </FormField>
-          <FormField label="Promised on (optional)" htmlFor="promisedOn">
-            <Input id="promisedOn" name="promisedOn" type="date" />
-          </FormField>
-          <div>
-            <Button type="submit">Add piece</Button>
-          </div>
-        </form>
+        <AddPieceForm
+          specs={specs.map((s) => ({
+            id: s.id as string,
+            orderNumber:
+              orderNumberById.get(s.order_id) ?? (s.order_id as string),
+            version: s.version,
+          }))}
+        />
       </Card>
 
       <Card>
@@ -267,36 +228,12 @@ export default async function ProductionPage({
         <h2 className="text-sm font-medium text-[var(--color-stone-900)]">
           Outworker tickets
         </h2>
-        <form action={issueWorkTicket} className="mt-3 flex flex-col gap-4">
-          <FormField label="Piece" htmlFor="ticketPieceId">
-            <Select id="ticketPieceId" name="pieceId" required>
-              {[...piecesBySpec.values()].flat().map((piece) => (
-                <option key={piece.id} value={piece.id}>
-                  {piece.barcode}
-                </option>
-              ))}
-            </Select>
-          </FormField>
-          <FormField label="Instructions" htmlFor="instructions">
-            <Input id="instructions" name="instructions" type="text" required />
-          </FormField>
-          <FormField label="Due on" htmlFor="dueOn">
-            <Input id="dueOn" name="dueOn" type="date" required />
-          </FormField>
-          <FormField
-            label="Outworker reference (optional)"
-            htmlFor="outworkerReference"
-          >
-            <Input
-              id="outworkerReference"
-              name="outworkerReference"
-              type="text"
-            />
-          </FormField>
-          <div>
-            <Button type="submit">Issue ticket</Button>
-          </div>
-        </form>
+        <IssueWorkTicketForm
+          pieces={[...piecesBySpec.values()].flat().map((p) => ({
+            id: p.id as string,
+            barcode: p.barcode,
+          }))}
+        />
         <ul className="mt-4 flex flex-col gap-3 border-t border-[var(--color-stone-100)] pt-4">
           {ticketViews.length === 0 ? (
             <p className="text-sm text-[var(--color-stone-500)]">
@@ -347,13 +284,13 @@ export default async function ProductionPage({
                   ) : null}
                 </p>
                 {requiresServiceRecovery ? (
-                  <form action={raiseDelayServiceRecovery}>
-                    <input type="hidden" name="pieceId" value={piece.id} />
-                    <input type="hidden" name="daysLate" value={daysLate} />
-                    <Button type="submit" size="sm" variant="outline">
-                      Raise service recovery
-                    </Button>
-                  </form>
+                  <RaiseServiceRecoveryForm
+                    piece={{
+                      id: piece.id as string,
+                      barcode: piece.barcode,
+                      daysLate,
+                    }}
+                  />
                 ) : null}
               </li>
             ))}
