@@ -9,6 +9,24 @@ declare global {
   }
 }
 
+// paonShowFixedBanner's second argument is rendered via innerHTML (it also
+// carries real markup, e.g. a sign-in link, from other call sites) — escape
+// anything that isn't a literal in this file, since data.error here can
+// echo a caught exception's message from the API.
+function escapeHtml(value: string): string {
+  return value.replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char]!,
+  );
+}
+
 /**
  * Closes the loop the storefront template opens when a guest hits "Add
  * to Bag" — no guest-cart schema exists (see docs/PHASE.md), so the
@@ -62,7 +80,7 @@ export function GuestCartRecovery({ slug }: { slug: string }) {
           .then((data) => {
             const errorMsg =
               data && data.error
-                ? data.error
+                ? escapeHtml(String(data.error))
                 : "Failed to add your saved item to the cart. Please try again.";
             if (typeof window.paonShowFixedBanner === "function") {
               window.paonShowFixedBanner(

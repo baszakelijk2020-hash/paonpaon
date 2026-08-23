@@ -15201,6 +15201,15 @@ requestAnimationFrame(fixFeedImages);
    call the real cart Server Action instead of the original's decorative
    modal (see the added check at the top of openModal()). */
 (function () {
+    // paonShowFixedBanner renders via innerHTML (some call sites pass real
+    // markup, e.g. a sign-in link) — escape any server-provided text before
+    // passing it in, since it can echo a caught exception's message.
+    function paonEscapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
     function paonShowFixedBanner(id, html) {
         var banner = document.getElementById(id);
         if (banner) return;
@@ -15247,7 +15256,7 @@ requestAnimationFrame(fixFeedImages);
             }
             // Handle non-2xx error responses (400, 403, 404, 5xx, etc.)
             res.json().then(function(data) {
-                var errorMsg = (data && data.error) ? data.error : 'Failed to add item to cart. Please try again.';
+                var errorMsg = (data && data.error) ? paonEscapeHtml(data.error) : 'Failed to add item to cart. Please try again.';
                 paonShowFixedBanner('paon-cart-error-banner', errorMsg);
             }).catch(function() {
                 paonShowFixedBanner('paon-cart-error-banner', 'Failed to add item to cart. Please try again.');
