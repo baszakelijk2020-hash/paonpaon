@@ -1,5 +1,8 @@
 import { createSupabaseAdminClient } from "@paon/database";
-import { DEMO_PASSWORD, DEMO_PERSONA_LOGINS } from "@paon/database/demo-seed";
+import {
+  DEMO_CANONICAL_PERSONAS,
+  DEMO_PASSWORD,
+} from "@paon/database/demo-seed";
 import { Badge } from "@paon/ui/components/Badge";
 import { buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
@@ -27,7 +30,7 @@ export default async function DemoModePage() {
   ).length;
   const isOwner = session.platformRole === "platform_owner";
   const customerAppUrl = env.customerAppUrl ?? "http://localhost:3002";
-  const personas = DEMO_PERSONA_LOGINS.map((persona) => ({
+  const personas = DEMO_CANONICAL_PERSONAS.map((persona) => ({
     ...persona,
     href:
       persona.app === "admin"
@@ -48,10 +51,9 @@ export default async function DemoModePage() {
             Seed data
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
-            Enter PAON as every operating persona. The seed provides two
-            image-rich retailers, relationship history, live appointments,
-            messages, workshop assignments, events and wedding-party
-            coordination.
+            Open the one canonical persona for each active showcase role. Maison
+            Dubois is the shared journey tenant; other seeded records support
+            fixture coverage and are not demo launcher identities.
           </p>
         </div>
         <div className="rounded-[var(--radius-lg)] bg-[var(--color-stone-900)] px-5 py-4 text-white">
@@ -118,8 +120,9 @@ export default async function DemoModePage() {
           Choose a perspective
         </h2>
         <p className="mt-1 text-sm text-[var(--color-stone-500)]">
-          Copy a complete login or open the correct application in a new tab.
-          Customer demos use the dedicated password entry.
+          Copy a complete login or open its correct application in a new tab.
+          Every shortcut authenticates through the application&apos;s normal
+          production authorization path.
         </p>
       </div>
 

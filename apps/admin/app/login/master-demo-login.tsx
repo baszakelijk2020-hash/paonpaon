@@ -1,9 +1,9 @@
-import { DEMO_PASSWORD } from "@paon/database/demo-seed";
+import { DEMO_PASSWORD, getDemoPersona } from "@paon/database/demo-seed";
 import { Button } from "@paon/ui/components/Button";
 
 import { signIn } from "./actions";
 
-const DEMO_EMAIL = "contact@nebelspiegel.com";
+const DEMO_PERSONA = getDemoPersona("platform-admin");
 
 /**
  * The one-click front door: no credentials to type — submits straight to
@@ -18,7 +18,7 @@ export function MasterDemoLogin({
 }) {
   return (
     <form action={signIn} className="mb-6">
-      <input type="hidden" name="email" value={DEMO_EMAIL} />
+      <input type="hidden" name="email" value={DEMO_PERSONA.email} />
       <input type="hidden" name="password" value={DEMO_PASSWORD} />
       {redirectTo ? (
         <input type="hidden" name="redirectTo" value={redirectTo} />

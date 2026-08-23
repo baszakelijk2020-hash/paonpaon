@@ -1,6 +1,6 @@
 import {
+  DEMO_CANONICAL_PERSONAS,
   DEMO_PASSWORD,
-  DEMO_PERSONA_LOGINS,
   seedDemoData,
 } from "@paon/database/demo-seed";
 import { expect, test } from "@playwright/test";
@@ -35,5 +35,19 @@ test("demo atelier launches every seeded operating perspective", async ({
   await expect(page.getByText("Customer — Isabelle Laurent")).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Open environment" }),
-  ).toHaveCount(DEMO_PERSONA_LOGINS.length);
+  ).toHaveCount(DEMO_CANONICAL_PERSONAS.length);
+
+  for (const persona of DEMO_CANONICAL_PERSONAS) {
+    const card = page.locator("article", { hasText: persona.email });
+    await expect(
+      card.getByRole("link", { name: "Open environment" }),
+    ).toHaveAttribute(
+      "href",
+      persona.app === "admin"
+        ? /localhost:3000\/login$/
+        : persona.app === "retailer"
+          ? /localhost:3001\/login$/
+          : /localhost:3002\/login\?demo=1$/,
+    );
+  }
 });

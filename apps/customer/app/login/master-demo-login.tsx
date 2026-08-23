@@ -1,9 +1,9 @@
-import { DEMO_PASSWORD } from "@paon/database/demo-seed";
+import { DEMO_PASSWORD, getDemoPersona } from "@paon/database/demo-seed";
 import { Button } from "@paon/ui/components/Button";
 
 import { signInToDemo } from "./actions";
 
-const DEMO_EMAIL = "contact+isabelle@nebelspiegel.com";
+const DEMO_PERSONA = getDemoPersona("customer");
 
 /**
  * The one-click front door: no persona to pick, no credentials to type —
@@ -15,14 +15,14 @@ const DEMO_EMAIL = "contact+isabelle@nebelspiegel.com";
 export function MasterDemoLogin({ redirectTo }: { redirectTo: string }) {
   return (
     <form action={signInToDemo} className="mb-6">
-      <input type="hidden" name="email" value={DEMO_EMAIL} />
+      <input type="hidden" name="email" value={DEMO_PERSONA.email} />
       <input type="hidden" name="password" value={DEMO_PASSWORD} />
       <input type="hidden" name="redirectTo" value={redirectTo} />
       <Button type="submit" size="lg" className="w-full">
         Demo login — one click
       </Button>
       <p className="mt-2 text-center text-xs text-white/70">
-        Isabelle Laurent, Maison Dubois — no credentials needed
+        {DEMO_PERSONA.persona}, {DEMO_PERSONA.retailer} — no credentials needed
       </p>
     </form>
   );

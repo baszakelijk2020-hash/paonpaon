@@ -167,16 +167,16 @@
   <body>
     <h1>PAON — Demo Login Launcher</h1>
     <p class="sub">
-      Local dev only. Points at <code>localhost</code> dev servers. Never deploy
-      or publish this file.
+      Local dev only. Points at <code>localhost</code> dev servers. Canonical
+      personas are managed in PAON Admin, never in this static helper.
     </p>
 
     <div class="warn">
-      This page exists to speed up manual testing against your own local dev
-      servers (<code>pnpm dev</code> in each app). It is not part of the shipped
-      product, is not gated by any production check, and must never be committed
-      to a public artifact or hosted anywhere reachable outside your machine.
-      Delete it once testing is done.
+      This page only opens local application login pages. For the canonical
+      persona roster, sign in to PAON Admin and open <code>/demo-mode</code>.
+      That directory reads the single source of truth in
+      <code>packages/database/src/demo-seed.ts</code>. This helper is not part
+      of the shipped product and must never be hosted outside your machine.
     </div>
 
     <div class="password-line">
@@ -197,81 +197,19 @@
           name: "Admin",
           port: 3000,
           supportsPrefill: false,
-          accounts: [
-            {
-              persona: "Platform administrator",
-              email: "contact@nebelspiegel.com",
-            },
-          ],
+          accounts: [],
         },
         {
-          name: "Retailer — Maison Dubois",
+          name: "Retailer",
           port: 3001,
-          supportsPrefill: true,
-          accounts: [
-            {
-              persona: "Owner",
-              email: "contact+maison-dubois-owner@nebelspiegel.com",
-            },
-            {
-              persona: "Manager",
-              email: "contact+maison-dubois-manager@nebelspiegel.com",
-            },
-            {
-              persona: "Sales advisor",
-              email: "contact+maison-dubois-sales@nebelspiegel.com",
-            },
-            {
-              persona: "Production / operations",
-              email: "contact+maison-dubois-operations@nebelspiegel.com",
-            },
-            {
-              persona: "Workshop manager",
-              email: "contact+maison-dubois-workshop@nebelspiegel.com",
-            },
-            {
-              persona: "Alteration worker",
-              email: "contact+maison-dubois-alteration-worker@nebelspiegel.com",
-            },
-          ],
-        },
-        {
-          name: "Retailer — Casa Marchetti",
-          port: 3001,
-          supportsPrefill: true,
-          accounts: [
-            {
-              persona: "Owner",
-              email: "contact+casa-marchetti-owner@nebelspiegel.com",
-            },
-            {
-              persona: "Manager",
-              email: "contact+casa-marchetti-manager@nebelspiegel.com",
-            },
-            {
-              persona: "Sales advisor",
-              email: "contact+casa-marchetti-sales@nebelspiegel.com",
-            },
-            {
-              persona: "Production / operations",
-              email: "contact+casa-marchetti-operations@nebelspiegel.com",
-            },
-            {
-              persona: "Workshop manager",
-              email: "contact+casa-marchetti-workshop@nebelspiegel.com",
-            },
-            {
-              persona: "Alteration worker",
-              email:
-                "contact+casa-marchetti-alteration-worker@nebelspiegel.com",
-            },
-          ],
+          supportsPrefill: false,
+          accounts: [],
         },
         {
           name: "Customer",
           port: 3002,
-          supportsPrefill: true,
-          note: "Seeded customer accounts are retailer-specific and generated at runtime — read DEMO_PERSONA_LOGINS in packages/database/src/demo-seed.ts for the exact current list; the storefront also has its own demo-login UI at /login when NODE_ENV/VERCEL_ENV isn't production.",
+          supportsPrefill: false,
+          note: "The canonical customer persona is listed in PAON Admin → Demo mode. The storefront also has its own demo-login UI at /login when NODE_ENV/VERCEL_ENV isn't production.",
           accounts: [],
         },
       ];

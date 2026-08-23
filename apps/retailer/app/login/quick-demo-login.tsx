@@ -1,6 +1,9 @@
 "use client";
 
-import { DEMO_PASSWORD, DEMO_PERSONA_LOGINS } from "@paon/database/demo-seed";
+import {
+  DEMO_CANONICAL_PERSONAS,
+  DEMO_PASSWORD,
+} from "@paon/database/demo-seed";
 import { useSearchParams } from "next/navigation";
 
 import { signIn } from "./actions";
@@ -26,7 +29,7 @@ export function QuickDemoLogin({
   const emailParam = searchParams.get("email") ?? "";
   const prospectSlug = prospectSlugFromEmail(emailParam);
 
-  const maisonPersonas = DEMO_PERSONA_LOGINS.filter(
+  const maisonPersonas = DEMO_CANONICAL_PERSONAS.filter(
     (login) => login.app === "retailer",
   );
 

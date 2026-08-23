@@ -58,11 +58,32 @@ export interface DemoLogin {
 }
 
 export interface DemoPersonaLogin {
+  id: DemoPersonaId;
   app: "admin" | "retailer" | "customer";
+  /** The authorised role demonstrated by this login in its target app. */
+  role:
+    | "platform_admin"
+    | "customer"
+    | "retailer_owner"
+    | "retailer_manager"
+    | "sales_advisor"
+    | "production_staff"
+    | "workshop_manager"
+    | "alteration_worker";
   retailer?: string;
   persona: string;
   email: string;
 }
+
+export type DemoPersonaId =
+  | "platform-admin"
+  | "customer"
+  | "retailer-owner"
+  | "retailer-manager"
+  | "sales-advisor"
+  | "production-staff"
+  | "workshop-manager"
+  | "alteration-worker";
 
 export const DEMO_PASSWORD = "Demo-PAON-2026!";
 
@@ -1116,40 +1137,91 @@ const STAFF_ROLES: {
   { role: "worker", label: "alteration-worker" },
 ];
 
-export const DEMO_PERSONA_LOGINS: DemoPersonaLogin[] = [
+/**
+ * The sole roster exposed by demo launchers and one-click login controls.
+ *
+ * Maison Dubois is the canonical showcase tenant. Other seed users remain
+ * fixture data for client-book stories, tenant-isolation coverage, and
+ * generated prospect demos; they are intentionally not launcher personas.
+ */
+export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
   {
+    id: "platform-admin",
     app: "admin",
+    role: "platform_admin",
     persona: "Platform administrator",
-    email: "contact@nebelspiegel.com",
+    email: "contact+platform-admin@nebelspiegel.com",
   },
-  ...RETAILERS.flatMap((retailer) => [
-    ...STAFF_ROLES.map(({ role, label }) => ({
-      app: "retailer" as const,
-      retailer: retailer.displayName,
-      persona:
-        role === "sales_associate"
-          ? "Sales advisor"
-          : role === "production_staff"
-            ? "Production / operations"
-            : role === "workshop_manager"
-              ? "Workshop manager"
-              : role === "worker"
-                ? "Alteration worker"
-                : role === "owner"
-                  ? "Retailer owner"
-                  : "Retailer manager",
-      email: `contact+${retailer.slug}-${label}@nebelspiegel.com`,
-    })),
-    ...retailer.customers
-      .filter((customer) => customer.portal)
-      .map((customer) => ({
-        app: "customer" as const,
-        retailer: retailer.displayName,
-        persona: `Customer — ${customer.name}`,
-        email: customer.email,
-      })),
-  ]),
+  {
+    id: "customer",
+    app: "customer",
+    role: "customer",
+    retailer: "Maison Dubois",
+    persona: "Customer — Isabelle Laurent",
+    email: "contact+isabelle@nebelspiegel.com",
+  },
+  {
+    id: "retailer-owner",
+    app: "retailer",
+    role: "retailer_owner",
+    retailer: "Maison Dubois",
+    persona: "Retailer owner",
+    email: "contact+maison-dubois-owner@nebelspiegel.com",
+  },
+  {
+    id: "retailer-manager",
+    app: "retailer",
+    role: "retailer_manager",
+    retailer: "Maison Dubois",
+    persona: "Retailer manager",
+    email: "contact+maison-dubois-manager@nebelspiegel.com",
+  },
+  {
+    id: "sales-advisor",
+    app: "retailer",
+    role: "sales_advisor",
+    retailer: "Maison Dubois",
+    persona: "Sales advisor",
+    email: "contact+maison-dubois-sales@nebelspiegel.com",
+  },
+  {
+    id: "production-staff",
+    app: "retailer",
+    role: "production_staff",
+    retailer: "Maison Dubois",
+    persona: "Production / operations",
+    email: "contact+maison-dubois-operations@nebelspiegel.com",
+  },
+  {
+    id: "workshop-manager",
+    app: "retailer",
+    role: "workshop_manager",
+    retailer: "Maison Dubois",
+    persona: "Workshop manager",
+    email: "contact+maison-dubois-workshop@nebelspiegel.com",
+  },
+  {
+    id: "alteration-worker",
+    app: "retailer",
+    role: "alteration_worker",
+    retailer: "Maison Dubois",
+    persona: "Alteration worker",
+    email: "contact+maison-dubois-alteration-worker@nebelspiegel.com",
+  },
 ];
+
+/** @deprecated Use DEMO_CANONICAL_PERSONAS for new launcher code. */
+export const DEMO_PERSONA_LOGINS = DEMO_CANONICAL_PERSONAS;
+
+export function getDemoPersona(id: DemoPersonaId): DemoPersonaLogin {
+  const persona = DEMO_CANONICAL_PERSONAS.find(
+    (candidate) => candidate.id === id,
+  );
+  if (!persona) {
+    throw new Error(`Missing canonical demo persona: ${id}`);
+  }
+  return persona;
+}
 
 export async function seedDemoData(params: {
   supabaseUrl: string;
@@ -1468,13 +1540,13 @@ async function seedRetailerSpecs(params: {
   }
 
   async function seedPlatformAdmin() {
-    const email = "contact@nebelspiegel.com";
-    const userId = await ensureUser(email, "Founder");
+    const email = getDemoPersona("platform-admin").email;
+    const userId = await ensureUser(email, "PAON Demo Platform Administrator");
     const repo = new PlatformStaffRepository(admin);
     let staff = await repo.findByUserId(userId);
     staff ??= await repo.create({
       userId,
-      fullName: "Founder",
+      fullName: "PAON Demo Platform Administrator",
       role: "platform_owner",
     });
     if (!staff.acceptedAt) {

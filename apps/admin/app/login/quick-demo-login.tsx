@@ -1,4 +1,7 @@
-import { DEMO_PASSWORD, DEMO_PERSONA_LOGINS } from "@paon/database/demo-seed";
+import {
+  DEMO_CANONICAL_PERSONAS,
+  DEMO_PASSWORD,
+} from "@paon/database/demo-seed";
 
 import { signIn } from "./actions";
 
@@ -14,7 +17,9 @@ export function QuickDemoLogin({
 }: {
   redirectTo?: string | undefined;
 }) {
-  const personas = DEMO_PERSONA_LOGINS.filter((login) => login.app === "admin");
+  const personas = DEMO_CANONICAL_PERSONAS.filter(
+    (login) => login.app === "admin",
+  );
   if (personas.length === 0) return null;
 
   return (
