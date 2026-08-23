@@ -3,6 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+declare global {
+  interface Window {
+    paonShowFixedBanner?: (id: string, html: string) => void;
+  }
+}
+
 /**
  * Closes the loop the storefront template opens when a guest hits "Add
  * to Bag" — no guest-cart schema exists (see docs/PHASE.md), so the
@@ -22,7 +28,6 @@ export function GuestCartRecovery({ slug }: { slug: string }) {
       return;
     }
     if (!raw) return;
-    localStorage.removeItem(key);
 
     let intent: { variantId?: string; kind?: string } = {};
     try {
@@ -41,9 +46,49 @@ export function GuestCartRecovery({ slug }: { slug: string }) {
       }),
     })
       .then((res) => {
-        if (res.ok) router.refresh();
+        if (res.ok) {
+          // Only clear localStorage after successful replay
+          try {
+            localStorage.removeItem(key);
+          } catch {
+            // Storage access failed, but replay succeeded; continue anyway
+          }
+          router.refresh();
+          return;
+        }
+        // Handle non-2xx error responses
+        res
+          .json()
+          .then((data) => {
+            const errorMsg =
+              data && data.error
+                ? data.error
+                : "Failed to add your saved item to the cart. Please try again.";
+            if (typeof window.paonShowFixedBanner === "function") {
+              window.paonShowFixedBanner(
+                "paon-recovery-error-banner",
+                errorMsg,
+              );
+            }
+          })
+          .catch(() => {
+            if (typeof window.paonShowFixedBanner === "function") {
+              window.paonShowFixedBanner(
+                "paon-recovery-error-banner",
+                "Failed to add your saved item to the cart. Please try again.",
+              );
+            }
+          });
       })
-      .catch(() => {});
+      .catch(() => {
+        // Network error — preserve localStorage so item isn't lost
+        if (typeof window.paonShowFixedBanner === "function") {
+          window.paonShowFixedBanner(
+            "paon-recovery-network-error-banner",
+            "Connection failed. Your saved item is still waiting in your bag.",
+          );
+        }
+      });
   }, [slug, router]);
 
   return null;

@@ -15365,6 +15365,9 @@ requestAnimationFrame(fixFeedImages);
         window.setTimeout(function () { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 8000);
     }
 
+    // Expose on window for reuse in React components and other scripts
+    window.paonShowFixedBanner = paonShowFixedBanner;
+
     window.paonAddToCart = function (product, kind) {
         if (product && product.soldOut) {
             // Nothing left to sell on a stocked (non made-to-order) line —
@@ -15392,8 +15395,19 @@ requestAnimationFrame(fixFeedImages);
             }
             if (res.ok) {
                 window.location.href = '/r/__PAON_SLUG__/cart';
+                return;
             }
-        }).catch(function () {});
+            // Handle non-2xx error responses (400, 403, 404, 5xx, etc.)
+            res.json().then(function(data) {
+                var errorMsg = (data && data.error) ? data.error : 'Failed to add item to cart. Please try again.';
+                paonShowFixedBanner('paon-cart-error-banner', errorMsg);
+            }).catch(function() {
+                paonShowFixedBanner('paon-cart-error-banner', 'Failed to add item to cart. Please try again.');
+            });
+        }).catch(function (err) {
+            // Network error or fetch failure
+            paonShowFixedBanner('paon-cart-error-banner', 'Connection failed. Please check your internet and try again.');
+        });
     };
 
     // Prefer "Continue In-Store" over "Add to Bag" once the selected
@@ -17328,9 +17342,18 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
 
     function fetchSummary() {
         fetch('/r/' + SLUG + '/api/cart-summary')
-            .then(function(res) { return res.json(); })
+            .then(function(res) {
+                if (!res.ok) {
+                    throw new Error('Failed to fetch cart summary');
+                }
+                return res.json();
+            })
             .then(render)
-            .catch(function() {});
+            .catch(function(err) {
+                if (typeof window.paonShowFixedBanner === 'function') {
+                    window.paonShowFixedBanner('paon-basket-error-banner', 'Failed to update cart summary. Please refresh.');
+                }
+            });
     }
 
     function updateLine(lineId, quantity) {
@@ -17338,7 +17361,18 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ lineId: lineId, quantity: Math.max(0, quantity) })
-        }).then(fetchSummary).catch(function() {});
+        })
+            .then(function(res) {
+                if (!res.ok) {
+                    throw new Error('Failed to update cart item');
+                }
+                return fetchSummary();
+            })
+            .catch(function(err) {
+                if (typeof window.paonShowFixedBanner === 'function') {
+                    window.paonShowFixedBanner('paon-basket-update-error-banner', 'Failed to update item. Please try again.');
+                }
+            });
     }
 
     function toggleBasket(e) {
