@@ -1,6 +1,7 @@
 "use client";
 
 import type { RetailerStatus } from "@paon/domain";
+import { ConfirmSubmitButton } from "@paon/ui/components/ConfirmSubmitButton";
 import { useActionState } from "react";
 
 import { setRetailerStatus, type RetailerStatusActionState } from "./actions";
@@ -20,25 +21,21 @@ export function RetailerStatusForm({
     <form action={action} className="mt-4 flex flex-wrap gap-2">
       <input type="hidden" name="retailerId" value={retailerId} />
       {status === "active" ? (
-        <button
-          type="submit"
-          name="status"
-          value="suspended"
+        <ConfirmSubmitButton
+          variant="destructive"
+          confirmMessage="Suspend this retailer's account immediately? Their staff will lose access."
           disabled={pending}
-          className="h-9 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 text-xs disabled:opacity-50"
         >
           {pending ? "Updating…" : "Suspend retailer"}
-        </button>
+        </ConfirmSubmitButton>
       ) : (
-        <button
-          type="submit"
-          name="status"
-          value="active"
+        <ConfirmSubmitButton
+          variant="primary"
+          confirmMessage="Activate this retailer's account?"
           disabled={pending}
-          className="h-9 rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 text-xs text-white disabled:opacity-50"
         >
           {pending ? "Updating…" : "Activate retailer"}
-        </button>
+        </ConfirmSubmitButton>
       )}
       {state.formError ? (
         <p role="alert" className="text-sm text-[var(--color-danger-500)]">
