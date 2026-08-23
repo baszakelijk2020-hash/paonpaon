@@ -70,8 +70,14 @@ function redirectWithCookies(url: URL, from: NextResponse): NextResponse {
   return to;
 }
 
+const PWA_METADATA_PATHS = ["/manifest.webmanifest", "/icon", "/apple-icon"];
+
 export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith(SERVER_TO_SERVER_PATH_PREFIX)) {
+    return NextResponse.next({ request });
+  }
+
+  if (PWA_METADATA_PATHS.includes(request.nextUrl.pathname)) {
     return NextResponse.next({ request });
   }
 
@@ -205,5 +211,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|icon).*)",
+  ],
 };

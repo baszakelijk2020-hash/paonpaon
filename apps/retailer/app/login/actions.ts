@@ -1,5 +1,6 @@
 "use server";
 
+import { DEMO_PASSWORD } from "@paon/database/demo-seed";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -11,6 +12,10 @@ const signInInputSchema = z.object({
   redirectTo: z.string().startsWith("/").optional(),
 });
 
+const isRealProduction =
+  process.env["VERCEL_ENV"] === "production" ||
+  (!process.env["VERCEL_ENV"] && process.env.NODE_ENV === "production");
+
 export async function signIn(formData: FormData): Promise<void> {
   const parsed = signInInputSchema.safeParse({
     email: formData.get("email"),
@@ -20,6 +25,16 @@ export async function signIn(formData: FormData): Promise<void> {
 
   if (!parsed.success) {
     redirect("/login?error=invalid_input");
+  }
+
+  // Block only the publicly-known demo password in production — not the
+  // seeded accounts' email pattern itself. Blocking by email regardless
+  // of password would (and once did) lock every real seeded retailer
+  // account out of production, since those are the only accounts that
+  // exist. A staff member who has actually rotated their password off
+  // the known demo value must still be able to sign in.
+  if (isRealProduction && parsed.data.password === DEMO_PASSWORD) {
+    redirect("/login?error=invalid_credentials");
   }
 
   const supabase = await getSupabaseServerClient();

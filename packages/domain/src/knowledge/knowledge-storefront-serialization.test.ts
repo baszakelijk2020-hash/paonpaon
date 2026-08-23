@@ -31,6 +31,7 @@ describe("storefront knowledge route serialization", () => {
     expect(JSON.parse(json)).toEqual({
       "e2e-storefront-overcoat": {
         archetype: [],
+        discover: [],
         fabric: [],
         sizing: [],
       },

@@ -23,6 +23,7 @@ const BATCH_SIZE = 5;
 async function describeSlot(
   admin: ReturnType<typeof getSupabaseAdminClient>,
   slot: OutfitSlot,
+  retailerId: string,
 ): Promise<string | null> {
   if (!slot.available) return null;
   if (slot.wardrobeItemId) {
@@ -33,7 +34,11 @@ async function describeSlot(
   }
   if (slot.productId) {
     const product = await new ProductRepository(admin).findById(slot.productId);
-    return product ? `${slot.slotKind}: ${product.name}` : null;
+    // This admin client bypasses RLS and ProductRepository.findById() has no
+    // app-level retailer filter — verify ownership here before the product
+    // name from another retailer's catalogue can leak into a job's output.
+    if (!product || product.retailerId !== retailerId) return null;
+    return `${slot.slotKind}: ${product.name}`;
   }
   return null;
 }
@@ -148,7 +153,9 @@ export async function processWardrobeVisualizationJobs(
         if (!outfit) throw new Error("Job references a missing Outfit.");
         garmentDescriptions = (
           await Promise.all(
-            outfit.slots.map((slot) => describeSlot(admin, slot)),
+            outfit.slots.map((slot) =>
+              describeSlot(admin, slot, job.retailerId),
+            ),
           )
         ).filter((value): value is string => value !== null);
       }

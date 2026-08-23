@@ -35,6 +35,44 @@ test("browsing the storefront requires no sign-in", async ({ page }) => {
   ).toBeVisible();
 });
 
+// Regression for the 2026-08-22 incident: an anonymous shopper clicking
+// "Add to Bag" on the real paon-template.html PDP (the flow every real
+// visitor hits — the `?legacy=1` React PDP above is a parallel, mostly
+// unused path) got a silent 401 with no visible feedback in production.
+// The fix (paon-template.html's paon-real-backend-wiring script) saves
+// the intent to localStorage and shows a "sign in to see it in your
+// bag" banner, but nothing asserted that banner actually renders.
+test("an anonymous shopper clicking Add to Bag on the real storefront sees a sign-in banner, not a silent failure", async ({
+  page,
+}) => {
+  await page.goto(`/r/${TEST_RETAILER_SLUG}`);
+  await page.locator("#cat-grid .cat-item", { hasText: "Outerwear" }).click();
+  await page
+    .locator(`.grid-card[data-product-id="${TEST_PRODUCT_SLUG}"]`)
+    .click();
+
+  const cartAddResponse = page.waitForResponse((response) =>
+    response.url().includes("/api/cart-add"),
+  );
+  await page.getByRole("button", { name: "Add to Bag" }).click();
+  const response = await cartAddResponse;
+  expect(response.status()).toBe(401);
+
+  const banner = page.locator("#paon-guest-cart-banner");
+  await expect(banner).toBeVisible();
+  await expect(banner).toContainText("sign in");
+  await expect(banner.getByRole("link", { name: "sign in" })).toHaveAttribute(
+    "href",
+    new RegExp(`/login\\?redirectTo=.*${TEST_RETAILER_SLUG}`),
+  );
+
+  const savedIntent = await page.evaluate(
+    (slug) => localStorage.getItem(`paon-guest-cart:${slug}`),
+    TEST_RETAILER_SLUG,
+  );
+  expect(savedIntent).not.toBeNull();
+});
+
 test("a signed-in shopper builds a cart, updates a line, checks out, and sees the order in history", async ({
   page,
 }) => {

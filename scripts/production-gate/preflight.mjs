@@ -68,7 +68,17 @@ const envCandidates = [
   path.join(REPO_ROOT, ".env.local"),
   path.join(REPO_ROOT, ".env.production"),
 ];
-const vercelignorePath = path.join(REPO_ROOT, ".vercelignore");
+// Vercel resolves .vercelignore from the project's Root Directory first,
+// falling back to the repo root only if the app has none of its own — so
+// the effective file for this deploy is whichever one Vercel would read.
+const perAppVercelignorePath = path.join(
+  REPO_ROOT,
+  cfg.rootDirectory,
+  ".vercelignore",
+);
+const vercelignorePath = existsSync(perAppVercelignorePath)
+  ? perAppVercelignorePath
+  : path.join(REPO_ROOT, ".vercelignore");
 const ignoreLines = existsSync(vercelignorePath)
   ? readFileSync(vercelignorePath, "utf8")
       .split("\n")
