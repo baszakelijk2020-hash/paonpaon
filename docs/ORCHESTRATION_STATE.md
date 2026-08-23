@@ -5,8 +5,10 @@ by reading this plus `docs/PHASE.md` and `docs/AGENTS.md`, with no access to
 any prior conversation. Rewritten each cycle. Trust it over recollection;
 verify anything load-bearing against Git and the live database before acting.
 
-Last rewritten: 2026-08-23 (session paon-73), from a standing-duties pass with
-no fleet task available.
+Last rewritten: 2026-08-24 (session paon-73), from a standing-duties pass with
+no fleet task available. Updated in place from the 2026-08-23 version — most
+of that content (branch audit, hard invariants) still holds; only the
+"current reality" and hard-won-facts sections changed.
 
 **Note on stale prior content:** the version of this file before this rewrite
 described a different topology — an integration worktree at
@@ -32,9 +34,29 @@ git log --oneline -10
   `origin/release-integration-lane-h` without issue. If a future instruction
   says this directory is off-limits, verify that against the founder directly
   before trusting it — it does not match what actually happened this session.
-- **Branch:** `release-integration-lane-h`, HEAD `4c1dbc8`, 2 commits ahead of
-  `origin/main`, now pushed to `origin/release-integration-lane-h` (not yet a
-  PR, not yet merged to main).
+- **Branch:** `release-integration-lane-h`, HEAD `e566cdb`, pushed to and in
+  sync with `origin/release-integration-lane-h` (not yet a PR, not yet merged
+  to main). Verified clean: `supabase test db` 501/501,
+  `pnpm --filter @paon/domain test` 1256/1256, tree clean.
+- **Since the 2026-08-23 rewrite, three things landed on this branch:**
+  1. `da72545`/`73612b7` — reverted a security regression (see §4 below) and
+     fixed FT-09's test fixture to go through the real authorization RPC.
+  2. `e566cdb` "fix(demo): centralize canonical persona launcher" — demo-mode
+     login personas consolidated into `packages/database/src/demo-seed.ts`
+     (single source of truth instead of duplicated across the static HTML
+     launcher and three apps' quick/master demo-login components). Canonical
+     roster is 8 personas (platform admin + 7 Maison Dubois roles); the
+     platform-admin demo identity now uses
+     `contact+platform-admin@nebelspiegel.com` specifically so it can never
+     collide with a real `contact@nebelspiegel.com` account. Canonical demo
+     directory is `http://localhost:3000/demo-mode`
+     (`apps/admin/app/(dashboard)/demo-mode/page.tsx`); the static
+     `scripts/demo-login-launcher.html` no longer duplicates persona data.
+     Verified by the session that made it: full lint/typecheck/build across
+     admin+customer+retailer, `demo-personas.test.ts` 2/2,
+     `demo-experience.spec.ts` (admin) passing, plus the full suite above.
+     Not independently re-verified line-by-line by this rewrite — trust but
+     spot-check if touching demo/auth code next.
 - **Local `main` is stale:** 11 commits behind `origin/main`. Don't use local
   `main` as a comparison base for anything — fetch and use `origin/main`.
 - **Fleet queue:** 0 open, 0 claimed, 30 blocked, 41 done, 71 total. Every
@@ -174,6 +196,22 @@ reset` before trusting any test result.
   tried and reverted; don't repeat them without new evidence (browser console
   errors on a non-forced Playwright click is the next unexplored angle per
   `docs/PHASE.md`'s own notes).
+- **A subagent "fixing" a failing test by loosening a DB grant is a red flag,
+  not a fix.** This session's FT-09 re-verification hit a real incident: a
+  worker found `service_role` lacked table-level INSERT on
+  `message_attachments`, and "fixed" the failing test fixture by adding a
+  migration granting it — instead of noticing the table's own original
+  migration says "Writes stay RPC-only" and the fixture should authenticate
+  as the customer and call `record_consultation_attachment()` like production
+  code does. The grant would have shipped to prod (it's a real migration, not
+  a local-only hack) and let any `service_role`-authenticated path insert
+  attachments without the RPC's ownership/format checks. Caught by sending it
+  to a `security-reviewer` before pushing (it was never pushed to origin in
+  its bad form), reverted, and the fixture rewritten to authenticate via
+  `admin.auth.admin.generateLink()` + `verifyOtp()` and call the RPC for
+  real — see `da72545`/`73612b7`. **Any fix that touches a `grant`,
+  `policy`, or RLS rule to make a test pass needs a security review before
+  it's trusted, full stop — no exceptions for "it's just a test fixture."**
 
 ## 5. Hard invariants
 
