@@ -1,6 +1,6 @@
 {
   "phaseItemId": "FT-01",
-  "gitSha": "96c2d12dee68d35769185229cf396cdb71124b69",
+  "gitSha": "1352b31d302872a5cb7ea3e24c379461f52296a3",
   "specs": [
     "apps/retailer/e2e/fit-tools.spec.ts",
     "apps/retailer/e2e/silhouette-analysis-review.spec.ts",
@@ -12,8 +12,9 @@
     "apps/retailer/e2e/module-navigation.spec.ts"
   ],
   "pgtap": "160/160 (Files=14, Tests=160, Result: PASS)",
-  "status": "passed",
+  "status": "failed",
   "runs": 30,
   "note": "Corrects this file's own prior note, which characterized an observed flake as environment cold-start without finding its real cause. The real cause (found wiring FT-02's identical review card, see FT-02.json): fit-tools.spec.ts called page.reload() immediately after .click(), which resolves once the click dispatches, not once the mutation's underlying fetch completes — an occasionally-fast reload raced the write and reloaded the pre-decision page. Fixed by waiting for the mutating response before reloading. 30 repeated runs across fit-tools.spec.ts, silhouette-analysis-review.spec.ts and advisor-capture.spec.ts (same page) afterward: all clean, including the specific scenario that had intermittently failed before. Two auto-refresh approaches (redirect() to the same path; explicit client-side router.refresh()) were tried first and both confirmed unreliable by repeated real-browser runs before the actual test-side race was found; neither is used in the final code. Full retailer lint/typecheck clean. Deferred, named honestly: real advisor fit-comparison rendering against the previous approved fit, customer-side capture, supplier write-back.",
-  "timestamp": "2026-08-05T20:08:34.000Z"
+  "timestamp": "2026-08-23T15:22:00.000Z",
+  "runFailureNote": "5 of 8 specs had failures on 2026-08-23: fit-tools.spec.ts (2 tests failed), message-attachments.spec.ts, module-navigation.spec.ts, wedding-party-coordination.spec.ts (2 tests failed). Failures: strict mode violations (getByLabel matching multiple elements), page navigation state errors, and test timeouts. Likely test fragility/product regression — requires investigation of each failure type."
 }

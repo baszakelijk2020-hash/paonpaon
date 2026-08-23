@@ -1,12 +1,13 @@
 {
   "phaseItemId": "FT-03",
-  "gitSha": "0f97599e8d0120d4b11371732381f58b346e6524",
+  "gitSha": "1352b31d302872a5cb7ea3e24c379461f52296a3",
   "specs": [
     "apps/customer/e2e/concept-scan.spec.ts",
     "apps/retailer/e2e/concept-scan-codes.spec.ts"
   ],
   "pgtap": "supabase/tests/concept_scan_test.sql",
-  "status": "passed",
+  "status": "failed",
   "runs": 2,
-  "timestamp": "2026-08-05T16:10:00.000Z"
+  "timestamp": "2026-08-23T15:22:00.000Z",
+  "note": "Customer spec (concept-scan.spec.ts) passed; retailer spec (concept-scan-codes.spec.ts) does not exist in this branch — appears to have been deleted/parked per FT-03 deletion decision in PHASE.md founder decision register."
 }

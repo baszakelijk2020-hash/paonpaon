@@ -1,7 +1,7 @@
 {
   "phaseItemId": "18.5-employee-portal-linked-customer-data",
-  "gitSha": "170aed85ea8195d1fb05da11569d5c66b78987a2",
+  "gitSha": "1352b31d302872a5cb7ea3e24c379461f52296a3",
   "spec": "apps/customer/e2e/employee-portal-linked-customer.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-09T23:01:56.130Z"
+  "timestamp": "2026-08-23T15:16:38.000Z"
 }

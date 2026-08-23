@@ -1,7 +1,8 @@
 {
   "phaseItemId": "4.9-advisor-visual-roadmap",
-  "gitSha": "d5e66de9cb58623935f9a689e856e27df63879aa",
+  "gitSha": "1352b31d302872a5cb7ea3e24c379461f52296a3",
   "spec": "apps/retailer/e2e/visual-roadmap.spec.ts",
-  "status": "passed",
-  "timestamp": "2026-08-09T12:34:49.640Z"
+  "status": "failed",
+  "timestamp": "2026-08-23T15:22:00.000Z",
+  "note": "Test failure: Playwright strict mode violation at getByLabel('Include Mission Control low-stock fixture') — selector matches 3 elements instead of 1. This is a test fragility issue or a product regression where the same checkbox label appears multiple times on the page."
 }
