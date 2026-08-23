@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>PAON — Demo Login Launcher (local only)</title>
+    <style>
+      :root {
+        --bg: #f5f4f1;
+        --card: #ffffff;
+        --ink: #1a1a1a;
+        --muted: #6b6b6b;
+        --border: #e3e1dc;
+        --accent: #1a1a1a;
+        --danger: #b3261e;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        padding: 2rem;
+      }
+      h1 {
+        font-size: 1.4rem;
+        margin: 0 0 0.25rem;
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin: 0 0 1.5rem;
+      }
+      .warn {
+        background: #fdf1ef;
+        border: 1px solid #f2c9c3;
+        color: var(--danger);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        margin-bottom: 1.5rem;
+        max-width: 60rem;
+      }
+      .env-block {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1.25rem;
+        max-width: 60rem;
+      }
+      .env-block h2 {
+        font-size: 1rem;
+        margin: 0 0 0.15rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .port {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        color: var(--muted);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 0.1rem 0.4rem;
+      }
+      .status {
+        font-size: 0.7rem;
+        padding: 0.1rem 0.5rem;
+        border-radius: 999px;
+        font-weight: 600;
+      }
+      .status.up {
+        background: #e6f4ea;
+        color: #1e7a34;
+      }
+      .status.down {
+        background: #fdf1ef;
+        color: var(--danger);
+      }
+      .status.unknown {
+        background: #f0efec;
+        color: var(--muted);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+      }
+      td,
+      th {
+        text-align: left;
+        padding: 0.4rem 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        color: var(--muted);
+        font-weight: 500;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      td.email,
+      td.pass {
+        font-family: var(--mono);
+        font-size: 0.78rem;
+      }
+      button.go {
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0.35rem 0.8rem;
+        font-size: 0.78rem;
+        cursor: pointer;
+      }
+      button.go:hover {
+        opacity: 0.85;
+      }
+      button.copy {
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.7rem;
+        cursor: pointer;
+        margin-left: 0.4rem;
+      }
+      button.copy:hover {
+        background: var(--bg);
+      }
+      .password-line {
+        font-family: var(--mono);
+        font-size: 0.8rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .toast {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--ink);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s ease;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PAON — Demo Login Launcher</h1>
+    <p class="sub">
+      Local dev only. Points at <code>localhost</code> dev servers. Never deploy
+      or publish this file.
+    </p>
+
+    <div class="warn">
+      This page exists to speed up manual testing against your own local dev
+      servers (<code>pnpm dev</code> in each app). It is not part of the shipped
+      product, is not gated by any production check, and must never be committed
+      to a public artifact or hosted anywhere reachable outside your machine.
+      Delete it once testing is done.
+    </div>
+
+    <div class="password-line">
+      Shared demo password:
+      <strong id="shared-password">Demo-PAON-2026!</strong>
+      <button class="copy" onclick="copyText('Demo-PAON-2026!', this)">
+        Copy
+      </button>
+    </div>
+
+    <div id="envs"></div>
+
+    <div class="toast" id="toast">Copied</div>
+
+    <script>
+      const ENVS = [
+        {
+          name: "Admin",
+          port: 3000,
+          supportsPrefill: false,
+          accounts: [
+            {
+              persona: "Platform administrator",
+              email: "contact@nebelspiegel.com",
+            },
+          ],
+        },
+        {
+          name: "Retailer — Maison Dubois",
+          port: 3001,
+          supportsPrefill: true,
+          accounts: [
+            {
+              persona: "Owner",
+              email: "contact+maison-dubois-owner@nebelspiegel.com",
+            },
+            {
+              persona: "Manager",
+              email: "contact+maison-dubois-manager@nebelspiegel.com",
+            },
+            {
+              persona: "Sales advisor",
+              email: "contact+maison-dubois-sales@nebelspiegel.com",
+            },
+            {
+              persona: "Production / operations",
+              email: "contact+maison-dubois-operations@nebelspiegel.com",
+            },
+            {
+              persona: "Workshop manager",
+              email: "contact+maison-dubois-workshop@nebelspiegel.com",
+            },
+            {
+              persona: "Alteration worker",
+              email: "contact+maison-dubois-alteration-worker@nebelspiegel.com",
+            },
+          ],
+        },
+        {
+          name: "Retailer — Casa Marchetti",
+          port: 3001,
+          supportsPrefill: true,
+          accounts: [
+            {
+              persona: "Owner",
+              email: "contact+casa-marchetti-owner@nebelspiegel.com",
+            },
+            {
+              persona: "Manager",
+              email: "contact+casa-marchetti-manager@nebelspiegel.com",
+            },
+            {
+              persona: "Sales advisor",
+              email: "contact+casa-marchetti-sales@nebelspiegel.com",
+            },
+            {
+              persona: "Production / operations",
+              email: "contact+casa-marchetti-operations@nebelspiegel.com",
+            },
+            {
+              persona: "Workshop manager",
+              email: "contact+casa-marchetti-workshop@nebelspiegel.com",
+            },
+            {
+              persona: "Alteration worker",
+              email:
+                "contact+casa-marchetti-alteration-worker@nebelspiegel.com",
+            },
+          ],
+        },
+        {
+          name: "Customer",
+          port: 3002,
+          supportsPrefill: true,
+          note: "Seeded customer accounts are retailer-specific and generated at runtime — read DEMO_PERSONA_LOGINS in packages/database/src/demo-seed.ts for the exact current list; the storefront also has its own demo-login UI at /login when NODE_ENV/VERCEL_ENV isn't production.",
+          accounts: [],
+        },
+      ];
+
+      function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+          const original = btn.textContent;
+          btn.textContent = "Copied";
+          setTimeout(() => {
+            btn.textContent = original;
+          }, 1000);
+          showToast("Copied to clipboard");
+        });
+      }
+
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 1200);
+      }
+
+      function loginUrl(port, email) {
+        const base = `http://localhost:${port}/login`;
+        const params = new URLSearchParams({ email, demo: "1" });
+        return `${base}?${params.toString()}`;
+      }
+
+      async function checkStatus(port) {
+        try {
+          const res = await fetch(`http://localhost:${port}/login`, {
+            mode: "no-cors",
+          });
+          return "up";
+        } catch {
+          return "down";
+        }
+      }
+
+      function render() {
+        const root = document.getElementById("envs");
+        root.innerHTML = "";
+
+        ENVS.forEach((env) => {
+          const block = document.createElement("div");
+          block.className = "env-block";
+
+          const header = document.createElement("h2");
+          header.innerHTML = `${env.name} <span class="port">:${env.port}</span> <span class="status unknown" id="status-${env.port}-${env.name.replace(/\s+/g, "")}">checking…</span>`;
+          block.appendChild(header);
+
+          if (env.note) {
+            const note = document.createElement("p");
+            note.className = "sub";
+            note.style.margin = "0.4rem 0 0";
+            note.textContent = env.note;
+            block.appendChild(note);
+          }
+
+          const openBase = document.createElement("button");
+          openBase.className = "go";
+          openBase.style.marginTop = "0.5rem";
+          openBase.textContent = `Open ${env.name} login page`;
+          openBase.onclick = () =>
+            window.open(`http://localhost:${env.port}/login`, "_blank");
+          block.appendChild(openBase);
+
+          if (env.accounts.length > 0) {
+            const table = document.createElement("table");
+            table.innerHTML = `
+        <thead>
+          <tr><th>Persona</th><th>Email</th><th></th></tr>
+        </thead>
+      `;
+            const tbody = document.createElement("tbody");
+            env.accounts.forEach((acct) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+          <td>${acct.persona}</td>
+          <td class="email">${acct.email}</td>
+          <td>
+            <button class="copy" data-copy="${acct.email}">Copy email</button>
+            ${
+              env.supportsPrefill
+                ? `<button class="go" data-open="${env.port}|${acct.email}">Open pre-filled</button>`
+                : ""
+            }
+          </td>
+        `;
+              tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            block.appendChild(table);
+          }
+
+          root.appendChild(block);
+        });
+
+        root.querySelectorAll("button[data-copy]").forEach((btn) => {
+          btn.addEventListener("click", () => copyText(btn.dataset.copy, btn));
+        });
+        root.querySelectorAll("button[data-open]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const [port, email] = btn.dataset.open.split("|");
+            window.open(loginUrl(port, email), "_blank");
+          });
+        });
+
+        ENVS.forEach(async (env) => {
+          const id = `status-${env.port}-${env.name.replace(/\s+/g, "")}`;
+          const el = document.getElementById(id);
+          if (!el) return;
+          try {
+            await fetch(`http://localhost:${env.port}/login`, {
+              mode: "no-cors",
+            });
+            el.textContent = "reachable";
+            el.className = "status up";
+          } catch {
+            el.textContent = "not running";
+            el.className = "status down";
+          }
+        });
+      }
+
+      render();
+    </script>
+  </body>
+</html>
