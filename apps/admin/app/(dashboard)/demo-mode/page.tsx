@@ -55,6 +55,14 @@ export default async function DemoModePage() {
             Dubois is the shared journey tenant; other seeded records support
             fixture coverage and are not demo launcher identities.
           </p>
+          <a
+            href={`${customerAppUrl}/r/maison-dubois`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-flex h-9 items-center rounded-[var(--radius-md)] bg-[var(--color-ink-600)] px-4 text-xs font-medium text-white"
+          >
+            Browse storefront (suits, jackets &amp; more)
+          </a>
         </div>
         <div className="rounded-[var(--radius-lg)] bg-[var(--color-stone-900)] px-5 py-4 text-white">
           <p className="font-accent text-[7px] uppercase tracking-[0.16em] text-white/45">
