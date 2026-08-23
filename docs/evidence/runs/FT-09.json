@@ -1,11 +1,10 @@
 {
   "phaseItemId": "FT-09",
-  "gitSha": "1352b31d302872a5cb7ea3e24c379461f52296a3",
+  "gitSha": "fb5b954b6240e71fe8c5e69bb8ab763d18a483b7",
   "specs": ["apps/customer/e2e/consultation-outcome.spec.ts"],
-  "pgtap": "160/160 green (supabase test db full suite; migration applies cleanly)",
-  "status": "failed",
-  "runs": 1,
+  "pgtap": "501/501 green (supabase test db full suite; migration applies cleanly)",
+  "status": "passed",
+  "runs": 2,
   "note": "Consultation-to-appointment outcome journey — customer browser-driven spec proves: (1) signed-in customer navigates to conversation thread, (2) clicks 'Book appointment' button wired in UI, (3) fills datetime and type form, (4) submits via real Server Action (bookAppointmentFromConsultation), (5) receives success with appointment ID, (6) appointment created in DB with origin_message_thread_id set to conversation.id, (7) unauthorized customer cannot book for other customer's thread. RPC book_appointment_from_consultation() validates caller authorization and conversation ownership. AppointmentRepository.bookFromConsultation() calls RPC; Server Actions in both customer and retailer apps invoke it. Migration 20260806000000 adds FK and SECURITY DEFINER RPC following alteration_tasks provenance pattern. Full typecheck/lint clean; all domain/database/customer/retailer packages build successfully.",
-  "timestamp": "2026-08-23T15:22:00.000Z",
-  "failureNote": "One of three tests failed: 'customer links a shared look to an appointment booked from the thread' — fixture setup failure at creating attachment in message_attachments table. Likely database fixture/seed issue, not a product regression."
+  "timestamp": "2026-08-23T15:40:17.000Z"
 }
