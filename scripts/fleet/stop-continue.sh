@@ -25,6 +25,19 @@ set -uo pipefail
 # with exit 127 / invalid stop-hook JSON on every turn. Exit silently there.
 [ -n "${PAON_NON_CLAUDE_AGENT:-}" ] && exit 0
 
+# Loop-prevention: Claude Code sets stop_hook_active=true on the hook-input
+# JSON when this same Stop hook already blocked once this turn and is now
+# firing again after the model's forced continuation. Without this check
+# every block was immediately re-triggered by the model's own next turn,
+# producing an unbreakable loop with no way for a human to end the session.
+# Read stdin once (Claude Code's contract for Stop hooks) and bail out clean
+# on the repeat firing; a normal first-time stop has no stdin input at all,
+# so a missing/unparseable payload must NOT be treated as "already active".
+hook_input="$(cat 2>/dev/null || true)"
+if [ -n "$hook_input" ] && printf '%s' "$hook_input" | jq -e '.stop_hook_active == true' >/dev/null 2>&1; then
+  exit 0
+fi
+
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 cd "$REPO_ROOT" || exit 0
 FLEET="$REPO_ROOT/scripts/fleet/paon-fleet"
