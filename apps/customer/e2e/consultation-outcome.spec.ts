@@ -1,4 +1,7 @@
-import { createSupabaseAdminClient } from "@paon/database";
+import {
+  createSupabaseAdminClient,
+  createSupabaseDirectClient,
+} from "@paon/database";
 import { expect, test, type Page } from "@playwright/test";
 
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
@@ -37,7 +40,8 @@ test("FT-09: customer books appointment from conversation thread via UI", async 
 }) => {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
-  if (!supabaseUrl || !serviceRoleKey) {
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+  if (!supabaseUrl || !serviceRoleKey || !anonKey) {
     throw new Error("Consultation outcome test requires local Supabase.");
   }
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
@@ -162,7 +166,8 @@ test("FT-09: customer links a shared look to an appointment booked from the thre
 }) => {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
   const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"];
-  if (!supabaseUrl || !serviceRoleKey) {
+  const anonKey = process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"];
+  if (!supabaseUrl || !serviceRoleKey || !anonKey) {
     throw new Error("Consultation outcome test requires local Supabase.");
   }
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
@@ -227,21 +232,40 @@ test("FT-09: customer links a shared look to an appointment booked from the thre
   // attachments from earlier runs against a non-reset local database.
   const runId = message.id;
   const fileName = `shared-look-${runId}.jpg`;
-  const { data: attachment } = await admin
-    .from("message_attachments")
-    .insert({
-      retailer_id: retailer.id,
-      message_id: message.id,
-      file_name: fileName,
-      size_bytes: 0,
-      source_kind: "link",
-      purpose: "pinterest_link",
-      source_url: `https://pinterest.com/pin/${runId}`,
-      uploaded_by_user_id: customer.user_id,
-    })
-    .select("id")
-    .single();
-  if (!attachment) throw new Error("failed to create attachment");
+
+  // Generate a magic link for the customer to authenticate
+  const { data: linkData, error: linkError } =
+    await admin.auth.admin.generateLink({
+      type: "magiclink",
+      email: TEST_CUSTOMER_EMAIL,
+    });
+  if (linkError || !linkData.properties) {
+    throw new Error(
+      `Failed to generate magic link: ${linkError?.message ?? "unknown error"}`,
+    );
+  }
+
+  // Create an authenticated client for the customer
+  const customerClient = createSupabaseDirectClient(supabaseUrl, anonKey);
+  const { error: verifyError } = await customerClient.auth.verifyOtp({
+    token_hash: linkData.properties.hashed_token,
+    type: "magiclink",
+  });
+  if (verifyError) throw verifyError;
+
+  // Call the RPC to record the attachment as the authenticated customer
+  const { data: attachmentId, error: rpcError } = await customerClient.rpc(
+    "record_consultation_attachment",
+    {
+      p_message_id: message.id,
+      p_source_kind: "link",
+      p_purpose: "pinterest_link",
+      p_file_name: fileName,
+      p_source_url: `https://pinterest.com/pin/${runId}`,
+    },
+  );
+  if (rpcError) throw rpcError;
+  if (!attachmentId) throw new Error("failed to create attachment");
 
   await signInCustomer(page, admin, TEST_CUSTOMER_EMAIL);
   await page.goto(`/messages/${conversation.id}`);
@@ -289,7 +313,7 @@ test("FT-09: customer links a shared look to an appointment booked from the thre
     .single();
 
   expect(bookedAppointment?.origin_message_thread_id).toBe(conversation.id);
-  expect(bookedAppointment?.origin_message_attachment_id).toBe(attachment.id);
+  expect(bookedAppointment?.origin_message_attachment_id).toBe(attachmentId);
 });
 
 test("FT-09: unauthorized customer cannot book appointment for other customer's thread", async ({
