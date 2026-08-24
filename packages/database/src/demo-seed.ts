@@ -1570,6 +1570,23 @@ async function seedRetailerSpecs(params: {
         `Failed to create user ${email}: ${error?.message ?? "unknown"}`,
       );
     }
+    // GoTrue assigns provider metadata during creation. Mark the account in a
+    // separate admin update so that subsequent idempotent seeds can prove it
+    // is safe to refresh this demo-only credential.
+    const { error: markError } = await admin.auth.admin.updateUserById(
+      data.user.id,
+      {
+        app_metadata: {
+          ...data.user.app_metadata,
+          demo_seed: true,
+        },
+      },
+    );
+    if (markError) {
+      throw new Error(
+        `Failed to mark demo user ${email}: ${markError.message}`,
+      );
+    }
     return data.user.id as UserId;
   }
 

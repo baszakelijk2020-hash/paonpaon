@@ -5,47 +5,58 @@ import {
 } from "@paon/database/demo-seed";
 import { expect, test, type Page } from "@playwright/test";
 
+// The canonical showcase roster is intentionally shared. Seed it once in a
+// single worker so parallel browser contexts cannot race to create the same
+// auth identity.
+test.describe.configure({ mode: "serial" });
+
 const retailerPersonas = [
   {
     name: "owner",
     email: getDemoPersona("retailer-owner").email,
-    visible: [/^Brief/, /^Clients/, /^Products/, /^Team/],
+    visible: [
+      /^Today$/,
+      /^Fitting room$/,
+      /^Relationships$/,
+      /^Merchandise$/,
+      /^Atelier$/,
+    ],
     hidden: [],
     brief: "The atelier, at a glance.",
   },
   {
     name: "manager",
     email: getDemoPersona("retailer-manager").email,
-    visible: [/^Brief/, /^Clients/, /^Products/, /^Performance/],
-    hidden: [/^Team/],
+    visible: [/^Today$/, /^Fitting room$/, /^Relationships$/, /^Merchandise$/],
+    hidden: [/^Atelier$/],
     brief: "Today on the floor.",
   },
   {
     name: "sales advisor",
     email: getDemoPersona("sales-advisor").email,
-    visible: [/^Brief/, /^Appointments/, /^Clients/, /^Alterations/],
-    hidden: [/^Products/, /^Team/],
+    visible: [/^Today$/, /^Fitting room$/, /^Relationships$/],
+    hidden: [/^Merchandise$/, /^Atelier$/],
     brief: "Make every client moment count.",
   },
   {
     name: "production specialist",
     email: getDemoPersona("production-staff").email,
-    visible: [/^Brief/, /^Orders/, /^Alterations/],
-    hidden: [/^Clients/, /^Products/, /^Team/],
+    visible: [/^Today$/, /^Fitting room$/],
+    hidden: [/^Relationships$/, /^Merchandise$/, /^Atelier$/],
     brief: "Promises in motion.",
   },
   {
     name: "workshop manager",
     email: getDemoPersona("workshop-manager").email,
-    visible: [/^Work queue/, /^Workshop pricing/],
-    hidden: [/^Orders/, /^Clients/, /^Products/],
+    visible: [/^Today$/, /^Workshop floor$/],
+    hidden: [/^Relationships$/, /^Merchandise$/, /^Atelier$/],
     brief: "The workroom, in motion.",
   },
   {
     name: "alteration worker",
     email: getDemoPersona("alteration-worker").email,
-    visible: [/^Work queue/],
-    hidden: [/^Workshop pricing/, /^Orders/, /^Clients/, /^Products/],
+    visible: [/^Today$/, /^Workshop floor$/],
+    hidden: [/^Relationships$/, /^Merchandise$/, /^Atelier$/],
     brief: "Your bench, clearly.",
   },
 ] as const;
@@ -87,6 +98,38 @@ for (const persona of retailerPersonas) {
     }
   });
 }
+
+test("sales advisors are redirected away from management-only routes", async ({
+  page,
+}) => {
+  await signIn(page, getDemoPersona("sales-advisor").email);
+
+  for (const [path, destination] of [
+    ["/staff", "/dashboard"],
+    ["/staff/new", "/dashboard"],
+    ["/settings/billing", "/dashboard"],
+    ["/products/new", "/products"],
+    ["/collections", "/products"],
+  ] as const) {
+    await page.goto(path);
+    await expect(page).toHaveURL(new RegExp(`${destination}(?:\\?|$)`));
+  }
+});
+
+test("alteration workers are redirected away from configuration routes", async ({
+  page,
+}) => {
+  await signIn(page, getDemoPersona("alteration-worker").email);
+
+  for (const path of [
+    "/alterations/new",
+    "/alterations/catalogue",
+    "/alterations/workshops",
+  ]) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/alterations(?:\?|$)/);
+  }
+});
 
 test("mobile shell exposes the same worker-safe navigation in a drawer", async ({
   page,

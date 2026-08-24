@@ -38,11 +38,15 @@ test.describe("Login", () => {
     ).toBeVisible();
   });
 
-  test("one-click demo login lands on the Atelier Demo dashboard", async ({
+  test("canonical retailer-owner quick login lands on the demo dashboard", async ({
     page,
   }) => {
     await page.goto("/login");
-    await page.getByRole("button", { name: "Demo login — one click" }).click();
+    await page
+      .getByRole("button", {
+        name: "Retailer owner · Nebel & Spiegel",
+      })
+      .click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(

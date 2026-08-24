@@ -8,8 +8,9 @@ import {
 import { signIn } from "./actions";
 
 /**
- * Dev-only one-click persona switcher — NODE_ENV-gated, never rendered
- * in a production build. It deliberately exposes only the canonical roster;
+ * Dev-only one-click persona switcher — deployment-tier gated by its parent,
+ * never rendered in a real production environment. It deliberately exposes
+ * only the canonical roster;
  * a URL parameter must never manufacture a login identity.
  */
 export function QuickDemoLogin({
