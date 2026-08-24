@@ -93,7 +93,7 @@ export function MorningRoutineDashboardHero({
       : undefined;
 
   return (
-    <section className="paon-reveal overflow-hidden bg-[#11110f] text-white">
+    <section className="paon-reveal customer-panel-dark overflow-hidden bg-[#11110f] text-white">
       <div className="grid min-h-[31rem] lg:grid-cols-[minmax(0,0.94fr)_minmax(25rem,1.06fr)]">
         <div className="flex flex-col p-7 sm:p-10 lg:p-12">
           <div className="flex flex-wrap items-center justify-between gap-3 text-[10px] uppercase tracking-[0.2em] text-white/60">
@@ -227,7 +227,12 @@ export function MorningRoutineDashboardHero({
                     unoptimized
                     className="object-cover transition duration-500 group-hover:scale-[1.03]"
                   />
-                ) : null}
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-[radial-gradient(circle_at_75%_28%,rgba(163,177,159,0.3),transparent_28%),repeating-linear-gradient(124deg,rgba(255,255,255,0.065)_0_1px,transparent_1px_14px),repeating-linear-gradient(56deg,rgba(255,255,255,0.04)_0_1px,transparent_1px_14px),linear-gradient(135deg,#393b37,#272924)]"
+                  />
+                )}
               </div>
               <div className="flex min-h-32 flex-col justify-between p-5">
                 <div>
