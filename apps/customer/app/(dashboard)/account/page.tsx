@@ -103,22 +103,32 @@ export default async function AccountPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-          Settings
-        </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
-          Language, currency, contact and style preferences with each retailer
-          you shop with.
+    <div className="customer-page flex flex-col gap-8">
+      <header className="customer-page-header flex-col">
+        <p className="customer-kicker text-[var(--color-stone-500)]">
+          Your house book
         </p>
-      </div>
+        <div className="max-w-2xl">
+          <h1 className="font-display text-4xl leading-[1.05] tracking-[-0.03em] text-[var(--color-stone-900)] sm:text-5xl">
+            Your preferences, kept close.
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-7 text-[var(--color-stone-500)]">
+            Language, currency, contact and style preferences with each house
+            you shop with.
+          </p>
+        </div>
+      </header>
 
       {groups.length === 0 ? (
-        <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
-          <p className="text-[var(--color-stone-600)]">
-            No house connections yet.
-          </p>
+        <div className="customer-panel flex min-h-40 items-center px-6 py-10">
+          <div>
+            <p className="customer-kicker text-[var(--color-stone-500)]">
+              House connections
+            </p>
+            <p className="mt-2 text-base text-[var(--color-stone-600)]">
+              No house connections yet.
+            </p>
+          </div>
         </div>
       ) : (
         groups.map(
@@ -134,7 +144,20 @@ export default async function AccountPage() {
             fitArchetypes,
             customerFacts,
           }) => (
-            <div key={customer.id} className="flex flex-col gap-4">
+            <section key={customer.id} className="flex flex-col gap-5">
+              <div className="flex items-end justify-between gap-4 border-b border-[var(--customer-border)] pb-3">
+                <div>
+                  <p className="customer-kicker text-[var(--color-stone-500)]">
+                    Connected house
+                  </p>
+                  <h2 className="mt-1 text-2xl tracking-[-0.02em] text-[var(--color-stone-900)]">
+                    {retailer?.displayName ?? "Retailer"}
+                  </h2>
+                </div>
+                <span className="hidden rounded-[var(--customer-radius)] bg-[var(--customer-moss)] px-3 py-2 text-xs text-[var(--color-stone-700)] sm:inline-flex">
+                  Private client
+                </span>
+              </div>
               <PreferencesForm
                 retailerId={customer.retailerId}
                 retailerName={retailer?.displayName ?? "Retailer"}
@@ -158,7 +181,7 @@ export default async function AccountPage() {
                 previewJob={portraitPreviewJob}
                 fitArchetypes={fitArchetypes}
               />
-            </div>
+            </section>
           ),
         )
       )}
