@@ -62,10 +62,10 @@ export async function ShopCategorySidebar() {
   const categories = await populatedCategories();
   return (
     <aside
-      className="sticky top-0 hidden h-screen min-h-screen grid-rows-[60px_minmax(0,1fr)_200px] overflow-hidden lg:grid"
+      className="sticky top-0 hidden h-screen min-h-screen grid-rows-[60px_minmax(0,1fr)_210px] self-start overflow-hidden lg:grid"
       style={{
         width: "250px",
-        background: "linear-gradient(to right, #262626, #1d1d1d)",
+        background: "linear-gradient(to right, #333333, #1a1a1a)",
       }}
     >
       <IntentPrefetchLink
@@ -73,12 +73,12 @@ export async function ShopCategorySidebar() {
         className="flex shrink-0 items-center justify-center overflow-hidden"
         style={{
           height: "60px",
-          background: "linear-gradient(to right, #333, #1a1a1a)",
+          background: "linear-gradient(to right, #1a1a1a, #1a1a1a)",
           borderRadius: 0,
         }}
       >
         <span
-          className="shop-sidebar-shimmer inline-block whitespace-nowrap"
+          className="shop-sidebar-shimmer relative top-[2px] inline-block whitespace-nowrap"
           style={{
             fontFamily: "Portrait, sans-serif",
             fontSize: "13px",
@@ -90,7 +90,11 @@ export async function ShopCategorySidebar() {
       </IntentPrefetchLink>
       <div
         className="flex flex-1 flex-col overflow-y-auto"
-        style={{ padding: "62px 25px 28px" }}
+        style={{
+          padding: "62px 25px 28px",
+          background:
+            "linear-gradient(to right, rgba(255,255,255,.043), rgba(255,255,255,0)), linear-gradient(to right, #262626, #1d1d1d)",
+        }}
       >
         <IntentPrefetchLink
           href="/r/atelier-demo"
@@ -109,11 +113,11 @@ export async function ShopCategorySidebar() {
         <p
           className="block uppercase"
           style={{
-            fontFamily: "OptimaKlein, serif",
-            fontSize: "12px",
-            lineHeight: 1.4,
+            fontFamily: "GTBold3, Arial, sans-serif",
+            fontSize: "7px",
+            lineHeight: "7px",
             letterSpacing: 0,
-            color: "#808080",
+            color: "#666666",
             margin: "0 0 10px 0",
           }}
         >
@@ -142,8 +146,8 @@ export async function ShopCategorySidebar() {
       <div
         className="relative flex shrink-0 flex-col overflow-hidden"
         style={{
-          background: "linear-gradient(to right, #333, #1a1a1a)",
-          padding: "20px 25px 65px",
+          background: "linear-gradient(to right, #333333, #1a1a1a)",
+          padding: "20px 25px 0",
         }}
       >
         {[
@@ -174,11 +178,12 @@ export async function ShopCategorySidebar() {
             bottom: "20px",
             left: "20px",
             right: "20px",
-            height: "45px",
+            height: "50px",
             borderRadius: "6px",
-            background: "linear-gradient(to right, #808080, #5c5c5c)",
-            color: "#b5b5b5",
-            fontSize: "13px",
+            background: "linear-gradient(to right, #999999, #666666)",
+            color: "#d9d9d9",
+            fontFamily: "OptimaKlein, serif",
+            fontSize: "14px",
             padding: "0 20px",
             justifyContent: "flex-end",
           }}
