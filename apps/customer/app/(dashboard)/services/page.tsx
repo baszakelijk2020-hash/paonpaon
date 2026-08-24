@@ -130,7 +130,7 @@ export default async function CustomerServicesPage() {
       <header className="customer-page-header flex-col items-start gap-2">
         <p className="customer-kicker">Private client services</p>
         <h1 className="font-display text-4xl text-[var(--customer-ink)] sm:text-5xl">
-          Preferred Tailoring &amp; HighMaintenance
+          Preferred Tailoring &amp; High Maintenance
         </h1>
         <p className="max-w-2xl text-[15px] leading-7 text-[var(--color-stone-600)]">
           Advisor-led wardrobe planning and ongoing care, pressing, repair, and
@@ -151,7 +151,7 @@ export default async function CustomerServicesPage() {
         <div className="customer-panel flex flex-col gap-2 p-6">
           <p className="text-sm text-[var(--color-stone-700)]">
             No concierge memberships yet. Your house advisor can open Preferred
-            Tailoring or HighMaintenance for you.
+            Tailoring or High Maintenance for you.
           </p>
           <p className="text-sm text-[var(--color-stone-500)]">
             You can still book fittings from{" "}
@@ -303,7 +303,7 @@ function CareJourney({
           <div className="grid min-h-72 items-end bg-[linear-gradient(135deg,#dbe2d8_0%,#cbd3c5_54%,#aebcaf_100%)] p-6 text-[var(--customer-ink)] sm:p-9">
             <div className="max-w-xl">
               <p className="customer-kicker text-[var(--customer-ink)]">
-                HighMaintenance
+                High Maintenance
               </p>
               <h2
                 id="highmaintenance-heading"
@@ -327,7 +327,7 @@ function CareJourney({
   return (
     <section aria-labelledby="highmaintenance-heading" className="space-y-4">
       <div className="px-1">
-        <p className="customer-kicker">HighMaintenance</p>
+        <p className="customer-kicker">High Maintenance</p>
         <h2
           id="highmaintenance-heading"
           className="font-display mt-2 text-3xl text-[var(--color-stone-900)] sm:text-4xl"
@@ -460,7 +460,7 @@ function CareOutcomeHistory({
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <p className="customer-kicker">HighMaintenance</p>
+          <p className="customer-kicker">High Maintenance</p>
           <h3
             id="care-outcomes-heading"
             className="font-display mt-1 text-xl text-[var(--color-stone-900)]"
