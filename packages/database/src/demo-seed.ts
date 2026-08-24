@@ -1529,13 +1529,41 @@ async function seedRetailerSpecs(params: {
       await admin.auth.admin.listUsers({ perPage: 1000 });
     if (listError) throw listError;
     const found = existing.users.find((u) => u.email === email);
-    if (found) return found.id as UserId;
+    if (found) {
+      // A matching address is not proof that this account is disposable demo
+      // data. Never reset credentials for an identity this seeder did not
+      // create and mark itself.
+      if (found.app_metadata?.["demo_seed"] !== true) {
+        throw new Error(
+          `Refusing to modify unmarked user while seeding demo data: ${email}`,
+        );
+      }
+      const { error } = await admin.auth.admin.updateUserById(found.id, {
+        password: DEMO_PASSWORD,
+        email_confirm: true,
+        user_metadata: {
+          ...found.user_metadata,
+          full_name: fullName,
+        },
+        app_metadata: {
+          ...found.app_metadata,
+          demo_seed: true,
+        },
+      });
+      if (error) {
+        throw new Error(
+          `Failed to refresh demo user ${email}: ${error.message}`,
+        );
+      }
+      return found.id as UserId;
+    }
 
     const { data, error } = await admin.auth.admin.createUser({
       email,
       password: DEMO_PASSWORD,
       email_confirm: true,
       user_metadata: { full_name: fullName },
+      app_metadata: { demo_seed: true },
     });
     if (error || !data.user) {
       throw new Error(
