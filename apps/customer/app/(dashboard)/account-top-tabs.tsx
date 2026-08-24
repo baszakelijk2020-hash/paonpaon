@@ -51,7 +51,7 @@ export function AccountTopTabs({
   return (
     <nav
       aria-label="Account"
-      className="sticky top-0 z-40 flex w-full items-stretch divide-x divide-black/10 border-b border-black/10 bg-white"
+      className={`sticky top-0 z-40 flex w-full items-stretch divide-x divide-black/10 border-b border-black/10 bg-white ${compact ? "h-[33px]" : "h-[60px]"}`}
     >
       {tabs.map((tab) => {
         const active =

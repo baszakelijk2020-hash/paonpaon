@@ -37,7 +37,7 @@ export default async function DashboardLayout({
       <div className="min-h-screen bg-[var(--color-stone-50)] text-[var(--color-stone-900)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
         <ShopCategorySidebar />
         <div className="min-w-0">
-          <nav className="sticky top-0 z-40 flex items-center justify-end border-b border-black/10 bg-white px-4 py-3">
+          <nav className="sticky top-0 z-40 flex h-[60px] items-center justify-end border-b border-black/10 bg-white px-4 py-3">
             <Link
               href="/login?redirectTo=%2Fdashboard"
               className={buttonVariants({ size: "sm" })}
