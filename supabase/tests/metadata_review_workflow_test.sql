@@ -132,7 +132,7 @@ insert into public.metadata_concepts (
   '75000000-0000-0000-0000-000000000001',
   null,
   'construction',
-  'half-canvas',
+  'half-canvas-review-fixture',
   'Half canvas'
 );
 

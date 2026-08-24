@@ -1147,7 +1147,7 @@ const STAFF_ROLES: {
 /**
  * The sole roster exposed by demo launchers and one-click login controls.
  *
- * Maison Dubois (slug CANONICAL_DEMO_RETAILER_SLUG) is the canonical showcase
+ * Nebel & Spiegel (slug CANONICAL_DEMO_RETAILER_SLUG) is the canonical showcase
  * tenant. Other seed users remain
  * fixture data for client-book stories, tenant-isolation coverage, and
  * generated prospect demos; they are intentionally not launcher personas.
@@ -1174,7 +1174,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     role: "retailer_owner",
     retailer: "Nebel & Spiegel",
     persona: "Retailer owner",
-    email: "contact+maison-dubois-owner@nebelspiegel.com",
+    email: "contact+atelier-demo-owner@nebelspiegel.com",
   },
   {
     id: "retailer-manager",
@@ -1182,7 +1182,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     role: "retailer_manager",
     retailer: "Nebel & Spiegel",
     persona: "Retailer manager",
-    email: "contact+maison-dubois-manager@nebelspiegel.com",
+    email: "contact+atelier-demo-manager@nebelspiegel.com",
   },
   {
     id: "sales-advisor",
@@ -1190,7 +1190,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     role: "sales_advisor",
     retailer: "Nebel & Spiegel",
     persona: "Sales advisor",
-    email: "contact+maison-dubois-sales@nebelspiegel.com",
+    email: "contact+atelier-demo-sales@nebelspiegel.com",
   },
   {
     id: "production-staff",
@@ -1198,7 +1198,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     role: "production_staff",
     retailer: "Nebel & Spiegel",
     persona: "Production / operations",
-    email: "contact+maison-dubois-operations@nebelspiegel.com",
+    email: "contact+atelier-demo-operations@nebelspiegel.com",
   },
   {
     id: "workshop-manager",
@@ -1206,7 +1206,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     role: "workshop_manager",
     retailer: "Nebel & Spiegel",
     persona: "Workshop manager",
-    email: "contact+maison-dubois-workshop@nebelspiegel.com",
+    email: "contact+atelier-demo-workshop@nebelspiegel.com",
   },
   {
     id: "alteration-worker",
@@ -1214,7 +1214,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     role: "alteration_worker",
     retailer: "Nebel & Spiegel",
     persona: "Alteration worker",
-    email: "contact+maison-dubois-alteration-worker@nebelspiegel.com",
+    email: "contact+atelier-demo-alteration-worker@nebelspiegel.com",
   },
 ];
 

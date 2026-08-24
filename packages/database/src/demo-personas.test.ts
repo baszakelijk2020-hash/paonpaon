@@ -58,12 +58,19 @@ describe("canonical demo personas", () => {
         app: "retailer",
         retailer: "Nebel & Spiegel",
       });
+      expect(getDemoPersona(id).email).toMatch(
+        /^contact\+atelier-demo-[a-z-]+@nebelspiegel\.com$/,
+      );
     }
   });
 
   it("keeps admin demo toggles scoped to canonical identities", () => {
-    expect(isCanonicalDemoEmail("contact+isabelle@nebelspiegel.com")).toBe(true);
-    expect(isCanonicalDemoEmail("contact+unrelated@nebelspiegel.com")).toBe(false);
+    expect(isCanonicalDemoEmail("contact+isabelle@nebelspiegel.com")).toBe(
+      true,
+    );
+    expect(isCanonicalDemoEmail("contact+unrelated@nebelspiegel.com")).toBe(
+      false,
+    );
     expect(isCanonicalDemoEmail("contact+isabelle@example.com")).toBe(false);
     expect(isCanonicalDemoEmail(undefined)).toBe(false);
   });

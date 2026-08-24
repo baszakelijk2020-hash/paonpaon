@@ -1,45 +1,49 @@
-import { DEMO_PASSWORD, seedDemoData } from "@paon/database/demo-seed";
+import {
+  DEMO_PASSWORD,
+  getDemoPersona,
+  seedDemoData,
+} from "@paon/database/demo-seed";
 import { expect, test, type Page } from "@playwright/test";
 
 const retailerPersonas = [
   {
     name: "owner",
-    email: "contact+maison-dubois-owner@nebelspiegel.com",
+    email: getDemoPersona("retailer-owner").email,
     visible: [/^Brief/, /^Clients/, /^Products/, /^Team/],
     hidden: [],
     brief: "The atelier, at a glance.",
   },
   {
     name: "manager",
-    email: "contact+maison-dubois-manager@nebelspiegel.com",
+    email: getDemoPersona("retailer-manager").email,
     visible: [/^Brief/, /^Clients/, /^Products/, /^Performance/],
     hidden: [/^Team/],
     brief: "Today on the floor.",
   },
   {
     name: "sales advisor",
-    email: "contact+maison-dubois-sales@nebelspiegel.com",
+    email: getDemoPersona("sales-advisor").email,
     visible: [/^Brief/, /^Appointments/, /^Clients/, /^Alterations/],
     hidden: [/^Products/, /^Team/],
     brief: "Make every client moment count.",
   },
   {
     name: "production specialist",
-    email: "contact+maison-dubois-operations@nebelspiegel.com",
+    email: getDemoPersona("production-staff").email,
     visible: [/^Brief/, /^Orders/, /^Alterations/],
     hidden: [/^Clients/, /^Products/, /^Team/],
     brief: "Promises in motion.",
   },
   {
     name: "workshop manager",
-    email: "contact+maison-dubois-workshop@nebelspiegel.com",
+    email: getDemoPersona("workshop-manager").email,
     visible: [/^Work queue/, /^Workshop pricing/],
     hidden: [/^Orders/, /^Clients/, /^Products/],
     brief: "The workroom, in motion.",
   },
   {
     name: "alteration worker",
-    email: "contact+maison-dubois-alteration-worker@nebelspiegel.com",
+    email: getDemoPersona("alteration-worker").email,
     visible: [/^Work queue/],
     hidden: [/^Workshop pricing/, /^Orders/, /^Clients/, /^Products/],
     brief: "Your bench, clearly.",
@@ -88,10 +92,7 @@ test("mobile shell exposes the same worker-safe navigation in a drawer", async (
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await signIn(
-    page,
-    "contact+maison-dubois-alteration-worker@nebelspiegel.com",
-  );
+  await signIn(page, getDemoPersona("alteration-worker").email);
   await page.getByRole("button", { name: "Open navigation" }).click();
   await expect(page.getByRole("link", { name: /^Work queue/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /^Orders/ })).toHaveCount(0);

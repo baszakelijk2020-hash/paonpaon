@@ -50,9 +50,9 @@ export default async function DemoModePage() {
             Seed data
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--color-stone-500)]">
-            Open the one canonical persona for each active showcase role. Maison
-            Dubois is the shared journey tenant; other seeded records support
-            fixture coverage and are not demo launcher identities.
+            Open the one canonical persona for each active showcase role. Nebel
+            &amp; Spiegel is the shared journey tenant; other seeded records
+            support fixture coverage and are not demo launcher identities.
           </p>
           <a
             href={`${customerAppUrl}/r/atelier-demo`}
