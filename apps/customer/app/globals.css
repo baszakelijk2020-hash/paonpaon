@@ -37,8 +37,6 @@ h3 {
 }
 .customer-page-header {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
   gap: 1rem;
   padding-block: 1.25rem 1.5rem;
 }

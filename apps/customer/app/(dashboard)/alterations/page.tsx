@@ -40,7 +40,7 @@ export default async function AlterationsPage() {
 
   return (
     <div className="customer-page flex flex-col gap-6">
-      <header className="customer-page-header flex-wrap items-end">
+      <header className="customer-page-header flex-wrap items-end justify-between">
         <h1 className="font-display text-4xl text-[var(--customer-ink)]">
           Alterations
         </h1>
