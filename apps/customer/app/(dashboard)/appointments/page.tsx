@@ -9,6 +9,8 @@ import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
 
+import { RelatedLinks } from "../related-links";
+
 import { AppointmentStatusBadge } from "./status-badge";
 
 import { requireSession } from "@/lib/session";
@@ -43,13 +45,14 @@ export default async function AppointmentsPage() {
     : null;
   const bookHref = primaryRetailer
     ? `/r/${primaryRetailer.slug}`
-    : "/r/maison-dubois";
+    : "/r/atelier-demo";
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
         Appointments
       </h1>
+      <RelatedLinks links={[{ href: "/concierge", label: "Concierge" }]} />
 
       {appointments.length === 0 ? (
         <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">

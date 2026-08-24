@@ -7,11 +7,11 @@ import Link from "next/link";
  * no faux nav that only says “sign in to open.”
  */
 export function GuestPortalPreview({
-  storeHref = "/r/maison-dubois",
+  storeHref = "/r/atelier-demo",
 }: {
   storeHref?: string;
 }) {
-  const slug = storeHref.replace(/^\/r\//, "") || "maison-dubois";
+  const slug = storeHref.replace(/^\/r\//, "") || "atelier-demo";
   const bookHref = `${storeHref}#book`;
 
   return (

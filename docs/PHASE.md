@@ -8161,3 +8161,91 @@ item.
      (non-`{force:true}`) Playwright click, since the specs use `force: true`
      specifically to bypass Playwright's normal receives-events/visibility
      check, which could be masking the real problem. -->
+
+<!-- SESSION HANDOFF (2026-08-24): storefront/customer-environment cleanup
+     session. Canonical demo retailer is now slug `atelier-demo`, display
+     name "Nebel & Spiegel" (renamed twice this session — mid-session it was
+     briefly "Atelier Demo"; if you see that string anywhere live-facing,
+     it's stale, not intentional). The old `maison-dubois` retailer row was
+     merged into this one (same id, slug/display_name changed in place) —
+     all its customers/orders/wardrobe data is intact under the new slug.
+     `casa-marchetti` and `paon-programme-proof` retailer rows were renamed
+     to "Nebel & Spiegel II"/"III" (still separate tenant-isolation test
+     fixtures, not deleted — deleting them would break
+     apps/retailer/e2e/canonical-house.spec.ts). `e2e-customer-workspace`
+     display name deliberately left alone — apps/customer/e2e/
+     catalogue.spec.ts and fixtures.ts assert that exact string.
+
+     Merged 68 commits from `agent/lane-h-customer-ai-conversation` (never
+     merged into this branch before) — the storefront's product-metadata
+     "information card" panels (mill/fibre/fabric knowledge), the staff
+     Knowledge Library, corporate Manager Portal auth foundation, checkout
+     demo-payment path, ~15 storefront bugfixes. After merging, 3 of the
+     pulled migrations (20260821000002/000004/000005) turned out to insert
+     0 rows against this DB — they hardcode product UUIDs from the other
+     branch's own database instance, which don't exist here. Backfilled
+     with a fresh keyword-matching tagging pass (881 assignments / 144
+     products, `entity_metadata_assignments`, review_status='accepted').
+     If you re-run those 3 migrations against a FRESH db reset expecting
+     them to populate real data, they won't — same root cause, needs the
+     same kind of re-tagging pass afterward, or a proper id-portable rewrite.
+
+     Also found and fixed twice in this session: `retailers.brand_theme
+     ->> 'cornerStyle'` keeps getting reset to "soft" (rounded) instead of
+     "architectural" (sharp) by concurrent `supabase db reset --local`
+     calls — same class of issue as 909c7fa's catalogue wipe. It is NOT
+     committed to seed.sql. If the storefront's sidebar logo looks rounded
+     again, check this column first before assuming a CSS regression.
+
+     NOT DONE — explicitly flagged to the founder, not silently dropped:
+     - Corporate visit self-service from the customer's own account (not
+       just the storefront lead-gen form or retailer-staff side). Migration
+       20260824120000_add_corporate_contact_self_service.sql adds
+       customers.corporate_account_id + RLS policies letting a customer
+       with that column set manage their own account's corporate_visit_
+       slots/corporate_programmes/corporate_office_visit_requests. NO
+       customer-facing page or Server Action exists yet — repository
+       methods (CorporateOfficeVisitRepository.createSlot/cancelSlot)
+       exist and are RLS-safe to call from a customer-scoped client, but
+       nothing calls them from apps/customer.
+     - General retailer voucher/discount-code creation tool. Nothing exists
+       beyond wedding_guest_vouchers (wedding-specific, no checkout
+       integration). A real voucher tool needs: new schema modeled on that
+       table, retailer staff creation UI, AND checkout/cart integration to
+       actually apply a discount — apps/customer/app/r/[slug]/cart has zero
+       discount-code mechanism today.
+     - Virtual wardrobe images reported "cut off" by the founder — never
+       investigated. Check apps/customer/app/(dashboard)/wardrobe/
+       wardrobe-panel.tsx's image sizing (object-fit/aspect-ratio on the
+       card photos).
+     - Founder reported (last message before handoff, unconfirmed/
+       unfixed): "left sidebar overlapping content in the customer
+       environment" on some page, and "height of How it works/About Us/
+       Contact incorrect" in apps/customer/app/(dashboard)/
+       shop-category-sidebar.tsx. I was mid-screenshot-comparison when
+       asked to stop — the .sidebar-footer's real CSS uses ABSOLUTE
+       positioning for the Book Appointment button (bottom:20/left:20/
+       right:20, see paon-template.html ~line 573 `.whatsapp-btn`) which
+       my React version also does, but I had not yet confirmed the
+       overlap claim against a real narrower-viewport screenshot before
+       stopping. Start here.
+     - Sidebar reload/flash when navigating storefront <-> account pages:
+       NOT fixable as a sidebar change. apps/customer/app/r/[slug]/route.ts
+       serves raw HTML (a Route Handler, deliberately not React — see its
+       own docblock), the account app is a normal React tree. Crossing that
+       boundary is always a full page navigation. Would need unifying the
+       two rendering systems to truly fix, out of scope for a UI tweak.
+     - "Loyalty should be together the weather widgets on top" — ambiguous
+       instruction from founder, never clarified. Weather/world-clock/
+       drive-time widgets landed on Morning Routine
+       (apps/customer/app/(dashboard)/morning-routine/local-widgets.tsx)
+       instead of Loyalty. May not be what was meant.
+
+     Shared logic worth knowing about before touching the storefront again:
+     apps/customer/app/r/[slug]/canonical-category.ts now holds the
+     category-detection heuristic (CANONICAL_CATEGORIES, canonicalCategoryFor)
+     — extracted out of route.ts specifically so apps/customer/app/
+     (dashboard)/shop-category-sidebar.tsx could import it and guarantee
+     the account sidebar's category list exactly matches the storefront's,
+     computed from the same real product data via the same function. Don't
+     re-inline category logic into route.ts — it'll silently drift again. -->

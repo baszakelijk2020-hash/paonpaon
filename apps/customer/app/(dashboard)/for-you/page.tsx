@@ -53,11 +53,17 @@ export default async function ForYouPage() {
       {visibleGroups.length === 0 ? (
         <Card>
           <p className="text-sm text-[var(--color-stone-600)]">
-            Nothing ranked yet. Grant personalization consent, save pieces, or
-            browse the house catalogue — For You stays empty rather than invent
-            recommendations.
+            Nothing ranked yet. Take the sixty-second style quiz, grant
+            personalization consent, save pieces, or browse the house catalogue
+            — For You stays empty rather than invent recommendations.
           </p>
           <div className="mt-4 flex flex-wrap gap-3 text-sm">
+            <Link
+              href="/style-quiz"
+              className="font-medium underline underline-offset-2"
+            >
+              Take the style quiz
+            </Link>
             <Link href="/wishlist" className="underline">
               Open saved
             </Link>

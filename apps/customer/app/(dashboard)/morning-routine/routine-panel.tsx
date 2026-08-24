@@ -220,7 +220,15 @@ export function MorningRoutinePanel({
     initial,
   );
 
-  const [featured, ...rest] = view?.recommendations ?? [];
+  const recommendations = view?.recommendations ?? [];
+  // Prefer a suit or jacket as the featured look when one is available —
+  // the founder's ask is "today's look", not an arbitrary category.
+  const preferredIndex = recommendations.findIndex((rec) =>
+    ["suit", "jacket"].includes(rec.categoryCode ?? ""),
+  );
+  const featuredIndex = preferredIndex >= 0 ? preferredIndex : 0;
+  const featured = recommendations[featuredIndex];
+  const rest = recommendations.filter((_, i) => i !== featuredIndex);
 
   return (
     <section

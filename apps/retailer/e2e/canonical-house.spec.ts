@@ -56,14 +56,14 @@ test("canonical proof house is deep, rerunnable and isolated from demo/e2e tenan
     .in("slug", [
       PROGRAMME_PROOF_RETAILER_SLUG,
       TEST_RETAILER_SLUG,
-      "maison-dubois",
+      "atelier-demo",
     ]);
   expect(classError).toBeNull();
   const idBySlug = new Map((classes ?? []).map((row) => [row.slug, row.id]));
   expect(idBySlug.get(PROGRAMME_PROOF_RETAILER_SLUG)).toBe(first.retailerId);
   expect(idBySlug.get(TEST_RETAILER_SLUG)).toBeTruthy();
   expect(idBySlug.get(TEST_RETAILER_SLUG)).not.toBe(first.retailerId);
-  if (idBySlug.has("maison-dubois")) {
-    expect(idBySlug.get("maison-dubois")).not.toBe(first.retailerId);
+  if (idBySlug.has("atelier-demo")) {
+    expect(idBySlug.get("atelier-demo")).not.toBe(first.retailerId);
   }
 });

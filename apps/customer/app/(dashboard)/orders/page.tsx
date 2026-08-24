@@ -4,6 +4,8 @@ import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
 
+import { RelatedLinks } from "../related-links";
+
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -27,6 +29,12 @@ export default async function OrdersPage() {
       <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
         Orders
       </h1>
+      <RelatedLinks
+        links={[
+          { href: "/preferred-tailoring", label: "Preferred Tailoring" },
+          { href: "/services", label: "Services" },
+        ]}
+      />
 
       {orders.length === 0 ? (
         <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">

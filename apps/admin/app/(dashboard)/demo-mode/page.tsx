@@ -55,7 +55,7 @@ export default async function DemoModePage() {
             fixture coverage and are not demo launcher identities.
           </p>
           <a
-            href={`${customerAppUrl}/r/maison-dubois`}
+            href={`${customerAppUrl}/r/atelier-demo`}
             target="_blank"
             rel="noreferrer"
             className="mt-4 inline-flex h-9 items-center rounded-[var(--radius-md)] bg-[var(--color-ink-600)] px-4 text-xs font-medium text-white"

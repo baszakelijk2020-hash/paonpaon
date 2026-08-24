@@ -7000,6 +7000,7 @@ export type Database = {
         Row: {
           acquisition_source: string | null;
           assigned_staff_id: string | null;
+          corporate_account_id: string | null;
           created_at: string;
           deleted_at: string | null;
           email: string | null;
@@ -7017,6 +7018,7 @@ export type Database = {
         Insert: {
           acquisition_source?: string | null;
           assigned_staff_id?: string | null;
+          corporate_account_id?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           email?: string | null;
@@ -7034,6 +7036,7 @@ export type Database = {
         Update: {
           acquisition_source?: string | null;
           assigned_staff_id?: string | null;
+          corporate_account_id?: string | null;
           created_at?: string;
           deleted_at?: string | null;
           email?: string | null;
@@ -7062,6 +7065,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "retailer_staff_members";
             referencedColumns: ["id", "retailer_id"];
+          },
+          {
+            foreignKeyName: "customers_corporate_account_id_fkey";
+            columns: ["corporate_account_id"];
+            isOneToOne: false;
+            referencedRelation: "corporate_accounts";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "customers_retailer_id_fkey";

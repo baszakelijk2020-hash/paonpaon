@@ -330,11 +330,18 @@ const MAISON_CLIENT_HISTORIES: Record<string, ClientHistoryStory> = {
   },
 };
 
+/**
+ * The one canonical demo storefront/tenant slug — every launcher, guest
+ * portal, and marketing "browse collection" link must resolve here so the
+ * founder never lands in a second, inconsistent demo environment.
+ */
+export const CANONICAL_DEMO_RETAILER_SLUG = "atelier-demo";
+
 /** Remap Maison client-book stories onto slug-scoped prospect emails. */
 function clientHistoriesForSlug(
   slug: string,
 ): Record<string, ClientHistoryStory> {
-  if (slug === "maison-dubois") return MAISON_CLIENT_HISTORIES;
+  if (slug === CANONICAL_DEMO_RETAILER_SLUG) return MAISON_CLIENT_HISTORIES;
   return Object.fromEntries(
     Object.entries(MAISON_CLIENT_HISTORIES).map(([email, story]) => {
       const local = email.split("@")[0]?.replace(/^contact\+/, "") ?? "client";
@@ -345,9 +352,9 @@ function clientHistoriesForSlug(
 
 const RETAILERS: RetailerSpec[] = [
   {
-    slug: "maison-dubois",
-    displayName: "Maison Dubois",
-    legalName: "Maison Dubois SARL",
+    slug: CANONICAL_DEMO_RETAILER_SLUG,
+    displayName: "Nebel & Spiegel",
+    legalName: "Nebel & Spiegel SARL",
     currency: "EUR",
     collectionName: "Signature Tailoring",
     collectionSlug: "signature-tailoring",
@@ -1140,7 +1147,8 @@ const STAFF_ROLES: {
 /**
  * The sole roster exposed by demo launchers and one-click login controls.
  *
- * Maison Dubois is the canonical showcase tenant. Other seed users remain
+ * Maison Dubois (slug CANONICAL_DEMO_RETAILER_SLUG) is the canonical showcase
+ * tenant. Other seed users remain
  * fixture data for client-book stories, tenant-isolation coverage, and
  * generated prospect demos; they are intentionally not launcher personas.
  */
@@ -1156,7 +1164,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     id: "customer",
     app: "customer",
     role: "customer",
-    retailer: "Maison Dubois",
+    retailer: "Nebel & Spiegel",
     persona: "Customer — Isabelle Laurent",
     email: "contact+isabelle@nebelspiegel.com",
   },
@@ -1164,7 +1172,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     id: "retailer-owner",
     app: "retailer",
     role: "retailer_owner",
-    retailer: "Maison Dubois",
+    retailer: "Nebel & Spiegel",
     persona: "Retailer owner",
     email: "contact+maison-dubois-owner@nebelspiegel.com",
   },
@@ -1172,7 +1180,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     id: "retailer-manager",
     app: "retailer",
     role: "retailer_manager",
-    retailer: "Maison Dubois",
+    retailer: "Nebel & Spiegel",
     persona: "Retailer manager",
     email: "contact+maison-dubois-manager@nebelspiegel.com",
   },
@@ -1180,7 +1188,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     id: "sales-advisor",
     app: "retailer",
     role: "sales_advisor",
-    retailer: "Maison Dubois",
+    retailer: "Nebel & Spiegel",
     persona: "Sales advisor",
     email: "contact+maison-dubois-sales@nebelspiegel.com",
   },
@@ -1188,7 +1196,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     id: "production-staff",
     app: "retailer",
     role: "production_staff",
-    retailer: "Maison Dubois",
+    retailer: "Nebel & Spiegel",
     persona: "Production / operations",
     email: "contact+maison-dubois-operations@nebelspiegel.com",
   },
@@ -1196,7 +1204,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     id: "workshop-manager",
     app: "retailer",
     role: "workshop_manager",
-    retailer: "Maison Dubois",
+    retailer: "Nebel & Spiegel",
     persona: "Workshop manager",
     email: "contact+maison-dubois-workshop@nebelspiegel.com",
   },
@@ -1204,7 +1212,7 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
     id: "alteration-worker",
     app: "retailer",
     role: "alteration_worker",
-    retailer: "Maison Dubois",
+    retailer: "Nebel & Spiegel",
     persona: "Alteration worker",
     email: "contact+maison-dubois-alteration-worker@nebelspiegel.com",
   },
@@ -1310,7 +1318,7 @@ export async function seedProspectDemoRetailer(params: {
   // Always seed the full Maison catalogue so regenerate can expand the mix
   // later; applyProspectProductMix archives SKUs outside the selection.
   const customers = template.customers.map((customer) => {
-    if (params.slug === "maison-dubois") return customer;
+    if (params.slug === CANONICAL_DEMO_RETAILER_SLUG) return customer;
     // Isolate prospect-demo portal users from Maison so wedding/client
     // walks land on this tenant, not the shared Maison client book.
     const localPart = customer.email.split("@")[0] ?? "client";
@@ -1938,6 +1946,237 @@ async function seedRetailerSpecs(params: {
           quantity: 1,
         });
         await deliverOrder(orderId);
+      }
+    }
+
+    // Preferred Tailoring calendar (FT-14): seed real wardrobe items from
+    // the primary portal customer's delivered order lines (idempotent by
+    // order_line_id), then spread service-partner care engagements across
+    // most days of the current month so the calendar's fade-in animation
+    // has real garments to show, not an empty grid.
+    if (customerIds[0]) {
+      const primaryCustomerId = customerIds[0];
+      const { data: ownedForWardrobe, error: ownedForWardrobeError } =
+        await admin
+          .from("order_lines")
+          .select(
+            "id, product_variant_id, orders!inner(customer_id, status, deleted_at)",
+          )
+          .eq("orders.customer_id", primaryCustomerId)
+          .eq("orders.status", "delivered")
+          .is("orders.deleted_at", null);
+      if (ownedForWardrobeError) throw ownedForWardrobeError;
+
+      const { data: existingWardrobe, error: existingWardrobeError } =
+        await admin
+          .from("wardrobe_items")
+          .select("id, order_line_id")
+          .eq("customer_id", primaryCustomerId)
+          .is("deleted_at", null);
+      if (existingWardrobeError) throw existingWardrobeError;
+      const wardrobeByOrderLine = new Map(
+        (existingWardrobe ?? [])
+          .filter((w) => w.order_line_id)
+          .map((w) => [w.order_line_id as string, w.id as string]),
+      );
+
+      const wardrobeItemIds: string[] = [];
+      for (const line of ownedForWardrobe ?? []) {
+        const existingId = wardrobeByOrderLine.get(line.id as string);
+        if (existingId) {
+          wardrobeItemIds.push(existingId);
+          continue;
+        }
+        const { data: variant, error: variantError } = await admin
+          .from("product_variants")
+          .select("product_id")
+          .eq("id", line.product_variant_id as string)
+          .single();
+        if (variantError) throw variantError;
+        const { data: product, error: productError } = await admin
+          .from("products")
+          .select("name, primary_image_url")
+          .eq("id", variant.product_id as string)
+          .single();
+        if (productError) throw productError;
+        const { data: created, error: createError } = await admin
+          .from("wardrobe_items")
+          .insert({
+            retailer_id: retailerId,
+            customer_id: primaryCustomerId,
+            ownership_kind: "retailer_purchased",
+            provenance_source: "order_line",
+            category_code: "suit",
+            display_name: product.name as string,
+            condition: "excellent",
+            care_state: "current",
+            product_id: variant.product_id as string,
+            order_line_id: line.id as string,
+            identifying_photo_url: product.primary_image_url as string | null,
+            created_by_actor: "customer",
+          })
+          .select("id")
+          .single();
+        if (createError) throw createError;
+        wardrobeItemIds.push(created.id as string);
+      }
+
+      if (wardrobeItemIds.length > 0) {
+        const { data: existingPartner, error: partnerLookupError } = await admin
+          .from("service_partners")
+          .select("id")
+          .eq("retailer_id", retailerId)
+          .eq("display_name", "Atelier Press & Care")
+          .maybeSingle();
+        if (partnerLookupError) throw partnerLookupError;
+        let partnerId = existingPartner?.id as string | undefined;
+        if (!partnerId) {
+          const { data: createdPartner, error: createPartnerError } =
+            await admin
+              .from("service_partners")
+              .insert({
+                retailer_id: retailerId,
+                display_name: "Atelier Press & Care",
+                capabilities: [
+                  "dry_cleaning",
+                  "alteration",
+                  "invisible_mending",
+                ],
+                turnaround_days: 5,
+              })
+              .select("id")
+              .single();
+          if (createPartnerError) throw createPartnerError;
+          partnerId = createdPartner.id as string;
+        }
+
+        const { data: existingPlan, error: planLookupError } = await admin
+          .from("service_plans")
+          .select("id")
+          .eq("retailer_id", retailerId)
+          .eq("kind", "preferred_tailoring")
+          .maybeSingle();
+        if (planLookupError) throw planLookupError;
+        let planId = existingPlan?.id as string | undefined;
+        if (!planId) {
+          const { data: createdPlan, error: createPlanError } = await admin
+            .from("service_plans")
+            .insert({
+              retailer_id: retailerId,
+              kind: "preferred_tailoring",
+              status: "active",
+              title: "Preferred Tailoring",
+              summary: "Ongoing pressing and care for your wardrobe.",
+              explanation:
+                "Your house arranges recurring pressing, cleaning and minor repair for pieces you wear often.",
+            })
+            .select("id")
+            .single();
+          if (createPlanError) throw createPlanError;
+          planId = createdPlan.id as string;
+        }
+
+        const { data: existingMembership, error: membershipLookupError } =
+          await admin
+            .from("service_memberships")
+            .select("id")
+            .eq("retailer_id", retailerId)
+            .eq("plan_id", planId)
+            .eq("customer_id", primaryCustomerId)
+            .maybeSingle();
+        if (membershipLookupError) throw membershipLookupError;
+        let membershipId = existingMembership?.id as string | undefined;
+        if (!membershipId) {
+          const { data: createdMembership, error: createMembershipError } =
+            await admin
+              .from("service_memberships")
+              .insert({
+                retailer_id: retailerId,
+                plan_id: planId,
+                customer_id: primaryCustomerId,
+                status: "active",
+              })
+              .select("id")
+              .single();
+          if (createMembershipError) throw createMembershipError;
+          membershipId = createdMembership.id as string;
+        }
+
+        const { data: existingEngagements, error: engagementsLookupError } =
+          await admin
+            .from("service_partner_engagements")
+            .select("job_reference")
+            .eq("retailer_id", retailerId);
+        if (engagementsLookupError) throw engagementsLookupError;
+        const existingRefs = new Set(
+          (existingEngagements ?? []).map((e) => e.job_reference as string),
+        );
+
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const daysInMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          0,
+        ).getDate();
+        const custodyStates = [
+          "with_partner",
+          "in_transit_to_partner",
+          "returned_to_retailer",
+          "with_retailer",
+          "in_transit_to_retailer",
+        ] as const;
+
+        let bookingSeq = 0;
+        // Two of every three days this month carry a garment — enough to
+        // read as "most days" without every single day faking activity.
+        for (let day = 1; day <= daysInMonth; day += 1) {
+          if (day % 3 === 0) continue;
+          const jobReference = `${spec.slug}-preferred-tailoring-${now.getFullYear()}-${now.getMonth() + 1}-${day}`;
+          if (existingRefs.has(jobReference)) continue;
+
+          const dueOn = new Date(monthStart);
+          dueOn.setDate(day);
+          const dueOnKey = dueOn.toISOString().slice(0, 10);
+
+          const { data: createdBooking, error: createBookingError } =
+            await admin
+              .from("service_bookings")
+              .insert({
+                retailer_id: retailerId,
+                customer_id: primaryCustomerId,
+                membership_id: membershipId,
+                plan_id: planId,
+                kind: "care",
+                status: "in_progress",
+                request_idempotency_key: `demo-preferred-tailoring-${day}`,
+              })
+              .select("id")
+              .single();
+          if (createBookingError) throw createBookingError;
+
+          const wardrobeItemId =
+            wardrobeItemIds[bookingSeq % wardrobeItemIds.length]!;
+          const custodyState =
+            custodyStates[bookingSeq % custodyStates.length]!;
+          bookingSeq += 1;
+
+          const { error: createEngagementError } = await admin
+            .from("service_partner_engagements")
+            .insert({
+              retailer_id: retailerId,
+              partner_id: partnerId,
+              customer_id: primaryCustomerId,
+              booking_id: createdBooking.id as string,
+              wardrobe_item_id: wardrobeItemId,
+              job_reference: jobReference,
+              capability: "dry_cleaning",
+              instructions: "Demo garment care — Preferred Tailoring showcase.",
+              due_on: dueOnKey,
+              custody_state: custodyState,
+            });
+          if (createEngagementError) throw createEngagementError;
+        }
       }
     }
 

@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { DemoLoginForm } from "./demo-login-form";
 import { MagicLinkForm } from "./magic-link-form";
-import { MasterDemoLogin } from "./master-demo-login";
 import { QuickDemoLogin } from "./quick-demo-login";
 
 /**
@@ -92,9 +91,6 @@ export default async function LoginPage({
             ) : null}
 
             <div className="mt-6">
-              {!isRealProduction ? (
-                <MasterDemoLogin redirectTo={redirectTo} />
-              ) : null}
               {isDemo && !isRealProduction ? (
                 <DemoLoginForm
                   redirectTo={redirectTo}

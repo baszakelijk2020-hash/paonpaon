@@ -13,6 +13,8 @@ import { Button } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
 
+import { RelatedLinks } from "../related-links";
+
 import { inviteFriend, joinLoyalty, redeemReward } from "./actions";
 import { BadgesShelf } from "./badges-shelf";
 
@@ -60,6 +62,9 @@ export default async function LoyaltyPage() {
         <p className="text-sm text-[var(--color-stone-500)]">
           Membership, considered milestones, and referrals across houses.
         </p>
+        <RelatedLinks
+          links={[{ href: "/private-offers", label: "Private Offers" }]}
+        />
       </div>
       {relationships.map(
         (

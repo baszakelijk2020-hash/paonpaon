@@ -38,7 +38,7 @@ describe("canonical demo personas", () => {
     expect(getDemoPersona("customer")).toMatchObject({
       app: "customer",
       role: "customer",
-      retailer: "Maison Dubois",
+      retailer: "Nebel & Spiegel",
       email: "contact+isabelle@nebelspiegel.com",
     });
 
@@ -52,7 +52,7 @@ describe("canonical demo personas", () => {
     ] as const) {
       expect(getDemoPersona(id)).toMatchObject({
         app: "retailer",
-        retailer: "Maison Dubois",
+        retailer: "Nebel & Spiegel",
       });
     }
   });

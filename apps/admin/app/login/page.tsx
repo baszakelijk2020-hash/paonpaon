@@ -4,7 +4,6 @@ import { FormField } from "@paon/ui/components/FormField";
 import { Input } from "@paon/ui/components/Input";
 
 import { signIn } from "./actions";
-import { MasterDemoLogin } from "./master-demo-login";
 import { QuickDemoLogin } from "./quick-demo-login";
 
 /**
@@ -52,7 +51,6 @@ export default async function LoginPage({
         </p>
       }
     >
-      {!isRealProduction ? <MasterDemoLogin redirectTo={redirectTo} /> : null}
       <form action={signIn} className="flex flex-col gap-5">
         {redirectTo ? (
           <input type="hidden" name="redirectTo" value={redirectTo} />

@@ -21,6 +21,8 @@ import type {
   WardrobeVisualizationJob,
 } from "@paon/domain";
 
+import { RelatedLinks } from "../related-links";
+
 import { buildItemSpecificCompleteTheLookSuggestionsByCategory } from "./item-specific-complete-the-look-data";
 import { WardrobeLifecyclePanel } from "./lifecycle-panel";
 import { WardrobeRoadmapPanel } from "./roadmap-panel";
@@ -179,6 +181,12 @@ export default async function WardrobePage() {
           separate from fitting garments — plus fit freshness, longevity
           guidance, self-scan, and advisor roadmaps.
         </p>
+        <RelatedLinks
+          links={[
+            { href: "/wishlist", label: "Saved" },
+            { href: "/capsule", label: "Capsule" },
+          ]}
+        />
       </div>
 
       {groups.length === 0 ? (

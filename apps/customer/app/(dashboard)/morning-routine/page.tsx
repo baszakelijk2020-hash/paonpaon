@@ -7,9 +7,12 @@ import {
 } from "@paon/database";
 import { selectUpcomingOccasions } from "@paon/domain";
 
+import { RelatedLinks } from "../related-links";
+
 import { CompleteTheLookCard } from "./complete-the-look-card";
 import { buildCompleteTheLookSuggestions } from "./complete-the-look-data";
 import { MorningRoutineDeliveryPanel } from "./delivery-panel";
+import { LocalWidgets } from "./local-widgets";
 import { MorningRoutinePanel } from "./routine-panel";
 import { UpcomingOccasionsCard } from "./upcoming-occasions-card";
 
@@ -86,7 +89,16 @@ export default async function MorningRoutinePage() {
           StyleProfile inputs when consented — every pick explains itself.
           Opt-in delivery is separate from marketing consent.
         </p>
+        <RelatedLinks
+          links={[
+            { href: "/for-you", label: "For You" },
+            { href: "/style-quiz", label: "Style Quiz" },
+            { href: "/silhouette-analysis", label: "Silhouette Analysis" },
+          ]}
+        />
       </div>
+
+      <LocalWidgets />
 
       {groups.length === 0 ? (
         <div

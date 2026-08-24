@@ -5,6 +5,7 @@ import {
   NotificationRepository,
   OrderRepository,
   ProductVariantRepository,
+  RetailerBranchRepository,
   RetailerRepository,
 } from "@paon/database";
 import {
@@ -61,14 +62,17 @@ export default async function DashboardPage() {
   const appointmentRepo = new AppointmentRepository(supabase);
   const orderRepo = new OrderRepository(supabase);
   const alterationRepo = new CustomerAlterationRepository(supabase);
+  const branchRepo = new RetailerBranchRepository(supabase);
   const relationships = await Promise.all(
     customers.map(async (customer) => {
-      const [retailer, appointments, orders, alterations] = await Promise.all([
-        retailerRepo.findById(customer.retailerId),
-        appointmentRepo.findByCustomer(customer.id),
-        orderRepo.findByCustomer(customer.id),
-        alterationRepo.findByCustomer(customer.id),
-      ]);
+      const [retailer, appointments, orders, alterations, branches] =
+        await Promise.all([
+          retailerRepo.findById(customer.retailerId),
+          appointmentRepo.findByCustomer(customer.id),
+          orderRepo.findByCustomer(customer.id),
+          alterationRepo.findByCustomer(customer.id),
+          branchRepo.listByRetailer(customer.retailerId),
+        ]);
       const now = Date.now();
       const nextAppointment = appointments
         .filter(
@@ -87,12 +91,16 @@ export default async function DashboardPage() {
       const activeAlteration = alterations.find(
         (alteration) => !TERMINAL_ALTERATION_STATUSES.has(alteration.status),
       );
+      const favoriteBranch =
+        branches.find((branch) => branch.isDefault) ?? branches[0] ?? null;
       return {
         customer,
         retailer,
         nextAppointment,
         activeOrder,
         activeAlteration,
+        branchCount: branches.length,
+        favoriteBranch,
       };
     }),
   );
@@ -481,11 +489,15 @@ export default async function DashboardPage() {
           <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
-                Your houses
+                {relationships.length > 1 ? "Your houses" : "Your house"}
               </p>
-              <h2 className="font-display text-4xl">Your houses.</h2>
+              <h2 className="font-display text-4xl">
+                {relationships.length > 1 ? "Your houses." : "Your house."}
+              </h2>
               <p className="mt-2 max-w-xl text-sm text-[var(--color-stone-500)]">
-                Each atelier you shop with keeps its own book — never mixed.
+                {relationships.length > 1
+                  ? "Each atelier you shop with keeps its own book — never mixed."
+                  : "Your favorite store, if this house keeps more than one."}
               </p>
             </div>
             <Link
@@ -504,6 +516,8 @@ export default async function DashboardPage() {
                   nextAppointment,
                   activeOrder,
                   activeAlteration,
+                  branchCount,
+                  favoriteBranch,
                 },
                 index,
               ) => {
@@ -523,6 +537,21 @@ export default async function DashboardPage() {
                         <p className="mt-1 text-sm text-[var(--color-stone-500)]">
                           Private client of this house
                         </p>
+                        {branchCount > 1 && favoriteBranch ? (
+                          <p className="mt-2 text-xs text-[var(--color-stone-500)]">
+                            Favorite store:{" "}
+                            <span className="text-[var(--color-stone-800)]">
+                              {favoriteBranch.name}
+                            </span>{" "}
+                            ·{" "}
+                            <Link
+                              href={`/r/${retailer?.slug}/locations`}
+                              className="underline"
+                            >
+                              {branchCount} locations
+                            </Link>
+                          </p>
+                        ) : null}
                       </div>
                       {unread > 0 ? (
                         <span className="rounded-[var(--radius-md)] bg-[var(--color-stone-900)] px-3 py-1 text-xs text-white">

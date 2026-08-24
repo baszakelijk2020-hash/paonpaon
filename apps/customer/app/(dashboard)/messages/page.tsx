@@ -7,6 +7,8 @@ import { Button, buttonVariants } from "@paon/ui/components/Button";
 import { Card } from "@paon/ui/components/Card";
 import Link from "next/link";
 
+import { RelatedLinks } from "../related-links";
+
 import { startConversation } from "./actions";
 
 import { requireSession } from "@/lib/session";
@@ -40,6 +42,13 @@ export default async function MessagesPage({
         <p className="text-sm text-[var(--color-stone-500)]">
           Speak directly with your retail advisors.
         </p>
+        <RelatedLinks
+          links={[
+            { href: "/events", label: "Events" },
+            { href: "/wedding-parties", label: "Wedding Parties" },
+            { href: "/notifications", label: "Updates" },
+          ]}
+        />
       </div>
       {rows.map(({ customer, retailer, conversation }) => (
         <Card key={customer.id}>

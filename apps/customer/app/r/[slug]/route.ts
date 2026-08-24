@@ -11,10 +11,15 @@ import {
   WardrobeRepository,
   WeddingPartyRepository,
 } from "@paon/database";
+import { CANONICAL_DEMO_RETAILER_SLUG } from "@paon/database/demo-seed";
 import type { Product, ProductVariant } from "@paon/domain";
 import { formatMoney } from "@paon/utils";
 import { NextResponse } from "next/server";
 
+import {
+  CANONICAL_CATEGORIES,
+  canonicalCategoryFor,
+} from "./canonical-category";
 import {
   loadStorefrontCatalogueByProduct,
   preferCatalogueFacetValue,
@@ -163,135 +168,10 @@ function deriveSeason(name: string, collectionSeason?: string): string {
   return "unknown";
 }
 
-const CANONICAL_CATEGORIES = [
-  "Suits",
-  "Jackets",
-  "Pants",
-  "Knits",
-  "Shoes",
-  "Shirts",
-  "Outerwear",
-  "Evening",
-  "Wedding",
-] as const;
-
-const CATEGORY_KEYWORDS: Record<
-  (typeof CANONICAL_CATEGORIES)[number],
-  readonly string[]
-> = {
-  // "suit" only — weave-pattern words (twill/houndstooth/glencheck/mélange)
-  // used to live here too, but those describe jacket fabrics just as often
-  // as suit fabrics (see the id-range fallback below), so keeping them
-  // here was mis-sorting real jacket fabrics into Suits by coincidence of
-  // wording, not garment type.
-  Suits: ["suit"],
-  Jackets: ["jacket", "blazer", "sport coat", "sportcoat"],
-  // "broek" still matches trouser slugs (`…-broek1`); display names follow
-  // the product photography (e.g. "Khaki Cotton Trousers").
-  Pants: ["pant", "trouser", "chino", "broek"],
-  // "cashmere" used to live here too, but that's a fiber, not a garment —
-  // a cashmere-blend SUITING fabric (e.g. "Silk, Wool & Cashmere
-  // Glencheck") was winning this check before the id-range fallback ever
-  // ran, mis-sorting real suit/jacket fabrics into Knits by coincidence
-  // of material, not garment type. Same class of bug the "mélange" removal
-  // above already fixed once.
-  Knits: [
-    "knit",
-    "sweater",
-    "cardigan",
-    "jumper",
-    "roll neck",
-    "rollneck",
-    "turtleneck",
-    "crew",
-    "polo",
-    "merino",
-    "quarter-zip",
-    "cable",
-  ],
-  Shoes: ["shoe", "loafer", "oxford", "derby", "boot", "sneaker"],
-  Shirts: ["shirt"],
-  Outerwear: ["overcoat", "parka", "topcoat"],
-  Evening: ["tuxedo", "evening", "black tie", "dinner jacket"],
-  Wedding: ["wedding", "groom"],
-};
-
-/** Categories with an unambiguous name-keyword — checked before the
- * Suits/Jackets id-range fallback so an explicit garment word (e.g. a
- * "Sport Coat" or "Overcoat" that happens to reuse a suit fabric's own
- * product photo) always wins over which numbered fabric photo it reuses. */
-const UNAMBIGUOUS_CATEGORY_ORDER = CANONICAL_CATEGORIES.filter(
-  (category) => category !== "Suits",
-);
-
-/** Names with no real garment type at all (accessories) shouldn't fall
- * into the Suits/Jackets id-range guess just because they reuse one of
- * those fabrics' product photography. */
-const NON_GARMENT_NAME_HINTS = [
-  "pocket square",
-  "tie",
-  "cufflink",
-  "belt",
-  "briefcase",
-  "bag",
-  "wallet",
-  "satchel",
-  "tote",
-  "pouch",
-  "watch",
-  "sunglasses",
-  "hat",
-  "scarf",
-];
-
-/**
- * The founder's own real catalog (`paon.html`) numbers suit fabrics
- * below 8000 and jacket fabrics at or above it (its own `getCat()`:
- * `parseInt(id) < 8000 ? 'Suits' : 'Jackets'`) — the demo seed reuses
- * those exact numbered photos (`smaller/9177.webp`, etc.) for several
- * products, some of which are misleadingly named "X Suiting Fabric"
- * even when the numbered photo is actually a jacket fabric (id ≥ 8000).
- * No keyword list can recover the right category from a name that says
- * "Suiting Fabric" on a jacket fabric — only the founder's own id
- * scheme can, so it's consulted directly as a fallback once no explicit
- * garment word settles it.
- */
-function suitOrJacketFromImageId(imagePath: string): string | null {
-  const match = /(\d{4})\.\w+(?:$|\?)/.exec(imagePath);
-  if (!match?.[1]) return null;
-  const id = Number(match[1]);
-  if (id < 6000 || id > 9999) return null; // outside the founder's fabric-id range entirely
-  return id < 8000 ? "Suits" : "Jackets";
-}
-
-/** Maps to the template's fixed filter taxonomy — "" is that taxonomy's
- * own catch-all bucket, not a made-up fallback. */
-function canonicalCategoryFor(
-  productName: string,
-  collectionName: string | undefined,
-  imagePath: string,
-): string {
-  const haystack = `${productName} ${collectionName ?? ""}`.toLowerCase();
-
-  for (const category of UNAMBIGUOUS_CATEGORY_ORDER) {
-    if (
-      CATEGORY_KEYWORDS[category].some((keyword) => haystack.includes(keyword))
-    ) {
-      return category;
-    }
-  }
-
-  if (!NON_GARMENT_NAME_HINTS.some((hint) => haystack.includes(hint))) {
-    const byImageId = suitOrJacketFromImageId(imagePath);
-    if (byImageId) return byImageId;
-  }
-
-  if (CATEGORY_KEYWORDS.Suits.some((keyword) => haystack.includes(keyword))) {
-    return "Suits";
-  }
-
-  return "";
-}
+// CANONICAL_CATEGORIES, CATEGORY_KEYWORDS and canonicalCategoryFor moved to
+// ./canonical-category.ts so the account-side shop sidebar (a plain React
+// component, not a Route Handler — route.ts can only export HTTP method
+// handlers) can compute the exact same populated-category list.
 
 const DISPLAY_FONTS: Record<string, string> = {
   paon_editorial: "var(--font-display)",
@@ -311,10 +191,11 @@ const CORNERS: Record<string, string> = {
 };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
+  const requestedCategory = new URL(request.url).searchParams.get("category");
   const supabase = await getSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
   const tableServiceSignedIn = authData.user
@@ -451,8 +332,16 @@ export async function GET(
       (countByCategory.get(entry.category) ?? 0) + 1,
     );
   }
-  const defaultCategory =
-    [...countByCategory.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
+  // An explicit `?category=` (from the account-side shop sidebar) wins
+  // over the most-populated-category default, but only if that category
+  // actually has products — otherwise a click into an empty category
+  // would silently render nothing instead of falling back to a real one.
+  const requestedCategoryHasProducts =
+    !!requestedCategory && (countByCategory.get(requestedCategory) ?? 0) > 0;
+  const defaultCategory = requestedCategoryHasProducts
+    ? requestedCategory!
+    : ([...countByCategory.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ??
+      "");
 
   const theme = retailer.brandTheme;
   const accent = safeHex(theme.accentColor) ?? "#1a1a1a";
@@ -526,7 +415,7 @@ ${
     : "";
 
   const usesSharedCataloguePhotography =
-    slug !== "maison-dubois" &&
+    slug !== CANONICAL_DEMO_RETAILER_SLUG &&
     entries.length > 0 &&
     entries.every(
       (entry) => !entry.img || entry.img.includes("nebelspiegel.com/images/"),
@@ -570,7 +459,12 @@ ${
   );
   const resolvedCategories =
     categoryNames.length > 0 ? categoryNames : [...CANONICAL_CATEGORIES];
-  const landOnGrid = slug !== "maison-dubois";
+  // An explicit category click (account-side shop sidebar, or any other
+  // "take me to this category" link) is unambiguous shopping intent — it
+  // always lands on the grid, even for the canonical demo retailer whose
+  // organic visits open on the curated story/gate page first.
+  const landOnGrid =
+    slug !== CANONICAL_DEMO_RETAILER_SLUG || requestedCategoryHasProducts;
   const ogTitle = storyLine
     ? `${safeName} — ${escapeHtml(storyLine)}`
     : safeName;
@@ -579,6 +473,36 @@ ${
     heroUrl ??
     entries.find((entry) => entry.img)?.img ??
     "https://www.nebelspiegel.com/images/smaller/6088.webp";
+
+  const footerYear = new Date().getFullYear();
+  const footerCities = [...new Set(stores.map((store) => store.city))].slice(
+    0,
+    4,
+  );
+  const footerHtml = `<footer style="margin-top:64px;background:linear-gradient(160deg,#1a1a1a 0%,#2b2b2b 100%);color:rgba(255,255,255,.72);font-family:var(--font-retailer-body),system-ui,sans-serif;">
+<div style="max-width:1240px;margin:0 auto;padding:56px 24px 28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:32px;">
+<div>
+<p style="margin:0 0 14px;font-family:var(--font-retailer-display),Georgia,serif;font-size:20px;letter-spacing:.03em;color:#fff;">${safeName}</p>
+<p style="margin:0;font-size:12px;line-height:1.7;color:rgba(255,255,255,.5);">Tailored pieces, made to measure and kept by one house.</p>
+</div>
+<div>
+<p style="margin:0 0 12px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);">Client Services</p>
+<p style="margin:0 0 8px;font-size:13px;"><a href="/r/${slug}/appointments" style="color:inherit;text-decoration:none;">Book an appointment</a></p>
+<p style="margin:0 0 8px;font-size:13px;"><a href="#gilda-chat-widget" style="color:inherit;text-decoration:none;">Table service</a></p>
+<p style="margin:0;font-size:13px;"><a href="/dashboard" style="color:inherit;text-decoration:none;">Your account</a></p>
+</div>
+${
+  footerCities.length > 0
+    ? `<div>
+<p style="margin:0 0 12px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);">Ateliers</p>
+${footerCities.map((city) => `<p style="margin:0 0 8px;font-size:13px;">${escapeHtml(city)}</p>`).join("\n")}
+<p style="margin:8px 0 0;font-size:13px;"><a href="/r/${slug}/locations" style="color:inherit;text-decoration:none;">All locations</a></p>
+</div>`
+    : ""
+}
+</div>
+<div style="max-width:1240px;margin:0 auto;padding:20px 24px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;letter-spacing:.04em;color:rgba(255,255,255,.35);">© ${footerYear} ${safeName}. All rights reserved.</div>
+</footer>`;
 
   const html = template
     .replaceAll("__PAON_SLUG__", slug)
@@ -617,7 +541,8 @@ ${
     .replaceAll(
       "__PAON_CATALOGUE_BY_PRODUCT_JSON__",
       serializeStorefrontCatalogueJson(catalogueByProduct),
-    );
+    )
+    .replaceAll("__PAON_FOOTER_HTML__", footerHtml);
 
   if (html.includes("__PAON_")) {
     const leftovers = [...html.matchAll(/__PAON_[A-Z0-9_]+__/g)].map(
@@ -712,7 +637,7 @@ async function appointmentStoresFor(
     imageUrl?: string;
   }>,
 ): Promise<Array<{ city: string; address: string; img: string }>> {
-  if (retailer.slug === "maison-dubois") {
+  if (retailer.slug === CANONICAL_DEMO_RETAILER_SLUG) {
     return [...MAISON_APPOINTMENT_STORES];
   }
 

@@ -47,7 +47,7 @@ export default async function MarketingHomePage() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/r/maison-dubois"
+                  href="/r/atelier-demo"
                   className={buttonVariants({
                     variant: "secondary",
                     size: "lg",
