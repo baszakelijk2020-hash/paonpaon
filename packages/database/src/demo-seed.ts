@@ -1218,6 +1218,14 @@ export const DEMO_CANONICAL_PERSONAS: readonly DemoPersonaLogin[] = [
   },
 ];
 
+const DEMO_CANONICAL_EMAILS = new Set(
+  DEMO_CANONICAL_PERSONAS.map((persona) => persona.email),
+);
+
+export function isCanonicalDemoEmail(email: string | undefined): boolean {
+  return email !== undefined && DEMO_CANONICAL_EMAILS.has(email);
+}
+
 /** @deprecated Use DEMO_CANONICAL_PERSONAS for new launcher code. */
 export const DEMO_PERSONA_LOGINS = DEMO_CANONICAL_PERSONAS;
 

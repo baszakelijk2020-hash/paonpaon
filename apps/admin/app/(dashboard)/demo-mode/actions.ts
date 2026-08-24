@@ -1,7 +1,10 @@
 "use server";
 
 import { createSupabaseAdminClient } from "@paon/database";
-import { seedDemoData } from "@paon/database/demo-seed";
+import {
+  isCanonicalDemoEmail,
+  seedDemoData,
+} from "@paon/database/demo-seed";
 import { revalidatePath } from "next/cache";
 
 import { env } from "@/lib/env";
@@ -68,8 +71,8 @@ export async function setDemoLoginsActive(
       perPage: 1000,
     });
     if (error) throw error;
-    const demoUsers = data.users.filter((u) =>
-      u.email?.endsWith("@nebelspiegel.com"),
+    const demoUsers = data.users.filter((user) =>
+      isCanonicalDemoEmail(user.email),
     );
     for (const user of demoUsers) {
       await admin.auth.admin.updateUserById(user.id, {
