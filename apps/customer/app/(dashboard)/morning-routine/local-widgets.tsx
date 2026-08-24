@@ -262,7 +262,7 @@ export function LocalWidgets({
 
   if (variant === "dashboard") {
     return (
-      <section className="customer-panel overflow-hidden bg-[#e8e6df] text-[#171916]">
+      <section className="customer-panel overflow-hidden bg-[var(--customer-paper)] text-[var(--customer-ink)]">
         <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
           <div className="relative min-h-[23rem] overflow-hidden px-6 py-8 sm:px-10 sm:py-11 lg:min-h-[29rem] lg:px-14 lg:py-14">
             <div
@@ -275,10 +275,10 @@ export function LocalWidgets({
             />
             <div className="relative flex h-full max-w-2xl flex-col justify-between">
               <div className="flex items-center justify-between gap-4">
-                <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-[#56584f]">
+                <p className="customer-kicker text-[#56584f]">
                   Your day at the house
                 </p>
-                <span className="rounded-full bg-black/[0.06] px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[#56584f]">
+                <span className="rounded-[var(--customer-radius)] bg-black/[0.06] px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[#56584f]">
                   Local context
                 </span>
               </div>
@@ -322,11 +322,9 @@ export function LocalWidgets({
             </div>
           </div>
 
-          <div className="grid bg-[#d2d9ce] sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-[0.7fr_1fr_0.85fr]">
+          <div className="grid bg-[var(--customer-moss)] sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-[0.7fr_1fr_0.85fr]">
             <div className="flex flex-col justify-between px-6 py-7 sm:px-8 sm:py-8">
-              <p className="font-accent text-[10px] uppercase tracking-[0.19em] text-[#5d6259]">
-                Here and now
-              </p>
+              <p className="customer-kicker text-[#5d6259]">Here and now</p>
               <div>
                 <p className="font-display text-5xl leading-none tracking-[-0.06em]">
                   {now?.toLocaleTimeString(undefined, {
@@ -339,9 +337,7 @@ export function LocalWidgets({
             </div>
 
             <div className="border-t border-black/10 px-6 py-7 sm:px-8 sm:py-8">
-              <p className="font-accent text-[10px] uppercase tracking-[0.19em] text-[#5d6259]">
-                Leave well
-              </p>
+              <p className="customer-kicker text-[#5d6259]">Leave well</p>
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
@@ -352,7 +348,7 @@ export function LocalWidgets({
                 <label className="sr-only" htmlFor="work-address">
                   Work address
                 </label>
-                <div className="flex min-h-16 items-center rounded-xl bg-white/65 px-4 transition focus-within:bg-white">
+                <div className="flex min-h-16 items-center rounded-[var(--customer-radius)] bg-white/65 px-4 transition focus-within:bg-white">
                   <input
                     id="work-address"
                     value={workInput}
@@ -362,7 +358,7 @@ export function LocalWidgets({
                   />
                   <button
                     type="submit"
-                    className="rounded-lg bg-[#1b1d1a] px-4 py-2 text-xs font-medium text-white transition hover:bg-black"
+                    className="rounded-[var(--customer-radius)] bg-[var(--customer-ink)] px-4 py-2 text-xs font-medium text-white transition hover:bg-black"
                   >
                     Save
                   </button>
@@ -379,9 +375,7 @@ export function LocalWidgets({
 
             <div className="border-t border-black/10 px-6 py-7 sm:col-span-2 sm:px-8 sm:py-8 lg:col-span-1">
               <div className="flex items-center justify-between gap-4">
-                <p className="font-accent text-[10px] uppercase tracking-[0.19em] text-[#5d6259]">
-                  Elsewhere
-                </p>
+                <p className="customer-kicker text-[#5d6259]">Elsewhere</p>
                 <span className="text-xs text-[#70766d]">City desk</span>
               </div>
               <div className="mt-5 grid grid-cols-3 gap-x-3 gap-y-4">
@@ -575,12 +569,14 @@ export function LocalWidgets({
               </p>
             </div>
           )}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/65 to-transparent px-7 pb-6 pt-16">
-            <p className="font-accent text-[10px] uppercase tracking-[0.18em] text-white/70">
-              Nebel &amp; Spiegel / city desk
-            </p>
-            <span className="text-xs text-white/50">Live view</span>
-          </div>
+          {CITY_STREAMS_ENABLED ? (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/65 to-transparent px-7 pb-6 pt-16">
+              <p className="font-accent text-[10px] uppercase tracking-[0.18em] text-white/70">
+                Nebel &amp; Spiegel / city desk
+              </p>
+              <span className="text-xs text-white/50">Live view</span>
+            </div>
+          ) : null}
         </div>
       </div>
       <div className="border-t border-white/10 bg-[#12110f] px-5 py-6 sm:px-8 lg:px-10">
