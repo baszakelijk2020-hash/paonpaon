@@ -4,8 +4,6 @@ import {
   RetailerRepository,
 } from "@paon/database";
 import { APPOINTMENT_TYPE_LABELS } from "@paon/domain";
-import { buttonVariants } from "@paon/ui/components/Button";
-import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
 
@@ -67,10 +65,10 @@ export default async function AppointmentsPage() {
     `${formatTime(startsAt)}–${formatTime(endsAt)}`;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="customer-page flex flex-col gap-8">
+      <div className="customer-page-header flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
+          <p className="customer-kicker text-sm font-medium uppercase tracking-[0.16em]">
             Your visits
           </p>
           <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
@@ -78,7 +76,7 @@ export default async function AppointmentsPage() {
           </h1>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link href={bookHref} className={buttonVariants()}>
+          <Link href={bookHref} className="customer-button">
             Book appointment
           </Link>
           <RelatedLinks links={[{ href: "/concierge", label: "Concierge" }]} />
@@ -86,7 +84,7 @@ export default async function AppointmentsPage() {
       </div>
 
       {upcoming ? (
-        <Card className="border-[var(--color-stone-300)] bg-[var(--color-stone-50)]">
+        <section className="customer-panel">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--color-stone-500)]">
@@ -113,20 +111,17 @@ export default async function AppointmentsPage() {
           ) : null}
           <Link
             href={`/appointments/${upcoming.id}`}
-            className="mt-5 inline-flex text-sm font-medium text-[var(--color-stone-900)] underline underline-offset-4"
+            className="customer-text-link mt-5 inline-flex text-sm font-medium underline underline-offset-4"
           >
             View appointment details
           </Link>
-        </Card>
+        </section>
       ) : appointments.length === 0 ? (
-        <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
+        <div className="customer-panel px-6 py-16 text-center">
           <p className="text-[var(--color-stone-600)]">
             No appointments yet. Book a fitting from the storefront.
           </p>
-          <Link
-            href={bookHref}
-            className={buttonVariants({ className: "mt-6" })}
-          >
+          <Link href={bookHref} className="customer-button mt-6">
             Book a fitting
           </Link>
         </div>
@@ -137,12 +132,12 @@ export default async function AppointmentsPage() {
           <h2 className="font-display mb-3 text-xl text-[var(--color-stone-900)]">
             Appointment history
           </h2>
-          <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+          <div className="customer-panel divide-y divide-[var(--color-stone-100)] p-0">
             {history.map((appointment) => (
               <Link
                 key={appointment.id}
                 href={`/appointments/${appointment.id}`}
-                className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 hover:bg-[var(--color-stone-50)]"
+                className="customer-list-row flex flex-wrap items-center justify-between gap-3 px-6 py-4"
               >
                 <div className="min-w-0">
                   <p className="font-medium text-[var(--color-stone-900)]">
@@ -158,7 +153,7 @@ export default async function AppointmentsPage() {
                 <AppointmentStatusBadge status={appointment.status} />
               </Link>
             ))}
-          </Card>
+          </div>
         </section>
       ) : null}
     </div>

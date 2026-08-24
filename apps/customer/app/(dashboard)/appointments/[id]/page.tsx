@@ -4,7 +4,6 @@ import {
   APPOINTMENT_STATUS_LABELS,
   APPOINTMENT_TYPE_LABELS,
 } from "@paon/domain";
-import { Card } from "@paon/ui/components/Card";
 import { formatDate } from "@paon/utils";
 import { notFound } from "next/navigation";
 
@@ -46,8 +45,8 @@ export default async function AppointmentDetailPage({
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
+    <div className="customer-page flex flex-col gap-8">
+      <div className="customer-page-header">
         <div className="flex items-center gap-3">
           <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
             {retailer?.displayName ?? "Unknown retailer"}
@@ -59,7 +58,7 @@ export default async function AppointmentDetailPage({
         </p>
       </div>
 
-      <Card className="flex flex-col gap-3">
+      <section className="customer-panel flex flex-col gap-3">
         <div>
           <p className="text-xs font-medium uppercase text-[var(--color-stone-500)]">
             Appointment time
@@ -79,14 +78,14 @@ export default async function AppointmentDetailPage({
             <p className="text-[var(--color-stone-900)]">{appointment.notes}</p>
           </div>
         ) : null}
-      </Card>
+      </section>
 
-      <Card>
-        <h2 className="font-display text-xl text-[var(--color-stone-900)]">
+      <section className="customer-panel-dark">
+        <h2 className="font-display text-xl text-[var(--color-stone-50)]">
           Appointment status
         </h2>
         {isTerminal ? (
-          <div className="mt-4 flex items-center gap-3 text-sm text-[var(--color-stone-700)]">
+          <div className="mt-4 flex items-center gap-3 text-sm text-[var(--color-stone-200)]">
             <AppointmentStatusBadge status={appointment.status} />
             <span>This appointment is no longer active.</span>
           </div>
@@ -95,10 +94,10 @@ export default async function AppointmentDetailPage({
             {progressStatuses.map((status, index) => (
               <div key={status} className="flex flex-col gap-2">
                 <div
-                  className={`h-1.5 rounded-full ${index <= currentProgress ? "bg-[var(--color-stone-900)]" : "bg-[var(--color-stone-200)]"}`}
+                  className={`h-1.5 rounded-full ${index <= currentProgress ? "bg-[var(--color-stone-50)]" : "bg-[var(--color-stone-700)]"}`}
                 />
                 <span
-                  className={`text-xs ${index === currentProgress ? "font-medium text-[var(--color-stone-900)]" : "text-[var(--color-stone-500)]"}`}
+                  className={`text-xs ${index === currentProgress ? "font-medium text-[var(--color-stone-50)]" : "text-[var(--color-stone-300)]"}`}
                 >
                   {APPOINTMENT_STATUS_LABELS[status]}
                 </span>
@@ -106,7 +105,7 @@ export default async function AppointmentDetailPage({
             ))}
           </div>
         )}
-      </Card>
+      </section>
 
       {appointment.status === "requested" ? (
         <p className="text-sm text-[var(--color-stone-500)]">

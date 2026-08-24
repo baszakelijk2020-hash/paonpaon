@@ -1,6 +1,5 @@
 import { CustomerRepository, OrderRepository } from "@paon/database";
 import { ORDER_STATUS_LABELS } from "@paon/domain";
-import { Card } from "@paon/ui/components/Card";
 import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
 
@@ -31,9 +30,9 @@ export default async function OrdersPage() {
   const mostRecentOrder = orders[0];
 
   return (
-    <div className="flex flex-col gap-8">
-      <header className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
+    <div className="customer-page flex flex-col gap-8">
+      <header className="customer-page-header space-y-2">
+        <p className="customer-kicker text-xs font-medium uppercase tracking-[0.18em]">
           Order archive
         </p>
         <h1 className="font-display text-4xl text-[var(--color-stone-900)]">
@@ -52,13 +51,13 @@ export default async function OrdersPage() {
       />
 
       {orders.length === 0 ? (
-        <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
+        <div className="customer-panel px-6 py-16 text-center">
           <p className="text-[var(--color-stone-600)]">No orders yet.</p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-[var(--color-stone-200)] sm:grid-cols-3">
-            <div className="bg-[var(--color-stone-50)] px-5 py-4">
+          <div className="customer-panel grid grid-cols-1 gap-px overflow-hidden p-0 sm:grid-cols-3">
+            <div className="px-5 py-4">
               <p className="text-xs uppercase tracking-[0.14em] text-[var(--color-stone-500)]">
                 Orders
               </p>
@@ -66,7 +65,7 @@ export default async function OrdersPage() {
                 {orders.length}
               </p>
             </div>
-            <div className="bg-[var(--color-stone-50)] px-5 py-4">
+            <div className="px-5 py-4">
               <p className="text-xs uppercase tracking-[0.14em] text-[var(--color-stone-500)]">
                 In progress
               </p>
@@ -74,7 +73,7 @@ export default async function OrdersPage() {
                 {activeOrderCount}
               </p>
             </div>
-            <div className="bg-[var(--color-stone-50)] px-5 py-4">
+            <div className="px-5 py-4">
               <p className="text-xs uppercase tracking-[0.14em] text-[var(--color-stone-500)]">
                 Most recent
               </p>
@@ -85,12 +84,12 @@ export default async function OrdersPage() {
               </p>
             </div>
           </div>
-          <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+          <div className="customer-panel divide-y divide-[var(--color-stone-100)] p-0">
             {orders.map((order) => (
               <Link
                 key={order.id}
                 href={`/orders/${order.id}`}
-                className="group flex flex-wrap items-center justify-between gap-5 px-5 py-6 transition-colors hover:bg-[var(--color-stone-50)] focus-visible:bg-[var(--color-stone-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-stone-500)] sm:px-7"
+                className="customer-list-row group flex flex-wrap items-center justify-between gap-5 px-5 py-6 sm:px-7"
               >
                 <div className="min-w-0 space-y-2">
                   <p className="font-medium text-[var(--color-stone-900)]">
@@ -109,13 +108,13 @@ export default async function OrdersPage() {
                       {ORDER_STATUS_LABELS[order.status]}
                     </p>
                   </div>
-                  <span className="text-sm text-[var(--color-stone-700)] underline decoration-[var(--color-stone-300)] underline-offset-4 group-hover:decoration-[var(--color-stone-700)]">
+                  <span className="customer-text-link text-sm underline underline-offset-4">
                     View order
                   </span>
                 </div>
               </Link>
             ))}
-          </Card>
+          </div>
         </>
       )}
     </div>

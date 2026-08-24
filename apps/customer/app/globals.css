@@ -8,6 +8,8 @@
 
 body {
   font-family: "Google Flex", sans-serif;
+  background: #f4f2ed;
+  color: #171916;
 }
 
 h1,
@@ -18,6 +20,86 @@ h3 {
 
 .font-display {
   font-family: "Google Flex", sans-serif;
+}
+
+:root {
+  --customer-paper: #f4f2ed;
+  --customer-ink: #171916;
+  --customer-moss: #cbd3c5;
+  --customer-border: #ddd9d0;
+  --customer-radius: 12px;
+}
+
+.customer-page {
+  min-height: 100%;
+  background: var(--customer-paper);
+  color: var(--customer-ink);
+}
+.customer-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 1.25rem 1.5rem;
+}
+.customer-kicker {
+  font-family: "GTBold3", sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.customer-panel,
+.customer-panel-dark {
+  border: 1px solid var(--customer-border);
+  border-radius: var(--customer-radius);
+}
+.customer-panel {
+  background: rgba(255, 255, 255, 0.48);
+}
+.customer-panel-dark {
+  border-color: var(--customer-ink);
+  background: var(--customer-ink);
+  color: var(--customer-paper);
+}
+.customer-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--customer-border);
+  padding: 0.875rem 1rem;
+}
+.customer-list-row:last-child {
+  border-bottom: 0;
+}
+.customer-text-link {
+  color: inherit;
+  text-underline-offset: 0.2em;
+  transition: color 150ms ease;
+}
+.customer-text-link:hover {
+  color: #596453;
+}
+.customer-button {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--customer-ink);
+  border-radius: var(--customer-radius);
+  background: var(--customer-ink);
+  padding-inline: 1rem;
+  color: var(--customer-paper);
+  font-family: "Google Flex", sans-serif;
+  font-size: 0.875rem;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+.customer-button:hover {
+  background: #596453;
 }
 
 /*

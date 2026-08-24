@@ -28,7 +28,7 @@ export function AccountTopTabs({
   return (
     <nav
       aria-label="Account"
-      className="sticky top-3 z-40 mx-3 flex h-[60px] w-[calc(100%-1.5rem)] items-stretch gap-1 rounded-[1.35rem] bg-white/70 p-1 shadow-[0_10px_35px_rgba(38,34,28,0.08)] backdrop-blur-[20px]"
+      className="sticky top-0 z-40 flex h-12 w-full items-stretch gap-1 border-b border-[var(--customer-border)] bg-[rgba(244,242,237,0.88)] px-1 backdrop-blur-md"
     >
       {tabs.map((tab) => {
         const active =
@@ -40,10 +40,10 @@ export function AccountTopTabs({
             key={tab.href}
             href={tab.href}
             aria-current={active ? "page" : undefined}
-            className={`${mobileSecondary ? "hidden sm:flex" : "flex"} flex-1 items-center justify-center rounded-[1rem] px-2 text-center text-[13px] font-medium tracking-[0.015em] transition-colors duration-200 sm:px-3 sm:text-[14px] ${
+            className={`${mobileSecondary ? "hidden sm:flex" : "flex"} flex-1 items-center justify-center rounded-[12px] px-2 text-center text-[13px] font-medium tracking-[0.015em] transition-colors duration-200 sm:px-3 sm:text-[14px] ${
               active
-                ? "bg-[var(--color-stone-900)] text-white"
-                : "text-[var(--color-stone-600)] hover:bg-white/80 hover:text-[var(--color-stone-900)]"
+                ? "bg-[var(--customer-moss)] text-[var(--customer-ink)]"
+                : "text-[var(--color-stone-600)] hover:bg-white/60 hover:text-[var(--customer-ink)]"
             }`}
           >
             {tab.label}

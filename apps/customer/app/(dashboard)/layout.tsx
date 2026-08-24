@@ -32,7 +32,7 @@ export default async function DashboardLayout({
 
   if (!isCustomer) {
     return (
-      <div className="min-h-screen bg-[var(--color-stone-50)] text-[var(--color-stone-900)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
+      <div className="customer-page min-h-screen lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
         <ShopCategorySidebar />
         <div className="min-w-0">
           <nav className="sticky top-0 z-40 flex h-[60px] items-center justify-end border-b border-black/10 bg-white px-4 py-3">
@@ -43,7 +43,7 @@ export default async function DashboardLayout({
               Sign in
             </Link>
           </nav>
-          <main className="mx-auto w-full max-w-[92rem] px-4 py-7 sm:px-7 sm:py-10 lg:px-10 xl:px-14">
+          <main className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-7 sm:py-8 lg:px-10 xl:px-14">
             <Suspense fallback={null}>
               <GuestPortalPreview />
             </Suspense>
@@ -54,7 +54,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-stone-50)] text-[var(--color-stone-900)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
+    <div className="customer-page min-h-screen lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
       <ShopCategorySidebar />
       <div className="min-w-0">
         <AccountTopTabs
@@ -62,13 +62,13 @@ export default async function DashboardLayout({
           trailing={
             <a
               href="/account"
-              className="px-4 text-[15px] text-[var(--color-stone-700)] transition hover:text-[var(--color-stone-900)]"
+              className="customer-text-link px-3 text-[13px] text-[var(--color-stone-700)]"
             >
               Profile
             </a>
           }
         />
-        <main className="mx-auto w-full max-w-[92rem] px-4 py-7 sm:px-7 sm:py-10 lg:px-10 xl:px-14">
+        <main className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-7 sm:py-8 lg:px-10 xl:px-14">
           {children}
         </main>
       </div>
