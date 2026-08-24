@@ -15947,6 +15947,76 @@ html.paon-mobile .paon-carousel-btn { display: none !important; }
     color: var(--muted) !important;
     line-height: 1.4 !important;
 }
+
+/* ===== STORE DETAIL INTERACTION REFINEMENT =====
+   Keep the appointment heading and its recommendation shelf on the same
+   visual axis, without the inherited divider. The carousel controls sit
+   inside the shelf at both edges, so neither one is lost under the detail
+   column on hover. */
+#paon-desktop-also-like .paon-section-heading {
+    border-top: 0 !important;
+    padding: 20px 0 16px !important;
+    margin: 0 20px !important;
+}
+html.paon-mobile #paon-mobile-also-like .paon-section-heading::before {
+    display: none !important;
+}
+.paon-carousel-btn {
+    top: 56px !important;
+    bottom: 0 !important;
+    width: 56px !important;
+    background: linear-gradient(90deg, rgba(244,241,236,.06), rgba(244,241,236,.70)) !important;
+}
+.paon-carousel-btn-left {
+    left: 0 !important;
+    border-radius: 0 14px 14px 0 !important;
+}
+.paon-carousel-btn-right {
+    right: 0 !important;
+    border-radius: 14px 0 0 14px !important;
+    background: linear-gradient(90deg, rgba(244,241,236,.70), rgba(244,241,236,.06)) !important;
+}
+
+/* Deliberately generous, touch-friendly booking controls. */
+#paon-mobile-appointment .day {
+    width: 76px !important;
+    min-width: 76px !important;
+    height: 94px !important;
+    border-radius: 16px !important;
+}
+.paon-appt-times .paon-time-slot {
+    min-width: 112px !important;
+    height: 65px !important;
+    border-radius: 16px !important;
+    font-size: 15px !important;
+}
+#paon-mobile-appointment input,
+#paon-mobile-appointment textarea,
+#paon-appt-name,
+#paon-appt-email,
+#paon-appt-phone,
+#paon-appt-msg {
+    min-height: 65px !important;
+    padding: 16px 18px !important;
+    border-radius: 16px !important;
+}
+#paon-appt-msg {
+    height: 130px !important;
+}
+.paon-appt-confirm {
+    min-height: 65px !important;
+    border-radius: 16px !important;
+    font-size: 15px !important;
+}
+
+/* Rounded-square controls across the storefront; navigation arrows retain
+   their edge-specific treatment above. */
+#view-store button:not(.paon-carousel-btn),
+#view-detail button:not(.paon-carousel-btn),
+#view-store input[type="submit"],
+#view-detail input[type="submit"] {
+    border-radius: 14px !important;
+}
 </style>
 
 <script id="paon-mobile-detail-v8-js">
