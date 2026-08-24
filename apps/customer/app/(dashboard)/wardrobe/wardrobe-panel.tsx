@@ -114,11 +114,11 @@ function WardrobeItemCard({
           width={576}
           height={432}
           unoptimized
-          className="aspect-[4/3] w-full bg-[var(--color-stone-100)] object-cover"
+          className="aspect-[4/5] w-full bg-[var(--color-stone-100)] object-cover"
         />
       ) : (
         <div
-          className="flex aspect-[4/3] items-end bg-gradient-to-br from-[var(--color-stone-100)] to-[var(--color-stone-200)] p-4"
+          className="flex aspect-[4/5] items-end bg-gradient-to-br from-[var(--color-stone-100)] to-[var(--color-stone-200)] p-4"
           aria-hidden="true"
         >
           <span className="font-display text-2xl text-[var(--color-stone-500)]">
@@ -126,21 +126,21 @@ function WardrobeItemCard({
           </span>
         </div>
       )}
-      <div className="flex flex-1 flex-col gap-3 p-4">
+      <div className="flex flex-1 flex-col gap-2.5 p-3.5">
         <div>
           <p className="line-clamp-2 text-sm font-medium leading-5 text-[var(--color-stone-900)]">
             {item.brand ? `${item.brand} · ` : ""}
             {item.displayName}
           </p>
-          <p className="mt-1 text-[11px] uppercase tracking-[0.08em] text-[var(--color-stone-500)]">
+          <p className="mt-1 text-[10px] uppercase tracking-[0.08em] text-[var(--color-stone-500)]">
             {item.categoryCode.replaceAll("_", " ")} · {ownershipLabel(item)}
           </p>
         </div>
-        <div className="flex flex-wrap gap-1.5 text-[11px]">
-          <span className="rounded-full bg-[var(--color-stone-100)] px-2.5 py-1 text-[var(--color-stone-700)]">
+        <div className="flex flex-wrap gap-1 text-[10px]">
+          <span className="rounded-full bg-[var(--color-stone-100)] px-2 py-1 text-[var(--color-stone-700)]">
             Care · {item.careState.replaceAll("_", " ")}
           </span>
-          <span className="rounded-full bg-[var(--color-stone-100)] px-2.5 py-1 text-[var(--color-stone-700)]">
+          <span className="rounded-full bg-[var(--color-stone-100)] px-2 py-1 text-[var(--color-stone-700)]">
             {item.condition.replaceAll("_", " ")}
           </span>
         </div>
@@ -259,13 +259,13 @@ function WardrobeItemCard({
 function AspirationalGapCard({ gap }: { gap: WardrobeRoadmapGap }) {
   return (
     <article className="flex w-[min(78vw,18rem)] shrink-0 snap-start flex-col overflow-hidden rounded-[var(--radius-lg)] border border-dashed border-[var(--color-stone-300)] bg-[var(--color-stone-50)] sm:w-72">
-      <div className="flex aspect-[4/3] items-end p-4" aria-hidden="true">
-        <span className="rounded-full bg-white px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-stone-600)]">
+      <div className="flex aspect-[4/5] items-end p-4" aria-hidden="true">
+        <span className="rounded-full border border-[var(--color-stone-200)] bg-white/70 px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-[var(--color-stone-500)]">
           On your roadmap
         </span>
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <p className="text-sm font-medium text-[var(--color-stone-900)]">
+      <div className="flex flex-1 flex-col gap-2 p-3.5">
+        <p className="text-sm font-medium text-[var(--color-stone-800)]">
           {gap.title}
         </p>
         {gap.description ? (
@@ -362,13 +362,7 @@ function WardrobeCarousel({
             <AspirationalGapCard key={gap.id} gap={gap} />
           ))}
         </div>
-      ) : (
-        <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-4 py-7 text-center">
-          <p className="text-sm text-[var(--color-stone-500)]">
-            No {label.toLowerCase()} in this wardrobe yet.
-          </p>
-        </div>
-      )}
+      ) : null}
     </section>
   );
 }
@@ -476,22 +470,27 @@ export function WardrobeHousePanel({
       ) : null}
 
       <div className="flex flex-col gap-3" role="presentation">
-        {sectionsWithItems.map(({ section, items: sectionItems, gaps }) => (
-          <WardrobeCarousel
-            key={section.id}
-            id={section.id}
-            label={section.label}
-            items={sectionItems}
-            gaps={gaps}
-            retailerId={retailerId}
-            historyByItemId={historyByItemId}
-            completeTheLookByCategory={completeTheLookByCategory}
-            retireAction={retireAction}
-            retirePending={retirePending}
-            serviceRequestAction={serviceRequestAction}
-            serviceRequestPending={serviceRequestPending}
-          />
-        ))}
+        {sectionsWithItems
+          .filter(
+            ({ items: sectionItems, gaps }) =>
+              sectionItems.length > 0 || gaps.length > 0,
+          )
+          .map(({ section, items: sectionItems, gaps }) => (
+            <WardrobeCarousel
+              key={section.id}
+              id={section.id}
+              label={section.label}
+              items={sectionItems}
+              gaps={gaps}
+              retailerId={retailerId}
+              historyByItemId={historyByItemId}
+              completeTheLookByCategory={completeTheLookByCategory}
+              retireAction={retireAction}
+              retirePending={retirePending}
+              serviceRequestAction={serviceRequestAction}
+              serviceRequestPending={serviceRequestPending}
+            />
+          ))}
         {active.length === 0 ? (
           <p role="status" className="text-sm text-[var(--color-stone-500)]">
             Add a garment bought elsewhere, or ask your advisor to link a
