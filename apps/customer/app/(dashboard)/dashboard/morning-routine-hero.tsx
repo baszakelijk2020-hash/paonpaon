@@ -87,10 +87,15 @@ export function MorningRoutineDashboardHero({
   featured,
   pieces,
 }: MorningRoutineDashboardHeroProps) {
+  const productImage =
+    featured.imageUrl && !featured.imageUrl.endsWith("/calendar10.png")
+      ? featured.imageUrl
+      : undefined;
+
   return (
     <section className="paon-reveal overflow-hidden bg-[#11110f] text-white">
-      <div className="grid min-h-[38rem] lg:grid-cols-[minmax(0,1fr)_minmax(25rem,0.86fr)]">
-        <div className="flex flex-col p-6 sm:p-10 lg:p-12">
+      <div className="grid min-h-[31rem] lg:grid-cols-[minmax(0,0.94fr)_minmax(25rem,1.06fr)]">
+        <div className="flex flex-col p-7 sm:p-10 lg:p-12">
           <div className="flex flex-wrap items-center justify-between gap-3 text-[10px] uppercase tracking-[0.2em] text-white/60">
             <span>{retailerName} · MorningRoutine</span>
             <span className="flex items-center gap-2">
@@ -99,7 +104,7 @@ export function MorningRoutineDashboardHero({
             </span>
           </div>
 
-          <div className="my-auto max-w-3xl py-12 lg:py-16">
+          <div className="my-auto max-w-2xl py-10 lg:py-12">
             <p className="mb-5 text-base leading-6 text-white/65">
               Good morning, {customerFirstName}.{" "}
               {weatherSummary ? `${weatherSummary} — ` : ""}
@@ -109,11 +114,14 @@ export function MorningRoutineDashboardHero({
               {featured.owned ? "From your wardrobe" : "Today’s look"}
             </p>
             <h1
-              className="mt-4 max-w-2xl text-4xl leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-7xl"
+              className="mt-4 max-w-lg text-4xl leading-[0.96] tracking-[-0.055em] sm:text-5xl lg:text-6xl"
               style={{ fontFamily: '"Google Flex", sans-serif' }}
             >
-              {featured.displayName}
+              Start with the familiar.
             </h1>
+            <p className="mt-5 max-w-lg text-base leading-6 text-white/65">
+              {featured.displayName}
+            </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
                 href={nextAppointmentHref ?? `/r/${retailerSlug}`}
@@ -150,41 +158,51 @@ export function MorningRoutineDashboardHero({
           </div>
         </div>
 
-        <div className="relative min-h-[25rem] border-t border-white/10 lg:border-l lg:border-t-0">
-          {featured.imageUrl ? (
+        <div
+          className="relative min-h-[22rem] overflow-hidden border-t border-white/10 bg-[#18202a] bg-cover bg-center lg:border-l lg:border-t-0"
+          style={
+            productImage
+              ? undefined
+              : {
+                  backgroundImage:
+                    "radial-gradient(circle at 68% 42%, rgba(128, 151, 164, 0.34), transparent 25%), repeating-linear-gradient(124deg, rgba(255,255,255,0.055) 0 1px, transparent 1px 13px), repeating-linear-gradient(56deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 13px)",
+                }
+          }
+        >
+          {productImage ? (
             <Image
-              src={featured.imageUrl}
+              src={productImage}
               alt=""
               fill
               priority
               unoptimized
-              className="object-cover opacity-90"
+              className="object-cover opacity-95"
             />
           ) : null}
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent"
+            className="absolute inset-0 bg-[linear-gradient(115deg,rgba(0,0,0,0.04),rgba(0,0,0,0.3))]"
           />
-          <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-white/60">
-              A quiet beginning
+          <div className="absolute inset-x-0 bottom-0 p-7 sm:p-9">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/75">
+              Today’s edit
             </p>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-white/75">
-              A real recommendation built from your wardrobe and the house’s
+            <p className="mt-2 max-w-sm text-sm leading-6 text-white/80">
+              One recommendation, grounded in your wardrobe and the house’s
               collection.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-white/10 bg-[#191815] p-5 sm:p-7 lg:p-8">
-        <div className="mb-5 flex items-end justify-between gap-4">
+      <div className="bg-[#1b1c18] p-7 sm:p-10 lg:p-12">
+        <div className="mb-7 flex items-end justify-between gap-4">
           <div>
             <p className="text-[10px] uppercase tracking-[0.2em] text-[#c9b890]">
               Complete the look
             </p>
-            <h2 className="mt-2 text-2xl tracking-[-0.03em] text-white sm:text-3xl">
-              Keep it simple.
+            <h2 className="mt-2 text-3xl tracking-[-0.04em] text-white sm:text-4xl">
+              The rest of the story.
             </h2>
           </div>
           <Link
@@ -194,36 +212,36 @@ export function MorningRoutineDashboardHero({
             See the full routine →
           </Link>
         </div>
-        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {[featured, ...pieces].slice(0, 4).map((piece) => (
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {[...pieces, featured].slice(0, 3).map((piece) => (
             <li
               key={piece.id}
-              className="group flex min-h-28 gap-4 rounded-2xl bg-white/[0.07] p-3 transition-colors hover:bg-white/[0.12]"
+              className="group overflow-hidden rounded-[1.4rem] bg-white/[0.07] transition-colors hover:bg-white/[0.12]"
             >
-              <div className="relative aspect-[4/5] w-16 shrink-0 overflow-hidden rounded-xl bg-white/10">
+              <div className="relative aspect-[1.32/1] bg-white/10">
                 {piece.imageUrl ? (
                   <Image
                     src={piece.imageUrl}
                     alt=""
                     fill
                     unoptimized
-                    className="object-cover transition duration-500 group-hover:scale-105"
+                    className="object-cover transition duration-500 group-hover:scale-[1.03]"
                   />
                 ) : null}
               </div>
-              <div className="flex min-w-0 flex-1 flex-col justify-between py-1">
+              <div className="flex min-h-32 flex-col justify-between p-5">
                 <div>
-                  <p className="line-clamp-2 text-sm font-medium leading-5 text-white">
+                  <p className="line-clamp-2 text-base font-medium leading-5 text-white">
                     {piece.displayName}
                   </p>
-                  <p className="mt-1 text-xs text-white/50">
+                  <p className="mt-2 text-sm text-white/50">
                     {piece.owned
                       ? "In your wardrobe"
                       : (piece.priceLabel ?? "Ask for pricing")}
                   </p>
                 </div>
                 {!piece.owned ? (
-                  <div className="flex gap-2">
+                  <div className="mt-5 flex items-center gap-4">
                     {piece.saveVariantId ? (
                       <form action={saveMorningRoutinePick}>
                         <input
@@ -249,7 +267,7 @@ export function MorningRoutineDashboardHero({
                         />
                         <button
                           type="submit"
-                          className="text-xs text-white/65 transition hover:text-white"
+                          className="text-sm text-white/65 transition hover:text-white"
                         >
                           Save
                         </button>

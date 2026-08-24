@@ -213,7 +213,7 @@ export default async function DashboardPage() {
           name: retailer?.displayName ?? "Your atelier",
         }))}
       />
-      {primary ? <LocalWidgets /> : null}
+      {primary ? <LocalWidgets variant="dashboard" /> : null}
       {primary && morningRoutineHero ? (
         <MorningRoutineDashboardHero
           retailerId={primary.customer.retailerId}
@@ -393,103 +393,143 @@ export default async function DashboardPage() {
 
       {primary?.retailer ? (
         <section
-          aria-label="Everything in your house"
-          className="paon-reveal bg-[#f6f3ed] px-5 py-12 sm:px-10 sm:py-16 lg:px-14"
+          aria-label="Your house"
+          className="paon-reveal bg-[#f5f3ee]"
           style={{ animationDelay: "180ms" }}
         >
-          <div className="mb-5">
-            <p className="font-accent text-[11px] uppercase tracking-[0.2em] text-[var(--color-stone-500)]">
-              The house
-            </p>
-            <h2 className="font-display text-4xl">Everything in one place.</h2>
-            <p className="mt-2 max-w-xl text-sm text-[var(--color-stone-500)]">
-              Shop, book, follow garments, and speak with your advisor — without
-              hunting through menus.
-            </p>
+          <div className="grid lg:grid-cols-[minmax(18rem,0.92fr)_minmax(0,1.08fr)]">
+            <div className="flex min-h-[29rem] flex-col justify-between bg-[#2b2d2a] p-7 text-[#f7f5ee] sm:p-10 lg:p-12">
+              <div>
+                <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-[#d0c195]">
+                  {primary.retailer.displayName}
+                </p>
+                <h2 className="font-display mt-5 max-w-sm text-4xl leading-[0.96] tracking-[-0.045em] sm:text-5xl">
+                  A house built around how you wear life.
+                </h2>
+                <p className="mt-5 max-w-sm text-sm leading-6 text-white/60">
+                  Your appointments, garments, conversations and occasions live
+                  here — with the shop always one step away.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href={`/r/${primary.retailer.slug}`}
+                  className="rounded-full bg-[#f7f5ee] px-5 py-3 text-sm font-medium text-[#252724] transition hover:bg-white"
+                >
+                  Shop the collection
+                </Link>
+                <Link
+                  href="/concierge"
+                  className="rounded-full border border-white/25 px-5 py-3 text-sm text-white transition hover:bg-white/10"
+                >
+                  Ask your advisor
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2">
+              {(
+                [
+                  {
+                    href: "/wardrobe",
+                    label: "Wardrobe & style",
+                    detail:
+                      "What you own, what you have saved, and what comes next.",
+                    tone: "bg-[#ddd8ce] hover:bg-[#d3cdc1]",
+                  },
+                  {
+                    href: primary.nextAppointment
+                      ? `/appointments/${primary.nextAppointment.id}`
+                      : "/appointments",
+                    label: "Visit the house",
+                    detail: primary.nextAppointment
+                      ? `${formatDate(primary.nextAppointment.startsAt, "en-US")} · ${APPOINTMENT_TYPE_LABELS[primary.nextAppointment.type]}`
+                      : "Book a fitting, consultation or personal visit.",
+                    tone: "bg-[#eeeae3] hover:bg-[#e5e0d7]",
+                  },
+                  {
+                    href: primary.activeOrder
+                      ? `/orders/${primary.activeOrder.id}`
+                      : primary.activeAlteration
+                        ? `/alterations/${primary.activeAlteration.id}`
+                        : "/services",
+                    label: "Care in motion",
+                    detail: primary.activeOrder
+                      ? ORDER_STATUS_LABELS[primary.activeOrder.status]
+                      : primary.activeAlteration
+                        ? ALTERATION_STATUS_LABELS[
+                            primary.activeAlteration.status
+                          ]
+                        : "Orders, alterations and ongoing care.",
+                    tone: "bg-[#c9d0c6] hover:bg-[#bdc6ba]",
+                  },
+                  {
+                    href: "/messages",
+                    label: "Your advisor",
+                    detail:
+                      primaryUnread > 0
+                        ? `${primaryUnread} new message${primaryUnread === 1 ? "" : "s"} waiting for you.`
+                        : "A direct line to the people who know your wardrobe.",
+                    tone: "bg-[#e4e6df] hover:bg-[#daddd4]",
+                  },
+                ] as const
+              ).map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`group flex min-h-[14.5rem] flex-col justify-between p-7 transition-colors sm:p-9 ${item.tone}`}
+                >
+                  <span className="font-accent text-[10px] uppercase tracking-[0.2em] text-[#676861]">
+                    Open
+                  </span>
+                  <div>
+                    <p className="font-display text-3xl leading-[0.98] tracking-[-0.035em] text-[#262824]">
+                      {item.label}
+                    </p>
+                    <p className="mt-3 max-w-xs text-sm leading-6 text-[#62645e]">
+                      {item.detail}
+                    </p>
+                    <p className="mt-5 text-sm font-medium text-[#30332e] transition-transform duration-300 group-hover:translate-x-1">
+                      Open <span aria-hidden="true">→</span>
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-          <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-3">
+
+          <div className="grid bg-[#ebe7df] px-7 py-7 sm:grid-cols-2 sm:px-10 lg:grid-cols-4 lg:px-12">
             {(
               [
-                {
-                  href: `/r/${primary.retailer.slug}`,
-                  label: "Shop the collection",
-                  detail: primary.retailer.displayName,
-                },
-                {
-                  href: "/appointments",
-                  label: "Appointments",
-                  detail: "Fittings and consultations",
-                },
-                {
-                  href: "/orders",
-                  label: "Orders",
-                  detail: primary.activeOrder
-                    ? ORDER_STATUS_LABELS[primary.activeOrder.status]
-                    : "Purchases and delivery",
-                },
-                {
-                  href: "/wishlist",
-                  label: "Saved",
-                  detail: "Your considered selection",
-                },
-                {
-                  href: "/loyalty",
-                  label: "Loyalty",
-                  detail: "Status, points and rewards",
-                },
-                {
-                  href: "/loyalty#referrals",
-                  label: "Referrals",
-                  detail: "Invite someone you trust",
-                },
-                {
-                  href: "/messages",
-                  label: "Messages",
-                  detail:
-                    primaryUnread > 0
-                      ? `${primaryUnread} waiting`
-                      : "Private conversations",
-                },
-                {
-                  href: "/wedding-parties",
-                  label: "Wedding parties",
-                  detail: "Group fittings and plans",
-                },
-                {
-                  href: "/events",
-                  label: "Events",
-                  detail: "Private previews and invitations",
-                },
-                {
-                  href: "/notifications",
-                  label: "Updates",
-                  detail: "Everything worth knowing",
-                },
-                {
-                  href: "/account",
-                  label: "Settings",
-                  detail: "Contact, delivery and privacy",
-                },
+                { href: "/wishlist", label: "Saved pieces" },
+                { href: "/loyalty", label: "Membership & rewards" },
+                { href: "/wedding-parties", label: "Wedding plans" },
+                { href: "/events", label: "Private events" },
+                { href: "/notifications", label: "House updates" },
+                { href: "/account", label: "Profile & preferences" },
+                { href: "/private-offers", label: "Private offers" },
+                { href: "/for-you", label: "For you" },
               ] as const
             ).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="group min-h-40 bg-[#ebe6dc] px-6 py-7 transition-colors hover:bg-[#e1dbd0] sm:px-8 sm:py-9"
+                className="group flex min-h-12 items-center justify-between py-3 text-sm text-[#4e514b] transition hover:text-[#171916]"
               >
-                <p className="font-display text-xl text-[var(--color-stone-900)]">
-                  {item.label}
-                </p>
-                <p className="mt-1 text-sm text-[var(--color-stone-500)] group-hover:text-[var(--color-stone-800)]">
-                  {item.detail} →
-                </p>
+                <span>{item.label}</span>
+                <span
+                  className="mr-5 opacity-0 transition group-hover:mr-0 group-hover:opacity-100"
+                  aria-hidden="true"
+                >
+                  →
+                </span>
               </Link>
             ))}
           </div>
         </section>
       ) : null}
 
-      {relationships.length > 0 ? (
+      {relationships.length > 1 ? (
         <section>
           <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -631,7 +671,7 @@ export default async function DashboardPage() {
         </section>
       ) : null}
 
-      {!aiConfigured && relationships.length > 0 ? (
+      {!aiConfigured && relationships.length > 1 ? (
         <p className="text-xs text-[var(--color-stone-500)]">
           Personalised editorial picks are unavailable in this demo environment;
           your live service information remains current.

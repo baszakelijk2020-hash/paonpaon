@@ -8,19 +8,18 @@ import { ShopCategorySidebar } from "./shop-category-sidebar";
 
 import { getSession } from "@/lib/session";
 
-/** Flat, 8-tab account nav — every prior sub-page still exists at its own
+/** Flat, 7-tab account nav — every prior sub-page still exists at its own
  * URL; pages that used to be separate sidebar entries are now linked from
  * their tab's landing page ("Related" row) instead of consuming a tab
  * slot. Nothing was removed, only regrouped. */
 const ACCOUNT_TABS: AccountTab[] = [
   { href: "/dashboard", label: "Overview" },
-  { href: "/wardrobe", label: "My Wardrobe" },
-  { href: "/orders", label: "My Orders" },
-  { href: "/appointments", label: "My Appointments" },
-  { href: "/morning-routine", label: "My Style" },
-  { href: "/loyalty", label: "Loyalty & Referral" },
+  { href: "/wardrobe", label: "Wardrobe" },
+  { href: "/appointments", label: "Service" },
+  { href: "/orders", label: "Orders" },
+  { href: "/morning-routine", label: "Daily edit" },
   { href: "/messages", label: "Messages" },
-  { href: "/r/atelier-demo", label: "Table Service" },
+  { href: "/r/atelier-demo", label: "Shop" },
 ];
 
 export default async function DashboardLayout({
@@ -65,7 +64,7 @@ export default async function DashboardLayout({
               href="/account"
               className="px-4 text-[15px] text-[var(--color-stone-700)] transition hover:text-[var(--color-stone-900)]"
             >
-              Settings
+              Profile
             </a>
           }
         />

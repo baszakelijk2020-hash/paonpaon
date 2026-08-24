@@ -98,7 +98,11 @@ function haversineKm(a: Coords, b: Coords): number {
  * assumed average city speed, clearly labeled as such, not real traffic —
  * swap in a routing API (Google/Mapbox) here once a key is available.
  */
-export function LocalWidgets() {
+export function LocalWidgets({
+  variant = "routine",
+}: {
+  variant?: "dashboard" | "routine";
+}) {
   const [coords, setCoords] = useState<Coords | null>(null);
   const [locationLabel, setLocationLabel] = useState("Your location");
   const [weather, setWeather] = useState<{
@@ -255,6 +259,153 @@ export function LocalWidgets() {
     // Only re-run when coords first resolve for an already-saved address.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coords]);
+
+  if (variant === "dashboard") {
+    return (
+      <section className="overflow-hidden bg-[#1a1b19] text-[#f7f5ee]">
+        <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
+          <div className="relative min-h-[23rem] overflow-hidden px-6 py-8 sm:px-10 sm:py-11 lg:min-h-[29rem] lg:px-14 lg:py-14">
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 opacity-90"
+              style={{
+                background:
+                  "radial-gradient(circle at 82% 20%, rgba(128, 151, 132, 0.38), transparent 31%), radial-gradient(circle at 16% 90%, rgba(178, 151, 105, 0.18), transparent 42%), linear-gradient(120deg, #1f211e 0%, #171816 66%, #10110f 100%)",
+              }}
+            />
+            <div className="relative flex h-full max-w-2xl flex-col justify-between">
+              <div className="flex items-center justify-between gap-4">
+                <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-[#d0c195]">
+                  Your day at the house
+                </p>
+                <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/65">
+                  Local context
+                </span>
+              </div>
+              <div className="pt-16 sm:pt-20">
+                <p className="text-sm text-white/55">
+                  {now?.toLocaleDateString(undefined, {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                  }) ?? "Today"}
+                  {locationLabel !== "Your location"
+                    ? ` · ${locationLabel}`
+                    : ""}
+                </p>
+                {weather ? (
+                  <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-1">
+                    <p className="font-display text-7xl leading-none tracking-[-0.07em] sm:text-8xl">
+                      {Math.round(weather.tempC)}°
+                    </p>
+                    <p className="pb-2 text-lg text-white/65">
+                      {weather.label}
+                    </p>
+                  </div>
+                ) : (
+                  <h2 className="font-display mt-3 max-w-xl text-4xl leading-[0.98] tracking-[-0.045em] sm:text-6xl">
+                    Dress for the day ahead.
+                  </h2>
+                )}
+                <p className="mt-5 max-w-md text-sm leading-6 text-white/60">
+                  {weather
+                    ? "A quiet reading of the conditions before you head out."
+                    : "Allow location access to bring local conditions into your morning."}
+                </p>
+              </div>
+              <a
+                href="/morning-routine"
+                className="mt-10 inline-flex w-fit items-center gap-2 text-sm text-white/80 transition hover:text-white"
+              >
+                Open your full morning routine <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </div>
+
+          <div className="grid bg-[#242520] sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-[0.7fr_1fr_0.85fr]">
+            <div className="flex flex-col justify-between px-6 py-7 sm:px-8 sm:py-8">
+              <p className="font-accent text-[10px] uppercase tracking-[0.19em] text-white/45">
+                Here and now
+              </p>
+              <div>
+                <p className="font-display text-5xl leading-none tracking-[-0.06em]">
+                  {now?.toLocaleTimeString(undefined, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }) ?? "—"}
+                </p>
+                <p className="mt-2 text-sm text-white/50">Your local time</p>
+              </div>
+            </div>
+
+            <div className="border-t border-white/10 px-6 py-7 sm:px-8 sm:py-8">
+              <p className="font-accent text-[10px] uppercase tracking-[0.19em] text-white/45">
+                Leave well
+              </p>
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  saveWorkAddress(workInput.trim());
+                }}
+                className="mt-5"
+              >
+                <label className="sr-only" htmlFor="work-address">
+                  Work address
+                </label>
+                <div className="flex min-h-16 items-center rounded-[1.35rem] bg-white/[0.09] px-4 transition focus-within:bg-white/[0.14]">
+                  <input
+                    id="work-address"
+                    value={workInput}
+                    onChange={(event) => setWorkInput(event.target.value)}
+                    placeholder="Add your work address"
+                    className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/40"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded-full bg-[#d0c195] px-4 py-2 text-xs font-medium text-[#242520] transition hover:bg-[#e2d6af]"
+                  >
+                    Save
+                  </button>
+                </div>
+              </form>
+              <p className="mt-3 text-sm text-white/50">
+                {commute
+                  ? `About ${commute.minutes} min · ${commute.km} km away`
+                  : workAddress
+                    ? `Finding ${workAddress}…`
+                    : "A personal distance estimate — never live traffic."}
+              </p>
+            </div>
+
+            <div className="border-t border-white/10 px-6 py-7 sm:col-span-2 sm:px-8 sm:py-8 lg:col-span-1">
+              <div className="flex items-center justify-between gap-4">
+                <p className="font-accent text-[10px] uppercase tracking-[0.19em] text-white/45">
+                  Elsewhere
+                </p>
+                <span className="text-xs text-white/35">City desk</span>
+              </div>
+              <div className="mt-5 grid grid-cols-3 gap-x-3 gap-y-4">
+                {WORLD_CLOCKS.map((clock) => (
+                  <p key={clock.city} className="min-w-0">
+                    <span className="block truncate text-xs text-white/45">
+                      {clock.city}
+                    </span>
+                    <span className="mt-1 block text-sm font-medium tabular-nums text-white/85">
+                      {now?.toLocaleTimeString(undefined, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        timeZone: clock.timeZone,
+                      }) ?? "—"}
+                    </span>
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="overflow-hidden bg-[#171613] text-[#f6f2e9] shadow-[0_24px_70px_rgba(31,27,20,0.12)]">
