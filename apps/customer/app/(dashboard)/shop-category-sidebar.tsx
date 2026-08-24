@@ -79,8 +79,8 @@ export async function ShopCategorySidebar() {
         <span
           className="shop-sidebar-shimmer inline-block whitespace-nowrap"
           style={{
-            fontFamily: "Aviano, serif",
-            fontSize: "19px",
+            fontFamily: "Portrait, sans-serif",
+            fontSize: "13px",
             lineHeight: 1,
           }}
         >
@@ -182,17 +182,22 @@ export async function ShopCategorySidebar() {
             justifyContent: "flex-end",
           }}
         >
-          <svg
-            viewBox="0 0 24 24"
+          <img
+            src="https://www.nebelspiegel.com/images/calendar10.png"
+            alt=""
             aria-hidden="true"
-            style={{ width: 20, height: 20, marginRight: "auto" }}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            <rect x="3" y="5" width="18" height="16" rx="2" />
-            <path d="M8 3v4M16 3v4M3 10h18" />
-          </svg>
+            style={{
+              width: 20,
+              height: 20,
+              objectFit: "contain",
+              display: "block",
+              flexShrink: 0,
+              marginRight: "auto",
+              opacity: 0.75,
+              position: "relative",
+              top: -1,
+            }}
+          />
           Book Appointment
         </Link>
       </div>
@@ -200,13 +205,6 @@ export async function ShopCategorySidebar() {
         @font-face {
           font-family: OptimaKlein;
           src: url('/fonts/optimaklein.woff2') format('woff2');
-          font-weight: 400;
-          font-style: normal;
-          font-display: swap;
-        }
-        @font-face {
-          font-family: Aviano;
-          src: url('/fonts/aviano.woff2') format('woff2');
           font-weight: 400;
           font-style: normal;
           font-display: swap;
