@@ -46,15 +46,79 @@ export default async function AppointmentsPage() {
   const bookHref = primaryRetailer
     ? `/r/${primaryRetailer.slug}`
     : "/r/atelier-demo";
+  const now = Date.now();
+  const upcoming = appointments.find(
+    (appointment) =>
+      !["completed", "canceled", "no_show"].includes(appointment.status) &&
+      new Date(appointment.startsAt).getTime() >= now,
+  );
+  const history = appointments.filter(
+    (appointment) => appointment.id !== upcoming?.id,
+  );
+  const retailerById = new Map(
+    appointments.map((appointment, index) => [
+      appointment.id,
+      retailers[index],
+    ]),
+  );
+  const formatTime = (iso: string) =>
+    formatDate(iso, "en-US", { hour: "numeric", minute: "2-digit" });
+  const formatRange = (startsAt: string, endsAt: string) =>
+    `${formatTime(startsAt)}–${formatTime(endsAt)}`;
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-        Appointments
-      </h1>
-      <RelatedLinks links={[{ href: "/concierge", label: "Concierge" }]} />
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
+            Your visits
+          </p>
+          <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
+            Appointments
+          </h1>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Link href={bookHref} className={buttonVariants()}>
+            Book appointment
+          </Link>
+          <RelatedLinks links={[{ href: "/concierge", label: "Concierge" }]} />
+        </div>
+      </div>
 
-      {appointments.length === 0 ? (
+      {upcoming ? (
+        <Card className="border-[var(--color-stone-300)] bg-[var(--color-stone-50)]">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--color-stone-500)]">
+                Next appointment
+              </p>
+              <h2 className="font-display mt-2 text-2xl text-[var(--color-stone-900)]">
+                {retailerById.get(upcoming.id)?.displayName ??
+                  "Unknown retailer"}
+              </h2>
+              <p className="mt-1 text-[var(--color-stone-700)]">
+                {APPOINTMENT_TYPE_LABELS[upcoming.type]}
+              </p>
+            </div>
+            <AppointmentStatusBadge status={upcoming.status} />
+          </div>
+          <p className="mt-5 text-sm text-[var(--color-stone-700)]">
+            {formatDate(upcoming.startsAt, "en-US")} ·{" "}
+            {formatRange(upcoming.startsAt, upcoming.endsAt)}
+          </p>
+          {upcoming.notes ? (
+            <p className="mt-3 line-clamp-2 text-sm text-[var(--color-stone-600)]">
+              {upcoming.notes}
+            </p>
+          ) : null}
+          <Link
+            href={`/appointments/${upcoming.id}`}
+            className="mt-5 inline-flex text-sm font-medium text-[var(--color-stone-900)] underline underline-offset-4"
+          >
+            View appointment details
+          </Link>
+        </Card>
+      ) : appointments.length === 0 ? (
         <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center">
           <p className="text-[var(--color-stone-600)]">
             No appointments yet. Book a fitting from the storefront.
@@ -66,28 +130,37 @@ export default async function AppointmentsPage() {
             Book a fitting
           </Link>
         </div>
-      ) : (
-        <Card className="divide-y divide-[var(--color-stone-100)] p-0">
-          {appointments.map((appointment, index) => (
-            <Link
-              key={appointment.id}
-              href={`/appointments/${appointment.id}`}
-              className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 hover:bg-[var(--color-stone-50)]"
-            >
-              <div className="min-w-0">
-                <p className="font-medium text-[var(--color-stone-900)]">
-                  {retailers[index]?.displayName ?? "Unknown retailer"}
-                </p>
-                <p className="text-sm text-[var(--color-stone-500)]">
-                  {APPOINTMENT_TYPE_LABELS[appointment.type]} ·{" "}
-                  {formatDate(appointment.startsAt, "en-US")}
-                </p>
-              </div>
-              <AppointmentStatusBadge status={appointment.status} />
-            </Link>
-          ))}
-        </Card>
-      )}
+      ) : null}
+
+      {history.length > 0 ? (
+        <section>
+          <h2 className="font-display mb-3 text-xl text-[var(--color-stone-900)]">
+            Appointment history
+          </h2>
+          <Card className="divide-y divide-[var(--color-stone-100)] p-0">
+            {history.map((appointment) => (
+              <Link
+                key={appointment.id}
+                href={`/appointments/${appointment.id}`}
+                className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 hover:bg-[var(--color-stone-50)]"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium text-[var(--color-stone-900)]">
+                    {retailerById.get(appointment.id)?.displayName ??
+                      "Unknown retailer"}
+                  </p>
+                  <p className="text-sm text-[var(--color-stone-500)]">
+                    {APPOINTMENT_TYPE_LABELS[appointment.type]} ·{" "}
+                    {formatDate(appointment.startsAt, "en-US")} ·{" "}
+                    {formatRange(appointment.startsAt, appointment.endsAt)}
+                  </p>
+                </div>
+                <AppointmentStatusBadge status={appointment.status} />
+              </Link>
+            ))}
+          </Card>
+        </section>
+      ) : null}
     </div>
   );
 }
