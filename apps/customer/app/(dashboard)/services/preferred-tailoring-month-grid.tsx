@@ -92,14 +92,18 @@ export function PreferredTailoringMonthGrid({
   const { monthLabel, weeks } = buildMonthGrid(now, bookedDateKeys);
 
   return (
-    <div className="w-full rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-4 sm:p-6">
-      <p className="font-accent text-[10px] uppercase tracking-[0.18em] text-[var(--color-stone-500)]">
-        Preferred Tailoring
-      </p>
-      <p className="font-display mb-4 text-xl text-[var(--color-stone-900)]">
+    <section
+      className="customer-panel w-full p-5 sm:p-6"
+      aria-labelledby="preferred-tailoring-month"
+    >
+      <p className="customer-kicker">Preferred Tailoring</p>
+      <p
+        id="preferred-tailoring-month"
+        className="font-display mb-5 text-2xl text-[var(--customer-ink)]"
+      >
         {monthLabel}
       </p>
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-wide text-[var(--color-stone-400)]">
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] uppercase tracking-[0.12em] text-[var(--color-stone-500)]">
         {WEEKDAY_LABELS.map((label) => (
           <div key={label} className="py-1">
             {label}
@@ -110,12 +114,12 @@ export function PreferredTailoringMonthGrid({
         {weeks.flat().map((day) => {
           const cellClassName = `relative flex aspect-square flex-col items-center justify-center overflow-hidden rounded-[var(--radius-sm)] text-xs ${
             day.inCurrentMonth
-              ? "text-[var(--color-stone-700)]"
-              : "text-[var(--color-stone-300)]"
+              ? "text-[var(--customer-ink)]"
+              : "text-[var(--color-stone-400)]"
           } ${
             day.isToday
-              ? "ring-2 ring-[var(--color-stone-900)] ring-offset-1"
-              : "border border-[var(--color-stone-100)]"
+              ? "bg-[var(--customer-moss)] ring-1 ring-[var(--customer-ink)] ring-offset-1"
+              : "bg-black/[0.025]"
           }`;
           const cellContent = (
             <>
@@ -159,6 +163,6 @@ export function PreferredTailoringMonthGrid({
           to { opacity: 1; }
         }
       `}</style>
-    </div>
+    </section>
   );
 }
