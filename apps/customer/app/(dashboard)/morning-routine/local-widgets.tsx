@@ -3,6 +3,10 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
+// Temporary GPU circuit breaker: retain the camera layout and posters, but do
+// not mount remote video iframes until this is deliberately switched back on.
+const CITY_STREAMS_ENABLED = false;
+
 const WORLD_CLOCKS: { city: string; timeZone: string }[] = [
   { city: "New York", timeZone: "America/New_York" },
   { city: "London", timeZone: "Europe/London" },
@@ -197,6 +201,7 @@ export function LocalWidgets() {
   }, [coords]);
 
   useEffect(() => {
+    if (!CITY_STREAMS_ENABLED) return;
     const node = Array.from(
       document.querySelectorAll<HTMLElement>("[data-morning-stream-slot]"),
     ).find(
@@ -373,7 +378,7 @@ export function LocalWidgets() {
             data-morning-stream-slot
             className="relative border-t border-white/10 bg-black lg:hidden"
           >
-            {streamReady && !isDesktop ? (
+            {CITY_STREAMS_ENABLED && streamReady && !isDesktop ? (
               <iframe
                 title="Live city stream"
                 src="https://stream.nebelspiegel.com"
@@ -387,10 +392,10 @@ export function LocalWidgets() {
                     City signal
                   </p>
                   <p className="mt-2 text-sm text-white/55">
-                    Live view loads as you approach.
+                    Live streams are temporarily paused.
                   </p>
                 </div>
-                <span className="text-xs text-white/35">Stream · standby</span>
+                <span className="text-xs text-white/35">Stream · paused</span>
               </div>
             )}
           </div>
@@ -399,7 +404,7 @@ export function LocalWidgets() {
           data-morning-stream-slot
           className="relative hidden min-h-[22rem] border-t border-white/10 bg-black lg:block lg:min-h-0 lg:border-l lg:border-t-0"
         >
-          {streamReady && isDesktop ? (
+          {CITY_STREAMS_ENABLED && streamReady && isDesktop ? (
             <iframe
               title="Live city stream desktop"
               src="https://stream.nebelspiegel.com"
@@ -412,10 +417,10 @@ export function LocalWidgets() {
                 <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-[#c9b890]">
                   City signal
                 </p>
-                <span className="text-xs text-white/35">Stream · standby</span>
+                <span className="text-xs text-white/35">Stream · paused</span>
               </div>
               <p className="font-display max-w-xs text-3xl leading-tight text-white">
-                A live window on the city, held beside your day.
+                A city window, held beside your day.
               </p>
             </div>
           )}
@@ -432,7 +437,9 @@ export function LocalWidgets() {
           <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-[#c9b890]">
             City cameras
           </p>
-          <p className="text-xs text-white/45">Live, muted city windows</p>
+          <p className="text-xs text-white/45">
+            Live streams temporarily paused
+          </p>
         </div>
         <div className="flex snap-x gap-3 overflow-x-auto pb-1 [scrollbar-width:none]">
           {CITY_CAMERAS.map((camera) => (
@@ -448,7 +455,7 @@ export function LocalWidgets() {
                   unoptimized
                   className="object-cover opacity-65"
                 />
-                {streamReady ? (
+                {CITY_STREAMS_ENABLED && streamReady ? (
                   <iframe
                     title={`${camera.city} live camera`}
                     src={camera.src}
