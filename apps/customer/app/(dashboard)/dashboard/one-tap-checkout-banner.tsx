@@ -24,17 +24,22 @@ export function OneTapCheckoutBanner({ retailerId }: { retailerId: string }) {
 
   if (!open) {
     return (
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-dashed border-[var(--color-danger-500)] px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-white/15 bg-white/[0.06] px-3 py-3">
         <div>
-          <p className="text-sm font-medium text-[var(--color-stone-900)]">
+          <p className="text-sm font-medium text-white">
             1-Tap Checkout is not turned on.
           </p>
-          <p className="text-xs text-[var(--color-stone-600)]">
+          <p className="text-xs text-white/60">
             Save a default address once, then buy today&rsquo;s pick with a
             single tap.
           </p>
         </div>
-        <Button size="sm" onClick={() => setOpen(true)}>
+        <Button
+          size="sm"
+          variant="secondary"
+          className="rounded-[12px] border-white/20 bg-white/10 text-white hover:bg-white/20"
+          onClick={() => setOpen(true)}
+        >
           Turn it on
         </Button>
       </div>
