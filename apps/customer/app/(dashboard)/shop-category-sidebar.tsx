@@ -59,7 +59,7 @@ export async function ShopCategorySidebar() {
   const categories = await populatedCategories();
   return (
     <aside
-      className="fixed inset-y-0 left-0 z-50 hidden flex-col overflow-hidden lg:flex"
+      className="sticky top-0 hidden h-screen min-h-screen grid-rows-[60px_minmax(0,1fr)_210px] overflow-hidden lg:grid"
       style={{
         width: "250px",
         background: "linear-gradient(to right, #262626, #1d1d1d)",

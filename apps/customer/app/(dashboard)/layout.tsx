@@ -34,9 +34,9 @@ export default async function DashboardLayout({
 
   if (!isCustomer) {
     return (
-      <div className="min-h-screen bg-[var(--color-stone-50)] text-[var(--color-stone-900)]">
+      <div className="min-h-screen bg-[var(--color-stone-50)] text-[var(--color-stone-900)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
         <ShopCategorySidebar />
-        <div className="lg:pl-[250px]">
+        <div className="min-w-0">
           <nav className="sticky top-0 z-40 flex items-center justify-end border-b border-black/10 bg-white px-4 py-3">
             <Link
               href="/login?redirectTo=%2Fdashboard"
@@ -56,9 +56,9 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-stone-50)] text-[var(--color-stone-900)]">
+    <div className="min-h-screen bg-[var(--color-stone-50)] text-[var(--color-stone-900)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
       <ShopCategorySidebar />
-      <div className="lg:pl-[250px]">
+      <div className="min-w-0">
         <AccountTopTabs
           tabs={ACCOUNT_TABS}
           trailing={
