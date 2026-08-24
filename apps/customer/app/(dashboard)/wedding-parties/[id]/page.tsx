@@ -99,9 +99,45 @@ export default async function WeddingPartyDetailPage({
         nextYearlyOccurrence,
       })
     : null;
+  const completedMembers = members.filter(
+    (member) => member.fittingStatus === "completed" || member.fittingStatus === "fitted",
+  ).length;
+  const partyProgress = members.length
+    ? Math.round((completedMembers / members.length) * 100)
+    : 0;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
+      <section className="relative overflow-hidden rounded-[2rem] bg-[#171714] px-5 py-7 text-white shadow-[0_24px_70px_rgba(35,31,24,0.16)] sm:px-8">
+        <div className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-[#cbb894]/15 blur-3xl" />
+        <div className="relative flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="mb-2 text-[10px] uppercase tracking-[0.22em] text-[#cbb894]">
+              Wedding party / {partyProgress}% ready
+            </p>
+            <h1 className="font-display text-3xl tracking-[-0.03em] sm:text-5xl">{party.name}</h1>
+            <p className="mt-2 max-w-xl text-sm text-white/60">
+              One shared room for fittings, outfit decisions, and the final run-up to the day.
+            </p>
+          </div>
+          <Link href="/messages" className="rounded-full border border-white/20 px-4 py-2 text-xs text-white/80 transition hover:bg-white/10">
+            Open atelier chat <span aria-hidden>↗</span>
+          </Link>
+        </div>
+      </section>
+      <div id="planning" className="grid gap-4 sm:grid-cols-3">
+        {[
+          ["01", "Invite the party", members.length ? `${members.length} joined` : "Waiting for guests"],
+          ["02", "Choose the date", dateCandidates.length ? `${dateCandidates.length} options` : "Add an option"],
+          ["03", "Complete fittings", `${completedMembers}/${members.length || 0} ready`],
+        ].map(([step, title, detail]) => (
+          <div key={step} className="rounded-2xl border border-[var(--color-stone-200)] bg-white px-5 py-4 shadow-[var(--shadow-soft)]">
+            <span className="text-[10px] tracking-[0.18em] text-[var(--color-stone-400)]">{step}</span>
+            <p className="mt-2 text-sm font-medium">{title}</p>
+            <p className="mt-1 text-xs text-[var(--color-stone-500)]">{detail}</p>
+          </div>
+        ))}
+      </div>
       <AmHouseHero
         retailerName={retailer?.displayName ?? "Your atelier"}
         eventDate={
