@@ -28,6 +28,7 @@ export interface AppShellProps {
   navigation: AppShellNavGroup[];
   mobileDock?: AppShellNavItem[];
   signOutControl: ReactNode;
+  signOutControlMobile?: ReactNode;
   children: ReactNode;
 }
 
@@ -206,6 +207,7 @@ export function AppShell({
   navigation,
   mobileDock,
   signOutControl,
+  signOutControlMobile,
   children,
 }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -377,7 +379,7 @@ export function AppShell({
               </p>
               <p className="mt-1 truncate text-[10px] text-white/40">{email}</p>
               <div className="mt-3 [&_button]:!h-8 [&_button]:!px-0 [&_button]:!text-white/55">
-                {signOutControl}
+                {signOutControlMobile ?? signOutControl}
               </div>
             </div>
           </aside>

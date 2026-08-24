@@ -465,6 +465,13 @@ export default async function DashboardLayout({
             </Button>
           </form>
         }
+        signOutControlMobile={
+          <form action={signOut}>
+            <Button type="submit" variant="ghost" size="sm">
+              Sign out
+            </Button>
+          </form>
+        }
       >
         <OfflineBanner />
         {children}
