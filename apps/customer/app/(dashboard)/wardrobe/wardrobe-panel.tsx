@@ -95,7 +95,7 @@ function WardrobeItemCard({
   serviceRequestPending: boolean;
 }) {
   return (
-    <article className="flex w-[min(78vw,18rem)] shrink-0 snap-start flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white sm:w-72">
+    <article className="flex w-[min(78vw,19rem)] shrink-0 snap-start flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-stone-200)] bg-white sm:w-[19rem]">
       {item.identifyingPhotoUrl ? (
         <Image
           src={item.identifyingPhotoUrl}
@@ -117,111 +117,77 @@ function WardrobeItemCard({
       )}
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div>
-          <p className="text-sm font-medium text-[var(--color-stone-900)]">
+          <p className="line-clamp-2 text-sm font-medium leading-5 text-[var(--color-stone-900)]">
             {item.brand ? `${item.brand} · ` : ""}
             {item.displayName}
           </p>
-          <p className="mt-1 text-xs text-[var(--color-stone-500)]">
-            {item.categoryCode.replaceAll("_", " ")} · {ownershipLabel(item)} ·{" "}
-            {provenanceLabel(item)}
+          <p className="mt-1 text-[11px] uppercase tracking-[0.08em] text-[var(--color-stone-500)]">
+            {item.categoryCode.replaceAll("_", " ")} · {ownershipLabel(item)}
           </p>
         </div>
-        {item.description ? (
-          <p className="line-clamp-3 text-sm text-[var(--color-stone-600)]">
-            {item.description}
-          </p>
-        ) : null}
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-          <div>
-            <dt className="text-[var(--color-stone-500)]">Care</dt>
-            <dd className="text-[var(--color-stone-700)]">
-              {item.careState.replaceAll("_", " ")}
-            </dd>
+        <div className="flex flex-wrap gap-1.5 text-[11px]">
+          <span className="rounded-full bg-[var(--color-stone-100)] px-2.5 py-1 text-[var(--color-stone-700)]">
+            Care · {item.careState.replaceAll("_", " ")}
+          </span>
+          <span className="rounded-full bg-[var(--color-stone-100)] px-2.5 py-1 text-[var(--color-stone-700)]">
+            {item.condition.replaceAll("_", " ")}
+          </span>
+        </div>
+        <details className="group border-t border-[var(--color-stone-200)] pt-3 text-xs text-[var(--color-stone-500)]">
+          <summary className="cursor-pointer list-none font-medium text-[var(--color-stone-700)] marker:hidden">
+            <span className="flex items-center justify-between">
+              Garment details
+              <span aria-hidden className="text-base leading-none transition-transform group-open:rotate-45">+</span>
+            </span>
+          </summary>
+          <div className="mt-3 space-y-3">
+            <p>Fit · {item.fitPerception.replaceAll("_", " ")} · Wear · {item.wearFrequency ?? "Not set"}</p>
+            <p>Source · {provenanceLabel(item)}</p>
+            {item.description ? <p>{item.description}</p> : null}
+            {item.fitNotes ? <p>Fit note · {item.fitNotes}</p> : null}
+            {history.length > 0 ? (
+              <ul className="space-y-1">
+                {history.map((event) => (
+                  <li key={event.id}>
+                    {event.eventKind.replaceAll("_", " ")} · {new Date(event.occurredAt).toLocaleDateString()}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
-          <div>
-            <dt className="text-[var(--color-stone-500)]">Fit</dt>
-            <dd className="text-[var(--color-stone-700)]">
-              {item.fitPerception.replaceAll("_", " ")}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--color-stone-500)]">Condition</dt>
-            <dd className="text-[var(--color-stone-700)]">
-              {item.condition.replaceAll("_", " ")}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--color-stone-500)]">Wear</dt>
-            <dd className="text-[var(--color-stone-700)]">
-              {item.wearFrequency ?? "Not set"}
-            </dd>
-          </div>
-        </dl>
-        {item.fitNotes ? (
-          <p className="text-xs text-[var(--color-stone-600)]">
-            Fit note: {item.fitNotes}
-          </p>
-        ) : null}
-        {history.length > 0 ? (
-          <details className="text-xs text-[var(--color-stone-500)]">
-            <summary className="cursor-pointer">Ownership history</summary>
-            <ul className="mt-2 space-y-1">
-              {history.map((event) => (
-                <li key={event.id}>
-                  {event.eventKind.replaceAll("_", " ")} ·{" "}
-                  {event.ownershipKind.replaceAll("_", " ")} ·{" "}
-                  {new Date(event.occurredAt).toLocaleDateString()}
-                </li>
-              ))}
-            </ul>
-          </details>
-        ) : null}
+        </details>
         {completeTheLookSuggestions.length > 0 ? (
-          <details
-            className="text-xs text-[var(--color-stone-500)]"
-            data-item-complete-the-look
-          >
-            <summary className="cursor-pointer">Complete the look</summary>
-            <ul className="-mx-1 mt-2 flex snap-x gap-2 overflow-x-auto px-1 pb-1">
+          <details className="group border-t border-[var(--color-stone-200)] pt-3 text-xs text-[var(--color-stone-500)]" data-item-complete-the-look>
+            <summary className="cursor-pointer list-none font-medium text-[var(--color-stone-700)] marker:hidden">
+              <span className="flex items-center justify-between">Pairs well with <span aria-hidden className="text-base leading-none transition-transform group-open:rotate-45">+</span></span>
+            </summary>
+            <ul className="-mx-1 mt-3 flex snap-x gap-2 overflow-x-auto px-1 pb-1">
               {completeTheLookSuggestions.map((suggestion) => (
-                <SuggestedLookTile
-                  key={suggestion.productId}
-                  retailerId={retailerId}
-                  suggestion={suggestion}
-                />
+                <SuggestedLookTile key={suggestion.productId} retailerId={retailerId} suggestion={suggestion} />
               ))}
             </ul>
           </details>
         ) : null}
-        <div className="mt-auto flex flex-wrap gap-2 pt-1">
-          {WARDROBE_SERVICE_REQUEST_KINDS.map((kind) => (
-            <form key={kind} action={serviceRequestAction}>
+        <details className="group mt-auto border-t border-[var(--color-stone-200)] pt-3 text-xs text-[var(--color-stone-500)]">
+          <summary className="cursor-pointer list-none font-medium text-[var(--color-stone-700)] marker:hidden">
+            <span className="flex items-center justify-between">Manage garment <span aria-hidden className="text-base leading-none transition-transform group-open:rotate-45">+</span></span>
+          </summary>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {WARDROBE_SERVICE_REQUEST_KINDS.map((kind) => (
+              <form key={kind} action={serviceRequestAction}>
+                <input type="hidden" name="retailerId" value={retailerId} />
+                <input type="hidden" name="wardrobeItemId" value={item.id} />
+                <input type="hidden" name="kind" value={kind} />
+                <Button type="submit" size="sm" variant="outline" disabled={serviceRequestPending}>{WARDROBE_SERVICE_REQUEST_KIND_LABELS[kind]}</Button>
+              </form>
+            ))}
+            <form action={retireAction}>
               <input type="hidden" name="retailerId" value={retailerId} />
               <input type="hidden" name="wardrobeItemId" value={item.id} />
-              <input type="hidden" name="kind" value={kind} />
-              <Button
-                type="submit"
-                size="sm"
-                variant="outline"
-                disabled={serviceRequestPending}
-              >
-                {WARDROBE_SERVICE_REQUEST_KIND_LABELS[kind]}
-              </Button>
+              <Button type="submit" size="sm" variant="outline" disabled={retirePending}>Retire</Button>
             </form>
-          ))}
-          <form action={retireAction}>
-            <input type="hidden" name="retailerId" value={retailerId} />
-            <input type="hidden" name="wardrobeItemId" value={item.id} />
-            <Button
-              type="submit"
-              size="sm"
-              variant="outline"
-              disabled={retirePending}
-            >
-              Retire
-            </Button>
-          </form>
-        </div>
+          </div>
+        </details>
       </div>
     </article>
   );

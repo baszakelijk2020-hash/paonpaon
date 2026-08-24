@@ -38,8 +38,8 @@ export function SuggestedLookTile({
   const [state, formAction, isPending] = useActionState(boundGenerate, initial);
 
   return (
-    <li className="w-48 flex-none snap-start overflow-hidden rounded-[var(--radius-sm)] border border-[var(--color-stone-200)]">
-      <div className="relative aspect-square w-full bg-[var(--color-stone-100)]">
+    <li className="group min-w-0 snap-start overflow-hidden bg-white">
+      <div className="relative aspect-[4/3] w-full bg-[var(--color-stone-100)]">
         {suggestion.primaryImageUrl ? (
           <Image
             src={suggestion.primaryImageUrl}
@@ -57,14 +57,17 @@ export function SuggestedLookTile({
           </div>
         )}
       </div>
-      <div className="px-3 py-2">
-        <p className="text-sm font-medium text-[var(--color-stone-900)]">
+      <div className="flex min-h-42 flex-col px-4 py-4">
+        <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--color-stone-400)]">
+          {suggestion.categoryCode.replaceAll("_", " ")}
+        </p>
+        <p className="mt-1 line-clamp-2 text-sm font-medium leading-5 text-[var(--color-stone-900)]">
           {suggestion.displayName}
         </p>
-        <p className="text-xs text-[var(--color-stone-500)]">
+        <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--color-stone-500)]">
           {suggestion.explanation}
         </p>
-        <form action={formAction} className="mt-2">
+        <form action={formAction} className="mt-auto pt-4">
           <input type="hidden" name="productId" value={suggestion.productId} />
           <input
             type="hidden"
