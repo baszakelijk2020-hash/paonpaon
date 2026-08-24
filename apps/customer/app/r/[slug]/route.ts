@@ -67,15 +67,12 @@ async function loadTemplate(): Promise<string> {
     "app/r/[slug]/paon-template.html",
   );
   const raw = await readFile(templatePath, "utf8");
-  // The table-service widget's embedded <style> still points at the
-  // founder's own domain for this one font. That host sends no
-  // Access-Control-Allow-Origin, so the browser silently fails the fetch
-  // and falls back to a system font — same CORS issue globals.css already
-  // works around via app/fonts/[filename]/route.ts, which serves this exact
-  // file same-origin. Confirmed broken in production before this fix.
+  // The table-service widget's embedded style originally pointed at the
+  // founder's own domain. Use the same local Google Flex face as the rest
+  // of the storefront, avoiding a cross-origin font request.
   const html = raw.replaceAll(
     "https://www.nebelspiegel.com/fonts/optimaklein.woff2",
-    "/fonts/optimaklein.woff2",
+    "/fonts/googleflex.woff2",
   );
   templateCache = html;
   return html;

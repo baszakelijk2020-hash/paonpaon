@@ -227,7 +227,7 @@ const WIDGET_CSS = `
 }
 @font-face {
   font-family: 'Optimaklein';
-  src: url('/fonts/optimaklein.woff2') format('woff2');
+  src: url('/fonts/googleflex.woff2') format('woff2');
   font-display: swap;
 }
 @font-face {

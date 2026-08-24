@@ -3,6 +3,7 @@ import {
   ProductRepository,
   RetailerRepository,
 } from "@paon/database";
+import Image from "next/image";
 import Link from "next/link";
 
 import { IntentPrefetchLink } from "./intent-prefetch-link";
@@ -182,10 +183,13 @@ export async function ShopCategorySidebar() {
             justifyContent: "flex-end",
           }}
         >
-          <img
+          <Image
             src="https://www.nebelspiegel.com/images/calendar10.png"
             alt=""
             aria-hidden="true"
+            width={20}
+            height={20}
+            unoptimized
             style={{
               width: 20,
               height: 20,
@@ -204,7 +208,7 @@ export async function ShopCategorySidebar() {
       <style>{`
         @font-face {
           font-family: OptimaKlein;
-          src: url('/fonts/optimaklein.woff2') format('woff2');
+          src: url('/fonts/googleflex.woff2') format('woff2');
           font-weight: 400;
           font-style: normal;
           font-display: swap;

@@ -20,6 +20,7 @@ import { formatDate, formatMoney } from "@paon/utils";
 import Link from "next/link";
 
 import { ensureTodaysMorningRoutineSelection } from "../morning-routine/generation";
+import { LocalWidgets } from "../morning-routine/local-widgets";
 import { buildVariantIdByProductSlug } from "../wishlist/favorites-map";
 import {
   MergeFavorites,
@@ -204,7 +205,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="-mx-4 flex flex-col gap-0 sm:-mx-7 lg:-mx-10 xl:-mx-14">
       <MergeFavorites houses={favoritesHouses} />
       <HouseSwitcher
         houses={relationships.map(({ customer, retailer }) => ({
@@ -212,6 +213,7 @@ export default async function DashboardPage() {
           name: retailer?.displayName ?? "Your atelier",
         }))}
       />
+      {primary ? <LocalWidgets /> : null}
       {primary && morningRoutineHero ? (
         <MorningRoutineDashboardHero
           retailerId={primary.customer.retailerId}
@@ -321,7 +323,7 @@ export default async function DashboardPage() {
       {primary ? (
         <section
           aria-label="Your current moments"
-          className="paon-reveal grid overflow-hidden rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white shadow-[var(--shadow-lifted)] sm:grid-cols-3"
+          className="paon-reveal grid overflow-hidden bg-[#e9e5dc] sm:grid-cols-3"
           style={{ animationDelay: "120ms" }}
         >
           <Link
@@ -330,7 +332,7 @@ export default async function DashboardPage() {
                 ? `/appointments/${primary.nextAppointment.id}`
                 : "/appointments"
             }
-            className="border-b border-[var(--color-stone-200)] p-6 sm:border-b-0 sm:border-r"
+            className="bg-[#f6f3ed] p-7 transition-colors hover:bg-white sm:p-10"
           >
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
               Next appointment
@@ -353,7 +355,7 @@ export default async function DashboardPage() {
                 ? `/r/${primary.retailer.slug}`
                 : "/appointments"
             }
-            className="border-b border-[var(--color-stone-200)] p-6 sm:border-b-0 sm:border-r"
+            className="bg-[#e9e5dc] p-7 transition-colors hover:bg-[#f0ece4] sm:p-10"
           >
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
               At the workroom
@@ -370,7 +372,10 @@ export default async function DashboardPage() {
               →
             </p>
           </Link>
-          <Link href="/messages" className="p-6">
+          <Link
+            href="/messages"
+            className="bg-[#dcd6cb] p-7 transition-colors hover:bg-[#e7e1d8] sm:p-10"
+          >
             <p className="text-xs uppercase tracking-[0.15em] text-[var(--color-stone-500)]">
               Your conversation
             </p>
@@ -389,7 +394,7 @@ export default async function DashboardPage() {
       {primary?.retailer ? (
         <section
           aria-label="Everything in your house"
-          className="paon-reveal"
+          className="paon-reveal bg-[#f6f3ed] px-5 py-12 sm:px-10 sm:py-16 lg:px-14"
           style={{ animationDelay: "180ms" }}
         >
           <div className="mb-5">
@@ -402,7 +407,7 @@ export default async function DashboardPage() {
               hunting through menus.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-3">
             {(
               [
                 {
@@ -470,7 +475,7 @@ export default async function DashboardPage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white px-5 py-5 shadow-[var(--shadow-lifted)] transition-transform duration-[var(--duration-quiet)] hover:-translate-y-0.5"
+                className="group min-h-40 bg-[#ebe6dc] px-6 py-7 transition-colors hover:bg-[#e1dbd0] sm:px-8 sm:py-9"
               >
                 <p className="font-display text-xl text-[var(--color-stone-900)]">
                   {item.label}

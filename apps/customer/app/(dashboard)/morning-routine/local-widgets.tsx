@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const WORLD_CLOCKS: { city: string; timeZone: string }[] = [
@@ -10,6 +11,44 @@ const WORLD_CLOCKS: { city: string; timeZone: string }[] = [
   { city: "Tokyo", timeZone: "Asia/Tokyo" },
   { city: "Sydney", timeZone: "Australia/Sydney" },
 ];
+
+const CITY_CAMERAS = [
+  {
+    city: "New York",
+    code: "NYC",
+    timeZone: "America/New_York",
+    poster: "https://img.youtube.com/vi/MtP2lyZ8jQk/maxresdefault.jpg",
+    src: "https://www.youtube.com/embed/MtP2lyZ8jQk?autoplay=1&mute=1&controls=0&loop=1&playlist=MtP2lyZ8jQk&playsinline=1&modestbranding=1&rel=0",
+  },
+  {
+    city: "Rotterdam",
+    code: "RTM",
+    timeZone: "Europe/Amsterdam",
+    poster: "https://img.youtube.com/vi/nFozEhYTEMo/maxresdefault.jpg",
+    src: "https://www.youtube.com/embed/nFozEhYTEMo?autoplay=1&mute=1&controls=0&loop=1&playlist=nFozEhYTEMo&playsinline=1&modestbranding=1&rel=0",
+  },
+  {
+    city: "Amsterdam",
+    code: "AMS",
+    timeZone: "Europe/Amsterdam",
+    poster: "https://www.nebelspiegel.com/images/smaller/6065.webp",
+    src: "https://stream.nebelspiegel.com",
+  },
+  {
+    city: "Tokyo",
+    code: "TYO",
+    timeZone: "Asia/Tokyo",
+    poster: "https://img.youtube.com/vi/_k-5U7IeK8g/maxresdefault.jpg",
+    src: "https://www.youtube.com/embed/_k-5U7IeK8g?autoplay=1&mute=1&controls=0&loop=1&playlist=_k-5U7IeK8g&playsinline=1&modestbranding=1&rel=0",
+  },
+  {
+    city: "Sydney",
+    code: "SYD",
+    timeZone: "Australia/Sydney",
+    poster: "https://img.youtube.com/vi/5uZa3-RMFos/maxresdefault.jpg",
+    src: "https://www.youtube.com/embed/5uZa3-RMFos?autoplay=1&mute=1&controls=0&loop=1&playlist=5uZa3-RMFos&playsinline=1&modestbranding=1&rel=0",
+  },
+] as const;
 
 const WEATHER_CODE_LABELS: Record<number, string> = {
   0: "Clear sky",
@@ -71,6 +110,9 @@ export function LocalWidgets() {
   const [now, setNow] = useState<Date | null>(null);
   const [streamReady, setStreamReady] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [loadedCameras, setLoadedCameras] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
     setNow(new Date());
@@ -210,175 +252,231 @@ export function LocalWidgets() {
   }, [coords]);
 
   return (
-    <section className="overflow-hidden rounded-[28px] border border-[var(--color-stone-200)] bg-[#171613] text-[#f6f2e9] shadow-[0_24px_70px_rgba(31,27,20,0.12)] lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(20rem,0.6fr)]">
-      <div className="grid lg:min-h-[34rem] lg:grid-rows-[1fr_auto]">
-        <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="relative min-h-[290px] overflow-hidden border-b border-white/10 p-6 sm:p-8 lg:border-b-0 lg:border-r">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(187,157,105,0.25),transparent_38%),linear-gradient(135deg,#2a2924,#171613_70%)]" />
-            <div className="relative flex h-full flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-[#c9b890]">
-                  Morning instrument
-                </p>
-                <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/60">
-                  Local context
-                </span>
+    <section className="overflow-hidden bg-[#171613] text-[#f6f2e9] shadow-[0_24px_70px_rgba(31,27,20,0.12)]">
+      <div className="lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(20rem,0.6fr)]">
+        <div className="grid lg:min-h-[34rem] lg:grid-rows-[1fr_auto]">
+          <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="relative min-h-[290px] overflow-hidden border-b border-white/10 p-6 sm:p-8 lg:border-b-0 lg:border-r">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(187,157,105,0.25),transparent_38%),linear-gradient(135deg,#2a2924,#171613_70%)]" />
+              <div className="relative flex h-full flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-[#c9b890]">
+                    Morning instrument
+                  </p>
+                  <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/60">
+                    Local context
+                  </span>
+                </div>
+                <div>
+                  <p className="font-accent text-xs uppercase tracking-[0.16em] text-white/50">
+                    Weather · {locationLabel}
+                  </p>
+                  {weather ? (
+                    <p className="font-display mt-3 text-6xl tracking-[-0.04em] text-white">
+                      {Math.round(weather.tempC)}°
+                      <span className="ml-3 text-xl font-normal tracking-normal text-white/55">
+                        {weather.label}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="font-display mt-3 max-w-sm text-3xl leading-tight text-white">
+                      Set the scene for your day.
+                    </p>
+                  )}
+                  <p className="mt-3 max-w-sm text-sm leading-6 text-white/55">
+                    {weather
+                      ? "A quiet read on the conditions before you step out."
+                      : "Allow location access for local weather. Nothing is stored without consent."}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-accent text-xs uppercase tracking-[0.16em] text-white/50">
-                  Weather · {locationLabel}
+            </div>
+            <div className="grid grid-cols-2 gap-px bg-white/10">
+              <div className="bg-[#1d1c19] p-5">
+                <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-white/45">
+                  Local time
                 </p>
-                {weather ? (
-                  <p className="font-display mt-3 text-6xl tracking-[-0.04em] text-white">
-                    {Math.round(weather.tempC)}°
-                    <span className="ml-3 text-xl font-normal tracking-normal text-white/55">
-                      {weather.label}
+                <p className="font-display mt-4 text-3xl">
+                  {now?.toLocaleTimeString(undefined, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }) ?? "—"}
+                </p>
+                <p className="mt-1 text-xs text-white/45">
+                  {now?.toLocaleDateString(undefined, {
+                    weekday: "long",
+                    month: "short",
+                    day: "numeric",
+                  }) ?? ""}
+                </p>
+              </div>
+              <div className="bg-[#1d1c19] p-5">
+                <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-white/45">
+                  Drive to work
+                </p>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    saveWorkAddress(workInput.trim());
+                  }}
+                  className="mt-3 flex gap-1"
+                >
+                  <input
+                    value={workInput}
+                    onChange={(e) => setWorkInput(e.target.value)}
+                    placeholder="Work address"
+                    className="w-full min-w-0 border-b border-white/20 bg-transparent px-0 py-1 text-xs text-white outline-none placeholder:text-white/35"
+                  />
+                  <button type="submit" className="text-xs text-[#c9b890]">
+                    Set
+                  </button>
+                </form>
+                {commute ? (
+                  <p className="font-display mt-4 text-3xl">
+                    ~{commute.minutes}
+                    <span className="ml-1 text-sm font-normal text-white/50">
+                      min
                     </span>
                   </p>
                 ) : (
-                  <p className="font-display mt-3 max-w-sm text-3xl leading-tight text-white">
-                    Set the scene for your day.
+                  <p className="mt-4 text-xs leading-5 text-white/45">
+                    {workAddress
+                      ? `Locating ${workAddress}…`
+                      : "Estimated distance · no live traffic"}
                   </p>
                 )}
-                <p className="mt-3 max-w-sm text-sm leading-6 text-white/55">
-                  {weather
-                    ? "A quiet read on the conditions before you step out."
-                    : "Allow location access for local weather. Nothing is stored without consent."}
+              </div>
+              <div className="col-span-2 bg-[#1d1c19] p-5">
+                <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-white/45">
+                  World clock
                 </p>
+                <div className="mt-4 grid grid-cols-3 gap-x-4 gap-y-3">
+                  {WORLD_CLOCKS.map((clock) => (
+                    <p key={clock.city} className="flex flex-col gap-1">
+                      <span className="text-xs text-white/45">
+                        {clock.city}
+                      </span>
+                      <span className="text-sm font-medium">
+                        {now?.toLocaleTimeString(undefined, {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          timeZone: clock.timeZone,
+                        }) ?? "—"}
+                      </span>
+                    </p>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-px bg-white/10">
-            <div className="bg-[#1d1c19] p-5">
-              <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-white/45">
-                Local time
-              </p>
-              <p className="font-display mt-4 text-3xl">
-                {now?.toLocaleTimeString(undefined, {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }) ?? "—"}
-              </p>
-              <p className="mt-1 text-xs text-white/45">
-                {now?.toLocaleDateString(undefined, {
-                  weekday: "long",
-                  month: "short",
-                  day: "numeric",
-                }) ?? ""}
-              </p>
-            </div>
-            <div className="bg-[#1d1c19] p-5">
-              <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-white/45">
-                Drive to work
-              </p>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  saveWorkAddress(workInput.trim());
-                }}
-                className="mt-3 flex gap-1"
-              >
-                <input
-                  value={workInput}
-                  onChange={(e) => setWorkInput(e.target.value)}
-                  placeholder="Work address"
-                  className="w-full min-w-0 border-b border-white/20 bg-transparent px-0 py-1 text-xs text-white outline-none placeholder:text-white/35"
-                />
-                <button type="submit" className="text-xs text-[#c9b890]">
-                  Set
-                </button>
-              </form>
-              {commute ? (
-                <p className="font-display mt-4 text-3xl">
-                  ~{commute.minutes}
-                  <span className="ml-1 text-sm font-normal text-white/50">
-                    min
-                  </span>
-                </p>
-              ) : (
-                <p className="mt-4 text-xs leading-5 text-white/45">
-                  {workAddress
-                    ? `Locating ${workAddress}…`
-                    : "Estimated distance · no live traffic"}
-                </p>
-              )}
-            </div>
-            <div className="col-span-2 bg-[#1d1c19] p-5">
-              <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-white/45">
-                World clock
-              </p>
-              <div className="mt-4 grid grid-cols-3 gap-x-4 gap-y-3">
-                {WORLD_CLOCKS.map((clock) => (
-                  <p key={clock.city} className="flex flex-col gap-1">
-                    <span className="text-xs text-white/45">{clock.city}</span>
-                    <span className="text-sm font-medium">
-                      {now?.toLocaleTimeString(undefined, {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        timeZone: clock.timeZone,
-                      }) ?? "—"}
-                    </span>
+          <div
+            data-morning-stream-slot
+            className="relative border-t border-white/10 bg-black lg:hidden"
+          >
+            {streamReady && !isDesktop ? (
+              <iframe
+                title="Live city stream"
+                src="https://stream.nebelspiegel.com"
+                className="h-52 w-full border-0 opacity-80 lg:h-56"
+                allow="autoplay; fullscreen"
+              />
+            ) : (
+              <div className="flex h-32 items-center justify-between px-6">
+                <div>
+                  <p className="font-accent text-[10px] uppercase tracking-[0.18em] text-[#c9b890]">
+                    City signal
                   </p>
-                ))}
+                  <p className="mt-2 text-sm text-white/55">
+                    Live view loads as you approach.
+                  </p>
+                </div>
+                <span className="text-xs text-white/35">Stream · standby</span>
               </div>
-            </div>
+            )}
           </div>
         </div>
         <div
           data-morning-stream-slot
-          className="relative border-t border-white/10 bg-black lg:hidden"
+          className="relative hidden min-h-[22rem] border-t border-white/10 bg-black lg:block lg:min-h-0 lg:border-l lg:border-t-0"
         >
-          {streamReady && !isDesktop ? (
+          {streamReady && isDesktop ? (
             <iframe
-              title="Live city stream"
+              title="Live city stream desktop"
               src="https://stream.nebelspiegel.com"
-              className="h-52 w-full border-0 opacity-80 lg:h-56"
+              className="absolute inset-0 h-full w-full border-0 opacity-80"
               allow="autoplay; fullscreen"
             />
           ) : (
-            <div className="flex h-32 items-center justify-between px-6">
-              <div>
-                <p className="font-accent text-[10px] uppercase tracking-[0.18em] text-[#c9b890]">
+            <div className="absolute inset-0 flex flex-col justify-between bg-[radial-gradient(circle_at_68%_22%,rgba(187,157,105,0.2),transparent_35%),linear-gradient(145deg,#25241f,#11110f)] p-7">
+              <div className="flex items-center justify-between">
+                <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-[#c9b890]">
                   City signal
                 </p>
-                <p className="mt-2 text-sm text-white/55">
-                  Live view loads as you approach.
-                </p>
+                <span className="text-xs text-white/35">Stream · standby</span>
               </div>
-              <span className="text-xs text-white/35">Stream · standby</span>
+              <p className="font-display max-w-xs text-3xl leading-tight text-white">
+                A live window on the city, held beside your day.
+              </p>
             </div>
           )}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/65 to-transparent px-7 pb-6 pt-16">
+            <p className="font-accent text-[10px] uppercase tracking-[0.18em] text-white/70">
+              Nebel &amp; Spiegel / city desk
+            </p>
+            <span className="text-xs text-white/50">Live view</span>
+          </div>
         </div>
       </div>
-      <div
-        data-morning-stream-slot
-        className="relative hidden min-h-[22rem] border-t border-white/10 bg-black lg:block lg:min-h-0 lg:border-l lg:border-t-0"
-      >
-        {streamReady && isDesktop ? (
-          <iframe
-            title="Live city stream desktop"
-            src="https://stream.nebelspiegel.com"
-            className="absolute inset-0 h-full w-full border-0 opacity-80"
-            allow="autoplay; fullscreen"
-          />
-        ) : (
-          <div className="absolute inset-0 flex flex-col justify-between bg-[radial-gradient(circle_at_68%_22%,rgba(187,157,105,0.2),transparent_35%),linear-gradient(145deg,#25241f,#11110f)] p-7">
-            <div className="flex items-center justify-between">
-              <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-[#c9b890]">
-                City signal
-              </p>
-              <span className="text-xs text-white/35">Stream · standby</span>
-            </div>
-            <p className="font-display max-w-xs text-3xl leading-tight text-white">
-              A live window on the city, held beside your day.
-            </p>
-          </div>
-        )}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/65 to-transparent px-7 pb-6 pt-16">
-          <p className="font-accent text-[10px] uppercase tracking-[0.18em] text-white/70">
-            Nebel &amp; Spiegel / city desk
+      <div className="border-t border-white/10 bg-[#12110f] px-5 py-6 sm:px-8 lg:px-10">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-[#c9b890]">
+            City cameras
           </p>
-          <span className="text-xs text-white/50">Live view</span>
+          <p className="text-xs text-white/45">Live, muted city windows</p>
+        </div>
+        <div className="flex snap-x gap-3 overflow-x-auto pb-1 [scrollbar-width:none]">
+          {CITY_CAMERAS.map((camera) => (
+            <article
+              key={camera.code}
+              className="w-[15rem] shrink-0 snap-start overflow-hidden rounded-2xl bg-white/[0.07] sm:w-[18rem]"
+            >
+              <div className="relative aspect-video bg-black">
+                <Image
+                  src={camera.poster}
+                  alt={`${camera.city} camera preview`}
+                  fill
+                  unoptimized
+                  className="object-cover opacity-65"
+                />
+                {streamReady ? (
+                  <iframe
+                    title={`${camera.city} live camera`}
+                    src={camera.src}
+                    loading="lazy"
+                    onLoad={() =>
+                      setLoadedCameras(
+                        (current) => new Set([...current, camera.code]),
+                      )
+                    }
+                    className={`absolute inset-0 h-full w-full border-0 transition-opacity duration-500 ${loadedCameras.has(camera.code) ? "opacity-85" : "opacity-0"}`}
+                    allow="autoplay; fullscreen"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+                )}
+              </div>
+              <div className="flex items-center justify-between px-4 py-3">
+                <p className="text-sm font-medium text-white">{camera.city}</p>
+                <p className="text-sm tabular-nums text-white/60">
+                  {now?.toLocaleTimeString(undefined, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: camera.timeZone,
+                  }) ?? "—"}
+                </p>
+              </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>
