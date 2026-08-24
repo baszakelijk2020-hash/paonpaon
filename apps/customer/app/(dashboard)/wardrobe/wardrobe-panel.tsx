@@ -30,6 +30,17 @@ import {
 } from "./actions";
 import { SuggestedLookTile } from "./suggested-look-tile";
 
+const LIFECYCLE_DATE_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  timeZone: "UTC",
+  year: "numeric",
+});
+
+function formatLifecycleDate(value: string): string {
+  return LIFECYCLE_DATE_FORMATTER.format(new Date(value));
+}
+
 function ownershipLabel(item: WardrobeItem): string {
   if (item.ownershipKind === "retailer_purchased") {
     return "Purchased here";
@@ -137,11 +148,19 @@ function WardrobeItemCard({
           <summary className="cursor-pointer list-none font-medium text-[var(--color-stone-700)] marker:hidden">
             <span className="flex items-center justify-between">
               Garment details
-              <span aria-hidden className="text-base leading-none transition-transform group-open:rotate-45">+</span>
+              <span
+                aria-hidden
+                className="text-base leading-none transition-transform group-open:rotate-45"
+              >
+                +
+              </span>
             </span>
           </summary>
           <div className="mt-3 space-y-3">
-            <p>Fit · {item.fitPerception.replaceAll("_", " ")} · Wear · {item.wearFrequency ?? "Not set"}</p>
+            <p>
+              Fit · {item.fitPerception.replaceAll("_", " ")} · Wear ·{" "}
+              {item.wearFrequency ?? "Not set"}
+            </p>
             <p>Source · {provenanceLabel(item)}</p>
             {item.description ? <p>{item.description}</p> : null}
             {item.fitNotes ? <p>Fit note · {item.fitNotes}</p> : null}
@@ -149,7 +168,8 @@ function WardrobeItemCard({
               <ul className="space-y-1">
                 {history.map((event) => (
                   <li key={event.id}>
-                    {event.eventKind.replaceAll("_", " ")} · {new Date(event.occurredAt).toLocaleDateString()}
+                    {event.eventKind.replaceAll("_", " ")} ·{" "}
+                    {formatLifecycleDate(event.occurredAt)}
                   </li>
                 ))}
               </ul>
@@ -157,20 +177,43 @@ function WardrobeItemCard({
           </div>
         </details>
         {completeTheLookSuggestions.length > 0 ? (
-          <details className="group border-t border-[var(--color-stone-200)] pt-3 text-xs text-[var(--color-stone-500)]" data-item-complete-the-look>
+          <details
+            className="group border-t border-[var(--color-stone-200)] pt-3 text-xs text-[var(--color-stone-500)]"
+            data-item-complete-the-look
+          >
             <summary className="cursor-pointer list-none font-medium text-[var(--color-stone-700)] marker:hidden">
-              <span className="flex items-center justify-between">Pairs well with <span aria-hidden className="text-base leading-none transition-transform group-open:rotate-45">+</span></span>
+              <span className="flex items-center justify-between">
+                Pairs well with{" "}
+                <span
+                  aria-hidden
+                  className="text-base leading-none transition-transform group-open:rotate-45"
+                >
+                  +
+                </span>
+              </span>
             </summary>
             <ul className="-mx-1 mt-3 flex snap-x gap-2 overflow-x-auto px-1 pb-1">
               {completeTheLookSuggestions.map((suggestion) => (
-                <SuggestedLookTile key={suggestion.productId} retailerId={retailerId} suggestion={suggestion} />
+                <SuggestedLookTile
+                  key={suggestion.productId}
+                  retailerId={retailerId}
+                  suggestion={suggestion}
+                />
               ))}
             </ul>
           </details>
         ) : null}
         <details className="group mt-auto border-t border-[var(--color-stone-200)] pt-3 text-xs text-[var(--color-stone-500)]">
           <summary className="cursor-pointer list-none font-medium text-[var(--color-stone-700)] marker:hidden">
-            <span className="flex items-center justify-between">Manage garment <span aria-hidden className="text-base leading-none transition-transform group-open:rotate-45">+</span></span>
+            <span className="flex items-center justify-between">
+              Manage garment{" "}
+              <span
+                aria-hidden
+                className="text-base leading-none transition-transform group-open:rotate-45"
+              >
+                +
+              </span>
+            </span>
           </summary>
           <div className="mt-3 flex flex-wrap gap-2">
             {WARDROBE_SERVICE_REQUEST_KINDS.map((kind) => (
@@ -178,13 +221,27 @@ function WardrobeItemCard({
                 <input type="hidden" name="retailerId" value={retailerId} />
                 <input type="hidden" name="wardrobeItemId" value={item.id} />
                 <input type="hidden" name="kind" value={kind} />
-                <Button type="submit" size="sm" variant="outline" disabled={serviceRequestPending}>{WARDROBE_SERVICE_REQUEST_KIND_LABELS[kind]}</Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="outline"
+                  disabled={serviceRequestPending}
+                >
+                  {WARDROBE_SERVICE_REQUEST_KIND_LABELS[kind]}
+                </Button>
               </form>
             ))}
             <form action={retireAction}>
               <input type="hidden" name="retailerId" value={retailerId} />
               <input type="hidden" name="wardrobeItemId" value={item.id} />
-              <Button type="submit" size="sm" variant="outline" disabled={retirePending}>Retire</Button>
+              <Button
+                type="submit"
+                size="sm"
+                variant="outline"
+                disabled={retirePending}
+              >
+                Retire
+              </Button>
             </form>
           </div>
         </details>

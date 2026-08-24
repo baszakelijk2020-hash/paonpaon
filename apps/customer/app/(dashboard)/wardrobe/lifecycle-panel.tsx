@@ -16,6 +16,17 @@ import {
   type LifecycleActionState,
 } from "./lifecycle-actions";
 
+const LIFECYCLE_DATE_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  timeZone: "UTC",
+  year: "numeric",
+});
+
+function formatLifecycleDate(value: string): string {
+  return LIFECYCLE_DATE_FORMATTER.format(new Date(value));
+}
+
 function defaultAppointmentWindow(): {
   startsAt: string;
   endsAt: string;
@@ -103,7 +114,7 @@ export function WardrobeLifecyclePanel({
               <p className="text-xs text-[var(--color-stone-500)]">
                 {fitFreshnessLabel(view.fitFreshness.status)}
                 {view.fitFreshness.lastOfficialMeasuredAt
-                  ? ` · last measured ${new Date(view.fitFreshness.lastOfficialMeasuredAt).toLocaleDateString()}`
+                  ? ` · last measured ${formatLifecycleDate(view.fitFreshness.lastOfficialMeasuredAt)}`
                   : " · no official measurement yet"}
                 {view.fitFreshness.selfReportedFitPerception
                   ? ` · self-reported fit ${view.fitFreshness.selfReportedFitPerception.replaceAll("_", " ")}`
@@ -189,7 +200,6 @@ export function WardrobeLifecyclePanel({
             {view.selfScanEligible ? (
               <form
                 action={scanAction}
-                encType="multipart/form-data"
                 className="flex flex-col gap-3 border-t border-[var(--color-stone-100)] pt-3"
                 aria-label={`Self-scan for ${view.item.displayName}`}
               >
@@ -294,7 +304,7 @@ export function WardrobeLifecyclePanel({
                 <ul className="mt-2 space-y-1 pl-3">
                   {view.selfScans.map((scan) => (
                     <li key={scan.id}>
-                      {new Date(scan.createdAt).toLocaleDateString()} ·{" "}
+                      {formatLifecycleDate(scan.createdAt)} ·{" "}
                       {scan.provenance.replaceAll("_", " ")} · handoff{" "}
                       {scan.serviceHandoffKind.replaceAll("_", " ")}
                       {scan.notes ? ` · ${scan.notes}` : ""}
@@ -313,7 +323,7 @@ export function WardrobeLifecyclePanel({
                   {view.lifecycleEvents.map((event) => (
                     <li key={event.id}>
                       {event.eventKind.replaceAll("_", " ")} ·{" "}
-                      {new Date(event.occurredAt).toLocaleDateString()}
+                      {formatLifecycleDate(event.occurredAt)}
                     </li>
                   ))}
                 </ul>
