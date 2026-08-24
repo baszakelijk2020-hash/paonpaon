@@ -3,8 +3,7 @@ import {
   MessagingRepository,
   RetailerRepository,
 } from "@paon/database";
-import { Button, buttonVariants } from "@paon/ui/components/Button";
-import { Card } from "@paon/ui/components/Card";
+import { Button } from "@paon/ui/components/Button";
 import Link from "next/link";
 
 import { RelatedLinks } from "../related-links";
@@ -34,12 +33,12 @@ export default async function MessagesPage({
     })),
   );
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
+    <div className="customer-page flex flex-col gap-6">
+      <header className="customer-page-header flex-col items-start gap-2">
+        <h1 className="font-display text-4xl text-[var(--customer-ink)]">
           Messages
         </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
+        <p className="max-w-2xl text-base text-[var(--color-stone-600)]">
           Speak directly with your retail advisors.
         </p>
         <RelatedLinks
@@ -49,9 +48,9 @@ export default async function MessagesPage({
             { href: "/notifications", label: "Updates" },
           ]}
         />
-      </div>
+      </header>
       {rows.map(({ customer, retailer, conversation }) => (
-        <Card key={customer.id}>
+        <section key={customer.id} className="customer-panel p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <h2 className="font-medium">
@@ -64,7 +63,7 @@ export default async function MessagesPage({
             {conversation ? (
               <Link
                 href={`/messages/${conversation.id}`}
-                className={buttonVariants({ size: "sm" })}
+                className="customer-button"
               >
                 Open
               </Link>
@@ -85,22 +84,26 @@ export default async function MessagesPage({
                 required
                 maxLength={5000}
                 defaultValue={prefill}
-                className="h-10 flex-1 rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3"
+                className="h-16 flex-1 rounded-[var(--customer-radius)] border border-[var(--customer-border)] bg-white/70 px-4 text-[var(--customer-ink)] outline-none transition-colors placeholder:text-[var(--color-stone-500)] focus:border-[var(--customer-ink)]"
                 placeholder="How may the team help?"
               />
-              <Button type="submit" size="sm" className="sm:self-end">
+              <Button
+                type="submit"
+                size="sm"
+                className="customer-button sm:self-end"
+              >
                 Start
               </Button>
             </form>
           ) : null}
-        </Card>
+        </section>
       ))}
       {rows.length === 0 ? (
-        <Card>
+        <section className="customer-panel p-6">
           <p className="text-sm text-[var(--color-stone-500)]">
             A retailer relationship is required before messaging.
           </p>
-        </Card>
+        </section>
       ) : null}
     </div>
   );

@@ -42,10 +42,8 @@ export function BadgesShelf({
         return (
           <div
             key={kind}
-            className={`flex flex-col items-center gap-1 rounded-[var(--radius-md)] border p-3 text-center ${
-              earned
-                ? "border-[var(--color-stone-300)] bg-white"
-                : "border-dashed border-[var(--color-stone-200)] opacity-50"
+            className={`customer-panel flex flex-col items-center gap-1 p-3 text-center ${
+              earned ? "bg-white/70" : "bg-transparent opacity-50"
             }`}
           >
             <span aria-hidden="true" className="text-2xl">
