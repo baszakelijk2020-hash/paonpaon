@@ -59,14 +59,14 @@ export async function ShopCategorySidebar() {
   const categories = await populatedCategories();
   return (
     <aside
-      className="sticky top-0 hidden h-screen min-h-screen grid-rows-[60px_minmax(0,1fr)_210px] overflow-hidden lg:grid"
+      className="sticky top-0 hidden h-screen min-h-screen grid-rows-[60px_minmax(0,1fr)_200px] overflow-hidden lg:grid"
       style={{
         width: "250px",
         background: "linear-gradient(to right, #262626, #1d1d1d)",
       }}
     >
       <Link
-        href="/dashboard"
+        href="/r/atelier-demo"
         className="flex shrink-0 items-center justify-center overflow-hidden"
         style={{
           height: "60px",
@@ -77,8 +77,8 @@ export async function ShopCategorySidebar() {
         <span
           className="shop-sidebar-shimmer inline-block whitespace-nowrap"
           style={{
-            fontFamily: "Portrait, serif",
-            fontSize: "13px",
+            fontFamily: "Aviano, serif",
+            fontSize: "19px",
             lineHeight: 1,
           }}
         >
@@ -90,7 +90,7 @@ export async function ShopCategorySidebar() {
         style={{ padding: "62px 25px 28px" }}
       >
         <Link
-          href="/dashboard"
+          href="/r/atelier-demo"
           className="block cursor-pointer text-left uppercase opacity-70 transition-colors hover:text-[#a6a6a6] hover:opacity-100"
           style={{
             fontFamily: "GTBold3, Arial, sans-serif",
@@ -106,11 +106,11 @@ export async function ShopCategorySidebar() {
         <p
           className="block uppercase"
           style={{
-            fontFamily: "GTBold3, Arial, sans-serif",
-            fontSize: "7px",
-            lineHeight: 1,
+            fontFamily: "OptimaKlein, serif",
+            fontSize: "12px",
+            lineHeight: 1.4,
             letterSpacing: 0,
-            color: "#666666",
+            color: "#808080",
             margin: "0 0 10px 0",
           }}
         >
