@@ -37,4 +37,18 @@ test.describe("Login", () => {
       page.getByRole("complementary").getByText(TEST_OWNER_EMAIL),
     ).toBeVisible();
   });
+
+  test("one-click demo login lands on the Atelier Demo dashboard", async ({
+    page,
+  }) => {
+    await page.goto("/login");
+    await page.getByRole("button", { name: "Demo login — one click" }).click();
+
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(
+      page
+        .getByRole("complementary")
+        .getByText("contact+atelier-demo-owner@nebelspiegel.com"),
+    ).toBeVisible();
+  });
 });

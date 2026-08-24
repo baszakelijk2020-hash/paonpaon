@@ -79,4 +79,15 @@ export const env = {
   get retailerAppUrl() {
     return optionalEnv("NEXT_PUBLIC_RETAILER_APP_URL");
   },
+  /**
+   * Explicit opt-in for `simulateDemoPayment`. Absence of a Stripe key is
+   * NOT sufficient on its own to allow that path — a live retailer who
+   * simply hasn't finished Stripe onboarding yet would otherwise let any of
+   * their real customers mark real orders "paid" for free. This must be
+   * deliberately set (sandbox/demo deployments only) on top of Stripe being
+   * unconfigured.
+   */
+  get demoPaymentsEnabled() {
+    return optionalEnv("DEMO_PAYMENTS_ENABLED") === "true";
+  },
 };

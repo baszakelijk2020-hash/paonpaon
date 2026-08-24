@@ -1,7 +1,7 @@
 {
   "phaseItemId": "17.10",
-  "gitSha": "7ba5e45a6f63e064b511a4e642ae5e9f47012fd3",
-  "spec": "apps/customer/e2e/complete-the-look.spec.ts",
+  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
+  "spec": "apps/customer/e2e/morning-routine-occasions.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-09T12:12:48.985Z"
+  "timestamp": "2026-08-20T12:42:38.379Z"
 }

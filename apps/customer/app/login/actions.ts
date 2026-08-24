@@ -68,10 +68,18 @@ export async function requestMagicLink(
   return { email: parsed.data.email, fieldErrors: {}, sent: true };
 }
 
+const isRealProduction =
+  process.env["VERCEL_ENV"] === "production" ||
+  (!process.env["VERCEL_ENV"] && process.env.NODE_ENV === "production");
+
 /** Seeded showcase accounts use passwords so every persona can be entered
  * deterministically without relying on an email inbox. Normal customer
  * accounts remain passwordless; the domain restriction is deliberate. */
 export async function signInToDemo(formData: FormData): Promise<void> {
+  if (isRealProduction) {
+    redirect("/login?demo=1&error=invalid_demo_credentials");
+  }
+
   const parsed = demoSignInInputSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),

@@ -67,18 +67,38 @@ const STAGES = [
   "lost",
 ] as const;
 
-export async function updateProspectStage(formData: FormData): Promise<void> {
+export interface ProspectStageActionState {
+  formError?: string;
+  saved?: boolean;
+}
+
+export async function updateProspectStage(
+  _previous: ProspectStageActionState,
+  formData: FormData,
+): Promise<ProspectStageActionState> {
   requirePlatformOperator(await getSession());
   const prospectId = String(formData.get("prospectId") ?? "");
   const stage = String(formData.get("stage") ?? "");
   if (!prospectId || !STAGES.includes(stage as (typeof STAGES)[number])) {
-    return;
+    return { formError: "Invalid prospect ID or stage." };
   }
-  await new CommercialProspectRepository(
-    await getSupabaseServerClient(),
-  ).updateStage(prospectId, stage as (typeof STAGES)[number]);
+
+  try {
+    await new CommercialProspectRepository(
+      await getSupabaseServerClient(),
+    ).updateStage(prospectId, stage as (typeof STAGES)[number]);
+  } catch (error) {
+    return {
+      formError:
+        error instanceof Error
+          ? error.message
+          : "Could not update prospect stage.",
+    };
+  }
+
   revalidatePath("/prospects");
   revalidatePath(`/prospects/${prospectId}/studio`);
+  return { saved: true };
 }
 
 export interface ProspectContactActionState {

@@ -6,7 +6,7 @@ import { Card } from "@paon/ui/components/Card";
 import { Input } from "@paon/ui/components/Input";
 import { formatMoney } from "@paon/utils";
 import Link from "next/link";
-import { useActionState, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { checkoutCart, updateCartLine, type CartFormState } from "./actions";
 
@@ -110,6 +110,36 @@ export function CartClient({
   const checkoutFormRef = useRef<HTMLFormElement>(null);
   const appointmentHref = `/r/${slug}/appointments`;
 
+  // Hide floating widgets when actionable panels open to prevent covering
+  // their interactive controls (filter panel, product detail, etc.).
+  const [isHidden, setIsHidden] = useState(false);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const classes = document.body.className;
+      const shouldHide =
+        classes.includes("filter-active") ||
+        classes.includes("product-detail-open") ||
+        classes.includes("filter-closing");
+      setIsHidden(shouldHide);
+    });
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    // Check initial state
+    const classes = document.body.className;
+    const shouldHide =
+      classes.includes("filter-active") ||
+      classes.includes("product-detail-open") ||
+      classes.includes("filter-closing");
+    setIsHidden(shouldHide);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <Card className="paon-reveal">
@@ -198,7 +228,13 @@ export function CartClient({
         </div>
       </Card>
 
-      <div className="glass-panel fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-4 border-t border-[var(--color-stone-200)] px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:hidden">
+      <div
+        className={`glass-panel fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-4 border-t border-[var(--color-stone-200)] px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] transition-opacity duration-200 lg:hidden ${
+          isHidden
+            ? "pointer-events-none opacity-0"
+            : "pointer-events-auto opacity-100"
+        }`}
+      >
         <div>
           <p className="text-xs uppercase text-[var(--color-stone-500)]">
             Total

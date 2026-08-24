@@ -14,6 +14,7 @@ import { notFound } from "next/navigation";
 import { HoneymoonProgrammeCard } from "./honeymoon-programme-card";
 import { PayPanel } from "./pay-panel";
 
+import { env } from "@/lib/env";
 import { requireSession } from "@/lib/session";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -162,6 +163,8 @@ export default async function OrderDetailPage({
             paymentCanceled={payment === "canceled"}
             payAtDelivery={honeymoonProgramme.payAtDelivery}
             canOfferPayAtDelivery={!honeymoonProgramme.payAtDelivery}
+            demoPaymentsEnabled={env.demoPaymentsEnabled}
+            stripeConfigured={Boolean(env.stripeSecretKey)}
           />
         )
       ) : paymentRecord?.status === "captured" ? (

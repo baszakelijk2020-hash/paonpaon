@@ -1,3 +1,4 @@
+import { createSupabaseAdminClient } from "@paon/database";
 import { expect, test } from "@playwright/test";
 
 import { TEST_CUSTOMER_EMAIL } from "./fixtures";
@@ -12,7 +13,6 @@ test("a shopper selects today's MorningRoutine and sees the composed-look canvas
       "requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
     );
   }
-  const { createSupabaseAdminClient } = await import("@paon/database");
   const admin = createSupabaseAdminClient(supabaseUrl, serviceRoleKey);
 
   const { data, error } = await admin.auth.admin.generateLink({
@@ -24,6 +24,7 @@ test("a shopper selects today's MorningRoutine and sees the composed-look canvas
       `Failed to generate magic link: ${error?.message ?? "unknown error"}`,
     );
   }
+
   await page.goto(
     `/auth/confirm?token_hash=${data.properties.hashed_token}&type=magiclink`,
   );

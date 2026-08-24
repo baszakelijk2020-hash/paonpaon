@@ -1,7 +1,7 @@
 {
   "phaseItemId": "18.6",
-  "gitSha": "589e938f9eb3b3358fddd76a0763cd79275d45e7",
+  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
   "spec": "apps/retailer/e2e/corporate-rollout.spec.ts",
-  "status": "passed",
-  "timestamp": "2026-08-19T12:49:24.151Z"
+  "status": "failed",
+  "timestamp": "2026-08-20T12:30:44.551Z"
 }

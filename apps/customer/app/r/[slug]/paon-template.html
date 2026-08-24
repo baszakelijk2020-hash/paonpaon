@@ -1124,25 +1124,34 @@ __PAON_BRAND_HEAD__
         grid-template-columns: 1fr;
         gap: 12px;
     }
-    #paon-knowledge-discover .paon-knowledge-card {
-        grid-template-columns: 72px 1fr;
-        gap: 12px;
+    #paon-knowledge-discover .paon-knowledge-card,
+    #paon-knowledge-fabric .paon-knowledge-card {
+        grid-template-columns: 1fr;
+        gap: 0;
         align-items: start;
-        cursor: pointer;
-        padding: 12px;
+        cursor: default;
+        padding: 16px 18px;
         border: 1px solid rgba(255, 255, 255, .12);
         border-radius: 8px;
         background: #222220;
-        transition: background 200ms ease, border-color 200ms ease;
+        width: 100%;
+        box-sizing: border-box;
     }
-    #paon-knowledge-discover .paon-knowledge-card:hover {
-        background: #2a2a28;
-        border-color: rgba(255, 255, 255, .2);
-    }
-    #paon-knowledge-discover .paon-knowledge-card-copy {
+    #paon-knowledge-discover .paon-knowledge-card-copy,
+    #paon-knowledge-fabric .paon-knowledge-card-copy {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
+        width: 100%;
+    }
+    #paon-knowledge-discover .paon-knowledge-card-title,
+    #paon-knowledge-fabric .paon-knowledge-card-title {
+        font-size: 14px;
+    }
+    #paon-knowledge-discover .paon-knowledge-card-summary,
+    #paon-knowledge-fabric .paon-knowledge-card-summary {
+        font-size: 13px;
+        line-height: 1.6;
     }
     .paon-discover-card-body {
         display: block !important;
@@ -1160,7 +1169,7 @@ __PAON_BRAND_HEAD__
         color: #9a9a96;
     }
     .paon-discover-card-body:not(.closed) {
-        max-height: 200px;
+        max-height: none;
         opacity: 1;
         transform: translateY(0);
         padding-top: 6px !important;
@@ -1168,6 +1177,17 @@ __PAON_BRAND_HEAD__
     }
     .paon-discover-card-body.closed {
         display: none !important;
+    }
+    /* Full-length info cards (no fold/click-to-expand) — replaces the
+       Fabric/Sizing/Discover accordion per founder direction 2026-08-22. */
+    .paon-info-card-full {
+        cursor: default;
+    }
+    .paon-info-card-full .paon-discover-card-body {
+        max-height: none;
+        opacity: 1;
+        transform: none;
+        padding-top: 6px !important;
     }
 
     .dr-customize {
@@ -1426,6 +1446,19 @@ __PAON_BRAND_HEAD__
     body.filter-active #filter-dim {
         opacity: 1;
         pointer-events: auto;
+    }
+
+    /* #filter-panel (z-index 160) lives inside #main, which has its own
+       stacking context (position:relative + z-index:10). #filter-dim is
+       a direct <body> child at z-index:90. A descendant's z-index only
+       ranks within its own ancestor's stacking context, so #main's
+       context (10) loses to #filter-dim (90) at the document root
+       regardless of #filter-panel's local 160 — #filter-dim painted (and
+       captured clicks) over the entire filter panel. Raising #main's
+       own context above #filter-dim's, scoped to while filters are
+       open, is the minimal fix without moving #filter-panel in the DOM. */
+    body.filter-active #main {
+        z-index: 200 !important;
     }
 
     body.product-detail-open .filters-bar {
@@ -3950,12 +3983,13 @@ __PAON_HERO_HTML__
 <div class="dr-title" id="dr-title">PAON</div>
 <p class="dr-desc" id="dr-desc">This piece is displayed without image clipping, cropping, zooming, translation, or forced cover scaling.</p>
 </div>
-<div class="dr-sep"></div>
-<div class="dr-section" onclick="toggleSection('archetype')">
-<span class="dr-section-label">Archetype</span>
-<span class="dr-section-icon" id="icon-archetype">−</span>
-</div>
-<div class="dr-section-body closed" id="body-archetype">
+<!-- Archetype accordion (pricing-tier persona picker) hidden from view
+     per founder direction 2026-08-22 — the footer's own tier selector
+     (#drf-selector, "The Essentialist" etc.) already drives Add to Bag
+     pricing independently, so hiding this duplicate browsing UI does not
+     affect purchasing. Markup kept, display:none, not deleted. -->
+<div class="dr-sep" style="display:none" hidden>
+<div class="dr-section-body" id="body-archetype" style="display:none" hidden>
 <div class="archetype-cards" id="archetype-cards-fallback">
 <div class="archetype-card"></div>
 <div class="archetype-card"></div>
@@ -3971,33 +4005,26 @@ __PAON_HERO_HTML__
 <button class="dr-customize" id="archetype-customize-fallback">Customize</button>
 <div id="paon-knowledge-archetype" class="paon-knowledge-mount" hidden></div>
 </div>
-<div class="dr-sep"></div>
-<div class="dr-section" onclick="toggleSection('fabric')">
-<span class="dr-section-label">Fabric</span>
-<span class="dr-section-icon" id="icon-fabric">+</span>
 </div>
-<div class="dr-section-body closed" id="body-fabric">
-<p class="dr-body-text" id="dr-fabric-body">Select your preferred fabric from our curated mill collections.</p><img class="dr-lining-img" id="dr-lining-img" alt="Recommended lining">
+<div class="paon-info-cards-flow" id="paon-info-cards-flow">
 <div id="paon-knowledge-fabric" class="paon-knowledge-mount" hidden></div>
-</div>
-<div class="dr-sep"></div>
-<div class="dr-section" onclick="toggleSection('sizing')">
-<span class="dr-section-label">Sizing</span>
-<span class="dr-section-icon" id="icon-sizing">−</span>
-</div>
-<div class="dr-section-body closed" id="body-sizing">
-<p class="dr-body-text" id="dr-sizing-body">Book your complimentary fitting after checkout.</p>
 <div id="paon-knowledge-sizing" class="paon-knowledge-mount" hidden></div>
-</div>
-<div class="dr-sep"></div>
-<div class="dr-section" onclick="toggleSection('discover')">
-<span class="dr-section-label">Discover</span>
-<span class="dr-section-icon" id="icon-discover">+</span>
-</div>
-<div class="dr-section-body closed" id="body-discover">
 <div id="paon-knowledge-discover" class="paon-knowledge-mount" hidden></div>
 </div>
-<div class="dr-sep"></div>
+<!-- Legacy accordion sections (Fabric/Sizing/Discover as fold-out
+     dropdowns) removed from view per founder direction 2026-08-22 —
+     full-length always-visible info cards replace them above. Markup
+     kept here, display:none, so the underlying data/JS wiring
+     (dr-fabric-body, dr-sizing-body, dr-lining-img) isn't deleted in
+     case this needs to be restored. -->
+<div class="dr-sep" style="display:none" hidden>
+<div class="dr-section-body" id="body-fabric" style="display:none" hidden>
+<p class="dr-body-text" id="dr-fabric-body"></p><img class="dr-lining-img" id="dr-lining-img" alt="Recommended lining">
+</div>
+<div class="dr-section-body" id="body-sizing" style="display:none" hidden>
+<p class="dr-body-text" id="dr-sizing-body">Book your complimentary fitting after checkout.</p>
+</div>
+</div>
 </div>
 <div class="detail-right-footer">
 <div class="drf-brand" id="drf-brand">Loro Piana</div>
@@ -4140,6 +4167,7 @@ __PAON_HERO_HTML__
 </div>
 </div>
 <div id="filter-dim" onclick="closeFilterPanel()"></div>
+__PAON_FOOTER_HTML__
 <script>
     /* Static product set based on confirmed available image filenames.
        Suits shown: 6054, 6055, 6057, 6058, 6059, 6060, 6061, 6062, 6063, 6064, 6065, 6066, 6067, 6069, 6070, 6071, 6073, 6074, 6075, 6078, 6079, 6080, 6081, 6082, 6085, 6086, 6087, 6088, 6089.
@@ -5574,6 +5602,17 @@ function renderGrid() {
         const cols = state.activeCat === 'Pants' ? 3 : 2;
         grid.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, 1fr))';
 
+        if (!filtered.length) {
+            grid.style.gridTemplateColumns = '1fr';
+            var emptyState = document.createElement('div');
+            emptyState.className = 'paon-empty-catalog';
+            emptyState.innerHTML =
+                '<p class="paon-empty-catalog-title">The collection is being prepared.</p>' +
+                '<p class="paon-empty-catalog-body">' + paonEscapeHtml(state.activeCat) + ' will appear here shortly — book an appointment and we\'ll bring the collection to you.</p>';
+            grid.appendChild(emptyState);
+            return;
+        }
+
         filtered.forEach((p, i) => {
             const columnIndex = cols > 0 ? (i % cols) : 0;
             const isRight = cols === 2 ? (i % 2 === 1) : (i % 3 !== 0);
@@ -5683,16 +5722,11 @@ function renderGrid() {
         var title = paonEscapeHtml(card.title || '');
         var summary = paonEscapeHtml(card.summary || '');
         var body = card.body ? paonEscapeHtml(card.body) : '';
-        var cardId = 'discover-' + index;
-        var image = card.imageUrl
-            ? '<img class="paon-knowledge-card-image" src="' + paonEscapeHtml(card.imageUrl) + '" alt="" width="72" height="72" loading="lazy" decoding="async">'
-            : '<span class="paon-knowledge-card-image-fallback" aria-hidden="true"></span>';
-        return '<li class="paon-knowledge-card" role="listitem" onclick="toggleSection(\'' + cardId + '\')" style="grid-template-columns: 72px 1fr;">' +
-            image +
+        return '<li class="paon-knowledge-card paon-info-card-full" role="listitem">' +
             '<div class="paon-knowledge-card-copy">' +
             '<h4 class="paon-knowledge-card-title">' + title + '</h4>' +
             '<p class="paon-knowledge-card-summary">' + summary + '</p>' +
-            (body ? '<div class="paon-discover-card-body closed" id="body-' + cardId + '">' + body + '</div>' : '') +
+            (body ? '<div class="paon-discover-card-body">' + body + '</div>' : '') +
             '</div></li>';
     }
 
@@ -5744,8 +5778,21 @@ function renderGrid() {
             panels.archetype,
             'Style education'
         );
-        paonRenderKnowledgeMount('paon-knowledge-fabric', panels.fabric, 'Fabric education');
-        paonRenderKnowledgeMount('paon-knowledge-sizing', panels.sizing, 'Fit and care education');
+        var shownTitles = {};
+        (panels.discover || []).forEach(function(card) {
+            if (card && card.title) shownTitles[card.title] = true;
+        });
+        var fabricCards = (panels.fabric || []).filter(function(card) {
+            return !(card && card.title && shownTitles[card.title]);
+        });
+        fabricCards.forEach(function(card) {
+            if (card && card.title) shownTitles[card.title] = true;
+        });
+        var sizingCards = (panels.sizing || []).filter(function(card) {
+            return !(card && card.title && shownTitles[card.title]);
+        });
+        paonRenderDiscoverKnowledge('paon-knowledge-fabric', fabricCards, 'Fabric education');
+        paonRenderDiscoverKnowledge('paon-knowledge-sizing', sizingCards, 'Fit and care education');
         paonRenderDiscoverKnowledge('paon-knowledge-discover', panels.discover, 'Discover');
 
         var cardsFallback = document.getElementById('archetype-cards-fallback');
@@ -5804,9 +5851,19 @@ function renderGrid() {
         document.getElementById('main').style.gridColumn = '2 / 4';
         document.getElementById('header-back').classList.add('visible');
         const sv = sanveneroProductData[String(p.id)] || {};
-        const detailBrand = sv.brand || p.sanveneroBrand || '';
+        const millAbbreviations = {
+            'Ermenegildo Zegna': 'Zegna',
+            'Vitale Barberis Canonico': 'VBC',
+            'Holland and Sherry': 'Holland & Sherry',
+            'Holland & Sherry': 'Holland & Sherry',
+        };
+        const detailBrandFull = sv.brand || p.sanveneroBrand || '';
+        const detailBrand = millAbbreviations[detailBrandFull] || detailBrandFull;
         const detailTitle = detailBrand || sv.title || p.sanveneroTitle || p.name;
-        const detailDesc = (sv && sv.description) ? sv.description : (p.sanveneroDescription || p.description || 'Fabric description refined from product material and weave information.');
+        const rawDesc = (sv && sv.description) ? sv.description : (p.sanveneroDescription || p.description || '');
+        const detailDesc = rawDesc
+            .replace(/\.\s*Cut and finished for[^.]*\.?\s*$/i, '.')
+            .trim() || 'A composed piece from the current collection.';
         const detailMaterial = sv.material || p.sanveneroMaterial || p.material || '100% Wool';
         const detailLining = sv.recommendedLining || p.sanveneroRecommendedLining || '';
         const detailColor = sv.color || p.sanveneroColor || '';
@@ -11525,7 +11582,7 @@ body.product-detail-open .header-back svg {
 (function () {
     var FEED_BASE = 'https://www.nebelspiegel.com/images/frontfeed';
     var FEED_SKIP = { 1: true, 2: true, 16: true, 24: true, 89: true, 100: true, 106: true, 110: true };
-    var FEED_TITLES = {"1": "Made in Italy", "2": "Craftmanship", "3": "Unlined Jackets", "4": "Safari Jackets", "5": "Made-to-Measure", "6": "Half-Lined Jackets", "7": "Herringbone Fabrics", "8": "Elevated Casual", "9": "Knitwear: Polo's", "10": "Custom Denims", "11": "Safari Jackets", "12": "Seperate Trouser Fabrics", "13": "Loro Piana Fabrics", "14": "Contemporary Layering", "15": "Casual Flannels", "17": "Wedding", "18": "Elevated Casual", "19": "Loro Piana Camel", "20": "Knits", "21": "Trousers", "22": "Luxury Footwear", "23": "Summer Suits", "25": "Utility Jackets", "26": "Luxury Vests", "27": "Accessories", "28": "Custom Denims", "29": "Loro Piana Jersey®", "30": "Trouser Options", "31": "Accessories", "32": "Made-in-Italy Knitwear", "33": "Luxury Shirts", "34": "Elevated Knits", "35": "Knits", "36": "Summer Knits", "37": "Knitwear", "38": "4-ply Fabrics", "39": "Side Suspenders", "40": "Custom Denim", "41": "Summer Casuals", "42": "Knitwear Pairing", "43": "Custom Sneakers", "44": "Custom Made Shoes", "45": "Technical Vests", "46": "Wardrobe Design", "47": "Summer Knitwear", "48": "Cool Knits", "49": "Side Suspenders", "50": "Denim Buttons", "51": "Shiller Collar", "52": "Luxury Shirting", "53": "Pocket Squares", "54": "Summer Knitwear", "55": "Summer Knitwear", "56": "Summer Knits", "57": "Brushed Wool Vests", "58": "Design Options: Vests", "59": "Quilted Coats", "60": "Custom Coats", "61": "Surgeon Cuffs", "62": "Luxury Shirts", "63": "Wardrobe Styling", "64": "Seperate Jackets", "65": "Safari Jackets", "66": "Casual Jackets", "67": "Safari Jackets", "68": "Mother Of Pearl Buttons", "69": "Spring-Summer 2026", "70": "Casual Footwear", "71": "Wardrobe Staples", "72": "Custom 5-Pockets", "73": "Custom Denims", "74": "Travel Essentials", "75": "Mohair Fabric Evening Wear", "76": "Evening Wear", "77": "V-Neck Knits", "78": "Mute Knit Colors", "79": "Knitwear Staples", "80": "Custom Vests", "81": "Design Options", "82": "Custom Trousers", "83": "Comfortable Knitwear", "84": "Knitted Comfort", "85": "Rolled Lapel", "86": "Corduroy", "87": "Washed Denim Fabric", "88": "Hand Painted Shoes", "90": "Milanese Lapel Button", "91": "Loro Piana", "92": "Unconstructed Jackets", "93": "Elevated Casual", "94": "Made in Italy", "95": "Summer Knits", "96": "Custom Jeans", "97": "Jersey Knits", "98": "Wool and Cashmere", "99": "Merino Wool Knits", "100": "Loro Piana", "101": "Luxury Overcoats", "102": "1-Piece Shirt Collar", "103": "Luxury Overcoats", "104": "Luxury Camel Coats", "105": "Design Options: Spalla Camicia", "107": "Utility Jackets", "108": "Luxury Overcoats", "109": "Utility", "110": "Densely Milled Wool Jackets"};
+    var FEED_TITLES = {"1": "Made in Italy", "2": "Craftmanship", "3": "Unlined Jackets", "4": "Safari Jackets", "5": "Made-to-Measure", "6": "Half-Lined Jackets", "7": "Herringbone Fabrics", "8": "Elevated Casual", "9": "Knitwear: Polo's", "10": "Custom Denims", "11": "Safari Jackets", "12": "Separate Trouser Fabrics", "13": "Loro Piana Fabrics", "14": "Contemporary Layering", "15": "Casual Flannels", "17": "Wedding", "18": "Elevated Casual", "19": "Loro Piana Camel", "20": "Knits", "21": "Trousers", "22": "Luxury Footwear", "23": "Summer Suits", "25": "Utility Jackets", "26": "Luxury Vests", "27": "Accessories", "28": "Custom Denims", "29": "Loro Piana Jersey®", "30": "Trouser Options", "31": "Accessories", "32": "Made-in-Italy Knitwear", "33": "Luxury Shirts", "34": "Elevated Knits", "35": "Knits", "36": "Summer Knits", "37": "Knitwear", "38": "4-ply Fabrics", "39": "Side Suspenders", "40": "Custom Denim", "41": "Summer Casuals", "42": "Knitwear Pairing", "43": "Custom Sneakers", "44": "Custom Made Shoes", "45": "Technical Vests", "46": "Wardrobe Design", "47": "Summer Knitwear", "48": "Cool Knits", "49": "Side Suspenders", "50": "Denim Buttons", "51": "Schiller Collar", "52": "Luxury Shirting", "53": "Pocket Squares", "54": "Summer Knitwear", "55": "Summer Knitwear", "56": "Summer Knits", "57": "Brushed Wool Vests", "58": "Design Options: Vests", "59": "Quilted Coats", "60": "Custom Coats", "61": "Surgeon Cuffs", "62": "Luxury Shirts", "63": "Wardrobe Styling", "64": "Separate Jackets", "65": "Safari Jackets", "66": "Casual Jackets", "67": "Safari Jackets", "68": "Mother Of Pearl Buttons", "69": "Spring-Summer 2026", "70": "Casual Footwear", "71": "Wardrobe Staples", "72": "Custom 5-Pockets", "73": "Custom Denims", "74": "Travel Essentials", "75": "Mohair Fabric Evening Wear", "76": "Evening Wear", "77": "V-Neck Knits", "78": "Mute Knit Colors", "79": "Knitwear Staples", "80": "Custom Vests", "81": "Design Options", "82": "Custom Trousers", "83": "Comfortable Knitwear", "84": "Knitted Comfort", "85": "Rolled Lapel", "86": "Corduroy", "87": "Washed Denim Fabric", "88": "Hand Painted Shoes", "90": "Milanese Lapel Button", "91": "Loro Piana", "92": "Unconstructed Jackets", "93": "Elevated Casual", "94": "Made in Italy", "95": "Summer Knits", "96": "Custom Jeans", "97": "Jersey Knits", "98": "Wool and Cashmere", "99": "Merino Wool Knits", "100": "Loro Piana", "101": "Luxury Overcoats", "102": "1-Piece Shirt Collar", "103": "Luxury Overcoats", "104": "Luxury Camel Coats", "105": "Design Options: Spalla Camicia", "107": "Utility Jackets", "108": "Luxury Overcoats", "109": "Utility", "110": "Densely Milled Wool Jackets"};
     var GAP = 50;
     var RATIOS = [133, 150, 125, 140, 160, 120, 145, 130, 155, 135, 115, 148];
     var lazyObserver = null;
@@ -11762,7 +11819,7 @@ body.product-detail-open .header-back svg {
 <script id="paon-feed-title-map-delete-final-lock">
 (function () {
     window.PAON_FEED_SKIP_FINAL = {1:true,2:true,16:true,24:true,89:true,100:true,106:true,110:true};
-    window.PAON_FEED_TITLES_FINAL = {"001": "Made in Italy", "002": "Craftmanship", "003": "Unlined Jackets", "004": "Safari Jackets", "005": "Made-to-Measure", "006": "Half-Lined Jackets", "007": "Herringbone Fabrics", "008": "Elevated Casual", "009": "Knitwear: Polo's", "010": "Custom Denims", "011": "Safari Jackets", "012": "Seperate Trouser Fabrics", "013": "Loro Piana Fabrics", "014": "Contemporary Layering", "015": "Casual Flannels", "017": "Wedding", "018": "Elevated Casual", "019": "Loro Piana Camel", "020": "Knits", "021": "Trousers", "022": "Luxury Footwear", "023": "Summer Suits", "025": "Utility Jackets", "026": "Luxury Vests", "027": "Accessories", "028": "Custom Denims", "029": "Loro Piana Jersey®", "030": "Trouser Options", "031": "Accessories", "032": "Made-in-Italy Knitwear", "033": "Luxury Shirts", "034": "Elevated Knits", "035": "Knits", "036": "Summer Knits", "037": "Knitwear", "038": "4-ply Fabrics", "039": "Side Suspenders", "040": "Custom Denim", "041": "Summer Casuals", "042": "Knitwear Pairing", "043": "Custom Sneakers", "044": "Custom Made Shoes", "045": "Technical Vests", "046": "Wardrobe Design", "047": "Summer Knitwear", "048": "Cool Knits", "049": "Side Suspenders", "050": "Denim Buttons", "051": "Shiller Collar", "052": "Luxury Shirting", "053": "Pocket Squares", "054": "Summer Knitwear", "055": "Summer Knitwear", "056": "Summer Knits", "057": "Brushed Wool Vests", "058": "Design Options: Vests", "059": "Quilted Coats", "060": "Custom Coats", "061": "Surgeon Cuffs", "062": "Luxury Shirts", "063": "Wardrobe Styling", "064": "Seperate Jackets", "065": "Safari Jackets", "066": "Casual Jackets", "067": "Safari Jackets", "068": "Mother Of Pearl Buttons", "069": "Spring-Summer 2026", "070": "Casual Footwear", "071": "Wardrobe Staples", "072": "Custom 5-Pockets", "073": "Custom Denims", "074": "Travel Essentials", "075": "Mohair Fabric Evening Wear", "076": "Evening Wear", "077": "V-Neck Knits", "078": "Mute Knit Colors", "079": "Knitwear Staples", "080": "Custom Vests", "081": "Design Options", "082": "Custom Trousers", "083": "Comfortable Knitwear", "084": "Knitted Comfort", "085": "Rolled Lapel", "086": "Corduroy", "087": "Washed Denim Fabric", "088": "Hand Painted Shoes", "090": "Milanese Lapel Button", "091": "Loro Piana", "092": "Unconstructed Jackets", "093": "Elevated Casual", "094": "Made in Italy", "095": "Summer Knits", "096": "Custom Jeans", "097": "Jersey Knits", "098": "Wool and Cashmere", "099": "Merino Wool Knits", "100": "Loro Piana", "101": "Luxury Overcoats", "102": "1-Piece Shirt Collar", "103": "Luxury Overcoats", "104": "Luxury Camel Coats", "105": "Design Options: Spalla Camicia", "107": "Utility Jackets", "108": "Luxury Overcoats", "109": "Utility", "110": "Densely Milled Wool Jackets"};
+    window.PAON_FEED_TITLES_FINAL = {"001": "Made in Italy", "002": "Craftmanship", "003": "Unlined Jackets", "004": "Safari Jackets", "005": "Made-to-Measure", "006": "Half-Lined Jackets", "007": "Herringbone Fabrics", "008": "Elevated Casual", "009": "Knitwear: Polo's", "010": "Custom Denims", "011": "Safari Jackets", "012": "Separate Trouser Fabrics", "013": "Loro Piana Fabrics", "014": "Contemporary Layering", "015": "Casual Flannels", "017": "Wedding", "018": "Elevated Casual", "019": "Loro Piana Camel", "020": "Knits", "021": "Trousers", "022": "Luxury Footwear", "023": "Summer Suits", "025": "Utility Jackets", "026": "Luxury Vests", "027": "Accessories", "028": "Custom Denims", "029": "Loro Piana Jersey®", "030": "Trouser Options", "031": "Accessories", "032": "Made-in-Italy Knitwear", "033": "Luxury Shirts", "034": "Elevated Knits", "035": "Knits", "036": "Summer Knits", "037": "Knitwear", "038": "4-ply Fabrics", "039": "Side Suspenders", "040": "Custom Denim", "041": "Summer Casuals", "042": "Knitwear Pairing", "043": "Custom Sneakers", "044": "Custom Made Shoes", "045": "Technical Vests", "046": "Wardrobe Design", "047": "Summer Knitwear", "048": "Cool Knits", "049": "Side Suspenders", "050": "Denim Buttons", "051": "Schiller Collar", "052": "Luxury Shirting", "053": "Pocket Squares", "054": "Summer Knitwear", "055": "Summer Knitwear", "056": "Summer Knits", "057": "Brushed Wool Vests", "058": "Design Options: Vests", "059": "Quilted Coats", "060": "Custom Coats", "061": "Surgeon Cuffs", "062": "Luxury Shirts", "063": "Wardrobe Styling", "064": "Separate Jackets", "065": "Safari Jackets", "066": "Casual Jackets", "067": "Safari Jackets", "068": "Mother Of Pearl Buttons", "069": "Spring-Summer 2026", "070": "Casual Footwear", "071": "Wardrobe Staples", "072": "Custom 5-Pockets", "073": "Custom Denims", "074": "Travel Essentials", "075": "Mohair Fabric Evening Wear", "076": "Evening Wear", "077": "V-Neck Knits", "078": "Mute Knit Colors", "079": "Knitwear Staples", "080": "Custom Vests", "081": "Design Options", "082": "Custom Trousers", "083": "Comfortable Knitwear", "084": "Knitted Comfort", "085": "Rolled Lapel", "086": "Corduroy", "087": "Washed Denim Fabric", "088": "Hand Painted Shoes", "090": "Milanese Lapel Button", "091": "Loro Piana", "092": "Unconstructed Jackets", "093": "Elevated Casual", "094": "Made in Italy", "095": "Summer Knits", "096": "Custom Jeans", "097": "Jersey Knits", "098": "Wool and Cashmere", "099": "Merino Wool Knits", "100": "Loro Piana", "101": "Luxury Overcoats", "102": "1-Piece Shirt Collar", "103": "Luxury Overcoats", "104": "Luxury Camel Coats", "105": "Design Options: Spalla Camicia", "107": "Utility Jackets", "108": "Luxury Overcoats", "109": "Utility", "110": "Densely Milled Wool Jackets"};
 })();
 </script>
 
@@ -12031,15 +12088,15 @@ html, body{
 (function(){
     var TITLES = {
         "001":"Made in Italy","002":"Craftmanship","003":"Unlined Jackets","004":"Safari Jackets","005":"Made-to-Measure","006":"Half-Lined Jackets",
-        "007":"Herringbone Fabrics","008":"Elevated Casual","009":"Knitwear: Polo's","010":"Custom Denims","011":"Safari Jackets","012":"Seperate Trouser Fabrics",
+        "007":"Herringbone Fabrics","008":"Elevated Casual","009":"Knitwear: Polo's","010":"Custom Denims","011":"Safari Jackets","012":"Separate Trouser Fabrics",
         "013":"Loro Piana Fabrics","014":"Contemporary Layering","015":"Casual Flannels","017":"Wedding","018":"Elevated Casual","019":"Loro Piana Camel",
         "020":"Knits","021":"Trousers","022":"Luxury Footwear","023":"Summer Suits","025":"Utility Jackets","026":"Luxury Vests","027":"Accessories",
         "028":"Custom Denims","029":"Loro Piana Jersey®","030":"Trouser Options","031":"Accessories","032":"Made-in-Italy Knitwear","033":"Luxury Shirts",
         "034":"Elevated Knits","035":"Knits","036":"Summer Knits","037":"Knitwear","038":"4-ply Fabrics","039":"Side Suspenders","040":"Custom Denim",
         "041":"Summer Casuals","042":"Knitwear Pairing","043":"Custom Sneakers","044":"Custom Made Shoes","045":"Technical Vests","046":"Wardrobe Design",
-        "047":"Summer Knitwear","048":"Cool Knits","049":"Side Suspenders","050":"Denim Buttons","051":"Shiller Collar","052":"Luxury Shirting",
+        "047":"Summer Knitwear","048":"Cool Knits","049":"Side Suspenders","050":"Denim Buttons","051":"Schiller Collar","052":"Luxury Shirting",
         "053":"Pocket Squares","054":"Summer Knitwear","055":"Summer Knitwear","056":"Summer Knits","057":"Brushed Wool Vests","058":"Design Options: Vests",
-        "059":"Quilted Coats","060":"Custom Coats","061":"Surgeon Cuffs","062":"Luxury Shirts","063":"Wardrobe Styling","064":"Seperate Jackets",
+        "059":"Quilted Coats","060":"Custom Coats","061":"Surgeon Cuffs","062":"Luxury Shirts","063":"Wardrobe Styling","064":"Separate Jackets",
         "065":"Safari Jackets","066":"Casual Jackets","067":"Safari Jackets","068":"Mother Of Pearl Buttons","069":"Spring-Summer 2026","070":"Casual Footwear",
         "071":"Wardrobe Staples","072":"Custom 5-Pockets","073":"Custom Denims","074":"Travel Essentials","075":"Mohair Fabric Evening Wear","076":"Evening Wear",
         "077":"V-Neck Knits","078":"Mute Knit Colors","079":"Knitwear Staples","080":"Custom Vests","081":"Design Options","082":"Custom Trousers",

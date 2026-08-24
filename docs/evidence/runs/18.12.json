@@ -1,7 +1,7 @@
 {
   "phaseItemId": "18.12",
-  "gitSha": "2d87e54409469224796fc5e1d0e08652cf403fe5",
+  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
   "spec": "apps/retailer/e2e/corporate-relationship-crossref.spec.ts",
   "status": "passed",
-  "timestamp": "2026-08-04T17:33:13.696Z"
+  "timestamp": "2026-08-20T12:30:35.064Z"
 }

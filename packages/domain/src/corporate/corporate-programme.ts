@@ -92,14 +92,17 @@ export interface CorporateWearer extends Timestamps {
 
 /** PHASE 18.5 / BD-105: programme-scoped news for a programme's wearers.
  * Draft until `publishedAt` is set — never visible to a wearer before
- * that. */
+ * that. PHASE 14.1 / BD-104 extended: either a retailer staff member or
+ * a corporate manager (account owner) may author. Exactly one of
+ * `authoredByStaffId` or `authoredByManagerId` is set. */
 export interface CorporateAnnouncement {
   readonly id: CorporateAnnouncementId;
   readonly retailerId: RetailerId;
   readonly programmeId: CorporateProgrammeId;
   readonly title: string;
   readonly body: string;
-  readonly authoredByStaffId: string;
+  readonly authoredByStaffId?: string;
+  readonly authoredByManagerId?: string;
   readonly publishedAt?: string;
   readonly createdAt: string;
   readonly updatedAt: string;

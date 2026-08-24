@@ -1,7 +1,7 @@
 {
   "phaseItemId": "8.4",
-  "gitSha": "42e27d722497654593f2ec13ed09971f9aaec577",
+  "gitSha": "b49bbb048eea750dac77af37ed1402d20a8a71a3",
   "spec": "apps/retailer/e2e/completion-harness.spec.ts",
   "status": "failed",
-  "timestamp": "2026-08-19T14:03:25.615Z"
+  "timestamp": "2026-08-20T12:30:35.103Z"
 }
