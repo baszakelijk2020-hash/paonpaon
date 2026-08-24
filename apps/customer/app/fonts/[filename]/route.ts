@@ -13,6 +13,8 @@ const ALLOWED_FONTS = new Set([
   "optimaklein.woff2",
   "aviano.woff2",
   "gtbold3.woff2",
+  "googleflex.woff2",
+  "googletitle.woff2",
 ]);
 
 export async function GET(

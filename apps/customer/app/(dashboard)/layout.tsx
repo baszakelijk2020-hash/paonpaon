@@ -1,9 +1,8 @@
-import { Button, buttonVariants } from "@paon/ui/components/Button";
+import { buttonVariants } from "@paon/ui/components/Button";
 import Link from "next/link";
 import { Suspense } from "react";
 
 import { AccountTopTabs, type AccountTab } from "./account-top-tabs";
-import { signOut } from "./actions";
 import { GuestPortalPreview } from "./guest-portal-preview";
 import { ShopCategorySidebar } from "./shop-category-sidebar";
 
@@ -62,19 +61,12 @@ export default async function DashboardLayout({
         <AccountTopTabs
           tabs={ACCOUNT_TABS}
           trailing={
-            <div className="flex items-center gap-3">
-              <a
-                href="/account"
-                className="text-[13px] text-[var(--color-stone-600)] hover:text-[var(--color-stone-900)]"
-              >
-                Settings
-              </a>
-              <form action={signOut}>
-                <Button type="submit" variant="ghost" size="sm">
-                  Sign out
-                </Button>
-              </form>
-            </div>
+            <a
+              href="/account"
+              className="px-4 text-[15px] text-[var(--color-stone-700)] transition hover:text-[var(--color-stone-900)]"
+            >
+              Settings
+            </a>
           }
         />
         <main className="mx-auto w-full max-w-[92rem] px-4 py-7 sm:px-7 sm:py-10 lg:px-10 xl:px-14">

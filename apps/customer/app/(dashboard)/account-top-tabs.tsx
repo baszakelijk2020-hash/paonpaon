@@ -51,7 +51,7 @@ export function AccountTopTabs({
   return (
     <nav
       aria-label="Account"
-      className={`sticky top-0 z-40 flex w-full items-stretch divide-x divide-black/10 border-b border-black/10 bg-white ${compact ? "h-[33px]" : "h-[60px]"}`}
+      className={`sticky top-3 z-40 mx-3 flex w-[calc(100%-1.5rem)] items-stretch divide-x divide-black/10 rounded-2xl border border-white/40 bg-white/10 shadow-[0_10px_35px_rgba(38,34,28,0.08)] backdrop-blur-[20px] ${compact ? "h-[38px]" : "h-[64px]"}`}
     >
       {tabs.map((tab) => {
         const active =
@@ -62,7 +62,7 @@ export function AccountTopTabs({
             href={tab.href}
             aria-current={active ? "page" : undefined}
             className={`flex-1 whitespace-nowrap text-center font-medium tracking-[0.02em] transition-colors duration-200 ${
-              compact ? "py-1.5 text-[11px]" : "py-4 text-[13px]"
+              compact ? "py-1.5 text-[12px]" : "py-4 text-[15px]"
             } ${
               active
                 ? "bg-[var(--color-stone-900)] text-white"

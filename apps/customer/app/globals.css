@@ -1,5 +1,25 @@
 @import "@paon/ui/styles.css";
 
+@font-face {
+  font-family: "Google Flex";
+  src: url("/fonts/googleflex.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Google Title";
+  src: url("/fonts/googletitle.woff2") format("woff2");
+  font-display: swap;
+}
+
+body {
+  font-family: "Google Flex", sans-serif;
+}
+
+h1, h2, h3, .font-display {
+  font-family: "Google Title", "Google Flex", sans-serif;
+}
+
 /*
  * FT-14 Preferred Tailoring monthly grid: a subset of day cells show a
  * garment image that fades in with a per-day varied start delay and an
