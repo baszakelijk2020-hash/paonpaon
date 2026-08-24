@@ -5,13 +5,13 @@ import {
 } from "@paon/database";
 import Link from "next/link";
 
+import { IntentPrefetchLink } from "./intent-prefetch-link";
+
 import {
   CANONICAL_CATEGORIES,
   canonicalCategoryFor,
 } from "@/app/r/[slug]/canonical-category";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
-
-import { IntentPrefetchLink } from "./intent-prefetch-link";
 
 /**
  * Pixel match of the storefront's own left sidebar, not an approximation —

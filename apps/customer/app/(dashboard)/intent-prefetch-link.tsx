@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { AnchorHTMLAttributes, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { useCallback, useRef } from "react";
 
-type Props = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
+type Props = Omit<ComponentProps<typeof Link>, "href" | "prefetch"> & {
   children: ReactNode;
   href: string;
 };
@@ -20,7 +20,17 @@ export function IntentPrefetchLink({ children, href, ...props }: Props) {
     router.prefetch(href);
   }, [href, router]);
   const navigate = useCallback(() => {
-    if (typeof window === "undefined" || !(window as Window & { gsap?: { to: (target: Element, vars: Record<string, unknown>) => void } }).gsap) return;
+    if (
+      typeof window === "undefined" ||
+      !(
+        window as Window & {
+          gsap?: {
+            to: (target: Element, vars: Record<string, unknown>) => void;
+          };
+        }
+      ).gsap
+    )
+      return;
     const overlay = document.createElement("div");
     overlay.setAttribute("data-paon-navigation-transition", "true");
     Object.assign(overlay.style, {
@@ -32,7 +42,11 @@ export function IntentPrefetchLink({ children, href, ...props }: Props) {
       opacity: "0",
     });
     document.body.appendChild(overlay);
-    (window as Window & { gsap?: { to: (target: Element, vars: Record<string, unknown>) => void } }).gsap?.to(overlay, {
+    (
+      window as Window & {
+        gsap?: { to: (target: Element, vars: Record<string, unknown>) => void };
+      }
+    ).gsap?.to(overlay, {
       opacity: 0.18,
       duration: 0.14,
       ease: "power2.out",

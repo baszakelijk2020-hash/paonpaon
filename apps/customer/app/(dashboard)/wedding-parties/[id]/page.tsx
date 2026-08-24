@@ -166,34 +166,49 @@ export default async function WeddingPartyDetailPage({
           </div>
         ))}
       </div>
-      <AmHouseHero
-        retailerName={retailer?.displayName ?? "Your atelier"}
-        eventDate={
-          party.eventDate
-            ? `${formatDate(party.eventDate, "en-US")}${
-                party.eventTime ? ` at ${party.eventTime}` : ""
-              }`
-            : undefined
-        }
-        venueName={party.fittingLocation ?? party.venueName}
-        organizerName={organizer?.name}
-        note={party.notes}
-        retailerSlug={retailer?.slug}
-        {...(party.coverPhotoUrl ? { coverPhotoUrl: party.coverPhotoUrl } : {})}
-      />
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-stretch">
+        <AmHouseHero
+          retailerName={retailer?.displayName ?? "Your atelier"}
+          eventDate={
+            party.eventDate
+              ? `${formatDate(party.eventDate, "en-US")}${
+                  party.eventTime ? ` at ${party.eventTime}` : ""
+                }`
+              : undefined
+          }
+          venueName={party.fittingLocation ?? party.venueName}
+          organizerName={organizer?.name}
+          note={party.notes}
+          retailerSlug={retailer?.slug}
+          {...(party.coverPhotoUrl
+            ? { coverPhotoUrl: party.coverPhotoUrl }
+            : {})}
+        />
 
-      <AmHouseOrbit
-        center={{
-          name: organizer?.name ?? "Organizer",
-          ...(organizer?.photoUrl ? { photoUrl: organizer.photoUrl } : {}),
-        }}
-        orbiters={members
-          .filter((member) => member.customerId !== party.organizerCustomerId)
-          .map((member) => ({
-            name: member.name,
-            ...(member.photoUrl ? { photoUrl: member.photoUrl } : {}),
-          }))}
-      />
+        <div className="rounded-[2rem] border border-[var(--color-stone-200)] bg-white px-5 py-6 shadow-[var(--shadow-soft)] lg:flex lg:flex-col lg:justify-center">
+          <p className="mb-1 text-[10px] uppercase tracking-[0.2em] text-[var(--color-stone-400)]">
+            The party room
+          </p>
+          <AmHouseOrbit
+            center={{
+              name: organizer?.name ?? "Organizer",
+              ...(organizer?.photoUrl ? { photoUrl: organizer.photoUrl } : {}),
+            }}
+            orbiters={members
+              .filter(
+                (member) => member.customerId !== party.organizerCustomerId,
+              )
+              .map((member) => ({
+                name: member.name,
+                ...(member.photoUrl ? { photoUrl: member.photoUrl } : {}),
+              }))}
+          />
+          <p className="mt-3 text-center text-xs leading-5 text-[var(--color-stone-500)]">
+            The circle moves with the people in the room; plans and fittings
+            remain below.
+          </p>
+        </div>
+      </section>
 
       {myCustomerIds.has(party.organizerCustomerId) && retailer ? (
         <Card className="paon-reveal">

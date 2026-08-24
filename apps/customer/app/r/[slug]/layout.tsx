@@ -9,8 +9,8 @@ import type { ReactNode } from "react";
 
 import { getProactiveNudge } from "./proactive-nudge-actions";
 import { ProactiveNudgeWidget } from "./proactive-nudge-widget";
-import { TableServiceWidget } from "./table-service-widget";
 import { getStorefrontRetailer } from "./storefront-context";
+import { TableServiceWidget } from "./table-service-widget";
 
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
