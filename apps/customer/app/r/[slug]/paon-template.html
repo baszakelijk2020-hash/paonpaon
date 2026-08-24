@@ -11660,6 +11660,11 @@ body.product-detail-open .header-back svg {
         var img = card.querySelector('img[data-src]');
         if (!img) return;
         card.dataset.loaded = '1';
+        /* The card keeps its existing entrance animation. This only starts its
+           network/decode work while it is still well below the viewport, so a
+           fast scroll never arrives at an empty frame. */
+        img.loading = 'eager';
+        img.fetchPriority = 'auto';
         img.src = img.dataset.src;
         img.removeAttribute('data-src');
     }
@@ -11676,7 +11681,7 @@ body.product-detail-open .header-back svg {
             });
         }, {
             root: document.querySelector('main') || null,
-            rootMargin: '120px 0px 220px 0px',
+            rootMargin: '400px 0px 1800px 0px',
             threshold: 0.01
         });
 
