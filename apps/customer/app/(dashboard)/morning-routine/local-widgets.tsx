@@ -69,6 +69,7 @@ export function LocalWidgets() {
     minutes: number;
   } | null>(null);
   const [now, setNow] = useState<Date | null>(null);
+  const [streamReady, setStreamReady] = useState(false);
 
   useEffect(() => {
     setNow(new Date());
@@ -144,6 +145,22 @@ export function LocalWidgets() {
     };
   }, [coords]);
 
+  useEffect(() => {
+    const node = document.getElementById("morning-stream-slot");
+    if (!node || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setStreamReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "700px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   async function geocodeWorkAddress(address: string) {
     try {
       const res = await fetch(
@@ -180,107 +197,144 @@ export function LocalWidgets() {
   }, [coords]);
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <div className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-4">
-        <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
-          Weather · {locationLabel}
-        </p>
-        {weather ? (
-          <p className="font-display mt-2 text-2xl text-[var(--color-stone-900)]">
-            {Math.round(weather.tempC)}°C
-            <span className="ml-2 text-sm font-normal text-[var(--color-stone-500)]">
-              {weather.label}
-            </span>
-          </p>
-        ) : (
-          <p className="mt-2 text-sm text-[var(--color-stone-500)]">
-            Allow location access for local weather.
-          </p>
-        )}
-      </div>
-
-      <div className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-4">
-        <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
-          Local time
-        </p>
-        <p className="font-display mt-2 text-2xl text-[var(--color-stone-900)]">
-          {now?.toLocaleTimeString(undefined, {
-            hour: "2-digit",
-            minute: "2-digit",
-          }) ?? "—"}
-        </p>
-        <p className="mt-1 text-xs text-[var(--color-stone-500)]">
-          {now?.toLocaleDateString(undefined, {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          }) ?? ""}
-        </p>
-      </div>
-
-      <div className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-4">
-        <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
-          Drive to work
-        </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            saveWorkAddress(workInput.trim());
-          }}
-          className="mt-2 flex gap-1"
-        >
-          <input
-            value={workInput}
-            onChange={(e) => setWorkInput(e.target.value)}
-            placeholder="Set your work address"
-            className="w-full rounded-[var(--radius-sm)] border border-[var(--color-stone-200)] px-2 py-1 text-xs"
-          />
-          <button
-            type="submit"
-            className="shrink-0 rounded-[var(--radius-sm)] bg-[var(--color-stone-900)] px-2 py-1 text-xs text-white"
-          >
-            Set
-          </button>
-        </form>
-        {commute ? (
-          <p className="font-display mt-2 text-2xl text-[var(--color-stone-900)]">
-            ~{commute.minutes} min
-            <span className="ml-2 text-sm font-normal text-[var(--color-stone-500)]">
-              {commute.km} km, estimated
-            </span>
-          </p>
-        ) : workAddress ? (
-          <p className="mt-2 text-xs text-[var(--color-stone-500)]">
-            Locating {workAddress}…
-          </p>
-        ) : (
-          <p className="mt-2 text-xs text-[var(--color-stone-500)]">
-            Estimated from straight-line distance — no live traffic yet.
-          </p>
-        )}
-      </div>
-
-      <div className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] bg-white p-4">
-        <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-[var(--color-stone-500)]">
-          World clock
-        </p>
-        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-          {WORLD_CLOCKS.map((clock) => (
-            <p key={clock.city} className="flex justify-between gap-2">
-              <span className="text-[var(--color-stone-500)]">
-                {clock.city}
+    <section className="overflow-hidden rounded-[28px] border border-[var(--color-stone-200)] bg-[#171613] text-[#f6f2e9] shadow-[0_24px_70px_rgba(31,27,20,0.12)]">
+      <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative min-h-[290px] overflow-hidden border-b border-white/10 p-6 sm:p-8 lg:border-b-0 lg:border-r">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(187,157,105,0.25),transparent_38%),linear-gradient(135deg,#2a2924,#171613_70%)]" />
+          <div className="relative flex h-full flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <p className="font-accent text-[10px] uppercase tracking-[0.22em] text-[#c9b890]">
+                Morning instrument
+              </p>
+              <span className="rounded-full border border-white/15 px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-white/60">
+                Local context
               </span>
-              <span className="font-medium text-[var(--color-stone-900)]">
-                {now?.toLocaleTimeString(undefined, {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: clock.timeZone,
-                }) ?? "—"}
-              </span>
+            </div>
+            <div>
+              <p className="font-accent text-xs uppercase tracking-[0.16em] text-white/50">
+                Weather · {locationLabel}
+              </p>
+              {weather ? (
+                <p className="font-display mt-3 text-6xl tracking-[-0.04em] text-white">
+                  {Math.round(weather.tempC)}°
+                  <span className="ml-3 text-xl font-normal tracking-normal text-white/55">
+                    {weather.label}
+                  </span>
+                </p>
+              ) : (
+                <p className="font-display mt-3 max-w-sm text-3xl leading-tight text-white">
+                  Set the scene for your day.
+                </p>
+              )}
+              <p className="mt-3 max-w-sm text-sm leading-6 text-white/55">
+                {weather
+                  ? "A quiet read on the conditions before you step out."
+                  : "Allow location access for local weather. Nothing is stored without consent."}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-px bg-white/10">
+          <div className="bg-[#1d1c19] p-5">
+            <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-white/45">
+              Local time
             </p>
-          ))}
+            <p className="font-display mt-4 text-3xl">
+              {now?.toLocaleTimeString(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+              }) ?? "—"}
+            </p>
+            <p className="mt-1 text-xs text-white/45">
+              {now?.toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+              }) ?? ""}
+            </p>
+          </div>
+          <div className="bg-[#1d1c19] p-5">
+            <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-white/45">
+              Drive to work
+            </p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                saveWorkAddress(workInput.trim());
+              }}
+              className="mt-3 flex gap-1"
+            >
+              <input
+                value={workInput}
+                onChange={(e) => setWorkInput(e.target.value)}
+                placeholder="Work address"
+                className="w-full min-w-0 border-b border-white/20 bg-transparent px-0 py-1 text-xs text-white outline-none placeholder:text-white/35"
+              />
+              <button type="submit" className="text-xs text-[#c9b890]">
+                Set
+              </button>
+            </form>
+            {commute ? (
+              <p className="font-display mt-4 text-3xl">
+                ~{commute.minutes}
+                <span className="ml-1 text-sm font-normal text-white/50">
+                  min
+                </span>
+              </p>
+            ) : (
+              <p className="mt-4 text-xs leading-5 text-white/45">
+                {workAddress
+                  ? `Locating ${workAddress}…`
+                  : "Estimated distance · no live traffic"}
+              </p>
+            )}
+          </div>
+          <div className="col-span-2 bg-[#1d1c19] p-5">
+            <p className="font-accent text-[10px] uppercase tracking-[0.16em] text-white/45">
+              World clock
+            </p>
+            <div className="mt-4 grid grid-cols-3 gap-x-4 gap-y-3">
+              {WORLD_CLOCKS.map((clock) => (
+                <p key={clock.city} className="flex flex-col gap-1">
+                  <span className="text-xs text-white/45">{clock.city}</span>
+                  <span className="text-sm font-medium">
+                    {now?.toLocaleTimeString(undefined, {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      timeZone: clock.timeZone,
+                    }) ?? "—"}
+                  </span>
+                </p>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+      <div
+        id="morning-stream-slot"
+        className="relative border-t border-white/10 bg-black"
+      >
+        {streamReady ? (
+          <iframe
+            title="Live city stream"
+            src="https://stream.nebelspiegel.com"
+            className="h-52 w-full border-0 opacity-80"
+            allow="autoplay; fullscreen"
+          />
+        ) : (
+          <div className="flex h-32 items-center justify-between px-6">
+            <div>
+              <p className="font-accent text-[10px] uppercase tracking-[0.18em] text-[#c9b890]">
+                City signal
+              </p>
+              <p className="mt-2 text-sm text-white/55">
+                Live view loads as you approach.
+              </p>
+            </div>
+            <span className="text-xs text-white/35">Stream · standby</span>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
