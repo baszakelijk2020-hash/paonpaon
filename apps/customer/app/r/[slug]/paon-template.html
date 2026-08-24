@@ -5626,7 +5626,10 @@ function renderGrid() {
             card.innerHTML =
                 '<div class="grid-card-inner"><img src="' + p.img + '" alt="' + p.name + '" loading="lazy" decoding="async"' +
                 (p.fallbackImg ? ' data-fallback-src="' + p.fallbackImg + '"' : '') +
-                (columnIndex > 0 ? ' data-reveal-delay="' + (columnIndex * 0.2).toFixed(1) + '"' : '') +
+                /* A two-column collection reads as paired editorial imagery: let the
+                   right image follow its left-hand partner, without changing the
+                   timing used by the three-column trouser layout. */
+                (cols === 2 && columnIndex === 1 ? ' data-reveal-delay="0.2"' : '') +
                 '' +
                 ' ></div><button type="button" class="paon-fav-chip' + (favOn ? ' on' : '') + '" aria-label="Favorite" data-fav-id="' + p.id + '"></button><div class="grid-card-overlay"><div class="grid-card-name">' + gridTitleParts.brand + '</div><div class="grid-card-name">' + gridTitleParts.title + '</div><div class="grid-card-price">' + p.price + '</div></div>';
 
@@ -12246,7 +12249,9 @@ html, body{
     }
 
     function setup(){
-        var cards = Array.prototype.slice.call(document.querySelectorAll(".grid-card,.home-feed-card"));
+        /* Product cards have their own observer below. Including them here made this
+           home-feed observer rescan every grid mutation while a collection loaded. */
+        var cards = Array.prototype.slice.call(document.querySelectorAll(".home-feed-card"));
         var newCards = cards.filter(function(card){
             return !card.dataset.paonFeedBound;
         });
@@ -12423,31 +12428,46 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
 
     function reveal(card){
         if(!isProductGridCard(card)) return;
+        if(card.dataset.paonProductGridRevealState) return;
+
+        card.dataset.paonProductGridRevealState = 'pending';
 
         var img = card.querySelector('img');
 
         function run(){
-            card.classList.add('loaded');
-            card.classList.remove('paon-product-grid-waiting');
-            card.classList.add('paon-product-grid-visible');
+            var delay = parseFloat(img && img.getAttribute('data-reveal-delay') || '0') || 0;
 
-            if(window.gsap){
-                var inner = card.querySelector('.grid-card-inner');
-                var overlay = card.querySelector('.grid-card-overlay');
+            function animate(){
+                if(card.dataset.paonProductGridRevealState === 'revealed') return;
+                card.dataset.paonProductGridRevealState = 'revealed';
+                card.classList.add('loaded');
+                card.classList.remove('paon-product-grid-waiting');
+                card.classList.add('paon-product-grid-visible');
 
-                if(inner){
-                    gsap.fromTo(inner,
-                        { opacity:0, filter:'blur(14px)', y:22 },
-                        { opacity:1, filter:'blur(0px)', y:0, duration:1.1, ease:'power3.out', overwrite:true, clearProps:'filter,transform,willChange' }
-                    );
+                if(window.gsap){
+                    var inner = card.querySelector('.grid-card-inner');
+                    var overlay = card.querySelector('.grid-card-overlay');
+
+                    if(inner){
+                        gsap.fromTo(inner,
+                            { opacity:0, filter:'blur(14px)', y:22 },
+                            { opacity:1, filter:'blur(0px)', y:0, duration:1.1, ease:'power3.out', overwrite:true, clearProps:'filter,transform,willChange' }
+                        );
+                    }
+
+                    if(overlay){
+                        gsap.fromTo(overlay,
+                            { opacity:0, filter:'blur(10px)', y:12 },
+                            { opacity:1, filter:'blur(0px)', y:0, duration:0.9, delay:0.12, ease:'power3.out', overwrite:true, clearProps:'filter,transform,willChange' }
+                        );
+                    }
                 }
+            }
 
-                if(overlay){
-                    gsap.fromTo(overlay,
-                        { opacity:0, filter:'blur(10px)', y:12 },
-                        { opacity:1, filter:'blur(0px)', y:0, duration:0.9, delay:0.12, ease:'power3.out', overwrite:true, clearProps:'filter,transform,willChange' }
-                    );
-                }
+            if(delay > 0){
+                window.setTimeout(animate, delay * 1000);
+            }else{
+                animate();
             }
         }
 
@@ -12464,6 +12484,9 @@ body.grid-return-animating #product-grid .grid-card .grid-card-overlay{
     function hide(card){
         if(!isProductGridCard(card)) return;
         if(document.body.classList.contains('grid-return-animating')) return;
+        /* A card reveals once. Resetting it on every observer exit was the source of
+           the visible blur/reveal stutter during normal scrolling. */
+        if(card.dataset.paonProductGridRevealState) return;
 
         card.classList.remove('paon-product-grid-visible');
         card.classList.add('paon-product-grid-waiting');
