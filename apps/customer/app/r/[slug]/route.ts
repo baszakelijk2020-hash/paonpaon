@@ -22,13 +22,13 @@ import {
 import {
   loadStorefrontCatalogueByProduct,
   preferCatalogueFacetValue,
-  serializeStorefrontCatalogueJson,
 } from "./serialize-storefront-catalogue";
-import {
-  loadStorefrontKnowledgeByProduct,
-  serializeStorefrontKnowledgeJson,
-} from "./serialize-storefront-knowledge";
+import { loadStorefrontKnowledgeByProduct } from "./serialize-storefront-knowledge";
 import { getStorefrontRetailer } from "./storefront-context";
+import {
+  serializeStorefrontPage,
+  type StorefrontPageData,
+} from "./storefront-page-data";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -531,54 +531,29 @@ ${footerCities.map((city) => `<p style="margin:0 0 8px;font-size:13px;">${escape
 <div style="max-width:1240px;margin:0 auto;padding:20px 24px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;letter-spacing:.04em;color:rgba(255,255,255,.35);">© ${footerYear} ${safeName}. All rights reserved.</div>
 </footer>`;
 
-  const html = template
-    .replaceAll("__PAON_SLUG__", slug)
-    .replaceAll("__PAON_RETAILER_ID__", retailer.id)
-    .replaceAll(
-      "__PAON_TABLESERVICE_SIGNED_IN__",
-      tableServiceSignedIn ? "true" : "false",
-    )
-    .replaceAll("__PAON_WEDDING_PARTIES_JSON__", JSON.stringify(weddingParties))
-    .replaceAll("__PAON_GARMENTS_JSON__", JSON.stringify(garments))
-    .replaceAll("__PAON_RETAILER_NAME__", safeName)
-    .replaceAll("__PAON_OG_TITLE__", ogTitle)
-    .replaceAll("__PAON_OG_DESCRIPTION__", ogDescription)
-    .replaceAll("__PAON_OG_IMAGE__", escapeHtml(ogImage))
-    .replaceAll("__PAON_BRAND_HEAD__", brandHead)
-    .replaceAll("__PAON_BRAND_MARK__", brandMark)
-    .replaceAll(
-      "__PAON_HERO_HTML__",
-      heroHtml + storyHtml + catalogueNoteHtml + configHonestyNoteHtml,
-    )
-    .replaceAll("__PAON_PRODUCTS_JSON__", JSON.stringify(entries))
-    .replaceAll(
-      "__PAON_DEFAULT_CATEGORY_JSON__",
-      JSON.stringify(defaultCategory),
-    )
-    .replaceAll(
-      "__PAON_CATEGORY_NAMES_JSON__",
-      JSON.stringify(resolvedCategories),
-    )
-    .replaceAll("__PAON_LAND_ON_GRID__", landOnGrid ? "true" : "false")
-    .replaceAll("__PAON_STORES_JSON__", JSON.stringify(stores))
-    .replaceAll(
-      "__PAON_KNOWLEDGE_BY_PRODUCT_JSON__",
-      serializeStorefrontKnowledgeJson(knowledgeByProduct),
-    )
-    .replaceAll(
-      "__PAON_CATALOGUE_BY_PRODUCT_JSON__",
-      serializeStorefrontCatalogueJson(catalogueByProduct),
-    )
-    .replaceAll("__PAON_FOOTER_HTML__", footerHtml);
-
-  if (html.includes("__PAON_")) {
-    const leftovers = [...html.matchAll(/__PAON_[A-Z0-9_]+__/g)].map(
-      (match) => match[0],
-    );
-    throw new Error(
-      `Storefront template still contains unsubstituted placeholders: ${[...new Set(leftovers)].join(", ")}`,
-    );
-  }
+  const pageData: StorefrontPageData = {
+    slug,
+    retailerId: retailer.id,
+    tableServiceSignedIn,
+    weddingParties,
+    garments,
+    retailerName: safeName,
+    ogTitle,
+    ogDescription,
+    ogImage: escapeHtml(ogImage),
+    brandHead,
+    brandMark,
+    heroHtml: heroHtml + storyHtml + catalogueNoteHtml + configHonestyNoteHtml,
+    entries,
+    defaultCategory,
+    categoryNames: resolvedCategories,
+    landOnGrid,
+    stores,
+    knowledgeByProduct,
+    catalogueByProduct,
+    footerHtml,
+  };
+  const html = serializeStorefrontPage(template, pageData);
 
   return new NextResponse(html, {
     headers: { "content-type": "text/html; charset=utf-8" },
