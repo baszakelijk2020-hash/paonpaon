@@ -2,6 +2,7 @@ import { createSupabaseAdminClient } from "@paon/database";
 import {
   DEMO_CANONICAL_PERSONAS,
   DEMO_PASSWORD,
+  isCanonicalDemoEmail,
 } from "@paon/database/demo-seed";
 import { Badge } from "@paon/ui/components/Badge";
 import { Card } from "@paon/ui/components/Card";
@@ -22,7 +23,7 @@ export default async function DemoModePage() {
   );
   const { data } = await admin.auth.admin.listUsers({ perPage: 1000 });
   const demoUsers = (data?.users ?? []).filter((u) =>
-    u.email?.endsWith("@nebelspiegel.com"),
+    isCanonicalDemoEmail(u.email),
   );
   const activeCount = demoUsers.filter(
     (u) => !u.banned_until || new Date(u.banned_until) < new Date(),
