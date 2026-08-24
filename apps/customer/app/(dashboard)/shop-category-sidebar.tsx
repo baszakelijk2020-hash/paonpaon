@@ -11,6 +11,8 @@ import {
 } from "@/app/r/[slug]/canonical-category";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
+import { IntentPrefetchLink } from "./intent-prefetch-link";
+
 /**
  * Pixel match of the storefront's own left sidebar, not an approximation —
  * every value below (sidebar width 250px not 256px, header 60px not
@@ -65,7 +67,7 @@ export async function ShopCategorySidebar() {
         background: "linear-gradient(to right, #262626, #1d1d1d)",
       }}
     >
-      <Link
+      <IntentPrefetchLink
         href="/r/atelier-demo"
         className="flex shrink-0 items-center justify-center overflow-hidden"
         style={{
@@ -84,12 +86,12 @@ export async function ShopCategorySidebar() {
         >
           Nebel &amp; Spiegel
         </span>
-      </Link>
+      </IntentPrefetchLink>
       <div
         className="flex flex-1 flex-col overflow-y-auto"
         style={{ padding: "62px 25px 28px" }}
       >
-        <Link
+        <IntentPrefetchLink
           href="/r/atelier-demo"
           className="block cursor-pointer text-left uppercase opacity-70 transition-colors hover:text-[#a6a6a6] hover:opacity-100"
           style={{
@@ -102,7 +104,7 @@ export async function ShopCategorySidebar() {
           }}
         >
           Home
-        </Link>
+        </IntentPrefetchLink>
         <p
           className="block uppercase"
           style={{
@@ -117,7 +119,7 @@ export async function ShopCategorySidebar() {
           Collection
         </p>
         {categories.map((category) => (
-          <Link
+          <IntentPrefetchLink
             key={category}
             href={`/r/atelier-demo?category=${encodeURIComponent(category)}`}
             className="group flex items-center opacity-[.48] transition-[opacity,transform] duration-200 hover:translate-x-[3px] hover:opacity-[.86]"
@@ -133,7 +135,7 @@ export async function ShopCategorySidebar() {
             >
               {category}
             </span>
-          </Link>
+          </IntentPrefetchLink>
         ))}
       </div>
       <div

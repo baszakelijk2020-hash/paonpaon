@@ -7,7 +7,6 @@ import {
   CustomerRepository,
   ProductRepository,
   ProductVariantRepository,
-  RetailerRepository,
   WardrobeRepository,
   WeddingPartyRepository,
 } from "@paon/database";
@@ -29,6 +28,7 @@ import {
   loadStorefrontKnowledgeByProduct,
   serializeStorefrontKnowledgeJson,
 } from "./serialize-storefront-knowledge";
+import { getStorefrontRetailer } from "./storefront-context";
 
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -202,7 +202,7 @@ export async function GET(
     ? resolveAppSession(authData.user).accountType === "customer"
     : false;
 
-  const retailer = await new RetailerRepository(supabase).findBySlug(slug);
+  const retailer = await getStorefrontRetailer(slug);
   if (!retailer || retailer.status !== "active") {
     return new NextResponse("Not found", { status: 404 });
   }
@@ -245,10 +245,42 @@ export async function GET(
   const activeProducts = allProducts.filter((p) => p.status === "active");
   const collectionNameById = new Map(collections.map((c) => [c.id, c.name]));
 
+  // Resolve the intent from the retailer-scoped product catalogue before
+  // loading variants and metadata. A category request must not pay for the
+  // full catalogue's expensive downstream projections.
+  const requestedCategoryHasProducts =
+    !!requestedCategory &&
+    activeProducts.some((product) => {
+      const collectionName = product.collectionIds
+        .map((id) => collectionNameById.get(id))
+        .find((name): name is string => Boolean(name));
+      return (
+        canonicalCategoryFor(
+          product.name,
+          collectionName,
+          product.primaryImageUrl ?? "",
+        ) === requestedCategory
+      );
+    });
+  const productsForRequest = requestedCategoryHasProducts
+    ? activeProducts.filter((product) => {
+        const collectionName = product.collectionIds
+          .map((id) => collectionNameById.get(id))
+          .find((name): name is string => Boolean(name));
+        return (
+          canonicalCategoryFor(
+            product.name,
+            collectionName,
+            product.primaryImageUrl ?? "",
+          ) === requestedCategory
+        );
+      })
+    : activeProducts;
+
   const variantsByProduct = await variantRepo.findByProducts(
-    activeProducts.map((product) => product.id),
+    productsForRequest.map((product) => product.id),
   );
-  const productsWithVariants = activeProducts.map((product) => ({
+  const productsWithVariants = productsForRequest.map((product) => ({
     product,
     variants: variantsByProduct.get(product.id) ?? [],
   }));
@@ -336,8 +368,6 @@ export async function GET(
   // over the most-populated-category default, but only if that category
   // actually has products — otherwise a click into an empty category
   // would silently render nothing instead of falling back to a real one.
-  const requestedCategoryHasProducts =
-    !!requestedCategory && (countByCategory.get(requestedCategory) ?? 0) > 0;
   const defaultCategory = requestedCategoryHasProducts
     ? requestedCategory!
     : ([...countByCategory.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ??

@@ -1,6 +1,5 @@
 import {
   CustomerRepository,
-  RetailerRepository,
   WardrobeRepository,
   WeddingPartyRepository,
 } from "@paon/database";
@@ -11,6 +10,7 @@ import type { ReactNode } from "react";
 import { getProactiveNudge } from "./proactive-nudge-actions";
 import { ProactiveNudgeWidget } from "./proactive-nudge-widget";
 import { TableServiceWidget } from "./table-service-widget";
+import { getStorefrontRetailer } from "./storefront-context";
 
 import { getSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
@@ -34,7 +34,7 @@ export default async function StorefrontLayout({
     getSupabaseServerClient(),
     getSession(),
   ]);
-  const retailer = await new RetailerRepository(supabase).findBySlug(slug);
+  const retailer = await getStorefrontRetailer(slug);
   if (!retailer || retailer.status !== "active") {
     notFound();
   }
