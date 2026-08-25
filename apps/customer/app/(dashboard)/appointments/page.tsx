@@ -22,21 +22,25 @@ const INSPIRATION_APPOINTMENTS = [
     id: "fall-winter-2026",
     dateLabel: "September 2026",
     title: "Fall/Winter Wardrobe Appointment",
+    treatment: "linear-gradient(135deg, #56665a 0%, #222b24 100%)",
   },
   {
     id: "spring-summer-2027",
     dateLabel: "February 2027",
     title: "Spring/Summer 2027 Wardrobe Appointment",
+    treatment: "linear-gradient(135deg, #7c8772 0%, #3f493b 100%)",
   },
   {
     id: "summer-holiday-2027",
     dateLabel: "April 2027",
     title: "Summer Holiday 2027 Wardrobe Appointment",
+    treatment: "linear-gradient(135deg, #8e7762 0%, #40342c 100%)",
   },
   {
     id: "holiday-season-2027",
     dateLabel: "November 2027",
     title: "Holiday Season Look Appointment",
+    treatment: "linear-gradient(135deg, #5f4d49 0%, #302624 100%)",
   },
 ] as const;
 
@@ -125,7 +129,8 @@ export default async function AppointmentsPage() {
             {INSPIRATION_APPOINTMENTS.map((card) => (
               <div
                 key={card.id}
-                className="flex flex-col justify-between gap-3 rounded-[15px] bg-gradient-to-br from-[var(--color-stone-900)] to-[var(--color-stone-800)] p-4 text-white"
+                className="flex min-h-32 flex-col justify-end gap-3 rounded-[15px] p-5 text-white shadow-[inset_0_-80px_80px_rgba(0,0,0,0.16)]"
+                style={{ background: card.treatment }}
               >
                 <div>
                   <p className="text-xs uppercase tracking-[0.1em] text-[var(--color-stone-400)]">
@@ -136,10 +141,6 @@ export default async function AppointmentsPage() {
               </div>
             ))}
           </div>
-          <p className="mt-2 text-xs text-[var(--color-stone-500)]">
-            These are suggestions, not already-booked appointments — use
-            &ldquo;Book appointment&rdquo; above to start a real booking.
-          </p>
         </section>
       ) : null}
 
