@@ -771,7 +771,7 @@ function AdvisorSelectionCard({
 function EmptySlot() {
   return (
     <div
-      className="flex h-80 w-56 shrink-0 snap-start flex-col items-center justify-center gap-2 rounded-[15px] bg-gradient-to-br from-white/[0.05] to-white/[0.01]"
+      className="flex h-80 w-56 shrink-0 snap-start flex-col items-center justify-center gap-2 rounded-[15px] bg-[radial-gradient(circle_at_50%_38%,rgba(166,181,157,0.12),transparent_32%),linear-gradient(145deg,rgba(255,255,255,0.065),rgba(255,255,255,0.015))]"
       aria-hidden="true"
       data-empty-slot
     >
@@ -802,8 +802,12 @@ function WardrobeRail({
   const headerId = `wardrobe-rail-${retailerId}-${label}`;
 
   return (
-    <section aria-labelledby={headerId} data-wardrobe-rail={label}>
-      <div className="flex items-baseline justify-between gap-3 py-2">
+    <section
+      aria-labelledby={headerId}
+      data-wardrobe-rail={label}
+      className="border-t border-white/10 py-6 first:border-t-0"
+    >
+      <div className="flex items-baseline justify-between gap-3 px-5 sm:px-10 lg:px-14">
         <h3 id={headerId} className="font-display text-xl text-white">
           {label}
         </h3>
@@ -812,7 +816,7 @@ function WardrobeRail({
         </span>
       </div>
       <div
-        className="-mx-5 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-5 pb-2"
+        className="mt-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-5 pb-2 sm:px-10 lg:px-14"
         style={{ scrollbarWidth: "thin" }}
       >
         {ownedCards.map((card) => (
@@ -849,7 +853,7 @@ function PendingRoadmapBanner({ roadmap }: { roadmap: PendingRoadmapSummary }) {
   if (state.success) return null;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[15px] bg-white/[0.06] px-4 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-y border-white/10 bg-white/[0.035] px-5 py-4">
       <p className="text-sm text-white">
         Your advisor shared a plan awaiting your review: {roadmap.title}
       </p>
@@ -883,7 +887,6 @@ function PendingRoadmapBanner({ roadmap }: { roadmap: PendingRoadmapSummary }) {
 
 export function WardrobeRailsPanel({
   retailerId,
-  retailerName,
   ownedCards,
   openGaps,
   suggestedProductIdByGapId,
@@ -892,7 +895,6 @@ export function WardrobeRailsPanel({
   pendingApprovalRoadmap,
 }: {
   retailerId: string;
-  retailerName: string;
   ownedCards: readonly OwnedCardModel[];
   openGaps: readonly WardrobeRoadmapGap[];
   suggestedProductIdByGapId: Readonly<Record<string, string>>;
@@ -911,18 +913,12 @@ export function WardrobeRailsPanel({
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-[15px] bg-gradient-to-br from-[var(--color-stone-900)] to-[var(--color-stone-950)] p-5">
-      <div>
-        <h2 className="text-lg font-medium text-white">
-          Wardrobe — {retailerName}
-        </h2>
-      </div>
-
+    <div className="flex flex-col">
       {pendingApprovalRoadmap ? (
         <PendingRoadmapBanner roadmap={pendingApprovalRoadmap} />
       ) : null}
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col">
         {WARDROBE_RAILS.map((rail) => (
           <WardrobeRail
             key={rail.id}

@@ -8,8 +8,6 @@ import {
 import type { WardrobeOwnershipEvent } from "@paon/domain";
 import Link from "next/link";
 
-import { RelatedLinks } from "../related-links";
-
 import { buildCategorizedCatalogue } from "./complete-the-look-catalogue";
 import { buildItemSpecificCompleteTheLookSuggestionsByCategory } from "./item-specific-complete-the-look-data";
 import {
@@ -160,48 +158,53 @@ export default async function WardrobePage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
+    <div className="-mx-4 flex min-h-full flex-col bg-[linear-gradient(105deg,#282a28_0%,#191a18_44%,#121310_100%)] text-white sm:-mx-7 lg:-mx-10 xl:-mx-14">
+      <header className="border-b border-white/10 px-6 pb-7 pt-9 sm:px-10 lg:px-14">
+        <h1 className="font-display text-4xl tracking-[-0.03em] text-white sm:text-5xl">
           Wardrobe
         </h1>
-        <p className="text-sm text-[var(--color-stone-500)]">
+        <p className="mt-2 max-w-xl text-sm leading-6 text-white/60">
           Your garments and advisor selections, organised by category.
         </p>
-        <RelatedLinks
-          links={[
-            { href: "/wishlist", label: "Saved" },
-            { href: "/capsule", label: "Capsule" },
-          ]}
-        />
-      </div>
+        <nav
+          aria-label="Wardrobe tools"
+          className="mt-5 flex items-center gap-5 text-sm"
+        >
+          <Link
+            href="/wishlist"
+            className="text-white/80 underline-offset-4 hover:text-white hover:underline"
+          >
+            Saved
+          </Link>
+          <Link
+            href="/capsule"
+            className="text-white/80 underline-offset-4 hover:text-white hover:underline"
+          >
+            Capsule
+          </Link>
+        </nav>
+      </header>
 
       <Link
         href="/style-quiz"
-        className="flex items-center justify-between gap-3 rounded-[15px] bg-gradient-to-r from-[var(--color-stone-900)] to-[var(--color-stone-800)] px-5 py-3.5 text-white"
+        className="group flex items-center justify-between gap-6 border-b border-white/10 bg-[linear-gradient(90deg,rgba(175,190,167,0.22),rgba(175,190,167,0.06))] px-6 py-5 sm:px-10 lg:px-14"
       >
-        <span className="text-sm">
+        <span className="text-sm text-white/85">
           A 60-second style quiz sharpens every suggestion in your wardrobe.
         </span>
-        <span className="shrink-0 text-sm font-medium underline underline-offset-2">
-          Take the quiz
+        <span className="shrink-0 text-sm font-medium text-white underline-offset-4 group-hover:underline">
+          Take the quiz →
         </span>
       </Link>
 
       {groups.length === 0 ? (
-        <div
-          className="rounded-[var(--radius-md)] border border-dashed border-[var(--color-stone-300)] px-6 py-16 text-center"
-          role="status"
-        >
-          <p className="text-[var(--color-stone-600)]">
-            No retailer connections yet.
-          </p>
+        <div className="px-6 py-16 text-center text-white/60" role="status">
+          <p>No garments are linked to your account yet.</p>
         </div>
       ) : (
         groups.map(
           ({
             customer,
-            retailer,
             ownedCards,
             openGaps,
             suggestedProductIdByGapId,
@@ -212,7 +215,6 @@ export default async function WardrobePage() {
             <WardrobeRailsPanel
               key={customer.id}
               retailerId={customer.retailerId}
-              retailerName={retailer?.displayName ?? "Retailer"}
               ownedCards={ownedCards}
               openGaps={openGaps}
               suggestedProductIdByGapId={suggestedProductIdByGapId}

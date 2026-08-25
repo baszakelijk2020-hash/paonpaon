@@ -97,13 +97,13 @@ export async function ShopCategorySidebar() {
       >
         <IntentPrefetchLink
           href="/r/atelier-demo"
-          className="block cursor-pointer text-left uppercase opacity-70 transition-colors hover:text-[#a6a6a6] hover:opacity-100"
+          className="block cursor-pointer text-left uppercase transition-colors hover:text-white"
           style={{
             fontFamily: "GTBold3, Arial, sans-serif",
             fontSize: "7px",
             lineHeight: 1,
             letterSpacing: 0,
-            color: "#666666",
+            color: "#b5b5b2",
             margin: "0 0 20px 0",
           }}
         >
@@ -116,7 +116,7 @@ export async function ShopCategorySidebar() {
             fontSize: "7px",
             lineHeight: "7px",
             letterSpacing: 0,
-            color: "#666666",
+            color: "#b5b5b2",
             margin: "0 0 10px 0",
           }}
         >
@@ -126,7 +126,7 @@ export async function ShopCategorySidebar() {
           <IntentPrefetchLink
             key={category}
             href={`/r/atelier-demo?category=${encodeURIComponent(category)}`}
-            className="group flex items-center opacity-[.48] transition-[opacity,transform] duration-200 hover:translate-x-[3px] hover:opacity-[.86]"
+            className="group flex items-center opacity-[.76] transition-[opacity,transform] duration-200 hover:translate-x-[3px] hover:opacity-100"
             style={{ height: "28px", minHeight: "28px", paddingLeft: "20px" }}
           >
             <span
@@ -163,7 +163,7 @@ export async function ShopCategorySidebar() {
               fontSize: "7px",
               lineHeight: 1.4,
               letterSpacing: 0,
-              color: "#666666",
+              color: "#b5b5b2",
               marginBottom: "5px",
             }}
           >
