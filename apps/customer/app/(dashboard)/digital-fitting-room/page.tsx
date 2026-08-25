@@ -18,6 +18,8 @@ import {
   isSavedLook,
 } from "@paon/domain";
 import type { Outfit, WardrobeVisualizationJob } from "@paon/domain";
+import Image from "next/image";
+import Link from "next/link";
 
 import type { ComposableItem } from "./fitting-room-studio";
 import { FittingRoomStudio } from "./fitting-room-studio";
@@ -29,9 +31,13 @@ import { getSupabaseServerClient } from "@/lib/supabase-server";
 export default async function DigitalFittingRoomPage({
   searchParams,
 }: {
-  searchParams: Promise<{ productSlug?: string; addWardrobeItemId?: string }>;
+  searchParams: Promise<{
+    productSlug?: string;
+    addWardrobeItemId?: string;
+    step?: string;
+  }>;
 }) {
-  const { productSlug, addWardrobeItemId } = await searchParams;
+  const { productSlug, addWardrobeItemId, step } = await searchParams;
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
 
@@ -176,6 +182,60 @@ export default async function DigitalFittingRoomPage({
       };
     }),
   );
+
+  if (step !== "avatar") {
+    const preview = groups
+      .flatMap((group) => group.composableItems)
+      .find((item) => item.imageUrl)?.imageUrl;
+    return (
+      <div className="-mx-4 min-h-full bg-[linear-gradient(115deg,#283129_0%,#11150f_58%,#161510_100%)] px-4 py-8 text-white sm:-mx-7 sm:px-7 lg:-mx-10 lg:px-10 xl:-mx-14 xl:px-14">
+        <section className="mx-auto grid min-h-[min(42rem,calc(100vh-9rem))] max-w-6xl overflow-hidden rounded-[22px] bg-[linear-gradient(135deg,rgba(224,231,214,.17),rgba(26,31,23,.12)_52%,rgba(0,0,0,.18))] lg:grid-cols-[1.05fr_.95fr]">
+          <div className="flex flex-col justify-between p-8 sm:p-12 lg:p-16">
+            <div>
+              <p className="customer-kicker text-[#c5d0c0]">
+                Digital Fitting Room
+              </p>
+              <h1 className="font-display mt-5 max-w-xl text-5xl leading-[.94] text-white sm:text-7xl">
+                See a look take shape before you ask for it.
+              </h1>
+              <p className="mt-7 max-w-md text-base leading-7 text-white/70">
+                Build a private digital portrait, bring in pieces you own or are
+                considering, then create looks with your advisor.
+              </p>
+            </div>
+            <div className="mt-12 flex flex-wrap items-center gap-5">
+              <Link
+                href="/digital-fitting-room?step=avatar"
+                className="rounded-[15px] bg-[#dce3d6] px-6 py-4 text-sm font-medium text-[#182018] transition hover:bg-white"
+              >
+                Start creating →
+              </Link>
+              <p className="max-w-xs text-xs leading-5 text-white/50">
+                Two photos, your approval, then your wardrobe becomes a canvas.
+                A visualisation is never a fit guarantee.
+              </p>
+            </div>
+          </div>
+          <div className="relative min-h-[22rem] overflow-hidden bg-[#b9c4b5]">
+            {preview ? (
+              <Image
+                src={preview}
+                alt=""
+                fill
+                unoptimized
+                className="object-contain p-8"
+              />
+            ) : null}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#11150f]/85 via-[#11150f]/20 to-transparent px-8 pb-8 pt-28">
+              <p className="font-display text-3xl text-white">
+                Your wardrobe, in motion.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
