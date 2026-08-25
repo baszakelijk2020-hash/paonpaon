@@ -33,7 +33,7 @@ export function CompleteTheLookCard({
           <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--color-stone-400)]">
             Edit your rotation
           </p>
-          <h2 className="mt-1 font-display text-2xl text-[var(--color-stone-900)]">
+          <h2 className="font-display mt-1 text-2xl text-[var(--color-stone-900)]">
             Complete the look
           </h2>
           <p className="mt-1 text-sm text-[var(--color-stone-500)]">

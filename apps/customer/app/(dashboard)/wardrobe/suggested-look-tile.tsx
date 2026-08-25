@@ -57,7 +57,7 @@ export function SuggestedLookTile({
           </div>
         )}
       </div>
-      <div className="flex min-h-42 flex-col px-4 py-4">
+      <div className="min-h-42 flex flex-col px-4 py-4">
         <p className="text-[10px] uppercase tracking-[0.14em] text-[var(--color-stone-400)]">
           {suggestion.categoryCode.replaceAll("_", " ")}
         </p>

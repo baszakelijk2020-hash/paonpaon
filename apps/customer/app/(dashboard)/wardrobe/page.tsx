@@ -1,41 +1,53 @@
 import {
   CustomerRepository,
-  OutfitRepository,
   ProductRepository,
-  ProductVariantRepository,
   RetailerRepository,
-  RetailerVisualPresetRepository,
-  StylePortraitConsentRepository,
-  StylePortraitRepository,
-  WardrobeLifecycleRepository,
   WardrobeRepository,
   WardrobeRoadmapRepository,
-  WardrobeVisualizationJobRepository,
-  WishlistRepository,
-  type WardrobeItemServiceView,
 } from "@paon/database";
-import { garmentCategoryToOutfitSlot, isSavedLook } from "@paon/domain";
-import type {
-  Outfit,
-  WardrobeOwnershipEvent,
-  WardrobeVisualizationJob,
-} from "@paon/domain";
+import type { WardrobeOwnershipEvent } from "@paon/domain";
 
 import { RelatedLinks } from "../related-links";
 
+import { buildCategorizedCatalogue } from "./complete-the-look-catalogue";
 import { buildItemSpecificCompleteTheLookSuggestionsByCategory } from "./item-specific-complete-the-look-data";
-import { WardrobeLifecyclePanel } from "./lifecycle-panel";
-import { WardrobeRoadmapPanel } from "./roadmap-panel";
-import type { ComposableItem } from "./virtual-studio-panel";
-import { VirtualStudioPanel } from "./virtual-studio-panel";
-import { WardrobeHousePanel } from "./wardrobe-panel";
+import {
+  WardrobeRailsPanel,
+  type AdvisorSelectionAlternative,
+  type OwnedCardModel,
+} from "./wardrobe-panel";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
 
+const PURCHASE_DATE_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+function purchasedOnLabel(
+  acquiredAt: string | undefined,
+  nowIso: string,
+): string {
+  if (!acquiredAt) return "Purchase date unavailable";
+  const acquired = Date.parse(acquiredAt);
+  const now = Date.parse(nowIso);
+  if (!Number.isFinite(acquired) || !Number.isFinite(now)) {
+    return "Purchase date unavailable";
+  }
+  const days = Math.max(
+    0,
+    Math.floor((now - acquired) / (24 * 60 * 60 * 1000)),
+  );
+  return `Purchased on ${PURCHASE_DATE_FORMATTER.format(new Date(acquiredAt))} · ${days} day${days === 1 ? "" : "s"} in your wardrobe`;
+}
+
 export default async function WardrobePage() {
   const session = await requireSession();
   const supabase = await getSupabaseServerClient();
+  const nowIso = new Date().toISOString();
 
   const customers = await new CustomerRepository(supabase).findByUserId(
     session.userId,
@@ -43,129 +55,105 @@ export default async function WardrobePage() {
   const retailerRepo = new RetailerRepository(supabase);
   const wardrobeRepo = new WardrobeRepository(supabase);
   const roadmapRepo = new WardrobeRoadmapRepository(supabase);
-  const lifecycleRepo = new WardrobeLifecycleRepository(supabase);
-  const wishlistRepo = new WishlistRepository(supabase);
-  const variantRepo = new ProductVariantRepository(supabase);
   const productRepo = new ProductRepository(supabase);
-  const outfitRepo = new OutfitRepository(supabase);
-  const jobRepo = new WardrobeVisualizationJobRepository(supabase);
-  const portraitRepo = new StylePortraitRepository(supabase);
-  const portraitConsentRepo = new StylePortraitConsentRepository(supabase);
-  const presetRepo = new RetailerVisualPresetRepository(supabase);
 
   const groups = await Promise.all(
     customers.map(async (customer) => {
       const retailer = await retailerRepo.findById(customer.retailerId);
       const items = await wardrobeRepo.findByCustomer(customer.id);
+      const active = items.filter((item) => !item.retiredAt && !item.deletedAt);
       const ownedActiveCategories = [
-        ...new Set(
-          items
-            .filter((item) => !item.retiredAt && !item.deletedAt)
-            .map((item) => item.categoryCode),
-        ),
+        ...new Set(active.map((item) => item.categoryCode)),
       ];
-      const completeTheLookByCategory =
-        await buildItemSpecificCompleteTheLookSuggestionsByCategory({
-          supabase,
-          retailerId: customer.retailerId,
-          customerId: customer.id,
-          ownedActiveCategories,
+
+      const [completeTheLookByCategory, categorizedCatalogue, roadmaps] =
+        await Promise.all([
+          buildItemSpecificCompleteTheLookSuggestionsByCategory({
+            supabase,
+            retailerId: customer.retailerId,
+            customerId: customer.id,
+            ownedActiveCategories,
+          }),
+          buildCategorizedCatalogue({
+            supabase,
+            retailerId: customer.retailerId,
+          }),
+          roadmapRepo.findByCustomer(customer.id, {
+            customerVisibleOnly: true,
+          }),
+        ]);
+
+      const alternativesByCategory: Record<
+        string,
+        AdvisorSelectionAlternative[]
+      > = {};
+      for (const candidate of categorizedCatalogue) {
+        if (!candidate.categoryCode) continue;
+        (alternativesByCategory[candidate.categoryCode] ??= []).push({
+          productId: candidate.productId,
+          productSlug: candidate.productSlug,
+          displayName: candidate.displayName,
+          ...(candidate.primaryImageUrl
+            ? { primaryImageUrl: candidate.primaryImageUrl }
+            : {}),
         });
+      }
+
       const historyEntries = await Promise.all(
-        items.map(async (item) => {
+        active.map(async (item) => {
           const events = await wardrobeRepo.listOwnershipHistory(item.id);
           return [item.id, events] as const;
         }),
       );
       const historyByItemId: Record<string, readonly WardrobeOwnershipEvent[]> =
         Object.fromEntries(historyEntries);
-      const roadmaps = await roadmapRepo.findByCustomer(customer.id, {
-        customerVisibleOnly: true,
-      });
-      const serviceViews: WardrobeItemServiceView[] = await Promise.all(
-        items.map((item) => lifecycleRepo.projectItemServiceView(item)),
+
+      const ownedCards: OwnedCardModel[] = active.map((item) => ({
+        item,
+        history: historyByItemId[item.id] ?? [],
+        completeTheLookSuggestions:
+          completeTheLookByCategory[item.categoryCode] ?? [],
+        purchasedOnLabel: purchasedOnLabel(item.acquiredAt, nowIso),
+      }));
+
+      const approvedRoadmap = roadmaps.find(
+        (roadmap) => roadmap.status === "approved",
       );
-
-      const composableItems: ComposableItem[] = items
-        .filter((item) => !item.retiredAt && !item.deletedAt)
-        .map((item) => {
-          const suggestedSlotKind = garmentCategoryToOutfitSlot(
-            item.categoryCode,
-          );
-          return {
-            key: `wardrobe:${item.id}`,
-            kind: "wardrobe" as const,
-            id: item.id,
-            label: item.displayName,
-            ...(item.identifyingPhotoUrl
-              ? { imageUrl: item.identifyingPhotoUrl }
-              : {}),
-            ...(suggestedSlotKind ? { suggestedSlotKind } : {}),
-          };
-        });
-
-      const wishlist = await wishlistRepo.findByCustomer(customer.id);
-      if (wishlist) {
-        const wishlistItems = await wishlistRepo.findItems(wishlist.id);
-        const seenProductIds = new Set<string>();
-        for (const wishlistItem of wishlistItems) {
-          const variant = await variantRepo.findById(
-            wishlistItem.productVariantId,
-          );
-          if (!variant || seenProductIds.has(variant.productId)) continue;
-          seenProductIds.add(variant.productId);
-          const product = await productRepo.findById(variant.productId);
-          if (!product) continue;
-          composableItems.push({
-            key: `product:${product.id}`,
-            kind: "product",
-            id: product.id,
-            label: product.name,
-            ...(product.primaryImageUrl
-              ? { imageUrl: product.primaryImageUrl }
-              : {}),
-          });
+      const openGaps = (approvedRoadmap?.gaps ?? []).filter(
+        (gap) => !gap.filledByProductId && !gap.filledByWardrobeItemId,
+      );
+      const suggestedProductIdByGapId: Record<string, string> = {};
+      for (const stage of approvedRoadmap?.stages ?? []) {
+        if (stage.gapId && stage.suggestedProductId) {
+          suggestedProductIdByGapId[stage.gapId] = stage.suggestedProductId;
         }
       }
-
-      const outfits: Outfit[] = await outfitRepo.findByCustomer(customer.id);
-      const latestJobByOutfitId: Record<string, WardrobeVisualizationJob> = {};
-      await Promise.all(
-        outfits.map(async (outfit) => {
-          const jobs = await jobRepo.findByOutfit(outfit.id);
-          if (jobs[0]) latestJobByOutfitId[outfit.id] = jobs[0];
-        }),
+      const suggestedProducts = await Promise.all(
+        [...new Set(Object.values(suggestedProductIdByGapId))].map(
+          (productId) => productRepo.findById(productId as never),
+        ),
+      );
+      const suggestedProductById = Object.fromEntries(
+        suggestedProducts
+          .filter((product): product is NonNullable<typeof product> =>
+            Boolean(product),
+          )
+          .map((product) => [product.id, product]),
       );
 
-      const approvedPortrait = await portraitRepo.findApprovedForCustomer(
-        customer.id,
-      );
-      const portraitConsent = await portraitConsentRepo.findForCustomer(
-        customer.retailerId,
-        customer.id,
-      );
-      const defaultPreset = await presetRepo.findDefaultForRetailer(
-        customer.retailerId,
-      );
-      const canGenerate = Boolean(
-        approvedPortrait &&
-        defaultPreset &&
-        portraitConsent.status === "granted" &&
-        portraitConsent.disclosuresAcknowledged,
+      const pendingApprovalRoadmap = roadmaps.find(
+        (roadmap) => roadmap.status === "pending_approval",
       );
 
       return {
         customer,
         retailer,
-        items,
-        historyByItemId,
-        roadmaps,
-        serviceViews,
-        composableItems,
-        completeTheLookByCategory,
-        outfits,
-        latestJobByOutfitId,
-        canGenerate,
+        ownedCards,
+        openGaps,
+        suggestedProductIdByGapId,
+        suggestedProductById,
+        alternativesByCategory,
+        pendingApprovalRoadmap,
       };
     }),
   );
@@ -177,8 +165,7 @@ export default async function WardrobePage() {
           Wardrobe
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Your garments, care options, fit checks, and advisor selections in one
-          considered view.
+          Your garments and advisor selections, organised by category.
         </p>
         <RelatedLinks
           links={[
@@ -194,7 +181,7 @@ export default async function WardrobePage() {
           role="status"
         >
           <p className="text-[var(--color-stone-600)]">
-            No house connections yet.
+            No retailer connections yet.
           </p>
         </div>
       ) : (
@@ -202,47 +189,43 @@ export default async function WardrobePage() {
           ({
             customer,
             retailer,
-            items,
-            historyByItemId,
-            roadmaps,
-            serviceViews,
-            composableItems,
-            completeTheLookByCategory,
-            outfits,
-            latestJobByOutfitId,
-            canGenerate,
+            ownedCards,
+            openGaps,
+            suggestedProductIdByGapId,
+            suggestedProductById,
+            alternativesByCategory,
+            pendingApprovalRoadmap,
           }) => (
-            <div key={customer.id} className="flex flex-col gap-4">
-              <WardrobeHousePanel
-                retailerId={customer.retailerId}
-                retailerName={retailer?.displayName ?? "Retailer"}
-                items={items}
-                historyByItemId={historyByItemId}
-                roadmaps={roadmaps}
-                completeTheLookByCategory={completeTheLookByCategory}
-              />
-              <VirtualStudioPanel
-                retailerId={customer.retailerId}
-                retailerName={retailer?.displayName ?? "Retailer"}
-                composableItems={composableItems}
-                outfits={outfits.filter(isSavedLook)}
-                latestJobByOutfitId={latestJobByOutfitId}
-                canGenerate={canGenerate}
-              />
-              <WardrobeLifecyclePanel views={serviceViews} />
-              <WardrobeRoadmapPanel
-                retailerId={customer.retailerId}
-                retailerName={retailer?.displayName ?? "Retailer"}
-                roadmaps={roadmaps}
-                looksByRoadmapId={Object.fromEntries(
-                  roadmaps.map((roadmap) => [
-                    roadmap.id,
-                    outfits.filter((outfit) => outfit.roadmapId === roadmap.id),
-                  ]),
-                )}
-                latestJobByOutfitId={latestJobByOutfitId}
-              />
-            </div>
+            <WardrobeRailsPanel
+              key={customer.id}
+              retailerId={customer.retailerId}
+              retailerName={retailer?.displayName ?? "Retailer"}
+              ownedCards={ownedCards}
+              openGaps={openGaps}
+              suggestedProductIdByGapId={suggestedProductIdByGapId}
+              suggestedProductById={Object.fromEntries(
+                Object.entries(suggestedProductById).map(([id, product]) => [
+                  id,
+                  {
+                    id: product.id,
+                    slug: product.slug,
+                    name: product.name,
+                    ...(product.primaryImageUrl
+                      ? { primaryImageUrl: product.primaryImageUrl }
+                      : {}),
+                  },
+                ]),
+              )}
+              alternativesByCategory={alternativesByCategory}
+              pendingApprovalRoadmap={
+                pendingApprovalRoadmap
+                  ? {
+                      id: pendingApprovalRoadmap.id,
+                      title: pendingApprovalRoadmap.title,
+                    }
+                  : undefined
+              }
+            />
           ),
         )
       )}

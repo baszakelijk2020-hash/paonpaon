@@ -1,10 +1,7 @@
 "use server";
 
 import { createSupabaseAdminClient } from "@paon/database";
-import {
-  isCanonicalDemoEmail,
-  seedDemoData,
-} from "@paon/database/demo-seed";
+import { isCanonicalDemoEmail, seedDemoData } from "@paon/database/demo-seed";
 import { revalidatePath } from "next/cache";
 
 import { env } from "@/lib/env";

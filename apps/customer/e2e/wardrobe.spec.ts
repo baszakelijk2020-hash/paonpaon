@@ -3,13 +3,23 @@ import { expect, test } from "@playwright/test";
 
 import { TEST_CUSTOMER_EMAIL, TEST_RETAILER_SLUG } from "./fixtures";
 
+const WARDROBE_RAILS_IN_ORDER = [
+  "Suits",
+  "Jackets",
+  "Trousers",
+  "Shirts",
+  "Outerwear",
+  "Knitwear",
+  "Shoes",
+  "Accessories",
+];
+
 /**
- * All 6 category carousels (suits/jackets/shirts/knitwear/shoes/
- * accessories) are always visible now — no click-to-expand rail. Browsing
- * the wardrobe means scrolling within a strip, not opening one section at
- * a time.
+ * Customer Environment Rebuild V3 §5.2: exactly eight rails, in this exact
+ * order, every one rendered even when empty, and each carries exactly ten
+ * empty slots beyond any owned/advisor-selection cards.
  */
-test("all wardrobe carousels are visible at once, and a customer can still add and retire a garment", async ({
+test("all eight wardrobe rails render in order, each with real owned cards and exactly ten empty slots", async ({
   page,
 }) => {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
@@ -35,8 +45,6 @@ test("all wardrobe carousels are visible at once, and a customer can still add a
     .maybeSingle();
   if (!customerRow) throw new Error("fixture customer missing");
 
-  // Isolate this run's carousel assertions from any item another spec left
-  // behind under the same customer/retailer.
   await admin
     .from("wardrobe_items")
     .delete()
@@ -45,7 +53,7 @@ test("all wardrobe carousels are visible at once, and a customer can still add a
     .eq("display_name", "E2E Rail Jacket");
 
   const wardrobeRepo = new WardrobeRepository(admin);
-  await wardrobeRepo.createExternalItem({
+  const item = await wardrobeRepo.createExternalItem({
     retailerId: retailer.id,
     customerId: customerRow.id,
     categoryCode: "jacket",
@@ -72,65 +80,71 @@ test("all wardrobe carousels are visible at once, and a customer can still add a
 
     await page.goto("/wardrobe");
 
-    // Every category carousel renders simultaneously — no click needed to
-    // reveal any of them.
-    for (const label of [
-      "Suits",
-      "Jackets",
-      "Shirts",
-      "Knitwear",
-      "Shoes",
-      "Accessories",
-    ]) {
+    for (const label of WARDROBE_RAILS_IN_ORDER) {
       await expect(
         page.getByRole("heading", { name: label, exact: true }),
       ).toBeVisible();
     }
-    const jacketsCarousel = page
-      .locator("section", {
-        has: page.getByRole("heading", { name: "Jackets" }),
-      })
-      .first();
-    await expect(jacketsCarousel.getByText("E2E Rail Jacket")).toBeVisible();
 
-    // The existing add/retire actions still work — scoped to this house's
-    // own form, since a customer can have a wardrobe panel per retailer
-    // relationship on the same page.
-    const addForm = page.getByLabel(
-      `Add external garment for ${retailer.display_name}`,
-    );
-    await addForm.getByLabel("Name").fill(`E2E Rail Added Shirt ${Date.now()}`);
-    await addForm.getByLabel("Category").selectOption("shirt");
-    await addForm.getByRole("button", { name: "Add to wardrobe" }).click();
+    const headings = await page
+      .getByRole("heading", { level: 3 })
+      .allTextContents();
+    expect(headings).toEqual(WARDROBE_RAILS_IN_ORDER);
+
+    const jacketsRail = page.locator("section", {
+      has: page.getByRole("heading", { name: "Jackets", exact: true }),
+    });
     await expect(
-      page.getByText("External garment added to your wardrobe."),
+      jacketsRail.getByText("E2E Rail Jacket").first(),
     ).toBeVisible();
+    await expect(
+      jacketsRail.getByText("1 piece", { exact: true }),
+    ).toBeVisible();
+    await expect(jacketsRail.locator("[data-empty-slot]")).toHaveCount(10);
 
-    await jacketsCarousel
+    const suitsRail = page.locator("section", {
+      has: page.getByRole("heading", { name: "Suits", exact: true }),
+    });
+    await expect(suitsRail.locator("[data-empty-slot]")).toHaveCount(10);
+
+    // No external-garment add form/copy exists anywhere on the page.
+    await expect(page.getByText(/bought elsewhere/i)).toHaveCount(0);
+    await expect(page.getByText(/purchased here/i)).toHaveCount(0);
+    await expect(page.getByText(/^house$/i)).toHaveCount(0);
+
+    // Opening Actions + and retiring replaces the card face in place —
+    // the rail and card never grow, and the item is gone once confirmed.
+    const jacketCard = jacketsRail
       .locator("article", { hasText: "E2E Rail Jacket" })
-      .getByRole("button", { name: "Retire" })
+      .first();
+    const railBoxBefore = await jacketsRail.boundingBox();
+    await jacketCard.getByRole("button", { name: "Actions +" }).click();
+    await jacketCard
+      .getByRole("button", { name: "Retire", exact: true })
       .click();
-    await expect(page.getByText("Garment marked retired.")).toBeVisible();
-    await expect(jacketsCarousel.getByText("E2E Rail Jacket")).toHaveCount(0);
-  } finally {
-    await admin
+    await jacketCard.getByRole("button", { name: "Confirm retire" }).click();
+    // The retired card leaves the rail once the server state refreshes —
+    // verified against the real persisted row, not a transient toast that
+    // can race the card's own removal from the tree.
+    await expect(jacketsRail.getByText("E2E Rail Jacket")).toHaveCount(0);
+    const railBoxAfter = await jacketsRail.boundingBox();
+    expect(railBoxAfter?.height).toBe(railBoxBefore?.height);
+    const { data: retiredRow } = await admin
       .from("wardrobe_items")
-      .delete()
-      .eq("customer_id", customerRow.id)
-      .eq("retailer_id", retailer.id)
-      .or(
-        "display_name.eq.E2E Rail Jacket,display_name.like.E2E Rail Added Shirt%",
-      );
+      .select("retired_at")
+      .eq("id", item.id)
+      .single();
+    expect(retiredRow?.retired_at).not.toBeNull();
+  } finally {
+    await admin.from("wardrobe_items").delete().eq("id", item.id);
   }
 });
 
 /**
- * The "ideal wardrobe roadmap" — an approved plan's open gaps — now shows
- * up inside the same carousel as what the customer owns, not on a
- * separate roadmap-only page. A gap already filled by a real purchase is
- * excluded, since an owned card already represents it.
+ * An approved roadmap's open gap shows up as an "Advisor selection" card in
+ * its category rail (contract §5.5) — not on a separate roadmap page.
  */
-test("an approved roadmap's open gap appears as an aspirational card in its category carousel", async ({
+test("an approved roadmap's open gap appears as an advisor-selection card in its category rail", async ({
   page,
 }) => {
   const supabaseUrl = process.env["NEXT_PUBLIC_SUPABASE_URL"];
@@ -205,14 +219,12 @@ test("an approved roadmap's open gap appears as an aspirational card in its cate
     await expect(page).toHaveURL(/\/dashboard$/);
 
     await page.goto("/wardrobe");
-    const knitwearCarousel = page
-      .locator("section", {
-        has: page.getByRole("heading", { name: "Knitwear" }),
-      })
-      .first();
-    await expect(knitwearCarousel.getByText("On your roadmap")).toBeVisible();
+    const knitwearRail = page.locator("section", {
+      has: page.getByRole("heading", { name: "Knitwear", exact: true }),
+    });
+    await expect(knitwearRail.getByText("Advisor selection")).toBeVisible();
     await expect(
-      knitwearCarousel.getByText("E2E Aspirational Knit"),
+      knitwearRail.getByText("E2E Aspirational Knit").first(),
     ).toBeVisible();
   } finally {
     await admin.from("wardrobe_roadmaps").delete().eq("id", roadmap.id);
@@ -221,9 +233,10 @@ test("an approved roadmap's open gap appears as an aspirational card in its cate
 
 /**
  * PHASE 17.13's own named gap: "Book an alteration"/"Book a cleaning" from
- * a specific wardrobe item. Proves the real write path — a real message
- * lands in the customer's own conversation with this retailer, naming the
- * exact item — not just a success-looking UI state, and that the success
+ * a specific wardrobe item, now reached through the card's Actions + deck
+ * (contract §5.4). Proves the real write path — a real message lands in
+ * the customer's own conversation with this retailer, naming the exact
+ * item — not just a success-looking UI state, and that the success
  * banner's own link resolves to that same real conversation.
  */
 test("booking an alteration for a wardrobe item sends a real message naming the item", async ({
@@ -288,16 +301,15 @@ test("booking an alteration for a wardrobe item sends a real message naming the 
     await expect(page).toHaveURL(/\/dashboard$/);
 
     await page.goto("/wardrobe");
-    const jacketsCarousel = page
-      .locator("section", {
-        has: page.getByRole("heading", { name: "Jackets" }),
-      })
-      .first();
-    const card = jacketsCarousel.locator("article", {
+    const jacketsRail = page.locator("section", {
+      has: page.getByRole("heading", { name: "Jackets", exact: true }),
+    });
+    const card = jacketsRail.locator("article", {
       hasText: "E2E Alteration Request Blazer",
     });
     await expect(card).toBeVisible();
 
+    await card.getByRole("button", { name: "Actions +" }).click();
     await card.getByRole("button", { name: "Book an alteration" }).click();
     await expect(page.getByText("Request sent to your advisor.")).toBeVisible();
     const messagesLink = page.getByRole("link", { name: "View in Messages" });
@@ -327,7 +339,6 @@ test("booking an alteration for a wardrobe item sends a real message naming the 
         "E2E House E2E Alteration Request Blazer.",
     );
 
-    // Following the banner's own link really opens the real conversation.
     await messagesLink.click();
     await expect(page).toHaveURL(new RegExp(`/messages/${conversationId}$`));
     await expect(
