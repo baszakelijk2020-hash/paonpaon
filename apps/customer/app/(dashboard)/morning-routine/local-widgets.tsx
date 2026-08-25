@@ -365,7 +365,19 @@ export function LocalWidgets({
           </div>
 
           <div className="relative col-span-2 hidden overflow-hidden bg-white/20 lg:col-span-1 lg:flex">
-            {recommendation?.imageUrl ? (
+            {CITY_STREAMS_ENABLED && streamReady && isDesktop ? (
+              <div className="absolute inset-0 grid grid-cols-3 gap-px bg-[#c5d0c0]">
+                {CITY_CAMERAS.slice(0, 3).map((camera) => (
+                  <iframe
+                    key={camera.code}
+                    title={`${camera.city} live camera`}
+                    src={camera.src}
+                    className="h-full w-full border-0 object-cover opacity-80"
+                    allow="autoplay; fullscreen"
+                  />
+                ))}
+              </div>
+            ) : recommendation?.imageUrl ? (
               <Image
                 src={recommendation.imageUrl}
                 alt=""
@@ -374,7 +386,7 @@ export function LocalWidgets({
                 className="object-contain object-right"
               />
             ) : null}
-            <div className="relative z-10 flex max-w-[55%] flex-col justify-center px-4">
+            <div className="relative z-10 flex max-w-[70%] flex-col justify-end px-4 py-3 text-white [text-shadow:0_1px_12px_rgba(0,0,0,.7)]">
               <p className="customer-kicker text-[#596157]">Today’s look</p>
               <p className="mt-2 line-clamp-2 text-xs leading-4 text-[#2b302a]">
                 {recommendation?.name ?? "A considered recommendation"}
