@@ -10,6 +10,19 @@ authorized coding agent operating on this repository.
 The repository is the authority. Provider-specific configuration may enforce
 this charter, but may not silently redefine it.
 
+## User response rule — absolute
+
+For every execution, engineering, terminal, Git, deployment, database, or
+agent-coordination reply, use exactly one of these forms:
+
+- `NO ACTION REQUIRED` followed only by the outcome: for example, "All OK"
+  or "Done".
+- `ACTION REQUIRED` followed only by the exact next action(s), in order.
+
+Do not include background, reasoning, status narration, alternatives,
+apologies, explanations, summaries, or follow-up padding unless the user
+explicitly asks for an explanation. Keep the reply as short as possible.
+
 ---
 
 # 1. Prime directive
