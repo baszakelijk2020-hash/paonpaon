@@ -3,9 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-// Temporary GPU circuit breaker: retain the camera layout and posters, but do
-// not mount remote video iframes until this is deliberately switched back on.
-const CITY_STREAMS_ENABLED = false;
+const CITY_STREAMS_ENABLED = true;
 
 const WORLD_CLOCKS: { city: string; timeZone: string }[] = [
   { city: "New York", timeZone: "America/New_York" },
@@ -72,6 +70,13 @@ const WEATHER_CODE_LABELS: Record<number, string> = {
   95: "Thunderstorm",
 };
 
+function weatherSymbol(code: number | undefined): string {
+  if (code === 95) return "⛈";
+  if (code !== undefined && [51, 61, 63, 65, 80].includes(code)) return "☔";
+  if (code !== undefined && [1, 2, 3, 45, 48].includes(code)) return "☁";
+  return "☀";
+}
+
 interface Coords {
   lat: number;
   lon: number;
@@ -110,6 +115,7 @@ export function LocalWidgets({
   const [weather, setWeather] = useState<{
     tempC: number;
     label: string;
+    code: number;
   } | null>(null);
   const [workAddress, setWorkAddress] = useState("");
   const [workInput, setWorkInput] = useState("");
@@ -181,6 +187,7 @@ export function LocalWidgets({
           setWeather({
             tempC,
             label: WEATHER_CODE_LABELS[code] ?? "Conditions unavailable",
+            code: typeof code === "number" ? code : -1,
           });
         }
       })
@@ -278,11 +285,16 @@ export function LocalWidgets({
               </p>
             </div>
             <div className="ml-auto text-right">
-              <p className="font-display text-3xl leading-none">
+              <p className="font-display flex items-center justify-end gap-2 text-3xl leading-none">
+                <span className="font-sans text-2xl" aria-hidden="true">
+                  {weatherSymbol(weather?.code)}
+                </span>
                 {weather ? `${Math.round(weather.tempC)}°` : "—"}
               </p>
               <p className="mt-1 max-w-28 truncate text-xs text-[#596157]">
-                {weather?.label ?? locationLabel}
+                {weather
+                  ? `${weather.label} · ${[51, 61, 63, 65, 80, 95].includes(weather.code) ? "Rain likely" : "Dry"}`
+                  : locationLabel}
               </p>
             </div>
           </div>
