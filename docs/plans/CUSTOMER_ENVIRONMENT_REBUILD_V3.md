@@ -48,6 +48,7 @@ Do not redesign these again. Only repair a demonstrated defect against this cont
 - Desktop top navigation: Overview, Wardrobe, My Appointments, Orders, Digital Fitting Room, Rewards & Referrals, My Profile.
 - Mobile navigation must preserve access to every destination through a compact overflow/menu; hiding a destination without another access path fails.
 - CTA controls use one 15px squircle system unless a card-specific instruction below says otherwise.
+- Do not build the interface from colourless white/transparent rectangles with only a grey border. That outline-card pattern is prohibited. Use purposeful tonal fills, imagery, gradients, spacing, and hierarchy; borders are separators, not the visual concept.
 - The left sidebar retains its left-to-right dark gradient.
 - `NEBEL & SPIEGEL` alone uses Aviano.
 - Add automated checks for navigation labels, removed labels, font scoping, and route validity.
@@ -96,10 +97,12 @@ Render all eight rails in this order, even when empty:
 ### 5.3 Owned card face
 
 - 15px card corners.
-- Product image uses `object-contain`; no cropping.
-- Bottom half has a 0%-to-30% dark overlay.
-- Product title is inside the image at the bottom, Munged, approximately 20px.
-- Under the title: `Purchased on <date> · <N> days in your wardrobe` in body font. Use the real acquisition/order date. If unavailable, show `Purchase date unavailable`; do not invent one.
+- The entire original product image must remain visible at its natural aspect ratio. The foreground image uses edge-to-edge `object-contain`, no crop, no padding, and no artificial margin.
+- Do not leave empty letterbox bands as plain white. Behind the contained foreground, render the same image as a full-bleed, softly blurred `object-cover` background layer with restrained opacity so the full original remains the primary image.
+- The bottom information layer uses a progressive glass blur like an Apple App Store artwork card: no hard rectangular panel edge; blur and darkening rise gradually from transparent at mid-card to readable at the bottom.
+- Implement the progressive layer with a masked/backdrop blur plus a transparent-to-approximately-30% dark gradient. Do not use a solid caption rectangle.
+- Product title sits inside that progressive blur at the bottom, Munged, approximately 20px.
+- Under the title, inside the same progressive blur: `Purchased on <date> · <N> days in your wardrobe` in body font. Use the real acquisition/order date. If unavailable, show `Purchase date unavailable`; do not invent one.
 - No `Purchased here`, purchase location, care pills, condition pills, Garment Details, or provenance disclosure on the default card face.
 - Footer control is exactly `Actions +`.
 
