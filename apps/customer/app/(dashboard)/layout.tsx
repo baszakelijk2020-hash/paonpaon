@@ -15,11 +15,10 @@ import { getSession } from "@/lib/session";
 const ACCOUNT_TABS: AccountTab[] = [
   { href: "/dashboard", label: "Overview" },
   { href: "/wardrobe", label: "Wardrobe" },
-  { href: "/appointments", label: "Service" },
+  { href: "/appointments", label: "My Appointments" },
   { href: "/orders", label: "Orders" },
-  { href: "/morning-routine", label: "Daily edit" },
-  { href: "/messages", label: "Messages" },
-  { href: "/r/atelier-demo", label: "Shop" },
+  { href: "/digital-fitting-room", label: "Digital Fitting Room" },
+  { href: "/loyalty", label: "Rewards & Referrals" },
 ];
 
 export default async function DashboardLayout({
@@ -62,9 +61,9 @@ export default async function DashboardLayout({
           trailing={
             <a
               href="/account"
-              className="customer-text-link px-3 text-[13px] text-[var(--color-stone-700)]"
+              className="flex h-full items-center justify-center px-3 text-center text-[13px] text-[var(--color-stone-700)]"
             >
-              Profile
+              My Profile
             </a>
           }
         />

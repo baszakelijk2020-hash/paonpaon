@@ -9,8 +9,15 @@
 
 @font-face {
   font-family: "Customer Display";
-  src: url("/fonts/Munged-MZgX5NxJBs.woff2") format("woff2");
+  src: url("/fonts/aviano.woff2") format("woff2");
   font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GTBold3";
+  src: url("/fonts/gtbold3.woff2") format("woff2");
+  font-weight: 700;
   font-display: swap;
 }
 
@@ -32,11 +39,11 @@ body {
 h1,
 h2,
 h3 {
-  font-family: "Customer Display", "Munged", serif;
+  font-family: "Customer Display", "Aviano", serif;
 }
 
 .font-display {
-  font-family: "Customer Display", "Munged", serif;
+  font-family: "Customer Display", "Aviano", serif;
 }
 
 :root {
@@ -58,7 +65,7 @@ h3 {
   padding-block: 1.25rem 1.5rem;
 }
 .customer-kicker {
-  font-family: "Munged", serif;
+  font-family: "GTBold3", Arial, sans-serif;
   font-size: 0.6875rem;
   font-weight: 400;
   letter-spacing: 0.14em;
@@ -115,6 +122,13 @@ h3 {
 }
 .customer-button:hover {
   background: #596453;
+}
+.customer-button-light {
+  background: transparent;
+  color: var(--customer-ink);
+}
+.customer-button-light:hover {
+  background: rgba(23, 25, 22, 0.08);
 }
 
 /*

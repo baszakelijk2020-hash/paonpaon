@@ -172,6 +172,18 @@ export async function ShopCategorySidebar() {
           </Link>
         ))}
         <Link
+          href="/concierge"
+          className="absolute left-5 right-5 flex h-11 items-center justify-between border border-white/15 bg-white/[0.06] px-4 text-[13px] text-[#d9d9d9] no-underline"
+          style={{
+            bottom: "82px",
+            borderRadius: "15px",
+            fontFamily: "TN Web Use Only, sans-serif",
+          }}
+        >
+          <span>TableService</span>
+          <span aria-hidden="true">→</span>
+        </Link>
+        <Link
           href="/appointments"
           className="absolute flex items-center no-underline"
           style={{
@@ -179,7 +191,7 @@ export async function ShopCategorySidebar() {
             left: "20px",
             right: "20px",
             height: "50px",
-            borderRadius: "6px",
+            borderRadius: "15px",
             background: "linear-gradient(to right, #999999, #666666)",
             color: "#d9d9d9",
             fontFamily: "OptimaKlein, serif",
@@ -225,8 +237,8 @@ export async function ShopCategorySidebar() {
         }
         @font-face {
           font-family: GTBold3;
-          src: url('/fonts/Munged-teVV8iw7A5.woff2') format('woff2');
-          font-weight: 400;
+          src: url('/fonts/gtbold3.woff2') format('woff2');
+          font-weight: 700;
           font-style: normal;
           font-display: swap;
         }

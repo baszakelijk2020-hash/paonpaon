@@ -28,19 +28,19 @@ export function AccountTopTabs({
   return (
     <nav
       aria-label="Account"
-      className="sticky top-0 z-40 flex h-[60px] w-full items-stretch gap-1 border-b border-[var(--customer-border)] bg-[rgba(244,242,237,0.88)] px-1 backdrop-blur-md"
+      className="sticky top-0 z-40 flex h-[60px] w-full items-stretch border-b border-[var(--customer-border)] bg-[rgba(244,242,237,0.92)] backdrop-blur-md"
     >
       {tabs.map((tab) => {
         const active =
           pathname === tab.href || pathname.startsWith(`${tab.href}/`);
         const mobileSecondary =
-          tab.href === "/orders" || tab.href === "/morning-routine";
+          tab.href === "/orders" || tab.href === "/digital-fitting-room";
         return (
           <Link
             key={tab.href}
             href={tab.href}
             aria-current={active ? "page" : undefined}
-            className={`${mobileSecondary ? "hidden sm:flex" : "flex"} flex-1 items-center justify-center rounded-[var(--customer-radius)] px-2 text-center text-[13px] font-medium tracking-[0.015em] transition-colors duration-200 sm:px-3 sm:text-[14px] ${
+            className={`${mobileSecondary ? "hidden sm:flex" : "flex"} flex-1 items-center justify-center border-r border-black/10 px-2 text-center text-[12px] font-medium tracking-[0.01em] transition-colors duration-200 sm:px-3 sm:text-[13px] ${
               active
                 ? "bg-[var(--customer-moss)] text-[var(--customer-ink)]"
                 : "text-[var(--color-stone-600)] hover:bg-white/60 hover:text-[var(--customer-ink)]"
@@ -51,7 +51,7 @@ export function AccountTopTabs({
         );
       })}
       {trailing ? (
-        <div className="hidden shrink-0 items-center px-2 sm:flex">
+        <div className="hidden min-w-[110px] shrink-0 items-stretch sm:flex">
           {trailing}
         </div>
       ) : null}

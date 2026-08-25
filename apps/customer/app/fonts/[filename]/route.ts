@@ -10,6 +10,8 @@ import { NextResponse } from "next/server";
  * @font-face is a genuine CORS-gated resource fetch unlike `<img>`.
  */
 const ALLOWED_FONTS = new Set([
+  "aviano.woff2",
+  "gtbold3.woff2",
   "Munged-MZgX5NxJBs.woff2",
   "Munged-teVV8iw7A5.woff2",
   "TN_Web_Use_Only.woff2",

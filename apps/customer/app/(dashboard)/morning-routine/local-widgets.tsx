@@ -100,8 +100,10 @@ function haversineKm(a: Coords, b: Coords): number {
  */
 export function LocalWidgets({
   variant = "routine",
+  recommendation,
 }: {
   variant?: "dashboard" | "routine";
+  recommendation?: { name: string; imageUrl?: string };
 }) {
   const [coords, setCoords] = useState<Coords | null>(null);
   const [locationLabel, setLocationLabel] = useState("Your location");
@@ -262,138 +264,109 @@ export function LocalWidgets({
 
   if (variant === "dashboard") {
     return (
-      <section className="customer-panel overflow-hidden bg-[var(--customer-paper)] text-[var(--customer-ink)]">
-        <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
-          <div className="relative min-h-[23rem] overflow-hidden px-6 py-8 sm:px-10 sm:py-11 lg:min-h-[29rem] lg:px-14 lg:py-14">
-            <div
-              aria-hidden="true"
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(circle at 82% 20%, rgba(155, 173, 156, 0.78), transparent 31%), radial-gradient(circle at 16% 90%, rgba(221, 204, 169, 0.72), transparent 42%), linear-gradient(120deg, #f4f1ea 0%, #e8e6df 66%, #dcdcd5 100%)",
-              }}
-            />
-            <div className="relative flex h-full max-w-2xl flex-col justify-between">
-              <div className="flex items-center justify-between gap-4">
-                <p className="customer-kicker text-[#56584f]">
-                  Your day at the house
-                </p>
-                <span className="rounded-[var(--customer-radius)] bg-black/[0.06] px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[#56584f]">
-                  Local context
-                </span>
-              </div>
-              <div className="pt-16 sm:pt-20">
-                <p className="text-sm text-[#62645f]">
-                  {now?.toLocaleDateString(undefined, {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                  }) ?? "Today"}
-                  {locationLabel !== "Your location"
-                    ? ` · ${locationLabel}`
-                    : ""}
-                </p>
-                {weather ? (
-                  <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-1">
-                    <p className="font-display text-7xl leading-none tracking-[-0.07em] sm:text-8xl">
-                      {Math.round(weather.tempC)}°
-                    </p>
-                    <p className="pb-2 text-lg text-[#62645f]">
-                      {weather.label}
-                    </p>
-                  </div>
-                ) : (
-                  <h2 className="font-display mt-3 max-w-xl text-4xl leading-[0.98] tracking-[-0.045em] sm:text-6xl">
-                    Dress for the day ahead.
-                  </h2>
-                )}
-                <p className="mt-5 max-w-md text-sm leading-6 text-[#62645f]">
-                  {weather
-                    ? "A quiet reading of the conditions before you head out."
-                    : "Allow location access to bring local conditions into your morning."}
-                </p>
-              </div>
-              <a
-                href="/morning-routine"
-                className="customer-text-link mt-10 inline-flex w-fit items-center gap-2 text-sm"
-              >
-                Open your full morning routine <span aria-hidden="true">→</span>
-              </a>
+      <section className="overflow-hidden border-b border-black/10 bg-[linear-gradient(100deg,#dce3d6_0%,#c5d0c0_58%,#aebdab_100%)] text-[var(--customer-ink)] lg:h-[100px]">
+        <div className="grid h-full grid-cols-2 divide-x divide-black/10 lg:grid-cols-[1.15fr_0.55fr_1.35fr_1.45fr_1.2fr]">
+          <div className="flex min-h-24 items-center gap-4 px-5 lg:min-h-0">
+            <div>
+              <p className="customer-kicker text-[#596157]">Local context</p>
+              <p className="mt-2 text-sm text-[#2f352e]">
+                {now?.toLocaleDateString(undefined, {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                }) ?? "Today"}
+              </p>
+            </div>
+            <div className="ml-auto text-right">
+              <p className="font-display text-3xl leading-none">
+                {weather ? `${Math.round(weather.tempC)}°` : "—"}
+              </p>
+              <p className="mt-1 max-w-28 truncate text-xs text-[#596157]">
+                {weather?.label ?? locationLabel}
+              </p>
             </div>
           </div>
 
-          <div className="grid bg-[var(--customer-moss)] sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-[0.7fr_1fr_0.85fr]">
-            <div className="flex flex-col justify-between px-6 py-7 sm:px-8 sm:py-8">
-              <p className="customer-kicker text-[#5d6259]">Here and now</p>
-              <div>
-                <p className="font-display text-5xl leading-none tracking-[-0.06em]">
-                  {now?.toLocaleTimeString(undefined, {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }) ?? "—"}
-                </p>
-                <p className="mt-2 text-sm text-[#5d6259]">Your local time</p>
-              </div>
-            </div>
+          <div className="flex min-h-24 flex-col justify-center px-5 lg:min-h-0">
+            <p className="customer-kicker text-[#596157]">Here & now</p>
+            <p className="font-display mt-2 text-2xl tabular-nums leading-none">
+              {now?.toLocaleTimeString(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+              }) ?? "—"}
+            </p>
+          </div>
 
-            <div className="border-t border-black/10 px-6 py-7 sm:px-8 sm:py-8">
-              <p className="customer-kicker text-[#5d6259]">Leave well</p>
-              <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  saveWorkAddress(workInput.trim());
-                }}
-                className="mt-5"
-              >
-                <label className="sr-only" htmlFor="work-address">
-                  Work address
-                </label>
-                <div className="flex min-h-16 items-center rounded-[var(--customer-radius)] bg-white/65 px-4 transition focus-within:bg-white">
-                  <input
-                    id="work-address"
-                    value={workInput}
-                    onChange={(event) => setWorkInput(event.target.value)}
-                    placeholder="Add your work address"
-                    className="min-w-0 flex-1 bg-transparent text-sm text-[#1b1d1a] outline-none placeholder:text-[#666b63]"
-                  />
-                  <button
-                    type="submit"
-                    className="rounded-[var(--customer-radius)] bg-[var(--customer-ink)] px-4 py-2 text-xs font-medium text-white transition hover:bg-black"
-                  >
-                    Save
-                  </button>
-                </div>
-              </form>
-              <p className="mt-3 text-sm text-[#5d6259]">
+          <div className="col-span-2 flex min-h-24 items-center px-5 lg:col-span-1 lg:min-h-0">
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                saveWorkAddress(workInput.trim());
+              }}
+              className="w-full"
+            >
+              <p className="customer-kicker text-[#596157]">Leave well</p>
+              <div className="mt-2 flex items-center gap-2 border-b border-black/25 pb-1">
+                <input
+                  aria-label="Work address"
+                  value={workInput}
+                  onChange={(event) => setWorkInput(event.target.value)}
+                  placeholder="Work address"
+                  className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#596157]"
+                />
+                <button
+                  type="submit"
+                  className="customer-kicker text-[#31372f]"
+                >
+                  Save
+                </button>
+              </div>
+              <p className="mt-1 truncate text-[10px] text-[#596157]">
                 {commute
-                  ? `About ${commute.minutes} min · ${commute.km} km away`
+                  ? `About ${commute.minutes} min · ${commute.km} km`
                   : workAddress
                     ? `Finding ${workAddress}…`
-                    : "A personal distance estimate — never live traffic."}
+                    : "Personal estimate · no live traffic"}
               </p>
-            </div>
+            </form>
+          </div>
 
-            <div className="border-t border-black/10 px-6 py-7 sm:col-span-2 sm:px-8 sm:py-8 lg:col-span-1">
-              <div className="flex items-center justify-between gap-4">
-                <p className="customer-kicker text-[#5d6259]">Elsewhere</p>
-                <span className="text-xs text-[#70766d]">City desk</span>
-              </div>
-              <div className="mt-5 grid grid-cols-3 gap-x-3 gap-y-4">
-                {WORLD_CLOCKS.map((clock) => (
-                  <p key={clock.city} className="min-w-0">
-                    <span className="block truncate text-xs text-[#5d6259]">
-                      {clock.city}
-                    </span>
-                    <span className="mt-1 block text-sm font-medium tabular-nums text-[#1b1d1a]">
-                      {now?.toLocaleTimeString(undefined, {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        timeZone: clock.timeZone,
-                      }) ?? "—"}
-                    </span>
-                  </p>
-                ))}
-              </div>
+          <div className="col-span-2 hidden min-h-24 items-center gap-4 px-5 lg:col-span-1 lg:min-h-0 xl:flex">
+            <p className="customer-kicker shrink-0 text-[#596157]">Elsewhere</p>
+            <div className="grid flex-1 grid-cols-3 gap-x-3 gap-y-1">
+              {WORLD_CLOCKS.map((clock) => (
+                <p
+                  key={clock.city}
+                  className="min-w-0 text-[10px] text-[#596157]"
+                >
+                  <span className="block truncate">{clock.city}</span>
+                  <span className="block font-medium tabular-nums text-[#222720]">
+                    {now?.toLocaleTimeString(undefined, {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      timeZone: clock.timeZone,
+                    }) ?? "—"}
+                  </span>
+                </p>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative col-span-2 hidden overflow-hidden bg-white/20 lg:col-span-1 lg:flex">
+            {recommendation?.imageUrl ? (
+              <Image
+                src={recommendation.imageUrl}
+                alt=""
+                fill
+                unoptimized
+                className="object-contain object-right"
+              />
+            ) : null}
+            <div className="relative z-10 flex max-w-[55%] flex-col justify-center px-4">
+              <p className="customer-kicker text-[#596157]">Today’s look</p>
+              <p className="mt-2 line-clamp-2 text-xs leading-4 text-[#2b302a]">
+                {recommendation?.name ?? "A considered recommendation"}
+              </p>
             </div>
           </div>
         </div>
