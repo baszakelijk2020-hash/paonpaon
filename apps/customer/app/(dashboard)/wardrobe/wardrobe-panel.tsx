@@ -722,6 +722,14 @@ function AdvisorSelectionCard({
               >
                 Explore alternatives
               </button>
+              {suggestedProduct ? (
+                <Link
+                  href={`/digital-fitting-room?productSlug=${suggestedProduct.slug}`}
+                  className="rounded-[10px] bg-white/[0.06] px-3 py-2.5 text-sm"
+                >
+                  Add to Digital Fitting Room
+                </Link>
+              ) : null}
               {askState.success ? (
                 <p
                   role="status"

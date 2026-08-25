@@ -58,7 +58,7 @@ export async function grantStylePortraitConsent(
     customer.retailerId,
     customer.id,
   );
-  revalidatePath("/account");
+  revalidatePath("/digital-fitting-room");
 }
 
 export async function withdrawStylePortraitConsent(
@@ -70,7 +70,7 @@ export async function withdrawStylePortraitConsent(
     customer.retailerId,
     customer.id,
   );
-  revalidatePath("/account");
+  revalidatePath("/digital-fitting-room");
 }
 
 export interface UploadReferenceState {
@@ -153,7 +153,7 @@ export async function uploadStylePortraitReference(
     };
   }
 
-  revalidatePath("/account");
+  revalidatePath("/digital-fitting-room");
   return {};
 }
 
@@ -182,7 +182,7 @@ export async function declareFitArchetype(
     await portraitRepo.setFitArchetype(portrait.id, conceptId);
   }
 
-  revalidatePath("/account");
+  revalidatePath("/digital-fitting-room");
 }
 
 /** The onboarding preview is an actual neutral AI render. It uses the same
@@ -257,7 +257,7 @@ export async function generateStylePortraitPreview(
     },
     snapshot,
   );
-  revalidatePath("/account");
+  revalidatePath("/digital-fitting-room");
 }
 
 export async function approveStylePortrait(formData: FormData): Promise<void> {
@@ -272,7 +272,7 @@ export async function approveStylePortrait(formData: FormData): Promise<void> {
   const portrait = await portraitRepo.findLatestForCustomer(customer.id);
   if (!portrait) throw new Error("No Style Portrait draft to approve.");
   await portraitRepo.approve(portrait.id);
-  revalidatePath("/account");
+  revalidatePath("/digital-fitting-room");
   revalidatePath("/wardrobe");
 }
 
@@ -287,5 +287,5 @@ export async function restartStylePortrait(formData: FormData): Promise<void> {
   } else if (portrait.status === "preview_generated") {
     await portraitRepo.reject(portrait.id, "Customer chose a different photo.");
   }
-  revalidatePath("/account");
+  revalidatePath("/digital-fitting-room");
 }

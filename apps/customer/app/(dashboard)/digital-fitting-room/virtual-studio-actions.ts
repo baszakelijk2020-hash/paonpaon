@@ -52,6 +52,7 @@ async function resolveCustomer(retailerId: string) {
 
 export interface ComposeOutfitState {
   formError?: string;
+  outfitId?: string;
 }
 
 /**
@@ -103,11 +104,13 @@ export async function composeCustomerOutfit(
     };
   }
 
+  let outfitId: string;
   try {
-    await new OutfitRepository(supabase).createByCustomer(
+    const outfit = await new OutfitRepository(supabase).createByCustomer(
       parsed.data,
       customer.id,
     );
+    outfitId = outfit.id;
   } catch (error) {
     return {
       formError:
@@ -115,8 +118,8 @@ export async function composeCustomerOutfit(
     };
   }
 
-  revalidatePath("/wardrobe");
-  return {};
+  revalidatePath("/digital-fitting-room");
+  return { outfitId };
 }
 
 interface EnqueueResult {
@@ -156,13 +159,15 @@ export async function enqueueLook(
     asId<"CustomerId">(params.customerId),
   );
   if (consent.status !== "granted" || !consent.disclosuresAcknowledged) {
-    return { error: "Grant image-generation consent in Settings first." };
+    return {
+      error: "Grant image-generation consent in Digital Fitting Room first.",
+    };
   }
   const portrait = await new StylePortraitRepository(
     supabase,
   ).findApprovedForCustomer(asId<"CustomerId">(params.customerId));
   if (!portrait) {
-    return { error: "Approve a Style Portrait in Settings first." };
+    return { error: "Approve a Style Portrait in Digital Fitting Room first." };
   }
 
   const preset = await new RetailerVisualPresetRepository(
@@ -228,7 +233,7 @@ export async function generateOutfitLook(
     outfitId,
     ...(writtenInstructions ? { writtenInstructions } : {}),
   });
-  revalidatePath("/wardrobe");
+  revalidatePath("/digital-fitting-room");
   return result;
 }
 
@@ -275,7 +280,7 @@ export async function generateAllSavedLooks(
     }
   }
 
-  revalidatePath("/wardrobe");
+  revalidatePath("/digital-fitting-room");
   return { enqueued, errors };
 }
 
@@ -287,7 +292,7 @@ export async function cancelOutfitGeneration(
   await new WardrobeVisualizationJobRepository(supabase).cancel(
     asId<"WardrobeVisualizationJobId">(jobId),
   );
-  revalidatePath("/wardrobe");
+  revalidatePath("/digital-fitting-room");
 }
 
 /** "Cancel all queued" (PHASE 4.10) — cancels every still-queued job across
@@ -315,7 +320,7 @@ export async function cancelAllQueuedLooks(
     }
   }
 
-  revalidatePath("/wardrobe");
+  revalidatePath("/digital-fitting-room");
   return { cancelled };
 }
 
@@ -414,7 +419,7 @@ export async function recordLookFeedback(
     ...(note?.trim() ? { note: note.trim() } : {}),
   });
   await new WardrobeVisualizationFeedbackRepository(supabase).record(parsed);
-  revalidatePath("/wardrobe");
+  revalidatePath("/digital-fitting-room");
 
   try {
     await feedStyleProfileEvidence(supabase, {

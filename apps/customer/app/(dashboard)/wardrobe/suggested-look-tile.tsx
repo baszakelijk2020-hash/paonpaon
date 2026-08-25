@@ -7,7 +7,7 @@ import { useActionState } from "react";
 import {
   generateSuggestedLookTryOn,
   type SuggestedLookGenerateState,
-} from "./virtual-studio-actions";
+} from "../digital-fitting-room/virtual-studio-actions";
 
 const initial: SuggestedLookGenerateState = {};
 

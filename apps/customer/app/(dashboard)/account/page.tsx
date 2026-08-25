@@ -4,16 +4,12 @@ import {
   CustomerRepository,
   MetadataRepository,
   RetailerRepository,
-  StylePortraitConsentRepository,
-  StylePortraitRepository,
   StyleProfileRepository,
-  WardrobeVisualizationJobRepository,
 } from "@paon/database";
-import { buildFitArchetypeOptions, type MetadataConceptId } from "@paon/domain";
+import type { MetadataConceptId } from "@paon/domain";
 
 import { CustomerFactsPanel } from "./customer-facts-panel";
 import { PreferencesForm } from "./preferences-form";
-import { StylePortraitPanel } from "./style-portrait-panel";
 import { StyleProfilePanel } from "./style-profile-panel";
 
 import { requireSession } from "@/lib/session";
@@ -30,9 +26,6 @@ export default async function AccountPage() {
   const preferencesRepo = new CustomerPreferencesRepository(supabase);
   const styleProfileRepo = new StyleProfileRepository(supabase);
   const metadataRepo = new MetadataRepository(supabase);
-  const consentRepo = new StylePortraitConsentRepository(supabase);
-  const portraitRepo = new StylePortraitRepository(supabase);
-  const visualizationRepo = new WardrobeVisualizationJobRepository(supabase);
   const customerFactRepo = new CustomerFactRepository(supabase);
 
   const groups = await Promise.all(
@@ -43,19 +36,6 @@ export default async function AccountPage() {
         customer.retailerId,
         customer.id,
       );
-      const consent = await consentRepo.findForCustomer(
-        customer.retailerId,
-        customer.id,
-      );
-      const portrait = await portraitRepo.findLatestForCustomer(customer.id);
-      const portraitPreviewJob = portrait
-        ? await visualizationRepo.findLatestStylePortraitPreview(portrait.id)
-        : null;
-      const fitConcepts = await metadataRepo.findVisibleConcepts(
-        customer.retailerId,
-        "fit",
-      );
-      const fitArchetypes = buildFitArchetypeOptions(fitConcepts);
       const customerFacts = (
         await customerFactRepo.listForCustomer(customer.retailerId, customer.id)
       ).filter(
@@ -93,10 +73,6 @@ export default async function AccountPage() {
         preferences,
         styleProfile,
         conceptLabels,
-        consent,
-        portrait,
-        portraitPreviewJob,
-        fitArchetypes,
         customerFacts,
       };
     }),
@@ -138,10 +114,6 @@ export default async function AccountPage() {
             preferences,
             styleProfile,
             conceptLabels,
-            consent,
-            portrait,
-            portraitPreviewJob,
-            fitArchetypes,
             customerFacts,
           }) => (
             <section key={customer.id} className="flex flex-col gap-5">
@@ -172,14 +144,6 @@ export default async function AccountPage() {
                 retailerName={retailer?.displayName ?? "Retailer"}
                 profile={styleProfile}
                 conceptLabels={conceptLabels}
-              />
-              <StylePortraitPanel
-                retailerId={customer.retailerId}
-                retailerName={retailer?.displayName ?? "Retailer"}
-                consent={consent}
-                portrait={portrait}
-                previewJob={portraitPreviewJob}
-                fitArchetypes={fitArchetypes}
               />
             </section>
           ),

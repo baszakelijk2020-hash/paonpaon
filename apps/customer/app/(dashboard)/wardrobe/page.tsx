@@ -6,6 +6,7 @@ import {
   WardrobeRoadmapRepository,
 } from "@paon/database";
 import type { WardrobeOwnershipEvent } from "@paon/domain";
+import Link from "next/link";
 
 import { RelatedLinks } from "../related-links";
 
@@ -174,6 +175,18 @@ export default async function WardrobePage() {
           ]}
         />
       </div>
+
+      <Link
+        href="/style-quiz"
+        className="flex items-center justify-between gap-3 rounded-[15px] bg-gradient-to-r from-[var(--color-stone-900)] to-[var(--color-stone-800)] px-5 py-3.5 text-white"
+      >
+        <span className="text-sm">
+          A 60-second style quiz sharpens every suggestion in your wardrobe.
+        </span>
+        <span className="shrink-0 text-sm font-medium underline underline-offset-2">
+          Take the quiz
+        </span>
+      </Link>
 
       {groups.length === 0 ? (
         <div

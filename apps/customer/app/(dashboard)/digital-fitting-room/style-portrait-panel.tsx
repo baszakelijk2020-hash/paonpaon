@@ -101,9 +101,9 @@ export function StylePortraitPanel({
           Style Portrait — {retailerName}
         </h2>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Part of your style profile above: two reference photos and a fit
-          preference so the Virtual Studio can show you wearing pieces from your
-          wardrobe. AI visualizations only — never a guarantee of physical fit.
+          Two reference photos and a fit preference so this studio can show you
+          wearing pieces from your wardrobe. AI visualizations only — never a
+          guarantee of physical fit.
         </p>
       </div>
 
