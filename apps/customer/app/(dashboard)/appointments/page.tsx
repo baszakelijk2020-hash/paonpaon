@@ -1,10 +1,15 @@
 import {
+  AlterationCatalogueRepository,
   AppointmentRepository,
   CustomerRepository,
+  PaidCareServicePriceRepository,
   RetailerBranchRepository,
   RetailerRepository,
 } from "@paon/database";
-import { APPOINTMENT_TYPE_LABELS } from "@paon/domain";
+import {
+  APPOINTMENT_TYPE_LABELS,
+  type PaidCareServiceKind,
+} from "@paon/domain";
 import { formatDate } from "@paon/utils";
 import Link from "next/link";
 
@@ -12,6 +17,8 @@ import { RelatedLinks } from "../related-links";
 
 import { BookAppointmentLauncher } from "./book-appointment-launcher";
 import type { BookableBranch } from "./booking-flow";
+import type { PricedOperation } from "./paid-care-flow";
+import { PaidCareLauncher } from "./paid-care-launcher";
 import { AppointmentStatusBadge } from "./status-badge";
 
 import { requireSession } from "@/lib/session";
@@ -78,6 +85,43 @@ export default async function AppointmentsPage() {
         }),
       )
     : [];
+
+  let operationsByService: Record<
+    PaidCareServiceKind,
+    readonly PricedOperation[]
+  > = { dry_cleaning: [], shoe_repair: [], alteration: [] };
+  if (primaryCustomer) {
+    const priceRepo = new PaidCareServicePriceRepository(supabase);
+    const [dryCleaning, shoeRepair, catalogue] = await Promise.all([
+      priceRepo.findForRetailer(primaryCustomer.retailerId, "dry_cleaning"),
+      priceRepo.findForRetailer(primaryCustomer.retailerId, "shoe_repair"),
+      new AlterationCatalogueRepository(supabase).findForRetailer(
+        primaryCustomer.retailerId,
+      ),
+    ]);
+    operationsByService = {
+      dry_cleaning: dryCleaning.map((price) => ({
+        code: price.operationCode,
+        label: price.label,
+        amountMinorUnits: price.amountMinorUnits,
+        currency: price.currency,
+      })),
+      shoe_repair: shoeRepair.map((price) => ({
+        code: price.operationCode,
+        label: price.label,
+        amountMinorUnits: price.amountMinorUnits,
+        currency: price.currency,
+      })),
+      alteration: catalogue.operations
+        .filter((op) => op.enabled && op.effectivePrice)
+        .map((op) => ({
+          code: op.code,
+          label: op.name,
+          amountMinorUnits: op.effectivePrice!.amountMinorUnits,
+          currency: op.effectivePrice!.currency,
+        })),
+    };
+  }
   const now = Date.now();
   const upcoming = appointments.find(
     (appointment) =>
@@ -141,6 +185,18 @@ export default async function AppointmentsPage() {
               </div>
             ))}
           </div>
+        </section>
+      ) : null}
+
+      {primaryCustomer ? (
+        <section>
+          <h2 className="font-display mb-3 text-xl text-[var(--color-stone-900)]">
+            Paid-care services
+          </h2>
+          <PaidCareLauncher
+            retailerId={primaryCustomer.retailerId}
+            operationsByService={operationsByService}
+          />
         </section>
       ) : null}
 

@@ -291,6 +291,8 @@ export type CustomerIntakeProposalId = Brand<
   string,
   "CustomerIntakeProposalId"
 >;
+export type PaidCareServicePriceId = Brand<string, "PaidCareServicePriceId">;
+export type PaidCareBookingId = Brand<string, "PaidCareBookingId">;
 
 export function asId<T extends string>(value: string): Brand<string, T> {
   return value as Brand<string, T>;

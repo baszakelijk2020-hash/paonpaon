@@ -12210,6 +12210,152 @@ export type Database = {
           },
         ];
       };
+      paid_care_bookings: {
+        Row: {
+          created_at: string;
+          currency: string | null;
+          customer_id: string;
+          deleted_at: string | null;
+          garment_description: string;
+          id: string;
+          notes: string | null;
+          operation_code: string | null;
+          operation_label: string | null;
+          payment_choice: string;
+          payment_status: string;
+          pickup_method: string;
+          preferred_window: string | null;
+          pricing_status: string;
+          qr_token: string | null;
+          quantity: number;
+          retailer_id: string;
+          return_method: string;
+          service_kind: string;
+          status: string;
+          total_amount_minor_units: number | null;
+          unit_amount_minor_units: number | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          currency?: string | null;
+          customer_id: string;
+          deleted_at?: string | null;
+          garment_description: string;
+          id?: string;
+          notes?: string | null;
+          operation_code?: string | null;
+          operation_label?: string | null;
+          payment_choice: string;
+          payment_status?: string;
+          pickup_method: string;
+          preferred_window?: string | null;
+          pricing_status?: string;
+          qr_token?: string | null;
+          quantity?: number;
+          retailer_id: string;
+          return_method: string;
+          service_kind: string;
+          status?: string;
+          total_amount_minor_units?: number | null;
+          unit_amount_minor_units?: number | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          currency?: string | null;
+          customer_id?: string;
+          deleted_at?: string | null;
+          garment_description?: string;
+          id?: string;
+          notes?: string | null;
+          operation_code?: string | null;
+          operation_label?: string | null;
+          payment_choice?: string;
+          payment_status?: string;
+          pickup_method?: string;
+          preferred_window?: string | null;
+          pricing_status?: string;
+          qr_token?: string | null;
+          quantity?: number;
+          retailer_id?: string;
+          return_method?: string;
+          service_kind?: string;
+          status?: string;
+          total_amount_minor_units?: number | null;
+          unit_amount_minor_units?: number | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "paid_care_bookings_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "paid_care_bookings_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      paid_care_service_prices: {
+        Row: {
+          active: boolean;
+          amount_minor_units: number;
+          created_at: string;
+          currency: string;
+          deleted_at: string | null;
+          display_order: number;
+          id: string;
+          label: string;
+          operation_code: string;
+          retailer_id: string;
+          service_kind: string;
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          amount_minor_units: number;
+          created_at?: string;
+          currency: string;
+          deleted_at?: string | null;
+          display_order?: number;
+          id?: string;
+          label: string;
+          operation_code: string;
+          retailer_id: string;
+          service_kind: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          amount_minor_units?: number;
+          created_at?: string;
+          currency?: string;
+          deleted_at?: string | null;
+          display_order?: number;
+          id?: string;
+          label?: string;
+          operation_code?: string;
+          retailer_id?: string;
+          service_kind?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "paid_care_service_prices_retailer_id_fkey";
+            columns: ["retailer_id"];
+            isOneToOne: false;
+            referencedRelation: "retailers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       payments: {
         Row: {
           amount_minor_units: number;
@@ -24117,6 +24263,10 @@ export type Database = {
         Args: { p_retailer_id: string; p_variant_id: string };
         Returns: boolean;
       };
+      seed_default_paid_care_service_prices: {
+        Args: { p_retailer_id: string };
+        Returns: undefined;
+      };
       send_conversation_message: {
         Args: { p_body: string; p_conversation_id: string };
         Returns: string;
@@ -24719,7 +24869,8 @@ export type Database = {
         | "loyalty_update"
         | "message"
         | "marketing"
-        | "system";
+        | "system"
+        | "paid_care_booking";
       notification_channel: "email" | "sms" | "push" | "in_app";
       order_channel: "online" | "in_store" | "clienteling" | "phone";
       order_status:
@@ -25145,6 +25296,7 @@ export const Constants = {
         "message",
         "marketing",
         "system",
+        "paid_care_booking",
       ],
       notification_channel: ["email", "sms", "push", "in_app"],
       order_channel: ["online", "in_store", "clienteling", "phone"],
