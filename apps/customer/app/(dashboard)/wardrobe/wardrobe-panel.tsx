@@ -1,13 +1,8 @@
 "use client";
 
 import {
-  GARMENT_CATEGORIES,
-  WARDROBE_CARE_STATES,
-  WARDROBE_CONDITION_STATES,
-  WARDROBE_FIT_PERCEPTIONS,
   WARDROBE_SERVICE_REQUEST_KIND_LABELS,
   WARDROBE_SERVICE_REQUEST_KINDS,
-  WARDROBE_WEAR_FREQUENCIES,
   type CompleteTheLookSuggestion,
   type GarmentCategoryCode,
   type WardrobeItem,
@@ -22,7 +17,6 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import {
-  addExternalWardrobeItem,
   requestWardrobeItemService,
   retireWardrobeItem,
   type WardrobeActionState,
@@ -42,10 +36,9 @@ function formatLifecycleDate(value: string): string {
 }
 
 function ownershipLabel(item: WardrobeItem): string {
-  if (item.ownershipKind === "retailer_purchased") {
-    return "Purchased here";
-  }
-  return "External";
+  return item.ownershipKind === "retailer_purchased"
+    ? "In your wardrobe"
+    : "Wardrobe item";
 }
 
 function provenanceLabel(item: WardrobeItem): string {
@@ -370,7 +363,6 @@ function WardrobeCarousel({
 export function WardrobeHousePanel({
   retailerId,
   retailerName,
-  customerId,
   items,
   historyByItemId,
   roadmaps,
@@ -378,7 +370,6 @@ export function WardrobeHousePanel({
 }: {
   retailerId: string;
   retailerName: string;
-  customerId: string;
   items: readonly WardrobeItem[];
   historyByItemId: Readonly<Record<string, readonly WardrobeOwnershipEvent[]>>;
   roadmaps: readonly WardrobeRoadmap[];
@@ -390,10 +381,6 @@ export function WardrobeHousePanel({
   const initialServiceRequestState: WardrobeServiceRequestState = {
     fieldErrors: {},
   };
-  const [addState, addAction, addPending] = useActionState(
-    addExternalWardrobeItem,
-    initialState,
-  );
   const [retireState, retireAction, retirePending] = useActionState(
     retireWardrobeItem,
     initialState,
@@ -430,24 +417,14 @@ export function WardrobeHousePanel({
           Wardrobe — {retailerName}
         </h2>
         <p className="text-sm text-[var(--color-stone-500)]">
-          Pieces you own with this house. External garments stay private to this
-          relationship; fit notes are self-reported and never become official
-          measurements.
+          Your garments and advisor selections, organised by category. Fit notes
+          remain self-reported and never become official measurements.
         </p>
       </div>
 
-      {addState.formError ||
-      retireState.formError ||
-      serviceRequestState.formError ? (
+      {retireState.formError || serviceRequestState.formError ? (
         <p role="alert" className="text-sm text-[var(--color-danger-500)]">
-          {addState.formError ??
-            retireState.formError ??
-            serviceRequestState.formError}
-        </p>
-      ) : null}
-      {addState.success ? (
-        <p role="status" className="text-sm text-[var(--color-success-500)]">
-          External garment added to your wardrobe.
+          {retireState.formError ?? serviceRequestState.formError}
         </p>
       ) : null}
       {retireState.success ? (
@@ -493,8 +470,8 @@ export function WardrobeHousePanel({
           ))}
         {active.length === 0 ? (
           <p role="status" className="text-sm text-[var(--color-stone-500)]">
-            Add a garment bought elsewhere, or ask your advisor to link a
-            purchase from this house.
+            Your purchased garments will appear here after they are linked to
+            your account.
           </p>
         ) : null}
         {retired.length > 0 ? (
@@ -505,144 +482,6 @@ export function WardrobeHousePanel({
           </p>
         ) : null}
       </div>
-
-      <form
-        action={addAction}
-        className="flex flex-col gap-3 border-t border-[var(--color-stone-100)] pt-5"
-        aria-label={`Add external garment for ${retailerName}`}
-      >
-        <input type="hidden" name="retailerId" value={retailerId} />
-        <input type="hidden" name="customerId" value={customerId} />
-        <h3 className="text-sm font-medium text-[var(--color-stone-900)]">
-          Add an external garment
-        </h3>
-        <p className="text-xs text-[var(--color-stone-500)]">
-          Descriptions stay with this house. Metadata proposals are reviewable
-          by your advisor and never invent a catalogue product.
-        </p>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Name</span>
-          <input
-            name="displayName"
-            required
-            maxLength={200}
-            className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-            aria-invalid={!!addState.fieldErrors.displayName}
-          />
-          {addState.fieldErrors.displayName ? (
-            <span className="text-xs text-[var(--color-danger-500)]">
-              {addState.fieldErrors.displayName}
-            </span>
-          ) : null}
-        </label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Category</span>
-            <select
-              name="categoryCode"
-              required
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-              defaultValue="jacket"
-            >
-              {GARMENT_CATEGORIES.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Brand</span>
-            <input
-              name="brand"
-              maxLength={120}
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-            />
-          </label>
-        </div>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Description</span>
-          <textarea
-            name="description"
-            maxLength={2000}
-            rows={2}
-            className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-          />
-        </label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Condition</span>
-            <select
-              name="condition"
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-              defaultValue="good"
-            >
-              {WARDROBE_CONDITION_STATES.filter(
-                (state) => state !== "retired",
-              ).map((state) => (
-                <option key={state} value={state}>
-                  {state.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Wear</span>
-            <select
-              name="wearFrequency"
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-              defaultValue=""
-            >
-              <option value="">Not set</option>
-              {WARDROBE_WEAR_FREQUENCIES.map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Care</span>
-            <select
-              name="careState"
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-              defaultValue="current"
-            >
-              {WARDROBE_CARE_STATES.map((state) => (
-                <option key={state} value={state}>
-                  {state.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span>Perceived fit</span>
-            <select
-              name="fitPerception"
-              className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-              defaultValue="unknown"
-            >
-              {WARDROBE_FIT_PERCEPTIONS.map((state) => (
-                <option key={state} value={state}>
-                  {state.replaceAll("_", " ")}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <label className="flex flex-col gap-1 text-sm">
-          <span>Fit notes (self-reported)</span>
-          <textarea
-            name="fitNotes"
-            maxLength={2000}
-            rows={2}
-            className="rounded-[var(--radius-md)] border border-[var(--color-stone-200)] px-3 py-2"
-          />
-        </label>
-        <Button type="submit" disabled={addPending}>
-          {addPending ? "Adding…" : "Add to wardrobe"}
-        </Button>
-      </form>
     </Card>
   );
 }

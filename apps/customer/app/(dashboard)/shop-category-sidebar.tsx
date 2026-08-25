@@ -78,9 +78,8 @@ export async function ShopCategorySidebar() {
         }}
       >
         <span
-          className="shop-sidebar-shimmer relative top-[2px] inline-block whitespace-nowrap"
+          className="shop-sidebar-shimmer font-brand relative top-[2px] inline-block whitespace-nowrap"
           style={{
-            fontFamily: "Portrait, sans-serif",
             fontSize: "13px",
             lineHeight: 1,
           }}

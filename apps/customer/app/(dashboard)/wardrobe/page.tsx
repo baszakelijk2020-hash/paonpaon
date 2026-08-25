@@ -177,9 +177,8 @@ export default async function WardrobePage() {
           Wardrobe
         </h1>
         <p className="text-sm text-[var(--color-stone-500)]">
-          What you own with each house — purchases and external pieces, kept
-          separate from fitting garments — plus fit freshness, longevity
-          guidance, self-scan, and advisor roadmaps.
+          Your garments, care options, fit checks, and advisor selections in one
+          considered view.
         </p>
         <RelatedLinks
           links={[
@@ -217,7 +216,6 @@ export default async function WardrobePage() {
               <WardrobeHousePanel
                 retailerId={customer.retailerId}
                 retailerName={retailer?.displayName ?? "Retailer"}
-                customerId={customer.id}
                 items={items}
                 historyByItemId={historyByItemId}
                 roadmaps={roadmaps}

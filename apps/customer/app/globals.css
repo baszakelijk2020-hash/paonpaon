@@ -9,6 +9,13 @@
 
 @font-face {
   font-family: "Customer Display";
+  src: url("/fonts/Munged-MZgX5NxJBs.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Brand Display";
   src: url("/fonts/aviano.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
@@ -39,11 +46,15 @@ body {
 h1,
 h2,
 h3 {
-  font-family: "Customer Display", "Aviano", serif;
+  font-family: "Customer Display", "Munged", serif;
 }
 
 .font-display {
-  font-family: "Customer Display", "Aviano", serif;
+  font-family: "Customer Display", "Munged", serif;
+}
+
+.font-brand {
+  font-family: "Brand Display", "Aviano", serif;
 }
 
 :root {
