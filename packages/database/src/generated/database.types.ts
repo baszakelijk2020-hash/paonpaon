@@ -23865,6 +23865,7 @@ export type Database = {
       };
       request_appointment: {
         Args: {
+          p_branch_id?: string;
           p_ends_at: string;
           p_notes?: string;
           p_retailer_id: string;

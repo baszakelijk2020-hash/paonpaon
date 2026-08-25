@@ -99,6 +99,7 @@ describe("AppointmentRepository", () => {
       p_starts_at: row.starts_at,
       p_ends_at: row.ends_at,
       p_notes: null,
+      p_branch_id: null,
     });
     expect(appointmentId).toBe(row.id);
   });

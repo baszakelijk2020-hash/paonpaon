@@ -1,6 +1,7 @@
 import {
   AppointmentRepository,
   CustomerRepository,
+  RetailerBranchRepository,
   RetailerRepository,
 } from "@paon/database";
 import { APPOINTMENT_TYPE_LABELS } from "@paon/domain";
@@ -9,10 +10,35 @@ import Link from "next/link";
 
 import { RelatedLinks } from "../related-links";
 
+import { BookAppointmentLauncher } from "./book-appointment-launcher";
+import type { BookableBranch } from "./booking-flow";
 import { AppointmentStatusBadge } from "./status-badge";
 
 import { requireSession } from "@/lib/session";
 import { getSupabaseServerClient } from "@/lib/supabase-server";
+
+const INSPIRATION_APPOINTMENTS = [
+  {
+    id: "fall-winter-2026",
+    dateLabel: "September 2026",
+    title: "Fall/Winter Wardrobe Appointment",
+  },
+  {
+    id: "spring-summer-2027",
+    dateLabel: "February 2027",
+    title: "Spring/Summer 2027 Wardrobe Appointment",
+  },
+  {
+    id: "summer-holiday-2027",
+    dateLabel: "April 2027",
+    title: "Summer Holiday 2027 Wardrobe Appointment",
+  },
+  {
+    id: "holiday-season-2027",
+    dateLabel: "November 2027",
+    title: "Holiday Season Look Appointment",
+  },
+] as const;
 
 export default async function AppointmentsPage() {
   const session = await requireSession();
@@ -23,6 +49,7 @@ export default async function AppointmentsPage() {
   );
   const appointmentRepo = new AppointmentRepository(supabase);
   const retailerRepo = new RetailerRepository(supabase);
+  const branchRepo = new RetailerBranchRepository(supabase);
 
   const appointmentsByCustomer = await Promise.all(
     customers.map((customer) => appointmentRepo.findByCustomer(customer.id)),
@@ -38,12 +65,15 @@ export default async function AppointmentsPage() {
   );
 
   const primaryCustomer = customers[0];
-  const primaryRetailer = primaryCustomer
-    ? await retailerRepo.findById(primaryCustomer.retailerId)
-    : null;
-  const bookHref = primaryRetailer
-    ? `/r/${primaryRetailer.slug}`
-    : "/r/atelier-demo";
+  const bookableBranches: readonly BookableBranch[] = primaryCustomer
+    ? (await branchRepo.listByRetailer(primaryCustomer.retailerId)).map(
+        (branch) => ({
+          id: branch.id,
+          name: branch.name,
+          openingHours: branch.openingHours,
+        }),
+      )
+    : [];
   const now = Date.now();
   const upcoming = appointments.find(
     (appointment) =>
@@ -72,16 +102,46 @@ export default async function AppointmentsPage() {
             Your visits
           </p>
           <h1 className="font-display text-3xl text-[var(--color-stone-900)]">
-            Appointments
+            My Appointments
           </h1>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link href={bookHref} className="customer-button">
-            Book appointment
-          </Link>
+          {primaryCustomer ? (
+            <BookAppointmentLauncher
+              retailerId={primaryCustomer.retailerId}
+              branches={bookableBranches}
+            />
+          ) : null}
           <RelatedLinks links={[{ href: "/concierge", label: "Concierge" }]} />
         </div>
       </div>
+
+      {primaryCustomer ? (
+        <section>
+          <h2 className="font-display mb-3 text-xl text-[var(--color-stone-900)]">
+            Suggestions to book
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {INSPIRATION_APPOINTMENTS.map((card) => (
+              <div
+                key={card.id}
+                className="flex flex-col justify-between gap-3 rounded-[15px] bg-gradient-to-br from-[var(--color-stone-900)] to-[var(--color-stone-800)] p-4 text-white"
+              >
+                <div>
+                  <p className="text-xs uppercase tracking-[0.1em] text-[var(--color-stone-400)]">
+                    {card.dateLabel}
+                  </p>
+                  <p className="font-display mt-1 text-base">{card.title}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-[var(--color-stone-500)]">
+            These are suggestions, not already-booked appointments — use
+            &ldquo;Book appointment&rdquo; above to start a real booking.
+          </p>
+        </section>
+      ) : null}
 
       {upcoming ? (
         <section className="customer-panel">
@@ -91,11 +151,11 @@ export default async function AppointmentsPage() {
                 Next appointment
               </p>
               <h2 className="font-display mt-2 text-2xl text-[var(--color-stone-900)]">
-                {retailerById.get(upcoming.id)?.displayName ??
-                  "Unknown retailer"}
+                {APPOINTMENT_TYPE_LABELS[upcoming.type]}
               </h2>
               <p className="mt-1 text-[var(--color-stone-700)]">
-                {APPOINTMENT_TYPE_LABELS[upcoming.type]}
+                {retailerById.get(upcoming.id)?.displayName ??
+                  "Unknown retailer"}
               </p>
             </div>
             <AppointmentStatusBadge status={upcoming.status} />
@@ -104,35 +164,21 @@ export default async function AppointmentsPage() {
             {formatDate(upcoming.startsAt, "en-US")} ·{" "}
             {formatRange(upcoming.startsAt, upcoming.endsAt)}
           </p>
-          {upcoming.notes ? (
-            <p className="mt-3 line-clamp-2 text-sm text-[var(--color-stone-600)]">
-              {upcoming.notes}
-            </p>
-          ) : null}
-          <Link
-            href={`/appointments/${upcoming.id}`}
-            className="customer-text-link mt-5 inline-flex text-sm font-medium underline underline-offset-4"
-          >
-            View appointment details
-          </Link>
         </section>
-      ) : appointments.length === 0 ? (
+      ) : !primaryCustomer ? (
         <div className="customer-panel px-6 py-16 text-center">
           <p className="text-[var(--color-stone-600)]">
-            No appointments yet. Book a fitting from the storefront.
+            No retailer connection yet.
           </p>
-          <Link href={bookHref} className="customer-button mt-6">
-            Book a fitting
-          </Link>
         </div>
       ) : null}
 
       {history.length > 0 ? (
-        <section>
-          <h2 className="font-display mb-3 text-xl text-[var(--color-stone-900)]">
-            Appointment history
-          </h2>
-          <div className="customer-panel divide-y divide-[var(--color-stone-100)] p-0">
+        <details className="customer-panel p-0">
+          <summary className="font-display cursor-pointer list-none px-6 py-4 text-xl text-[var(--color-stone-900)]">
+            Appointment history ({history.length})
+          </summary>
+          <div className="divide-y divide-[var(--color-stone-100)]">
             {history.map((appointment) => (
               <Link
                 key={appointment.id}
@@ -141,12 +187,12 @@ export default async function AppointmentsPage() {
               >
                 <div className="min-w-0">
                   <p className="font-medium text-[var(--color-stone-900)]">
-                    {retailerById.get(appointment.id)?.displayName ??
-                      "Unknown retailer"}
+                    {APPOINTMENT_TYPE_LABELS[appointment.type]}
                   </p>
                   <p className="text-sm text-[var(--color-stone-500)]">
-                    {APPOINTMENT_TYPE_LABELS[appointment.type]} ·{" "}
-                    {formatDate(appointment.startsAt, "en-US")} ·{" "}
+                    {retailerById.get(appointment.id)?.displayName ??
+                      "Unknown retailer"}{" "}
+                    · {formatDate(appointment.startsAt, "en-US")} ·{" "}
                     {formatRange(appointment.startsAt, appointment.endsAt)}
                   </p>
                 </div>
@@ -154,7 +200,7 @@ export default async function AppointmentsPage() {
               </Link>
             ))}
           </div>
-        </section>
+        </details>
       ) : null}
     </div>
   );
