@@ -56,7 +56,33 @@ export default async function OrdersPage() {
         </div>
       ) : (
         <>
-          <div className="customer-panel grid grid-cols-1 gap-px overflow-hidden p-0 sm:grid-cols-3">
+          {activeOrderCount > 0 ? (
+            <section>
+              <p className="customer-kicker mb-3 text-[var(--color-stone-500)]">
+                Pending orders
+              </p>
+              <div className="border-y border-[var(--customer-border)]">
+                {orders
+                  .filter((order) => !TERMINAL_ORDER_STATUSES.has(order.status))
+                  .map((order) => (
+                    <Link
+                      key={order.id}
+                      href={`/orders/${order.id}`}
+                      className="flex items-center justify-between gap-4 py-4"
+                    >
+                      <span className="font-display text-xl text-[var(--color-stone-900)]">
+                        {order.orderNumber}
+                      </span>
+                      <span className="text-sm text-[var(--color-stone-600)]">
+                        {ORDER_STATUS_LABELS[order.status]} ·{" "}
+                        {formatMoney(order.total, "en-US")}
+                      </span>
+                    </Link>
+                  ))}
+              </div>
+            </section>
+          ) : null}
+          <div className="grid grid-cols-1 gap-px border-y border-[var(--customer-border)] sm:grid-cols-3">
             <div className="px-5 py-4">
               <p className="text-xs uppercase tracking-[0.14em] text-[var(--color-stone-500)]">
                 Orders
@@ -84,37 +110,42 @@ export default async function OrdersPage() {
               </p>
             </div>
           </div>
-          <div className="customer-panel divide-y divide-[var(--color-stone-100)] p-0">
-            {orders.map((order) => (
-              <Link
-                key={order.id}
-                href={`/orders/${order.id}`}
-                className="customer-list-row group flex flex-wrap items-center justify-between gap-5 px-5 py-6 sm:px-7"
-              >
-                <div className="min-w-0 space-y-2">
-                  <p className="font-medium text-[var(--color-stone-900)]">
-                    {order.orderNumber}
-                  </p>
-                  <p className="text-sm text-[var(--color-stone-500)]">
-                    {formatDate(order.createdAt, "en-US")}
-                  </p>
-                </div>
-                <div className="flex items-center gap-5">
-                  <div className="text-right">
+          <section>
+            <p className="customer-kicker mb-3 text-[var(--color-stone-500)]">
+              Order history
+            </p>
+            <div className="divide-y divide-[var(--color-stone-100)] border-y border-[var(--customer-border)]">
+              {orders.map((order) => (
+                <Link
+                  key={order.id}
+                  href={`/orders/${order.id}`}
+                  className="customer-list-row group flex flex-wrap items-center justify-between gap-5 px-5 py-6 sm:px-7"
+                >
+                  <div className="min-w-0 space-y-2">
                     <p className="font-medium text-[var(--color-stone-900)]">
-                      {formatMoney(order.total, "en-US")}
+                      {order.orderNumber}
                     </p>
-                    <p className="mt-1 text-xs text-[var(--color-stone-500)]">
-                      {ORDER_STATUS_LABELS[order.status]}
+                    <p className="text-sm text-[var(--color-stone-500)]">
+                      {formatDate(order.createdAt, "en-US")}
                     </p>
                   </div>
-                  <span className="customer-text-link text-sm underline underline-offset-4">
-                    View order
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
+                  <div className="flex items-center gap-5">
+                    <div className="text-right">
+                      <p className="font-medium text-[var(--color-stone-900)]">
+                        {formatMoney(order.total, "en-US")}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--color-stone-500)]">
+                        {ORDER_STATUS_LABELS[order.status]}
+                      </p>
+                    </div>
+                    <span className="customer-text-link text-sm underline underline-offset-4">
+                      View order
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
         </>
       )}
     </div>
