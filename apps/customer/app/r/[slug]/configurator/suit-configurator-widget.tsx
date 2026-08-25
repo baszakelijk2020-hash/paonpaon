@@ -227,12 +227,12 @@ const WIDGET_CSS = `
 }
 @font-face {
   font-family: 'Optimaklein';
-  src: url('/fonts/googleflex.woff2') format('woff2');
+  src: url('/fonts/TN_Web_Use_Only_2.woff2') format('woff2');
   font-display: swap;
 }
 @font-face {
   font-family: 'GTBold3';
-  src: url('/fonts/gtbold3.woff2') format('woff2');
+  src: url('/fonts/Munged-teVV8iw7A5.woff2') format('woff2');
   font-display: swap;
 }
 `;

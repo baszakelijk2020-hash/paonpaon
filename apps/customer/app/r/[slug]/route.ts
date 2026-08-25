@@ -71,8 +71,8 @@ async function loadTemplate(): Promise<string> {
   // founder's own domain. Use the same local Google Flex face as the rest
   // of the storefront, avoiding a cross-origin font request.
   const html = raw.replaceAll(
-    "https://www.nebelspiegel.com/fonts/optimaklein.woff2",
-    "/fonts/googleflex.woff2",
+    "/fonts/TN_Web_Use_Only_2.woff2",
+    "/fonts/TN_Web_Use_Only_2.woff2",
   );
   templateCache = html;
   return html;

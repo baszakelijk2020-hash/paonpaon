@@ -483,7 +483,7 @@ export function TableServiceWidget({
           <style>{`
             @font-face {
                 font-family: 'lvreg';
-                src: url('/fonts/googleflex.woff2') format('woff2');
+                src: url('/fonts/TN_Web_Use_Only_2.woff2') format('woff2');
             }
             #gilda-chat-widget { font-family: 'lvreg', sans-serif; box-sizing: border-box; }
             #gilda-chat-widget * { box-sizing: border-box; }

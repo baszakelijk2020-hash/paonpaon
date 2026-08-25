@@ -1,13 +1,30 @@
 @import "@paon/ui/styles.css";
 
 @font-face {
+  font-family: "Customer Body";
+  src: url("/fonts/TN_Web_Use_Only_2.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Customer Display";
+  src: url("/fonts/Munged-MZgX5NxJBs.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* The storefront template still names this family in a few isolated
+ * embedded widgets. Keep the name as an alias, never as a fallback. */
+@font-face {
   font-family: "Google Flex";
-  src: url("/fonts/googleflex.woff2") format("woff2");
+  src: url("/fonts/TN_Web_Use_Only_2.woff2") format("woff2");
+  font-weight: 400;
   font-display: swap;
 }
 
 body {
-  font-family: "Google Flex", sans-serif;
+  font-family: "Customer Body", "TN Web Use Only", sans-serif;
   background: #f4f2ed;
   color: #171916;
 }
@@ -15,11 +32,11 @@ body {
 h1,
 h2,
 h3 {
-  font-family: "Google Flex", sans-serif;
+  font-family: "Customer Display", "Munged", serif;
 }
 
 .font-display {
-  font-family: "Google Flex", sans-serif;
+  font-family: "Customer Display", "Munged", serif;
 }
 
 :root {
@@ -41,7 +58,7 @@ h3 {
   padding-block: 1.25rem 1.5rem;
 }
 .customer-kicker {
-  font-family: "GTBold3", sans-serif;
+  font-family: "Munged", serif;
   font-size: 0.6875rem;
   font-weight: 400;
   letter-spacing: 0.14em;
@@ -90,7 +107,7 @@ h3 {
   background: var(--customer-ink);
   padding-inline: 1rem;
   color: var(--customer-paper);
-  font-family: "Google Flex", sans-serif;
+  font-family: "Customer Body", "TN Web Use Only", sans-serif;
   font-size: 0.875rem;
   transition:
     background 150ms ease,
