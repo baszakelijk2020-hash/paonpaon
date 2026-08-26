@@ -8460,6 +8460,88 @@ setContractValue`. `corporate_exceptions.kind` gains a `repair`
   - **Tests:** storefront-digital-fitting-room-handoff V3 E2E, customer lint,
     typecheck.
 
+- [ ] **20.22 claude-wardrobe-external-write-removal-v3 — remove dormant external garment write path**
+  - **Requirement IDs:** `CENV-WARDROBE-EXTERNAL-001`.
+  - **Dependencies:** `20.9`.
+  - **Fleet owned paths:** `apps/customer/app/(dashboard)/wardrobe/actions.ts`,
+    `apps/customer/e2e/wardrobe-no-external-entry-v3.spec.ts`, and
+    `docs/evidence/runs/20.22-wardrobe-external-write-removal-v3/`.
+  - **Owner boundary:** remove only the dormant customer external-garment write
+    capability. Preserve retailer purchase-linked garments and every real
+    tenant-safe owned-garment action. No external-garment UI, provenance,
+    purchase-location distinction, QR, payment, email, receipts, Mission
+    Control, auth, RLS, migration, Supabase, or unowned changes.
+  - **Acceptance:** no customer path can create an external garment; focused
+    E2E, lint, typecheck, exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** wardrobe-no-external-entry V3 E2E, customer lint, typecheck.
+
+- [ ] **20.23 claude-storefront-dashboard-return-state-v3 — return-state restoration proof**
+  - **Requirement IDs:** `CENV-RETURN-STATE-001`.
+  - **Dependencies:** `20.21`.
+  - **Fleet owned paths:** `apps/customer/e2e/storefront-dashboard-return-state-v3.spec.ts`,
+    `docs/evidence/runs/20.23-storefront-dashboard-return-state-v3/`.
+  - **Owner boundary:** test-only proof that Back/Forward restores valid
+    category, filter, sort, product, drawer/modal, and scroll return state
+    without full reload or wrong-customer data. No application, storefront,
+    auth, RLS, migration, Supabase, QR, payment, email, receipts, or Mission
+    Control edits.
+  - **Acceptance:** focused authenticated browser proof at desktop/mobile with
+    console clean, lint/typecheck, exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** storefront-dashboard-return-state V3 E2E, customer lint, typecheck.
+
+- [ ] **20.24 claude-customer-prefetch-guard-v3 — constrained-network prefetch proof**
+  - **Requirement IDs:** `CENV-PREFETCH-001`.
+  - **Dependencies:** `20.15`.
+  - **Fleet owned paths:** `apps/customer/e2e/customer-prefetch-constrained-network-v3.spec.ts`,
+    `docs/evidence/runs/20.24-customer-prefetch-guard-v3/`.
+  - **Owner boundary:** test-only V3 proof that Save-Data and 2G prevent
+    speculative heavyweight prefetch while normal customer navigation remains
+    correct. No application code, QR, payment, email, receipts, Mission
+    Control, auth, RLS, migration, Supabase, or storefront edits.
+  - **Acceptance:** focused browser proof, lint/typecheck, exact-SHA evidence,
+    and owned-files-only commit.
+  - **Tests:** customer-prefetch-constrained-network V3 E2E, customer lint, typecheck.
+
+- [ ] **20.25 claude-customer-cta-squircle-v3 — CTA-system contract proof**
+  - **Requirement IDs:** `CENV-CTA-001`.
+  - **Dependencies:** `20.15`.
+  - **Fleet owned paths:** `apps/customer/e2e/customer-cta-squircle-v3.spec.ts`,
+    `docs/evidence/runs/20.25-customer-cta-squircle-v3/`.
+  - **Owner boundary:** test-only V3 proof that customer CTA controls use the
+    one 15px squircle system and do not regress to generic outlined-card styling.
+    No application code, QR, payment, email, receipts, Mission Control, auth,
+    RLS, migration, Supabase, or storefront edits.
+  - **Acceptance:** desktop/mobile focused browser assertions, lint/typecheck,
+    exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** customer-cta-squircle V3 E2E, customer lint, typecheck.
+
+- [ ] **20.26 claude-wardrobe-rail-contract-v3 — eight-rail contract proof**
+  - **Requirement IDs:** `CENV-WARDROBE-RAILS-001`.
+  - **Dependencies:** `20.9`.
+  - **Fleet owned paths:** `apps/customer/e2e/wardrobe-rail-contract-v3.spec.ts`,
+    `docs/evidence/runs/20.26-wardrobe-rail-contract-v3/`.
+  - **Owner boundary:** test-only proof of exactly eight rails in V3 order,
+    real counts, ten visible slots per rail, retailer purchase-linked garments
+    only, and visible `object-contain` imagery without clipping. No application
+    code, external garments, QR, payment, email, receipts, Mission Control,
+    auth, RLS, migration, Supabase, or storefront edits.
+  - **Acceptance:** desktop/mobile focused browser proof, lint/typecheck,
+    exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** wardrobe-rail-contract V3 E2E, customer lint, typecheck.
+
+- [ ] **20.27 claude-orders-history-integrity-v3 — history and duplicate-suppression proof**
+  - **Requirement IDs:** `CENV-ORDERS-HISTORY-001`.
+  - **Dependencies:** `20.18`.
+  - **Fleet owned paths:** `apps/customer/e2e/orders-history-integrity-v3.spec.ts`,
+    `docs/evidence/runs/20.27-orders-history-integrity-v3/`.
+  - **Owner boundary:** test-only V3 proof that Pending Orders precedes complete
+    Order History and overlapping products do not duplicate across modules on
+    one viewport. No application code, QR, payment, email, receipts, Mission
+    Control, auth, RLS, migration, Supabase, or storefront edits.
+  - **Acceptance:** desktop/mobile focused browser proof, lint/typecheck,
+    exact-SHA evidence, and owned-files-only commit.
+  - **Tests:** orders-history-integrity V3 E2E, customer lint, typecheck.
+
 ### Stage 21 — Storefront-to-shell incremental migration
 
 Governed by `docs/plans/CUSTOMER_ENVIRONMENT_REBUILD_V3.md` §3.2 / §13 and
